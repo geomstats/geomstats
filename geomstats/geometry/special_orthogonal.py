@@ -1062,17 +1062,20 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         for i in range(n_quaternions):
             # TODO (nina): Vectorize by applying the composition of
             # quaternions to the identity matrix
-            column_1 = [w[i] ** 2 + x[i] ** 2 - y[i] ** 2 - z[i] ** 2,
-                        2 * x[i] * y[i] - 2 * w[i] * z[i],
-                        2 * x[i] * z[i] + 2 * w[i] * y[i]]
+            column_1 = gs.array([
+                w[i] ** 2 + x[i] ** 2 - y[i] ** 2 - z[i] ** 2,
+                2 * x[i] * y[i] - 2 * w[i] * z[i],
+                2 * x[i] * z[i] + 2 * w[i] * y[i]])
 
-            column_2 = [2 * x[i] * y[i] + 2 * w[i] * z[i],
-                        w[i] ** 2 - x[i] ** 2 + y[i] ** 2 - z[i] ** 2,
-                        2 * y[i] * z[i] - 2 * w[i] * x[i]]
+            column_2 = gs.array([
+                2 * x[i] * y[i] + 2 * w[i] * z[i],
+                w[i] ** 2 - x[i] ** 2 + y[i] ** 2 - z[i] ** 2,
+                2 * y[i] * z[i] - 2 * w[i] * x[i]])
 
-            column_3 = [2 * x[i] * z[i] - 2 * w[i] * y[i],
-                        2 * y[i] * z[i] + 2 * w[i] * x[i],
-                        w[i] ** 2 - x[i] ** 2 - y[i] ** 2 + z[i] ** 2]
+            column_3 = gs.array([
+                2 * x[i] * z[i] - 2 * w[i] * y[i],
+                2 * y[i] * z[i] + 2 * w[i] * x[i],
+                w[i] ** 2 - x[i] ** 2 - y[i] ** 2 + z[i] ** 2])
 
             mask_i = gs.get_mask_i_float(i, n_quaternions)
             rot_mat_i = gs.transpose(
@@ -1121,19 +1124,22 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             cos_angle_3 = gs.cos(angle_3[i])
             sin_angle_3 = gs.sin(angle_3[i])
 
-            column_1 = [[cos_angle_1 * cos_angle_2],
-                        [cos_angle_2 * sin_angle_1],
-                        [- sin_angle_2]]
-            column_2 = [[(cos_angle_1 * sin_angle_2 * sin_angle_3
-                          - cos_angle_3 * sin_angle_1)],
-                        [(cos_angle_1 * cos_angle_3
-                          + sin_angle_1 * sin_angle_2 * sin_angle_3)],
-                        [cos_angle_2 * sin_angle_3]]
-            column_3 = [[(sin_angle_1 * sin_angle_3
-                          + cos_angle_1 * cos_angle_3 * sin_angle_2)],
-                        [(cos_angle_3 * sin_angle_1 * sin_angle_2
-                          - cos_angle_1 * sin_angle_3)],
-                        [cos_angle_2 * cos_angle_3]]
+            column_1 = gs.array([
+                [cos_angle_1 * cos_angle_2],
+                [cos_angle_2 * sin_angle_1],
+                [- sin_angle_2]])
+            column_2 = gs.array([
+                [(cos_angle_1 * sin_angle_2 * sin_angle_3
+                  - cos_angle_3 * sin_angle_1)],
+                [(cos_angle_1 * cos_angle_3
+                  + sin_angle_1 * sin_angle_2 * sin_angle_3)],
+                [cos_angle_2 * sin_angle_3]])
+            column_3 = gs.array([
+                [(sin_angle_1 * sin_angle_3
+                  + cos_angle_1 * cos_angle_3 * sin_angle_2)],
+                [(cos_angle_3 * sin_angle_1 * sin_angle_2
+                  - cos_angle_1 * sin_angle_3)],
+                [cos_angle_2 * cos_angle_3]])
 
             rot_mat.append(gs.hstack((column_1, column_2, column_3)))
         return gs.stack(rot_mat)
@@ -1176,21 +1182,24 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             cos_angle_3 = gs.cos(angle_3[i])
             sin_angle_3 = gs.sin(angle_3[i])
 
-            column_1 = [[cos_angle_2 * cos_angle_3],
-                        [(cos_angle_1 * sin_angle_3
-                          + cos_angle_3 * sin_angle_1 * sin_angle_2)],
-                        [(sin_angle_1 * sin_angle_3
-                          - cos_angle_1 * cos_angle_3 * sin_angle_2)]]
+            column_1 = gs.array(
+                [[cos_angle_2 * cos_angle_3],
+                 [(cos_angle_1 * sin_angle_3
+                   + cos_angle_3 * sin_angle_1 * sin_angle_2)],
+                 [(sin_angle_1 * sin_angle_3
+                   - cos_angle_1 * cos_angle_3 * sin_angle_2)]])
 
-            column_2 = [[- cos_angle_2 * sin_angle_3],
-                        [(cos_angle_1 * cos_angle_3
-                          - sin_angle_1 * sin_angle_2 * sin_angle_3)],
-                        [(cos_angle_3 * sin_angle_1
-                          + cos_angle_1 * sin_angle_2 * sin_angle_3)]]
+            column_2 = gs.array(
+                [[- cos_angle_2 * sin_angle_3],
+                 [(cos_angle_1 * cos_angle_3
+                   - sin_angle_1 * sin_angle_2 * sin_angle_3)],
+                 [(cos_angle_3 * sin_angle_1
+                   + cos_angle_1 * sin_angle_2 * sin_angle_3)]])
 
-            column_3 = [[sin_angle_2],
-                        [- cos_angle_2 * sin_angle_1],
-                        [cos_angle_1 * cos_angle_2]]
+            column_3 = gs.array(
+                [[sin_angle_2],
+                 [- cos_angle_2 * sin_angle_1],
+                 [cos_angle_1 * cos_angle_2]])
             rot_mat.append(gs.hstack((column_1, column_2, column_3)))
         return gs.stack(rot_mat)
 
