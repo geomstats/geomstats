@@ -71,7 +71,7 @@ class Grassmannian(EmbeddedManifold):
         self.k = k
         self.metric = GrassmannianCanonicalMetric(3, 2)
 
-    def belongs(self, point, tolerance=TOLERANCE):
+    def belongs(self, point, atol=TOLERANCE):
         """Check if the point belongs to the manifold.
 
         Check if an (n,n)-matrix is an orthogonal projector
@@ -263,6 +263,7 @@ class Grassmannian(EmbeddedManifold):
     def to_tangent(self, tangent_vec, point):
         inf_rot = Matrices.to_skew_symmetric(tangent_vec)
         return Matrices.bracket(inf_rot, point)
+
 
 class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
     """Canonical metric of the Grassmann manifold.
