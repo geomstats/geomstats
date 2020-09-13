@@ -24,6 +24,25 @@ COSC_TAYLOR_COEFFS = [1. / 2.,
                       + 1. / math.factorial(10)]
 VAR_INV_TAN_TAYLOR_COEFFS = [
     1. / 12., 1. / 720., 1. / 30240., 1. / 1209600.]
+SINHC_TAYLOR_COEFFS = [1.,
+                       1 / math.factorial(3),
+                       1 / math.factorial(5),
+                       1 / math.factorial(7),
+                       1 / math.factorial(9)]
+COSH_TAYLOR_COEFFS = [1.,
+                      1 / math.factorial(2),
+                      1 / math.factorial(4),
+                      1 / math.factorial(6),
+                      1 / math.factorial(8)]
+INV_SINHC_TAYLOR_COEFFS = [- 1. / 6.,
+                           + 7. / 360.,
+                           - 31. / 15120.,
+                           + 127. / 604800.]
+INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
+                          0., - 1. / 45.,
+                          0., + 2. / 945.,
+                          0., -1. / 4725.]
+
 
 cos_close_0 = {'function': gs.cos, 'coefficients': COS_TAYLOR_COEFFS}
 sinc_close_0 = {
