@@ -61,7 +61,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         base_point = self.space_matrix.random_uniform(n_samples)
         logs = self.space_matrix.metric.log(expected, base_point)
         result = self.space_matrix.metric.exp(logs, base_point)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-5)
 
     @geomstats.tests.np_only
     def test_dist_log_exp_norm_vector(self):

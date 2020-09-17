@@ -931,3 +931,10 @@ class TestBackends(geomstats.tests.TestCase):
                 self.assertTrue(False)
 
         self.assertEqual(len(result), a)
+
+    def test_split(self):
+        x = gs.array([0.1, 0.2, 0.3, 0.4])
+        result = gs.split(x, 2)
+        expected = _np.split(x, 2)
+        for res, exp in zip(result, expected):
+            self.assertAllClose(res, exp)

@@ -5,9 +5,9 @@ Euclidean space.
 """
 
 import logging
-import math
 from itertools import product
 
+import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
@@ -16,21 +16,7 @@ from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-6
-EPSILON = 1e-8
-
-COS_TAYLOR_COEFFS = [1., 0.,
-                     - 1.0 / math.factorial(2), 0.,
-                     + 1.0 / math.factorial(4), 0.,
-                     - 1.0 / math.factorial(6), 0.,
-                     + 1.0 / math.factorial(8), 0.]
-INV_SIN_TAYLOR_COEFFS = [0., 1. / 6.,
-                         0., 7. / 360.,
-                         0., 31. / 15120.,
-                         0., 127. / 604800.]
-INV_TAN_TAYLOR_COEFFS = [0., - 1. / 3.,
-                         0., - 1. / 45.,
-                         0., - 2. / 945.,
-                         0., -1. / 4725.]
+EPSILON = 1e-4
 
 
 class _Hypersphere(EmbeddedManifold):
@@ -437,7 +423,6 @@ class HypersphereMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
@@ -454,51 +439,21 @@ class HypersphereMetric(RiemannianMetric):
             Point on the hypersphere equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        _, extrinsic_dim = base_point.shape
-        n_tangent_vecs, _ = tangent_vec.shape
+        hypersphere = Hypersphere(dim=self.dim)
+        proj_tangent_vec = hypersphere.to_tangent(tangent_vec, base_point)
+        norm2 = self.embedding_metric.squared_norm(proj_tangent_vec)
 
-        hypersphere = Hypersphere(dim=extrinsic_dim - 1)
-        proj_tangent_vec = hypersphere.to_tangent(
-            tangent_vec, base_point)
-        norm_tangent_vec = self.embedding_metric.norm(proj_tangent_vec)
-        norm_tangent_vec = gs.to_ndarray(norm_tangent_vec, to_ndim=1)
-
-        mask_0 = gs.isclose(norm_tangent_vec, 0.)
-        mask_non0 = ~mask_0
-
-        coef_1 = gs.zeros((n_tangent_vecs,))
-        coef_2 = gs.zeros((n_tangent_vecs,))
-        norm2 = norm_tangent_vec[mask_0]**2
-        norm4 = norm2**2
-        norm6 = norm2**3
-
-        coef_1 = gs.assignment(
-            coef_1,
-            1. - norm2 / 2. + norm4 / 24. - norm6 / 720.,
-            mask_0)
-        coef_2 = gs.assignment(
-            coef_2,
-            1. - norm2 / 6. + norm4 / 120. - norm6 / 5040.,
-            mask_0)
-
-        coef_1 = gs.assignment(
-            coef_1,
-            gs.cos(norm_tangent_vec[mask_non0]),
-            mask_non0)
-        coef_2 = gs.assignment(
-            coef_2,
-            gs.sin(
-                norm_tangent_vec[mask_non0]) /
-            norm_tangent_vec[mask_non0],
-            mask_non0)
-
+        coef_1 = utils.taylor_exp_even_func(
+            norm2, utils.cos_close_0, order=4)
+        coef_2 = utils.taylor_exp_even_func(
+            norm2, utils.sinc_close_0, order=4)
         exp = (gs.einsum('...,...j->...j', coef_1, base_point)
                + gs.einsum('...,...j->...j', coef_2, proj_tangent_vec))
 
         return exp
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
         Parameters
@@ -514,59 +469,15 @@ class HypersphereMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        norm_base_point = self.embedding_metric.norm(base_point)
-        norm_point = self.embedding_metric.norm(point)
         inner_prod = self.embedding_metric.inner_product(base_point, point)
-        cos_angle = inner_prod / (norm_base_point * norm_point)
-        cos_angle = gs.clip(cos_angle, -1., 1.)
-
-        angle = gs.arccos(cos_angle)
-        angle = gs.to_ndarray(angle, to_ndim=1)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
-
-        mask_0 = gs.isclose(angle, 0.)
-        mask_else = gs.equal(mask_0, gs.array(False))
-
-        mask_0_float = gs.cast(mask_0, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
-
-        coef_1 = gs.zeros_like(angle)
-        coef_2 = gs.zeros_like(angle)
-
-        coef_1 += mask_0_float * (
-            1. + INV_SIN_TAYLOR_COEFFS[1] * angle ** 2
-            + INV_SIN_TAYLOR_COEFFS[3] * angle ** 4
-            + INV_SIN_TAYLOR_COEFFS[5] * angle ** 6
-            + INV_SIN_TAYLOR_COEFFS[7] * angle ** 8)
-        coef_2 += mask_0_float * (
-            1. + INV_TAN_TAYLOR_COEFFS[1] * angle ** 2
-            + INV_TAN_TAYLOR_COEFFS[3] * angle ** 4
-            + INV_TAN_TAYLOR_COEFFS[5] * angle ** 6
-            + INV_TAN_TAYLOR_COEFFS[7] * angle ** 8)
-
-        # This avoids division by 0.
-        angle += mask_0_float * 1.
-
-        coef_1 += mask_else_float * angle / gs.sin(angle)
-        coef_2 += mask_else_float * angle / gs.tan(angle)
-
-        log = (gs.einsum('...i,...j->...j', coef_1, point)
-               - gs.einsum('...i,...j->...j', coef_2, base_point))
-
-        mask_same_values = gs.isclose(point, base_point)
-
-        mask_else = gs.equal(mask_same_values, gs.array(False))
-        mask_else_float = gs.cast(mask_else, gs.float32)
-        mask_else_float = gs.to_ndarray(mask_else_float, to_ndim=1)
-        mask_else_float = gs.to_ndarray(mask_else_float, to_ndim=2)
-        mask_not_same_points = gs.sum(mask_else_float, axis=1)
-        mask_same_points = gs.isclose(mask_not_same_points, 0.)
-        mask_same_points = gs.cast(mask_same_points, gs.float32)
-        mask_same_points = gs.to_ndarray(mask_same_points, to_ndim=2, axis=1)
-
-        mask_same_points_float = gs.cast(mask_same_points, gs.float32)
-
-        log -= mask_same_points_float * log
+        cos_angle = gs.clip(inner_prod, -1., 1.)
+        squared_angle = gs.arccos(cos_angle) ** 2
+        coef_1_ = utils.taylor_exp_even_func(
+            squared_angle, utils.inv_sinc_close_0, order=5)
+        coef_2_ = utils.taylor_exp_even_func(
+            squared_angle, utils.inv_tanc_close_0, order=5)
+        log = (gs.einsum('...,...j->...j', coef_1_, point)
+               - gs.einsum('...,...j->...j', coef_2_, base_point))
 
         return log
 
