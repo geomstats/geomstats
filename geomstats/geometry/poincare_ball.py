@@ -266,8 +266,9 @@ class PoincareBallMetric(RiemannianMetric):
             gs.einsum('...i,...->...i', direction, factor))
 
         if gs.any(zero_tan):
+            base_points = gs.tile(base_point, (len(zero_tan), 1))
             exp = gs.assignment(
-                exp, base_point[zero_tan], zero_tan)
+                exp, base_points[zero_tan], zero_tan)
 
         return exp
 
