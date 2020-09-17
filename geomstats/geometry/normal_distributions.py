@@ -61,7 +61,7 @@ class NormalDistributions(PoincareHalfSpace):
         """
         means = -bound + 2 * bound * gs.random.rand(n_samples)
         stds = bound * gs.random.rand(n_samples)
-        return gs.vstack((means, stds)).T
+        return gs.transpose(gs.vstack((means, stds)))
 
     def sample(self, point, n_samples=1):
         """Sample from the normal distribution.
