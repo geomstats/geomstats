@@ -265,10 +265,6 @@ class PoincareBallMetric(RiemannianMetric):
             base_point,
             gs.einsum('...i,...->...i', direction, factor))
 
-        if gs.any(zero_tan):
-            exp = gs.assignment(
-                exp, base_point[zero_tan], zero_tan)
-
         return exp
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
