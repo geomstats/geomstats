@@ -43,8 +43,6 @@ def tf_sqdist(x, y):
     return e, grad
 
 
-
-
 def loss(x, y, parameter):
     p, v = gs.split(parameter, 2)
     base_point = gs.reshape(p, (space.n, ) * 2)
