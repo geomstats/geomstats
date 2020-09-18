@@ -10,6 +10,7 @@ from geomstats.geometry.poincare_half_space import PoincareHalfSpaceMetric
 
 class NormalDistributions(PoincareHalfSpace):
     """Class for the manifold of normal distributions.
+
     This is upper half-pane.
     """
 
@@ -93,6 +94,7 @@ class NormalDistributions(PoincareHalfSpace):
 
 class FisherRaoMetric(PoincareHalfSpaceMetric):
     """Class for the Fisher information metric on normal distributions.
+
     This is the metric of the Poincare upper half-plane.
     """
 
