@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
@@ -15,6 +16,7 @@ SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
 S1 = Hypersphere(dim=1)
 S2 = Hypersphere(dim=2)
 H2 = Hyperboloid(dim=2)
+POINCARE_HALF_PLANE = PoincareHalfSpace(dim=2)
 
 AX_SCALE = 1.2
 
@@ -239,7 +241,6 @@ class PoincareDisk:
         self.center = gs.array([0., 0.])
         self.points = []
         self.point_type = point_type
-
         if points is not None:
             self.add_points(points)
 
@@ -342,28 +343,40 @@ class PoincarePolyDisk:
 class PoincareHalfPlane:
     """Class used to plot points in the Poincare Half Plane."""
 
-    def __init__(self, points=None):
+    def __init__(self, points=None, point_type='half-plane'):
         self.points = []
+        self.point_type = point_type
         if points is not None:
             self.add_points(points)
 
     def add_points(self, points):
-        if not gs.all(H2.belongs(points)):
-            raise ValueError(
-                'Points do not belong to the hyperbolic space.')
-        points = self.convert_to_half_plane_coordinates(points)
+        if self.point_type == 'extrinsic':
+            if not gs.all(H2.belongs(points)):
+                raise ValueError(
+                    'Points do not belong to the hyperbolic space '
+                    '(extrinsic coordinates)')
+            points = self.convert_to_poincare_coordinates(points)
+        elif self.point_type == 'half-plane':
+            if not gs.all(POINCARE_HALF_PLANE.belongs(points)):
+                raise ValueError(
+                    'Points do not belong to the hyperbolic space '
+                    '(Poincare half plane coordinates).')
         if not isinstance(points, list):
             points = list(points)
         self.points.extend(points)
 
     @staticmethod
-    def set_ax(ax=None):
+    def set_ax(points, ax=None):
         if ax is None:
             ax = plt.subplot()
-        ax_s = AX_SCALE
+        xmin = points[gs.argmin(points[:, 0]), 0]
+        xmax = points[gs.argmax(points[:, 0]), 0]
+        ymax = points[gs.argmax(points[:, 1]), 1]
+        xmargin = 0.1 * (xmax - xmin)
+        ymargin = 0.1 * ymax
         plt.setp(ax,
-                 xlim=(-ax_s, ax_s),
-                 ylim=(0., ax_s),
+                 xlim=(xmin - xmargin, xmax + xmargin),
+                 ylim=(0., ymax + ymargin),
                  xlabel='X', ylabel='Y')
         return ax
 
@@ -486,11 +499,25 @@ def convert_to_trihedron(point, space=None):
 
 
 def plot(points, ax=None, space=None,
-         point_type='extrinsic', **point_draw_kwargs):
-    """Plot points in the 3D Special Euclidean Group.
+         point_type=None, **point_draw_kwargs):
+    """Plot points in one of the implemented manifolds.
 
-    Plot points in the 3D Special Euclidean Group,
-    by showing them as trihedrons.
+    The implemented manifolds are:
+    - the special orthogonal group SO(3)
+    - the special Euclidean group SE(3)
+    - the circle S1 and the sphere S2
+    - the hyperbolic plane (the Poincare disk, the Poincare
+      half plane and the Klein disk)
+    - the Poincare polydisk
+
+    Parameters
+    ----------
+    points : array-like, shape=[..., dim]
+        Points to be plotted.
+    space: str, optional, {'SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
+        'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk',
+        'poincare_polydisk'}
+    point_type: str, optional, {'extrinsic', 'ball', 'half-plane'}
     """
     if space not in IMPLEMENTED:
         raise NotImplementedError(
@@ -535,6 +562,8 @@ def plot(points, ax=None, space=None,
         sphere.draw(ax, **point_draw_kwargs)
 
     elif space == 'H2_poincare_disk':
+        if point_type is None:
+            point_type = 'extrinsic'
         poincare_disk = PoincareDisk(point_type=point_type)
         ax = poincare_disk.set_ax(ax=ax)
         poincare_disk.add_points(points)
@@ -542,6 +571,8 @@ def plot(points, ax=None, space=None,
         plt.axis('off')
 
     elif space == 'poincare_polydisk':
+        if point_type is None:
+            point_type = 'extrinsic'
         n_disks = points.shape[1]
         poincare_poly_disk = PoincarePolyDisk(point_type=point_type,
                                               n_disks=n_disks)
@@ -560,8 +591,10 @@ def plot(points, ax=None, space=None,
             poincare_poly_disk.draw(ax, **point_draw_kwargs)
 
     elif space == 'H2_poincare_half_plane':
-        poincare_half_plane = PoincareHalfPlane()
-        ax = poincare_half_plane.set_ax(ax=ax)
+        if point_type is None:
+            point_type = 'half-plane'
+        poincare_half_plane = PoincareHalfPlane(point_type=point_type)
+        ax = poincare_half_plane.set_ax(points=points, ax=ax)
         poincare_half_plane.add_points(points)
         poincare_half_plane.draw(ax, **point_draw_kwargs)
 
