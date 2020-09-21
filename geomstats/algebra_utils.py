@@ -36,7 +36,7 @@ COSH_TAYLOR_COEFFS = [1.,
                       1 / math.factorial(8)]
 INV_SINHC_TAYLOR_COEFFS = [
     1., - 1. / 6., 7. / 360., - 31. / 15120., 127. / 604800.]
-INV_TANH_TAYLOR_COEFFS = [1., 1. / 3.,  - 1. / 45.,  2. / 945., -1. / 4725.]
+INV_TANH_TAYLOR_COEFFS = [1., 1. / 3., - 1. / 45., 2. / 945., -1. / 4725.]
 
 
 cos_close_0 = {'function': gs.cos, 'coefficients': COS_TAYLOR_COEFFS}
