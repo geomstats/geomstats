@@ -9,36 +9,14 @@ from geomstats.geometry.poincare_half_space import PoincareHalfSpaceMetric
 
 
 class NormalDistributions(PoincareHalfSpace):
-    """Class for the manifold of normal distributions.
+    """Class for the manifold of univariate normal distributions.
 
-    This is upper half-pane.
+    This is upper half-plane.
     """
 
     def __init__(self):
         super(NormalDistributions, self).__init__(dim=2)
         self.metric = FisherRaoMetric()
-
-    def belongs(self, point):
-        """Evaluate if a point belongs to the manifold of normal distributions.
-
-        The statistical manifold of normal distributions is the upper
-        half plane.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., 2]
-            Point to be checked.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean indicating whether point represents a normal
-            distribution.
-        """
-        point_dim = point.shape[-1]
-        belongs = point_dim == self.dim
-        belongs = gs.logical_and(belongs, gs.all(point[..., -1] > 0))
-        return belongs
 
     @staticmethod
     def random_uniform(n_samples=1, bound=5.):
@@ -62,7 +40,7 @@ class NormalDistributions(PoincareHalfSpace):
         """
         means = -bound + 2 * bound * gs.random.rand(n_samples)
         stds = bound * gs.random.rand(n_samples)
-        return gs.transpose(gs.vstack((means, stds)))
+        return gs.transpose(gs.stack((means, stds)))
 
     def sample(self, point, n_samples=1):
         """Sample from the normal distribution.
