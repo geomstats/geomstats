@@ -648,12 +648,11 @@ def sum(x, axis=None, keepdims=False, name=None):
     return tf.reduce_sum(x, axis, keepdims, name)
 
 
-def einsum(equation, *inputs, do_convert_to_wider_dtype=True, **kwargs):
+def einsum(equation, *inputs, **kwargs):
     einsum_str = equation
     input_tensors_list = inputs
 
-    if do_convert_to_wider_dtype:
-        input_tensors_list = convert_to_wider_dtype(input_tensors_list)
+    input_tensors_list = convert_to_wider_dtype(input_tensors_list)
 
     einsum_list = einsum_str.split('->')
     input_str = einsum_list[0]
