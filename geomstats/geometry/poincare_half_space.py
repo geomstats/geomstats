@@ -36,21 +36,21 @@ class PoincareHalfSpace(Hyperbolic):
         self.metric = PoincareHalfSpaceMetric(self.dim, self.scale)
 
     def belongs(self, point):
-        """Evaluate if a point belongs to the manifold of normal distributions.
+        """Test if a point belongs to the hyperbolic space.
 
-        The statistical manifold of normal distributions is the upper
-        half plane.
+        Test if a point belongs to the hyperbolic space based on
+        the poincare ball representation.
 
         Parameters
         ----------
-        point : array-like, shape=[..., 2]
-            Point to be checked.
+        point : array-like, shape=[..., dim]
+            Point to be tested.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Boolean indicating whether point represents a normal
-            distribution.
+            Array of booleans indicating whether the corresponding points
+            belong to the hyperbolic space.
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
