@@ -106,7 +106,6 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         sq_norm = self.embedding_metric.squared_norm(point)
         euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2
         diff = gs.abs(sq_norm + 1)
-        print(diff)
         belongs = diff < tolerance * euclidean_sq_norm
         return belongs
 
@@ -322,19 +321,16 @@ class HyperboloidMetric(HyperbolicMetric):
         sq_norm_tangent_vec = gs.clip(sq_norm_tangent_vec, 0, math.inf)
 
         coef_1 = utils.taylor_exp_even_func(
-            sq_norm_tangent_vec, utils.cosh_close_0, order=4)
+            sq_norm_tangent_vec, utils.cosh_close_0, order=5)
         coef_2 = utils.taylor_exp_even_func(
-            sq_norm_tangent_vec, utils.sinch_close_0, order=4)
+            sq_norm_tangent_vec, utils.sinch_close_0, order=5)
 
         exp = (
             gs.einsum('...,...j->...j', coef_1, base_point)
             + gs.einsum('...,...j->...j', coef_2, tangent_vec))
 
-        hyperbolic_space = Hyperboloid(dim=self.dim)
-        # exp = hyperbolic_space.regularize(exp)
         return exp
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
 
@@ -356,35 +352,14 @@ class HyperboloidMetric(HyperbolicMetric):
             of point at the base point.
         """
         angle = self.dist(base_point, point) / self.scale
-        angle = gs.to_ndarray(angle, to_ndim=1)
 
-        mask_0 = gs.isclose(angle, 0.)
-        mask_else = ~mask_0
+        coef_1_ = utils.taylor_exp_even_func(
+            angle ** 2, utils.inv_sinch_close_0, order=4)
+        coef_2_ = utils.taylor_exp_even_func(
+            angle ** 2, utils.inv_tanh_close_0, order=4)
 
-        mask_0_float = gs.cast(mask_0, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
-
-        coef_1 = gs.zeros_like(angle)
-        coef_2 = gs.zeros_like(angle)
-
-        coef_1 += mask_0_float * (
-            1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
-            + INV_SINH_TAYLOR_COEFFS[3] * angle ** 4
-            + INV_SINH_TAYLOR_COEFFS[5] * angle ** 6
-            + INV_SINH_TAYLOR_COEFFS[7] * angle ** 8)
-        coef_2 += mask_0_float * (
-            1. + INV_TANH_TAYLOR_COEFFS[1] * angle ** 2
-            + INV_TANH_TAYLOR_COEFFS[3] * angle ** 4
-            + INV_TANH_TAYLOR_COEFFS[5] * angle ** 6
-            + INV_TANH_TAYLOR_COEFFS[7] * angle ** 8)
-
-        # This avoids dividing by 0.
-        angle += mask_0_float * 1.
-
-        coef_1 += mask_else_float * (angle / gs.sinh(angle))
-        coef_2 += mask_else_float * (angle / gs.tanh(angle))
-        log_term_1 = gs.einsum('...,...j->...j', coef_1, point)
-        log_term_2 = - gs.einsum('...,...j->...j', coef_2, base_point)
+        log_term_1 = gs.einsum('...,...j->...j', coef_1_, point)
+        log_term_2 = - gs.einsum('...,...j->...j', coef_2_, base_point)
         log = log_term_1 + log_term_2
         return log
 
