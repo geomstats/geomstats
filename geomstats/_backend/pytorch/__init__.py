@@ -373,13 +373,11 @@ def sum(x, axis=None, keepdims=None, **kwargs):
     return torch.sum(x, dim=axis, keepdim=keepdims, **kwargs)
 
 
-def einsum(*args, do_convert_to_wider_dtype=True, **kwargs):
+def einsum(*args, **kwargs):
     einsum_str = args[0]
     input_tensors_list = args[1:]
 
-    if do_convert_to_wider_dtype:
-        input_tensors_list = convert_to_wider_dtype(
-            input_tensors_list)
+    input_tensors_list = convert_to_wider_dtype(input_tensors_list)
 
     if len(input_tensors_list) == 1:
         return torch.einsum(einsum_str, input_tensors_list)
