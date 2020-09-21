@@ -174,7 +174,6 @@ class RiemannianMetric(Connection):
         christoffels = 0.5 * (term_1 + term_2 + term_3)
         return christoffels
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector', 'vector'])
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
 
@@ -194,14 +193,10 @@ class RiemannianMetric(Connection):
             Inner-product.
         """
         inner_prod_mat = self.inner_product_matrix(base_point)
-        inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
 
         aux = gs.einsum('...j,...jk->...k', tangent_vec_a, inner_prod_mat)
 
         inner_prod = gs.einsum('...k,...k->...', aux, tangent_vec_b)
-        inner_prod = gs.to_ndarray(inner_prod, to_ndim=1)
-        inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
-
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
