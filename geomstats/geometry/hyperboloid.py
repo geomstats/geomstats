@@ -16,26 +16,6 @@ from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.minkowski import MinkowskiMetric
 
 TOLERANCE = 1e-6
-
-SINH_TAYLOR_COEFFS = [0., 1.,
-                      0., 1 / math.factorial(3),
-                      0., 1 / math.factorial(5),
-                      0., 1 / math.factorial(7),
-                      0., 1 / math.factorial(9)]
-COSH_TAYLOR_COEFFS = [1., 0.,
-                      1 / math.factorial(2), 0.,
-                      1 / math.factorial(4), 0.,
-                      1 / math.factorial(6), 0.,
-                      1 / math.factorial(8), 0.]
-INV_SINH_TAYLOR_COEFFS = [0., - 1. / 6.,
-                          0., + 7. / 360.,
-                          0., - 31. / 15120.,
-                          0., + 127. / 604800.]
-INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
-                          0., - 1. / 45.,
-                          0., + 2. / 945.,
-                          0., -1. / 4725.]
-
 EPSILON = 1e-6
 
 
