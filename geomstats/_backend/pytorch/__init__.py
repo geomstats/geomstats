@@ -66,10 +66,11 @@ from . import random  # NOQA
 
 
 DTYPES = {
-    int32: 0,
-    int64: 1,
-    float32: 2,
-    float64: 3}
+    t_bool: 0,
+    int32: 1,
+    int64: 2,
+    float32: 3,
+    float64: 4}
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -372,12 +373,13 @@ def sum(x, axis=None, keepdims=None, **kwargs):
     return torch.sum(x, dim=axis, keepdim=keepdims, **kwargs)
 
 
-def einsum(*args, **kwargs):
+def einsum(*args, do_convert_to_wider_dtype=True, **kwargs):
     einsum_str = args[0]
     input_tensors_list = args[1:]
 
-    input_tensors_list = convert_to_wider_dtype(
-        input_tensors_list)
+    if do_convert_to_wider_dtype:
+        input_tensors_list = convert_to_wider_dtype(
+            input_tensors_list)
 
     if len(input_tensors_list) == 1:
         return torch.einsum(einsum_str, input_tensors_list)
