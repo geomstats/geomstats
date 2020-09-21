@@ -104,7 +104,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
             return belongs
 
         sq_norm = self.embedding_metric.squared_norm(point)
-        euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2
+        euclidean_sq_norm = gs.sum(point ** 2, axis=-1)
         diff = gs.abs(sq_norm + 1)
         belongs = diff < tolerance * euclidean_sq_norm
         return belongs
@@ -131,7 +131,8 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
 
         sq_norm = self.embedding_metric.squared_norm(point)
         if not gs.all(sq_norm):
-            raise ValueError('Cannot project the 0 vector to the hyperboloid')
+            raise ValueError('Cannot project a vector of norm 0. in the '
+                             'Minkowski space to the hyperboloid')
         real_norm = gs.sqrt(gs.abs(sq_norm))
         projected_point = gs.einsum('...i,...->...i', point, 1. / real_norm)
 
@@ -329,6 +330,7 @@ class HyperboloidMetric(HyperbolicMetric):
             gs.einsum('...,...j->...j', coef_1, base_point)
             + gs.einsum('...,...j->...j', coef_2, tangent_vec))
 
+        exp = Hyperboloid(dim=self.dim).regularize(exp)
         return exp
 
     def log(self, point, base_point):
