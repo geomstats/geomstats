@@ -40,6 +40,11 @@ class NormalDistributions(PoincareHalfSpace):
         """
         means = -bound + 2 * bound * gs.random.rand(n_samples)
         stds = bound * gs.random.rand(n_samples)
+<<<<<<< HEAD
+=======
+        if n_samples == 1:
+            return gs.array((means[0], stds[0]))
+>>>>>>> upstream/master
         return gs.transpose(gs.stack((means, stds)))
 
     def sample(self, point, n_samples=1):
