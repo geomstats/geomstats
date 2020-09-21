@@ -42,6 +42,7 @@ class NormalDistributions(PoincareHalfSpace):
         stds = bound * gs.random.rand(n_samples)
         if n_samples == 1:
             return gs.array((means[0], stds[0]))
+        return gs.transpose(gs.stack((means, stds)))
 
     def sample(self, point, n_samples=1):
         """Sample from the normal distribution.

@@ -51,7 +51,7 @@ class PoincareHalfSpace(Hyperbolic):
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
-        belongs = gs.logical_and(belongs, point[..., -1] > 0)
+        belongs = gs.logical_and(belongs, point[..., -1] > 0.)
         return belongs
 
 
