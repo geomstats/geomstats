@@ -65,10 +65,11 @@ from . import random  # NOQA
 
 
 DTYPES = {
-    int32: 0,
-    int64: 1,
-    float32: 2,
-    float64: 3}
+    tf.bool: 0,
+    int32: 1,
+    int64: 2,
+    float32: 3,
+    float64: 4}
 
 
 arctanh = tf.math.atanh
@@ -647,11 +648,12 @@ def sum(x, axis=None, keepdims=False, name=None):
     return tf.reduce_sum(x, axis, keepdims, name)
 
 
-def einsum(equation, *inputs, **kwargs):
+def einsum(equation, *inputs, do_convert_to_wider_dtype=True, **kwargs):
     einsum_str = equation
     input_tensors_list = inputs
 
-    input_tensors_list = convert_to_wider_dtype(input_tensors_list)
+    if do_convert_to_wider_dtype:
+        input_tensors_list = convert_to_wider_dtype(input_tensors_list)
 
     einsum_list = einsum_str.split('->')
     input_str = einsum_list[0]

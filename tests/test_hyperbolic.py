@@ -147,6 +147,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
 
         result = h5_metric.exp(tangent_vec=one_log, base_point=base_point)
         expected = point
+        print(gs.linalg.norm(result - expected))
         self.assertAllClose(result, expected)
 
         # Test vectorization of log
@@ -183,6 +184,20 @@ class TestHyperbolic(geomstats.tests.TestCase):
         self.assertTrue(H2.belongs(base_point))
 
         tangent_vec = H2.to_tangent(
+            vector=gs.array([1., 2., 1.]),
+            base_point=base_point)
+        exp = METRIC.exp(tangent_vec=tangent_vec,
+                         base_point=base_point)
+        self.assertTrue(H2.belongs(exp))
+
+    def test_exp_small_vec(self):
+        H2 = Hyperboloid(dim=2)
+        METRIC = H2.metric
+
+        base_point = H2.regularize(gs.array([1., 0., 0.]))
+        self.assertTrue(H2.belongs(base_point))
+
+        tangent_vec = 1e-9 * H2.to_tangent(
             vector=gs.array([1., 2., 1.]),
             base_point=base_point)
         exp = METRIC.exp(tangent_vec=tangent_vec,
@@ -406,12 +421,9 @@ class TestHyperbolic(geomstats.tests.TestCase):
 
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
-        result = self.space.belongs(points)
-        expected = n_geodesic_points * [True]
+        result = gs.all(self.space.belongs(points))
+        self.assertTrue(result)
 
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_only
     def test_geodesic_and_belongs_large_initial_velocity(self):
         initial_point = gs.array([4.0, 1., 3.0, math.sqrt(5)])
         n_geodesic_points = 100
@@ -426,10 +438,8 @@ class TestHyperbolic(geomstats.tests.TestCase):
 
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
-        result = self.space.belongs(points)
-        expected = n_geodesic_points * [True]
-
-        self.assertAllClose(result, expected)
+        result = gs.all(self.space.belongs(points))
+        self.assertTrue(result)
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """
