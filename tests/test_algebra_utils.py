@@ -14,11 +14,11 @@ class TestAlgebraUtils(geomstats.tests.TestCase):
             utils.cosc_close_0,
             utils.sinch_close_0,
             utils.cosh_close_0,
-            utils.inv_sinch_close_0,
-            utils.inv_tanh_close_0]
+            {'coefficients': utils.inv_sinch_close_0['coefficients'],
+             'function': lambda x: x / math.sinh(x)},
+            {'coefficients': utils.inv_tanh_close_0['coefficients'],
+             'function': lambda x: x / math.tanh(x)}]
         self.functions[4]['function'] = lambda x: (1 - math.cos(x)) / x ** 2
-        self.functions[7]['function'] = lambda x: x / math.sinh(x)
-        self.functions[8]['function'] = lambda x: x / math.tanh(x)
 
     def test_all(self):
         for taylor_function in self.functions:
