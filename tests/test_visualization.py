@@ -56,7 +56,8 @@ class TestVisualization(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_plot_points_h2_poincare_half_plane(self):
         points = self.H2.random_uniform(self.n_samples)
-        visualization.plot(points, space='H2_poincare_half_plane')
+        visualization.plot(points, space='H2_poincare_half_plane',
+                           point_type='extrinsic')
 
     @geomstats.tests.np_only
     def test_plot_points_h2_klein_disk(self):

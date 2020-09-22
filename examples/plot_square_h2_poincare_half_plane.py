@@ -36,6 +36,7 @@ def main():
             edge_points,
             ax=ax,
             space='H2_poincare_half_plane',
+            point_type='extrinsic',
             marker='.',
             color='black')
 

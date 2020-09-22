@@ -355,7 +355,7 @@ class PoincareHalfPlane:
                 raise ValueError(
                     'Points do not belong to the hyperbolic space '
                     '(extrinsic coordinates)')
-            points = self.convert_to_poincare_coordinates(points)
+            points = self.convert_to_half_plane_coordinates(points)
         elif self.point_type == 'half-plane':
             if not gs.all(POINCARE_HALF_PLANE.belongs(points)):
                 raise ValueError(
