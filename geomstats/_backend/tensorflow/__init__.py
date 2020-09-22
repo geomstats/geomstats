@@ -65,11 +65,10 @@ from . import random  # NOQA
 
 
 DTYPES = {
-    tf.bool: 0,
-    int32: 1,
-    int64: 2,
-    float32: 3,
-    float64: 4}
+    int32: 0,
+    int64: 1,
+    float32: 2,
+    float64: 3}
 
 
 arctanh = tf.math.atanh
