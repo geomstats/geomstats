@@ -365,10 +365,11 @@ class PoincareHalfPlane:
             points = list(points)
         self.points.extend(points)
 
-    @staticmethod
-    def set_ax(points, ax=None):
+    def set_ax(self, points, ax=None):
         if ax is None:
             ax = plt.subplot()
+        if self.point_type == 'extrinsic':
+            points = self.convert_to_half_plane_coordinates(points)
         xmin = points[gs.argmin(points[:, 0]), 0]
         xmax = points[gs.argmax(points[:, 0]), 0]
         ymax = points[gs.argmax(points[:, 1]), 1]
