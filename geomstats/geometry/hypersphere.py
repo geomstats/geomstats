@@ -490,8 +490,8 @@ class HypersphereMetric(RiemannianMetric):
         dist : array-like, shape=[..., 1]
             Geodesic distance between the two points.
         """
-        norm_a = gs.linalg.norm(point_a, axis=-1)
-        norm_b = gs.linalg.norm(point_b, axis=-1)
+        norm_a = self.embedding_metric.norm(point_a)
+        norm_b = self.embedding_metric.norm(point_b)
         inner_prod = self.embedding_metric.inner_product(point_a, point_b)
 
         cos_angle = gs.einsum(
