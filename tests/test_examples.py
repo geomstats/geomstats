@@ -117,7 +117,6 @@ class TestExamples(geomstats.tests.TestCase):
         plot_square_h2_poincare_disk.main()
 
     @staticmethod
-    @geomstats.tests.np_and_pytorch_only
     def test_plot_square_h2_square_poincare_half_plane():
         plot_square_h2_poincare_half_plane.main()
 

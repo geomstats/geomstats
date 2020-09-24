@@ -343,7 +343,7 @@ class PoincarePolyDisk:
 class PoincareHalfPlane:
     """Class used to plot points in the Poincare Half Plane."""
 
-    def __init__(self, points=None, point_type='half-plane'):
+    def __init__(self, points=None, point_type='half-space'):
         self.points = []
         self.point_type = point_type
         if points is not None:
@@ -356,7 +356,7 @@ class PoincareHalfPlane:
                     'Points do not belong to the hyperbolic space '
                     '(extrinsic coordinates)')
             points = self.convert_to_half_plane_coordinates(points)
-        elif self.point_type == 'half-plane':
+        elif self.point_type == 'half-space':
             if not gs.all(POINCARE_HALF_PLANE.belongs(points)):
                 raise ValueError(
                     'Points do not belong to the hyperbolic space '
@@ -370,15 +370,7 @@ class PoincareHalfPlane:
             ax = plt.subplot()
         if self.point_type == 'extrinsic':
             points = self.convert_to_half_plane_coordinates(points)
-        xmin = points[gs.argmin(points[:, 0]), 0]
-        xmax = points[gs.argmax(points[:, 0]), 0]
-        ymax = points[gs.argmax(points[:, 1]), 1]
-        xmargin = 0.1 * (xmax - xmin)
-        ymargin = 0.1 * ymax
-        plt.setp(ax,
-                 xlim=(xmin - xmargin, xmax + xmargin),
-                 ylim=(0., ymax + ymargin),
-                 xlabel='X', ylabel='Y')
+        plt.setp(ax, xlabel='X', ylabel='Y')
         return ax
 
     @staticmethod
@@ -518,7 +510,7 @@ def plot(points, ax=None, space=None,
     space: str, optional, {'SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
         'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk',
         'poincare_polydisk'}
-    point_type: str, optional, {'extrinsic', 'ball', 'half-plane'}
+    point_type: str, optional, {'extrinsic', 'ball', 'half-space'}
     """
     if space not in IMPLEMENTED:
         raise NotImplementedError(
@@ -593,7 +585,7 @@ def plot(points, ax=None, space=None,
 
     elif space == 'H2_poincare_half_plane':
         if point_type is None:
-            point_type = 'half-plane'
+            point_type = 'half-space'
         poincare_half_plane = PoincareHalfPlane(point_type=point_type)
         ax = poincare_half_plane.set_ax(points=points, ax=ax)
         poincare_half_plane.add_points(points)
