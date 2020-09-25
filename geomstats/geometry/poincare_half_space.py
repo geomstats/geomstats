@@ -36,21 +36,18 @@ class PoincareHalfSpace(Hyperbolic):
         self.metric = PoincareHalfSpaceMetric(self.dim, self.scale)
 
     def belongs(self, point):
-        """Test if a point belongs to the hyperbolic space.
-
-        Test if a point belongs to the hyperbolic space based on
-        the poincare ball representation.
+        """Evaluate if a point belongs to the upper half space.
 
         Parameters
         ----------
         point : array-like, shape=[..., dim]
-            Point to be tested.
+            Point to be checked.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Array of booleans indicating whether the corresponding points
-            belong to the hyperbolic space.
+            Array of booleans indicating whether the corresponding
+            points belong to the upper half space.
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
