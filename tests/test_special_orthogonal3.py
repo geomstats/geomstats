@@ -33,7 +33,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                                    * gs.array([0., 1., -1.]))
         with_angle_pi = gs.pi / gs.sqrt(3.) * gs.array([1., 1., -1.])
         with_angle_close_pi_high = ((gs.pi + 1e-9) / gs.sqrt(3.)
-                                    * gs.array([-1., 1., -1]))
+                                    * gs.array([1., 1., -1.]))
         with_angle_in_pi_2pi = ((gs.pi + 0.3) / gs.sqrt(5.)
                                 * gs.array([-2., 1., 0.]))
         with_angle_close_2pi_low = ((2. * gs.pi - 1e-9) / gs.sqrt(6.)
@@ -178,6 +178,14 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         result = self.group.skew_matrix_from_vector(rot_vecs)
 
         self.assertAllClose(gs.shape(result), (n_samples, 3, 3))
+
+    def test_vector_from_skew_matrix_vectorization(self):
+        n_samples = self.n_samples
+        rot_vecs = self.group.random_uniform(n_samples=n_samples)
+        skew = self.group.skew_matrix_from_vector(rot_vecs)
+        result = self.group.vector_from_skew_matrix(skew)
+
+        self.assertAllClose(gs.shape(result), (n_samples, 3))
 
     def test_random_uniform_shape(self):
         result = self.group.random_uniform()
@@ -324,6 +332,15 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    def test_rotation_vector_from_matrix_vectorization(self):
+        n_samples = self.n_samples
+        rot_vecs = self.group.random_uniform(n_samples=n_samples)
+        rot_mats = self.group.matrix_from_rotation_vector(rot_vecs)
+        result = self.group.rotation_vector_from_matrix(rot_mats)
+
+        self.assertAllClose(gs.shape(result), (n_samples, self.group.n))
+        self.assertAllClose(result, rot_vecs)
+
     def test_rotation_vector_and_rotation_matrix(self):
         """
         This tests that the composition of
@@ -334,13 +351,10 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         """
         for angle_type in self.elements[3]:
             point = self.elements[3][angle_type]
-            if angle_type in self.angles_close_to_pi[3]:
-                continue
             rot_mat = self.group.matrix_from_rotation_vector(point)
             result = self.group.rotation_vector_from_matrix(rot_mat)
 
             expected = self.group.regularize(point)
-
             self.assertAllClose(result, expected)
 
     def test_matrix_from_tait_bryan_angles_extrinsic_xyz(self):
