@@ -51,6 +51,9 @@ inv_tanc_close_0 = {
 cosc_close_0 = {
     'function': lambda x: (1 - gs.cos(x)) / x ** 2,
     'coefficients': COSC_TAYLOR_COEFFS}
+var_sinc_close_0 = {
+    'function': lambda x: (x - gs.sin(x)) / x ** 3,
+    'coefficients': [-k for k in SINC_TAYLOR_COEFFS[1:]]}
 var_inv_tanc_close_0 = {
     'function': lambda x: (1 - (x / gs.tan(x))) / x ** 2,
     'coefficients': VAR_INV_TAN_TAYLOR_COEFFS}

@@ -778,47 +778,18 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         transform : array-like, shape=[..., 3, 3]
             Matrix to be applied to the translation part in exp.
         """
-        n_samples = rot_vec.shape[0]
-
-        angle = gs.linalg.norm(rot_vec, axis=-1)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
-
+        sq_angle = gs.sum(rot_vec ** 2, axis=-1)
         skew_mat = self.rotations.skew_matrix_from_vector(rot_vec)
         sq_skew_mat = gs.matmul(skew_mat, skew_mat)
 
-        mask_0 = gs.equal(angle, 0.)
-        mask_close_0 = gs.isclose(angle, 0.) & ~mask_0
-        mask_else = ~mask_0 & ~mask_close_0
+        coef_1_ = utils.taylor_exp_even_func(
+            sq_angle, utils.cosc_close_0, order=4)
+        coef_2_ = utils.taylor_exp_even_func(
+            sq_angle, utils.var_sinc_close_0, order=4)
 
-        mask_0_float = gs.cast(mask_0, gs.float32)
-        mask_close_0_float = gs.cast(mask_close_0, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
-
-        coef_1 = gs.zeros_like(angle)
-        coef_2 = gs.zeros_like(angle)
-
-        coef_1 += mask_0_float * 1. / 2. * gs.ones_like(angle)
-        coef_2 += mask_0_float * 1. / 6. * gs.ones_like(angle)
-
-        coef_1 += mask_close_0_float * (
-            TAYLOR_COEFFS_1_AT_0[0]
-            + TAYLOR_COEFFS_1_AT_0[2] * angle ** 2
-            + TAYLOR_COEFFS_1_AT_0[4] * angle ** 4
-            + TAYLOR_COEFFS_1_AT_0[6] * angle ** 6)
-        coef_2 += mask_close_0_float * (
-            TAYLOR_COEFFS_2_AT_0[0]
-            + TAYLOR_COEFFS_2_AT_0[2] * angle ** 2
-            + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
-            + TAYLOR_COEFFS_2_AT_0[6] * angle ** 6)
-
-        angle += mask_0_float * 1.
-
-        coef_1 += mask_else_float * ((1. - gs.cos(angle)) / angle ** 2)
-        coef_2 += mask_else_float * ((angle - gs.sin(angle)) / angle ** 3)
-
-        term_1 = gs.einsum('...i,...ij->...ij', coef_1, skew_mat)
-        term_2 = gs.einsum('...i,...ij->...ij', coef_2, sq_skew_mat)
-        term_id = gs.array([gs.eye(3)] * n_samples)
+        term_1 = gs.einsum('...,...ij->...ij', coef_1_, skew_mat)
+        term_2 = gs.einsum('...,...ij->...ij', coef_2_, sq_skew_mat)
+        term_id = gs.eye(3)
         transform = term_id + term_1 + term_2
 
         return transform
