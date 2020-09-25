@@ -823,6 +823,40 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         regularized_rot_vec : array-like, shape=[..., 3]
             Rotation vector.
         """
+        trace = gs.trace(rot_mat, axis1=-2, axis2=-1)
+        trace_num = gs.clip(trace, -1, 3)
+        angle = gs.arccos(0.5 * (trace_num - 1))
+        skew = GeneralLinear.to_skew_symmetric(rot_mat)
+        sinc = utils.taylor_exp_even_func(angle ** 2, utils.sinc_close_0)
+        sinc = gs.where(sinc < utils.EPSILON, utils.EPSILON, sinc)
+        scaled_skew = gs.einsum('...,...kl->...kl', 1. / sinc, skew)
+
+        if not gs.any(gs.isclose(angle, gs.pi)):
+            obtained = self.vector_from_skew_matrix(scaled_skew)
+
+        outer_mat = .5 * (rot_mat + gs.eye(3))
+        rot_vec_pi = gs.einsum(
+            '...,...i', angle,
+            gs.sqrt(gs.diagonal(gs.clip(
+                outer_mat, 0, gs.pi ** 2), axis1=-2, axis2=-1)))
+
+        is_vectorized = rot_mat.ndim == 3
+        norm_line = gs.linalg.norm(outer_mat, axis=-1)
+        max_line_index = gs.argmax(norm_line, axis=-1)
+        if is_vectorized:
+            selected_lines = outer_mat[
+                range(outer_mat.shape[0]), max_line_index]
+        else:
+            selected_lines = outer_mat[max_line_index]
+        rot_vec_pi *= gs.sign(selected_lines)
+
+        rot_mat_ = gs.where(gs.isclose(skew, gs.pi), outer_mat, scaled_skew)
+        rot_vec_ = self.vector_from_skew_matrix(rot_mat_)
+        rot_vec__ = gs.where(
+            gs.isclose(rot_vec_, 0) & gs.isclose(angle, gs.pi),
+            rot_vec_pi, rot_vec_)
+        obtained = self.regularize(rot_vec__)
+
         n_rot_mats, _, _ = rot_mat.shape
 
         trace = gs.trace(rot_mat, axis1=1, axis2=2)
@@ -856,7 +890,10 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         rot_vec_pi = angle * signs * diag_comp
 
         rot_vec = rot_vec_not_pi + mask_pi * rot_vec_pi
-
+        if not gs.all(gs.isclose(
+                self.regularize(rot_vec), obtained, atol=1e-12)):
+            print('result', self.regularize(rot_vec))
+            raise ValueError(angle)
         return self.regularize(rot_vec)
 
     def matrix_from_rotation_vector(self, rot_vec):
