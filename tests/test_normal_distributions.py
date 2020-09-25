@@ -2,6 +2,8 @@
 
 import warnings
 
+from scipy.stats import norm
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.normal_distributions import FisherRaoMetric
@@ -56,5 +58,18 @@ class TestNormalDistributions(geomstats.tests.TestCase):
         samples = self.normal.sample(points, n_samples)
         result = samples.shape
         expected = (n_points, n_samples)
+
+        self.assertAllClose(result, expected)
+
+    def test_point_to_pdf(self):
+        """Test point_to_pdf.
+        """
+        point = self.normal.random_uniform(n_samples=2)
+        pdf = self.normal.point_to_pdf(point)
+        x = gs.linspace(0., 1., 10)
+        result = pdf(x)
+        pdf1 = norm.pdf(x, loc=point[0, 0], scale=point[0, 1])
+        pdf2 = norm.pdf(x, loc=point[1, 0], scale=point[1, 1])
+        expected = gs.transpose(gs.vstack((pdf1, pdf2)))
 
         self.assertAllClose(result, expected)
