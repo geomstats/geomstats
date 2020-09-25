@@ -67,9 +67,6 @@ inv_sinch_close_0 = {
 inv_tanh_close_0 = {
     'function': lambda x: x / gs.tanh(x),
     'coefficients': INV_TANH_TAYLOR_COEFFS}
-se3_log_close_0 = {
-    'function': lambda x: (1 - .5 * x * gs.sin(x) / (1 - gs.cos(x))) / x ** 2,
-    'coefficients': [1. / 12, 1. / 720, 1. / 30240, 1. / 1209600]}
 
 
 def from_vector_to_diagonal_matrix(vector):
