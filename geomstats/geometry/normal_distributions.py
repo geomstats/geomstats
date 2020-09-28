@@ -104,7 +104,7 @@ class NormalDistributions(PoincareHalfSpace):
             x = gs.to_ndarray(x, to_ndim=1)
 
             pdf_at_x = [
-                norm.pdf(x, loc=mean, scale=std) for mean, std
+                gs.array(norm.pdf(x, loc=mean, scale=std)) for mean, std
                 in zip(means, stds)]
             pdf_at_x = gs.stack(pdf_at_x, axis=1)
 
