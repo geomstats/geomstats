@@ -2,6 +2,8 @@
 
 import warnings
 
+from scipy.stats import beta
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.beta_distributions import BetaDistributions
@@ -127,4 +129,19 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         point = gs.array([1., 1.])
         result = self.beta.metric.inner_product_matrix(point)
         expected = gs.array([[1., -0.644934066], [-0.644934066, 1.]])
+        self.assertAllClose(result, expected)
+
+    def test_point_to_pdf(self):
+        """Test point_to_pdf.
+
+        Check vectorization of the computation of the pdf.
+        """
+        point = self.beta.random_uniform(n_samples=2)
+        pdf = self.beta.point_to_pdf(point)
+        x = gs.linspace(0., 1., 10)
+        result = pdf(x)
+        pdf1 = beta.pdf(x, a=point[0, 0], b=point[0, 1])
+        pdf2 = beta.pdf(x, a=point[1, 0], b=point[1, 1])
+        expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=1)
+
         self.assertAllClose(result, expected)

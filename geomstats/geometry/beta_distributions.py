@@ -104,6 +104,47 @@ class BetaDistributions(EmbeddedManifold):
                 beta.rvs(param_a, param_b, size=n_samples)))
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
+    def point_to_pdf(self, point):
+        """Compute pdf associated to point.
+
+        Compute the probability density function of the beta
+        distribution with parameters provided by point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 2]
+            Point representing a beta distribution.
+
+        Returns
+        -------
+        pdf : function
+            Probability density function of the beta distribution with
+            parameters provided by point.
+        """
+        geomstats.errors.check_belongs(point, self)
+        point = gs.to_ndarray(point, to_ndim=2)
+        a_params = point[:, 0]
+        b_params = point[:, 1]
+
+        def pdf(x):
+            """Generate parameterized function for normal pdf.
+
+            Parameters
+            ----------
+            x : array-like, shape=[n_points,]
+                Points at which to compute the probability density function.
+            """
+            x = gs.array(x, gs.float32)
+            x = gs.to_ndarray(x, to_ndim=1)
+
+            pdf_at_x = [
+                gs.array(beta.pdf(x, a=a, b=b)) for a, b
+                in zip(a_params, b_params)]
+            pdf_at_x = gs.stack(pdf_at_x, axis=1)
+
+            return pdf_at_x
+        return pdf
+
     @staticmethod
     def maximum_likelihood_fit(data, loc=0, scale=1):
         """Estimate parameters from samples.

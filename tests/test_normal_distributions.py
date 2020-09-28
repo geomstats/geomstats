@@ -61,7 +61,10 @@ class TestNormalDistributions(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_point_to_pdf(self):
-        """Test point_to_pdf."""
+        """Test point_to_pdf
+
+        Check vectorization of the computation of the pdf.
+        """
         point = self.normal.random_uniform(n_samples=2)
         pdf = self.normal.point_to_pdf(point)
         x = gs.linspace(0., 1., 10)
