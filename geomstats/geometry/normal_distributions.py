@@ -88,6 +88,7 @@ class NormalDistributions(PoincareHalfSpace):
             Probability density function of the normal distribution with
             parameters provided by point.
         """
+        geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=2)
         means = point[:, 0]
         stds = point[:, 1]
