@@ -82,7 +82,8 @@ class NormalDistributions(PoincareHalfSpace):
         point : array-like, shape=[..., 2]
             Point representing a normal distribution (location and scale).
 
-        Returns:
+        Returns
+        -------
         pdf : function
             Probability density function of the normal distribution with
             parameters provided by point.
