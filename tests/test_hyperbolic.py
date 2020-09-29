@@ -26,6 +26,27 @@ class TestHyperbolic(geomstats.tests.TestCase):
         self.ball_manifold = PoincareBall(dim=2)
         self.n_samples = 10
 
+    def test_belongs_intrinsic(self):
+        self.space.coords_type = 'intrinsic'
+        point = gs.random.rand(self.n_samples, self.dimension)
+        result = self.space.belongs(point)
+        self.assertTrue(gs.all(result))
+
+    def test_regularize_intrinsic(self):
+        self.space.coords_type = 'intrinsic'
+        point = gs.random.rand(self.n_samples, self.dimension)
+        regularized = self.space.regularize(point)
+        self.space.coords_type = 'extrinsic'
+        result = self.space.belongs(regularized)
+        self.assertTrue(gs.all(result))
+
+    def test_regularize_zero_norm(self):
+        point = gs.array([-1., 1., 0., 0.])
+        self.assertRaises(ValueError, lambda: self.space.regularize(point))
+        self.assertRaises(
+            NameError,
+            lambda: self.space.extrinsic_to_intrinsic_coords(point))
+
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
@@ -66,8 +87,8 @@ class TestHyperbolic(geomstats.tests.TestCase):
         gives the identity.
         """
         point_int = gs.ones(self.dimension)
-        point_ext = self.space.from_coordinates(point_int, 'intrinsic')
-        result = self.space.to_coordinates(point_ext, 'intrinsic')
+        point_ext = self.space.intrinsic_to_extrinsic_coords(point_int)
+        result = self.space.extrinsic_to_intrinsic_coords(point_ext)
         expected = point_int
         self.assertAllClose(result, expected)
 
