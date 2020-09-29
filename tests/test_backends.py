@@ -9,6 +9,7 @@ import warnings
 import numpy as _np
 import scipy.linalg
 
+import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
@@ -938,3 +939,36 @@ class TestBackends(geomstats.tests.TestCase):
         expected = _np.split(x, 2)
         for res, exp in zip(result, expected):
             self.assertAllClose(res, exp)
+
+    def test_svd(self):
+        gs_point = gs.reshape(gs.arange(12), (4, 3))
+        gs_point = gs.cast(gs_point, gs.float64)
+        np_point = _np.arange(12).reshape(4, 3)
+        reconstruction = gs.array([
+            [1., 0., 0.], [0., 1., 0.], [0., 0., 1.], [0., 0., 0.]])
+        u, s, v = _np.linalg.svd(np_point)
+        u_r, s_r, v_r = gs.linalg.svd(gs_point)
+        s_r_reconstructed = gs.einsum('kl,l->kl', reconstruction, s_r)
+        gs_a_approx = gs.matmul(gs.matmul(
+            u_r, s_r_reconstructed), v_r)
+        s_reconstructed = _np.einsum('kl,l->kl', reconstruction, s)
+        np_a_approx = _np.dot(u, _np.dot(s_reconstructed, v))
+        self.assertAllClose(gs_a_approx, np_a_approx)
+
+        full_matrices = False
+        u, s, v = _np.linalg.svd(
+            np_point, full_matrices=full_matrices)
+        u_r, s_r, v_r = gs.linalg.svd(
+            gs_point, full_matrices)
+        reconstruction = gs.eye(3)
+        s_r_reconstructed = gs.einsum('kl,l->kl', reconstruction, s_r)
+        gs_a_approx = gs.matmul(gs.matmul(
+            u_r, s_r_reconstructed), v_r)
+        s_reconstructed = _np.einsum('kl,l->kl', reconstruction, s)
+        np_a_approx = _np.dot(u, _np.dot(s_reconstructed, v))
+        self.assertAllClose(gs_a_approx, np_a_approx)
+
+        compute_uv = False
+        s = _np.linalg.svd(np_point, compute_uv=compute_uv)
+        s_r = gs.linalg.svd(gs_point, compute_uv=compute_uv)
+        self.assertAllClose(s, s_r)

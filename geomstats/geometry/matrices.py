@@ -129,6 +129,18 @@ class Matrices(Manifold):
 
     @staticmethod
     def is_square(mat):
+        """Check if a matrix is square.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., m, n]
+            Matrix.
+
+        Returns
+        -------
+        is_square : array-like, shape=[...,]
+            Boolean evaluating if the matrix is square.
+        """
         n = mat.shape[-1]
         m = mat.shape[-2]
         return m == n
