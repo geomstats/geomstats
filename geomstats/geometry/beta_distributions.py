@@ -122,9 +122,8 @@ class BetaDistributions(EmbeddedManifold):
             parameters provided by point.
         """
         geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=2)
-        a_params = point[:, 0]
-        b_params = point[:, 1]
+        a_params = point[..., 0]
+        b_params = point[..., 1]
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
@@ -140,7 +139,7 @@ class BetaDistributions(EmbeddedManifold):
             pdf_at_x = [
                 gs.array(beta.pdf(x, a=a, b=b)) for a, b
                 in zip(a_params, b_params)]
-            pdf_at_x = gs.stack(pdf_at_x, axis=1)
+            pdf_at_x = gs.stack(pdf_at_x, axis=-1)
 
             return pdf_at_x
         return pdf
