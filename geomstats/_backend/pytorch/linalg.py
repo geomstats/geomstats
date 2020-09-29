@@ -39,11 +39,8 @@ def eigh(*args, **kwargs):
     return eigvals, eigvecs
 
 
-def svd(*args, **kwargs):
-    svds = np.linalg.svd(*args, **kwargs)
-    return (torch.from_numpy(svds[0]),
-            torch.from_numpy(svds[1]),
-            torch.from_numpy(svds[2]))
+def svd(*args, full_matrices=True, **kwargs):
+    return torch.svd(*args, some=not full_matrices, **kwargs)
 
 
 def det(*args, **kwargs):
