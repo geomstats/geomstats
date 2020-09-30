@@ -9,7 +9,6 @@ import warnings
 import numpy as _np
 import scipy.linalg
 
-import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
