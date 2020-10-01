@@ -127,6 +127,24 @@ class Matrices(Manifold):
         axes = (0, 2, 1) if is_vectorized else (1, 0)
         return gs.transpose(mat, axes)
 
+    @staticmethod
+    def is_square(mat):
+        """Check if a matrix is square.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., m, n]
+            Matrix.
+
+        Returns
+        -------
+        is_square : array-like, shape=[...,]
+            Boolean evaluating if the matrix is square.
+        """
+        n = mat.shape[-1]
+        m = mat.shape[-2]
+        return m == n
+
     @classmethod
     def is_symmetric(cls, mat, atol=TOLERANCE):
         """Check if a matrix is symmetric.
@@ -144,6 +162,10 @@ class Matrices(Manifold):
         is_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric.
         """
+        is_square = cls.is_square(mat)
+        if not is_square:
+            is_vectorized = (gs.ndim(gs.array(mat)) == 3)
+            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, cls.transpose(mat), atol)
 
     @classmethod

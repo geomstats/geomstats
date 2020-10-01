@@ -65,10 +65,13 @@ class TestMatrices(geomstats.tests.TestCase):
         self.assertAllClose(tr(a), b)
         self.assertAllClose(tr(ar([a, b])), ar([b, a]))
 
-    @geomstats.tests.np_only
     def test_is_symmetric(self):
-        sym_mat = gs.array([[1., 2.],
-                            [2., 1.]])
+        not_squared = gs.array([[1., 2.], [2., 1.], [3., 1.]])
+        result = self.space.is_symmetric(not_squared)
+        expected = False
+        self.assertAllClose(result, expected)
+
+        sym_mat = gs.array([[1., 2.], [2., 1.]])
         result = self.space.is_symmetric(sym_mat)
         expected = gs.array(True)
         self.assertAllClose(result, expected)
