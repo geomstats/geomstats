@@ -292,6 +292,17 @@ class BetaMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
+        n_base_points = base_point.shape[0]
+        n_tangent_vecs = tangent_vec.shape[0]
+        if n_base_points > n_tangent_vecs:
+            raise ValueError('There cannot be more base points than tangent '
+                             'vectors.')
+        if n_tangent_vecs > n_base_points:
+            if n_base_points > 1:
+                raise ValueError('For several tangent vectors, specify either '
+                                 'one or the same number of base points.')
+            base_point = gs.tile(base_point, (n_tangent_vecs, 1))
+
         def ivp(state, _):
             """Reformat the initial value problem geodesic ODE."""
             position, velocity = state[:2], state[2:]
@@ -333,6 +344,18 @@ class BetaMetric(RiemannianMetric):
         t = gs.linspace(0, stop_time, n_steps)
         point = gs.to_ndarray(point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
+        n_points = point.shape[0]
+        n_base_points = base_point.shape[0]
+        if n_base_points > n_points:
+            if n_points > 1:
+                raise ValueError('For several base points, specify either '
+                                 'one or the same number of points.')
+            point = gs.tile(point, (n_base_points, 1))
+        elif n_points > n_base_points:
+            if n_base_points > 1:
+                raise ValueError('For several points, specify either '
+                                 'one or the same number of base points.')
+            base_point = gs.tile(base_point, (n_points, 1))
 
         def initialize(end_point, start_point):
             a0, b0 = start_point
