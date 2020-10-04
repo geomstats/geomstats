@@ -42,6 +42,6 @@ class TestNotebooks(geomstats.tests.TestCase):
         _exec_notebook('notebooks/05_embedding_graph_structured_data_h2.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_only
     def test_06_information_geometry():
         _exec_notebook('notebooks/06_information_geometry.ipynb')
