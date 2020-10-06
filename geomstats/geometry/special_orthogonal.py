@@ -127,8 +127,8 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             random_mat = gs.random.rand(self.n, self.n)
         else:
             random_mat = gs.random.rand(n_samples, self.n, self.n)
-        skew = self.to_tangent(random_mat)
-        return self.exp(skew)
+        rotation_mat, _ = gs.linalg.qr(random_mat, mode='complete')
+        return rotation_mat
 
     @geomstats.vectorization.decorator(['else', 'vector'])
     def skew_matrix_from_vector(self, vec):
