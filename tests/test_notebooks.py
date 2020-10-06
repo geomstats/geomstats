@@ -40,3 +40,7 @@ class TestNotebooks(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_05_embedding_graph_structured_data_h2():
         _exec_notebook('notebooks/05_embedding_graph_structured_data_h2.ipynb')
+
+    @staticmethod
+    def test_06_k_mean_clustering_on_sphere():
+        _exec_notebook('notebooks/06_k_mean_clustering_on_sphere.ipynb')
