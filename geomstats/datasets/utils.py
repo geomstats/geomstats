@@ -33,7 +33,7 @@ GRAPH_RANDOM_PATH = os.path.join(
 GRAPH_RANDOM_LABELS_PATH = os.path.join(
     DATA_PATH, 'graph_random', 'graph_random_labels.txt')
 LEAVES_PATH = os.path.join(
-    DATA_PATH, 'leaves', 'leaves.xlsx')
+    DATA_PATH, 'leaves', 'leaves.csv')
 
 
 def load_cities():
@@ -175,7 +175,7 @@ def load_leaves():
     distrib_type: array-like, shape=[172, ]
         leaf orientation angle distribution type for each of the 172 species.
     """
-    data = pandas.read_excel(LEAVES_PATH)
+    data = pandas.read_csv(LEAVES_PATH, sep=';')
     beta_param = gs.array(data[['nu', 'mu']])
     distrib_type = gs.squeeze(gs.array(data['Distribution']))
     return beta_param, distrib_type
