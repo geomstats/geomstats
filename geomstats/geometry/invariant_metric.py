@@ -189,22 +189,22 @@ class InvariantMetric(RiemannianMetric):
             self.metric_mat_at_identity)
         return - gs.einsum(
             'i...,ijk->...jk',
-            gs.array([self.structure_constant(tan, tan_a, tan_b) for tan in
-                      basis]),
+            gs.array([
+                self.structure_constant(tan, tan_a, tan_b) for tan in basis]),
             gs.array(basis))
 
     def connection_at_identity(self, tan_a_at_id, tan_b_at_id):
         return 1. / 2 * (GeneralLinear.bracket(tan_a_at_id, tan_b_at_id)
                          - self.adjoint_star(tan_a_at_id, tan_b_at_id)
-                         - self.adjoint_star(tan_a_at_id, tan_b_at_id))
+                         - self.adjoint_star(tan_b_at_id, tan_a_at_id))
 
     def connection(self, tangent_vec_a, tangent_vec_b, base_point=None):
         if base_point is None:
             return self.connection_at_identity(tangent_vec_a, tangent_vec_b)
-        tan_a_at_id = self.group.compose(
-            self.group.inverse(base_point), tangent_vec_a)
-        tan_b_at_id = self.group.compose(
-            self.group.inverse(base_point), tangent_vec_b)
+        translation_map = self.group.tangent_translation_map(
+            base_point, left_or_right=self.left_or_right, inverse=True)
+        tan_a_at_id = translation_map(tangent_vec_a)
+        tan_b_at_id = translation_map(tangent_vec_b)
         return self.connection_at_identity(tan_a_at_id, tan_b_at_id)
 
     def left_exp_from_identity(self, tangent_vec):

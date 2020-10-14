@@ -551,8 +551,28 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         metric = InvariantMetric(group=group, algebra=lie_algebra)
         basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
         result = metric.structure_constant(
-            basis[0], basis[1], basis[2])
-        expected = - 2. ** .5 / 2.
+            -basis[2], basis[1], -basis[0])
+        expected = 2. ** .5 / 2.
+        self.assertAllClose(result, expected)
+
+        result = -metric.structure_constant(
+            basis[1], -basis[2], -basis[0])
+        self.assertAllClose(result, expected)
+
+        result = metric.structure_constant(
+            basis[1], -basis[0], -basis[2])
+        self.assertAllClose(result, expected)
+
+        result = -metric.structure_constant(
+            -basis[0], basis[1], -basis[2])
+        self.assertAllClose(result, expected)
+
+        result = metric.structure_constant(
+            -basis[0], -basis[2], basis[1])
+        self.assertAllClose(result, expected)
+
+        result = -metric.structure_constant(
+            -basis[2], -basis[0], basis[1])
         self.assertAllClose(result, expected)
 
         result = metric.structure_constant(
@@ -565,10 +585,26 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group, algebra=lie_algebra)
         basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
-        result = metric.adjoint_star(basis[0], basis[1])
-        expected = 2 ** .5 * basis[2] / 2.
+        for x in basis:
+            for y in basis:
+                for z in basis:
+                    result = metric.inner_product_at_identity(
+                        metric.adjoint_star(x, y), z)
+                    expected = metric.structure_constant(x, z, y)
+                    self.assertAllClose(result, expected)
+
+    def test_connection(self):
+        group = self.matrix_so3
+        lie_algebra = SkewSymmetricMatrices(3)
+        metric = InvariantMetric(group=group, algebra=lie_algebra)
+        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        result = metric.connection_at_identity(-basis[2], basis[1])
+        expected = -1. / 2 ** .5 / 2. * basis[0]
         self.assertAllClose(result, expected)
 
-        result = metric.adjoint_star(basis[0], basis[0])
-        expected = 0.
+        point = group.random_uniform()
+        translation_map = group.tangent_translation_map(point)
+        tan_a = translation_map(-basis[2])
+        tan_b = translation_map(basis[1])
+        result = metric.connection(tan_a, tan_b, point)
         self.assertAllClose(result, expected)
