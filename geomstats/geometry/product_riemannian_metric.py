@@ -81,10 +81,9 @@ class ProductRiemannianMetric(RiemannianMetric):
         for i in range(self.n_metrics):
             cum_dim_next = cum_dim + self.dims[i]
             if point_type == 'matrix':
-                matrix_next = self.metrics[i].inner_product_matrix(
-                    base_point[:, i])
+                matrix_next = self.metrics[i].metric_matrix(base_point[:, i])
             elif point_type == 'vector':
-                matrix_next = self.metrics[i].inner_product_matrix(
+                matrix_next = self.metrics[i].metric_matrix(
                     base_point[:, cum_dim:cum_dim_next, cum_dim:cum_dim_next])
             else:
                 raise ValueError('invalid point_type argument: {}, expected '

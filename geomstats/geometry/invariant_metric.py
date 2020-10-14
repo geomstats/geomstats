@@ -22,7 +22,7 @@ class InvariantMetric(RiemannianMetric):
     ----------
     group : LieGroup
         Group to equip with the invariant metric
-    inner_product_mat_at_identity : array-like, shape=[dim, dim]
+    metric_mat_at_identity : array-like, shape=[dim, dim]
         Matrix that defines the metric at identity.
         Optional, defaults to identity matrix if None.
     left_or_right : str, {'left', 'right'}
@@ -31,19 +31,19 @@ class InvariantMetric(RiemannianMetric):
     """
 
     def __init__(self, group, algebra=None,
-                 inner_product_mat_at_identity=None,
+                 metric_mat_at_identity=None,
                  left_or_right='left', **kwargs):
         super(InvariantMetric, self).__init__(dim=group.dim, **kwargs)
 
         self.group = group
         self.lie_algebra = algebra
-        if inner_product_mat_at_identity is None:
-            inner_product_mat_at_identity = gs.eye(self.group.dim)
+        if metric_mat_at_identity is None:
+            metric_mat_at_identity = gs.eye(self.group.dim)
 
         geomstats.errors.check_parameter_accepted_values(
             left_or_right, 'left_or_right', ['left', 'right'])
 
-        eigenvalues = gs.linalg.eigvalsh(inner_product_mat_at_identity)
+        eigenvalues = gs.linalg.eigvalsh(metric_mat_at_identity)
         mask_pos_eigval = gs.greater(eigenvalues, 0.)
         n_pos_eigval = gs.sum(gs.cast(mask_pos_eigval, gs.int32))
         mask_neg_eigval = gs.less(eigenvalues, 0.)
@@ -51,7 +51,7 @@ class InvariantMetric(RiemannianMetric):
         mask_null_eigval = gs.isclose(eigenvalues, 0.)
         n_null_eigval = gs.sum(gs.cast(mask_null_eigval, gs.int32))
 
-        self.inner_product_mat_at_identity = inner_product_mat_at_identity
+        self.metric_mat_at_identity = metric_mat_at_identity
         self.left_or_right = left_or_right
         self.signature = (n_pos_eigval, n_null_eigval, n_neg_eigval)
 
@@ -76,7 +76,7 @@ class InvariantMetric(RiemannianMetric):
             ['vector', 'matrix'])
 
         if self.group.default_point_type == 'vector':
-            inner_product_mat_at_identity = self.inner_product_mat_at_identity
+            inner_product_mat_at_identity = self.metric_mat_at_identity
             inner_prod = gs.einsum(
                 '...i,...ij->...j',
                 tangent_vec_a,
@@ -94,13 +94,11 @@ class InvariantMetric(RiemannianMetric):
             axes = (2, 1) if is_vectorized else (0, 1)
 
             aux_prod = tangent_vec_a * tangent_vec_b
-            metric_mat = self.inner_product_mat_at_identity
+            metric_mat = self.metric_mat_at_identity
             if (Matrices.is_diagonal(metric_mat)
                     and self.lie_algebra is not None):
-                metric_coeffs = gs.diagonal(metric_mat)
-                metric_mat = gs.abs(
-                    self.lie_algebra.matrix_representation(metric_coeffs))
-                aux_prod *= metric_mat
+                aux_prod *= self.lie_algebra.reshape_metric_matrix(
+                    metric_mat)
             inner_prod = gs.sum(aux_prod, axis=axes)
 
         return inner_prod
@@ -140,7 +138,7 @@ class InvariantMetric(RiemannianMetric):
             tangent_vec_a_at_id, tangent_vec_b_at_id)
         return inner_prod
 
-    def inner_product_matrix(self, base_point=None):
+    def metric_matrix(self, base_point=None):
         """Compute inner product matrix at the tangent space at a base point.
 
         Parameters
@@ -171,10 +169,43 @@ class InvariantMetric(RiemannianMetric):
 
         metric_mat = gs.einsum(
             '...ij,...jk->...ik',
-            inv_jacobian_transposed, self.inner_product_mat_at_identity)
+            inv_jacobian_transposed, self.metric_mat_at_identity)
         metric_mat = gs.einsum(
             '...ij,...jk->...ik', metric_mat, inv_jacobian)
         return metric_mat
+
+    def structure_constant(self, tan_a, tan_b, tan_c):
+        """
+        <[x,y],z>
+        """
+        return self.inner_product_at_identity(
+            GeneralLinear.bracket(tan_a, tan_b), tan_c)
+
+    def adjoint_star(self, tan_a, tan_b):
+        """
+        <ad(x)*y, z> = <[x,z], y > pour tout z
+        """
+        basis = self.lie_algebra.orthonormal_basis(
+            self.metric_mat_at_identity)
+        return - gs.einsum(
+            'i...,ijk->...jk',
+            gs.array([self.structure_constant(tan, tan_a, tan_b) for tan in
+                      basis]),
+            gs.array(basis))
+
+    def connection_at_identity(self, tan_a_at_id, tan_b_at_id):
+        return 1. / 2 * (GeneralLinear.bracket(tan_a_at_id, tan_b_at_id)
+                         - self.adjoint_star(tan_a_at_id, tan_b_at_id)
+                         - self.adjoint_star(tan_a_at_id, tan_b_at_id))
+
+    def connection(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        if base_point is None:
+            return self.connection_at_identity(tangent_vec_a, tangent_vec_b)
+        tan_a_at_id = self.group.compose(
+            self.group.inverse(base_point), tangent_vec_a)
+        tan_b_at_id = self.group.compose(
+            self.group.inverse(base_point), tangent_vec_b)
+        return self.connection_at_identity(tan_a_at_id, tan_b_at_id)
 
     def left_exp_from_identity(self, tangent_vec):
         """Compute the exponential from identity with the left-invariant metric.
@@ -200,7 +231,7 @@ class InvariantMetric(RiemannianMetric):
             tangent_vec=tangent_vec,
             metric=self)
         sqrt_inner_product_mat = gs.linalg.sqrtm(
-            self.inner_product_mat_at_identity)
+            self.metric_mat_at_identity)
         mat = Matrices.transpose(sqrt_inner_product_mat)
 
         exp = gs.einsum('...i,...ij->...j', tangent_vec, mat)
@@ -295,7 +326,7 @@ class InvariantMetric(RiemannianMetric):
             of point at the identity.
         """
         point = self.group.regularize(point)
-        inner_prod_mat = self.inner_product_mat_at_identity
+        inner_prod_mat = self.metric_mat_at_identity
         inv_inner_prod_mat = GeneralLinear.inverse(inner_prod_mat)
         sqrt_inv_inner_prod_mat = gs.linalg.sqrtm(inv_inner_prod_mat)
         log = gs.einsum('...i,...ij->...j', point, sqrt_inv_inner_prod_mat)
@@ -384,9 +415,10 @@ class BiInvariantMetric(InvariantMetric):
     """
 
     def __init__(self, group):
-        super(BiInvariantMetric, self).__init__(
-            group=group, inner_product_mat_at_identity=gs.eye(group.dim),
-            default_point_type=group.default_point_type)
+        super(BiInvariantMetric, self).__init__(group=group,
+                                                metric_mat_at_identity=gs.eye(
+                                                    group.dim),
+                                                default_point_type=group.default_point_type)
         cond = (
             'SpecialOrthogonal' not in group.__str__()
             and 'SO' not in group.__str__()

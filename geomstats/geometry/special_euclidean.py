@@ -156,20 +156,25 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
         return random_point
 
     def inverse(self, point):
+        """Return the inverse of a point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point to be inverted.
+        """
         translation_mask = self.translation_mask
         embedded_rotations = point * gs.where(
             translation_mask == 1, translation_mask, self.identity)
         transposed_rot = self.transpose(embedded_rotations)
         translation = point[..., :, -1]
         translation = gs.einsum(
-            '...ij,...j', transposed_rot, translation)
+            '...ij,...j->...j', transposed_rot, translation)
         translation *= gs.where(
             translation_mask[..., -1] == 2, - translation_mask[..., -1] / 2,
             gs.ones(self.n + 1))
-        # translation = gs.reshape(translation, (-1, self.n + 1, 1))
-        print(embedded_rotations, translation)
         return gs.concatenate([
-            transposed_rot[..., :, :-1], translation], axis=-1)
+            transposed_rot[..., :, :-1], translation[..., None]], axis=-1)
 
 
 class _SpecialEuclideanVectors(LieGroup):
@@ -650,12 +655,11 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         rot_tangent_vec = tangent_vec[..., :dim_rotations]
         rot_base_point = base_point[..., :dim_rotations]
 
-        metric_mat = metric.inner_product_mat_at_identity
+        metric_mat = metric.metric_mat_at_identity
         rot_metric_mat = metric_mat[:dim_rotations, :dim_rotations]
-        rot_metric = InvariantMetric(
-            group=rotations,
-            inner_product_mat_at_identity=rot_metric_mat,
-            left_or_right=metric.left_or_right)
+        rot_metric = InvariantMetric(group=rotations,
+                                     metric_mat_at_identity=rot_metric_mat,
+                                     left_or_right=metric.left_or_right)
 
         rotations_vec = rotations.regularize_tangent_vec(
             tangent_vec=rot_tangent_vec,

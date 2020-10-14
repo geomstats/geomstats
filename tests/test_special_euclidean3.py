@@ -98,24 +98,22 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         # Metrics - only diagonals
         diag_mat_at_identity = gs.eye(6) * gs.array([2., 2., 2., 3., 3., 3.])
 
-        left_diag_metric = InvariantMetric(
-            group=group,
-            inner_product_mat_at_identity=diag_mat_at_identity,
-            left_or_right='left')
-        right_diag_metric = InvariantMetric(
-            group=group,
-            inner_product_mat_at_identity=diag_mat_at_identity,
-            left_or_right='right')
+        left_diag_metric = InvariantMetric(group=group,
+                                           metric_mat_at_identity=diag_mat_at_identity,
+                                           left_or_right='left')
+        right_diag_metric = InvariantMetric(group=group,
+                                            metric_mat_at_identity=diag_mat_at_identity,
+                                            left_or_right='right')
 
         # mat_at_identity = 7 * gs.eye(group.dim)
 
         # left_metric = InvariantMetric(
         #            group=group,
-        #            inner_product_mat_at_identity=mat_at_identity,
+        #            metric_mat_at_identity=mat_at_identity,
         #            left_or_right='left')
         # right_metric = InvariantMetric(
         #            group=group,
-        #            inner_product_mat_at_identity=mat_at_identity,
+        #            metric_mat_at_identity=mat_at_identity,
         #            left_or_right='right')
 
         metrics_all = {

@@ -75,3 +75,16 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         )[gs.triu_indices(self.n, k=1)]
 
         return as_vector[:, upper_tri_indices]
+
+    def reshape_metric_matrix(self, metric_mat):
+        if Matrices.is_diagonal(metric_mat):
+            metric_coeffs = gs.diagonal(metric_mat)
+            metric_mat = gs.abs(
+                self.matrix_representation(metric_coeffs))
+            return metric_mat
+        raise ValueError('This is only possible for a diagonal matrix')
+
+    def orthonormal_basis(self, metric_matrix):
+        metric_matrix = self.reshape_metric_matrix(metric_matrix) + gs.eye(
+            self.n)
+        return self.basis / gs.sqrt(2 * metric_matrix)

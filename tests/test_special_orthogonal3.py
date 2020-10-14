@@ -65,34 +65,28 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         diag_mats = {3: 9 * gs.eye(self.group.dim)}
         left_diag_metrics = {
-            3: InvariantMetric(
-                group=self.group,
-                inner_product_mat_at_identity=diag_mats[3],
-                left_or_right='left')
+            3: InvariantMetric(group=self.group,
+                               metric_mat_at_identity=diag_mats[3],
+                               left_or_right='left')
         }
 
         right_diag_metrics = {
-            3: InvariantMetric(
-                group=self.group,
-                inner_product_mat_at_identity=diag_mats[3],
-                left_or_right='right')
+            3: InvariantMetric(group=self.group,
+                               metric_mat_at_identity=diag_mats[3],
+                               left_or_right='right')
         }
 
         mats = {2: 4 * gs.eye(1),
                 3: 87 * gs.eye(3)}
 
         left_metrics = {
-            3: InvariantMetric(
-                group=self.group,
-                inner_product_mat_at_identity=mats[3],
-                left_or_right='left')
+            3: InvariantMetric(group=self.group, metric_mat_at_identity=mats[3],
+                               left_or_right='left')
         }
 
         right_metrics = {
-            3: InvariantMetric(
-                group=self.group,
-                inner_product_mat_at_identity=mats[3],
-                left_or_right='right')
+            3: InvariantMetric(group=self.group, metric_mat_at_identity=mats[3],
+                               left_or_right='right')
         }
         all_metrics = zip([3],
                           canonical_metrics.values(),
@@ -112,10 +106,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         metrics = metrics_all
         if geomstats.tests.tf_backend():
             metrics = {
-                3: {'right': InvariantMetric(
-                    group=self.group,
-                    inner_product_mat_at_identity=mats[3],
-                    left_or_right='right')}
+                3: {'right': InvariantMetric(group=self.group,
+                                             metric_mat_at_identity=mats[3],
+                                             left_or_right='right')}
             }
 
         angles_close_to_pi_all = {

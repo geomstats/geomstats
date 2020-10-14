@@ -134,3 +134,6 @@ class MatrixLieAlgebra:
             raise NotImplementedError("basis not implemented")
 
         return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)
+
+    def orthonormal_basis(self, metric_matrix):
+        raise NotImplementedError("orthonormal basis not implemented")

@@ -29,34 +29,29 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         # Diagonal left and right invariant metrics
         diag_mat_at_identity = gs.eye(group.dim)
 
-        left_diag_metric = InvariantMetric(
-            group=group,
-            inner_product_mat_at_identity=None,
-            left_or_right='left')
-        right_diag_metric = InvariantMetric(
-            group=group,
-            inner_product_mat_at_identity=diag_mat_at_identity,
-            left_or_right='right')
+        left_diag_metric = InvariantMetric(group=group,
+                                           metric_mat_at_identity=None,
+                                           left_or_right='left')
+        right_diag_metric = InvariantMetric(group=group,
+                                            metric_mat_at_identity=diag_mat_at_identity,
+                                            left_or_right='right')
 
         # General left and right invariant metrics
         # FIXME (nina): This is valid only for bi-invariant metrics
         sym_mat_at_identity = gs.eye(group.dim)
 
-        left_metric = InvariantMetric(
-            group=group,
-            inner_product_mat_at_identity=sym_mat_at_identity,
-            left_or_right='left')
+        left_metric = InvariantMetric(group=group,
+                                      metric_mat_at_identity=sym_mat_at_identity,
+                                      left_or_right='left')
 
-        right_metric = InvariantMetric(
-            group=group,
-            inner_product_mat_at_identity=sym_mat_at_identity,
-            left_or_right='right')
+        right_metric = InvariantMetric(group=group,
+                                       metric_mat_at_identity=sym_mat_at_identity,
+                                       left_or_right='right')
 
         matrix_left_metric = InvariantMetric(group=matrix_so3)
 
-        matrix_right_metric = InvariantMetric(
-            group=matrix_so3,
-            left_or_right='right')
+        matrix_right_metric = InvariantMetric(group=matrix_so3,
+                                              left_or_right='right')
 
         # General case for the point
         point_1 = gs.array([[-0.2, 0.9, 0.5, 5., 5., 5.]])
@@ -87,35 +82,35 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     def test_inner_product_mat_at_identity_shape(self):
         dim = self.left_metric.group.dim
 
-        result = self.left_metric.inner_product_mat_at_identity
+        result = self.left_metric.metric_mat_at_identity
         self.assertAllClose(gs.shape(result), (dim, dim))
 
     @geomstats.tests.np_and_tf_only
     def test_inner_product_matrix_shape(self):
         base_point = None
         dim = self.left_metric.group.dim
-        result = self.left_metric.inner_product_matrix(base_point=base_point)
+        result = self.left_metric.metric_matrix(base_point=base_point)
         self.assertAllClose(gs.shape(result), (dim, dim))
 
         base_point = self.group.identity
         dim = self.left_metric.group.dim
-        result = self.left_metric.inner_product_matrix(base_point=base_point)
+        result = self.left_metric.metric_matrix(base_point=base_point)
         self.assertAllClose(gs.shape(result), (dim, dim))
 
     @geomstats.tests.np_and_tf_only
     def test_inner_product_matrix_and_inner_product_mat_at_identity(self):
         base_point = None
-        result = self.left_metric.inner_product_matrix(base_point=base_point)
-        expected = self.left_metric.inner_product_mat_at_identity
+        result = self.left_metric.metric_matrix(base_point=base_point)
+        expected = self.left_metric.metric_mat_at_identity
         self.assertAllClose(result, expected)
 
         base_point = self.group.identity
-        result = self.right_metric.inner_product_matrix(base_point=base_point)
-        expected = self.right_metric.inner_product_mat_at_identity
+        result = self.right_metric.metric_matrix(base_point=base_point)
+        expected = self.right_metric.metric_mat_at_identity
         self.assertAllClose(result, expected)
 
     def test_inner_product_matrix_and_its_inverse(self):
-        inner_prod_mat = self.left_diag_metric.inner_product_mat_at_identity
+        inner_prod_mat = self.left_diag_metric.metric_mat_at_identity
         inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
         result = gs.matmul(inv_inner_prod_mat, inner_prod_mat)
         expected = gs.eye(self.group.dim)
@@ -548,4 +543,32 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             base_point=self.point_1, point=self.point_2)
         expected = self.right_metric.squared_norm(
             vector=log, base_point=self.point_1)
+        self.assertAllClose(result, expected)
+
+    def test_structure_constant(self):
+        group = self.matrix_so3
+        lie_algebra = SkewSymmetricMatrices(3)
+        metric = InvariantMetric(group=group, algebra=lie_algebra)
+        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        result = metric.structure_constant(
+            basis[0], basis[1], basis[2])
+        expected = - 2. ** .5 / 2.
+        self.assertAllClose(result, expected)
+
+        result = metric.structure_constant(
+            basis[0], basis[0], basis[2])
+        expected = 0.
+        self.assertAllClose(result, expected)
+
+    def test_adjoint_star(self):
+        group = self.matrix_so3
+        lie_algebra = SkewSymmetricMatrices(3)
+        metric = InvariantMetric(group=group, algebra=lie_algebra)
+        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        result = metric.adjoint_star(basis[0], basis[1])
+        expected = 2 ** .5 * basis[2] / 2.
+        self.assertAllClose(result, expected)
+
+        result = metric.adjoint_star(basis[0], basis[0])
+        expected = 0.
         self.assertAllClose(result, expected)
