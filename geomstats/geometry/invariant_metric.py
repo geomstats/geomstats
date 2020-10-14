@@ -207,6 +207,39 @@ class InvariantMetric(RiemannianMetric):
         tan_b_at_id = translation_map(tangent_vec_b)
         return self.connection_at_identity(tan_a_at_id, tan_b_at_id)
 
+    def curvature(self, x, y, z):
+        """
+        R(x, y)z
+        """
+        return (
+                self.connection_at_identity(GeneralLinear.bracket(x, y), z)
+                - self.connection_at_identity(
+            x, self.connection_at_identity(y, z))
+                + self.connection_at_identity(
+            y, self.connection_at_identity(x, z)))
+
+    def sectional_curvature(self, x, y):
+        """
+        < R(x, y)x, y> for x, y orthogonal. This is compensated if not
+        """
+        num = self.inner_product(y, self.curvature(x, y, x))
+        denom = (
+                self.inner_product(x, x)
+                * self.inner_product(y, y)
+                - self.inner_product(x, y) ** 2)
+        condition = gs.isclose(denom, 0.)
+        return gs.divide(num, denom, where=~condition)
+
+    def sectional_curvature_at_point(
+            self, tangent_vec_a, tangent_vec_b, base_point=None):
+        if base_point is None:
+            return self.sectional_curvature(tangent_vec_a, tangent_vec_b)
+        translation_map = self.group.tangent_translation_map(
+            base_point, inverse=True, left_or_right=self.left_or_right)
+        tan_a_at_id = translation_map(tangent_vec_a)
+        tan_b_at_id = translation_map(tangent_vec_b)
+        return self.sectional_curvature(tan_a_at_id, tan_b_at_id)
+
     def left_exp_from_identity(self, tangent_vec):
         """Compute the exponential from identity with the left-invariant metric.
 
