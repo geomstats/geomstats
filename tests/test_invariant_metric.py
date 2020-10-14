@@ -124,8 +124,8 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_inner_product_at_identity(self):
         lie_algebra = SkewSymmetricMatrices(3)
-        tangent_vec_a = lie_algebra.matrix_representation([1., 0, 2.])[0]
-        tangent_vec_b = lie_algebra.matrix_representation([1., 0, 0.5])[0]
+        tangent_vec_a = lie_algebra.matrix_representation([1., 0, 2.])
+        tangent_vec_b = lie_algebra.matrix_representation([1., 0, 0.5])
         result = self.matrix_left_metric.inner_product_at_identity(
             tangent_vec_a, tangent_vec_b)
         expected = 4.
@@ -141,10 +141,10 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_inner_product_left(self):
         lie_algebra = SkewSymmetricMatrices(3)
-        tangent_vec_a = lie_algebra.matrix_representation([1., 0, 2.])[0]
+        tangent_vec_a = lie_algebra.matrix_representation([1., 0, 2.])
         tangent_vec_a = self.matrix_so3.compose(
             self.point_1_matrix, tangent_vec_a)
-        tangent_vec_b = lie_algebra.matrix_representation([1., 0, 0.5])[0]
+        tangent_vec_b = lie_algebra.matrix_representation([1., 0, 0.5])
         tangent_vec_b = self.matrix_so3.compose(
             self.point_1_matrix, tangent_vec_b)
         result = self.matrix_left_metric.inner_product(
@@ -164,10 +164,10 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_inner_product_right(self):
         lie_algebra = SkewSymmetricMatrices(3)
-        tangent_vec_a = lie_algebra.matrix_representation([1., 0, 2.])[0]
+        tangent_vec_a = lie_algebra.matrix_representation([1., 0, 2.])
         tangent_vec_a = self.matrix_so3.compose(
             tangent_vec_a, self.point_1_matrix)
-        tangent_vec_b = lie_algebra.matrix_representation([1., 0, 0.5])[0]
+        tangent_vec_b = lie_algebra.matrix_representation([1., 0, 0.5])
         tangent_vec_b = self.matrix_so3.compose(
             tangent_vec_b, self.point_1_matrix)
         result = self.matrix_right_metric.inner_product(

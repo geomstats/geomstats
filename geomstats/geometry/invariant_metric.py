@@ -30,12 +30,13 @@ class InvariantMetric(RiemannianMetric):
         Optional, default: 'left'.
     """
 
-    def __init__(self, group,
+    def __init__(self, group, algebra=None,
                  inner_product_mat_at_identity=None,
                  left_or_right='left', **kwargs):
         super(InvariantMetric, self).__init__(dim=group.dim, **kwargs)
 
         self.group = group
+        self.lie_algebra = algebra
         if inner_product_mat_at_identity is None:
             inner_product_mat_at_identity = gs.eye(self.group.dim)
 
@@ -84,15 +85,22 @@ class InvariantMetric(RiemannianMetric):
                 '...j,...j->...', inner_prod, tangent_vec_b)
 
         else:
-            # TODO (nguigs): allow for diagonal metric_matrices
             logging.warning(
-                'Only the canonical inner product -Frobenius inner product-'
-                ' is implemented for Lie groups whose elements are represented'
-                ' by matrices.')
+                'The inner product'
+                ' is only implemented for diagonal inner-product matrices, '
+                'and the Lie Algebra needs to be specified.')
             is_vectorized = \
                 (gs.ndim(tangent_vec_a) == 3) or (gs.ndim(tangent_vec_b) == 3)
             axes = (2, 1) if is_vectorized else (0, 1)
+
             aux_prod = tangent_vec_a * tangent_vec_b
+            metric_mat = self.inner_product_mat_at_identity
+            if (Matrices.is_diagonal(metric_mat)
+                    and self.lie_algebra is not None):
+                metric_coeffs = gs.diagonal(metric_mat)
+                metric_mat = gs.abs(
+                    self.lie_algebra.matrix_representation(metric_coeffs))
+                aux_prod *= metric_mat
             inner_prod = gs.sum(aux_prod, axis=axes)
 
         return inner_prod
