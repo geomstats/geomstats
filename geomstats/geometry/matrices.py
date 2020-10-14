@@ -4,6 +4,7 @@ from functools import reduce
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.manifold import Manifold
 
@@ -219,6 +220,15 @@ class Matrices(Manifold):
             Skew-symmetric matrix.
         """
         return 1 / 2 * (mat - cls.transpose(mat))
+
+    @classmethod
+    def is_diagonal(cls, mat):
+        is_square = cls.is_square(mat)
+        if not gs.all(is_square):
+            return False
+        is_diagonal = gs.all(mat == from_vector_to_diagonal_matrix(
+            gs.diagonal(mat, axis1=-2, axis2=-1)), axis=(-2, -1))
+        return is_diagonal
 
     def random_uniform(self, n_samples=1, bound=1.):
         """Sample from a uniform distribution.
