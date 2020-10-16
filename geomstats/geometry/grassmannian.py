@@ -53,7 +53,7 @@ class Grassmannian(EmbeddedManifold):
     def random_uniform(self, n_samples=1):
         """Sample random points from a uniform distribution.
 
-        Following [Chikuse03]_, :math: `n_samples * n * k`scalars are sampled
+        Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
         from a standard normal distribution and reshaped to matrices,
         the projectors on their first k columns follow a uniform distribution.
 

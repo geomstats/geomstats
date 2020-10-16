@@ -136,4 +136,16 @@ class MatrixLieAlgebra:
         return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)
 
     def orthonormal_basis(self, metric_matrix):
+        """Orthonormalize the basis with respect to the given metric.
+
+        Parameters
+        ----------
+        metric_matrix : array-like, shape=[dim, dim]
+            Matrix of a metric.
+
+        Returns
+        -------
+        basis : array-like, shape=[dim, {dim, [n,n]}
+            Orthonormal basis.
+        """
         raise NotImplementedError("orthonormal basis not implemented")

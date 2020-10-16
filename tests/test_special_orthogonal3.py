@@ -80,13 +80,17 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                 3: 87 * gs.eye(3)}
 
         left_metrics = {
-            3: InvariantMetric(group=self.group, metric_mat_at_identity=mats[3],
-                               left_or_right='left')
+            3: InvariantMetric(
+                group=self.group,
+                metric_mat_at_identity=mats[3],
+                left_or_right='left')
         }
 
         right_metrics = {
-            3: InvariantMetric(group=self.group, metric_mat_at_identity=mats[3],
-                               left_or_right='right')
+            3: InvariantMetric(
+                group=self.group,
+                metric_mat_at_identity=mats[3],
+                left_or_right='right')
         }
         all_metrics = zip([3],
                           canonical_metrics.values(),

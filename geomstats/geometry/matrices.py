@@ -222,12 +222,29 @@ class Matrices(Manifold):
         return 1 / 2 * (mat - cls.transpose(mat))
 
     @classmethod
-    def is_diagonal(cls, mat):
+    def is_diagonal(cls, mat, atol=TOLERANCE):
+        """Check if a matrix is square and diagonal.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-5.
+
+        Returns
+        -------
+        is_diagonal : array-like, shape=[...,]
+            Boolean evaluating if the matrix is square and diagonal.
+        """
         is_square = cls.is_square(mat)
         if not gs.all(is_square):
             return False
-        is_diagonal = gs.all(mat == from_vector_to_diagonal_matrix(
-            gs.diagonal(mat, axis1=-2, axis2=-1)), axis=(-2, -1))
+        diagonal_mat = from_vector_to_diagonal_matrix(
+            gs.diagonal(mat, axis1=-2, axis2=-1))
+        is_diagonal = gs.all(
+            gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
         return is_diagonal
 
     def random_uniform(self, n_samples=1, bound=1.):

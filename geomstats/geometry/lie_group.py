@@ -88,15 +88,15 @@ class LieGroup(Manifold):
         super(LieGroup, self).__init__(
             dim=dim, default_point_type=default_point_type, **kwargs)
 
-        self.left_canonical_metric = InvariantMetric(group=self,
-                                                     metric_mat_at_identity=gs.eye(
-                                                         self.dim),
-                                                     left_or_right='left')
+        self.left_canonical_metric = InvariantMetric(
+            group=self,
+            metric_mat_at_identity=gs.eye(self.dim),
+            left_or_right='left')
 
-        self.right_canonical_metric = InvariantMetric(group=self,
-                                                      metric_mat_at_identity=gs.eye(
-                                                          self.dim),
-                                                      left_or_right='right')
+        self.right_canonical_metric = InvariantMetric(
+            group=self,
+            metric_mat_at_identity=gs.eye(self.dim),
+            left_or_right='right')
 
         self.metrics = []
 

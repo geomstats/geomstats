@@ -60,7 +60,7 @@ def grad(y_pred, y_true, metric):
     tangent_vec = metric.log(base_point=y_pred, point=y_true)
     grad_vec = - 2. * tangent_vec
 
-    inner_prod_mat = metric.inner_product_matrix(base_point=y_pred)
+    inner_prod_mat = metric.metric_matrix(base_point=y_pred)
     is_vectorized = inner_prod_mat.ndim == 3
     axes = (0, 2, 1) if is_vectorized else (1, 0)
 
@@ -92,8 +92,8 @@ class RiemannianMetric(Connection):
             dim=dim, default_point_type=default_point_type)
         self.signature = signature
 
-    def inner_product_matrix(self, base_point=None):
-        """Inner product matrix at the tangent space at a base point.
+    def metric_matrix(self, base_point=None):
+        """Metric matrix at the tangent space at a base point.
 
         Parameters
         ----------
@@ -107,7 +107,7 @@ class RiemannianMetric(Connection):
             Inner-product matrix.
         """
         raise NotImplementedError(
-            'The computation of the inner product matrix'
+            'The computation of the metric matrix'
             ' is not implemented.')
 
     def inner_product_inverse_matrix(self, base_point=None):
@@ -124,7 +124,7 @@ class RiemannianMetric(Connection):
         mat : array-like, shape=[..., dim, dim]
             Inverse of inner-product matrix.
         """
-        metric_matrix = self.inner_product_matrix(base_point)
+        metric_matrix = self.metric_matrix(base_point)
         cometric_matrix = gs.linalg.inv(metric_matrix)
         return cometric_matrix
 
@@ -142,7 +142,7 @@ class RiemannianMetric(Connection):
         mat : array-like, shape=[..., dim, dim]
             Derivative of inverse of inner-product matrix.
         """
-        metric_derivative = autograd.jacobian(self.inner_product_matrix)
+        metric_derivative = autograd.jacobian(self.metric_matrix)
         return metric_derivative(base_point)
 
     def christoffels(self, base_point):
@@ -193,7 +193,7 @@ class RiemannianMetric(Connection):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        inner_prod_mat = self.inner_product_matrix(base_point)
+        inner_prod_mat = self.metric_matrix(base_point)
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
 
         aux = gs.einsum('...j,...jk->...k', tangent_vec_a, inner_prod_mat)

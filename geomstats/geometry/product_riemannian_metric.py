@@ -46,7 +46,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         self.signatures = signatures
         self.n_jobs = n_jobs
 
-    def inner_product_matrix(self, base_point=None, point_type=None):
+    def metric_matrix(self, base_point=None, point_type=None):
         """Compute the matrix of the inner-product.
 
         Matrix of the inner-product defined by the Riemmanian metric

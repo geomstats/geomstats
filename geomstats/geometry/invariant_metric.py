@@ -9,6 +9,9 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
+EPSILON = 1e-6
+
+
 class InvariantMetric(RiemannianMetric):
     """Class for invariant metrics which exist on Lie groups.
 
@@ -118,7 +121,7 @@ class InvariantMetric(RiemannianMetric):
 
         Returns
         -------
-        inner_prod : array-like, shape=[..., dim]
+        inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
         if base_point is None:
@@ -174,71 +177,346 @@ class InvariantMetric(RiemannianMetric):
             '...ij,...jk->...ik', metric_mat, inv_jacobian)
         return metric_mat
 
-    def structure_constant(self, tan_a, tan_b, tan_c):
-        """
-        <[x,y],z>
-        """
-        return self.inner_product_at_identity(
-            GeneralLinear.bracket(tan_a, tan_b), tan_c)
+    def structure_constant(self, tangent_vec_a, tangent_vec_b, tangent_vec_c):
+        r"""Compute the structure constant of the metric.
 
-    def adjoint_star(self, tan_a, tan_b):
+        For three tangent vectors :math: `x, y, z` at identity,
+        compute  :math: `<[x,y], z>`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at identity.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at identity.
+        tangent_vec_c : array-like, shape=[..., dim]
+            Tangent vector at identity.
+
+        Returns
+        -------
+        structure_constant : array-like, shape=[...,]
         """
-        <ad(x)*y, z> = <[x,z], y > pour tout z
+        bracket = GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
+        return self.inner_product_at_identity(bracket, tangent_vec_c)
+
+    def adjoint_star(self, tangent_vec_a, tangent_vec_b):
+        r"""Compute the metric dual adjoint map.
+
+        For two tangent vectors at identity :math: `x,y`, this corresponds to
+        the vector :math:`a` such that
+        :math: `\forall z, <[x,z], y > = <a, z>`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at identity.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at identity.
+
+        Returns
+        -------
+        ad_star : array-like, shape=[..., dim]
+            Tangent vector at identity corresponding to :math: `ad_x^*(y)`.
         """
         basis = self.lie_algebra.orthonormal_basis(
             self.metric_mat_at_identity)
         return - gs.einsum(
             'i...,ijk->...jk',
             gs.array([
-                self.structure_constant(tan, tan_a, tan_b) for tan in basis]),
+                self.structure_constant(
+                    tan, tangent_vec_a, tangent_vec_b) for tan in basis]),
             gs.array(basis))
 
-    def connection_at_identity(self, tan_a_at_id, tan_b_at_id):
-        return 1. / 2 * (GeneralLinear.bracket(tan_a_at_id, tan_b_at_id)
-                         - self.adjoint_star(tan_a_at_id, tan_b_at_id)
-                         - self.adjoint_star(tan_b_at_id, tan_a_at_id))
+    def connection_at_identity(self, tangent_vec_a, tangent_vec_b):
+        r"""Compute the Levi-Civita connection at identity.
+
+        For two tangent vectors at identity :math: `x,y`, one can associate
+        left (respectively right) invariant vector fields :math: `\tilde{x},
+        \tilde{y}`. Then the vector :math: `(\nabla_\tilde{x}(\tilde{x}))_{
+        Id}` is computed using the lie bracket and the dual adjoint map. This
+        is a bilinear map that characterizes the connection.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at identity.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at identity.
+
+        Returns
+        -------
+        nabla : array-like, shape=[..., dim]
+            Tangent vector at identity.
+        """
+        return 1. / 2 * (GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
+                         - self.adjoint_star(tangent_vec_a, tangent_vec_b)
+                         - self.adjoint_star(tangent_vec_b, tangent_vec_a))
 
     def connection(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        r"""Compute the Levi-Civita connection of invariant vector fields.
+
+        For two tangent vectors at a base point :math: `p, x,y`, one can
+        associate left (respectively right) invariant vector fields :math:
+        `\tilde{x}, \tilde{y}`. Then the vector :math: `(\nabla_\tilde{x}(
+        \tilde{x}))_{p}` is computed using the invariance of the connection
+        and its value at identity.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., dim]
+            Point in the group.
+
+        Returns
+        -------
+        nabla : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        """
         if base_point is None:
             return self.connection_at_identity(tangent_vec_a, tangent_vec_b)
         translation_map = self.group.tangent_translation_map(
             base_point, left_or_right=self.left_or_right, inverse=True)
         tan_a_at_id = translation_map(tangent_vec_a)
         tan_b_at_id = translation_map(tangent_vec_b)
-        return self.connection_at_identity(tan_a_at_id, tan_b_at_id)
 
-    def curvature(self, x, y, z):
-        """
-        R(x, y)z
-        """
-        return (
-                self.connection_at_identity(GeneralLinear.bracket(x, y), z)
-                - self.connection_at_identity(
-            x, self.connection_at_identity(y, z))
-                + self.connection_at_identity(
-            y, self.connection_at_identity(x, z)))
+        translation_map = self.group.tangent_translation_map(
+            base_point, left_or_right=self.left_or_right, inverse=False)
 
-    def sectional_curvature(self, x, y):
-        """
-        < R(x, y)x, y> for x, y orthogonal. This is compensated if not
-        """
-        num = self.inner_product(y, self.curvature(x, y, x))
-        denom = (
-                self.inner_product(x, x)
-                * self.inner_product(y, y)
-                - self.inner_product(x, y) ** 2)
-        condition = gs.isclose(denom, 0.)
-        return gs.divide(num, denom, where=~condition)
+        value_at_id = self.connection_at_identity(tan_a_at_id, tan_b_at_id)
+        return translation_map(value_at_id)
 
-    def sectional_curvature_at_point(
-            self, tangent_vec_a, tangent_vec_b, base_point=None):
+    def curvature_at_identity(
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c):
+        r"""Compute the curvature at identity.
+
+        For three tangent vectors at identity :math: `x,y,z`,
+        the curvature is defined by
+        :math: `R(x, y)z = \nabla_{[x,y]}z
+        - \nabla_x\nabla_y z + - \nabla_y\nabla_x z`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at identity.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at identity.
+        tangent_vec_c : array-like, shape=[..., dim]
+            Tangent vector at identity.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., dim]
+            Tangent vector at identity.
+        """
+        bracket = GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
+        bracket_term = self.connection_at_identity(bracket, tangent_vec_c)
+
+        left_term = self.connection_at_identity(
+            tangent_vec_a, self.connection_at_identity(
+                tangent_vec_b, tangent_vec_c))
+
+        right_term = self.connection_at_identity(
+            tangent_vec_b, self.connection_at_identity(
+                tangent_vec_a, tangent_vec_c))
+
+        return bracket_term - left_term + right_term
+
+    def curvature(
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
+            base_point=None):
+        r"""Compute the curvature.
+
+        For three tangent vectors at a base point :math: `x,y,z`,
+        the curvature is defined by
+        :math: `R(x, y)z = \nabla_{[x,y]}z
+        - \nabla_x\nabla_y z + - \nabla_y\nabla_x z`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., dim]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        """
         if base_point is None:
-            return self.sectional_curvature(tangent_vec_a, tangent_vec_b)
+            return self.curvature_at_identity(
+                tangent_vec_a, tangent_vec_b, tangent_vec_c)
+
+        translation_map = self.group.tangent_translation_map(
+            base_point, left_or_right=self.left_or_right, inverse=True)
+        tan_a_at_id = translation_map(tangent_vec_a)
+        tan_b_at_id = translation_map(tangent_vec_b)
+        tan_c_at_id = translation_map(tangent_vec_c)
+
+        translation_map = self.group.tangent_translation_map(
+            base_point, left_or_right=self.left_or_right, inverse=False)
+        value_at_id = self.curvature_at_identity(
+            tan_a_at_id, tan_b_at_id, tan_c_at_id)
+
+        return translation_map(value_at_id)
+
+    def sectional_curvature_at_identity(self, tangent_vec_a, tangent_vec_b):
+        """Compute the sectional curvature at identity.
+
+        For two orthonormal tangent vectors at identity :math: `x,y`,
+        the sectional curvature is defined by :math: `< R(x, y)x,
+        y>`. Non-orthonormal vectors can be given.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at identity.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at identity.
+
+        Returns
+        -------
+        sectional_curvature : array-like, shape=[...,]
+            Sectional curvature at identity.
+        """
+        curvature = self.curvature_at_identity(
+            tangent_vec_a, tangent_vec_b, tangent_vec_a)
+        num = self.inner_product(tangent_vec_b, curvature)
+        denom = (
+            self.squared_norm(tangent_vec_a)
+            * self.squared_norm(tangent_vec_a)
+            - self.inner_product(tangent_vec_a, tangent_vec_b) ** 2)
+        condition = gs.isclose(denom, 0.)
+        denom = gs.where(condition, EPSILON, denom)
+        return gs.where(~condition, num / denom, 0.)
+
+    def sectional_curvature(
+            self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute the sectional curvature.
+
+        For two orthonormal tangent vectors at a base point :math: `x,y`,
+        the sectional curvature is defined by :math: `<R(x, y)x,
+        y>`. Non-orthonormal vectors can be given.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., dim]
+            Point in the group. Optional, default is the identity
+
+        Returns
+        -------
+        sectional_curvature : array-like, shape=[...,]
+            Sectional curvature at `base_point`.
+        """
+        if base_point is None:
+            return self.sectional_curvature_at_identity(tangent_vec_a,
+                                                        tangent_vec_b)
         translation_map = self.group.tangent_translation_map(
             base_point, inverse=True, left_or_right=self.left_or_right)
         tan_a_at_id = translation_map(tangent_vec_a)
         tan_b_at_id = translation_map(tangent_vec_b)
-        return self.sectional_curvature(tan_a_at_id, tan_b_at_id)
+        return self.sectional_curvature_at_identity(tan_a_at_id, tan_b_at_id)
+
+    def curvature_derivative_at_identity(
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d):
+        r"""Compute the covariant derivative of the curvature at identity.
+
+        For four tangent vectors at identity :math: `x, y, z, t`,
+        the covariant derivative of the curvature :math: `(\nabla_x R)(y, z)t`
+        is computed using Leibniz formula.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at identity.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at identity.
+        tangent_vec_c : array-like, shape=[..., dim]
+            Tangent vector at identity.
+        tangent_vec_d : array-like, shape=[..., dim]
+            Tangent vector at identity.
+
+        Returns
+        -------
+        curvature_derivative : array-like, shape=[..., dim]
+            Tangent vector at identity.
+        """
+        first_term = self.connection_at_identity(
+            tangent_vec_a,
+            self.curvature_at_identity(
+                tangent_vec_b, tangent_vec_c, tangent_vec_d))
+
+        second_term = self.curvature_at_identity(
+            self.connection_at_identity(tangent_vec_a, tangent_vec_b),
+            tangent_vec_c,
+            tangent_vec_d)
+
+        third_term = self.curvature_at_identity(
+            tangent_vec_b,
+            self.connection_at_identity(tangent_vec_a, tangent_vec_c),
+            tangent_vec_d)
+
+        fourth_term = self.curvature_at_identity(
+            tangent_vec_b,
+            tangent_vec_c,
+            self.connection_at_identity(tangent_vec_a, tangent_vec_d))
+
+        return first_term - second_term - third_term - fourth_term
+
+    def curvature_derivative(
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d,
+            base_point=None):
+        r"""Compute the covariant derivative of the curvature.
+
+        For four tangent vectors at a base point :math: `x, y, z, t`,
+        the covariant derivative of the curvature :math: `(\nabla_x R)(y, z)t`
+        is computed at the base point using Leibniz formula.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_d : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., dim]
+            Point on the group.
+
+        Returns
+        -------
+        curvature_derivative : array-like, shape=[..., dim]
+            Tangent vector at identity.
+        """
+        if base_point is None:
+            return self.curvature_derivative_at_identity(
+                tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d)
+        translation_map = self.group.tangent_translation_map(
+            base_point, inverse=True, left_or_right=self.left_or_right)
+        tan_a_at_id = translation_map(tangent_vec_a)
+        tan_b_at_id = translation_map(tangent_vec_b)
+        tan_c_at_id = translation_map(tangent_vec_c)
+        tan_d_at_id = translation_map(tangent_vec_d)
+
+        value_at_id = self.curvature_derivative_at_identity(
+            tan_a_at_id, tan_b_at_id, tan_c_at_id, tan_d_at_id)
+        translation_map = self.group.tangent_translation_map(
+            base_point, inverse=False, left_or_right=self.left_or_right)
+
+        return translation_map(value_at_id)
 
     def left_exp_from_identity(self, tangent_vec):
         """Compute the exponential from identity with the left-invariant metric.
@@ -448,10 +726,10 @@ class BiInvariantMetric(InvariantMetric):
     """
 
     def __init__(self, group):
-        super(BiInvariantMetric, self).__init__(group=group,
-                                                metric_mat_at_identity=gs.eye(
-                                                    group.dim),
-                                                default_point_type=group.default_point_type)
+        super(BiInvariantMetric, self).__init__(
+            group=group,
+            metric_mat_at_identity=gs.eye(group.dim),
+            default_point_type=group.default_point_type)
         cond = (
             'SpecialOrthogonal' not in group.__str__()
             and 'SO' not in group.__str__()
