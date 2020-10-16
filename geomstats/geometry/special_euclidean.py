@@ -155,7 +155,8 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
             random_point = gs.squeeze(random_point, axis=0)
         return random_point
 
-    def inverse(self, point):
+    @classmethod
+    def inverse(cls, point):
         """Return the inverse of a point.
 
         Parameters
@@ -163,16 +164,20 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
         point : array-like, shape=[..., n, n]
             Point to be inverted.
         """
-        translation_mask = self.translation_mask
+        n = point.shape[-1] - 1
+        translation_mask = gs.hstack([
+            gs.ones((n,) * 2), 2 * gs.ones((n, 1))])
+        translation_mask = gs.concatenate(
+            [translation_mask, gs.zeros((1, n + 1))], axis=0)
         embedded_rotations = point * gs.where(
-            translation_mask == 1, translation_mask, self.identity)
-        transposed_rot = self.transpose(embedded_rotations)
+            translation_mask == 1, translation_mask, gs.eye(n + 1))
+        transposed_rot = cls.transpose(embedded_rotations)
         translation = point[..., :, -1]
         translation = gs.einsum(
-            '...ij,...j->...j', transposed_rot, translation)
+            '...ij,...j->...i', transposed_rot, translation)
         translation *= gs.where(
             translation_mask[..., -1] == 2, - translation_mask[..., -1] / 2,
-            gs.ones(self.n + 1))
+            gs.ones(n + 1))
         return gs.concatenate([
             transposed_rot[..., :, :-1], translation[..., None]], axis=-1)
 

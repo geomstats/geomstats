@@ -82,14 +82,12 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         self.point_2_matrix = point_2_matrix
         self.point_small = point_small
 
-    @geomstats.tests.np_and_tf_only
     def test_inner_product_mat_at_identity_shape(self):
         dim = self.left_metric.group.dim
 
         result = self.left_metric.metric_mat_at_identity
         self.assertAllClose(gs.shape(result), (dim, dim))
 
-    @geomstats.tests.np_and_tf_only
     def test_inner_product_matrix_shape(self):
         base_point = None
         dim = self.left_metric.group.dim
@@ -101,7 +99,6 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         result = self.left_metric.metric_matrix(base_point=base_point)
         self.assertAllClose(gs.shape(result), (dim, dim))
 
-    @geomstats.tests.np_and_tf_only
     def test_inner_product_matrix_and_inner_product_mat_at_identity(self):
         base_point = None
         result = self.left_metric.metric_matrix(base_point=base_point)
@@ -123,15 +120,17 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_inner_product_at_identity(self):
         lie_algebra = SkewSymmetricMatrices(3)
-        tangent_vec_a = lie_algebra.matrix_representation([1., 0, 2.])
-        tangent_vec_b = lie_algebra.matrix_representation([1., 0, 0.5])
+        tangent_vec_a = lie_algebra.matrix_representation(
+            gs.array([1., 0, 2.]))
+        tangent_vec_b = lie_algebra.matrix_representation(
+            gs.array([1., 0, 0.5]))
         result = self.matrix_left_metric.inner_product_at_identity(
             tangent_vec_a, tangent_vec_b)
         expected = 4.
         self.assertAllClose(result, expected)
 
         tangent_vec_a = lie_algebra.matrix_representation(
-            [[1., 0, 2.], [0, 3., 5.]])
+            gs.array([[1., 0, 2.], [0, 3., 5.]]))
         result = self.matrix_left_metric.inner_product_at_identity(
             tangent_vec_a, tangent_vec_b)
         expected = gs.array([4., 5.])
@@ -140,10 +139,12 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_inner_product_left(self):
         lie_algebra = SkewSymmetricMatrices(3)
-        tangent_vec_a = lie_algebra.matrix_representation([1., 0, 2.])
+        tangent_vec_a = lie_algebra.matrix_representation(
+            gs.array([1., 0, 2.]))
         tangent_vec_a = self.matrix_so3.compose(
             self.point_1_matrix, tangent_vec_a)
-        tangent_vec_b = lie_algebra.matrix_representation([1., 0, 0.5])
+        tangent_vec_b = lie_algebra.matrix_representation(
+            gs.array([1., 0, 0.5]))
         tangent_vec_b = self.matrix_so3.compose(
             self.point_1_matrix, tangent_vec_b)
         result = self.matrix_left_metric.inner_product(
@@ -152,7 +153,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
         tangent_vec_a = lie_algebra.matrix_representation(
-            [[1., 0, 2.], [0, 3., 5.]])
+            gs.array([[1., 0, 2.], [0, 3., 5.]]))
         tangent_vec_a = self.matrix_so3.compose(
             self.point_1_matrix, tangent_vec_a)
         result = self.matrix_left_metric.inner_product(
@@ -163,10 +164,12 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_inner_product_right(self):
         lie_algebra = SkewSymmetricMatrices(3)
-        tangent_vec_a = lie_algebra.matrix_representation([1., 0, 2.])
+        tangent_vec_a = lie_algebra.matrix_representation(
+            gs.array([1., 0, 2.]))
         tangent_vec_a = self.matrix_so3.compose(
             tangent_vec_a, self.point_1_matrix)
-        tangent_vec_b = lie_algebra.matrix_representation([1., 0, 0.5])
+        tangent_vec_b = lie_algebra.matrix_representation(
+            gs.array([1., 0, 0.5]))
         tangent_vec_b = self.matrix_so3.compose(
             tangent_vec_b, self.point_1_matrix)
         result = self.matrix_right_metric.inner_product(
@@ -175,7 +178,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
         tangent_vec_a = lie_algebra.matrix_representation(
-            [[1., 0, 2.], [0, 3., 5.]])
+            gs.array([[1., 0, 2.], [0, 3., 5.]]))
         tangent_vec_a = self.matrix_so3.compose(
             tangent_vec_a, self.point_1_matrix)
         result = self.matrix_right_metric.inner_product(

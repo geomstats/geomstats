@@ -49,7 +49,8 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         result = metric.inner_product_at_identity(basis[1], basis[1])
         self.assertAllClose(result, 1.)
 
-        metric_mat = from_vector_to_diagonal_matrix(gs.arange(1, 4))
+        metric_mat = from_vector_to_diagonal_matrix(
+            gs.array([1., 2., 3.]))
         metric = InvariantMetric(
             group=group, algebra=lie_algebra,
             metric_mat_at_identity=metric_mat)

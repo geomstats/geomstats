@@ -88,10 +88,6 @@ class InvariantMetric(RiemannianMetric):
                 '...j,...j->...', inner_prod, tangent_vec_b)
 
         else:
-            logging.warning(
-                'The inner product'
-                ' is only implemented for diagonal inner-product matrices, '
-                'and the Lie Algebra needs to be specified.')
             is_vectorized = \
                 (gs.ndim(tangent_vec_a) == 3) or (gs.ndim(tangent_vec_b) == 3)
             axes = (2, 1) if is_vectorized else (0, 1)
