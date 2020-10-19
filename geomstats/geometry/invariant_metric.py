@@ -1,7 +1,5 @@
 """Left- and right- invariant metrics that exist on Lie groups."""
 
-import logging
-
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.general_linear import GeneralLinear
