@@ -2,23 +2,25 @@
 
 import warnings
 
+from scipy.stats import beta
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.beta_distributions import BetaDistributions
 from geomstats.geometry.beta_distributions import BetaMetric
 
 
-class TestBetaMethods(geomstats.tests.TestCase):
+class TestBetaDistributions(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=UserWarning)
         self.beta = BetaDistributions()
         self.metric = BetaMetric()
         self.n_samples = 10
-        self.dimension = self.beta.dimension
+        self.dim = self.beta.dim
 
-    @geomstats.tests.np_and_pytorch_only
     def test_random_uniform_and_belongs(self):
-        """
+        """Test random_uniform and belongs.
+
         Test that the random uniform method samples
         on the beta distribution space.
         """
@@ -26,20 +28,30 @@ class TestBetaMethods(geomstats.tests.TestCase):
         point = self.beta.random_uniform(n_samples)
         result = self.beta.belongs(point)
         expected = gs.array([True] * n_samples)
-
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_pytorch_only
-    def test_random_uniform(self):
+    def test_random_uniform_and_belongs_vectorization(self):
+        """Test random_uniform and belongs.
+
+        Test that the random uniform method samples
+        on the beta distribution space.
         """
+        point = self.beta.random_uniform()
+        result = self.beta.belongs(point)
+        expected = True
+        self.assertAllClose(expected, result)
+
+    def test_random_uniform(self):
+        """Test random_uniform.
+
         Test that the random uniform method samples points of the right shape
         """
         point = self.beta.random_uniform(self.n_samples)
-        self.assertAllClose(gs.shape(point), (self.n_samples, self.dimension))
+        self.assertAllClose(gs.shape(point), (self.n_samples, self.dim))
 
-    @geomstats.tests.np_only
     def test_sample(self):
-        """
+        """Test samples.
+
         Test that the sample method samples variates from beta distributions
         with the specified parameters, using the law of large numbers
         """
@@ -52,9 +64,9 @@ class TestBetaMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, rtol=tol, atol=tol)
 
-    @geomstats.tests.np_only
     def test_maximum_likelihood_fit(self):
-        """
+        """Test maximum likelihood.
+
         Test that the maximum likelihood fit method recovers
         parameters of beta distribution.
         """
@@ -69,6 +81,12 @@ class TestBetaMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_exp(self):
+        """Test Exp.
+
+        Test that the Riemannian exponential at points on the first
+        bisector computed in the direction of the first bisector stays
+        on the first bisector.
+        """
         gs.random.seed(123)
         n_samples = self.n_samples
         points = self.beta.random_uniform(n_samples)
@@ -83,7 +101,8 @@ class TestBetaMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_log_and_exp(self):
-        """
+        """Test Log and Exp.
+
         Test that the Riemannian exponential
         and the Riemannian logarithm are inverse.
 
@@ -98,8 +117,42 @@ class TestBetaMethods(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         self.assertAllClose(result, expected, rtol=1e-2)
 
-    def test_christoffels_vectorization(self):
+    @geomstats.tests.np_only
+    def test_exp_vectorization(self):
+        """Test vectorization of Exp.
+
+        Test the case with one initial point and several tangent vectors.
         """
+        point = self.beta.random_uniform()
+        tangent_vec = gs.array([1., 2.])
+        n_tangent_vecs = 10
+        t = gs.linspace(0., 1., n_tangent_vecs)
+        tangent_vecs = gs.einsum('i,...k->...ik', t, tangent_vec)
+        end_points = self.metric.exp(
+            tangent_vec=tangent_vecs, base_point=point)
+        result = end_points.shape
+        expected = (n_tangent_vecs, 2)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_log_vectorization(self):
+        """Test vectorization of Log.
+
+        Test the case with several base points and one end point.
+        """
+        n_points = 10
+        base_points = self.beta.random_uniform(n_samples=n_points)
+        point = self.beta.random_uniform()
+        tangent_vecs = self.metric.log(
+            base_point=base_points, point=point)
+        result = tangent_vecs.shape
+        expected = (n_points, 2)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_christoffels_vectorization(self):
+        """Test Christoffel synbols.
+
         Check vectorization of Christoffel symbols in
         spherical coordinates on the 2-sphere.
         """
@@ -107,5 +160,26 @@ class TestBetaMethods(geomstats.tests.TestCase):
         christoffel = self.metric.christoffels(points)
         result = christoffel.shape
         expected = gs.array(
-            [self.n_samples, self.dimension, self.dimension, self.dimension])
+            [self.n_samples, self.dim, self.dim, self.dim])
+        self.assertAllClose(result, expected)
+
+    def test_inner_product_matrix(self):
+        point = gs.array([1., 1.])
+        result = self.beta.metric.inner_product_matrix(point)
+        expected = gs.array([[1., -0.644934066], [-0.644934066, 1.]])
+        self.assertAllClose(result, expected)
+
+    def test_point_to_pdf(self):
+        """Test point_to_pdf.
+
+        Check vectorization of the computation of the pdf.
+        """
+        point = self.beta.random_uniform(n_samples=2)
+        pdf = self.beta.point_to_pdf(point)
+        x = gs.linspace(0., 1., 10)
+        result = pdf(x)
+        pdf1 = beta.pdf(x, a=point[0, 0], b=point[0, 1])
+        pdf2 = beta.pdf(x, a=point[1, 0], b=point[1, 1])
+        expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=1)
+
         self.assertAllClose(result, expected)

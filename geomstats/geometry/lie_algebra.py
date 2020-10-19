@@ -7,28 +7,31 @@ in that base. This base will be provided in child classes
 (e.g. SkewSymmetricMatrices).
 """
 import geomstats.backend as gs
+import geomstats.errors
 from ._bch_coefficients import BCH_COEFFICIENTS
 
 
 class MatrixLieAlgebra:
-    """Class implementing matrix Lie algebra related functions."""
+    """Class implementing matrix Lie algebra related functions.
 
-    def __init__(self, dimension, n):
-        """Construct the MatrixLieAlgebra object.
+    Parameters
+    ----------
+    dim : int
+        Dimension of the Lie algebra as a real vector space.
+    n : int
+        Amount of rows and columns in the matrix representation of the
+        Lie algebra.
+    """
 
-        Parameters
-        ----------
-        dimension: int
-            The dimension of the Lie algebra as a real vector space
-        n: int
-            The amount of rows and columns in the matrx representation of the
-            Lie algebra
-        """
-        self.dimension = dimension
+    def __init__(self, dim, n):
+        geomstats.errors.check_integer(dim, 'dim')
+        geomstats.errors.check_integer(n, 'n')
+        self.dim = dim
         self.n = n
         self.basis = None
 
-    def lie_bracket(self, matrix_a, matrix_b):
+    @staticmethod
+    def lie_bracket(matrix_a, matrix_b):
         """Compute the Lie_bracket (commutator) of two matrices.
 
         Notice that inputs have to be given in matrix form, no conversion
@@ -36,12 +39,15 @@ class MatrixLieAlgebra:
 
         Parameters
         ----------
-        matrix_a: array-like, shape=[n_sample, n, n]
-        matrix_b: array-like, shape=[n_sample, n, n]
+        matrix_a : array-like, shape=[..., n, n]
+            Matrix.
+        matrix_b : array-like, shape=[..., n, n]
+            Matrix.
 
         Returns
         -------
-        bracket: shape=[n_sample, n, n]
+        bracket : shape=[..., n, n]
+            Lie bracket.
         """
         return gs.matmul(matrix_a, matrix_b) - gs.matmul(matrix_b, matrix_a)
 
@@ -59,10 +65,12 @@ class MatrixLieAlgebra:
 
         Parameters
         ----------
-        matrix_a, matrix_b : array-like, shape=[n_sample, n, n]
+        matrix_a, matrix_b : array-like, shape=[..., n, n]
+            Matrices.
         order : int
             The order to which the approximation is calculated. Note that this
             is NOT the same as using only e_i with i < order.
+            Optional, default 2.
 
         References
         ----------
@@ -78,32 +86,31 @@ class MatrixLieAlgebra:
             [2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630, 1161, 2182])
         n_terms = gs.sum(number_of_hom_degree[:order])
 
-        ei = gs.zeros((n_terms, self.n, self.n))
-        ei[0] = matrix_a
-        ei[1] = matrix_b
+        el = [matrix_a, matrix_b]
         result = matrix_a + matrix_b
 
         for i in gs.arange(2, n_terms):
             i_p = BCH_COEFFICIENTS[i, 1] - 1
             i_pp = BCH_COEFFICIENTS[i, 2] - 1
 
-            ei[i] = self.lie_bracket(ei[i_p], ei[i_pp])
-            result += (BCH_COEFFICIENTS[i, 3] /
+            el.append(self.lie_bracket(el[i_p], el[i_pp]))
+            result += (float(BCH_COEFFICIENTS[i, 3]) /
                        float(BCH_COEFFICIENTS[i, 4]) *
-                       ei[i])
-
+                       el[i])
         return result
 
     def basis_representation(self, matrix_representation):
-        """Compute the coefficients of matrices in the given base.
+        """Compute the coefficients of matrices in the given basis.
 
         Parameters
         ----------
-        matrix_representation: array-like, shape=[n_sample, n, n]
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
 
         Returns
         -------
-        basis_representation: array-like, shape=[n_sample, dimension]
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis.
         """
         raise NotImplementedError("basis_representation not implemented.")
 
@@ -115,11 +122,13 @@ class MatrixLieAlgebra:
 
         Parameters
         ----------
-        basis_representation: array-like, shape=[n_sample, dimension]
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis.
 
         Returns
         -------
-        matrix_representation: array-like, shape=[n_sample, n, n]
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
         """
         basis_representation = gs.to_ndarray(basis_representation, to_ndim=2)
 

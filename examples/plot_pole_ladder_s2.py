@@ -4,40 +4,41 @@ Sample a point on S2 and two tangent vectors to transport one along the
 other.
 """
 
-import os
-
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 SPACE = Hypersphere(2)
 METRIC = SPACE.metric
+ROTATIONS = SpecialOrthogonal(3, 'vector')
 
 N_STEPS = 4
 N_POINTS = 10
 
-gs.random.seed(0)
+gs.random.seed(1)
 
 
 def main():
     """Compute pole ladder and plot the construction."""
     base_point = SPACE.random_uniform(1)
     tangent_vec_b = SPACE.random_uniform(1)
-    tangent_vec_b = SPACE.projection_to_tangent_space(
-        tangent_vec_b, base_point)
-    tangent_vec_b *= N_STEPS / 2
-    tangent_vec_a = SPACE.random_uniform(1)
-    tangent_vec_a = SPACE.projection_to_tangent_space(
-        tangent_vec_a, base_point) * N_STEPS / 4
+    tangent_vec_b = SPACE.to_tangent(tangent_vec_b, base_point)
+    tangent_vec_b = tangent_vec_b / gs.linalg.norm(tangent_vec_b)
+
+    rotation_vector = gs.pi / 2 * base_point
+    rotation_matrix = ROTATIONS.matrix_from_rotation_vector(rotation_vector)
+    tangent_vec_a = gs.dot(rotation_matrix, tangent_vec_b)
+    tangent_vec_b *= 3. / 2.
 
     ladder = METRIC.ladder_parallel_transport(
         tangent_vec_a,
         tangent_vec_b,
         base_point,
-        n_steps=N_STEPS,
+        n_rungs=N_STEPS,
         return_geodesics=True)
 
     pole_ladder = ladder['transported_tangent_vec']
@@ -48,8 +49,8 @@ def main():
     sphere_visu = visualization.Sphere(n_meridians=30)
     ax = sphere_visu.set_ax(ax=ax)
 
-    t = gs.linspace(0, 1, N_POINTS)
-    t_main = gs.linspace(0, 1, N_POINTS * 4)
+    t = gs.linspace(0., 1., N_POINTS)
+    t_main = gs.linspace(0., 1., N_POINTS * 4)
     for points in trajectory:
         main_geodesic, diagonal, final_geodesic = points
         sphere_visu.draw_points(
@@ -59,11 +60,12 @@ def main():
         sphere_visu.draw_points(ax, final_geodesic(-t), marker='o', c='g', s=2)
         sphere_visu.draw_points(ax, final_geodesic(t), marker='o', c='g', s=2)
 
-    tangent_vectors = gs.concatenate(
-        [tangent_vec_b, tangent_vec_a, pole_ladder]) / N_STEPS
-    origin = gs.concatenate(
-        [base_point, base_point, final_geodesic(gs.array([0]))])
+    tangent_vectors = gs.stack(
+        [tangent_vec_b, tangent_vec_a, pole_ladder], axis=0) / N_STEPS
 
+    base_point = gs.to_ndarray(base_point, to_ndim=2)
+    origin = gs.concatenate(
+        [base_point, base_point, final_geodesic(0.)], axis=0)
     ax.quiver(
         origin[:, 0], origin[:, 1], origin[:, 2],
         tangent_vectors[:, 0], tangent_vectors[:, 1], tangent_vectors[:, 2],
@@ -74,11 +76,5 @@ def main():
     plt.show()
 
 
-if __name__ == "__main__":
-    if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        print('Examples with visualizations are only implemented '
-              'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
-    else:
-        main()
+if __name__ == '__main__':
+    main()

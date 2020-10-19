@@ -1,3 +1,4 @@
+"""Create instructions to build the geomstats package."""
 import os
 import runpy
 from itertools import chain
@@ -10,13 +11,13 @@ geomstats = runpy.run_path(os.path.join(base_dir, 'geomstats', '__init__.py'))
 
 
 def parse_requirements_file(filename):
-    with open(filename) as f:
-        return f.read().splitlines()
+    """Read the lines of the requirements file."""
+    with open(filename) as input_file:
+        return input_file.read().splitlines()
 
 
 if __name__ == '__main__':
     requirements = parse_requirements_file('requirements.txt')
-
     install_requires = []
     optional_dependencies = {}
     for requirement in requirements:
@@ -65,7 +66,12 @@ if __name__ == '__main__':
         packages=find_packages(),
         data_files=[
             "LICENSE.md",
-            "README.md"
+            "README.md",
         ],
+        include_package_data=True,
+        package_data={'': ['datasets/data/*',
+                           'datasets/data/*/*',
+                           'datasets/data/*/*/*',
+                           'datasets/data/*/*/*/*']},
         zip_safe=False,
     )
