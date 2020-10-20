@@ -23,12 +23,12 @@ class PreShapeSpace(EmbeddedManifold):
     
     def __init__(self, k_landmarks, m_ambient):
         super(PreShapeSpace, self).__init__(
-            dim=m * (k - 1) - 1,
-            embedding_manifold=Matrices(m_ambient,k_landmarks))
+            dim=m_ambient * (k_landmarks - 1) - 1,
+            embedding_manifold=Matrices(m_ambient, k_landmarks))
         self.embedding_metric = self.embedding_manifold.metric
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
-        self.metric = ProcrustesMetric(k_landmarks,m_ambient)
+        self.metric = ProcrustesMetric(k_landmarks, m_ambient)
         
     def belongs(self, point, tolerance = TOLERANCE):
         """Test if a point belongs to the pre-shape space.
@@ -38,8 +38,8 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., k, m]
-            Point in Euclidean space.
+        point : array-like, shape=[..., m_ambient, k_landmarks]
+            Point in Matrices space.
         tolerance : float
             Tolerance at which to evaluate norm == 1 and mean == 0.
             Optional, default: 1e-6.
@@ -49,13 +49,33 @@ class PreShapeSpace(EmbeddedManifold):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the pre-shape space.
         """ 
-        frob_norm = self.embedding_metric.inner_product(point,point)
+        frob_norm = self.embedding_metric.norm(point)
         diff = gs.abs(frob_norm - 1)
-        mean = gs.mean(point,axis = -2)
+        mean = gs.mean(point,axis = -1)
         return gs.less_equal(diff, tolerance)*gs.less_equal(mean, tolerance)
         
+    def projection(self, point):
+        """Project a point on the pre-shape space.
         
-class ProcrustesMetric(MatricesMetric):
+        Parameters
+        ----------
+        point : array-like, shape=[..., m_ambient, k_landmarks]
+            Point in Matrices space.
+            
+        Returns
+        -------
+        projected_point : array-like, shape=[..., m_ambient, k_landmarks]
+            Point projected on the pre-shape space.
+        """
+        mean = gs.mean(point,axis = -1)
+        centered_point = gs.transpose(gs.transpose(point)-mean)
+        frob_norm = self.embedding_metric.norm(centered_point)
+        projected_point = gs.einsum('...,...ij->...ij', 1. / norms, 
+        centered_point)
+
+        return projected_point
+        
+class ProcrustesMetric(RiemannianMetric):
     """Procrustes metric on the pre-shape space.
 
     Parameters
