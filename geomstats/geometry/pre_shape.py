@@ -2,6 +2,7 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.hypersphere import _Hypersphere
 from geomstats.geometry.matrices import Matrices
 
 TOLERANCE = 1e-6
@@ -68,14 +69,36 @@ class PreShapeSpace(EmbeddedManifold):
             Point projected on the pre-shape space.
         """
         mean = gs.mean(point,axis = -1)
-        centered_point = gs.transpose(gs.transpose(point)-mean)
+        centered_point = Matrices.transpose(Matrices.transpose(point)-mean)
         frob_norm = self.embedding_metric.norm(centered_point)
-        projected_point = gs.einsum('...,...ij->...ij', 1. / norms, 
+        projected_point = gs.einsum('...,...ij->...ij', 1. / frob_norm, 
         centered_point)
 
         return projected_point
-        
-class ProcrustesMetric(RiemannianMetric):
+    
+    def random_uniform(self, n_samples=1, tol=1e-6):
+        """Sample in the pre-shape space from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        tol : float
+            Tolerance.
+            Optional, default: 1e-6.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., m_ambient, k_landmarks]
+            Points sampled on the pre-shape space.
+        """
+        samples = _Hypersphere(
+            self.m_ambient*self.k_landmarks-1).random_uniform(n_samples,tol)
+        return self.projection(samples) 
+  
+      
+class ProcrustesMetric():
     """Procrustes metric on the pre-shape space.
 
     Parameters
@@ -88,7 +111,7 @@ class ProcrustesMetric(RiemannianMetric):
 
     def __init__(self, k_landmarks, m_ambient):
         super(ProcrustesMetric, self).__init__(
-            dim=dim,
-            signature=(dim, 0, 0))
-        self.embedding_metric = EuclideanMetric(dim + 1)
-        self._space = _Hypersphere(dim=dim)
+            dim=m_ambient * (k_landmarks - 1) - 1,
+            embedding_manifold=Matrices(m_ambient, k_landmarks))
+        self.embedding_metric = self.embedding_manifold.metric
+        self._space = PreShapeSpace(k_landmarks, m_ambient)
