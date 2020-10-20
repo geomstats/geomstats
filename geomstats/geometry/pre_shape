@@ -1,0 +1,74 @@
+"""Kendall Pre-Shape space"""
+
+import geomstats.backend as gs
+from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.matrices import Matrices
+
+TOLERANCE = 1e-6
+
+class PreShapeSpace(EmbeddedManifold):
+    """Class for the Kendall pre-shape space. 
+    
+    The pre-shape space is the sphere of the space of centered k-ad of 
+    landmarks in R^m (for the Frobenius norm). It is endowed with the 
+    spherical Procrustes metric d(x, y):= arccos(tr(xy^t)).
+    
+    Parameters
+    ----------
+    k_landmarks : int
+        Number of landmarks
+    m_ambient : int
+        Number of coordinates of each landmark.
+    """
+    
+    def __init__(self, k_landmarks, m_ambient):
+        super(PreShapeSpace, self).__init__(
+            dim=m * (k - 1) - 1,
+            embedding_manifold=Matrices(m_ambient,k_landmarks))
+        self.embedding_metric = self.embedding_manifold.metric
+        self.k_landmarks = k_landmarks
+        self.m_ambient = m_ambient
+        self.metric = ProcrustesMetric(k_landmarks,m_ambient)
+        
+    def belongs(self, point, tolerance = TOLERANCE):
+        """Test if a point belongs to the pre-shape space.
+
+        This tests whether the point is centered and whether the point's 
+        Frobenius norm is 1.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k, m]
+            Point in Euclidean space.
+        tolerance : float
+            Tolerance at which to evaluate norm == 1 and mean == 0.
+            Optional, default: 1e-6.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the pre-shape space.
+        """ 
+        frob_norm = self.embedding_metric.inner_product(point,point)
+        diff = gs.abs(frob_norm - 1)
+        mean = gs.mean(point,axis = -2)
+        return gs.less_equal(diff, tolerance)*gs.less_equal(mean, tolerance)
+        
+        
+class ProcrustesMetric(MatricesMetric):
+    """Procrustes metric on the pre-shape space.
+
+    Parameters
+    ----------
+    k_landmarks : int
+        Number of landmarks
+    m_ambient : int
+        Number of coordinates of each landmark.
+    """
+
+    def __init__(self, k_landmarks, m_ambient):
+        super(ProcrustesMetric, self).__init__(
+            dim=dim,
+            signature=(dim, 0, 0))
+        self.embedding_metric = EuclideanMetric(dim + 1)
+        self._space = _Hypersphere(dim=dim)
