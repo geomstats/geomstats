@@ -581,7 +581,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = 0.
         self.assertAllClose(result, expected)
 
-    def test_adjoint_star(self):
+    def test_dual_adjoint(self):
         group = self.matrix_so3
         lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group, algebra=lie_algebra)
@@ -590,7 +590,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             for y in basis:
                 for z in basis:
                     result = metric.inner_product_at_identity(
-                        metric.adjoint_star(x, y), z)
+                        metric.dual_adjoint(x, y), z)
                     expected = metric.structure_constant(x, z, y)
                     self.assertAllClose(result, expected)
 
@@ -599,7 +599,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group, algebra=lie_algebra)
         x, y, z = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
-        result = metric.connection_at_identity(-z, y)
+        result = metric.connection(-z, y)
         expected = -1. / 2 ** .5 / 2. * x
         self.assertAllClose(result, expected)
 
@@ -635,4 +635,69 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
         result = metric.sectional_curvature(y, y)
         expected = 0.
+        self.assertAllClose(result, expected)
+
+    def test_curvature(self):
+        group = self.matrix_so3
+        lie_algebra = SkewSymmetricMatrices(3)
+        metric = InvariantMetric(group=group, algebra=lie_algebra)
+        x, y, z = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+
+        result = metric.curvature_at_identity(x, y, x)
+        expected = 1. / 8 * y
+        self.assertAllClose(result, expected)
+
+        tan_a = gs.stack([x, x])
+        tan_b = gs.stack([y] * 2)
+        result = metric.curvature(tan_a, tan_b, tan_a)
+        self.assertAllClose(result, gs.array([expected] * 2))
+
+        point = group.random_uniform()
+        translation_map = group.tangent_translation_map(point)
+        tan_a = translation_map(x)
+        tan_b = translation_map(y)
+        result = metric.curvature(tan_a, tan_b, tan_a, point)
+        expected = translation_map(expected)
+        self.assertAllClose(result, expected)
+
+        result = metric.curvature(y, y, z)
+        expected = gs.zeros_like(z)
+        self.assertAllClose(result, expected)
+
+    def test_curvature_derivative_at_identity(self):
+        group = self.matrix_so3
+        lie_algebra = SkewSymmetricMatrices(3)
+        metric = InvariantMetric(group=group, algebra=lie_algebra)
+        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+
+        result = True
+        for x in basis:
+            for i, y in enumerate(basis):
+                for z in basis[i:]:
+                    for t in basis:
+                        nabla_r = metric.curvature_derivative_at_identity(
+                            x, y, z, t)
+                        if not gs.all(gs.isclose(nabla_r, 0., atol=1e-5)):
+                            print(nabla_r)
+                            result = False
+        self.assertTrue(result)
+
+    def test_curvature_derivative(self):
+        group = self.matrix_so3
+        lie_algebra = SkewSymmetricMatrices(3)
+        metric = InvariantMetric(group=group, algebra=lie_algebra)
+        x, y, z = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        result = metric.curvature_derivative(
+            x, y, z, x)
+        expected = gs.zeros_like(x)
+        self.assertAllClose(result, expected)
+
+        point = group.random_uniform()
+        translation_map = group.tangent_translation_map(point)
+        tan_a = translation_map(x)
+        tan_b = translation_map(y)
+        tan_c = translation_map(z)
+        result = metric.curvature_derivative(
+            tan_a, tan_b, tan_c, tan_a, point)
+        expected = gs.zeros_like(x)
         self.assertAllClose(result, expected)

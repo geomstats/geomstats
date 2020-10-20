@@ -193,7 +193,7 @@ class InvariantMetric(RiemannianMetric):
         bracket = GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
         return self.inner_product_at_identity(bracket, tangent_vec_c)
 
-    def adjoint_star(self, tangent_vec_a, tangent_vec_b):
+    def dual_adjoint(self, tangent_vec_a, tangent_vec_b):
         r"""Compute the metric dual adjoint map.
 
         For two tangent vectors at identity :math: `x,y`, this corresponds to
@@ -243,8 +243,8 @@ class InvariantMetric(RiemannianMetric):
             Tangent vector at identity.
         """
         return 1. / 2 * (GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
-                         - self.adjoint_star(tangent_vec_a, tangent_vec_b)
-                         - self.adjoint_star(tangent_vec_b, tangent_vec_a))
+                         - self.dual_adjoint(tangent_vec_a, tangent_vec_b)
+                         - self.dual_adjoint(tangent_vec_b, tangent_vec_a))
 
     def connection(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the Levi-Civita connection of invariant vector fields.
