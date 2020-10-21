@@ -15,7 +15,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.space = PreShapeSpace(self.k_landmarks, self.m_ambient)
         self.matrices = self.space.embedding_manifold
         self.n_samples = 10
-        
+
     def test_random_uniform_and_belongs(self):
         """Test random uniform and belongs.
 
@@ -25,10 +25,10 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         n_samples = self.n_samples
         point = self.space.random_uniform(n_samples)
         result = self.space.belongs(point)
-        expected = gs.array([True] * n_samples) 
-        
+        expected = gs.array([True] * n_samples)
+
         self.assertAllClose(expected, result)
-        
+
     def test_random_uniform(self):
         point = self.space.random_uniform()
         result = gs.shape(point)
@@ -49,7 +49,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         proj = self.space.projection(point)
         result = self.space.belongs(proj)
         expected = True
-        
+
         self.assertAllClose(expected, result)
 
     def test_is_centered(self):
