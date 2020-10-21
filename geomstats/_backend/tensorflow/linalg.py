@@ -40,6 +40,11 @@ def svd(x, full_matrices=True, compute_uv=True, **kwargs):
     return tf.linalg.svd(x, compute_uv=compute_uv)
 
 
+def solve_sylvester(a, b, q):
+    raise NotImplementedError('solve_sylvester is not implemented in '
+                              'tensorflow')
+
+
 def qr(*args, mode='reduced'):
     def qr_aux(x, mode):
         if mode == 'complete':
