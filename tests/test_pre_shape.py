@@ -2,8 +2,8 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.pre_shape import PreShapeSpace
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.pre_shape import PreShapeSpace
 
 
 class TestPreShapeSpace(geomstats.tests.TestCase):

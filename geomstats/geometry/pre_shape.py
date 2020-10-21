@@ -1,10 +1,10 @@
-"""Kendall Pre-Shape space"""
+"""Kendall Pre-Shape space."""
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-6
 
@@ -12,8 +12,8 @@ TOLERANCE = 1e-6
 class PreShapeSpace(EmbeddedManifold):
     """Class for the Kendall pre-shape space.
 
-    The pre-shape space is the sphere of the space of centered k-ad of 
-    landmarks in R^m (for the Frobenius norm). It is endowed with the 
+    The pre-shape space is the sphere of the space of centered k-ad of
+    landmarks in R^m (for the Frobenius norm). It is endowed with the
     spherical Procrustes metric d(x, y):= arccos(tr(xy^t)).
 
     Parameters
@@ -44,7 +44,7 @@ class PreShapeSpace(EmbeddedManifold):
         atol
         point : array-like, shape=[..., m_ambient, k_landmarks]
             Point in Matrices space.
-        tolerance : float
+        atol : float
             Tolerance at which to evaluate norm == 1 and mean == 0.
             Optional, default: 1e-6.
 
@@ -106,11 +106,38 @@ class PreShapeSpace(EmbeddedManifold):
 
     @staticmethod
     def is_centered(point, atol=TOLERANCE):
+        """Check that landmarks are centered around 0.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., m_ambient, k_landmarks]
+            Point in Matrices space.
+        atol :  float
+            Tolerance at which to evaluate mean == 0.
+            Optional, default: 1e-6.
+
+        Returns
+        -------
+        is_centered : array-like, shape=[...,]
+            Boolean evaluating if point is centered.
+        """
         mean = gs.mean(point, axis=-1)
         return gs.all(gs.isclose(mean, 0., atol=atol))
 
     @staticmethod
     def center(point):
+        """Center landmarks around 0.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., m_ambient, k_landmarks]
+            Point in Matrices space.
+
+        Returns
+        -------
+        centered : array-like, shape=[..., m_ambient, k_landmarks]
+            Point with centered landmarks.
+        """
         mean = gs.mean(point, axis=-1)
         return Matrices.transpose(
             Matrices.transpose(point) - mean[..., None, :])
@@ -172,6 +199,27 @@ class PreShapeSpace(EmbeddedManifold):
 
     @staticmethod
     def vertical_projection(tangent_vec, base_point):
+        r"""Project to vertical subspace.
+
+        Compute the vertical component of a tangent vector :math: `w` at a
+        base point :math: `x` by solving the sylvester equation:
+        .. math::
+                        `Axx^T + xx^TA = wx^T - xw^T`
+
+        Then Ax is returned.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., m, k]
+            Tangent vector to the pre-shape space at `base_point`.
+        base_point : array-like, shape=[..., m, k]
+            Point on the pre-shape space.
+
+        Returns
+        -------
+        vertical : array-like, shape=[..., m, k]
+            Vertical component of `tangent_vec`.
+        """
         transposed_point = Matrices.transpose(base_point)
         left_term = gs.matmul(base_point, transposed_point)
         right_term = gs.matmul(tangent_vec, transposed_point) - gs.matmul(
