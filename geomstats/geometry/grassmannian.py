@@ -236,34 +236,6 @@ class Grassmannian(EmbeddedManifold):
 
         return gs.sum(s > tolerance, axis=-1) == rank
 
-    def is_tangent(self, tangent_vec, point):
-        r"""Check if an (n,n)-matrix is tangent to a point in the Grassmannian.
-
-        A matrix :math:`X` is tangent to :math:`P \in Gr(n, k)`
-        if and only if :math:`X^T = X` and :math:`PX + XP = X`.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector to be checked.
-        point : array-like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        _______
-        is_tangent : boolean, shape=[...]
-
-        """
-        is_inf_rot = Matrices.is_skew_symmetric(tangent_vec)
-        is_transverse = Matrices.equal(
-            Matrices.bracket(tangent_vec, point),
-            point)
-        return gs.logical_and(is_inf_rot, is_transverse)
-
-    def to_tangent(self, tangent_vec, point):
-        inf_rot = Matrices.to_skew_symmetric(tangent_vec)
-        return Matrices.bracket(inf_rot, point)
-
 
 class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
     """Canonical metric of the Grassmann manifold.
