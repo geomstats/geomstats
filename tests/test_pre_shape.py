@@ -75,10 +75,19 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
     def test_is_tangent_to_tangent(self):
         point, vector = self.matrices.random_uniform(2)
-        point = self.space.center(point)
+        point = self.space.projection(point)
+
+        result = self.space.is_tangent(vector, point)
+        self.assertTrue(~ result)
+
         tangent_vec = self.space.to_tangent(vector, point)
         result = self.space.is_tangent(tangent_vec, point)
         self.assertTrue(result)
+
+        vec = gs.array([tangent_vec, vector])
+        result = self.space.is_tangent(vec, point)
+        expected = gs.array([True, False])
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
     def test_vertical_projection(self):
@@ -108,4 +117,40 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         tmp_result = gs.matmul(vertical, transposed_point)
         result = tmp_result - Matrices.transpose(tmp_result)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_horizontal_projection(self):
+        w = gs.random.rand(self.m_ambient, self.k_landmarks)
+        point = self.space.random_uniform()
+        tan = self.space.to_tangent(w, point)
+        horizontal = self.space.horizontal_projection(tan, point)
+        transposed_point = Matrices.transpose(point)
+        result = gs.matmul(horizontal, transposed_point)
+        expected = Matrices.transpose(result)
+
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_horizontal_projection_vectorized(self):
+        w = gs.random.rand(self.n_samples, self.m_ambient, self.k_landmarks)
+        point = self.space.random_uniform(self.n_samples)
+        tan = self.space.to_tangent(w, point)
+        horizontal = self.space.horizontal_projection(tan, point)
+        transposed_point = Matrices.transpose(point)
+        result = gs.matmul(horizontal, transposed_point)
+        expected = Matrices.transpose(result)
+
+        self.assertAllClose(result, expected)
+
+    def test_horizontal_and_is_horizontal(self):
+        w = gs.random.rand(self.m_ambient, self.k_landmarks)
+        point = self.space.random_uniform()
+        tan = self.space.to_tangent(w, point)
+        horizontal = self.space.horizontal_projection(tan, point)
+
+        horizontal = gs.stack([horizontal, w])
+        result = self.space.is_tangent(horizontal, point)
+        expected = gs.array([True, False])
+
         self.assertAllClose(result, expected)

@@ -122,7 +122,7 @@ class PreShapeSpace(EmbeddedManifold):
             Boolean evaluating if point is centered.
         """
         mean = gs.mean(point, axis=-1)
-        return gs.all(gs.isclose(mean, 0., atol=atol))
+        return gs.all(gs.isclose(mean, 0., atol=atol), axis=-1)
 
     @staticmethod
     def center(point):
@@ -227,6 +227,51 @@ class PreShapeSpace(EmbeddedManifold):
         skew = gs.linalg.solve_sylvester(left_term, left_term, right_term)
 
         return gs.matmul(skew, base_point)
+
+    @classmethod
+    def horizontal_projection(cls, tangent_vec, base_point):
+        r"""Project to horizontal subspace.
+
+        Compute the horizontal component of a tangent vector :math: `w` at a
+        base point :math: `x` by removing the vertical component.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., m, k]
+            Tangent vector to the pre-shape space at `base_point`.
+        base_point : array-like, shape=[..., m, k]
+            Point on the pre-shape space.
+
+        Returns
+        -------
+        horizontal : array-like, shape=[..., m, k]
+            Horizontal component of `tangent_vec`.
+        """
+        return tangent_vec - cls.vertical_projection(tangent_vec, base_point)
+
+    def is_horizontal(self, tangent_vec, base_point, atol=TOLERANCE):
+        """Check whether the tangent vector is horizontal at base_point.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., m, k]
+            Tangent vector.
+        base_point : array-like, shape=[..., m, k]
+            Point on the manifold.
+            Optional, default: none.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-6.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if tangent vector is horizontal.
+        """
+        product = gs.matmul(tangent_vec, Matrices.transpose(base_point))
+        is_tangent = self.is_tangent(tangent_vec, base_point, atol)
+        is_symmetric = Matrices.is_symmetric(product, atol)
+        return gs.logical_and(is_tangent, is_symmetric)
 
 
 class ProcrustesMetric(RiemannianMetric):
