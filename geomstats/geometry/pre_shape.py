@@ -1,5 +1,7 @@
 """Kendall Pre-Shape space."""
 
+import logging
+
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.hypersphere import Hypersphere
@@ -292,6 +294,8 @@ class PreShapeSpace(EmbeddedManifold):
         """
         M = gs.matmul(point2,Matrices.transpose(point1))
         U, S, Vh = gs.linalg.svd(M)
+        if gs.any(S[...,-1] + S[...,-2] == 0) :            
+            logging.warning("Alignement matrix is not unique.")
         if gs.linalg.det(M) < 0:
             I = gs.eye(self.m_ambient)
             I[-1,-1] = - I[-1,-1]
