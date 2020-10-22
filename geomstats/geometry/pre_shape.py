@@ -272,6 +272,33 @@ class PreShapeSpace(EmbeddedManifold):
         is_tangent = self.is_tangent(tangent_vec, base_point, atol)
         is_symmetric = Matrices.is_symmetric(product, atol)
         return gs.logical_and(is_tangent, is_symmetric)
+    
+    def omega(self, point1, point2):
+        """Finds the optimal rotation R in SO(m) such that point1 and R.point2 
+        are well positioned.
+        
+        Parameters
+        ----------
+        point1 : array-like, shape=[..., m, k]
+            Point on the manifold.
+        point2 : array-like, shape=[..., m, k]
+            Point on the manifold.
+            Optional, default: none.
+
+        Returns
+        -------
+        point3 : array-like, shape=[..., m, k]
+            R.point2.
+        """
+        M = gs.matmul(point2,Matrices.transpose(point1))
+        U, S, Vh = gs.linalg.svd(M)
+        if gs.linalg.det(M) < 0:
+            I = gs.eye(self.m_ambient)
+            I[-1,-1] = - I[-1,-1]
+            R = gs.matmul(Matrices.transpose(Vh),I,Matrices.transpose(U))
+        else :
+            R = gs.matmul(Matrices.transpose(Vh),Matrices.transpose(U))
+        return gs.matmul(R,point2)
 
 
 class ProcrustesMetric(RiemannianMetric):
