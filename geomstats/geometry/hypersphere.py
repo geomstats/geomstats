@@ -68,7 +68,7 @@ class _Hypersphere(EmbeddedManifold):
             if gs.ndim(point) == 2:
                 belongs = gs.tile([belongs], (point.shape[0],))
             return belongs
-        sq_norm = self.embedding_metric.squared_norm(point)
+        sq_norm = gs.sum(point ** 2, axis=-1)
         diff = gs.abs(sq_norm - 1)
         return gs.less_equal(diff, tolerance)
 
@@ -93,7 +93,6 @@ class _Hypersphere(EmbeddedManifold):
 
         return self.projection(point)
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def projection(self, point):
         """Project a point on the hypersphere.
 
@@ -107,12 +106,11 @@ class _Hypersphere(EmbeddedManifold):
         projected_point : array-like, shape=[..., dim + 1]
             Point projected on the hypersphere.
         """
-        norm = self.embedding_metric.norm(point)
+        norm = gs.linalg.norm(point, axis=-1)
         projected_point = gs.einsum('...,...i->...i', 1. / norm, point)
 
         return projected_point
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def to_tangent(self, vector, base_point):
         """Project a vector to the tangent space.
 
@@ -133,14 +131,13 @@ class _Hypersphere(EmbeddedManifold):
             Tangent vector in the tangent space of the hypersphere
             at the base point.
         """
-        sq_norm = self.embedding_metric.squared_norm(base_point)
+        sq_norm = gs.sum(base_point ** 2, axis=-1)
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
         tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
 
         return tangent_vec
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def spherical_to_extrinsic(self, point_spherical):
         """Convert point from spherical to extrinsic coordinates.
 
@@ -164,14 +161,14 @@ class _Hypersphere(EmbeddedManifold):
                 ' to extrinsic coordinates is implemented'
                 ' only in dimension 2.')
 
-        theta = point_spherical[:, 0]
-        phi = point_spherical[:, 1]
+        theta = point_spherical[..., 0]
+        phi = point_spherical[..., 1]
 
         point_extrinsic = gs.stack(
             [gs.sin(theta) * gs.cos(phi),
              gs.sin(theta) * gs.sin(phi),
              gs.cos(theta)],
-            axis=1)
+            axis=-1)
 
         if not gs.all(self.belongs(point_extrinsic)):
             raise ValueError('Points do not belong to the manifold.')
@@ -209,7 +206,6 @@ class _Hypersphere(EmbeddedManifold):
         n_samples = base_point_spherical.shape[0]
         theta = base_point_spherical[:, 0]
         phi = base_point_spherical[:, 1]
-        jac = gs.zeros((n_samples, self.dim + 1, self.dim))
 
         zeros = gs.zeros(n_samples)
 
@@ -226,7 +222,6 @@ class _Hypersphere(EmbeddedManifold):
 
         return tangent_vec_extrinsic
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert point from intrinsic to extrinsic coordinates.
 
@@ -244,17 +239,16 @@ class _Hypersphere(EmbeddedManifold):
             Point on the hypersphere, in extrinsic coordinates in
             Euclidean space.
         """
-        sq_coord_0 = 1. - gs.linalg.norm(point_intrinsic, axis=-1) ** 2
+        sq_coord_0 = 1. - gs.sum(point_intrinsic ** 2, axis=-1)
         if gs.any(gs.less(sq_coord_0, 0.)):
             raise ValueError('Square-root of a negative number.')
         coord_0 = gs.sqrt(sq_coord_0)
-        coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=-1)
 
-        point_extrinsic = gs.concatenate([coord_0, point_intrinsic], axis=-1)
+        point_extrinsic = gs.concatenate([
+            coord_0[..., None], point_intrinsic], axis=-1)
 
         return point_extrinsic
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """Convert point from extrinsic to intrinsic coordinates.
 
@@ -272,7 +266,7 @@ class _Hypersphere(EmbeddedManifold):
         point_intrinsic : array-like, shape=[..., dim]
             Point on the hypersphere, in intrinsic coordinates.
         """
-        point_intrinsic = point_extrinsic[:, 1:]
+        point_intrinsic = point_extrinsic[..., 1:]
 
         return point_intrinsic
 

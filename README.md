@@ -14,6 +14,7 @@ The module `geometry` implements concepts in differential geometry, and the modu
 - To get started with ```geomstats```, see the [examples](https://github.com/geomstats/geomstats/tree/master/examples) and [notebooks](https://github.com/geomstats/geomstats/tree/master/notebooks) directories.
 - The documentation of ```geomstats``` can be found on the [documentation website](https://geomstats.github.io/).
 - If you find ``geomstats`` useful, please kindly cite our [paper](https://arxiv.org/abs/2004.04667).
+- To follow the scientific literature on geometric statistics, follow our twitter-bot @geomstats-papers !
 
 ## Install geomstats via pip3
 

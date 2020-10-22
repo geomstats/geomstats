@@ -171,7 +171,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
 
     def test_exp_vectorization(self):
         point_a = gs.array([0.5, 0.5])
-        point_b = gs.array([[0.5, -0.5], [0.4, 0.4]])
+        point_b = gs.array([[0.0, 0.0], [0.5, -0.5], [0.4, 0.4]])
 
         dist_a_b =\
             self.manifold.metric.exp(point_a, point_b)

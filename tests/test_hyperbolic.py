@@ -26,6 +26,27 @@ class TestHyperbolic(geomstats.tests.TestCase):
         self.ball_manifold = PoincareBall(dim=2)
         self.n_samples = 10
 
+    def test_belongs_intrinsic(self):
+        self.space.coords_type = 'intrinsic'
+        point = gs.random.rand(self.n_samples, self.dimension)
+        result = self.space.belongs(point)
+        self.assertTrue(gs.all(result))
+
+    def test_regularize_intrinsic(self):
+        self.space.coords_type = 'intrinsic'
+        point = gs.random.rand(self.n_samples, self.dimension)
+        regularized = self.space.regularize(point)
+        self.space.coords_type = 'extrinsic'
+        result = self.space.belongs(regularized)
+        self.assertTrue(gs.all(result))
+
+    def test_regularize_zero_norm(self):
+        point = gs.array([-1., 1., 0., 0.])
+        self.assertRaises(ValueError, lambda: self.space.regularize(point))
+        self.assertRaises(
+            NameError,
+            lambda: self.space.extrinsic_to_intrinsic_coords(point))
+
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
@@ -66,8 +87,8 @@ class TestHyperbolic(geomstats.tests.TestCase):
         gives the identity.
         """
         point_int = gs.ones(self.dimension)
-        point_ext = self.space.from_coordinates(point_int, 'intrinsic')
-        result = self.space.to_coordinates(point_ext, 'intrinsic')
+        point_ext = self.space.intrinsic_to_extrinsic_coords(point_int)
+        result = self.space.extrinsic_to_intrinsic_coords(point_ext)
         expected = point_int
         self.assertAllClose(result, expected)
 
@@ -142,12 +163,13 @@ class TestHyperbolic(geomstats.tests.TestCase):
 
         base_point = h5.random_uniform()
         point = h5.random_uniform()
-
+        point = gs.cast(point, gs.float64)
+        base_point = gs.cast(base_point, gs.float64)
         one_log = h5_metric.log(point=point, base_point=base_point)
 
         result = h5_metric.exp(tangent_vec=one_log, base_point=base_point)
         expected = point
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-5)
 
         # Test vectorization of log
         base_point = gs.stack([base_point] * n_samples, axis=0)
@@ -164,7 +186,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
         expected = point
 
         self.assertAllClose(gs.shape(result), (n_samples, dim + 1))
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-5)
 
         # Test vectorization of exp
         tangent_vec = gs.stack([one_log] * n_samples, axis=0)
@@ -173,7 +195,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
 
         expected = point
         self.assertAllClose(gs.shape(result), (n_samples, dim + 1))
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-5)
 
     def test_exp_and_belongs(self):
         H2 = Hyperboloid(dim=2)
@@ -183,6 +205,20 @@ class TestHyperbolic(geomstats.tests.TestCase):
         self.assertTrue(H2.belongs(base_point))
 
         tangent_vec = H2.to_tangent(
+            vector=gs.array([1., 2., 1.]),
+            base_point=base_point)
+        exp = METRIC.exp(tangent_vec=tangent_vec,
+                         base_point=base_point)
+        self.assertTrue(H2.belongs(exp))
+
+    def test_exp_small_vec(self):
+        H2 = Hyperboloid(dim=2)
+        METRIC = H2.metric
+
+        base_point = H2.regularize(gs.array([1., 0., 0.]))
+        self.assertTrue(H2.belongs(base_point))
+
+        tangent_vec = 1e-9 * H2.to_tangent(
             vector=gs.array([1., 2., 1.]),
             base_point=base_point)
         exp = METRIC.exp(tangent_vec=tangent_vec,
@@ -406,10 +442,8 @@ class TestHyperbolic(geomstats.tests.TestCase):
 
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
-        result = self.space.belongs(points)
-        expected = n_geodesic_points * [True]
-
-        self.assertAllClose(result, expected)
+        result = gs.all(self.space.belongs(points))
+        self.assertTrue(result)
 
     @geomstats.tests.np_only
     def test_geodesic_and_belongs_large_initial_velocity(self):
@@ -426,10 +460,8 @@ class TestHyperbolic(geomstats.tests.TestCase):
 
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
-        result = self.space.belongs(points)
-        expected = n_geodesic_points * [True]
-
-        self.assertAllClose(result, expected)
+        result = gs.all(self.space.belongs(points))
+        self.assertTrue(result)
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """

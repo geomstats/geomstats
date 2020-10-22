@@ -30,11 +30,14 @@ def logm(x):
     return tf_logm
 
 
-def svd(x):
+def svd(x, full_matrices=True, compute_uv=True, **kwargs):
     is_vectorized = x.ndim == 3
     axis = (0, 2, 1) if is_vectorized else (1, 0)
-    s, u, v_t = tf.linalg.svd(x, full_matrices=True)
-    return u, s, tf.transpose(v_t, perm=axis)
+    if compute_uv:
+        s, u, v_t = tf.linalg.svd(
+            x, full_matrices=full_matrices, compute_uv=compute_uv)
+        return u, s, tf.transpose(v_t, perm=axis)
+    return tf.linalg.svd(x, compute_uv=compute_uv)
 
 
 def qr(*args, mode='reduced'):

@@ -24,6 +24,20 @@ COSC_TAYLOR_COEFFS = [1. / 2.,
                       + 1. / math.factorial(10)]
 VAR_INV_TAN_TAYLOR_COEFFS = [
     1. / 12., 1. / 720., 1. / 30240., 1. / 1209600.]
+SINHC_TAYLOR_COEFFS = [1.,
+                       1 / math.factorial(3),
+                       1 / math.factorial(5),
+                       1 / math.factorial(7),
+                       1 / math.factorial(9)]
+COSH_TAYLOR_COEFFS = [1.,
+                      1 / math.factorial(2),
+                      1 / math.factorial(4),
+                      1 / math.factorial(6),
+                      1 / math.factorial(8)]
+INV_SINHC_TAYLOR_COEFFS = [
+    1., - 1. / 6., 7. / 360., - 31. / 15120., 127. / 604800.]
+INV_TANH_TAYLOR_COEFFS = [1., 1. / 3., - 1. / 45., 2. / 945., -1. / 4725.]
+
 
 cos_close_0 = {'function': gs.cos, 'coefficients': COS_TAYLOR_COEFFS}
 sinc_close_0 = {
@@ -37,9 +51,22 @@ inv_tanc_close_0 = {
 cosc_close_0 = {
     'function': lambda x: (1 - gs.cos(x)) / x ** 2,
     'coefficients': COSC_TAYLOR_COEFFS}
+var_sinc_close_0 = {
+    'function': lambda x: (x - gs.sin(x)) / x ** 3,
+    'coefficients': [-k for k in SINC_TAYLOR_COEFFS[1:]]}
 var_inv_tanc_close_0 = {
     'function': lambda x: (1 - (x / gs.tan(x))) / x ** 2,
     'coefficients': VAR_INV_TAN_TAYLOR_COEFFS}
+sinch_close_0 = {
+    'function': lambda x: gs.sinh(x) / x,
+    'coefficients': SINHC_TAYLOR_COEFFS}
+cosh_close_0 = {'function': gs.cosh, 'coefficients': COSH_TAYLOR_COEFFS}
+inv_sinch_close_0 = {
+    'function': lambda x: x / gs.sinh(x),
+    'coefficients': INV_SINHC_TAYLOR_COEFFS}
+inv_tanh_close_0 = {
+    'function': lambda x: x / gs.tanh(x),
+    'coefficients': INV_TANH_TAYLOR_COEFFS}
 
 
 def from_vector_to_diagonal_matrix(vector):

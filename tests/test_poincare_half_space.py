@@ -25,6 +25,14 @@ class TestPoincareHalfSpace(geomstats.tests.TestCase):
         expected = gs.array([True, False])
         self.assertAllClose(result, expected)
 
+    def test_inner_product_vectorization(self):
+        tangent_vec = gs.array([[1., 2.], [3., 4.]])
+        base_point = gs.array([[0., 1.], [0., 5.]])
+        result = self.metric.inner_product(
+            tangent_vec, tangent_vec, base_point)
+        expected = gs.array([5., 1.])
+        self.assertAllClose(result, expected)
+
     def test_half_space_to_ball_coordinates(self):
         point_half_space = gs.array([0., 1.])
         result = self.manifold.half_space_to_ball_coordinates(
@@ -144,4 +152,12 @@ class TestPoincareHalfSpace(geomstats.tests.TestCase):
         end_point_expected = gs.hstack(
             [np.real(end_point_complex), np.imag(end_point_complex)])
         expected = gs.stack([end_point_expected, end_point_expected])
+        self.assertAllClose(result, expected)
+
+    def test_exp_and_log_are_inverse(self):
+        points = gs.array([[1., 1.], [1., 1.]])
+        tangent_vecs = gs.array([[2., 1.], [2., 1.]])
+        end_points = self.metric.exp(tangent_vecs, points)
+        result = self.metric.log(end_points, points)
+        expected = tangent_vecs
         self.assertAllClose(result, expected)
