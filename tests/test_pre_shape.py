@@ -143,6 +143,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_horizontal_and_is_horizontal(self):
         w = gs.random.rand(self.m_ambient, self.k_landmarks)
         point = self.space.random_uniform()
@@ -154,3 +155,25 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         expected = gs.array([True, False])
 
         self.assertAllClose(result, expected)
+
+    def test_realign(self):
+        point, base_point = self.space.random_uniform(2)
+        aligned = self.space.realign(point, base_point)
+        alignment = gs.matmul(aligned, Matrices.transpose(base_point))
+        result = Matrices.is_symmetric(alignment)
+        self.assertTrue(result)
+
+    def test_realign_vectorization(self):
+        base_point = self.space.random_uniform()
+        point = self.space.random_uniform(2)
+        aligned = self.space.realign(point, base_point)
+        alignment = gs.matmul(aligned, Matrices.transpose(base_point))
+        result = Matrices.is_symmetric(alignment)
+        self.assertTrue(gs.all(result))
+
+        base_point = self.space.random_uniform(2)
+        point = self.space.random_uniform()
+        aligned = self.space.realign(point, base_point)
+        alignment = gs.matmul(aligned, Matrices.transpose(base_point))
+        result = Matrices.is_symmetric(alignment)
+        self.assertTrue(gs.all(result))

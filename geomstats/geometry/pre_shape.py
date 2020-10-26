@@ -3,6 +3,7 @@
 import logging
 
 import geomstats.backend as gs
+from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices, MatricesMetric
@@ -275,15 +276,15 @@ class PreShapeSpace(EmbeddedManifold):
         is_symmetric = Matrices.is_symmetric(product, atol)
         return gs.logical_and(is_tangent, is_symmetric)
     
-    def omega(self, point1, point2):
+    def realign(self, point, base_point):
         """Finds the optimal rotation R in SO(m) such that point1 and R.point2 
         are well positioned.
         
         Parameters
         ----------
-        point1 : array-like, shape=[..., m, k]
+        base_point : array-like, shape=[..., m, k]
             Point on the manifold.
-        point2 : array-like, shape=[..., m, k]
+        point : array-like, shape=[..., m, k]
             Point on the manifold.
             Optional, default: none.
 
@@ -292,17 +293,23 @@ class PreShapeSpace(EmbeddedManifold):
         point3 : array-like, shape=[..., m, k]
             R.point2.
         """
-        M = gs.matmul(point2,Matrices.transpose(point1))
+        M = gs.matmul(point, Matrices.transpose(base_point))
         U, S, Vh = gs.linalg.svd(M)
-        if gs.any(S[...,-1] + S[...,-2] == 0) :            
+        if gs.any(gs.isclose(S[..., -1] + S[..., -2], 0.)):
             logging.warning("Alignement matrix is not unique.")
-        if gs.linalg.det(M) < 0:
-            I = gs.eye(self.m_ambient)
-            I[-1,-1] = - I[-1,-1]
-            R = gs.matmul(Matrices.transpose(Vh),I,Matrices.transpose(U))
-        else :
-            R = gs.matmul(Matrices.transpose(Vh),Matrices.transpose(U))
-        return gs.matmul(R,point2)
+        det = gs.linalg.det(M)
+        if gs.any(det < 0):
+            ones = gs.ones(self.m_ambient)
+            changer = gs.concatenate([ones[:-1], gs.array([-1.])], axis=0)
+            mask = gs.cast(det < 0, gs.float32)
+            sign = (mask[..., None] * changer[None, :]
+                    + (1. - mask)[..., None] * ones[None, :])
+            j_matrix = from_vector_to_diagonal_matrix(sign)
+            R = Matrices.mul(
+                Matrices.transpose(Vh), j_matrix, Matrices.transpose(U))
+        else:
+            R = gs.matmul(Matrices.transpose(Vh), Matrices.transpose(U))
+        return gs.matmul(R, point)
 
 
 class ProcrustesMetric(RiemannianMetric):
