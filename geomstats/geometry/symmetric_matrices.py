@@ -178,6 +178,6 @@ class SymmetricMatrices(EmbeddedManifold):
         eigvals = function(eigvals)
         eigvals = algebra_utils.from_vector_to_diagonal_matrix(eigvals)
         transp_eigvecs = Matrices.transpose(eigvecs)
-        reconstuction = gs.matmul(eigvecs, eigvals)
-        reconstuction = gs.matmul(reconstuction, transp_eigvecs)
-        return reconstuction
+        reconstruction = gs.matmul(eigvecs, eigvals)
+        reconstruction = gs.matmul(reconstruction, transp_eigvecs)
+        return reconstruction
