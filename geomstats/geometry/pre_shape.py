@@ -4,6 +4,7 @@ import logging
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
+from  geomstats.errors import check_tf_error
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices, MatricesMetric
@@ -398,6 +399,7 @@ class ProcrustesMetric(RiemannianMetric):
         flat_log = self.sphere_metric.log(flat_pt, flat_bp)
         try:
             log = gs.reshape(flat_log, base_point.shape)
-        except (ValueError, RuntimeError, Exception):
+        except (RuntimeError,
+                check_tf_error(ValueError, 'InvalidArgumentError')):
             log = gs.reshape(flat_log, point.shape)
         return log
