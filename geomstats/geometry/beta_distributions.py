@@ -207,7 +207,7 @@ class BetaMetric(RiemannianMetric):
                                                   gs.polygamma(1, param_b))
         return metric_det
 
-    def inner_product_matrix(self, base_point):
+    def metric_matrix(self, base_point):
         """Compute inner-product matrix at the tangent space at base point.
 
         Parameters

@@ -33,6 +33,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n)
         self.lie_algebra = SkewSymmetricMatrices(n=n)
         self.bi_invariant_metric = BiInvariantMetric(group=self)
+        self.dim = int((n * (n - 1)) / 2)
 
     def belongs(self, point, atol=ATOL):
         """Check whether point is an orthogonal matrix.
