@@ -177,3 +177,63 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         alignment = gs.matmul(aligned, Matrices.transpose(base_point))
         result = Matrices.is_symmetric(alignment)
         self.assertTrue(gs.all(result))
+
+    def test_inner_product(self):
+        w = gs.random.rand(self.n_samples, self.m_ambient, self.k_landmarks)
+        point = self.space.random_uniform()
+        tan = self.space.to_tangent(w, point)
+        inner = self.space.metric.inner_product(tan, tan, point)
+        self.assertAllClose(inner.shape, (self.n_samples,))
+
+    def test_exp_and_belongs(self):
+        w = gs.random.rand(self.m_ambient, self.k_landmarks)
+        point = self.space.random_uniform()
+        tan = self.space.to_tangent(w, point)
+        exp = self.space.metric.exp(tan, point)
+        result = self.space.belongs(exp)
+        self.assertTrue(result)
+
+        exp = self.space.metric.exp(gs.zeros_like(point), point)
+        result = gs.isclose(point, exp)
+        self.assertTrue(gs.all(result))
+
+    def test_exp_and_belongs_vectorization(self):
+        w = gs.random.rand(self.n_samples, self.m_ambient, self.k_landmarks)
+        point = self.space.random_uniform(self.n_samples)
+        tan = self.space.to_tangent(w, point)
+        exp = self.space.metric.exp(tan, point)
+        result = self.space.belongs(exp)
+        self.assertTrue(gs.all(result))
+
+        point = point[0]
+        tan = self.space.to_tangent(w, point)
+        exp = self.space.metric.exp(tan, point)
+        result = self.space.belongs(exp)
+        self.assertTrue(gs.all(result))
+
+    def test_log(self):
+        point, base_point = self.space.random_uniform(2)
+        log = self.space.metric.log(point, base_point)
+        result = self.space.is_tangent(log, base_point)
+        self.assertTrue(result)
+
+        exp = self.space.metric.exp(log, base_point)
+        self.assertAllClose(exp, point)
+
+    def test_log_vectorization(self):
+        point = self.space.random_uniform(self.n_samples)
+        base_point = self.space.random_uniform()
+        log = self.space.metric.log(point, base_point)
+        result = self.space.is_tangent(log, base_point)
+        self.assertTrue(gs.all(result))
+
+        exp = self.space.metric.exp(log, base_point)
+        self.assertAllClose(exp, point)
+
+        log = self.space.metric.log(base_point, point)
+        result = self.space.is_tangent(log, point)
+        self.assertTrue(gs.all(result))
+
+        exp = self.space.metric.exp(log, point)
+        expected = gs.stack([base_point] * self.n_samples)
+        self.assertAllClose(exp, expected)

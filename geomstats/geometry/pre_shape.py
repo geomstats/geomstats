@@ -275,23 +275,24 @@ class PreShapeSpace(EmbeddedManifold):
         is_tangent = self.is_tangent(tangent_vec, base_point, atol)
         is_symmetric = Matrices.is_symmetric(product, atol)
         return gs.logical_and(is_tangent, is_symmetric)
-    
+
     def realign(self, point, base_point):
-        """Finds the optimal rotation R in SO(m) such that point1 and R.point2 
-        are well positioned.
-        
+        """Realign point to base_point.
+
+        Find the optimal rotation R in SO(m) such that the base point and
+        R.point are well positioned.
+
         Parameters
         ----------
-        base_point : array-like, shape=[..., m, k]
-            Point on the manifold.
         point : array-like, shape=[..., m, k]
             Point on the manifold.
-            Optional, default: none.
+        base_point : array-like, shape=[..., m, k]
+            Point on the manifold.
 
         Returns
         -------
-        point3 : array-like, shape=[..., m, k]
-            R.point2.
+        aligned : array-like, shape=[..., m, k]
+            R.point.
         """
         M = gs.matmul(point, Matrices.transpose(base_point))
         U, S, Vh = gs.linalg.svd(M)
@@ -326,4 +327,77 @@ class ProcrustesMetric(RiemannianMetric):
     def __init__(self, k_landmarks, m_ambient):
         super(ProcrustesMetric, self).__init__(
             dim=m_ambient * (k_landmarks - 1) - 1)
+
         self.embedding_metric = MatricesMetric(m_ambient, k_landmarks)
+        self.sphere_metric = Hypersphere(m_ambient * k_landmarks - 1).metric
+
+        self.k_landmarks = k_landmarks
+        self.m_ambient = m_ambient
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute the inner-product of two tangent vectors at a base point.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim + 1]
+            First tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., dim + 1]
+            Second tangent vector at base point.
+        base_point : array-like, shape=[..., dim + 1], optional
+            Point on the pre-shape space.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...,]
+            Inner-product of the two tangent vectors.
+        """
+        inner_prod = self.embedding_metric.inner_product(
+            tangent_vec_a, tangent_vec_b, base_point)
+
+        return inner_prod
+
+    def exp(self, tangent_vec, base_point):
+        """Compute the Riemannian exponential of a tangent vector.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim + 1]
+            Tangent vector at a base point.
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the pre-shape space.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., dim + 1]
+            Point on the pre-shape space equal to the Riemannian exponential
+            of tangent_vec at the base point.
+        """
+        flat_bp = gs.reshape(base_point, (-1, self.sphere_metric.dim + 1))
+        flat_tan = gs.reshape(tangent_vec, (-1, self.sphere_metric.dim + 1))
+        flat_exp = self.sphere_metric.exp(flat_tan, flat_bp)
+        return gs.reshape(flat_exp, tangent_vec.shape)
+
+    def log(self, point, base_point):
+        """Compute the Riemannian logarithm of a point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim + 1]
+            Point on the pre-shape space.
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the pre-shape space.
+
+        Returns
+        -------
+        log : array-like, shape=[..., dim + 1]
+            Tangent vector at the base point equal to the Riemannian logarithm
+            of point at the base point.
+        """
+        flat_bp = gs.reshape(base_point, (-1, self.sphere_metric.dim + 1))
+        flat_pt = gs.reshape(point, (-1, self.sphere_metric.dim + 1))
+        flat_log = self.sphere_metric.log(flat_pt, flat_bp)
+        try:
+            log = gs.reshape(flat_log, base_point.shape)
+        except (ValueError, RuntimeError, Exception):
+            log = gs.reshape(flat_log, point.shape)
+        return log
