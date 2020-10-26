@@ -4,7 +4,7 @@ import logging
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from  geomstats.errors import check_tf_error
+from geomstats.errors import check_tf_error
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices, MatricesMetric

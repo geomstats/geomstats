@@ -64,5 +64,4 @@ def check_tf_error(exception, name):
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
         from tensorflow import errors
         return getattr(errors, name)
-    else:
-        return exception
+    return exception
