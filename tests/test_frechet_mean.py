@@ -28,11 +28,11 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.so_matrix = SpecialOrthogonal(n=3)
 
     def test_logs_at_mean_default_gradient_descent_sphere(self):
-        n_tests = 100
+        n_tests = 10
         estimator = FrechetMean(metric=self.sphere.metric, method='default')
 
         result = []
-        for i in range(n_tests):
+        for _ in range(n_tests):
             # take 2 random points, compute their mean, and verify that
             # log of each at the mean is opposite
             points = self.sphere.random_uniform(n_samples=2)
@@ -46,11 +46,11 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(expected, result, rtol=1e-10, atol=1e-6)
 
     def test_logs_at_mean_adaptive_gradient_descent_sphere(self):
-        n_tests = 100
+        n_tests = 10
         estimator = FrechetMean(metric=self.sphere.metric, method='adaptive')
 
         result = []
-        for i in range(n_tests):
+        for _ in range(n_tests):
             # take 2 random points, compute their mean, and verify that
             # log of each at the mean is opposite
             points = self.sphere.random_uniform(n_samples=2)
