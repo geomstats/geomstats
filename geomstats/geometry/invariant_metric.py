@@ -5,6 +5,7 @@ import geomstats.errors
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.integrator import integrate
 
 
 EPSILON = 1e-6
@@ -704,6 +705,26 @@ class InvariantMetric(RiemannianMetric):
         log = self.group.tangent_translation_map(
             base_point, left_or_right=self.left_or_right)(log_from_id)
         return log
+
+    def euler_poincarre_geodesic(
+            self, tangent_vec, base_point, n_steps=10, step='rk4', **kwargs):
+        group = self.group
+        basis = self.lie_algebra.orthonormal_basis(
+            self.metric_mat_at_identity)
+
+        def lie_acceleration(_, vector):
+            coefficients = [self.structure_constant(
+                vector, basis_vector, vector) for basis_vector in basis]
+            return gs.einsum(
+                'i...,ijk->...jk', coefficients, basis)
+
+        left_angular_vel = group.compose(
+            group.inverse(base_point), tangent_vec)
+        initial_state = (base_point, group.regularize(left_angular_vel))
+        flow, _ = integrate(
+            lie_acceleration, initial_state, n_steps=n_steps, step=step,
+            group=group, **kwargs)
+        return flow[-1]
 
 
 class BiInvariantMetric(InvariantMetric):

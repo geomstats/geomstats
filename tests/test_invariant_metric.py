@@ -701,3 +701,17 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             tan_a, tan_b, tan_c, tan_a, point)
         expected = gs.zeros_like(x)
         self.assertAllClose(result, expected)
+
+    def test_integrated_exp_at_id(self):
+        group = self.matrix_so3
+        lie_algebra = SkewSymmetricMatrices(3)
+        metric = InvariantMetric(group=group, algebra=lie_algebra)
+        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+
+        vecs = gs.random.rand(2, len(basis))
+        vecs = gs.einsum('...j,jkl->...kl', vecs, basis)
+        identity = self.matrix_so3.identity
+        result = metric.euler_poincarre_geodesic(
+            vecs, identity, n_steps=100, step='group_rk4')
+        expected = group.exp(vecs, identity)
+        self.assertAllClose(expected, result)

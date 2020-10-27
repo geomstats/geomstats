@@ -208,7 +208,8 @@ def integrate(
         step_function = partial(step_function, group=group)
 
     for _ in range(n_steps):
-        current_state = step_function(current_state, function, dt)
+        current_state = step_function(
+            state=current_state, force=function, dt=dt)
         positions.append(current_state[0])
         velocities.append(current_state[1])
     return positions, velocities
