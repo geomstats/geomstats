@@ -23,7 +23,7 @@ class TestConnection(geomstats.tests.TestCase):
     def test_metric_matrix(self):
         base_point = gs.array([0., 1., 0., 0.])
 
-        result = self.euc_metric.inner_product_matrix(base_point)
+        result = self.euc_metric.metric_matrix(base_point)
         expected = gs.eye(self.dim)
 
         self.assertAllClose(result, expected)

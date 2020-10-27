@@ -207,7 +207,7 @@ class TestEuclidean(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(result), (self.dimension,))
 
     def test_inner_product_matrix(self):
-        result = self.metric.inner_product_matrix()
+        result = self.metric.metric_matrix()
 
         expected = gs.eye(self.dimension)
 
