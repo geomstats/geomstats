@@ -128,7 +128,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             random_mat = gs.random.rand(self.n, self.n)
         else:
             random_mat = gs.random.rand(n_samples, self.n, self.n)
-        rotation_mat, _ = gs.linalg.qr(random_mat, mode='complete')
+        rotation_mat, _ = gs.linalg.qr(random_mat)
         return rotation_mat
 
     @geomstats.vectorization.decorator(['else', 'vector'])
