@@ -42,5 +42,6 @@ class TestNotebooks(geomstats.tests.TestCase):
         _exec_notebook('notebooks/05_embedding_graph_structured_data_h2.ipynb')
 
     @staticmethod
-    def test_06_k_mean_clustering_on_sphere():
-        _exec_notebook('notebooks/06_k_mean_clustering_on_sphere.ipynb')
+    @geomstats.tests.np_only
+    def test_06_information_geometry():
+        _exec_notebook('notebooks/06_information_geometry.ipynb')

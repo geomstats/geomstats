@@ -46,7 +46,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         self.signatures = signatures
         self.n_jobs = n_jobs
 
-    def inner_product_matrix(self, base_point=None, point_type=None):
+    def metric_matrix(self, base_point=None, point_type=None):
         """Compute the matrix of the inner-product.
 
         Matrix of the inner-product defined by the Riemmanian metric
@@ -81,10 +81,9 @@ class ProductRiemannianMetric(RiemannianMetric):
         for i in range(self.n_metrics):
             cum_dim_next = cum_dim + self.dims[i]
             if point_type == 'matrix':
-                matrix_next = self.metrics[i].inner_product_matrix(
-                    base_point[:, i])
+                matrix_next = self.metrics[i].metric_matrix(base_point[:, i])
             elif point_type == 'vector':
-                matrix_next = self.metrics[i].inner_product_matrix(
+                matrix_next = self.metrics[i].metric_matrix(
                     base_point[:, cum_dim:cum_dim_next, cum_dim:cum_dim_next])
             else:
                 raise ValueError('invalid point_type argument: {}, expected '

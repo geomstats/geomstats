@@ -3,6 +3,7 @@
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
+from geomstats.geometry.beta_distributions import BetaDistributions
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
@@ -103,3 +104,15 @@ class TestDatasets(geomstats.tests.TestCase):
 
         result = gs.logical_and(labels >= 0, labels <= 1)
         self.assertTrue(gs.all(result))
+
+    @geomstats.tests.np_only
+    def test_leaves(self):
+        """Test that leaves data are beta distribution parameters."""
+        beta = BetaDistributions()
+        beta_param, distrib_type = data_utils.load_leaves()
+        result = beta.belongs(beta_param)
+        self.assertTrue(gs.all(result))
+
+        result = len(distrib_type)
+        expected = beta_param.shape[0]
+        self.assertAllClose(result, expected)
