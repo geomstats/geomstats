@@ -40,8 +40,8 @@ def svd(x, full_matrices=True, compute_uv=True, **kwargs):
     return tf.linalg.svd(x, compute_uv=compute_uv)
 
 
-def qr(x, mode='full'):
-    return tf.linalg.qr(x, full_matrices=(mode == 'full'))
+def qr(x, mode='reduced'):
+    return tf.linalg.qr(x, full_matrices=(mode == 'complete'))
 
 
 def powerm(x, power):
