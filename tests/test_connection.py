@@ -149,7 +149,7 @@ class TestConnection(geomstats.tests.TestCase):
         point = gs.array([1.0, gs.pi / 2])
         self.connection.christoffels = self.hypersphere.metric.christoffels
         vector = self.connection.log(
-            point=point, base_point=base_point, n_steps=75, step='rk',
+            point=point, base_point=base_point, n_steps=75, step='rk4',
             tol=1e-10)
         result = self.hypersphere.tangent_spherical_to_extrinsic(
             vector, base_point)
@@ -164,7 +164,7 @@ class TestConnection(geomstats.tests.TestCase):
         point = gs.array([[1.0, gs.pi / 2], [gs.pi / 6, gs.pi / 3]])
         self.connection.christoffels = self.hypersphere.metric.christoffels
         vector = self.connection.log(
-            point=point, base_point=base_point, n_steps=75, step='rk',
+            point=point, base_point=base_point, n_steps=75, step='rk4',
             tol=1e-10)
         result = self.hypersphere.tangent_spherical_to_extrinsic(
             vector, base_point)

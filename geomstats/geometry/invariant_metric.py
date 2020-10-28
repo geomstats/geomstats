@@ -792,22 +792,25 @@ class InvariantMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
+        max_shape = point.shape if point.ndim == 3 else base_point.shape
+
         def objective(velocity):
             """Define the objective function."""
-            velocity = velocity.reshape(base_point.shape)
+            velocity = gs.array(velocity)
+            velocity = gs.cast(velocity, dtype=base_point.dtype)
+            velocity = gs.reshape(velocity, max_shape)
             delta = self.euler_poincarre_geodesic(
                 velocity, base_point, n_steps, step) - point
             return gs.sum(delta ** 2)
 
         objective_with_grad = gs.autograd.value_and_grad(objective)
-
-        tangent_vec = gs.random.rand(base_point.size)
+        tangent_vec = gs.flatten(gs.random.rand(*max_shape))
         res = minimize(
             objective_with_grad, tangent_vec, method='L-BFGS-B',
             jac=True, options={'disp': verbose, 'maxiter': max_iter}, tol=tol)
 
-        tangent_vec = res.x
-        tangent_vec = gs.reshape(tangent_vec, base_point.shape)
+        tangent_vec = gs.array(res.x, dtype=base_point.dtype)
+        tangent_vec = gs.reshape(tangent_vec, max_shape)
         tangent_vec = self.group.to_tangent(tangent_vec, base_point)
         return tangent_vec
 
