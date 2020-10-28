@@ -729,5 +729,5 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             tangent_vec, identity, n_steps=100, step='group_rk4')
         result = metric.euler_poincarre_log(
             exp, gs.stack([identity] * len(tangent_vec)),
-            n_steps=15, step='rk4')
+            n_steps=15, step='group_rk4', verbose=False)
         self.assertAllClose(tangent_vec, result, atol=1e-5)

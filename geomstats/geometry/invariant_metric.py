@@ -688,7 +688,8 @@ class InvariantMetric(RiemannianMetric):
 
         if base_point is None:
             base_point = identity
-        base_point = self.group.regularize(base_point)
+        else:
+            base_point = self.group.regularize(base_point)
 
         if gs.allclose(base_point, identity):
             return self.log_from_identity(point)
@@ -709,14 +710,14 @@ class InvariantMetric(RiemannianMetric):
         return log
 
     def euler_poincarre_geodesic(
-            self, tangent_vec, base_point, n_steps=10, step='rk4', **kwargs):
+            self, tangent_vec, base_point, n_steps=10, step='group_rk4',
+            **kwargs):
         group = self.group
-        basis = self.lie_algebra.orthonormal_basis(
-            self.metric_mat_at_identity)
+        basis = self.lie_algebra.orthonormal_basis(self.metric_mat_at_identity)
 
         def lie_acceleration(_, vector):
-            coefficients = [self.structure_constant(
-                vector, basis_vector, vector) for basis_vector in basis]
+            coefficients = gs.array([self.structure_constant(
+                vector, basis_vector, vector) for basis_vector in basis])
             return gs.einsum(
                 'i...,ijk->...jk', coefficients, basis)
 
@@ -729,13 +730,12 @@ class InvariantMetric(RiemannianMetric):
         return flow[-1]
 
     def euler_poincarre_log(
-            self, point, base_point, n_steps=15, step='rk4', verbose=False,
-            max_iter=25, tol=1e-10):
+            self, point, base_point, n_steps=15, step='group_rk4',
+            verbose=False, max_iter=25, tol=1e-10):
 
         def objective(velocity):
             """Define the objective function."""
             velocity = velocity.reshape(base_point.shape)
-            print(velocity)
             delta = self.euler_poincarre_geodesic(
                 velocity, base_point, n_steps, step) - point
             return gs.sum(delta ** 2)
@@ -749,8 +749,7 @@ class InvariantMetric(RiemannianMetric):
 
         tangent_vec = res.x
         tangent_vec = gs.reshape(tangent_vec, base_point.shape)
-        tangent_vec = self.group.compose(base_point, self.group.regularize(
-            self.group.compose(self.group.inverse(base_point), tangent_vec)))
+        tangent_vec = self.group.to_tangent(tangent_vec, base_point)
         return tangent_vec
 
 
