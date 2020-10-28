@@ -716,6 +716,10 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = group.exp(tangent_vec, identity)
         self.assertAllClose(expected, result)
 
+        result = metric.euler_poincarre_geodesic(
+            tangent_vec, identity, n_steps=100, step='group_rk2')
+        self.assertAllClose(expected, result, atol=1e-5)
+
     def test_integrated_exp_and_log_at_id(self):
         group = self.matrix_so3
         lie_algebra = SkewSymmetricMatrices(3)
