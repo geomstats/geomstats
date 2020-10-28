@@ -1,5 +1,7 @@
 """Left- and right- invariant metrics that exist on Lie groups."""
 
+from scipy.optimize import minimize
+
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.general_linear import GeneralLinear
@@ -725,6 +727,31 @@ class InvariantMetric(RiemannianMetric):
             lie_acceleration, initial_state, n_steps=n_steps, step=step,
             group=group, **kwargs)
         return flow[-1]
+
+    def euler_poincarre_log(
+            self, point, base_point, n_steps=15, step='rk4', verbose=False,
+            max_iter=25, tol=1e-10):
+
+        def objective(velocity):
+            """Define the objective function."""
+            velocity = velocity.reshape(base_point.shape)
+            print(velocity)
+            delta = self.euler_poincarre_geodesic(
+                velocity, base_point, n_steps, step) - point
+            return gs.sum(delta ** 2)
+
+        objective_with_grad = gs.autograd.value_and_grad(objective)
+
+        tangent_vec = gs.random.rand(base_point.size)
+        res = minimize(
+            objective_with_grad, tangent_vec, method='L-BFGS-B',
+            jac=True, options={'disp': verbose, 'maxiter': max_iter}, tol=tol)
+
+        tangent_vec = res.x
+        tangent_vec = gs.reshape(tangent_vec, base_point.shape)
+        tangent_vec = self.group.compose(base_point, self.group.regularize(
+            self.group.compose(self.group.inverse(base_point), tangent_vec)))
+        return tangent_vec
 
 
 class BiInvariantMetric(InvariantMetric):

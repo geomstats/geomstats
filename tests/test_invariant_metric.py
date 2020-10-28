@@ -708,10 +708,26 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         metric = InvariantMetric(group=group, algebra=lie_algebra)
         basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
 
-        vecs = gs.random.rand(2, len(basis))
-        vecs = gs.einsum('...j,jkl->...kl', vecs, basis)
+        vector = gs.random.rand(2, len(basis))
+        tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
         identity = self.matrix_so3.identity
         result = metric.euler_poincarre_geodesic(
-            vecs, identity, n_steps=100, step='group_rk4')
-        expected = group.exp(vecs, identity)
+            tangent_vec, identity, n_steps=100, step='group_rk4')
+        expected = group.exp(tangent_vec, identity)
         self.assertAllClose(expected, result)
+
+    def test_integrated_exp_and_log_at_id(self):
+        group = self.matrix_so3
+        lie_algebra = SkewSymmetricMatrices(3)
+        metric = InvariantMetric(group=group, algebra=lie_algebra)
+        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+
+        vector = gs.random.rand(2, len(basis))
+        tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
+        identity = self.matrix_so3.identity
+        exp = metric.euler_poincarre_geodesic(
+            tangent_vec, identity, n_steps=100, step='group_rk4')
+        result = metric.euler_poincarre_log(
+            exp, gs.stack([identity] * len(tangent_vec)),
+            n_steps=15, step='rk4')
+        self.assertAllClose(tangent_vec, result, atol=1e-5)
