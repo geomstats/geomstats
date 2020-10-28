@@ -712,6 +712,31 @@ class InvariantMetric(RiemannianMetric):
     def euler_poincarre_geodesic(
             self, tangent_vec, base_point, n_steps=10, step='group_rk4',
             **kwargs):
+        """Compute Riemannian exponential of tan. vector wrt to base point.
+
+        The exponential map is computed by integration of the Euler-Poincare
+        equation in the Lie algebra.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at a base point.
+        base_point : array-like, shape=[..., dim]
+            Point in the group.
+            Optional, defaults to identity if None.
+        n_steps : int,
+            Number of integration steps.
+            Optional, default : 15.
+        step : str, {'group_rk2', 'group_rk4'}
+            Scheme to use in the integration.
+            Optional, default : 'group_rk4'.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., dim]
+            Point in the group equal to the Riemannian exponential
+            of tangent_vec at the base point.
+        """
         group = self.group
         basis = self.lie_algebra.orthonormal_basis(self.metric_mat_at_identity)
 
@@ -732,7 +757,41 @@ class InvariantMetric(RiemannianMetric):
     def euler_poincarre_log(
             self, point, base_point, n_steps=15, step='group_rk4',
             verbose=False, max_iter=25, tol=1e-10):
+        """Compute Riemannian logarithm of a point from a base point.
 
+        The log is computed by solving an optimization problem.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point in the group.
+        base_point : array-like, shape=[..., dim], optional
+            Point in the group, from which to compute the log,
+            (the default is identity).
+        n_steps : int,
+            Number of integration steps to compute the exponential in the
+            loss.
+            Optional, default : 15.
+        step : str, {'group_rk2', 'group_rk4'}
+            Scheme to use in the integration procedure of the exponential in
+            the loss.
+            Optional, default : 'group_rk4'.
+        verbose : bool,
+            Verbosity level of the optimization procedure.
+            Optional. default : False.
+        max_iter : int,
+            Maximum of iteration of the optimization procedure.
+            Optional, default : 25.
+        tol : float,
+            Tolerance for the stopping criterion of the optimization.
+            Optional, default : 1e-10.
+
+        Returns
+        -------
+        log : array-like, shape=[..., dim]
+            Tangent vector at the base point equal to the Riemannian logarithm
+            of point at the base point.
+        """
         def objective(velocity):
             """Define the objective function."""
             velocity = velocity.reshape(base_point.shape)
