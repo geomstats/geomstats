@@ -153,7 +153,7 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., m, k]
+        vector : array-like, shape=[..., m_ambient, k_landmarks]
             Vector in Matrix space.
         base_point : array-like, shape=[..., m , k]
             Point on the pre-shape space defining the tangent space,
@@ -161,7 +161,7 @@ class PreShapeSpace(EmbeddedManifold):
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., m, k]
+        tangent_vec : array-like, shape=[..., m_ambient, k_landmarks]
             Tangent vector in the tangent space of the pre-shape space
             at the base point.
         """
@@ -181,9 +181,9 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., m, k]
+        vector : array-like, shape=[..., m_ambient, k_landmarks]
             Vector.
-        base_point : array-like, shape=[..., m, k]
+        base_point : array-like, shape=[..., m_ambient, k_landmarks]
             Point on the manifold.
             Optional, default: none.
         atol : float
@@ -213,14 +213,14 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., m, k]
+        tangent_vec : array-like, shape=[..., m_ambient, k_landmarks]
             Tangent vector to the pre-shape space at `base_point`.
-        base_point : array-like, shape=[..., m, k]
+        base_point : array-like, shape=[..., m_ambient, k_landmarks]
             Point on the pre-shape space.
 
         Returns
         -------
-        vertical : array-like, shape=[..., m, k]
+        vertical : array-like, shape=[..., m_ambient, k_landmarks]
             Vertical component of `tangent_vec`.
         """
         transposed_point = Matrices.transpose(base_point)
@@ -240,14 +240,14 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., m, k]
+        tangent_vec : array-like, shape=[..., m_ambient, k_landmarks]
             Tangent vector to the pre-shape space at `base_point`.
-        base_point : array-like, shape=[..., m, k]
+        base_point : array-like, shape=[..., m_ambient, k_landmarks]
             Point on the pre-shape space.
 
         Returns
         -------
-        horizontal : array-like, shape=[..., m, k]
+        horizontal : array-like, shape=[..., m_ambient, k_landmarks]
             Horizontal component of `tangent_vec`.
         """
         return tangent_vec - cls.vertical_projection(tangent_vec, base_point)
@@ -257,9 +257,9 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., m, k]
+        tangent_vec : array-like, shape=[..., m_ambient, k_landmarks]
             Tangent vector.
-        base_point : array-like, shape=[..., m, k]
+        base_point : array-like, shape=[..., m_ambient, k_landmarks]
             Point on the manifold.
             Optional, default: none.
         atol : float
@@ -284,14 +284,14 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., m, k]
+        point : array-like, shape=[..., m_ambient, k_landmarks]
             Point on the manifold.
-        base_point : array-like, shape=[..., m, k]
+        base_point : array-like, shape=[..., m_ambient, k_landmarks]
             Point on the manifold.
 
         Returns
         -------
-        aligned : array-like, shape=[..., m, k]
+        aligned : array-like, shape=[..., m_ambient, k_landmarks]
             R.point.
         """
         mat = gs.matmul(point, Matrices.transpose(base_point))
