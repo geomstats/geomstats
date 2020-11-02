@@ -709,13 +709,24 @@ class InvariantMetric(RiemannianMetric):
             base_point, left_or_right=self.left_or_right)(log_from_id)
         return log
 
-    def euler_poincarre_geodesic(
+    def euler_poincare_geodesic(
             self, tangent_vec, base_point, n_steps=10, step='group_rk4',
             **kwargs):
-        """Compute Riemannian exponential of tan. vector wrt to base point.
+        r"""Compute Riemannian exponential of tan. vector wrt to base point.
 
-        The exponential map is computed by integration of the Euler-Poincare
-        equation in the Lie algebra.
+        If :math: `\gamma` is a geodesic, then it satisfies the
+        Euler-Poincare equation [Kolev]_:
+        .. math:
+
+                        \dot{\gamma}(t) = (dL_{\gamma(t)}) X(t)
+                        \dot{X}(t) = ad^*_{X(t)}X(t)
+
+        where :math: `ad^*` is the dual adjoint map with respect to the
+        metric. The exponential map is approximated by numerical integration
+        of this equation, with initial conditions :math: `\dot{\gammma}(0)`
+        given by the argument `tangent_vec` and :math: `\gamma(0)` by
+        `base_point`. A Runge-Kutta scheme of order 2 or 4 is used for
+        integration.
 
         Parameters
         ----------
@@ -736,6 +747,15 @@ class InvariantMetric(RiemannianMetric):
         exp : array-like, shape=[..., dim]
             Point in the group equal to the Riemannian exponential
             of tangent_vec at the base point.
+
+        References
+        ----------
+        https://en.wikipedia.org/wiki/Runge–Kutta_methods
+
+        .. [Kolev]  Kolev, B. (2004).
+                    Lie Groups and mechanics: An introduction.
+                    Journal of Nonlinear Mathematical Physics,
+                    11(4), 480–498. https://doi.org/10.2991/jnmp.2004.11.4.5
         """
         group = self.group
         basis = self.lie_algebra.orthonormal_basis(self.metric_mat_at_identity)
@@ -765,9 +785,9 @@ class InvariantMetric(RiemannianMetric):
         ----------
         point : array-like, shape=[..., dim]
             Point in the group.
-        base_point : array-like, shape=[..., dim], optional
-            Point in the group, from which to compute the log,
-            (the default is identity).
+        base_point : array-like, shape=[..., dim]
+            Point in the group, from which to compute the log.
+            Optional, default: identity.
         n_steps : int,
             Number of integration steps to compute the exponential in the
             loss.
@@ -795,7 +815,17 @@ class InvariantMetric(RiemannianMetric):
         max_shape = point.shape if point.ndim == 3 else base_point.shape
 
         def objective(velocity):
-            """Define the objective function."""
+            r"""Define the objective function.
+
+            The cost function to be optimized is defined by:
+            .. math:
+
+                        L(v) = \Vert exp_x(v) - y \Vert^2
+
+            where :math: `x,y` are respectively `base_point` and `point`,
+            an extrinsic 2-norm is used, and exp is computed by integration
+            of the Euler-Poincare equation.
+            """
             velocity = gs.array(velocity)
             velocity = gs.cast(velocity, dtype=base_point.dtype)
             velocity = gs.reshape(velocity, max_shape)

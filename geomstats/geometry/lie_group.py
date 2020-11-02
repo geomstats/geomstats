@@ -99,6 +99,7 @@ class LieGroup(Manifold):
             left_or_right='right')
 
         self.metrics = []
+        self.lie_algebra = None
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.
@@ -425,8 +426,7 @@ class LieGroup(Manifold):
 
     def _is_in_lie_algebra(self, tangent_vec, atol=ATOL):
         """Check wether a tangent vector belongs to the lie algebra."""
-        raise NotImplementedError(
-            'The Lie Algebra belongs method is not implemented')
+        return self.lie_algebra.belongs(tangent_vec, atol)
 
     def is_tangent(self, vector, base_point=None, atol=ATOL):
         """Check whether the vector is tangent at base_point.
@@ -456,9 +456,7 @@ class LieGroup(Manifold):
 
     def _to_lie_algebra(self, tangent_vec):
         """Project a vector onto the lie algebra."""
-        raise NotImplementedError(
-            'The Lie Algebra belongs method is not implemented'
-        )
+        return self.lie_algebra.project(tangent_vec)
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector onto the tangent space at a base point.
