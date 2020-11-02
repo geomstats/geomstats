@@ -90,15 +90,13 @@ class LieGroup(Manifold):
 
         self.left_canonical_metric = InvariantMetric(
             group=self,
-            inner_product_mat_at_identity=gs.eye(self.dim),
-            left_or_right='left',
-        )
+            metric_mat_at_identity=gs.eye(self.dim),
+            left_or_right='left')
 
         self.right_canonical_metric = InvariantMetric(
             group=self,
-            inner_product_mat_at_identity=gs.eye(self.dim),
-            left_or_right='right',
-        )
+            metric_mat_at_identity=gs.eye(self.dim),
+            left_or_right='right')
 
         self.metrics = []
 

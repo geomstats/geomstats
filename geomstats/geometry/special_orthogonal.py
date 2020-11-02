@@ -33,6 +33,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n)
         self.lie_algebra = SkewSymmetricMatrices(n=n)
         self.bi_invariant_metric = BiInvariantMetric(group=self)
+        self.dim = int((n * (n - 1)) / 2)
 
     def belongs(self, point, atol=ATOL):
         """Check whether point is an orthogonal matrix.
@@ -127,8 +128,8 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             random_mat = gs.random.rand(self.n, self.n)
         else:
             random_mat = gs.random.rand(n_samples, self.n, self.n)
-        skew = self.to_tangent(random_mat)
-        return self.exp(skew)
+        rotation_mat, _ = gs.linalg.qr(random_mat)
+        return rotation_mat
 
     @geomstats.vectorization.decorator(['else', 'vector'])
     def skew_matrix_from_vector(self, vec):

@@ -45,7 +45,6 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        atol
         point : array-like, shape=[..., m_ambient, k_landmarks]
             Point in Matrices space.
         atol : float
@@ -277,7 +276,7 @@ class PreShapeSpace(EmbeddedManifold):
         is_symmetric = Matrices.is_symmetric(product, atol)
         return gs.logical_and(is_tangent, is_symmetric)
 
-    def realign(self, point, base_point):
+    def align(self, point, base_point):
         """Realign point to base_point.
 
         Find the optimal rotation R in SO(m) such that the base point and
@@ -295,23 +294,26 @@ class PreShapeSpace(EmbeddedManifold):
         aligned : array-like, shape=[..., m, k]
             R.point.
         """
-        M = gs.matmul(point, Matrices.transpose(base_point))
-        U, S, Vh = gs.linalg.svd(M)
-        if gs.any(gs.isclose(S[..., -1] + S[..., -2], 0.)):
-            logging.warning("Alignement matrix is not unique.")
-        det = gs.linalg.det(M)
+        mat = gs.matmul(point, Matrices.transpose(base_point))
+        left, singular_values, right = gs.linalg.svd(mat)
+        if gs.any(gs.isclose(
+                singular_values[..., -1] + singular_values[..., -2], 0.)):
+            logging.warning("Alignment matrix is not unique.")
+        det = gs.linalg.det(mat)
         if gs.any(det < 0):
             ones = gs.ones(self.m_ambient)
-            changer = gs.concatenate([ones[:-1], gs.array([-1.])], axis=0)
+            reflection_vec = gs.concatenate(
+                [ones[:-1], gs.array([-1.])], axis=0)
             mask = gs.cast(det < 0, gs.float32)
-            sign = (mask[..., None] * changer[None, :]
+            sign = (mask[..., None] * reflection_vec[None, :]
                     + (1. - mask)[..., None] * ones[None, :])
             j_matrix = from_vector_to_diagonal_matrix(sign)
-            R = Matrices.mul(
-                Matrices.transpose(Vh), j_matrix, Matrices.transpose(U))
+            rotation = Matrices.mul(
+                Matrices.transpose(right), j_matrix, Matrices.transpose(left))
         else:
-            R = gs.matmul(Matrices.transpose(Vh), Matrices.transpose(U))
-        return gs.matmul(R, point)
+            rotation = gs.matmul(
+                Matrices.transpose(right), Matrices.transpose(left))
+        return gs.matmul(rotation, point)
 
 
 class ProcrustesMetric(RiemannianMetric):

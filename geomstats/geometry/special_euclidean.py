@@ -37,12 +37,13 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
 
 
 class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
-    """Class for special orthogonal groups.
+    """Class for special euclidean group.
 
     Parameters
     ----------
     n : int
-        Integer representing the shape of the matrices: n x n.
+        Integer dimension of the underlying euclidean space. Matrices will
+        be of size: (n+1) x (n+1).
     """
 
     def __init__(self, n):
@@ -52,6 +53,11 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
         self.translations = Euclidean(dim=n)
         self.n = n
         self.dim = int((n * (n + 1)) / 2)
+        translation_mask = gs.hstack([
+            gs.ones((self.n,) * 2), 2 * gs.ones((self.n, 1))])
+        translation_mask = gs.concatenate(
+            [translation_mask, gs.zeros((1, self.n + 1))], axis=0)
+        self.translation_mask = translation_mask
 
     def get_identity(self):
         """Return the identity matrix."""
@@ -111,14 +117,10 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
 
     def _to_lie_algebra(self, tangent_vec):
         """Project vector rotation part onto skew-symmetric matrices."""
-        translation_mask = gs.hstack([
-            gs.ones((self.n,) * 2), 2 * gs.ones((self.n, 1))])
-        translation_mask = gs.concatenate(
-            [translation_mask, gs.zeros((1, self.n + 1))], axis=0)
         tangent_vec = tangent_vec * gs.where(
-            translation_mask != 0., gs.array(1.), gs.array(0.))
+            self.translation_mask != 0., gs.array(1.), gs.array(0.))
         tangent_vec = (tangent_vec - GeneralLinear.transpose(tangent_vec)) / 2.
-        return tangent_vec * translation_mask
+        return tangent_vec * self.translation_mask
 
     def random_uniform(self, n_samples=1, tol=1e-6):
         """Sample in SE(n) from the uniform distribution.
@@ -152,6 +154,32 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
         if gs.shape(random_point)[0] == 1:
             random_point = gs.squeeze(random_point, axis=0)
         return random_point
+
+    @classmethod
+    def inverse(cls, point):
+        """Return the inverse of a point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point to be inverted.
+        """
+        n = point.shape[-1] - 1
+        translation_mask = gs.hstack([
+            gs.ones((n,) * 2), 2 * gs.ones((n, 1))])
+        translation_mask = gs.concatenate(
+            [translation_mask, gs.zeros((1, n + 1))], axis=0)
+        embedded_rotations = point * gs.where(
+            translation_mask == 1, translation_mask, gs.eye(n + 1))
+        transposed_rot = cls.transpose(embedded_rotations)
+        translation = point[..., :, -1]
+        translation = gs.einsum(
+            '...ij,...j->...i', transposed_rot, translation)
+        translation *= gs.where(
+            translation_mask[..., -1] == 2, - translation_mask[..., -1] / 2,
+            gs.ones(n + 1))
+        return gs.concatenate([
+            transposed_rot[..., :, :-1], translation[..., None]], axis=-1)
 
 
 class _SpecialEuclideanVectors(LieGroup):
@@ -632,12 +660,11 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         rot_tangent_vec = tangent_vec[..., :dim_rotations]
         rot_base_point = base_point[..., :dim_rotations]
 
-        metric_mat = metric.inner_product_mat_at_identity
+        metric_mat = metric.metric_mat_at_identity
         rot_metric_mat = metric_mat[:dim_rotations, :dim_rotations]
-        rot_metric = InvariantMetric(
-            group=rotations,
-            inner_product_mat_at_identity=rot_metric_mat,
-            left_or_right=metric.left_or_right)
+        rot_metric = InvariantMetric(group=rotations,
+                                     metric_mat_at_identity=rot_metric_mat,
+                                     left_or_right=metric.left_or_right)
 
         rotations_vec = rotations.regularize_tangent_vec(
             tangent_vec=rot_tangent_vec,

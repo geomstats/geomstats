@@ -163,11 +163,12 @@ class TestBetaDistributions(geomstats.tests.TestCase):
             [self.n_samples, self.dim, self.dim, self.dim])
         self.assertAllClose(result, expected)
 
-    def test_inner_product_matrix(self):
+    def test_metric_matrix(self):
         point = gs.array([1., 1.])
-        result = self.beta.metric.inner_product_matrix(point)
+        result = self.beta.metric.metric_matrix(point)
         expected = gs.array([[1., -0.644934066], [-0.644934066, 1.]])
         self.assertAllClose(result, expected)
+        self.assertRaises(ValueError, self.beta.metric.metric_matrix)
 
     def test_point_to_pdf(self):
         """Test point_to_pdf.

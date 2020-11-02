@@ -45,21 +45,8 @@ def solve_sylvester(a, b, q):
                               'tensorflow')
 
 
-def qr(*args, mode='reduced'):
-    def qr_aux(x, mode):
-        if mode == 'complete':
-            aux = tf.linalg.qr(x, full_matrices=True)
-        else:
-            aux = tf.linalg.qr(x)
-
-        return aux.q, aux.r
-
-    result = tf.map_fn(
-        lambda x: qr_aux(x, mode),
-        *args,
-        dtype=(tf.float32, tf.float32))
-
-    return result
+def qr(x, mode='reduced'):
+    return tf.linalg.qr(x, full_matrices=(mode == 'complete'))
 
 
 def powerm(x, power):

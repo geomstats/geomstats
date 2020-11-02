@@ -481,7 +481,7 @@ class PoincareBallMetric(RiemannianMetric):
             - gs.einsum('...i,...j->...j', retraction_factor, tangent_vec)
 
     @geomstats.vectorization.decorator(['else', 'vector'])
-    def inner_product_matrix(self, base_point=None):
+    def metric_matrix(self, base_point=None):
         """Compute the inner product matrix.
 
         Parameters

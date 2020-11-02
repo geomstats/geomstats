@@ -207,7 +207,7 @@ class BetaMetric(RiemannianMetric):
                                                   gs.polygamma(1, param_b))
         return metric_det
 
-    def inner_product_matrix(self, base_point):
+    def metric_matrix(self, base_point=None):
         """Compute inner-product matrix at the tangent space at base point.
 
         Parameters
@@ -220,6 +220,9 @@ class BetaMetric(RiemannianMetric):
         mat : array-like, shape=[..., 2, 2]
             Inner-product matrix.
         """
+        if base_point is None:
+            raise ValueError('A base point must be given to compute the '
+                             'metric matrix')
         param_a = base_point[..., 0]
         param_b = base_point[..., 1]
         polygamma_ab = gs.polygamma(1, param_a + param_b)
@@ -398,9 +401,11 @@ class BetaMetric(RiemannianMetric):
             base_point_a, base_point_b = bp
             point_a, point_b = pt
 
-            def bc(y0, y1):
+            def bc(
+                    y0, y1, bp_a=base_point_a, bp_b=base_point_b,
+                    pt_a=point_a, pt_b=point_b):
                 return boundary_cond(
-                    y0, y1, base_point_a, base_point_b, point_a, point_b)
+                    y0, y1, bp_a, bp_b, pt_a, pt_b)
 
             solution = solve_bvp(bvp, bc, t, geodesic_init)
             geodesic = solution.sol(t)

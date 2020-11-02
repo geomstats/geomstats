@@ -55,7 +55,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     def test_is_centered(self):
         point = gs.ones((self.m_ambient, self.k_landmarks))
         result = self.space.is_centered(point)
-        self.assertTrue(~ result)
+        self.assertFalse(result)
 
         point = gs.zeros((self.m_ambient, self.k_landmarks))
         result = self.space.is_centered(point)
@@ -78,7 +78,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         point = self.space.projection(point)
 
         result = self.space.is_tangent(vector, point)
-        self.assertTrue(~ result)
+        self.assertFalse(result)
 
         tangent_vec = self.space.to_tangent(vector, point)
         result = self.space.is_tangent(tangent_vec, point)
@@ -91,9 +91,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_vertical_projection(self):
-        w = gs.random.rand(self.m_ambient, self.k_landmarks)
+        vector = gs.random.rand(self.m_ambient, self.k_landmarks)
         point = self.space.random_uniform()
-        tan = self.space.to_tangent(w, point)
+        tan = self.space.to_tangent(vector, point)
         vertical = self.space.vertical_projection(tan, point)
         transposed_point = Matrices.transpose(point)
 
@@ -106,9 +106,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_vertical_projection_vectorization(self):
-        w = gs.random.rand(self.n_samples, self.m_ambient, self.k_landmarks)
+        vector = gs.random.rand(self.n_samples, self.m_ambient, self.k_landmarks)
         point = self.space.random_uniform(self.n_samples)
-        tan = self.space.to_tangent(w, point)
+        tan = self.space.to_tangent(vector, point)
         vertical = self.space.vertical_projection(tan, point)
         transposed_point = Matrices.transpose(point)
 
@@ -121,9 +121,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_horizontal_projection(self):
-        w = gs.random.rand(self.m_ambient, self.k_landmarks)
+        vector = gs.random.rand(self.m_ambient, self.k_landmarks)
         point = self.space.random_uniform()
-        tan = self.space.to_tangent(w, point)
+        tan = self.space.to_tangent(vector, point)
         horizontal = self.space.horizontal_projection(tan, point)
         transposed_point = Matrices.transpose(point)
         result = gs.matmul(horizontal, transposed_point)
@@ -133,9 +133,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_horizontal_projection_vectorized(self):
-        w = gs.random.rand(self.n_samples, self.m_ambient, self.k_landmarks)
+        vector = gs.random.rand(self.n_samples, self.m_ambient, self.k_landmarks)
         point = self.space.random_uniform(self.n_samples)
-        tan = self.space.to_tangent(w, point)
+        tan = self.space.to_tangent(vector, point)
         horizontal = self.space.horizontal_projection(tan, point)
         transposed_point = Matrices.transpose(point)
         result = gs.matmul(horizontal, transposed_point)
@@ -144,13 +144,13 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
-    def test_horizontal_and_is_horizontal(self):
-        w = gs.random.rand(self.m_ambient, self.k_landmarks)
+    def test_horizontal_and_is_tangent(self):
+        vector = gs.random.rand(self.m_ambient, self.k_landmarks)
         point = self.space.random_uniform()
-        tan = self.space.to_tangent(w, point)
+        tan = self.space.to_tangent(vector, point)
         horizontal = self.space.horizontal_projection(tan, point)
 
-        horizontal = gs.stack([horizontal, w])
+        horizontal = gs.stack([horizontal, vector])
         result = self.space.is_tangent(horizontal, point)
         expected = gs.array([True, False])
 
@@ -158,7 +158,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
     def test_realign(self):
         point, base_point = self.space.random_uniform(2)
-        aligned = self.space.realign(point, base_point)
+        aligned = self.space.align(point, base_point)
         alignment = gs.matmul(aligned, Matrices.transpose(base_point))
         result = Matrices.is_symmetric(alignment)
         self.assertTrue(result)
@@ -166,29 +166,30 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     def test_realign_vectorization(self):
         base_point = self.space.random_uniform()
         point = self.space.random_uniform(2)
-        aligned = self.space.realign(point, base_point)
+        aligned = self.space.align(point, base_point)
         alignment = gs.matmul(aligned, Matrices.transpose(base_point))
         result = Matrices.is_symmetric(alignment)
         self.assertTrue(gs.all(result))
 
         base_point = self.space.random_uniform(2)
         point = self.space.random_uniform()
-        aligned = self.space.realign(point, base_point)
+        aligned = self.space.align(point, base_point)
         alignment = gs.matmul(aligned, Matrices.transpose(base_point))
         result = Matrices.is_symmetric(alignment)
         self.assertTrue(gs.all(result))
 
-    def test_inner_product(self):
-        w = gs.random.rand(self.n_samples, self.m_ambient, self.k_landmarks)
+    def test_inner_product_shape(self):
+        vector = gs.random.rand(
+            self.n_samples, self.m_ambient, self.k_landmarks)
         point = self.space.random_uniform()
-        tan = self.space.to_tangent(w, point)
+        tan = self.space.to_tangent(vector, point)
         inner = self.space.metric.inner_product(tan, tan, point)
         self.assertAllClose(inner.shape, (self.n_samples,))
 
     def test_exp_and_belongs(self):
-        w = gs.random.rand(self.m_ambient, self.k_landmarks)
+        vector = gs.random.rand(self.m_ambient, self.k_landmarks)
         point = self.space.random_uniform()
-        tan = self.space.to_tangent(w, point)
+        tan = self.space.to_tangent(vector, point)
         exp = self.space.metric.exp(tan, point)
         result = self.space.belongs(exp)
         self.assertTrue(result)
@@ -198,20 +199,20 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
     def test_exp_and_belongs_vectorization(self):
-        w = gs.random.rand(self.n_samples, self.m_ambient, self.k_landmarks)
+        vector = gs.random.rand(self.n_samples, self.m_ambient, self.k_landmarks)
         point = self.space.random_uniform(self.n_samples)
-        tan = self.space.to_tangent(w, point)
+        tan = self.space.to_tangent(vector, point)
         exp = self.space.metric.exp(tan, point)
         result = self.space.belongs(exp)
         self.assertTrue(gs.all(result))
 
         point = point[0]
-        tan = self.space.to_tangent(w, point)
+        tan = self.space.to_tangent(vector, point)
         exp = self.space.metric.exp(tan, point)
         result = self.space.belongs(exp)
         self.assertTrue(gs.all(result))
 
-    def test_log(self):
+    def test_log_and_exp(self):
         point, base_point = self.space.random_uniform(2)
         log = self.space.metric.log(point, base_point)
         result = self.space.is_tangent(log, base_point)
@@ -219,6 +220,17 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         exp = self.space.metric.exp(log, base_point)
         self.assertAllClose(exp, point)
+
+    def test_exp_and_log(self):
+        base_point = self.space.random_uniform()
+        vector = gs.random.rand(self.m_ambient, self.k_landmarks)
+        tangent_vec = self.space.to_tangent(vector, base_point)
+        point = self.space.metric.exp(tangent_vec, base_point)
+        log = self.space.metric.log(point, base_point)
+        result = self.space.is_tangent(log, base_point)
+        self.assertTrue(result)
+
+        self.assertAllClose(tangent_vec, log)
 
     def test_log_vectorization(self):
         point = self.space.random_uniform(self.n_samples)
