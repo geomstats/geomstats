@@ -106,7 +106,8 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_vertical_projection_vectorization(self):
-        vector = gs.random.rand(self.n_samples, self.m_ambient, self.k_landmarks)
+        vector = gs.random.rand(
+            self.n_samples, self.m_ambient, self.k_landmarks)
         point = self.space.random_uniform(self.n_samples)
         tan = self.space.to_tangent(vector, point)
         vertical = self.space.vertical_projection(tan, point)
@@ -133,7 +134,8 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_horizontal_projection_vectorized(self):
-        vector = gs.random.rand(self.n_samples, self.m_ambient, self.k_landmarks)
+        vector = gs.random.rand(
+            self.n_samples, self.m_ambient, self.k_landmarks)
         point = self.space.random_uniform(self.n_samples)
         tan = self.space.to_tangent(vector, point)
         horizontal = self.space.horizontal_projection(tan, point)
@@ -199,7 +201,8 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
     def test_exp_and_belongs_vectorization(self):
-        vector = gs.random.rand(self.n_samples, self.m_ambient, self.k_landmarks)
+        vector = gs.random.rand(
+            self.n_samples, self.m_ambient, self.k_landmarks)
         point = self.space.random_uniform(self.n_samples)
         tan = self.space.to_tangent(vector, point)
         exp = self.space.metric.exp(tan, point)
