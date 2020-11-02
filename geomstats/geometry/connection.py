@@ -157,23 +157,24 @@ class Connection:
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point.
         """
+        max_shape = point.shape if point.ndim == 3 else base_point.shape
+
         def objective(velocity):
             """Define the objective function."""
             velocity = gs.array(velocity)
             velocity = gs.cast(velocity, dtype=base_point.dtype)
             velocity = gs.reshape(velocity, base_point.shape)
             delta = self.exp(velocity, base_point, n_steps, step) - point
-            loss = 1. / self.dim * gs.sum(delta ** 2, axis=-1)
-            return gs.sum(loss)
+            return gs.sum(delta ** 2)
 
         objective_with_grad = gs.autograd.value_and_grad(objective)
-        tangent_vec = gs.random.rand(*gs.flatten(base_point).shape)
+        tangent_vec = gs.flatten(gs.random.rand(*max_shape))
         res = minimize(
             objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
             options={'disp': verbose, 'maxiter': max_iter}, tol=tol)
 
         tangent_vec = gs.array(res.x)
-        tangent_vec = gs.reshape(tangent_vec, base_point.shape)
+        tangent_vec = gs.reshape(tangent_vec, max_shape)
         return tangent_vec
 
     def _pole_ladder_step(self, base_point, next_point, base_shoot,

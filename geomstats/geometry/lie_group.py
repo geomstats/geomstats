@@ -88,6 +88,7 @@ class LieGroup(Manifold):
         super(LieGroup, self).__init__(
             dim=dim, default_point_type=default_point_type, **kwargs)
 
+        self.lie_algebra = None
         self.left_canonical_metric = InvariantMetric(
             group=self,
             metric_mat_at_identity=gs.eye(self.dim),
@@ -99,7 +100,6 @@ class LieGroup(Manifold):
             left_or_right='right')
 
         self.metrics = []
-        self.lie_algebra = None
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.

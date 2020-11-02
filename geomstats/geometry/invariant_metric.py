@@ -34,13 +34,13 @@ class InvariantMetric(RiemannianMetric):
         Optional, default: 'left'.
     """
 
-    def __init__(self, group, algebra=None,
+    def __init__(self, group,
                  metric_mat_at_identity=None,
                  left_or_right='left', **kwargs):
         super(InvariantMetric, self).__init__(dim=group.dim, **kwargs)
 
         self.group = group
-        self.lie_algebra = algebra
+        self.lie_algebra = group.lie_algebra
         if metric_mat_at_identity is None:
             metric_mat_at_identity = gs.eye(self.group.dim)
 
@@ -591,7 +591,8 @@ class InvariantMetric(RiemannianMetric):
 
         if base_point is None:
             base_point = identity
-        base_point = self.group.regularize(base_point)
+        else:
+            base_point = self.group.regularize(base_point)
 
         if gs.allclose(base_point, identity):
             return self.exp_from_identity(tangent_vec)
@@ -609,7 +610,6 @@ class InvariantMetric(RiemannianMetric):
             exp = self.group.compose(exp_from_id, base_point)
 
         exp = self.group.regularize(exp)
-
         return exp
 
     def left_log_from_identity(self, point):
