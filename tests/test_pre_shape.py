@@ -158,14 +158,14 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    def test_realign(self):
+    def test_align(self):
         point, base_point = self.space.random_uniform(2)
         aligned = self.space.align(point, base_point)
         alignment = gs.matmul(aligned, Matrices.transpose(base_point))
         result = Matrices.is_symmetric(alignment)
         self.assertTrue(result)
 
-    def test_realign_vectorization(self):
+    def test_align_vectorization(self):
         base_point = self.space.random_uniform()
         point = self.space.random_uniform(2)
         aligned = self.space.align(point, base_point)
