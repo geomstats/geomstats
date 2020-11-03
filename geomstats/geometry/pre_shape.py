@@ -305,8 +305,8 @@ class PreShapeSpace(EmbeddedManifold):
             reflection_vec = gs.concatenate(
                 [ones[:-1], gs.array([-1.])], axis=0)
             mask = gs.cast(det < 0, gs.float32)
-            sign = (mask[..., None] * reflection_vec[None, :]
-                    + (1. - mask)[..., None] * ones[None, :])
+            sign = (mask[..., None] * reflection_vec
+                    + (1. - mask)[..., None] * ones)
             j_matrix = from_vector_to_diagonal_matrix(sign)
             rotation = Matrices.mul(
                 Matrices.transpose(right), j_matrix, Matrices.transpose(left))
@@ -405,3 +405,79 @@ class ProcrustesMetric(RiemannianMetric):
                 check_tf_error(ValueError, 'InvalidArgumentError')):
             log = gs.reshape(flat_log, point.shape)
         return log
+
+
+class KendallShapeMetric(ProcrustesMetric):
+    def __init__(self, k_landmarks, m_ambiant):
+        super(KendallShapeMetric, self).__init__(k_landmarks, m_ambiant)
+        self.preshape = PreShapeSpace(k_landmarks, m_ambiant)
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute the inner-product of two tangent vectors at a base point.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim + 1]
+            First tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., dim + 1]
+            Second tangent vector at base point.
+        base_point : array-like, shape=[..., dim + 1], optional
+            Point in the shape space.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...,]
+            Inner-product of the two tangent vectors.
+        """
+        horizontal_a = self.preshape.horizontal_projection(
+            tangent_vec_a, base_point)
+        horizontal_b = self.preshape.horizontal_projection(
+            tangent_vec_b, base_point)
+        return super(KendallShapeMetric, self).inner_product(
+            horizontal_a, horizontal_b, base_point)
+
+    def dist(self, point_a, point_b):
+        mat = gs.matmul(point_a, Matrices.transpose(point_b))
+        singular_values = gs.linalg.svd(mat, compute_uv=False)
+        dist = gs.arccos(gs.sum(singular_values, axis=-1))
+        return dist
+
+    def exp(self, tangent_vec, base_point):
+        """Compute the Riemannian exponential of a tangent vector.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim + 1]
+            Tangent vector at a base point.
+        base_point : array-like, shape=[..., dim + 1]
+            Point in the shape space.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., dim + 1]
+            Point in the shape space equal to the Riemannian exponential
+            of tangent_vec at the base point.
+        """
+        horizontal = self.preshape.horizontal_projection(
+            tangent_vec, base_point)
+        return super(KendallShapeMetric, self).exp(
+            horizontal, base_point)
+
+    def log(self, point, base_point):
+        """Compute the Riemannian logarithm of a point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim + 1]
+            Point on the shape space.
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the shape space.
+
+        Returns
+        -------
+        log : array-like, shape=[..., dim + 1]
+            Tangent vector at the base point equal to the Riemannian logarithm
+            of point at the base point.
+        """
+        aligned = self.preshape.align(point, base_point)
+        return super(KendallShapeMetric, self).log(aligned, base_point)

@@ -3,7 +3,7 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.pre_shape import PreShapeSpace
+from geomstats.geometry.pre_shape import PreShapeSpace, KendallShapeMetric
 
 
 class TestPreShapeSpace(geomstats.tests.TestCase):
@@ -15,6 +15,8 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.space = PreShapeSpace(self.k_landmarks, self.m_ambient)
         self.matrices = self.space.embedding_manifold
         self.n_samples = 10
+        self.shape_metric = KendallShapeMetric(
+            self.k_landmarks, self.m_ambient)
 
     def test_random_uniform_and_belongs(self):
         """Test random uniform and belongs.
@@ -252,3 +254,91 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         exp = self.space.metric.exp(log, point)
         expected = gs.stack([base_point] * self.n_samples)
         self.assertAllClose(exp, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_kendall_inner_product_shape(self):
+        vector = gs.random.rand(
+            self.n_samples, self.m_ambient, self.k_landmarks)
+        point = self.space.random_uniform()
+        tan = self.space.to_tangent(vector, point)
+        inner = self.shape_metric.inner_product(tan, tan, point)
+        self.assertAllClose(inner.shape, (self.n_samples,))
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_kendall_log_and_exp(self):
+        point, base_point = self.space.random_uniform(2)
+        expected = self.space.align(point, base_point)
+        log = self.shape_metric.log(expected, base_point)
+        result = self.space.is_horizontal(log, base_point)
+        self.assertTrue(result)
+
+        exp = self.shape_metric.exp(log, base_point)
+        print(expected.shape, exp.shape)
+        self.assertAllClose(exp, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_kendall_exp_and_log(self):
+        base_point = self.space.random_uniform()
+        vector = gs.random.rand(self.m_ambient, self.k_landmarks)
+        tangent_vec = self.space.to_tangent(vector, base_point)
+        point = self.shape_metric.exp(tangent_vec, base_point)
+        log = self.shape_metric.log(point, base_point)
+        result = self.space.is_tangent(log, base_point)
+        self.assertTrue(result)
+
+        expected = self.space.horizontal_projection(tangent_vec, base_point)
+        self.assertAllClose(expected, log)
+
+    @geomstats.tests.np_only
+    def test_parallel_transport(self):
+        space = PreShapeSpace(3, 2)
+        metric = KendallShapeMetric(3, 2)
+        n_samples = 2
+
+        def is_isometry(tan_a, trans_a, endpoint):
+            is_tangent = space.is_tangent(trans_a, endpoint)
+            is_equinormal = gs.isclose(
+                self.shape_metric.norm(trans_a, endpoint),
+                self.shape_metric.norm(tan_a, base_point))
+            return gs.logical_and(is_tangent, is_equinormal)
+
+        base_point = space.random_uniform(n_samples)
+        vector_a = gs.random.rand(
+            n_samples, space.m_ambient, space.k_landmarks)
+        vector_b = gs.random.rand(
+            n_samples, space.m_ambient, space.k_landmarks)
+
+        tan_vec_a = space.to_tangent(vector_a, base_point)
+        tan_vec_b = space.to_tangent(vector_b, base_point)
+        horizontal_a = space.horizontal_projection(tan_vec_a, base_point)
+        horizontal_b = space.horizontal_projection(tan_vec_b, base_point)
+
+        end_point = metric.exp(horizontal_b, base_point)
+
+        ladder = metric.ladder_parallel_transport(
+            horizontal_a, horizontal_b, base_point, n_rungs=20,
+            scheme='pole', alpha=1)
+        transported = ladder['transported_tangent_vec']
+        end_point_result = ladder['end_point']
+
+        self.assertAllClose(end_point, end_point_result)
+        result = is_isometry(horizontal_a, transported, end_point)
+        self.assertTrue(gs.all(result))
+
+        expected_angle = metric.inner_product(
+            horizontal_a, horizontal_b, base_point)
+        end_vec = metric.log(metric.exp(
+            2 * horizontal_b, base_point), end_point)
+        result_angle = metric.inner_product(
+            transported, end_vec, end_point)
+        self.assertAllClose(expected_angle, result_angle)
+
+    @geomstats.tests.np_only
+    def test_dist(self):
+        point, base_point = self.space.random_uniform(2)
+        aligned = self.space.align(point, base_point)
+        result = self.shape_metric.dist(aligned, base_point)
+        log = self.shape_metric.log(aligned, base_point)
+        expected = self.shape_metric.norm(log, base_point)
+        print(result, expected)
+        self.assertAllClose(result, expected)
