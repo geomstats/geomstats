@@ -3,7 +3,7 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.pre_shape import PreShapeSpace, KendallShapeMetric
+from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
 
 
 class TestPreShapeSpace(geomstats.tests.TestCase):
@@ -333,12 +333,27 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             transported, end_vec, end_point)
         self.assertAllClose(expected_angle, result_angle)
 
-    @geomstats.tests.np_only
+    def test_dist_extreme_case(self):
+        point = self.space.projection(gs.eye(self.m_ambient, self.k_landmarks))
+        result = self.shape_metric.dist(point, point)
+        expected = 0.
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
     def test_dist(self):
         point, base_point = self.space.random_uniform(2)
         aligned = self.space.align(point, base_point)
         result = self.shape_metric.dist(aligned, base_point)
         log = self.shape_metric.log(aligned, base_point)
         expected = self.shape_metric.norm(log, base_point)
-        print(result, expected)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_dist_vectorization(self):
+        point = self.space.random_uniform(self.n_samples)
+        base_point = self.space.random_uniform(self.n_samples)
+        aligned = self.space.align(point, base_point)
+        result = self.shape_metric.dist(aligned, base_point)
+        log = self.shape_metric.log(aligned, base_point)
+        expected = self.shape_metric.norm(log, base_point)
         self.assertAllClose(result, expected)

@@ -155,7 +155,7 @@ class PreShapeSpace(EmbeddedManifold):
         ----------
         vector : array-like, shape=[..., m_ambient, k_landmarks]
             Vector in Matrix space.
-        base_point : array-like, shape=[..., m , k]
+        base_point : array-like, shape=[..., m_ambient, k_landmarks]
             Point on the pre-shape space defining the tangent space,
             where the vector will be projected.
 
@@ -342,11 +342,11 @@ class ProcrustesMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., dim + 1]
+        tangent_vec_a : array-like, shape=[..., m_ambient, k_landmarks]
             First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., dim + 1]
+        tangent_vec_b : array-like, shape=[..., m_ambient, k_landmarks]
             Second tangent vector at base point.
-        base_point : array-like, shape=[..., dim + 1], optional
+        base_point : array-like, shape=[..., dm_ambient, k_landmarks]
             Point on the pre-shape space.
 
         Returns
@@ -364,14 +364,14 @@ class ProcrustesMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., dim + 1]
+        tangent_vec : array-like, shape=[..., m_ambient, k_landmarks]
             Tangent vector at a base point.
-        base_point : array-like, shape=[..., dim + 1]
+        base_point : array-like, shape=[..., m_ambient, k_landmarks]
             Point on the pre-shape space.
 
         Returns
         -------
-        exp : array-like, shape=[..., dim + 1]
+        exp : array-like, shape=[..., m_ambient, k_landmarks]
             Point on the pre-shape space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
@@ -385,14 +385,14 @@ class ProcrustesMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim + 1]
+        point : array-like, shape=[..., m_ambient, k_landmarks]
             Point on the pre-shape space.
-        base_point : array-like, shape=[..., dim + 1]
+        base_point : array-like, shape=[..., m_ambient, k_landmarks]
             Point on the pre-shape space.
 
         Returns
         -------
-        log : array-like, shape=[..., dim + 1]
+        log : array-like, shape=[..., m_ambient, k_landmarks]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
@@ -408,20 +408,33 @@ class ProcrustesMetric(RiemannianMetric):
 
 
 class KendallShapeMetric(ProcrustesMetric):
-    def __init__(self, k_landmarks, m_ambiant):
-        super(KendallShapeMetric, self).__init__(k_landmarks, m_ambiant)
-        self.preshape = PreShapeSpace(k_landmarks, m_ambiant)
+    """Quotient metric on the shape space.
+
+    The Kendall shape space is obtained by taking the caution of the
+    pre-shape space by the space of rotations of the ambient space.
+
+    Parameters
+    ----------
+    k_landmarks : int
+        Number of landmarks
+    m_ambient : int
+        Number of coordinates of each landmark.
+    """
+
+    def __init__(self, k_landmarks, m_ambient):
+        super(KendallShapeMetric, self).__init__(k_landmarks, m_ambient)
+        self.preshape = PreShapeSpace(k_landmarks, m_ambient)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., dim + 1]
+        tangent_vec_a : array-like, shape=[..., m_ambient, k_landmarks]
             First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., dim + 1]
+        tangent_vec_b : array-like, shape=[...,m_ambient, k_landmarks]
             Second tangent vector at base point.
-        base_point : array-like, shape=[..., dim + 1], optional
+        base_point : array-like, shape=[..., m_ambient, k_landmarks]
             Point in the shape space.
 
         Returns
@@ -437,9 +450,33 @@ class KendallShapeMetric(ProcrustesMetric):
             horizontal_a, horizontal_b, base_point)
 
     def dist(self, point_a, point_b):
-        mat = gs.matmul(point_a, Matrices.transpose(point_b))
-        singular_values = gs.linalg.svd(mat, compute_uv=False)
-        dist = gs.arccos(gs.sum(singular_values, axis=-1))
+        r"""Geodesic distance between two points.
+
+        The geodesic distance between two points :math: `x, y` corresponds to
+        the Procrustes distance after alignment of the pre-shapes. It is
+        computed with the formula:
+
+        .. math:
+
+                    d(x, y) = arccos(tr(xy^T))
+
+        where tr is the trace operator.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., m_ambient, k_landmarks]
+            Point.
+        point_b : array-like, shape=[..., m_ambient, k_landmarks]
+            Point.
+
+        Returns
+        -------
+        dist : array-like, shape=[...,]
+            Distance.
+        """
+        trace = gs.einsum('...ij,...ij->...', point_a, point_b)
+        trace = gs.clip(trace, -1, 1)
+        dist = gs.arccos(trace)
         return dist
 
     def exp(self, tangent_vec, base_point):
@@ -447,14 +484,14 @@ class KendallShapeMetric(ProcrustesMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., dim + 1]
+        tangent_vec : array-like, shape=[..., m_ambient, k_landmarks]
             Tangent vector at a base point.
-        base_point : array-like, shape=[..., dim + 1]
+        base_point : array-like, shape=[..., m_ambient, k_landmarks]
             Point in the shape space.
 
         Returns
         -------
-        exp : array-like, shape=[..., dim + 1]
+        exp : array-like, shape=[..., m_ambient, k_landmarks]
             Point in the shape space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
@@ -468,14 +505,14 @@ class KendallShapeMetric(ProcrustesMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim + 1]
+        point : array-like, shape=[..., m_ambient, k_landmarks]
             Point on the shape space.
-        base_point : array-like, shape=[..., dim + 1]
+        base_point : array-like, shape=[..., m_ambient, k_landmarks]
             Point on the shape space.
 
         Returns
         -------
-        log : array-like, shape=[..., dim + 1]
+        log : array-like, shape=[..., m_ambient, k_landmarks]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
