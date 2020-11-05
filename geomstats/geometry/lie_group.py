@@ -84,11 +84,13 @@ class LieGroup(Manifold):
         Optional, default: 'vector'.
     """
 
-    def __init__(self, dim, default_point_type='vector', **kwargs):
+    def __init__(
+            self, dim, default_point_type='vector', lie_algebra=None,
+            **kwargs):
         super(LieGroup, self).__init__(
             dim=dim, default_point_type=default_point_type, **kwargs)
 
-        self.lie_algebra = None
+        self.lie_algebra = lie_algebra
         self.left_canonical_metric = InvariantMetric(
             group=self,
             metric_mat_at_identity=gs.eye(self.dim),

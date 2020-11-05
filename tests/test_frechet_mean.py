@@ -27,12 +27,11 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.so3 = SpecialOrthogonal(n=3, point_type='vector')
         self.so_matrix = SpecialOrthogonal(n=3)
 
-    @geomstats.tests.np_only
     def test_logs_at_mean_default_gradient_descent_sphere(self):
-        n_tests = 100
+        n_tests = 10
         estimator = FrechetMean(metric=self.sphere.metric, method='default')
 
-        result = gs.zeros(n_tests)
+        result = []
         for i in range(n_tests):
             # take 2 random points, compute their mean, and verify that
             # log of each at the mean is opposite
@@ -41,17 +40,17 @@ class TestFrechetMean(geomstats.tests.TestCase):
             mean = estimator.estimate_
 
             logs = self.sphere.metric.log(point=points, base_point=mean)
-            result[i] = gs.linalg.norm(logs[1, :] + logs[0, :])
+            result.append(gs.linalg.norm(logs[1, :] + logs[0, :]))
 
+        result = gs.array(result)
         expected = gs.zeros(n_tests)
-        self.assertAllClose(expected, result, rtol=1e-10, atol=1e-10)
+        self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
     def test_logs_at_mean_adaptive_gradient_descent_sphere(self):
-        n_tests = 100
+        n_tests = 10
         estimator = FrechetMean(metric=self.sphere.metric, method='adaptive')
 
-        result = gs.zeros(n_tests)
+        result = []
         for i in range(n_tests):
             # take 2 random points, compute their mean, and verify that
             # log of each at the mean is opposite
@@ -60,12 +59,12 @@ class TestFrechetMean(geomstats.tests.TestCase):
             mean = estimator.estimate_
 
             logs = self.sphere.metric.log(point=points, base_point=mean)
-            result[i] = gs.linalg.norm(logs[1, :] + logs[0, :])
+            result.append(gs.linalg.norm(logs[1, :] + logs[0, :]))
 
+        result = gs.array(result)
         expected = gs.zeros(n_tests)
-        self.assertAllClose(expected, result, rtol=1e-10, atol=1e-10)
+        self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_estimate_shape_default_gradient_descent_sphere(self):
         dim = 5
         point_a = gs.array([1., 0., 0., 0., 0.])
@@ -78,7 +77,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (dim,))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_estimate_shape_adaptive_gradient_descent_sphere(self):
         dim = 5
         point_a = gs.array([1., 0., 0., 0., 0.])
@@ -91,7 +89,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (dim,))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_estimate_and_belongs_default_gradient_descent_sphere(self):
         point_a = gs.array([1., 0., 0., 0., 0.])
         point_b = gs.array([0., 1., 0., 0., 0.])
@@ -104,7 +101,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_estimate_default_gradient_descent_so3(self):
         points = self.so3.random_uniform(2)
 
@@ -117,7 +113,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = gs.zeros_like(points[0])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_estimate_and_belongs_default_gradient_descent_so3(self):
         point = self.so3.random_uniform(10)
 
@@ -129,7 +124,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_estimate_default_gradient_descent_so_matrix(self):
         points = self.so_matrix.random_uniform(2)
 
@@ -143,7 +138,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = gs.zeros_like(points[0])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_estimate_and_belongs_default_gradient_descent_so_matrix(self):
         point = self.so_matrix.random_uniform(10)
 
@@ -155,7 +150,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_estimate_and_coincide_default_so_vec_and_mat(self):
         point = self.so_matrix.random_uniform(10)
 
@@ -173,7 +168,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_estimate_and_belongs_adaptive_gradient_descent_sphere(self):
         point_a = gs.array([1., 0., 0., 0., 0.])
         point_b = gs.array([0., 1., 0., 0., 0.])
@@ -186,7 +180,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_variance_sphere(self):
         point = gs.array([0., 0., 0., 0., 1.])
         points = gs.array([point, point])
@@ -197,7 +190,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_estimate_default_gradient_descent_sphere(self):
         point = gs.array([0., 0., 0., 0., 1.])
         points = gs.array([point, point])
@@ -210,7 +202,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_estimate_adaptive_gradient_descent_sphere(self):
         point = gs.array([0., 0., 0., 0., 1.])
         points = gs.array([point, point])
@@ -223,7 +214,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_estimate_spd(self):
         point = SPDMatrices(3).random_uniform()
         points = gs.array([point, point])
@@ -233,7 +223,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_tf_only
     def test_variance_hyperbolic(self):
         point = gs.array([2., 1., 1., 1.])
         points = gs.array([point, point])
@@ -243,7 +232,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_estimate_hyperbolic(self):
         point = gs.array([2., 1., 1., 1.])
         points = gs.array([point, point])
@@ -256,7 +244,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_estimate_and_belongs_hyperbolic(self):
         point_a = self.hyperbolic.random_uniform()
         point_b = self.hyperbolic.random_uniform()
