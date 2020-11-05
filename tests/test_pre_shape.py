@@ -273,7 +273,6 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(result)
 
         exp = self.shape_metric.exp(log, base_point)
-        print(expected.shape, exp.shape)
         self.assertAllClose(exp, expected)
 
     @geomstats.tests.np_and_pytorch_only
