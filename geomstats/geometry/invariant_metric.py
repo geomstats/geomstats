@@ -27,6 +27,19 @@ class _InvariantMetricMatrix(RiemannianMetric):
     left_or_right : str, {'left', 'right'}
         Whether to use a left or right invariant metric.
         Optional, default: 'left'.
+
+    References
+    ----------
+    .. [Milnor]    Milnor, John. “Curvatures of Left Invariant Metrics on Lie
+                   Groups.” Advances in Mathematics 21, no. 3, 1976:
+                   293–329. https://doi.org/10.1016/S0001-8708(76)80002-3.
+    .. [Kolev]     Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
+                   Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
+                    480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
+    .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential Geometry
+                   and Lie Groups: A Computational Perspective.
+                   Geonger International Publishing, 2020.
+                   https://doi.org/10.1007/978-3-030-46040-2.
     """
 
     def __init__(self, group,
@@ -139,6 +152,17 @@ class _InvariantMetricMatrix(RiemannianMetric):
         -------
         ad_star : array-like, shape=[..., n, n]
             Tangent vector at identity corresponding to :math: `ad_x^*(y)`.
+
+        References
+        ----------
+        .. [Kolev] Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
+                   Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
+                   480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
+
+        .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential
+                       Geometry and Lie Groups: A Computational Perspective.
+                       Geonger International Publishing, 2020.
+                       https://doi.org/10.1007/978-3-030-46040-2.
         """
         basis = self.lie_algebra.orthonormal_basis(
             self.metric_mat_at_identity)
@@ -156,7 +180,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         left (respectively right) invariant vector fields :math: `\tilde{x},
         \tilde{y}`. Then the vector :math: `(\nabla_\tilde{x}(\tilde{x}))_{
         Id}` is computed using the lie bracket and the dual adjoint map. This
-        is a bilinear map that characterizes the connection.
+        is a bilinear map that characterizes the connection [Gallier]_.
 
         Parameters
         ----------
@@ -169,6 +193,13 @@ class _InvariantMetricMatrix(RiemannianMetric):
         -------
         nabla : array-like, shape=[..., n, n]
             Tangent vector at identity.
+
+        References
+        ----------
+        .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential
+                       Geometry and Lie Groups: A Computational Perspective.
+                       Geonger International Publishing, 2020.
+                       https://doi.org/10.1007/978-3-030-46040-2.
         """
         return 1. / 2 * (GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
                          - self.dual_adjoint(tangent_vec_a, tangent_vec_b)
@@ -181,7 +212,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         associate left (respectively right) invariant vector fields :math:
         `\tilde{x}, \tilde{y}`. Then the vector :math: `(\nabla_\tilde{x}(
         \tilde{x}))_{p}` is computed using the invariance of the connection
-        and its value at identity.
+        and its value at identity [Gallier]_.
 
         Parameters
         ----------
@@ -196,6 +227,13 @@ class _InvariantMetricMatrix(RiemannianMetric):
         -------
         nabla : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
+
+        References
+        ----------
+        .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential
+                       Geometry and Lie Groups: A Computational Perspective.
+                       Geonger International Publishing, 2020.
+                       https://doi.org/10.1007/978-3-030-46040-2.
         """
         if base_point is None:
             return self.connection_at_identity(tangent_vec_a, tangent_vec_b)
@@ -254,7 +292,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
         For three tangent vectors at a base point :math: `x,y,z`,
         the curvature is defined by
         :math: `R(x, y)z = \nabla_{[x,y]}z
-        - \nabla_x\nabla_y z + - \nabla_y\nabla_x z`.
+        - \nabla_x\nabla_y z + - \nabla_y\nabla_x z`. It is computed using
+        the invariance of the connection and its value at identity.
 
         Parameters
         ----------
@@ -307,6 +346,14 @@ class _InvariantMetricMatrix(RiemannianMetric):
         -------
         sectional_curvature : array-like, shape=[...,]
             Sectional curvature at identity.
+
+        References
+        ----------
+        https://en.wikipedia.org/wiki/Sectional_curvature
+
+        .. [Milnor]    Milnor, John. “Curvatures of Left Invariant Metrics on
+                       Lie Groups.” Advances in Mathematics 21, no. 3, 1976:
+                       293–329. https://doi.org/10.1016/S0001-8708(76)80002-3.
         """
         curvature = self.curvature_at_identity(
             tangent_vec_a, tangent_vec_b, tangent_vec_a)
@@ -340,6 +387,14 @@ class _InvariantMetricMatrix(RiemannianMetric):
         -------
         sectional_curvature : array-like, shape=[...,]
             Sectional curvature at `base_point`.
+
+        References
+        ----------
+        https://en.wikipedia.org/wiki/Sectional_curvature
+
+        .. [Milnor]    Milnor, John. “Curvatures of Left Invariant Metrics on
+                       Lie Groups.” Advances in Mathematics 21, no. 3, 1976:
+                       293–329. https://doi.org/10.1016/S0001-8708(76)80002-3.
         """
         if base_point is None:
             return self.sectional_curvature_at_identity(tangent_vec_a,
@@ -482,10 +537,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
         ----------
         https://en.wikipedia.org/wiki/Runge–Kutta_methods
 
-        .. [Kolev]  Kolev, B. (2004).
-                    Lie Groups and mechanics: An introduction.
-                    Journal of Nonlinear Mathematical Physics,
-                    11(4), 480–498. https://doi.org/10.2991/jnmp.2004.11.4.5
+        .. [Kolev]   Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
+                     Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
+                     480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
         group = self.group
         basis = self.lie_algebra.orthonormal_basis(self.metric_mat_at_identity)
@@ -516,7 +570,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         where :math: `x,y` are respectively `base_point` and `point`,
         an extrinsic 2-norm is used, and exp is computed by integration
-        of the Euler-Poincare equation.
+        of the Euler-Poincare equation [Kolev]_.
 
         Parameters
         ----------
@@ -548,6 +602,12 @@ class _InvariantMetricMatrix(RiemannianMetric):
         log : array-like, shape=[..., n, n]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
+
+        References
+        ----------
+        .. [Kolev]   Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
+                     Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
+                     480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
         return super(_InvariantMetricMatrix, self).log(
             point, base_point, n_steps=n_steps, step=step,
@@ -854,13 +914,20 @@ class BiInvariantMetric(_InvariantMetricVector):
     """Class for bi-invariant metrics on compact Lie groups.
 
     Compact Lie groups and direct products of compact Lie groups with vector
-    spaces admit bi-invariant metrics. Products Lie groups are not
+    spaces admit bi-invariant metrics [Gallier]_. Products Lie groups are not
     implemented. Other groups such as SE(3) admit bi-invariant pseudo-metrics.
 
     Parameters
     ----------
     group : LieGroup
         The group to equip with the bi-invariant metric
+
+    References
+    ----------
+    .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential Geometry
+                   and Lie Groups: A Computational Perspective.
+                   Geonger International Publishing, 2020.
+                   https://doi.org/10.1007/978-3-030-46040-2.
     """
 
     def __init__(self, group):
@@ -893,6 +960,13 @@ class BiInvariantMetric(_InvariantMetricVector):
         -------
         exp : array-like, shape=[..., {dim, [n, n]}]
             Point in the group.
+
+        References
+        ----------
+        .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential
+                       Geometry and Lie Groups: A Computational Perspective.
+                       Geonger International Publishing, 2020.
+                       https://doi.org/10.1007/978-3-030-46040-2.
         """
         return self.group.exp(tangent_vec, base_point)
 
@@ -914,6 +988,13 @@ class BiInvariantMetric(_InvariantMetricVector):
         log : array-like, shape=[..., {dim, [n, n]}]
             Tangent vector at the identity equal to the Riemannian logarithm
             of point at the identity.
+
+        References
+        ----------
+        .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential
+                       Geometry and Lie Groups: A Computational Perspective.
+                       Geonger International Publishing, 2020.
+                       https://doi.org/10.1007/978-3-030-46040-2.
         """
         return self.group.log(point, base_point)
 

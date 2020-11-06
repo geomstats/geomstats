@@ -10,9 +10,16 @@ variables (x,v):
 where :math: `x` is called the position variable, :math: `v` the velocity
 variable, and :math: `(x, v)` the state.
 """
+
 from functools import partial
 
 from geomstats.errors import check_parameter_accepted_values
+
+
+STEP_FUNCTIONS = {'euler': '_symplectic_euler_step',
+                  'rk4': 'rk4_step',
+                  'group_rk4': 'group_rk4_step',
+                  'group_rk2': 'group_rk2_step'}
 
 
 def _symplectic_euler_step(state, force, dt):
@@ -30,10 +37,10 @@ def _symplectic_euler_step(state, force, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[dim]
-        first variable at time t + dt
-    vector_new : array-like, shape=[dim]
-        second variable at time t + dt
+    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+        First variable at time t + dt.
+    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+        Second variable at time t + dt.
     """
     point, vector = state
     point_new = point + vector * dt
@@ -59,10 +66,10 @@ def rk4_step(state, force, dt, k1=None):
 
     Returns
     -------
-    point_new : array-like, shape=[dim]
-        first variable at time t + dt
-    vector_new : array-like, shape=[dim]
-        second variable at time t + dt
+    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+        First variable at time t + dt.
+    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+        Second variable at time t + dt.
 
     See Also
     --------
@@ -103,14 +110,14 @@ def group_rk4_step(group, state, force, dt, k1=None):
         Time-step in the integration.
     k1 : array-like, shape=[dim]
         Initial guess for the slope at time t, using standard notations
-        from the Runge-Kutta methods..
+        from the Runge-Kutta methods.
 
     Returns
     -------
-    point_new : array-like, shape=[dim]
-        first variable at time t + dt
-    vector_new : array-like, shape=[dim]
-        second variable at time t + dt
+    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+        First variable at time t + dt.
+    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+        Second variable at time t + dt.
 
     See Also
     --------
@@ -158,10 +165,10 @@ def group_rk2_step(group, state, force, dt, k1=None):
 
     Returns
     -------
-    point_new : array-like, shape=[dim]
-        first variable at time t + dt
-    vector_new : array-like, shape=[dim]
-        second variable at time t + dt
+    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+        First variable at time t + dt.
+    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+        Second variable at time t + dt.
 
     See Also
     --------
@@ -176,12 +183,6 @@ def group_rk2_step(group, state, force, dt, k1=None):
     point_new = point + dt * k2
     vector_new = vector + dt * l2
     return point_new, vector_new
-
-
-STEP_FUNCTIONS = {'euler': _symplectic_euler_step,
-                  'rk4': rk4_step,
-                  'group_rk4': group_rk4_step,
-                  'group_rk2': group_rk2_step}
 
 
 def integrate(
@@ -225,7 +226,7 @@ def integrate(
     velocities = [initial_state[1]]
     current_state = (positions[0], velocities[0])
 
-    step_function = STEP_FUNCTIONS[step]
+    step_function = globals()[STEP_FUNCTIONS[step]]
     if 'group' in step and group is not None:
         step_function = partial(step_function, group=group)
 
