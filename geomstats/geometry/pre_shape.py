@@ -14,11 +14,14 @@ TOLERANCE = 1e-6
 
 
 class PreShapeSpace(EmbeddedManifold):
-    """Class for the Kendall pre-shape space.
+    r"""Class for the Kendall pre-shape space.
 
     The pre-shape space is the sphere of the space of centered k-ad of
-    landmarks in R^m (for the Frobenius norm). It is endowed with the
+    landmarks in :math: `R^m` (for the Frobenius norm). It is endowed with the
     spherical Procrustes metric d(x, y):= arccos(tr(xy^t)).
+
+    Points are represented by :math: `k \times m` matrices. Beware that this
+    not the usual convention from the literature.
 
     Parameters
     ----------
@@ -31,7 +34,7 @@ class PreShapeSpace(EmbeddedManifold):
     def __init__(self, k_landmarks, m_ambient):
         super(PreShapeSpace, self).__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
-            embedding_manifold=Matrices(m_ambient, k_landmarks))
+            embedding_manifold=Matrices(k_landmarks, m_ambient))
         self.embedding_metric = self.embedding_manifold.metric
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
@@ -45,7 +48,7 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., m_ambient, k_landmarks]
+        point : array-like, shape=[..., k_landmarks, m_ambient]
             Point in Matrices space.
         atol : float
             Tolerance at which to evaluate norm == 1 and mean == 0.
@@ -56,9 +59,10 @@ class PreShapeSpace(EmbeddedManifold):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the pre-shape space.
         """
+        shape = point.shape[-2:] == (self.k_landmarks, self.m_ambient)
         frob_norm = self.embedding_metric.norm(point)
         diff = gs.abs(frob_norm - 1)
-        is_centered = self.is_centered(point, atol)
+        is_centered = gs.logical_and(self.is_centered(point, atol), shape)
         return gs.logical_and(
             gs.less_equal(diff, atol), is_centered)
 
@@ -67,12 +71,12 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., m_ambient, k_landmarks]
+        point : array-like, shape=[..., k_landmarks, m_ambient]
             Point in Matrices space.
 
         Returns
         -------
-        projected_point : array-like, shape=[..., m_ambient, k_landmarks]
+        projected_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point projected on the pre-shape space.
         """
         centered_point = self.center(point)
@@ -96,13 +100,13 @@ class PreShapeSpace(EmbeddedManifold):
 
         Returns
         -------
-        samples : array-like, shape=[..., m_ambient, k_landmarks]
+        samples : array-like, shape=[..., k_landmarks, m_ambient]
             Points sampled on the pre-shape space.
         """
         samples = Hypersphere(
             self.m_ambient * self.k_landmarks - 1).random_uniform(
             n_samples, tol)
-        samples = gs.reshape(samples, (-1, self.m_ambient, self.k_landmarks))
+        samples = gs.reshape(samples, (-1, self.k_landmarks, self.m_ambient))
         if n_samples == 1:
             samples = samples[0]
         return self.projection(samples)
@@ -113,7 +117,7 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., m_ambient, k_landmarks]
+        point : array-like, shape=[..., k_landmarks, m_ambient]
             Point in Matrices space.
         atol :  float
             Tolerance at which to evaluate mean == 0.
@@ -124,7 +128,7 @@ class PreShapeSpace(EmbeddedManifold):
         is_centered : array-like, shape=[...,]
             Boolean evaluating if point is centered.
         """
-        mean = gs.mean(point, axis=-1)
+        mean = gs.mean(point, axis=-2)
         return gs.all(gs.isclose(mean, 0., atol=atol), axis=-1)
 
     @staticmethod
@@ -133,17 +137,16 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., m_ambient, k_landmarks]
+        point : array-like, shape=[..., k_landmarks, m_ambient]
             Point in Matrices space.
 
         Returns
         -------
-        centered : array-like, shape=[..., m_ambient, k_landmarks]
+        centered : array-like, shape=[..., k_landmarks, m_ambient]
             Point with centered landmarks.
         """
-        mean = gs.mean(point, axis=-1)
-        return Matrices.transpose(
-            Matrices.transpose(point) - mean[..., None, :])
+        mean = gs.mean(point, axis=-2)
+        return point - mean[..., None, :]
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector to the tangent space.
@@ -153,15 +156,15 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., m_ambient, k_landmarks]
+        vector : array-like, shape=[..., k_landmarks, m_ambient]
             Vector in Matrix space.
-        base_point : array-like, shape=[..., m_ambient, k_landmarks]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the pre-shape space defining the tangent space,
             where the vector will be projected.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., m_ambient, k_landmarks]
+        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector in the tangent space of the pre-shape space
             at the base point.
         """
@@ -181,9 +184,9 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., m_ambient, k_landmarks]
+        vector : array-like, shape=[..., k_landmarks, m_ambient]
             Vector.
-        base_point : array-like, shape=[..., m_ambient, k_landmarks]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the manifold.
             Optional, default: none.
         atol : float
@@ -213,23 +216,24 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., m_ambient, k_landmarks]
+        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector to the pre-shape space at `base_point`.
-        base_point : array-like, shape=[..., m_ambient, k_landmarks]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the pre-shape space.
 
         Returns
         -------
-        vertical : array-like, shape=[..., m_ambient, k_landmarks]
+        vertical : array-like, shape=[..., k_landmarks, m_ambient]
             Vertical component of `tangent_vec`.
         """
         transposed_point = Matrices.transpose(base_point)
-        left_term = gs.matmul(base_point, transposed_point)
-        right_term = gs.matmul(tangent_vec, transposed_point) - gs.matmul(
-            base_point, Matrices.transpose(tangent_vec))
+        left_term = gs.matmul(transposed_point, base_point)
+        right_term = gs.matmul(
+            Matrices.transpose(tangent_vec), base_point) - gs.matmul(
+            transposed_point, tangent_vec)
         skew = gs.linalg.solve_sylvester(left_term, left_term, right_term)
 
-        return gs.matmul(skew, base_point)
+        return - gs.matmul(base_point, skew)
 
     @classmethod
     def horizontal_projection(cls, tangent_vec, base_point):
@@ -240,14 +244,14 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., m_ambient, k_landmarks]
+        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector to the pre-shape space at `base_point`.
-        base_point : array-like, shape=[..., m_ambient, k_landmarks]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the pre-shape space.
 
         Returns
         -------
-        horizontal : array-like, shape=[..., m_ambient, k_landmarks]
+        horizontal : array-like, shape=[..., k_landmarks, m_ambient]
             Horizontal component of `tangent_vec`.
         """
         return tangent_vec - cls.vertical_projection(tangent_vec, base_point)
@@ -257,9 +261,9 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., m_ambient, k_landmarks]
+        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector.
-        base_point : array-like, shape=[..., m_ambient, k_landmarks]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the manifold.
             Optional, default: none.
         atol : float
@@ -271,7 +275,7 @@ class PreShapeSpace(EmbeddedManifold):
         is_tangent : bool
             Boolean denoting if tangent vector is horizontal.
         """
-        product = gs.matmul(tangent_vec, Matrices.transpose(base_point))
+        product = gs.matmul(Matrices.transpose(tangent_vec), base_point)
         is_tangent = self.is_tangent(tangent_vec, base_point, atol)
         is_symmetric = Matrices.is_symmetric(product, atol)
         return gs.logical_and(is_tangent, is_symmetric)
@@ -284,17 +288,17 @@ class PreShapeSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., m_ambient, k_landmarks]
+        point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the manifold.
-        base_point : array-like, shape=[..., m_ambient, k_landmarks]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the manifold.
 
         Returns
         -------
-        aligned : array-like, shape=[..., m_ambient, k_landmarks]
+        aligned : array-like, shape=[..., k_landmarks, m_ambient]
             R.point.
         """
-        mat = gs.matmul(point, Matrices.transpose(base_point))
+        mat = gs.matmul(Matrices.transpose(point), base_point)
         left, singular_values, right = gs.linalg.svd(mat)
         if gs.any(gs.isclose(
                 singular_values[..., -1] + singular_values[..., -2], 0.)):
@@ -313,7 +317,7 @@ class PreShapeSpace(EmbeddedManifold):
         else:
             rotation = gs.matmul(
                 Matrices.transpose(right), Matrices.transpose(left))
-        return gs.matmul(rotation, point)
+        return gs.matmul(point, Matrices.transpose(rotation))
 
 
 class ProcrustesMetric(RiemannianMetric):
@@ -331,7 +335,7 @@ class ProcrustesMetric(RiemannianMetric):
         super(ProcrustesMetric, self).__init__(
             dim=m_ambient * (k_landmarks - 1) - 1)
 
-        self.embedding_metric = MatricesMetric(m_ambient, k_landmarks)
+        self.embedding_metric = MatricesMetric(k_landmarks, m_ambient)
         self.sphere_metric = Hypersphere(m_ambient * k_landmarks - 1).metric
 
         self.k_landmarks = k_landmarks
@@ -342,11 +346,11 @@ class ProcrustesMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., m_ambient, k_landmarks]
+        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
             First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., m_ambient, k_landmarks]
+        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
             Second tangent vector at base point.
-        base_point : array-like, shape=[..., dm_ambient, k_landmarks]
+        base_point : array-like, shape=[..., dk_landmarks, m_ambient]
             Point on the pre-shape space.
 
         Returns
@@ -364,14 +368,14 @@ class ProcrustesMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., m_ambient, k_landmarks]
+        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at a base point.
-        base_point : array-like, shape=[..., m_ambient, k_landmarks]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the pre-shape space.
 
         Returns
         -------
-        exp : array-like, shape=[..., m_ambient, k_landmarks]
+        exp : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the pre-shape space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
@@ -385,14 +389,14 @@ class ProcrustesMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[..., m_ambient, k_landmarks]
+        point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the pre-shape space.
-        base_point : array-like, shape=[..., m_ambient, k_landmarks]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the pre-shape space.
 
         Returns
         -------
-        log : array-like, shape=[..., m_ambient, k_landmarks]
+        log : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
@@ -430,11 +434,11 @@ class KendallShapeMetric(ProcrustesMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., m_ambient, k_landmarks]
+        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
             First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[...,m_ambient, k_landmarks]
+        tangent_vec_b : array-like, shape=[...,k_landmarks, m_ambient]
             Second tangent vector at base point.
-        base_point : array-like, shape=[..., m_ambient, k_landmarks]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point in the shape space.
 
         Returns
@@ -464,9 +468,9 @@ class KendallShapeMetric(ProcrustesMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[..., m_ambient, k_landmarks]
+        point_a : array-like, shape=[..., k_landmarks, m_ambient]
             Point.
-        point_b : array-like, shape=[..., m_ambient, k_landmarks]
+        point_b : array-like, shape=[..., k_landmarks, m_ambient]
             Point.
 
         Returns
@@ -484,14 +488,14 @@ class KendallShapeMetric(ProcrustesMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., m_ambient, k_landmarks]
+        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at a base point.
-        base_point : array-like, shape=[..., m_ambient, k_landmarks]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point in the shape space.
 
         Returns
         -------
-        exp : array-like, shape=[..., m_ambient, k_landmarks]
+        exp : array-like, shape=[..., k_landmarks, m_ambient]
             Point in the shape space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
@@ -505,14 +509,14 @@ class KendallShapeMetric(ProcrustesMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[..., m_ambient, k_landmarks]
+        point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the shape space.
-        base_point : array-like, shape=[..., m_ambient, k_landmarks]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the shape space.
 
         Returns
         -------
-        log : array-like, shape=[..., m_ambient, k_landmarks]
+        log : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
