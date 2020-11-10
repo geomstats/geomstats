@@ -137,7 +137,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = gs.zeros_like(points[0])
         self.assertAllClose(result, expected, atol=1e-5)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_estimate_and_belongs_default_gradient_descent_so_matrix(self):
         point = self.so_matrix.random_uniform(10)
 

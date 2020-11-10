@@ -76,7 +76,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         )[gs.triu_indices(self.n, k=1)]
         return as_vector[:, upper_tri_indices]
 
-    def reshape_metric_matrix(self, metric_mat):
+    def reshape_metric_matrix(self, metric_matrix):
         """Reshape diagonal metric matrix to a symmetric matrix of size n.
 
         Reshape a diagonal metric matrix of size `dim x dim` into a symmetric
@@ -88,7 +88,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
 
         Parameters
         ----------
-        metric_mat : array-like, shape=[dim, dim]
+        metric_matrix : array-like, shape=[dim, dim]
             Diagonal metric matrix.
 
         Returns
@@ -96,8 +96,8 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         symmetric_matrix : array-like, shape=[n, n]
             Symmetric matrix.
         """
-        if Matrices.is_diagonal(metric_mat):
-            metric_coeffs = gs.diagonal(metric_mat)
+        if Matrices.is_diagonal(metric_matrix):
+            metric_coeffs = gs.diagonal(metric_matrix)
             metric_mat = gs.abs(
                 self.matrix_representation(metric_coeffs))
             return metric_mat
