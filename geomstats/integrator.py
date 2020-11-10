@@ -7,7 +7,7 @@ variables (x,v):
 """
 
 
-def _symplectic_euler_step(state, force, dt):
+def euler_step(state, force, dt):
     """Compute one step of the symplectic euler approximation.
 
     Parameters
@@ -95,7 +95,7 @@ def integrate(function, initial_state, end_time=1.0, n_steps=10, step='euler'):
     positions = [initial_state[0]]
     velocities = [initial_state[1]]
     current_state = (positions[0], velocities[0])
-    step_function = _symplectic_euler_step if step == 'euler' else rk4_step
+    step_function = euler_step if step == 'euler' else rk4_step
     for _ in range(n_steps):
         current_state = step_function(current_state, function, dt)
         positions.append(current_state[0])
