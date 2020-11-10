@@ -16,13 +16,13 @@ from functools import partial
 from geomstats.errors import check_parameter_accepted_values
 
 
-STEP_FUNCTIONS = {'euler': '_symplectic_euler_step',
+STEP_FUNCTIONS = {'euler': 'euler_step',
                   'rk4': 'rk4_step',
                   'group_rk4': 'group_rk4_step',
                   'group_rk2': 'group_rk2_step'}
 
 
-def _symplectic_euler_step(state, force, dt):
+def euler_step(state, force, dt):
     """Compute one step of the symplectic euler approximation.
 
     Parameters
