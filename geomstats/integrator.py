@@ -4,26 +4,23 @@ These are designed for second order ODE written as a first order ODE of two
 variables (x,v):
 .. math::
 
-                    \frac{dx}{dt} = v
-                    \frac{dv}{dt} = force(x, v)
+                    \frac{dx}{dt} = force_1(x, v)
+                    \frac{dv}{dt} = force_2(x, v)
 
 where :math: `x` is called the position variable, :math: `v` the velocity
 variable, and :math: `(x, v)` the state.
 """
-
-from functools import partial
 
 from geomstats.errors import check_parameter_accepted_values
 
 
 STEP_FUNCTIONS = {'euler': 'euler_step',
                   'rk4': 'rk4_step',
-                  'group_rk4': 'group_rk4_step',
-                  'group_rk2': 'group_rk2_step'}
+                  'rk2': 'rk2_step'}
 
 
 def euler_step(state, force, dt):
-    """Compute one step of the symplectic euler approximation.
+    """Compute one step of the euler approximation.
 
     Parameters
     ----------
@@ -43,12 +40,45 @@ def euler_step(state, force, dt):
         Second variable at time t + dt.
     """
     point, vector = state
-    point_new = point + vector * dt
-    vector_new = vector + force(point, vector) * dt
+    velocity, acceleration = force(point, vector)
+    point_new = point + velocity * dt
+    vector_new = vector + acceleration * dt
     return point_new, vector_new
 
 
-def rk4_step(state, force, dt, k1=None):
+def rk2_step(state, force, dt):
+    """Compute one step of the rk2 approximation.
+
+    Parameters
+    ----------
+    state : array-like, shape=[2, dim]
+        State at time t, corresponds to position and velocity variables at
+        time t.
+    force : callable
+        Vector field that is being integrated.
+    dt : float
+        Time-step in the integration.
+
+    Returns
+    -------
+    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+        First variable at time t + dt.
+    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+        Second variable at time t + dt.
+
+    See Also
+    --------
+    https://en.wikipedia.org/wiki/Runge–Kutta_methods
+    """
+    point, vector = state
+    k1, l1 = force(point, vector)
+    k2, l2 = force(point + dt / 2 * k1, vector + dt / 2 * l1)
+    point_new = point + dt * k2
+    vector_new = vector + dt * l2
+    return point_new, vector_new
+
+
+def rk4_step(state, force, dt):
     """Compute one step of the rk4 approximation.
 
     Parameters
@@ -60,9 +90,6 @@ def rk4_step(state, force, dt, k1=None):
         Vector field that is being integrated.
     dt : float
         Time-step in the integration.
-    k1 : array-like, shape=[dim]
-        Initial guess for the slope at time t, using standard notations
-        from the Runge-Kutta methods..
 
     Returns
     -------
@@ -76,118 +103,18 @@ def rk4_step(state, force, dt, k1=None):
     https://en.wikipedia.org/wiki/Runge–Kutta_methods
     """
     point, vector = state
-    if k1 is None:
-        k1 = force(point, vector)
-    k2 = force(point + dt / 2 * vector, vector + dt / 2 * k1)
-    k3 = force(point + dt / 2 * vector + dt ** 2 / 2 * k1,
-               vector + dt / 2 * k2)
-    k4 = force(point + dt * vector + dt ** 2 / 2 * k2, vector + dt * k3)
-    point_new = point + dt * vector + dt ** 2 / 6 * (k1 + k2 + k3)
-    vector_new = vector + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
-    return point_new, vector_new
-
-
-def group_rk4_step(group, state, force, dt, k1=None):
-    """Compute one step of the rk4 approximation on a Lie group.
-
-    This applies to systems of ODEs where the position variable belongs to a
-    Lie group and the velocity variable belongs to its Lie algebra.
-    It is the replication of the classic Runge-Kutta 4 scheme for each
-    variable, but the velocity is left translated to the position variable
-    before each update of the position, so that it corresponds to a tangent
-    vector.
-
-    Parameters
-    ----------
-    group : LieGroup
-        Lie group on which the integration occurs.
-    state : array-like, shape=[2, dim]
-        State at time t, corresponds to position and velocity variables at
-        time t.
-    force : callable
-        Lie algebra-valued one form.
-    dt : float
-        Time-step in the integration.
-    k1 : array-like, shape=[dim]
-        Initial guess for the slope at time t, using standard notations
-        from the Runge-Kutta methods.
-
-    Returns
-    -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
-        First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
-        Second variable at time t + dt.
-
-    See Also
-    --------
-    https://en.wikipedia.org/wiki/Runge–Kutta_methods
-    """
-    point, vector = state
-    if k1 is None:
-        k1 = group.compose(point, vector)
-    l1 = force(point, vector)
-    k2 = group.compose(point + dt / 2 * k1, vector + dt / 2 * l1)
-    l2 = force(point + dt / 2 * k1, vector + dt / 2 * l1)
-    k3 = group.compose(point + dt / 2 * k2, vector + dt / 2 * l2)
-    l3 = force(point + dt / 2 * k2, vector + dt / 2 * l2)
-    k4 = group.compose(point + dt * k3, vector + dt * l3)
-    l4 = force(point + dt * k3, vector + dt * l3)
+    k1, l1 = force(point, vector)
+    k2, l2 = force(point + dt / 2 * k1, vector + dt / 2 * l1)
+    k3, l3 = force(
+        point + dt / 2 * k2, vector + dt / 2 * l2)
+    k4, l4 = force(point + dt * k3, vector + dt * l3)
     point_new = point + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
     vector_new = vector + dt / 6 * (l1 + 2 * l2 + 2 * l3 + l4)
     return point_new, vector_new
 
 
-def group_rk2_step(group, state, force, dt, k1=None):
-    """Compute one step of the rk2 approximation on a Lie group.
-
-    This applies to systems of ODEs where the position variable belongs to a
-    Lie group and the velocity variable belongs to its Lie algebra.
-    It is the replication of the classic Runge-Kutta 2 scheme for each
-    variable, but the velocity is left translated to the position variable
-    before each update of the position, so that it corresponds to a tangent
-    vector.
-
-    Parameters
-    ----------
-    group : LieGroup
-        Lie group on which the integration occurs.
-    state : array-like, shape=[2, dim]
-        State at time t, corresponds to position and velocity variables at
-        time t.
-    force : callable
-        Lie algebra-valued one form.
-    dt : float
-        Time-step in the integration.
-    k1 : array-like, shape=[dim]
-        Initial guess for the slope at time t, using standard notations
-        from the Runge-Kutta methods..
-
-    Returns
-    -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
-        First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
-        Second variable at time t + dt.
-
-    See Also
-    --------
-    https://en.wikipedia.org/wiki/Runge–Kutta_methods
-    """
-    point, vector = state
-    if k1 is None:
-        k1 = group.compose(point, vector)
-    l1 = force(point, vector)
-    k2 = group.compose(point + dt / 2 * k1, vector + dt / 2 * l1)
-    l2 = force(point + dt / 2 * k1, vector + dt / 2 * l1)
-    point_new = point + dt * k2
-    vector_new = vector + dt * l2
-    return point_new, vector_new
-
-
 def integrate(
-        function, initial_state, end_time=1.0, n_steps=10, step='euler',
-        group=None):
+        function, initial_state, end_time=1.0, n_steps=10, step='euler'):
     """Compute the flow under the vector field using symplectic euler.
 
     Integration function to compute flows of vector fields
@@ -208,9 +135,6 @@ def integrate(
     step : str, {'euler', 'rk4', 'group_rk2', 'group_rk4'}
         Numerical scheme to use for elementary integration steps.
         Optional, default : 'euler'.
-    group : LieGroup
-        If the ODE occurs on a group, it must be passed. Ignored otherwise.
-        Optional, default : None.
 
     Returns
     -------
@@ -227,8 +151,6 @@ def integrate(
     current_state = (positions[0], velocities[0])
 
     step_function = globals()[STEP_FUNCTIONS[step]]
-    if 'group' in step and group is not None:
-        step_function = partial(step_function, group=group)
 
     for _ in range(n_steps):
         current_state = step_function(
