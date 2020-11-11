@@ -35,6 +35,12 @@ class TestIntegrator(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    def test_symplectic_euler_step(self):
+        self.assertRaises(NotImplementedError)
+
+    def test_leapfrog_step(self):
+        self.assertRaises(NotImplementedError)
+
     def test_integrator(self):
         initial_state = self.euclidean.random_uniform(2)
 
