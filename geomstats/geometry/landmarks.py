@@ -3,8 +3,7 @@
 import geomstats.backend as gs
 from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.product_riemannian_metric import \
-    ProductRiemannianMetric
-from geomstats.geometry.riemannian_metric import RiemannianCometric
+    ProductRiemannianMetric, RiemannianMetric
 
 
 class Landmarks(ProductManifold):
@@ -128,74 +127,155 @@ class L2Metric(ProductRiemannianMetric):
         return landmarks_on_geodesic
 
 
-class KernelMetric(RiemannianCometric):
-    r"""Kernel cometric for the LDDMM framework on landmark spaces.
+class KernelMetric(RiemannianMetric):
+    r"""Kernel metric for the LDDMM framework on landmark spaces.
 
     Parameters
     ----------
-    k_landmarks : int
-        Dimension of the Euclidean space R^n containing the landmarks.
-    ambient_dimension: int
+    ambient_manifold : Riemannian manifold embedding the landmarks. Let's
+    begin with the Euclidean space R^m.
+    k_landmarks: int
         Number of landmarks.
     kernel : callable
         Kernel function to generate the space of admissible vector fields. It
         should take two points of the ambient space as inputs and output a
-        scalar. An example is the Gaussian kernel:
+        scalar. A first example is the Gaussian kernel:
         .. math:
 
                     k(x, y) = exp(-|x-y|^2/ \sigma)
     """
-
-    def __init__(
-            self, k_landmarks, ambient_dimension,
-            kernel=lambda d: gs.exp(-d)):
+    def __init__(self, ambient_manifold, k_landmarks, kernel):
         super(KernelMetric, self).__init__(
             default_point_type='matrix',
-            dim=ambient_dimension * k_landmarks)
+            dim=k_landmarks * ambient_manifold.dim)
         self.kernel = kernel
-        self.ambient_dimension = ambient_dimension
-        self.k_landmarks = k_landmarks
 
-    def kernel_matrix(self, base_point):
+    def kernel_matrix(self, point_a, point_b):
         r"""Compute the kernel matrix.
 
-        .. math:
-                    K_{i,j} = kernel(x_i, x_j)
+        Let's first consider landmarks in a Euclidean space with the L2
+        distance. This routine could later be improved using keops.
 
-        Where :math: `x_i` are the landmarks of the base point :math: `x`
+        .. math:
+                    K_{i,j} = kernel(x_i, y_j)
+
+        Where :math: `x_1, \ldots, x_k `are the landmark positions of
+        `point_a` and :math: `y_1, \ldots, y_k `are the landmark positions of
+        `point_b`.
 
         Parameters
         ----------
-        base_point : landmark configuration :math: `x`
+        point_a : landmark configuration
+        point_b : landmark configuration
 
         Returns
         -------
         kernel_mat : [..., k_landmarks, k_landmarks]
         """
-        squared_dist = gs.sum(
-            (base_point[..., :, None, :] - base_point) ** 2, axis=-1)
-        return self.kernel(squared_dist)
+        raise NotImplementedError
 
-    def inner_coproduct(self, momentum_1, momentum_2, base_point):
-        r"""Compute the inner coproduct between two momenta.
+    def sharp_map(self, covector, base_point):
+        r"""Compute the tangent vector associated to covector.
+
+        This is a convolution:
+        .. math:
+                    v(x) = \sum_{i=1}^k k(x, bp_i)m_i = K m
+
+        where :math: `bp_1, \ldots, bp_k` are the landmark positions of
+        `base_point`, and :math: `m_1, \dots, m_k` are the moment vectors of
+        `covector`. This can be written as a matrix product with K the kernel
+        matrix.
+
+        Parameters
+        ----------
+        covector : array-like, shape=[..., k_landmarks, ambient_dim]
+            Momentum vector
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
+            Landmark configuration
+
+        Returns
+        -------
+        vector_field : callable
+            Velocity field associated to the covector. Takes a configuration
+            as input and returns a velocity fields at this configuration.
+        """
+        def vector_field(position):
+            raise NotImplementedError
+
+        return vector_field
+
+    def flat_map(self, tangent_vector, point, base_point):
+        r"""Compute the covector associated to tangent_vector.
+
+        This solves for the momentum vectors :math: `m_1, \ldots, m_k` such
+        that at all :math: `x` given by `point`,
+        .. math:
+            v(x) = \sum_{i=1}^k k(x, bp_i)m_i = K m
+
+        where :math: `bp_1, \ldots, bp_k` are the landmark positions of
+        `base_point`. This is solved by inverting the kernel matrix.
+
+        Parameters
+        ----------
+        tangent_vector : vector field evaluated at point
+        point : landmark configuration
+        base_point : landmark configuration at which to represent the
+        momentum vectors.
+
+        Returns
+        -------
+        momentum_vectors
+        """
+        raise NotImplementedError
+
+    def cometric_inner_product(self, covector_1, covector_2, base_point):
+        r"""Computes the inner product between to covectors.
 
         This is the inner product associated to the kernel matrix:
         .. math:
 
-                <m, m'> = \sum_{i=1}^k m_i^T k(x_i, x_j) m_j
+                <m, m'> = \sum_{i=1}^k p_i^T k(x_i, x_j) p_j
 
         Parameters
         ----------
-        momentum_1 : moment vectors at `base_point`
-        momentum_2 : moment vectors at `base_point`
+        covector_1 : moment vectors at `base_point`
+        covector_2 : moment vectors at `base_point`
         base_point : landmark configuration
 
         Returns
         -------
         inner_prod : float
         """
-        velocity_2 = gs.einsum(
-            '...ij,...jk->...ik', self.kernel_matrix(base_point), momentum_2)
-        inner_coproduct = gs.einsum(
-            '...ij,...ij->...', momentum_1, velocity_2)
-        return inner_coproduct
+        raise NotImplementedError
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        r"""Computes the inner product between to tangnet vectors.
+
+        This is the inner product associated to the kernel matrix and the
+        covectors associated to the input tangent vectors. This equivalent to
+        computing the L2 inner product between the whitened vector fields:
+        .. math:
+
+                <m, m'> = \sum_{i=1}^k p_i^T k(x_i, x_j) p_j =
+                < K^{-1/2}v_a, K^{-1/2}v_b>_2
+
+        Parameters
+        ----------
+        tangent_vec_a : moment vectors at `base_point`
+        tangent_vec_b : moment vectors at `base_point`
+        base_point : landmark configuration
+
+        Returns
+        -------
+        inner_prod : float
+        """
+        raise NotImplementedError
+
+    def hamiltonian(self, state):
+        position, momentum = state
+        return 1/2 * self.cometric_inner_product(
+            momentum, momentum, position)
+
+    def geodesic_equations(self, state):
+        H_q, H_p = gs.autograd.elementwise_grad(self.hamiltonian)(state)
+        return gs.array([H_p, - H_q])
