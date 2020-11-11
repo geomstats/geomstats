@@ -277,35 +277,6 @@ class KernelMetric(RiemannianMetric):
         return 1/2 * self.cometric_inner_product(
             momentum, momentum, position)
 
-    def hamiltonian_equations(self, state):
+    def geodesic_equations(self, state):
         H_q, H_p = gs.autograd.elementwise_grad(self.hamiltonian)(state)
         return gs.array([H_p, - H_q])
-
-    def exp(self, tangent_vec, base_point, n_steps=10, step='symp_euler',
-            **kwargs):
-        r"""Apply a diffeomorphism to a configuration.
-
-        This method should implement the flow of a vector field (
-        tangent_vec) acting on an initial landmark configuration (base_point).
-        The flow of a velocity field :math: `v_t`  applied to position
-        :math: `x`is verifies:
-
-        ... math:
-                    \partial_t \phi_t(x) = v_t(x)
-
-        with the initial condition :math: `\phi_0(x) = x`. This equation can
-        be integrated between 0 and 1 with a discrete Euler scheme or a
-        Runge-Kutta scheme or order 2. The velocity field itself follows a
-        Hamiltonian system of equation.
-
-        Returns
-        -------
-        end_shape: landmark configuration obtained at time 1
-        """
-
-        momentum = self.flat_map(tangent_vec, base_point)
-        initial_state = gs.stack([base_point, momentum])
-        flow, _ = integrate(
-            self.hamiltonian_equations, initial_state, n_steps=n_steps,
-            step=step, **kwargs)
-        return flow[-1]
