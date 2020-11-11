@@ -495,7 +495,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         return translation_map(value_at_id)
 
-    def exp(self, tangent_vec, base_point, n_steps=10, step='group_rk4',
+    def exp(self, tangent_vec, base_point, n_steps=10, step='rk4',
             **kwargs):
         r"""Compute Riemannian exponential of tan. vector wrt to base point.
 
@@ -544,21 +544,21 @@ class _InvariantMetricMatrix(RiemannianMetric):
         group = self.group
         basis = self.lie_algebra.orthonormal_basis(self.metric_mat_at_identity)
 
-        def lie_acceleration(_, vector):
+        def lie_acceleration(point, vector):
+            velocity = self.group.compose(point, vector)
             coefficients = gs.array([self.structure_constant(
                 vector, basis_vector, vector) for basis_vector in basis])
-            return gs.einsum(
-                'i...,ijk->...jk', coefficients, basis)
+            acceleration = gs.einsum('i...,ijk->...jk', coefficients, basis)
+            return velocity, acceleration
 
         left_angular_vel = group.compose(
             group.inverse(base_point), tangent_vec)
         initial_state = (base_point, group.regularize(left_angular_vel))
-        flow, _ = integrate(
-            lie_acceleration, initial_state, n_steps=n_steps, step=step,
-            group=group, **kwargs)
+        flow, _ = integrate(lie_acceleration, initial_state, n_steps=n_steps,
+                            step=step, **kwargs)
         return flow[-1]
 
-    def log(self, point, base_point, n_steps=15, step='group_rk4',
+    def log(self, point, base_point, n_steps=15, step='k4',
             verbose=False, max_iter=25, tol=1e-10):
         r"""Compute Riemannian logarithm of a point from a base point.
 

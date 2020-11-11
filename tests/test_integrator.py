@@ -22,8 +22,8 @@ class TestIntegrator(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_symplectic_euler_step(self):
         state = (self.intercept, self.slope)
-        result = len(integrator._symplectic_euler_step(
-            state, self.function_linear, self.dt))
+        result = len(
+            integrator.euler_step(state, self.function_linear, self.dt))
         expected = len(state)
 
         self.assertAllClose(result, expected)

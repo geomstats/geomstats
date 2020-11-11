@@ -94,7 +94,7 @@ class Connection:
             '...kij,...i->...kj', gamma, velocity)
         equation = - gs.einsum(
             '...kj,...j->...k', equation, velocity)
-        return equation
+        return velocity, equation
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step='euler',
             point_type=None, **kwargs):
@@ -126,8 +126,8 @@ class Connection:
             Point on the manifold.
         """
         initial_state = (base_point, tangent_vec)
-        flow, _ = integrate(
-            self.geodesic_equation, initial_state, n_steps=n_steps, step=step)
+        flow, _ = integrate(self.geodesic_equation, initial_state,
+                            n_steps=n_steps, step=step)
 
         exp = flow[-1]
         return exp

@@ -712,12 +712,12 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
         identity = self.matrix_so3.identity
         result = metric.exp(
-            tangent_vec, identity, n_steps=100, step='group_rk4')
+            tangent_vec, identity, n_steps=100, step='rk4')
         expected = group.exp(tangent_vec, identity)
         self.assertAllClose(expected, result)
 
         result = metric.exp(
-            tangent_vec, identity, n_steps=100, step='group_rk2')
+            tangent_vec, identity, n_steps=100, step='rk2')
         self.assertAllClose(expected, result, atol=1e-5)
 
     def test_integrated_exp_and_log_at_id(self):
@@ -730,8 +730,8 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
         identity = self.matrix_so3.identity
         exp = metric.exp(
-            tangent_vec, identity, n_steps=100, step='group_rk4')
+            tangent_vec, identity, n_steps=100, step='rk4')
         result = metric.log(
             exp, identity,
-            n_steps=15, step='group_rk4', verbose=False)
+            n_steps=15, step='rk4', verbose=False)
         self.assertAllClose(tangent_vec, result, atol=1e-5)
