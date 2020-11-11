@@ -1,7 +1,6 @@
 """Manifold for sets of landmarks that belong to any given manifold."""
 
 import geomstats.backend as gs
-from geomstats.integrator import integrate
 from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.product_riemannian_metric import \
     ProductRiemannianMetric, RiemannianMetric
