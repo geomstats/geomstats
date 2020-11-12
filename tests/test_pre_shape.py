@@ -307,9 +307,8 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_dist(self):
         point, base_point = self.space.random_uniform(2)
-        aligned = self.space.align(point, base_point)
-        result = self.shape_metric.dist(aligned, base_point)
-        log = self.shape_metric.log(aligned, base_point)
+        result = self.shape_metric.dist(point, base_point)
+        log = self.shape_metric.log(point, base_point)
         expected = self.shape_metric.norm(log, base_point)
         self.assertAllClose(result, expected)
 

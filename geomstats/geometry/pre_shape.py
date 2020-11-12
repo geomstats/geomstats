@@ -34,7 +34,8 @@ class PreShapeSpace(EmbeddedManifold):
     def __init__(self, k_landmarks, m_ambient):
         super(PreShapeSpace, self).__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
-            embedding_manifold=Matrices(k_landmarks, m_ambient))
+            embedding_manifold=Matrices(k_landmarks, m_ambient),
+            default_point_type='matrix')
         self.embedding_metric = self.embedding_manifold.metric
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
@@ -228,9 +229,8 @@ class PreShapeSpace(EmbeddedManifold):
         """
         transposed_point = Matrices.transpose(base_point)
         left_term = gs.matmul(transposed_point, base_point)
-        right_term = gs.matmul(
-            Matrices.transpose(tangent_vec), base_point) - gs.matmul(
-            transposed_point, tangent_vec)
+        alignment = gs.matmul(Matrices.transpose(tangent_vec), base_point)
+        right_term = alignment - Matrices.transpose(alignment)
         skew = gs.linalg.solve_sylvester(left_term, left_term, right_term)
 
         return - gs.matmul(base_point, skew)
@@ -300,10 +300,11 @@ class PreShapeSpace(EmbeddedManifold):
         """
         mat = gs.matmul(Matrices.transpose(point), base_point)
         left, singular_values, right = gs.linalg.svd(mat)
-        if gs.any(gs.isclose(
-                singular_values[..., -1] + singular_values[..., -2], 0.)):
-            logging.warning("Alignment matrix is not unique.")
         det = gs.linalg.det(mat)
+        if gs.any(gs.isclose(
+                singular_values[..., -2]
+                + gs.sign(det) * singular_values[..., -1], 0.)):
+            logging.warning("Alignment matrix is not unique.")
         if gs.any(det < 0):
             ones = gs.ones(self.m_ambient)
             reflection_vec = gs.concatenate(
@@ -333,7 +334,8 @@ class ProcrustesMetric(RiemannianMetric):
 
     def __init__(self, k_landmarks, m_ambient):
         super(ProcrustesMetric, self).__init__(
-            dim=m_ambient * (k_landmarks - 1) - 1)
+            dim=m_ambient * (k_landmarks - 1) - 1,
+            default_point_type='matrix')
 
         self.embedding_metric = MatricesMetric(k_landmarks, m_ambient)
         self.sphere_metric = Hypersphere(m_ambient * k_landmarks - 1).metric
@@ -478,7 +480,8 @@ class KendallShapeMetric(ProcrustesMetric):
         dist : array-like, shape=[...,]
             Distance.
         """
-        trace = gs.einsum('...ij,...ij->...', point_a, point_b)
+        aligned = self.preshape.align(point_a, point_b)
+        trace = gs.einsum('...ij,...ij->...', aligned, point_b)
         trace = gs.clip(trace, -1, 1)
         dist = gs.arccos(trace)
         return dist
