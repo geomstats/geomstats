@@ -310,7 +310,7 @@ class BetaMetric(RiemannianMetric):
             """Reformat the initial value problem geodesic ODE."""
             position, velocity = state[:2], state[2:]
             eq = self.geodesic_equation(velocity=velocity, position=position)
-            return gs.hstack([velocity, eq])
+            return gs.hstack(eq)
 
         times = gs.linspace(0, 1, n_steps + 1)
         exp = []
@@ -385,7 +385,7 @@ class BetaMetric(RiemannianMetric):
             position, velocity = state[:2].T, state[2:].T
             eq = self.geodesic_equation(
                 velocity=velocity, position=position)
-            return gs.vstack((velocity.T, eq.T))
+            return gs.transpose(gs.hstack(eq))
 
         def boundary_cond(
                 state_a, state_b, point_0_a, point_0_b, point_1_a, point_1_b):
