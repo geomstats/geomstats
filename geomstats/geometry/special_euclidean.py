@@ -127,9 +127,8 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
 
         belongs = gs.logical_and(belongs, all_but_last_zeros)
 
-        last_term = point[..., self.n:, self.n:]
-        belongs = gs.logical_and(
-            belongs, gs.all(last_term == 1, axis=(-2, -1)))
+        last_term = point[..., self.n, self.n]
+        belongs = gs.logical_and(belongs, gs.isclose(last_term, 1.))
 
         if point.ndim == 2:
             return gs.squeeze(belongs)

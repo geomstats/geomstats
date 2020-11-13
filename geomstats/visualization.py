@@ -12,6 +12,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 SE3_GROUP = SpecialEuclidean(n=3, point_type='vector')
+SE2_GROUP = SpecialEuclidean(n=2, point_type='matrix')
 SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
 S1 = Hypersphere(dim=1)
 S2 = Hypersphere(dim=2)
@@ -20,7 +21,7 @@ POINCARE_HALF_PLANE = PoincareHalfSpace(dim=2)
 
 AX_SCALE = 1.2
 
-IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
+IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'SE2_GROUP', 'S1', 'S2',
                'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk',
                'poincare_polydisk']
 
@@ -447,6 +448,54 @@ class KleinDisk:
         ax.scatter(points_x, points_y, **kwargs)
 
 
+class SpecialEuclidean2:
+    """Class used to plot points in the 2d special euclidean group."""
+    def __init__(self, points=None, point_type='matrix'):
+        self.points = []
+        self.point_type = point_type
+        if points is not None:
+            self.add_points(points)
+
+    @staticmethod
+    def set_ax(ax=None, x_lim=None, y_lim=None):
+        if ax is None:
+            ax = plt.subplot()
+        if x_lim is not None:
+            ax.set_xlim(x_lim)
+        if y_lim is not None:
+            ax.set_ylim(y_lim)
+        return ax
+
+    def add_points(self, points):
+        if not gs.all(SE2_GROUP.belongs(points)):
+            raise ValueError(
+                'Points do not belong to SE2.')
+        if self.point_type == 'vector':
+            points = SE2_GROUP.matrix_from_vector(points)
+        if not isinstance(points, list):
+            points = list(points)
+        self.points.extend(points)
+
+    def draw(self, ax, **kwargs):
+        points = gs.array(self.points)
+        translation = points[..., :2, 2]
+        min_y = min(translation[..., 1])
+        max_y = max(translation[..., 1])
+        max_x = max(translation[..., 0])
+        min_x = min(translation[..., 0])
+        y_lims = [min_y - 1., max_y + 1.]
+        x_lims = [min_x - 1., max_x + 1.]
+        ax = self.set_ax(ax, x_lims, y_lims)
+
+        frame_1 = points[:, :2, 0]
+        frame_2 = points[:, :2, 1]
+        ax.quiver(translation[:, 0], translation[:, 1], frame_1[:, 0],
+                  frame_1[:, 1], width=0.005, color='b')
+        ax.quiver(translation[:, 0], translation[:, 1], frame_2[:, 0],
+                  frame_2[:, 1], width=0.005, color='r')
+        ax.scatter(translation[:, 0], translation[:, 1], **kwargs)
+
+
 def convert_to_trihedron(point, space=None):
     """Transform a rigid point into a trihedron.
 
@@ -596,5 +645,11 @@ def plot(points, ax=None, space=None,
         ax = klein_disk.set_ax(ax=ax)
         klein_disk.add_points(points)
         klein_disk.draw(ax, **point_draw_kwargs)
+
+    elif space == 'SE2_GROUP':
+        plane = SpecialEuclidean2()
+        ax = plane.set_ax(ax=ax)
+        plane.add_points(points)
+        plane.draw(ax, **point_draw_kwargs)
 
     return ax
