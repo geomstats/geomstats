@@ -309,14 +309,14 @@ class PreShapeSpace(EmbeddedManifold):
         mat = gs.matmul(Matrices.transpose(point), base_point)
         left, singular_values, right = gs.linalg.svd(mat)
         det = gs.linalg.det(mat)
-        conditionning = (
-                (singular_values[..., -2]
-                 + gs.sign(det) * singular_values[..., -1]) /
-                singular_values[..., 0])
-        if gs.any(conditionning < 5e-4):
-            logging.warning(f'Singularity close, conditionning:'
-                            f' {conditionning}')
-        if gs.any(gs.isclose(  conditionning, 0.)):
+        conditioning = (
+            (singular_values[..., -2]
+             + gs.sign(det) * singular_values[..., -1]) /
+            singular_values[..., 0])
+        if gs.any(conditioning < 5e-4):
+            logging.warning(f'Singularity close, ill-conditioned matrix '
+                            f'encountered: {conditioning}')
+        if gs.any(gs.isclose(conditioning, 0.)):
             logging.warning("Alignment matrix is not unique.")
         if gs.any(det < 0):
             ones = gs.ones(self.m_ambient)
