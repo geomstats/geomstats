@@ -20,8 +20,8 @@ class PreShapeSpace(EmbeddedManifold):
     landmarks in :math: `R^m` (for the Frobenius norm). It is endowed with the
     spherical Procrustes metric d(x, y):= arccos(tr(xy^t)).
 
-    Points are represented by :math: `k \times m` matrices. Beware that this
-    not the usual convention from the literature.
+    Points are represented by :math: `k \times m` centred matrices as in
+    [Nava]_. Beware that this is not the usual convention from the literature.
 
     Parameters
     ----------
@@ -29,6 +29,14 @@ class PreShapeSpace(EmbeddedManifold):
         Number of landmarks
     m_ambient : int
         Number of coordinates of each landmark.
+
+    References
+    ----------
+    [Nava]  Nava-Yazdani, E., H.-C. Hege, T. J. Sullivan, and C. von Tycowicz.
+            “Geodesic Analysis in Kendall’s Shape Space with Epidemiological
+            Applications.”
+            Journal of Mathematical Imaging and Vision 62, no. 4 549–59.
+            https://doi.org/10.1007/s10851-020-00945-w.
     """
 
     def __init__(self, k_landmarks, m_ambient):
