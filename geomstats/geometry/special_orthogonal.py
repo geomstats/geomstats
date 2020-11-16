@@ -90,25 +90,6 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         rot_mat = cls.mul(point, inv_sqrt_mat)
         return rot_mat
 
-    def _is_in_lie_algebra(self, tangent_vec, atol=ATOL):
-        return self.lie_algebra.belongs(tangent_vec, atol=atol)
-
-    @classmethod
-    def _to_lie_algebra(cls, vec):
-        """Project vector onto skew-symmetric matrices.
-
-        Parameters
-        ----------
-        vec : array-like, shape=[..., n, n]
-            Vector.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        """
-        return cls.to_skew_symmetric(vec)
-
     def random_uniform(self, n_samples=1, tol=1e-6):
         """Sample in SO(n) from the uniform distribution.
 

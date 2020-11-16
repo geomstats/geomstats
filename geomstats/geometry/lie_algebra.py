@@ -8,6 +8,7 @@ in that base. This base will be provided in child classes
 """
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.matrices import Matrices
 from ._bch_coefficients import BCH_COEFFICIENTS
 
 
@@ -135,8 +136,37 @@ class MatrixLieAlgebra:
 
         return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)
 
+    def reshape_metric_matrix(self, metric_matrix):
+        """Reshape diagonal metric matrix to a symmetric matrix of size n.
+
+        Reshape a diagonal metric matrix of size `dim x dim` into a symmetric
+        matrix of size `n x n` where :math: `dim= n (n -1) / 2` is the
+        dimension of the space of skew symmetric matrices. The
+        non-diagonal coefficients in the output matrix correspond to the
+        basis matrices of this space. The diagonal is filled with ones.
+        This useful to compute a matrix inner product.
+
+        Parameters
+        ----------
+        metric_matrix : array-like, shape=[dim, dim]
+            Diagonal metric matrix.
+
+        Returns
+        -------
+        symmetric_matrix : array-like, shape=[n, n]
+            Symmetric matrix.
+        """
+        if Matrices.is_diagonal(metric_matrix):
+            metric_coeffs = gs.diagonal(metric_matrix)
+            metric_mat = gs.abs(
+                self.matrix_representation(metric_coeffs))
+            return metric_mat
+        raise ValueError('This is only possible for a diagonal matrix')
+
     def orthonormal_basis(self, metric_matrix):
         """Orthonormalize the basis with respect to the given metric.
+
+        This corresponds to a renormalization.
 
         Parameters
         ----------
@@ -145,7 +175,25 @@ class MatrixLieAlgebra:
 
         Returns
         -------
-        basis : array-like, shape=[dim, {dim, [n,n]}
+        basis : array-like, shape=[dim, n, n]
             Orthonormal basis.
         """
-        raise NotImplementedError("orthonormal basis not implemented")
+        metric_matrix = self.reshape_metric_matrix(metric_matrix) + gs.eye(
+            self.n)
+        return self.basis / gs.sqrt(2 * metric_matrix)
+
+    def projection(self, mat):
+        """Project a matrix to the Lie Algebra.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., n, n]
+            Matrix belonging to Lie Algebra.
+        """
+        raise NotImplementedError('Projection to Lie Algebra is not '
+                                  'implemented.')
