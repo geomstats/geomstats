@@ -8,6 +8,7 @@ import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import LieGroup
@@ -94,6 +95,9 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
             [translation_mask, gs.zeros((1, self.n + 1))], axis=0)
         self.translation_mask = translation_mask
         self.lie_algebra = SpecialEuclideanMatrixLieAlgebra(n=n)
+
+        self.left_canonical_metric = \
+            SpecialEuclideanMatrixCannonicalLeftMetric(group=self)
 
     def get_identity(self):
         """Return the identity matrix."""
@@ -867,6 +871,55 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         transform = term_id + term_1 + term_2
 
         return transform
+
+
+class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
+    def __init__(self, group):
+        super(SpecialEuclideanMatrixCannonicalLeftMetric, self).__init__(
+            group=group)
+        self.n = group.n
+
+    def exp(self, tangent_vec, base_point=None, **kwargs):
+        group = self.group
+        if base_point is None:
+            base_point = group.identity
+        inf_rotation = tangent_vec[..., :self.n, :self.n]
+        rotation = base_point[..., :self.n, :self.n]
+        rotation_exp = GeneralLinear.exp(inf_rotation, rotation)
+        translation_exp = (
+                tangent_vec[..., :self.n, self.n]
+                + base_point[..., :self.n, self.n])
+
+        exp = gs.concatenate(
+            (rotation_exp, translation_exp[..., None]), axis=-1)
+        last_line = gs.zeros(tangent_vec.shape)
+        last_line = gs.assignment(last_line, 1., (-1, -1), axis=0)[..., -1]
+        exp = gs.concatenate((exp, last_line[..., None, :]), axis=-2)
+        return exp
+
+    def log(self, point, base_point=None, **kwargs):
+        max_shape = point.shape if point.ndim == 3 else base_point.shape
+        rotation_bp = base_point[..., :self.n, :self.n]
+        rotation_p = point[..., :self.n, :self.n]
+        rotation_log = GeneralLinear.log(rotation_p, rotation_bp)
+        translation_log = (
+                point[..., :self.n, self.n] - base_point[..., :self.n, self.n])
+
+        log = gs.concatenate(
+            (rotation_log, translation_log[..., None]), axis=-1)
+        last_line = gs.zeros(max_shape)
+        last_line = gs.assignment(last_line, 0., (-1, -1), axis=0)[..., -1]
+        log = gs.concatenate((log, last_line[..., None, :]), axis=-2)
+
+        return log
+
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        point = self.exp(tangent_vec_a, base_point)
+        midpoint = self.exp(1. / 2. * tangent_vec_b, base_point)
+        next_point = self.exp(tangent_vec_b, base_point)
+        first_sym = self.exp(- self.log(point, midpoint), midpoint)
+        transported_vec = - self.log(first_sym, next_point)
+        return transported_vec, next_point
 
 
 class SpecialEuclidean(_SpecialEuclidean2Vectors,

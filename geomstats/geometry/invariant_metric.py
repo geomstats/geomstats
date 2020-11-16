@@ -495,7 +495,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         return translation_map(value_at_id)
 
-    def exp(self, tangent_vec, base_point, n_steps=10, step='rk4',
+    def exp(self, tangent_vec, base_point=None, n_steps=10, step='rk4',
             **kwargs):
         r"""Compute Riemannian exponential of tan. vector wrt to base point.
 
@@ -551,8 +551,13 @@ class _InvariantMetricMatrix(RiemannianMetric):
             acceleration = gs.einsum('i...,ijk->...jk', coefficients, basis)
             return velocity, acceleration
 
-        left_angular_vel = group.compose(
-            group.inverse(base_point), tangent_vec)
+        if base_point is None:
+            base_point = group.identity
+            left_angular_vel = tangent_vec
+        else:
+            left_angular_vel = group.compose(
+                group.inverse(base_point), tangent_vec)
+
         initial_state = (base_point, group.regularize(left_angular_vel))
         flow, _ = integrate(lie_acceleration, initial_state, n_steps=n_steps,
                             step=step, **kwargs)

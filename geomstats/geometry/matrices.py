@@ -22,12 +22,11 @@ class Matrices(Manifold):
     """
 
     def __init__(self, m, n):
-        super(Matrices, self).__init__(dim=m * n)
+        super(Matrices, self).__init__(dim=m * n, default_point_type='matrix')
         geomstats.errors.check_integer(n, 'n')
         geomstats.errors.check_integer(m, 'm')
         self.m = m
         self.n = n
-        self.default_point_type = 'matrix'
         self.metric = MatricesMetric(m, n)
 
     def belongs(self, point):

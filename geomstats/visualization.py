@@ -13,7 +13,7 @@ from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 SE3_GROUP = SpecialEuclidean(n=3, point_type='vector')
 SE2_GROUP = SpecialEuclidean(n=2, point_type='matrix')
-SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
+# SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
 S1 = Hypersphere(dim=1)
 S2 = Hypersphere(dim=2)
 H2 = Hyperboloid(dim=2)
@@ -479,21 +479,13 @@ class SpecialEuclidean2:
     def draw(self, ax, **kwargs):
         points = gs.array(self.points)
         translation = points[..., :2, 2]
-        min_y = min(translation[..., 1])
-        max_y = max(translation[..., 1])
-        max_x = max(translation[..., 0])
-        min_x = min(translation[..., 0])
-        y_lims = [min_y - 1., max_y + 1.]
-        x_lims = [min_x - 1., max_x + 1.]
-        ax = self.set_ax(ax, x_lims, y_lims)
-
         frame_1 = points[:, :2, 0]
         frame_2 = points[:, :2, 1]
         ax.quiver(translation[:, 0], translation[:, 1], frame_1[:, 0],
                   frame_1[:, 1], width=0.005, color='b')
         ax.quiver(translation[:, 0], translation[:, 1], frame_2[:, 0],
                   frame_2[:, 1], width=0.005, color='r')
-        ax.scatter(translation[:, 0], translation[:, 1], **kwargs)
+        ax.scatter(translation[:, 0], translation[:, 1], s=16, **kwargs)
 
 
 def convert_to_trihedron(point, space=None):
