@@ -201,9 +201,10 @@ class _InvariantMetricMatrix(RiemannianMetric):
                        Geonger International Publishing, 2020.
                        https://doi.org/10.1007/978-3-030-46040-2.
         """
-        return 1. / 2 * (GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
-                         - self.dual_adjoint(tangent_vec_a, tangent_vec_b)
-                         - self.dual_adjoint(tangent_vec_b, tangent_vec_a))
+        sign = 1. if self.left_or_right == 'left' else -1.
+        return sign / 2 * (GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
+                           - self.dual_adjoint(tangent_vec_a, tangent_vec_b)
+                           - self.dual_adjoint(tangent_vec_b, tangent_vec_a))
 
     def connection(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the Levi-Civita connection of invariant vector fields.
@@ -545,7 +546,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
         basis = self.lie_algebra.orthonormal_basis(self.metric_mat_at_identity)
 
         def lie_acceleration(point, vector):
-            velocity = self.group.compose(point, vector)
+            velocity = self.group.tangent_translation_map(
+                point, left_or_right=self.left_or_right)(vector)
             coefficients = gs.array([self.structure_constant(
                 vector, basis_vector, vector) for basis_vector in basis])
             acceleration = gs.einsum('i...,ijk->...jk', coefficients, basis)
@@ -555,9 +557,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
             base_point = group.identity
             left_angular_vel = tangent_vec
         else:
-            left_angular_vel = group.compose(
-                group.inverse(base_point), tangent_vec)
-
+            left_angular_vel = self.group.tangent_translation_map(
+                base_point,
+                left_or_right=self.left_or_right, inverse=True)(tangent_vec)
         initial_state = (base_point, group.regularize(left_angular_vel))
         flow, _ = integrate(lie_acceleration, initial_state, n_steps=n_steps,
                             step=step, **kwargs)
