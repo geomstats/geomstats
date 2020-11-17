@@ -12,7 +12,7 @@ from geomstats.geometry.manifold import Manifold
 TOLERANCE = 1e-5
 
 
-class Matrices(Manifold):
+class Matrices:
     """Class for the space of matrices (m, n).
 
     Parameters
@@ -21,8 +21,8 @@ class Matrices(Manifold):
         Integers representing the shapes of the matrices: m x n.
     """
 
-    def __init__(self, m, n):
-        super(Matrices, self).__init__(dim=m * n, default_point_type='matrix')
+    def __init__(self, m, n, **kwargs):
+        super(Matrices, self).__init__(**kwargs)
         geomstats.errors.check_integer(n, 'n')
         geomstats.errors.check_integer(m, 'm')
         self.m = m

@@ -12,8 +12,9 @@ import geomstats.visualization as visualization
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 SE2_GROUP = SpecialEuclidean(n=2, point_type='matrix')
-N_STEPS = 40
-METRIC = SE2_GROUP.left_canonical_metric
+N_STEPS = 20
+LEFT_METRIC = SE2_GROUP.left_canonical_metric
+RIGHT_METRIC = SE2_GROUP.right_canonical_metric
 SE2_VEC = SpecialEuclidean(n=2, point_type='vector')
 
 
@@ -24,10 +25,11 @@ def main():
         [0., - theta, 2.],
         [theta, 0., 2.],
         [0., 0., 0.]])
-    t = gs.linspace(-3., 3., N_STEPS + 1)
+    t = gs.linspace(-1., 1., N_STEPS + 1)
     tangent_vec = gs.einsum('t,ij->tij', t, initial_tangent_vec)
     group_geo_points = SE2_GROUP.exp(tangent_vec)
-    left_geo_points = METRIC.exp(tangent_vec)
+    left_geo_points = LEFT_METRIC.exp(tangent_vec)
+    right_geo_points_ = RIGHT_METRIC.exp(tangent_vec)
 
     initial_right_vec = gs.array([-theta, 2, 2])
     right_vec = gs.einsum('t, i-> ti', t, initial_right_vec)
@@ -43,8 +45,11 @@ def main():
     ax = visualization.plot(
         right_points, ax=ax, space='SE2_GROUP', color='yellow',
         label='Right Geodesics')
+    ax = visualization.plot(
+        right_geo_points_, ax=ax, space='SE2_GROUP', color='green',
+        label='Right Geodesics Integration')
     ax.set_aspect('equal')
-    plt.legend(loc='lower right')
+    plt.legend(loc='upper right')
     plt.show()
 
 

@@ -85,8 +85,8 @@ class LieGroup(Manifold):
     """
 
     def __init__(
-            self, dim, default_point_type='vector', lie_algebra=None,
-            **kwargs):
+            self, dim, default_point_type='vector',
+            lie_algebra=None, **kwargs):
         super(LieGroup, self).__init__(
             dim=dim, default_point_type=default_point_type, **kwargs)
 

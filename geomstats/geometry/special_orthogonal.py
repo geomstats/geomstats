@@ -30,8 +30,8 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
 
     def __init__(self, n):
         super(_SpecialOrthogonalMatrices, self).__init__(
-            dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n)
-        self.lie_algebra = SkewSymmetricMatrices(n=n)
+            dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n,
+            lie_algebra=SkewSymmetricMatrices(n=n))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.dim = int((n * (n - 1)) / 2)
 

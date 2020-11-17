@@ -137,13 +137,12 @@ class MatrixLieAlgebra:
         return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)
 
     def reshape_metric_matrix(self, metric_matrix):
-        """Reshape diagonal metric matrix to a symmetric matrix of size n.
+        """Reshape diagonal metric matrix to a matrix of size n.
 
-        Reshape a diagonal metric matrix of size `dim x dim` into a symmetric
-        matrix of size `n x n` where :math: `dim= n (n -1) / 2` is the
-        dimension of the space of skew symmetric matrices. The
-        non-diagonal coefficients in the output matrix correspond to the
-        basis matrices of this space. The diagonal is filled with ones.
+        Reshape a diagonal metric matrix of size `dim x dim` into a
+        matrix of size `n x n` where :math: `n` is the size of matrices
+        representing the Lie algebra. The coefficients in the output matrix
+        correspond to the basis matrices of this space.
         This useful to compute a matrix inner product.
 
         Parameters
@@ -166,7 +165,7 @@ class MatrixLieAlgebra:
     def orthonormal_basis(self, metric_matrix):
         """Orthonormalize the basis with respect to the given metric.
 
-        This corresponds to a renormalization.
+        This corresponds only to a renormalization.
 
         Parameters
         ----------
@@ -178,8 +177,11 @@ class MatrixLieAlgebra:
         basis : array-like, shape=[dim, n, n]
             Orthonormal basis.
         """
-        metric_matrix = self.reshape_metric_matrix(metric_matrix) + gs.eye(
-            self.n)
+        metric_matrix = self.reshape_metric_matrix(metric_matrix)
+
+        # Avoid division by 0
+        metric_matrix = gs.where(
+            metric_matrix == 0., gs.ones_like(metric_matrix), metric_matrix)
         return self.basis / gs.sqrt(2 * metric_matrix)
 
     def projection(self, mat):
