@@ -48,6 +48,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         point = self.dirichlet.random_uniform(self.n_samples)
         self.assertAllClose(gs.shape(point), (self.n_samples, self.dim))
 
+    @geomstats.tests.np_only
     def test_christoffels(self):
         """Test Christoffel symbols in dimension 2.
 
@@ -61,7 +62,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = beta.metric.christoffels(points)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_christoffels_vectorization(self):
         """Test Christoffel synbols.
 

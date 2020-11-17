@@ -113,7 +113,9 @@ class DirichletMetric(RiemannianMetric):
         super(DirichletMetric, self).__init__(dim=dim)
 
     def metric_matrix(self, base_point=None):
-        """Compute inner-product matrix of the Fisher information metric
+        """Compute the inner-product matrix.
+
+        Compute the inner-product matrix of the Fisher information metric
         at the tangent space at base point.
 
         Parameters
