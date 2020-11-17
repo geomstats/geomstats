@@ -193,6 +193,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         result = self.group.lie_algebra.belongs(vec)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_basis_representation_is_correctly_vectorized(self):
         for n in range(2, 5):
             algebra = SpecialEuclideanMatrixLieAlgebra(n)

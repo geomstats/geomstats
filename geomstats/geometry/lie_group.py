@@ -9,7 +9,7 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
 
 
-ATOL = 1e-8
+ATOL = 1e-6
 
 
 def loss(y_pred, y_true, group, metric=None):
@@ -438,7 +438,7 @@ class LieGroup(Manifold):
         atol : float
             Precision at which to evaluate if the rotation part is
             skew-symmetric.
-            Optional. default: 1e-8
+            Optional. default: 1e-6
 
         Returns
         -------
