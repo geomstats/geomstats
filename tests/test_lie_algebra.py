@@ -73,7 +73,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
                 self.assertAllClose(result, expected)
 
         metric_mat = from_vector_to_diagonal_matrix(
-            gs.arange(1, group.dim + 1))
+            gs.cast(gs.arange(1, group.dim + 1), gs.float32))
         metric = InvariantMetric(
             group=group,
             metric_mat_at_identity=metric_mat)
