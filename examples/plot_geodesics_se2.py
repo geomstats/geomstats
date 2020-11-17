@@ -1,8 +1,10 @@
 """Plot a geodesic of SE(2).
 
-SE2 is equipped with both the canonical Cartan-Shouten connection,
+SE2 is equipped with the canonical Cartan-Shouten connection,
 whose geodesics are the group geodesics, i.e. one parameter subgroups and the
-left invariant canonical metric.
+left and right invariant canonical metric. In all cases the rotation part is
+the same: it has constant angular velocity. The translation parts differe
+however.
 """
 
 import matplotlib.pyplot as plt
@@ -12,7 +14,7 @@ import geomstats.visualization as visualization
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 SE2_GROUP = SpecialEuclidean(n=2, point_type='matrix')
-N_STEPS = 20
+N_STEPS = 40
 LEFT_METRIC = SE2_GROUP.left_canonical_metric
 RIGHT_METRIC = SE2_GROUP.right_canonical_metric
 SE2_VEC = SpecialEuclidean(n=2, point_type='vector')
@@ -25,31 +27,31 @@ def main():
         [0., - theta, 2.],
         [theta, 0., 2.],
         [0., 0., 0.]])
-    t = gs.linspace(-1., 1., N_STEPS + 1)
+    t = gs.linspace(-2., 2., N_STEPS + 1)
     tangent_vec = gs.einsum('t,ij->tij', t, initial_tangent_vec)
     group_geo_points = SE2_GROUP.exp(tangent_vec)
     left_geo_points = LEFT_METRIC.exp(tangent_vec)
     right_geo_points_ = RIGHT_METRIC.exp(tangent_vec)
 
-    initial_right_vec = gs.array([-theta, 2, 2])
+    initial_right_vec = gs.array([theta, 2, 2])
     right_vec = gs.einsum('t, i-> ti', t, initial_right_vec)
     right_geo_points = SE2_VEC.right_canonical_metric.exp(right_vec)
     right_points = SE2_VEC.matrix_from_vector(right_geo_points)
 
     ax = visualization.plot(
         group_geo_points, space='SE2_GROUP', color='black',
-        label='Group Geodesics')
+        label='Group')
     ax = visualization.plot(
-        left_geo_points, ax=ax, space='SE2_GROUP', color='green',
-        label='Left Geodesics')
+        left_geo_points, ax=ax, space='SE2_GROUP', color='yellow',
+        label='Left')
     ax = visualization.plot(
-        right_points, ax=ax, space='SE2_GROUP', color='yellow',
-        label='Right Geodesics')
+        right_points, ax=ax, space='SE2_GROUP', color='magenta',
+        label='Right')
     ax = visualization.plot(
         right_geo_points_, ax=ax, space='SE2_GROUP', color='green',
-        label='Right Geodesics Integration')
+        label='Right Integration')
     ax.set_aspect('equal')
-    plt.legend(loc='upper right')
+    plt.legend(loc='best')
     plt.show()
 
 

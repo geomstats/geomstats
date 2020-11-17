@@ -178,11 +178,10 @@ class MatrixLieAlgebra:
             Orthonormal basis.
         """
         metric_matrix = self.reshape_metric_matrix(metric_matrix)
+        norms = gs.sum(
+            metric_matrix * self.basis * self.basis, (-2, -1))
 
-        # Avoid division by 0
-        metric_matrix = gs.where(
-            metric_matrix == 0., gs.ones_like(metric_matrix), metric_matrix)
-        return self.basis / gs.sqrt(2 * metric_matrix)
+        return gs.einsum('i, ikl->ikl', 1. / gs.sqrt(norms), self.basis)
 
     def projection(self, mat):
         """Project a matrix to the Lie Algebra.

@@ -23,6 +23,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
         n = 3
         group = SpecialEuclidean(n=n, point_type='vector')
+        matrix_se3 = SpecialEuclidean(n=n)
         matrix_so3 = SpecialOrthogonal(n=n)
         vector_so3 = SpecialOrthogonal(n=n, point_type='vector')
 
@@ -38,8 +39,6 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             metric_mat_at_identity=diag_mat_at_identity,
             left_or_right='right')
 
-        # General left and right invariant metrics
-        # FIXME (nina): This is valid only for bi-invariant metrics
         sym_mat_at_identity = gs.eye(group.dim)
 
         left_metric = InvariantMetric(
@@ -69,6 +68,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
         self.group = group
         self.matrix_so3 = matrix_so3
+        self.matrix_se3 = matrix_se3
 
         self.left_diag_metric = left_diag_metric
         self.right_diag_metric = right_diag_metric
@@ -735,3 +735,22 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             exp, identity,
             n_steps=15, step='rk4', verbose=False)
         self.assertAllClose(tangent_vec, result, atol=1e-5)
+
+    def test_integrated_se3_exp_at_id(self):
+        group = self.matrix_se3
+        lie_algebra = group.lie_algebra
+        metric = InvariantMetric(group=group)
+        canonical_metric = group.left_canonical_metric
+        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+
+        vector = gs.random.rand(len(basis))
+        tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
+        identity = self.matrix_se3.identity
+        result = metric.exp(
+            tangent_vec, identity, n_steps=100, step='rk4')
+        expected = canonical_metric.exp(tangent_vec, identity)
+        self.assertAllClose(expected, result)
+
+        result = metric.exp(
+            tangent_vec, identity, n_steps=100, step='rk2')
+        self.assertAllClose(expected, result, atol=1e-5)
