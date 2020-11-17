@@ -2,6 +2,7 @@
 
 from numpy import diag
 from scipy.integrate import odeint
+from scipy.integrate import solve_bvp
 from scipy.stats import dirichlet
 
 import geomstats.backend as gs
@@ -232,3 +233,85 @@ class DirichletMetric(RiemannianMetric):
                 ivp, initial_state, times, (), rtol=1e-6)
             exp.append(geodesic[-1, :self.dim])
         return exp[0] if len(base_point) == 1 else gs.stack(exp)
+
+    def log(self, point, base_point, n_steps=N_STEPS):
+        """Compute logarithm map associated to the Fisher information metric.
+
+        Solve the boundary value problem associated to the geodesic ordinary
+        differential equation (ODE) using the Christoffel symbols.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+        n_steps : int
+            Number of steps for integration.
+            Optional, default: 100.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Initial velocity of the geodesic starting at base_point and
+            reaching point at time 1.
+        """
+        stop_time = 1.
+        t = gs.linspace(0, stop_time, n_steps)
+        point = gs.to_ndarray(point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        n_points = point.shape[0]
+        n_base_points = base_point.shape[0]
+        if n_base_points > n_points:
+            if n_points > 1:
+                raise ValueError('For several base points, specify either '
+                                 'one or the same number of points.')
+            point = gs.tile(point, (n_base_points, 1))
+        elif n_points > n_base_points:
+            if n_base_points > 1:
+                raise ValueError('For several points, specify either '
+                                 'one or the same number of base points.')
+            base_point = gs.tile(base_point, (n_points, 1))
+
+        def initialize(end_point, start_point):
+            lin_init = gs.zeros([2 * self.dim, n_steps])
+            lin_init[:self.dim, :] = gs.transpose(
+                gs.linspace(start_point, end_point, n_steps))
+            lin_init[self.dim:, :-1] = (
+                lin_init[:self.dim, 1:] - lin_init[:self.dim, :-1]) * n_steps
+            lin_init[self.dim:, -1] = lin_init[self.dim:, -2]
+            return lin_init
+
+        def bvp(_, state):
+            """Reformat the boundary value problem geodesic ODE.
+
+            Parameters
+            ----------
+            state :  array-like, shape[4,]
+                Vector of the state variables: y = [a,b,u,v]
+            _ :  unused
+                Any (time).
+            """
+            position, velocity = state[:self.dim].T, state[self.dim:].T
+            eq = self.geodesic_equation(
+                velocity=velocity, position=position)
+            return gs.transpose(gs.hstack(eq))
+
+        def boundary_cond(
+                state_0, state_1, point_0, point_1):
+            return gs.hstack((state_0[:self.dim] - point_0,
+                              state_1[:self.dim] - point_1))
+
+        log = []
+        for bp, pt in zip(base_point, point):
+            geodesic_init = initialize(pt, bp)
+
+            def bc(y0, y1, bp=bp, pt=pt):
+                return boundary_cond(y0, y1, bp, pt)
+
+            solution = solve_bvp(bvp, bc, t, geodesic_init)
+            geodesic = solution.sol(t)
+            geodesic = geodesic[:self.dim, :]
+            log.append(n_steps * (geodesic[:, 1] - geodesic[:, 0]))
+
+        return log[0] if len(base_point) == 1 else gs.stack(log)

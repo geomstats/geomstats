@@ -90,6 +90,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         xk = xj in the direction of that plane stays in the plane.
         """
         n_samples = 2
+        gs.random.seed(123)
         points = self.dirichlet.random_uniform(n_samples)
         vectors = self.dirichlet.random_uniform(n_samples)
         initial_vectors = gs.array(
@@ -106,3 +107,52 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         result = gs.isclose(result_points[:, 0], result_points[:, 1]).all()
         expected = gs.array([True] * n_samples)
         self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_only
+    def test_log_and_exp(self):
+        """Test Log and Exp.
+
+        Test that the Riemannian exponential
+        and the Riemannian logarithm are inverse.
+
+        Expect their composition to give the identity function.
+        """
+        n_samples = self.n_samples
+        gs.random.seed(123)
+        base_point = self.dirichlet.random_uniform(n_samples)
+        point = self.dirichlet.random_uniform(n_samples)
+        log = self.metric.log(point, base_point, n_steps=500)
+        expected = point
+        result = self.metric.exp(tangent_vec=log, base_point=base_point)
+        self.assertAllClose(result, expected, rtol=1e-2)
+
+    @geomstats.tests.np_only
+    def test_exp_vectorization(self):
+        """Test vectorization of Exp.
+
+        Test the case with one initial point and several tangent vectors.
+        """
+        point = self.dirichlet.random_uniform()
+        tangent_vec = gs.array([1., 0.5, 2.])
+        n_tangent_vecs = 10
+        t = gs.linspace(0., 1., n_tangent_vecs)
+        tangent_vecs = gs.einsum('i,...k->...ik', t, tangent_vec)
+        end_points = self.metric.exp(
+            tangent_vec=tangent_vecs, base_point=point)
+        result = end_points.shape
+        expected = (n_tangent_vecs, self.dim)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_log_vectorization(self):
+        """Test vectorization of Log.
+
+        Test the case with several base points and one end point.
+        """
+        base_points = self.dirichlet.random_uniform(self.n_samples)
+        point = self.dirichlet.random_uniform()
+        tangent_vecs = self.metric.log(
+            base_point=base_points, point=point)
+        result = tangent_vecs.shape
+        expected = (self.n_samples, self.dim)
+        self.assertAllClose(result, expected)
