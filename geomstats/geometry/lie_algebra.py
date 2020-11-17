@@ -178,9 +178,11 @@ class MatrixLieAlgebra:
         basis : array-like, shape=[dim, n, n]
             Orthonormal basis.
         """
-        metric_matrix = self.reshape_metric_matrix(metric_matrix) + gs.eye(
-            self.n)
-        return self.basis / gs.sqrt(2 * metric_matrix)
+        metric_matrix = self.reshape_metric_matrix(metric_matrix)
+        norms = gs.sum(
+            metric_matrix * self.basis * self.basis, (-2, -1))
+
+        return gs.einsum('i, ikl->ikl', 1. / gs.sqrt(norms), self.basis)
 
     def projection(self, mat):
         """Project a matrix to the Lie Algebra.

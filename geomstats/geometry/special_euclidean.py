@@ -1006,22 +1006,3 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
             matrix_representation[:, :self.n, :self.n])
         translation_part = matrix_representation[:, :-1, self.n]
         return gs.concatenate([skew_part, translation_part], axis=-1)
-
-    def orthonormal_basis(self, metric_matrix):
-        """Orthonormalize the basis with respect to the given metric.
-
-        This corresponds to a renormalization.
-
-        Parameters
-        ----------
-        metric_matrix : array-like, shape=[dim, dim]
-            Matrix of a metric.
-
-        Returns
-        -------
-        basis : array-like, shape=[dim, n, n]
-            Orthonormal basis.
-        """
-        metric_matrix = self.reshape_metric_matrix(metric_matrix) + gs.eye(
-            self.n + 1)
-        return self.basis / gs.sqrt(2 * metric_matrix)

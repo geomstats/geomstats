@@ -5,6 +5,7 @@ import geomstats.tests
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
@@ -59,3 +60,26 @@ class TestLieAlgebra(geomstats.tests.TestCase):
 
         result = metric.inner_product_at_identity(basis[1], basis[1])
         self.assertAllClose(result, 1.)
+
+    def test_orthonormal_basis_se3(self):
+        group = SpecialEuclidean(3)
+        lie_algebra = group.lie_algebra
+        metric = InvariantMetric(group=group)
+        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        for i, x in enumerate(basis):
+            for y in basis[i:]:
+                result = metric.inner_product_at_identity(x, y)
+                expected = 0. if gs.any(x != y) else 1.
+                self.assertAllClose(result, expected)
+
+        metric_mat = from_vector_to_diagonal_matrix(
+            gs.arange(1, group.dim + 1))
+        metric = InvariantMetric(
+            group=group,
+            metric_mat_at_identity=metric_mat)
+        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        for i, x in enumerate(basis):
+            for y in basis[i:]:
+                result = metric.inner_product_at_identity(x, y)
+                expected = 0. if gs.any(x != y) else 1.
+                self.assertAllClose(result, expected)
