@@ -544,7 +544,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         """
         group = self.group
         basis = self.lie_algebra.orthonormal_basis(self.metric_mat_at_identity)
-        sign = 1. if self.left_or_right == 'left' else 0.
+        sign = 1. if self.left_or_right == 'left' else 1.
 
         def lie_acceleration(point, vector):
             velocity = self.group.tangent_translation_map(
