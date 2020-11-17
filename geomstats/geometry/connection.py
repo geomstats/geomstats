@@ -49,7 +49,7 @@ class Connection:
         Returns
         -------
         gamma : array-like, shape=[..., dim, dim, dim]
-            Christoffel symbols, with the covariant index on
+            Christoffel symbols, with the contravariant index on
             the first dimension.
         """
         raise NotImplementedError(

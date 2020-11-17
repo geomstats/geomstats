@@ -24,10 +24,9 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         Test that the random uniform method samples
         on the beta distribution space.
         """
-        n_samples = self.n_samples
-        point = self.beta.random_uniform(n_samples)
+        point = self.beta.random_uniform()
         result = self.beta.belongs(point)
-        expected = gs.array([True] * n_samples)
+        expected = True
         self.assertAllClose(expected, result)
 
     def test_random_uniform_and_belongs_vectorization(self):
@@ -36,9 +35,10 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         Test that the random uniform method samples
         on the beta distribution space.
         """
-        point = self.beta.random_uniform()
+        n_samples = self.n_samples
+        point = self.beta.random_uniform(n_samples)
         result = self.beta.belongs(point)
-        expected = True
+        expected = gs.array([True] * n_samples)
         self.assertAllClose(expected, result)
 
     def test_random_uniform(self):
@@ -153,8 +153,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
     def test_christoffels_vectorization(self):
         """Test Christoffel synbols.
 
-        Check vectorization of Christoffel symbols in
-        spherical coordinates on the 2-sphere.
+        Check vectorization of Christoffel symbols.
         """
         points = self.beta.random_uniform(self.n_samples)
         christoffel = self.metric.christoffels(points)
