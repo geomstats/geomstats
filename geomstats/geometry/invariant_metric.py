@@ -549,7 +549,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         sign = 1. if self.left_or_right == 'left' else 1.
 
         def lie_acceleration(point, vector):
-            """Define the right-hand side of the geodesic equation."""
+            """Compute the right-hand side of the geodesic equation."""
             velocity = self.group.tangent_translation_map(
                 point, left_or_right=self.left_or_right)(vector)
             coefficients = gs.array([self.structure_constant(
