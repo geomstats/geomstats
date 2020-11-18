@@ -508,7 +508,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
                         \dot{X}(t) = ad^*_{X(t)}X(t)
 
         where :math: `ad^*` is the dual adjoint map with respect to the
-        metric. The exponential map is approximated by numerical integration
+        metric. For a right-invariant metric, :math: `dR` is used instead of
+        :math: `dL` and :math: `ad^*` is replaced by :math: `-ad^*`. The
+        exponential map is approximated by numerical integration
         of this equation, with initial conditions :math: `\dot{\gamma}(0)`
         given by the argument `tangent_vec` and :math: `\gamma(0)` by
         `base_point`. A Runge-Kutta scheme of order 2 or 4 is used for
@@ -547,6 +549,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         sign = 1. if self.left_or_right == 'left' else 1.
 
         def lie_acceleration(point, vector):
+            """Define the right-hand side of the geodesic equation"""
             velocity = self.group.tangent_translation_map(
                 point, left_or_right=self.left_or_right)(vector)
             coefficients = gs.array([self.structure_constant(
