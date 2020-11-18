@@ -18,7 +18,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.shape_metric = KendallShapeMetric(
             self.k_landmarks, self.m_ambient)
 
-    def test_bleongs(self):
+    def test_belongs(self):
         point = gs.random.rand(self.m_ambient - 1, self.k_landmarks)
         result = self.space.belongs(point)
         self.assertFalse(result)
