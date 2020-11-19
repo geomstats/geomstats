@@ -48,6 +48,31 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         point = self.dirichlet.random_uniform(self.n_samples)
         self.assertAllClose(gs.shape(point), (self.n_samples, self.dim))
 
+    def test_metric_matrix_vectorization(self):
+        """Test metric matrix vectorization..
+
+        Check vectorization of the metric matrix.
+        """
+        points = self.dirichlet.random_uniform(self.n_samples)
+        mat = self.dirichlet.metric.metric_matrix(points)
+        result = mat.shape
+        expected = (self.n_samples, self.dim, self.dim)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_metric_matrix_dim2(self):
+        """Test metric matrix in dimension 2.
+
+        Check that it coincides in dimension 2 with metric matrix of
+        corresponding beta distributions.
+        """
+        dirichlet2 = DirichletDistributions(2)
+        beta = BetaDistributions()
+        points = dirichlet2.random_uniform(self.n_samples)
+        result = dirichlet2.metric.metric_matrix(points)
+        expected = beta.metric.metric_matrix(points)
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.np_only
     def test_christoffels(self):
         """Test Christoffel symbols in dimension 2.

@@ -1,6 +1,5 @@
 """Statistical Manifold of Dirichlet distributions with the Fisher metric."""
 
-from numpy import diag
 from scipy.integrate import odeint
 from scipy.integrate import solve_bvp
 from scipy.stats import dirichlet
@@ -132,11 +131,17 @@ class DirichletMetric(RiemannianMetric):
         if base_point is None:
             raise ValueError('A base point must be given to compute the '
                              'metric matrix')
-        ones_mat = gs.ones((self.dim, self.dim))
-        sum_param = gs.sum(base_point, -1)
-        mat = diag(gs.polygamma(1, base_point)) \
-            - gs.polygamma(1, sum_param) * ones_mat
-        return mat
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        n_points = base_point.shape[0]
+
+        mat_ones = gs.ones((n_points, self.dim, self.dim))
+        poly_sum = gs.polygamma(1, gs.sum(base_point, -1))
+        mat_diag = gs.zeros((n_points, self.dim, self.dim))
+        diag = gs.einsum('ijj->ij', mat_diag)
+        diag[:] = gs.polygamma(1, base_point)
+
+        mat = mat_diag - gs.einsum('i,ijk->ijk', poly_sum, mat_ones)
+        return gs.squeeze(mat)
 
     def christoffels(self, base_point):
         """Compute the Christoffel symbols.
