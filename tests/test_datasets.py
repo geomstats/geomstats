@@ -129,6 +129,7 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertTrue(good_col_name)
 
     def test_load_optical_nerves(self):
+        """Test that optical nerves belong to space of landmarks."""
         data, labels = data_utils.load_optical_nerves()
         result = data.shape
         n_monkeys = 22
