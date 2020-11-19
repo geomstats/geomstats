@@ -58,6 +58,34 @@ class _InvariantMetricMatrix(RiemannianMetric):
         self.metric_mat_at_identity = metric_mat_at_identity
         self.left_or_right = left_or_right
 
+    def reshape_metric_matrix(self):
+        """Reshape diagonal metric matrix to a symmetric matrix of size n.
+
+        Reshape a diagonal metric matrix of size `dim x dim` into a symmetric
+        matrix of size `n x n` where :math: `dim= n (n -1) / 2` is the
+        dimension of the space of skew symmetric matrices. The
+        non-diagonal coefficients in the output matrix correspond to the
+        basis matrices of this space. The diagonal is filled with ones.
+        This useful to compute a matrix inner product.
+
+        Parameters
+        ----------
+        metric_matrix : array-like, shape=[dim, dim]
+            Diagonal metric matrix.
+
+        Returns
+        -------
+        symmetric_matrix : array-like, shape=[n, n]
+            Symmetric matrix.
+        """
+        if Matrices.is_diagonal(self.metric_mat_at_identity):
+            metric_coeffs = gs.diagonal(self.metric_mat_at_identity)
+            metric_mat = gs.abs(
+                self.lie_algebra.matrix_representation(metric_coeffs))
+            return metric_mat
+        raise ValueError('This is only possible for a diagonal matrix')
+    reshaped_metric_matrix = property(reshape_metric_matrix)
+
     def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
         """Compute inner product at tangent space at identity.
 
@@ -77,8 +105,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         metric_mat = self.metric_mat_at_identity
         if (Matrices.is_diagonal(metric_mat)
                 and self.lie_algebra is not None):
-            aux_prod *= self.lie_algebra.reshape_metric_matrix(
-                metric_mat)
+            aux_prod *= self.reshaped_metric_matrix
         inner_prod = gs.sum(aux_prod, axis=(-2, -1))
         return inner_prod
 
@@ -164,8 +191,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                        Geonger International Publishing, 2020.
                        https://doi.org/10.1007/978-3-030-46040-2.
         """
-        basis = self.lie_algebra.orthonormal_basis(
-            self.metric_mat_at_identity)
+        basis = self.orthonormal_basis(self.lie_algebra.basis)
         return - gs.einsum(
             'i...,ijk->...jk',
             gs.array([
@@ -542,7 +568,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                      480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
         group = self.group
-        basis = self.lie_algebra.orthonormal_basis(self.metric_mat_at_identity)
+        basis = self.orthonormal_basis(self.lie_algebra.basis)
 
         def lie_acceleration(point, vector):
             velocity = self.group.compose(point, vector)
