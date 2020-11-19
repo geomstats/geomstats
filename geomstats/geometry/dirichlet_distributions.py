@@ -105,6 +105,43 @@ class DirichletDistributions(EmbeddedManifold):
                 dirichlet.rvs(point[i, :], size=n_samples)))
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
+    def point_to_pdf(self, point):
+        """Compute pdf associated to point.
+
+        Compute the probability density function of the dirichlet
+        distribution with parameters provided by point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point representing a beta distribution.
+
+        Returns
+        -------
+        pdf : function
+            Probability density function of the beta distribution with
+            parameters provided by point.
+        """
+        geomstats.errors.check_belongs(point, self)
+
+        def pdf(x):
+            """Generate parameterized function for normal pdf.
+
+            Parameters
+            ----------
+            x : array-like, shape=[n_points,]
+                Points at which to compute the probability density function.
+            """
+            x = gs.array(x, gs.float32)
+            x = gs.squeeze(x)
+
+            pdf_at_x = [
+                gs.array(dirichlet.pdf(x, alpha)) for alpha in point]
+            pdf_at_x = gs.stack(pdf_at_x, axis=-1)
+
+            return pdf_at_x
+        return pdf
+
 
 class DirichletMetric(RiemannianMetric):
     """Class for the Fisher information metric on Dirichlet distributions."""

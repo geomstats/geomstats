@@ -2,6 +2,8 @@
 
 import warnings
 
+import scipy.stats
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.beta_distributions import BetaDistributions
@@ -43,10 +45,22 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
     def test_random_uniform(self):
         """Test random_uniform.
 
-        Test that the random uniform method samples points of the right shape
+        Test that the random uniform method samples points of the right shape.
         """
         point = self.dirichlet.random_uniform(self.n_samples)
         self.assertAllClose(gs.shape(point), (self.n_samples, self.dim))
+
+    def test_point_to_pdf(self):
+        """Test point_to_pdf.
+
+        Check vectorization of point_to_pdf.
+        """
+        points = self.dirichlet.random_uniform(self.n_samples)
+        pdfs = self.dirichlet.point_to_pdf(points)
+        alpha = gs.ones(self.dim)
+        random_point_in_simplex = scipy.stats.dirichlet.rvs(alpha)
+        pdfs_at_point = pdfs(random_point_in_simplex)
+        self.assertAllClose(gs.shape(pdfs_at_point), (self.n_samples))
 
     @geomstats.tests.np_and_pytorch_only
     def test_metric_matrix_vectorization(self):
