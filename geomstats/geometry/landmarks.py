@@ -17,17 +17,17 @@ class Landmarks(ProductManifold):
     ----------
     ambient_manifold : Manifold
         Manifold to which landmarks belong.
-    n_landmarks : int
+    k_landmarks : int
         Number of landmarks.
     """
 
-    def __init__(self, ambient_manifold, n_landmarks):
+    def __init__(self, ambient_manifold, k_landmarks):
         super(Landmarks, self).__init__(
-            manifolds=[ambient_manifold] * n_landmarks,
+            manifolds=[ambient_manifold] * k_landmarks,
             default_point_type='matrix')
         self.ambient_manifold = ambient_manifold
-        self.metric = L2Metric(ambient_manifold, n_landmarks)
-        self.n_landmarks = n_landmarks
+        self.metric = L2Metric(ambient_manifold, k_landmarks)
+        self.k_landmarks = k_landmarks
 
 
 class L2Metric(ProductRiemannianMetric):

@@ -323,7 +323,7 @@ class Connection:
 
     def ladder_parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_rungs=1,
-            scheme='pole', alpha=2, **single_step_kwargs):
+            scheme='pole', alpha=1, **single_step_kwargs):
         """Approximate parallel transport using the pole ladder scheme.
 
         Approximate Parallel transport using either the pole ladder or the

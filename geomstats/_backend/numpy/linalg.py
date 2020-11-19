@@ -98,6 +98,12 @@ def powerm(x, power):
     return result
 
 
+def solve_sylvester(a, b, q):
+    return np.vectorize(
+        scipy.linalg.solve_sylvester,
+        signature='(m,m),(n,n),(m,n)->(m,n)')(a, b, q)
+
+
 def sqrtm(x):
     return np.vectorize(
         scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)

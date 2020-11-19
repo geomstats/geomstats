@@ -227,9 +227,10 @@ class _InvariantMetricMatrix(RiemannianMetric):
                        Geonger International Publishing, 2020.
                        https://doi.org/10.1007/978-3-030-46040-2.
         """
-        return 1. / 2 * (GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
-                         - self.dual_adjoint(tangent_vec_a, tangent_vec_b)
-                         - self.dual_adjoint(tangent_vec_b, tangent_vec_a))
+        sign = 1. if self.left_or_right == 'left' else -1.
+        return sign / 2 * (GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
+                           - self.dual_adjoint(tangent_vec_a, tangent_vec_b)
+                           - self.dual_adjoint(tangent_vec_b, tangent_vec_a))
 
     def connection(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the Levi-Civita connection of invariant vector fields.
@@ -533,7 +534,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
                         \dot{X}(t) = ad^*_{X(t)}X(t)
 
         where :math: `ad^*` is the dual adjoint map with respect to the
-        metric. The exponential map is approximated by numerical integration
+        metric. For a right-invariant metric, :math: `dR` is used instead of
+        :math: `dL` and :math: `ad^*` is replaced by :math: `-ad^*`. The
+        exponential map is approximated by numerical integration
         of this equation, with initial conditions :math: `\dot{\gamma}(0)`
         given by the argument `tangent_vec` and :math: `\gamma(0)` by
         `base_point`. A Runge-Kutta scheme of order 2 or 4 is used for
@@ -569,16 +572,20 @@ class _InvariantMetricMatrix(RiemannianMetric):
         """
         group = self.group
         basis = self.orthonormal_basis(self.lie_algebra.basis)
+        sign = 1. if self.left_or_right == 'left' else 1.
 
         def lie_acceleration(point, vector):
-            velocity = self.group.compose(point, vector)
+            """Compute the right-hand side of the geodesic equation."""
+            velocity = self.group.tangent_translation_map(
+                point, left_or_right=self.left_or_right)(vector)
             coefficients = gs.array([self.structure_constant(
                 vector, basis_vector, vector) for basis_vector in basis])
             acceleration = gs.einsum('i...,ijk->...jk', coefficients, basis)
-            return velocity, acceleration
+            return velocity, sign * acceleration
 
-        left_angular_vel = group.compose(
-            group.inverse(base_point), tangent_vec)
+        left_angular_vel = self.group.tangent_translation_map(
+            base_point,
+            left_or_right=self.left_or_right, inverse=True)(tangent_vec)
         initial_state = (base_point, group.regularize(left_angular_vel))
         flow, _ = integrate(lie_acceleration, initial_state, n_steps=n_steps,
                             step=step, **kwargs)
