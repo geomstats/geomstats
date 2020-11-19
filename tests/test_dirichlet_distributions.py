@@ -48,6 +48,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         point = self.dirichlet.random_uniform(self.n_samples)
         self.assertAllClose(gs.shape(point), (self.n_samples, self.dim))
 
+    @geomstats.tests.np_and_pytorch_only
     def test_metric_matrix_vectorization(self):
         """Test metric matrix vectorization..
 
@@ -59,7 +60,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = (self.n_samples, self.dim, self.dim)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_pytorch_only
     def test_metric_matrix_dim2(self):
         """Test metric matrix in dimension 2.
 
