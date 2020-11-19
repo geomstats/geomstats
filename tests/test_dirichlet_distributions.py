@@ -48,6 +48,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         point = self.dirichlet.random_uniform(self.n_samples)
         self.assertAllClose(gs.shape(point), (self.n_samples, self.dim))
 
+    @geomstats.tests.np_only
     def test_point_to_pdf(self):
         """Test point_to_pdf.
 

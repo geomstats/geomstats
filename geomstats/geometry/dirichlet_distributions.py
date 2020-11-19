@@ -218,9 +218,10 @@ class DirichletMetric(RiemannianMetric):
                 / gs.polygamma(1, param_k)
             return 1 / 2 * mat_k
 
-        christoffels = gs.zeros((n_points, self.dim, self.dim, self.dim))
+        christoffels = []
         for ind_k in range(self.dim):
-            christoffels[:, ind_k, :, :] = coefficients(ind_k)
+            christoffels.append(coefficients(ind_k))
+        christoffels = gs.stack(christoffels, 1)
 
         return gs.squeeze(christoffels)
 
