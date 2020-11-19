@@ -2,8 +2,6 @@
 
 import warnings
 
-import scipy.stats
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.beta_distributions import BetaDistributions
@@ -58,7 +56,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         points = self.dirichlet.random_uniform(self.n_samples)
         pdfs = self.dirichlet.point_to_pdf(points)
         alpha = gs.ones(self.dim)
-        random_point_in_simplex = scipy.stats.dirichlet.rvs(alpha)
+        random_point_in_simplex = self.dirichlet.sample(alpha)
         pdfs_at_point = pdfs(random_point_in_simplex)
         self.assertAllClose(gs.shape(pdfs_at_point), (self.n_samples))
 
