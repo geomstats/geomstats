@@ -6,6 +6,7 @@ from scipy.stats import dirichlet
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -15,9 +16,10 @@ EPSILON = 1e-6
 
 
 class DirichletDistributions(EmbeddedManifold):
-    """Class for the manifold of beta distributions.
+    """Class for the manifold of Dirichlet distributions.
 
-    This is :math: Dirichlet = `(R_+^*)^n`.
+    This is :math: Dirichlet = `(R_+^*)^n`, the positive quadrant of the
+    n-dimensional Euclidean space.
 
     Attributes
     ----------
@@ -36,8 +38,8 @@ class DirichletDistributions(EmbeddedManifold):
     def belongs(self, point):
         """Evaluate if a point belongs to the manifold of Dirichlet distributions.
 
-        The statistical manifold of Dirichlet distributions is the upper right
-        quadrant of the Euclidean space.
+        Check that point belongs to the positive quadrant of the Euclidean
+        space.
 
         Parameters
         ----------
@@ -47,7 +49,8 @@ class DirichletDistributions(EmbeddedManifold):
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Boolean indicating whether point represents a beta distribution.
+            Boolean indicating whether point represents a Dirichlet
+            distribution.
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
@@ -173,9 +176,8 @@ class DirichletMetric(RiemannianMetric):
 
         mat_ones = gs.ones((n_points, self.dim, self.dim))
         poly_sum = gs.polygamma(1, gs.sum(base_point, -1))
-        mat_diag = gs.zeros((n_points, self.dim, self.dim))
-        diag = gs.einsum('ijj->ij', mat_diag)
-        diag[:] = gs.polygamma(1, base_point)
+        mat_diag = from_vector_to_diagonal_matrix(
+            gs.polygamma(1, base_point))
 
         mat = mat_diag - gs.einsum('i,ijk->ijk', poly_sum, mat_ones)
         return gs.squeeze(mat)
@@ -201,19 +203,17 @@ class DirichletMetric(RiemannianMetric):
         def coefficients(ind_k):
             param_k = base_point[..., ind_k]
             param_sum = gs.sum(base_point, -1)
-            C1 = 1 / gs.polygamma(1, param_k) / (
+            c1 = 1 / gs.polygamma(1, param_k) / (
                 1 / gs.polygamma(1, param_sum)
                 - gs.sum(1 / gs.polygamma(1, base_point), -1))
-            C2 = - C1 * gs.polygamma(2, param_sum) / gs.polygamma(1, param_sum)
+            c2 = - c1 * gs.polygamma(2, param_sum) / gs.polygamma(1, param_sum)
 
             mat_ones = gs.ones((n_points, self.dim, self.dim))
-            mat_diag = gs.zeros((n_points, self.dim, self.dim))
-            diag = gs.einsum('ijj->ij', mat_diag)
-            diag[:] = - gs.polygamma(2, base_point) \
-                / gs.polygamma(1, base_point)
+            mat_diag = from_vector_to_diagonal_matrix(
+                - gs.polygamma(2, base_point) / gs.polygamma(1, base_point))
 
-            mat_k = gs.einsum('i,ijk->ijk', C2, mat_ones)\
-                - gs.einsum('i,ijk->ijk', C1, mat_diag)
+            mat_k = gs.einsum('i,ijk->ijk', c2, mat_ones)\
+                - gs.einsum('i,ijk->ijk', c1, mat_diag)
             mat_k[:, ind_k, ind_k] += gs.polygamma(2, param_k)\
                 / gs.polygamma(1, param_k)
             return 1 / 2 * mat_k
