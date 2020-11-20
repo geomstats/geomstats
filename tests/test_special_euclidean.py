@@ -2,7 +2,8 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.special_euclidean import SpecialEuclidean
+from geomstats.geometry.special_euclidean import SpecialEuclidean, \
+    SpecialEuclideanMatrixLieAlgebra
 
 
 class TestSpecialEuclidean(geomstats.tests.TestCase):
@@ -50,13 +51,15 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         expected = gs.eye(self.n + 1)
         self.assertAllClose(result, expected)
 
-    def test_is_in_lie_algebra(self):
+    def test_is_tangent(self):
         theta = gs.pi / 3
         vec_1 = gs.array([
             [0., - theta, 2.],
             [theta, 0., 3.],
             [0., 0., 0.]])
-        result = self.group.is_tangent(vec_1)
+        point = self.group.random_uniform()
+        tangent_vec = self.group.compose(point, vec_1)
+        result = self.group.is_tangent(tangent_vec, point)
         expected = True
         self.assertAllClose(result, expected)
 
@@ -64,7 +67,8 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             [0., - theta, 2.],
             [theta, 0., 3.],
             [0., 0., 1.]])
-        result = self.group.is_tangent(vec_2)
+        tangent_vec = self.group.compose(point, vec_2)
+        result = self.group.is_tangent(tangent_vec, point)
         expected = False
         self.assertAllClose(result, expected)
 
@@ -155,3 +159,44 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
                 [(0, 2), (1, 2)], [1., 1.], (3, 3))
             expected = point_a + point_b * last_line_0
             self.assertAllClose(result, expected)
+
+    def test_basis_belongs(self):
+        lie_algebra = self.group.lie_algebra
+        result = lie_algebra.belongs(lie_algebra.basis)
+        self.assertTrue(gs.all(result))
+
+    def test_basis_has_the_right_dimension(self):
+        for n in range(2, 5):
+            algebra = SpecialEuclideanMatrixLieAlgebra(n)
+            self.assertEqual(int(n * (n + 1) / 2), algebra.dim)
+
+    def test_belongs_lie_algebra(self):
+        theta = gs.pi / 3
+        vec_1 = gs.array([
+            [0., - theta, 2.],
+            [theta, 0., 3.],
+            [0., 0., 0.]])
+        result = self.group.lie_algebra.belongs(vec_1)
+        expected = True
+        self.assertAllClose(result, expected)
+
+        vec_2 = gs.array([
+            [0., - theta, 2.],
+            [theta, 0., 3.],
+            [0., 0., 1.]])
+        result = self.group.lie_algebra.belongs(vec_2)
+        expected = False
+        self.assertAllClose(result, expected)
+
+        vec = gs.array([vec_1, vec_2])
+        expected = gs.array([True, False])
+        result = self.group.lie_algebra.belongs(vec)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_basis_representation_is_correctly_vectorized(self):
+        for n in range(2, 5):
+            algebra = SpecialEuclideanMatrixLieAlgebra(n)
+            shape = gs.shape(algebra.basis_representation(algebra.basis))
+            dim = int(n * (n + 1) / 2)
+            self.assertEqual(shape, (dim, dim))

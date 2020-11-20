@@ -135,17 +135,18 @@ class MatrixLieAlgebra:
 
         return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)
 
-    def orthonormal_basis(self, metric_matrix):
-        """Orthonormalize the basis with respect to the given metric.
+    def projection(self, mat):
+        """Project a matrix to the Lie Algebra.
 
         Parameters
         ----------
-        metric_matrix : array-like, shape=[dim, dim]
-            Matrix of a metric.
+        mat : array-like, shape=[..., n, n]
+            Matrix.
 
         Returns
         -------
-        basis : array-like, shape=[dim, {dim, [n,n]}
-            Orthonormal basis.
+        projected : array-like, shape=[..., n, n]
+            Matrix belonging to Lie Algebra.
         """
-        raise NotImplementedError("orthonormal basis not implemented")
+        raise NotImplementedError('Projection to Lie Algebra is not '
+                                  'implemented.')

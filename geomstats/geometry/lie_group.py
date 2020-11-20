@@ -9,7 +9,7 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
 
 
-ATOL = 1e-8
+ATOL = 1e-6
 
 
 def loss(y_pred, y_true, group, metric=None):
@@ -426,10 +426,6 @@ class LieGroup(Manifold):
 
         return first_term - second_term
 
-    def _is_in_lie_algebra(self, tangent_vec, atol=ATOL):
-        """Check wether a tangent vector belongs to the lie algebra."""
-        return self.lie_algebra.belongs(tangent_vec, atol)
-
     def is_tangent(self, vector, base_point=None, atol=ATOL):
         """Check whether the vector is tangent at base_point.
 
@@ -439,6 +435,10 @@ class LieGroup(Manifold):
             Vector.
         base_point : array-like, shape=[..., dim_embedding]
             Point in the Lie group.
+        atol : float
+            Precision at which to evaluate if the rotation part is
+            skew-symmetric.
+            Optional. default: 1e-6
 
         Returns
         -------
@@ -453,12 +453,8 @@ class LieGroup(Manifold):
         else:
             tangent_vec_at_id = self.compose(
                 self.inverse(base_point), vector)
-        is_tangent = self._is_in_lie_algebra(tangent_vec_at_id, atol)
+        is_tangent = self.lie_algebra.belongs(tangent_vec_at_id, atol)
         return is_tangent
-
-    def _to_lie_algebra(self, tangent_vec):
-        """Project a vector onto the lie algebra."""
-        return self.lie_algebra.project(tangent_vec)
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector onto the tangent space at a base point.
@@ -476,8 +472,8 @@ class LieGroup(Manifold):
             Tangent vector at base point.
         """
         if base_point is None:
-            return self._to_lie_algebra(vector)
+            return self.lie_algebra.projection(vector)
         tangent_vec_at_id = self.compose(
             self.inverse(base_point), vector)
-        regularized = self._to_lie_algebra(tangent_vec_at_id)
+        regularized = self.lie_algebra.projection(tangent_vec_at_id)
         return self.compose(base_point, regularized)
