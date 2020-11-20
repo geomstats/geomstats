@@ -25,14 +25,27 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         dimension = int(n * (n - 1) / 2)
         super(SkewSymmetricMatrices, self).__init__(dimension, n)
 
-        self.basis = gs.zeros((dimension, n, n))
-
-        basis = []
-        for row in gs.arange(n - 1):
-            for col in gs.arange(row + 1, n):
-                basis.append(gs.array_from_sparse(
-                    [(row, col), (col, row)], [1., -1.], (n, n)))
-        self.basis = gs.stack(basis)
+        if n == 2:
+            self.basis = gs.array([[[0., -1.], [1., 0.]]])
+        elif n == 3:
+            self.basis = gs.array([
+                [[0., 0., 0.],
+                 [0., 0., -1.],
+                 [0., 1., 0.]],
+                [[0., 0., 1.],
+                 [0., 0., 0.],
+                 [-1., 0., 0.]],
+                [[0., -1., 0.],
+                 [1., 0., 0.],
+                 [0., 0., 0.]]])
+        else:
+            self.basis = gs.zeros((dimension, n, n))
+            basis = []
+            for row in gs.arange(n - 1):
+                for col in gs.arange(row + 1, n):
+                    basis.append(gs.array_from_sparse(
+                        [(row, col), (col, row)], [1., -1.], (n, n)))
+            self.basis = gs.stack(basis)
 
     def belongs(self, mat, atol=TOLERANCE):
         """Evaluate if mat is a skew-symmetric matrix.

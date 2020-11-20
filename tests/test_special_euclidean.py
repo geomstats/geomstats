@@ -164,6 +164,29 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             expected = point_a + point_b * last_line_0
             self.assertAllClose(result, expected)
 
+    def test_left_exp_coincides(self):
+        vector_group = SpecialEuclidean(n=2, point_type='vector')
+        theta = gs.pi / 3
+        initial_vec = gs.array([theta, 2., 2.])
+        initial_matrix_vec = self.group.lie_algebra.matrix_representation(
+            initial_vec)
+        vector_exp = vector_group.left_canonical_metric.exp(initial_vec)
+        result = self.group.left_canonical_metric.exp(initial_matrix_vec)
+        expected = vector_group.matrix_from_vector(vector_exp)
+        self.assertAllClose(result, expected)
+
+    def test_right_exp_coincides(self):
+        vector_group = SpecialEuclidean(n=2, point_type='vector')
+        theta = gs.pi / 2
+        initial_vec = gs.array([theta, 1., 1.])
+        initial_matrix_vec = self.group.lie_algebra.matrix_representation(
+            initial_vec)
+        vector_exp = vector_group.right_canonical_metric.exp(initial_vec)
+        result = self.group.right_canonical_metric.exp(
+            initial_matrix_vec, n_steps=20)
+        expected = vector_group.matrix_from_vector(vector_exp)
+        self.assertAllClose(result, expected)
+
     def test_basis_belongs(self):
         lie_algebra = self.group.lie_algebra
         result = lie_algebra.belongs(lie_algebra.basis)
