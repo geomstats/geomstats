@@ -667,8 +667,8 @@ class SPDMetricAffine(RiemannianMetric):
         return GeneralLinear.congruent(tangent_vec_a, congruence_mat)
 
 
-class SPDMetricProcrustes(RiemannianMetric):
-    """Class for the Procrustes metric on the SPD manifold.
+class SPDMetricBuresWasserstein(RiemannianMetric):
+    """Class for the Bures-Wasserstein metric on the SPD manifold.
 
     Parameters
     ----------
@@ -684,7 +684,7 @@ class SPDMetricProcrustes(RiemannianMetric):
 
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricProcrustes, self).__init__(
+        super(SPDMetricBuresWasserstein, self).__init__(
             dim=dim,
             signature=(dim, 0, 0),
             default_point_type='matrix')
@@ -692,10 +692,10 @@ class SPDMetricProcrustes(RiemannianMetric):
         self.space = SPDMatrices(n)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the Procrustes inner-product.
+        """Compute the Bures-Wasserstein inner-product.
 
         Compute the inner-product of tangent_vec_a and tangent_vec_b
-        at point base_point using the Procrustes Riemannian metric.
+        at point base_point using the Bures-Wasserstein Riemannian metric.
 
         Parameters
         ----------

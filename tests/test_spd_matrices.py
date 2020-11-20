@@ -10,7 +10,7 @@ from geomstats.geometry.spd_matrices import (
     SPDMetricAffine,
     SPDMetricEuclidean,
     SPDMetricLogEuclidean,
-    SPDMetricProcrustes
+    SPDMetricBuresWasserstein
 )
 
 
@@ -26,7 +26,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         self.n = 3
         self.space = SPDMatrices(n=self.n)
         self.metric_affine = SPDMetricAffine(n=self.n)
-        self.metric_procrustes = SPDMetricProcrustes(n=self.n)
+        self.metric_bureswasserstein = SPDMetricBuresWasserstein(n=self.n)
         self.metric_euclidean = SPDMetricEuclidean(n=self.n)
         self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
         self.n_samples = 4
@@ -220,8 +220,8 @@ class TestSPDMatrices(geomstats.tests.TestCase):
                              [1., 1., 1.]])
         self.assertAllClose(result, expected)
 
-    def test_procrustes_inner_product(self):
-        """Test of SPDMetricProcrustes.inner_product method."""
+    def test_bureswasserstein_inner_product(self):
+        """Test of SPDMetricBuresWasserstein.inner_product method."""
         base_point = gs.array([[1., 0., 0.],
                                [0., 1.5, .5],
                                [0., .5, 1.5]])
@@ -231,7 +231,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         tangent_vec_b = gs.array([[1., 2., 4.],
                                   [2., 3., 8.],
                                   [4., 8., 5.]])
-        metric = SPDMetricProcrustes(3)
+        metric = SPDMetricBuresWasserstein(3)
         result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         expected = gs.array(4.)
 
