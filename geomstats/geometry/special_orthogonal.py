@@ -406,10 +406,7 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         skew_mat : array-like, shape=[..., n, n]
             Skew-symmetric matrix.
         """
-        basis = gs.array([[0., 1.], [-1., 0.]])
-        skew_mat = gs.einsum('...i,kl->...kl', vec, basis)
-
-        return skew_mat
+        return SkewSymmetricMatrices(2).matrix_representation(vec)
 
     @staticmethod
     def vector_from_skew_matrix(skew_mat):
@@ -428,8 +425,7 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         vec : array-like, shape=[..., dim]
             Vector.
         """
-        vec = skew_mat[..., 0, 1]
-        return vec[..., None]
+        return SkewSymmetricMatrices(2).basis_representation(skew_mat)
 
     def rotation_vector_from_matrix(self, rot_mat):
         r"""Convert rotation matrix (in 2D) to rotation vector (axis-angle).
@@ -467,7 +463,7 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         cos_term = gs.cos(rot_vec)
         cos_matrix = gs.einsum('...l,ij->...ij', cos_term, gs.eye(2))
         sin_term = gs.sin(rot_vec)
-        sin_matrix = self.skew_matrix_from_vector(-sin_term)
+        sin_matrix = self.skew_matrix_from_vector(sin_term)
         return cos_matrix + sin_matrix
 
     def compose(self, point_a, point_b):
@@ -739,18 +735,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         skew_mat : array-like, shape=[..., n, n]
             Skew-symmetric matrix.
         """
-        basis = gs.array([
-            [[0., 0., 0.],
-             [0., 0., -1.],
-             [0., 1., 0.]],
-            [[0., 0., 1.],
-             [0., 0., 0.],
-             [-1., 0., 0.]],
-            [[0., -1., 0.],
-             [1., 0., 0.],
-             [0., 0., 0.]]])
-        skew = gs.einsum('...n,njk->...jk', vec, basis)
-        return skew
+        return SkewSymmetricMatrices(3).matrix_representation(vec)
 
     @staticmethod
     def vector_from_skew_matrix(skew_mat):
@@ -769,10 +754,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         vec : array-like, shape=[..., dim]
             Vector.
         """
-        vec = gs.stack([
-            skew_mat[..., 2, 1], skew_mat[..., 0, 2], skew_mat[..., 1, 0]])
-
-        return gs.transpose(vec)
+        return SkewSymmetricMatrices(3).basis_representation(skew_mat)
 
     @geomstats.vectorization.decorator(['else', 'matrix', 'output_point'])
     def rotation_vector_from_matrix(self, rot_mat):

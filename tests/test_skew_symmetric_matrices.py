@@ -68,3 +68,12 @@ class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
             shape = gs.shape(skew.basis_representation(skew.basis))
             dim = int(n * (n - 1) / 2)
             self.assertEqual(shape, (dim, dim))
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_matrix_and_basis_representation(self):
+        for n in self.n_seq:
+            skew = self.skew[n]
+            vec = gs.random.rand(skew.dim)
+            mat = skew.matrix_representation(vec)
+            result = skew.basis_representation(mat)
+            self.assertAllClose(result, vec)

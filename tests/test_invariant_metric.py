@@ -557,23 +557,23 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         metric = InvariantMetric(group=group)
         basis = metric.orthonormal_basis(group.lie_algebra.basis)
         x, y, z = basis
-        result = metric.structure_constant(-z, y, -x)
+        result = metric.structure_constant(x, y, z)
         expected = 2. ** .5 / 2.
         self.assertAllClose(result, expected)
 
-        result = -metric.structure_constant(y, -z, -x)
+        result = -metric.structure_constant(y, x, z)
         self.assertAllClose(result, expected)
 
-        result = metric.structure_constant(y, -x, -z)
+        result = metric.structure_constant(y, z, x)
         self.assertAllClose(result, expected)
 
-        result = -metric.structure_constant(-x, y, -z)
+        result = -metric.structure_constant(z, y, x)
         self.assertAllClose(result, expected)
 
-        result = metric.structure_constant(-x, -z, y)
+        result = metric.structure_constant(z, x, y)
         self.assertAllClose(result, expected)
 
-        result = -metric.structure_constant(-z, -x, y)
+        result = -metric.structure_constant(x, z, y)
         self.assertAllClose(result, expected)
 
         result = metric.structure_constant(x, x, z)
@@ -596,13 +596,13 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         group = self.matrix_so3
         metric = InvariantMetric(group=group)
         x, y, z = metric.orthonormal_basis(group.lie_algebra.basis)
-        result = metric.connection(-z, y)
-        expected = -1. / 2 ** .5 / 2. * x
+        result = metric.connection(x, y)
+        expected = 1. / 2 ** .5 / 2. * z
         self.assertAllClose(result, expected)
 
         point = group.random_uniform()
         translation_map = group.tangent_translation_map(point)
-        tan_a = translation_map(-z)
+        tan_a = translation_map(x)
         tan_b = translation_map(y)
         result = metric.connection(tan_a, tan_b, point)
         expected = translation_map(expected)
@@ -619,7 +619,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
         point = group.random_uniform()
         translation_map = group.tangent_translation_map(point)
-        tan_a = translation_map(-z)
+        tan_a = translation_map(x)
         tan_b = translation_map(y)
         result = metric.sectional_curvature(tan_a, tan_b, point)
         self.assertAllClose(result, expected)

@@ -183,7 +183,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             initial_vec)
         vector_exp = vector_group.right_canonical_metric.exp(initial_vec)
         result = self.group.right_canonical_metric.exp(
-            initial_matrix_vec, n_steps=20)
+            initial_matrix_vec, n_steps=25)
         expected = vector_group.matrix_from_vector(vector_exp)
         self.assertAllClose(result, expected)
 
@@ -250,6 +250,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         result = self.group.belongs(exp)
         self.assertTrue(result)
 
+    @geomstats.tests.np_and_tf_only
     def test_log_and_is_tan(self):
         exp = self.group.left_canonical_metric.exp(
             self.tangent_vec, self.point)
@@ -267,6 +268,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         result = self.group.is_tangent(log, self.point[0])
         self.assertTrue(result)
 
+    @geomstats.tests.np_and_tf_only
     def test_exp_log(self):
         exp = self.group.left_canonical_metric.exp(
             self.tangent_vec, self.point)
@@ -278,6 +280,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         result = self.group.left_canonical_metric.log(exp, self.point[0])
         self.assertAllClose(result, self.tangent_vec[0])
 
+    @geomstats.tests.np_and_tf_only
     def test_parallel_transport(self):
         metric = self.group.left_canonical_metric
         tan_a = self.tangent_vec

@@ -101,6 +101,15 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         basis_representation : array-like, shape=[..., dim]
             Representation in the basis.
         """
+        if self.n == 2:
+            return matrix_representation[..., 1, 0][..., None]
+        if self.n == 3:
+            vec = gs.stack([
+                matrix_representation[..., 2, 1],
+                matrix_representation[..., 0, 2],
+                matrix_representation[..., 1, 0]])
+            return gs.transpose(vec)
+
         old_shape = gs.shape(matrix_representation)
         as_vector = gs.reshape(
             matrix_representation, (-1, old_shape[-2] * old_shape[-1]))
