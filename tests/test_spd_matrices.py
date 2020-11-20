@@ -325,6 +325,22 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(result, expected)
 
+    def test_log_and_exp_bureswasserstein(self):
+        """Test of SPDMetricBuresWasserstein.log and exp methods."""
+        base_point = gs.array([[5., 0., 0.],
+                               [0., 7., 2.],
+                               [0., 2., 8.]])
+        point = gs.array([[9., 0., 0.],
+                          [0., 5., 0.],
+                          [0., 0., 1.]])
+
+        metric = self.metric_bureswasserstein
+        log = metric.log(point=point, base_point=base_point)
+        result = metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+
+        self.assertAllClose(result, expected, atol=1e-5)
+
     def test_log_and_exp_logeuclidean(self):
         """Test of SPDMetricLogEuclidean.log and exp methods."""
         base_point = gs.array([[5., 0., 0.],
