@@ -680,6 +680,9 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
     .. [BJL2017]_ Bhatia, Jain, Lim. "On the Bures-Wasserstein distance between
       positive definite matrices" Elsevier, Expositiones Mathematicae,
       vol. 37(2), 165-191, 2017. https://arxiv.org/pdf/1712.01504.pdf
+    .. [MMP2018]_ Malago, Montrucchio, Pistone. "Wasserstein-Riemannian
+      geometry of Gaussian densities"  Information Geometry, vol. 1, 137-179,
+      2018. https://arxiv.org/pdf/1801.09269.pdf
     """
 
     def __init__(self, n):
@@ -783,12 +786,37 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         log : array-like, shape=[..., n, n]
             Riemannian logarithm.
         """
-
         product = gs.matmul(base_point, point)
         sqrt_product = gs.linalg.sqrtm(product)
         transp_sqrt_product = gs.einsum('...ij->...ji', sqrt_product)
 
         result = sqrt_product + transp_sqrt_product - 2 * base_point
+        return result
+
+    def squared_dist(self, point_a, point_b):
+        """Compute the Bures-Wasserstein squared distance.
+
+        Compute the Riemannian squared distance between point_a and point_b.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., n, n]
+            Point.
+        point_b : array-like, shape=[..., n, n]
+            Point.
+
+        Returns
+        -------
+        squared_dist : array-like, shape=[...]
+            Riemannian squared distance.
+        """
+        product = gs.matmul(point_a, point_b)
+        sqrt_product = gs.linalg.sqrtm(product)
+        trace_a = gs.einsum('...ii->...', point_a)
+        trace_b = gs.einsum('...ii->...', point_b)
+        trace_prod = gs.einsum('...ii->...', sqrt_product)
+
+        result = trace_a + trace_b - 2 * trace_prod
         return result
 
 
