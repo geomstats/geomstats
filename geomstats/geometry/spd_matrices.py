@@ -711,23 +711,17 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        spd_space = self.space
-        n_base_points, _, n = base_point.shape
-
-        eigvals, eigvecs = gs.linalg.eigvalsh(base_point)
-        eigvals = gs.to_ndarray(eigvals, to_ndim=3, axis=1)
-        transp_eigvals = gs.transpose(eigvals, (0, 2, 1))
-        transp_eigvecs = gs.transpose(eigvecs, (0, 2, 1))
+        eigvals, eigvecs = gs.linalg.eigh(base_point)
+        transp_eigvecs = gs.einsum('...ij->...ji', eigvecs)
         rotated_tangent_vec_a = gs.matmul(transp_eigvecs, tangent_vec_a)
         rotated_tangent_vec_a = gs.matmul(rotated_tangent_vec_a, eigvecs)
         rotated_tangent_vec_b = gs.matmul(transp_eigvecs, tangent_vec_b)
         rotated_tangent_vec_b = gs.matmul(rotated_tangent_vec_b, eigvecs)
 
-        ones = gs.ones((n_base_points, 1, n))
-        transp_ones = gs.transpose(ones, (0, 2, 1))
-        vertical_index = gs.matmul(transp_eigvals, ones)
-        horizontal_index = gs.matmul(transp_ones, eigvals)
-        coefficients = vertical_index + horizontal_index
+        ones = gs.ones(eigvals.shape)
+        vertical_index = gs.einsum('...i,...j->...ij', eigvals, ones)
+        horizontal_index = gs.einsum('...j,...i->...ij', eigvals, ones)
+        coefficients = 1 / (vertical_index + horizontal_index)
 
         result = gs.einsum('...ij,...ij,...ij->...',
                            coefficients, rotated_tangent_vec_a,
