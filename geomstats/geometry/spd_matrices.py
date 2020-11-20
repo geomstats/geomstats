@@ -1031,6 +1031,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
             Time-parameterized geodesic curve.
         """
         def path(t):
+            """Compute the geodesic at time t."""
             return self.exp(t * initial_tangent_vec, initial_point)
 
         return path
