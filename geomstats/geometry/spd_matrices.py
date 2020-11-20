@@ -764,6 +764,33 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         result = base_point + tangent_vec + hessian
         return result
 
+    def log(self, point, base_point):
+        """Compute the Bures-Wasserstein logarithm map.
+
+        Compute the Riemannian logarithm at point base_point,
+        of point wrt the Bures-Wasserstein metric.
+        This gives a tangent vector at point base_point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        log : array-like, shape=[..., n, n]
+            Riemannian logarithm.
+        """
+
+        product = gs.matmul(base_point, point)
+        sqrt_product = gs.linalg.sqrtm(product)
+        transp_sqrt_product = gs.einsum('...ij->...ji', sqrt_product)
+
+        result = sqrt_product + transp_sqrt_product - 2 * base_point
+        return result
+
 
 class SPDMetricEuclidean(RiemannianMetric):
     """Class for the Euclidean metric on the SPD manifold."""
