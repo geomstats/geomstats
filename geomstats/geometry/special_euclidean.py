@@ -39,11 +39,17 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
                         - 1. / 362880.]
 
 
-def embed(rotation, translation, output_shape, constant=1.):
+def homogeneous_representation(
+        rotation, translation, output_shape, constant=1.):
     r"""Embed rotation, translation couples into n+1 square matrices.
 
     Construct a block matrix of size :math: `n + 1 \times n + 1` of the form
-    ((R, t), (0, c)).
+    .. math::
+        \matvec{cc}{R & t\\
+                    0&c}
+
+    where :math: `R` is a square matrix, :math: `t` a vector of size
+    :math: `n`, and :math: `c` a constant (either 0 or 1 should be used).
 
     Parameters
     ----------
@@ -55,13 +61,13 @@ def embed(rotation, translation, output_shape, constant=1.):
         Desired output shape. This is need for vectorization.
     constant : float
         Constant to use at the last line and column of the square matrix.
-        Optional, default: 1
+        Optional, default: 1.
 
     Returns
     -------
     mat: array-like, shape=[..., n + 1, n + 1]
-        Squre Matrix of size n + 1. It can represent an element of the
-        special euclidean group of Lie algebra.
+        Square Matrix of size n + 1. It can represent an element of the
+        special euclidean group or its Lie algebra.
     """
     mat = gs.concatenate((rotation, translation[..., None]), axis=-1)
     last_line = gs.zeros(output_shape)[..., -1]
@@ -152,7 +158,8 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
         output_shape = (
             (n_samples, self.n + 1, self.n + 1) if n_samples != 1
             else (self.n + 1, ) * 2)
-        random_point = embed(random_rotation, random_translation, output_shape)
+        random_point = homogeneous_representation(
+            random_rotation, random_translation, output_shape)
         return random_point
 
     @classmethod
@@ -169,7 +176,8 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
         translation = point[..., :n, -1]
         translation = gs.einsum(
             '...ij,...j->...i', transposed_rot, translation)
-        return embed(transposed_rot, -translation, point.shape)
+        return homogeneous_representation(
+            transposed_rot, -translation, point.shape)
 
 
 class _SpecialEuclideanVectors(LieGroup):
@@ -314,7 +322,7 @@ class _SpecialEuclideanVectors(LieGroup):
         trans_vec = vec[..., self.rotations.dim:]
 
         rot_mat = self.rotations.matrix_from_rotation_vector(rot_vec)
-        return embed(rot_mat, trans_vec, output_shape)
+        return homogeneous_representation(rot_mat, trans_vec, output_shape)
 
     @geomstats.vectorization.decorator(
         ['else', 'vector', 'vector'])
@@ -973,7 +981,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
         super(SpecialEuclideanMatrixLieAlgebra, self).__init__(dim, n)
 
         self.skew = SkewSymmetricMatrices(n)
-        basis = embed(
+        basis = homogeneous_representation(
             self.skew.basis,
             gs.zeros((self.skew.dim, n)), (self.skew.dim, n + 1, n + 1), 0.)
         basis = list(basis)
@@ -1030,7 +1038,8 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
         """
         rotation = mat[..., :self.n, :self.n]
         skew = SkewSymmetricMatrices.projection(rotation)
-        return embed(skew, mat[..., :self.n, self.n], mat.shape, 0.)
+        return homogeneous_representation(
+            skew, mat[..., :self.n, self.n], mat.shape, 0.)
 
     def basis_representation(self, matrix_representation):
         """Calculate the coefficients of given matrix in the basis.

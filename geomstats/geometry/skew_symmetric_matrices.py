@@ -54,7 +54,11 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
 
     @staticmethod
     def projection(mat):
-        """Make matrix skew-symmetric, by averaging with minus its transpose.
+        r"""Compute the skew-symmetric component of a matrix.
+
+        The skew-symmetric part of a matrix :math: `X` is defined by
+        .. math:
+                    (X - X^T) / 2
 
         Parameters
         ----------

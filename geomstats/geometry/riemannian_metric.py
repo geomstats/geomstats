@@ -363,3 +363,23 @@ class RiemannianMetric(Connection):
         closest_neighbor_index = gs.argmin(dist)
 
         return closest_neighbor_index
+
+    def orthonormal_basis(self, basis, base_point=None):
+        """Orthonormalize the basis with respect to the metric.
+
+        This corresponds to a renormalization.
+
+        Parameters
+        ----------
+        basis : array-like, shape=[dim, dim]
+            Matrix of a metric.
+        base_point
+
+        Returns
+        -------
+        basis : array-like, shape=[dim, n, n]
+            Orthonormal basis.
+        """
+        norms = self.squared_norm(basis, base_point)
+
+        return gs.einsum('i, ikl->ikl', 1. / gs.sqrt(norms), basis)

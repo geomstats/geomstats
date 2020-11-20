@@ -554,9 +554,8 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
     def test_structure_constant(self):
         group = self.matrix_so3
-        lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group)
-        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        basis = metric.orthonormal_basis(group.lie_algebra.basis)
         x, y, z = basis
         result = metric.structure_constant(-z, y, -x)
         expected = 2. ** .5 / 2.
@@ -583,9 +582,8 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
     def test_dual_adjoint(self):
         group = self.matrix_so3
-        lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group)
-        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        basis = metric.orthonormal_basis(group.lie_algebra.basis)
         for x in basis:
             for y in basis:
                 for z in basis:
@@ -596,9 +594,8 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
     def test_connection(self):
         group = self.matrix_so3
-        lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group)
-        x, y, z = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        x, y, z = metric.orthonormal_basis(group.lie_algebra.basis)
         result = metric.connection(-z, y)
         expected = -1. / 2 ** .5 / 2. * x
         self.assertAllClose(result, expected)
@@ -613,9 +610,8 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
     def test_sectional_curvature(self):
         group = self.matrix_so3
-        lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group)
-        x, y, z = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        x, y, z = metric.orthonormal_basis(group.lie_algebra.basis)
 
         result = metric.sectional_curvature(x, y)
         expected = 1. / 8
@@ -639,9 +635,8 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
     def test_curvature(self):
         group = self.matrix_so3
-        lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group)
-        x, y, z = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        x, y, z = metric.orthonormal_basis(group.lie_algebra.basis)
 
         result = metric.curvature_at_identity(x, y, x)
         expected = 1. / 8 * y
@@ -666,9 +661,8 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
     def test_curvature_derivative_at_identity(self):
         group = self.matrix_so3
-        lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group)
-        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        basis = metric.orthonormal_basis(group.lie_algebra.basis)
 
         result = True
         for x in basis:
@@ -684,9 +678,8 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
     def test_curvature_derivative(self):
         group = self.matrix_so3
-        lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group)
-        x, y, z = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        x, y, z = metric.orthonormal_basis(group.lie_algebra.basis)
         result = metric.curvature_derivative(
             x, y, z, x)
         expected = gs.zeros_like(x)
@@ -704,9 +697,8 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
     def test_integrated_exp_at_id(self):
         group = self.matrix_so3
-        lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group)
-        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        basis = metric.orthonormal_basis(group.lie_algebra.basis)
 
         vector = gs.random.rand(2, len(basis))
         tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
@@ -722,9 +714,8 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
     def test_integrated_exp_and_log_at_id(self):
         group = self.matrix_so3
-        lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group)
-        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        basis = group.lie_algebra.basis
 
         vector = gs.random.rand(2, len(basis))
         tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
