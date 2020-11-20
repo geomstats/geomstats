@@ -531,3 +531,20 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         result = metric.norm(transported, end_point)
 
         self.assertAllClose(expected, result, atol=1e-4)
+
+    def test_squared_dist_bureswasserstein(self):
+        """Test of SPDMetricBuresWasserstein.squared_dist method."""
+        point_a = gs.array([[5., 0., 0.],
+                               [0., 7., 2.],
+                               [0., 2., 8.]])
+        point_b = gs.array([[9., 0., 0.],
+                          [0., 5., 0.],
+                          [0., 0., 1.]])
+
+        metric = self.metric_bureswasserstein
+        result = metric.squared_dist(point_a, point_b)
+
+        log = metric.log(point=point_b, base_point=point_a)
+        expected = metric.squared_norm(vector=log, base_point=point_a)
+
+        self.assertAllClose(result, expected, atol=1e-5)
