@@ -4,9 +4,9 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.beta_distributions import BetaDistributions
 from geomstats.geometry.dirichlet_distributions import DirichletDistributions
 from geomstats.geometry.dirichlet_distributions import DirichletMetric
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
 class TestDirichletDistributions(geomstats.tests.TestCase):
@@ -77,28 +77,56 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
     def test_metric_matrix_dim2(self):
         """Test metric matrix in dimension 2.
 
-        Check that it coincides in dimension 2 with metric matrix of
-        corresponding beta distributions.
+        Check the metric matrix in dimension 2.
         """
         dirichlet2 = DirichletDistributions(2)
-        beta = BetaDistributions()
         points = dirichlet2.random_uniform(self.n_samples)
         result = dirichlet2.metric.metric_matrix(points)
-        expected = beta.metric.metric_matrix(points)
+
+        param_a = points[:, 0]
+        param_b = points[:, 1]
+        polygamma_ab = gs.polygamma(1, param_a + param_b)
+        polygamma_a = gs.polygamma(1, param_a)
+        polygamma_b = gs.polygamma(1, param_b)
+        vector = gs.stack(
+            [polygamma_a - polygamma_ab,
+             - polygamma_ab,
+             polygamma_b - polygamma_ab], axis=-1)
+        expected = SymmetricMatrices.from_vector(vector)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_christoffels(self):
         """Test Christoffel symbols in dimension 2.
 
-        Check that they coincide with the Christoffel symbols given by
-        the beta distribution.
+        Check the Christoffel symbols in dimension 2.
         """
         dirichlet2 = DirichletDistributions(2)
-        beta = BetaDistributions()
         points = dirichlet2.random_uniform(self.n_samples)
         result = dirichlet2.metric.christoffels(points)
-        expected = beta.metric.christoffels(points)
+
+        def coefficients(param_a, param_b):
+            poly1a = gs.polygamma(1, param_a)
+            poly2a = gs.polygamma(2, param_a)
+            poly1b = gs.polygamma(1, param_b)
+            poly2b = gs.polygamma(2, param_b)
+            poly1ab = gs.polygamma(1, param_a + param_b)
+            poly2ab = gs.polygamma(2, param_a + param_b)
+            metric_det = 2 * (poly1a * poly1b - poly1ab * (poly1a + poly1b))
+
+            c1 = (poly2a * (poly1b - poly1ab) - poly1b * poly2ab) / metric_det
+            c2 = - poly1b * poly2ab / metric_det
+            c3 = (poly2b * poly1ab - poly1b * poly2ab) / metric_det
+            return c1, c2, c3
+
+        param_a, param_b = points[:, 0], points[:, 1]
+        c1, c2, c3 = coefficients(param_a, param_b)
+        c4, c5, c6 = coefficients(param_b, param_a)
+        vector_0 = gs.stack([c1, c2, c3], axis=-1)
+        vector_1 = gs.stack([c6, c5, c4], axis=-1)
+        gamma_0 = SymmetricMatrices.from_vector(vector_0)
+        gamma_1 = SymmetricMatrices.from_vector(vector_1)
+        expected = gs.stack([gamma_0, gamma_1], axis=-3)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
