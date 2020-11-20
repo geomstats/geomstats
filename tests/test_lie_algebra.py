@@ -42,7 +42,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         group = SpecialOrthogonal(3)
         lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group)
-        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        basis = metric.orthonormal_basis(lie_algebra.basis)
         result = metric.inner_product_at_identity(basis[0], basis[1])
         self.assertAllClose(result, 0.)
 
@@ -54,7 +54,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         metric = InvariantMetric(
             group=group,
             metric_mat_at_identity=metric_mat)
-        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        basis = metric.orthonormal_basis(lie_algebra.basis)
         result = metric.inner_product_at_identity(basis[0], basis[1])
         self.assertAllClose(result, 0.)
 
@@ -65,7 +65,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         group = SpecialEuclidean(3)
         lie_algebra = group.lie_algebra
         metric = InvariantMetric(group=group)
-        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        basis = metric.orthonormal_basis(lie_algebra.basis)
         for i, x in enumerate(basis):
             for y in basis[i:]:
                 result = metric.inner_product_at_identity(x, y)
@@ -77,7 +77,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         metric = InvariantMetric(
             group=group,
             metric_mat_at_identity=metric_mat)
-        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        basis = metric.orthonormal_basis(lie_algebra.basis)
         for i, x in enumerate(basis):
             for y in basis[i:]:
                 result = metric.inner_product_at_identity(x, y)
