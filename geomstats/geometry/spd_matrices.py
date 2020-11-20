@@ -712,11 +712,26 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
             Inner-product.
         """
         spd_space = self.space
-        modified_tangent_vec_a =\
-            spd_space.inverse_differential_power(2, tangent_vec_a, base_point)
-        product = gs.einsum(
-            '...ij,...jk->...ik', modified_tangent_vec_a, tangent_vec_b)
-        result = gs.trace(product, axis1=-2, axis2=-1) / 2
+        n_base_points, _, n = base_point.shape
+
+        eigvals, eigvecs = gs.linalg.eigvalsh(base_point)
+        eigvals = gs.to_ndarray(eigvals, to_ndim=3, axis=1)
+        transp_eigvals = gs.transpose(eigvals, (0, 2, 1))
+        transp_eigvecs = gs.transpose(eigvecs, (0, 2, 1))
+        rotated_tangent_vec_a = gs.matmul(transp_eigvecs, tangent_vec_a)
+        rotated_tangent_vec_a = gs.matmul(rotated_tangent_vec_a, eigvecs)
+        rotated_tangent_vec_b = gs.matmul(transp_eigvecs, tangent_vec_b)
+        rotated_tangent_vec_b = gs.matmul(rotated_tangent_vec_b, eigvecs)
+
+        ones = gs.ones((n_base_points, 1, n))
+        transp_ones = gs.transpose(ones, (0, 2, 1))
+        vertical_index = gs.matmul(transp_eigvals, ones)
+        horizontal_index = gs.matmul(transp_ones, eigvals)
+        coefficients = vertical_index + horizontal_index
+
+        result = gs.einsum('...ij,...ij,...ij->...',
+                           coefficients, rotated_tangent_vec_a,
+                           rotated_tangent_vec_b) / 2
         return result
 
 
