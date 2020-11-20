@@ -3,7 +3,8 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.special_euclidean import SpecialEuclidean, \
-    SpecialEuclideanMatrixLieAlgebra
+    SpecialEuclideanMatrixLieAlgebra,\
+    SpecialEuclideanMatrixCannonicalLeftMetric
 
 
 class TestSpecialEuclidean(geomstats.tests.TestCase):
@@ -11,6 +12,9 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         self.n = 2
         self.group = SpecialEuclidean(n=self.n)
         self.n_samples = 4
+        self.point = self.group.random_uniform(self.n_samples)
+        self.tangent_vec = self.group.to_tangent(gs.random.rand(
+            self.n_samples, self.group.n + 1, self.group.n + 1), self.point)
 
     def test_belongs(self):
         theta = gs.pi / 3
@@ -200,3 +204,90 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             shape = gs.shape(algebra.basis_representation(algebra.basis))
             dim = int(n * (n + 1) / 2)
             self.assertEqual(shape, (dim, dim))
+
+    def test_left_metric_wrong_group(self):
+        group = self.group.rotations
+        self.assertRaises(
+            ValueError,
+            lambda: SpecialEuclideanMatrixCannonicalLeftMetric(group))
+
+        group = SpecialEuclidean(3, point_type='vector')
+        self.assertRaises(
+            ValueError,
+            lambda: SpecialEuclideanMatrixCannonicalLeftMetric(group))
+
+    def test_exp_and_belongs(self):
+        exp = self.group.left_canonical_metric.exp(
+            self.tangent_vec, self.point)
+        result = self.group.belongs(exp)
+        self.assertTrue(gs.all(result))
+
+        exp = self.group.left_canonical_metric.exp(
+            self.tangent_vec[0], self.point[0])
+        result = self.group.belongs(exp)
+        self.assertTrue(result)
+
+    def test_log_and_is_tan(self):
+        exp = self.group.left_canonical_metric.exp(
+            self.tangent_vec, self.point)
+        log = self.group.left_canonical_metric.log(exp, self.point)
+        result = self.group.is_tangent(log, self.point)
+        self.assertTrue(gs.all(result))
+
+        exp = self.group.left_canonical_metric.exp(
+            self.tangent_vec[0], self.point[0])
+        log = self.group.left_canonical_metric.log(exp, self.point)
+        result = self.group.is_tangent(log, self.point)
+        self.assertTrue(gs.all(result))
+
+        log = self.group.left_canonical_metric.log(exp, self.point[0])
+        result = self.group.is_tangent(log, self.point[0])
+        self.assertTrue(result)
+
+    def test_exp_log(self):
+        exp = self.group.left_canonical_metric.exp(
+            self.tangent_vec, self.point)
+        result = self.group.left_canonical_metric.log(exp, self.point)
+        self.assertAllClose(result, self.tangent_vec)
+
+        exp = self.group.left_canonical_metric.exp(
+            self.tangent_vec[0], self.point[0])
+        result = self.group.left_canonical_metric.log(exp, self.point[0])
+        self.assertAllClose(result, self.tangent_vec[0])
+
+    def test_parallel_transport(self):
+        metric = self.group.left_canonical_metric
+        tan_a = self.tangent_vec
+        tan_b = self.group.to_tangent(gs.random.rand(
+            self.n_samples, self.group.n + 1, self.group.n + 1), self.point)
+        end_point = metric.exp(tan_b, self.point)
+
+        def is_isometry(tan_a, trans_a, basepoint, endpoint):
+            is_tangent = self.group.is_tangent(trans_a, endpoint, atol=1e-6)
+            is_equinormal = gs.isclose(
+                metric.norm(trans_a, endpoint), metric.norm(tan_a, basepoint))
+            return gs.logical_and(is_tangent, is_equinormal)
+
+        transported = metric.parallel_transport(
+            tan_a, tan_b, self.point)
+        result = is_isometry(tan_a, transported, self.point, end_point)
+        expected_end_point = metric.exp(tan_b, self.point)
+        self.assertTrue(gs.all(result))
+        self.assertAllClose(end_point, expected_end_point)
+
+        new_tan_b = metric.log(self.point, end_point)
+        result_vec = metric.parallel_transport(
+            transported, new_tan_b, end_point)
+        self.assertAllClose(result_vec, tan_a)
+
+    def test_lie_algebra_basis_belongs(self):
+        basis = self.group.lie_algebra.basis
+        result = self.group.lie_algebra.belongs(basis)
+        self.assertTrue(gs.all(result))
+
+    def test_lie_algebra_projection_and_belongs(self):
+        vec = gs.random.rand(
+            self.n_samples, self.group.n + 1, self.group.n + 1)
+        tangent_vec = self.group.lie_algebra.projection(vec)
+        result = self.group.lie_algebra.belongs(tangent_vec)
+        self.assertTrue(gs.all(result))

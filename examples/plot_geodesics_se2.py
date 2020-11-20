@@ -21,7 +21,7 @@ SE2_VEC = SpecialEuclidean(n=2, point_type='vector')
 
 
 def main():
-    """Plot a group geodesic on SE2."""
+    """Plot geodesics on SE2 with different structures."""
     theta = gs.pi / 3
     initial_tangent_vec = gs.array([
         [0., - theta, 2.],
@@ -57,4 +57,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

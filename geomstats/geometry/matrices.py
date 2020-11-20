@@ -6,7 +6,6 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.geometry.manifold import Manifold
 
 
 TOLERANCE = 1e-5

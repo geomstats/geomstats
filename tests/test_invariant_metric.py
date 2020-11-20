@@ -732,7 +732,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         lie_algebra = group.lie_algebra
         metric = InvariantMetric(group=group)
         canonical_metric = group.left_canonical_metric
-        basis = lie_algebra.orthonormal_basis(metric.metric_mat_at_identity)
+        basis = metric.orthonormal_basis(lie_algebra.basis)
 
         vector = gs.random.rand(len(basis))
         tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)

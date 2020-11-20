@@ -572,7 +572,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         """
         group = self.group
         basis = self.orthonormal_basis(self.lie_algebra.basis)
-        sign = 1. if self.left_or_right == 'left' else 1.
+        sign = 1. if self.left_or_right == 'left' else -1.
 
         def lie_acceleration(point, vector):
             """Compute the right-hand side of the geodesic equation."""

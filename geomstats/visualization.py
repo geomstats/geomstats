@@ -13,7 +13,7 @@ from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 SE3_GROUP = SpecialEuclidean(n=3, point_type='vector')
 SE2_GROUP = SpecialEuclidean(n=2, point_type='matrix')
-# SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
+SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
 S1 = Hypersphere(dim=1)
 S2 = Hypersphere(dim=2)
 H2 = Hyperboloid(dim=2)
