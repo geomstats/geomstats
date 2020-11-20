@@ -2,20 +2,23 @@
 
 import warnings
 
+from scipy.stats import dirichlet
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.dirichlet_distributions import DirichletDistributions
 from geomstats.geometry.dirichlet_distributions import DirichletMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
-
+# flake8: noqa
 class TestDirichletDistributions(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=UserWarning)
         self.dim = 3
         self.dirichlet = DirichletDistributions(self.dim)
         self.metric = DirichletMetric(self.dim)
-        self.n_samples = 10
+        self.n_points = 10
+        self.n_samples = 20
 
     def test_random_uniform_and_belongs(self):
         """Test random_uniform and belongs.
@@ -34,10 +37,9 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         Test that the random uniform method samples
         on the Dirichlet distribution space.
         """
-        n_samples = self.n_samples
-        point = self.dirichlet.random_uniform(n_samples)
-        result = self.dirichlet.belongs(point)
-        expected = gs.array([True] * n_samples)
+        points = self.dirichlet.random_uniform(self.n_points)
+        result = self.dirichlet.belongs(points)
+        expected = gs.array([True] * self.n_points)
         self.assertAllClose(expected, result)
 
     def test_random_uniform(self):
@@ -45,21 +47,56 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
 
         Test that the random uniform method samples points of the right shape.
         """
-        point = self.dirichlet.random_uniform(self.n_samples)
-        self.assertAllClose(gs.shape(point), (self.n_samples, self.dim))
+        points = self.dirichlet.random_uniform(self.n_points)
+        self.assertAllClose(gs.shape(points), (self.n_points, self.dim))
+
+    @geomstats.tests.np_only
+    def test_sample(self):
+        """Test sample.
+
+        Check that the samples have the right shape.
+        """
+        point = self.dirichlet.random_uniform()
+        samples = self.dirichlet.sample(point, self.n_samples)
+        result = samples.shape
+        expected = (self.n_samples, self.dim)
+        self.assertAllClose(expected, result)
+
+        points = self.dirichlet.random_uniform(self.n_points)
+        samples = self.dirichlet.sample(points, self.n_samples)
+        result = samples.shape
+        expected = (self.n_points, self.n_samples, self.dim)
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_only
+    def test_sample_belong(self):
+        """Test that sample samples in the simplex.
+
+        Check that samples belong to the simplex,
+        i.e. that their components sum up to one.
+        """
+        points = self.dirichlet.random_uniform(self.n_points)
+        samples = self.dirichlet.sample(points, self.n_samples)
+        result = gs.sum(samples, -1)
+        expected = gs.ones((self.n_points, self.n_samples))
+        self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
     def test_point_to_pdf(self):
         """Test point_to_pdf.
 
-        Check vectorization of point_to_pdf.
+        Check vectorization of the computation of the pdf.
         """
-        points = self.dirichlet.random_uniform(self.n_samples)
+        n_points = 2
+        points = self.dirichlet.random_uniform(n_points)
         pdfs = self.dirichlet.point_to_pdf(points)
         alpha = gs.ones(self.dim)
-        random_point_in_simplex = self.dirichlet.sample(alpha)
-        pdfs_at_point = pdfs(random_point_in_simplex)
-        self.assertAllClose(gs.shape(pdfs_at_point), (self.n_samples))
+        samples = self.dirichlet.sample(alpha, self.n_samples)
+        result = pdfs(samples)
+        pdf1 = [dirichlet.pdf(x, points[0, :]) for x in samples]
+        pdf2 = [dirichlet.pdf(x, points[1, :]) for x in samples]
+        expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=0)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
     def test_metric_matrix_vectorization(self):
@@ -67,10 +104,10 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
 
         Check vectorization of the metric matrix.
         """
-        points = self.dirichlet.random_uniform(self.n_samples)
+        points = self.dirichlet.random_uniform(self.n_points)
         mat = self.dirichlet.metric.metric_matrix(points)
         result = mat.shape
-        expected = (self.n_samples, self.dim, self.dim)
+        expected = (self.n_points, self.dim, self.dim)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
@@ -80,7 +117,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         Check the metric matrix in dimension 2.
         """
         dirichlet2 = DirichletDistributions(2)
-        points = dirichlet2.random_uniform(self.n_samples)
+        points = dirichlet2.random_uniform(self.n_points)
         result = dirichlet2.metric.metric_matrix(points)
 
         param_a = points[:, 0]
@@ -102,7 +139,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         Check the Christoffel symbols in dimension 2.
         """
         dirichlet2 = DirichletDistributions(2)
-        points = dirichlet2.random_uniform(self.n_samples)
+        points = dirichlet2.random_uniform(self.n_points)
         result = dirichlet2.metric.christoffels(points)
 
         def coefficients(param_a, param_b):
@@ -135,15 +172,15 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
 
         Check vectorization of Christoffel symbols.
         """
-        n_samples = 2
-        points = self.dirichlet.random_uniform(n_samples)
+        n_points = 2
+        points = self.dirichlet.random_uniform(n_points)
         christoffel_1 = self.metric.christoffels(points[0, :])
         christoffel_2 = self.metric.christoffels(points[1, :])
         christoffels = self.metric.christoffels(points)
 
         result = christoffels.shape
         expected = gs.array(
-            [n_samples, self.dim, self.dim, self.dim])
+            [n_points, self.dim, self.dim, self.dim])
         self.assertAllClose(result, expected)
 
         expected = gs.stack((christoffel_1, christoffel_2), axis=0)
@@ -156,10 +193,10 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         Test that the Riemannian exponential at points on the planes
         xk = xj in the direction of that plane stays in the plane.
         """
-        n_samples = 2
+        n_points = 2
         gs.random.seed(123)
-        points = self.dirichlet.random_uniform(n_samples)
-        vectors = self.dirichlet.random_uniform(n_samples)
+        points = self.dirichlet.random_uniform(n_points)
+        vectors = self.dirichlet.random_uniform(n_points)
         initial_vectors = gs.array(
             [[vec_x, vec_x, vec_x] for vec_x in vectors[:, 0]])
         base_points = gs.array(
@@ -168,11 +205,11 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = gs.transpose(gs.tile(result[:, 0], (self.dim, 1)))
         self.assertAllClose(expected, result)
 
-        initial_vectors[:, 2] = gs.random.rand(n_samples)
-        base_points[:, 2] = gs.random.rand(n_samples)
+        initial_vectors[:, 2] = gs.random.rand(n_points)
+        base_points[:, 2] = gs.random.rand(n_points)
         result_points = self.metric.exp(initial_vectors, base_points)
         result = gs.isclose(result_points[:, 0], result_points[:, 1]).all()
-        expected = gs.array([True] * n_samples)
+        expected = gs.array([True] * n_points)
         self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
@@ -184,13 +221,12 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
 
         Expect their composition to give the identity function.
         """
-        n_samples = self.n_samples
         gs.random.seed(123)
-        base_point = self.dirichlet.random_uniform(n_samples)
-        point = self.dirichlet.random_uniform(n_samples)
-        log = self.metric.log(point, base_point, n_steps=500)
-        expected = point
-        result = self.metric.exp(tangent_vec=log, base_point=base_point)
+        base_points = self.dirichlet.random_uniform(self.n_points)
+        points = self.dirichlet.random_uniform(self.n_points)
+        log = self.metric.log(points, base_points, n_steps=500)
+        expected = points
+        result = self.metric.exp(tangent_vec=log, base_point=base_points)
         self.assertAllClose(result, expected, rtol=1e-2)
 
     @geomstats.tests.np_only
@@ -216,10 +252,10 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
 
         Test the case with several base points and one end point.
         """
-        base_points = self.dirichlet.random_uniform(self.n_samples)
+        base_points = self.dirichlet.random_uniform(self.n_points)
         point = self.dirichlet.random_uniform()
         tangent_vecs = self.metric.log(
             base_point=base_points, point=point)
         result = tangent_vecs.shape
-        expected = (self.n_samples, self.dim)
+        expected = (self.n_points, self.dim)
         self.assertAllClose(result, expected)

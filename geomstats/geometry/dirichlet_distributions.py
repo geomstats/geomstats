@@ -12,14 +12,13 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 N_STEPS = 100
-EPSILON = 1e-6
 
 
 class DirichletDistributions(EmbeddedManifold):
     """Class for the manifold of Dirichlet distributions.
 
-    This is :math: Dirichlet = `(R_+^*)^n`, the positive quadrant of the
-    n-dimensional Euclidean space.
+    This is :math: Dirichlet = `(R_+^*)^dim`, the positive quadrant of the
+    dim-dimensional Euclidean space.
 
     Attributes
     ----------
@@ -38,8 +37,8 @@ class DirichletDistributions(EmbeddedManifold):
     def belongs(self, point):
         """Evaluate if a point belongs to the manifold of Dirichlet distributions.
 
-        Check that point belongs to the positive quadrant of the Euclidean
-        space.
+        Check that point defines parameters for a Dirichlet distributions,
+        i.e. belongs to the positive quadrant of the Euclidean space.
 
         Parameters
         ----------
@@ -85,33 +84,33 @@ class DirichletDistributions(EmbeddedManifold):
         """Sample from the Dirichlet distribution.
 
         Sample from the Dirichlet distribution with parameters provided
-        by point.
+        by point. This gives n_samples points in the simplex.
 
         Parameters
         ----------
         point : array-like, shape=[..., dim]
             Point representing a Dirichlet distribution.
         n_samples : int
-            Number of points to sample with each pair of parameters in point.
+            Number of points to sample for each set of parameters in point.
             Optional, default: 1.
 
         Returns
         -------
         samples : array-like, shape=[..., n_samples]
-            Sample from beta distributions.
+            Sample from the Dirichlet distributions.
         """
         geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=2)
         samples = []
-        for i in range(n_samples):
+        for param in point:
             samples.append(gs.array(
-                dirichlet.rvs(point[i, :], size=n_samples)))
+                dirichlet.rvs(param, size=n_samples)))
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
     def point_to_pdf(self, point):
         """Compute pdf associated to point.
 
-        Compute the probability density function of the dirichlet
+        Compute the probability density function of the Dirichlet
         distribution with parameters provided by point.
 
         Parameters
@@ -122,7 +121,7 @@ class DirichletDistributions(EmbeddedManifold):
         Returns
         -------
         pdf : function
-            Probability density function of the beta distribution with
+            Probability density function of the Dirichlet distribution with
             parameters provided by point.
         """
         geomstats.errors.check_belongs(point, self)
@@ -132,15 +131,21 @@ class DirichletDistributions(EmbeddedManifold):
 
             Parameters
             ----------
-            x : array-like, shape=[n_points,]
-                Points at which to compute the probability density function.
-            """
-            x = gs.array(x, gs.float32)
-            x = gs.squeeze(x)
+            x : array-like, shape=[n_points, dim]
+                Points of the simplex at which to compute the probability
+                density function.
 
-            pdf_at_x = [
-                gs.array(dirichlet.pdf(x, alpha)) for alpha in point]
-            pdf_at_x = gs.stack(pdf_at_x, axis=-1)
+            Returns
+            -------
+            pdf_at_x : array-like, shape=[..., n_points]
+                Values of pdf at x for each value of the parameters provided
+                by point.
+            """
+            pdf_at_x = []
+            for param in point:
+                pdf_at_x.append([
+                    gs.array(dirichlet.pdf(pt, param)) for pt in x])
+            pdf_at_x = gs.stack(pdf_at_x, axis=0)
 
             return pdf_at_x
         return pdf
@@ -226,11 +231,12 @@ class DirichletMetric(RiemannianMetric):
         return gs.squeeze(christoffels)
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
-        """Exponential map associated to the Fisher information metric.
+        """Compute the exponential map.
 
-        Exponential map at base_point of tangent_vec computed by integration
-        of the geodesic equation (initial value problem), using the
-        christoffel symbols.
+        Comute the exponential map associated to the Fisher information
+        metric at base_point of tangent_vec. This is achieved  by integration
+        of the geodesic equation (initial value problem), using the Christoffel
+        symbols.
 
         Parameters
         ----------
@@ -245,7 +251,8 @@ class DirichletMetric(RiemannianMetric):
         Returns
         -------
         exp : array-like, shape=[..., dim]
-            Riemannian exponential.
+            End point of the geodesic starting at base_point with
+            initial velocity tangent_vec and stopping at time 1.
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -278,9 +285,10 @@ class DirichletMetric(RiemannianMetric):
         return exp[0] if len(base_point) == 1 else gs.stack(exp)
 
     def log(self, point, base_point, n_steps=N_STEPS):
-        """Compute logarithm map associated to the Fisher information metric.
+        """Compute the logarithm map.
 
-        Solve the boundary value problem associated to the geodesic ordinary
+        Compute logarithm map associated to the Fisher information metric by
+        solving the boundary value problem associated to the geodesic ordinary
         differential equation (ODE) using the Christoffel symbols.
 
         Parameters

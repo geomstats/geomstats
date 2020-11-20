@@ -61,7 +61,6 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         samples = self.beta.sample(point, n_samples * 10)
         result = gs.mean(samples, axis=1)
         expected = point[:, 0] / gs.sum(point, axis=1)
-
         self.assertAllClose(result, expected, rtol=tol, atol=tol)
 
     def test_maximum_likelihood_fit(self):
@@ -76,7 +75,6 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         fits = self.beta.maximum_likelihood_fit(samples)
         expected = self.beta.belongs(fits)
         result = gs.array([True] * n_samples)
-
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -96,7 +94,6 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         result_points = self.metric.exp(initial_vectors, points)
         result = gs.isclose(result_points[:, 0], result_points[:, 1]).all()
         expected = gs.array([True] * n_samples)
-
         self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
@@ -181,5 +178,4 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         pdf1 = beta.pdf(x, a=point[0, 0], b=point[0, 1])
         pdf2 = beta.pdf(x, a=point[1, 0], b=point[1, 1])
         expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=1)
-
         self.assertAllClose(result, expected)
