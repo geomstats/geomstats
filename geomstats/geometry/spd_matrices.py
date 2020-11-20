@@ -811,6 +811,42 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         result = trace_a + trace_b - 2 * trace_prod
         return result
 
+    def exp(self, tangent_vec, base_point):
+        """Compute the Bures-Wasserstein exponential map.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        exp : array-like, shape=[...,]
+            Riemannian exponential.
+        """
+        eigvals, eigvecs = gs.linalg.eigh(base_point)
+        transp_eigvecs = gs.einsum('...ij->...ji', eigvecs)
+        rotated_tangent_vec = gs.matmul(transp_eigvecs, tangent_vec)
+        rotated_tangent_vec = gs.matmul(rotated_tangent_vec, eigvecs)
+
+        ones = gs.ones(eigvals.shape)
+        vertical_index = gs.einsum('...i,...j->...ij', eigvals, ones)
+        horizontal_index = gs.einsum('...j,...i->...ij', eigvals, ones)
+        coefficients = 1 / (vertical_index + horizontal_index)
+
+        rotated_lyapnunov = gs.einsum('...ij,...ij->...ij',
+                                      rotated_tangent_vec, coefficients)
+        rotated_hessian = gs.einsum('...ij,...j,...jk->...ik',
+                                    rotated_lyapnunov, eigvals,
+                                    rotated_lyapnunov)
+        hessian = gs.matmul(eigvecs, rotated_hessian)
+        hessian = gs.matmul(hessian, transp_eigvecs)
+
+        result = base_point + tangent_vec + hessian
+        return result
+
 
 class SPDMetricEuclidean(RiemannianMetric):
     """Class for the Euclidean metric on the SPD manifold."""
