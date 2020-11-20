@@ -59,6 +59,13 @@ def norm(x, ord=2, axis=None):
     return torch.norm(x, p=ord, dim=axis)
 
 
+def solve_sylvester(a, b, q):
+    solution = np.vectorize(
+        scipy.linalg.solve_sylvester,
+        signature='(m,m),(n,n),(m,n)->(m,n)')(a, b, q)
+    return torch.from_numpy(solution)
+
+
 def qr(*args, **kwargs):
     matrix_q, matrix_r = np.vectorize(
         np.linalg.qr,
