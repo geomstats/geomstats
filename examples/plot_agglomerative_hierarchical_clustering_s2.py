@@ -14,7 +14,7 @@ from geomstats.learning.agglomerative_hierarchical_clustering \
 
 def main():
     """Plot an Agglomerative Hierarchical Clustering on the sphere."""
-    sphere = Hypersphere(dimension=2)
+    sphere = Hypersphere(dim=2)
     sphere_distance = sphere.metric.dist
 
     n_clusters = 2

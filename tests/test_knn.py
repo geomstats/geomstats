@@ -16,7 +16,7 @@ class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
         gs.random.seed(1234)
         self.n_neighbors = 3
         self.dimension = 2
-        self.space = Euclidean(dimension=self.dimension)
+        self.space = Euclidean(dim=self.dimension)
         self.distance = self.space.metric.dist
 
     @geomstats.tests.np_only

@@ -1,5 +1,6 @@
-"""
-Plot the result of optimal quantization of the uniform distribution
+"""Plot the result of online K-means, i.e. optimal quantization.
+
+This is optimal quantization of the uniform distribution
 on the circle, using online k-means clustering of a sample.
 """
 
@@ -19,7 +20,8 @@ TOLERANCE = 1e-6
 
 
 def main():
-    circle = Hypersphere(dimension=1)
+    """Run online K-means on the circle."""
+    circle = Hypersphere(dim=1)
 
     data = circle.random_uniform(n_samples=1000)
 

@@ -1,5 +1,6 @@
-"""
-Plot the result of optimal quantization of the von Mises Fisher distribution
+"""Plot the result of online K-means, i.e. optimal quantization.
+
+This is online K-means of the von Mises Fisher distribution
 on the sphere using online k-means clustering of a sample.
 """
 
@@ -14,7 +15,8 @@ from geomstats.learning.online_kmeans import OnlineKMeans
 
 
 def main():
-    sphere = Hypersphere(dimension=2)
+    """Run online K-means on the sphere."""
+    sphere = Hypersphere(dim=2)
 
     data = sphere.random_von_mises_fisher(kappa=10, n_samples=1000)
 

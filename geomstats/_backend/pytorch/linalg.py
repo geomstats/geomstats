@@ -35,26 +35,42 @@ def eigvalsh(*args, **kwargs):
 
 
 def eigh(*args, **kwargs):
-    eigs = np.linalg.eigh(*args, **kwargs)
-    return torch.from_numpy(eigs[0]), torch.from_numpy(eigs[1])
+    eigvals, eigvecs = torch.symeig(*args, eigenvectors=True, **kwargs)
+    return eigvals, eigvecs
 
 
-def svd(*args, **kwargs):
-    svds = np.linalg.svd(*args, **kwargs)
-    return (torch.from_numpy(svds[0]),
-            torch.from_numpy(svds[1]),
-            torch.from_numpy(svds[2]))
+def svd(x, full_matrices=True, compute_uv=True):
+    is_vectorized = x.ndim == 3
+    axis = (0, 2, 1) if is_vectorized else (1, 0)
+    if compute_uv:
+        u, s, v_t = torch.svd(
+            x, some=not full_matrices, compute_uv=compute_uv)
+        return u, s, v_t.permute(axis)
+    return torch.svd(x, some=not full_matrices, compute_uv=compute_uv)[1]
 
 
 def det(*args, **kwargs):
-    return torch.from_numpy(np.linalg.det(*args, **kwargs))
+    return torch.from_numpy(np.array(np.linalg.det(*args, **kwargs)))
 
 
-def norm(x, ord=2, axis=None, keepdims=False):
+def norm(x, ord=2, axis=None):
     if axis is None:
         return torch.norm(x, p=ord)
     return torch.norm(x, p=ord, dim=axis)
 
 
+def solve_sylvester(a, b, q):
+    solution = np.vectorize(
+        scipy.linalg.solve_sylvester,
+        signature='(m,m),(n,n),(m,n)->(m,n)')(a, b, q)
+    return torch.from_numpy(solution)
+
+
 def qr(*args, **kwargs):
-    return torch.from_numpy(np.linalg.qr(*args, **kwargs))
+    matrix_q, matrix_r = np.vectorize(
+        np.linalg.qr,
+        signature='(n,m)->(n,k),(k,m)',
+        excluded=['mode'])(*args, **kwargs)
+    tensor_q = torch.from_numpy(matrix_q)
+    tensor_r = torch.from_numpy(matrix_r)
+    return tensor_q, tensor_r

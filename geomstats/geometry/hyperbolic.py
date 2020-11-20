@@ -25,49 +25,47 @@ class Hyperbolic(Manifold):
 
     Parameters
     ----------
-    dimension : int
+    dim : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}, optional
+    point_type : str, {'extrinsic', 'intrinsic', etc}
         Default coordinates to represent points in hyperbolic space.
-    scale : int, optional
+        Optional, default: 'extrinsic'.
+    scale : int
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
+        Optional, default: 1.
     """
 
     default_coords_type = 'extrinsic'
     default_point_type = 'vector'
 
-    def __init__(self, dimension, scale=1):
-        super(Hyperbolic, self).__init__(
-            dimension=dimension)
+    def __init__(self, dim, scale=1, **kwargs):
+        super(Hyperbolic, self).__init__(dim=dim, **kwargs)
         self.point_type = Hyperbolic.default_point_type
         self.coords_type = Hyperbolic.default_coords_type
         self.scale = scale
-        self.metric =\
-            HyperbolicMetric(self.dimension, self.scale)
+        self.metric = HyperbolicMetric(self.dim, self.scale)
 
     @staticmethod
     def _extrinsic_to_extrinsic_coordinates(point):
         """Convert the parameterization of a point.
 
-        Convert the parameterization of a point in hyperbolic space
-        from its extrinsic coordinates, to its intrinsic coordinates
-        in Minkowski space.
+        Dummy method that returns the input point.
 
         Parameters
         ----------
-        point_extrinsic : array-like, shape=[n_samples, dimension + 1]
+        point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
 
         Returns
         -------
-        point_intrinsic : array-like, shape=[n_samples, dimension]
-            Point in hyperbolic space in intrinsic coordinates.
+        point_extrinsic : array-like, shape=[..., dim]
+            Point in hyperbolic space in extrinsic coordinates.
         """
-        return gs.to_ndarray(point, to_ndim=2)
+        return point
 
     @staticmethod
-    def _intrinsic_to_extrinsic_coordinates(point_intrinsic):
+    def _intrinsic_to_extrinsic_coordinates(point):
         """Convert intrinsic to extrinsic coordinates.
 
         Convert the parameterization of a point in hyperbolic space
@@ -76,25 +74,22 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[..., dim]
             Point in hyperbolic space in intrinsic coordinates.
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[n_samples, dimension + 1]
+        point_extrinsic : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
         """
-        point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
-
-        coord_0 = gs.sqrt(1. + gs.linalg.norm(point_intrinsic, axis=-1) ** 2)
-        coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=1)
-
-        point_extrinsic = gs.concatenate([coord_0, point_intrinsic], axis=-1)
+        coord_0 = gs.sqrt(1. + gs.sum(point ** 2, axis=-1))
+        point_extrinsic = gs.concatenate(
+            [coord_0[..., None], point], axis=-1)
 
         return point_extrinsic
 
     @staticmethod
-    def _extrinsic_to_intrinsic_coordinates(point_extrinsic):
+    def _extrinsic_to_intrinsic_coordinates(point):
         """Convert extrinsic to intrinsic coordinates.
 
         Convert the parameterization of a point in hyperbolic space
@@ -103,16 +98,14 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point_extrinsic : array-like, shape=[n_samples, dimension + 1]
+        point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
 
         Returns
         -------
-        point_intrinsic : array-like, shape=[n_samples, dimension]
+        point_intrinsic : array-like, shape=[..., dim]
         """
-        point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
-
-        point_intrinsic = point_extrinsic[:, 1:]
+        point_intrinsic = point[..., 1:]
 
         return point_intrinsic
 
@@ -121,114 +114,224 @@ class Hyperbolic(Manifold):
         """Convert extrinsic to ball coordinates.
 
         Convert the parameterization of a point in hyperbolic space
-        from its intrinsic coordinates, to the poincare ball model
+        from its intrinsic coordinates, to the Poincare ball model
         coordinates.
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension + 1]
+        point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
 
         Returns
         -------
-        point_ball : array-like, shape=[n_samples, dimension]
+        point_ball : array-like, shape=[..., dim]
             Point in hyperbolic space in Poincare ball coordinates.
         """
-        return point[:, 1:] / (1 + point[:, :1])
+        point_ball = point[..., 1:] / (1 + point[..., :1])
+
+        return point_ball
 
     @staticmethod
     def _ball_to_extrinsic_coordinates(point):
         """Convert ball to extrinsic coordinates.
 
         Convert the parameterization of a point in hyperbolic space
-        from its poincare ball model coordinates, to the extrinsic
+        from its Poincare ball model coordinates, to the extrinsic
         coordinates.
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[..., dim]
             Point in hyperbolic space in Poincare ball coordinates.
 
         Returns
         -------
-        extrinsic : array-like, shape=[n_samples, dimension + 1]
+        point_extrinsic : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
         """
         squared_norm = gs.sum(point**2, -1)
         denominator = 1 - squared_norm
-        t = gs.to_ndarray((1 + squared_norm) / denominator, to_ndim=2, axis=1)
-        expanded_denominator = gs.expand_dims(denominator, -1)
-        expanded_denominator = gs.repeat(
-            expanded_denominator, point.shape[-1], -1)
-        intrinsic = (2 * point) / expanded_denominator
-        return gs.concatenate([t, intrinsic], -1)
+        t = (1 + squared_norm) / denominator
+        intrinsic = gs.einsum(
+            '...i, ...->...i', 2 * point, 1. / denominator)
+        point_extrinsic = gs.concatenate([t[..., None], intrinsic], -1)
+        return point_extrinsic
 
-    @staticmethod
-    def _half_plane_to_extrinsic_coordinates(point):
-        """Convert half plane to extrinsic coordinates.
+    @classmethod
+    def _half_space_to_extrinsic_coordinates(cls, point):
+        """Convert half-space to extrinsic coordinates.
 
-        Convert the parameterization of a point in the hyperbolic plane
-        from its upper half plane model coordinates, to the extrinsic
+        Convert the parameterization of a point in the hyperbolic space
+        from its Poincare half-space coordinates, to the extrinsic
         coordinates.
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, 2]
-            Point in hyperbolic space in half-plane coordinates.
+        point : array-like, shape=[..., dim]
+            Point in hyperbolic space in half-space coordinates.
 
         Returns
         -------
-        extrinsic : array-like, shape=[n_samples, 3]
-            Point in hyperbolic plane in extrinsic coordinates.
+        point_extrinsic : array-like, shape=[..., dim + 1]
+            Point in hyperbolic space in extrinsic coordinates.
         """
-        x, y = point[:, 0], point[:, 1]
-        x2 = point[:, 0]**2
-        den = x2 + (1 + y)**2
-        x = gs.to_ndarray(x, to_ndim=2, axis=0)
-        y = gs.to_ndarray(y, to_ndim=2, axis=0)
-        x2 = gs.to_ndarray(x2, to_ndim=2, axis=0)
-        den = gs.to_ndarray(den, to_ndim=2, axis=0)
-        ball_point = gs.hstack((2 * x / den, (x2 + y**2 - 1) / den))
-        return Hyperbolic._ball_to_extrinsic_coordinates(ball_point)
+        point_ball = cls.half_space_to_ball_coordinates(point)
+        point_extrinsic = cls._ball_to_extrinsic_coordinates(point_ball)
 
-    @staticmethod
-    def _extrinsic_to_half_plane_coordinates(point):
-        """Convert extrinsic to half plane coordinates.
+        return point_extrinsic
 
-        Convert the parameterization of a point in the hyperbolic plane
-        from its intrinsic coordinates, to the poincare upper half plane
+    @classmethod
+    def _extrinsic_to_half_space_coordinates(cls, point):
+        """Convert extrinsic to half-space coordinates.
+
+        Convert the parameterization of a point in the hyperbolic space
+        from its extrinsic coordinates, to the Poincare half-space
         coordinates.
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, 2]
-            Point in the hyperbolic plane in intrinsic coordinates.
+        point : array-like, shape=[..., dim + 1]
+            Point in the hyperbolic space in extrinsic coordinates.
 
         Returns
         -------
-        point_half_plane : array-like, shape=[n_samples, 2]
-            Point in the hyperbolic plane in Poincare upper half-plane
-            coordinates.
+        point_half_space : array-like, shape=[..., dim]
+            Point in the hyperbolic space in half-space coordinates.
         """
         point_ball = \
-            Hyperbolic._extrinsic_to_ball_coordinates(point)
-        point_ball_x, point_ball_y = point_ball[:, 0], point_ball[:, 1]
-        point_ball_x2 = point_ball_x**2
-        denom = point_ball_x2 + (1 - point_ball_y)**2
+            cls._extrinsic_to_ball_coordinates(point)
+        point_half_space = cls.ball_to_half_space_coordinates(point_ball)
 
-        point_ball_x = gs.to_ndarray(
-            point_ball_x, to_ndim=2, axis=0)
-        point_ball_y = gs.to_ndarray(
-            point_ball_y, to_ndim=2, axis=0)
-        point_ball_x2 = gs.to_ndarray(
-            point_ball_x2, to_ndim=2, axis=0)
-        denom = gs.to_ndarray(
-            denom, to_ndim=2, axis=0)
+        return point_half_space
 
-        point_half_plane = gs.hstack((
-            (2 * point_ball_x) / denom,
-            (1 - point_ball_x2 - point_ball_y**2) / denom))
-        return point_half_plane
+    @staticmethod
+    def half_space_to_ball_coordinates(point):
+        """Convert half-space to ball coordinates.
+
+        Convert the parameterization of a point in the hyperbolic space
+        from its Poincare half-space coordinates, to the Poincare ball
+        coordinates.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point in the hyperbolic space in half-space coordinates.
+
+        Returns
+        -------
+        point_ball : array-like, shape=[..., dim]
+            Point in the hyperbolic space in Poincare ball coordinates.
+        """
+        sq_norm = gs.sum(point ** 2, axis=-1)
+        den = 1 + sq_norm + 2 * point[..., -1]
+        component_1 = gs.einsum(
+            '...i,...->...i', point[..., :-1], 2. / den)
+        component_2 = (sq_norm - 1) / den
+        point_ball = gs.concatenate(
+            [component_1, component_2[..., None]], axis=-1)
+
+        return point_ball
+
+    @staticmethod
+    def ball_to_half_space_coordinates(point):
+        """Convert ball to half space coordinates.
+
+        Convert the parameterization of a point in the hyperbolic space
+        from its Poincare ball coordinates, to the Poincare half-space
+        coordinates.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point in the hyperbolic space in Poincare ball coordinates.
+
+        Returns
+        -------
+        point_ball : array-like, shape=[..., dim]
+            Point in the hyperbolic space in half-space coordinates.
+        """
+        sq_norm = gs.sum(point ** 2, axis=-1)
+        den = 1 + sq_norm - 2 * point[..., -1]
+        component_1 = gs.einsum(
+            '...i,...->...i', point[..., :-1], 2. / den)
+        component_2 = (1 - sq_norm) / den
+        point_half_space = gs.concatenate(
+            [component_1, component_2[..., None]], axis=-1)
+
+        return point_half_space
+
+    @staticmethod
+    def half_space_to_ball_tangent(tangent_vec, base_point):
+        """Convert half-space to ball tangent coordinates.
+
+        Convert the parameterization of a tangent vector to the
+        hyperbolic space from its Poincare half-space coordinates, to
+        the Poinare ball coordinates.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at the base point in the Poincare half-space.
+        base_point : array-like, shape=[..., dim]
+            Point in the Poincare half-space.
+
+        Returns
+        -------
+        tangent_vec_ball : array-like, shape=[..., dim]
+           Tangent vector in the Poincare ball.
+        """
+        sq_norm = gs.sum(base_point ** 2, axis=-1)
+        den = 1. + sq_norm + 2. * base_point[..., -1]
+        scalar_prod = gs.sum(base_point * tangent_vec, axis=-1)
+        component_1 = (
+            gs.einsum('...i,...->...i', tangent_vec[..., :-1], 2. / den)
+            - 4. * gs.einsum(
+                '...i,...->...i', base_point[..., :-1],
+                (scalar_prod + tangent_vec[..., -1]) / den**2))
+        component_2 = 2 * scalar_prod / den \
+            - 2 * (sq_norm - 1) * (scalar_prod + tangent_vec[..., -1]) \
+            / den ** 2
+        tangent_vec_ball = gs.concatenate(
+            [component_1, component_2[..., None]], axis=-1)
+
+        return tangent_vec_ball
+
+    @staticmethod
+    def ball_to_half_space_tangent(tangent_vec, base_point):
+        """Convert ball to half-space tangent coordinates.
+
+        Convert the parameterization of a tangent vector to the
+        hyperbolic space from its Poincare ball coordinates, to
+        the Poinare half-space coordinates.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at the base point in the Poincare ball.
+        base_point : array-like, shape=[..., dim]
+            Point in the Poincare ball.
+
+        Returns
+        -------
+        tangent_vec_half_spacel : array-like, shape=[..., dim]
+            Tangent vector in the Poincare half-space.
+
+        """
+        sq_norm = gs.sum(base_point ** 2, axis=-1)
+        den = 1 + sq_norm - 2 * base_point[..., -1]
+        scalar_prod = gs.sum(base_point * tangent_vec, -1)
+        component_1 = (
+            gs.einsum('...i,...->...i', tangent_vec[..., :-1], 2. / den)
+            - 4. * gs.einsum(
+                '...i,...->...i', base_point[..., :-1],
+                (scalar_prod - tangent_vec[..., -1]) / den**2))
+        component_2 = -2. * scalar_prod / den \
+            - 2 * (1. - sq_norm) * (scalar_prod - tangent_vec[..., -1]) \
+            / den**2
+        tangent_vec_half_space = gs.concatenate(
+            [component_1, component_2[..., None]], axis=-1)
+
+        return tangent_vec_half_space
 
     @staticmethod
     def change_coordinates_system(point,
@@ -246,8 +349,7 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
-                            or shape=[n_samples, dimension + 1]
+        point : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space.
         from_coordinates_system : str, {'extrinsic', 'intrinsic', etc}
             Coordinates type.
@@ -256,8 +358,8 @@ class Hyperbolic(Manifold):
 
         Returns
         -------
-        point_to : array-like, shape=[n_samples, dimension]
-                               or shape=[n_sample, dimension + 1]
+        point_to : array-like, shape=[..., dim]
+                               or shape=[n_sample, dim + 1]
             Point in hyperbolic space in coordinates given by to_point_type.
         """
         coords_transform = {
@@ -269,15 +371,13 @@ class Hyperbolic(Manifold):
                 Hyperbolic._intrinsic_to_extrinsic_coordinates,
             'extrinsic-intrinsic':
                 Hyperbolic._extrinsic_to_intrinsic_coordinates,
-            'extrinsic-half-plane':
-                Hyperbolic._extrinsic_to_half_plane_coordinates,
-            'half-plane-extrinsic':
-                Hyperbolic._half_plane_to_extrinsic_coordinates,
+            'extrinsic-half-space':
+                Hyperbolic._extrinsic_to_half_space_coordinates,
+            'half-space-extrinsic':
+                Hyperbolic._half_space_to_extrinsic_coordinates,
             'extrinsic-extrinsic':
                 Hyperbolic._extrinsic_to_extrinsic_coordinates
         }
-
-        point = gs.to_ndarray(point, to_ndim=2, axis=0)
 
         if from_coordinates_system == to_coordinates_system:
             return point
@@ -297,15 +397,16 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[..., dim]
             Point to be tested.
-        tolerance : float, optional
+        tolerance : float
             Tolerance at which to evaluate how close the squared norm
             is to the reference value.
+            Optional, default: TOLERANCE.
 
         Returns
         -------
-        belongs : array-like, shape=[n_samples, 1]
+        belongs : array-like, shape=[..., 1]
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
@@ -319,16 +420,15 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
-                            or shape=[n_samples, dimension + 1]
+        point : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space.
-        to_point_type : str, {'extrinsic', 'intrinsic', etc}, optional
+        to_coords_type : str, {'extrinsic', 'intrinsic', etc}
             Coordinates type.
+            Optional, default: 'ball'.
 
         Returns
         -------
-        point_to : array-like, shape=[n_samples, dimension]
-                               or shape=[n_sample, dimension + 1]
+        point_to : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space in coordinates given by to_point_type.
         """
         return Hyperbolic.change_coordinates_system(point,
@@ -343,21 +443,18 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
-                            or shape=[n_samples, dimension + 1]
+        point : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space in coordinates from_point_type.
-        from_point_type : str, {'ball', 'extrinsic', 'intrinsic', 'half_plane'}
+        from_coords_type : str, {'ball', 'extrinsic', 'intrinsic', ...}
             Coordinates type.
 
         Returns
         -------
-        point_current : array-like, shape=[n_samples, dimension]
-                                    or shape=[n_sample, dimension + 1]
+        point_current : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space.
         """
-        return Hyperbolic.change_coordinates_system(point,
-                                                    from_coords_type,
-                                                    self.coords_type)
+        return Hyperbolic.change_coordinates_system(
+            point, from_coords_type, self.coords_type)
 
     def random_uniform(self, n_samples=1, bound=1.):
         """Sample over the hyperbolic space using uniform distribution.
@@ -370,22 +467,27 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        n_samples : int, optional
+        n_samples : int
             Number of samples.
-        bound: float, optional
+            Optional, default: 1.
+        bound: float
             Bound defining the hypersquare in which to sample uniformly.
+            Optional, default: 1.
 
         Returns
         -------
-        samples : array-like, shape=[n_samples, dimension + 1]
+        samples : array-like, shape=[..., dim + 1]
             Samples in hyperbolic space.
         """
-        size = (n_samples, self.dimension)
+        size = (n_samples, self.dim)
         samples = bound * 2. * (gs.random.rand(*size) - 0.5)
 
-        return\
-            Hyperbolic.change_coordinates_system(samples, 'intrinsic',
-                                                 self.coords_type)
+        samples = Hyperbolic.change_coordinates_system(
+            samples, 'intrinsic', self.coords_type)
+
+        if n_samples == 1:
+            samples = gs.squeeze(samples, axis=0)
+        return samples
 
 
 class HyperbolicMetric(RiemannianMetric):
@@ -393,7 +495,7 @@ class HyperbolicMetric(RiemannianMetric):
 
     Parameters
     ----------
-    dimension : int
+    dim : int
         Dimension of the hyperbolic space.
     point_type : str, {'extrinsic', 'intrinsic', etc}, optional
         Default coordinates to represent points in hyperbolic space.
@@ -405,10 +507,10 @@ class HyperbolicMetric(RiemannianMetric):
     default_point_type = 'vector'
     default_coords_type = 'extrinsic'
 
-    def __init__(self, dimension, scale=1):
+    def __init__(self, dim, scale=1):
         super(HyperbolicMetric, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
+            dim=dim,
+            signature=(dim, 0, 0))
         self.point_type = HyperbolicMetric.default_point_type
 
         self.scale = scale
@@ -418,16 +520,17 @@ class HyperbolicMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec_a : array-like, shape=[..., dim + 1]
             First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec_b : array-like, shape=[..., dim + 1]
             Second tangent vector at base point.
-        base_point : array-like, shape=[n_samples, dimension + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space.
+            Optional, default: None.
 
         Returns
         -------
-        inner_prod : array-like, shape=[n_samples, 1]
+        inner_prod : array-like, shape=[..., 1]
             Inner-product of the two tangent vectors.
         """
         inner_prod = self._inner_product(
@@ -443,14 +546,15 @@ class HyperbolicMetric(RiemannianMetric):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dimension + 1]
+        vector : array-like, shape=[..., dim + 1]
             Vector on the tangent space of the hyperbolic space at base point.
-        base_point : array-like, shape=[n_samples, dimension + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
+            Optional, default: None.
 
         Returns
         -------
-        sq_norm : array-like, shape=[n_samples, 1]
+        sq_norm : array-like, shape=[..., 1]
             Squared norm of the vector.
         """
         sq_norm = self._squared_norm(vector)
@@ -465,14 +569,15 @@ class HyperbolicMetric(RiemannianMetric):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dimension + 1]
+        vector : array-like, shape=[..., dim + 1]
             Vector on the tangent space of the hyperbolic space at base point.
-        base_point : array-like, shape=[n_samples, dimension + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
+            Optional, default: None.
 
         Returns
         -------
-        sq_norm : array-like, shape=[n_samples, 1]
+        sq_norm : array-like, shape=[..., 1]
             Squared norm of the vector.
         """
         return super().squared_norm(vector, base_point=base_point)
@@ -482,16 +587,17 @@ class HyperbolicMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec_a : array-like, shape=[..., dim + 1]
             First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec_b : array-like, shape=[..., dim + 1]
             Second tangent vector at base point.
-        base_point : array-like, shape=[n_samples, dimension + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space.
+            Optional, default: None.
 
         Returns
         -------
-        inner_prod : array-like, shape=[n_samples, 1]
+        inner_prod : array-like, shape=[..., 1]
             Inner-product of the two tangent vectors.
         """
         return super().inner_product(tangent_vec_a, tangent_vec_b,

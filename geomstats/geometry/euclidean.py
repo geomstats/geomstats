@@ -10,27 +10,49 @@ class Euclidean(Manifold):
 
     By definition, a Euclidean space is a vector space of a given
     dimension, equipped with a Euclidean metric.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the Euclidean space.
     """
 
-    def __init__(self, dimension):
-        assert isinstance(dimension, int) and dimension > 0
-        self.dimension = dimension
-        self.metric = EuclideanMetric(dimension)
+    def __init__(self, dim):
+        super(Euclidean, self).__init__(dim=dim)
+        self.metric = EuclideanMetric(dim)
+
+    def get_identity(self, point_type=None):
+        """Get the identity of the group.
+
+        Parameters
+        ----------
+        point_type : str, {'vector', 'matrix'}
+            The point_type of the returned value.
+            Optional, default: self.default_point_type
+
+        Returns
+        -------
+        identity : array-like, shape=[n]
+        """
+        identity = gs.zeros(self.dim)
+        return identity
+    identity = property(get_identity)
 
     def belongs(self, point):
         """Evaluate if a point belongs to the Euclidean space.
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
-                Input points.
+        point : array-like, shape=[..., dim]
+            Point to evaluate.
 
         Returns
         -------
-        belongs : array-like, shape=[n_samples,]
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the Euclidean space.
         """
         point_dim = point.shape[-1]
-        belongs = point_dim == self.dimension
+        belongs = point_dim == self.dim
         if gs.ndim(point) == 2:
             belongs = gs.tile([belongs], (point.shape[0],))
 
@@ -41,47 +63,79 @@ class Euclidean(Manifold):
 
         Parameters
         ----------
-        n_samples: int, optional
-        bound: float, optional
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Side of hypercube support of the uniform distribution.
+            Optional, default: 1.0
 
         Returns
         -------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[..., dim]
+           Sample.
         """
-        size = (self.dimension,)
+        size = (self.dim,)
         if n_samples != 1:
-            size = (n_samples, self.dimension)
+            size = (n_samples, self.dim)
         point = bound * (gs.random.rand(*size) - 0.5) * 2
 
         return point
+
+    def exp(self, tangent_vec, base_point=None):
+        """Compute the group exponential, which is simply the addition.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n]
+            Point from which the exponential is computed.
+
+        Returns
+        -------
+        point : array-like, shape=[..., n]
+            Group exponential.
+        """
+        if not self.belongs(tangent_vec):
+            raise ValueError('The update must be of the same dimension')
+        return tangent_vec + base_point
 
 
 class EuclideanMetric(RiemannianMetric):
     """Class for Euclidean metrics.
 
     As a Riemannian metric, the Euclidean metric is:
-    - flat: the inner product is independent of the base point.
+    - flat: the inner-product is independent of the base point.
     - positive definite: it has signature (dimension, 0, 0),
     where dimension is the dimension of the Euclidean space.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the Euclidean space.
     """
 
-    def __init__(self, dimension):
-        assert isinstance(dimension, int) and dimension > 0
-        super(EuclideanMetric, self).__init__(dimension=dimension,
-                                              signature=(dimension, 0, 0))
+    def __init__(self, dim, default_point_type='vector'):
+        super(EuclideanMetric, self).__init__(
+            dim=dim, signature=(dim, 0, 0),
+            default_point_type=default_point_type)
 
-    def inner_product_matrix(self, base_point=None):
-        """Compute inner product matrix, independent of the base point.
+    def metric_matrix(self, base_point=None):
+        """Compute the inner-product matrix, independent of the base point.
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
 
         Returns
         -------
-        inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
+        inner_prod_mat : array-like, shape=[..., dim, dim]
+            Inner-product matrix.
         """
-        mat = gs.eye(self.dimension)
+        mat = gs.eye(self.dim)
         return mat
 
     def exp(self, tangent_vec, base_point):
@@ -91,16 +145,15 @@ class EuclideanMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, dimension]
-                                 or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., dim]
+            Base point.
 
         Returns
         -------
-        exp: array-like, shape=[n_samples, dimension]
-                          or shape-[n_samples, dimension]
+        exp : array-like, shape=[..., dim]
+            Riemannian exponential.
         """
         exp = base_point + tangent_vec
         return exp
@@ -112,16 +165,15 @@ class EuclideanMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, dimension]
-                           or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
+        point: array-like, shape=[..., dim]
+            Point.
+        base_point: array-like, shape=[..., dim]
+            Base point.
 
         Returns
         -------
-        log: array-like, shape=[n_samples, dimension]
-                          or shape-[n_samples, dimension]
+        log: array-like, shape=[..., dim]
+            Riemannian logarithm.
         """
         log = point - base_point
         return log

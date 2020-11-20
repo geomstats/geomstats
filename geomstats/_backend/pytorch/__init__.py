@@ -1,24 +1,26 @@
 """Pytorch based computation backend."""
 
+from functools import wraps
+
 import numpy as _np
 import torch
 from torch import (  # NOQA
-    abs,
     acos as arccos,
     arange,
-    argmax,
     argmin,
     asin as arcsin,
     atan2 as arctan2,
+    bool as t_bool,
+    broadcast_tensors as broadcast_arrays,
     ceil,
     clamp as clip,
     cos,
     cosh,
-    diag,
-    diagonal,
+    cross,
     div as divide,
     empty_like,
     eq,
+    erf,
     exp,
     eye,
     flatten,
@@ -31,16 +33,18 @@ from torch import (  # NOQA
     int32,
     int64,
     isnan,
-    le as less_equal,
     log,
     lt as less,
     matmul,
     max as amax,
+    mean,
     meshgrid,
     min as amin,
     nonzero,
     ones,
     ones_like,
+    polygamma,
+    pow as power,
     repeat_interleave as repeat,
     reshape,
     sign,
@@ -51,41 +55,93 @@ from torch import (  # NOQA
     tan,
     tanh,
     tril,
-    where,
+    uint8,
     zeros,
     zeros_like
 )
 
+from . import autograd # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
+
+
+DTYPES = {
+    int32: 0,
+    int64: 1,
+    float32: 2,
+    float64: 3}
 
 
 def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 
-flip = _raise_not_implemented_error
-hsplit = _raise_not_implemented_error
 searchsorted = _raise_not_implemented_error
-vectorize = _raise_not_implemented_error
+
+
+def _box_scalar(function):
+    @wraps(function)
+    def wrapper(x):
+        if not torch.is_tensor(x):
+            x = torch.tensor(x)
+        return function(x)
+    return wrapper
+
+
+abs = _box_scalar(abs)
+ceil = _box_scalar(ceil)
+cos = _box_scalar(cos)
+cosh = _box_scalar(cosh)
+exp = _box_scalar(exp)
+log = _box_scalar(log)
+sin = _box_scalar(sin)
+sinh = _box_scalar(sinh)
+tan = _box_scalar(tan)
+
+
+def to_numpy(x):
+    return x.numpy()
+
+
+def argmax(a, **kwargs):
+    if a.dtype == torch.bool:
+        return torch.as_tensor(_np.argmax(a.data.numpy(), **kwargs))
+    return torch.argmax(a, **kwargs)
+
+
+def convert_to_wider_dtype(tensor_list):
+    dtype_list = [DTYPES[x.dtype] for x in tensor_list]
+    wider_dtype_index = max(dtype_list)
+
+    wider_dtype = list(DTYPES.keys())[wider_dtype_index]
+
+    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
+    return tensor_list
+
+
+def less_equal(x, y, **kwargs):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    if not torch.is_tensor(y):
+        y = torch.tensor(y)
+    return torch.le(x, y, **kwargs)
 
 
 def empty(shape, dtype=float64):
     return torch.empty(*shape, dtype=dtype)
 
 
-def split(ary, indices_or_sections, axis=0):
-    return torch.split(ary, indices_or_sections, dim=axis)
-
-
-def while_loop(cond, body, loop_vars, maximum_iterations):
-    iteration = 0
-    while cond(*loop_vars):
-        loop_vars = body(*loop_vars)
-        iteration += 1
-        if iteration >= maximum_iterations:
-            break
-    return loop_vars
+def split(x, indices_or_sections, axis=0):
+    if isinstance(indices_or_sections, int):
+        indices_or_sections = x.shape[axis] // indices_or_sections
+        return torch.split(x, indices_or_sections, dim=axis)
+    indices_or_sections = _np.array(indices_or_sections)
+    intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
+    last_interval_length = x.shape[axis] - indices_or_sections[-1]
+    if last_interval_length > 0:
+        intervals_length = _np.append(intervals_length, last_interval_length)
+    intervals_length = _np.insert(intervals_length, 0, indices_or_sections[0])
+    return torch.split(x, tuple(intervals_length), dim=axis)
 
 
 def logical_or(x, y):
@@ -94,33 +150,44 @@ def logical_or(x, y):
 
 def logical_and(x, y):
     if torch.is_tensor(x):
-        return x.eq(y)
-    if torch.is_tensor(y):
-        return y.eq(x)
+        return x & y
     return x and y
 
 
 def any(x, axis=None):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
     if axis is None:
-        return x.bool().any()
-    numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
-    return torch.from_numpy(numpy_result)
-
-
-def cond(pred, true_fn, false_fn):
-    if pred:
-        return true_fn()
-    return false_fn()
+        return torch.any(x)
+    if isinstance(axis, int):
+        return torch.any(x.bool(), axis)
+    if len(axis) == 1:
+        return torch.any(x, *axis)
+    axis = list(axis)
+    for i_axis, one_axis in enumerate(axis):
+        if one_axis < 0:
+            axis[i_axis] = ndim(x) + one_axis
+    new_axis = tuple(k - 1 if k >= 0 else k for k in axis[1:])
+    return any(torch.any(x.bool(), axis[0]), new_axis)
 
 
 def cast(x, dtype):
-    return array(x).to(dtype)
+    if torch.is_tensor(x):
+        return x.to(dtype=dtype)
+    return array(x).to(dtype=dtype)
 
 
-def concatenate(seq, axis=0):
-    # XXX(nkoep): Why do we cast to float32 instead of float64 here?
-    seq = [cast(t, float32) for t in seq]
-    return torch.cat(seq, dim=axis)
+def flip(x, axis):
+    if isinstance(axis, int):
+        axis = [axis]
+    if axis is None:
+        axis = list(range(x.ndim))
+    return torch.flip(x, dims=axis)
+
+
+def concatenate(seq, axis=0, out=None):
+    seq = convert_to_wider_dtype(seq)
+    return torch.cat(seq, dim=axis, out=out)
 
 
 def hstack(seq):
@@ -131,35 +198,102 @@ def vstack(seq):
     return concatenate(seq)
 
 
-def array(val):
-    if isinstance(val, list):
-        if not isinstance(val[0], torch.Tensor):
+def _get_largest_dtype(seq):
+    dtype_dict = {0: t_bool,
+                  1: uint8,
+                  2: int32,
+                  3: int64,
+                  4: float32,
+                  5: float64}
+    reverse_dict = {dtype_dict[key]: key for key in dtype_dict}
+    dtype_code_set = {reverse_dict[t.dtype] for t in seq}
+    return dtype_dict[max(dtype_code_set)]
+
+
+def array(val, dtype=None):
+    if isinstance(val, (list, tuple)):
+        if isinstance(val[0], (list, tuple)):
+            aux_list = [array(t, dtype) for t in val]
+            if dtype is None:
+                local_dtype = _get_largest_dtype(aux_list)
+                aux_list = [cast(t, local_dtype) for t in aux_list]
+            return stack(aux_list)
+        if not any([isinstance(t, torch.Tensor) for t in val]):
             val = _np.copy(_np.array(val))
+        elif any([not isinstance(t, torch.Tensor) for t in val]):
+            tensor_members = [t for t in val if torch.is_tensor(t)]
+            local_dtype = _get_largest_dtype(tensor_members)
+            for index, t in enumerate(val):
+                if torch.is_tensor(t) and t.dtype != local_dtype:
+                    cast(t, local_dtype)
+                elif torch.is_tensor(t):
+                    val[index] = cast(t, dtype=local_dtype)
+                else:
+                    val[index] = torch.tensor(t, dtype=local_dtype)
+            val = stack(val)
         else:
             val = stack(val)
 
     if isinstance(val, (bool, int, float)):
         val = _np.array(val)
+
     if isinstance(val, _np.ndarray):
-        if val.dtype == bool:
-            val = torch.from_numpy(_np.array(val, dtype=_np.uint8))
-        elif val.dtype == _np.float32 or val.dtype == _np.float64:
-            val = torch.from_numpy(_np.array(val, dtype=_np.float64))
-        else:
-            val = torch.from_numpy(val)
+        val = torch.from_numpy(val)
 
     if not isinstance(val, torch.Tensor):
         val = torch.Tensor([val])
-    if val.dtype == torch.float64:
+
+    if dtype is not None:
+        if val.dtype != dtype:
+            val = cast(val, dtype)
+    elif val.dtype == torch.float64:
         val = val.float()
     return val
 
 
 def all(x, axis=None):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
     if axis is None:
         return x.bool().all()
-    numpy_result = _np.array(_np.all(_np.array(x), axis=axis))
-    return torch.from_numpy(numpy_result)
+    if isinstance(axis, int):
+        return torch.all(x.bool(), axis)
+    if len(axis) == 1:
+        return torch.all(x, *axis)
+    axis = list(axis)
+    for i_axis, one_axis in enumerate(axis):
+        if one_axis < 0:
+            axis[i_axis] = ndim(x) + one_axis
+    new_axis = tuple(k - 1 if k >= 0 else k for k in axis[1:])
+    return all(torch.all(x.bool(), axis[0]), new_axis)
+
+
+def get_slice(x, indices):
+    """Return a slice of an array, following Numpy's style.
+
+    Parameters
+    ----------
+    x : array-like, shape=[dim]
+        Initial array.
+    indices : iterable(iterable(int))
+        Indices which are kept along each axis, starting from 0.
+
+    Returns
+    -------
+    slice : array-like
+        Slice of x given by indices.
+
+    Notes
+    -----
+    This follows Numpy's convention: indices are grouped by axis.
+
+    Examples
+    --------
+    >>> a = torch.tensor(range(30)).reshape(3,10)
+    >>> get_slice(a, ((0, 2), (8, 9)))
+    tensor([8, 29])
+    """
+    return x[indices]
 
 
 def allclose(a, b, **kwargs):
@@ -171,12 +305,12 @@ def allclose(a, b, **kwargs):
     b = to_ndarray(b.float(), to_ndim=1)
     n_a = a.shape[0]
     n_b = b.shape[0]
-    ndim = a.dim()
+    nb_dim = a.dim()
     if n_a > n_b:
-        reps = (int(n_a / n_b),) + (ndim - 1) * (1,)
+        reps = (int(n_a / n_b),) + (nb_dim - 1) * (1,)
         b = tile(b, reps)
     elif n_a < n_b:
-        reps = (int(n_b / n_a),) + (ndim - 1) * (1,)
+        reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
         a = tile(a, reps)
     return torch.allclose(a, b, **kwargs)
 
@@ -200,8 +334,7 @@ def shape(val):
 
 
 def dot(a, b):
-    dot = _np.dot(a, b)
-    return torch.from_numpy(_np.array(dot)).float()
+    return einsum('...i,...i->...', a, b)
 
 
 def maximum(a, b):
@@ -221,12 +354,12 @@ def sqrt(x):
     return torch.sqrt(x)
 
 
-# TODO(nkoep): PyTorch exposes its own 'isclose' function, which is currently
-#              undocumented for some reason, see
-#                https://github.com/pytorch/pytorch/issues/35471
-#              In the future, we may simply use that function instead.
-def isclose(*args, **kwargs):
-    return torch.from_numpy(_np.isclose(*args, **kwargs))
+def isclose(x, y, rtol=1e-5, atol=1e-8):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    if not torch.is_tensor(y):
+        y = torch.tensor(y)
+    return torch.isclose(x, y, atol=atol, rtol=rtol)
 
 
 def sum(x, axis=None, keepdims=None, **kwargs):
@@ -243,9 +376,15 @@ def einsum(*args, **kwargs):
     einsum_str = args[0]
     input_tensors_list = args[1:]
 
+    input_tensors_list = convert_to_wider_dtype(input_tensors_list)
+
+    if len(input_tensors_list) == 1:
+        return torch.einsum(einsum_str, input_tensors_list)
+
     einsum_list = einsum_str.split('->')
     input_str = einsum_list[0]
-    output_str = einsum_list[1]
+    if len(einsum_list) > 1:
+        output_str = einsum_list[1]
 
     input_str_list = input_str.split(',')
 
@@ -253,15 +392,33 @@ def einsum(*args, **kwargs):
     all_ellipsis = bool(_np.prod(is_ellipsis))
 
     if all_ellipsis:
+        ndims = [len(input_str[3:]) for input_str in input_str_list]
+
         if len(input_str_list) > 2:
             raise NotImplementedError(
                 'Ellipsis support not implemented for >2 input tensors')
+
         tensor_a = input_tensors_list[0]
         tensor_b = input_tensors_list[1]
+        initial_ndim_a = tensor_a.ndim
+        initial_ndim_b = tensor_b.ndim
+        tensor_a = to_ndarray(tensor_a, to_ndim=ndims[0] + 1)
+        tensor_b = to_ndarray(tensor_b, to_ndim=ndims[1] + 1)
+
         n_tensor_a = tensor_a.shape[0]
         n_tensor_b = tensor_b.shape[0]
 
-        if n_tensor_a != n_tensor_b:
+        cond = (
+            n_tensor_a == n_tensor_b == 1
+            and initial_ndim_a != tensor_a.ndim
+            and initial_ndim_b != tensor_b.ndim)
+
+        if cond:
+            tensor_a = squeeze(tensor_a, axis=0)
+            tensor_b = squeeze(tensor_b, axis=0)
+            input_prefix_list = ['', '']
+            output_prefix = ''
+        elif n_tensor_a != n_tensor_b:
             if n_tensor_a == 1:
                 tensor_a = squeeze(tensor_a, axis=0)
                 input_prefix_list = ['', 'r']
@@ -279,12 +436,18 @@ def einsum(*args, **kwargs):
         input_str_list = [
             input_str.replace('...', prefix) for input_str, prefix in zip(
                 input_str_list, input_prefix_list)]
-        output_str = output_str.replace('...', output_prefix)
 
         input_str = input_str_list[0] + ',' + input_str_list[1]
-        einsum_str = input_str + '->' + output_str
 
-        return torch.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
+        einsum_str = input_str
+        if len(einsum_list) > 1:
+            output_str = output_str.replace('...', output_prefix)
+            einsum_str = input_str + '->' + output_str
+
+        result = torch.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
+
+        return result
+
     return torch.einsum(*args, **kwargs)
 
 
@@ -306,9 +469,18 @@ def squeeze(x, axis=None):
     return torch.squeeze(x, dim=axis)
 
 
-def trace(*args, **kwargs):
-    trace = _np.trace(*args, **kwargs)
-    return torch.from_numpy(_np.array(trace)).float()
+def trace(x, axis1=0, axis2=1):
+    min_axis = min(axis1, axis2)
+    max_axis = max(axis1, axis2)
+    if min_axis == 1 and max_axis == 2:
+        return torch.einsum('...ii', x)
+    if min_axis == -2 and max_axis == -1:
+        return torch.einsum('...ii', x)
+    if min_axis == 0 and max_axis == 1:
+        return torch.einsum('ii...', x)
+    if min_axis == 0 and max_axis == 2:
+        return torch.einsum('i...i', x)
+    raise NotImplementedError()
 
 
 def arctanh(x):
@@ -327,10 +499,6 @@ def equal(a, b, **kwargs):
     return torch.eq(a, b, **kwargs)
 
 
-def cross(x, y):
-    return torch.from_numpy(_np.cross(x, y))
-
-
 def tril_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.tril_indices(*args, **kwargs)))
 
@@ -340,8 +508,9 @@ def triu_indices(*args, **kwargs):
 
 
 def tile(x, y):
-    # TODO(johmathe): Native tile implementation
-    return array(_np.tile(x, y))
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    return x.repeat(y)
 
 
 def expand_dims(x, axis=0):
@@ -352,23 +521,71 @@ def ndim(x):
     return x.dim()
 
 
+def hsplit(x, indices_or_section):
+    if isinstance(indices_or_section, int):
+        indices_or_section = x.shape[1] // indices_or_section
+    return torch.split(x, indices_or_section, dim=1)
+
+
+def diagonal(x, offset=0, axis1=0, axis2=1):
+    return torch.diagonal(x, offset=offset, dim1=axis1, dim2=axis2)
+
+
+def set_diag(x, new_diag):
+    """Set the diagonal along the last two axis.
+
+    Parameters
+    ----------
+    x : array-like, shape=[dim]
+        Initial array.
+    new_diag : array-like, shape=[dim[-2]]
+        Values to set on the diagonal.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    This mimics tensorflow.linalg.set_diag(x, new_diag), when new_diag is a
+    1-D array, but modifies x instead of creating a copy.
+    """
+    arr_shape = x.shape
+    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
+
+
 def prod(x, axis=None):
     if axis is None:
         return torch.prod(x)
     return torch.prod(x, dim=axis)
 
 
-def mean(x, axis=None):
-    if axis is None:
-        return torch.mean(x)
-    return torch.mean(x, dim=axis)
-
-
-def gather(x, indices, axis=0):
-    return x[indices]
+def where(condition, x=None, y=None):
+    if x is None and y is None:
+        return torch.where(condition)
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    if not torch.is_tensor(y):
+        y = torch.tensor(y)
+    y = cast(y, x.dtype)
+    return torch.where(condition, x, y)
 
 
 def get_mask_i_float(i, n):
+    """Create a 1D array of zeros with one element at one, with floating type.
+
+    Parameters
+    ----------
+    i : int
+        Index of the non-zero element.
+    n: n
+        Length of the created array.
+
+    Returns
+    -------
+    mask_i_float : array-like, shape=[n,]
+        1D array of zeros except at index i, where it is one
+    """
     range_n = arange(cast(array(n), int32))
     i_float = cast(array(i), int32)
     mask_i = equal(range_n, i_float)
@@ -376,12 +593,30 @@ def get_mask_i_float(i, n):
     return mask_i_float
 
 
+def _is_boolean(x):
+    if isinstance(x, bool):
+        return True
+    if isinstance(x, (tuple, list)):
+        return _is_boolean(x[0])
+    if torch.is_tensor(x):
+        return x.dtype in [torch.bool, torch.uint8]
+    return False
+
+
+def _is_iterable(x):
+    if isinstance(x, (list, tuple)):
+        return True
+    if torch.is_tensor(x):
+        return ndim(x) > 0
+    return False
+
+
 def assignment(x, values, indices, axis=0):
     """Assign values at given indices of an array.
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
@@ -395,7 +630,7 @@ def assignment(x, values, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x with the values assigned at the given indices.
 
     Notes
@@ -404,20 +639,26 @@ def assignment(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     x_new = copy(x)
-    single_index = not isinstance(indices, list)
-    if single_index:
-        indices = [indices]
-    if not isinstance(values, list):
-        values = [values] * len(indices)
-    for (nb_index, index) in enumerate(indices):
-        if not isinstance(index, tuple):
-            index = (index,)
-        if len(index) < len(shape(x)):
-            for n_axis in range(shape(x)[axis]):
-                extended_index = index[:axis] + (n_axis,) + index[axis:]
-                x_new[extended_index] = values[nb_index]
-        else:
-            x_new[index] = values[nb_index]
+
+    use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
+    if _is_boolean(indices):
+        x_new[indices] = values
+        return x_new
+    zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
+    len_indices = len(indices) if _is_iterable(indices) else 1
+    if zip_indices:
+        indices = tuple(zip(*indices))
+    if not use_vectorization:
+        if not zip_indices:
+            len_indices = len(indices) if _is_iterable(indices) else 1
+        len_values = len(values) if _is_iterable(values) else 1
+        if len_values > 1 and len_values != len_indices:
+            raise ValueError('Either one value or as many values as indices')
+        x_new[indices] = values
+    else:
+        indices = tuple(
+            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        x_new[indices] = values
     return x_new
 
 
@@ -426,7 +667,7 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
@@ -440,7 +681,7 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x with the values assigned at the given indices.
 
     Notes
@@ -449,20 +690,24 @@ def assignment_by_sum(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     x_new = copy(x)
-    single_index = not isinstance(indices, list)
-    if single_index:
-        indices = [indices]
-    if not isinstance(values, list):
-        values = [values] * len(indices)
-    for (nb_index, index) in enumerate(indices):
-        if not isinstance(index, tuple):
-            index = (index,)
-        if len(index) < len(shape(x)):
-            for n_axis in range(shape(x)[axis]):
-                extended_index = index[:axis] + (n_axis,) + index[axis:]
-                x_new[extended_index] += values[nb_index]
-        else:
-            x_new[index] += values[nb_index]
+    values = array(values)
+    use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
+    if _is_boolean(indices):
+        x_new[indices] += values
+        return x_new
+    zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
+    if zip_indices:
+        indices = list(zip(*indices))
+    if not use_vectorization:
+        len_indices = len(indices) if _is_iterable(indices) else 1
+        len_values = len(values) if _is_iterable(values) else 1
+        if len_values > 1 and len_values != len_indices:
+            raise ValueError('Either one value or as many values as indices')
+        x_new[indices] += values
+    else:
+        indices = tuple(
+            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        x_new[indices] += values
     return x_new
 
 
@@ -471,20 +716,45 @@ def copy(x):
 
 
 def cumsum(x, axis=None):
+    if not torch.is_tensor(x):
+        x = array(x)
     if axis is None:
         return x.flatten().cumsum(dim=0)
     return torch.cumsum(x, dim=axis)
 
 
+def cumprod(x, axis=None):
+    if axis is None:
+        return x.flatten().cumprod(dim=0)
+    return torch.cumprod(x, dim=axis)
+
+
 def array_from_sparse(indices, data, target_shape):
+    """Create an array of given shape, with values at specific indices.
+
+    The rest of the array will be filled with zeros.
+
+    Parameters
+    ----------
+    indices : iterable(tuple(int))
+        Index of each element which will be assigned a specific value.
+    data : iterable(scalar)
+        Value associated at each index.
+    target_shape : tuple(int)
+        Shape of the output array.
+
+    Returns
+    -------
+    a : array, shape=target_shape
+        Array of zeros with specified values assigned to specified indices.
+    """
     return torch.sparse.FloatTensor(
         torch.LongTensor(indices).t(),
         torch.FloatTensor(cast(data, float32)),
         torch.Size(target_shape)).to_dense()
 
 
-def from_vector_to_diagonal_matrix(x):
-    n = shape(x)[-1]
-    identity_n = eye(n)
-    diagonals = einsum('ki,ij->kij', x, identity_n)
-    return diagonals
+def vectorize(x, pyfunc, multiple_args=False, **kwargs):
+    if multiple_args:
+        return stack(list(map(lambda y: pyfunc(*y), zip(*x))))
+    return stack(list(map(pyfunc, x)))

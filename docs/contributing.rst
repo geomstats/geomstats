@@ -7,7 +7,7 @@ Contributing
 Geomstats is a community effort, and everyone is welcome to
 contribute.
 
-The project is hosted on https://github.com/geomstats/geomstats
+The project is hosted on https://github.com/geomstats/geomstats.
 
 Code is not the only way to help the project:
 
@@ -423,8 +423,7 @@ These are some of the most common elements for functions (and ones we’d like y
 
 3. Parameters - a formatted list of arguments with type information and description
 
-   a. On the first line, state the parameter name, type, and shape when appropriate. The parameter name should be separated from the rest of the line by a ``:`` (with a space on either side). If a parameter is optional, write ``optional`` after the type information (separated by a comma and a space).
-
+   a. On the first line, state the parameter name, type, and shape when appropriate. The parameter name should be separated from the rest of the line by a ``:`` (with a space on either side). If a parameter is optional, write ``Optional, default: default_value.`` as a separate line in the description.
    b. On the next line, indent and write a summary of the parameter beginning with a capital letter and ending with a period.
 
    c. See :ref:`docstring_examples` below
@@ -449,7 +448,7 @@ Docstring Examples
 ^^^^^^^^^^^^^^^^^^
 Here's a generic docstring template::
 
-   def my_method(self, my_param_1, my_param_2):
+   def my_method(self, my_param_1, my_param_2='vector'):
       """Write a one-line summary for the method.
 
       Write a description of the method, including "big O"
@@ -457,14 +456,15 @@ Here's a generic docstring template::
 
       Parameters
       ----------
-      my_param_1 : array-like, shape=[n_samples, dimension]
+      my_param_1 : array-like, shape=[..., dim]
          Write a short description of parameter my_param_1.
       my_param_2 : str, {'vector', 'matrix'}
          Write a short description of parameter my_param_2.
+         Optional, default: 'vector'.
 
       Returns
       -------
-      my_result : array-like, shape=[n_samples, dimension, dimension]
+      my_result : array-like, shape=[..., dim, dim]
          Write a short description of the result returned by the method.
 
       Notes
@@ -493,17 +493,17 @@ And here's a filled-in example from the Scikit-Learn project, modified to our sy
 
       Parameters
       ----------
-      X : {array-like, sparse_matrix} of shape=[n_samples, n_features]
+      X : {array-like, sparse_matrix} of shape=[..., n_features]
          New data to transform.
       y : Ignored
          Not used, present here for API consistency by convention.
-      sample_weight : array-like, shape [n_samples,], optional
+      sample_weight : array-like, shape [...,], optional
          The weights for each observation in X. If None, all observations
          are assigned equal weight (default: None).
 
       Returns
       -------
-      labels : array, shape=[n_samples,]
+      labels : array, shape=[...,]
          Index of the cluster each sample belongs to.
       """
       return self.fit(X, sample_weight=sample_weight).labels_
@@ -512,7 +512,7 @@ In general, have the following in mind:
 
    1. Use built-in Python types. (``bool`` instead of ``boolean``)
 
-   2. Use ``[`` for defining shapes: ``array-like, shape=[n_samples,]``
+   2. Use ``[`` for defining shapes: ``array-like, shape=[..., dim]``
 
    3. If a shape can vary, use a list-like notation:
       ``array-like, shape=[dimension[:axis], n, dimension[axis:]]``

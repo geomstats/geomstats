@@ -9,8 +9,13 @@ eigh = tf.linalg.eigh
 eigvalsh = tf.linalg.eigvalsh
 expm = tf.linalg.expm
 inv = tf.linalg.inv
-norm = tf.linalg.norm
 sqrtm = tf.linalg.sqrtm
+diagonal = tf.linalg.diag_part
+
+
+def norm(x, dtype=tf.float32, **kwargs):
+    x = tf.cast(x, dtype)
+    return tf.linalg.norm(x, **kwargs)
 
 
 def eig(*args, **kwargs):
@@ -18,32 +23,30 @@ def eig(*args, **kwargs):
 
 
 def logm(x):
+    original_type = x.dtype
     x = tf.cast(x, tf.complex64)
-    logm = tf.linalg.logm(x)
-    logm = tf.cast(logm, tf.float32)
-    return logm
+    tf_logm = tf.linalg.logm(x)
+    tf_logm = tf.cast(tf_logm, original_type)
+    return tf_logm
 
 
-def svd(x):
-    s, u, v_t = tf.linalg.svd(x, full_matrices=True)
-    return u, s, tf.transpose(v_t, perm=(0, 2, 1))
+def svd(x, full_matrices=True, compute_uv=True, **kwargs):
+    is_vectorized = x.ndim == 3
+    axis = (0, 2, 1) if is_vectorized else (1, 0)
+    if compute_uv:
+        s, u, v_t = tf.linalg.svd(
+            x, full_matrices=full_matrices, compute_uv=compute_uv)
+        return u, s, tf.transpose(v_t, perm=axis)
+    return tf.linalg.svd(x, compute_uv=compute_uv)
 
 
-def qr(*args, mode='reduced'):
-    def qr_aux(x, mode):
-        if mode == 'complete':
-            aux = tf.linalg.qr(x, full_matrices=True)
-        else:
-            aux = tf.linalg.qr(x)
+def solve_sylvester(a, b, q):
+    raise NotImplementedError('solve_sylvester is not implemented in '
+                              'tensorflow')
 
-        return (aux.q, aux.r)
 
-    qr = tf.map_fn(
-        lambda x: qr_aux(x, mode),
-        *args,
-        dtype=(tf.float32, tf.float32))
-
-    return qr
+def qr(x, mode='reduced'):
+    return tf.linalg.qr(x, full_matrices=(mode == 'complete'))
 
 
 def powerm(x, power):

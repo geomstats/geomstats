@@ -13,7 +13,7 @@ from geomstats.learning.knn import KNearestNeighborsClassifier
 
 def main():
     """Plot the result of a KNN classification on the sphere."""
-    sphere = Hypersphere(dimension=2)
+    sphere = Hypersphere(dim=2)
     sphere_distance = sphere.metric.dist
 
     n_labels = 2

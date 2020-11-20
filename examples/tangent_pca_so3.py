@@ -1,4 +1,4 @@
-"""Perform tangent PCA at the mean."""
+"""Perform tangent PCA at the mean on SO(3)."""
 
 import logging
 
@@ -10,7 +10,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.pca import TangentPCA
 
-SO3_GROUP = SpecialOrthogonal(n=3)
+SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
 METRIC = SO3_GROUP.bi_invariant_metric
 
 N_SAMPLES = 10
@@ -18,7 +18,7 @@ N_COMPONENTS = 2
 
 
 def main():
-    """Perform tangent PCA at the mean."""
+    """Perform tangent PCA at the mean on SO(3)."""
     fig = plt.figure(figsize=(15, 5))
 
     data = SO3_GROUP.random_uniform(n_samples=N_SAMPLES)

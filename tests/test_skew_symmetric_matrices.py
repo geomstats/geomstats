@@ -1,6 +1,5 @@
-"""
-Unit tests for the skew symmetric matrices
-"""
+"""Unit tests for the skew symmetric matrices."""
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
@@ -23,7 +22,7 @@ class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
     def test_basis_has_the_right_dimension(self):
         for n in self.n_seq:
             skew = self.skew[n]
-            self.assertEqual(int(n * (n - 1) / 2), skew.dimension)
+            self.assertEqual(int(n * (n - 1) / 2), skew.dim)
 
     def test_bch_up_to_fourth_order_works(self):
         for n in self.n_seq:
@@ -62,7 +61,7 @@ class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
             )
             self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_pytorch_only
     def test_basis_representation_is_correctly_vectorized(self):
         for n in self.n_seq:
             skew = self.skew[n]

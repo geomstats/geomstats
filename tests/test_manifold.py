@@ -1,19 +1,17 @@
-"""
-Unit tests for manifolds.
-"""
+"""Unit tests for manifolds."""
 
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.manifold import Manifold
 
 
-class TestManifoldMethods(geomstats.tests.TestCase):
+class TestManifold(geomstats.tests.TestCase):
     def setUp(self):
         self.dimension = 4
         self.manifold = Manifold(self.dimension)
 
     def test_dimension(self):
-        result = self.manifold.dimension
+        result = self.manifold.dim
         expected = self.dimension
         self.assertAllClose(result, expected)
 

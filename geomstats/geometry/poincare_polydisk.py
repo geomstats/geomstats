@@ -21,10 +21,18 @@ from geomstats.geometry.product_riemannian_metric \
 
 
 class PoincarePolydisk(ProductManifold):
-    """Class for the Poincare polydisk.
+    r"""Class for the Poincare polydisk.
 
     The Poincare polydisk is a direct product of n Poincare disks,
     i.e. hyperbolic spaces of dimension 2.
+
+    Parameters
+    ----------
+    n_disks : int
+        Number of disks.
+    coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
+        Coordinate type.
+        Optional, default: \'extrinsic\'.
     """
 
     default_coords_type = 'extrinsic'
@@ -41,7 +49,8 @@ class PoincarePolydisk(ProductManifold):
         self.metric = PoincarePolydiskMetric(n_disks=n_disks,
                                              coords_type=coords_type)
 
-    def intrinsic_to_extrinsic_coords(self, point_intrinsic):
+    @staticmethod
+    def intrinsic_to_extrinsic_coords(point_intrinsic):
         """Convert point from intrinsic to extrensic coordinates.
 
         Convert the parameterization of a point in the hyperbolic space
@@ -50,11 +59,13 @@ class PoincarePolydisk(ProductManifold):
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[n_samples, n_disk, dimension]
+        point_intrinsic : array-like, shape=[..., n_disk, dim]
+            Point in intrinsic coordinates.
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[n_samples, n_disks, dimension + 1]
+        point_extrinsic : array-like, shape=[..., n_disks, dim + 1]
+            Point in extrinsic coordinates.
         """
         n_disks = point_intrinsic.shape[1]
         point_extrinsic = gs.stack(
@@ -71,16 +82,19 @@ class PoincarePolydisk(ProductManifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, n_disks, dimension + 1]
-        base_point : array-like, shape=[n_samples, n_disks, dimension + 1]
+        vector : array-like, shape=[..., n_disks, dim + 1]
+            Vector.
+        base_point : array-like, shape=[..., n_disks, dim + 1]
+            Base point.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, n_disks, dimension + 1]
+        tangent_vec : array-like, shape=[..., n_disks, dim + 1]
+            Tangent vector at base point.
         """
         n_disks = base_point.shape[1]
         hyperbolic_space = Hyperboloid(2, self.coords_type)
-        tangent_vec = gs.stack([hyperbolic_space.projection_to_tangent_space(
+        tangent_vec = gs.stack([hyperbolic_space.to_tangent(
             vector=vector[:, i_disk, :],
             base_point=base_point[:, i_disk, :])
             for i_disk in range(n_disks)], axis=1)
@@ -88,7 +102,7 @@ class PoincarePolydisk(ProductManifold):
 
 
 class PoincarePolydiskMetric(ProductRiemannianMetric):
-    """Class defining the Poincare polydisk metric.
+    r"""Class defining the Poincare polydisk metric.
 
     The Poincare polydisk metric is a product of n Poincare metrics,
     each of them being multiplied by a specific constant factor (see
@@ -96,6 +110,14 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
 
     This metric comes from a model used to represent
     stationary complex autoregressive Gaussian signals.
+
+    Parameters
+    ----------
+    n_disks : int
+        Number of disks.
+    coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
+        Coordinate type.
+        Optional, default: \'extrinsic\'.
 
     References
     ----------
@@ -105,12 +127,10 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
     """
 
     default_coords_type = 'extrinsic'
-    default_point_type = 'vector'
 
     def __init__(self, n_disks, coords_type='extrinsic'):
         self.n_disks = n_disks
         self.coords_type = coords_type
-        self.default_point_type = 'matrix'
         list_metrics = []
         for i_disk in range(n_disks):
             scale_i = (n_disks - i_disk) ** 0.5
