@@ -2,9 +2,9 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.special_euclidean import SpecialEuclidean, \
-    SpecialEuclideanMatrixLieAlgebra,\
-    SpecialEuclideanMatrixCannonicalLeftMetric
+from geomstats.geometry.special_euclidean import SpecialEuclidean,\
+    SpecialEuclideanMatrixCannonicalLeftMetric,\
+    SpecialEuclideanMatrixLieAlgebra
 
 
 class TestSpecialEuclidean(geomstats.tests.TestCase):
