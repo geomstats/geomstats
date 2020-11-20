@@ -291,3 +291,12 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         tangent_vec = self.group.lie_algebra.projection(vec)
         result = self.group.lie_algebra.belongs(tangent_vec)
         self.assertTrue(gs.all(result))
+
+    def test_basis_representation(self):
+        vec = gs.random.rand(self.n_samples, self.group.dim)
+        tangent_vec = self.group.lie_algebra.matrix_representation(vec)
+        result = self.group.lie_algebra.basis_representation(tangent_vec)
+        self.assertAllClose(result, vec)
+
+        result = self.group.lie_algebra.basis_representation(tangent_vec[0])
+        self.assertAllClose(result, vec[0])

@@ -91,6 +91,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         old_shape = gs.shape(matrix_representation)
         as_vector = gs.reshape(
             matrix_representation, (-1, old_shape[-2] * old_shape[-1]))
+        as_vector = gs.squeeze(as_vector)
         upper_tri_indices = gs.reshape(
             gs.arange(0, self.n ** 2), (self.n, self.n)
         )[gs.triu_indices(self.n, k=1)]

@@ -1153,6 +1153,6 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
             Representation in the basis.
         """
         skew_part = self.skew.basis_representation(
-            matrix_representation[:, :self.n, :self.n])
-        translation_part = matrix_representation[:, :-1, self.n]
-        return gs.concatenate([skew_part, translation_part], axis=-1)
+            matrix_representation[..., :self.n, :self.n])
+        translation_part = matrix_representation[..., :-1, self.n]
+        return gs.concatenate([skew_part, translation_part[..., :]], axis=-1)
