@@ -263,9 +263,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         ----------
         tangent_vec : array-like, shape=[..., dimension]
             Tangent vector at base point.
-        point_type : str, {'vector', 'matrix'}
-            Point type.
-            Optional, default: self.default_point_type.
 
         Returns
         -------
