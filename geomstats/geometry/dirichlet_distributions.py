@@ -216,12 +216,18 @@ class DirichletMetric(RiemannianMetric):
             mat_ones = gs.ones((n_points, self.dim, self.dim))
             mat_diag = from_vector_to_diagonal_matrix(
                 - gs.polygamma(2, base_point) / gs.polygamma(1, base_point))
+            arrays = [gs.zeros((1, ind_k)),
+                      gs.ones((1, 1)),
+                      gs.zeros((1, self.dim - ind_k - 1))]
+            vec_k = gs.tile(gs.hstack(arrays), (n_points, 1))
+            val_k = gs.polygamma(2, param_k) / gs.polygamma(1, param_k)
+            vec_k = gs.einsum('i,ij->ij', val_k, vec_k)
+            mat_k = from_vector_to_diagonal_matrix(vec_k)
 
-            mat_k = gs.einsum('i,ijk->ijk', c2, mat_ones)\
-                - gs.einsum('i,ijk->ijk', c1, mat_diag)
-            mat_k[:, ind_k, ind_k] += gs.polygamma(2, param_k)\
-                / gs.polygamma(1, param_k)
-            return 1 / 2 * mat_k
+            mat = gs.einsum('i,ijk->ijk', c2, mat_ones)\
+                - gs.einsum('i,ijk->ijk', c1, mat_diag) + mat_k
+
+            return 1 / 2 * mat
 
         christoffels = []
         for ind_k in range(self.dim):
