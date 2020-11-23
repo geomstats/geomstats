@@ -20,7 +20,7 @@ RIGHT_METRIC = SE2_GROUP.right_canonical_metric
 
 
 def main():
-    """Plot geodesics on SE2 with different structures."""
+    """Plot geodesics on SE(2) with different structures."""
     theta = gs.pi / 3
     initial_tangent_vec = gs.array([
         [0., - theta, 2.],
