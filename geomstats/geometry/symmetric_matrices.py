@@ -57,7 +57,6 @@ class SymmetricMatrices(EmbeddedManifold):
     basis = property(get_basis)
 
     @staticmethod
-    @geomstats.vectorization.decorator(['matrix'])
     def to_vector(mat):
         """Convert a symmetric matrix into a vector.
 
@@ -74,14 +73,9 @@ class SymmetricMatrices(EmbeddedManifold):
         if not gs.all(Matrices.is_symmetric(mat)):
             logging.warning('non-symmetric matrix encountered.')
         mat = Matrices.to_symmetric(mat)
-        _, dim, _ = mat.shape
-        indices_i, indices_j = gs.triu_indices(dim)
-        vec = []
-        for i, j in zip(indices_i, indices_j):
-            vec.append(mat[:, i, j])
-        vec = gs.stack(vec, axis=1)
-
-        return vec
+        dim = mat.shape[-1]
+        rows, cols = gs.triu_indices(dim)
+        return mat[..., rows, cols]
 
     @staticmethod
     @geomstats.vectorization.decorator(['vector', 'else'])
