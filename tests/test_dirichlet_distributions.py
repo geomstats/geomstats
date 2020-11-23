@@ -10,7 +10,7 @@ from geomstats.geometry.dirichlet_distributions import DirichletDistributions
 from geomstats.geometry.dirichlet_distributions import DirichletMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
-# flake8: noqa
+
 class TestDirichletDistributions(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=UserWarning)
