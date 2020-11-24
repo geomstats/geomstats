@@ -971,3 +971,27 @@ class TestBackends(geomstats.tests.TestCase):
         s = _np.linalg.svd(np_point, compute_uv=compute_uv)
         s_r = gs.linalg.svd(gs_point, compute_uv=compute_uv)
         self.assertAllClose(s, s_r)
+
+    def test_sylvester_solve(self):
+        mat = gs.random.rand(4, 3)
+        spd = gs.matmul(gs.transpose(mat), mat)
+
+        mat = gs.random.rand(3, 3)
+        skew = mat - gs.transpose(mat)
+        solution = gs.linalg.solve_sylvester(spd, spd, skew)
+        result = gs.matmul(spd, solution)
+        result += gs.matmul(solution, spd)
+
+        self.assertAllClose(result, skew)
+
+    def test_sylvester_solve_vectorization(self):
+        mat = gs.random.rand(2, 4, 3)
+        spd = gs.matmul(gs.transpose(mat, (0, 2, 1)), mat)
+
+        mat = gs.random.rand(2, 3, 3)
+        skew = mat - gs.transpose(mat, (0, 2, 1))
+        solution = gs.linalg.solve_sylvester(spd, spd, skew)
+        result = gs.matmul(spd, solution)
+        result += gs.matmul(solution, spd)
+
+        self.assertAllClose(result, skew)

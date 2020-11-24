@@ -41,8 +41,20 @@ def svd(x, full_matrices=True, compute_uv=True, **kwargs):
 
 
 def solve_sylvester(a, b, q):
+    axes = (0, 2, 1) if a.ndim == 3 else (1, 0)
+    if a.shape == b.shape:
+        if tf.reduce_all(a == b) and tf.reduce_all(
+                tf.abs(a - tf.transpose(a, perm=axes)) < 1e-6):
+            eigvals, eigvecs = eigh(a)
+            if tf.reduce_all(eigvals >= 0):
+                tilde_q = tf.transpose(eigvecs, perm=axes) @ q @ eigvecs
+                tilde_x = tilde_q / (
+                    eigvals[..., :, None] + eigvals[..., None, :])
+                return eigvecs @ tilde_x @ tf.transpose(
+                    eigvecs, perm=axes)
     raise NotImplementedError('solve_sylvester is not implemented in '
-                              'tensorflow')
+                              'tensorflow if a != b or a not Symmetric '
+                              'Semi Definite')
 
 
 def qr(x, mode='reduced'):

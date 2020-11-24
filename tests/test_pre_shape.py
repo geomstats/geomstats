@@ -101,7 +101,6 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         expected = gs.array([True, False])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_vertical_projection(self):
         vector = gs.random.rand(self.k_landmarks, self.m_ambient)
         point = self.space.random_uniform()
@@ -116,7 +115,6 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = Matrices.transpose(tmp_result) - tmp_result
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_vertical_projection_vectorization(self):
         vector = gs.random.rand(
             self.n_samples, self.k_landmarks, self.m_ambient)
@@ -132,7 +130,6 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = Matrices.transpose(tmp_result) - tmp_result
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_horizontal_projection(self):
         vector = gs.random.rand(self.k_landmarks, self.m_ambient)
         point = self.space.random_uniform()
@@ -144,7 +141,6 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_horizontal_projection_vectorized(self):
         vector = gs.random.rand(
             self.n_samples, self.k_landmarks, self.m_ambient)
@@ -157,7 +153,6 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_horizontal_and_is_tangent(self):
         vector = gs.random.rand(self.k_landmarks, self.m_ambient)
         point = self.space.random_uniform()
@@ -265,7 +260,6 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         expected = gs.stack([base_point] * self.n_samples)
         self.assertAllClose(exp, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_kendall_inner_product_shape(self):
         vector = gs.random.rand(
             self.n_samples, self.k_landmarks, self.m_ambient)
@@ -274,7 +268,6 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         inner = self.shape_metric.inner_product(tan, tan, point)
         self.assertAllClose(inner.shape, (self.n_samples,))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_kendall_log_and_exp(self):
         point, base_point = self.space.random_uniform(2)
         expected = self.space.align(point, base_point)
@@ -285,7 +278,6 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         exp = self.shape_metric.exp(log, base_point)
         self.assertAllClose(exp, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_kendall_exp_and_log(self):
         base_point = self.space.random_uniform()
         vector = gs.random.rand(self.k_landmarks, self.m_ambient)
@@ -304,7 +296,6 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         expected = 0.
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_dist(self):
         point, base_point = self.space.random_uniform(2)
         result = self.shape_metric.dist(point, base_point)
@@ -312,7 +303,6 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         expected = self.shape_metric.norm(log, base_point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_dist_vectorization(self):
         point = self.space.random_uniform(self.n_samples)
         base_point = self.space.random_uniform(self.n_samples)
