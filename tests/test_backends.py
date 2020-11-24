@@ -984,6 +984,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result, skew)
 
     def test_sylvester_solve_vectorization(self):
+        gs.random.seed(0)
         mat = gs.random.rand(2, 4, 3)
         spd = gs.matmul(gs.transpose(mat, (0, 2, 1)), mat)
 
