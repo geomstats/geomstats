@@ -918,18 +918,17 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad)
 
     def test_choice(self):
-
         x = gs.array([0.1, 0.2, 0.3, 0.4, 0.5])
         a = 4
-
         result = gs.random.choice(x, a)
 
+        result_bool = True
         for i in result:
             if i in x:
-                self.assertTrue(True)
-            else:
-                self.assertTrue(False)
+                continue
+            result_bool = False
 
+        self.assertTrue(result_bool)
         self.assertEqual(len(result), a)
 
     def test_split(self):
