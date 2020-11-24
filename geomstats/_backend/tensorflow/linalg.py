@@ -46,7 +46,7 @@ def solve_sylvester(a, b, q):
         if tf.reduce_all(a == b) and tf.reduce_all(
                 tf.abs(a - tf.transpose(a, perm=axes)) < 1e-6):
             eigvals, eigvecs = eigh(a)
-            if tf.reduce_all(eigvals >= 0):
+            if tf.reduce_all(eigvals >= 1e-6):
                 tilde_q = tf.transpose(eigvecs, perm=axes) @ q @ eigvecs
                 tilde_x = tilde_q / (
                     eigvals[..., :, None] + eigvals[..., None, :])
