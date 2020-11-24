@@ -13,6 +13,7 @@ from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 SE3_GROUP = SpecialEuclidean(n=3, point_type='vector')
 SE2_GROUP = SpecialEuclidean(n=2, point_type='matrix')
+SE2_VECT = SpecialEuclidean(n=2, point_type='vector')
 SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
 S1 = Hypersphere(dim=1)
 S2 = Hypersphere(dim=2)
@@ -467,11 +468,11 @@ class SpecialEuclidean2:
         return ax
 
     def add_points(self, points):
+        if self.point_type == 'vector':
+            points = SE2_VECT.matrix_from_vector(points)
         if not gs.all(SE2_GROUP.belongs(points)):
             raise ValueError(
                 'Points do not belong to SE2.')
-        if self.point_type == 'vector':
-            points = SE2_GROUP.matrix_from_vector(points)
         if not isinstance(points, list):
             points = list(points)
         self.points.extend(points)

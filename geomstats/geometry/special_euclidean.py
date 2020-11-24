@@ -935,11 +935,8 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
             tangent_vec[..., :self.n, self.n]
             + base_point[..., :self.n, self.n])
 
-        exp = gs.concatenate(
-            (rotation_exp, translation_exp[..., None]), axis=-1)
-        last_line = gs.zeros(tangent_vec.shape)
-        last_line = gs.assignment(last_line, 1., (-1, -1), axis=0)[..., -1]
-        exp = gs.concatenate((exp, last_line[..., None, :]), axis=-2)
+        exp = homogeneous_representation(
+            rotation_exp, translation_exp, tangent_vec.shape, 1.)
         return exp
 
     def log(self, point, base_point=None, **kwargs):
@@ -978,12 +975,8 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         translation_log = (
             point[..., :self.n, self.n] - base_point[..., :self.n, self.n])
 
-        log = gs.concatenate(
-            (rotation_log, translation_log[..., None]), axis=-1)
-        last_line = gs.zeros(max_shape)
-        last_line = gs.assignment(last_line, 0., (-1, -1), axis=0)[..., -1]
-        log = gs.concatenate((log, last_line[..., None, :]), axis=-2)
-
+        log = homogeneous_representation(
+            rotation_log, translation_log, max_shape, 0.)
         return log
 
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):

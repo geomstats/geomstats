@@ -57,14 +57,14 @@ class TestInvariantMetric(geomstats.tests.TestCase):
                                               left_or_right='right')
 
         # General case for the point
-        point_1 = gs.array([[-0.2, 0.9, 0.5, 5., 5., 5.]])
-        point_2 = gs.array([[0., 2., -0.1, 30., 400., 2.]])
+        point_1 = gs.array([-0.2, 0.9, 0.5, 5., 5., 5.])
+        point_2 = gs.array([0., 2., -0.1, 30., 400., 2.])
         point_1_matrix = vector_so3.matrix_from_rotation_vector(
-            point_1[:, :3])
+            point_1[..., :3])
         point_2_matrix = vector_so3.matrix_from_rotation_vector(
-            point_2[:, :3])
+            point_2[..., :3])
         # Edge case for the point, angle < epsilon,
-        point_small = gs.array([[-1e-7, 0., -7 * 1e-8, 6., 5., 9.]])
+        point_small = gs.array([-1e-7, 0., -7 * 1e-8, 6., 5., 9.])
 
         self.group = group
         self.matrix_so3 = matrix_so3
@@ -136,7 +136,6 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = gs.array([4., 5.])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_inner_product_left(self):
         lie_algebra = SkewSymmetricMatrices(3)
         tangent_vec_a = lie_algebra.matrix_representation(
@@ -161,7 +160,6 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = gs.array([4., 5.])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_inner_product_right(self):
         lie_algebra = SkewSymmetricMatrices(3)
         tangent_vec_a = lie_algebra.matrix_representation(
@@ -745,3 +743,23 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         result = metric.exp(
             tangent_vec, identity, n_steps=100, step='rk2')
         self.assertAllClose(expected, result, atol=1e-5)
+
+    def test_integrated_se3_exp(self):
+        group = self.matrix_se3
+        lie_algebra = group.lie_algebra
+        metric = InvariantMetric(group=group)
+        canonical_metric = group.left_canonical_metric
+        basis = metric.orthonormal_basis(lie_algebra.basis)
+        point = group.random_uniform()
+
+        vector = gs.random.rand(len(basis))
+        tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
+        tangent_vec = group.tangent_translation_map(point)(tangent_vec)
+        result = metric.exp(
+            tangent_vec, point, n_steps=100, step='rk4')
+        expected = canonical_metric.exp(tangent_vec, point)
+        self.assertAllClose(expected, result)
+
+        result = metric.exp(
+            tangent_vec, point, n_steps=100, step='rk2')
+        self.assertAllClose(expected, result, atol=4e-5)
