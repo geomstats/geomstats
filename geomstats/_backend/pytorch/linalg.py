@@ -60,6 +60,16 @@ def norm(x, ord=2, axis=None):
 
 
 def solve_sylvester(a, b, q):
+    if a.shape == b.shape:
+        if torch.all(a == b) and torch.all(
+                torch.abs(a - a.transpose(-2, -1)) < 1e-6):
+            eigvals, eigvecs = eigh(a)
+            if torch.all(eigvals >= 1e-6):
+                tilde_q = eigvecs.transpose(-2, -1) @ q @ eigvecs
+                tilde_x = tilde_q / (
+                    eigvals[..., :, None] + eigvals[..., None, :])
+                return eigvecs @ tilde_x @ eigvecs.transpose(-2, -1)
+
     solution = np.vectorize(
         scipy.linalg.solve_sylvester,
         signature='(m,m),(n,n),(m,n)->(m,n)')(a, b, q)
