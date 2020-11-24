@@ -451,6 +451,7 @@ class KleinDisk:
 
 class SpecialEuclidean2:
     """Class used to plot points in the 2d special euclidean group."""
+
     def __init__(self, points=None, point_type='matrix'):
         self.points = []
         self.point_type = point_type
