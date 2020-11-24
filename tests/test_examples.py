@@ -180,6 +180,5 @@ class TestExamples(geomstats.tests.TestCase):
         plot_pole_ladder_s2.main()
 
     @staticmethod
-    @geomstats.tests.np_and_pytorch_only
     def test_plot_geodesics_se2():
         plot_geodesics_se2.main()

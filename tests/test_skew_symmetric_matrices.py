@@ -61,15 +61,13 @@ class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
             )
             self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_basis_representation_is_correctly_vectorized(self):
         for n in self.n_seq:
             skew = self.skew[n]
             shape = gs.shape(skew.basis_representation(skew.basis))
             dim = int(n * (n - 1) / 2)
-            self.assertEqual(shape, (dim, dim))
+            self.assertAllClose(shape, (dim, dim))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_matrix_and_basis_representation(self):
         for n in self.n_seq:
             skew = self.skew[n]

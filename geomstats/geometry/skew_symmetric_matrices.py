@@ -110,5 +110,4 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
                 matrix_representation[..., 1, 0]])
             return gs.transpose(vec)
 
-        rows, cols = gs.triu_indices(self.n, k=1)
-        return matrix_representation[..., rows, cols]
+        return gs.triu_to_vec(matrix_representation, k=1)

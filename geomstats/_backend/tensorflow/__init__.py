@@ -759,3 +759,16 @@ def where(condition, x=None, y=None):
         y = tf.constant(y)
     y = cast(y, x.dtype)
     return tf.where(condition, x, y)
+
+
+def triu_to_vec(x, k=0):
+    n = x.shape[-1]
+    axis = 1 if x.ndim == 3 else 0
+    mask = tf.ones((n, n))
+    mask_a = tf.linalg.band_part(mask, 0, -1)
+    if k > 0:
+        mask_b = tf.linalg.band_part(mask, 0, k - 1)
+    else:
+        mask_b = tf.zeros_like(mask_a)
+    mask = tf.cast(mask_a - mask_b, dtype=tf.bool)
+    return tf.boolean_mask(x, mask, axis=axis)
