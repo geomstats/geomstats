@@ -102,7 +102,7 @@ class Connection:
 
         Exponential map at base_point of tangent_vec computed by integration
         of the geodesic equation (initial value problem), using the
-        christoffel symbols
+        christoffel symbols.
 
         Parameters
         ----------

@@ -29,7 +29,6 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_basis_and_matrix_representation(self):
         n_samples = 2
         expected = gs.random.rand(n_samples * self.dim)

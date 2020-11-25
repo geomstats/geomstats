@@ -25,14 +25,27 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         dimension = int(n * (n - 1) / 2)
         super(SkewSymmetricMatrices, self).__init__(dimension, n)
 
-        self.basis = gs.zeros((dimension, n, n))
-
-        basis = []
-        for row in gs.arange(n - 1):
-            for col in gs.arange(row + 1, n):
-                basis.append(gs.array_from_sparse(
-                    [(row, col), (col, row)], [1., -1.], (n, n)))
-        self.basis = gs.stack(basis)
+        if n == 2:
+            self.basis = gs.array([[[0., -1.], [1., 0.]]])
+        elif n == 3:
+            self.basis = gs.array([
+                [[0., 0., 0.],
+                 [0., 0., -1.],
+                 [0., 1., 0.]],
+                [[0., 0., 1.],
+                 [0., 0., 0.],
+                 [-1., 0., 0.]],
+                [[0., -1., 0.],
+                 [1., 0., 0.],
+                 [0., 0., 0.]]])
+        else:
+            self.basis = gs.zeros((dimension, n, n))
+            basis = []
+            for row in gs.arange(n - 1):
+                for col in gs.arange(row + 1, n):
+                    basis.append(gs.array_from_sparse(
+                        [(row, col), (col, row)], [1., -1.], (n, n)))
+            self.basis = gs.stack(basis)
 
     def belongs(self, mat, atol=TOLERANCE):
         """Evaluate if mat is a skew-symmetric matrix.
@@ -88,10 +101,13 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         basis_representation : array-like, shape=[..., dim]
             Representation in the basis.
         """
-        old_shape = gs.shape(matrix_representation)
-        as_vector = gs.reshape(
-            matrix_representation, (-1, old_shape[-2] * old_shape[-1]))
-        upper_tri_indices = gs.reshape(
-            gs.arange(0, self.n ** 2), (self.n, self.n)
-        )[gs.triu_indices(self.n, k=1)]
-        return as_vector[..., upper_tri_indices]
+        if self.n == 2:
+            return matrix_representation[..., 1, 0][..., None]
+        if self.n == 3:
+            vec = gs.stack([
+                matrix_representation[..., 2, 1],
+                matrix_representation[..., 0, 2],
+                matrix_representation[..., 1, 0]])
+            return gs.transpose(vec)
+
+        return gs.triu_to_vec(matrix_representation, k=1)

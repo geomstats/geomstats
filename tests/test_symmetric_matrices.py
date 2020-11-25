@@ -37,7 +37,6 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         expected = False
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_basis(self):
         """Test of belongs method."""
         sym_n = SymmetricMatrices(2)
@@ -75,7 +74,6 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         result = gs.matmul(result, gs.transpose(result, (0, 2, 1)))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(
             self):
         """Test for matrix to vector and vector to matrix conversions."""
@@ -95,7 +93,6 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
 
         self.assertTrue(gs.allclose(result_2, expected_2))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_vector_and_symmetric_matrix_vectorization(self):
         """Test of vectorization."""
         n_samples = 5

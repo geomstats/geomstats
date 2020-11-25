@@ -8,6 +8,7 @@ import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import LieGroup
@@ -88,18 +89,15 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
     """
 
     def __init__(self, n):
-        super(_SpecialEuclideanMatrices, self).__init__(
-            default_point_type='matrix', n=n + 1)
+        super().__init__(
+            n=n + 1, dim=int((n * (n + 1)) / 2), default_point_type='matrix',
+            lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n))
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
         self.n = n
-        self.dim = int((n * (n + 1)) / 2)
-        translation_mask = gs.hstack([
-            gs.ones((self.n,) * 2), 2 * gs.ones((self.n, 1))])
-        translation_mask = gs.concatenate(
-            [translation_mask, gs.zeros((1, self.n + 1))], axis=0)
-        self.translation_mask = translation_mask
-        self.lie_algebra = SpecialEuclideanMatrixLieAlgebra(n=n)
+
+        self.left_canonical_metric = \
+            SpecialEuclideanMatrixCannonicalLeftMetric(group=self)
 
     def get_identity(self):
         """Return the identity matrix."""
@@ -133,9 +131,8 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
 
         belongs = gs.logical_and(belongs, all_but_last_zeros)
 
-        last_term = point[..., self.n:, self.n:]
-        belongs = gs.logical_and(
-            belongs, gs.all(last_term == 1, axis=(-2, -1)))
+        last_term = point[..., self.n, self.n]
+        belongs = gs.logical_and(belongs, gs.isclose(last_term, 1.))
 
         if point.ndim == 2:
             return gs.squeeze(belongs)
@@ -878,6 +875,143 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         return transform
 
 
+class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
+    """Class for the canonical left-invariant metric on SE(n).
+
+    The canonical left-invariant metric is defined by endowing the tangent
+    space at the identity with the Frobenius inned-product, and to define the
+    metric at any point by left-translation. This results in a direct product
+    metric between rotations and translations, whose geodesics are therefore
+    easily computable with the matrix exponential and straight lines.
+
+    Parameters
+    ----------
+    group : SpecialEuclidean
+        Instance of the class SpecialEuclidean with `point_type='matrix'`.
+    """
+
+    def __init__(self, group):
+        if (
+                not isinstance(group, _SpecialEuclideanMatrices)
+                or group.default_point_type != 'matrix'):
+            raise ValueError('group must be an instance of the '
+                             'SpecialEclidean class with `point_type=matrix`.')
+        super(SpecialEuclideanMatrixCannonicalLeftMetric, self).__init__(
+            group=group)
+        self.n = group.n
+
+    def exp(self, tangent_vec, base_point=None, **kwargs):
+        """Exponential map associated to the cannonical metric.
+
+        Exponential map at `base_point` of `tangent_vec`. The geodesics of this
+        metric correspond to a direct product metric between rotation and
+        translation: the translation part is a straight line, while the
+        rotation part has constant angular velocity (which corresponds to one-
+        parameter subgroups of the rotation group).
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n + 1, n + 1]
+            Tangent vector at the base point.
+        base_point : array-like, shape=[..., n + 1, n + 1]
+            Point on the manifold.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., n + 1, n + 1]
+            Point on the manifold.
+
+        See Also
+        --------
+        examples.plot_geodesics_se2
+        """
+        group = self.group
+        if base_point is None:
+            base_point = group.identity
+        inf_rotation = tangent_vec[..., :self.n, :self.n]
+        rotation = base_point[..., :self.n, :self.n]
+        rotation_exp = GeneralLinear.exp(inf_rotation, rotation)
+        translation_exp = (
+            tangent_vec[..., :self.n, self.n]
+            + base_point[..., :self.n, self.n])
+
+        exp = homogeneous_representation(
+            rotation_exp, translation_exp, tangent_vec.shape, 1.)
+        return exp
+
+    def log(self, point, base_point=None, **kwargs):
+        """Compute logarithm map associated to the canonical metric.
+
+        Log map at `base_point` of `point`. The geodesics of this
+        metric correspond to a direct product metric between rotation and
+        translation: the translation part is a straight line, while the
+        rotation part has constant angular velocity (which corresponds to one-
+        parameter subgroups of the rotation group).
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n + 1, n + 1]
+            Point on the manifold.
+        base_point : array-like, shape=[..., n + 1, n + 1]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n + 1, n + 1]
+            Tangent vector at the base point.
+
+        References
+        ----------
+        [Zefran98]  Zefran, M., V. Kumar, and C.B. Croke.
+                    “On the Generation of Smooth Three-Dimensional Rigid Body
+                    Motions.” IEEE Transactions on Robotics and Automation 14,
+                    no. 4 (August 1998): 576–89.
+                    https://doi.org/10.1109/70.704225.
+        """
+        max_shape = point.shape if point.ndim == 3 else base_point.shape
+        rotation_bp = base_point[..., :self.n, :self.n]
+        rotation_p = point[..., :self.n, :self.n]
+        rotation_log = GeneralLinear.log(rotation_p, rotation_bp)
+        translation_log = (
+            point[..., :self.n, self.n] - base_point[..., :self.n, self.n])
+
+        log = homogeneous_representation(
+            rotation_log, translation_log, max_shape, 0.)
+        return log
+
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        r"""Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector a
+        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        tangent_vec_b)`. As the special Euclidean group endowed with its
+        canonical left-invariant metric is a symmetric space, parallel
+        transport is achieved by a geodesic symmetry, or equivalently, one step
+         of the pole ladder scheme.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n + 1, n + 1]
+            Tangent vector at base point to be transported.
+        tangent_vec_b : array-like, shape=[..., n + 1, n + 1]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        base_point : array-like, shape=[..., n + 1, n + 1]
+            Point on the hypersphere.
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[..., n + 1, n + 1]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+        """
+        point = self.exp(tangent_vec_a, base_point)
+        midpoint = self.exp(1. / 2. * tangent_vec_b, base_point)
+        next_point = self.exp(tangent_vec_b, base_point)
+        first_sym = self.exp(- self.log(point, midpoint), midpoint)
+        transported_vec = - self.log(first_sym, next_point)
+        return transported_vec
+
+
 class SpecialEuclidean(_SpecialEuclidean2Vectors,
                        _SpecialEuclidean3Vectors,
                        _SpecialEuclideanMatrices):
@@ -1012,6 +1146,6 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
             Representation in the basis.
         """
         skew_part = self.skew.basis_representation(
-            matrix_representation[:, :self.n, :self.n])
-        translation_part = matrix_representation[:, :-1, self.n]
-        return gs.concatenate([skew_part, translation_part], axis=-1)
+            matrix_representation[..., :self.n, :self.n])
+        translation_part = matrix_representation[..., :-1, self.n]
+        return gs.concatenate([skew_part, translation_part[..., :]], axis=-1)
