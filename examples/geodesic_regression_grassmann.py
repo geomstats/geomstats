@@ -64,7 +64,7 @@ res = minimize(
     objective_with_grad, parameter_, jac=True, method='L-BFGS-B',
     options={'disp': True, 'maxiter': 250})
 
-intercept_hat, beta_hat =  gs.split(res.x, 2)
+intercept_hat, beta_hat = gs.split(res.x, 2)
 intercept_hat = gs.reshape(intercept_hat, (space.n, ) * 2)
 beta_hat = gs.reshape(beta_hat, (space.n, ) * 2)
 intercept_hat = GeneralLinear.to_symmetric(intercept_hat)
