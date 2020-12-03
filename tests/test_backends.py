@@ -80,7 +80,8 @@ class TestBackends(geomstats.tests.TestCase):
         np_mat_b = _np.array(mat_b)
         np_mat_c = _np.array(mat_c)
 
-        gs_result = gs.matmul(gs_mat_a, [gs_mat_b, gs_mat_c])
+        gs_result = gs.matmul(
+            gs_mat_a, gs.stack([gs_mat_b, gs_mat_c]))
         np_result = _np.matmul(np_mat_a, [np_mat_b, np_mat_c])
 
         self.assertAllCloseToNp(gs_result, np_result)
@@ -180,46 +181,6 @@ class TestBackends(geomstats.tests.TestCase):
                            [0., 0., 6.]]])
         result = gs.linalg.expm(gs.linalg.logm(point))
         expected = point
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_tf_only
-    def test_powerm_diagonal(self):
-        power = .5
-        point = gs.array([[1., 0., 0.],
-                          [0., 4., 0.],
-                          [0., 0., 9.]])
-        result = gs.linalg.powerm(point, power)
-        expected = gs.array([[1., 0., 0.],
-                             [0., 2., 0.],
-                             [0., 0., 3.]])
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_tf_only
-    def test_powerm(self):
-        power = 2.4
-        point = gs.array([[1., 0., 0.],
-                          [0., 2.5, 1.5],
-                          [0., 1.5, 2.5]])
-        result = gs.linalg.powerm(point, power)
-        result = gs.linalg.powerm(result, 1 / power)
-        expected = point
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_only
-    def test_powerm_vectorization(self):
-        power = 2.4
-        points = gs.array([[[1., 0., 0.],
-                            [0., 4., 0.],
-                            [0., 0., 9.]],
-                           [[1., 0., 0.],
-                            [0., 2.5, 1.5],
-                            [0., 1.5, 2.5]]])
-        result = gs.linalg.powerm(points, power)
-        result = gs.linalg.powerm(result, 1. / power)
-        expected = points
 
         self.assertAllClose(result, expected)
 
@@ -862,14 +823,14 @@ class TestBackends(geomstats.tests.TestCase):
         gs_list = [gs.array([1, 2]), gs.array([2.2, 3.3], dtype=gs.float32)]
         gs_result = gs.convert_to_wider_dtype(gs_list)
 
-        result = [a.dtype == gs.float32 for a in gs_result]
+        result = gs.array([a.dtype == gs.float32 for a in gs_result])
 
         self.assertTrue(gs.all(result))
 
         gs_list = [gs.array([1, 2]), gs.array([2.2, 3.3], dtype=gs.float64)]
         gs_result = gs.convert_to_wider_dtype(gs_list)
 
-        result = [a.dtype == gs.float64 for a in gs_result]
+        result = gs.array([a.dtype == gs.float64 for a in gs_result])
 
         self.assertTrue(gs.all(result))
 
@@ -878,7 +839,7 @@ class TestBackends(geomstats.tests.TestCase):
             gs.array([2.2, 3.3], dtype=gs.float32)]
         gs_result = gs.convert_to_wider_dtype(gs_list)
 
-        result = [a.dtype == gs.float64 for a in gs_result]
+        result = gs.array([a.dtype == gs.float64 for a in gs_result])
 
         self.assertTrue(gs.all(result))
 

@@ -1,7 +1,9 @@
 """Numpy based linear algebra backend."""
 
 import jax.numpy as np
+import numpy as _np
 import scipy.linalg
+from jax import core, vmap
 from jax.numpy.linalg import (  # NOQA
     det,
     eig,
@@ -11,6 +13,7 @@ from jax.numpy.linalg import (  # NOQA
     norm,
     svd
 )
+from jax.scipy.linalg import expm as sp_expm
 
 from .common import to_ndarray
 
@@ -33,20 +36,19 @@ def _expsym(x):
 
 
 def expm(x):
-    ndim = x.ndim
-    new_x = to_ndarray(x, to_ndim=3)
-    if _is_symmetric(new_x):
-        result = _expsym(new_x)
-    else:
-        result = np.vectorize(scipy.linalg.expm,
-                              signature='(n,m)->(n,m)')(new_x)
+    x_new = to_ndarray(x, to_ndim=3)
+    result = vmap(sp_expm)(x_new)
+    return result[0] if len(result) == 1 else result
 
-    if ndim == 2:
-        return result[0]
-    return result
+
+logm_prim = core.Primitive('logm')
+logm_prim.def_impl(_np.vectorize(scipy.linalg.logm, signature='(m,n)->(m,n)'))
 
 
 def logm(x):
+    return logm_prim.bind(x)
+
+
     ndim = x.ndim
     new_x = to_ndarray(x, to_ndim=3)
     if _is_symmetric(new_x):
@@ -122,5 +124,4 @@ def sqrtm(x):
 
 def qr(*args, **kwargs):
     return np.vectorize(np.linalg.qr,
-                        signature='(n,m)->(n,k),(k,m)',
-                        excluded=['mode'])(*args, **kwargs)
+                        signature='(n,m)->(n,k),(k,m)')(*args, **kwargs)

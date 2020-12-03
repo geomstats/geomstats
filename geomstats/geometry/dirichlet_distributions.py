@@ -330,13 +330,12 @@ class DirichletMetric(RiemannianMetric):
             base_point = gs.tile(base_point, (n_points, 1))
 
         def initialize(end_point, start_point):
-            lin_init = gs.zeros([2 * self.dim, n_steps])
-            lin_init[:self.dim, :] = gs.transpose(
+            interpolation = gs.transpose(
                 gs.linspace(start_point, end_point, n_steps))
-            lin_init[self.dim:, :-1] = (
-                lin_init[:self.dim, 1:] - lin_init[:self.dim, :-1]) * n_steps
-            lin_init[self.dim:, -1] = lin_init[self.dim:, -2]
-            return lin_init
+            slopes = n_steps * (interpolation[:, 1:] - interpolation[:, :-1])
+            slopes = gs.hstack([slopes, slopes[:, -1][:, None]])
+            result = gs.concatenate([interpolation, slopes])
+            return result
 
         def bvp(_, state):
             """Reformat the boundary value problem geodesic ODE.

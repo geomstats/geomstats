@@ -1,6 +1,6 @@
 """Numpy based computation backend."""
 
-import autograd # NOQA
+import jax as autograd # NOQA
 import jax.numpy as np
 from jax.numpy import (  # NOQA
     abs,
@@ -91,6 +91,7 @@ from jax.numpy import (  # NOQA
     zeros,
     zeros_like
 )
+from jax.ops import index, index_add, index_update
 from jax.scipy.special import polygamma # NOQA
 from scipy.sparse import coo_matrix
 
@@ -194,7 +195,7 @@ def assignment(x, values, indices, axis=0):
 
     use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
     if _is_boolean(indices):
-        x_new[indices] = values
+        x_new = index_update(x_new, index[indices], values)
         return x_new
     zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
     len_indices = len(indices) if _is_iterable(indices) else 1
@@ -206,11 +207,11 @@ def assignment(x, values, indices, axis=0):
         len_values = len(values) if _is_iterable(values) else 1
         if len_values > 1 and len_values != len_indices:
             raise ValueError('Either one value or as many values as indices')
-        x_new[indices] = values
+        x_new = index_update(x_new, index[indices], values)
     else:
         indices = tuple(
             list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
-        x_new[indices] = values
+        x_new = index_update(x_new, index[indices], values)
     return x_new
 
 
@@ -245,7 +246,7 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
     if _is_boolean(indices):
-        x_new[indices] += values
+        x_new = index_add(x_new, index[indices], values)
         return x_new
     zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
     if zip_indices:
@@ -255,11 +256,11 @@ def assignment_by_sum(x, values, indices, axis=0):
         len_values = len(values) if _is_iterable(values) else 1
         if len_values > 1 and len_values != len_indices:
             raise ValueError('Either one value or as many values as indices')
-        x_new[indices] += values
+        x_new = index_add(x_new, index[indices], values)
     else:
         indices = tuple(
             list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
-        x_new[indices] += values
+        x_new = index_add(x_new, index[indices], values)
     return x_new
 
 

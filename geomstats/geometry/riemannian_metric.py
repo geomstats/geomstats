@@ -142,7 +142,7 @@ class RiemannianMetric(Connection):
         mat : array-like, shape=[..., dim, dim]
             Derivative of inverse of inner-product matrix.
         """
-        metric_derivative = jax.jacfwd(self.inner_product_matrix)
+        metric_derivative = jax.jacfwd(self.metric_matrix)
         return metric_derivative(base_point)
 
     def christoffels(self, base_point):

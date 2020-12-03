@@ -15,7 +15,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         warnings.simplefilter('ignore', category=UserWarning)
         self.beta = BetaDistributions()
         self.metric = BetaMetric()
-        self.n_samples = 10
+        self.n_samples = 3
         self.dim = self.beta.dim
 
     def test_random_uniform_and_belongs(self):

@@ -1,6 +1,6 @@
 """Affine connections."""
 
-import jax
+import numpy as np
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
@@ -169,9 +169,10 @@ class Connection:
             return gs.sum(delta ** 2)
 
         objective_with_grad = gs.autograd.value_and_grad(objective)
-        tangent_vec = gs.flatten(gs.random.rand(*max_shape))
+        tangent_vec = np.random.rand(*max_shape).flatten()
+        isinstance(tangent_vec, np.ndarray)
         res = minimize(
-            objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
+            objective_with_grad, tangent_vec, method='CG', jac=True,
             options={'disp': verbose, 'maxiter': max_iter}, tol=tol)
 
         tangent_vec = gs.array(res.x)
