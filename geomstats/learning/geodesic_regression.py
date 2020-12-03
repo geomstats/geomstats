@@ -32,7 +32,9 @@ class GeodesicRegression(BaseEstimator):
         self.tol = tol
 
     def _model(self, x, tangent_vec, base_point):
-        return self.metric.exp(x[:, None] * tangent_vec, base_point)
+        times = x[:, None] if self.metric.default_point_type == 'vector' else\
+            x[:, None, None]
+        return self.metric.exp(times * tangent_vec[None], base_point)
 
     def _loss(self, x, y, parameter, shape, weights=None):
         p, v = gs.split(parameter, 2)
@@ -108,7 +110,7 @@ class GeodesicRegression(BaseEstimator):
         intercept_hat = intercept_hat_new = y[0]
         beta_hat = beta_hat_new = self.space.to_tangent(
             gs.random.normal(size=shape), intercept_hat)
-        param = gs.hstack(
+        param = gs.vstack(
             [gs.flatten(intercept_hat), gs.flatten(beta_hat)])
         current_loss = math.inf
         current_iter = 0
@@ -124,12 +126,14 @@ class GeodesicRegression(BaseEstimator):
                 current_iter += 1
             if abs(loss - current_loss) < self.tol:
                 break
+            print(self.space.belongs(intercept_hat))
 
             grad_p, grad_v = gs.split(grad, 2)
             riemannian_grad_p = self.space.to_tangent(
                 gs.reshape(grad_p, shape), intercept_hat)
             riemannian_grad_v = self.space.to_tangent(
                 gs.reshape(grad_v, shape), intercept_hat)
+            print(i, - lr * gs.reshape(grad_p, shape), intercept_hat)
 
             intercept_hat_new = self.metric.exp(
                 - lr * riemannian_grad_p, intercept_hat)
@@ -137,7 +141,7 @@ class GeodesicRegression(BaseEstimator):
                 beta_hat - lr * riemannian_grad_v,
                 - lr * riemannian_grad_p, intercept_hat, intercept_hat_new)
 
-            param = gs.hstack(
+            param = gs.vstack(
                 [gs.flatten(intercept_hat_new), gs.flatten(beta_hat_new)])
 
             current_loss = loss
@@ -163,7 +167,7 @@ class GeodesicRegression(BaseEstimator):
         if self.coef_ is None:
             raise RuntimeError('Fit method must be called before transform')
 
-        return self.metric.exp(times[..., None] * self.coef_, self.intercept_)
+        return self._model(times, self.coef_, self.intercept_)
 
     def score(self, X, y, weights=None):
         y_pred = self.predict(X)

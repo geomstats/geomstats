@@ -196,6 +196,13 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
         return homogeneous_representation(
             transposed_rot, -translation, point.shape)
 
+    def projection(self, mat):
+        n = mat.shape[-1] - 1
+        projected_rot = self.rotations.projection(mat[..., :n, :n])
+        translation = mat[..., :n, -1]
+        return homogeneous_representation(
+            projected_rot, translation, mat.shape)
+
 
 class _SpecialEuclideanVectors(LieGroup):
     """Base Class for the special Euclidean groups in 2d and 3d in vector form.
@@ -1027,6 +1034,16 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         first_sym = self.exp(- self.log(point, midpoint), midpoint)
         transported_vec = - self.log(first_sym, next_point)
         return transported_vec
+
+    @gs.autograd.custom_gradient
+    def squared_dist(self, point_a, point_b):
+        dist = super().squared_dist(point_a, point_b)
+
+        def grad(_):
+            grd = 2 * self.log(point_b, point_a)
+            return grd, 2 * self.log(point_a, point_b)
+
+        return dist, grad
 
 
 class SpecialEuclidean(_SpecialEuclidean2Vectors,

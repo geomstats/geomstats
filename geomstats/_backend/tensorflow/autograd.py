@@ -2,6 +2,9 @@ import numpy as np
 import tensorflow as tf
 
 
+custom_gradient = tf.custom_gradient
+
+
 def value_and_grad(objective):
     """'Returns a function that returns both value and gradient.
 
