@@ -16,8 +16,7 @@ class GeneralLinear(Matrices):
     """
 
     def __init__(self, n, **kwargs):
-        Matrices.__init__(self, n, n)
-
+        super(GeneralLinear, self).__init__(n=n, m=n, **kwargs)
         self.n = n
 
     def belongs(self, point):

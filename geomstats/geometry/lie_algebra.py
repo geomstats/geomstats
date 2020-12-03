@@ -130,9 +130,23 @@ class MatrixLieAlgebra:
         matrix_representation : array-like, shape=[..., n, n]
             Matrix.
         """
-        basis_representation = gs.to_ndarray(basis_representation, to_ndim=2)
-
         if self.basis is None:
             raise NotImplementedError("basis not implemented")
 
-        return gs.einsum("ni,ijk ->njk", basis_representation, self.basis)
+        return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)
+
+    def projection(self, mat):
+        """Project a matrix to the Lie Algebra.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., n, n]
+            Matrix belonging to Lie Algebra.
+        """
+        raise NotImplementedError('Projection to Lie Algebra is not '
+                                  'implemented.')

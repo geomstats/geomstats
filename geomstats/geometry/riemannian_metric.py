@@ -6,7 +6,6 @@ import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.connection import Connection
 
-
 EPSILON = 1e-4
 N_CENTERS = 10
 TOLERANCE = 1e-5
@@ -61,7 +60,7 @@ def grad(y_pred, y_true, metric):
     tangent_vec = metric.log(base_point=y_pred, point=y_true)
     grad_vec = - 2. * tangent_vec
 
-    inner_prod_mat = metric.inner_product_matrix(base_point=y_pred)
+    inner_prod_mat = metric.metric_matrix(base_point=y_pred)
     is_vectorized = inner_prod_mat.ndim == 3
     axes = (0, 2, 1) if is_vectorized else (1, 0)
 
@@ -93,8 +92,8 @@ class RiemannianMetric(Connection):
             dim=dim, default_point_type=default_point_type)
         self.signature = signature
 
-    def inner_product_matrix(self, base_point=None):
-        """Inner product matrix at the tangent space at a base point.
+    def metric_matrix(self, base_point=None):
+        """Metric matrix at the tangent space at a base point.
 
         Parameters
         ----------
@@ -108,7 +107,7 @@ class RiemannianMetric(Connection):
             Inner-product matrix.
         """
         raise NotImplementedError(
-            'The computation of the inner product matrix'
+            'The computation of the metric matrix'
             ' is not implemented.')
 
     def inner_product_inverse_matrix(self, base_point=None):
@@ -125,7 +124,7 @@ class RiemannianMetric(Connection):
         mat : array-like, shape=[..., dim, dim]
             Inverse of inner-product matrix.
         """
-        metric_matrix = self.inner_product_matrix(base_point)
+        metric_matrix = self.metric_matrix(base_point)
         cometric_matrix = gs.linalg.inv(metric_matrix)
         return cometric_matrix
 
@@ -194,7 +193,7 @@ class RiemannianMetric(Connection):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        inner_prod_mat = self.inner_product_matrix(base_point)
+        inner_prod_mat = self.metric_matrix(base_point)
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
 
         aux = gs.einsum('...j,...jk->...k', tangent_vec_a, inner_prod_mat)
@@ -295,6 +294,30 @@ class RiemannianMetric(Connection):
         dist = gs.sqrt(sq_dist)
         return dist
 
+    def dist_pairwise(self, point):
+        """Compute the pairwise distance between points.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dim]
+            Set of points in hyperbolic space.
+
+        Returns
+        -------
+        dist : array-like, shape=[n_samples, n_samples]
+            Pairwise distance matrix between all points.
+        """
+        pairwise_dist = []
+
+        for i, x in enumerate(point):
+            for y in point[i:]:
+                pairwise_dist.append(self.dist(x, y))
+
+        pairwise_dist = geomstats.geometry.symmetric_matrices.\
+            SymmetricMatrices.from_vector(gs.array(pairwise_dist))
+
+        return pairwise_dist
+
     def diameter(self, points):
         """Give the distance between two farthest points.
 
@@ -340,3 +363,23 @@ class RiemannianMetric(Connection):
         closest_neighbor_index = gs.argmin(dist)
 
         return closest_neighbor_index
+
+    def orthonormal_basis(self, basis, base_point=None):
+        """Orthonormalize the basis with respect to the metric.
+
+        This corresponds to a renormalization.
+
+        Parameters
+        ----------
+        basis : array-like, shape=[dim, dim]
+            Matrix of a metric.
+        base_point
+
+        Returns
+        -------
+        basis : array-like, shape=[dim, n, n]
+            Orthonormal basis.
+        """
+        norms = self.squared_norm(basis, base_point)
+
+        return gs.einsum('i, ikl->ikl', 1. / gs.sqrt(norms), basis)

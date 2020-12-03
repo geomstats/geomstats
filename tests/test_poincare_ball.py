@@ -108,6 +108,19 @@ class TestPoincareBall(geomstats.tests.TestCase):
         with self.assertRaises(ValueError):
             self.manifold.metric.dist_broadcast(point_a, point_d)
 
+    @geomstats.tests.np_and_pytorch_only
+    def test_dist_pairwise(self):
+
+        point = gs.array([[0.1, 0.2], [0.3, 0.4], [0.5, 0.5]])
+
+        result = self.manifold.metric.dist_pairwise(point)
+
+        expected = gs.array([[0., 0.65821943, 1.34682524],
+                             [0.65821943, 0., 0.71497076],
+                             [1.34682524, 0.71497076, 0.]])
+
+        self.assertAllClose(result, expected, rtol=1e-3)
+
     def test_mobius_vectorization(self):
         point_a = gs.array([0.5, 0.5])
         point_b = gs.array([[0.5, -0.3], [0.3, 0.4]])
@@ -158,7 +171,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
 
     def test_exp_vectorization(self):
         point_a = gs.array([0.5, 0.5])
-        point_b = gs.array([[0.5, -0.5], [0.4, 0.4]])
+        point_b = gs.array([[0.0, 0.0], [0.5, -0.5], [0.4, 0.4]])
 
         dist_a_b =\
             self.manifold.metric.exp(point_a, point_b)
@@ -200,6 +213,11 @@ class TestPoincareBall(geomstats.tests.TestCase):
         point = gs.array([1.2, 0.5])
         belong = self.manifold.belongs(point)
         self.assertFalse(belong)
+
+    def test_projection(self):
+        point = gs.array([1.2, 0.5])
+        projected_point = self.manifold.projection(point)
+        self.assertTrue(gs.sum(projected_point * projected_point) < 1.)
 
     def test_exp_poincare(self):
 

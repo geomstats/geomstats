@@ -144,7 +144,8 @@ def main():
     scalar = gs.array(cos)
     vec = sin * u
     translation = gs.array([5., 6., 7.])
-    y_pred_quaternion = gs.concatenate([[scalar], vec, translation], axis=0)
+    y_pred_quaternion = gs.concatenate(
+        [gs.array([scalar]), vec, translation], axis=0)
 
     angle = gs.array(gs.pi / 7)
     cos = gs.cos(angle / 2)
@@ -154,7 +155,8 @@ def main():
     scalar = gs.array(cos)
     vec = sin * u
     translation = gs.array([4., 5., 6.])
-    y_true_quaternion = gs.concatenate([[scalar], vec, translation], axis=0)
+    y_true_quaternion = gs.concatenate(
+        [gs.array([scalar]), vec, translation], axis=0)
 
     loss_quaternion = loss(y_pred_quaternion, y_true_quaternion,
                            representation='quaternion')

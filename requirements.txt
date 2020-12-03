@@ -4,5 +4,6 @@ jupyter
 joblib==0.14.1
 matplotlib
 numpy>=1.18.1
+pandas
 scikit-learn>=0.22.1
 scipy>=1.4.1

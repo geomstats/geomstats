@@ -4,14 +4,14 @@ from functools import reduce
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.geometry.manifold import Manifold
 
 
 TOLERANCE = 1e-5
 
 
-class Matrices(Manifold):
+class Matrices:
     """Class for the space of matrices (m, n).
 
     Parameters
@@ -20,13 +20,12 @@ class Matrices(Manifold):
         Integers representing the shapes of the matrices: m x n.
     """
 
-    def __init__(self, m, n):
-        super(Matrices, self).__init__(dim=m * n)
+    def __init__(self, m, n, **kwargs):
+        super(Matrices, self).__init__(**kwargs)
         geomstats.errors.check_integer(n, 'n')
         geomstats.errors.check_integer(m, 'm')
         self.m = m
         self.n = n
-        self.default_point_type = 'matrix'
         self.metric = MatricesMetric(m, n)
 
     def belongs(self, point):
@@ -127,6 +126,24 @@ class Matrices(Manifold):
         axes = (0, 2, 1) if is_vectorized else (1, 0)
         return gs.transpose(mat, axes)
 
+    @staticmethod
+    def is_square(mat):
+        """Check if a matrix is square.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., m, n]
+            Matrix.
+
+        Returns
+        -------
+        is_square : array-like, shape=[...,]
+            Boolean evaluating if the matrix is square.
+        """
+        n = mat.shape[-1]
+        m = mat.shape[-2]
+        return m == n
+
     @classmethod
     def is_symmetric(cls, mat, atol=TOLERANCE):
         """Check if a matrix is symmetric.
@@ -144,6 +161,10 @@ class Matrices(Manifold):
         is_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric.
         """
+        is_square = cls.is_square(mat)
+        if not is_square:
+            is_vectorized = (gs.ndim(gs.array(mat)) == 3)
+            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, cls.transpose(mat), atol)
 
     @classmethod
@@ -198,6 +219,32 @@ class Matrices(Manifold):
         """
         return 1 / 2 * (mat - cls.transpose(mat))
 
+    @classmethod
+    def is_diagonal(cls, mat, atol=TOLERANCE):
+        """Check if a matrix is square and diagonal.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-5.
+
+        Returns
+        -------
+        is_diagonal : array-like, shape=[...,]
+            Boolean evaluating if the matrix is square and diagonal.
+        """
+        is_square = cls.is_square(mat)
+        if not gs.all(is_square):
+            return False
+        diagonal_mat = from_vector_to_diagonal_matrix(
+            gs.diagonal(mat, axis1=-2, axis2=-1))
+        is_diagonal = gs.all(
+            gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
+        return is_diagonal
+
     def random_uniform(self, n_samples=1, bound=1.):
         """Sample from a uniform distribution.
 
@@ -250,10 +297,10 @@ class MatricesMetric(EuclideanMetric):
         Integers representing the shapes of the matrices: m x n.
     """
 
-    def __init__(self, m, n):
+    def __init__(self, m, n, **kwargs):
         dimension = m * n
         super(MatricesMetric, self).__init__(
-            dim=dimension)
+            dim=dimension, default_point_type='matrix')
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner-product of two tan vecs at `base_point`.

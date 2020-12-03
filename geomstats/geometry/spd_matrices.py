@@ -505,7 +505,7 @@ class SPDMetricAffine(RiemannianMetric):
             '...ij,...jk->...ik', sqrt_base_point, exp)
         return exp
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the affine-invariant exponential map.
 
         Compute the Riemannian exponential at point base_point
@@ -573,7 +573,7 @@ class SPDMetricAffine(RiemannianMetric):
             '...ij,...jk->...ik', log, sqrt_base_point)
         return log
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute the affine-invariant logarithm map.
 
         Compute the Riemannian logarithm at point base_point,
@@ -686,7 +686,8 @@ class SPDMetricProcrustes(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricProcrustes, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0))
+            signature=(dim, 0, 0),
+            default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)
 
@@ -726,7 +727,8 @@ class SPDMetricEuclidean(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricEuclidean, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0))
+            signature=(dim, 0, 0),
+            default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)
         self.power_euclidean = power_euclidean
@@ -823,7 +825,8 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricLogEuclidean, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0))
+            signature=(dim, 0, 0),
+            default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)
 

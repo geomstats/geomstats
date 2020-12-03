@@ -104,12 +104,14 @@ BACKEND_ATTRIBUTES = {
         'tril',
         'tril_indices',
         'triu_indices',
+        'triu_to_vec',
         'vectorize',
         'vstack',
         'where',
         'zeros',
         'zeros_like'
     ],
+    'autograd': ['value_and_grad'],
     'linalg': [
         'det',
         'eig',
@@ -121,10 +123,12 @@ BACKEND_ATTRIBUTES = {
         'norm',
         'powerm',
         'qr',
+        'solve_sylvester',
         'sqrtm',
         'svd'
     ],
     'random': [
+        'choice',
         'normal',
         # TODO (nkoep): Remove 'rand' and replace it by 'uniform'. Much like
         #              'randn' is a convenience wrapper (which we don't use)

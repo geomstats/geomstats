@@ -14,7 +14,7 @@ from tensorflow import (  # NOQA
     asin as arcsin,
     atan2 as arctan2,
     clip_by_value as clip,
-    concat as concatenate,
+    concat,
     cos,
     cosh,
     divide,
@@ -59,7 +59,7 @@ from tensorflow import (  # NOQA
 )
 
 
-
+from . import autograd # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
@@ -77,7 +77,6 @@ cross = tf.linalg.cross
 erf = tf.math.erf
 isnan = tf.math.is_nan
 log = tf.math.log
-matmul = tf.linalg.matmul
 mod = tf.math.mod
 polygamma = tf.math.polygamma
 power = tf.math.pow
@@ -92,6 +91,10 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 def to_numpy(x):
     return x.numpy()
+
+
+def concatenate(x, axis=0, out=None):
+    return concat(x, axis=axis)
 
 
 def convert_to_wider_dtype(tensor_list):
@@ -503,6 +506,13 @@ def get_slice(x, indices):
     >>> get_slice(a, ((0, 2), (8, 9)))
     <tf.Tensor: id=41, shape=(2,), dtype=int32, numpy=array([ 8, 29])>
     """
+    if hasattr(indices, 'shape'):
+        if indices.shape.rank == 0:
+            return x[indices]
+
+        if tf.is_tensor(indices) and indices.shape[-1] == 1:
+            return tf.gather_nd(x, indices)
+
     return tf.gather_nd(x, list(zip(*indices)))
 
 
@@ -514,7 +524,7 @@ def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
 
 def split(x, indices_or_sections, axis=0):
     if isinstance(indices_or_sections, int):
-        return tf.split(x, indices_or_sections, dim=axis)
+        return tf.split(x, indices_or_sections, axis=axis)
     indices_or_sections = _np.array(indices_or_sections)
     intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
     last_interval_length = x.shape[axis] - indices_or_sections[-1]
@@ -534,6 +544,18 @@ def flatten(x):
     Following https://www.tensorflow.org/api_docs/python/tf/reshape
     """
     return tf.reshape(x, [-1])
+
+
+def matmul(a, b):
+    """Matrix-matrix or matrix-vector product of two tensors.
+
+    This wraps both mathvec and matmul into a single function, to mimic the
+    behavior of torch's and numpy's versions of matmul
+    """
+    if ndim(b) < ndim(a):
+        if ndim(b) == 1 or b.shape[-2] != a.shape[-1]:
+            return tf.linalg.matvec(a, b)
+    return tf.linalg.matmul(a, b)
 
 
 def outer(x, y):
@@ -737,3 +759,16 @@ def where(condition, x=None, y=None):
         y = tf.constant(y)
     y = cast(y, x.dtype)
     return tf.where(condition, x, y)
+
+
+def triu_to_vec(x, k=0):
+    n = x.shape[-1]
+    axis = 1 if x.ndim == 3 else 0
+    mask = tf.ones((n, n))
+    mask_a = tf.linalg.band_part(mask, 0, -1)
+    if k > 0:
+        mask_b = tf.linalg.band_part(mask, 0, k - 1)
+    else:
+        mask_b = tf.zeros_like(mask_a)
+    mask = tf.cast(mask_a - mask_b, dtype=tf.bool)
+    return tf.boolean_mask(x, mask, axis=axis)
