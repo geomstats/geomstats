@@ -477,7 +477,8 @@ class RiemannianCometric(RiemannianMetric):
 
     def Hamiltonian_equation(self, position, momentum):
         state = position, momentum
-        H_q, H_p = gs.autograd.value_and_grad(self.hamiltonian)(state)
+        energy, gradient = gs.autograd.value_and_grad(self.hamiltonian)(state)
+        H_q, H_p = gradient
         return H_p, - H_q
 
     def exp(self, cotangent_vec, base_point, n_steps=N_STEPS, step='euler',
