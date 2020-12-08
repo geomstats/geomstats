@@ -5,6 +5,7 @@ import autograd
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.connection import Connection
+from geomstats.integrator import integrate
 
 EPSILON = 1e-4
 N_CENTERS = 10
@@ -74,6 +75,8 @@ def grad(y_pred, y_true, metric):
 
 class RiemannianMetric(Connection):
     """Class for Riemannian and pseudo-Riemannian metrics.
+
+    The associated connection is the Levi-Civita connection on the tangent space.
 
     Parameters
     ----------
@@ -383,3 +386,133 @@ class RiemannianMetric(Connection):
         norms = self.squared_norm(basis, base_point)
 
         return gs.einsum('i, ikl->ikl', 1. / gs.sqrt(norms), basis)
+
+
+class RiemannianCometric(RiemannianMetric):
+    """Class for Riemannian and pseudo-Riemannian cometrics.
+    The associated connection is the Hamiltonian connection on the cotangent space.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the manifold.
+    signature : tuple
+        Signature of the metric.
+        Optional, default: None.
+    default_point_type : str, {'vector', 'matrix'}
+        Point type.
+        Optional, default: 'vector'.
+    """
+
+    def __init__(self, dim, signature=None, default_point_type='vector'):
+        super(RiemannianCometric, self).__init__(
+            dim=dim, default_point_type=default_point_type)
+        self.signature = signature
+
+    def metric_matrix(self, base_point=None):
+        """Metric matrix at the tangent space at a base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., dim, dim]
+            Inner-product matrix.
+        """
+        cometric_matrix = self.cometric_matrix(base_point)
+        metric_matrix = gs.linalg.inv(cometric_matrix)
+        return metric_matrix
+
+    def cometric_matrix(self, base_point=None):
+        """Cometric matrix at the cotangent space at a base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., dim, dim]
+            Inverse of inner-product matrix.
+        """
+        raise NotImplementedError(
+            'The computation of the cometric matrix'
+            ' is not implemented.')
+
+    def inner_coproduct(self, covector_1, covector_2, base_point):
+        r"""Computes the inner coproduct between two covectors at the base point.
+
+        This is the inner product associated to the kernel matrix:
+        .. math:
+
+                <m, m'> = \sum_{i=1}^k m_i^T k(x_i, x_j) m_j
+
+        Parameters
+        ----------
+        covector_1 : covector at `base_point`
+        covector_2 : covector at `base_point`
+        base_point : landmark configuration
+
+        Returns
+        -------
+        inner_coproduct : float
+        """
+
+        vector_2 = gs.einsum(
+            '...ij,...j->...i', self.cometric_matrix(base_point), covector_2)
+        inner_coproduct = gs.einsum(
+            '...i,...i->...', covector_1, vector_2)
+        return inner_coproduct
+
+    def hamiltonian(self, state):
+        position, momentum = state
+        return 1/2 * self.inner_coproduct(
+            momentum, momentum, position)
+
+    def Hamiltonian_equation(self, position, momentum):
+        state = position, momentum
+        H_q, H_p = gs.autograd.value_and_grad(self.hamiltonian)(state)
+        return H_p, - H_q
+
+    def exp(self, cotangent_vec, base_point, n_steps=N_STEPS, step='euler',
+            point_type=None, **kwargs):
+        """Exponential map associated to the affine connection on the cotangent bundle.
+
+        Exponential map at base_point of cotangent_vec computed by integration
+        of the geodesic equation (initial value problem), using the
+        Hamiltonian equation
+
+        Parameters
+        ----------
+        cotangent_vec : array-like, shape=[..., dim]
+            Cotangent vector at the base point.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        n_steps : int
+            Number of discrete time steps to take in the integration.
+            Optional, default: N_STEPS.
+        step : str, {'euler', 'rk4'}
+            The numerical scheme to use for integration.
+            Optional, default: 'euler'.
+        point_type : str, {'vector', 'matrix'}
+            Type of representation used for points.
+            Optional, default: None.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., dim]
+            Point on the manifold.
+        """
+
+        initial_state = (base_point, cotangent_vec)
+        flow, _ = integrate(self.Hamiltonian_equation, initial_state,
+                            n_steps=n_steps, step=step)
+
+        exp = flow[-1]
+        return exp
