@@ -133,7 +133,7 @@ class KernelMetric(RiemannianCometric):
 
     Parameters
     ----------
-    n_landmarks : int
+    k_landmarks : int
         Dimension of the Euclidean space R^n containing the landmarks.
     ambient_dimension: int
         Number of landmarks.
@@ -145,13 +145,15 @@ class KernelMetric(RiemannianCometric):
 
                     k(x, y) = exp(-|x-y|^2/ \sigma)
     """
-    def __init__(self, n_landmarks, ambient_dimension, kernel = lambda x, y: gs.exp(gs.linalg.norm(x-y))):
+    def __init__(
+            self, k_landmarks, ambient_dimension,
+            kernel=lambda d: gs.exp(-d)):
         super(KernelMetric, self).__init__(
             default_point_type='matrix',
-            dim=ambient_dimension * n_landmarks)
+            dim=ambient_dimension * k_landmarks)
         self.kernel = kernel
         self.ambient_dimension = ambient_dimension
-        self.n_landmarks = n_landmarks
+        self.k_landmarks = k_landmarks
 
     def kernel_matrix(self, base_point):
         r"""Compute the kernel matrix.
@@ -167,15 +169,12 @@ class KernelMetric(RiemannianCometric):
 
         Returns
         -------
-        kernel_mat : [..., n_landmarks, n_landmarks]
+        kernel_mat : [..., k_landmarks, k_landmarks]
         """
 
-        indices_i, indices_j = gs.triu_indices(self.ambient_dimension)
-        vec = []
-        for i, j in zip(indices_i, indices_j):
-            vec.append(self.kernel(base_point[i], base_point[j]))
-        vec = gs.array(vec)
-        return SymmetricMatrices.from_vector(vec)
+        squared_dist = gs.sum(
+            (base_point[..., :, None, :] - base_point) ** 2, axis=-1)
+        return self.kernel(squared_dist)
 
     def inner_coproduct(self, momentum_1, momentum_2, base_point):
         r"""Computes the inner coproduct between two momenta.
