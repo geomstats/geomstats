@@ -289,7 +289,7 @@ class PreShapeSpace(EmbeddedManifold):
         return gs.logical_and(is_tangent, is_symmetric)
 
     def align(self, point, base_point):
-        """Realign point to base_point.
+        """Align point to base_point.
 
         Find the optimal rotation R in SO(m) such that the base point and
         R.point are well positioned.
