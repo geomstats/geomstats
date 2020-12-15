@@ -181,22 +181,23 @@ class FiberBundle(Manifold):
         max_shape = (n_samples, ) + identity.shape if n_samples > 1 else \
             identity.shape
 
-        def objective(param):
-            group_elt = gs.array(param, dtype=base_point.dtype)
-            group_elt = gs.reshape(group_elt, max_shape)
-            aligned = self.group_action(param, group_elt)
-            return self.total_space.metric.squared_dist(aligned, base_point)
+        def wrap(param):
+            algebra_elt = gs.array(param, dtype=base_point.dtype)
+            algebra_elt = self.group.lie_algebra.matrix_representation(
+                algebra_elt)
+            group_elt = self.group.exp(algebra_elt)
+            return self.group_action(param, group_elt)
 
-        objective_with_grad = gs.autograd.value_and_grad(objective)
+        objective_with_grad = gs.autograd.value_and_grad(
+            lambda param: self.total_space.metric.squared_dist(
+                wrap(param), base_point))
+
         tangent_vec = gs.flatten(gs.random.rand(*max_shape))
         res = minimize(
             objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
             options={'disp': verbose, 'maxiter': max_iter}, tol=tol)
 
-        optimal_group_elt = gs.array(res.x)
-        optimal_group_elt = gs.reshape(
-            optimal_group_elt, max_shape)
-        return self.group_action(optimal_group_elt)(point)
+        return wrap(res.x)
 
     def horizontal_projection(self, tangent_vec, base_point):
         r"""Project to horizontal subspace.
