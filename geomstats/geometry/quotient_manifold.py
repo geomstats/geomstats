@@ -61,8 +61,8 @@ class FiberBundle(Manifold):
     def belongs(self, point, atol=1e-6):
         """Evaluate if a point belongs to the bundle.
 
-        Evaluate if a point belongs to the base manifold is given, otherwise
-        to the total space.
+        Evaluate if a point belongs to the base manifold when it is given,
+        otherwise to the total space.
 
         Parameters
         ----------
@@ -86,6 +86,8 @@ class FiberBundle(Manifold):
 
         This is the projection of the fiber bundle, defined on the total
         space, with values in the base manifold. This map is surjective.
+        By default, the base manifold  is not explicit but is identified with a
+        section of the fiber bundle, so the submersion is the identity map.
 
         Parameters
         ----------
@@ -97,14 +99,16 @@ class FiberBundle(Manifold):
         projection: array-like, shape=[..., {dim, [n, n]}]
             Point of the base manifold.
         """
-        raise NotImplementedError
+        return point
 
     def lift(self, point):
         """Lift a point to total space.
 
         This is a section of the fiber bundle, defined on the base manifold,
         with values in the total space. It means that lift composed with
-        submersion results in the identity map.
+        submersion results in the identity map. By default, the base manifold
+        is not explicit but is identified with a section of the fiber bundle,
+        so the lift is the identity map.
 
         Parameters
         ----------
@@ -116,7 +120,7 @@ class FiberBundle(Manifold):
         lift: array-like, shape=[..., {ambient_dim, [n, n]}]
             Point of the total space.
         """
-        raise NotImplementedError
+        return point
 
     def tangent_submersion(self, tangent_vec, base_point):
         """Project a tangent vector to base manifold.
@@ -124,7 +128,9 @@ class FiberBundle(Manifold):
         This is the differential of the projection of the fiber bundle,
         defined on the tangent space of a point of the total space,
         with values in the tangent space of the projection of this point in the
-        base manifold. This map is surjective.
+        base manifold. This map is surjective. By default, the base manifold
+        is not explicit but is identified with a horizontal section of the
+        fiber bundle, so the tangent submersion is the horizontal projection.
 
         Parameters
         ----------
@@ -138,7 +144,7 @@ class FiberBundle(Manifold):
         projection: array-like, shape=[..., {dim, [n, n]}]
             Tangent vector to the base manifold.
         """
-        raise NotImplementedError
+        return self.horizontal_projection(tangent_vec, base_point)
 
     def align(self, point, base_point, max_iter=25, verbose=False, tol=1e-6):
         """Align point to base_point.
@@ -216,8 +222,12 @@ class FiberBundle(Manifold):
             return tangent_vec - self.vertical_projection(
                 tangent_vec, base_point)
         except RecursionError:
-            return self.horizontal_lift(
-                self.tangent_submersion(tangent_vec, base_point), base_point)
+            try:
+                return self.horizontal_lift(
+                    self.tangent_submersion(tangent_vec, base_point),
+                    base_point)
+            except RecursionError:
+                return NotImplementedError
 
     def vertical_projection(self, tangent_vec, base_point):
         r"""Project to vertical subspace.
@@ -234,7 +244,7 @@ class FiberBundle(Manifold):
 
         Returns
         -------
-        horizontal : array-like, shape=[..., {ambient_dim, [n, n]}]
+        vertical : array-like, shape=[..., {ambient_dim, [n, n]}]
             Vertical component of `tangent_vec`.
         """
         try:
@@ -252,14 +262,14 @@ class FiberBundle(Manifold):
             Tangent vector.
         base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
             Point on the manifold.
-            Optional, default: none.
+            Optional, default: None.
         atol : float
             Absolute tolerance.
             Optional, default: 1e-6.
 
         Returns
         -------
-        is_tangent : bool
+        is_horizontal : bool
             Boolean denoting if tangent vector is horizontal.
         """
         return gs.isclose(
@@ -275,25 +285,28 @@ class FiberBundle(Manifold):
             Tangent vector.
         base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
             Point on the manifold.
-            Optional, default: none.
+            Optional, default: None.
         atol : float
             Absolute tolerance.
             Optional, default: 1e-6.
 
         Returns
         -------
-        is_tangent : bool
+        is_vertical : bool
             Boolean denoting if tangent vector is vertical.
         """
         return gs.isclose(
-            tangent_vec, self.vertical_projection(tangent_vec, base_point))
+            tangent_vec, self.vertical_projection(tangent_vec, base_point),
+            atol=atol)
 
     def horizontal_lift(self, tangent_vec, point=None, base_point=None):
         """Lift a tangent vector to a horizontal vector in the total space.
 
         It means that horizontal lift is the inverse of the restriction of the
         tangent submersion to the horizontal space a point, where point must
-        be in the fiber above the base point.
+        be in the fiber above the base point. By default, the base manifold
+        is not explicit but is identified with a horizontal section of the
+        fiber bundle, so the horizontal lift is the horizontal projection.
 
         Parameters
         ----------
@@ -312,39 +325,128 @@ class FiberBundle(Manifold):
         horizontal_lift : array-like, shape=[..., {ambient_dim, [n, n]}]
             Tangent vector to the total space at point.
         """
-        raise NotImplementedError
+        return self.horizontal_projection(tangent_vec, point)
 
 
 class QuotientMetric(RiemannianMetric):
-    def __init__(self, fiber_bundle, group, ambient_metric):
+    """Quotient metric.
+
+    Given a (principal) fiber bundle, or more generally a manifold with a
+    Lie group acting on it by the right, the quotient space is the space of
+    orbits under this action. The quotient metric is defined such that the
+    canonical projection is a Riemannian submersion, i.e. it is isometric to
+    the restriction of the metric of the total space to horizontal subspaces.
+
+    Parameters
+    ----------
+    fiber_bundle : FiberBundle
+        Bundle structure to define the quotient.
+    group : LieGroup
+        Group acting on the right.
+        Optional, default : None. In this case the group must be passed to
+        the fiber bundle instance.
+    ambient_metric : RiemannianMetric
+        Metric of the total space.
+        Optional, default : None. In this case, the total space must have a
+        metric as an attribute.
+    """
+
+    def __init__(self, fiber_bundle, group=None, ambient_metric=None):
         super(QuotientMetric, self).__init__(
             dim=fiber_bundle.dim - group.dim,
             default_point_type=fiber_bundle.default_point_type)
 
         self.fiber_bundle = fiber_bundle
-        self.group = group
-        self.ambient_metric = ambient_metric
+        if group is None:
+            self.group = fiber_bundle.group
+        if ambient_metric is None:
+            self.ambient_metric = fiber_bundle.total_space.metric
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        horizontal_a = self.fiber_bundle.horizontal_projection(
+        """Compute the inner-product of two tangent vectors at a base point.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector to the quotient manifold.
+        tangent_vec_b : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector to the quotient manifold.
+        base_point : array-like, shape=[..., {dim, [n, n]}]
+            Point on the quotient manifold.
+            Optional, default: None.
+
+        Returns
+        -------
+        inner_product : float, shape=[...]
+            Inner products
+        """
+        horizontal_a = self.fiber_bundle.horizontal_lift(
             tangent_vec_a, base_point)
-        horizontal_b = self.fiber_bundle.horizontal_projection(
+        horizontal_b = self.fiber_bundle.horizontal_lift(
             tangent_vec_b, base_point)
         return self.ambient_metric.inner_product(
             horizontal_a, horizontal_b, base_point)
 
     def exp(self, tangent_vec, base_point, **kwargs):
+        """Compute the Riemannian exponential of a tangent vector.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector to the quotient manifold.
+        base_point : array-like, shape=[..., {dim, [n, n]}]
+            Point on the quotient manifold.
+            Optional, default: None.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., {dim, [n, n]}]
+            Point on the quotient manifold.
+        """
         lift = self.fiber_bundle.lift(base_point)
-        horizontal_vec = self.fiber_bundle.horizontal_projection(
+        horizontal_vec = self.fiber_bundle.horizontal_lift(
             tangent_vec, lift)
         return self.fiber_bundle.submersion(
             self.ambient_metric.exp(horizontal_vec, lift))
 
     def log(self, point, base_point, **kwargs):
-        aligned = self.fiber_bundle.align(point, base_point, **kwargs)
+        """Compute the Riemannian logarithm of a point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., {dim, [n, n]}]
+            Point on the quotient manifold.
+        base_point : array-like, shape=[..., {dim, [n, n]}]
+            Point on the quotient manifold.
+
+        Returns
+        -------
+        log : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at the base point equal to the Riemannian logarithm
+            of point at the base point.
+        """
+        point_fiber = self.fiber_bundle.lift(point)
+        bp_fiber = self.fiber_bundle.lift(base_point)
+        aligned = self.fiber_bundle.align(point_fiber, bp_fiber, **kwargs)
         return self.fiber_bundle.tangent_submersion(
             self.ambient_metric.log(aligned, base_point), base_point)
 
     def squared_dist(self, point_a, point_b, **kwargs):
-        aligned = self.fiber_bundle.align(point_a, point_b, **kwargs)
-        return self.ambient_metric.squared_dist(aligned, point_b)
+        """Squared geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[...,  {dim, [n, n]}]
+            Point.
+        point_b : array-like, shape=[...,  {dim, [n, n]}]
+            Point.
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[...,]
+            Squared distance.
+        """
+        lift_a = self.fiber_bundle.lift(point_a)
+        lift_b = self.fiber_bundle.lift(point_b)
+        aligned = self.fiber_bundle.align(lift_a, lift_b, **kwargs)
+        return self.ambient_metric.squared_dist(aligned, lift_b)

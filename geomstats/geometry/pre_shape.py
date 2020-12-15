@@ -429,7 +429,7 @@ class ProcrustesMetric(RiemannianMetric):
 class KendallShapeMetric(ProcrustesMetric):
     """Quotient metric on the shape space.
 
-    The Kendall shape space is obtained by taking the caution of the
+    The Kendall shape space is obtained by taking the quotient of the
     pre-shape space by the space of rotations of the ambient space.
 
     Parameters
