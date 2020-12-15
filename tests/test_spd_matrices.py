@@ -8,9 +8,9 @@ import geomstats.tests
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
+    SPDMetricBuresWasserstein,
     SPDMetricEuclidean,
-    SPDMetricLogEuclidean,
-    SPDMetricBuresWasserstein
+    SPDMetricLogEuclidean
 )
 
 
