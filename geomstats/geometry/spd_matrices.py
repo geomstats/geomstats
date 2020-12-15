@@ -695,10 +695,14 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         self.space = SPDMatrices(n)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the Bures-Wasserstein inner-product.
+        r"""Compute the Bures-Wasserstein inner-product.
 
-        Compute the inner-product of tangent_vec_a and tangent_vec_b
-        at point base_point using the Bures-Wasserstein Riemannian metric.
+        Compute the inner-product of tangent_vec_a :math: `A` and tangent_vec_b
+        :math: `B` at point base_point :math: `S=PDP^\top` using the
+        Bures-Wasserstein Riemannian metric:
+        ..math::
+        `\frac{1}{2}\sum_{i,j}\frac{[P^\top AP]_{ij}[P^\top BP]_{ij}}{d_i+d_j}`
+        .
 
         Parameters
         ----------
@@ -715,20 +719,15 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
             Inner-product.
         """
         eigvals, eigvecs = gs.linalg.eigh(base_point)
-        transp_eigvecs = gs.einsum('...ij->...ji', eigvecs)
-        rotated_tangent_vec_a = gs.matmul(transp_eigvecs, tangent_vec_a)
-        rotated_tangent_vec_a = gs.matmul(rotated_tangent_vec_a, eigvecs)
-        rotated_tangent_vec_b = gs.matmul(transp_eigvecs, tangent_vec_b)
-        rotated_tangent_vec_b = gs.matmul(rotated_tangent_vec_b, eigvecs)
+        transp_eigvecs = Matrices.transpose(eigvecs)
+        rotated_tangent_vec_a = Matrices.mul(transp_eigvecs, tangent_vec_a,
+                                             eigvecs)
+        rotated_tangent_vec_b = Matrices.mul(transp_eigvecs, tangent_vec_b,
+                                             eigvecs)
+        coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
 
-        ones = gs.ones(eigvals.shape)
-        vertical_index = gs.einsum('...i,...j->...ij', eigvals, ones)
-        horizontal_index = gs.einsum('...j,...i->...ij', eigvals, ones)
-        coefficients = 1 / (vertical_index + horizontal_index)
-
-        result = gs.einsum('...ij,...ij,...ij->...',
-                           coefficients, rotated_tangent_vec_a,
-                           rotated_tangent_vec_b) / 2
+        result = gs.sum(coefficients * rotated_tangent_vec_a *
+                        rotated_tangent_vec_b, axis=(-2, -1)) / 2
         return result
 
     def exp(self, tangent_vec, base_point):
@@ -747,22 +746,15 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
             Riemannian exponential.
         """
         eigvals, eigvecs = gs.linalg.eigh(base_point)
-        transp_eigvecs = gs.einsum('...ij->...ji', eigvecs)
-        rotated_tangent_vec = gs.matmul(transp_eigvecs, tangent_vec)
-        rotated_tangent_vec = gs.matmul(rotated_tangent_vec, eigvecs)
-
-        ones = gs.ones(eigvals.shape)
-        vertical_index = gs.einsum('...i,...j->...ij', eigvals, ones)
-        horizontal_index = gs.einsum('...j,...i->...ij', eigvals, ones)
-        coefficients = 1 / (vertical_index + horizontal_index)
-
-        rotated_lyapnunov = gs.einsum('...ij,...ij->...ij',
-                                      rotated_tangent_vec, coefficients)
+        transp_eigvecs = Matrices.transpose(eigvecs)
+        rotated_tangent_vec = Matrices.mul(transp_eigvecs, tangent_vec,
+                                           eigvecs)
+        coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
+        rotated_sylvester = rotated_tangent_vec * coefficients
         rotated_hessian = gs.einsum('...ij,...j,...jk->...ik',
-                                    rotated_lyapnunov, eigvals,
-                                    rotated_lyapnunov)
-        hessian = gs.matmul(eigvecs, rotated_hessian)
-        hessian = gs.matmul(hessian, transp_eigvecs)
+                                    rotated_sylvester, eigvals,
+                                    rotated_sylvester)
+        hessian = Matrices.mul(eigvecs, rotated_hessian, transp_eigvecs)
 
         result = base_point + tangent_vec + hessian
         return result
@@ -788,7 +780,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         """
         product = gs.matmul(base_point, point)
         sqrt_product = gs.linalg.sqrtm(product)
-        transp_sqrt_product = gs.einsum('...ij->...ji', sqrt_product)
+        transp_sqrt_product = Matrices.transpose(sqrt_product)
 
         result = sqrt_product + transp_sqrt_product - 2 * base_point
         return result
@@ -812,9 +804,9 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         """
         product = gs.matmul(point_a, point_b)
         sqrt_product = gs.linalg.sqrtm(product)
-        trace_a = gs.einsum('...ii->...', point_a)
-        trace_b = gs.einsum('...ii->...', point_b)
-        trace_prod = gs.einsum('...ii->...', sqrt_product)
+        trace_a = gs.trace(point_a)
+        trace_b = gs.trace(point_b)
+        trace_prod = gs.trace(sqrt_product)
 
         result = trace_a + trace_b - 2 * trace_prod
         return result
