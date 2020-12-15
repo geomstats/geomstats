@@ -35,7 +35,7 @@ class FiberBundle(Manifold):
     """
 
     def __init__(self, total_space, base=None, group=None, group_action=None,
-                 dim=None):
+                 dim=None, **kwargs):
 
         if dim is None:
             if base is not None:
@@ -47,8 +47,7 @@ class FiberBundle(Manifold):
                                  'its dimension, or the group acting on the '
                                  'total space must be provided.')
 
-        super(FiberBundle, self).__init__(
-            dim=dim, default_point_type=total_space.default_point_type)
+        super(FiberBundle, self).__init__(dim=dim, **kwargs)
 
         self.base = base
         self.total_space = total_space
@@ -353,14 +352,17 @@ class QuotientMetric(RiemannianMetric):
 
     def __init__(self, fiber_bundle, group=None, ambient_metric=None):
         super(QuotientMetric, self).__init__(
-            dim=fiber_bundle.dim - group.dim,
+            dim=fiber_bundle.dim,
             default_point_type=fiber_bundle.default_point_type)
 
         self.fiber_bundle = fiber_bundle
         if group is None:
-            self.group = fiber_bundle.group
+            group = fiber_bundle.group
         if ambient_metric is None:
-            self.ambient_metric = fiber_bundle.total_space.metric
+            ambient_metric = fiber_bundle.total_space.metric
+
+        self.group = group
+        self.ambient_metric = ambient_metric
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
