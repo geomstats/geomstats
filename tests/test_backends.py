@@ -918,18 +918,17 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad)
 
     def test_choice(self):
-
         x = gs.array([0.1, 0.2, 0.3, 0.4, 0.5])
         a = 4
-
         result = gs.random.choice(x, a)
 
+        result_bool = True
         for i in result:
             if i in x:
-                self.assertTrue(True)
-            else:
-                self.assertTrue(False)
+                continue
+            result_bool = False
 
+        self.assertTrue(result_bool)
         self.assertEqual(len(result), a)
 
     def test_split(self):
@@ -971,3 +970,28 @@ class TestBackends(geomstats.tests.TestCase):
         s = _np.linalg.svd(np_point, compute_uv=compute_uv)
         s_r = gs.linalg.svd(gs_point, compute_uv=compute_uv)
         self.assertAllClose(s, s_r)
+
+    def test_sylvester_solve(self):
+        mat = gs.random.rand(4, 3)
+        spd = gs.matmul(gs.transpose(mat), mat)
+
+        mat = gs.random.rand(3, 3)
+        skew = mat - gs.transpose(mat)
+        solution = gs.linalg.solve_sylvester(spd, spd, skew)
+        result = gs.matmul(spd, solution)
+        result += gs.matmul(solution, spd)
+
+        self.assertAllClose(result, skew)
+
+    def test_sylvester_solve_vectorization(self):
+        gs.random.seed(0)
+        mat = gs.random.rand(2, 4, 3)
+        spd = gs.matmul(gs.transpose(mat, (0, 2, 1)), mat)
+
+        mat = gs.random.rand(2, 3, 3)
+        skew = mat - gs.transpose(mat, (0, 2, 1))
+        solution = gs.linalg.solve_sylvester(spd, spd, skew)
+        result = gs.matmul(spd, solution)
+        result += gs.matmul(solution, spd)
+
+        self.assertAllClose(result, skew)

@@ -24,10 +24,9 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         Test that the random uniform method samples
         on the beta distribution space.
         """
-        n_samples = self.n_samples
-        point = self.beta.random_uniform(n_samples)
+        point = self.beta.random_uniform()
         result = self.beta.belongs(point)
-        expected = gs.array([True] * n_samples)
+        expected = True
         self.assertAllClose(expected, result)
 
     def test_random_uniform_and_belongs_vectorization(self):
@@ -36,9 +35,10 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         Test that the random uniform method samples
         on the beta distribution space.
         """
-        point = self.beta.random_uniform()
+        n_samples = self.n_samples
+        point = self.beta.random_uniform(n_samples)
         result = self.beta.belongs(point)
-        expected = True
+        expected = gs.array([True] * n_samples)
         self.assertAllClose(expected, result)
 
     def test_random_uniform(self):
@@ -61,7 +61,6 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         samples = self.beta.sample(point, n_samples * 10)
         result = gs.mean(samples, axis=1)
         expected = point[:, 0] / gs.sum(point, axis=1)
-
         self.assertAllClose(result, expected, rtol=tol, atol=tol)
 
     def test_maximum_likelihood_fit(self):
@@ -76,7 +75,6 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         fits = self.beta.maximum_likelihood_fit(samples)
         expected = self.beta.belongs(fits)
         result = gs.array([True] * n_samples)
-
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -96,7 +94,6 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         result_points = self.metric.exp(initial_vectors, points)
         result = gs.isclose(result_points[:, 0], result_points[:, 1]).all()
         expected = gs.array([True] * n_samples)
-
         self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
@@ -153,8 +150,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
     def test_christoffels_vectorization(self):
         """Test Christoffel synbols.
 
-        Check vectorization of Christoffel symbols in
-        spherical coordinates on the 2-sphere.
+        Check vectorization of Christoffel symbols.
         """
         points = self.beta.random_uniform(self.n_samples)
         christoffel = self.metric.christoffels(points)
@@ -182,5 +178,4 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         pdf1 = beta.pdf(x, a=point[0, 0], b=point[0, 1])
         pdf2 = beta.pdf(x, a=point[1, 0], b=point[1, 1])
         expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=1)
-
         self.assertAllClose(result, expected)

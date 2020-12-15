@@ -49,7 +49,7 @@ class Connection:
         Returns
         -------
         gamma : array-like, shape=[..., dim, dim, dim]
-            Christoffel symbols, with the covariant index on
+            Christoffel symbols, with the contravariant index on
             the first dimension.
         """
         raise NotImplementedError(
@@ -102,7 +102,7 @@ class Connection:
 
         Exponential map at base_point of tangent_vec computed by integration
         of the geodesic equation (initial value problem), using the
-        christoffel symbols
+        christoffel symbols.
 
         Parameters
         ----------

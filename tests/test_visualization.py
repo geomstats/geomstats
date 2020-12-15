@@ -68,3 +68,10 @@ class TestVisualization(geomstats.tests.TestCase):
     def test_plot_points_h2_klein_disk(self):
         points = self.H2.random_uniform(self.n_samples)
         visualization.plot(points, space='H2_klein_disk')
+
+    @staticmethod
+    def test_plot_points_se2():
+        points = SpecialEuclidean(n=2, point_type='vector').random_uniform(4)
+        visu = visualization.SpecialEuclidean2(points, point_type='vector')
+        ax = visu.set_ax()
+        visu.draw(ax)

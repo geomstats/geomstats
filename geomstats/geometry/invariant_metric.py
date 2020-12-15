@@ -522,7 +522,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         return translation_map(value_at_id)
 
-    def exp(self, tangent_vec, base_point, n_steps=10, step='rk4',
+    def exp(self, tangent_vec, base_point=None, n_steps=10, step='rk4',
             **kwargs):
         r"""Compute Riemannian exponential of tan. vector wrt to base point.
 
@@ -572,7 +572,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         """
         group = self.group
         basis = self.orthonormal_basis(self.lie_algebra.basis)
-        sign = 1. if self.left_or_right == 'left' else 1.
+        sign = 1. if self.left_or_right == 'left' else -1.
 
         def lie_acceleration(point, vector):
             """Compute the right-hand side of the geodesic equation."""
@@ -583,9 +583,13 @@ class _InvariantMetricMatrix(RiemannianMetric):
             acceleration = gs.einsum('i...,ijk->...jk', coefficients, basis)
             return velocity, sign * acceleration
 
-        left_angular_vel = self.group.tangent_translation_map(
-            base_point,
-            left_or_right=self.left_or_right, inverse=True)(tangent_vec)
+        if base_point is None:
+            base_point = group.identity
+            left_angular_vel = tangent_vec
+        else:
+            left_angular_vel = self.group.tangent_translation_map(
+                base_point,
+                left_or_right=self.left_or_right, inverse=True)(tangent_vec)
         initial_state = (base_point, group.regularize(left_angular_vel))
         flow, _ = integrate(lie_acceleration, initial_state, n_steps=n_steps,
                             step=step, **kwargs)
