@@ -751,9 +751,9 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
                                            eigvecs)
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
         rotated_sylvester = rotated_tangent_vec * coefficients
-        rotated_hessian = gs.einsum('...ij,...j,...jk->...ik',
-                                    rotated_sylvester, eigvals,
-                                    rotated_sylvester)
+        rotated_hessian = gs.einsum('...ij,...j->...ij',
+                                    rotated_sylvester, eigvals)
+        rotated_hessian = Matrices.mul(rotated_hessian, rotated_sylvester)
         hessian = Matrices.mul(eigvecs, rotated_hessian, transp_eigvecs)
 
         result = base_point + tangent_vec + hessian
