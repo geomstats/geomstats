@@ -1,4 +1,4 @@
-"""Classes for quotient manifolds and quotient metrics"""
+"""Classes for fiber bundles and quotient metrics."""
 
 from scipy.optimize import minimize
 
@@ -8,7 +8,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class FiberBundle(Manifold):
-    """Class for (principal) fiber bundles
+    """Class for (principal) fiber bundles.
 
     This class implements abstract methods for fiber bundles, or more
     generally manifolds, with a submersion map, or a right Lie group action.
@@ -58,7 +58,7 @@ class FiberBundle(Manifold):
         self.group_action = group_action
 
     def belongs(self, point, atol=1e-6):
-        """Evaluate if a point belongs to the bundle.
+        """Evaluate if a point belongs to the base manifold.
 
         Evaluate if a point belongs to the base manifold when it is given,
         otherwise to the total space.
@@ -86,7 +86,8 @@ class FiberBundle(Manifold):
         This is the projection of the fiber bundle, defined on the total
         space, with values in the base manifold. This map is surjective.
         By default, the base manifold  is not explicit but is identified with a
-        section of the fiber bundle, so the submersion is the identity map.
+        local section of the fiber bundle, so the submersion is the identity
+        map.
 
         Parameters
         ----------
@@ -104,8 +105,8 @@ class FiberBundle(Manifold):
         """Lift a point to total space.
 
         This is a section of the fiber bundle, defined on the base manifold,
-        with values in the total space. It means that lift composed with
-        submersion results in the identity map. By default, the base manifold
+        with values in the total space. It means that submersion applied after
+        lift results in the identity map. By default, the base manifold
         is not explicit but is identified with a section of the fiber bundle,
         so the lift is the identity map.
 
@@ -150,7 +151,9 @@ class FiberBundle(Manifold):
 
         Find the optimal group element g such that the base point and
         point.g are well positioned, meaning that the total space distance is
-        minimized. By default, this is solved by gradient descent.
+        minimized. This also means that the geodesic joining the base point
+        and the aligned point is horizontal. By default, this is solved by a
+        gradient descent in the Lie algebra.
 
         Parameters
         ----------
@@ -182,6 +185,7 @@ class FiberBundle(Manifold):
             identity.shape
 
         def wrap(param):
+            """Wrap a parameter vector to a group element."""
             algebra_elt = gs.array(param, dtype=base_point.dtype)
             algebra_elt = self.group.lie_algebra.matrix_representation(
                 algebra_elt)
@@ -202,9 +206,9 @@ class FiberBundle(Manifold):
     def horizontal_projection(self, tangent_vec, base_point):
         r"""Project to horizontal subspace.
 
-        Compute the horizontal component of a tangent vector :math: `w` at a
-        base point :math: `x` by removing the vertical component,
-        or by a computing a horizontal lift of the tangent projection.
+        Compute the horizontal component of a tangent vector at a
+        base point by removing the vertical component,
+        or by computing a horizontal lift of the tangent projection.
 
         Parameters
         ----------
@@ -303,7 +307,7 @@ class FiberBundle(Manifold):
         """Lift a tangent vector to a horizontal vector in the total space.
 
         It means that horizontal lift is the inverse of the restriction of the
-        tangent submersion to the horizontal space a point, where point must
+        tangent submersion to the horizontal space at point, where point must
         be in the fiber above the base point. By default, the base manifold
         is not explicit but is identified with a horizontal section of the
         fiber bundle, so the horizontal lift is the horizontal projection.
@@ -325,6 +329,13 @@ class FiberBundle(Manifold):
         horizontal_lift : array-like, shape=[..., {ambient_dim, [n, n]}]
             Tangent vector to the total space at point.
         """
+        if point is None:
+            if base_point is not None:
+                point = self.lift(base_point)
+            else:
+                raise ValueError('Either a point (of the total space) or a '
+                                 'base point (of the base manifold) must be '
+                                 'given.')
         return self.horizontal_projection(tangent_vec, point)
 
 
