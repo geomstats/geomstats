@@ -36,7 +36,7 @@ class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
             )
             self.assertAllClose(expected, result)
 
-            lb_first_second = skew.lie_bracket(first_base, second_base)
+            lb_first_second = skew.bracket(first_base, second_base)
             expected = expected + 0.5 * lb_first_second
             result = skew.baker_campbell_hausdorff(
                 first_base, second_base, order=2
@@ -44,18 +44,19 @@ class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
             self.assertAllClose(expected, result)
 
             expected = (
-                expected
-                + 1.0 / 12.0 * skew.lie_bracket(first_base, lb_first_second)
-                - 1.0 / 12.0 * skew.lie_bracket(second_base, lb_first_second)
+                    expected
+                    + 1.0 / 12.0 * skew.bracket(first_base, lb_first_second)
+                    - 1.0 / 12.0 * skew.bracket(second_base, lb_first_second)
             )
             result = skew.baker_campbell_hausdorff(
                 first_base, second_base, order=3
             )
             self.assertAllClose(expected, result)
 
-            expected = expected - 1.0 / 24.0 * skew.lie_bracket(
-                second_base, skew.lie_bracket(first_base, lb_first_second)
-            )
+            expected = expected - 1.0 / 24.0 * skew.bracket(second_base,
+                                                            skew.bracket(
+                                                                first_base,
+                                                                lb_first_second))
             result = skew.baker_campbell_hausdorff(
                 first_base, second_base, order=4
             )
@@ -75,3 +76,11 @@ class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
             mat = skew.matrix_representation(vec)
             result = skew.basis_representation(mat)
             self.assertAllClose(result, vec)
+
+    def test_belongs(self):
+        mat = gs.array([[0, -1], [1, 0]])
+        result = self.skew[2].belongs(mat)
+        self.assertTrue(result)
+
+        result = self.skew[3].belongs(mat)
+        self.assertFalse(result)
