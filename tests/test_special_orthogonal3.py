@@ -3057,11 +3057,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     point=point,
                     base_point=base_point)
                 expected = self.group.regularize(point)
-                inv_expected = - expected
-
-                self.assertTrue(
-                    gs.allclose(result, expected, atol=9e-3)
-                    or gs.allclose(result, inv_expected, atol=9e-3))
+                self.assertAllClose(result, expected, atol=9e-2)
 
     def test_squared_dist_is_symmetric(self):
         for metric in self.metrics.values():
