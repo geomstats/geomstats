@@ -3060,8 +3060,8 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                 inv_expected = - expected
 
                 self.assertTrue(
-                    gs.allclose(result, expected, atol=5e-3)
-                    or gs.allclose(result, inv_expected, atol=5e-3))
+                    gs.allclose(result, expected, atol=9e-3)
+                    or gs.allclose(result, inv_expected, atol=9e-3))
 
     def test_squared_dist_is_symmetric(self):
         for metric in self.metrics.values():
