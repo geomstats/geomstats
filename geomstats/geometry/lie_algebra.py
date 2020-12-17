@@ -8,8 +8,8 @@ in that base. This base will be provided in child classes
 """
 import geomstats.backend as gs
 import geomstats.errors
-from ._bch_coefficients import BCH_COEFFICIENTS
 from geomstats.geometry.matrices import Matrices
+from ._bch_coefficients import BCH_COEFFICIENTS
 
 
 class MatrixLieAlgebra(Matrices):
