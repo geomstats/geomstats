@@ -1450,10 +1450,8 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         point : array-like, shape=[..., 3]
             Point.
         left_or_right : str, {'left', 'right'}
-            Wether to use left or right invariant metric.
+            Whether to use left or right invariant metric.
             Optional, default: 'left'.
-        point_type : str, {'vector', 'matrix'}
-            Optional, default: self.default_point_type
 
         Returns
         -------
@@ -1546,10 +1544,12 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         ----------
         tangent_vec : array-like, shape=[..., 3]
             Tangent vector at base point.
+        base_point : array-like, shape=[..., 3]
+            Group element.
 
         Returns
         -------
-        point : array-like, shape=[..., {dimension, [n, n]}]
+        point : array-like, shape=[..., 3]
             Group exponential.
         """
         return LieGroup.exp(self, tangent_vec, base_point)
@@ -1560,11 +1560,13 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         Parameters
         ----------
         point : array-like, shape=[..., 3]
-            Point.
+            Point of the group, i.e. rotation vector.
+        base_point : array-like, shape=[..., 3]
+            Base point for the log, i.e. rotation vector.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., {dimension, [n, n]}]
+        tangent_vec : array-like, shape=[..., 3]
             Group logarithm.
         """
         return LieGroup.log(self, point, base_point)
