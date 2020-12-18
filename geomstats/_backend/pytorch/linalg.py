@@ -30,8 +30,11 @@ def inv(*args, **kwargs):
     return torch.from_numpy(np.linalg.inv(*args, **kwargs))
 
 
-def eigvalsh(*args, **kwargs):
-    return torch.from_numpy(np.linalg.eigvalsh(*args, **kwargs))
+def eigvalsh(a, **kwargs):
+    upper = False
+    if 'UPLO' in kwargs:
+        upper = (kwargs['UPLO'] == 'U')
+    return torch.symeig(a, eigenvectors=False, upper=upper)[0]
 
 
 def eigh(*args, **kwargs):
