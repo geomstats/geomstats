@@ -6,7 +6,6 @@ import tensorflow as tf
 # in TF, this does not work with 'from tensorflow.linalg import ...'.
 det = tf.linalg.det
 eigh = tf.linalg.eigh
-eigvalsh = tf.linalg.eigvalsh
 expm = tf.linalg.expm
 inv = tf.linalg.inv
 sqrtm = tf.linalg.sqrtm
@@ -20,6 +19,10 @@ def norm(x, dtype=tf.float32, **kwargs):
 
 def eig(*args, **kwargs):
     raise NotImplementedError
+
+
+def eigvalsh(a, **_unused_kwargs):
+    return tf.linalg.eigvalsh(a)
 
 
 def logm(x):
