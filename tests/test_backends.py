@@ -995,3 +995,9 @@ class TestBackends(geomstats.tests.TestCase):
         result += gs.matmul(solution, spd)
 
         self.assertAllClose(result, skew)
+
+    def test_eigvalsh(self):
+        mat = gs.array([[2., 1.], [1., -1.]])
+        result = gs.linalg.eigvalsh(mat, UPLO='U')
+        expected = _np.linalg.eigvalsh(mat)
+        self.assertAllCloseToNp(result, expected)
