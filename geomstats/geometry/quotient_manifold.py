@@ -176,20 +176,20 @@ class FiberBundle(Manifold):
         aligned : array-like, shape=[..., {ambient_dim, [n, n]}]
             Action of the optimal g on point.
         """
-        identity = self.group.identity
+        group = self.group
         initial_distance = self.total_space.metric.squared_dist(
             point, base_point)
         n_samples = 1 if isinstance(initial_distance, float) else \
             len(initial_distance)
-        max_shape = (n_samples, ) + identity.shape if n_samples > 1 else \
-            identity.shape
+        max_shape = (n_samples, group.dim) if n_samples > 1 else \
+            (group.dim, )
 
         def wrap(param):
             """Wrap a parameter vector to a group element."""
             algebra_elt = gs.array(param, dtype=base_point.dtype)
-            algebra_elt = self.group.lie_algebra.matrix_representation(
+            algebra_elt = group.lie_algebra.matrix_representation(
                 algebra_elt)
-            group_elt = self.group.exp(algebra_elt)
+            group_elt = group.exp(algebra_elt)
             return self.group_action(param, group_elt)
 
         objective_with_grad = gs.autograd.value_and_grad(
@@ -223,9 +223,10 @@ class FiberBundle(Manifold):
             Horizontal component of `tangent_vec`.
         """
         try:
-            return tangent_vec - self.vertical_projection(
-                tangent_vec, base_point)
-        except RecursionError:
+            return self.horizontal_lift(
+                self.tangent_submersion(tangent_vec, base_point),
+                base_point)
+        except NotImplementedError:
             try:
                 return self.horizontal_lift(
                     self.tangent_submersion(tangent_vec, base_point),
@@ -276,9 +277,9 @@ class FiberBundle(Manifold):
         is_horizontal : bool
             Boolean denoting if tangent vector is horizontal.
         """
-        return gs.isclose(
+        return gs.all(gs.isclose(
             tangent_vec, self.horizontal_projection(tangent_vec, base_point),
-            atol=atol)
+            atol=atol), axis=(-2, -1))
 
     def is_vertical(self, tangent_vec, base_point, atol=1e-6):
         """Evaluate if the tangent vector is vertical at base_point.
@@ -299,9 +300,9 @@ class FiberBundle(Manifold):
         is_vertical : bool
             Boolean denoting if tangent vector is vertical.
         """
-        return gs.isclose(
+        return gs.all(gs.isclose(
             tangent_vec, self.vertical_projection(tangent_vec, base_point),
-            atol=atol)
+            atol=atol), axis=(-2, -1))
 
     def horizontal_lift(self, tangent_vec, point=None, base_point=None):
         """Lift a tangent vector to a horizontal vector in the total space.
