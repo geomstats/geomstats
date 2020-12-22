@@ -723,14 +723,16 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         """
         eigvals, eigvecs = gs.linalg.eigh(base_point)
         transp_eigvecs = Matrices.transpose(eigvecs)
-        rotated_tangent_vec_a = Matrices.mul(transp_eigvecs, tangent_vec_a,
-                                             eigvecs)
-        rotated_tangent_vec_b = Matrices.mul(transp_eigvecs, tangent_vec_b,
-                                             eigvecs)
-        coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
+        rotated_tangent_vec_a = Matrices.mul(
+            transp_eigvecs, tangent_vec_a, eigvecs)
+        rotated_tangent_vec_b = Matrices.mul(
+            transp_eigvecs, tangent_vec_b, eigvecs)
 
-        result = gs.sum(coefficients * rotated_tangent_vec_a *
-                        rotated_tangent_vec_b, axis=(-2, -1)) / 2
+        coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
+        result = gs.sum(
+            coefficients * rotated_tangent_vec_a * rotated_tangent_vec_b,
+            axis=(-2, -1)) / 2
+
         return result
 
     def exp(self, tangent_vec, base_point):
@@ -754,13 +756,12 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
                                            eigvecs)
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
         rotated_sylvester = rotated_tangent_vec * coefficients
-        rotated_hessian = gs.einsum('...ij,...j->...ij',
-                                    rotated_sylvester, eigvals)
+        rotated_hessian = gs.einsum(
+            '...ij,...j->...ij', rotated_sylvester, eigvals)
         rotated_hessian = Matrices.mul(rotated_hessian, rotated_sylvester)
         hessian = Matrices.mul(eigvecs, rotated_hessian, transp_eigvecs)
 
-        result = base_point + tangent_vec + hessian
-        return result
+        return base_point + tangent_vec + hessian
 
     def log(self, point, base_point):
         """Compute the Bures-Wasserstein logarithm map.
@@ -785,8 +786,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         sqrt_product = gs.linalg.sqrtm(product)
         transp_sqrt_product = Matrices.transpose(sqrt_product)
 
-        result = sqrt_product + transp_sqrt_product - 2 * base_point
-        return result
+        return sqrt_product + transp_sqrt_product - 2 * base_point
 
     def squared_dist(self, point_a, point_b):
         """Compute the Bures-Wasserstein squared distance.
@@ -811,8 +811,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         trace_b = gs.trace(point_b)
         trace_prod = gs.trace(sqrt_product)
 
-        result = trace_a + trace_b - 2 * trace_prod
-        return result
+        return trace_a + trace_b - 2 * trace_prod
 
 
 class SPDMetricEuclidean(RiemannianMetric):

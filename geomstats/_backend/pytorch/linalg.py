@@ -10,9 +10,13 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 
 eig = _raise_not_implemented_error
+expm = torch.matrix_exp
 logm = _raise_not_implemented_error
 powerm = torch.matrix_power
-expm = torch.matrix_exp
+
+
+def cholesky(a):
+    return torch.cholesky(a, upper=False)
 
 
 def sqrtm(x):

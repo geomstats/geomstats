@@ -11,6 +11,7 @@ import scipy.linalg
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
@@ -1001,3 +1002,9 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.linalg.eigvalsh(mat, UPLO='U')
         expected = _np.linalg.eigvalsh(mat)
         self.assertAllCloseToNp(result, expected)
+
+    def test_cholesky(self):
+        mat = SPDMatrices(3).random_uniform(2)
+        result = gs.linalg.cholesky(mat)
+        expected = _np.linalg.cholesky(mat)
+        self.assertAllClose(result, expected)

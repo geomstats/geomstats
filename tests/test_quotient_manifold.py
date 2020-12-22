@@ -39,6 +39,7 @@ class TestQuotientSpace(geomstats.tests.TestCase):
         self.bundle.submersion = submersion
         self.bundle.tangent_submersion = tangent_submersion
         self.bundle.horizontal_lift = horizontal_lift
+        self.bundle.lift = gs.linalg.cholesky
 
     def test_belongs(self):
         point = self.base.random_uniform()
@@ -94,10 +95,9 @@ class TestQuotientSpace(geomstats.tests.TestCase):
 
     def test_is_vertical(self):
         mat = self.bundle.total_space.random_uniform()
-        tangent_vec = GeneralLinear.to_symmetric(
-            self.bundle.total_space.random_uniform())
-        horizontal = self.bundle.vertical_projection(tangent_vec, mat)
-        result = self.bundle.is_vertical(horizontal, mat)
+        tangent_vec = self.bundle.total_space.random_uniform()
+        vertical = self.bundle.vertical_projection(tangent_vec, mat)
+        result = self.bundle.is_vertical(vertical, mat)
         self.assertTrue(result)
 
     def test_align(self):

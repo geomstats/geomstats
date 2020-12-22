@@ -3,6 +3,7 @@
 import autograd.numpy as np
 import scipy.linalg
 from autograd.numpy.linalg import (  # NOQA
+    cholesky,
     det,
     eig,
     eigh,

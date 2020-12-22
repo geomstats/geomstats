@@ -113,6 +113,7 @@ BACKEND_ATTRIBUTES = {
     ],
     'autograd': ['value_and_grad'],
     'linalg': [
+        'cholesky',
         'det',
         'eig',
         'eigh',
