@@ -2719,7 +2719,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                         base_point=base_point,
                         metric=metric)
                     expected = reg_tangent_vec
-                    self.assertAllClose(result, expected, atol=1e-4)
+                    self.assertAllClose(result, expected, rtol=1e-3, atol=1e-3)
 
     def test_exp_then_log_with_angles_close_to_pi(self):
         """
@@ -2810,7 +2810,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         tangent_vec = self.group.vector_from_skew_matrix(tangent_sample)
         exp = self.group.exp_from_identity(tangent_vec)
         result = self.group.matrix_from_rotation_vector(exp)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-5)
 
     # def test_group_exp_from_identity_coincides_with_expm_for_high_dims(self):
     #     for n in [4, 5, 6, 7, 8, 9, 10]:
