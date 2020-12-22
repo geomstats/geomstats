@@ -179,18 +179,22 @@ class FiberBundle(Manifold):
         group = self.group
         initial_distance = self.total_space.metric.squared_dist(
             point, base_point)
-        n_samples = 1 if isinstance(initial_distance, float) else \
-            len(initial_distance)
+        if isinstance(initial_distance, float) or initial_distance.shape == ():
+            n_samples = 1
+        else:
+            n_samples = len(initial_distance)
+
         max_shape = (n_samples, group.dim) if n_samples > 1 else \
             (group.dim, )
 
         def wrap(param):
             """Wrap a parameter vector to a group element."""
-            algebra_elt = gs.array(param, dtype=base_point.dtype)
+            algebra_elt = gs.array(param)
+            algebra_elt = gs.cast(algebra_elt, dtype=base_point.dtype)
             algebra_elt = group.lie_algebra.matrix_representation(
                 algebra_elt)
             group_elt = group.exp(algebra_elt)
-            return self.group_action(param, group_elt)
+            return self.group_action(point, group_elt)
 
         objective_with_grad = gs.autograd.value_and_grad(
             lambda param: self.total_space.metric.squared_dist(
@@ -223,16 +227,12 @@ class FiberBundle(Manifold):
             Horizontal component of `tangent_vec`.
         """
         try:
+            return tangent_vec - self.vertical_projection(
+                tangent_vec, base_point)
+        except (RecursionError, NotImplementedError):
             return self.horizontal_lift(
                 self.tangent_submersion(tangent_vec, base_point),
                 base_point)
-        except NotImplementedError:
-            try:
-                return self.horizontal_lift(
-                    self.tangent_submersion(tangent_vec, base_point),
-                    base_point)
-            except RecursionError:
-                return NotImplementedError
 
     def vertical_projection(self, tangent_vec, base_point):
         r"""Project to vertical subspace.

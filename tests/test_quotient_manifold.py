@@ -10,7 +10,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.quotient_manifold import FiberBundle, QuotientMetric
 
 
-class TestPreShapeSpace(geomstats.tests.TestCase):
+class TestQuotientSpace(geomstats.tests.TestCase):
     def setUp(self):
         n = 3
         self.base = SPDMatrices(n)
@@ -100,8 +100,11 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = self.bundle.is_vertical(horizontal, mat)
         self.assertTrue(result)
 
-    def test_squared_dist(self):
-        point = self.base.random_uniform(2)
-        result = self.quotient_metric.squared_dist(point[0], point[1])
-        expected = self.base_metric.squared_dist(point[0], point[1])
-        self.assertAllClose(result, expected)
+    def test_align(self):
+        gs.random.seed(1230)
+        point = self.bundle.total_space.random_uniform(2)
+        aligned = self.bundle.align(
+            point[0], point[1], tol=1e-10)
+        result = self.bundle.is_horizontal(
+            point[1] - aligned, point[1], atol=1e-5)
+        self.assertTrue(result)
