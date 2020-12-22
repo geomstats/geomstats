@@ -11,19 +11,14 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 eig = _raise_not_implemented_error
 logm = _raise_not_implemented_error
-powerm = _raise_not_implemented_error
+powerm = torch.matrix_power
+expm = torch.matrix_exp
 
 
 def sqrtm(x):
     np_sqrtm = np.vectorize(
         scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
     return torch.from_numpy(np_sqrtm)
-
-
-def expm(x):
-    np_expm = np.vectorize(
-        scipy.linalg.expm, signature='(n,m)->(n,m)')(x)
-    return torch.from_numpy(np_expm)
 
 
 def inv(*args, **kwargs):
