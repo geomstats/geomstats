@@ -80,7 +80,8 @@ class FiberBundle(Manifold):
             return self.base.belongs(point, atol=atol)
         return self.total_space.belongs(point, atol=atol)
 
-    def submersion(self, point):
+    @staticmethod
+    def submersion(point):
         """Project a point to base manifold.
 
         This is the projection of the fiber bundle, defined on the total
@@ -101,7 +102,8 @@ class FiberBundle(Manifold):
         """
         return point
 
-    def lift(self, point):
+    @staticmethod
+    def lift(point):
         """Lift a point to total space.
 
         This is a section of the fiber bundle, defined on the base manifold,
