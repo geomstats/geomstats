@@ -52,6 +52,12 @@ class TestQuotientSpace(geomstats.tests.TestCase):
         result = self.bundle.belongs(point)
         self.assertTrue(result)
 
+    def test_lift_and_submersion(self):
+        point = self.base.random_uniform()
+        mat = self.bundle.lift(point)
+        result = self.bundle.submersion(mat)
+        self.assertAllClose(result, point)
+
     def test_tangent_submersion(self):
         mat = self.bundle.total_space.random_uniform()
         point = self.bundle.submersion(mat)
@@ -108,3 +114,44 @@ class TestQuotientSpace(geomstats.tests.TestCase):
         result = self.bundle.is_horizontal(
             point[1] - aligned, point[1], atol=1e-5)
         self.assertTrue(result)
+
+    def test_inner_product(self):
+        gs.random.seed(12)
+        mat = self.bundle.total_space.random_uniform() + gs.eye(3)
+        point = self.bundle.submersion(mat)
+        tangent_vecs = GeneralLinear.to_symmetric(
+            self.bundle.total_space.random_uniform(2)) / 10
+        result = self.quotient_metric.inner_product(
+            tangent_vecs[0], tangent_vecs[1], point=mat)
+        expected = self.base_metric.inner_product(
+            tangent_vecs[0], tangent_vecs[1], point)
+        self.assertAllClose(result, expected)
+
+    def test_exp(self):
+        mat = self.bundle.total_space.random_uniform()
+        point = self.bundle.submersion(mat)
+        tangent_vec = GeneralLinear.to_symmetric(
+            self.bundle.total_space.random_uniform()) / 5
+
+        result = self.quotient_metric.exp(tangent_vec, point)
+        expected = self.base_metric.exp(tangent_vec, point)
+        self.assertAllClose(result, expected)
+
+    def test_log(self):
+        gs.random.seed(0)
+        mats = self.bundle.total_space.random_uniform(2) + gs.eye(3)
+        points = self.bundle.submersion(mats)
+
+        result = self.quotient_metric.log(points[1], points[0], tol=1e-10)
+        expected = self.base_metric.log(points[1], points[0])
+        self.assertAllClose(result, expected, atol=1e-5)
+
+    def test_squared_dist(self):
+        gs.random.seed(1)
+        mats = self.bundle.total_space.random_uniform(2) + gs.eye(3)
+        points = self.bundle.submersion(mats)
+
+        result = self.quotient_metric.squared_dist(
+            points[1], points[0], tol=1e-10)
+        expected = self.base_metric.squared_dist(points[1], points[0])
+        self.assertAllClose(result, expected, atol=1e-5)

@@ -385,6 +385,9 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
     def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
         return super(SPDMatrices, self).belongs(vector, atol)
 
+    def to_tangent(self, vector, base_point=None):
+        return super(SPDMatrices, self).projection(vector)
+
 
 class SPDMetricAffine(RiemannianMetric):
     """Class for the affine-invariant metric on the SPD manifold."""

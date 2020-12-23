@@ -455,7 +455,7 @@ class QuotientMetric(RiemannianMetric):
         bp_fiber = self.fiber_bundle.lift(base_point)
         aligned = self.fiber_bundle.align(point_fiber, bp_fiber, **kwargs)
         return self.fiber_bundle.tangent_submersion(
-            self.ambient_metric.log(aligned, base_point), base_point)
+            self.ambient_metric.log(aligned, bp_fiber), bp_fiber)
 
     def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.

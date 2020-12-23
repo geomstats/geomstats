@@ -548,3 +548,9 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         expected = metric.squared_norm(vector=log, base_point=point_a)
 
         self.assertAllClose(result, expected, atol=1e-5)
+
+    def test_to_tangent_and_is_tangent(self):
+        mat = gs.random.rand(3, 3)
+        projection = self.space.to_tangent(mat)
+        result = self.space.is_tangent(projection)
+        self.assertTrue(result)

@@ -62,6 +62,10 @@ class SymmetricMatrices(EmbeddedManifold):
     basis = property(get_basis)
 
     @staticmethod
+    def projection(point):
+        return Matrices.to_symmetric(point)
+
+    @staticmethod
     def to_vector(mat):
         """Convert a symmetric matrix into a vector.
 
