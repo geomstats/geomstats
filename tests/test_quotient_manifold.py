@@ -4,9 +4,9 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import MatricesMetric
+from geomstats.geometry.quotient_manifold import FiberBundle, QuotientMetric
 from geomstats.geometry.spd_matrices import SPDMatrices, \
     SPDMetricBuresWasserstein
-from geomstats.geometry.quotient_manifold import FiberBundle, QuotientMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 

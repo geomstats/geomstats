@@ -8,6 +8,7 @@ import warnings
 
 import numpy as _np
 import scipy.linalg
+import torch
 
 import geomstats.backend as gs
 import geomstats.tests
@@ -1008,3 +1009,25 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.linalg.cholesky(mat)
         expected = _np.linalg.cholesky(mat)
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_expm_backward(self):
+        mat = gs.array([[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]])
+
+        def loss(p):
+            return gs.sum((gs.linalg.expm(p) - gs.eye(3)) ** 2)
+
+        value_and_grad = gs.autograd.value_and_grad(loss)
+        result = value_and_grad(mat)
+
+        def loss_torch(p):
+            return torch.sum((torch.matrix_exp(p) - torch.eye(3)) ** 2)
+
+        torch_mat = torch.tensor(
+            [[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]], requires_grad=True)
+        value = loss_torch(torch_mat)
+        value.backward()
+        grad = torch_mat.grad
+
+        self.assertAllClose(result[0], value.detach())
+        self.assertAllClose(result[1], grad)

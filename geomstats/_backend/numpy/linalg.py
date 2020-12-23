@@ -1,7 +1,9 @@
 """Numpy based linear algebra backend."""
 
 import autograd.numpy as np
+import autograd.scipy.linalg as asp
 import scipy.linalg
+from autograd.extend import defvjp, primitive
 from autograd.numpy.linalg import (  # NOQA
     cholesky,
     det,
@@ -33,18 +35,37 @@ def _expsym(x):
     return result
 
 
+@primitive
 def expm(x):
     ndim = x.ndim
     new_x = to_ndarray(x, to_ndim=3)
     if _is_symmetric(new_x):
         result = _expsym(new_x)
     else:
-        result = np.vectorize(scipy.linalg.expm,
+        result = np.vectorize(asp.expm,
                               signature='(n,m)->(n,m)')(new_x)
 
     if ndim == 2:
         return result[0]
     return result
+
+
+def _expm_vjp(_ans, x):
+    vectorized = x.ndim == 3
+    axes = (0, 2, 1) if vectorized else (1, 0)
+
+    def vjp(g):
+        n = x.shape[-1]
+        size_m = x.shape[:-2] + (2 * n, 2 * n)
+        mat = np.zeros(size_m)
+        mat[..., :n, :n] = x.transpose(axes)
+        mat[..., n:, n:] = x.transpose(axes)
+        mat[..., :n, n:] = g
+        return expm(mat)[..., :n, n:]
+    return vjp
+
+
+defvjp(expm, _expm_vjp)
 
 
 def logm(x):
