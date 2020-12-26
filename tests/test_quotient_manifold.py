@@ -12,6 +12,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 class TestQuotientSpace(geomstats.tests.TestCase):
     def setUp(self):
+        gs.random.seed(1230)
         n = 3
         self.base = SPDMatrices(n)
         self.base_metric = SPDMetricBuresWasserstein(n)
@@ -107,7 +108,6 @@ class TestQuotientSpace(geomstats.tests.TestCase):
         self.assertTrue(result)
 
     def test_align(self):
-        gs.random.seed(1230)
         point = self.bundle.total_space.random_uniform(2)
         aligned = self.bundle.align(
             point[0], point[1], tol=1e-10)
