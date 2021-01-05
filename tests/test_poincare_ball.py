@@ -242,7 +242,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
         path_function =\
             self.manifold.metric.geodesic(gs.array([0.1, 0.1]),
                                           gs.array([0.2, 0.2]))
-        steps = gs.linspace(-1000, 1000, 10000)
+        steps = gs.array(gs.linspace(-1000., 1000., 10000))
         path_function(steps)
 
     def test_mobius_out_of_the_ball(self):
