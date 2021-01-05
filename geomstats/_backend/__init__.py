@@ -104,6 +104,7 @@ BACKEND_ATTRIBUTES = {
         'tril',
         'tril_indices',
         'triu_indices',
+        'triu_to_vec',
         'vectorize',
         'vstack',
         'where',
@@ -122,6 +123,7 @@ BACKEND_ATTRIBUTES = {
         'norm',
         'powerm',
         'qr',
+        'solve_sylvester',
         'sqrtm',
         'svd'
     ],

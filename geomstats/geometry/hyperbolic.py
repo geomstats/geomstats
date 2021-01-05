@@ -39,8 +39,8 @@ class Hyperbolic(Manifold):
     default_coords_type = 'extrinsic'
     default_point_type = 'vector'
 
-    def __init__(self, dim, scale=1):
-        super(Hyperbolic, self).__init__(dim=dim)
+    def __init__(self, dim, scale=1, **kwargs):
+        super(Hyperbolic, self).__init__(dim=dim, **kwargs)
         self.point_type = Hyperbolic.default_point_type
         self.coords_type = Hyperbolic.default_coords_type
         self.scale = scale

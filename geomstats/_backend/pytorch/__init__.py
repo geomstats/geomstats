@@ -376,8 +376,7 @@ def einsum(*args, **kwargs):
     einsum_str = args[0]
     input_tensors_list = args[1:]
 
-    input_tensors_list = convert_to_wider_dtype(
-        input_tensors_list)
+    input_tensors_list = convert_to_wider_dtype(input_tensors_list)
 
     if len(input_tensors_list) == 1:
         return torch.einsum(einsum_str, input_tensors_list)
@@ -759,3 +758,9 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
     if multiple_args:
         return stack(list(map(lambda y: pyfunc(*y), zip(*x))))
     return stack(list(map(pyfunc, x)))
+
+
+def triu_to_vec(x, k=0):
+    n = x.shape[-1]
+    rows, cols = triu_indices(n, k=k)
+    return x[..., rows, cols]

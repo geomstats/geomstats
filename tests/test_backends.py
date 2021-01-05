@@ -918,18 +918,17 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad)
 
     def test_choice(self):
-
         x = gs.array([0.1, 0.2, 0.3, 0.4, 0.5])
         a = 4
-
         result = gs.random.choice(x, a)
 
+        result_bool = True
         for i in result:
             if i in x:
-                self.assertTrue(True)
-            else:
-                self.assertTrue(False)
+                continue
+            result_bool = False
 
+        self.assertTrue(result_bool)
         self.assertEqual(len(result), a)
 
     def test_split(self):
@@ -938,3 +937,67 @@ class TestBackends(geomstats.tests.TestCase):
         expected = _np.split(x, 2)
         for res, exp in zip(result, expected):
             self.assertAllClose(res, exp)
+
+    def test_svd(self):
+        gs_point = gs.reshape(gs.arange(12), (4, 3))
+        gs_point = gs.cast(gs_point, gs.float64)
+        np_point = _np.arange(12).reshape(4, 3)
+        reconstruction = gs.array([
+            [1., 0., 0.], [0., 1., 0.], [0., 0., 1.], [0., 0., 0.]])
+        u, s, v = _np.linalg.svd(np_point)
+        u_r, s_r, v_r = gs.linalg.svd(gs_point)
+        s_r_reconstructed = gs.einsum('kl,l->kl', reconstruction, s_r)
+        gs_a_approx = gs.matmul(gs.matmul(
+            u_r, s_r_reconstructed), v_r)
+        s_reconstructed = _np.einsum('kl,l->kl', reconstruction, s)
+        np_a_approx = _np.dot(u, _np.dot(s_reconstructed, v))
+        self.assertAllClose(gs_a_approx, np_a_approx)
+
+        full_matrices = False
+        u, s, v = _np.linalg.svd(
+            np_point, full_matrices=full_matrices)
+        u_r, s_r, v_r = gs.linalg.svd(
+            gs_point, full_matrices)
+        reconstruction = gs.eye(3)
+        s_r_reconstructed = gs.einsum('kl,l->kl', reconstruction, s_r)
+        gs_a_approx = gs.matmul(gs.matmul(
+            u_r, s_r_reconstructed), v_r)
+        s_reconstructed = _np.einsum('kl,l->kl', reconstruction, s)
+        np_a_approx = _np.dot(u, _np.dot(s_reconstructed, v))
+        self.assertAllClose(gs_a_approx, np_a_approx)
+
+        compute_uv = False
+        s = _np.linalg.svd(np_point, compute_uv=compute_uv)
+        s_r = gs.linalg.svd(gs_point, compute_uv=compute_uv)
+        self.assertAllClose(s, s_r)
+
+    def test_sylvester_solve(self):
+        mat = gs.random.rand(4, 3)
+        spd = gs.matmul(gs.transpose(mat), mat)
+
+        mat = gs.random.rand(3, 3)
+        skew = mat - gs.transpose(mat)
+        solution = gs.linalg.solve_sylvester(spd, spd, skew)
+        result = gs.matmul(spd, solution)
+        result += gs.matmul(solution, spd)
+
+        self.assertAllClose(result, skew)
+
+    def test_sylvester_solve_vectorization(self):
+        gs.random.seed(0)
+        mat = gs.random.rand(2, 4, 3)
+        spd = gs.matmul(gs.transpose(mat, (0, 2, 1)), mat)
+
+        mat = gs.random.rand(2, 3, 3)
+        skew = mat - gs.transpose(mat, (0, 2, 1))
+        solution = gs.linalg.solve_sylvester(spd, spd, skew)
+        result = gs.matmul(spd, solution)
+        result += gs.matmul(solution, spd)
+
+        self.assertAllClose(result, skew)
+
+    def test_eigvalsh(self):
+        mat = gs.array([[2., 1.], [1., -1.]])
+        result = gs.linalg.eigvalsh(mat, UPLO='U')
+        expected = _np.linalg.eigvalsh(mat)
+        self.assertAllCloseToNp(result, expected)

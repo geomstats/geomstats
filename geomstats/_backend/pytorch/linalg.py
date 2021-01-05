@@ -30,8 +30,11 @@ def inv(*args, **kwargs):
     return torch.from_numpy(np.linalg.inv(*args, **kwargs))
 
 
-def eigvalsh(*args, **kwargs):
-    return torch.from_numpy(np.linalg.eigvalsh(*args, **kwargs))
+def eigvalsh(a, **kwargs):
+    upper = False
+    if 'UPLO' in kwargs:
+        upper = (kwargs['UPLO'] == 'U')
+    return torch.symeig(a, eigenvectors=False, upper=upper)[0]
 
 
 def eigh(*args, **kwargs):
@@ -39,11 +42,14 @@ def eigh(*args, **kwargs):
     return eigvals, eigvecs
 
 
-def svd(*args, **kwargs):
-    svds = np.linalg.svd(*args, **kwargs)
-    return (torch.from_numpy(svds[0]),
-            torch.from_numpy(svds[1]),
-            torch.from_numpy(svds[2]))
+def svd(x, full_matrices=True, compute_uv=True):
+    is_vectorized = x.ndim == 3
+    axis = (0, 2, 1) if is_vectorized else (1, 0)
+    if compute_uv:
+        u, s, v_t = torch.svd(
+            x, some=not full_matrices, compute_uv=compute_uv)
+        return u, s, v_t.permute(axis)
+    return torch.svd(x, some=not full_matrices, compute_uv=compute_uv)[1]
 
 
 def det(*args, **kwargs):
@@ -54,6 +60,23 @@ def norm(x, ord=2, axis=None):
     if axis is None:
         return torch.norm(x, p=ord)
     return torch.norm(x, p=ord, dim=axis)
+
+
+def solve_sylvester(a, b, q):
+    if a.shape == b.shape:
+        if torch.all(a == b) and torch.all(
+                torch.abs(a - a.transpose(-2, -1)) < 1e-6):
+            eigvals, eigvecs = eigh(a)
+            if torch.all(eigvals >= 1e-6):
+                tilde_q = eigvecs.transpose(-2, -1) @ q @ eigvecs
+                tilde_x = tilde_q / (
+                    eigvals[..., :, None] + eigvals[..., None, :])
+                return eigvecs @ tilde_x @ eigvecs.transpose(-2, -1)
+
+    solution = np.vectorize(
+        scipy.linalg.solve_sylvester,
+        signature='(m,m),(n,n),(m,n)->(m,n)')(a, b, q)
+    return torch.from_numpy(solution)
 
 
 def qr(*args, **kwargs):

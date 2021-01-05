@@ -45,19 +45,23 @@ class SymmetricMatrices(EmbeddedManifold):
 
     def get_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
-        basis = [
-            gs.array_from_sparse([
-                (row, col), (col, row)], [1., 1.], (self.n, self.n))
-            for row in gs.arange(self.n)
-            for col in gs.arange(row, self.n)]
-        basis = gs.stack(
-            basis) * (gs.ones((self.n, self.n)) - 1. / 2 * gs.eye(self.n))
+        basis = []
+        for row in gs.arange(self.n):
+            for col in gs.arange(row, self.n):
+                if row == col:
+                    indices = [(row, row)]
+                    values = [1.]
+                else:
+                    indices = [(row, col), (col, row)]
+                    values = [1., 1.]
+                basis.append(gs.array_from_sparse(
+                    indices, values, (self.n, ) * 2))
+        basis = gs.stack(basis)
         return basis
 
     basis = property(get_basis)
 
     @staticmethod
-    @geomstats.vectorization.decorator(['matrix'])
     def to_vector(mat):
         """Convert a symmetric matrix into a vector.
 
@@ -74,14 +78,7 @@ class SymmetricMatrices(EmbeddedManifold):
         if not gs.all(Matrices.is_symmetric(mat)):
             logging.warning('non-symmetric matrix encountered.')
         mat = Matrices.to_symmetric(mat)
-        _, dim, _ = mat.shape
-        indices_i, indices_j = gs.triu_indices(dim)
-        vec = []
-        for i, j in zip(indices_i, indices_j):
-            vec.append(mat[:, i, j])
-        vec = gs.stack(vec, axis=1)
-
-        return vec
+        return gs.triu_to_vec(mat)
 
     @staticmethod
     @geomstats.vectorization.decorator(['vector', 'else'])
@@ -178,6 +175,6 @@ class SymmetricMatrices(EmbeddedManifold):
         eigvals = function(eigvals)
         eigvals = algebra_utils.from_vector_to_diagonal_matrix(eigvals)
         transp_eigvecs = Matrices.transpose(eigvecs)
-        reconstuction = gs.matmul(eigvecs, eigvals)
-        reconstuction = gs.matmul(reconstuction, transp_eigvecs)
-        return reconstuction
+        reconstruction = gs.matmul(eigvecs, eigvals)
+        reconstruction = gs.matmul(reconstruction, transp_eigvecs)
+        return reconstruction

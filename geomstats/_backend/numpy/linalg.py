@@ -98,6 +98,23 @@ def powerm(x, power):
     return result
 
 
+def solve_sylvester(a, b, q):
+    if a.shape == b.shape:
+        axes = (0, 2, 1) if a.ndim == 3 else (1, 0)
+        if np.all(a == b) and np.all(
+                np.abs(a - np.transpose(a, axes)) < 1e-6):
+            eigvals, eigvecs = eigh(a)
+            if np.all(eigvals >= 1e-6):
+                tilde_q = np.transpose(eigvecs, axes) @ q @ eigvecs
+                tilde_x = tilde_q / (
+                    eigvals[..., :, None] + eigvals[..., None, :])
+                return eigvecs @ tilde_x @ np.transpose(eigvecs, axes)
+
+    return np.vectorize(
+        scipy.linalg.solve_sylvester,
+        signature='(m,m),(n,n),(m,n)->(m,n)')(a, b, q)
+
+
 def sqrtm(x):
     return np.vectorize(
         scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
