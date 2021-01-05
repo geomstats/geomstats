@@ -237,3 +237,20 @@ class TestPoincareBall(geomstats.tests.TestCase):
         ball_metric = self.manifold.metric
         tangent_vec = ball_metric.log(y, x)
         ball_metric.retraction(tangent_vec, x)
+
+    def test_ball_geodesic(self):
+        path_function =\
+            self.manifold.metric.geodesic(gs.array([0.1,0.1]),
+                                          gs.array([0.2,0.2]))
+        steps = gs.linspace(-1000, 1000, 10000)
+        geodesic_points = path_function(steps)
+
+    def test_mobius_out_of_the_ball(self):
+        x, y = gs.array([0.7,0.9]), gs.array([0.2,0.2])
+        try:
+            self.manifold.metric.mobius_add(x, y, auto_project=False)
+            raise Exception
+        except ValueError:
+            pass
+            
+
