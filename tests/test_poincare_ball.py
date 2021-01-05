@@ -240,7 +240,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
 
     def test_ball_geodesic(self):
         path_function =\
-            self.manifold.metric.geodesic(gs.array([0.1, 0.1]), 
+            self.manifold.metric.geodesic(gs.array([0.1, 0.1]),
                                           gs.array([0.2, 0.2]))
         steps = gs.linspace(-1000, 1000, 10000)
         path_function(steps)
