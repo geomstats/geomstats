@@ -317,6 +317,7 @@ class PoincareBallMetric(RiemannianMetric):
     @geomstats.vectorization.decorator(['else', 'vector', 'vector', 'else'])
     def mobius_add(self, point_a, point_b, auto_project=True):
         r"""Compute the Mobius addition of two points.
+        
         Mobius addition operation that is a necessary operation
         to compute the log and exp using the 'ball' representation.
 
