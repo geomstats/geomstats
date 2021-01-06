@@ -247,8 +247,5 @@ class TestPoincareBall(geomstats.tests.TestCase):
 
     def test_mobius_out_of_the_ball(self):
         x, y = gs.array([0.7, 0.9]), gs.array([0.2, 0.2])
-        try:
+        with self.assertRaises(ValueError):
             self.manifold.metric.mobius_add(x, y, auto_project=False)
-            raise Exception
-        except ValueError:
-            pass
