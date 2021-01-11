@@ -235,13 +235,77 @@ class DirichletMetric(RiemannianMetric):
 
         return gs.squeeze(christoffels)
 
+    def _geodesic_ivp(self, initial_point, initial_tangent_vec):
+        """Solve geodesic initial value problem.
+
+        Compute the parameterized function for the geodesic starting at
+        initial_point with initial velocity given by initial_tangent_vec.
+        This is acheived by integrating the geodesic equation.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Initial point.
+
+        initial_tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at initial point.
+
+        Returns
+        -------
+        path : function
+            Parameterized function for the geodesic curve starting at
+            initial_point with velocity initial_tangent_vec.
+        """
+        initial_point = gs.to_ndarray(initial_point, to_ndim=2)
+        initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=2)
+
+        n_initial_points = initial_point.shape[0]
+        n_initial_tangent_vecs = initial_tangent_vec.shape[0]
+        if n_initial_points > n_initial_tangent_vecs:
+            raise ValueError('There cannot be more initial points than '
+                             'initial tangent vectors.')
+        if n_initial_tangent_vecs > n_initial_points:
+            if n_initial_points > 1:
+                raise ValueError('For several initial tangent vectors, '
+                                 'specify either one or the same number of '
+                                 'initial points.')
+            initial_point = gs.tile(initial_point, (n_initial_tangent_vecs, 1))
+
+        def ivp(state, _):
+            """Reformat the initial value problem geodesic ODE."""
+            position, velocity = state[:self.dim], state[self.dim:]
+            eq = self.geodesic_equation(velocity=velocity, position=position)
+            return gs.hstack(eq)
+
+        def path(t):
+            """Generate parameterized function for geodesic curve.
+
+            Parameters
+            ----------
+            t : array-like, shape=[n_times,]
+                Times at which to compute points of the geodesics.
+
+            Returns
+            -------
+            geodesic : array-like, shape=[..., n_times, dim]
+                Values of the geodesic at times t.
+            """
+            geod = []
+            for point, vec in zip(initial_point, initial_tangent_vec):
+                initial_state = gs.hstack([point, vec])
+                solution = odeint(
+                    ivp, initial_state, t, (), rtol=1e-6)
+                geod.append(solution[:, :self.dim])
+            return geod[0] if len(initial_point) == 1 else gs.stack(geod)
+
+        return path
+
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
         """Compute the exponential map.
 
-        Comute the exponential map associated to the Fisher information
-        metric at base_point of tangent_vec. This is achieved  by integration
-        of the geodesic equation (initial value problem), using the Christoffel
-        symbols.
+        Comute the exponential map associated to the Fisher information metric
+        by solving the initial value problem associated to the geodesic
+        ordinary differential equation (ODE) using the Christoffel symbols.
 
         Parameters
         ----------
@@ -259,84 +323,48 @@ class DirichletMetric(RiemannianMetric):
             End point of the geodesic starting at base_point with
             initial velocity tangent_vec and stopping at time 1.
         """
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        stop_time = 1.
+        t = gs.linspace(0, stop_time, n_steps)
+        geodesic = self._geodesic_ivp(base_point, tangent_vec)
+        geodesic_at_t = geodesic(t)
+        exp = gs.squeeze(geodesic_at_t[..., -1, :])
 
-        n_base_points = base_point.shape[0]
-        n_tangent_vecs = tangent_vec.shape[0]
-        if n_base_points > n_tangent_vecs:
-            raise ValueError('There cannot be more base points than tangent '
-                             'vectors.')
-        if n_tangent_vecs > n_base_points:
-            if n_base_points > 1:
-                raise ValueError('For several tangent vectors, specify '
-                                 'either one or the same number of base '
-                                 'points.')
-            base_point = gs.tile(base_point, (n_tangent_vecs, 1))
+        return exp
 
-        def ivp(state, _):
-            """Reformat the initial value problem geodesic ODE."""
-            position, velocity = state[:self.dim], state[self.dim:]
-            eq = self.geodesic_equation(velocity=velocity, position=position)
-            return gs.hstack(eq)
+    def _geodesic_bvp(self, initial_point, end_point):
+        """Solve geodesic boundary problem.
 
-        times = gs.linspace(0, 1, n_steps + 1)
-        exp = []
-        for point, vec in zip(base_point, tangent_vec):
-            initial_state = gs.hstack([point, vec])
-            geodesic = odeint(
-                ivp, initial_state, times, (), rtol=1e-6)
-            exp.append(geodesic[-1, :self.dim])
-        return exp[0] if len(base_point) == 1 else gs.stack(exp)
-
-    def log(self, point, base_point, n_steps=N_STEPS):
-        """Compute the logarithm map.
-
-        Compute logarithm map associated to the Fisher information metric by
-        solving the boundary value problem associated to the geodesic ordinary
-        differential equation (ODE) using the Christoffel symbols.
+        Compute the parameterized function for the geodesic starting at
+        initial_point and ending at end_point. This is acheived by integrating
+        the geodesic equation.
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
-            Point.
-        base_point : array-like, shape=[..., dim]
-            Base point.
-        n_steps : int
-            Number of steps for integration.
-            Optional, default: 100.
+        initial_point : array-like, shape=[..., dim]
+            Initial point.
+        end_point : array-like, shape=[..., dim]
+            End point.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
-            Initial velocity of the geodesic starting at base_point and
-            reaching point at time 1.
+        path : function
+            Parameterized function for the geodesic curve starting at
+            initial_point and ending at end_point.
         """
-        stop_time = 1.
-        t = gs.linspace(0, stop_time, n_steps)
-        point = gs.to_ndarray(point, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        n_points = point.shape[0]
-        n_base_points = base_point.shape[0]
-        if n_base_points > n_points:
-            if n_points > 1:
-                raise ValueError('For several base points, specify either '
-                                 'one or the same number of points.')
-            point = gs.tile(point, (n_base_points, 1))
-        elif n_points > n_base_points:
-            if n_base_points > 1:
-                raise ValueError('For several points, specify either '
-                                 'one or the same number of base points.')
-            base_point = gs.tile(base_point, (n_points, 1))
-
-        def initialize(end_point, start_point):
-            lin_init = gs.zeros([2 * self.dim, n_steps])
-            lin_init[:self.dim, :] = gs.transpose(
-                gs.linspace(start_point, end_point, n_steps))
-            lin_init[self.dim:, :-1] = (
-                lin_init[:self.dim, 1:] - lin_init[:self.dim, :-1]) * n_steps
-            lin_init[self.dim:, -1] = lin_init[self.dim:, -2]
-            return lin_init
+        initial_point = gs.to_ndarray(initial_point, to_ndim=2)
+        end_point = gs.to_ndarray(end_point, to_ndim=2)
+        n_initial_points = initial_point.shape[0]
+        n_end_points = end_point.shape[0]
+        if n_initial_points > n_end_points:
+            if n_end_points > 1:
+                raise ValueError('For several initial points, specify either'
+                                 'one or the same number of end points.')
+            end_point = gs.tile(end_point, (n_initial_points, 1))
+        elif n_end_points > n_initial_points:
+            if n_initial_points > 1:
+                raise ValueError('For several end points, specify either '
+                                 'one or the same number of initial points.')
+            initial_point = gs.tile(initial_point, (n_end_points, 1))
 
         def bvp(_, state):
             """Reformat the boundary value problem geodesic ODE.
@@ -358,16 +386,118 @@ class DirichletMetric(RiemannianMetric):
             return gs.hstack((state_0[:self.dim] - point_0,
                               state_1[:self.dim] - point_1))
 
-        log = []
-        for bp, pt in zip(base_point, point):
-            geodesic_init = initialize(pt, bp)
+        def path(t):
+            """Generate parameterized function for geodesic curve.
 
-            def bc(y0, y1, bp=bp, pt=pt):
-                return boundary_cond(y0, y1, bp, pt)
+            Parameters
+            ----------
+            t : array-like, shape=[n_times,]
+                Times at which to compute points of the geodesics.
 
-            solution = solve_bvp(bvp, bc, t, geodesic_init)
-            geodesic = solution.sol(t)
-            geodesic = geodesic[:self.dim, :]
-            log.append(n_steps * (geodesic[:, 1] - geodesic[:, 0]))
+            Returns
+            -------
+            geodesic : array-like, shape=[..., n_times, dim]
+                Values of the geodesic at times t.
+            """
+            n_steps = len(t)
+            geod = []
 
-        return log[0] if len(base_point) == 1 else gs.stack(log)
+            def initialize(point_0, point_1):
+                """Initialize the solution of the boundary value problem.
+                """
+                lin_init = gs.zeros([2 * self.dim, n_steps])
+                lin_init[:self.dim, :] = gs.transpose(
+                    gs.linspace(point_0, point_1, n_steps))
+                lin_init[self.dim:, :-1] = n_steps * (
+                    lin_init[:self.dim, 1:] - lin_init[:self.dim, :-1])
+                lin_init[self.dim:, -1] = lin_init[self.dim:, -2]
+                return lin_init
+
+            for ip, ep in zip(initial_point, end_point):
+                geodesic_init = initialize(ip, ep)
+
+                def bc(y0, y1, ip=ip, ep=ep):
+                    return boundary_cond(y0, y1, ip, ep)
+
+                solution = solve_bvp(bvp, bc, t, geodesic_init)
+                solution_at_t = solution.sol(t)
+                geodesic = solution_at_t[:self.dim, :]
+                geod.append(gs.transpose(geodesic))
+
+            return geod[0] if len(initial_point) == 1 else gs.stack(geod)
+
+        return path
+
+    def log(self, point, base_point, n_steps=N_STEPS):
+        """Compute the logarithm map.
+
+        Compute logarithm map associated to the Fisher information metric by
+        solving the boundary value problem associated to the geodesic ordinary
+        differential equation (ODE) using the Christoffel symbols.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point.
+        base_point : array-like, shape=[..., dim]
+            Base po int.
+        n_steps : int
+            Number of steps for integration.
+            Optional, default: 100.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Initial velocity of the geodesic starting at base_point and
+            reaching point at time 1.
+        """
+        stop_time = 1.
+        t = gs.linspace(0, stop_time, n_steps)
+        geodesic = self._geodesic_bvp(
+            initial_point=base_point, end_point=point)
+        geodesic_at_t = geodesic(t)
+        log = n_steps * (geodesic_at_t[..., 1, :] - geodesic_at_t[..., 0, :])
+
+        return gs.squeeze(gs.stack(log))
+
+    def geodesic(self, initial_point,
+                 end_point=None, initial_tangent_vec=None):
+        """Generate parameterized function for the geodesic curve.
+
+        Geodesic curve defined by either:
+        - an initial point and an initial tangent vector,
+        - an initial point and an end point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Point on the manifold, initial point of the geodesic.
+        end_point : array-like, shape=[..., dim], optional
+            Point on the manifold, end point of the geodesic. If None,
+            an initial tangent vector must be given.
+        initial_tangent_vec : array-like, shape=[..., dim],
+            Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
+            If None, an end point must be given and a logarithm is computed.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents time, and the second corresponds to the different
+            initial conditions.
+        """
+        if end_point is None and initial_tangent_vec is None:
+            raise ValueError('Specify an end point or an initial tangent '
+                             'vector to define the geodesic.')
+        if end_point is not None:
+            if initial_tangent_vec is not None:
+                raise ValueError('Cannot specify both an end point '
+                                 'and an initial tangent vector.')
+            path = self._geodesic_bvp(initial_point, end_point)
+
+        if initial_tangent_vec is not None:
+            path = self._geodesic_ivp(initial_point, initial_tangent_vec)
+
+        return path
