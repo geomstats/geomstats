@@ -228,6 +228,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         log = self.metric.log(points, base_points, n_steps=500)
         expected = points
         result = self.metric.exp(tangent_vec=log, base_point=base_points)
+        # print(gs.abs(result - expected) / expected)
         self.assertAllClose(result, expected, rtol=1e-2)
 
     @geomstats.tests.np_only
@@ -260,3 +261,51 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         result = tangent_vecs.shape
         expected = (self.n_points, self.dim)
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def tests_geodesic_ivp_and_bvp(self):
+        """Test geodesic intial and boundary value problems.
+
+        Check the shape of the geodesic.
+        """
+        n_steps = 50
+        t = gs.linspace(0., 1., n_steps)
+
+        initial_points = self.dirichlet.random_uniform(self.n_points)
+        initial_tangent_vecs = self.dirichlet.random_uniform(self.n_points)
+        geodesic = self.metric._geodesic_ivp(
+            initial_points, initial_tangent_vecs)
+        geodesic_at_t = geodesic(t)
+        result = geodesic_at_t.shape
+        expected = (self.n_points, n_steps, self.dim)
+        self.assertAllClose(result, expected)
+
+        end_points = self.dirichlet.random_uniform(self.n_points)
+        geodesic = self.metric._geodesic_bvp(initial_points, end_points)
+        geodesic_at_t = geodesic(t)
+        result = geodesic_at_t.shape
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_geodesic(self):
+        """Test geodesic.
+
+        Check that the norm of the velocity is constant.
+        """
+        initial_point = self.dirichlet.random_uniform()
+        end_point = self.dirichlet.random_uniform()
+
+        n_steps = 10000
+        geod = self.metric.geodesic(
+            initial_point=initial_point,
+            end_point=end_point)
+        t = gs.linspace(0., 1., n_steps)
+        geod_at_t = geod(t)
+        velocity = n_steps * (geod_at_t[1:, :] - geod_at_t[:-1, :])
+        velocity_norm = self.metric.norm(velocity, geod_at_t[:-1, :])
+        result = 1 / velocity_norm.min() * (
+            velocity_norm.max() - velocity_norm.min())
+        expected = 0.
+        print(result)
+
+        self.assertAllClose(expected, result, atol=1e-4, rtol=1.)
