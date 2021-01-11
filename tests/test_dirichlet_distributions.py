@@ -306,6 +306,5 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         result = 1 / velocity_norm.min() * (
             velocity_norm.max() - velocity_norm.min())
         expected = 0.
-        print(result)
 
         self.assertAllClose(expected, result, atol=1e-4, rtol=1.)
