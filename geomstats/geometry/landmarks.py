@@ -5,7 +5,7 @@ from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.product_riemannian_metric import \
     ProductRiemannianMetric
 from geomstats.geometry.riemannian_metric import RiemannianCometric
-from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+
 
 class Landmarks(ProductManifold):
     """Class for space of landmarks.
@@ -145,6 +145,7 @@ class KernelMetric(RiemannianCometric):
 
                     k(x, y) = exp(-|x-y|^2/ \sigma)
     """
+
     def __init__(
             self, k_landmarks, ambient_dimension,
             kernel=lambda d: gs.exp(-d)):
@@ -171,13 +172,12 @@ class KernelMetric(RiemannianCometric):
         -------
         kernel_mat : [..., k_landmarks, k_landmarks]
         """
-
         squared_dist = gs.sum(
             (base_point[..., :, None, :] - base_point) ** 2, axis=-1)
         return self.kernel(squared_dist)
 
     def inner_coproduct(self, momentum_1, momentum_2, base_point):
-        r"""Computes the inner coproduct between two momenta.
+        r"""Compute the inner coproduct between two momenta.
 
         This is the inner product associated to the kernel matrix:
         .. math:
@@ -194,7 +194,6 @@ class KernelMetric(RiemannianCometric):
         -------
         inner_prod : float
         """
-
         velocity_2 = gs.einsum(
             '...ij,...jk->...ik', self.kernel_matrix(base_point), momentum_2)
         inner_coproduct = gs.einsum(
