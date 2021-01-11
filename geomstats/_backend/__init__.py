@@ -122,7 +122,6 @@ BACKEND_ATTRIBUTES = {
         'inv',
         'logm',
         'norm',
-        'powerm',
         'qr',
         'solve_sylvester',
         'sqrtm',

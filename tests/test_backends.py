@@ -185,46 +185,6 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
-    def test_powerm_diagonal(self):
-        power = .5
-        point = gs.array([[1., 0., 0.],
-                          [0., 4., 0.],
-                          [0., 0., 9.]])
-        result = gs.linalg.powerm(point, power)
-        expected = gs.array([[1., 0., 0.],
-                             [0., 2., 0.],
-                             [0., 0., 3.]])
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_tf_only
-    def test_powerm(self):
-        power = 2.4
-        point = gs.array([[1., 0., 0.],
-                          [0., 2.5, 1.5],
-                          [0., 1.5, 2.5]])
-        result = gs.linalg.powerm(point, power)
-        result = gs.linalg.powerm(result, 1 / power)
-        expected = point
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_only
-    def test_powerm_vectorization(self):
-        power = 2.4
-        points = gs.array([[[1., 0., 0.],
-                            [0., 4., 0.],
-                            [0., 0., 9.]],
-                           [[1., 0., 0.],
-                            [0., 2.5, 1.5],
-                            [0., 1.5, 2.5]]])
-        result = gs.linalg.powerm(points, power)
-        result = gs.linalg.powerm(result, 1. / power)
-        expected = points
-
-        self.assertAllClose(result, expected)
-
     @geomstats.tests.tf_only
     def test_vstack(self):
         import tensorflow as tf
@@ -985,6 +945,15 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, skew)
 
+    @geomstats.tests.np_and_pytorch_only
+    def test_general_sylvester_solve(self):
+        a = gs.array([[-3., -2., 0.], [-1., -1., 3.], [3., -5., -1.]])
+        b = gs.array([[1.]])
+        q = gs.array([[1.], [2.], [3.]])
+        sol = gs.linalg.solve_sylvester(a, b, q)
+        result = gs.matmul(a, sol) + gs.matmul(sol, b)
+        self.assertAllClose(result, q)
+
     def test_sylvester_solve_vectorization(self):
         gs.random.seed(0)
         mat = gs.random.rand(2, 4, 3)
@@ -1010,7 +979,7 @@ class TestBackends(geomstats.tests.TestCase):
         expected = _np.linalg.cholesky(mat)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_pytorch_only
     def test_expm_backward(self):
         mat = gs.array([[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]])
 

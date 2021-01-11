@@ -6,9 +6,10 @@ import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.errors import check_tf_error
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.geometry.quotient_manifold import FiberBundle, QuotientMetric
+from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-6
