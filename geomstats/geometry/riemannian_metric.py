@@ -76,7 +76,7 @@ def grad(y_pred, y_true, metric):
 class RiemannianMetric(Connection):
     """Class for Riemannian and pseudo-Riemannian metrics.
 
-    The associated connection is the Levi-Civita connection on the tangent space.
+    The associated Levi-Civita connection on the tangent bundle.
 
     Parameters
     ----------
@@ -390,7 +390,9 @@ class RiemannianMetric(Connection):
 
 class RiemannianCometric(RiemannianMetric):
     """Class for Riemannian and pseudo-Riemannian cometrics.
-    The associated connection is the Hamiltonian connection on the cotangent space.
+
+    The associated connection is the Hamiltonian connection on the cotangent
+    bundle.
 
     Parameters
     ----------
@@ -446,24 +448,23 @@ class RiemannianCometric(RiemannianMetric):
             ' is not implemented.')
 
     def inner_coproduct(self, covector_1, covector_2, base_point):
-        r"""Computes the inner coproduct between two covectors at the base point.
+        """Compute the inner coproduct between two covectors at the base point.
 
-        This is the inner product associated to the kernel matrix:
-        .. math:
-
-                <m, m'> = \sum_{i=1}^k m_i^T k(x_i, x_j) m_j
+        This is the inner product associated to the cometric matrix:
 
         Parameters
         ----------
-        covector_1 : covector at `base_point`
-        covector_2 : covector at `base_point`
-        base_point : landmark configuration
+        covector_1 : array-like, shape=[..., dim]
+            Covector at `base_point`.
+        covector_2 : array-like, shape=[..., dim]
+            Covector at `base_point`.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
 
         Returns
         -------
         inner_coproduct : float
         """
-
         vector_2 = gs.einsum(
             '...ij,...j->...i', self.cometric_matrix(base_point), covector_2)
         inner_coproduct = gs.einsum(
@@ -471,23 +472,65 @@ class RiemannianCometric(RiemannianMetric):
         return inner_coproduct
 
     def hamiltonian(self, state):
-        position, momentum = state
-        return 1/2 * self.inner_coproduct(
-            momentum, momentum, position)
+        r"""Compute the hamiltonian energy associated to the cometric.
 
-    def Hamiltonian_equation(self, position, momentum):
+        The Hamiltonian at state :math: `(q, p)` is defined by
+        .. math:
+
+                H(q, p) = \frac{1}{2} <q, q>_p
+
+        where :math: `<\cdot, \cdot>_p` is the cometric at :math: `p`.
+
+        Parameters
+        ----------
+        state : tuple of arrays
+            Position and momentum variables.
+
+        Returns
+        -------
+        energy : float
+            Hamiltonian energy at `state`.
+        """
+        position, momentum = state
+        return 1. / 2 * self.inner_coproduct(momentum, momentum, position)
+
+    def hamiltonian_equation(self, position, momentum):
+        r"""Compute the right-hand-side of the Hamiltonian equations.
+
+        Compute the partial derivatives of the Hamiltonian with respect to
+        position and momentum by automatic differentiation. This gives a
+        formulation of the geodesic equation:
+        .. math:
+
+                \dot_q = \partial_p H(q, p)
+                \dot_p = \partial_q H(q, p)
+
+        Parameters
+        ----------
+        position : array-like, shape=[..., dim]
+            Point on the manifold.
+        momentum : array-like, shape=[..., dim]
+            Covector at `position`.
+
+        Returns
+        -------
+        h_p : array-like, shape=[..., dim]
+            Partial derivative with respect to `position`.
+        h_q : array-like, shape=[..., dim]
+            Partial derivative with respect to `momentum`.
+        """
         state = position, momentum
-        energy, gradient = gs.autograd.value_and_grad(self.hamiltonian)(state)
-        H_q, H_p = gradient
-        return H_p, - H_q
+        _, gradient = gs.autograd.value_and_grad(self.hamiltonian)(state)
+        h_q, h_p = gradient
+        return h_p, - h_q
 
     def exp(self, cotangent_vec, base_point, n_steps=N_STEPS, step='euler',
             point_type=None, **kwargs):
-        """Exponential map associated to the affine connection on the cotangent bundle.
+        """Exponential map on the cotangent bundle.
 
         Exponential map at base_point of cotangent_vec computed by integration
         of the geodesic equation (initial value problem), using the
-        Hamiltonian equation
+        Hamiltonian equations.
 
         Parameters
         ----------
@@ -497,7 +540,7 @@ class RiemannianCometric(RiemannianMetric):
             Point on the manifold.
         n_steps : int
             Number of discrete time steps to take in the integration.
-            Optional, default: N_STEPS.
+            Optional, default: 10.
         step : str, {'euler', 'rk4'}
             The numerical scheme to use for integration.
             Optional, default: 'euler'.
@@ -510,9 +553,8 @@ class RiemannianCometric(RiemannianMetric):
         exp : array-like, shape=[..., dim]
             Point on the manifold.
         """
-
         initial_state = (base_point, cotangent_vec)
-        flow, _ = integrate(self.Hamiltonian_equation, initial_state,
+        flow, _ = integrate(self.hamiltonian_equation, initial_state,
                             n_steps=n_steps, step=step)
 
         exp = flow[-1]
