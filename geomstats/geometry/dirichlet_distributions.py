@@ -403,8 +403,7 @@ class DirichletMetric(RiemannianMetric):
             geod = []
 
             def initialize(point_0, point_1):
-                """Initialize the solution of the boundary value problem.
-                """
+                """Initialize the solution of the boundary value problem."""
                 lin_init = gs.zeros([2 * self.dim, n_steps])
                 lin_init[:self.dim, :] = gs.transpose(
                     gs.linspace(point_0, point_1, n_steps))
