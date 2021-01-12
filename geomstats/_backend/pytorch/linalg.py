@@ -23,7 +23,7 @@ def cholesky(a):
 def sqrtm(x):
     np_sqrtm = np.vectorize(
         scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
-    return torch.from_numpy(np_sqrtm)
+    return torch.as_tensor(np_sqrtm, dtype=x.dtype)
 
 
 def eigvalsh(a, **kwargs):

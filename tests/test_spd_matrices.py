@@ -435,10 +435,8 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         n_points = 10
         t = gs.linspace(start=0., stop=1., num=n_points)
         points = geodesic(t)
-        result = self.space.belongs(points)
-        expected = gs.array([True] * n_points)
-
-        self.assertAllClose(result, expected)
+        result = self.space.belongs(points, atol=1e-5)
+        self.assertTrue(gs.all(result))
 
     def test_squared_dist_is_symmetric(self):
         """Test of SPDMetricAffine.squared_dist (power=1) and is_symmetric."""
