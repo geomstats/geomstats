@@ -21,10 +21,10 @@ class EmbeddedManifold(Manifold):
     """
 
     def __init__(self, dim, embedding_manifold, default_point_type='vector',
-                 default_coords_type='intrinsic'):
+                 default_coords_type='intrinsic', **kwargs):
         super(EmbeddedManifold, self).__init__(
             dim=dim, default_point_type=default_point_type,
-            default_coords_type=default_coords_type)
+            default_coords_type=default_coords_type, **kwargs)
         self.embedding_manifold = embedding_manifold
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):

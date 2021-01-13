@@ -114,3 +114,9 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         result = self.space.from_vector(vector_2)
         expected = gs.array([[1., 2., 3.], [2., 4., 5.], [3., 5., 6.]])
         self.assertAllClose(result, expected)
+
+    def test_projection_and_belongs(self):
+        mat = gs.random.rand(3, 3)
+        projection = self.space.projection(mat)
+        result = self.space.belongs(projection)
+        self.assertTrue(result)

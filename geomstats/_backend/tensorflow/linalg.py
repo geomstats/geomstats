@@ -25,6 +25,10 @@ def eigvalsh(a, **_unused_kwargs):
     return tf.linalg.eigvalsh(a)
 
 
+def cholesky(a, **_unused_kwargs):
+    return tf.linalg.cholesky(a)
+
+
 def logm(x):
     original_type = x.dtype
     x = tf.cast(x, tf.complex64)
@@ -62,7 +66,3 @@ def solve_sylvester(a, b, q):
 
 def qr(x, mode='reduced'):
     return tf.linalg.qr(x, full_matrices=(mode == 'complete'))
-
-
-def powerm(x, power):
-    return expm(power * logm(x))

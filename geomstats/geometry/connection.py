@@ -151,6 +151,9 @@ class Connection:
         step : str, {'euler', 'rk4'}
             Numerical scheme to use for integration.
             Optional, default: 'euler'.
+        max_iter
+        verbose
+        tol
 
         Returns
         -------
