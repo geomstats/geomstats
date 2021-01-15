@@ -1040,8 +1040,8 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         dist = super().squared_dist(point_a, point_b)
 
         def grad(_):
-            grd = 2 * self.log(point_b, point_a)
-            return grd, 2 * self.log(point_a, point_b)
+            grd = 2 * self.log(point_a, point_b)
+            return grd, 2 * self.log(point_b, point_a)
 
         return dist, grad
 

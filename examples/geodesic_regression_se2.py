@@ -39,7 +39,7 @@ r2 = 1 - rss / variance_
 
 gr = GeodesicRegression(
     space, metric=metric, center_data=False, algorithm='riemannian',
-    verbose=True, max_iter=50, learning_rate=0.001)
+    verbose=True, max_iter=50, learning_rate=0.1)
 gr.fit(data, target, compute_training_score=True)
 intercept_hat, beta_hat = gr.intercept_, gr.coef_
 

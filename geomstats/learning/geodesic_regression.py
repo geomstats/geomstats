@@ -1,4 +1,4 @@
-"""Geodesic Regression"""
+"""Geodesic Regression."""
 
 import logging
 import math
@@ -40,6 +40,8 @@ class GeodesicRegression(BaseEstimator):
         p, v = gs.split(parameter, 2)
         p = gs.reshape(p, shape)
         v = gs.reshape(v, shape)
+        p = gs.cast(p, dtype=y.dtype)
+        v = gs.cast(v, dtype=y.dtype)
         base_point = self.space.projection(p)
         tangent_vec = self.space.to_tangent(v, base_point)
         distances = self.metric.squared_dist(
@@ -94,7 +96,7 @@ class GeodesicRegression(BaseEstimator):
         times = gs.copy(X)
         if self.center_data:
             self.mean_ = gs.mean(X)
-            times -= self.mean_
+            times = times - self.mean_
 
         if hasattr(self.metric, 'parallel_transport'):
             def vector_transport(tan_a, tan_b, base_point, _):
@@ -162,7 +164,7 @@ class GeodesicRegression(BaseEstimator):
         times = gs.copy(X)
 
         if self.center_data:
-            times -= self.mean_
+            times = times - self.mean_
 
         if self.coef_ is None:
             raise RuntimeError('Fit method must be called before transform')
