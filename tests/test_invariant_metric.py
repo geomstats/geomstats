@@ -704,7 +704,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         result = metric.exp(
             tangent_vec, identity, n_steps=100, step='rk4')
         expected = group.exp(tangent_vec, identity)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=1e-5)
 
         result = metric.exp(
             tangent_vec, identity, n_steps=100, step='rk2')
@@ -738,7 +738,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         result = metric.exp(
             tangent_vec, identity, n_steps=100, step='rk4')
         expected = canonical_metric.exp(tangent_vec, identity)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=1e-5)
 
         result = metric.exp(
             tangent_vec, identity, n_steps=100, step='rk2')

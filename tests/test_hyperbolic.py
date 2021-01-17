@@ -402,7 +402,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
         result = self.metric.log(point=exp, base_point=base_point)
 
         expected = vector
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-5)
 
     def test_dist(self):
         # Distance between a point and itself is 0.

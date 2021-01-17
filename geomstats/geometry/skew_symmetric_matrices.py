@@ -2,11 +2,12 @@
 
 This is the Lie algebra of the Special Orthogonal Group.
 As basis we choose the matrices with a single 1 on the upper triangular part
-of the matrices (and a -1 in its lower triangular part).
+of the matrices (and a -1 in its lower triangular part), except in dim 2 and
+3 to match usual conventions.
 """
+
 import geomstats.backend as gs
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
-from geomstats.geometry.matrices import Matrices
 
 
 TOLERANCE = 1e-8
@@ -22,8 +23,8 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
     """
 
     def __init__(self, n):
-        dimension = int(n * (n - 1) / 2)
-        super(SkewSymmetricMatrices, self).__init__(dimension, n)
+        dim = int(n * (n - 1) / 2)
+        super(SkewSymmetricMatrices, self).__init__(dim, n)
 
         if n == 2:
             self.basis = gs.array([[[0., -1.], [1., 0.]]])
@@ -39,7 +40,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
                  [1., 0., 0.],
                  [0., 0., 0.]]])
         else:
-            self.basis = gs.zeros((dimension, n, n))
+            self.basis = gs.zeros((dim, n, n))
             basis = []
             for row in gs.arange(n - 1):
                 for col in gs.arange(row + 1, n):
@@ -63,10 +64,12 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         belongs : array-like, shape=[...,]
             Boolean evaluating if matrix is skew symmetric.
         """
-        return Matrices(self.n, self.n).is_skew_symmetric(mat=mat, atol=atol)
+        is_skew = self.is_skew_symmetric(mat=mat, atol=atol)
+        return gs.logical_and(
+            is_skew, super(SkewSymmetricMatrices, self).belongs(mat))
 
-    @staticmethod
-    def projection(mat):
+    @classmethod
+    def projection(cls, mat):
         r"""Compute the skew-symmetric component of a matrix.
 
         The skew-symmetric part of a matrix :math: `X` is defined by
@@ -83,7 +86,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         skew_sym : array-like, shape=[..., n, n]
             Skew-symmetric matrix.
         """
-        return Matrices.to_skew_symmetric(mat)
+        return cls.to_skew_symmetric(mat)
 
     def basis_representation(self, matrix_representation):
         """Calculate the coefficients of given matrix in the basis.
