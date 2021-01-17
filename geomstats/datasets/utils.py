@@ -34,7 +34,8 @@ GRAPH_RANDOM_LABELS_PATH = os.path.join(
     DATA_PATH, 'graph_random', 'graph_random_labels.txt')
 LEAVES_PATH = os.path.join(
     DATA_PATH, 'leaves', 'leaves.csv')
-
+EMG_PATH = os.path.join(
+    DATA_PATH, 'emg', 'emg.csv')
 
 def load_cities():
     """Load data from data/cities/cities.json.
@@ -179,3 +180,17 @@ def load_leaves():
     beta_param = gs.array(data[['nu', 'mu']])
     distrib_type = gs.squeeze(gs.array(data['Distribution']))
     return beta_param, distrib_type
+
+
+def load_emg():
+    """Load data from data/emg/emg.csv
+
+    Returns
+    -------
+    data_emg : pandas.DataFrame, shape=[731682, 10]
+        Emg time serie for each of the 8 electrodes, with the time stamps
+        and the label of the hand sign.
+    """
+    data_emg = pandas.read_csv(EMG_PATH)
+    return data_emg
+    
