@@ -37,6 +37,7 @@ LEAVES_PATH = os.path.join(
 EMG_PATH = os.path.join(
     DATA_PATH, 'emg', 'emg.csv')
 
+
 def load_cities():
     """Load data from data/cities/cities.json.
 
@@ -183,7 +184,7 @@ def load_leaves():
 
 
 def load_emg():
-    """Load data from data/emg/emg.csv
+    """Load data from data/emg/emg.csv.
 
     Returns
     -------
@@ -193,4 +194,3 @@ def load_emg():
     """
     data_emg = pandas.read_csv(EMG_PATH)
     return data_emg
-    
