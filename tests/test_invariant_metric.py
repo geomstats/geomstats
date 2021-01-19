@@ -766,11 +766,11 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         self.assertAllClose(expected, result, atol=4e-5)
 
     def test_dist_pairwise_parallel(self):
-        n_samples = 4
+        n_samples = 2
         group = self.matrix_so3
         metric = InvariantMetric(group=group)
         points = group.random_uniform(n_samples)
-        result = metric.dist_pairwise(points, n_jobs=4)
+        result = metric.dist_pairwise(points, n_jobs=2)
         is_sym = Matrices.is_symmetric(result)
         belongs = Matrices(n_samples, n_samples).belongs(result)
         self.assertTrue(is_sym)
