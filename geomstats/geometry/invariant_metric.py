@@ -595,7 +595,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                             step=step, **kwargs)
         return flow[-1]
 
-    def log(self, point, base_point, n_steps=15, step='k4',
+    def log(self, point, base_point, n_steps=15, step='rk4',
             verbose=False, max_iter=25, tol=1e-10):
         r"""Compute Riemannian logarithm of a point from a base point.
 
