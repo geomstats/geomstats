@@ -52,6 +52,5 @@ class TestNotebooks(geomstats.tests.TestCase):
         _exec_notebook('notebooks/06_k_mean_clustering_on_sphere.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_08_emg_hand_gesture_classification():
         _exec_notebook('notebooks/07_emg_hand_gesture_classification.ipynb')
