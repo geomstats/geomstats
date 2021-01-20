@@ -382,6 +382,52 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         """
         return cls.apply_func_to_eigvals(mat, gs.log, check_positive=True)
 
+    def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
+        """Check whether the vector is tangent at base_point.
+
+        A "vector" is tangent to the manifold of SPD matrices if it is a
+        symmetric matrix.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+            Matrix.
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+            Optional, default: None.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-6.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        return super(SPDMatrices, self).belongs(vector, atol)
+
+    def to_tangent(self, vector, base_point=None):
+        """Project a vector to a tangent space of the manifold.
+
+        A "vector" is tangent to the manifold of SPD matrices if it is a
+        symmetric matrix, so the symmetric component of the input matrix is
+        returned.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+            Matrix.
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+            Optional, default: None.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
+        return super(SPDMatrices, self).projection(vector)
+
 
 class SPDMetricAffine(RiemannianMetric):
     """Class for the affine-invariant metric on the SPD manifold."""
@@ -667,8 +713,8 @@ class SPDMetricAffine(RiemannianMetric):
         return GeneralLinear.congruent(tangent_vec_a, congruence_mat)
 
 
-class SPDMetricProcrustes(RiemannianMetric):
-    """Class for the Procrustes metric on the SPD manifold.
+class SPDMetricBuresWasserstein(RiemannianMetric):
+    """Class for the Bures-Wasserstein metric on the SPD manifold.
 
     Parameters
     ----------
@@ -680,11 +726,14 @@ class SPDMetricProcrustes(RiemannianMetric):
     .. [BJL2017]_ Bhatia, Jain, Lim. "On the Bures-Wasserstein distance between
       positive definite matrices" Elsevier, Expositiones Mathematicae,
       vol. 37(2), 165-191, 2017. https://arxiv.org/pdf/1712.01504.pdf
+    .. [MMP2018]_ Malago, Montrucchio, Pistone. "Wasserstein-Riemannian
+      geometry of Gaussian densities"  Information Geometry, vol. 1, 137-179,
+      2018. https://arxiv.org/pdf/1801.09269.pdf
     """
 
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricProcrustes, self).__init__(
+        super(SPDMetricBuresWasserstein, self).__init__(
             dim=dim,
             signature=(dim, 0, 0),
             default_point_type='matrix')
@@ -692,10 +741,14 @@ class SPDMetricProcrustes(RiemannianMetric):
         self.space = SPDMatrices(n)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the Procrustes inner-product.
+        r"""Compute the Bures-Wasserstein inner-product.
 
-        Compute the inner-product of tangent_vec_a and tangent_vec_b
-        at point base_point using the Procrustes Riemannian metric.
+        Compute the inner-product of tangent_vec_a :math: `A` and tangent_vec_b
+        :math: `B` at point base_point :math: `S=PDP^\top` using the
+        Bures-Wasserstein Riemannian metric:
+        ..math::
+        `\frac{1}{2}\sum_{i,j}\frac{[P^\top AP]_{ij}[P^\top BP]_{ij}}{d_i+d_j}`
+        .
 
         Parameters
         ----------
@@ -711,13 +764,97 @@ class SPDMetricProcrustes(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        spd_space = self.space
-        modified_tangent_vec_a =\
-            spd_space.inverse_differential_power(2, tangent_vec_a, base_point)
-        product = gs.einsum(
-            '...ij,...jk->...ik', modified_tangent_vec_a, tangent_vec_b)
-        result = gs.trace(product, axis1=-2, axis2=-1) / 2
+        eigvals, eigvecs = gs.linalg.eigh(base_point)
+        transp_eigvecs = Matrices.transpose(eigvecs)
+        rotated_tangent_vec_a = Matrices.mul(
+            transp_eigvecs, tangent_vec_a, eigvecs)
+        rotated_tangent_vec_b = Matrices.mul(
+            transp_eigvecs, tangent_vec_b, eigvecs)
+
+        coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
+        result = gs.sum(
+            coefficients * rotated_tangent_vec_a * rotated_tangent_vec_b,
+            axis=(-2, -1)) / 2
+
         return result
+
+    def exp(self, tangent_vec, base_point):
+        """Compute the Bures-Wasserstein exponential map.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        exp : array-like, shape=[...,]
+            Riemannian exponential.
+        """
+        eigvals, eigvecs = gs.linalg.eigh(base_point)
+        transp_eigvecs = Matrices.transpose(eigvecs)
+        rotated_tangent_vec = Matrices.mul(transp_eigvecs, tangent_vec,
+                                           eigvecs)
+        coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
+        rotated_sylvester = rotated_tangent_vec * coefficients
+        rotated_hessian = gs.einsum(
+            '...ij,...j->...ij', rotated_sylvester, eigvals)
+        rotated_hessian = Matrices.mul(rotated_hessian, rotated_sylvester)
+        hessian = Matrices.mul(eigvecs, rotated_hessian, transp_eigvecs)
+
+        return base_point + tangent_vec + hessian
+
+    def log(self, point, base_point):
+        """Compute the Bures-Wasserstein logarithm map.
+
+        Compute the Riemannian logarithm at point base_point,
+        of point wrt the Bures-Wasserstein metric.
+        This gives a tangent vector at point base_point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        log : array-like, shape=[..., n, n]
+            Riemannian logarithm.
+        """
+        product = gs.matmul(base_point, point)
+        sqrt_product = gs.linalg.sqrtm(product)
+        transp_sqrt_product = Matrices.transpose(sqrt_product)
+
+        return sqrt_product + transp_sqrt_product - 2 * base_point
+
+    def squared_dist(self, point_a, point_b):
+        """Compute the Bures-Wasserstein squared distance.
+
+        Compute the Riemannian squared distance between point_a and point_b.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., n, n]
+            Point.
+        point_b : array-like, shape=[..., n, n]
+            Point.
+
+        Returns
+        -------
+        squared_dist : array-like, shape=[...]
+            Riemannian squared distance.
+        """
+        product = gs.matmul(point_a, point_b)
+        sqrt_product = gs.linalg.sqrtm(product)
+        trace_a = gs.trace(point_a)
+        trace_b = gs.trace(point_b)
+        trace_prod = gs.trace(sqrt_product)
+
+        return trace_a + trace_b - 2 * trace_prod
 
 
 class SPDMetricEuclidean(RiemannianMetric):
@@ -794,7 +931,7 @@ class SPDMetricEuclidean(RiemannianMetric):
         exp_domain : array-like, shape=[..., 2]
             Interval of time where the geodesic is defined.
         """
-        invsqrt_base_point = gs.linalg.powerm(base_point, -.5)
+        invsqrt_base_point = SymmetricMatrices.powerm(base_point, -.5)
 
         reduced_vec = gs.matmul(invsqrt_base_point, tangent_vec)
         reduced_vec = gs.matmul(reduced_vec, invsqrt_base_point)
@@ -931,6 +1068,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
             Time-parameterized geodesic curve.
         """
         def path(t):
+            """Compute the geodesic at time t."""
             return self.exp(t * initial_tangent_vec, initial_point)
 
         return path

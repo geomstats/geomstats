@@ -62,6 +62,22 @@ class SymmetricMatrices(EmbeddedManifold):
     basis = property(get_basis)
 
     @staticmethod
+    def projection(point):
+        """Make a matrix symmetric, by averaging with its transpose.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        sym : array-like, shape=[..., n, n]
+            Symmetric matrix.
+        """
+        return Matrices.to_symmetric(point)
+
+    @staticmethod
     def to_vector(mat):
         """Convert a symmetric matrix into a vector.
 
