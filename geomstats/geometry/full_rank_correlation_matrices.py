@@ -88,7 +88,7 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
             ambient_metric=SPDMetricAffine(n=n))
 
     def inner_product(
-            self, tangent_vec_a, tangent_vec_b, base_point, point=None):
+            self, tangent_vec_a, tangent_vec_b, base_point=None, point=None):
         """Compute the inner product of the affine-quotient metric.
 
         Parameters
@@ -121,3 +121,23 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
                                    diagonal_a, inverse_operator_diagonal_b)
         inner_product = affine_part + other_part
         return inner_product
+
+    def exp(self, tangent_vec, base_point, **kwargs):
+        """Compute the exponential map of the affine-quotient metric.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., n, n]
+            Exponential of tangent_vec at base_point.
+        """
+        exp = super(FullRankCorrelationAffineQuotientMetric, self).exp(
+            tangent_vec, base_point, **kwargs)
+        exp = SPDMatrices.submersion(exp)
+        return exp
