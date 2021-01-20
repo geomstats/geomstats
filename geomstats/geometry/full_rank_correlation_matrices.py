@@ -65,7 +65,7 @@ class FullRankCorrelationMatrices(SPDMatrices, EmbeddedManifold):
         """
         spd = super(FullRankCorrelationMatrices, self).random_uniform(
             n_samples=n_samples)
-        cor = FullRankCorrelationMatrices.from_spd_to_correlation(spd)
+        cor = SPDMatrices.submersion(spd)
         return cor
 
 
