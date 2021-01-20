@@ -7,7 +7,7 @@ from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 EPSILON = 1e-6
@@ -49,24 +49,6 @@ class FullRankCorrelationMatrices(SPDMatrices, EmbeddedManifold):
         belongs = is_spd and is_diag_one
         return belongs
 
-    def from_spd_to_correlation(self, spd):
-        """Compute the correlation matrix associated to an SPD matrix.
-
-        Parameters
-        ----------
-        spd : array-like, shape=[..., n, n]
-            SPD matrix.
-
-        Returns
-        -------
-        cor : array_like, shape=[..., n, n]
-            Full rank correlation matrix.
-        """
-        diagonal = gs.einsum('...ii->...i', spd)
-        cor = gs.einsum('...i,...ij->...ij', diagonal, spd)
-        cor = gs.einsum('...ij,...j->...ij', cor, diagonal)
-        return cor
-
     def random_uniform(self, n_samples=1):
         """
         Sample of full-rank correlation matrices from a 'uniform' distribution.
@@ -86,3 +68,56 @@ class FullRankCorrelationMatrices(SPDMatrices, EmbeddedManifold):
         cor = FullRankCorrelationMatrices.from_spd_to_correlation(spd)
         return cor
 
+
+class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
+    """Class for the quotient of the affine-invariant metric.
+
+    The affine-invariant metric on SPD matrices is invariant under the
+    action of diagonal matrices, thus it induces a quotient metric on the
+    manifold of full-rank correlation matrices.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
+    """
+
+    def __init__(self, n):
+        super(FullRankCorrelationAffineQuotientMetric, self).__init__(
+            fiber_bundle=SPDMatrices(n=n),
+            ambient_metric=SPDMetricAffine(n=n))
+
+    def inner_product(
+            self, tangent_vec_a, tangent_vec_b, base_point, point=None):
+        """Compute the inner product of the affine-quotient metric.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            Tangent vector to the manifold of full-rank correlation matrices.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector to the manifold of full-rank correlation matrices.
+        base_point : array-like, shape=[..., n, n]
+            Full-rank correlation matrix.
+
+        Returns
+        -------
+        inner_product : array-like, shape=[...]
+            Inner product of tangent_vec_a and tangent_vec_b at base_point.
+        """
+        affine_part = self.ambient_metric.inner_product(
+            tangent_vec_a, tangent_vec_b, base_point)
+        n = gs.shape(base_point)[-1]
+        inverse_base_point = GeneralLinear.inverse(base_point)
+        diagonal_a = gs.einsum('...ij,...ji->...i',
+                               inverse_base_point, tangent_vec_a)
+        diagonal_b = gs.einsum('...ij,...ji->...i',
+                               inverse_base_point, tangent_vec_b)
+        operator = gs.eye(n) + base_point * inverse_base_point
+        inverse_operator = GeneralLinear.inverse(operator)
+        inverse_operator_diagonal_b = gs.einsum('...ij,...j->...ij',
+                                                inverse_operator, diagonal_b)
+        other_part = 2 * gs.einsum('...i,...ij->...',
+                                   diagonal_a, inverse_operator_diagonal_b)
+        inner_product = affine_part + other_part
+        return inner_product
