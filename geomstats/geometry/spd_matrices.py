@@ -30,7 +30,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             embedding_manifold=GeneralLinear(n=n))
 
     def belongs(self, mat, atol=TOLERANCE):
-        """Check if a matrix is symmetric and invertible.
+        """Check if a matrix is symmetric and positive definite.
 
         Parameters
         ----------
