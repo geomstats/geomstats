@@ -16,7 +16,7 @@ class TestHypersphere(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 
-        self.dimension = 40
+        self.dimension = 4
         self.space = Hypersphere(dim=self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
