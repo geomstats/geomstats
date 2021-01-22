@@ -766,6 +766,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         self.assertAllClose(expected, result, atol=4e-5)
 
     def test_dist_pairwise_parallel(self):
+        gs.random.seed(0)
         n_samples = 2
         group = self.matrix_so3
         metric = InvariantMetric(group=group)
