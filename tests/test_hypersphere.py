@@ -417,7 +417,6 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_dist_pairwise(self):
 
         point_a = (1. / gs.sqrt(129.)

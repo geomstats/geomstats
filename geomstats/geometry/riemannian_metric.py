@@ -321,10 +321,15 @@ class RiemannianMetric(Connection):
         """
         n_samples = points.shape[0]
         rows, cols = gs.triu_indices(n_samples)
+
+        @joblib.delayed
+        @joblib.wrap_non_picklable_objects
+        def pickable_dist(x, y):
+            return self.dist(x, y)
+
         pool = joblib.Parallel(n_jobs=n_jobs, **joblib_kwargs)
         out = pool(
-            joblib.delayed(self.dist)(
-                points[i], points[j]) for i, j in zip(rows, cols))
+            pickable_dist(points[i], points[j]) for i, j in zip(rows, cols))
 
         pairwise_dist = geomstats.geometry.symmetric_matrices.\
             SymmetricMatrices.from_vector(gs.array(out))
