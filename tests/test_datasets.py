@@ -91,7 +91,7 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_load_connectomes(self):
-        """Test that the connectomes belong to SPD"""
+        """Test that the connectomes belong to SPD."""
         spd = SPDMatrices(28)
         data, _, _ = data_utils.load_connectomes(as_vectors=True)
         result = data.shape
@@ -116,3 +116,11 @@ class TestDatasets(geomstats.tests.TestCase):
         result = len(distrib_type)
         expected = beta_param.shape[0]
         self.assertAllClose(result, expected)
+
+    def test_load_emg(self):
+        """Test that data have the correct column names."""
+        data_emg = data_utils.load_emg()
+        expected_col_name = ['time', 'c0', 'c1', 'c2', 'c3', 'c4', 'c5',
+                             'c6', 'c7', 'label', 'exp']
+        good_col_name = (expected_col_name == data_emg.keys()).all()
+        self.assertTrue(good_col_name)
