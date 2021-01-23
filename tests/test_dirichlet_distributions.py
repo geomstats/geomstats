@@ -308,3 +308,40 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = 0.
 
         self.assertAllClose(expected, result, atol=1e-4, rtol=1.)
+
+    @geomstats.tests.np_only
+    def test_geodesic_vectorization(self):
+        """Check vectorization of geodesic.
+
+        Check the shape of geodesic at time t for
+        different scenarios.
+        """
+        initial_point = self.dirichlet.random_uniform()
+        initial_tangent_vec = self.dirichlet.random_uniform()
+        geod = self.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec)
+        time = 0.5
+        result = geod(time).shape
+        expected = (self.dim,)
+        self.assertAllClose(expected, result)
+
+        n_vecs = 5
+        n_times = 10
+        initial_tangent_vecs = self.dirichlet.random_uniform(n_vecs)
+        geod = self.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vecs)
+        times = gs.linspace(0., 1., n_times)
+        result = geod(times).shape
+        expected = (n_vecs, n_times, self.dim)
+        self.assertAllClose(result, expected)
+
+        end_points = self.dirichlet.random_uniform(self.n_points)
+        geod = self.metric.geodesic(
+            initial_point=initial_point,
+            end_point=end_points)
+        time = 0.5
+        result = geod(time).shape
+        expected = (self.n_points, self.dim)
+        self.assertAllClose(expected, result)

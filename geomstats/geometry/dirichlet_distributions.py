@@ -235,7 +235,8 @@ class DirichletMetric(RiemannianMetric):
 
         return gs.squeeze(christoffels)
 
-    def _geodesic_ivp(self, initial_point, initial_tangent_vec):
+    def _geodesic_ivp(self, initial_point, initial_tangent_vec,
+                      n_steps=N_STEPS):
         """Solve geodesic initial value problem.
 
         Compute the parameterized function for the geodesic starting at
@@ -290,13 +291,34 @@ class DirichletMetric(RiemannianMetric):
             geodesic : array-like, shape=[..., n_times, dim]
                 Values of the geodesic at times t.
             """
+            t = gs.to_ndarray(t, to_ndim=1)
+            n_times = len(t)
             geod = []
-            for point, vec in zip(initial_point, initial_tangent_vec):
-                initial_state = gs.hstack([point, vec])
-                solution = odeint(
-                    ivp, initial_state, t, (), rtol=1e-6)
-                geod.append(solution[:, :self.dim])
-            return geod[0] if len(initial_point) == 1 else gs.stack(geod)
+
+            if n_times < n_steps:
+                t_int = gs.linspace(0, 1, n_steps + 1)
+                tangent_vecs = gs.einsum(
+                    'i,...k->...ik', t, initial_tangent_vec)
+                for point, vec in zip(initial_point, tangent_vecs):
+                    point = gs.tile(point, (n_times, 1))
+                    exp = []
+                    for pt, vc in zip(point, vec):
+                        initial_state = gs.hstack([pt, vc])
+                        solution = odeint(
+                            ivp, initial_state, t_int, (), rtol=1e-6)
+                        exp.append(solution[-1, :self.dim])
+                    exp = exp[0] if n_times == 1 else gs.stack(exp)
+                    geod.append(exp)
+            else:
+                t_int = t
+                for point, vec in zip(initial_point, initial_tangent_vec):
+                    initial_state = gs.hstack([point, vec])
+                    solution = odeint(
+                        ivp, initial_state, t_int, (), rtol=1e-6)
+                    geod.append(solution[:, :self.dim])
+
+            return geod[0] if len(initial_point) == 1 else \
+                gs.stack(geod)  # , axis=1)
 
         return path
 
@@ -324,14 +346,12 @@ class DirichletMetric(RiemannianMetric):
             initial velocity tangent_vec and stopping at time 1.
         """
         stop_time = 1.
-        t = gs.linspace(0, stop_time, n_steps)
-        geodesic = self._geodesic_ivp(base_point, tangent_vec)
-        geodesic_at_t = geodesic(t)
-        exp = gs.squeeze(geodesic_at_t[..., -1, :])
+        geodesic = self._geodesic_ivp(base_point, tangent_vec, n_steps)
+        exp = geodesic(stop_time)
 
         return exp
 
-    def _geodesic_bvp(self, initial_point, end_point):
+    def _geodesic_bvp(self, initial_point, end_point, n_steps=N_STEPS):
         """Solve geodesic boundary problem.
 
         Compute the parameterized function for the geodesic starting at
@@ -399,7 +419,7 @@ class DirichletMetric(RiemannianMetric):
             geodesic : array-like, shape=[..., n_times, dim]
                 Values of the geodesic at times t.
             """
-            n_steps = len(t)
+            t = gs.to_ndarray(t, to_ndim=1)
             geod = []
 
             def initialize(point_0, point_1):
@@ -412,16 +432,18 @@ class DirichletMetric(RiemannianMetric):
                 lin_init[self.dim:, -1] = lin_init[self.dim:, -2]
                 return lin_init
 
+            t_int = gs.linspace(0., 1., n_steps)
+
             for ip, ep in zip(initial_point, end_point):
                 geodesic_init = initialize(ip, ep)
 
                 def bc(y0, y1, ip=ip, ep=ep):
                     return boundary_cond(y0, y1, ip, ep)
 
-                solution = solve_bvp(bvp, bc, t, geodesic_init)
+                solution = solve_bvp(bvp, bc, t_int, geodesic_init)
                 solution_at_t = solution.sol(t)
                 geodesic = solution_at_t[:self.dim, :]
-                geod.append(gs.transpose(geodesic))
+                geod.append(gs.squeeze(gs.transpose(geodesic)))
 
             return geod[0] if len(initial_point) == 1 else gs.stack(geod)
 
@@ -450,8 +472,7 @@ class DirichletMetric(RiemannianMetric):
             Initial velocity of the geodesic starting at base_point and
             reaching point at time 1.
         """
-        stop_time = 1.
-        t = gs.linspace(0, stop_time, n_steps)
+        t = gs.linspace(0., 1., n_steps)
         geodesic = self._geodesic_bvp(
             initial_point=base_point, end_point=point)
         geodesic_at_t = geodesic(t)
@@ -459,8 +480,8 @@ class DirichletMetric(RiemannianMetric):
 
         return gs.squeeze(gs.stack(log))
 
-    def geodesic(self, initial_point,
-                 end_point=None, initial_tangent_vec=None):
+    def geodesic(self, initial_point, end_point=None,
+                 initial_tangent_vec=None, n_steps=N_STEPS):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
