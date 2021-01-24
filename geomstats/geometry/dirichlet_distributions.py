@@ -403,6 +403,7 @@ class DirichletMetric(RiemannianMetric):
 
         def boundary_cond(
                 state_0, state_1, point_0, point_1):
+            """Boundary condition for the geodesic ODE."""
             return gs.hstack((state_0[:self.dim] - point_0,
                               state_1[:self.dim] - point_1))
 
@@ -515,9 +516,10 @@ class DirichletMetric(RiemannianMetric):
             if initial_tangent_vec is not None:
                 raise ValueError('Cannot specify both an end point '
                                  'and an initial tangent vector.')
-            path = self._geodesic_bvp(initial_point, end_point)
+            path = self._geodesic_bvp(initial_point, end_point, n_steps)
 
         if initial_tangent_vec is not None:
-            path = self._geodesic_ivp(initial_point, initial_tangent_vec)
+            path = self._geodesic_ivp(
+                initial_point, initial_tangent_vec, n_steps)
 
         return path
