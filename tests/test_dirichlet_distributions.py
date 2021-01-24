@@ -12,7 +12,9 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
 class TestDirichletDistributions(geomstats.tests.TestCase):
+    """Class defining the Dirichlet distributions tests."""
     def setUp(self):
+        """Define the parameters of the tests."""
         warnings.simplefilter('ignore', category=UserWarning)
         self.dim = 3
         self.dirichlet = DirichletDistributions(self.dim)
@@ -144,6 +146,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         result = dirichlet2.metric.christoffels(points)
 
         def coefficients(param_a, param_b):
+            """Christoffel coefficients for the beta distributions."""
             poly1a = gs.polygamma(1, param_a)
             poly2a = gs.polygamma(2, param_a)
             poly1b = gs.polygamma(1, param_b)
