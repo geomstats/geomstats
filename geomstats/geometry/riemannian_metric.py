@@ -325,7 +325,7 @@ class RiemannianMetric(Connection):
         @joblib.delayed
         @joblib.wrap_non_picklable_objects
         def pickable_dist(x, y):
-            """Wrapped distance function to make it pickable"""
+            """Wrap distance function to make it pickable."""
             return self.dist(x, y)
 
         pool = joblib.Parallel(n_jobs=n_jobs, **joblib_kwargs)
