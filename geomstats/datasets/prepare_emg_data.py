@@ -7,6 +7,30 @@ import numpy as np
 import pandas as pd
 
 
+def _vectorize_cov(cov_mat):
+    """Vectorize a symmetric Matrix.
+
+    Convert a symetric matrice of size n x n into a vector containing
+    the n(n+1) lower elements (diagonal included).
+
+    Parameters
+    ----------
+    cov_mat : np.array
+        covariance matrix to vectorize.
+
+    Returns
+    -------
+    covec : np.array
+        vector of the n(n+1) lower elements of the matrix.
+    """
+    lcov = len(cov_mat)
+    covec = []
+    for i in range(lcov):
+        for j in range(i + 1):
+            covec.append(cov_mat[i][j])
+    return np.array(covec)
+
+
 class TimeSerieCovariance:
     """Class for generating a list of covariance matrix from time series.
 
@@ -38,6 +62,8 @@ class TimeSerieCovariance:
         The number of electrodes used for the recording.
     batches : np.array
         The start indexes of the batches to use to compute covariance matrices.
+    covs : np.array
+        The covariance matrices in np.array format.
     df : pd.DataFrame
         Output data containing the covariance matrices along with the labels.
     """
@@ -47,6 +73,9 @@ class TimeSerieCovariance:
         self.data = data
         self.n_steps = n_steps
         self.n_elec = n_elec
+        self.batches = np.array([])
+        self.covs = np.array([])
+        self.df = pd.DataFrame()
 
     def _format_labels(self):
         """Remove the rest sign and converts the labels into digits."""
@@ -67,29 +96,6 @@ class TimeSerieCovariance:
                                              self.n_steps)
                                       for j in range(len(start_sign))])
 
-    def _vectorize_cov(self, cov_mat):
-        """Vectorize a symmetric Matrix.
-
-        Convert a symetric matrice of size n x n into a vector containing
-        the n(n+1) lower elements (diagonal included).
-
-        Parameters
-        ----------
-        cov_mat : np.array
-            covariance matrix to vectorize.
-
-        Returns
-        -------
-        covec : np.array
-            vector of the n(n+1) lower elements of the matrix.
-        """
-        lcov = len(cov_mat)
-        covec = []
-        for i in range(lcov):
-            for j in range(i + 1):
-                covec.append(cov_mat[i][j])
-        return np.array(covec)
-
     def transform(self):
         """Transform the time serie into batched covariance matrices.
 
@@ -98,14 +104,13 @@ class TimeSerieCovariance:
         """
         self._format_labels()
         self._create_batches()
-        self.covs = []
+        covs = []
         for i in self.batches:
             x = self.data.iloc[i: i + self.n_steps, 1: 1 + self.n_elec].values
-            self.covs.append(np.cov(x.transpose()))
-        self.df = pd.DataFrame()
-        self.df['cov'] = self.covs
+            covs.append(np.cov(x.transpose()))
+        self.df['cov'] = covs
         self.df['label'] = list(self.data.y.iloc[self.batches])
         self.df['exp'] = list(self.data.exp.iloc[self.batches])
-        self.covs = np.array(self.covs)
-        self.df['covec'] = [self._vectorize_cov(cov) for cov in self.covs]
+        self.covs = np.array(covs)
+        self.df['covec'] = [_vectorize_cov(cov) for cov in self.covs]
         self.df['var'] = list(self.covs.diagonal(0, 1, 2))
