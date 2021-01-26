@@ -113,4 +113,4 @@ class TimeSerieCovariance:
         self.df['exp'] = list(self.data.exp.iloc[self.batches])
         self.covs = np.array(covs)
         self.df['covec'] = [_vectorize_cov(cov) for cov in self.covs]
-        self.df['var'] = list(self.covs.diagonal(0, 1, 2))
+        self.df['diag'] = list(self.covs.diagonal(0, 1, 2))
