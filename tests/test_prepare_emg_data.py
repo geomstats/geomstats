@@ -1,9 +1,9 @@
-"""Unit tests for TimeSerieCovariance class."""
+"""Unit tests for TimeSeriesCovariance class."""
 
 import numpy as np
 
 import geomstats.tests
-from geomstats.datasets.prepare_emg_data import TimeSerieCovariance
+from geomstats.datasets.prepare_emg_data import TimeSeriesCovariance
 from geomstats.datasets.utils import load_emg
 
 
@@ -14,11 +14,15 @@ class TestPrepareEmgData(geomstats.tests.TestCase):
         """Set up function."""
         self.n_steps = 100
         self.n_elec = 8
+        self.label_map = {'rock': 0, 'scissors': 1, 'paper': 2, 'ok': 3}
+        self.margin = 1000
         self.emg_data = load_emg()
 
-        self.cov_transformer = TimeSerieCovariance(self.emg_data,
-                                                   self.n_steps,
-                                                   self.n_elec)
+        self.cov_transformer = TimeSeriesCovariance(self.emg_data,
+                                                    self.n_steps,
+                                                    self.n_elec,
+                                                    self.label_map,
+                                                    self.margin)
         self.cov_transformer.transform()
 
     def test_covariance_shape(self):
