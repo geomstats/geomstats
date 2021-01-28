@@ -1,44 +1,21 @@
-"""Pre-process emg time series into batched covariance matrices.
+"""Pre-process time series into batched covariance matrices.
 
 The user defines the number of time steps of the batches.
+It starts by removing the transient signal by taking a margin on each side
+of the sign change. It then creates batches of data that will be used to
+build the covariance matrices. In practice, one needs to choose the size
+of the batches big enough to get enough information, and small enough so
+that the online classifier is reactive enough.
 """
 
 import numpy as np
-import pandas as pd
+
+import geomstats.backend as gs
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
-def _vectorize_cov(cov_mat):
-    """Vectorize a symmetric Matrix.
-
-    Convert a symetric matrice of size n x n into a vector containing
-    the n(n+1) lower elements (diagonal included).
-
-    Parameters
-    ----------
-    cov_mat : np.array
-        covariance matrix to vectorize.
-
-    Returns
-    -------
-    covec : np.array
-        vector of the n(n+1) lower elements of the matrix.
-    """
-    lcov = len(cov_mat)
-    covec = []
-    for i in range(lcov):
-        for j in range(i + 1):
-            covec.append(cov_mat[i][j])
-    return np.array(covec)
-
-
-class TimeSerieCovariance:
-    """Class for generating a list of covariance matrix from time series.
-
-    It starts by removing the transient signal by taking a margin on each side
-    of the sign change. It then creates batches of data that will be used to
-    build the covariance matrices. In practice, one needs to choose the size
-    of the batches big enough to get enough information, and small enough so
-    that the online classifier is reactive enough.
+class TimeSeriesCovariance:
+    """Class for generating a list of covariance matrices from time series.
 
     Parameters
     ----------
@@ -49,7 +26,11 @@ class TimeSerieCovariance:
         Size of the batches.
     n_elec : int
         The number of electrodes used for the recording.
-
+    label_map : dictionary
+        Encode the label into digits.
+    margin : int
+        Number of index to remove before and after a sign change (Can
+        help getting a stationary signal).
     Attributes
     ----------
     label_map : dictionary
@@ -60,41 +41,49 @@ class TimeSerieCovariance:
         Size of the batches.
     n_elec : int
         The number of electrodes used for the recording.
-    batches : np.array
+    batches : array
         The start indexes of the batches to use to compute covariance matrices.
-    covs : np.array
-        The covariance matrices in np.array format.
-    df : pd.DataFrame
-        Output data containing the covariance matrices along with the labels.
+    margin : int
+        Number of index to remove before and after a sign change (Can
+        help getting a stationary signal).
+    covs : array
+        The covariance matrices.
+    labels : array
+        The digit labels corresponding to each batch.
+    covec : array
+        The vectorized version of the covariance matrices.
+    diags : array
+        The covariance matrices diagonals.
     """
 
-    def __init__(self, data, n_steps, n_elec):
-        self.label_map = {'rock': 0, 'scissors': 1, 'paper': 2, 'ok': 3}
+    def __init__(self, data, n_steps, n_elec, label_map, margin=0):
+        self.label_map = label_map
         self.data = data
         self.n_steps = n_steps
         self.n_elec = n_elec
         self.batches = np.array([])
-        self.covs = np.array([])
-        self.df = pd.DataFrame()
+        self.margin = margin
+        self.covs = gs.array([])
+        self.labels = gs.array([])
+        self.covecs = gs.array([])
+        self.diags = gs.array([])
 
     def _format_labels(self):
-        """Remove the rest sign and converts the labels into digits."""
-        self.data = self.data[self.data.label != 'rest']
+        """Convert the labels into digits."""
         self.data['y'] = self.data.label.map(lambda x: self.label_map[x])
 
     def _create_batches(self):
         """Create the batches used to compute covariance matrices.
 
-        Adding a time margin at each sign change to get stationary
-        signal corresponding to each sign.
+        If margin != 0, we add an index margin at each label change
+        to get stationary signal corresponding to each label.
         """
-        start_sign = np.where(np.diff(self.data.y) != 0)[0]
-        end_sign = np.append(start_sign[1:], len(self.data)) - 1000
-        start_sign += 1000
-        self.batches = np.concatenate([range(start_sign[j],
-                                             end_sign[j] - self.n_steps,
-                                             self.n_steps)
-                                      for j in range(len(start_sign))])
+        start_ids = np.where(np.diff(self.data.y) != 0)[0]
+        end_ids = np.append(start_ids[1:], len(self.data)) - self.margin
+        start_ids += self.margin
+        batches_list = [range(start_id, end_id - self.n_steps, self.n_steps)
+                        for start_id, end_id in zip(start_ids, end_ids)]
+        self.batches = gs.concatenate(batches_list)
 
     def transform(self):
         """Transform the time serie into batched covariance matrices.
@@ -108,9 +97,8 @@ class TimeSerieCovariance:
         for i in self.batches:
             x = self.data.iloc[i: i + self.n_steps, 1: 1 + self.n_elec].values
             covs.append(np.cov(x.transpose()))
-        self.df['cov'] = covs
-        self.df['label'] = list(self.data.y.iloc[self.batches])
-        self.df['exp'] = list(self.data.exp.iloc[self.batches])
-        self.covs = np.array(covs)
-        self.df['covec'] = [_vectorize_cov(cov) for cov in self.covs]
-        self.df['diag'] = list(self.covs.diagonal(0, 1, 2))
+        self.labels = gs.array(self.data.y.iloc[self.batches])
+        self.covs = gs.array(covs)
+        self.covecs = gs.array([SymmetricMatrices.to_vector(cov)
+                                for cov in self.covs])
+        self.diags = self.covs.diagonal(0, 1, 2)
