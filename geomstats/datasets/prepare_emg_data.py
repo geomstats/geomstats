@@ -19,9 +19,8 @@ class TimeSeriesCovariance:
 
     Parameters
     ----------
-    time_serie : pandas.DataFrame
-        Data contaning the time series for each electrodes, as well as
-        the corresponding labels, and experiments.
+    data_dict : dictionary
+        Contains the raw time series data, along the time, and the labels..
     n_steps : int
         Size of the batches.
     n_elec : int
@@ -35,8 +34,8 @@ class TimeSeriesCovariance:
     ----------
     label_map : dictionary
         Encode the label into digits.
-    data : pd.DataFrame
-        Contains the raw time series data.
+    data_dict : dictionary
+        Contains the raw time series data, along the time, and the labels..
     n_steps : int
         Size of the batches.
     n_elec : int
@@ -70,7 +69,8 @@ class TimeSeriesCovariance:
 
     def _format_labels(self):
         """Convert the labels into digits."""
-        self.data['y'] = self.data.label.map(lambda x: self.label_map[x])
+        self.data['y'] = gs.array([self.label_map[x]
+                                   for x in self.data['label']])
 
     def _create_batches(self):
         """Create the batches used to compute covariance matrices.
@@ -78,26 +78,27 @@ class TimeSeriesCovariance:
         If margin != 0, we add an index margin at each label change
         to get stationary signal corresponding to each label.
         """
-        start_ids = np.where(np.diff(self.data.y) != 0)[0]
+        start_ids = np.where(np.diff(self.data['y']) != 0)[0]
         end_ids = np.append(start_ids[1:], len(self.data)) - self.margin
         start_ids += self.margin
         batches_list = [range(start_id, end_id - self.n_steps, self.n_steps)
                         for start_id, end_id in zip(start_ids, end_ids)]
-        self.batches = gs.concatenate(batches_list)
+        self.batches = np.int_(gs.concatenate(batches_list))
 
     def transform(self):
         """Transform the time serie into batched covariance matrices.
 
-        We link the covariance matrices to its corresponding vectors,
-        variance vector, labels, and experiments into a DataFrame.
+        We also compute the corresponding vectors, variance vector,
+        labels, and experiments.
         """
-        self._format_labels()
+        if 'y' not in self.data.keys():
+            self._format_labels()
         self._create_batches()
         covs = []
         for i in self.batches:
-            x = self.data.iloc[i: i + self.n_steps, 1: 1 + self.n_elec].values
+            x = self.data['raw_data'][i: i + self.n_steps]
             covs.append(np.cov(x.transpose()))
-        self.labels = gs.array(self.data.y.iloc[self.batches])
+        self.labels = gs.array(self.data['y'][self.batches])
         self.covs = gs.array(covs)
         self.covecs = gs.array([SymmetricMatrices.to_vector(cov)
                                 for cov in self.covs])
