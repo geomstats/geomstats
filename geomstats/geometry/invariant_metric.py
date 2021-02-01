@@ -552,9 +552,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
         n_steps : int,
             Number of integration steps.
             Optional, default : 15.
-        step : str, {'group_rk2', 'group_rk4'}
+        step : str, {'euler', 'rk2', 'rk4'}
             Scheme to use in the integration.
-            Optional, default : 'group_rk4'.
+            Optional, default : 'rk4'.
 
         Returns
         -------
@@ -595,7 +595,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                             step=step, **kwargs)
         return flow[-1]
 
-    def log(self, point, base_point, n_steps=15, step='k4',
+    def log(self, point, base_point, n_steps=15, step='rk4',
             verbose=False, max_iter=25, tol=1e-10):
         r"""Compute Riemannian logarithm of a point from a base point.
 
@@ -620,10 +620,10 @@ class _InvariantMetricMatrix(RiemannianMetric):
             Number of integration steps to compute the exponential in the
             loss.
             Optional, default : 15.
-        step : str, {'group_rk2', 'group_rk4'}
+        step : str, {'euler', 'rk2', 'rk4'}
             Scheme to use in the integration procedure of the exponential in
             the loss.
-            Optional, default : 'group_rk4'.
+            Optional, default : 'rk4'.
         verbose : bool,
             Verbosity level of the optimization procedure.
             Optional. default : False.
