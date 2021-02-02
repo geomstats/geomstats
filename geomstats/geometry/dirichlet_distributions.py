@@ -235,6 +235,78 @@ class DirichletMetric(RiemannianMetric):
 
         return gs.squeeze(christoffels)
 
+    def jac_christoffels(self, base_point):
+        """Compute the Jacobian of the Christoffel symbols.
+
+        Compute the Jacobian of the Christoffel symbols of the
+        Fisher information metric.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        jac : array-like, shape=[..., dim, dim, dim, dim]
+            Jacobian of the Christoffel symbols.
+            :math: jac[..., i, j, k, l] = 'dGamma^i_{jk} / dx_l'
+        """
+        n_dim = base_point.ndim
+        position = gs.transpose(base_point)
+        t_param = gs.sum(position, 0)
+        f_y = 1 / gs.polygamma(1, position)
+        f_t = 1 / gs.polygamma(1, t_param)
+        df_y = - gs.polygamma(2, position) / gs.polygamma(1, position)**2
+        df_t = - gs.polygamma(2, t_param) / gs.polygamma(1, t_param)**2
+        g_y = df_y / f_y
+        g_t = df_t / f_t
+        dg_y = (gs.polygamma(2, position)**2 - gs.polygamma(1, position) *
+                gs.polygamma(3, position)) / gs.polygamma(1, position)**2
+        dg_t = (gs.polygamma(2, t_param)**2 - gs.polygamma(1, t_param) *
+                gs.polygamma(3, t_param)) / gs.polygamma(1, t_param)**2
+        const = f_t - gs.sum(f_y, 0)
+
+        jac_1 = f_y * dg_t / const
+        jac_1_mat = gs.squeeze(
+            gs.tile(jac_1, (self.dim, self.dim, self.dim, 1, 1)))
+        jac_2 = - g_t / const**2 * gs.einsum(
+            'j...,i...->ji...', df_t - df_y, f_y)
+        jac_2_mat = gs.squeeze(
+            gs.tile(jac_2, (self.dim, self.dim, 1, 1, 1)))
+        jac_3 = df_y * g_t / const
+        jac_3_mat = gs.transpose(
+            from_vector_to_diagonal_matrix(gs.transpose(jac_3)))
+        jac_3_mat = gs.squeeze(
+            gs.tile(jac_3_mat, (self.dim, self.dim, 1, 1, 1)))
+        jac_4 = 1 / const**2 * gs.einsum(
+            'k...,j...,i...->kji...', g_y, df_t - df_y, f_y)
+        jac_4_mat = gs.transpose(
+            from_vector_to_diagonal_matrix(gs.transpose(jac_4)))
+        jac_5 = - gs.einsum('j...,i...->ji...', dg_y, f_y) / const
+        jac_5_mat = from_vector_to_diagonal_matrix(
+            gs.transpose(jac_5))
+        jac_5_mat = gs.transpose(from_vector_to_diagonal_matrix(
+            jac_5_mat))
+        jac_6 = - gs.einsum('k...,j...->kj...', g_y, df_y) / const
+        jac_6_mat = gs.transpose(from_vector_to_diagonal_matrix(
+            gs.transpose(jac_6)))
+        jac_6_mat = gs.transpose(from_vector_to_diagonal_matrix(
+            gs.transpose(jac_6_mat, [0, 1, 3, 2])), [0, 1, 3, 4, 2]) \
+            if n_dim > 1 else from_vector_to_diagonal_matrix(
+            jac_6_mat)
+        jac_7 = - from_vector_to_diagonal_matrix(gs.transpose(dg_y))
+        jac_7_mat = from_vector_to_diagonal_matrix(jac_7)
+        jac_7_mat = gs.transpose(
+            from_vector_to_diagonal_matrix(jac_7_mat))
+
+        jac = 1 / 2 * (
+            jac_1_mat + jac_2_mat + jac_3_mat +
+            jac_4_mat + jac_5_mat + jac_6_mat + jac_7_mat)
+
+        return gs.transpose(jac, [3, 1, 0, 2]) if n_dim == 1 else \
+            gs.transpose(jac, [4, 3, 1, 0, 2])
+
     def _geodesic_ivp(self, initial_point, initial_tangent_vec,
                       n_steps=N_STEPS):
         """Solve geodesic initial value problem.
@@ -391,8 +463,8 @@ class DirichletMetric(RiemannianMetric):
 
             Parameters
             ----------
-            state :  array-like, shape[4,]
-                Vector of the state variables: y = [a,b,u,v]
+            state :  array-like, shape[2 * dim,]
+                Vector of the state variables: position and speed.
             _ :  unused
                 Any (time).
             """

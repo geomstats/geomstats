@@ -348,3 +348,27 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         result = geod(time).shape
         expected = (self.n_points, self.dim)
         self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_only
+    def test_jac_christoffels(self):
+        """Test jacobian of Christoffel symbols.
+
+        Compare with autograd jacobian and check vectorization.
+        """
+        base_point = self.dirichlet.random_uniform()
+        result = self.metric.jac_christoffels(base_point)
+        self.assertAllClose(
+            (self.dim, self.dim, self.dim, self.dim),
+            result.shape)
+
+        expected = gs.autograd.jacobian(
+            self.metric.christoffels)(base_point)
+        self.assertAllClose(expected, result)
+
+        base_points = self.dirichlet.random_uniform(2)
+        result = self.metric.jac_christoffels(base_points)
+        expected = [
+            self.metric.jac_christoffels(base_points[0, :]),
+            self.metric.jac_christoffels(base_points[1, :])]
+        expected = gs.stack(expected, 0)
+        self.assertAllClose(expected, result)
