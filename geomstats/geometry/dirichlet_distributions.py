@@ -484,6 +484,41 @@ class DirichletMetric(RiemannianMetric):
             return gs.hstack((state_0[:self.dim] - point_0,
                               state_1[:self.dim] - point_1))
 
+        def jac(_, state):
+            """Jacobian of bvp function.
+
+            Parameters
+            ----------
+            state :  array-like, shape=[2*dim, ...]
+                Vector of the state variables (position and speed)
+            _ :  unused
+                Any (time).
+
+            Returns
+            -------
+            jac : array-like, shape=[dim, dim, ...]
+            """
+            n_dim = state.ndim
+            n_times = state.shape[1] if n_dim > 1 else 1
+            position, velocity = state[:self.dim], state[self.dim:]
+
+            dgamma = self.jac_christoffels(gs.transpose(position))
+
+            df_dposition = - gs.einsum(
+                'j...,...ijkl,k...->il...', velocity, dgamma, velocity)
+
+            gamma = self.christoffels(gs.transpose(position))
+            df_dvelocity = - 2 * gs.einsum(
+                '...ijk,k...->ij...', gamma, velocity)
+
+            jac = gs.zeros((2 * self.dim,) + state.shape)
+            jac[:self.dim, self.dim:, ...] = gs.squeeze(gs.transpose(gs.tile(
+                gs.eye(self.dim), (n_times, 1, 1))))
+            jac[self.dim:, :self.dim, ...] = df_dposition
+            jac[self.dim:, self.dim:, ...] = df_dvelocity
+
+            return jac
+
         def path(t):
             """Generate parameterized function for geodesic curve.
 
@@ -518,7 +553,13 @@ class DirichletMetric(RiemannianMetric):
                 def bc(y0, y1, ip=ip, ep=ep):
                     return boundary_cond(y0, y1, ip, ep)
 
-                solution = solve_bvp(bvp, bc, t_int, geodesic_init)
+                if jacobian:
+                    solution = solve_bvp(bvp, bc, t_int, geodesic_init,
+                                         fun_jac=jac)
+                else:
+                    solution = solve_bvp(bvp, bc, t_int, geodesic_init)
+
+                # solution = solve_bvp(bvp, bc, t_int, geodesic_init)
                 solution_at_t = solution.sol(t)
                 geodesic = solution_at_t[:self.dim, :]
                 geod.append(gs.squeeze(gs.transpose(geodesic)))
