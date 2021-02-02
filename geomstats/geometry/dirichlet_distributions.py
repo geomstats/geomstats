@@ -423,7 +423,8 @@ class DirichletMetric(RiemannianMetric):
 
         return exp
 
-    def _geodesic_bvp(self, initial_point, end_point, n_steps=N_STEPS):
+    def _geodesic_bvp(self, initial_point, end_point, n_steps=N_STEPS,
+                      jacobian=False):
         """Solve geodesic boundary problem.
 
         Compute the parameterized function for the geodesic starting at
@@ -436,6 +437,10 @@ class DirichletMetric(RiemannianMetric):
             Initial point.
         end_point : array-like, shape=[..., dim]
             End point.
+        jacobian : boolean.
+            If True, the explicit value of the jacobian is used to solve
+            the geodesic boundary value problem.
+            Optional, default: False.
 
         Returns
         -------
@@ -522,7 +527,7 @@ class DirichletMetric(RiemannianMetric):
 
         return path
 
-    def log(self, point, base_point, n_steps=N_STEPS):
+    def log(self, point, base_point, n_steps=N_STEPS, jacobian=False):
         """Compute the logarithm map.
 
         Compute logarithm map associated to the Fisher information metric by
@@ -538,6 +543,10 @@ class DirichletMetric(RiemannianMetric):
         n_steps : int
             Number of steps for integration.
             Optional, default: 100.
+        jacobian : boolean.
+            If True, the explicit value of the jacobian is used to solve
+            the geodesic boundary value problem.
+            Optional, default: False.
 
         Returns
         -------
@@ -547,7 +556,7 @@ class DirichletMetric(RiemannianMetric):
         """
         t = gs.linspace(0., 1., n_steps)
         geodesic = self._geodesic_bvp(
-            initial_point=base_point, end_point=point)
+            initial_point=base_point, end_point=point, jacobian=jacobian)
         geodesic_at_t = geodesic(t)
         log = n_steps * (geodesic_at_t[..., 1, :] - geodesic_at_t[..., 0, :])
 
@@ -595,3 +604,53 @@ class DirichletMetric(RiemannianMetric):
                 initial_point, initial_tangent_vec, n_steps)
 
         return path
+
+    def squared_dist(self, point_a, point_b, jacobian=False):
+        """Squared geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+        jacobian : boolean.
+            If True, the explicit value of the jacobian is used to solve
+            the geodesic boundary value problem.
+            Optional, default: False.
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[...,]
+            Squared distance.
+        """
+        log = self.log(point=point_b, base_point=point_a, jacobian=jacobian)
+
+        sq_dist = self.squared_norm(vector=log, base_point=point_a)
+        return sq_dist
+
+    def dist(self, point_a, point_b, jacobian=False):
+        """Geodesic distance between two points.
+
+        Note: It only works for positive definite
+        Riemannian metrics.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+        jacobian : boolean.
+            If True, the explicit value of the jacobian is used to solve
+            the geodesic boundary value problem.
+            Optional, default: False.
+
+        Returns
+        -------
+        dist : array-like, shape=[...,]
+            Distance.
+        """
+        sq_dist = self.squared_dist(point_a, point_b, jacobian=jacobian)
+        dist = gs.sqrt(sq_dist)
+        return dist

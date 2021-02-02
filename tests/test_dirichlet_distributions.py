@@ -372,3 +372,15 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
             self.metric.jac_christoffels(base_points[1, :])]
         expected = gs.stack(expected, 0)
         self.assertAllClose(expected, result)
+
+    def test_jacobian_in_geodesic_bvp(self):
+        """Test Jacobian option in geodesic bvp.
+
+        Check that dist yields the same result with
+        and without.
+        """
+        point_a = self.dirichlet.random_uniform()
+        point_b = self.dirichlet.random_uniform()
+        result = self.dirichlet.metric.dist(point_a, point_b, jacobian=True)
+        expected = self.dirichlet.metric.dist(point_a, point_b)
+        self.assertAllClose(expected, result)
