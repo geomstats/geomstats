@@ -373,6 +373,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = gs.stack(expected, 0)
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_only
     def test_jacobian_in_geodesic_bvp(self):
         """Test Jacobian option in geodesic bvp.
 
@@ -383,4 +384,16 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         point_b = self.dirichlet.random_uniform()
         result = self.dirichlet.metric.dist(point_a, point_b, jacobian=True)
         expected = self.dirichlet.metric.dist(point_a, point_b)
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_only
+    def test_geodesic_bvp_timer(self):
+        """Check timer for geodesic bvp."""
+        max_time = 1e-4
+        gs.random.seed(123)
+        point_a = self.dirichlet.random_uniform()
+        point_b = self.dirichlet.random_uniform()
+        result = self.dirichlet.metric.dist(
+            point_a, point_b, max_time=max_time)
+        expected = 0.
         self.assertAllClose(expected, result)
