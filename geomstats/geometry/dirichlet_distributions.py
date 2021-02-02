@@ -677,7 +677,7 @@ class DirichletMetric(RiemannianMetric):
                 raise ValueError('Cannot specify both an end point '
                                  'and an initial tangent vector.')
             path = self._geodesic_bvp(initial_point, end_point, n_steps,
-                                      jacobian=jacobian, max_time=MAX_TIME)
+                                      jacobian=jacobian, max_time=max_time)
 
         if initial_tangent_vec is not None:
             path = self._geodesic_ivp(
@@ -685,7 +685,7 @@ class DirichletMetric(RiemannianMetric):
 
         return path
 
-    def squared_dist(self, point_a, point_b, jacobian=False,
+    def squared_dist(self, point_a, point_b, n_steps=N_STEPS, jacobian=False,
                      max_time=MAX_TIME):
         """Squared geodesic distance between two points.
 
@@ -709,12 +709,13 @@ class DirichletMetric(RiemannianMetric):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        log = self.log(point=point_b, base_point=point_a, jacobian=jacobian,
-                       max_time=max_time)
+        log = self.log(point=point_b, base_point=point_a, n_steps=n_steps,
+                       jacobian=jacobian, max_time=max_time)
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
         return sq_dist
 
-    def dist(self, point_a, point_b, jacobian=False, max_time=MAX_TIME):
+    def dist(self, point_a, point_b, n_steps=N_STEPS, jacobian=False,
+             max_time=MAX_TIME):
         """Geodesic distance between two points.
 
         Note: It only works for positive definite
@@ -740,7 +741,7 @@ class DirichletMetric(RiemannianMetric):
         dist : array-like, shape=[...,]
             Distance.
         """
-        sq_dist = self.squared_dist(point_a, point_b, jacobian=jacobian,
-                                    max_time=max_time)
+        sq_dist = self.squared_dist(point_a, point_b, n_steps=n_steps,
+                                    jacobian=jacobian, max_time=max_time)
         dist = gs.sqrt(sq_dist)
         return dist
