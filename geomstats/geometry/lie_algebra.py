@@ -8,10 +8,11 @@ in that base. This base will be provided in child classes
 """
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.matrices import Matrices
 from ._bch_coefficients import BCH_COEFFICIENTS
 
 
-class MatrixLieAlgebra:
+class MatrixLieAlgebra(Matrices):
     """Class implementing matrix Lie algebra related functions.
 
     Parameters
@@ -23,33 +24,12 @@ class MatrixLieAlgebra:
         Lie algebra.
     """
 
-    def __init__(self, dim, n):
+    def __init__(self, dim, n, **kwargs):
+        super(MatrixLieAlgebra, self).__init__(m=n, n=n, **kwargs)
         geomstats.errors.check_integer(dim, 'dim')
         geomstats.errors.check_integer(n, 'n')
         self.dim = dim
-        self.n = n
         self.basis = None
-
-    @staticmethod
-    def lie_bracket(matrix_a, matrix_b):
-        """Compute the Lie_bracket (commutator) of two matrices.
-
-        Notice that inputs have to be given in matrix form, no conversion
-        between basis and matrix representation is attempted.
-
-        Parameters
-        ----------
-        matrix_a : array-like, shape=[..., n, n]
-            Matrix.
-        matrix_b : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        bracket : shape=[..., n, n]
-            Lie bracket.
-        """
-        return gs.matmul(matrix_a, matrix_b) - gs.matmul(matrix_b, matrix_a)
 
     def baker_campbell_hausdorff(self, matrix_a, matrix_b, order=2):
         """Calculate the Baker-Campbell-Hausdorff approximation of given order.
@@ -93,7 +73,7 @@ class MatrixLieAlgebra:
             i_p = BCH_COEFFICIENTS[i, 1] - 1
             i_pp = BCH_COEFFICIENTS[i, 2] - 1
 
-            el.append(self.lie_bracket(el[i_p], el[i_pp]))
+            el.append(self.bracket(el[i_p], el[i_pp]))
             result += (float(BCH_COEFFICIENTS[i, 3]) /
                        float(BCH_COEFFICIENTS[i, 4]) *
                        el[i])
@@ -130,9 +110,23 @@ class MatrixLieAlgebra:
         matrix_representation : array-like, shape=[..., n, n]
             Matrix.
         """
-        basis_representation = gs.to_ndarray(basis_representation, to_ndim=2)
-
         if self.basis is None:
             raise NotImplementedError("basis not implemented")
 
-        return gs.einsum("ni,ijk ->njk", basis_representation, self.basis)
+        return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)
+
+    def projection(self, mat):
+        """Project a matrix to the Lie Algebra.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., n, n]
+            Matrix belonging to Lie Algebra.
+        """
+        raise NotImplementedError('Projection to Lie Algebra is not '
+                                  'implemented.')

@@ -99,7 +99,7 @@ def _default_gradient_descent(points, metric, weights,
     if point_type == 'vector':
         points = gs.to_ndarray(points, to_ndim=2)
         einsum_str = 'n,nj->j'
-    if point_type == 'matrix':
+    else:
         points = gs.to_ndarray(points, to_ndim=3)
         einsum_str = 'n,nij->ij'
     n_points = gs.shape(points)[0]
@@ -132,7 +132,7 @@ def _default_gradient_descent(points, metric, weights,
 
         estimate_next = metric.exp(tangent_vec=tangent_mean, base_point=mean)
 
-        sq_dist = metric.squared_dist(estimate_next, mean)
+        sq_dist = metric.squared_norm(tangent_mean, mean)
         sq_dists_between_iterates.append(sq_dist)
 
         var = variance(
@@ -162,7 +162,7 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
     """Perform ball gradient descent."""
     if len(points) == 1:
         return points
-
+    points = gs.to_ndarray(points, to_ndim=2)
     if weights is None:
 
         iteration = 0
@@ -172,9 +172,7 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
         while convergence > tau and max_iter > iteration:
 
             iteration += 1
-
             grad_tangent = 2 * metric.log(points, barycenter)
-
             cc_barycenter = metric.exp(
                 lr * grad_tangent.sum(0, keepdims=True), barycenter)
 

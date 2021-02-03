@@ -3,6 +3,10 @@
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
+<<<<<<< HEAD
+=======
+from geomstats.geometry.beta_distributions import BetaDistributions
+>>>>>>> master
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
@@ -43,6 +47,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_karate_graph(self):
+<<<<<<< HEAD
         """Test the correct number of edges and nodes for each graph."""
         graph = data_utils.load_karate_graph()
         result = len(graph.edges) + len(graph.labels)
@@ -52,6 +57,17 @@ class TestDatasets(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_random_graph(self):
         """Test the correct number of edges and nodes for each graph."""
+=======
+        """Test the correct number of edges and nodes for each graph."""
+        graph = data_utils.load_karate_graph()
+        result = len(graph.edges) + len(graph.labels)
+        expected = 68
+        self.assertTrue(result == expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_random_graph(self):
+        """Test the correct number of edges and nodes for each graph."""
+>>>>>>> master
         graph = data_utils.load_random_graph()
         result = len(graph.edges) + len(graph.labels)
         expected = 20
@@ -90,7 +106,11 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_load_connectomes(self):
+<<<<<<< HEAD
         """Test that the connectomes belong to SPD"""
+=======
+        """Test that the connectomes belong to SPD."""
+>>>>>>> master
         spd = SPDMatrices(28)
         data, _, _ = data_utils.load_connectomes(as_vectors=True)
         result = data.shape
@@ -103,3 +123,26 @@ class TestDatasets(geomstats.tests.TestCase):
 
         result = gs.logical_and(labels >= 0, labels <= 1)
         self.assertTrue(gs.all(result))
+<<<<<<< HEAD
+=======
+
+    @geomstats.tests.np_only
+    def test_leaves(self):
+        """Test that leaves data are beta distribution parameters."""
+        beta = BetaDistributions()
+        beta_param, distrib_type = data_utils.load_leaves()
+        result = beta.belongs(beta_param)
+        self.assertTrue(gs.all(result))
+
+        result = len(distrib_type)
+        expected = beta_param.shape[0]
+        self.assertAllClose(result, expected)
+
+    def test_load_emg(self):
+        """Test that data have the correct column names."""
+        data_emg = data_utils.load_emg()
+        expected_col_name = ['time', 'c0', 'c1', 'c2', 'c3', 'c4', 'c5',
+                             'c6', 'c7', 'label', 'exp']
+        good_col_name = (expected_col_name == data_emg.keys()).all()
+        self.assertTrue(good_col_name)
+>>>>>>> master

@@ -3,12 +3,10 @@
 import numbers
 from math import log
 
-from scipy import linalg
 from scipy.special import gammaln
 from sklearn.decomposition._base import _BasePCA
 from sklearn.utils.extmath import stable_cumsum
 from sklearn.utils.extmath import svd_flip
-from sklearn.utils.validation import check_array
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
@@ -184,14 +182,14 @@ class TangentPCA(_BasePCA):
         tangent_vecs = self.metric.log(X, base_point=self.base_point_fit)
         if self.point_type == 'matrix':
             if Matrices.is_symmetric(tangent_vecs).all():
-                X = SymmetricMatrices.to_vector(
-                    tangent_vecs)
+                X = SymmetricMatrices.to_vector(tangent_vecs)
             else:
                 X = gs.reshape(tangent_vecs, (len(X), - 1))
         else:
             X = tangent_vecs
-
-        return super(TangentPCA, self).transform(X)
+        X = X - self.mean_
+        X_transformed = gs.matmul(X, gs.transpose(self.components_))
+        return X_transformed
 
     def inverse_transform(self, X):
         """Low-dimensional reconstruction of X.
@@ -256,9 +254,6 @@ class TangentPCA(_BasePCA):
         else:
             X = tangent_vecs
 
-        X = check_array(X, dtype=[gs.float64, gs.float32], ensure_2d=True,
-                        copy=self.copy)
-
         if self.n_components is None:
             n_components = min(X.shape)
         else:
@@ -285,7 +280,7 @@ class TangentPCA(_BasePCA):
         self.mean_ = gs.mean(X, axis=0)
         X -= self.mean_
 
-        U, S, V = linalg.svd(X, full_matrices=False)
+        U, S, V = gs.linalg.svd(X, full_matrices=False)
         # flip eigenvectors' sign to enforce deterministic output
         U, V = svd_flip(U, V)
 
@@ -295,7 +290,7 @@ class TangentPCA(_BasePCA):
         explained_variance_ = (S ** 2) / (n_samples - 1)
         total_var = explained_variance_.sum()
         explained_variance_ratio_ = explained_variance_ / total_var
-        singular_values_ = S.copy()  # Store the singular values.
+        singular_values_ = gs.copy(S)  # Store the singular values.
 
         # Postprocess the number of components required
         if n_components == 'mle':

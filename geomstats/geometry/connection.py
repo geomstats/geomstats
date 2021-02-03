@@ -49,7 +49,7 @@ class Connection:
         Returns
         -------
         gamma : array-like, shape=[..., dim, dim, dim]
-            Christoffel symbols, with the covariant index on
+            Christoffel symbols, with the contravariant index on
             the first dimension.
         """
         raise NotImplementedError(
@@ -94,15 +94,15 @@ class Connection:
             '...kij,...i->...kj', gamma, velocity)
         equation = - gs.einsum(
             '...kj,...j->...k', equation, velocity)
-        return equation
+        return velocity, equation
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step='euler',
-            point_type=None):
+            point_type=None, **kwargs):
         """Exponential map associated to the affine connection.
 
         Exponential map at base_point of tangent_vec computed by integration
         of the geodesic equation (initial value problem), using the
-        christoffel symbols
+        christoffel symbols.
 
         Parameters
         ----------
@@ -126,13 +126,14 @@ class Connection:
             Point on the manifold.
         """
         initial_state = (base_point, tangent_vec)
-        flow, _ = integrate(
-            self.geodesic_equation, initial_state, n_steps=n_steps, step=step)
+        flow, _ = integrate(self.geodesic_equation, initial_state,
+                            n_steps=n_steps, step=step)
 
         exp = flow[-1]
         return exp
 
-    def log(self, point, base_point, n_steps=N_STEPS, step='euler'):
+    def log(self, point, base_point, n_steps=N_STEPS, step='euler',
+            max_iter=25, verbose=False, tol=1e-6):
         """Compute logarithm map associated to the affine connection.
 
         Solve the boundary value problem associated to the geodesic equation
@@ -150,33 +151,38 @@ class Connection:
         step : str, {'euler', 'rk4'}
             Numerical scheme to use for integration.
             Optional, default: 'euler'.
+        max_iter
+        verbose
+        tol
 
         Returns
         -------
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point.
         """
+        max_shape = point.shape if point.ndim == 3 else base_point.shape
+
         def objective(velocity):
             """Define the objective function."""
             velocity = gs.array(velocity)
             velocity = gs.cast(velocity, dtype=base_point.dtype)
-            velocity = gs.reshape(velocity, base_point.shape)
+            velocity = gs.reshape(velocity, max_shape)
             delta = self.exp(velocity, base_point, n_steps, step) - point
-            loss = 1. / self.dim * gs.sum(delta ** 2, axis=-1)
-            return gs.sum(loss)
+            return gs.sum(delta ** 2)
 
         objective_with_grad = gs.autograd.value_and_grad(objective)
-        tangent_vec = gs.random.rand(*gs.flatten(base_point).shape)
+        tangent_vec = gs.flatten(gs.random.rand(*max_shape))
         res = minimize(
             objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
-            options={'disp': False, 'maxiter': 25})
+            options={'disp': verbose, 'maxiter': max_iter}, tol=tol)
 
         tangent_vec = gs.array(res.x)
-        tangent_vec = gs.reshape(tangent_vec, base_point.shape)
+        tangent_vec = gs.reshape(tangent_vec, max_shape)
+        tangent_vec = gs.cast(tangent_vec, dtype=base_point.dtype)
         return tangent_vec
 
     def _pole_ladder_step(self, base_point, next_point, base_shoot,
-                          return_geodesics=False):
+                          return_geodesics=False, **kwargs):
         """Compute one Pole Ladder step.
 
         One step of pole ladder scheme [LP2013a]_ using the geodesic to
@@ -216,26 +222,19 @@ class Connection:
         """
         mid_tangent_vector_to_shoot = 1. / 2. * self.log(
             base_point=base_point,
-            point=next_point)
+            point=next_point, **kwargs)
 
         mid_point = self.exp(
             base_point=base_point,
-            tangent_vec=mid_tangent_vector_to_shoot)
+            tangent_vec=mid_tangent_vector_to_shoot, **kwargs)
 
         tangent_vector_to_shoot = - self.log(
             base_point=mid_point,
-            point=base_shoot)
+            point=base_shoot, **kwargs)
 
         end_shoot = self.exp(
             base_point=mid_point,
-            tangent_vec=tangent_vector_to_shoot)
-
-        next_tangent_vec = - self.log(
-            base_point=next_point, point=end_shoot)
-
-        end_point = self.exp(
-            base_point=next_point,
-            tangent_vec=next_tangent_vec)
+            tangent_vec=tangent_vector_to_shoot, **kwargs)
 
         geodesics = []
         if return_geodesics:
@@ -249,12 +248,11 @@ class Connection:
                 initial_point=next_point,
                 end_point=end_shoot)
             geodesics = [main_geodesic, diagonal, final_geodesic]
-        return {'next_tangent_vec': next_tangent_vec,
-                'geodesics': geodesics,
-                'end_point': end_point}
+        return {'geodesics': geodesics,
+                'end_point': end_shoot}
 
     def _schild_ladder_step(self, base_point, next_point, base_shoot,
-                            return_geodesics=False):
+                            return_geodesics=False, **kwargs):
         """Compute one Schild's Ladder step.
 
         One step of the Schild's ladder scheme [LP2013a]_ using the geodesic to
@@ -291,22 +289,19 @@ class Connection:
         """
         mid_tangent_vector_to_shoot = 1. / 2. * self.log(
             base_point=base_shoot,
-            point=next_point)
+            point=next_point, **kwargs)
 
         mid_point = self.exp(
             base_point=base_shoot,
-            tangent_vec=mid_tangent_vector_to_shoot)
+            tangent_vec=mid_tangent_vector_to_shoot, **kwargs)
 
         tangent_vector_to_shoot = - self.log(
             base_point=mid_point,
-            point=base_point)
+            point=base_point, **kwargs)
 
         end_shoot = self.exp(
             base_point=mid_point,
-            tangent_vec=tangent_vector_to_shoot)
-
-        next_tangent_vec = self.log(
-            base_point=next_point, point=end_shoot)
+            tangent_vec=tangent_vector_to_shoot, **kwargs)
 
         geodesics = []
         if return_geodesics:
@@ -327,13 +322,12 @@ class Connection:
                 diagonal,
                 second_diagonal,
                 final_geodesic]
-        return {'next_tangent_vec': next_tangent_vec,
-                'geodesics': geodesics,
+        return {'geodesics': geodesics,
                 'end_point': end_shoot}
 
     def ladder_parallel_transport(
-            self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1,
-            step='pole', **single_step_kwargs):
+            self, tangent_vec_a, tangent_vec_b, base_point, n_rungs=1,
+            scheme='pole', alpha=1, **single_step_kwargs):
         """Approximate parallel transport using the pole ladder scheme.
 
         Approximate Parallel transport using either the pole ladder or the
@@ -354,12 +348,16 @@ class Connection:
         base_point : array-like, shape=[..., dim]
             Point on the manifold, initial position of the geodesic along
             which to transport.
-        n_steps : int
-            The number of pole ladder steps.
+        n_rungs : int
+            Number of steps of the ladder.
             Optional, default: 1.
-        step : str, {'pole', 'schild'}
+        scheme : str, {'pole', 'schild'}
             The scheme to use for the construction of the ladder at each step.
-            Optoinal, default: 'pole'.
+            Optional, default: 'pole'.
+        alpha : float
+            Exponent for the scaling of the vector to transport. Must be
+            greater or equal to 1, 2 is optimal. See [GP2020]_.
+            Optional, default: 2
         **single_step_kwargs : keyword arguments for the step functions
 
         Returns
@@ -379,24 +377,25 @@ class Connection:
           Pole Ladder.Journal of Mathematical Imaging and Vision, Springer
           Verlag, 2013, 50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
 
-        .. [GJSP2019] N. Guigui, Shuman Jia, Maxime Sermesant, Xavier Pennec.
-          Symmetric Algorithmic Components for Shape Analysis with
-          Diffeomorphisms. GSI 2019, Aug 2019, Toulouse, France. pp.10.
-          ⟨hal-02148832⟩
+        .. [GP2020] Nicolas Guigui, Xavier Pennec. Numerical Accuracy of
+        Ladder Schemes for Parallel Transport on Manifolds. 2020.
+        ⟨hal-02894783⟩
         """
-        current_point = gs.copy(base_point)
-        next_tangent_vec = gs.copy(tangent_vec_a) / n_steps
+        geomstats.errors.check_integer(n_rungs, 'n_rungs')
+        if alpha < 1:
+            raise ValueError('alpha must be greater or equal to one')
+        current_point = base_point
+        next_tangent_vec = tangent_vec_a / (n_rungs ** alpha)
         methods = {'pole': self._pole_ladder_step,
                    'schild': self._schild_ladder_step}
-        single_step = methods[step]
+        single_step = methods[scheme]
         base_shoot = self.exp(
             base_point=current_point, tangent_vec=next_tangent_vec)
         trajectory = []
-        for i_point in range(n_steps):
-            frac_tangent_vector_b = (i_point + 1) / n_steps * tangent_vec_b
+        for i_point in range(n_rungs):
+            frac_tan_vector_b = (i_point + 1) / n_rungs * tangent_vec_b
             next_point = self.exp(
-                base_point=base_point,
-                tangent_vec=frac_tangent_vector_b)
+                base_point=base_point, tangent_vec=frac_tan_vector_b)
             next_step = single_step(
                 base_point=current_point,
                 next_point=next_point,
@@ -405,9 +404,12 @@ class Connection:
             current_point = next_point
             base_shoot = next_step['end_point']
             trajectory.append(next_step['geodesics'])
-        transported_tangent_vec = n_steps * next_step['next_tangent_vec']
-
+        transported_tangent_vec = self.log(base_shoot, current_point)
+        if n_rungs % 2 == 1 and scheme == 'pole':
+            transported_tangent_vec *= -1.
+        transported_tangent_vec *= n_rungs ** alpha
         return {'transported_tangent_vec': transported_tangent_vec,
+                'end_point': current_point,
                 'trajectory': trajectory}
 
     def riemannian_curvature(self, base_point):
