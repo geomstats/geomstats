@@ -332,10 +332,10 @@ class Connection:
 
         Approximate Parallel transport using either the pole ladder or the
         Schild's ladder scheme [LP2013b]_. Pole ladder is exact in symmetric
-        spaces [GJSP2019]_ while Schild's ladder is a first order
-        approximation. Both schemes are available any affine connection
-        manifolds whose exponential and logarithm maps are implemented.
-        `tangent_vec_a` is transported along the geodesic starting
+        spaces and of order two in general while Schild's ladder is a first
+        order approximation [GP2020]_. Both schemes are available on any affine
+        connection manifolds whose exponential and logarithm maps are
+        implemented. `tangent_vec_a` is transported along the geodesic starting
         at the base_point with initial tangent vector `tangent_vec_b`.
 
         Parameters
@@ -378,8 +378,8 @@ class Connection:
           Verlag, 2013, 50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
 
         .. [GP2020] Nicolas Guigui, Xavier Pennec. Numerical Accuracy of
-        Ladder Schemes for Parallel Transport on Manifolds. 2020.
-        ⟨hal-02894783⟩
+          Ladder Schemes for Parallel Transport on Manifolds. 2020.
+          ⟨hal-02894783⟩
         """
         geomstats.errors.check_integer(n_rungs, 'n_rungs')
         if alpha < 1:
