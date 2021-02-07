@@ -19,8 +19,9 @@ class TimeSeriesCovariance:
 
     Parameters
     ----------
-    data_dict : dictionary
-        Contains the raw time series data, along the time, and the labels..
+    data_dict : dict
+        Dictionary with 'time_vec', 'raw_data', 'label' as key
+        and the corresponding array as values.
     n_steps : int
         Size of the batches.
     n_elec : int
@@ -34,8 +35,9 @@ class TimeSeriesCovariance:
     ----------
     label_map : dictionary
         Encode the label into digits.
-    data_dict : dictionary
-        Contains the raw time series data, along the time, and the labels..
+    data_dict : dict
+        Dictionary with 'time_vec', 'raw_data', 'label' as key
+        and the corresponding array as values.
     n_steps : int
         Size of the batches.
     n_elec : int
@@ -60,7 +62,7 @@ class TimeSeriesCovariance:
         self.data = data
         self.n_steps = n_steps
         self.n_elec = n_elec
-        self.batches = np.array([])
+        self.batches = gs.array([])
         self.margin = margin
         self.covs = gs.array([])
         self.labels = gs.array([])
@@ -78,7 +80,7 @@ class TimeSeriesCovariance:
         If margin != 0, we add an index margin at each label change
         to get stationary signal corresponding to each label.
         """
-        start_ids = np.where(np.diff(self.data['y']) != 0)[0]
+        start_ids = gs.where(np.diff(self.data['y']) != 0)[0]
         end_ids = np.append(start_ids[1:], len(self.data)) - self.margin
         start_ids += self.margin
         batches_list = [range(start_id, end_id - self.n_steps, self.n_steps)
@@ -86,7 +88,7 @@ class TimeSeriesCovariance:
         self.batches = np.int_(gs.concatenate(batches_list))
 
     def transform(self):
-        """Transform the time serie into batched covariance matrices.
+        """Transform the time series into batched covariance matrices.
 
         We also compute the corresponding vectors, variance vector,
         labels, and experiments.
