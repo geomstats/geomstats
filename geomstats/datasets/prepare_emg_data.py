@@ -17,6 +17,8 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 class TimeSeriesCovariance:
     """Class for generating a list of covariance matrices from time series.
 
+    Prepare a TimeSeriesCovariance Object from time series in dictionary.
+
     Parameters
     ----------
     data_dict : dict
