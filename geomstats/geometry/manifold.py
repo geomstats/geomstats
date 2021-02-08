@@ -27,7 +27,8 @@ class Manifold:
 
     def __init__(
             self, dim, default_point_type='vector',
-            default_coords_type='intrinsic'):
+            default_coords_type='intrinsic', **kwargs):
+        super(Manifold, self).__init__(**kwargs)
         geomstats.errors.check_integer(dim, 'dim')
         geomstats.errors.check_parameter_accepted_values(
             default_point_type, 'default_point_type', ['vector', 'matrix'])

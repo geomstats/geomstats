@@ -4,14 +4,14 @@ from functools import reduce
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.geometry.manifold import Manifold
 
 
 TOLERANCE = 1e-5
 
 
-class Matrices(Manifold):
+class Matrices:
     """Class for the space of matrices (m, n).
 
     Parameters
@@ -20,13 +20,12 @@ class Matrices(Manifold):
         Integers representing the shapes of the matrices: m x n.
     """
 
-    def __init__(self, m, n):
-        super(Matrices, self).__init__(dim=m * n)
+    def __init__(self, m, n, **kwargs):
+        super(Matrices, self).__init__(**kwargs)
         geomstats.errors.check_integer(n, 'n')
         geomstats.errors.check_integer(m, 'm')
         self.m = m
         self.n = n
-        self.default_point_type = 'matrix'
         self.metric = MatricesMetric(m, n)
 
     def belongs(self, point):
@@ -219,6 +218,32 @@ class Matrices(Manifold):
             Skew-symmetric matrix.
         """
         return 1 / 2 * (mat - cls.transpose(mat))
+
+    @classmethod
+    def is_diagonal(cls, mat, atol=TOLERANCE):
+        """Check if a matrix is square and diagonal.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-5.
+
+        Returns
+        -------
+        is_diagonal : array-like, shape=[...,]
+            Boolean evaluating if the matrix is square and diagonal.
+        """
+        is_square = cls.is_square(mat)
+        if not gs.all(is_square):
+            return False
+        diagonal_mat = from_vector_to_diagonal_matrix(
+            gs.diagonal(mat, axis1=-2, axis2=-1))
+        is_diagonal = gs.all(
+            gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
+        return is_diagonal
 
     def random_uniform(self, n_samples=1, bound=1.):
         """Sample from a uniform distribution.

@@ -362,3 +362,9 @@ def erf(x):
         np.sqrt(1 - np.exp(-x * x *
                            (4 / np.pi + cst_erf * x * x) /
                            (1 + cst_erf * x * x)))
+
+
+def triu_to_vec(x, k=0):
+    n = x.shape[-1]
+    rows, cols = triu_indices(n, k=k)
+    return x[..., rows, cols]

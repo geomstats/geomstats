@@ -758,3 +758,9 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
     if multiple_args:
         return stack(list(map(lambda y: pyfunc(*y), zip(*x))))
     return stack(list(map(pyfunc, x)))
+
+
+def triu_to_vec(x, k=0):
+    n = x.shape[-1]
+    rows, cols = triu_indices(n, k=k)
+    return x[..., rows, cols]
