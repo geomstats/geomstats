@@ -8,9 +8,11 @@ import warnings
 
 import numpy as _np
 import scipy.linalg
+import torch
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
@@ -180,46 +182,6 @@ class TestBackends(geomstats.tests.TestCase):
                            [0., 0., 6.]]])
         result = gs.linalg.expm(gs.linalg.logm(point))
         expected = point
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_tf_only
-    def test_powerm_diagonal(self):
-        power = .5
-        point = gs.array([[1., 0., 0.],
-                          [0., 4., 0.],
-                          [0., 0., 9.]])
-        result = gs.linalg.powerm(point, power)
-        expected = gs.array([[1., 0., 0.],
-                             [0., 2., 0.],
-                             [0., 0., 3.]])
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_tf_only
-    def test_powerm(self):
-        power = 2.4
-        point = gs.array([[1., 0., 0.],
-                          [0., 2.5, 1.5],
-                          [0., 1.5, 2.5]])
-        result = gs.linalg.powerm(point, power)
-        result = gs.linalg.powerm(result, 1 / power)
-        expected = point
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_only
-    def test_powerm_vectorization(self):
-        power = 2.4
-        points = gs.array([[[1., 0., 0.],
-                            [0., 4., 0.],
-                            [0., 0., 9.]],
-                           [[1., 0., 0.],
-                            [0., 2.5, 1.5],
-                            [0., 1.5, 2.5]]])
-        result = gs.linalg.powerm(points, power)
-        result = gs.linalg.powerm(result, 1. / power)
-        expected = points
 
         self.assertAllClose(result, expected)
 
@@ -918,18 +880,17 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad)
 
     def test_choice(self):
-
         x = gs.array([0.1, 0.2, 0.3, 0.4, 0.5])
         a = 4
-
         result = gs.random.choice(x, a)
 
+        result_bool = True
         for i in result:
             if i in x:
-                self.assertTrue(True)
-            else:
-                self.assertTrue(False)
+                continue
+            result_bool = False
 
+        self.assertTrue(result_bool)
         self.assertEqual(len(result), a)
 
     def test_split(self):
@@ -971,3 +932,71 @@ class TestBackends(geomstats.tests.TestCase):
         s = _np.linalg.svd(np_point, compute_uv=compute_uv)
         s_r = gs.linalg.svd(gs_point, compute_uv=compute_uv)
         self.assertAllClose(s, s_r)
+
+    def test_sylvester_solve(self):
+        mat = gs.random.rand(4, 3)
+        spd = gs.matmul(gs.transpose(mat), mat)
+
+        mat = gs.random.rand(3, 3)
+        skew = mat - gs.transpose(mat)
+        solution = gs.linalg.solve_sylvester(spd, spd, skew)
+        result = gs.matmul(spd, solution)
+        result += gs.matmul(solution, spd)
+
+        self.assertAllClose(result, skew)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_general_sylvester_solve(self):
+        a = gs.array([[-3., -2., 0.], [-1., -1., 3.], [3., -5., -1.]])
+        b = gs.array([[1.]])
+        q = gs.array([[1.], [2.], [3.]])
+        sol = gs.linalg.solve_sylvester(a, b, q)
+        result = gs.matmul(a, sol) + gs.matmul(sol, b)
+        self.assertAllClose(result, q)
+
+    def test_sylvester_solve_vectorization(self):
+        gs.random.seed(0)
+        mat = gs.random.rand(2, 4, 3)
+        spd = gs.matmul(gs.transpose(mat, (0, 2, 1)), mat)
+
+        mat = gs.random.rand(2, 3, 3)
+        skew = mat - gs.transpose(mat, (0, 2, 1))
+        solution = gs.linalg.solve_sylvester(spd, spd, skew)
+        result = gs.matmul(spd, solution)
+        result += gs.matmul(solution, spd)
+
+        self.assertAllClose(result, skew)
+
+    def test_eigvalsh(self):
+        mat = gs.array([[2., 1.], [1., -1.]])
+        result = gs.linalg.eigvalsh(mat, UPLO='U')
+        expected = _np.linalg.eigvalsh(mat)
+        self.assertAllCloseToNp(result, expected)
+
+    def test_cholesky(self):
+        mat = SPDMatrices(3).random_uniform(2)
+        result = gs.linalg.cholesky(mat)
+        expected = _np.linalg.cholesky(mat)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_expm_backward(self):
+        mat = gs.array([[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]])
+
+        def loss(p):
+            return gs.sum((gs.linalg.expm(p) - gs.eye(3)) ** 2)
+
+        value_and_grad = gs.autograd.value_and_grad(loss)
+        result = value_and_grad(mat)
+
+        def loss_torch(p):
+            return torch.sum((torch.matrix_exp(p) - torch.eye(3)) ** 2)
+
+        torch_mat = torch.tensor(
+            [[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]], requires_grad=True)
+        value = loss_torch(torch_mat)
+        value.backward()
+        grad = torch_mat.grad
+
+        self.assertAllClose(result[0], value.detach())
+        self.assertAllClose(result[1], grad)

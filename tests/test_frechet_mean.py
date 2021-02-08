@@ -137,7 +137,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = gs.zeros_like(points[0])
         self.assertAllClose(result, expected, atol=1e-5)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_estimate_and_belongs_default_gradient_descent_so_matrix(self):
         point = self.so_matrix.random_uniform(10)
 
@@ -165,7 +165,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         result_vec = mean_vec.estimate_
         result = self.so3.matrix_from_rotation_vector(result_vec)
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-5)
 
     def test_estimate_and_belongs_adaptive_gradient_descent_sphere(self):
         point_a = gs.array([1., 0., 0., 0., 0.])

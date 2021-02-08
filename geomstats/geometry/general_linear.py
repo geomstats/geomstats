@@ -16,8 +16,7 @@ class GeneralLinear(Matrices):
     """
 
     def __init__(self, n, **kwargs):
-        Matrices.__init__(self, n, n)
-
+        super(GeneralLinear, self).__init__(n=n, m=n, **kwargs)
         self.n = n
 
     def belongs(self, point):
@@ -87,14 +86,15 @@ class GeneralLinear(Matrices):
         samples : array-like, shape=[..., n, n]
             Point sampled on GL(n).
         """
-        samples = gs.random.rand(n_samples, self.n, self.n)
+        samples = gs.random.normal(size=(n_samples, self.n, self.n))
         while True:
             dets = gs.linalg.det(samples)
             indcs = gs.isclose(dets, 0.0, atol=tol)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
-            new_samples = gs.random.rand(num_bad_samples, self.n, self.n)
+            new_samples = gs.random.normal(
+                size=(num_bad_samples, self.n, self.n))
             samples = self._replace_values(samples, new_samples, indcs)
         if n_samples == 1:
             samples = gs.squeeze(samples, axis=0)

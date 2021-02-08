@@ -6,13 +6,12 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.geometry.manifold import Manifold
 
 
 TOLERANCE = 1e-5
 
 
-class Matrices(Manifold):
+class Matrices:
     """Class for the space of matrices (m, n).
 
     Parameters
@@ -21,13 +20,12 @@ class Matrices(Manifold):
         Integers representing the shapes of the matrices: m x n.
     """
 
-    def __init__(self, m, n):
-        super(Matrices, self).__init__(dim=m * n)
+    def __init__(self, m, n, **kwargs):
+        super(Matrices, self).__init__(**kwargs)
         geomstats.errors.check_integer(n, 'n')
         geomstats.errors.check_integer(m, 'm')
         self.m = m
         self.n = n
-        self.default_point_type = 'matrix'
         self.metric = MatricesMetric(m, n)
 
     def belongs(self, point):
