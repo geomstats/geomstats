@@ -417,10 +417,6 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-<<<<<<< HEAD
-    @geomstats.tests.np_and_pytorch_only
-=======
->>>>>>> master
     def test_dist_pairwise(self):
 
         point_a = (1. / gs.sqrt(129.)
@@ -436,8 +432,6 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, rtol=1e-3)
 
-<<<<<<< HEAD
-=======
     def test_dist_pairwise_parallel(self):
         n_samples = 15
         points = self.space.random_uniform(n_samples)
@@ -447,7 +441,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         self.assertTrue(is_sym)
         self.assertTrue(belongs)
 
->>>>>>> master
     def test_dist_orthogonal_points(self):
         # Distance between two orthogonal points is pi / 2.
         point_a = gs.array([10., -2., -.5, 0., 0.])

@@ -250,8 +250,6 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         expected = tangent_vec
         self.assertAllClose(result, expected)
 
-<<<<<<< HEAD
-=======
     def test_group_exp_from_identity_vectorized(self):
         # Group exponential of a translation (no rotational part)
         # Expect the original translation
@@ -261,7 +259,6 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         expected = tangent_vec
         self.assertAllClose(result, expected)
 
->>>>>>> master
     def test_group_log_from_identity(self):
         # Group logarithm of a translation (no rotational part)
         # Expect the original translation

@@ -40,8 +40,6 @@ class TestNotebooks(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_05_embedding_graph_structured_data_h2():
         _exec_notebook('notebooks/05_embedding_graph_structured_data_h2.ipynb')
-<<<<<<< HEAD
-=======
 
     @staticmethod
     @geomstats.tests.np_only
@@ -56,4 +54,3 @@ class TestNotebooks(geomstats.tests.TestCase):
     @staticmethod
     def test_08_emg_hand_gesture_classification():
         _exec_notebook('notebooks/07_emg_hand_gesture_classification.ipynb')
->>>>>>> master

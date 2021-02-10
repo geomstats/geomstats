@@ -61,47 +61,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                 'with_angle_close_pi_low': with_angle_close_pi_low}
 
         # -- Metrics - only diagonals for now
-<<<<<<< HEAD
-        canonical_metrics = {3: self.group.bi_invariant_metric}
-
-        diag_mats = {3: 9 * gs.eye(self.group.dim)}
-        left_diag_metrics = {
-            3: InvariantMetric(
-                group=self.group,
-                inner_product_mat_at_identity=diag_mats[3],
-                left_or_right='left')
-        }
-
-        right_diag_metrics = {
-            3: InvariantMetric(
-                group=self.group,
-                inner_product_mat_at_identity=diag_mats[3],
-                left_or_right='right')
-        }
-
-        mats = {2: 4 * gs.eye(1),
-                3: 87 * gs.eye(3)}
-
-        left_metrics = {
-            3: InvariantMetric(
-                group=self.group,
-                inner_product_mat_at_identity=mats[3],
-                left_or_right='left')
-        }
-
-        right_metrics = {
-            3: InvariantMetric(
-                group=self.group,
-                inner_product_mat_at_identity=mats[3],
-                left_or_right='right')
-        }
-        all_metrics = zip([3],
-                          canonical_metrics.values(),
-                          left_diag_metrics.values(),
-                          right_diag_metrics.values(),
-                          left_metrics.values(),
-                          right_metrics.values())
-=======
         canonical_metric = self.group.bi_invariant_metric
 
         diag_mat = 9 * gs.eye(self.group.dim)
@@ -114,7 +73,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             group=self.group,
             metric_mat_at_identity=diag_mat,
             left_or_right='right')
->>>>>>> master
 
         metrics_all = {
             'canonical': canonical_metric,
@@ -123,20 +81,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         metrics = metrics_all
         if geomstats.tests.tf_backend():
-<<<<<<< HEAD
-            metrics = {
-                3: {'right': InvariantMetric(
-                    group=self.group,
-                    inner_product_mat_at_identity=mats[3],
-                    left_or_right='right')}
-            }
-
-        angles_close_to_pi_all = {
-            3: ['with_angle_close_pi_low',
-                'with_angle_pi',
-                'with_angle_close_pi_high']
-        }
-=======
             metrics = {'right': InvariantMetric(
                 group=self.group,
                 metric_mat_at_identity=diag_mat,
@@ -147,7 +91,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             'with_angle_pi',
             'with_angle_close_pi_high']
 
->>>>>>> master
         angles_close_to_pi = angles_close_to_pi_all
         if geomstats.tests.tf_backend():
             angles_close_to_pi = ['with_angle_close_pi_low']
@@ -220,11 +163,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_regularize(self):
-<<<<<<< HEAD
-        point = self.elements_all[3]['with_angle_0']
-=======
         point = self.elements_all['with_angle_0']
->>>>>>> master
         self.assertAllClose(gs.linalg.norm(point), 0.)
         result = self.group.regularize(point)
         expected = point
@@ -233,11 +172,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         less_than_pi = ['with_angle_close_0',
                         'with_angle_close_pi_low']
         for angle_type in less_than_pi:
-<<<<<<< HEAD
-            point = self.elements_all[3][angle_type]
-=======
             point = self.elements_all[angle_type]
->>>>>>> master
             result = self.group.regularize(point)
             expected = point
             self.assertAllClose(result, expected)
@@ -245,21 +180,13 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         # Note: by default, the rotation vector is inverted by
         # the function regularize when the angle of the rotation is pi.
         angle_type = 'with_angle_pi'
-<<<<<<< HEAD
-        point = self.elements_all[3][angle_type]
-=======
         point = self.elements_all[angle_type]
->>>>>>> master
         result = self.group.regularize(point)
         expected = point
         self.assertAllClose(result, expected)
 
         angle_type = 'with_angle_close_pi_high'
-<<<<<<< HEAD
-        point = self.elements_all[3][angle_type]
-=======
         point = self.elements_all[angle_type]
->>>>>>> master
         result = self.group.regularize(point)
         expected = point / gs.linalg.norm(point) * gs.pi
         self.assertAllClose(result, expected)
@@ -268,11 +195,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                      'with_angle_close_2pi_low']
 
         for angle_type in in_pi_2pi:
-<<<<<<< HEAD
-            point = self.elements_all[3][angle_type]
-=======
             point = self.elements_all[angle_type]
->>>>>>> master
             point_initial = point
             angle = gs.linalg.norm(point)
             new_angle = gs.pi - (angle - gs.pi)
@@ -284,21 +207,13 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             self.assertAllClose(result, expected)
 
         angle_type = 'with_angle_2pi'
-<<<<<<< HEAD
-        point = self.elements_all[3][angle_type]
-=======
         point = self.elements_all[angle_type]
->>>>>>> master
         result = self.group.regularize(point)
         expected = gs.array([0., 0., 0.])
         self.assertAllClose(result, expected)
 
         angle_type = 'with_angle_close_2pi_high'
-<<<<<<< HEAD
-        point = self.elements_all[3][angle_type]
-=======
         point = self.elements_all[angle_type]
->>>>>>> master
         angle = gs.linalg.norm(point)
         new_angle = angle - 2 * gs.pi
 
@@ -383,15 +298,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         matrix_from_rotation_vector
         is the identity.
         """
-<<<<<<< HEAD
-        for angle_type in self.elements[3]:
-            point = self.elements[3][angle_type]
-            if angle_type in self.angles_close_to_pi[3]:
-=======
         for angle_type in self.elements:
             point = self.elements[angle_type]
             if angle_type in self.angles_close_to_pi:
->>>>>>> master
                 continue
             rot_mat = self.group.matrix_from_rotation_vector(point)
             result = self.group.rotation_vector_from_matrix(rot_mat)
@@ -1968,15 +1877,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         order = 'xyz'
         extrinsic_or_intrinsic = 'extrinsic'
 
-<<<<<<< HEAD
-        for angle_type in self.elements[3]:
-            point = self.elements[3][angle_type]
-            if angle_type in self.angles_close_to_pi[3]:
-=======
         for angle_type in self.elements:
             point = self.elements[angle_type]
             if angle_type in self.angles_close_to_pi:
->>>>>>> master
                 continue
 
             quaternion = self.group.quaternion_from_rotation_vector(point)
@@ -2039,15 +1942,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         order = 'xyz'
         extrinsic_or_intrinsic = 'intrinsic'
 
-<<<<<<< HEAD
-        for angle_type in self.elements[3]:
-            point = self.elements[3][angle_type]
-            if angle_type in self.angles_close_to_pi[3]:
-=======
         for angle_type in self.elements:
             point = self.elements[angle_type]
             if angle_type in self.angles_close_to_pi:
->>>>>>> master
                 continue
 
             quaternion = self.group.quaternion_from_rotation_vector(point)
@@ -2216,15 +2113,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         order = 'xyz'
 
         for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
-<<<<<<< HEAD
-            for angle_type in self.elements[3]:
-                point = self.elements[3][angle_type]
-                if angle_type in self.angles_close_to_pi[3]:
-=======
             for angle_type in self.elements:
                 point = self.elements[angle_type]
                 if angle_type in self.angles_close_to_pi:
->>>>>>> master
                     continue
 
                 tait_bryan = self.group.tait_bryan_angles_from_rotation_vector(
@@ -2260,15 +2151,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         order = 'zyx'
         extrinsic_or_intrinsic = 'extrinsic'
 
-<<<<<<< HEAD
-        for angle_type in self.elements[3]:
-            point = self.elements[3][angle_type]
-            if angle_type in self.angles_close_to_pi[3]:
-=======
         for angle_type in self.elements:
             point = self.elements[angle_type]
             if angle_type in self.angles_close_to_pi:
->>>>>>> master
                 continue
 
             quaternion = self.group.quaternion_from_rotation_vector(point)
@@ -2306,15 +2191,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         order = 'zyx'
         extrinsic_or_intrinsic = 'intrinsic'
 
-<<<<<<< HEAD
-        for angle_type in self.elements[3]:
-            point = self.elements[3][angle_type]
-            if angle_type in self.angles_close_to_pi[3]:
-=======
         for angle_type in self.elements:
             point = self.elements[angle_type]
             if angle_type in self.angles_close_to_pi:
->>>>>>> master
                 continue
 
             quaternion = self.group.quaternion_from_rotation_vector(point)
@@ -2363,11 +2242,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         matrix_from_rotation_vector
         is the identity.
         """
-<<<<<<< HEAD
-        angle_types = self.angles_close_to_pi[3]
-=======
         angle_types = self.angles_close_to_pi
->>>>>>> master
         for angle_type in angle_types:
             point = self.elements[angle_type]
 
@@ -2382,15 +2257,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                 or gs.allclose(result, inv_expected))
 
     def test_quaternion_and_rotation_vector(self):
-<<<<<<< HEAD
-        for angle_type in self.elements[3]:
-            point = self.elements[3][angle_type]
-            if angle_type in self.angles_close_to_pi[3]:
-=======
         for angle_type in self.elements:
             point = self.elements[angle_type]
             if angle_type in self.angles_close_to_pi:
->>>>>>> master
                 continue
 
             quaternion = self.group.quaternion_from_rotation_vector(point)
@@ -2401,11 +2270,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             self.assertAllClose(result, expected)
 
     def test_quaternion_and_rotation_vector_with_angles_close_to_pi(self):
-<<<<<<< HEAD
-        angle_types = self.angles_close_to_pi[3]
-=======
         angle_types = self.angles_close_to_pi
->>>>>>> master
         for angle_type in angle_types:
             point = self.elements[angle_type]
 
@@ -2432,15 +2297,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_quaternion_and_matrix(self):
-<<<<<<< HEAD
-        for angle_type in self.elements[3]:
-            point = self.elements[3][angle_type]
-            if angle_type in self.angles_close_to_pi[3]:
-=======
         for angle_type in self.elements:
             point = self.elements[angle_type]
             if angle_type in self.angles_close_to_pi:
->>>>>>> master
                 continue
 
             matrix = self.group.matrix_from_rotation_vector(point)
@@ -2488,15 +2347,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_quaternion_and_matrix_with_angles_close_to_pi(self):
-<<<<<<< HEAD
-        angle_types = self.angles_close_to_pi[3]
-        for angle_type in angle_types:
-            point = self.elements[3][angle_type]
-=======
         angle_types = self.angles_close_to_pi
         for angle_type in angle_types:
             point = self.elements[angle_type]
->>>>>>> master
             matrix = self.group.matrix_from_rotation_vector(point)
 
             quaternion = self.group.quaternion_from_matrix(matrix)
@@ -2524,22 +2377,13 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_compose(self):
-<<<<<<< HEAD
-        for element_type in self.elements[3]:
-            point = self.elements[3][element_type]
-=======
         for element_type in self.elements:
             point = self.elements[element_type]
->>>>>>> master
             # Composition by identity, on the right
             # Expect the original transformation
             result = self.group.compose(point, self.group.identity)
             expected = self.group.regularize(point)
-<<<<<<< HEAD
-            if element_type not in self.angles_close_to_pi[3]:
-=======
             if element_type not in self.angles_close_to_pi:
->>>>>>> master
                 self.assertAllClose(result, expected)
 
             else:
@@ -2553,11 +2397,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                 result = self.group.compose(self.group.identity, point)
                 expected = self.group.regularize(point)
 
-<<<<<<< HEAD
-                if element_type not in self.angles_close_to_pi[3]:
-=======
                 if element_type not in self.angles_close_to_pi:
->>>>>>> master
                     self.assertAllClose(result, expected)
                 else:
                     inv_expected = - expected
@@ -2566,11 +2406,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                         or gs.allclose(result, inv_expected))
 
     def test_compose_and_inverse(self):
-<<<<<<< HEAD
-        for point in self.elements[3].values():
-=======
         for point in self.elements.values():
->>>>>>> master
             inv_point = self.group.inverse(point)
             # Compose transformation by its inverse on the right
             # Expect the self.group identity
@@ -2593,28 +2429,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         result = self.group.compose(one_point, n_points_a)
         self.assertAllClose(
             gs.shape(result), (n_samples, self.group.dim))
-<<<<<<< HEAD
-
-        result = self.group.compose(n_points_a, one_point)
-        self.assertAllClose(
-            gs.shape(result), (n_samples, self.group.dim))
-
-        result = self.group.compose(n_points_a, n_points_b)
-        self.assertAllClose(
-            gs.shape(result), (n_samples, self.group.dim))
-
-    def test_inverse_vectorization(self):
-        n_samples = self.n_samples
-        points = self.group.random_uniform(n_samples=n_samples)
-        result = self.group.inverse(points)
-
-        self.assertAllClose(
-            gs.shape(result), (n_samples, self.group.dim))
-
-    def test_left_jacobian_through_its_determinant(self):
-        for angle_type in self.elements[3]:
-            point = self.elements[3][angle_type]
-=======
 
         result = self.group.compose(n_points_a, one_point)
         self.assertAllClose(
@@ -2635,7 +2449,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
     def test_left_jacobian_through_its_determinant(self):
         for angle_type in self.elements:
             point = self.elements[angle_type]
->>>>>>> master
             jacobian = self.group.jacobian_translation(
                 point=point, left_or_right='left')
             result = gs.linalg.det(jacobian)
@@ -2664,11 +2477,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         The Riemannian exp and log are inverse functions of each other.
         This test is the inverse of test_log's.
         """
-<<<<<<< HEAD
-        metric = self.metrics_all[3]['canonical']
-=======
         metric = self.metrics_all['canonical']
->>>>>>> master
         theta = gs.pi / 5.
         rot_vec_base_point = theta / gs.sqrt(3.) * gs.array([1., 1., 1.])
         # Note: the rotation vector for the reference point
@@ -2729,11 +2538,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         The Riemannian exp and log are inverse functions of each other.
         This test is the inverse of test_exp's.
         """
-<<<<<<< HEAD
-        metric = self.metrics_all[3]['canonical']
-=======
         metric = self.metrics_all['canonical']
->>>>>>> master
         theta = gs.pi / 5.
         rot_vec_base_point = theta / gs.sqrt(3.) * gs.array([1., 1., 1.])
         # Note: the rotation vector for the reference point
@@ -2814,15 +2619,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         This tests that the composition of
         log and exp gives identity.
         """
-<<<<<<< HEAD
-        for metric_type in self.metrics[3]:
-            for angle_type in self.elements[3]:
-                if angle_type in self.angles_close_to_pi[3]:
-=======
         for metric_type in self.metrics:
             for angle_type in self.elements:
                 if angle_type in self.angles_close_to_pi:
->>>>>>> master
                     continue
 
                 metric = self.metrics[metric_type]
@@ -2841,11 +2640,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         This tests that the composition of
         log and exp gives identity.
         """
-<<<<<<< HEAD
-        angle_types = self.angles_close_to_pi[3]
-=======
         angle_types = self.angles_close_to_pi
->>>>>>> master
 
         for metric_type in self.metrics:
             for angle_type in angle_types:
@@ -2867,15 +2662,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         This tests that the composition of
         log and exp gives identity.
         """
-<<<<<<< HEAD
-        for metric_type in self.metrics[3]:
-            for angle_type in self.elements[3]:
-                if angle_type in self.angles_close_to_pi[3]:
-=======
         for metric_type in self.metrics:
             for angle_type in self.elements:
                 if angle_type in self.angles_close_to_pi:
->>>>>>> master
                     continue
 
                 metric = self.metrics[metric_type]
@@ -2891,11 +2680,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         This tests that the composition of
         log and exp gives identity.
         """
-<<<<<<< HEAD
-        angle_types = self.angles_close_to_pi[3]
-=======
         angle_types = self.angles_close_to_pi
->>>>>>> master
 
         for metric_type in self.metrics:
             for angle_type in angle_types:
@@ -2916,15 +2701,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         This tests that the composition of
         log and exp gives identity.
         """
-<<<<<<< HEAD
-        for metric_type in self.metrics[3]:
-            for angle_type in self.elements[3]:
-                if angle_type in self.angles_close_to_pi[3]:
-=======
         for metric_type in self.metrics:
             for angle_type in self.elements:
                 if angle_type in self.angles_close_to_pi:
->>>>>>> master
                     continue
                 for angle_type_base in self.elements:
 
@@ -2947,13 +2726,8 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         This tests that the composition of
         log and exp gives identity.
         """
-<<<<<<< HEAD
-        angle_types = self.angles_close_to_pi[3]
-        for metric_type in self.metrics[3]:
-=======
         angle_types = self.angles_close_to_pi
         for metric_type in self.metrics:
->>>>>>> master
             for angle_type in angle_types:
                 for angle_type_base in self.elements:
                     metric = self.metrics[metric_type]
@@ -2980,15 +2754,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         This tests that the composition of
         log and exp gives identity.
         """
-<<<<<<< HEAD
-        for metric_type in self.metrics[3]:
-            for angle_type in self.elements[3]:
-                if angle_type in self.angles_close_to_pi[3]:
-=======
         for metric_type in self.metrics:
             for angle_type in self.elements:
                 if angle_type in self.angles_close_to_pi:
->>>>>>> master
                     continue
                 for angle_type_base in self.elements:
                     if angle_type_base in self.angles_close_to_pi:
@@ -3013,14 +2781,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         """
         This tests that the composition of log and exp gives identity.
         """
-<<<<<<< HEAD
-        angle_types = self.angles_close_to_pi[3]
-        for metric_type in self.metrics[3]:
-=======
         # TODO(nguigs): fix this test for tf
         angle_types = self.angles_close_to_pi
         for metric_type in self.metrics:
->>>>>>> master
             for angle_type in angle_types:
                 for angle_type_base in self.elements:
                     metric = self.metrics[metric_type]
@@ -3047,11 +2810,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         tangent_vec = self.group.vector_from_skew_matrix(tangent_sample)
         exp = self.group.exp_from_identity(tangent_vec)
         result = self.group.matrix_from_rotation_vector(exp)
-<<<<<<< HEAD
-        self.assertAllClose(result, expected)
-=======
         self.assertAllClose(result, expected, atol=1e-5)
->>>>>>> master
 
     # def test_group_exp_from_identity_coincides_with_expm_for_high_dims(self):
     #     for n in [4, 5, 6, 7, 8, 9, 10]:
@@ -3143,13 +2902,8 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         and the self.group logarithm are inverse.
         Expect their composition to give the identity function.
         """
-<<<<<<< HEAD
-        for angle_type in self.elements[3]:
-            if angle_type in self.angles_close_to_pi[3]:
-=======
         for angle_type in self.elements:
             if angle_type in self.angles_close_to_pi:
->>>>>>> master
                 continue
             tangent_vec = self.elements[angle_type]
             result = helper.group_exp_then_log_from_identity(
@@ -3163,11 +2917,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         and the self.group logarithm are inverse.
         Expect their composition to give the identity function.
         """
-<<<<<<< HEAD
-        angle_types = self.angles_close_to_pi[3]
-=======
         angle_types = self.angles_close_to_pi
->>>>>>> master
         for angle_type in angle_types:
             tangent_vec = self.elements[angle_type]
             result = helper.group_exp_then_log_from_identity(
@@ -3201,11 +2951,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         and the self.group logarithm are inverse.
         Expect their composition to give the identity function.
         """
-<<<<<<< HEAD
-        angle_types = self.angles_close_to_pi[3]
-=======
         angle_types = self.angles_close_to_pi
->>>>>>> master
         for angle_type in angle_types:
             point = self.elements[angle_type]
             result = helper.group_log_then_exp_from_identity(
@@ -3225,13 +2971,8 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         log and exp gives identity.
 
         """
-<<<<<<< HEAD
-        for angle_type in self.elements[3]:
-            if angle_type in self.angles_close_to_pi[3]:
-=======
         for angle_type in self.elements:
             if angle_type in self.angles_close_to_pi:
->>>>>>> master
                 continue
             for angle_type_base in self.elements:
                 tangent_vec = self.elements[angle_type]
@@ -3255,11 +2996,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         This tests that the composition of
         log and exp gives identity.
         """
-<<<<<<< HEAD
-        angle_types = self.angles_close_to_pi[3]
-=======
         angle_types = self.angles_close_to_pi
->>>>>>> master
         for angle_type in angle_types:
             for angle_type_base in self.elements:
                 tangent_vec = self.elements[angle_type]
@@ -3287,13 +3024,8 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         This tests that the composition of
         log and exp gives identity.
         """
-<<<<<<< HEAD
-        for angle_type in self.elements[3]:
-            if angle_type in self.angles_close_to_pi[3]:
-=======
         for angle_type in self.elements:
             if angle_type in self.angles_close_to_pi:
->>>>>>> master
                 continue
             for angle_type_base in self.elements:
                 if angle_type_base in self.angles_close_to_pi:
@@ -3315,12 +3047,8 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         This tests that the composition of
         log and exp gives identity.
         """
-<<<<<<< HEAD
-        angle_types = self.angles_close_to_pi[3]
-=======
         # TODO(nguigs): fix this test for tf
         angle_types = self.angles_close_to_pi
->>>>>>> master
         for angle_type in angle_types:
             for angle_type_base in self.elements:
                 point = self.elements[angle_type]
@@ -3338,19 +3066,11 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     or gs.allclose(result, inv_expected, atol=5e-3))
 
     def test_squared_dist_is_symmetric(self):
-<<<<<<< HEAD
-        for metric in self.metrics[3].values():
-            for angle_type_1 in self.elements[3]:
-                for angle_type_2 in self.elements[3]:
-                    point_1 = self.elements[3][angle_type_1]
-                    point_2 = self.elements[3][angle_type_2]
-=======
         for metric in self.metrics.values():
             for angle_type_1 in self.elements:
                 for angle_type_2 in self.elements:
                     point_1 = self.elements[angle_type_1]
                     point_2 = self.elements[angle_type_2]
->>>>>>> master
                     point_1 = self.group.regularize(point_1)
                     point_2 = self.group.regularize(point_2)
 
@@ -3368,19 +3088,11 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         For other metrics, the scaling factor can give
         distances above pi.
         """
-<<<<<<< HEAD
-        metric = self.metrics_all[3]['canonical']
-        for angle_type_1 in self.elements[3]:
-            for angle_type_2 in self.elements[3]:
-                point_1 = self.elements[3][angle_type_1]
-                point_2 = self.elements[3][angle_type_2]
-=======
         metric = self.metrics_all['canonical']
         for angle_type_1 in self.elements:
             for angle_type_2 in self.elements:
                 point_1 = self.elements[angle_type_1]
                 point_2 = self.elements[angle_type_2]
->>>>>>> master
                 point_1 = self.group.regularize(point_1)
                 point_2 = self.group.regularize(point_2)
 
@@ -3391,13 +3103,8 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples
-<<<<<<< HEAD
-        for metric_type in self.metrics[3]:
-            metric = self.metrics[3][metric_type]
-=======
         for metric_type in self.metrics:
             metric = self.metrics[metric_type]
->>>>>>> master
             point_id = self.group.identity
 
             one_point_1 = self.group.random_uniform(n_samples=1)
@@ -3432,13 +3139,8 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
     def test_dist_vectorization(self):
         n_samples = self.n_samples
-<<<<<<< HEAD
-        for metric_type in self.metrics[3]:
-            metric = self.metrics[3][metric_type]
-=======
         for metric_type in self.metrics:
             metric = self.metrics[metric_type]
->>>>>>> master
             point_id = self.group.identity
 
             one_point_1 = self.group.random_uniform(n_samples=1)
@@ -3489,11 +3191,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         # FIXME
         # initial_point = self.group.random_uniform()
         # initial_tangent_vec = gs.array([1., 1., 1.])
-<<<<<<< HEAD
-        # metric = self.metrics_all[3]['canonical']
-=======
         # metric = self.metrics_all['canonical']
->>>>>>> master
         # geodesic = metric.geodesic(initial_point=initial_point,
         #                            initial_tangent_vec=initial_tangent_vec)
         # n_steps = 100

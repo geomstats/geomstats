@@ -880,21 +880,6 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad)
 
     def test_choice(self):
-<<<<<<< HEAD
-
-        x = gs.array([0.1, 0.2, 0.3, 0.4, 0.5])
-        a = 4
-
-        result = gs.random.choice(x, a)
-
-        for i in result:
-            if i in x:
-                self.assertTrue(True)
-            else:
-                self.assertTrue(False)
-
-        self.assertEqual(len(result), a)
-=======
         x = gs.array([0.1, 0.2, 0.3, 0.4, 0.5])
         a = 4
         result = gs.random.choice(x, a)
@@ -1015,4 +1000,3 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result[0], value.detach())
         self.assertAllClose(result[1], grad)
->>>>>>> master
