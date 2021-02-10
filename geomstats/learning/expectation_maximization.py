@@ -9,7 +9,8 @@ from geomstats.geometry.poincare_ball \
     import PoincareBall
 from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean
-
+from geomstats.learning.frechet_mean import variance
+from geomstats.learning.kmeans import RiemannianKMeans
 
 EM_CONV_RATE = 1e-4
 MINIMUM_EPOCHS = 10
@@ -20,9 +21,10 @@ DEFAULT_TOL = 1e-2
 ZETA_LOWER_BOUND = 5e-2
 ZETA_UPPER_BOUND = 2.
 ZETA_STEP = 0.001
-PDF_TOL = 1e-15
+PDF_TOL = 1e-6
 SUM_CHECK_PDF = 1e-4
 MEAN_MAX_ITER = 150
+MIN_VAR_INIT = 1e-3
 
 
 class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
@@ -41,7 +43,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     initialisation_method : basestring
         Optional, default: 'random'.
         Choice between initialization method for variances, means and weights.
-           'random' : will select random uniformally train point as
+           'random' : will select random uniformly train points as
                      initial centroids.
             'kmeans' : will apply Riemannian kmeans to deduce
             variances and means that the EM will use initially.
@@ -98,7 +100,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.n_gaussians = n_gaussians
         self.metric = metric
         self.initialisation_method = initialisation_method
-        # TODO : hzaatiti, tgeral68 implement kmeans initialisation
         self.tol = tol
         self.mean_method = mean_method
         self.point_type = point_type
@@ -211,6 +212,11 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             logging.warning('EXPECTATION : posterior probabilities '
                             'do not sum to 1.')
 
+        if gs.any(gs.sum(posterior_probabilities, 0) < PDF_TOL):
+            logging.warning('EXPECTATION : Gaussian got no elements '
+                            '(precision error) reinitialize')
+            posterior_probabilities[posterior_probabilities == 0] = PDF_TOL
+
         return posterior_probabilities
 
     def _maximization(self,
@@ -293,10 +299,34 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             Gaussian mixture model: means, variances and mixture_coefficients.
         """
         self._dimension = data.shape[-1]
-        self.means = (gs.random.rand(
-            self.n_gaussians,
-            self._dimension) - 0.5) / self._dimension
-        self.variances = gs.random.rand(self.n_gaussians) / 10 + 0.8
+        if self.initialisation_method == 'kmeans':
+            kmeans = RiemannianKMeans(metric=self.metric,
+                                      n_clusters=self.n_gaussians,
+                                      init='random',
+                                      mean_method='frechet-poincare-ball'
+                                      )
+
+            centroids = kmeans.fit(X=data, max_iter=100)
+            labels = kmeans.predict(X=data)
+
+            self.means = centroids
+            self.variances = gs.zeros(self.n_gaussians)
+
+            labeled_data = gs.vstack([labels, gs.transpose(data)])
+            labeled_data = gs.transpose(labeled_data)
+            for label, centroid in enumerate(centroids):
+                label_mask = gs.where(labeled_data[:, 0] == label)
+                grouped_by_label = labeled_data[label_mask][:, 1:]
+                v = variance(grouped_by_label, centroid, self.metric)
+                if grouped_by_label.shape[0] == 1:
+                    v += MIN_VAR_INIT
+                self.variances[label] = v
+        else:
+            self.means = (gs.random.rand(
+                self.n_gaussians,
+                self._dimension) - 0.5) / self._dimension
+            self.variances = gs.random.rand(self.n_gaussians) / 10 + 0.8
+
         self.mixture_coefficients = \
             gs.ones(self.n_gaussians) / self.n_gaussians
         posterior_probabilities = gs.ones((data.shape[0],

@@ -25,12 +25,9 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         choice 'random' will select training points as initial centroids
         uniformly at random.
         Optional, default: 'random'.
-    cluster_centers_ : array-like, shape=[n_clusters, dim]
-        Array of cluster centers.
-    labels_ : array-like, shape=[n_clusters, dim]
-        Labels predicted for each data sample.
-    medoid_indices_ : array-like, shape=[n_clusters]
-        Indices of the cluster centers from the data array.
+    n_jobs : int
+        Number of jobs to run in parallel. `-1` means using all processors.
+        Optional, default: 1.
 
     Example
     -------
@@ -39,13 +36,14 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
     """
 
     def __init__(
-            self, metric, n_clusters=8, init='random'):
+            self, metric, n_clusters=8, init='random', n_jobs=1):
         self.metric = metric
         self.n_clusters = n_clusters
         self.init = init
         self.cluster_centers_ = None
         self.labels_ = None
         self.medoid_indices_ = None
+        self.n_jobs = n_jobs
 
     def _initialize_medoids(self, distances):
         """Select initial medoids when beginning clustering."""
@@ -78,16 +76,12 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         self : array-like, shape=[n_clusters,]
             Centroids.
         """
-        distances = self.metric.dist_pairwise(data)
-
+        distances = self.metric.dist_pairwise(data, n_jobs=self.n_jobs)
         medoids_indices = self._initialize_medoids(distances)
 
         for iteration in range(max_iter):
-
             old_medoids_indices = gs.copy(medoids_indices)
-
             labels = gs.argmin(distances[medoids_indices, :], axis=0)
-
             self._update_medoid_indexes(distances, labels, medoids_indices)
 
             if gs.all(old_medoids_indices == medoids_indices):
@@ -108,22 +102,16 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
     def _update_medoid_indexes(self, distances, labels, medoid_indices):
 
         for cluster in range(self.n_clusters):
-
             cluster_index = gs.where(labels == cluster)[0]
-
             if len(cluster_index) == 0:
                 logging.warning('One cluster is empty.')
                 continue
 
             in_cluster_distances = distances[
                 cluster_index, gs.expand_dims(cluster_index, axis=-1)]
-
             in_cluster_all_costs = gs.sum(in_cluster_distances, axis=1)
-
             min_cost_index = gs.argmin(in_cluster_all_costs)
-
             min_cost = in_cluster_all_costs[min_cost_index]
-
             current_cost = in_cluster_all_costs[
                 gs.argmax(cluster_index == medoid_indices[cluster])]
 

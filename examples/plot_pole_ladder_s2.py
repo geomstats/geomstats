@@ -38,7 +38,7 @@ def main():
         tangent_vec_a,
         tangent_vec_b,
         base_point,
-        n_steps=N_STEPS,
+        n_rungs=N_STEPS,
         return_geodesics=True)
 
     pole_ladder = ladder['transported_tangent_vec']
@@ -57,8 +57,6 @@ def main():
             ax, main_geodesic(t_main), marker='o', c='b', s=2)
         sphere_visu.draw_points(ax, diagonal(-t), marker='o', c='r', s=2)
         sphere_visu.draw_points(ax, diagonal(t), marker='o', c='r', s=2)
-        sphere_visu.draw_points(ax, final_geodesic(-t), marker='o', c='g', s=2)
-        sphere_visu.draw_points(ax, final_geodesic(t), marker='o', c='g', s=2)
 
     tangent_vectors = gs.stack(
         [tangent_vec_b, tangent_vec_a, pole_ladder], axis=0) / N_STEPS

@@ -1,6 +1,7 @@
 """Riemannian and pseudo-Riemannian metrics."""
 
 import autograd
+import joblib
 
 import geomstats.backend as gs
 import geomstats.vectorization
@@ -60,7 +61,7 @@ def grad(y_pred, y_true, metric):
     tangent_vec = metric.log(base_point=y_pred, point=y_true)
     grad_vec = - 2. * tangent_vec
 
-    inner_prod_mat = metric.inner_product_matrix(base_point=y_pred)
+    inner_prod_mat = metric.metric_matrix(base_point=y_pred)
     is_vectorized = inner_prod_mat.ndim == 3
     axes = (0, 2, 1) if is_vectorized else (1, 0)
 
@@ -92,8 +93,8 @@ class RiemannianMetric(Connection):
             dim=dim, default_point_type=default_point_type)
         self.signature = signature
 
-    def inner_product_matrix(self, base_point=None):
-        """Inner product matrix at the tangent space at a base point.
+    def metric_matrix(self, base_point=None):
+        """Metric matrix at the tangent space at a base point.
 
         Parameters
         ----------
@@ -107,7 +108,7 @@ class RiemannianMetric(Connection):
             Inner-product matrix.
         """
         raise NotImplementedError(
-            'The computation of the inner product matrix'
+            'The computation of the metric matrix'
             ' is not implemented.')
 
     def inner_product_inverse_matrix(self, base_point=None):
@@ -124,7 +125,7 @@ class RiemannianMetric(Connection):
         mat : array-like, shape=[..., dim, dim]
             Inverse of inner-product matrix.
         """
-        metric_matrix = self.inner_product_matrix(base_point)
+        metric_matrix = self.metric_matrix(base_point)
         cometric_matrix = gs.linalg.inv(metric_matrix)
         return cometric_matrix
 
@@ -142,7 +143,7 @@ class RiemannianMetric(Connection):
         mat : array-like, shape=[..., dim, dim]
             Derivative of inverse of inner-product matrix.
         """
-        metric_derivative = autograd.jacobian(self.inner_product_matrix)
+        metric_derivative = autograd.jacobian(self.metric_matrix)
         return metric_derivative(base_point)
 
     def christoffels(self, base_point):
@@ -193,7 +194,7 @@ class RiemannianMetric(Connection):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        inner_prod_mat = self.inner_product_matrix(base_point)
+        inner_prod_mat = self.metric_matrix(base_point)
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
 
         aux = gs.einsum('...j,...jk->...k', tangent_vec_a, inner_prod_mat)
@@ -294,27 +295,45 @@ class RiemannianMetric(Connection):
         dist = gs.sqrt(sq_dist)
         return dist
 
-    def dist_pairwise(self, point):
+    def dist_pairwise(self, points, n_jobs=1, **joblib_kwargs):
         """Compute the pairwise distance between points.
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
-            Set of points in hyperbolic space.
+        points : array-like, shape=[n_samples, dim]
+            Set of points in the manifold.
+        n_jobs : int
+            Number of jobs to run in parallel, using joblib. Note that a
+            higher number of jobs may not be beneficial when one computation
+            of a geodesic distance is cheap.
+            Optional. Default: 1.
+        **joblib_kwargs : dict
+            Keyword arguments to joblib.Parallel
 
         Returns
         -------
         dist : array-like, shape=[n_samples, n_samples]
-            Pairwise distance matrix between all points.
-        """
-        pairwise_dist = []
+            Pairwise distance matrix between all the points.
 
-        for i, x in enumerate(point):
-            for y in point[i:]:
-                pairwise_dist.append(self.dist(x, y))
+        See Also
+        --------
+        https://joblib.readthedocs.io/en/latest/
+        """
+        n_samples = points.shape[0]
+        rows, cols = gs.triu_indices(n_samples)
+
+        @joblib.delayed
+        @joblib.wrap_non_picklable_objects
+        def pickable_dist(x, y):
+            """Wrap distance function to make it pickable."""
+            return self.dist(x, y)
+
+        pool = joblib.Parallel(n_jobs=n_jobs, **joblib_kwargs)
+        out = pool(
+            pickable_dist(points[i], points[j]) for i, j in zip(rows, cols))
 
         pairwise_dist = geomstats.geometry.symmetric_matrices.\
-            SymmetricMatrices.from_vector(gs.array(pairwise_dist))
+            SymmetricMatrices.from_vector(gs.array(out))
 
         return pairwise_dist
 
@@ -363,3 +382,23 @@ class RiemannianMetric(Connection):
         closest_neighbor_index = gs.argmin(dist)
 
         return closest_neighbor_index
+
+    def orthonormal_basis(self, basis, base_point=None):
+        """Orthonormalize the basis with respect to the metric.
+
+        This corresponds to a renormalization.
+
+        Parameters
+        ----------
+        basis : array-like, shape=[dim, dim]
+            Matrix of a metric.
+        base_point
+
+        Returns
+        -------
+        basis : array-like, shape=[dim, n, n]
+            Orthonormal basis.
+        """
+        norms = self.squared_norm(basis, base_point)
+
+        return gs.einsum('i, ikl->ikl', 1. / gs.sqrt(norms), basis)

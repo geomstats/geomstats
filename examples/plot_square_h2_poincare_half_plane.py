@@ -23,21 +23,22 @@ def main():
     corners_ext = H2.from_coordinates(corners_int, 'intrinsic')
     n_steps = 20
     ax = plt.gca()
+    edge_points = []
     for i, src in enumerate(corners_ext):
         dst_id = (i + 1) % len(corners_ext)
         dst = corners_ext[dst_id]
-        tangent_vec = METRIC.log(point=dst, base_point=src)
-        geodesic = METRIC.geodesic(
-            initial_point=src, initial_tangent_vec=tangent_vec)
+        geodesic = METRIC.geodesic(initial_point=src, end_point=dst)
         t = gs.linspace(0., 1., n_steps)
-        edge_points = geodesic(t)
+        edge_points.append(geodesic(t))
 
-        visualization.plot(
-            edge_points,
-            ax=ax,
-            space='H2_poincare_half_plane',
-            marker='.',
-            color='black')
+    edge_points = gs.vstack(edge_points)
+    visualization.plot(
+        edge_points,
+        ax=ax,
+        space='H2_poincare_half_plane',
+        point_type='extrinsic',
+        marker='.',
+        color='black')
 
     plt.show()
 

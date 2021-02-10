@@ -4,6 +4,8 @@ import csv
 import json
 import os
 
+import pandas
+
 import geomstats.backend as gs
 from geomstats.datasets.prepare_graph_data import Graph
 from geomstats.geometry.hypersphere import Hypersphere
@@ -30,6 +32,10 @@ GRAPH_RANDOM_PATH = os.path.join(
     DATA_PATH, 'graph_random', 'graph_random.txt')
 GRAPH_RANDOM_LABELS_PATH = os.path.join(
     DATA_PATH, 'graph_random', 'graph_random_labels.txt')
+LEAVES_PATH = os.path.join(
+    DATA_PATH, 'leaves', 'leaves.csv')
+EMG_PATH = os.path.join(
+    DATA_PATH, 'emg', 'emg.csv')
 
 
 def load_cities():
@@ -158,3 +164,33 @@ def load_connectomes(as_vectors=False):
     mat = 1. / 2. * (mat + gs.transpose(mat, (0, 2, 1)))
 
     return mat, patient_id, target
+
+
+def load_leaves():
+    """Load data from data/leaves/leaves.xlsx.
+
+    Returns
+    -------
+    beta_param : array-like, shape=[172, 2]
+        beta parameters of the beta distributions fitted to each
+        leaf orientation angle sample of 172 species of plants.
+    distrib_type: array-like, shape=[172, ]
+        leaf orientation angle distribution type for each of the 172 species.
+    """
+    data = pandas.read_csv(LEAVES_PATH, sep=';')
+    beta_param = gs.array(data[['nu', 'mu']])
+    distrib_type = gs.squeeze(gs.array(data['Distribution']))
+    return beta_param, distrib_type
+
+
+def load_emg():
+    """Load data from data/emg/emg.csv.
+
+    Returns
+    -------
+    data_emg : pandas.DataFrame, shape=[731682, 10]
+        Emg time serie for each of the 8 electrodes, with the time stamps
+        and the label of the hand sign.
+    """
+    data_emg = pandas.read_csv(EMG_PATH)
+    return data_emg

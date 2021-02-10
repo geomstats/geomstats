@@ -61,7 +61,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         base_point = self.space_matrix.random_uniform(n_samples)
         logs = self.space_matrix.metric.log(expected, base_point)
         result = self.space_matrix.metric.exp(logs, base_point)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-5)
 
     @geomstats.tests.np_only
     def test_dist_log_exp_norm_vector(self):
@@ -103,7 +103,7 @@ class TestProductManifold(geomstats.tests.TestCase):
             manifolds=[euclidean, minkowski],
             default_point_type='matrix')
         point = space.random_uniform(1)
-        result = space.metric.inner_product_matrix(point)
+        result = space.metric.metric_matrix(point)
         expected = gs.eye(6)
         expected[3, 3] = - 1
         self.assertAllClose(result, expected)
@@ -118,7 +118,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         point = space.random_uniform(1)
         expected = gs.eye(6)
         expected[3, 3] = - 1
-        result = space.metric.inner_product_matrix(point)
+        result = space.metric.metric_matrix(point)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
