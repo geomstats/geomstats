@@ -9,6 +9,7 @@ from geomstats.datasets.utils import load_emg
 class TestPrepareEmgData(geomstats.tests.TestCase):
     """Class for testing the covariance creation from time series."""
 
+    @geomstats.tests.np_only
     def setUp(self):
         """Set up function."""
         self.n_steps = 100
@@ -30,6 +31,7 @@ class TestPrepareEmgData(geomstats.tests.TestCase):
                                                     self.margin)
         self.cov_transformer.transform()
 
+    @geomstats.tests.np_only
     def test_covariance_shape(self):
         """Test the shape of the covariance matrices."""
         result_shape = (len(self.cov_transformer.batches),
@@ -37,6 +39,7 @@ class TestPrepareEmgData(geomstats.tests.TestCase):
                         self.n_elec)
         self.assertTrue(self.cov_transformer.covs.shape == result_shape)
 
+    @geomstats.tests.np_only
     def test_covec_shape(self):
         """Test the shape of the vectorized covariance."""
         dim_vec = int(self.n_elec * (self.n_elec + 1) / 2)
@@ -44,6 +47,7 @@ class TestPrepareEmgData(geomstats.tests.TestCase):
         shape = self.cov_transformer.covecs.shape
         self.assertTrue(shape == result_shape)
 
+    @geomstats.tests.np_only
     def test_diag_shape(self):
         """Test the shape of the diagonal."""
         result_shape = (len(self.cov_transformer.batches), self.n_elec)
