@@ -19,22 +19,22 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 MODULE_PATH = os.path.dirname(__file__)
 DATA_PATH = os.path.join(
-    MODULE_PATH, "data")
+    MODULE_PATH, 'data')
 CITIES_PATH = os.path.join(
-    DATA_PATH, "cities", "cities.json")
+    DATA_PATH, 'cities', 'cities.json')
 CONNECTOMES_PATH = os.path.join(
-    DATA_PATH, "connectomes/train_FNC.csv")
+    DATA_PATH, 'connectomes/train_FNC.csv')
 CONNECTOMES_LABELS_PATH = os.path.join(
-    DATA_PATH, "connectomes/train_labels.csv")
+    DATA_PATH, 'connectomes/train_labels.csv')
 
 POSES_PATH = os.path.join(
-    DATA_PATH, "poses", "poses.json")
+    DATA_PATH, 'poses', 'poses.json')
 KARATE_PATH = os.path.join(
-    DATA_PATH, "graph_karate", "karate.txt")
+    DATA_PATH, 'graph_karate', 'karate.txt')
 KARATE_LABELS_PATH = os.path.join(
-    DATA_PATH, "graph_karate", "karate_labels.txt")
+    DATA_PATH, 'graph_karate', 'karate_labels.txt')
 GRAPH_RANDOM_PATH = os.path.join(
-    DATA_PATH, "graph_random", "graph_random.txt")
+    DATA_PATH, 'graph_random', 'graph_random.txt')
 GRAPH_RANDOM_LABELS_PATH = os.path.join(
     DATA_PATH, 'graph_random', 'graph_random_labels.txt')
 LEAVES_PATH = os.path.join(
@@ -42,7 +42,7 @@ LEAVES_PATH = os.path.join(
 EMG_PATH = os.path.join(
     DATA_PATH, 'emg', 'emg.csv')
 OPTICAL_NERVES_PATH = os.path.join(
-    DATA_PATH, "optical_nerves", "optical_nerves.txt")
+    DATA_PATH, 'optical_nerves', 'optical_nerves.txt')
 
 
 def load_cities():
@@ -57,14 +57,14 @@ def load_cities():
     name : list
         List of city names.
     """
-    with open(CITIES_PATH, encoding="utf-8") as json_file:
+    with open(CITIES_PATH, encoding='utf-8') as json_file:
         data_file = json.load(json_file)
 
-        names = [row["city"] for row in data_file]
+        names = [row['city'] for row in data_file]
         data = list(
             map(
                 lambda row: [
-                    row[col_name] / 180 * gs.pi for col_name in ["lat", "lng"]
+                    row[col_name] / 180 * gs.pi for col_name in ['lat', 'lng']
                 ],
                 data_file,
             )
@@ -117,19 +117,19 @@ def load_poses(only_rotations=True):
     """
     data = []
     img_paths = []
-    so3 = SpecialOrthogonal(n=3, point_type="vector")
+    so3 = SpecialOrthogonal(n=3, point_type='vector')
 
     with open(POSES_PATH) as json_file:
         data_file = json.load(json_file)
 
         for row in data_file:
-            pose_mat = gs.array(row["rot_mat"])
+            pose_mat = gs.array(row['rot_mat'])
             pose_vec = so3.rotation_vector_from_matrix(pose_mat)
             if not only_rotations:
-                trans_vec = gs.array(row["trans_mat"])
+                trans_vec = gs.array(row['trans_mat'])
                 pose_vec = gs.concatenate([pose_vec, trans_vec], axis=-1)
             data.append(pose_vec)
-            img_paths.append(row["img"])
+            img_paths.append(row['img'])
 
     data = gs.array(data)
     return data, img_paths
@@ -188,9 +188,9 @@ def load_leaves():
     distrib_type: array-like, shape=[172, ]
         Leaf orientation angle distribution type for each of the 172 species.
     """
-    data = pd.read_csv(LEAVES_PATH, sep=";")
-    beta_param = gs.array(data[["nu", "mu"]])
-    distrib_type = gs.squeeze(gs.array(data["Distribution"]))
+    data = pd.read_csv(LEAVES_PATH, sep=';')
+    beta_param = gs.array(data[['nu', 'mu']])
+    distrib_type = gs.squeeze(gs.array(data['Distribution']))
     return beta_param, distrib_type
 
 
@@ -238,9 +238,9 @@ def load_optical_nerves():
     data : array-like, shape=[23, 5, 3]
         Data representing the 5 landmarks, in 3D, for 23 different monkeys.
     """
-    nerves = pd.read_csv(OPTICAL_NERVES_PATH, sep="\t")
-    nerves = nerves.set_index("Filename")
-    nerves = nerves.drop(index=["laljn103.12b", "lalj0103.12b"])
+    nerves = pd.read_csv(OPTICAL_NERVES_PATH, sep='\t')
+    nerves = nerves.set_index('Filename')
+    nerves = nerves.drop(index=['laljn103.12b', 'lalj0103.12b'])
     nerves = nerves.reset_index(drop=True)
     nerves_gs = gs.array(nerves.values)
 

@@ -133,13 +133,13 @@ class TestDatasets(geomstats.tests.TestCase):
         data, labels = data_utils.load_optical_nerves()
         result = data.shape
         n_monkeys = 22
-        n_landmarks = 5
+        k_landmarks = 5
         dim = 3
-        expected = (n_monkeys, n_landmarks, dim)
+        expected = (n_monkeys, k_landmarks, dim)
         self.assertAllClose(result, expected)
 
         landmarks_space = Landmarks(
-            ambient_manifold=Euclidean(dim=3), n_landmarks=n_landmarks
+            ambient_manifold=Euclidean(dim=3), k_landmarks=k_landmarks
         )
 
         result = landmarks_space.belongs(data)
