@@ -245,7 +245,6 @@ def load_optical_nerves():
     nerves_gs = gs.array(nerves.values)
 
     nerves_gs = gs.reshape(nerves_gs, (nerves_gs.shape[0], -1, 3))
-    nerves_gs = nerves_gs[:, [0, 2, 4, 1, 3], :]
-    labels = gs.tile([0, 1], nerves_gs.shape[0] // 2)
+    labels = gs.tile([0, 1], [nerves_gs.shape[0] // 2])
 
     return nerves_gs, labels
