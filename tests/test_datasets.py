@@ -148,3 +148,6 @@ class TestDatasets(geomstats.tests.TestCase):
 
         result = gs.logical_and(labels >= 0, labels <= 1)
         self.assertTrue(gs.all(result))
+
+        result = gs.logical_and(monkeys >= 0, monkeys <= 11)
+        self.assertTrue(gs.all(result))
