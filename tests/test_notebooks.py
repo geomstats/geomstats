@@ -55,3 +55,8 @@ class TestNotebooks(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_08_emg_hand_gesture_classification():
         _exec_notebook('notebooks/07_emg_hand_gesture_classification.ipynb')
+
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_09_kendall_shape_space():
+        _exec_notebook('notebooks/08_kendall_shape_space.ipynb')
