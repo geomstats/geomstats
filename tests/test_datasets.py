@@ -159,9 +159,12 @@ class TestDatasets(geomstats.tests.TestCase):
         result = gs.logical_and(labels >= 0, labels <= 1)
         self.assertTrue(gs.all(result))
 
+        result = gs.logical_and(monkeys >= 0, monkeys <= 11)
+        self.assertTrue(gs.all(result))
+
     def test_hands(self):
         """Test that hands belong to space of landmarks."""
-        data, labels, monkeys = data_utils.load_hands()
+        data, labels, _ = data_utils.load_hands()
         result = data.shape
         n_hands = 52
         k_landmarks = 22
@@ -177,7 +180,4 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
         result = gs.logical_and(labels >= 0, labels <= 1)
-        self.assertTrue(gs.all(result))
-
-        result = gs.logical_and(monkeys >= 0, monkeys <= 11)
         self.assertTrue(gs.all(result))
