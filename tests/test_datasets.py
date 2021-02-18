@@ -22,7 +22,8 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(data), (50, 3))
 
         tokyo = data[0]
-        self.assertAllClose(tokyo, gs.array([0.61993792, -0.52479018, 0.58332859]))
+        self.assertAllClose(
+            tokyo, gs.array([0.61993792, -0.52479018, 0.58332859]))
 
         result = sphere.belongs(data)
         self.assertTrue(gs.all(result))
@@ -122,17 +123,17 @@ class TestDatasets(geomstats.tests.TestCase):
         """Test that data have the correct column names."""
         data_emg = data_utils.load_emg()
         expected_col_name = [
-            "time",
-            "c0",
-            "c1",
-            "c2",
-            "c3",
-            "c4",
-            "c5",
-            "c6",
-            "c7",
-            "label",
-            "exp",
+            'time',
+            'c0',
+            'c1',
+            'c2',
+            'c3',
+            'c4',
+            'c5',
+            'c6',
+            'c7',
+            'label',
+            'exp',
         ]
         good_col_name = (expected_col_name == data_emg.keys()).all()
         self.assertTrue(good_col_name)
