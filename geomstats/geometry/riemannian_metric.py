@@ -253,7 +253,7 @@ class RiemannianMetric(Connection):
         norm = gs.sqrt(sq_norm)
         return norm
 
-    def squared_dist(self, point_a, point_b):
+    def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.
 
         Parameters
@@ -268,12 +268,12 @@ class RiemannianMetric(Connection):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        log = self.log(point=point_b, base_point=point_a)
+        log = self.log(point=point_b, base_point=point_a, **kwargs)
 
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
         return sq_dist
 
-    def dist(self, point_a, point_b):
+    def dist(self, point_a, point_b, **kwargs):
         """Geodesic distance between two points.
 
         Note: It only works for positive definite
@@ -291,7 +291,7 @@ class RiemannianMetric(Connection):
         dist : array-like, shape=[...,]
             Distance.
         """
-        sq_dist = self.squared_dist(point_a, point_b)
+        sq_dist = self.squared_dist(point_a, point_b, **kwargs)
         dist = gs.sqrt(sq_dist)
         return dist
 
