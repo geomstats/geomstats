@@ -271,7 +271,7 @@ def load_hands():
     data = gs.array(pd.read_csv(HANDS_PATH, sep=" ").values)
     n_landmarks = 22
     dim = 3
-    data = gs.reshape(data, newshape=(data.shape[0], n_landmarks, dim), order="C")
+    data = gs.reshape(data, (data.shape[0], n_landmarks, dim))
     labels = gs.array(pd.read_csv(HANDS_LABELS_PATH).values.squeeze())
 
     bone_list = gs.array(
