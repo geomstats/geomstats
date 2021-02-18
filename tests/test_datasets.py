@@ -160,7 +160,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
     def test_hands(self):
         """Test that hands belong to space of landmarks."""
-        data, labels, bone_list = data_utils.load_hands()
+        data, labels, _ = data_utils.load_hands()
         result = data.shape
         n_hands = 52
         k_landmarks = 22
