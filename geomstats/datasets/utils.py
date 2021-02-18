@@ -230,8 +230,14 @@ def load_optical_nerves():
 
     Returns
     -------
-    data : array-like, shape=[23, 5, 3]
-        Data representing the 5 landmarks, in 3D, for 23 different monkeys.
+    data : array-like, shape=[22, 5, 3]
+        Data representing the 5 landmarks, in 3D, for 11 different monkeys.
+    labels : array-like, shape=[22,]
+        Labels in {0, 1} classifying the corresponding optical nerve as
+        normal (label = 0) or glaucoma (label = 1).
+    monkeys : array-like, shape=[22,]
+        Indices in 0...10 referencing the index of the monkey to which a given
+        optical nerve belongs.
     """
     nerves = pd.read_csv(OPTICAL_NERVES_PATH, sep='\t')
     nerves = nerves.set_index('Filename')
@@ -239,10 +245,11 @@ def load_optical_nerves():
     nerves = nerves.reset_index(drop=True)
     nerves_gs = gs.array(nerves.values)
 
-    nerves_gs = gs.reshape(nerves_gs, (nerves_gs.shape[0], -1, 3))
+    data = gs.reshape(nerves_gs, (nerves_gs.shape[0], -1, 3))
     labels = gs.tile([0, 1], [nerves_gs.shape[0] // 2])
+    monkeys = gs.repeat(gs.arange(11), 2)
 
-    return nerves_gs, labels
+    return data, labels, monkeys
 
 
 def load_hands():
@@ -268,9 +275,13 @@ def load_hands():
 
     Returns
     -------
-    data : array-like, shape=[53, 66]
-    labels :
-    bone_list :
+    data : array-like, shape=[52, 22, 3]
+        Hand data, represented as a list of 22 joints, specifically as
+        the 3D coordinates of these joints.
+    labels : array-like, shape=[52,]
+        Label representing hands poses. Label 0: "Grab", Label 1: "Expand"
+    bone_list : array-like
+        List of bones, as a list of connexions between joints.
     """
     data = gs.array(pd.read_csv(HANDS_PATH, sep=' ').values)
     n_landmarks = 22

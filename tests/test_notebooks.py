@@ -68,3 +68,8 @@ class TestNotebooks(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_10_kendall_shape_spaces_hands():
         _exec_notebook('notebooks/10_kendall_shape_spaces_hands.ipynb')
+
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_09_kendall_shape_space():
+        _exec_notebook('notebooks/08_kendall_shape_space.ipynb')
