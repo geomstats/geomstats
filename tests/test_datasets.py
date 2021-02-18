@@ -130,20 +130,24 @@ class TestDatasets(geomstats.tests.TestCase):
 
     def test_load_optical_nerves(self):
         """Test that optical nerves belong to space of landmarks."""
-        data, labels = data_utils.load_optical_nerves()
+        data, labels, monkeys = data_utils.load_optical_nerves()
         result = data.shape
-        n_monkeys = 22
+        n_monkeys = 11
+        n_eyes_per_monkey = 2
         k_landmarks = 5
         dim = 3
-        expected = (n_monkeys, k_landmarks, dim)
+        expected = (n_monkeys * n_eyes_per_monkey, k_landmarks, dim)
         self.assertAllClose(result, expected)
 
         landmarks_space = Landmarks(
-            ambient_manifold=Euclidean(dim=3), k_landmarks=k_landmarks
+            ambient_manifold=Euclidean(dim=dim), k_landmarks=k_landmarks
         )
 
         result = landmarks_space.belongs(data)
         self.assertTrue(gs.all(result))
 
         result = gs.logical_and(labels >= 0, labels <= 1)
+        self.assertTrue(gs.all(result))
+
+        result = gs.logical_and(monkeys >= 0, monkeys <= 11)
         self.assertTrue(gs.all(result))
