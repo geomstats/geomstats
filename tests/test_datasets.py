@@ -4,7 +4,9 @@ import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
 from geomstats.geometry.beta_distributions import BetaDistributions
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.landmarks import Landmarks
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
@@ -65,12 +67,12 @@ class TestDatasets(geomstats.tests.TestCase):
         walk_length = 3
         n_walks_per_node = 1
 
-        paths = graph.random_walk(walk_length=walk_length,
-                                  n_walks_per_node=n_walks_per_node)
+        paths = graph.random_walk(
+            walk_length=walk_length, n_walks_per_node=n_walks_per_node
+        )
 
         result = [len(paths), len(paths[0])]
-        expected = [len(graph.edges) * n_walks_per_node,
-                    walk_length + 1]
+        expected = [len(graph.edges) * n_walks_per_node, walk_length + 1]
 
         self.assertAllClose(result, expected)
 
@@ -81,12 +83,12 @@ class TestDatasets(geomstats.tests.TestCase):
         walk_length = 6
         n_walks_per_node = 2
 
-        paths = graph.random_walk(walk_length=walk_length,
-                                  n_walks_per_node=n_walks_per_node)
+        paths = graph.random_walk(
+            walk_length=walk_length, n_walks_per_node=n_walks_per_node
+        )
 
         result = [len(paths), len(paths[0])]
-        expected = [len(graph.edges) * n_walks_per_node,
-                    walk_length + 1]
+        expected = [len(graph.edges) * n_walks_per_node, walk_length + 1]
 
         self.assertAllClose(result, expected)
 
@@ -120,7 +122,28 @@ class TestDatasets(geomstats.tests.TestCase):
     def test_load_emg(self):
         """Test that data have the correct column names."""
         data_emg = data_utils.load_emg()
-        expected_col_name = ['time', 'c0', 'c1', 'c2', 'c3', 'c4', 'c5',
-                             'c6', 'c7', 'label', 'exp']
+        expected_col_name = [
+            'time', 'c0', 'c1', 'c2', 'c3', 'c4', 'c5',
+            'c6', 'c7', 'label', 'exp']
         good_col_name = (expected_col_name == data_emg.keys()).all()
         self.assertTrue(good_col_name)
+
+    def test_load_optical_nerves(self):
+        """Test that optical nerves belong to space of landmarks."""
+        data, labels = data_utils.load_optical_nerves()
+        result = data.shape
+        n_monkeys = 22
+        k_landmarks = 5
+        dim = 3
+        expected = (n_monkeys, k_landmarks, dim)
+        self.assertAllClose(result, expected)
+
+        landmarks_space = Landmarks(
+            ambient_manifold=Euclidean(dim=3), k_landmarks=k_landmarks
+        )
+
+        result = landmarks_space.belongs(data)
+        self.assertTrue(gs.all(result))
+
+        result = gs.logical_and(labels >= 0, labels <= 1)
+        self.assertTrue(gs.all(result))
