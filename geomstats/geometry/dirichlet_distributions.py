@@ -1,5 +1,6 @@
 """Statistical Manifold of Dirichlet distributions with the Fisher metric."""
 
+import logging
 import multiprocessing
 
 from scipy.integrate import odeint
@@ -253,7 +254,7 @@ class DirichletMetric(RiemannianMetric):
         -------
         jac : array-like, shape=[..., dim, dim, dim, dim]
             Jacobian of the Christoffel symbols.
-            :math: jac[..., i, j, k, l] = 'dGamma^i_{jk} / dx_l'
+            :math: 'jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l'
         """
         n_dim = base_point.ndim
         position = gs.transpose(base_point)
@@ -518,11 +519,15 @@ class DirichletMetric(RiemannianMetric):
             df_dvelocity = - 2 * gs.einsum(
                 '...ijk,k...->ij...', gamma, velocity)
 
-            jac = gs.zeros((2 * self.dim,) + state.shape)
-            jac[:self.dim, self.dim:, ...] = gs.squeeze(gs.transpose(gs.tile(
+            jac_nw = gs.zeros((self.dim, self.dim, state.shape[1])) \
+                if n_dim > 1 else gs.zeros((self.dim, self.dim))
+            jac_ne = gs.squeeze(gs.transpose(gs.tile(
                 gs.eye(self.dim), (n_times, 1, 1))))
-            jac[self.dim:, :self.dim, ...] = df_dposition
-            jac[self.dim:, self.dim:, ...] = df_dvelocity
+            jac_sw = df_dposition
+            jac_se = df_dvelocity
+            jac = gs.concatenate((
+                gs.concatenate((jac_nw, jac_ne), axis=1),
+                gs.concatenate((jac_sw, jac_se), axis=1)), axis=0)
 
             return jac
 
@@ -580,10 +585,10 @@ class DirichletMetric(RiemannianMetric):
                 process.join(max_time)
                 if process.is_alive():
                     process.terminate()
-                    print('Maximum time of {} seconds reached. '
-                          'Process terminated. '
-                          'Result is inaccurate.'.format(max_time))
-                    geod.append(gs.zeros((n_steps, self.dim)))
+                    logging.info('Maximum time of {} seconds reached. '
+                                 'Process terminated. '
+                                 'Result is inaccurate.'.format(max_time))
+                    geod.append(gs.nan * gs.zeros((n_steps, self.dim)))
                 else:
                     geod = return_dict[0]
 
@@ -684,64 +689,3 @@ class DirichletMetric(RiemannianMetric):
                 initial_point, initial_tangent_vec, n_steps)
 
         return path
-
-    def squared_dist(self, point_a, point_b, n_steps=N_STEPS, jacobian=False,
-                     max_time=MAX_TIME):
-        """Squared geodesic distance between two points.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[..., dim]
-            Point.
-        point_b : array-like, shape=[..., dim]
-            Point.
-        jacobian : boolean.
-            If True, the explicit value of the jacobian is used to solve
-            the geodesic boundary value problem.
-            Optional, default: False.
-        max_time : float.
-            Maximum time in which the boundary value problem should be
-            solved, in seconds. If it takes longer, the process is terminated.
-            Optional, default: 300 seconds i.e. 5 minutes.
-
-        Returns
-        -------
-        sq_dist : array-like, shape=[...,]
-            Squared distance.
-        """
-        log = self.log(point=point_b, base_point=point_a, n_steps=n_steps,
-                       jacobian=jacobian, max_time=max_time)
-        sq_dist = self.squared_norm(vector=log, base_point=point_a)
-        return sq_dist
-
-    def dist(self, point_a, point_b, n_steps=N_STEPS, jacobian=False,
-             max_time=MAX_TIME):
-        """Geodesic distance between two points.
-
-        Note: It only works for positive definite
-        Riemannian metrics.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[..., dim]
-            Point.
-        point_b : array-like, shape=[..., dim]
-            Point.
-        jacobian : boolean.
-            If True, the explicit value of the jacobian is used to solve
-            the geodesic boundary value problem.
-            Optional, default: False.
-        max_time : float.
-            Maximum time in which the boundary value problem should be
-            solved, in seconds. If it takes longer, the process is terminated.
-            Optional, default: 300 seconds i.e. 5 minutes.
-
-        Returns
-        -------
-        dist : array-like, shape=[...,]
-            Distance.
-        """
-        sq_dist = self.squared_dist(point_a, point_b, n_steps=n_steps,
-                                    jacobian=jacobian, max_time=max_time)
-        dist = gs.sqrt(sq_dist)
-        return dist

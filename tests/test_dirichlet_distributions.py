@@ -395,5 +395,5 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         point_b = self.dirichlet.random_uniform()
         result = self.dirichlet.metric.dist(
             point_a, point_b, max_time=max_time)
-        expected = 0.
+        expected = gs.nan
         self.assertAllClose(expected, result)
