@@ -60,6 +60,7 @@ from autograd.numpy import (  # NOQA
     mean,
     meshgrid,
     mod,
+    nan,
     ones,
     ones_like,
     outer,
