@@ -30,7 +30,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
     def test_load_poses_only_rotations(self):
         """Test that the poses belong to SO(3)."""
-        so3 = SpecialOrthogonal(n=3, point_type='vector')
+        so3 = SpecialOrthogonal(n=3, point_type="vector")
         data, _ = data_utils.load_poses()
         result = so3.belongs(data)
 
@@ -38,7 +38,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
     def test_load_poses(self):
         """Test that the poses belong to SE(3)."""
-        se3 = SpecialEuclidean(n=3, point_type='vector')
+        se3 = SpecialEuclidean(n=3, point_type="vector")
         data, _ = data_utils.load_poses(only_rotations=False)
         result = se3.belongs(data)
 
@@ -123,8 +123,18 @@ class TestDatasets(geomstats.tests.TestCase):
         """Test that data have the correct column names."""
         data_emg = data_utils.load_emg()
         expected_col_name = [
-            'time', 'c0', 'c1', 'c2', 'c3', 'c4', 'c5',
-            'c6', 'c7', 'label', 'exp']
+            'time',
+            'c0',
+            'c1',
+            'c2',
+            'c3',
+            'c4',
+            'c5',
+            'c6',
+            'c7',
+            'label',
+            'exp',
+        ]
         good_col_name = (expected_col_name == data_emg.keys()).all()
         self.assertTrue(good_col_name)
 
@@ -150,4 +160,24 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
         result = gs.logical_and(monkeys >= 0, monkeys <= 11)
+        self.assertTrue(gs.all(result))
+
+    def test_hands(self):
+        """Test that hands belong to space of landmarks."""
+        data, labels, _ = data_utils.load_hands()
+        result = data.shape
+        n_hands = 52
+        k_landmarks = 22
+        dim = 3
+        expected = (n_hands, k_landmarks, dim)
+        self.assertAllClose(result, expected)
+
+        landmarks_space = Landmarks(
+            ambient_manifold=Euclidean(dim=3), k_landmarks=k_landmarks
+        )
+
+        result = landmarks_space.belongs(data)
+        self.assertTrue(gs.all(result))
+
+        result = gs.logical_and(labels >= 0, labels <= 1)
         self.assertTrue(gs.all(result))
