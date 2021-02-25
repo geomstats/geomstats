@@ -585,7 +585,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         regularized_point : array-like, shape=[..., 3]
             Regularized point.
         """
-        theta = gs.linalg.norm(point)
+        theta = gs.linalg.norm(point, axis=-1)
         k = gs.floor(theta / 2. / gs.pi)
 
         # angle in [0;2pi)
