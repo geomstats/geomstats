@@ -31,7 +31,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         with_angle_close_0 = 1e-10 * gs.array([1., -1., 1.])
         with_angle_close_pi_low = ((gs.pi - 1e-9) / gs.sqrt(2.)
                                    * gs.array([0., 1., -1.]))
-        with_angle_pi = gs.pi / gs.sqrt(3.) * gs.array([1., 1., -1.])
+        with_angle_pi = gs.pi * gs.array([1., 0, 0])
         with_angle_close_pi_high = ((gs.pi + 1e-9) / gs.sqrt(3.)
                                     * gs.array([-1., 1., -1]))
         with_angle_in_pi_2pi = ((gs.pi + 0.3) / gs.sqrt(5.)
@@ -163,6 +163,13 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_regularize(self):
+        point = gs.random.rand(6) * 2 * gs.pi
+        regularized = self.group.regularize(point)
+        result = 0 <= gs.linalg.norm(regularized) <= gs.pi
+        self.assertTrue(result)
+
+    @geomstats.tests.np_and_tf_only
+    def test_regularize_extreme_cases(self):
         point = self.elements_all['with_angle_0']
         self.assertAllClose(gs.linalg.norm(point), 0.)
         result = self.group.regularize(point)
@@ -177,8 +184,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             expected = point
             self.assertAllClose(result, expected)
 
-        # Note: by default, the rotation vector is inverted by
-        # the function regularize when the angle of the rotation is pi.
         angle_type = 'with_angle_pi'
         point = self.elements_all[angle_type]
         result = self.group.regularize(point)
@@ -228,12 +233,14 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         result = self.group.regularize(rot_vecs)
         self.assertAllClose(gs.shape(result), (n_samples, self.group.dim))
 
-        point = (gs.pi + 1e-7) * gs.array(
+        point = (gs.pi + 1e-6) * gs.array(
             [[1., 0., 0.], [2, .5, 0.], [0., 0., 0.], [0.5, 0., 0.]])
         result = self.group.regularize(point)
+        expected_2 = point[1] / gs.linalg.norm(point[1]) * (
+                gs.linalg.norm(point[1]) - 2 * gs.pi)
         expected = gs.array(
             [[-(gs.pi - 1e-7), 0., 0.],
-             [0.1876004, 0.0469001, 0.],
+             expected_2,
              [0., 0., 0.],
              [(gs.pi + 1e-7) / 2., 0., 0.]])
         self.assertAllClose(result, expected)
