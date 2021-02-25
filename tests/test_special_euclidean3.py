@@ -193,8 +193,9 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
             angle_type = 'with_angle_close_pi_high'
             point = self.elements_all[angle_type]
             result = self.group.regularize(point)
+            norm = gs.linalg.norm(point[:3])
             expected_rot = gs.concatenate(
-                [point[:3] / gs.linalg.norm(point[:3]) * gs.pi,
+                [point[:3] / norm * (norm - 2 * gs.pi),
                  gs.zeros(3)], axis=0)
             expected_trans = gs.concatenate(
                 [gs.zeros(3), point[3:6]], axis=0)
