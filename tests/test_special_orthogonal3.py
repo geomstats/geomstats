@@ -237,7 +237,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             [[1., 0., 0.], [2, .5, 0.], [0., 0., 0.], [0.5, 0., 0.]])
         result = self.group.regularize(point)
         expected_2 = point[1] / gs.linalg.norm(point[1]) * (
-                gs.linalg.norm(point[1]) - 2 * gs.pi)
+            gs.linalg.norm(point[1]) - 2 * gs.pi)
         expected = gs.array(
             [[-(gs.pi - 1e-7), 0., 0.],
              expected_2,
