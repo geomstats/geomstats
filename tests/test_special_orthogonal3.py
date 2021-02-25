@@ -198,7 +198,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         for angle_type in in_pi_2pi:
             point = self.elements_all[angle_type]
-            point_initial = point
             angle = gs.linalg.norm(point)
             new_angle = gs.pi - (angle - gs.pi)
 
@@ -227,8 +226,17 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         n_samples = self.n_samples
         rot_vecs = self.group.random_uniform(n_samples=n_samples)
         result = self.group.regularize(rot_vecs)
-
         self.assertAllClose(gs.shape(result), (n_samples, self.group.dim))
+
+        point = (gs.pi + 1e-7) * gs.array(
+            [[1., 0., 0.], [2, .5, 0.], [0., 0., 0.], [0.5, 0., 0.]])
+        result = self.group.regularize(point)
+        expected = gs.array(
+            [[-(gs.pi - 1e-7), 0., 0.],
+             [0.1876004, 0.0469001, 0.],
+             [0., 0., 0.],
+             [(gs.pi + 1e-7) / 2., 0., 0.]])
+        self.assertAllClose(result, expected)
 
     def test_matrix_from_rotation_vector(self):
         rot_vec_0 = self.group.identity
