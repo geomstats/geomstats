@@ -188,7 +188,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         angle_type = 'with_angle_close_pi_high'
         point = self.elements_all[angle_type]
         result = self.group.regularize(point)
-        expected = point / gs.linalg.norm(point) * gs.pi
+        self.assertTrue(0 <= gs.linalg.norm(result) < gs.pi)
+        norm = gs.linalg.norm(point)
+        expected = point / norm * (norm - 2 * gs.pi)
         self.assertAllClose(result, expected)
 
         in_pi_2pi = ['with_angle_in_pi_2pi',

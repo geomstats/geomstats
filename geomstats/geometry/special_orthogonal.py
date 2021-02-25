@@ -585,35 +585,24 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         regularized_point : array-like, shape=[..., 3]
             Regularized point.
         """
-        regularized_point = point
-        angle = gs.linalg.norm(regularized_point, axis=-1)
+        theta = gs.linalg.norm(point)
+        k = gs.floor(theta / 2. / gs.pi)
 
-        mask_0 = gs.isclose(angle, 0.)
-        mask_not_0 = ~mask_0
-        mask_pi = gs.isclose(angle, gs.pi)
+        # angle in [0;2pi)
+        angle = theta - 2 * k * gs.pi
 
-        # This avoids division by 0.
-        mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
-        mask_not_0_float = (
-            gs.cast(mask_not_0, gs.float32)
-            + self.epsilon)
-        mask_pi_float = gs.cast(mask_pi, gs.float32) + self.epsilon
+        # this avoids dividing by 0
+        theta_eps = gs.where(gs.isclose(theta, 0.), 1., theta)
 
-        k = gs.floor(angle / (2 * gs.pi) + .5)
-        angle += mask_0_float
+        # angle in [0, pi]
+        normalized_angle = gs.where(angle <= gs.pi, angle, 2 * gs.pi - angle)
+        norm_ratio = gs.where(
+            gs.isclose(theta, 0.), 1., normalized_angle / theta_eps)
 
-        norms_ratio = gs.zeros_like(angle)
-        norms_ratio += mask_not_0_float * (
-            1. - 2. * gs.pi * k / angle)
-        norms_ratio += mask_0_float
-        norms_ratio += mask_pi_float * (
-            gs.pi / angle
-            - (1. - 2. * gs.pi * k / angle))
-
-        regularized_point = gs.einsum(
-            '...,...i->...i', norms_ratio, regularized_point)
-
-        return regularized_point
+        # reverse sign if angle was greater than pi
+        norm_ratio = gs.where(angle > gs.pi, -norm_ratio, norm_ratio)
+        return gs.einsum(
+            '...,...i->...i', norm_ratio, point)
 
     @geomstats.vectorization.decorator(
         ['else', 'vector', 'else', 'output_point'])
