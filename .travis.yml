@@ -22,7 +22,7 @@ script:
     if [[ $TRAVIS_PYTHON_VERSION != 3.8 ||
           ($TRAVIS_PYTHON_VERSION == 3.8 &&
            $GEOMSTATS_BACKEND != tensorflow) ]]; then
-      nose2 --with-coverage --verbose tests
+      nose2 --with-coverage tests
     fi
 env:
   - GEOMSTATS_BACKEND=numpy
