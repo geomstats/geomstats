@@ -55,20 +55,16 @@ from tensorflow import (  # NOQA
     tile,
     uint8,
     zeros,
-    zeros_like
+    zeros_like,
 )
 
 
-from . import autograd # NOQA
+from . import autograd  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
 
-DTYPES = {
-    int32: 0,
-    int64: 1,
-    float32: 2,
-    float64: 3}
+DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3}
 
 
 arctanh = tf.math.atanh
@@ -261,7 +257,8 @@ def _duplicate_array(x, n_samples, axis=0):
 
 
 def _vectorized_mask_from_indices(
-        n_samples=1, indices=None, mask_shape=None, axis=0, dtype=float32):
+    n_samples=1, indices=None, mask_shape=None, axis=0, dtype=float32
+):
     """Create a vectorized binary mask.
 
     Parameters
@@ -318,18 +315,19 @@ def _assignment_single_value(x, value, indices, mode='replace', axis=0):
         indices = [indices]
 
     if isinstance(indices[0], tuple):
-        use_vectorization = (len(indices[0]) < ndim(x))
+        use_vectorization = len(indices[0]) < ndim(x)
     elif tf.is_tensor(indices[0]) and ndim(indices[0]) >= 1:
-        use_vectorization = (len(indices[0]) < ndim(x))
+        use_vectorization = len(indices[0]) < ndim(x)
     else:
         use_vectorization = ndim(x) > 1
 
     if use_vectorization:
         full_shape = shape(x).numpy()
         n_samples = full_shape[axis]
-        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
+        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1 :])
         mask = _vectorized_mask_from_indices(
-            n_samples, indices, tile_shape, axis, x.dtype)
+            n_samples, indices, tile_shape, axis, x.dtype
+        )
     else:
         mask = _mask_from_indices(indices, shape(x), x.dtype)
     if mode == 'replace':
@@ -345,8 +343,7 @@ def _assignment(x, values, indices, mode, axis):
             indices_tensor = tf.where(indices)
             indices = [tuple(ind) for ind in indices_tensor]
         else:
-            indices_from_booleans = [
-                index for index, val in enumerate(indices) if val]
+            indices_from_booleans = [index for index, val in enumerate(indices) if val]
             indices_along_dims = [range(dim) for dim in shape(x)]
             indices_along_dims[axis] = indices_from_booleans
             indices = list(product(*indices_along_dims))
@@ -359,8 +356,10 @@ def _assignment(x, values, indices, mode, axis):
         single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
     if single_index:
         if len(values) > 1:
-            indices = [tuple(list(indices[:axis]) + [i] + list(indices[axis:]))
-                       for i in range(x.shape[axis])]
+            indices = [
+                tuple(list(indices[:axis]) + [i] + list(indices[axis:]))
+                for i in range(x.shape[axis])
+            ]
         else:
             indices = [indices]
 
@@ -477,8 +476,9 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return tf.sparse.to_dense(tf.sparse.reorder(
-        tf.SparseTensor(indices, data, target_shape)))
+    return tf.sparse.to_dense(
+        tf.sparse.reorder(tf.SparseTensor(indices, data, target_shape))
+    )
 
 
 def get_slice(x, indices):
@@ -598,15 +598,17 @@ def broadcast_arrays(x, y, **kwargs):
     for index in range(max_rank):
         dimensions = [s[index] for s in shapes]
         repeats = Counter(dimensions)
-        if len(repeats) > 2 or (len(repeats) == 2 and
-                                1 not in list(repeats.keys())):
-            raise ValueError('operands could not be '
-                             'broadcast together with shapes', shapes)
+        if len(repeats) > 2 or (len(repeats) == 2 and 1 not in list(repeats.keys())):
+            raise ValueError(
+                'operands could not be ' 'broadcast together with shapes', shapes
+            )
         broadcast_shape.append(max(repeats.keys()))
 
     for axis, dimension in enumerate(broadcast_shape):
-        tensors = [tf.concat([t] * dimension, axis=axis)
-                   if t.get_shape()[axis] == 1 else t for t in tensors]
+        tensors = [
+            tf.concat([t] * dimension, axis=axis) if t.get_shape()[axis] == 1 else t
+            for t in tensors
+        ]
 
     return tensors
 
@@ -623,9 +625,7 @@ def isclose(x, y, rtol=1e-05, atol=1e-08):
     x, y = convert_to_wider_dtype([x, y])
     dtype = x.dtype
 
-    rhs = (
-        tf.constant(atol, dtype=dtype)
-        + tf.constant(rtol, dtype=dtype) * tf.abs(y))
+    rhs = tf.constant(atol, dtype=dtype) + tf.constant(rtol, dtype=dtype) * tf.abs(y)
     return tf.less_equal(tf.abs(tf.subtract(x, y)), rhs)
 
 
@@ -665,7 +665,8 @@ def einsum(equation, *inputs, **kwargs):
     if all_ellipsis:
         if len(input_str_list) > 2:
             raise NotImplementedError(
-                'Ellipsis support not implemented for >2 input tensors')
+                'Ellipsis support not implemented for >2 input tensors'
+            )
         ndims = [len(input_str[3:]) for input_str in input_str_list]
 
         tensor_a = input_tensors_list[0]
@@ -694,8 +695,9 @@ def einsum(equation, *inputs, **kwargs):
             output_prefix = 'r'
 
         input_str_list = [
-            input_str.replace('...', prefix) for input_str, prefix in zip(
-                input_str_list, input_prefix_list)]
+            input_str.replace('...', prefix)
+            for input_str, prefix in zip(input_str_list, input_prefix_list)
+        ]
         output_str = output_str.replace('...', output_prefix)
 
         input_str = input_str_list[0] + ',' + input_str_list[1]
@@ -706,7 +708,8 @@ def einsum(equation, *inputs, **kwargs):
         cond = (
             n_tensor_a == n_tensor_b == 1
             and initial_ndim_a != tensor_a.ndim
-            and initial_ndim_b != tensor_b.ndim)
+            and initial_ndim_b != tensor_b.ndim
+        )
 
         if cond:
             result = squeeze(result, axis=0)
@@ -746,8 +749,7 @@ def tril_indices(*args, **kwargs):
 
 
 def triu_indices(*args, **kwargs):
-    return tuple(
-        map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
+    return tuple(map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
 
 
 def where(condition, x=None, y=None):

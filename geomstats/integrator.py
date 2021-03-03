@@ -14,9 +14,7 @@ variable, and :math: `(x, v)` the state.
 from geomstats.errors import check_parameter_accepted_values
 
 
-STEP_FUNCTIONS = {'euler': 'euler_step',
-                  'rk4': 'rk4_step',
-                  'rk2': 'rk2_step'}
+STEP_FUNCTIONS = {'euler': 'euler_step', 'rk4': 'rk4_step', 'rk2': 'rk2_step'}
 
 
 def euler_step(state, force, dt):
@@ -105,16 +103,14 @@ def rk4_step(state, force, dt):
     point, vector = state
     k1, l1 = force(point, vector)
     k2, l2 = force(point + dt / 2 * k1, vector + dt / 2 * l1)
-    k3, l3 = force(
-        point + dt / 2 * k2, vector + dt / 2 * l2)
+    k3, l3 = force(point + dt / 2 * k2, vector + dt / 2 * l2)
     k4, l4 = force(point + dt * k3, vector + dt * l3)
     point_new = point + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
     vector_new = vector + dt / 6 * (l1 + 2 * l2 + 2 * l3 + l4)
     return point_new, vector_new
 
 
-def integrate(
-        function, initial_state, end_time=1.0, n_steps=10, step='euler'):
+def integrate(function, initial_state, end_time=1.0, n_steps=10, step='euler'):
     """Compute the flow under the vector field using symplectic euler.
 
     Integration function to compute flows of vector fields
@@ -153,8 +149,7 @@ def integrate(
     step_function = globals()[STEP_FUNCTIONS[step]]
 
     for _ in range(n_steps):
-        current_state = step_function(
-            state=current_state, force=function, dt=dt)
+        current_state = step_function(state=current_state, force=function, dt=dt)
         positions.append(current_state[0])
         velocities.append(current_state[1])
     return positions, velocities

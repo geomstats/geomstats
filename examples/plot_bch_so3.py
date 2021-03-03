@@ -49,10 +49,7 @@ def main():
 
     orders = gs.arange(1, MAX_ORDER + 1)
     bch_approximations = gs.array(
-        [
-            ALGEBRA.baker_campbell_hausdorff(tan_rv_1, tan_rv_2, order=n)
-            for n in orders
-        ]
+        [ALGEBRA.baker_campbell_hausdorff(tan_rv_1, tan_rv_2, order=n) for n in orders]
     )
     bch_approximations = ALGEBRA.basis_representation(bch_approximations)
     correct = ALGEBRA.basis_representation(gs.linalg.logm(composition))
@@ -64,9 +61,7 @@ def main():
     )
     t_bch = [
         timeit.timeit(
-            lambda: ALGEBRA.baker_campbell_hausdorff(
-                tan_rv_1, tan_rv_2, order=n
-            ),
+            lambda: ALGEBRA.baker_campbell_hausdorff(tan_rv_1, tan_rv_2, order=n),
             number=100,
         )
         for n in orders

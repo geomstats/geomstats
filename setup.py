@@ -29,10 +29,7 @@ if __name__ == '__main__':
             install_requires.append(requirement)
 
     dev_requirements = parse_requirements_file('dev-requirements.txt')
-    extras_require = {
-        'test': dev_requirements,
-        **optional_dependencies
-    }
+    extras_require = {'test': dev_requirements, **optional_dependencies}
     extras_require['all'] = list(chain(*extras_require.values()))
 
     with open(os.path.join(base_dir, "README.md")) as f:
@@ -59,19 +56,20 @@ if __name__ == '__main__':
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
-            'Programming Language :: Python :: 3.8'
+            'Programming Language :: Python :: 3.8',
         ],
         long_description=long_description,
         long_description_content_type='text/markdown',
         packages=find_packages(),
-        data_files=[
-            "LICENSE.md",
-            "README.md",
-        ],
+        data_files=["LICENSE.md", "README.md",],
         include_package_data=True,
-        package_data={'': ['datasets/data/*',
-                           'datasets/data/*/*',
-                           'datasets/data/*/*/*',
-                           'datasets/data/*/*/*/*']},
+        package_data={
+            '': [
+                'datasets/data/*',
+                'datasets/data/*/*',
+                'datasets/data/*/*/*',
+                'datasets/data/*/*/*/*',
+            ]
+        },
         zip_safe=False,
     )

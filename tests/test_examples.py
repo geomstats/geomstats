@@ -14,13 +14,13 @@ import examples.loss_and_gradient_so3 as loss_and_gradient_so3
 import examples.plot_bch_so3 as plot_bch_so3
 import examples.plot_expectation_maximization_manifolds as plot_em_manifolds
 import examples.plot_geodesics_h2 as plot_geodesics_h2
-import examples.plot_geodesics_poincare_polydisk as plot_geodesics_poincare_polydisk # NOQA
+import examples.plot_geodesics_poincare_polydisk as plot_geodesics_poincare_polydisk  # NOQA
 import examples.plot_geodesics_s2 as plot_geodesics_s2
 import examples.plot_geodesics_se2 as plot_geodesics_se2
 import examples.plot_geodesics_se3 as plot_geodesics_se3
 import examples.plot_geodesics_so3 as plot_geodesics_so3
 import examples.plot_grid_h2 as plot_grid_h2
-import examples.plot_kernel_density_estimation_classifier_s2 as plot_kernel_density_estimation_classifier_s2 # NOQA
+import examples.plot_kernel_density_estimation_classifier_s2 as plot_kernel_density_estimation_classifier_s2  # NOQA
 import examples.plot_kmeans_manifolds as plot_kmeans_manifolds
 import examples.plot_kmedoids_manifolds as plot_kmedoids_manifolds
 import examples.plot_knn_s2 as plot_knn_s2

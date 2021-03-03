@@ -30,8 +30,7 @@ def main():
     clustering = clustering.fit(data)
 
     plt.figure(0)
-    visualization.plot(points=clustering.cluster_centers_, space='S1',
-                       color='red')
+    visualization.plot(points=clustering.cluster_centers_, space='S1', color='red')
     plt.show()
 
     plt.figure(1)
@@ -46,9 +45,11 @@ def main():
 
 if __name__ == '__main__':
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        logging.info('Examples with visualizations are only implemented '
-                     'with numpy backend.\n'
-                     'To change backend, write: '
-                     'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info(
+            'Examples with visualizations are only implemented '
+            'with numpy backend.\n'
+            'To change backend, write: '
+            'export GEOMSTATS_BACKEND = \'numpy\'.'
+        )
     else:
         main()

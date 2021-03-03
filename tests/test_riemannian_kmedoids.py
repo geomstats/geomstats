@@ -38,6 +38,6 @@ class TestRiemannianKMedoids(geomstats.tests.TestCase):
         result = kmedoids.predict(data)
 
         expected = gs.array(
-            [int(metric.closest_neighbor_index(x_i, centroids))
-             for x_i in data])
+            [int(metric.closest_neighbor_index(x_i, centroids)) for x_i in data]
+        )
         self.assertAllClose(expected, result)

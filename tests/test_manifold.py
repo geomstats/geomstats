@@ -16,12 +16,11 @@ class TestManifold(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_belongs(self):
-        point = gs.array([1., 2., 3.])
-        self.assertRaises(NotImplementedError,
-                          lambda: self.manifold.belongs(point))
+        point = gs.array([1.0, 2.0, 3.0])
+        self.assertRaises(NotImplementedError, lambda: self.manifold.belongs(point))
 
     def test_regularize(self):
-        point = gs.array([1., 2., 3.])
+        point = gs.array([1.0, 2.0, 3.0])
         result = self.manifold.regularize(point)
         expected = point
         self.assertAllClose(result, expected)

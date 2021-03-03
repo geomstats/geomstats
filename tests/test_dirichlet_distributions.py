@@ -13,6 +13,7 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 class TestDirichletDistributions(geomstats.tests.TestCase):
     """Class defining the Dirichlet distributions tests."""
+
     def setUp(self):
         """Define the parameters of the tests."""
         warnings.simplefilter('ignore', category=UserWarning)
@@ -128,9 +129,9 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         polygamma_a = gs.polygamma(1, param_a)
         polygamma_b = gs.polygamma(1, param_b)
         vector = gs.stack(
-            [polygamma_a - polygamma_ab,
-             - polygamma_ab,
-             polygamma_b - polygamma_ab], axis=-1)
+            [polygamma_a - polygamma_ab, -polygamma_ab, polygamma_b - polygamma_ab],
+            axis=-1,
+        )
         expected = SymmetricMatrices.from_vector(vector)
         self.assertAllClose(result, expected)
 
@@ -156,7 +157,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
             metric_det = 2 * (poly1a * poly1b - poly1ab * (poly1a + poly1b))
 
             c1 = (poly2a * (poly1b - poly1ab) - poly1b * poly2ab) / metric_det
-            c2 = - poly1b * poly2ab / metric_det
+            c2 = -poly1b * poly2ab / metric_det
             c3 = (poly2b * poly1ab - poly1b * poly2ab) / metric_det
             return c1, c2, c3
 
@@ -183,8 +184,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         christoffels = self.metric.christoffels(points)
 
         result = christoffels.shape
-        expected = gs.array(
-            [n_points, self.dim, self.dim, self.dim])
+        expected = gs.array([n_points, self.dim, self.dim, self.dim])
         self.assertAllClose(result, expected)
 
         expected = gs.stack((christoffel_1, christoffel_2), axis=0)
@@ -201,10 +201,10 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         gs.random.seed(123)
         points = self.dirichlet.random_uniform(n_points)
         vectors = self.dirichlet.random_uniform(n_points)
-        initial_vectors = gs.array(
-            [[vec_x, vec_x, vec_x] for vec_x in vectors[:, 0]])
+        initial_vectors = gs.array([[vec_x, vec_x, vec_x] for vec_x in vectors[:, 0]])
         base_points = gs.array(
-            [[param_x, param_x, param_x] for param_x in points[:, 0]])
+            [[param_x, param_x, param_x] for param_x in points[:, 0]]
+        )
         result = self.metric.exp(initial_vectors, base_points)
         expected = gs.transpose(gs.tile(result[:, 0], (self.dim, 1)))
         self.assertAllClose(expected, result)
@@ -241,12 +241,11 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         Test the case with one initial point and several tangent vectors.
         """
         point = self.dirichlet.random_uniform()
-        tangent_vec = gs.array([1., 0.5, 2.])
+        tangent_vec = gs.array([1.0, 0.5, 2.0])
         n_tangent_vecs = 10
-        t = gs.linspace(0., 1., n_tangent_vecs)
+        t = gs.linspace(0.0, 1.0, n_tangent_vecs)
         tangent_vecs = gs.einsum('i,...k->...ik', t, tangent_vec)
-        end_points = self.metric.exp(
-            tangent_vec=tangent_vecs, base_point=point)
+        end_points = self.metric.exp(tangent_vec=tangent_vecs, base_point=point)
         result = end_points.shape
         expected = (n_tangent_vecs, self.dim)
         self.assertAllClose(result, expected)
@@ -259,8 +258,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         """
         base_points = self.dirichlet.random_uniform(self.n_points)
         point = self.dirichlet.random_uniform()
-        tangent_vecs = self.metric.log(
-            base_point=base_points, point=point)
+        tangent_vecs = self.metric.log(base_point=base_points, point=point)
         result = tangent_vecs.shape
         expected = (self.n_points, self.dim)
         self.assertAllClose(result, expected)
@@ -272,12 +270,11 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         Check the shape of the geodesic.
         """
         n_steps = 50
-        t = gs.linspace(0., 1., n_steps)
+        t = gs.linspace(0.0, 1.0, n_steps)
 
         initial_points = self.dirichlet.random_uniform(self.n_points)
         initial_tangent_vecs = self.dirichlet.random_uniform(self.n_points)
-        geodesic = self.metric._geodesic_ivp(
-            initial_points, initial_tangent_vecs)
+        geodesic = self.metric._geodesic_ivp(initial_points, initial_tangent_vecs)
         geodesic_at_t = geodesic(t)
         result = geodesic_at_t.shape
         expected = (self.n_points, n_steps, self.dim)
@@ -299,18 +296,15 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         end_point = self.dirichlet.random_uniform()
 
         n_steps = 10000
-        geod = self.metric.geodesic(
-            initial_point=initial_point,
-            end_point=end_point)
-        t = gs.linspace(0., 1., n_steps)
+        geod = self.metric.geodesic(initial_point=initial_point, end_point=end_point)
+        t = gs.linspace(0.0, 1.0, n_steps)
         geod_at_t = geod(t)
         velocity = n_steps * (geod_at_t[1:, :] - geod_at_t[:-1, :])
         velocity_norm = self.metric.norm(velocity, geod_at_t[:-1, :])
-        result = 1 / velocity_norm.min() * (
-            velocity_norm.max() - velocity_norm.min())
-        expected = 0.
+        result = 1 / velocity_norm.min() * (velocity_norm.max() - velocity_norm.min())
+        expected = 0.0
 
-        self.assertAllClose(expected, result, atol=1e-4, rtol=1.)
+        self.assertAllClose(expected, result, atol=1e-4, rtol=1.0)
 
     @geomstats.tests.np_only
     def test_geodesic_vectorization(self):
@@ -322,8 +316,8 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         initial_point = self.dirichlet.random_uniform()
         initial_tangent_vec = self.dirichlet.random_uniform()
         geod = self.metric.geodesic(
-            initial_point=initial_point,
-            initial_tangent_vec=initial_tangent_vec)
+            initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
+        )
         time = 0.5
         result = geod(time).shape
         expected = (self.dim,)
@@ -333,17 +327,15 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         n_times = 10
         initial_tangent_vecs = self.dirichlet.random_uniform(n_vecs)
         geod = self.metric.geodesic(
-            initial_point=initial_point,
-            initial_tangent_vec=initial_tangent_vecs)
-        times = gs.linspace(0., 1., n_times)
+            initial_point=initial_point, initial_tangent_vec=initial_tangent_vecs
+        )
+        times = gs.linspace(0.0, 1.0, n_times)
         result = geod(times).shape
         expected = (n_vecs, n_times, self.dim)
         self.assertAllClose(result, expected)
 
         end_points = self.dirichlet.random_uniform(self.n_points)
-        geod = self.metric.geodesic(
-            initial_point=initial_point,
-            end_point=end_points)
+        geod = self.metric.geodesic(initial_point=initial_point, end_point=end_points)
         time = 0.5
         result = geod(time).shape
         expected = (self.n_points, self.dim)

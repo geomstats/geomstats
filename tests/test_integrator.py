@@ -17,20 +17,18 @@ class TestIntegrator(geomstats.tests.TestCase):
         self.slope = Matrices.to_symmetric(self.matrices.random_uniform(1))
 
     def function_linear(self, point, vector):
-        return point, - gs.dot(self.slope, vector)
+        return point, -gs.dot(self.slope, vector)
 
     def test_euler_step(self):
         state = (self.intercept, self.slope)
-        result = len(
-            integrator.euler_step(state, self.function_linear, self.dt))
+        result = len(integrator.euler_step(state, self.function_linear, self.dt))
         expected = len(state)
 
         self.assertAllClose(result, expected)
 
     def test_rk4_step(self):
         state = (self.intercept, self.slope)
-        result = len(integrator.rk4_step(
-            state, self.function_linear, self.dt))
+        result = len(integrator.rk4_step(state, self.function_linear, self.dt))
         expected = len(state)
 
         self.assertAllClose(result, expected)

@@ -6,8 +6,7 @@ import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
 from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.product_riemannian_metric import \
-    ProductRiemannianMetric
+from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 
 
 class ProductManifold(Manifold):
@@ -42,36 +41,41 @@ class ProductManifold(Manifold):
 
     def __init__(self, manifolds, default_point_type='vector', n_jobs=1):
         geomstats.errors.check_parameter_accepted_values(
-            default_point_type, 'default_point_type', ['vector', 'matrix'])
+            default_point_type, 'default_point_type', ['vector', 'matrix']
+        )
 
         self.dims = [manifold.dim for manifold in manifolds]
         super(ProductManifold, self).__init__(
-            dim=sum(self.dims),
-            default_point_type=default_point_type)
+            dim=sum(self.dims), default_point_type=default_point_type
+        )
         self.manifolds = manifolds
         self.metric = ProductRiemannianMetric(
             [manifold.metric for manifold in manifolds],
-            default_point_type=default_point_type)
+            default_point_type=default_point_type,
+        )
         self.n_jobs = n_jobs
 
     @staticmethod
     def _get_method(manifold, method_name, metric_args):
         return getattr(manifold, method_name)(**metric_args)
 
-    def _iterate_over_manifolds(
-            self, func, args, intrinsic=False):
+    def _iterate_over_manifolds(self, func, args, intrinsic=False):
 
-        cum_index = gs.cumsum(self.dims)[:-1] if intrinsic else \
-            gs.cumsum([k + 1 for k in self.dims])
-        arguments = {key: gs.split(
-            args[key], cum_index, axis=1) for key in args.keys()}
-        args_list = [{key: arguments[key][j] for key in args.keys()} for j in
-                     range(len(self.manifolds))]
+        cum_index = (
+            gs.cumsum(self.dims)[:-1]
+            if intrinsic
+            else gs.cumsum([k + 1 for k in self.dims])
+        )
+        arguments = {key: gs.split(args[key], cum_index, axis=1) for key in args.keys()}
+        args_list = [
+            {key: arguments[key][j] for key in args.keys()}
+            for j in range(len(self.manifolds))
+        ]
         pool = joblib.Parallel(n_jobs=self.n_jobs)
         out = pool(
-            joblib.delayed(self._get_method)(
-                self.manifolds[i], func, args_list[i]) for i in range(
-                len(self.manifolds)))
+            joblib.delayed(self._get_method)(self.manifolds[i], func, args_list[i])
+            for i in range(len(self.manifolds))
+        )
         return out
 
     @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
@@ -94,19 +98,21 @@ class ProductManifold(Manifold):
         if point_type is None:
             point_type = self.default_point_type
         geomstats.errors.check_parameter_accepted_values(
-            point_type, 'point_type', ['vector', 'matrix'])
+            point_type, 'point_type', ['vector', 'matrix']
+        )
 
         if point_type == 'vector':
             intrinsic = self.metric.is_intrinsic(point)
             belongs = self._iterate_over_manifolds(
-                'belongs', {'point': point}, intrinsic)
+                'belongs', {'point': point}, intrinsic
+            )
             belongs = gs.stack(belongs, axis=1)
 
         else:
-            belongs = gs.stack([
-                space.belongs(point[:, i]) for i, space in enumerate(
-                    self.manifolds)],
-                axis=1)
+            belongs = gs.stack(
+                [space.belongs(point[:, i]) for i, space in enumerate(self.manifolds)],
+                axis=1,
+            )
 
         belongs = gs.all(belongs, axis=1)
         belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
@@ -132,17 +138,20 @@ class ProductManifold(Manifold):
         if point_type is None:
             point_type = self.default_point_type
         geomstats.errors.check_parameter_accepted_values(
-            point_type, 'point_type', ['vector', 'matrix'])
+            point_type, 'point_type', ['vector', 'matrix']
+        )
 
         if point_type == 'vector':
             intrinsic = self.metric.is_intrinsic(point)
             regularized_point = self._iterate_over_manifolds(
-                'regularize', {'point': point}, intrinsic)
+                'regularize', {'point': point}, intrinsic
+            )
             regularized_point = gs.hstack(regularized_point)
         elif point_type == 'matrix':
             regularized_point = [
                 manifold_i.regularize(point[:, i])
-                for i, manifold_i in enumerate(self.manifolds)]
+                for i, manifold_i in enumerate(self.manifolds)
+            ]
             regularized_point = gs.stack(regularized_point, axis=1)
         return regularized_point
 
@@ -165,7 +174,8 @@ class ProductManifold(Manifold):
         if point_type is None:
             point_type = self.default_point_type
         geomstats.errors.check_parameter_accepted_values(
-            point_type, 'point_type', ['vector', 'matrix'])
+            point_type, 'point_type', ['vector', 'matrix']
+        )
 
         if point_type == 'vector':
             data = self.manifolds[0].random_uniform(n_samples)

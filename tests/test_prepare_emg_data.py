@@ -18,25 +18,22 @@ class TestPrepareEmgData(geomstats.tests.TestCase):
         self.margin = 1000
         data = load_emg()
         data = data[data.label != 'rest']
-        self.emg_data = {'time_vec': gs.array(data.time),
-                         'raw_data': gs.array(data[['c{}'.format(i)
-                                                    for i in range(8)]]),
-                         'label': gs.array(data.label),
-                         'exp': gs.array(data.exp)}
+        self.emg_data = {
+            'time_vec': gs.array(data.time),
+            'raw_data': gs.array(data[['c{}'.format(i) for i in range(8)]]),
+            'label': gs.array(data.label),
+            'exp': gs.array(data.exp),
+        }
 
-        self.cov_transformer = TimeSeriesCovariance(self.emg_data,
-                                                    self.n_steps,
-                                                    self.n_elec,
-                                                    self.label_map,
-                                                    self.margin)
+        self.cov_transformer = TimeSeriesCovariance(
+            self.emg_data, self.n_steps, self.n_elec, self.label_map, self.margin
+        )
         self.cov_transformer.transform()
 
     @geomstats.tests.np_only
     def test_covariance_shape(self):
         """Test the shape of the covariance matrices."""
-        result_shape = (len(self.cov_transformer.batches),
-                        self.n_elec,
-                        self.n_elec)
+        result_shape = (len(self.cov_transformer.batches), self.n_elec, self.n_elec)
         self.assertTrue(self.cov_transformer.covs.shape == result_shape)
 
     @geomstats.tests.np_only

@@ -20,11 +20,20 @@ class EmbeddedManifold(Manifold):
         Optional, default: 'intrinsic'.
     """
 
-    def __init__(self, dim, embedding_manifold, default_point_type='vector',
-                 default_coords_type='intrinsic', **kwargs):
+    def __init__(
+        self,
+        dim,
+        embedding_manifold,
+        default_point_type='vector',
+        default_coords_type='intrinsic',
+        **kwargs
+    ):
         super(EmbeddedManifold, self).__init__(
-            dim=dim, default_point_type=default_point_type,
-            default_coords_type=default_coords_type, **kwargs)
+            dim=dim,
+            default_point_type=default_point_type,
+            default_coords_type=default_coords_type,
+            **kwargs
+        )
         self.embedding_manifold = embedding_manifold
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
@@ -40,8 +49,7 @@ class EmbeddedManifold(Manifold):
         point_extrinsic : array-like, shape=[..., dim_embedding]
             Point in the embedded manifold in extrinsic coordinates.
         """
-        raise NotImplementedError(
-            'intrinsic_to_extrinsic_coords is not implemented.')
+        raise NotImplementedError('intrinsic_to_extrinsic_coords is not implemented.')
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """Convert from extrinsic to intrinsic coordinates.
@@ -57,8 +65,7 @@ class EmbeddedManifold(Manifold):
         point_intrinsic : array-lie, shape=[..., dim]
             Point in the embedded manifold in intrinsic coordinates.
         """
-        raise NotImplementedError(
-            'extrinsic_to_intrinsic_coords is not implemented.')
+        raise NotImplementedError('extrinsic_to_intrinsic_coords is not implemented.')
 
     def projection(self, point):
         """Project a point in embedding manifold on embedded manifold.
@@ -72,5 +79,4 @@ class EmbeddedManifold(Manifold):
         -------
             Projected point.
         """
-        raise NotImplementedError(
-            'projection is not implemented.')
+        raise NotImplementedError('projection is not implemented.')

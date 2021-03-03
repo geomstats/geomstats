@@ -23,8 +23,8 @@ class SymmetricMatrices(EmbeddedManifold):
 
     def __init__(self, n, **kwargs):
         super(SymmetricMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2),
-            embedding_manifold=Matrices(n, n))
+            dim=int(n * (n + 1) / 2), embedding_manifold=Matrices(n, n)
+        )
         self.n = n
 
     def belongs(self, mat, atol=TOLERANCE):
@@ -50,12 +50,11 @@ class SymmetricMatrices(EmbeddedManifold):
             for col in gs.arange(row, self.n):
                 if row == col:
                     indices = [(row, row)]
-                    values = [1.]
+                    values = [1.0]
                 else:
                     indices = [(row, col), (col, row)]
-                    values = [1., 1.]
-                basis.append(gs.array_from_sparse(
-                    indices, values, (self.n, ) * 2))
+                    values = [1.0, 1.0]
+                basis.append(gs.array_from_sparse(indices, values, (self.n,) * 2))
         basis = gs.stack(basis)
         return basis
 
@@ -112,17 +111,20 @@ class SymmetricMatrices(EmbeddedManifold):
             Symmetric matrix.
         """
         vec_dim = vec.shape[-1]
-        mat_dim = (gs.sqrt(8. * vec_dim + 1) - 1) / 2
+        mat_dim = (gs.sqrt(8.0 * vec_dim + 1) - 1) / 2
         if mat_dim != int(mat_dim):
-            raise ValueError('Invalid input dimension, it must be of the form'
-                             '(n_samples, n * (n + 1) / 2)')
+            raise ValueError(
+                'Invalid input dimension, it must be of the form'
+                '(n_samples, n * (n + 1) / 2)'
+            )
         mat_dim = int(mat_dim)
         shape = (mat_dim, mat_dim)
         mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
         indices = list(zip(*gs.triu_indices(mat_dim)))
         vec = gs.cast(vec, dtype)
-        upper_triangular = gs.stack([
-            gs.array_from_sparse(indices, data, shape) for data in vec])
+        upper_triangular = gs.stack(
+            [gs.array_from_sparse(indices, data, shape) for data in vec]
+        )
         mat = Matrices.to_symmetric(upper_triangular) * mask
         return mat
 
@@ -161,8 +163,10 @@ class SymmetricMatrices(EmbeddedManifold):
         powerm : array_like, shape=[..., n, n]
             Matrix power of mat.
         """
+
         def _power(eigvals):
             return gs.power(eigvals, power)
+
         return cls.apply_func_to_eigvals(mat, _power, check_positive=True)
 
     @staticmethod
@@ -184,10 +188,10 @@ class SymmetricMatrices(EmbeddedManifold):
         """
         eigvals, eigvecs = gs.linalg.eigh(mat)
         if check_positive:
-            if gs.any(gs.cast(eigvals, gs.float32) < 0.):
+            if gs.any(gs.cast(eigvals, gs.float32) < 0.0):
                 logging.warning(
-                    'Negative eigenvalue encountered in'
-                    ' {}'.format(function.__name__))
+                    'Negative eigenvalue encountered in' ' {}'.format(function.__name__)
+                )
         eigvals = function(eigvals)
         eigvals = algebra_utils.from_vector_to_diagonal_matrix(eigvals)
         transp_eigvecs = Matrices.transpose(eigvecs)

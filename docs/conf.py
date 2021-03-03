@@ -17,7 +17,7 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode',
 ]
 
 # Configure napoleon for numpy docstring
@@ -49,24 +49,31 @@ html_baseurl = 'geomstats.github.io'
 htmlhelp_basename = 'geomstatsdoc'
 html_last_updated_fmt = '%c'
 
-latex_elements = {
-}
+latex_elements = {}
 
 
 latex_documents = [
-    (master_doc, 'geomstats.tex', 'geomstats Documentation',
-     'Geomstats Team', 'manual'),
+    (
+        master_doc,
+        'geomstats.tex',
+        'geomstats Documentation',
+        'Geomstats Team',
+        'manual',
+    ),
 ]
 
-man_pages = [
-    (master_doc, 'geomstats', 'geomstats Documentation',
-     [author], 1)
-]
+man_pages = [(master_doc, 'geomstats', 'geomstats Documentation', [author], 1)]
 
 texinfo_documents = [
-    (master_doc, 'geomstats', 'geomstats Documentation',
-     author, 'geomstats', 'One line description of project.',
-     'Miscellaneous'),
+    (
+        master_doc,
+        'geomstats',
+        'geomstats Documentation',
+        author,
+        'geomstats',
+        'One line description of project.',
+        'Miscellaneous',
+    ),
 ]
 
 epub_title = project

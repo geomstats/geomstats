@@ -9,8 +9,9 @@ import numpy as np
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.kernel_density_estimation_classifier \
-    import KernelDensityEstimationClassifier
+from geomstats.learning.kernel_density_estimation_classifier import (
+    KernelDensityEstimationClassifier,
+)
 from geomstats.learning.radial_kernel_functions import triangular_radial_kernel
 
 
@@ -29,11 +30,11 @@ def main():
 
     n_training_samples = n_labels * n_samples_per_dataset
     dataset_1 = sphere.random_von_mises_fisher(
-        kappa=10,
-        n_samples=n_samples_per_dataset)
-    dataset_2 = - sphere.random_von_mises_fisher(
-        kappa=10,
-        n_samples=n_samples_per_dataset)
+        kappa=10, n_samples=n_samples_per_dataset
+    )
+    dataset_2 = -sphere.random_von_mises_fisher(
+        kappa=10, n_samples=n_samples_per_dataset
+    )
     training_dataset = gs.concatenate((dataset_1, dataset_2), axis=0)
     labels_dataset_1 = gs.zeros([n_samples_per_dataset], dtype=gs.int64)
     labels_dataset_2 = gs.ones([n_samples_per_dataset], dtype=gs.int64)
@@ -49,7 +50,8 @@ def main():
         distance=sphere_distance,
         kernel=kernel,
         bandwidth=bandwidth,
-        outlier_label='most_frequent')
+        outlier_label='most_frequent',
+    )
     kde.fit(training_dataset, labels)
     target_labels = kde.predict(target)
     target_labels_proba = kde.predict_proba(target)
@@ -87,9 +89,11 @@ def main():
 
 if __name__ == '__main__':
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        logging.info('Examples with visualizations are only implemented '
-                     'with numpy backend.\n'
-                     'To change backend, write: '
-                     'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info(
+            'Examples with visualizations are only implemented '
+            'with numpy backend.\n'
+            'To change backend, write: '
+            'export GEOMSTATS_BACKEND = \'numpy\'.'
+        )
     else:
         main()

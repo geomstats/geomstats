@@ -13,14 +13,16 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
 
     def test_belongs(self):
         theta = gs.pi / 3
-        point_1 = gs.array([[gs.cos(theta), - gs.sin(theta)],
-                            [gs.sin(theta), gs.cos(theta)]])
+        point_1 = gs.array(
+            [[gs.cos(theta), -gs.sin(theta)], [gs.sin(theta), gs.cos(theta)]]
+        )
         result = self.group.belongs(point_1)
         expected = True
         self.assertAllClose(result, expected)
 
-        point_2 = gs.array([[gs.cos(theta), gs.sin(theta)],
-                            [gs.sin(theta), gs.cos(theta)]])
+        point_2 = gs.array(
+            [[gs.cos(theta), gs.sin(theta)], [gs.sin(theta), gs.cos(theta)]]
+        )
         result = self.group.belongs(point_2)
         expected = False
         self.assertAllClose(result, expected)
@@ -48,14 +50,12 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
 
     def test_is_in_lie_algebra(self):
         theta = gs.pi / 3
-        vec_1 = gs.array([[0., - theta],
-                         [theta, 0.]])
+        vec_1 = gs.array([[0.0, -theta], [theta, 0.0]])
         result = self.group.is_tangent(vec_1)
         expected = True
         self.assertAllClose(result, expected)
 
-        vec_2 = gs.array([[0., - theta],
-                         [theta, 1.]])
+        vec_2 = gs.array([[0.0, -theta], [theta, 1.0]])
         result = self.group.is_tangent(vec_2)
         expected = False
         self.assertAllClose(result, expected)
@@ -67,16 +67,14 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
 
     def test_is_tangent(self):
         point = self.group.random_uniform()
-        theta = 1.
-        vec_1 = gs.array([[0., - theta],
-                         [theta, 0.]])
+        theta = 1.0
+        vec_1 = gs.array([[0.0, -theta], [theta, 0.0]])
         vec_1 = self.group.compose(point, vec_1)
         result = self.group.is_tangent(vec_1, point, atol=1e-6)
         expected = True
         self.assertAllClose(result, expected)
 
-        vec_2 = gs.array([[0., - theta],
-                         [theta, 1.]])
+        vec_2 = gs.array([[0.0, -theta], [theta, 1.0]])
         vec_2 = self.group.compose(point, vec_2)
         result = self.group.is_tangent(vec_2, point, atol=1e-6)
         expected = False
@@ -89,9 +87,8 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_to_tangent(self):
-        theta = 1.
-        vec_1 = gs.array([[0., - theta],
-                         [theta, 0.]])
+        theta = 1.0
+        vec_1 = gs.array([[0.0, -theta], [theta, 0.0]])
         result = self.group.to_tangent(vec_1)
         expected = vec_1
         self.assertAllClose(result, expected)

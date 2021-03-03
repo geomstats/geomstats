@@ -28,7 +28,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         mean.fit(x)
 
         result = metric.dist(center, mean.estimate_)
-        expected = 0.
+        expected = 0.0
         self.assertAllClose(expected, result, atol=1e-2)
 
     @geomstats.tests.np_only
@@ -65,6 +65,6 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
 
         centroids = kmeans.centroids
         expected = gs.array(
-            [int(metric.closest_neighbor_index(x_i, centroids))
-             for x_i in x])
+            [int(metric.closest_neighbor_index(x_i, centroids)) for x_i in x]
+        )
         self.assertAllClose(expected, result)

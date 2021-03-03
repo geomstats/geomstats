@@ -7,7 +7,7 @@ import geomstats.tests
 from geomstats.learning._template import (
     TemplateClassifier,
     TemplateEstimator,
-    TemplateTransformer
+    TemplateTransformer,
 )
 
 ESTIMATORS = (TemplateClassifier, TemplateEstimator, TemplateTransformer)

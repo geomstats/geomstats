@@ -36,6 +36,7 @@ class Euclidean(Manifold):
         """
         identity = gs.zeros(self.dim)
         return identity
+
     identity = property(get_identity)
 
     def belongs(self, point):
@@ -58,7 +59,7 @@ class Euclidean(Manifold):
 
         return belongs
 
-    def random_uniform(self, n_samples=1, bound=1.):
+    def random_uniform(self, n_samples=1, bound=1.0):
         """Sample in the Euclidean space with the uniform distribution.
 
         Parameters
@@ -118,8 +119,8 @@ class EuclideanMetric(RiemannianMetric):
 
     def __init__(self, dim, default_point_type='vector'):
         super(EuclideanMetric, self).__init__(
-            dim=dim, signature=(dim, 0, 0),
-            default_point_type=default_point_type)
+            dim=dim, signature=(dim, 0, 0), default_point_type=default_point_type
+        )
 
     def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix, independent of the base point.

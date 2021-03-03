@@ -35,13 +35,12 @@ class GeneralLinear(Matrices):
         point_shape = point.shape
         mat_dim_1, mat_dim_2 = point_shape[-2], point_shape[-1]
         det = gs.linalg.det(point)
-        return gs.logical_and(
-            mat_dim_1 == self.n and mat_dim_2 == self.n,
-            det != 0.)
+        return gs.logical_and(mat_dim_1 == self.n and mat_dim_2 == self.n, det != 0.0)
 
     def get_identity(self):
         """Return the identity matrix."""
         return gs.eye(self.n, self.n)
+
     identity = property(get_identity)
 
     @classmethod
@@ -62,10 +61,8 @@ class GeneralLinear(Matrices):
 
     def _replace_values(self, samples, new_samples, indcs):
         """Replace samples with new samples at specific indices."""
-        replaced_indices = [
-            i for i, is_replaced in enumerate(indcs) if is_replaced]
-        value_indices = list(
-            product(replaced_indices, range(self.n), range(self.n)))
+        replaced_indices = [i for i, is_replaced in enumerate(indcs) if is_replaced]
+        value_indices = list(product(replaced_indices, range(self.n), range(self.n)))
         return gs.assignment(samples, gs.flatten(new_samples), value_indices)
 
     def random_uniform(self, n_samples=1, tol=1e-6):
@@ -93,8 +90,7 @@ class GeneralLinear(Matrices):
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
-            new_samples = gs.random.normal(
-                size=(num_bad_samples, self.n, self.n))
+            new_samples = gs.random.normal(size=(num_bad_samples, self.n, self.n))
             samples = self._replace_values(samples, new_samples, indcs)
         if n_samples == 1:
             samples = gs.squeeze(samples, axis=0)
@@ -216,4 +212,5 @@ class GeneralLinear(Matrices):
         def path(time):
             vecs = gs.einsum('t,...ij->...tij', time, tangent_vec)
             return cls.exp(vecs, base_point)
+
         return path

@@ -55,7 +55,8 @@ class Grassmannian(EmbeddedManifold):
         geomstats.errors.check_integer(n, 'n')
         if k > n:
             raise ValueError(
-                'k <= n is required: k-dimensional subspaces in n dimensions.')
+                'k <= n is required: k-dimensional subspaces in n dimensions.'
+            )
 
         self.n = n
         self.k = k
@@ -63,9 +64,8 @@ class Grassmannian(EmbeddedManifold):
 
         dim = int(k * (n - k))
         super(Grassmannian, self).__init__(
-            dim=dim,
-            embedding_manifold=Matrices(n, n),
-            default_point_type='matrix')
+            dim=dim, embedding_manifold=Matrices(n, n), default_point_type='matrix'
+        )
 
         self.n = n
         self.k = k
@@ -126,9 +126,8 @@ class Grassmannian(EmbeddedManifold):
         points = gs.random.normal(size=(n_samples, self.n, self.k))
         full_rank = Matrices.mul(Matrices.transpose(points), points)
         projector = Matrices.mul(
-            points,
-            GeneralLinear.inverse(full_rank),
-            Matrices.transpose(points))
+            points, GeneralLinear.inverse(full_rank), Matrices.transpose(points)
+        )
         return projector[0] if n_samples == 1 else projector
 
     def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
@@ -153,9 +152,10 @@ class Grassmannian(EmbeddedManifold):
             Boolean evaluating if `vector` is tangent to the Grassmannian at
             `base_point`.
         """
-        diff = Matrices.mul(
-            base_point, vector) + Matrices.mul(vector, base_point) - vector
-        is_close = gs.all(gs.isclose(diff, 0., atol=atol))
+        diff = (
+            Matrices.mul(base_point, vector) + Matrices.mul(vector, base_point) - vector
+        )
+        is_close = gs.all(gs.isclose(diff, 0.0, atol=atol))
         return gs.logical_and(Matrices.is_symmetric(vector), is_close)
 
     def to_tangent(self, vector, base_point=None):
@@ -258,7 +258,8 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
 
         dim = int(p * (n - p))
         super(GrassmannianCanonicalMetric, self).__init__(
-            m=n, n=n, dim=dim, signature=(dim, 0, 0))
+            m=n, n=n, dim=dim, signature=(dim, 0, 0)
+        )
 
         self.n = n
         self.p = p
@@ -319,8 +320,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         """
         GLn = GeneralLinear(self.n)
         id_n = GLn.identity
-        id_n, point, base_point = gs.convert_to_wider_dtype([
-            id_n, point, base_point])
+        id_n, point, base_point = gs.convert_to_wider_dtype([id_n, point, base_point])
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
         rot = GLn.mul(sym2, sym1)

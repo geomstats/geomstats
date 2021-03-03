@@ -21,9 +21,8 @@ def randint(low, high=None, size=None):
         maxval = low - 1
         minval = 0
     return tf.random.uniform(
-        shape=size,
-        minval=minval,
-        maxval=maxval, dtype=tf.int32, seed=None, name=None)
+        shape=size, minval=minval, maxval=maxval, dtype=tf.int32, seed=None, name=None
+    )
 
 
 def rand(*args):

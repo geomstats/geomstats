@@ -31,9 +31,7 @@ def kmedoids_poincare_ball():
     cluster_2 = gs.random.uniform(low=-0.2, high=0, size=(n_samples, dim))
     data = gs.concatenate((cluster_1, cluster_2), axis=0)
 
-    kmedoids = RiemannianKMedoids(metric=metric,
-                                  n_clusters=n_clusters,
-                                  init='random')
+    kmedoids = RiemannianKMedoids(metric=metric, n_clusters=n_clusters, init='random')
 
     centroids = kmedoids.fit(data=data, max_iter=100)
     labels = kmedoids.predict(data=data)
@@ -46,7 +44,8 @@ def kmedoids_poincare_ball():
         space='H2_poincare_disk',
         marker='.',
         color='black',
-        point_type=manifold.point_type)
+        point_type=manifold.point_type,
+    )
 
     for i in range(n_clusters):
         ax = visualization.plot(
@@ -55,7 +54,8 @@ def kmedoids_poincare_ball():
             space='H2_poincare_disk',
             marker='.',
             color=colors[i],
-            point_type=manifold.point_type)
+            point_type=manifold.point_type,
+        )
 
     ax = visualization.plot(
         centroids,
@@ -64,7 +64,8 @@ def kmedoids_poincare_ball():
         marker='*',
         color='green',
         s=100,
-        point_type=manifold.point_type)
+        point_type=manifold.point_type,
+    )
 
     ax.set_title('Kmedoids on Poincaré Ball Manifold')
 
@@ -89,36 +90,24 @@ def kmedoids_hypersphere():
 
     data = gs.concatenate((cluster_1, cluster_2), axis=0)
 
-    kmedoids = RiemannianKMedoids(metric=metric,
-                                  n_clusters=n_clusters)
+    kmedoids = RiemannianKMedoids(metric=metric, n_clusters=n_clusters)
     centroids = kmedoids.fit(data)
     labels = kmedoids.predict(data)
 
     plt.figure(2)
     colors = ['red', 'blue']
 
-    ax = visualization.plot(
-        data,
-        space='S2',
-        marker='.',
-        color='black')
+    ax = visualization.plot(data, space='S2', marker='.', color='black')
 
     for i in range(n_clusters):
         if len(data[labels == i]) > 0:
             ax = visualization.plot(
-                points=data[labels == i],
-                ax=ax,
-                space='S2',
-                marker='.',
-                color=colors[i])
+                points=data[labels == i], ax=ax, space='S2', marker='.', color=colors[i]
+            )
 
     ax = visualization.plot(
-        centroids,
-        ax=ax,
-        space='S2',
-        marker='*',
-        s=200,
-        color='green')
+        centroids, ax=ax, space='S2', marker='*', s=200, color='green'
+    )
 
     ax.set_title('Kmedoids on Hypersphere Manifold')
 
@@ -139,9 +128,11 @@ if __name__ == '__main__':
     compatible_backends = ['numpy', 'pytorch']
 
     if os.environ['GEOMSTATS_BACKEND'] not in compatible_backends:
-        logging.info('K-Medoids example is implemented'
-                     'with numpy or pytorch backend.\n'
-                     'To change backend, write: '
-                     'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info(
+            'K-Medoids example is implemented'
+            'with numpy or pytorch backend.\n'
+            'To change backend, write: '
+            'export GEOMSTATS_BACKEND = \'numpy\'.'
+        )
     else:
         main()

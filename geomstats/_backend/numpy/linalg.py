@@ -12,7 +12,7 @@ from autograd.numpy.linalg import (  # NOQA
     eigvalsh,
     inv,
     norm,
-    svd
+    svd,
 )
 
 from .common import to_ndarray
@@ -27,8 +27,7 @@ def _is_symmetric(x, tol=_TOL):
 
 @primitive
 def expm(x):
-    return np.vectorize(
-        asp.expm, signature='(n,m)->(n,m)')(x)
+    return np.vectorize(asp.expm, signature='(n,m)->(n,m)')(x)
 
 
 def _expm_vjp(_ans, x):
@@ -43,6 +42,7 @@ def _expm_vjp(_ans, x):
         mat[..., n:, n:] = x.transpose(axes)
         mat[..., :n, n:] = g
         return expm(mat)[..., :n, n:]
+
     return vjp
 
 
@@ -61,11 +61,9 @@ def logm(x):
             result = np.matmul(eigvecs, eigvals)
             result = np.matmul(result, transp_eigvecs)
         else:
-            result = np.vectorize(scipy.linalg.logm,
-                                  signature='(n,m)->(n,m)')(new_x)
+            result = np.vectorize(scipy.linalg.logm, signature='(n,m)->(n,m)')(new_x)
     else:
-        result = np.vectorize(scipy.linalg.logm,
-                              signature='(n,m)->(n,m)')(new_x)
+        result = np.vectorize(scipy.linalg.logm, signature='(n,m)->(n,m)')(new_x)
 
     if ndim == 2:
         return result[0]
@@ -75,26 +73,23 @@ def logm(x):
 def solve_sylvester(a, b, q):
     if a.shape == b.shape:
         axes = (0, 2, 1) if a.ndim == 3 else (1, 0)
-        if np.all(a == b) and np.all(
-                np.abs(a - np.transpose(a, axes)) < 1e-6):
+        if np.all(a == b) and np.all(np.abs(a - np.transpose(a, axes)) < 1e-6):
             eigvals, eigvecs = eigh(a)
             if np.all(eigvals >= 1e-6):
                 tilde_q = np.transpose(eigvecs, axes) @ q @ eigvecs
-                tilde_x = tilde_q / (
-                    eigvals[..., :, None] + eigvals[..., None, :])
+                tilde_x = tilde_q / (eigvals[..., :, None] + eigvals[..., None, :])
                 return eigvecs @ tilde_x @ np.transpose(eigvecs, axes)
 
     return np.vectorize(
-        scipy.linalg.solve_sylvester,
-        signature='(m,m),(n,n),(m,n)->(m,n)')(a, b, q)
+        scipy.linalg.solve_sylvester, signature='(m,m),(n,n),(m,n)->(m,n)'
+    )(a, b, q)
 
 
 def sqrtm(x):
-    return np.vectorize(
-        scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
+    return np.vectorize(scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
 
 
 def qr(*args, **kwargs):
-    return np.vectorize(np.linalg.qr,
-                        signature='(n,m)->(n,k),(k,m)',
-                        excluded=['mode'])(*args, **kwargs)
+    return np.vectorize(
+        np.linalg.qr, signature='(n,m)->(n,k),(k,m)', excluded=['mode']
+    )(*args, **kwargs)

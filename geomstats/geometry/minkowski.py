@@ -38,7 +38,7 @@ class Minkowski(Manifold):
 
         return belongs
 
-    def random_uniform(self, n_samples=1, bound=1.):
+    def random_uniform(self, n_samples=1, bound=1.0):
         """Sample in the Minkowski space from the uniform distribution.
 
         Parameters
@@ -75,9 +75,7 @@ class MinkowskiMetric(RiemannianMetric):
     """
 
     def __init__(self, dim):
-        super(MinkowskiMetric, self).__init__(
-            dim=dim,
-            signature=(dim - 1, 1, 0))
+        super(MinkowskiMetric, self).__init__(dim=dim, signature=(dim - 1, 1, 0))
 
     def metric_matrix(self, base_point=None):
         """Compute the inner product matrix, independent of the base point.
@@ -93,12 +91,11 @@ class MinkowskiMetric(RiemannianMetric):
             Inner-product matrix.
         """
         inner_prod_mat = gs.eye(self.dim - 1, self.dim - 1)
-        first_row = gs.array([0.] * (self.dim - 1))
+        first_row = gs.array([0.0] * (self.dim - 1))
         first_row = gs.to_ndarray(first_row, to_ndim=2, axis=1)
-        inner_prod_mat = gs.vstack(
-            [gs.transpose(first_row), inner_prod_mat])
+        inner_prod_mat = gs.vstack([gs.transpose(first_row), inner_prod_mat])
 
-        first_column = gs.array([-1.] + [0.] * (self.dim - 1))
+        first_column = gs.array([-1.0] + [0.0] * (self.dim - 1))
         first_column = gs.to_ndarray(first_column, to_ndim=2, axis=1)
         inner_prod_mat = gs.hstack([first_column, inner_prod_mat])
 

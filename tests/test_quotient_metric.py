@@ -6,8 +6,7 @@ from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.spd_matrices import SPDMatrices, \
-    SPDMetricBuresWasserstein
+from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricBuresWasserstein
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
@@ -18,24 +17,24 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         self.base = SPDMatrices(n)
         self.base_metric = SPDMetricBuresWasserstein(n)
         self.group = SpecialOrthogonal(n)
-        self.bundle = FiberBundle(
-            GeneralLinear(n), base=self.base, group=self.group)
+        self.bundle = FiberBundle(GeneralLinear(n), base=self.base, group=self.group)
         self.quotient_metric = QuotientMetric(
-            self.bundle, ambient_metric=MatricesMetric(n, n))
+            self.bundle, ambient_metric=MatricesMetric(n, n)
+        )
 
         def submersion(point):
             return GeneralLinear.mul(point, GeneralLinear.transpose(point))
 
         def tangent_submersion(tangent_vec, base_point):
             product = GeneralLinear.mul(
-                base_point, GeneralLinear.transpose(tangent_vec))
+                base_point, GeneralLinear.transpose(tangent_vec)
+            )
             return 2 * GeneralLinear.to_symmetric(product)
 
         def horizontal_lift(tangent_vec, point, base_point=None):
             if base_point is None:
                 base_point = submersion(point)
-            sylvester = gs.linalg.solve_sylvester(
-                base_point, base_point, tangent_vec)
+            sylvester = gs.linalg.solve_sylvester(base_point, base_point, tangent_vec)
             return GeneralLinear.mul(sylvester, point)
 
         self.bundle.submersion = submersion
@@ -88,7 +87,8 @@ class TestQuotientMetric(geomstats.tests.TestCase):
     def test_horizontal_lift_and_tangent_submersion(self):
         mat = self.bundle.total_space.random_uniform()
         tangent_vec = GeneralLinear.to_symmetric(
-            self.bundle.total_space.random_uniform())
+            self.bundle.total_space.random_uniform()
+        )
         horizontal = self.bundle.horizontal_lift(tangent_vec, mat)
         result = self.bundle.tangent_submersion(horizontal, mat)
         self.assertAllClose(result, tangent_vec)
@@ -96,7 +96,8 @@ class TestQuotientMetric(geomstats.tests.TestCase):
     def test_is_horizontal(self):
         mat = self.bundle.total_space.random_uniform()
         tangent_vec = GeneralLinear.to_symmetric(
-            self.bundle.total_space.random_uniform())
+            self.bundle.total_space.random_uniform()
+        )
         horizontal = self.bundle.horizontal_lift(tangent_vec, mat)
         result = self.bundle.is_horizontal(horizontal, mat)
         self.assertTrue(result)
@@ -110,28 +111,30 @@ class TestQuotientMetric(geomstats.tests.TestCase):
 
     def test_align(self):
         point = self.bundle.total_space.random_uniform(2)
-        aligned = self.bundle.align(
-            point[0], point[1], tol=1e-10)
-        result = self.bundle.is_horizontal(
-            point[1] - aligned, point[1], atol=1e-5)
+        aligned = self.bundle.align(point[0], point[1], tol=1e-10)
+        result = self.bundle.is_horizontal(point[1] - aligned, point[1], atol=1e-5)
         self.assertTrue(result)
 
     def test_inner_product(self):
         mat = self.bundle.total_space.random_uniform()
         point = self.bundle.submersion(mat)
-        tangent_vecs = GeneralLinear.to_symmetric(
-            self.bundle.total_space.random_uniform(2)) / 10
+        tangent_vecs = (
+            GeneralLinear.to_symmetric(self.bundle.total_space.random_uniform(2)) / 10
+        )
         result = self.quotient_metric.inner_product(
-            tangent_vecs[0], tangent_vecs[1], point=mat)
+            tangent_vecs[0], tangent_vecs[1], point=mat
+        )
         expected = self.base_metric.inner_product(
-            tangent_vecs[0], tangent_vecs[1], point)
+            tangent_vecs[0], tangent_vecs[1], point
+        )
         self.assertAllClose(result, expected)
 
     def test_exp(self):
         mat = self.bundle.total_space.random_uniform()
         point = self.bundle.submersion(mat)
-        tangent_vec = GeneralLinear.to_symmetric(
-            self.bundle.total_space.random_uniform()) / 5
+        tangent_vec = (
+            GeneralLinear.to_symmetric(self.bundle.total_space.random_uniform()) / 5
+        )
 
         result = self.quotient_metric.exp(tangent_vec, point)
         expected = self.base_metric.exp(tangent_vec, point)
@@ -149,7 +152,6 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         mats = self.bundle.total_space.random_uniform(2)
         points = self.bundle.submersion(mats)
 
-        result = self.quotient_metric.squared_dist(
-            points[1], points[0], tol=1e-10)
+        result = self.quotient_metric.squared_dist(points[1], points[0], tol=1e-10)
         expected = self.base_metric.squared_dist(points[1], points[0])
         self.assertAllClose(result, expected, atol=1e-5)

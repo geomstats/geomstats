@@ -59,16 +59,15 @@ def grad(y_pred, y_true, metric):
 
     """
     tangent_vec = metric.log(base_point=y_pred, point=y_true)
-    grad_vec = - 2. * tangent_vec
+    grad_vec = -2.0 * tangent_vec
 
     inner_prod_mat = metric.metric_matrix(base_point=y_pred)
     is_vectorized = inner_prod_mat.ndim == 3
     axes = (0, 2, 1) if is_vectorized else (1, 0)
 
     loss_grad = gs.einsum(
-        '...i,...ij->...i',
-        grad_vec,
-        gs.transpose(inner_prod_mat, axes=axes))
+        '...i,...ij->...i', grad_vec, gs.transpose(inner_prod_mat, axes=axes)
+    )
 
     return loss_grad
 
@@ -90,7 +89,8 @@ class RiemannianMetric(Connection):
 
     def __init__(self, dim, signature=None, default_point_type='vector'):
         super(RiemannianMetric, self).__init__(
-            dim=dim, default_point_type=default_point_type)
+            dim=dim, default_point_type=default_point_type
+        )
         self.signature = signature
 
     def metric_matrix(self, base_point=None):
@@ -108,8 +108,8 @@ class RiemannianMetric(Connection):
             Inner-product matrix.
         """
         raise NotImplementedError(
-            'The computation of the metric matrix'
-            ' is not implemented.')
+            'The computation of the metric matrix' ' is not implemented.'
+        )
 
     def inner_product_inverse_matrix(self, base_point=None):
         """Inner product matrix at the tangent space at a base point.
@@ -160,17 +160,16 @@ class RiemannianMetric(Connection):
             Christoffel symbols.
         """
         cometric_mat_at_point = self.inner_product_inverse_matrix(base_point)
-        metric_derivative_at_point = self.inner_product_derivative_matrix(
-            base_point)
-        term_1 = gs.einsum('...im,...mkl->...ikl',
-                           cometric_mat_at_point,
-                           metric_derivative_at_point)
-        term_2 = gs.einsum('...im,...mlk->...ilk',
-                           cometric_mat_at_point,
-                           metric_derivative_at_point)
-        term_3 = - gs.einsum('...im,...klm->...ikl',
-                             cometric_mat_at_point,
-                             metric_derivative_at_point)
+        metric_derivative_at_point = self.inner_product_derivative_matrix(base_point)
+        term_1 = gs.einsum(
+            '...im,...mkl->...ikl', cometric_mat_at_point, metric_derivative_at_point
+        )
+        term_2 = gs.einsum(
+            '...im,...mlk->...ilk', cometric_mat_at_point, metric_derivative_at_point
+        )
+        term_3 = -gs.einsum(
+            '...im,...klm->...ikl', cometric_mat_at_point, metric_derivative_at_point
+        )
 
         christoffels = 0.5 * (term_1 + term_2 + term_3)
         return christoffels
@@ -329,11 +328,11 @@ class RiemannianMetric(Connection):
             return self.dist(x, y)
 
         pool = joblib.Parallel(n_jobs=n_jobs, **joblib_kwargs)
-        out = pool(
-            pickable_dist(points[i], points[j]) for i, j in zip(rows, cols))
+        out = pool(pickable_dist(points[i], points[j]) for i, j in zip(rows, cols))
 
-        pairwise_dist = geomstats.geometry.symmetric_matrices.\
-            SymmetricMatrices.from_vector(gs.array(out))
+        pairwise_dist = geomstats.geometry.symmetric_matrices.SymmetricMatrices.from_vector(
+            gs.array(out)
+        )
 
         return pairwise_dist
 
@@ -357,7 +356,7 @@ class RiemannianMetric(Connection):
         n_points = points.shape[0]
 
         for i in range(n_points - 1):
-            dist_to_neighbors = self.dist(points[i, :], points[i + 1:, :])
+            dist_to_neighbors = self.dist(points[i, :], points[i + 1 :, :])
             dist_to_farthest_neighbor = gs.amax(dist_to_neighbors)
             diameter = gs.maximum(diameter, dist_to_farthest_neighbor)
 
@@ -401,4 +400,4 @@ class RiemannianMetric(Connection):
         """
         norms = self.squared_norm(basis, base_point)
 
-        return gs.einsum('i, ikl->ikl', 1. / gs.sqrt(norms), basis)
+        return gs.einsum('i, ikl->ikl', 1.0 / gs.sqrt(norms), basis)

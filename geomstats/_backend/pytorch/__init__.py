@@ -57,19 +57,15 @@ from torch import (  # NOQA
     tril,
     uint8,
     zeros,
-    zeros_like
+    zeros_like,
 )
 
-from . import autograd # NOQA
+from . import autograd  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
 
-DTYPES = {
-    int32: 0,
-    int64: 1,
-    float32: 2,
-    float64: 3}
+DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3}
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -85,6 +81,7 @@ def _box_scalar(function):
         if not torch.is_tensor(x):
             x = torch.tensor(x)
         return function(x)
+
     return wrapper
 
 
@@ -199,12 +196,7 @@ def vstack(seq):
 
 
 def _get_largest_dtype(seq):
-    dtype_dict = {0: t_bool,
-                  1: uint8,
-                  2: int32,
-                  3: int64,
-                  4: float32,
-                  5: float64}
+    dtype_dict = {0: t_bool, 1: uint8, 2: int32, 3: int64, 4: float32, 5: float64}
     reverse_dict = {dtype_dict[key]: key for key in dtype_dict}
     dtype_code_set = {reverse_dict[t.dtype] for t in seq}
     return dtype_dict[max(dtype_code_set)]
@@ -396,7 +388,8 @@ def einsum(*args, **kwargs):
 
         if len(input_str_list) > 2:
             raise NotImplementedError(
-                'Ellipsis support not implemented for >2 input tensors')
+                'Ellipsis support not implemented for >2 input tensors'
+            )
 
         tensor_a = input_tensors_list[0]
         tensor_b = input_tensors_list[1]
@@ -411,7 +404,8 @@ def einsum(*args, **kwargs):
         cond = (
             n_tensor_a == n_tensor_b == 1
             and initial_ndim_a != tensor_a.ndim
-            and initial_ndim_b != tensor_b.ndim)
+            and initial_ndim_b != tensor_b.ndim
+        )
 
         if cond:
             tensor_a = squeeze(tensor_a, axis=0)
@@ -434,8 +428,9 @@ def einsum(*args, **kwargs):
             output_prefix = 'r'
 
         input_str_list = [
-            input_str.replace('...', prefix) for input_str, prefix in zip(
-                input_str_list, input_prefix_list)]
+            input_str.replace('...', prefix)
+            for input_str, prefix in zip(input_str_list, input_prefix_list)
+        ]
 
         input_str = input_str_list[0] + ',' + input_str_list[1]
 
@@ -552,8 +547,7 @@ def set_diag(x, new_diag):
     """
     arr_shape = x.shape
     off_diag = (1 - torch.eye(arr_shape[-1])) * x
-    diag = torch.einsum(
-        'ij,...i->...ij', torch.eye(new_diag.shape[-1]), new_diag)
+    diag = torch.einsum('ij,...i->...ij', torch.eye(new_diag.shape[-1]), new_diag)
     return diag + off_diag
 
 
@@ -659,8 +653,7 @@ def assignment(x, values, indices, axis=0):
             raise ValueError('Either one value or as many values as indices')
         x_new[indices] = values
     else:
-        indices = tuple(
-            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        indices = tuple(list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
         x_new[indices] = values
     return x_new
 
@@ -708,8 +701,7 @@ def assignment_by_sum(x, values, indices, axis=0):
             raise ValueError('Either one value or as many values as indices')
         x_new[indices] += values
     else:
-        indices = tuple(
-            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        indices = tuple(list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
         x_new[indices] += values
     return x_new
 
@@ -754,7 +746,8 @@ def array_from_sparse(indices, data, target_shape):
     return torch.sparse.FloatTensor(
         torch.LongTensor(indices).t(),
         torch.FloatTensor(cast(data, float32)),
-        torch.Size(target_shape)).to_dense()
+        torch.Size(target_shape),
+    ).to_dense()
 
 
 def vectorize(x, pyfunc, multiple_args=False, **kwargs):

@@ -36,14 +36,12 @@ class TestNotebooks(geomstats.tests.TestCase):
     @staticmethod
     @geomstats.tests.np_and_pytorch_only
     def test_03_simple_machine_learning_on_tangent_spaces():
-        _exec_notebook(
-            'notebooks/03_simple_machine_learning_on_tangent_spaces.ipynb')
+        _exec_notebook('notebooks/03_simple_machine_learning_on_tangent_spaces.ipynb')
 
     @staticmethod
     @geomstats.tests.np_only
     def test_04_riemannian_frechet_mean_and_tangent_pca():
-        _exec_notebook(
-            'notebooks/04_riemannian_frechet_mean_and_tangent_pca.ipynb')
+        _exec_notebook('notebooks/04_riemannian_frechet_mean_and_tangent_pca.ipynb')
 
     @staticmethod
     @geomstats.tests.np_and_pytorch_only
@@ -59,25 +57,28 @@ class TestNotebooks(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_usecase_emg_sign_classification_in_spd_manifold():
         _exec_notebook(
-            'notebooks/usecase_emg_sign_classification_in_spd_manifold.ipynb')
+            'notebooks/usecase_emg_sign_classification_in_spd_manifold.ipynb'
+        )
 
     @staticmethod
     @geomstats.tests.np_and_pytorch_only
     def test_usecase_graph_embedding_and_clustering_in_hyperbolic_space():
         _exec_notebook(
             'notebooks/'
-            'usecase_graph_embedding_and_clustering_in_hyperbolic_space.ipynb')
+            'usecase_graph_embedding_and_clustering_in_hyperbolic_space.ipynb'
+        )
 
     @staticmethod
     @geomstats.tests.np_only
     def test_usecase_hand_poses_analysis_in_kendall_shape_space():
         _exec_notebook(
-            'notebooks/'
-            'usecase_hand_poses_analysis_in_kendall_shape_space.ipynb')
+            'notebooks/' 'usecase_hand_poses_analysis_in_kendall_shape_space.ipynb'
+        )
 
     @staticmethod
     @geomstats.tests.np_only
     def test_usecase_optic_nerve_heads_analysis_in_kendall_shape_space():
         _exec_notebook(
             'notebooks/'
-            'usecase_optic_nerve_heads_analysis_in_kendall_shape_space.ipynb')
+            'usecase_optic_nerve_heads_analysis_in_kendall_shape_space.ipynb'
+        )

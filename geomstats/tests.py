@@ -51,21 +51,20 @@ def np_and_tf_only(test_item):
     """Decorate to filter tests for numpy and tensorflow only."""
     if np_backend() or tf_backend():
         return test_item
-    return unittest.skip('Test for numpy and tensorflow backends only.')(
-        test_item)
+    return unittest.skip('Test for numpy and tensorflow backends only.')(test_item)
 
 
 def np_and_pytorch_only(test_item):
     """Decorate to filter tests for numpy and pytorch only."""
     if np_backend() or pytorch_backend():
         return test_item
-    return unittest.skip('Test for numpy and pytorch backends only.')(
-        test_item)
+    return unittest.skip('Test for numpy and pytorch backends only.')(test_item)
 
 
 _TestBaseClass = unittest.TestCase
 if tf_backend():
     import tensorflow as tf
+
     _TestBaseClass = tf.test.TestCase
 
 

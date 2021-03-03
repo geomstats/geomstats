@@ -37,9 +37,7 @@ class Stiefel(EmbeddedManifold):
             raise ValueError('p needs to be smaller than n.')
 
         dim = int(p * n - (p * (p + 1) / 2))
-        super(Stiefel, self).__init__(
-            dim=dim,
-            embedding_manifold=Matrices(n, p))
+        super(Stiefel, self).__init__(dim=dim, embedding_manifold=Matrices(n, p))
 
         self.n = n
         self.p = p
@@ -73,8 +71,7 @@ class Stiefel(EmbeddedManifold):
 
         point_transpose = Matrices.transpose(point)
         identity = gs.eye(p)
-        diff = gs.einsum(
-            '...ij,...jk->...ik', point_transpose, point) - identity
+        diff = gs.einsum('...ij,...jk->...ik', point_transpose, point) - identity
 
         diff_norm = gs.linalg.norm(diff, axis=(-2, -1))
         belongs = gs.less_equal(diff_norm, tolerance)
@@ -125,12 +122,10 @@ class Stiefel(EmbeddedManifold):
 
         std_normal = gs.random.normal(size=size)
         std_normal_transpose = Matrices.transpose(std_normal)
-        aux = gs.einsum(
-            '...ij,...jk->...ik', std_normal_transpose, std_normal)
+        aux = gs.einsum('...ij,...jk->...ik', std_normal_transpose, std_normal)
         sqrt_aux = gs.linalg.sqrtm(aux)
         inv_sqrt_aux = gs.linalg.inv(sqrt_aux)
-        samples = gs.einsum(
-            '...ij,...jk->...ik', std_normal, inv_sqrt_aux)
+        samples = gs.einsum('...ij,...jk->...ik', std_normal, inv_sqrt_aux)
 
         return samples
 
@@ -148,9 +143,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
     def __init__(self, n, p):
         dim = int(p * n - (p * (p + 1) / 2))
-        super(StiefelCanonicalMetric, self).__init__(
-            dim=dim,
-            signature=(dim, 0, 0))
+        super(StiefelCanonicalMetric, self).__init__(dim=dim, signature=(dim, 0, 0))
         self.embedding_metric = EuclideanMetric(n * p)
         self.n = n
         self.p = p
@@ -194,7 +187,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         aux = gs.matmul(
             gs.transpose(tangent_vec_a, axes=(0, 2, 1)),
-            gs.eye(self.n) - 0.5 * gs.matmul(base_point, base_point_transpose))
+            gs.eye(self.n) - 0.5 * gs.matmul(base_point, base_point_transpose),
+        )
         inner_prod = gs.trace(gs.matmul(aux, tangent_vec_b), axis1=1, axis2=2)
 
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
@@ -220,9 +214,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_tangent_vecs, _, _ = tangent_vec.shape
         n_base_points, _, p = base_point.shape
 
-        if not (n_tangent_vecs == n_base_points
-                or n_tangent_vecs == 1
-                or n_base_points == 1):
+        if not (
+            n_tangent_vecs == n_base_points or n_tangent_vecs == 1 or n_base_points == 1
+        ):
             raise NotImplementedError
 
         if n_tangent_vecs == 1:
@@ -232,35 +226,27 @@ class StiefelCanonicalMetric(RiemannianMetric):
             base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
 
         matrix_a = gs.einsum(
-            'nij, njk->nik',
-            gs.transpose(base_point, axes=(0, 2, 1)), tangent_vec)
-        matrix_k = (tangent_vec
-                    - gs.einsum('nij,njk->nik', base_point, matrix_a))
+            'nij, njk->nik', gs.transpose(base_point, axes=(0, 2, 1)), tangent_vec
+        )
+        matrix_k = tangent_vec - gs.einsum('nij,njk->nik', base_point, matrix_a)
 
         matrix_q, matrix_r = gs.linalg.qr(matrix_k)
 
         matrix_ar = gs.concatenate(
-            [matrix_a,
-             -gs.transpose(matrix_r, axes=(0, 2, 1))],
-            axis=2)
+            [matrix_a, -gs.transpose(matrix_r, axes=(0, 2, 1))], axis=2
+        )
 
-        zeros = gs.zeros(
-            (gs.maximum(n_base_points, n_tangent_vecs), p, p))
+        zeros = gs.zeros((gs.maximum(n_base_points, n_tangent_vecs), p, p))
 
-        matrix_rz = gs.concatenate(
-            [matrix_r,
-             zeros],
-            axis=2)
+        matrix_rz = gs.concatenate([matrix_r, zeros], axis=2)
         block = gs.concatenate([matrix_ar, matrix_rz], axis=1)
         matrix_mn_e = gs.linalg.expm(block)
 
         exp = gs.einsum(
             'nij,njk->nik',
-            gs.concatenate(
-                [base_point,
-                 matrix_q],
-                axis=2),
-            matrix_mn_e[:, :, 0:p])
+            gs.concatenate([base_point, matrix_q], axis=2),
+            matrix_mn_e[:, :, 0:p],
+        )
 
         return exp
 
@@ -316,16 +302,13 @@ class StiefelCanonicalMetric(RiemannianMetric):
         -------
         matrix_v : array-like
         """
-        [matrix_d, _, matrix_r] = gs.linalg.svd(
-            matrix_v[:, p:2 * p, p:2 * p])
+        [matrix_d, _, matrix_r] = gs.linalg.svd(matrix_v[:, p : 2 * p, p : 2 * p])
 
-        matrix_rd = gs.matmul(
-            matrix_r, gs.transpose(matrix_d, axes=(0, 2, 1)))
-        sub_matrix_v = gs.matmul(matrix_v[:, :, p:2 * p], matrix_rd)
+        matrix_rd = gs.matmul(matrix_r, gs.transpose(matrix_d, axes=(0, 2, 1)))
+        sub_matrix_v = gs.matmul(matrix_v[:, :, p : 2 * p], matrix_rd)
         matrix_v = gs.concatenate(
-            [gs.concatenate([matrix_m, matrix_n], axis=1),
-             sub_matrix_v],
-            axis=2)
+            [gs.concatenate([matrix_m, matrix_n], axis=1), sub_matrix_v], axis=2
+        )
         return matrix_v
 
     @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'else'])
@@ -367,18 +350,19 @@ class StiefelCanonicalMetric(RiemannianMetric):
         matrix_m = gs.matmul(transpose_base_point, point)
 
         matrix_q, matrix_n = StiefelCanonicalMetric._normal_component_qr(
-            point, base_point, matrix_m)
+            point, base_point, matrix_m
+        )
 
-        matrix_v = StiefelCanonicalMetric._orthogonal_completion(
-            matrix_m, matrix_n)
+        matrix_v = StiefelCanonicalMetric._orthogonal_completion(matrix_m, matrix_n)
 
         matrix_v = StiefelCanonicalMetric._procrustes_preprocessing(
-            p, matrix_v, matrix_m, matrix_n)
+            p, matrix_v, matrix_m, matrix_n
+        )
 
         for _ in range(max_iter):
             matrix_lv = gs.linalg.logm(matrix_v)
 
-            matrix_c = matrix_lv[:, p:2 * p, p:2 * p]
+            matrix_c = matrix_lv[:, p : 2 * p, p : 2 * p]
 
             norm_matrix_c = gs.linalg.norm(matrix_c)
 
@@ -387,16 +371,12 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
             matrix_phi = gs.linalg.expm(-matrix_c)
 
-            aux_matrix = gs.matmul(
-                matrix_v[:, :, p:2 * p], matrix_phi)
+            aux_matrix = gs.matmul(matrix_v[:, :, p : 2 * p], matrix_phi)
 
-            matrix_v = gs.concatenate(
-                [matrix_v[:, :, 0:p],
-                 aux_matrix],
-                axis=2)
+            matrix_v = gs.concatenate([matrix_v[:, :, 0:p], aux_matrix], axis=2)
 
         matrix_xv = gs.matmul(base_point, matrix_lv[:, 0:p, 0:p])
-        matrix_qv = gs.matmul(matrix_q, matrix_lv[:, p:2 * p, 0:p])
+        matrix_qv = gs.matmul(matrix_q, matrix_lv[:, p : 2 * p, 0:p])
 
         return matrix_xv + matrix_qv
 
@@ -425,9 +405,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_tangent_vecs, _, _ = tangent_vec.shape
         n_base_points, _, _ = base_point.shape
 
-        if not (n_tangent_vecs == n_base_points
-                or n_tangent_vecs == 1
-                or n_base_points == 1):
+        if not (
+            n_tangent_vecs == n_base_points or n_tangent_vecs == 1 or n_base_points == 1
+        ):
             raise NotImplementedError
 
         matrix_q, matrix_r = gs.linalg.qr(base_point + tangent_vec)
@@ -464,21 +444,19 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_points, _, _ = point.shape
         n_base_points, _, n = base_point.shape
 
-        if not (n_points == n_base_points
-                or n_points == 1
-                or n_base_points == 1):
+        if not (n_points == n_base_points or n_points == 1 or n_base_points == 1):
             raise NotImplementedError
 
         n_liftings = gs.maximum(n_base_points, n_points)
 
         def _make_minor(i, matrix):
-            return matrix[:i + 1, :i + 1]
+            return matrix[: i + 1, : i + 1]
 
         def _make_column_r(i, matrix):
             if i == 0:
                 if matrix[0, 0] <= 0:
                     raise ValueError('M[0,0] <= 0')
-                return gs.array([1. / matrix[0, 0]])
+                return gs.array([1.0 / matrix[0, 0]])
             matrix_m_i = _make_minor(i, matrix_m_k)
             inv_matrix_m_i = gs.linalg.inv(matrix_m_i)
             b_i = _make_b(i, matrix_m_k, columns_list)
@@ -492,8 +470,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             b = gs.ones(i + 1)
 
             for j in range(i):
-                b[j] = - gs.matmul(
-                    matrix[i, :j + 1], list_matrices_r[j])
+                b[j] = -gs.matmul(matrix[i, : j + 1], list_matrices_r[j])
 
             return b
 
@@ -507,6 +484,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
             for i in range(n):
                 column_r_i = _make_column_r(i, matrix_m_k)
                 columns_list.append(column_r_i)
-                matrix_r[k, :len(column_r_i), i] = gs.array(column_r_i)
+                matrix_r[k, : len(column_r_i), i] = gs.array(column_r_i)
 
         return gs.matmul(point, matrix_r) - base_point

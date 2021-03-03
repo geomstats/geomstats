@@ -13,9 +13,8 @@ class TestBackends(geomstats.tests.TestCase):
         point = gs.array([1, 2])
 
         self.assertRaises(
-            RuntimeError,
-            lambda: geomstats.errors.check_belongs(
-                point, euclidean))
+            RuntimeError, lambda: geomstats.errors.check_belongs(point, euclidean)
+        )
 
     @staticmethod
     def test_check_belongs_with_tol():
@@ -27,9 +26,7 @@ class TestBackends(geomstats.tests.TestCase):
     def test_check_integer(self):
         a = -2
 
-        self.assertRaises(
-            ValueError,
-            lambda: geomstats.errors.check_integer(a, 'a'))
+        self.assertRaises(ValueError, lambda: geomstats.errors.check_integer(a, 'a'))
 
     def test_check_parameter_accepted_values(self):
         param = 'lefttt'
@@ -37,4 +34,6 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertRaises(
             ValueError,
             lambda: geomstats.errors.check_parameter_accepted_values(
-                param, 'left_or_right', accepted_values))
+                param, 'left_or_right', accepted_values
+            ),
+        )

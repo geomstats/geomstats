@@ -9,10 +9,7 @@ POINT_TYPES = ['scalar', 'vector', 'matrix']
 FLEXIBLE_TYPE = 'point'
 OTHER_TYPES = ['point_type', 'else']
 
-POINT_TYPES_TO_NDIMS = {
-    'scalar': 2,
-    'vector': 2,
-    'matrix': 3}
+POINT_TYPES_TO_NDIMS = {'scalar': 2, 'vector': 2, 'matrix': 3}
 
 ERROR_MSG = 'Invalid type: %s.'
 
@@ -36,9 +33,9 @@ def get_n_points(points, point_type):
 
     points_ndim = gs.ndim(points)
 
-    is_vect_scalar = (point_type == 'scalar' and points_ndim == 1)
-    is_vect_vector = (point_type == 'vector' and points_ndim == 2)
-    is_vect_matrix = (point_type == 'matrix' and points_ndim == 3)
+    is_vect_scalar = point_type == 'scalar' and points_ndim == 1
+    is_vect_vector = point_type == 'vector' and points_ndim == 2
+    is_vect_matrix = point_type == 'matrix' and points_ndim == 3
 
     if is_vect_scalar or is_vect_vector or is_vect_matrix:
         n_points = gs.shape(points)[0]
@@ -89,9 +86,11 @@ def decorator(input_types):
     def aux_decorator(function):
         def wrapper(*args, **kwargs):
             args_types, kwargs_types, opt_kwargs_types, is_scal = get_types(
-                input_types, args, kwargs)
+                input_types, args, kwargs
+            )
             args_types, kwargs_types, kwargs = adapt_types(
-                args_types, kwargs_types, opt_kwargs_types, args, kwargs)
+                args_types, kwargs_types, opt_kwargs_types, args, kwargs
+            )
             args_kwargs_types = args_types + kwargs_types
 
             args_shapes = get_initial_shapes(args_types, args)
@@ -103,11 +102,12 @@ def decorator(input_types):
 
             result = function(*vect_args, **vect_kwargs)
 
-            result = adapt_result(
-                result, initial_shapes, args_kwargs_types, is_scal)
+            result = adapt_result(result, initial_shapes, args_kwargs_types, is_scal)
 
             return result
+
         return wrapper
+
     return aux_decorator
 
 
@@ -153,9 +153,7 @@ def get_types(input_types, args, kwargs):
     return (args_types, kwargs_types, opt_kwargs_types, is_scal)
 
 
-def adapt_types(
-        args_types, kwargs_types,
-        opt_kwargs_types, args, kwargs):
+def adapt_types(args_types, kwargs_types, opt_kwargs_types, args, kwargs):
     """Adapt the list of input input_types.
 
     Some functions are implemented with array-like arguments that can be either
@@ -202,12 +200,10 @@ def adapt_types(
             kwargs['point_type'] = input_type
             kwargs_types.append('point_type')
 
-        args_types = [
-            input_type if pt == FLEXIBLE_TYPE else pt
-            for pt in args_types]
+        args_types = [input_type if pt == FLEXIBLE_TYPE else pt for pt in args_types]
         kwargs_types = [
-            input_type if pt == FLEXIBLE_TYPE else pt
-            for pt in kwargs_types]
+            input_type if pt == FLEXIBLE_TYPE else pt for pt in kwargs_types
+        ]
     return args_types, kwargs_types, kwargs
 
 
@@ -273,8 +269,7 @@ def vectorize_args(input_types, args):
             vect_arg = gs.to_ndarray(arg, to_ndim=1)
             vect_arg = gs.to_ndarray(vect_arg, to_ndim=2, axis=1)
         elif input_type in POINT_TYPES and arg is not None:
-            vect_arg = gs.to_ndarray(
-                arg, to_ndim=POINT_TYPES_TO_NDIMS[input_type])
+            vect_arg = gs.to_ndarray(arg, to_ndim=POINT_TYPES_TO_NDIMS[input_type])
         elif input_type in OTHER_TYPES or arg is None:
             vect_arg = arg
         else:
@@ -313,8 +308,7 @@ def vectorize_kwargs(input_types, kwargs):
             vect_arg = gs.to_ndarray(arg, to_ndim=1)
             vect_arg = gs.to_ndarray(vect_arg, to_ndim=2, axis=1)
         elif input_type in POINT_TYPES and arg is not None:
-            vect_arg = gs.to_ndarray(
-                arg, to_ndim=POINT_TYPES_TO_NDIMS[input_type])
+            vect_arg = gs.to_ndarray(arg, to_ndim=POINT_TYPES_TO_NDIMS[input_type])
         elif input_type in OTHER_TYPES or arg is None:
             vect_arg = arg
         else:
@@ -346,8 +340,7 @@ def adapt_result(result, initial_shapes, args_kwargs_types, is_scal):
     result : unspecified
         Output of the function, with adapted shape.
     """
-    if squeeze_output_dim_1(
-            result, initial_shapes, args_kwargs_types, is_scal):
+    if squeeze_output_dim_1(result, initial_shapes, args_kwargs_types, is_scal):
         if result.shape[1] == 1:
             result = gs.squeeze(result, axis=1)
 
@@ -394,7 +387,8 @@ def squeeze_output_dim_0(result, in_shapes, input_types):
             vect_ndim = POINT_TYPES_TO_NDIMS[input_type]
             if in_ndim > vect_ndim:
                 raise ValueError(
-                    'Fully-vectorizing an input can only increase its ndim.')
+                    'Fully-vectorizing an input can only increase its ndim.'
+                )
             if in_ndim == vect_ndim:
                 return False
     return True

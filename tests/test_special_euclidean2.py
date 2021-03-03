@@ -29,26 +29,25 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         group = SpecialEuclidean(n=2, point_type='vector')
 
         point_1 = gs.array([0.1, 0.2, 0.3])
-        point_2 = gs.array([0.5, 5., 60.])
+        point_2 = gs.array([0.5, 5.0, 60.0])
 
-        translation_large = gs.array([0., 5., 6.])
-        translation_small = gs.array([0., 0.6, 0.7])
+        translation_large = gs.array([0.0, 5.0, 6.0])
+        translation_small = gs.array([0.0, 0.6, 0.7])
 
         elements_all = {
             'translation_large': translation_large,
             'translation_small': translation_small,
             'point_1': point_1,
-            'point_2': point_2}
+            'point_2': point_2,
+        }
         elements = elements_all
         if geomstats.tests.tf_backend():
             # Tf is extremely slow
-            elements = {
-                'point_1': point_1,
-                'point_2': point_2}
+            elements = {'point_1': point_1, 'point_2': point_2}
 
         elements_matrices_all = {
-            key: group.matrix_from_vector(elements_all[key]) for key in
-            elements_all}
+            key: group.matrix_from_vector(elements_all[key]) for key in elements_all
+        }
         elements_matrices = elements_matrices_all
 
         self.group = group
@@ -90,31 +89,34 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
 
         self.assertAllClose(
             gs.shape(regularized_points),
-            (n_samples, *self.group.get_point_type_shape()))
+            (n_samples, *self.group.get_point_type_shape()),
+        )
 
     def test_compose(self):
         # Composition by identity, on the right
         # Expect the original transformation
         point = self.elements_all['point_1']
-        result = self.group.compose(point,
-                                    self.group.identity)
+        result = self.group.compose(point, self.group.identity)
         expected = point
         self.assertAllClose(result, expected)
 
         if not geomstats.tests.tf_backend():
             # Composition by identity, on the left
             # Expect the original transformation
-            result = self.group.compose(self.group.identity,
-                                        point)
+            result = self.group.compose(self.group.identity, point)
             expected = point
             self.assertAllClose(result, expected)
 
             # Composition of translations (no rotational part)
             # Expect the sum of the translations
-            result = self.group.compose(self.elements_all['translation_small'],
-                                        self.elements_all['translation_large'])
-            expected = (self.elements_all['translation_small']
-                        + self.elements_all['translation_large'])
+            result = self.group.compose(
+                self.elements_all['translation_small'],
+                self.elements_all['translation_large'],
+            )
+            expected = (
+                self.elements_all['translation_small']
+                + self.elements_all['translation_large']
+            )
             self.assertAllClose(result, expected)
 
     def test_compose_and_inverse(self):
@@ -139,31 +141,30 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         n_points_b = self.group.random_uniform(n_samples=n_samples)
         one_point = self.group.random_uniform(n_samples=1)
 
-        result = self.group.compose(one_point,
-                                    n_points_a)
+        result = self.group.compose(one_point, n_points_a)
         self.assertAllClose(
-            gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+            gs.shape(result), (n_samples, *self.group.get_point_type_shape())
+        )
 
-        result = self.group.compose(n_points_a,
-                                    one_point)
+        result = self.group.compose(n_points_a, one_point)
 
         if not geomstats.tests.tf_backend():
             self.assertAllClose(
-                gs.shape(result),
-                (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result), (n_samples, *self.group.get_point_type_shape())
+            )
 
-            result = self.group.compose(n_points_a,
-                                        n_points_b)
+            result = self.group.compose(n_points_a, n_points_b)
             self.assertAllClose(
-                gs.shape(result),
-                (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result), (n_samples, *self.group.get_point_type_shape())
+            )
 
     def test_inverse_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         result = self.group.inverse(points)
         self.assertAllClose(
-            gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+            gs.shape(result), (n_samples, *self.group.get_point_type_shape())
+        )
 
     def test_group_exp_from_identity_vectorization(self):
         n_samples = self.n_samples
@@ -171,7 +172,8 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         result = self.group.exp_from_identity(tangent_vecs)
 
         self.assertAllClose(
-            gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+            gs.shape(result), (n_samples, *self.group.get_point_type_shape())
+        )
 
     def test_group_log_from_identity_vectorization(self):
         n_samples = self.n_samples
@@ -179,8 +181,8 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         result = self.group.log_from_identity(points)
 
         self.assertAllClose(
-            gs.shape(result),
-            (n_samples, *self.group.get_point_type_shape()))
+            gs.shape(result), (n_samples, *self.group.get_point_type_shape())
+        )
 
     def test_group_exp_vectorization(self):
         n_samples = self.n_samples
@@ -190,7 +192,8 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         result = self.group.exp(tangent_vecs, base_point)
 
         self.assertAllClose(
-            gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+            gs.shape(result), (n_samples, *self.group.get_point_type_shape())
+        )
 
         if not geomstats.tests.tf_backend():
             # Test with the same number of base_points and tangent_vecs
@@ -199,8 +202,8 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
             result = self.group.exp(tangent_vecs, base_points)
 
             self.assertAllClose(
-                gs.shape(result),
-                (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result), (n_samples, *self.group.get_point_type_shape())
+            )
 
             # Test with the several base_points, and 1 tangent_vec
             tangent_vec = self.group.random_uniform(n_samples=1)
@@ -208,8 +211,8 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
             result = self.group.exp(tangent_vec, base_points)
 
             self.assertAllClose(
-                gs.shape(result),
-                (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result), (n_samples, *self.group.get_point_type_shape())
+            )
 
     def test_group_log_vectorization(self):
         n_samples = self.n_samples
@@ -219,7 +222,8 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         result = self.group.log(points, base_point)
 
         self.assertAllClose(
-            gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+            gs.shape(result), (n_samples, *self.group.get_point_type_shape())
+        )
 
         if not geomstats.tests.tf_backend():
 
@@ -229,8 +233,8 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
             result = self.group.log(points, base_points)
 
             self.assertAllClose(
-                gs.shape(result),
-                (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result), (n_samples, *self.group.get_point_type_shape())
+            )
 
             # Test with the several base points, and 1 point
             point = self.group.random_uniform(n_samples=1)
@@ -238,15 +242,14 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
             result = self.group.log(point, base_points)
 
             self.assertAllClose(
-                gs.shape(result),
-                (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result), (n_samples, *self.group.get_point_type_shape())
+            )
 
     def test_group_exp_from_identity(self):
         # Group exponential of a translation (no rotational part)
         # Expect the original translation
         tangent_vec = self.elements_all['translation_small']
-        result = self.group.exp(
-            base_point=self.group.identity, tangent_vec=tangent_vec)
+        result = self.group.exp(base_point=self.group.identity, tangent_vec=tangent_vec)
         expected = tangent_vec
         self.assertAllClose(result, expected)
 
@@ -254,8 +257,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         # Group exponential of a translation (no rotational part)
         # Expect the original translation
         tangent_vec = gs.stack([self.elements_all['translation_small']] * 2)
-        result = self.group.exp(
-            base_point=self.group.identity, tangent_vec=tangent_vec)
+        result = self.group.exp(base_point=self.group.identity, tangent_vec=tangent_vec)
         expected = tangent_vec
         self.assertAllClose(result, expected)
 
@@ -263,8 +265,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         # Group logarithm of a translation (no rotational part)
         # Expect the original translation
         point = self.elements_all['translation_small']
-        result = self.group.log(
-            base_point=self.group.identity, point=point)
+        result = self.group.log(base_point=self.group.identity, point=point)
         expected = point
         self.assertAllClose(result, expected)
 
@@ -278,7 +279,8 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         for element_type in self.elements:
             point = self.elements[element_type]
             result = helper.group_log_then_exp_from_identity(
-                group=self.group, point=point)
+                group=self.group, point=point
+            )
             expected = self.group.regularize(point)
             self.assertAllClose(result, expected, atol=1e-3)
 
@@ -294,9 +296,12 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         # with the translation of the reference point
         result = self.group.exp(
             base_point=self.elements_all['translation_small'],
-            tangent_vec=self.elements_all['translation_large'])
-        expected = (self.elements_all['translation_small']
-                    + self.elements_all['translation_large'])
+            tangent_vec=self.elements_all['translation_large'],
+        )
+        expected = (
+            self.elements_all['translation_small']
+            + self.elements_all['translation_large']
+        )
         self.assertAllClose(result, expected)
 
     def test_group_log(self):
@@ -308,9 +313,12 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         # by the translation of the reference point
         result = self.group.log(
             base_point=self.elements_all['translation_small'],
-            point=self.elements_all['translation_large'])
-        expected = (self.elements_all['translation_large']
-                    - self.elements_all['translation_small'])
+            point=self.elements_all['translation_large'],
+        )
+        expected = (
+            self.elements_all['translation_large']
+            - self.elements_all['translation_small']
+        )
 
         self.assertAllClose(result, expected)
 
@@ -324,9 +332,9 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
             for element_type in self.elements:
                 point = self.elements[element_type]
 
-                result = helper.group_log_then_exp(group=self.group,
-                                                   point=point,
-                                                   base_point=base_point)
+                result = helper.group_log_then_exp(
+                    group=self.group, point=point, base_point=base_point
+                )
                 expected = self.group.regularize(point)
                 self.assertAllClose(result, expected, rtol=1e-4, atol=1e-4)
 
@@ -344,12 +352,11 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
             for element_type in self.elements:
                 tangent_vec = self.elements[element_type]
                 result = helper.group_exp_then_log(
-                    group=self.group,
-                    tangent_vec=tangent_vec,
-                    base_point=base_point)
+                    group=self.group, tangent_vec=tangent_vec, base_point=base_point
+                )
                 expected = self.group.regularize_tangent_vec(
-                    tangent_vec=tangent_vec,
-                    base_point=base_point)
+                    tangent_vec=tangent_vec, base_point=base_point
+                )
                 self.assertAllClose(result, expected, rtol=1e-4, atol=1e-4)
 
                 if geomstats.tests.tf_backend():

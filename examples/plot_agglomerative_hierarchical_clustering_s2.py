@@ -8,8 +8,9 @@ import matplotlib.pyplot as plt
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.agglomerative_hierarchical_clustering \
-    import AgglomerativeHierarchicalClustering
+from geomstats.learning.agglomerative_hierarchical_clustering import (
+    AgglomerativeHierarchicalClustering,
+)
 
 
 def main():
@@ -21,16 +22,16 @@ def main():
     n_samples_per_dataset = 50
 
     dataset_1 = sphere.random_von_mises_fisher(
-        kappa=10,
-        n_samples=n_samples_per_dataset)
-    dataset_2 = - sphere.random_von_mises_fisher(
-        kappa=10,
-        n_samples=n_samples_per_dataset)
+        kappa=10, n_samples=n_samples_per_dataset
+    )
+    dataset_2 = -sphere.random_von_mises_fisher(
+        kappa=10, n_samples=n_samples_per_dataset
+    )
     dataset = gs.concatenate((dataset_1, dataset_2), axis=0)
 
     clustering = AgglomerativeHierarchicalClustering(
-        n_clusters=n_clusters,
-        distance=sphere_distance)
+        n_clusters=n_clusters, distance=sphere_distance
+    )
 
     clustering.fit(dataset)
 
@@ -50,9 +51,11 @@ def main():
 
 if __name__ == '__main__':
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        logging.info('Examples with visualizations are only implemented '
-                     'with numpy backend.\n'
-                     'To change backend, write: '
-                     'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info(
+            'Examples with visualizations are only implemented '
+            'with numpy backend.\n'
+            'To change backend, write: '
+            'export GEOMSTATS_BACKEND = \'numpy\'.'
+        )
     else:
         main()

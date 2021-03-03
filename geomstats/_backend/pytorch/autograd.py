@@ -18,6 +18,7 @@ def value_and_grad(objective):
         Function that takes the argument of the objective function as input
         and returns both value and grad at the input.
     '"""
+
     def objective_with_grad(velocity):
         if isinstance(velocity, np.ndarray):
             velocity = torch.from_numpy(velocity)
@@ -25,4 +26,5 @@ def value_and_grad(objective):
         loss = objective(vel)
         loss.backward()
         return loss.detach().numpy(), vel.grad.detach().numpy()
+
     return objective_with_grad

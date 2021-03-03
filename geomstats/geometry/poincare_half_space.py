@@ -28,9 +28,7 @@ class PoincareHalfSpace(Hyperbolic):
     default_point_type = 'vector'
 
     def __init__(self, dim, scale=1):
-        super(PoincareHalfSpace, self).__init__(
-            dim=dim,
-            scale=scale)
+        super(PoincareHalfSpace, self).__init__(dim=dim, scale=scale)
         self.coords_type = PoincareHalfSpace.default_coords_type
         self.point_type = PoincareHalfSpace.default_point_type
         self.metric = PoincareHalfSpaceMetric(self.dim, self.scale)
@@ -51,7 +49,7 @@ class PoincareHalfSpace(Hyperbolic):
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
-        belongs = gs.logical_and(belongs, point[..., -1] > 0.)
+        belongs = gs.logical_and(belongs, point[..., -1] > 0.0)
         return belongs
 
 
@@ -74,10 +72,8 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
     default_point_type = 'vector'
     default_coords_type = 'half-space'
 
-    def __init__(self, dim, scale=1.):
-        super(PoincareHalfSpaceMetric, self).__init__(
-            dim=dim,
-            signature=(dim, 0, 0))
+    def __init__(self, dim, scale=1.0):
+        super(PoincareHalfSpaceMetric, self).__init__(dim=dim, signature=(dim, 0, 0))
         self.coords_type = PoincareHalfSpace.default_coords_type
         self.point_type = PoincareHalfSpace.default_point_type
         self.scale = scale
@@ -101,7 +97,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
             Inner-product of the two tangent vectors.
         """
         inner_prod = gs.sum(tangent_vec_a * tangent_vec_b, axis=-1)
-        inner_prod = inner_prod / base_point[..., -1]**2
+        inner_prod = inner_prod / base_point[..., -1] ** 2
         return inner_prod
 
     def exp(self, tangent_vec, base_point):
@@ -120,14 +116,14 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
             Point in the Poincare half space, reached by the geodesic
             starting from `base_point` with initial velocity `tangent_vec`
         """
-        base_point_ball = self.poincare_ball.half_space_to_ball_coordinates(
-            base_point)
+        base_point_ball = self.poincare_ball.half_space_to_ball_coordinates(base_point)
         tangent_vec_ball = self.poincare_ball.half_space_to_ball_tangent(
-            tangent_vec, base_point)
+            tangent_vec, base_point
+        )
         end_point_ball = self.poincare_ball.metric.exp(
-            tangent_vec_ball, base_point_ball)
-        end_point = self.poincare_ball.ball_to_half_space_coordinates(
-            end_point_ball)
+            tangent_vec_ball, base_point_ball
+        )
+        end_point = self.poincare_ball.ball_to_half_space_coordinates(end_point_ball)
         return end_point
 
     def log(self, point, base_point):
@@ -147,9 +143,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
             of point at the base point.
         """
         point_ball = self.poincare_ball.half_space_to_ball_coordinates(point)
-        base_point_ball = self.poincare_ball.half_space_to_ball_coordinates(
-            base_point)
+        base_point_ball = self.poincare_ball.half_space_to_ball_coordinates(base_point)
         log_ball = self.poincare_ball.metric.log(point_ball, base_point_ball)
-        log = self.poincare_ball.ball_to_half_space_tangent(
-            log_ball, base_point_ball)
+        log = self.poincare_ball.ball_to_half_space_tangent(log_ball, base_point_ball)
         return log

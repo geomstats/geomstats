@@ -25,9 +25,8 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
 
     def __init__(self, n):
         super(SPDMatrices, self).__init__(
-            n=n,
-            dim=int(n * (n + 1) / 2),
-            embedding_manifold=GeneralLinear(n=n))
+            n=n, dim=int(n * (n + 1) / 2), embedding_manifold=GeneralLinear(n=n)
+        )
 
     def belongs(self, mat, atol=TOLERANCE):
         """Check if a matrix is symmetric and invertible.
@@ -102,9 +101,9 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         tangent_vec_at_id += Matrices.transpose(tangent_vec_at_id)
 
         tangent_vec = gs.einsum(
-            '...ij,...jk->...ik', sqrt_base_point, tangent_vec_at_id)
-        tangent_vec = gs.einsum(
-            '...ij,...jk->...ik', tangent_vec, sqrt_base_point)
+            '...ij,...jk->...ik', sqrt_base_point, tangent_vec_at_id
+        )
+        tangent_vec = gs.einsum('...ij,...jk->...ik', tangent_vec, sqrt_base_point)
 
         return tangent_vec
 
@@ -145,7 +144,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         elif power == math.inf:
             powered_eigvalues = gs.exp(eigvalues)
         else:
-            powered_eigvalues = eigvalues**power
+            powered_eigvalues = eigvalues ** power
         transp_powered_eigvalues = gs.transpose(powered_eigvalues, (0, 2, 1))
         ones = gs.ones((n_base_points, 1, n))
         transp_ones = gs.transpose(ones, (0, 2, 1))
@@ -160,21 +159,15 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
 
         if power == 0:
             numerator = gs.where(denominator == 0, one_matrix, numerator)
-            denominator = gs.where(denominator == 0, vertical_index,
-                                   denominator)
+            denominator = gs.where(denominator == 0, vertical_index, denominator)
         elif power == math.inf:
-            numerator = gs.where(denominator == 0, vertical_index_power,
-                                 numerator)
+            numerator = gs.where(denominator == 0, vertical_index_power, numerator)
             denominator = gs.where(denominator == 0, one_matrix, denominator)
         else:
             numerator = gs.where(
-                denominator == 0,
-                power * vertical_index_power,
-                numerator)
-            denominator = gs.where(
-                denominator == 0,
-                vertical_index,
-                denominator)
+                denominator == 0, power * vertical_index_power, numerator
+            )
+            denominator = gs.where(denominator == 0, vertical_index, denominator)
 
         transp_eigvectors = gs.transpose(eigvectors, (0, 2, 1))
         temp_result = gs.matmul(transp_eigvectors, tangent_vec)
@@ -187,8 +180,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             numerator = gs.squeeze(numerator, axis=0)
             denominator = gs.squeeze(denominator, axis=0)
 
-        return (eigvectors, transp_eigvectors, numerator, denominator,
-                temp_result)
+        return (eigvectors, transp_eigvectors, numerator, denominator, temp_result)
 
     @classmethod
     @geomstats.vectorization.decorator(['else', 'else', 'matrix', 'matrix'])
@@ -212,8 +204,13 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         differential_power : array-like, shape=[..., n, n]
             Differential of the power function.
         """
-        eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
-            cls.aux_differential_power(power, tangent_vec, base_point)
+        (
+            eigvectors,
+            transp_eigvectors,
+            numerator,
+            denominator,
+            temp_result,
+        ) = cls.aux_differential_power(power, tangent_vec, base_point)
         power_operator = numerator / denominator
         result = power_operator * temp_result
         result = gs.matmul(result, transp_eigvectors)
@@ -243,8 +240,13 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         inverse_differential_power : array-like, shape=[..., n, n]
             Inverse of the differential of the power function.
         """
-        eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
-            cls.aux_differential_power(power, tangent_vec, base_point)
+        (
+            eigvectors,
+            transp_eigvectors,
+            numerator,
+            denominator,
+            temp_result,
+        ) = cls.aux_differential_power(power, tangent_vec, base_point)
         power_operator = denominator / numerator
         result = power_operator * temp_result
         result = gs.matmul(result, transp_eigvectors)
@@ -271,8 +273,13 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         differential_log : array-like, shape=[..., n, n]
             Differential of the matrix logarithm.
         """
-        eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
-            cls.aux_differential_power(0, tangent_vec, base_point)
+        (
+            eigvectors,
+            transp_eigvectors,
+            numerator,
+            denominator,
+            temp_result,
+        ) = cls.aux_differential_power(0, tangent_vec, base_point)
         power_operator = numerator / denominator
         result = power_operator * temp_result
         result = gs.matmul(result, transp_eigvectors)
@@ -300,8 +307,13 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         inverse_differential_log : array-like, shape=[..., n, n]
             Inverse of the differential of the matrix logarithm.
         """
-        eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
-            cls.aux_differential_power(0, tangent_vec, base_point)
+        (
+            eigvectors,
+            transp_eigvectors,
+            numerator,
+            denominator,
+            temp_result,
+        ) = cls.aux_differential_power(0, tangent_vec, base_point)
         power_operator = denominator / numerator
         result = power_operator * temp_result
         result = gs.matmul(result, transp_eigvectors)
@@ -328,8 +340,13 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         differential_exp : array-like, shape=[..., n, n]
             Differential of the matrix exponential.
         """
-        eigvectors, transp_eigvectors, numerator, denominator, temp_result = \
-            cls.aux_differential_power(math.inf, tangent_vec, base_point)
+        (
+            eigvectors,
+            transp_eigvectors,
+            numerator,
+            denominator,
+            temp_result,
+        ) = cls.aux_differential_power(math.inf, tangent_vec, base_point)
         power_operator = numerator / denominator
         result = power_operator * temp_result
         result = gs.matmul(result, transp_eigvectors)
@@ -357,8 +374,13 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         inverse_differential_exp : array-like, shape=[..., n, n]
             Inverse of the differential of the matrix exponential.
         """
-        eigvectors, transp_eigvectors, numerator, denominator, temp_result = \
-            cls.aux_differential_power(math.inf, tangent_vec, base_point)
+        (
+            eigvectors,
+            transp_eigvectors,
+            numerator,
+            denominator,
+            temp_result,
+        ) = cls.aux_differential_power(math.inf, tangent_vec, base_point)
         power_operator = denominator / numerator
         result = power_operator * temp_result
         result = gs.matmul(result, transp_eigvectors)
@@ -451,9 +473,8 @@ class SPDMetricAffine(RiemannianMetric):
         """
         dim = int(n * (n + 1) / 2)
         super(SPDMetricAffine, self).__init__(
-            dim=dim,
-            signature=(dim, 0, 0),
-            default_point_type='matrix')
+            dim=dim, signature=(dim, 0, 0), default_point_type='matrix'
+        )
         self.n = n
         self.space = SPDMatrices(n)
         self.power_affine = power_affine
@@ -472,12 +493,9 @@ class SPDMetricAffine(RiemannianMetric):
         -------
         inner_product : array-like, shape=[..., n, n]
         """
-        aux_a = gs.einsum(
-            '...ij,...jk->...ik', inv_base_point, tangent_vec_a)
-        aux_b = gs.einsum(
-            '...ij,...jk->...ik', inv_base_point, tangent_vec_b)
-        prod = gs.einsum(
-            '...ij,...jk->...ik', aux_a, aux_b)
+        aux_a = gs.einsum('...ij,...jk->...ik', inv_base_point, tangent_vec_a)
+        aux_b = gs.einsum('...ij,...jk->...ik', inv_base_point, tangent_vec_b)
+        prod = gs.einsum('...ij,...jk->...ik', aux_a, aux_b)
         inner_product = gs.trace(prod, axis1=-2, axis2=-1)
         return inner_product
 
@@ -507,20 +525,21 @@ class SPDMetricAffine(RiemannianMetric):
         if power_affine == 1:
             inv_base_point = GeneralLinear.inverse(base_point)
             inner_product = self._aux_inner_product(
-                tangent_vec_a, tangent_vec_b, inv_base_point)
+                tangent_vec_a, tangent_vec_b, inv_base_point
+            )
         else:
             modified_tangent_vec_a = spd_space.differential_power(
-                power_affine, tangent_vec_a, base_point)
+                power_affine, tangent_vec_a, base_point
+            )
             modified_tangent_vec_b = spd_space.differential_power(
-                power_affine, tangent_vec_b, base_point)
-            power_inv_base_point = SymmetricMatrices.powerm(
-                base_point, -power_affine)
+                power_affine, tangent_vec_b, base_point
+            )
+            power_inv_base_point = SymmetricMatrices.powerm(base_point, -power_affine)
             inner_product = self._aux_inner_product(
-                modified_tangent_vec_a,
-                modified_tangent_vec_b,
-                power_inv_base_point)
+                modified_tangent_vec_a, modified_tangent_vec_b, power_inv_base_point
+            )
 
-            inner_product = inner_product / (power_affine**2)
+            inner_product = inner_product / (power_affine ** 2)
 
         return inner_product
 
@@ -539,16 +558,16 @@ class SPDMetricAffine(RiemannianMetric):
         exp : array-like, shape=[..., n, n]
         """
         tangent_vec_at_id = gs.einsum(
-            '...ij,...jk->...ik', inv_sqrt_base_point, tangent_vec)
+            '...ij,...jk->...ik', inv_sqrt_base_point, tangent_vec
+        )
         tangent_vec_at_id = gs.einsum(
-            '...ij,...jk->...ik', tangent_vec_at_id, inv_sqrt_base_point)
+            '...ij,...jk->...ik', tangent_vec_at_id, inv_sqrt_base_point
+        )
         tangent_vec_at_id = GeneralLinear.to_symmetric(tangent_vec_at_id)
         exp_from_id = SymmetricMatrices.expm(tangent_vec_at_id)
 
-        exp = gs.einsum(
-            '...ij,...jk->...ik', exp_from_id, sqrt_base_point)
-        exp = gs.einsum(
-            '...ij,...jk->...ik', sqrt_base_point, exp)
+        exp = gs.einsum('...ij,...jk->...ik', exp_from_id, sqrt_base_point)
+        exp = gs.einsum('...ij,...jk->...ik', sqrt_base_point, exp)
         return exp
 
     def exp(self, tangent_vec, base_point, **kwargs):
@@ -573,21 +592,20 @@ class SPDMetricAffine(RiemannianMetric):
         power_affine = self.power_affine
 
         if power_affine == 1:
-            sqrt_base_point = SymmetricMatrices.powerm(base_point, 1. / 2)
+            sqrt_base_point = SymmetricMatrices.powerm(base_point, 1.0 / 2)
             inv_sqrt_base_point = SymmetricMatrices.powerm(sqrt_base_point, -1)
-            exp = self._aux_exp(
-                tangent_vec, sqrt_base_point, inv_sqrt_base_point)
+            exp = self._aux_exp(tangent_vec, sqrt_base_point, inv_sqrt_base_point)
         else:
             modified_tangent_vec = self.space.differential_power(
-                power_affine, tangent_vec, base_point)
+                power_affine, tangent_vec, base_point
+            )
             power_sqrt_base_point = SymmetricMatrices.powerm(
-                base_point, power_affine / 2)
-            power_inv_sqrt_base_point = GeneralLinear.inverse(
-                power_sqrt_base_point)
+                base_point, power_affine / 2
+            )
+            power_inv_sqrt_base_point = GeneralLinear.inverse(power_sqrt_base_point)
             exp = self._aux_exp(
-                modified_tangent_vec,
-                power_sqrt_base_point,
-                power_inv_sqrt_base_point)
+                modified_tangent_vec, power_sqrt_base_point, power_inv_sqrt_base_point
+            )
             exp = SymmetricMatrices.powerm(exp, 1 / power_affine)
 
         return exp
@@ -606,17 +624,15 @@ class SPDMetricAffine(RiemannianMetric):
         -------
         log : array-like, shape=[..., n, n]
         """
+        point_near_id = gs.einsum('...ij,...jk->...ik', inv_sqrt_base_point, point)
         point_near_id = gs.einsum(
-            '...ij,...jk->...ik', inv_sqrt_base_point, point)
-        point_near_id = gs.einsum(
-            '...ij,...jk->...ik', point_near_id, inv_sqrt_base_point)
+            '...ij,...jk->...ik', point_near_id, inv_sqrt_base_point
+        )
         point_near_id = GeneralLinear.to_symmetric(point_near_id)
         log_at_id = SPDMatrices.logm(point_near_id)
 
-        log = gs.einsum(
-            '...ij,...jk->...ik', sqrt_base_point, log_at_id)
-        log = gs.einsum(
-            '...ij,...jk->...ik', log, sqrt_base_point)
+        log = gs.einsum('...ij,...jk->...ik', sqrt_base_point, log_at_id)
+        log = gs.einsum('...ij,...jk->...ik', log, sqrt_base_point)
         return log
 
     def log(self, point, base_point, **kwargs):
@@ -641,20 +657,19 @@ class SPDMetricAffine(RiemannianMetric):
         power_affine = self.power_affine
 
         if power_affine == 1:
-            sqrt_base_point = SymmetricMatrices.powerm(base_point, 1. / 2)
+            sqrt_base_point = SymmetricMatrices.powerm(base_point, 1.0 / 2)
             inv_sqrt_base_point = SymmetricMatrices.powerm(sqrt_base_point, -1)
             log = self._aux_log(point, sqrt_base_point, inv_sqrt_base_point)
         else:
             power_point = SymmetricMatrices.powerm(point, power_affine)
             power_sqrt_base_point = SymmetricMatrices.powerm(
-                base_point, power_affine / 2)
+                base_point, power_affine / 2
+            )
             power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
             log = self._aux_log(
-                power_point,
-                power_sqrt_base_point,
-                power_inv_sqrt_base_point)
-            log = self.space.inverse_differential_power(power_affine, log,
-                                                        base_point)
+                power_point, power_sqrt_base_point, power_inv_sqrt_base_point
+            )
+            log = self.space.inverse_differential_power(power_affine, log, base_point)
         return log
 
     def geodesic(self, initial_point, initial_tangent_vec):
@@ -676,7 +691,8 @@ class SPDMetricAffine(RiemannianMetric):
         return super(SPDMetricAffine, self).geodesic(
             initial_point=initial_point,
             initial_tangent_vec=initial_tangent_vec,
-            point_type='matrix')
+            point_type='matrix',
+        )
 
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Parallel transport of a tangent vector.
@@ -734,9 +750,8 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricBuresWasserstein, self).__init__(
-            dim=dim,
-            signature=(dim, 0, 0),
-            default_point_type='matrix')
+            dim=dim, signature=(dim, 0, 0), default_point_type='matrix'
+        )
         self.n = n
         self.space = SPDMatrices(n)
 
@@ -766,15 +781,17 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         """
         eigvals, eigvecs = gs.linalg.eigh(base_point)
         transp_eigvecs = Matrices.transpose(eigvecs)
-        rotated_tangent_vec_a = Matrices.mul(
-            transp_eigvecs, tangent_vec_a, eigvecs)
-        rotated_tangent_vec_b = Matrices.mul(
-            transp_eigvecs, tangent_vec_b, eigvecs)
+        rotated_tangent_vec_a = Matrices.mul(transp_eigvecs, tangent_vec_a, eigvecs)
+        rotated_tangent_vec_b = Matrices.mul(transp_eigvecs, tangent_vec_b, eigvecs)
 
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
-        result = gs.sum(
-            coefficients * rotated_tangent_vec_a * rotated_tangent_vec_b,
-            axis=(-2, -1)) / 2
+        result = (
+            gs.sum(
+                coefficients * rotated_tangent_vec_a * rotated_tangent_vec_b,
+                axis=(-2, -1),
+            )
+            / 2
+        )
 
         return result
 
@@ -795,12 +812,10 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         """
         eigvals, eigvecs = gs.linalg.eigh(base_point)
         transp_eigvecs = Matrices.transpose(eigvecs)
-        rotated_tangent_vec = Matrices.mul(transp_eigvecs, tangent_vec,
-                                           eigvecs)
+        rotated_tangent_vec = Matrices.mul(transp_eigvecs, tangent_vec, eigvecs)
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
         rotated_sylvester = rotated_tangent_vec * coefficients
-        rotated_hessian = gs.einsum(
-            '...ij,...j->...ij', rotated_sylvester, eigvals)
+        rotated_hessian = gs.einsum('...ij,...j->...ij', rotated_sylvester, eigvals)
         rotated_hessian = Matrices.mul(rotated_hessian, rotated_sylvester)
         hessian = Matrices.mul(eigvecs, rotated_hessian, transp_eigvecs)
 
@@ -863,9 +878,8 @@ class SPDMetricEuclidean(RiemannianMetric):
     def __init__(self, n, power_euclidean=1):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricEuclidean, self).__init__(
-            dim=dim,
-            signature=(dim, 0, 0),
-            default_point_type='matrix')
+            dim=dim, signature=(dim, 0, 0), default_point_type='matrix'
+        )
         self.n = n
         self.space = SPDMatrices(n)
         self.power_euclidean = power_euclidean
@@ -895,19 +909,21 @@ class SPDMetricEuclidean(RiemannianMetric):
         spd_space = self.space
 
         if power_euclidean == 1:
-            product = gs.einsum(
-                '...ij,...jk->...ik', tangent_vec_a, tangent_vec_b)
+            product = gs.einsum('...ij,...jk->...ik', tangent_vec_a, tangent_vec_b)
             inner_product = gs.trace(product, axis1=-2, axis2=-1)
         else:
             modified_tangent_vec_a = spd_space.differential_power(
-                power_euclidean, tangent_vec_a, base_point)
+                power_euclidean, tangent_vec_a, base_point
+            )
             modified_tangent_vec_b = spd_space.differential_power(
-                power_euclidean, tangent_vec_b, base_point)
+                power_euclidean, tangent_vec_b, base_point
+            )
             product = gs.einsum(
-                '...ij,...jk->...ik',
-                modified_tangent_vec_a, modified_tangent_vec_b)
-            inner_product = gs.trace(product, axis1=-2, axis2=-1) \
-                / (power_euclidean ** 2)
+                '...ij,...jk->...ik', modified_tangent_vec_a, modified_tangent_vec_b
+            )
+            inner_product = gs.trace(product, axis1=-2, axis2=-1) / (
+                power_euclidean ** 2
+            )
 
         return inner_product
 
@@ -931,18 +947,16 @@ class SPDMetricEuclidean(RiemannianMetric):
         exp_domain : array-like, shape=[..., 2]
             Interval of time where the geodesic is defined.
         """
-        invsqrt_base_point = SymmetricMatrices.powerm(base_point, -.5)
+        invsqrt_base_point = SymmetricMatrices.powerm(base_point, -0.5)
 
         reduced_vec = gs.matmul(invsqrt_base_point, tangent_vec)
         reduced_vec = gs.matmul(reduced_vec, invsqrt_base_point)
         eigvals = gs.linalg.eigvalsh(reduced_vec)
         min_eig = gs.amin(eigvals, axis=1)
         max_eig = gs.amax(eigvals, axis=1)
-        inf_value = gs.where(
-            max_eig <= 0., gs.array(-math.inf), - 1. / max_eig)
+        inf_value = gs.where(max_eig <= 0.0, gs.array(-math.inf), -1.0 / max_eig)
         inf_value = gs.to_ndarray(inf_value, to_ndim=2)
-        sup_value = gs.where(
-            min_eig >= 0., gs.array(-math.inf), - 1. / min_eig)
+        sup_value = gs.where(min_eig >= 0.0, gs.array(-math.inf), -1.0 / min_eig)
         sup_value = gs.to_ndarray(sup_value, to_ndim=2)
         domain = gs.concatenate((inf_value, sup_value), axis=1)
 
@@ -961,9 +975,8 @@ class SPDMetricLogEuclidean(RiemannianMetric):
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricLogEuclidean, self).__init__(
-            dim=dim,
-            signature=(dim, 0, 0),
-            default_point_type='matrix')
+            dim=dim, signature=(dim, 0, 0), default_point_type='matrix'
+        )
         self.n = n
         self.space = SPDMatrices(n)
 
@@ -989,13 +1002,11 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         """
         spd_space = self.space
 
-        modified_tangent_vec_a = spd_space.differential_log(
-            tangent_vec_a, base_point)
-        modified_tangent_vec_b = spd_space.differential_log(
-            tangent_vec_b, base_point)
+        modified_tangent_vec_a = spd_space.differential_log(tangent_vec_a, base_point)
+        modified_tangent_vec_b = spd_space.differential_log(tangent_vec_b, base_point)
         product = gs.einsum(
-            '...ij,...jk->...ik',
-            modified_tangent_vec_a, modified_tangent_vec_b)
+            '...ij,...jk->...ik', modified_tangent_vec_a, modified_tangent_vec_b
+        )
         inner_product = gs.trace(product, axis1=-2, axis2=-1)
 
         return inner_product
@@ -1046,8 +1057,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         """
         log_base_point = SPDMatrices.logm(base_point)
         log_point = SPDMatrices.logm(point)
-        log = self.space.differential_exp(
-            log_point - log_base_point, log_base_point)
+        log = self.space.differential_exp(log_point - log_base_point, log_base_point)
 
         return log
 
@@ -1067,6 +1077,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         geodesic : callable
             Time-parameterized geodesic curve.
         """
+
         def path(t):
             """Compute the geodesic at time t."""
             return self.exp(t * initial_tangent_vec, initial_point)

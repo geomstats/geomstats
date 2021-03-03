@@ -33,7 +33,8 @@ def main():
     tangent_projected_data = tpca.transform(data)
     logging.info(
         'Coordinates of the Log of the first 5 data points at the mean, '
-        'projected on the principal components:')
+        'projected on the principal components:'
+    )
     logging.info('\n{}'.format(tangent_projected_data[:5]))
 
     ax_var = fig.add_subplot(121)

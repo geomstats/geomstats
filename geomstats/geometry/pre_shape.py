@@ -47,7 +47,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             dim=m_ambient * (k_landmarks - 1) - 1,
             embedding_manifold=embedding_manifold,
             default_point_type='matrix',
-            total_space=embedding_manifold)
+            total_space=embedding_manifold,
+        )
         self.embedding_metric = self.embedding_manifold.metric
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
@@ -76,8 +77,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         frob_norm = self.embedding_metric.norm(point)
         diff = gs.abs(frob_norm - 1)
         is_centered = gs.logical_and(self.is_centered(point, atol), shape)
-        return gs.logical_and(
-            gs.less_equal(diff, atol), is_centered)
+        return gs.logical_and(gs.less_equal(diff, atol), is_centered)
 
     def projection(self, point):
         """Project a point on the pre-shape space.
@@ -94,8 +94,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         """
         centered_point = self.center(point)
         frob_norm = self.embedding_metric.norm(centered_point)
-        projected_point = gs.einsum(
-            '...,...ij->...ij', 1. / frob_norm, centered_point)
+        projected_point = gs.einsum('...,...ij->...ij', 1.0 / frob_norm, centered_point)
 
         return projected_point
 
@@ -116,9 +115,9 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         samples : array-like, shape=[..., k_landmarks, m_ambient]
             Points sampled on the pre-shape space.
         """
-        samples = Hypersphere(
-            self.m_ambient * self.k_landmarks - 1).random_uniform(
-            n_samples, tol)
+        samples = Hypersphere(self.m_ambient * self.k_landmarks - 1).random_uniform(
+            n_samples, tol
+        )
         samples = gs.reshape(samples, (-1, self.k_landmarks, self.m_ambient))
         if n_samples == 1:
             samples = samples[0]
@@ -142,7 +141,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Boolean evaluating if point is centered.
         """
         mean = gs.mean(point, axis=-2)
-        return gs.all(gs.isclose(mean, 0., atol=atol), axis=-1)
+        return gs.all(gs.isclose(mean, 0.0, atol=atol), axis=-1)
 
     @staticmethod
     def center(point):
@@ -182,8 +181,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             at the base point.
         """
         if not gs.all(self.is_centered(base_point)):
-            raise ValueError('The base_point does not belong to the pre-shape'
-                             ' space')
+            raise ValueError('The base_point does not belong to the pre-shape' ' space')
         vector = self.center(vector)
         sq_norm = gs.sum(base_point ** 2, axis=(-1, -2))
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
@@ -213,7 +211,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         """
         is_centered = self.is_centered(vector, atol)
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
-        is_normal = gs.isclose(inner_prod, 0., atol=atol)
+        is_normal = gs.isclose(inner_prod, 0.0, atol=atol)
         return gs.logical_and(is_centered, is_normal)
 
     @staticmethod
@@ -245,7 +243,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         right_term = alignment - Matrices.transpose(alignment)
         skew = gs.linalg.solve_sylvester(left_term, left_term, right_term)
 
-        return - gs.matmul(base_point, skew)
+        return -gs.matmul(base_point, skew)
 
     def is_horizontal(self, tangent_vec, base_point, atol=TOLERANCE):
         """Check whether the tangent vector is horizontal at base_point.
@@ -293,27 +291,26 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         left, singular_values, right = gs.linalg.svd(mat)
         det = gs.linalg.det(mat)
         conditioning = (
-            (singular_values[..., -2]
-             + gs.sign(det) * singular_values[..., -1]) /
-            singular_values[..., 0])
+            singular_values[..., -2] + gs.sign(det) * singular_values[..., -1]
+        ) / singular_values[..., 0]
         if gs.any(conditioning < 5e-4):
-            logging.warning(f'Singularity close, ill-conditioned matrix '
-                            f'encountered: {conditioning}')
-        if gs.any(gs.isclose(conditioning, 0.)):
+            logging.warning(
+                f'Singularity close, ill-conditioned matrix '
+                f'encountered: {conditioning}'
+            )
+        if gs.any(gs.isclose(conditioning, 0.0)):
             logging.warning("Alignment matrix is not unique.")
         if gs.any(det < 0):
             ones = gs.ones(self.m_ambient)
-            reflection_vec = gs.concatenate(
-                [ones[:-1], gs.array([-1.])], axis=0)
+            reflection_vec = gs.concatenate([ones[:-1], gs.array([-1.0])], axis=0)
             mask = gs.cast(det < 0, gs.float32)
-            sign = (mask[..., None] * reflection_vec
-                    + (1. - mask)[..., None] * ones)
+            sign = mask[..., None] * reflection_vec + (1.0 - mask)[..., None] * ones
             j_matrix = from_vector_to_diagonal_matrix(sign)
             rotation = Matrices.mul(
-                Matrices.transpose(right), j_matrix, Matrices.transpose(left))
+                Matrices.transpose(right), j_matrix, Matrices.transpose(left)
+            )
         else:
-            rotation = gs.matmul(
-                Matrices.transpose(right), Matrices.transpose(left))
+            rotation = gs.matmul(Matrices.transpose(right), Matrices.transpose(left))
         return gs.matmul(point, Matrices.transpose(rotation))
 
 
@@ -330,8 +327,8 @@ class ProcrustesMetric(RiemannianMetric):
 
     def __init__(self, k_landmarks, m_ambient):
         super(ProcrustesMetric, self).__init__(
-            dim=m_ambient * (k_landmarks - 1) - 1,
-            default_point_type='matrix')
+            dim=m_ambient * (k_landmarks - 1) - 1, default_point_type='matrix'
+        )
 
         self.embedding_metric = MatricesMetric(k_landmarks, m_ambient)
         self.sphere_metric = Hypersphere(m_ambient * k_landmarks - 1).metric
@@ -357,7 +354,8 @@ class ProcrustesMetric(RiemannianMetric):
             Inner-product of the two tangent vectors.
         """
         inner_prod = self.embedding_metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
+            tangent_vec_a, tangent_vec_b, base_point
+        )
 
         return inner_prod
 
@@ -403,8 +401,7 @@ class ProcrustesMetric(RiemannianMetric):
         flat_log = self.sphere_metric.log(flat_pt, flat_bp)
         try:
             log = gs.reshape(flat_log, base_point.shape)
-        except (RuntimeError,
-                check_tf_error(ValueError, 'InvalidArgumentError')):
+        except (RuntimeError, check_tf_error(ValueError, 'InvalidArgumentError')):
             log = gs.reshape(flat_log, point.shape)
         return log
 
@@ -426,4 +423,5 @@ class KendallShapeMetric(QuotientMetric):
     def __init__(self, k_landmarks, m_ambient):
         super(KendallShapeMetric, self).__init__(
             fiber_bundle=PreShapeSpace(k_landmarks, m_ambient),
-            ambient_metric=ProcrustesMetric(k_landmarks, m_ambient))
+            ambient_metric=ProcrustesMetric(k_landmarks, m_ambient),
+        )

@@ -26,12 +26,17 @@ class Manifold:
     """
 
     def __init__(
-            self, dim, default_point_type='vector',
-            default_coords_type='intrinsic', **kwargs):
+        self,
+        dim,
+        default_point_type='vector',
+        default_coords_type='intrinsic',
+        **kwargs
+    ):
         super(Manifold, self).__init__(**kwargs)
         geomstats.errors.check_integer(dim, 'dim')
         geomstats.errors.check_parameter_accepted_values(
-            default_point_type, 'default_point_type', ['vector', 'matrix'])
+            default_point_type, 'default_point_type', ['vector', 'matrix']
+        )
 
         self.dim = dim
         self.default_point_type = default_point_type
@@ -74,8 +79,7 @@ class Manifold:
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        raise NotImplementedError(
-            'is_tangent is not implemented.')
+        raise NotImplementedError('is_tangent is not implemented.')
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
@@ -92,8 +96,7 @@ class Manifold:
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point.
         """
-        raise NotImplementedError(
-            'to_tangent is not implemented.')
+        raise NotImplementedError('to_tangent is not implemented.')
 
     def regularize(self, point):
         """Regularize a point to the canonical representation for the manifold.

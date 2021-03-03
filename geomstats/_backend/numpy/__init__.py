@@ -1,6 +1,6 @@
 """Numpy based computation backend."""
 
-import autograd # NOQA
+import autograd  # NOQA
 import autograd.numpy as np
 from autograd.numpy import (  # NOQA
     abs,
@@ -89,9 +89,9 @@ from autograd.numpy import (  # NOQA
     vstack,
     where,
     zeros,
-    zeros_like
+    zeros_like,
 )
-from autograd.scipy.special import polygamma # NOQA
+from autograd.scipy.special import polygamma  # NOQA
 from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA
@@ -102,7 +102,8 @@ DTYPES = {
     dtype('int32'): 0,
     dtype('int64'): 1,
     dtype('float32'): 2,
-    dtype('float64'): 3}
+    dtype('float64'): 3,
+}
 
 
 def to_numpy(x):
@@ -208,8 +209,7 @@ def assignment(x, values, indices, axis=0):
             raise ValueError('Either one value or as many values as indices')
         x_new[indices] = values
     else:
-        indices = tuple(
-            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        indices = tuple(list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
         x_new[indices] = values
     return x_new
 
@@ -257,8 +257,7 @@ def assignment_by_sum(x, values, indices, axis=0):
             raise ValueError('Either one value or as many values as indices')
         x_new[indices] += values
     else:
-        indices = tuple(
-            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        indices = tuple(list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
         x_new[indices] += values
     return x_new
 
@@ -352,17 +351,14 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return array(
-        coo_matrix((data, list(zip(*indices))), target_shape).todense())
+    return array(coo_matrix((data, list(zip(*indices))), target_shape).todense())
 
 
 def erf(x):
     cst_erf = 8.0 / (3.0 * np.pi) * (np.pi - 3.0) / (4.0 - np.pi)
-    return \
-        np.sign(x) * \
-        np.sqrt(1 - np.exp(-x * x *
-                           (4 / np.pi + cst_erf * x * x) /
-                           (1 + cst_erf * x * x)))
+    return np.sign(x) * np.sqrt(
+        1 - np.exp(-x * x * (4 / np.pi + cst_erf * x * x) / (1 + cst_erf * x * x))
+    )
 
 
 def triu_to_vec(x, k=0):

@@ -64,8 +64,9 @@ class Matrices:
         eq : array-like, shape=[...,]
             Boolean evaluating if the matrices are close.
         """
-        is_vectorized = \
-            (gs.ndim(gs.array(mat_a)) == 3) or (gs.ndim(gs.array(mat_b)) == 3)
+        is_vectorized = (gs.ndim(gs.array(mat_a)) == 3) or (
+            gs.ndim(gs.array(mat_b)) == 3
+        )
         axes = (1, 2) if is_vectorized else (0, 1)
         return gs.all(gs.isclose(mat_a, mat_b, atol=atol), axes)
 
@@ -122,7 +123,7 @@ class Matrices:
         transpose : array-like, shape=[..., n, n]
             Transposed matrix.
         """
-        is_vectorized = (gs.ndim(gs.array(mat)) == 3)
+        is_vectorized = gs.ndim(gs.array(mat)) == 3
         axes = (0, 2, 1) if is_vectorized else (1, 0)
         return gs.transpose(mat, axes)
 
@@ -163,7 +164,7 @@ class Matrices:
         """
         is_square = cls.is_square(mat)
         if not is_square:
-            is_vectorized = (gs.ndim(gs.array(mat)) == 3)
+            is_vectorized = gs.ndim(gs.array(mat)) == 3
             return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, cls.transpose(mat), atol)
 
@@ -184,7 +185,7 @@ class Matrices:
         is_skew_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is skew-symmetric.
         """
-        return cls.equal(mat, - cls.transpose(mat), atol)
+        return cls.equal(mat, -cls.transpose(mat), atol)
 
     @classmethod
     def to_symmetric(cls, mat):
@@ -240,12 +241,12 @@ class Matrices:
         if not gs.all(is_square):
             return False
         diagonal_mat = from_vector_to_diagonal_matrix(
-            gs.diagonal(mat, axis1=-2, axis2=-1))
-        is_diagonal = gs.all(
-            gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
+            gs.diagonal(mat, axis1=-2, axis2=-1)
+        )
+        is_diagonal = gs.all(gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
         return is_diagonal
 
-    def random_uniform(self, n_samples=1, bound=1.):
+    def random_uniform(self, n_samples=1, bound=1.0):
         """Sample from a uniform distribution.
 
         Parameters
@@ -299,8 +300,7 @@ class MatricesMetric(EuclideanMetric):
 
     def __init__(self, m, n, **kwargs):
         dimension = m * n
-        super(MatricesMetric, self).__init__(
-            dim=dimension, default_point_type='matrix')
+        super(MatricesMetric, self).__init__(dim=dimension, default_point_type='matrix')
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner-product of two tan vecs at `base_point`.
@@ -320,6 +320,5 @@ class MatricesMetric(EuclideanMetric):
         inner_prod : array-like, shape=[...,]
             Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
-        inner_prod = gs.einsum(
-            '...ij,...ij->...', tangent_vec_a, tangent_vec_b)
+        inner_prod = gs.einsum('...ij,...ij->...', tangent_vec_a, tangent_vec_b)
         return inner_prod

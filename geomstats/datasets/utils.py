@@ -21,21 +21,18 @@ MODULE_PATH = os.path.dirname(__file__)
 DATA_PATH = os.path.join(MODULE_PATH, 'data')
 CITIES_PATH = os.path.join(DATA_PATH, 'cities', 'cities.json')
 CONNECTOMES_PATH = os.path.join(DATA_PATH, 'connectomes/train_FNC.csv')
-CONNECTOMES_LABELS_PATH = os.path.join(
-    DATA_PATH, 'connectomes/train_labels.csv')
+CONNECTOMES_LABELS_PATH = os.path.join(DATA_PATH, 'connectomes/train_labels.csv')
 
 POSES_PATH = os.path.join(DATA_PATH, 'poses', 'poses.json')
 KARATE_PATH = os.path.join(DATA_PATH, 'graph_karate', 'karate.txt')
-KARATE_LABELS_PATH = os.path.join(
-    DATA_PATH, 'graph_karate', 'karate_labels.txt')
+KARATE_LABELS_PATH = os.path.join(DATA_PATH, 'graph_karate', 'karate_labels.txt')
 GRAPH_RANDOM_PATH = os.path.join(DATA_PATH, 'graph_random', 'graph_random.txt')
 GRAPH_RANDOM_LABELS_PATH = os.path.join(
     DATA_PATH, 'graph_random', 'graph_random_labels.txt'
 )
 LEAVES_PATH = os.path.join(DATA_PATH, 'leaves', 'leaves.csv')
 EMG_PATH = os.path.join(DATA_PATH, 'emg', 'emg.csv')
-OPTICAL_NERVES_PATH = os.path.join(
-    DATA_PATH, 'optical_nerves', 'optical_nerves.txt')
+OPTICAL_NERVES_PATH = os.path.join(DATA_PATH, 'optical_nerves', 'optical_nerves.txt')
 HANDS_PATH = os.path.join(DATA_PATH, 'hands', 'hands.txt')
 HANDS_LABELS_PATH = os.path.join(DATA_PATH, 'hands', 'labels.txt')
 
@@ -157,8 +154,7 @@ def load_connectomes(as_vectors=False):
     with open(CONNECTOMES_PATH) as csvfile:
         data_list = list(csv.reader(csvfile))
     patient_id = gs.array([int(row[0]) for row in data_list[1:]])
-    data = gs.array(
-        [[float(value) for value in row[1:]] for row in data_list[1:]])
+    data = gs.array([[float(value) for value in row[1:]] for row in data_list[1:]])
 
     with open(CONNECTOMES_LABELS_PATH) as csvfile:
         labels = list(csv.reader(csvfile))

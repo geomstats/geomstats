@@ -15,16 +15,14 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.space = PreShapeSpace(self.k_landmarks, self.m_ambient)
         self.matrices = self.space.embedding_manifold
         self.n_samples = 10
-        self.shape_metric = KendallShapeMetric(
-            self.k_landmarks, self.m_ambient)
+        self.shape_metric = KendallShapeMetric(self.k_landmarks, self.m_ambient)
 
     def test_belongs(self):
         point = gs.random.rand(self.m_ambient - 1, self.k_landmarks)
         result = self.space.belongs(point)
         self.assertFalse(result)
 
-        point = gs.random.rand(
-            self.n_samples, self.m_ambient - 1, self.k_landmarks)
+        point = gs.random.rand(self.n_samples, self.m_ambient - 1, self.k_landmarks)
         result = self.space.belongs(point)
         self.assertFalse(gs.all(result))
 
@@ -44,20 +42,26 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     def test_random_uniform_shape(self):
         point = self.space.random_uniform()
         result = gs.shape(point)
-        expected = (self.k_landmarks, self.m_ambient,)
+        expected = (
+            self.k_landmarks,
+            self.m_ambient,
+        )
 
         self.assertAllClose(result, expected)
 
         point = self.space.random_uniform(self.n_samples)
         result = gs.shape(point)
-        expected = (self.n_samples, self.k_landmarks, self.m_ambient,)
+        expected = (
+            self.n_samples,
+            self.k_landmarks,
+            self.m_ambient,
+        )
         self.assertAllClose(result, expected)
 
     def test_projection_and_belongs(self):
-        point = Matrices.transpose(gs.array(
-            [[1., 0., 0., 1.],
-             [0., 1., 0., 1.],
-             [0., 0., 1., 1.]]))
+        point = Matrices.transpose(
+            gs.array([[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 1.0], [0.0, 0.0, 1.0, 1.0]])
+        )
         proj = self.space.projection(point)
         result = self.space.belongs(proj)
         expected = True
@@ -116,8 +120,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_vertical_projection_vectorization(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient)
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_uniform(self.n_samples)
         tan = self.space.to_tangent(vector, point)
         vertical = self.space.vertical_projection(tan, point)
@@ -142,8 +145,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_horizontal_projection_vectorized(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient)
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_uniform(self.n_samples)
         tan = self.space.to_tangent(vector, point)
         horizontal = self.space.horizontal_projection(tan, point)
@@ -188,8 +190,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
     def test_inner_product_shape(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient)
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_uniform()
         tan = self.space.to_tangent(vector, point)
         inner = self.space.metric.inner_product(tan, tan, point)
@@ -208,8 +209,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
     def test_exp_and_belongs_vectorization(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient)
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_uniform(self.n_samples)
         tan = self.space.to_tangent(vector, point)
         exp = self.space.metric.exp(tan, point)
@@ -261,8 +261,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(exp, expected)
 
     def test_kendall_inner_product_shape(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient)
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_uniform()
         tan = self.space.to_tangent(vector, point)
         inner = self.shape_metric.inner_product(tan, tan, point)
@@ -293,7 +292,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     def test_dist_extreme_case(self):
         point = self.space.projection(gs.eye(self.k_landmarks, self.m_ambient))
         result = self.shape_metric.dist(point, point)
-        expected = 0.
+        expected = 0.0
         self.assertAllClose(result, expected)
 
     def test_dist(self):

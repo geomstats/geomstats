@@ -26,8 +26,7 @@ def main():
 
     plt.figure(0)
     ax = plt.subplot(111, projection='3d')
-    visualization.plot(points=clustering.cluster_centers_, ax=ax,
-                       space='S2', c='r')
+    visualization.plot(points=clustering.cluster_centers_, ax=ax, space='S2', c='r')
     plt.show()
 
     plt.figure(1)
@@ -42,9 +41,11 @@ def main():
 
 if __name__ == '__main__':
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        logging.info('Examples with visualizations are only implemented '
-                     'with numpy backend.\n'
-                     'To change backend, write: '
-                     'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info(
+            'Examples with visualizations are only implemented '
+            'with numpy backend.\n'
+            'To change backend, write: '
+            'export GEOMSTATS_BACKEND = \'numpy\'.'
+        )
     else:
         main()

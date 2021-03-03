@@ -27,25 +27,25 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         super(SkewSymmetricMatrices, self).__init__(dim, n)
 
         if n == 2:
-            self.basis = gs.array([[[0., -1.], [1., 0.]]])
+            self.basis = gs.array([[[0.0, -1.0], [1.0, 0.0]]])
         elif n == 3:
-            self.basis = gs.array([
-                [[0., 0., 0.],
-                 [0., 0., -1.],
-                 [0., 1., 0.]],
-                [[0., 0., 1.],
-                 [0., 0., 0.],
-                 [-1., 0., 0.]],
-                [[0., -1., 0.],
-                 [1., 0., 0.],
-                 [0., 0., 0.]]])
+            self.basis = gs.array(
+                [
+                    [[0.0, 0.0, 0.0], [0.0, 0.0, -1.0], [0.0, 1.0, 0.0]],
+                    [[0.0, 0.0, 1.0], [0.0, 0.0, 0.0], [-1.0, 0.0, 0.0]],
+                    [[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+                ]
+            )
         else:
             self.basis = gs.zeros((dim, n, n))
             basis = []
             for row in gs.arange(n - 1):
                 for col in gs.arange(row + 1, n):
-                    basis.append(gs.array_from_sparse(
-                        [(row, col), (col, row)], [1., -1.], (n, n)))
+                    basis.append(
+                        gs.array_from_sparse(
+                            [(row, col), (col, row)], [1.0, -1.0], (n, n)
+                        )
+                    )
             self.basis = gs.stack(basis)
 
     def belongs(self, mat, atol=TOLERANCE):
@@ -65,8 +65,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
             Boolean evaluating if matrix is skew symmetric.
         """
         is_skew = self.is_skew_symmetric(mat=mat, atol=atol)
-        return gs.logical_and(
-            is_skew, super(SkewSymmetricMatrices, self).belongs(mat))
+        return gs.logical_and(is_skew, super(SkewSymmetricMatrices, self).belongs(mat))
 
     @classmethod
     def projection(cls, mat):
@@ -107,10 +106,13 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         if self.n == 2:
             return matrix_representation[..., 1, 0][..., None]
         if self.n == 3:
-            vec = gs.stack([
-                matrix_representation[..., 2, 1],
-                matrix_representation[..., 0, 2],
-                matrix_representation[..., 1, 0]])
+            vec = gs.stack(
+                [
+                    matrix_representation[..., 2, 1],
+                    matrix_representation[..., 0, 2],
+                    matrix_representation[..., 1, 0],
+                ]
+            )
             return gs.transpose(vec)
 
         return gs.triu_to_vec(matrix_representation, k=1)

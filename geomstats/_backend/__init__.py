@@ -109,7 +109,7 @@ BACKEND_ATTRIBUTES = {
         'vstack',
         'where',
         'zeros',
-        'zeros_like'
+        'zeros_like',
     ],
     'autograd': ['value_and_grad'],
     'linalg': [
@@ -125,7 +125,7 @@ BACKEND_ATTRIBUTES = {
         'qr',
         'solve_sylvester',
         'sqrtm',
-        'svd'
+        'svd',
     ],
     'random': [
         'choice',
@@ -136,8 +136,8 @@ BACKEND_ATTRIBUTES = {
         'rand',
         'randint',
         'seed',
-        'uniform'
-    ]
+        'uniform',
+    ],
 }
 
 
@@ -172,9 +172,12 @@ class BackendImporter:
                 except AttributeError:
                     raise RuntimeError(
                         'Backend \'{}\' exposes no \'{}\' module'.format(
-                            backend_name, module_name)) from None
+                            backend_name, module_name
+                        )
+                    ) from None
                 new_submodule = types.ModuleType(
-                    '{}.{}'.format(self._path, module_name))
+                    '{}.{}'.format(self._path, module_name)
+                )
                 new_submodule.__file__ = submodule.__file__
                 setattr(new_module, module_name, new_submodule)
             else:
@@ -188,16 +191,19 @@ class BackendImporter:
                         error = (
                             'Module \'{}\' of backend \'{}\' has no '
                             'attribute \'{}\''.format(
-                                module_name, backend_name, attribute_name))
+                                module_name, backend_name, attribute_name
+                            )
+                        )
                     else:
-                        error = (
-                            'Backend \'{}\' has no attribute \'{}\''.format(
-                                backend_name, attribute_name))
+                        error = 'Backend \'{}\' has no attribute \'{}\''.format(
+                            backend_name, attribute_name
+                        )
                     raise RuntimeError(error) from None
                 else:
                     setattr(new_submodule, attribute_name, attribute)
 
         from numpy import pi
+
         new_module.pi = pi
 
         return new_module

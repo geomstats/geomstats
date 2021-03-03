@@ -40,12 +40,10 @@ def main():
         x_coords = embedding[0]
         y_coords = embedding[1]
         pt_id = i_embedding
-        plt.scatter(
-            x_coords, y_coords, c=colors[karate_graph.labels[pt_id][0]], s=150)
+        plt.scatter(x_coords, y_coords, c=colors[karate_graph.labels[pt_id][0]], s=150)
         ax.annotate(pt_id, (x_coords, y_coords))
 
-    plt.tick_params(
-        which='both')
+    plt.tick_params(which='both')
     plt.title('Poincare Ball Embedding of the Karate Club Network')
     plt.legend(handles=[group_1, group_2])
     plt.show()
@@ -56,7 +54,8 @@ def main():
         metric=hyperbolic_embedding.manifold.metric,
         n_clusters=n_clusters,
         init='random',
-        mean_method='frechet-poincare-ball')
+        mean_method='frechet-poincare-ball',
+    )
 
     centroids = kmeans.fit(X=embeddings, max_iter=100)
     labels = kmeans.predict(X=embeddings)
@@ -68,12 +67,9 @@ def main():
     circle.draw(ax=ax2)
     ax2.axes.xaxis.set_visible(False)
     ax2.axes.yaxis.set_visible(False)
-    group_1_predicted = mpatches.Patch(
-        color=colors[0], label='Predicted Group 1')
-    group_2_predicted = mpatches.Patch(
-        color=colors[1], label='Predicted Group 2')
-    group_centroids = mpatches.Patch(
-        color=colors[2], label='Cluster centroids')
+    group_1_predicted = mpatches.Patch(color=colors[0], label='Predicted Group 1')
+    group_2_predicted = mpatches.Patch(color=colors[1], label='Predicted Group 2')
+    group_centroids = mpatches.Patch(color=colors[2], label='Cluster centroids')
 
     for _ in range(n_clusters):
         for i_embedding, embedding in enumerate(embeddings):
@@ -84,21 +80,14 @@ def main():
                 color = colors[0]
             else:
                 color = colors[1]
-            plt.scatter(
-                x_coords, y_coords,
-                c=color,
-                s=150
-            )
+            plt.scatter(x_coords, y_coords, c=color, s=150)
             ax2.annotate(pt_id, (x_coords, y_coords))
 
     for _, centroid in enumerate(centroids):
         x_coords = centroid[0]
         y_coords = centroid[1]
         plt.scatter(
-            x_coords, y_coords,
-            c=colors[2],
-            marker='*',
-            s=150,
+            x_coords, y_coords, c=colors[2], marker='*', s=150,
         )
 
     plt.title('K-means applied to Karate club embedding')
@@ -108,7 +97,9 @@ def main():
     kmedoid = RiemannianKMedoids(
         metric=hyperbolic_embedding.manifold.metric,
         n_clusters=n_clusters,
-        init='random', n_jobs=2)
+        init='random',
+        n_jobs=2,
+    )
 
     centroids = kmedoid.fit(data=embeddings, max_iter=100)
     labels = kmedoid.predict(data=embeddings)
@@ -120,12 +111,9 @@ def main():
     circle.draw(ax=ax2)
     ax2.axes.xaxis.set_visible(False)
     ax2.axes.yaxis.set_visible(False)
-    group_1_predicted = mpatches.Patch(
-        color=colors[0], label='Predicted Group 1')
-    group_2_predicted = mpatches.Patch(
-        color=colors[1], label='Predicted Group 2')
-    group_centroids = mpatches.Patch(
-        color=colors[2], label='Cluster centroids')
+    group_1_predicted = mpatches.Patch(color=colors[0], label='Predicted Group 1')
+    group_2_predicted = mpatches.Patch(color=colors[1], label='Predicted Group 2')
+    group_centroids = mpatches.Patch(color=colors[2], label='Cluster centroids')
 
     for _ in range(n_clusters):
         for i_embedding, embedding in enumerate(embeddings):
@@ -136,21 +124,14 @@ def main():
                 color = colors[0]
             else:
                 color = colors[1]
-            plt.scatter(
-                x_coords, y_coords,
-                c=color,
-                s=150
-            )
+            plt.scatter(x_coords, y_coords, c=color, s=150)
             ax2.annotate(pt_id, (x_coords, y_coords))
 
     for _, centroid in enumerate(centroids):
         x_coords = centroid[0]
         y_coords = centroid[1]
         plt.scatter(
-            x_coords, y_coords,
-            c=colors[2],
-            marker='*',
-            s=150,
+            x_coords, y_coords, c=colors[2], marker='*', s=150,
         )
 
     plt.title('K-Medoids applied to Karate club embedding')
