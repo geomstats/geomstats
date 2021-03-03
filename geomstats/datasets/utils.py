@@ -186,7 +186,7 @@ def load_leaves():
 
 
 def load_emg():
-    """Load EMG data from data/emg/emg.csv.
+    """Load data from data/emg/emg.csv.
 
     Returns
     -------
