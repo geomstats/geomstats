@@ -1,5 +1,24 @@
 """Template file showing unit tests for the manifold in:
-geomstats/geometry/_template__my_manifold.py.
+geomstats/geometry/_template_manifold.py.
+
+For additional guidelines on how to contribute to geomstats, visit:
+https://geomstats.github.io/contributing.html#contributing-code-workflow
+
+To run these tests:
+- Install packages from geomstats/dev-requirements.txt
+- In command line, run:
+```nose2 tests.test__template__my_manifold``` to run all the tests of this file
+- In command line, run:
+```nose2 tests.test__template__my_manifold.TestMyManifold.test_dimension```
+to run the test `test_dimension` only.
+
+To run these tests using different backends (numpy, pytorch or tensorflow):
+- Install packages from geomstats/opt-requirements.tct
+In command line, select the backend of interest with:
+```export GEOMSTATS_BACKEND=numpy```
+ or ```export GEOMSTATS_BACKEND=pytorch```
+ or ```export GEOMSTATS_BACKEND=tensorflow```
+ and repeat the steps from the previous paragraph.
 """
 
 # Import the tests module
