@@ -31,7 +31,7 @@ class MyManifold(Manifold):
     """
 
     def __init__(self, dim, another_parameter, **kwargs):
-        super(Manifold, self).__init__(dim, **kwargs)
+        super(MyManifold, self).__init__(dim)
         self.another_parameter = another_parameter
 
     # Implement the main methods of MyManifold, for example belongs:
