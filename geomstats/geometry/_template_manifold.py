@@ -1,7 +1,10 @@
 """Template file to illustrate how to create a manifold in geomstats.
 
-When you create a manifold, you need to create an associated test files.
-The test file for this file can be found in:
+For additional guidelines on how to contribute to geomstats, visit:
+https://geomstats.github.io/contributing.html#contributing-code-workflow
+
+Note: A manifold needs to be created with an associated test file.
+The test file for this manifold can be found at:
 tests/test__template_my_manifold.py.
 """
 
