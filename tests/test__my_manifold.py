@@ -47,14 +47,14 @@ class TestMyManifold(geomstats.tests.TestCase):
     def test_dimension(self):
         result = self.manifold.dim
         expected = self.dimension
-        # Each test ends with the following syntax, comparing 
+        # Each test ends with the following syntax, comparing
         # the result with the expected result, using self.assertAllClose
         self.assertAllClose(result, expected)
 
     # The method test_belongs tests the `belongs` method.
     def test_belongs(self):
         # Arrays are defined using geomstats backend through the prefix `gs.`.
-        # This allows the code to be tested simultaneously in numpy, 
+        # This allows the code to be tested simultaneously in numpy,
         # pytorch and tensorflow. `gs.` is the equivalent of numpy's `np.` and
         # most of numpy's functions are available with `gs.`.
         point = gs.array([1., 2., 3.])
