@@ -5,7 +5,7 @@ https://geomstats.github.io/contributing.html#contributing-code-workflow
 
 Note: A manifold needs to be created with an associated test file.
 The test file for this manifold can be found at:
-tests/test__template_my_manifold.py.
+tests/test__my_manifold.py.
 """
 
 # Import the class(es) that MyManifold inherits from
