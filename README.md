@@ -1,5 +1,5 @@
 # Geomstats
-[![PyPI version](https://badge.fury.io/py/geomstats.svg)](https://badge.fury.io/py/geomstats)[![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy)](https://codecov.io/gh/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow)](https://codecov.io/gh/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=pytorch)](https://codecov.io/gh/geomstats/geomstats) (Coverages for: numpy, tensorflow, pytorch)
+[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/geomstats-papers.svg?style=social&label=Follow%20%40geomstats-papers)](https://twitter.com/geomstats)[![PyPI version](https://badge.fury.io/py/geomstats.svg)](https://badge.fury.io/py/geomstats)[![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats)[![Slack](https://img.shields.io/badge/Slack-Join-yellow)](https://geomstats.slack.com/)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy)](https://codecov.io/gh/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow)](https://codecov.io/gh/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=pytorch)](https://codecov.io/gh/geomstats/geomstats) (Coverages for: numpy, tensorflow, pytorch)
 
 
 Geomstats is an open-source Python package for computations and statistics on manifolds. The package is organized into two main modules:
@@ -13,8 +13,22 @@ The module `geometry` implements concepts in differential geometry, and the modu
 - To get an overview of ```geomstats```, see our [introductory video](https://www.youtube.com/watch?v=Ju-Wsd84uG0&list=PLYx7XA2nY5GejOB1lsvriFeMytD1-VS1B&index=3).
 - To get started with ```geomstats```, see the [examples](https://github.com/geomstats/geomstats/tree/master/examples) and [notebooks](https://github.com/geomstats/geomstats/tree/master/notebooks) directories.
 - The documentation of ```geomstats``` can be found on the [documentation website](https://geomstats.github.io/).
-- If you find ``geomstats`` useful, please kindly cite our [paper](https://arxiv.org/abs/2004.04667).
-- To follow the scientific literature on geometric statistics, follow our twitter-bot @geomstats-papers !
+- To follow the scientific literature on geometric statistics, follow our twitter-bot [@geomstats-papers](https://twitter.com/geomstats)!
+
+
+If you find ``geomstats`` useful, please kindly cite our [paper](https://jmlr.org/papers/v21/19-027.html):
+```
+@article{JMLR:v21:19-027,
+  author  = {Nina Miolane and Nicolas Guigui and Alice Le Brigant and Johan Mathe and Benjamin Hou and Yann Thanwerdas and Stefan Heyder and Olivier Peltre and Niklas Koep and Hadi Zaatiti and Hatem Hajri and Yann Cabanes and Thomas Gerald and Paul Chauchat and Christian Shewmake and Daniel Brooks and Bernhard Kainz and Claire Donnat and Susan Holmes and Xavier Pennec},
+  title   = {Geomstats:  A Python Package for Riemannian Geometry in Machine Learning},
+  journal = {Journal of Machine Learning Research},
+  year    = {2020},
+  volume  = {21},
+  number  = {223},
+  pages   = {1-9},
+  url     = {http://jmlr.org/papers/v21/19-027.html}
+}
+```
 
 ## Install geomstats via pip3
 

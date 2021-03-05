@@ -8,9 +8,9 @@ import geomstats.tests
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
+    SPDMetricBuresWasserstein,
     SPDMetricEuclidean,
-    SPDMetricLogEuclidean,
-    SPDMetricProcrustes
+    SPDMetricLogEuclidean
 )
 
 
@@ -26,7 +26,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         self.n = 3
         self.space = SPDMatrices(n=self.n)
         self.metric_affine = SPDMetricAffine(n=self.n)
-        self.metric_procrustes = SPDMetricProcrustes(n=self.n)
+        self.metric_bureswasserstein = SPDMetricBuresWasserstein(n=self.n)
         self.metric_euclidean = SPDMetricEuclidean(n=self.n)
         self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
         self.n_samples = 4
@@ -220,8 +220,8 @@ class TestSPDMatrices(geomstats.tests.TestCase):
                              [1., 1., 1.]])
         self.assertAllClose(result, expected)
 
-    def test_procrustes_inner_product(self):
-        """Test of SPDMetricProcrustes.inner_product method."""
+    def test_bureswasserstein_inner_product(self):
+        """Test of SPDMetricBuresWasserstein.inner_product method."""
         base_point = gs.array([[1., 0., 0.],
                                [0., 1.5, .5],
                                [0., .5, 1.5]])
@@ -231,7 +231,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         tangent_vec_b = gs.array([[1., 2., 4.],
                                   [2., 3., 8.],
                                   [4., 8., 5.]])
-        metric = SPDMetricProcrustes(3)
+        metric = SPDMetricBuresWasserstein(3)
         result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         expected = gs.array(4.)
 
@@ -324,6 +324,22 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         result = metric.exp(log, base_point)
         expected = point
         self.assertAllClose(result, expected)
+
+    def test_log_and_exp_bureswasserstein(self):
+        """Test of SPDMetricBuresWasserstein.log and exp methods."""
+        base_point = gs.array([[5., 0., 0.],
+                               [0., 7., 2.],
+                               [0., 2., 8.]])
+        point = gs.array([[9., 0., 0.],
+                          [0., 5., 0.],
+                          [0., 0., 1.]])
+
+        metric = self.metric_bureswasserstein
+        log = metric.log(point=point, base_point=base_point)
+        result = metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+
+        self.assertAllClose(result, expected, atol=1e-5)
 
     def test_log_and_exp_logeuclidean(self):
         """Test of SPDMetricLogEuclidean.log and exp methods."""
@@ -419,10 +435,8 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         n_points = 10
         t = gs.linspace(start=0., stop=1., num=n_points)
         points = geodesic(t)
-        result = self.space.belongs(points)
-        expected = gs.array([True] * n_points)
-
-        self.assertAllClose(result, expected)
+        result = self.space.belongs(points, atol=1e-5)
+        self.assertTrue(gs.all(result))
 
     def test_squared_dist_is_symmetric(self):
         """Test of SPDMetricAffine.squared_dist (power=1) and is_symmetric."""
@@ -515,3 +529,26 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         result = metric.norm(transported, end_point)
 
         self.assertAllClose(expected, result, atol=1e-4)
+
+    def test_squared_dist_bureswasserstein(self):
+        """Test of SPDMetricBuresWasserstein.squared_dist method."""
+        point_a = gs.array([[5., 0., 0.],
+                            [0., 7., 2.],
+                            [0., 2., 8.]])
+        point_b = gs.array([[9., 0., 0.],
+                            [0., 5., 0.],
+                            [0., 0., 1.]])
+
+        metric = self.metric_bureswasserstein
+        result = metric.squared_dist(point_a, point_b)
+
+        log = metric.log(point=point_b, base_point=point_a)
+        expected = metric.squared_norm(vector=log, base_point=point_a)
+
+        self.assertAllClose(result, expected, atol=1e-5)
+
+    def test_to_tangent_and_is_tangent(self):
+        mat = gs.random.rand(3, 3)
+        projection = self.space.to_tangent(mat)
+        result = self.space.is_tangent(projection)
+        self.assertTrue(result)

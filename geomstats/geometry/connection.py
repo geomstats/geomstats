@@ -49,7 +49,7 @@ class Connection:
         Returns
         -------
         gamma : array-like, shape=[..., dim, dim, dim]
-            Christoffel symbols, with the covariant index on
+            Christoffel symbols, with the contravariant index on
             the first dimension.
         """
         raise NotImplementedError(
@@ -94,7 +94,7 @@ class Connection:
             '...kij,...i->...kj', gamma, velocity)
         equation = - gs.einsum(
             '...kj,...j->...k', equation, velocity)
-        return equation
+        return velocity, equation
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step='euler',
             point_type=None, **kwargs):
@@ -102,7 +102,7 @@ class Connection:
 
         Exponential map at base_point of tangent_vec computed by integration
         of the geodesic equation (initial value problem), using the
-        christoffel symbols
+        christoffel symbols.
 
         Parameters
         ----------
@@ -126,8 +126,8 @@ class Connection:
             Point on the manifold.
         """
         initial_state = (base_point, tangent_vec)
-        flow, _ = integrate(
-            self.geodesic_equation, initial_state, n_steps=n_steps, step=step)
+        flow, _ = integrate(self.geodesic_equation, initial_state,
+                            n_steps=n_steps, step=step)
 
         exp = flow[-1]
         return exp
@@ -151,29 +151,34 @@ class Connection:
         step : str, {'euler', 'rk4'}
             Numerical scheme to use for integration.
             Optional, default: 'euler'.
+        max_iter
+        verbose
+        tol
 
         Returns
         -------
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point.
         """
+        max_shape = point.shape if point.ndim == 3 else base_point.shape
+
         def objective(velocity):
             """Define the objective function."""
             velocity = gs.array(velocity)
             velocity = gs.cast(velocity, dtype=base_point.dtype)
-            velocity = gs.reshape(velocity, base_point.shape)
+            velocity = gs.reshape(velocity, max_shape)
             delta = self.exp(velocity, base_point, n_steps, step) - point
-            loss = 1. / self.dim * gs.sum(delta ** 2, axis=-1)
-            return gs.sum(loss)
+            return gs.sum(delta ** 2)
 
         objective_with_grad = gs.autograd.value_and_grad(objective)
-        tangent_vec = gs.random.rand(*gs.flatten(base_point).shape)
+        tangent_vec = gs.flatten(gs.random.rand(*max_shape))
         res = minimize(
             objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
             options={'disp': verbose, 'maxiter': max_iter}, tol=tol)
 
         tangent_vec = gs.array(res.x)
-        tangent_vec = gs.reshape(tangent_vec, base_point.shape)
+        tangent_vec = gs.reshape(tangent_vec, max_shape)
+        tangent_vec = gs.cast(tangent_vec, dtype=base_point.dtype)
         return tangent_vec
 
     def _pole_ladder_step(self, base_point, next_point, base_shoot,
@@ -322,7 +327,7 @@ class Connection:
 
     def ladder_parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_rungs=1,
-            scheme='pole', alpha=2, **single_step_kwargs):
+            scheme='pole', alpha=1, **single_step_kwargs):
         """Approximate parallel transport using the pole ladder scheme.
 
         Approximate Parallel transport using either the pole ladder or the

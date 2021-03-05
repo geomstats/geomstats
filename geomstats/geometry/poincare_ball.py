@@ -196,7 +196,7 @@ class PoincareBall(Hyperbolic):
         l2_norm = gs.linalg.norm(point, axis=-1)
         if gs.any(l2_norm >= 1 - EPSILON):
             projected_point =\
-                gs.einsum('...j,...->...j', point * (1 - EPSILON),
+                gs.einsum('...j,...->...j', point * (1 - EPSILON - TOLERANCE),
                           1. / l2_norm)
             projected_point = -gs.maximum(-projected_point, -point)
             return projected_point
@@ -314,8 +314,8 @@ class PoincareBallMetric(RiemannianMetric):
             '...i,...j->...j', log, add_base_point)
         return log
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
-    def mobius_add(self, point_a, point_b):
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector', 'else'])
+    def mobius_add(self, point_a, point_b, auto_project=True):
         r"""Compute the Mobius addition of two points.
 
         Mobius addition operation that is a necessary operation
@@ -329,9 +329,11 @@ class PoincareBallMetric(RiemannianMetric):
         Parameters
         ----------
         point_a : array-like, shape=[..., dim]
-            Point in hyperbolic space.
+            Point in Poincare ball associated space.
         point_b : array-like, shape=[..., dim]
-            Point in hyperbolic space.
+            Point in Poincare ball associated space.
+        auto_project : boolean
+            Project points on the ball or not (according to tolerance).
 
         Returns
         -------
@@ -339,11 +341,15 @@ class PoincareBallMetric(RiemannianMetric):
             Result of the Mobius addition.
         """
         ball_manifold = PoincareBall(self.dim, scale=self.scale)
-        point_a_belong = ball_manifold.belongs(point_a)
-        point_b_belong = ball_manifold.belongs(point_b)
+        if auto_project:
+            point_a = ball_manifold.projection(point_a)
+            point_b = ball_manifold.projection(point_b)
+        else:
+            point_a_belong = ball_manifold.belongs(point_a)
+            point_b_belong = ball_manifold.belongs(point_b)
 
-        if (not gs.all(point_a_belong) or not gs.all(point_b_belong)):
-            raise ValueError("Points do not belong to the Poincare ball")
+            if (not gs.all(point_a_belong) or not gs.all(point_b_belong)):
+                raise ValueError("Points do not belong to the Poincare ball")
 
         norm_point_a = gs.sum(point_a ** 2, axis=-1, keepdims=True)
         norm_point_b = gs.sum(point_b ** 2, axis=-1, keepdims=True)
@@ -481,7 +487,7 @@ class PoincareBallMetric(RiemannianMetric):
             - gs.einsum('...i,...j->...j', retraction_factor, tangent_vec)
 
     @geomstats.vectorization.decorator(['else', 'vector'])
-    def inner_product_matrix(self, base_point=None):
+    def metric_matrix(self, base_point=None):
         """Compute the inner product matrix.
 
         Parameters

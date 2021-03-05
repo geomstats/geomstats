@@ -100,22 +100,22 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
 
         left_diag_metric = InvariantMetric(
             group=group,
-            inner_product_mat_at_identity=diag_mat_at_identity,
+            metric_mat_at_identity=diag_mat_at_identity,
             left_or_right='left')
         right_diag_metric = InvariantMetric(
             group=group,
-            inner_product_mat_at_identity=diag_mat_at_identity,
+            metric_mat_at_identity=diag_mat_at_identity,
             left_or_right='right')
 
         # mat_at_identity = 7 * gs.eye(group.dim)
 
         # left_metric = InvariantMetric(
         #            group=group,
-        #            inner_product_mat_at_identity=mat_at_identity,
+        #            metric_mat_at_identity=mat_at_identity,
         #            left_or_right='left')
         # right_metric = InvariantMetric(
         #            group=group,
-        #            inner_product_mat_at_identity=mat_at_identity,
+        #            metric_mat_at_identity=mat_at_identity,
         #            left_or_right='right')
 
         metrics_all = {
@@ -166,6 +166,13 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_regularize(self):
+        point = gs.random.rand(6) * 2 * gs.pi
+        regularized = self.group.regularize(point)
+        result = 0 <= gs.linalg.norm(regularized[:3]) <= gs.pi
+        self.assertTrue(result)
+
+    @geomstats.tests.np_and_tf_only
+    def test_regularize_extreme_cases(self):
         point = self.elements_all['with_angle_0']
         result = self.group.regularize(point)
         expected = point
@@ -180,8 +187,6 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
             self.assertAllClose(result, expected)
 
         if not geomstats.tests.tf_backend():
-            # Note: by default, the rotation vector is inverted by
-            # the function regularize when the angle of the rotation is pi.
             angle_type = 'with_angle_pi'
             point = self.elements_all[angle_type]
             result = self.group.regularize(point)
@@ -193,8 +198,9 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
             angle_type = 'with_angle_close_pi_high'
             point = self.elements_all[angle_type]
             result = self.group.regularize(point)
+            norm = gs.linalg.norm(point[:3])
             expected_rot = gs.concatenate(
-                [point[:3] / gs.linalg.norm(point[:3]) * gs.pi,
+                [point[:3] / norm * (norm - 2 * gs.pi),
                  gs.zeros(3)], axis=0)
             expected_trans = gs.concatenate(
                 [gs.zeros(3), point[3:6]], axis=0)
@@ -249,6 +255,8 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(regularized_points),
             (n_samples, *self.group.get_point_type_shape()))
+        result = 0 <= gs.linalg.norm(regularized_points[:3]) <= gs.pi
+        self.assertTrue(result)
 
     def test_compose(self):
         # Composition by identity, on the right

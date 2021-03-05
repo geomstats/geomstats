@@ -121,7 +121,7 @@ class EuclideanMetric(RiemannianMetric):
             dim=dim, signature=(dim, 0, 0),
             default_point_type=default_point_type)
 
-    def inner_product_matrix(self, base_point=None):
+    def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix, independent of the base point.
 
         Parameters

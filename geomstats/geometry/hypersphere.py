@@ -520,10 +520,11 @@ class HypersphereMetric(RiemannianMetric):
 
     @staticmethod
     def parallel_transport(tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the parallel transport of a tangent vector.
+        r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by exp_(base_point)(tangent_vec_b).
+        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        tangent_vec_b)`.
 
         Parameters
         ----------
@@ -538,7 +539,7 @@ class HypersphereMetric(RiemannianMetric):
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., dim + 1]
-            Transported tangent vector at exp_(base_point)(tangent_vec_b).
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         theta = gs.linalg.norm(tangent_vec_b, axis=-1)
         normalized_b = gs.einsum('..., ...i->...i', 1 / theta, tangent_vec_b)

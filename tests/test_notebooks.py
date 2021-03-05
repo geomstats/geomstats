@@ -9,10 +9,18 @@ import geomstats.tests
 def _exec_notebook(path):
 
     file_name = tempfile.NamedTemporaryFile(suffix='.ipynb').name
-    args = ['jupyter', 'nbconvert', '--to', 'notebook', '--execute',
-            '--ExecutePreprocessor.timeout=1000',
-            '--ExecutePreprocessor.kernel_name=python3',
-            '--output', file_name, path]
+    args = [
+        'jupyter',
+        'nbconvert',
+        '--to',
+        'notebook',
+        '--execute',
+        '--ExecutePreprocessor.timeout=1000',
+        '--ExecutePreprocessor.kernel_name=python3',
+        '--output',
+        file_name,
+        path,
+    ]
     subprocess.check_call(args)
 
 
@@ -27,21 +35,49 @@ class TestNotebooks(geomstats.tests.TestCase):
 
     @staticmethod
     @geomstats.tests.np_and_pytorch_only
-    def test_03_simple_machine_learning_tangent_spaces():
+    def test_03_simple_machine_learning_on_tangent_spaces():
         _exec_notebook(
-            'notebooks/03_simple_machine_learning_tangent_spaces.ipynb')
+            'notebooks/03_simple_machine_learning_on_tangent_spaces.ipynb')
 
     @staticmethod
     @geomstats.tests.np_only
-    def test_04_frechet_mean_and_tangent_pca():
-        _exec_notebook('notebooks/04_frechet_mean_and_tangent_pca.ipynb')
+    def test_04_riemannian_frechet_mean_and_tangent_pca():
+        _exec_notebook(
+            'notebooks/04_riemannian_frechet_mean_and_tangent_pca.ipynb')
 
     @staticmethod
     @geomstats.tests.np_and_pytorch_only
-    def test_05_embedding_graph_structured_data_h2():
-        _exec_notebook('notebooks/05_embedding_graph_structured_data_h2.ipynb')
+    def test_05_riemannian_kmeans():
+        _exec_notebook('notebooks/05_riemannian_kmeans.ipynb')
 
     @staticmethod
     @geomstats.tests.np_only
     def test_06_information_geometry():
         _exec_notebook('notebooks/06_information_geometry.ipynb')
+
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_usecase_emg_sign_classification_in_spd_manifold():
+        _exec_notebook(
+            'notebooks/usecase_emg_sign_classification_in_spd_manifold.ipynb')
+
+    @staticmethod
+    @geomstats.tests.np_and_pytorch_only
+    def test_usecase_graph_embedding_and_clustering_in_hyperbolic_space():
+        _exec_notebook(
+            'notebooks/'
+            'usecase_graph_embedding_and_clustering_in_hyperbolic_space.ipynb')
+
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_usecase_hand_poses_analysis_in_kendall_shape_space():
+        _exec_notebook(
+            'notebooks/'
+            'usecase_hand_poses_analysis_in_kendall_shape_space.ipynb')
+
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_usecase_optic_nerve_heads_analysis_in_kendall_shape_space():
+        _exec_notebook(
+            'notebooks/'
+            'usecase_optic_nerve_heads_analysis_in_kendall_shape_space.ipynb')

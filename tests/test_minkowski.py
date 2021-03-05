@@ -37,7 +37,7 @@ class TestMinkowski(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_inner_product_matrix(self):
-        result = self.metric.inner_product_matrix()
+        result = self.metric.metric_matrix()
 
         expected = gs.array([[-1., 0.], [0., 1.]])
         self.assertAllClose(result, expected)

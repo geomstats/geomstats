@@ -38,9 +38,9 @@ class TestLandmarks(geomstats.tests.TestCase):
         self.atol = 1e-6
         gs.random.seed(1234)
         self.space_landmarks_in_euclidean_3d = Landmarks(
-            ambient_manifold=r3, n_landmarks=self.n_sampling_points)
+            ambient_manifold=r3, k_landmarks=self.n_sampling_points)
         self.space_landmarks_in_sphere_2d = Landmarks(
-            ambient_manifold=s2, n_landmarks=self.n_sampling_points)
+            ambient_manifold=s2, k_landmarks=self.n_sampling_points)
         self.l2_metric_s2 = self.space_landmarks_in_sphere_2d.metric
         self.l2_metric_r3 = self.space_landmarks_in_euclidean_3d.metric
         self.landmarks_a = landmark_set_a

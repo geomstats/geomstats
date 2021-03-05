@@ -551,7 +551,10 @@ def set_diag(x, new_diag):
     1-D array, but modifies x instead of creating a copy.
     """
     arr_shape = x.shape
-    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
+    off_diag = (1 - torch.eye(arr_shape[-1])) * x
+    diag = torch.einsum(
+        'ij,...i->...ij', torch.eye(new_diag.shape[-1]), new_diag)
+    return diag + off_diag
 
 
 def prod(x, axis=None):
@@ -758,3 +761,9 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
     if multiple_args:
         return stack(list(map(lambda y: pyfunc(*y), zip(*x))))
     return stack(list(map(pyfunc, x)))
+
+
+def triu_to_vec(x, k=0):
+    n = x.shape[-1]
+    rows, cols = triu_indices(n, k=k)
+    return x[..., rows, cols]
