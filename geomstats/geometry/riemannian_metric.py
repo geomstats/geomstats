@@ -477,9 +477,9 @@ class RiemannianCometric(RiemannianMetric):
         The Hamiltonian at state :math: `(q, p)` is defined by
         .. math:
 
-                H(q, p) = \frac{1}{2} <q, q>_p
+                H(q, p) = \frac{1}{2} <p, p>_q
 
-        where :math: `<\cdot, \cdot>_p` is the cometric at :math: `p`.
+        where :math: `<\cdot, \cdot>_q` is the cometric at :math: `q`.
 
         Parameters
         ----------
@@ -503,7 +503,7 @@ class RiemannianCometric(RiemannianMetric):
         .. math:
 
                 \dot_q = \partial_p H(q, p)
-                \dot_p = \partial_q H(q, p)
+                \dot_p = -\partial_q H(q, p)
 
         Parameters
         ----------
@@ -516,7 +516,7 @@ class RiemannianCometric(RiemannianMetric):
         -------
         h_p : array-like, shape=[..., dim]
             Partial derivative with respect to `position`.
-        h_q : array-like, shape=[..., dim]
+        -h_q : array-like, shape=[..., dim]
             Partial derivative with respect to `momentum`.
         """
         state = position, momentum
