@@ -604,7 +604,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
     """Class for the special Euclidean group in 3d, SE(3).
 
     i.e. the Lie group of rigid transformations. Elements of SE(3) can either
-    be represented as vectors (in 3d) or as matrices in general. The matrix
+    be represented as vectors (in 3d) or, in general, as matrices. The matrix
     representation corresponds to homogeneous coordinates. This class is
     specific to the vector representation of rotations. For the matrix
     representation use the SpecialEuclidean class and set `n=3`.
