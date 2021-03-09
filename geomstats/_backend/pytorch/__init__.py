@@ -551,7 +551,10 @@ def set_diag(x, new_diag):
     1-D array, but modifies x instead of creating a copy.
     """
     arr_shape = x.shape
-    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
+    off_diag = (1 - torch.eye(arr_shape[-1])) * x
+    diag = torch.einsum(
+        'ij,...i->...ij', torch.eye(new_diag.shape[-1]), new_diag)
+    return diag + off_diag
 
 
 def prod(x, axis=None):

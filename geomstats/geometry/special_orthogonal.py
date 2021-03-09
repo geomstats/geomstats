@@ -585,38 +585,25 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         regularized_point : array-like, shape=[..., 3]
             Regularized point.
         """
-        regularized_point = point
-        angle = gs.linalg.norm(regularized_point, axis=-1)
+        theta = gs.linalg.norm(point, axis=-1)
+        k = gs.floor(theta / 2. / gs.pi)
 
-        mask_0 = gs.isclose(angle, 0.)
-        mask_not_0 = ~mask_0
-        mask_pi = gs.isclose(angle, gs.pi)
+        # angle in [0;2pi)
+        angle = theta - 2 * k * gs.pi
 
-        # This avoids division by 0.
-        mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
-        mask_not_0_float = (
-            gs.cast(mask_not_0, gs.float32)
-            + self.epsilon)
-        mask_pi_float = gs.cast(mask_pi, gs.float32) + self.epsilon
+        # this avoids dividing by 0
+        theta_eps = gs.where(gs.isclose(theta, 0.), 1., theta)
 
-        k = gs.floor(angle / (2 * gs.pi) + .5)
-        angle += mask_0_float
+        # angle in [0, pi]
+        normalized_angle = gs.where(angle <= gs.pi, angle, 2 * gs.pi - angle)
+        norm_ratio = gs.where(
+            gs.isclose(theta, 0.), 1., normalized_angle / theta_eps)
 
-        norms_ratio = gs.zeros_like(angle)
-        norms_ratio += mask_not_0_float * (
-            1. - 2. * gs.pi * k / angle)
-        norms_ratio += mask_0_float
-        norms_ratio += mask_pi_float * (
-            gs.pi / angle
-            - (1. - 2. * gs.pi * k / angle))
+        # reverse sign if angle was greater than pi
+        norm_ratio = gs.where(angle > gs.pi, -norm_ratio, norm_ratio)
+        return gs.einsum(
+            '...,...i->...i', norm_ratio, point)
 
-        regularized_point = gs.einsum(
-            '...,...i->...i', norms_ratio, regularized_point)
-
-        return regularized_point
-
-    @geomstats.vectorization.decorator(
-        ['else', 'vector', 'else', 'output_point'])
     def regularize_tangent_vec_at_identity(
             self, tangent_vec, metric=None):
         """Regularize a tangent vector at the identity.
@@ -638,47 +625,23 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             Regularized tangent vector.
         """
         if metric is None:
-            metric = self.left_canonical_metric
+            return self.regularize(tangent_vec)
+
         tangent_vec_metric_norm = metric.norm(tangent_vec)
         tangent_vec_canonical_norm = gs.linalg.norm(tangent_vec, axis=-1)
 
-        mask_norm_0 = gs.isclose(tangent_vec_metric_norm, 0.)
-        mask_canonical_norm_0 = gs.isclose(tangent_vec_canonical_norm, 0.)
+        # This avoids dividing by 0
+        norm_eps = gs.where(
+            tangent_vec_canonical_norm == 0, ATOL, tangent_vec_canonical_norm)
+        coef = gs.where(
+            tangent_vec_canonical_norm == 0.,
+            1., tangent_vec_metric_norm / norm_eps)
+        coef_tangent_vec = gs.einsum('...,...i->...i', coef, tangent_vec)
 
-        mask_0 = mask_norm_0 | mask_canonical_norm_0
-        mask_else = ~mask_0
-
-        # This avoids division by 0.
-        mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
-        mask_else_float = gs.cast(mask_else, gs.float32) + self.epsilon
-
-        regularized_vec = gs.zeros_like(tangent_vec)
-        regularized_vec += gs.einsum(
-            '...,...i->...i', mask_0_float, tangent_vec)
-
-        tangent_vec_canonical_norm += mask_0_float
-
-        coef = gs.zeros_like(tangent_vec_metric_norm)
-        coef += mask_else_float * (
-            tangent_vec_metric_norm
-            / tangent_vec_canonical_norm)
-
-        coef_tangent_vec = gs.einsum(
-            '...,...i->...i', coef, tangent_vec)
-        regularized_vec += gs.einsum(
-            '...,...i->...i',
-            mask_else_float,
-            self.regularize(coef_tangent_vec))
-
-        coef += mask_0_float
-        regularized_vec = gs.einsum(
+        regularized_vec = self.regularize(coef_tangent_vec)
+        return gs.einsum(
             '...,...i->...i', 1. / coef, regularized_vec)
-        regularized_vec = gs.einsum(
-            '...,...i->...i', mask_else_float, regularized_vec)
-        return regularized_vec
 
-    @geomstats.vectorization.decorator(
-        ['else', 'vector', 'vector', 'else', 'output_point'])
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None):
         """Regularize tangent vector at a base point.
@@ -769,7 +732,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         rot_vec_not_pi = rot_vec_not_pi * numerator / denominator
 
         vector_outer = 0.5 * (gs.eye(3) + rot_mat)
-        gs.set_diag(
+        vector_outer = gs.set_diag(
             vector_outer, gs.maximum(
                 0., gs.diagonal(vector_outer, axis1=1, axis2=2)))
         squared_diag_comp = gs.diagonal(vector_outer, axis1=1, axis2=2)
