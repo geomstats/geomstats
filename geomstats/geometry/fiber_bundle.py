@@ -38,7 +38,7 @@ class FiberBundle(Manifold):
     def __init__(
             self, total_space: Manifold = None, base: Manifold = None,
             group: LieGroup = None, ambient_metric: RiemannianMetric = None,
-            group_action=None, dim:  int = None, **kwargs):
+            group_action=None, dim: int = None, **kwargs):
 
         if dim is None:
             if base is not None:
@@ -263,7 +263,6 @@ class FiberBundle(Manifold):
                 tangent_vec, base_point)
         except RecursionError:
             raise NotImplementedError
-
 
     def is_horizontal(self, tangent_vec, base_point, atol=1e-6):
         """Evaluate if the tangent vector is horizontal at base_point.
