@@ -160,7 +160,8 @@ class Connection:
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point.
         """
-        max_shape = point.shape if point.ndim == 3 else base_point.shape
+        max_shape = point.shape if point.ndim > base_point.shape else \
+            base_point.shape
 
         def objective(velocity):
             """Define the objective function."""
@@ -412,7 +413,7 @@ class Connection:
                 'end_point': current_point,
                 'trajectory': trajectory}
 
-    def riemannian_curvature(self, base_point):
+    def riemannian_curvature_tensor(self, base_point):
         """Compute Riemannian curvature tensor associated with the connection.
 
         Parameters
@@ -422,6 +423,34 @@ class Connection:
         """
         raise NotImplementedError(
             'The Riemannian curvature tensor is not implemented.')
+
+    def curvature(
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
+            base_point):
+        r"""Compute the curvature.
+
+        For three tangent vectors at a base point :math: `x,y,z`,
+        the curvature is defined by
+        :math: `R(x, y)z = \nabla_{[x,y]}z
+        - \nabla_x\nabla_y z + - \nabla_y\nabla_x z`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., n, n]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        """
+        raise NotImplementedError('The curvature is not implemented.')
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
