@@ -590,6 +590,15 @@ class HypersphereMetric(RiemannianMetric):
             christoffel = gs.squeeze(christoffel, axis=0)
         return christoffel
 
+    def curvature(
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
+            base_point):
+        inner_ac = self.inner_product(tangent_vec_a, tangent_vec_c)
+        inner_bc = self.inner_product(tangent_vec_b, tangent_vec_c)
+        first_term = gs.einsum('...,...i->...i', inner_bc, tangent_vec_a)
+        second_term = gs.einsum('...,...i->...i', inner_ac, tangent_vec_b)
+        return - first_term + second_term
+
 
 class Hypersphere(_Hypersphere):
     """Class for the n-dimensional hypersphere.

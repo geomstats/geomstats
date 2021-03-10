@@ -3,7 +3,9 @@
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
+from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class FiberBundle(Manifold):
@@ -33,8 +35,10 @@ class FiberBundle(Manifold):
         group. Either dim, base or group must be given as input.
     """
 
-    def __init__(self, total_space, base=None, group=None, group_action=None,
-                 dim=None, **kwargs):
+    def __init__(
+            self, total_space: Manifold = None, base: Manifold = None,
+            group: LieGroup = None, ambient_metric: RiemannianMetric = None,
+            group_action=None, dim:  int = None, **kwargs):
 
         if dim is None:
             if base is not None:
@@ -51,6 +55,7 @@ class FiberBundle(Manifold):
         self.base = base
         self.total_space = total_space
         self.group = group
+        self.ambient_metric = ambient_metric
 
         if group_action is None and group is not None:
             group_action = group.compose
@@ -178,7 +183,7 @@ class FiberBundle(Manifold):
             Action of the optimal g on point.
         """
         group = self.group
-        initial_distance = self.total_space.metric.squared_dist(
+        initial_distance = self.ambient_metric.squared_dist(
             point, base_point)
         if isinstance(initial_distance, float) or initial_distance.shape == ():
             n_samples = 1
@@ -198,7 +203,7 @@ class FiberBundle(Manifold):
             return self.group_action(point, group_elt)
 
         objective_with_grad = gs.autograd.value_and_grad(
-            lambda param: self.total_space.metric.squared_dist(
+            lambda param: self.ambient_metric.squared_dist(
                 wrap(param), base_point))
 
         tangent_vec = gs.flatten(gs.random.rand(*max_shape))
@@ -235,7 +240,7 @@ class FiberBundle(Manifold):
                 self.tangent_submersion(tangent_vec, base_point),
                 base_point)
 
-    def vertical_projection(self, tangent_vec, base_point):
+    def vertical_projection(self, tangent_vec, base_point, **kwargs):
         r"""Project to vertical subspace.
 
         Compute the vertical component of a tangent vector :math: `w` at a
@@ -258,6 +263,7 @@ class FiberBundle(Manifold):
                 tangent_vec, base_point)
         except RecursionError:
             raise NotImplementedError
+
 
     def is_horizontal(self, tangent_vec, base_point, atol=1e-6):
         """Evaluate if the tangent vector is horizontal at base_point.
@@ -339,3 +345,6 @@ class FiberBundle(Manifold):
                                  'base point (of the base manifold) must be '
                                  'given.')
         return self.horizontal_projection(tangent_vec, point)
+
+    def fundamental_a_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
+        raise NotImplementedError
