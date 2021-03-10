@@ -156,15 +156,18 @@ class QuotientMetric(RiemannianMetric):
             horizontal_a, horizontal_b, point_fiber)
         f_c_f_ab = bundle.fundamental_a_tensor(
             horizontal_c, f_ab, point_fiber)
+        f_c_f_ab = bundle.tangent_submersion(f_c_f_ab, point_fiber)
 
         f_ac = bundle.fundamental_a_tensor(
             horizontal_a, horizontal_c, point_fiber)
         f_b_f_ac = bundle.fundamental_a_tensor(
             horizontal_b, f_ac, point_fiber)
+        f_b_f_ac = bundle.tangent_submersion(f_b_f_ac, point_fiber)
 
         f_bc = bundle.fundamental_a_tensor(
             horizontal_b, horizontal_c, point_fiber)
         f_a_f_bc = bundle.fundamental_a_tensor(
             horizontal_a, f_bc, point_fiber)
+        f_a_f_bc = bundle.tangent_submersion(f_a_f_bc, point_fiber)
 
         return projected_top_curvature + 2 * f_c_f_ab - f_a_f_bc + f_b_f_ac
