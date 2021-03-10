@@ -324,3 +324,23 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             tangent_vec_a, tangent_vec_a, tangent_vec_b, base_point)
         expected = gs.zeros_like(result)
         self.assertAllClose(result, expected)
+
+    def test_curvature_bianchi_identity(self):
+        space = self.space
+        base_point = space.random_uniform()
+        vector = gs.random.rand(
+            3, self.k_landmarks, self.m_ambient)
+        tangent_vec_a = space.to_tangent(vector[0], base_point)
+        tangent_vec_b = space.to_tangent(vector[1], base_point)
+        tangent_vec_c = space.to_tangent(vector[2], base_point)
+
+        curvature_1 = self.shape_metric.curvature(
+            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point)
+        curvature_2 = self.shape_metric.curvature(
+            tangent_vec_b, tangent_vec_c, tangent_vec_a, base_point)
+        curvature_3 = self.shape_metric.curvature(
+            tangent_vec_c, tangent_vec_a, tangent_vec_b, base_point)
+
+        result = curvature_1 + curvature_2 + curvature_3
+        expected = gs.zeros_like(result)
+        self.assertAllClose(result, expected)
