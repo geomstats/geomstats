@@ -1,22 +1,17 @@
-"""
-Unit tests for manifolds.
-"""
+"""Unit tests for manifolds."""
 
 import geomstats.backend as gs
 import geomstats.tests
-
 from geomstats.geometry.manifold import Manifold
 
 
-class TestManifoldMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
+class TestManifold(geomstats.tests.TestCase):
     def setUp(self):
         self.dimension = 4
         self.manifold = Manifold(self.dimension)
 
     def test_dimension(self):
-        result = self.manifold.dimension
+        result = self.manifold.dim
         expected = self.dimension
         self.assertAllClose(result, expected)
 
@@ -30,7 +25,3 @@ class TestManifoldMethods(geomstats.tests.TestCase):
         result = self.manifold.regularize(point)
         expected = point
         self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-    geomstats.test.main()
