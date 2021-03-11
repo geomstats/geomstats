@@ -403,7 +403,7 @@ class ProcrustesMetric(RiemannianMetric):
         flat_log = self.sphere_metric.log(flat_pt, flat_bp)
         try:
             log = gs.reshape(flat_log, base_point.shape)
-        except (RuntimeError,
+        except (RuntimeError, TypeError,
                 check_tf_error(ValueError, 'InvalidArgumentError')):
             log = gs.reshape(flat_log, point.shape)
         return log

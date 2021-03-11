@@ -3,7 +3,7 @@
 import jax.numpy as np
 import numpy as _np
 import scipy.linalg
-from jax import core, vmap
+from jax import core, vmap, custom_vjp
 from jax.numpy.linalg import (  # NOQA
     cholesky,
     det,
@@ -26,58 +26,39 @@ def _is_symmetric(x, tol=_TOL):
     return (np.abs(new_x - np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
 
 
-@primitive
+@custom_vjp
 def expm(x):
     x_new = to_ndarray(x, to_ndim=3)
     result = vmap(sp_expm)(x_new)
     return result[0] if len(result) == 1 else result
 
 
-def _expm_vjp(_ans, x):
+def _expm_fwd(x):
+    return expm(x), x
+
+
+def _expm_bwd(res, g):
+    x = res
     vectorized = x.ndim == 3
     axes = (0, 2, 1) if vectorized else (1, 0)
 
-    def vjp(g):
-        n = x.shape[-1]
-        size_m = x.shape[:-2] + (2 * n, 2 * n)
-        mat = np.zeros(size_m)
-        mat[..., :n, :n] = x.transpose(axes)
-        mat[..., n:, n:] = x.transpose(axes)
-        mat[..., :n, n:] = g
-        return expm(mat)[..., :n, n:]
-    return vjp
+    n = x.shape[-1]
+    size_m = x.shape[:-2] + (2 * n, 2 * n)
+    mat = np.zeros(size_m)
+    mat[..., :n, :n] = x.transpose(axes)
+    mat[..., n:, n:] = x.transpose(axes)
+    mat[..., :n, n:] = g
+    return expm(mat)[..., :n, n:]
 
 
-defvjp(expm, _expm_vjp)
+expm.defvjp(expm, _expm_bwd)
 
 logm_prim = core.Primitive('logm')
-logm_prim.def_impl(_np.vectorize(scipy.linalg.logm, signature='(m,n)->(m,n)'))
+logm_prim.def_impl(vmap(scipy.linalg.logm))
 
 
 def logm(x):
     return logm_prim.bind(x)
-
-
-    ndim = x.ndim
-    new_x = to_ndarray(x, to_ndim=3)
-    if _is_symmetric(new_x):
-        eigvals, eigvecs = np.linalg.eigh(new_x)
-        if (eigvals > 0).all():
-            eigvals = np.log(eigvals)
-            eigvals = np.vectorize(np.diag, signature='(n)->(n,n)')(eigvals)
-            transp_eigvecs = np.transpose(eigvecs, axes=(0, 2, 1))
-            result = np.matmul(eigvecs, eigvals)
-            result = np.matmul(result, transp_eigvecs)
-        else:
-            result = np.vectorize(scipy.linalg.logm,
-                                  signature='(n,m)->(n,m)')(new_x)
-    else:
-        result = np.vectorize(scipy.linalg.logm,
-                              signature='(n,m)->(n,m)')(new_x)
-
-    if ndim == 2:
-        return result[0]
-    return result
 
 
 def solve_sylvester(a, b, q):
