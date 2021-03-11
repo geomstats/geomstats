@@ -160,7 +160,7 @@ class Connection:
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point.
         """
-        max_shape = point.shape if point.ndim > base_point.shape else \
+        max_shape = point.shape if point.ndim > base_point.ndim else \
             base_point.shape
 
         def objective(velocity):
