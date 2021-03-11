@@ -252,9 +252,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         skew = gs.linalg.solve_sylvester(left_term, left_term, right_term)
 
         vertical = - gs.matmul(base_point, skew)
-        if return_skew:
-            return vertical, skew
-        return vertical  # , skew if return_skew else vertical
+        return (vertical, skew) if return_skew else vertical
 
     def is_horizontal(self, tangent_vec, base_point, atol=TOLERANCE):
         """Check whether the tangent vector is horizontal at base_point.
