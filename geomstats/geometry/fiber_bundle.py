@@ -25,6 +25,10 @@ class FiberBundle(Manifold):
         Group that acts on the total space by the right.
         Optional. Default : None.
         Either the group or the group action must be given.
+    ambient_metric : RiemannianMetric
+        Metric to use in the total space.
+        Optional. The `metric` attribute of the total space is used if no
+        ambient metric is passed.
     group_action : callable
         Right group action. It must take as input a point of the total space
         and an element of the group, and return a point of the total space.
@@ -36,7 +40,7 @@ class FiberBundle(Manifold):
     """
 
     def __init__(
-            self, total_space: Manifold = None, base: Manifold = None,
+            self, total_space: Manifold, base: Manifold = None,
             group: LieGroup = None, ambient_metric: RiemannianMetric = None,
             group_action=None, dim: int = None, **kwargs):
 
@@ -346,4 +350,33 @@ class FiberBundle(Manifold):
         return self.horizontal_projection(tangent_vec, point)
 
     def fundamental_a_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
+        r"""Compute the fundamental tensor A of the submersion.
+
+        The fundamental tensor A is defined for tangent vectors of the total
+        space by [O'Neill]_
+        :math: `A_X Y = ver\nabla^M_{hor X} (hor Y)
+            + hor \nabla^M_{hor X}( ver Y)`
+        where :math: `hor,ver` are the horizontal and vertical projections.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Point of the total space.
+
+        Returns
+        -------
+        vector : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`, result of the A tensor applied to
+            `tangent_vec_a` and `tangent_vec_b`.
+
+        References
+        ----------
+        [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a Submersion,
+        Michigan Mathematical Journal 13, no. 4 (December 1966): 459–69.
+        https://doi.org/10.1307/mmj/1028999604.
+        """
         raise NotImplementedError

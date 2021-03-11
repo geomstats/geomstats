@@ -68,11 +68,6 @@ class _InvariantMetricMatrix(RiemannianMetric):
         basis matrices of this space. The diagonal is filled with ones.
         This useful to compute a matrix inner product.
 
-        Parameters
-        ----------
-        metric_matrix : array-like, shape=[dim, dim]
-            Diagonal metric matrix.
-
         Returns
         -------
         symmetric_matrix : array-like, shape=[n, n]
