@@ -19,9 +19,9 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         self.base_metric = SPDMetricBuresWasserstein(n)
         self.group = SpecialOrthogonal(n)
         self.bundle = FiberBundle(
-            GeneralLinear(n), base=self.base, group=self.group)
-        self.quotient_metric = QuotientMetric(
-            self.bundle, ambient_metric=MatricesMetric(n, n))
+            GeneralLinear(n), base=self.base, group=self.group,
+            ambient_metric=MatricesMetric(n, n))
+        self.quotient_metric = QuotientMetric(self.bundle)
 
         def submersion(point):
             return GeneralLinear.mul(point, GeneralLinear.transpose(point))
