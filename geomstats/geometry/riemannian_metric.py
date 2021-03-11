@@ -426,7 +426,7 @@ class RiemannianMetric(Connection):
             Sectional curvature at `base_point`.
 
         See Also
-        ----------
+        --------
         https://en.wikipedia.org/wiki/Sectional_curvature
         """
         curvature = self.curvature(
@@ -437,4 +437,7 @@ class RiemannianMetric(Connection):
         inner_ab = self.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         normalization_factor = norm_a * norm_b - inner_ab ** 2
 
-        return sectional / normalization_factor
+        condition = gs.isclose(normalization_factor, 0.)
+        normalization_factor = gs.where(
+            condition, EPSILON, normalization_factor)
+        return gs.where(~condition, sectional / normalization_factor, 0.)

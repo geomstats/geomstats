@@ -429,25 +429,25 @@ class Connection:
             base_point):
         r"""Compute the curvature.
 
-        For three tangent vectors at a base point :math: `x,y,z`,
+        For three tangent vectors at a base point :math: `X,Y,Z`,
         the curvature is defined by
-        :math: `R(x, y)z = \nabla_{[x,y]}z
-        - \nabla_x\nabla_y z + - \nabla_y\nabla_x z`.
+        :math: `R(X, Y)Z = \nabla_{[X,Y]}Z
+        - \nabla_X\nabla_Y Z + - \nabla_Y\nabla_X Z`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
+        tangent_vec_a : array-like, shape=[..., {dim, [n, n]}]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., n, n]
+        tangent_vec_b : array-like, shape=[..., {dim, [n, n]}]
             Tangent vector at `base_point`.
-        tangent_vec_c : array-like, shape=[..., n, n]
+        tangent_vec_c : array-like, shape=[..., {dim, [n, n]}]
             Tangent vector at `base_point`.
-        base_point :  array-like, shape=[..., n, n]
+        base_point :  array-like, shape=[..., {dim, [n, n]}]
             Point on the group. Optional, default is the identity.
 
         Returns
         -------
-        curvature : array-like, shape=[..., n, n]
+        curvature : array-like, shape=[..., {dim, [n, n]}]
             Tangent vector at `base_point`.
         """
         raise NotImplementedError('The curvature is not implemented.')

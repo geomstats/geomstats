@@ -326,6 +326,38 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         return gs.matmul(point, Matrices.transpose(rotation))
 
     def fundamental_a_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
+        r"""Compute the fundamental tensor A of the submersion.
+
+        The fundamental tensor A is defined for tangent vectors of the total
+        space by [O'Neill]_
+        :math: `A_X Y = ver\nabla^M_{hor X} (hor Y)
+            + hor \nabla^M_{hor X}( ver Y)`
+        where :math: `hor,ver` are the horizontal and vertical projections.
+
+        For the pre-shape space, we have closed-form expressions when :math:
+        `X` is horizontal.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Point of the total space.
+
+        Returns
+        -------
+        vector : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`, result of the A tensor applied to
+            `tangent_vec_a` and `tangent_vec_b`.
+
+        References
+        ----------
+        [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a Submersion,
+        Michigan Mathematical Journal 13, no. 4 (December 1966): 459–69.
+        https://doi.org/10.1307/mmj/1028999604.
+        """
         horizontal_a = self.horizontal_projection(tangent_vec_a, base_point)
         if not gs.all(gs.isclose(horizontal_a, tangent_vec_a)):
             raise NotImplementedError('The fundamental tensor is only '
@@ -445,6 +477,32 @@ class PreShapeMetric(RiemannianMetric):
     def curvature(
             self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
             base_point):
+        r"""Compute the curvature.
+
+        For three tangent vectors at a base point :math: `x,y,z`,
+        the curvature is defined by
+        :math: `R(X, Y)Z = \nabla_{[X,Y]}Z
+        - \nabla_X\nabla_Y Z + - \nabla_Y\nabla_X Z`, where :math: `\nabla`
+        is the Levi-Civita connection. In the case of the hypersphere,
+        we have the closed formula
+        :math: `R(X,Y)Z = \langle X, Z \rangle Y - \langle Y,Z \rangle X`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., n, n]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        """
         max_shape = base_point.shape
         for arg in [tangent_vec_a, tangent_vec_b, tangent_vec_c]:
             if arg.ndim >= 3:
@@ -461,7 +519,7 @@ class PreShapeMetric(RiemannianMetric):
 
 
 class KendallShapeMetric(QuotientMetric):
-    """Quotient ambient_metric on the shape space.
+    """Quotient metric on the shape space.
 
     The Kendall shape space is obtained by taking the quotient of the
     pre-shape space by the space of rotations of the ambient space.

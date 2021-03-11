@@ -139,6 +139,40 @@ class QuotientMetric(RiemannianMetric):
     def curvature(
             self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
             base_point):
+        r"""Compute the curvature.
+
+        For three tangent vectors at a base point :math: `X,Y,Z`,
+        the curvature is defined by
+        :math: `R(X,Y)Z = \nabla_{[X,Y]}Z
+        - \nabla_X\nabla_Y Z + \nabla_Y\nabla_X Z`.
+
+        In the case of quotient metrics, the fundamental equations of a
+        Riemannian submersion allow to compute the curvature of the base
+        manifold from the one of the total space and a correction term that
+        uses the fundamental tensor A [O'Neill]_.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., {dim, [n, n]}]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at `base_point`.
+
+        References
+        ----------
+        [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a Submersion,
+        Michigan Mathematical Journal 13, no. 4 (December 1966): 459–69.
+        https://doi.org/10.1307/mmj/1028999604.
+        """
         bundle = self.fiber_bundle
         point_fiber = bundle.lift(base_point)
         horizontal_a = bundle.horizontal_lift(
@@ -170,4 +204,4 @@ class QuotientMetric(RiemannianMetric):
             horizontal_a, f_bc, point_fiber)
         f_a_f_bc = bundle.tangent_submersion(f_a_f_bc, point_fiber)
 
-        return projected_top_curvature + 2 * f_c_f_ab - f_a_f_bc + f_b_f_ac
+        return -(projected_top_curvature + 2 * f_c_f_ab - f_a_f_bc + f_b_f_ac)
