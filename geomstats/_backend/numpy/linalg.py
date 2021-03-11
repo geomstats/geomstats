@@ -26,35 +26,14 @@ def _is_symmetric(x, tol=_TOL):
     return (np.abs(new_x - np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
 
 
-@custom_vjp
 def expm(x):
     x_new = to_ndarray(x, to_ndim=3)
     result = vmap(sp_expm)(x_new)
     return result[0] if len(result) == 1 else result
 
 
-def _expm_fwd(x):
-    return expm(x), x
-
-
-def _expm_bwd(res, g):
-    x = res
-    vectorized = x.ndim == 3
-    axes = (0, 2, 1) if vectorized else (1, 0)
-
-    n = x.shape[-1]
-    size_m = x.shape[:-2] + (2 * n, 2 * n)
-    mat = np.zeros(size_m)
-    mat[..., :n, :n] = x.transpose(axes)
-    mat[..., n:, n:] = x.transpose(axes)
-    mat[..., :n, n:] = g
-    return expm(mat)[..., :n, n:]
-
-
-expm.defvjp(expm, _expm_bwd)
-
 logm_prim = core.Primitive('logm')
-logm_prim.def_impl(vmap(scipy.linalg.logm))
+logm_prim.def_impl(_np.vectorize(scipy.linalg.logm, signature='(m,n)->(m,n)'))
 
 
 def logm(x):
