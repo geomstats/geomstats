@@ -332,8 +332,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             + hor \nabla^M_{hor X}( ver Y)`
         where :math: `hor,ver` are the horizontal and vertical projections.
 
-        For the pre-shape space, we have closed-form expressions when :math:
-        `X` is horizontal.
+        For the pre-shape space, we have closed-form expressions and the result
+        does not depend on the vertical part of :math: `X`.
 
         Parameters
         ----------
@@ -357,9 +357,6 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         https://doi.org/10.1307/mmj/1028999604.
         """
         horizontal_a = self.horizontal_projection(tangent_vec_a, base_point)
-        if not gs.all(gs.isclose(horizontal_a, tangent_vec_a)):
-            raise NotImplementedError('The fundamental tensor is only '
-                                      'implemented for a horizontal A vector')
         vertical_b, skew = self.vertical_projection(
             tangent_vec_b, base_point, return_skew=True)
         horizontal_b = tangent_vec_b - vertical_b
@@ -367,13 +364,13 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         transposed_point = Matrices.transpose(base_point)
         left_term = gs.matmul(transposed_point, base_point)
 
-        alignment_hor = gs.transpose(horizontal_b) @ horizontal_a
-        alignment_hor -= gs.transpose(alignment_hor)
+        alignment_hor = Matrices.transpose(horizontal_b) @ horizontal_a
+        alignment_hor -= Matrices.transpose(alignment_hor)
         skew_hor = gs.linalg.solve_sylvester(
             left_term, left_term, alignment_hor)
 
-        alignment_vert = gs.transpose(horizontal_a) @ vertical_b
-        alignment_vert -= gs.transpose(alignment_vert)
+        alignment_vert = Matrices.transpose(horizontal_a) @ vertical_b
+        alignment_vert -= Matrices.transpose(alignment_vert)
         skew_vert = gs.linalg.solve_sylvester(
             left_term, left_term, alignment_hor)
 
