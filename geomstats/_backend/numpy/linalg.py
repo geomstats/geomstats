@@ -5,6 +5,7 @@ import numpy as _np
 import scipy.linalg
 from jax import core, vmap
 from jax.numpy.linalg import (  # NOQA
+    cholesky,
     det,
     eig,
     eigh,
@@ -25,21 +26,29 @@ def _is_symmetric(x, tol=_TOL):
     return (np.abs(new_x - np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
 
 
-def _expsym(x):
-    eigvals, eigvecs = np.linalg.eigh(x)
-    eigvals = np.exp(eigvals)
-    eigvals = np.vectorize(np.diag, signature='(n)->(n,n)')(eigvals)
-    transp_eigvecs = np.transpose(eigvecs, axes=(0, 2, 1))
-    result = np.matmul(eigvecs, eigvals)
-    result = np.matmul(result, transp_eigvecs)
-    return result
-
-
+@primitive
 def expm(x):
     x_new = to_ndarray(x, to_ndim=3)
     result = vmap(sp_expm)(x_new)
     return result[0] if len(result) == 1 else result
 
+
+def _expm_vjp(_ans, x):
+    vectorized = x.ndim == 3
+    axes = (0, 2, 1) if vectorized else (1, 0)
+
+    def vjp(g):
+        n = x.shape[-1]
+        size_m = x.shape[:-2] + (2 * n, 2 * n)
+        mat = np.zeros(size_m)
+        mat[..., :n, :n] = x.transpose(axes)
+        mat[..., n:, n:] = x.transpose(axes)
+        mat[..., :n, n:] = g
+        return expm(mat)[..., :n, n:]
+    return vjp
+
+
+defvjp(expm, _expm_vjp)
 
 logm_prim = core.Primitive('logm')
 logm_prim.def_impl(_np.vectorize(scipy.linalg.logm, signature='(m,n)->(m,n)'))
@@ -65,35 +74,6 @@ def logm(x):
     else:
         result = np.vectorize(scipy.linalg.logm,
                               signature='(n,m)->(n,m)')(new_x)
-
-    if ndim == 2:
-        return result[0]
-    return result
-
-
-def powerm(x, power):
-    ndim = x.ndim
-    new_x = to_ndarray(x, to_ndim=3)
-    if _is_symmetric(new_x):
-        eigvals, eigvecs = np.linalg.eigh(new_x)
-        if (eigvals > 0).all():
-            eigvals = eigvals ** power
-            eigvals = np.vectorize(np.diag, signature='(n)->(n,n)')(eigvals)
-            transp_eigvecs = np.transpose(eigvecs, axes=(0, 2, 1))
-            result = np.matmul(eigvecs, eigvals)
-            result = np.matmul(result, transp_eigvecs)
-        else:
-            log_x = np.vectorize(scipy.linalg.logm,
-                                 signature='(n,m)->(n,m)')(new_x)
-            p_log_x = power * log_x
-            result = np.vectorize(scipy.linalg.expm,
-                                  signature='(n,m)->(n,m)')(p_log_x)
-    else:
-        log_x = np.vectorize(scipy.linalg.logm,
-                             signature='(n,m)->(n,m)')(new_x)
-        p_log_x = power * log_x
-        result = np.vectorize(scipy.linalg.expm,
-                              signature='(n,m)->(n,m)')(p_log_x)
 
     if ndim == 2:
         return result[0]

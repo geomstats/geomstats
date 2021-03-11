@@ -152,6 +152,9 @@ class Connection:
         step : str, {'euler', 'rk4'}
             Numerical scheme to use for integration.
             Optional, default: 'euler'.
+        max_iter
+        verbose
+        tol
 
         Returns
         -------
@@ -177,6 +180,7 @@ class Connection:
 
         tangent_vec = gs.array(res.x)
         tangent_vec = gs.reshape(tangent_vec, max_shape)
+        tangent_vec = gs.cast(tangent_vec, dtype=base_point.dtype)
         return tangent_vec
 
     def _pole_ladder_step(self, base_point, next_point, base_shoot,

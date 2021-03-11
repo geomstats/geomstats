@@ -6,14 +6,16 @@ import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.errors import check_tf_error
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-6
 
 
-class PreShapeSpace(EmbeddedManifold):
+class PreShapeSpace(EmbeddedManifold, FiberBundle):
     r"""Class for the Kendall pre-shape space.
 
     The pre-shape space is the sphere of the space of centered k-ad of
@@ -40,10 +42,12 @@ class PreShapeSpace(EmbeddedManifold):
     """
 
     def __init__(self, k_landmarks, m_ambient):
+        embedding_manifold = Matrices(k_landmarks, m_ambient)
         super(PreShapeSpace, self).__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
-            embedding_manifold=Matrices(k_landmarks, m_ambient),
-            default_point_type='matrix')
+            embedding_manifold=embedding_manifold,
+            default_point_type='matrix',
+            total_space=embedding_manifold)
         self.embedding_metric = self.embedding_manifold.metric
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
@@ -243,27 +247,6 @@ class PreShapeSpace(EmbeddedManifold):
 
         return - gs.matmul(base_point, skew)
 
-    @classmethod
-    def horizontal_projection(cls, tangent_vec, base_point):
-        r"""Project to horizontal subspace.
-
-        Compute the horizontal component of a tangent vector :math: `w` at a
-        base point :math: `x` by removing the vertical component.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector to the pre-shape space at `base_point`.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space.
-
-        Returns
-        -------
-        horizontal : array-like, shape=[..., k_landmarks, m_ambient]
-            Horizontal component of `tangent_vec`.
-        """
-        return tangent_vec - cls.vertical_projection(tangent_vec, base_point)
-
     def is_horizontal(self, tangent_vec, base_point, atol=TOLERANCE):
         """Check whether the tangent vector is horizontal at base_point.
 
@@ -288,8 +271,8 @@ class PreShapeSpace(EmbeddedManifold):
         is_symmetric = Matrices.is_symmetric(product, atol)
         return gs.logical_and(is_tangent, is_symmetric)
 
-    def align(self, point, base_point):
-        """Realign point to base_point.
+    def align(self, point, base_point, **kwargs):
+        """Align point to base_point.
 
         Find the optimal rotation R in SO(m) such that the base point and
         R.point are well positioned.
@@ -426,10 +409,10 @@ class ProcrustesMetric(RiemannianMetric):
         return log
 
 
-class KendallShapeMetric(ProcrustesMetric):
+class KendallShapeMetric(QuotientMetric):
     """Quotient metric on the shape space.
 
-    The Kendall shape space is obtained by taking the caution of the
+    The Kendall shape space is obtained by taking the quotient of the
     pre-shape space by the space of rotations of the ambient space.
 
     Parameters
@@ -441,100 +424,6 @@ class KendallShapeMetric(ProcrustesMetric):
     """
 
     def __init__(self, k_landmarks, m_ambient):
-        super(KendallShapeMetric, self).__init__(k_landmarks, m_ambient)
-        self.preshape = PreShapeSpace(k_landmarks, m_ambient)
-
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner-product of two tangent vectors at a base point.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
-            First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[...,k_landmarks, m_ambient]
-            Second tangent vector at base point.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point in the shape space.
-
-        Returns
-        -------
-        inner_prod : array-like, shape=[...,]
-            Inner-product of the two tangent vectors.
-        """
-        horizontal_a = self.preshape.horizontal_projection(
-            tangent_vec_a, base_point)
-        horizontal_b = self.preshape.horizontal_projection(
-            tangent_vec_b, base_point)
-        return super(KendallShapeMetric, self).inner_product(
-            horizontal_a, horizontal_b, base_point)
-
-    def dist(self, point_a, point_b):
-        r"""Geodesic distance between two points.
-
-        The geodesic distance between two points :math: `x, y` corresponds to
-        the Procrustes distance after alignment of the pre-shapes. It is
-        computed with the formula:
-
-        .. math:
-
-                    d(x, y) = arccos(tr(xy^T))
-
-        where tr is the trace operator.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[..., k_landmarks, m_ambient]
-            Point.
-        point_b : array-like, shape=[..., k_landmarks, m_ambient]
-            Point.
-
-        Returns
-        -------
-        dist : array-like, shape=[...,]
-            Distance.
-        """
-        aligned = self.preshape.align(point_a, point_b)
-        trace = gs.einsum('...ij,...ij->...', aligned, point_b)
-        trace = gs.clip(trace, -1, 1)
-        dist = gs.arccos(trace)
-        return dist
-
-    def exp(self, tangent_vec, base_point):
-        """Compute the Riemannian exponential of a tangent vector.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at a base point.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point in the shape space.
-
-        Returns
-        -------
-        exp : array-like, shape=[..., k_landmarks, m_ambient]
-            Point in the shape space equal to the Riemannian exponential
-            of tangent_vec at the base point.
-        """
-        horizontal = self.preshape.horizontal_projection(
-            tangent_vec, base_point)
-        return super(KendallShapeMetric, self).exp(
-            horizontal, base_point)
-
-    def log(self, point, base_point):
-        """Compute the Riemannian logarithm of a point.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the shape space.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the shape space.
-
-        Returns
-        -------
-        log : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at the base point equal to the Riemannian logarithm
-            of point at the base point.
-        """
-        aligned = self.preshape.align(point, base_point)
-        return super(KendallShapeMetric, self).log(aligned, base_point)
+        super(KendallShapeMetric, self).__init__(
+            fiber_bundle=PreShapeSpace(k_landmarks, m_ambient),
+            ambient_metric=ProcrustesMetric(k_landmarks, m_ambient))

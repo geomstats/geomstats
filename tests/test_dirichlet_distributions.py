@@ -12,7 +12,9 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
 class TestDirichletDistributions(geomstats.tests.TestCase):
+    """Class defining the Dirichlet distributions tests."""
     def setUp(self):
+        """Define the parameters of the tests."""
         warnings.simplefilter('ignore', category=UserWarning)
         self.dim = 3
         self.dirichlet = DirichletDistributions(self.dim)
@@ -144,6 +146,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         result = dirichlet2.metric.christoffels(points)
 
         def coefficients(param_a, param_b):
+            """Christoffel coefficients for the beta distributions."""
             poly1a = gs.polygamma(1, param_a)
             poly2a = gs.polygamma(2, param_a)
             poly1b = gs.polygamma(1, param_b)
@@ -228,6 +231,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         log = self.metric.log(points, base_points, n_steps=500)
         expected = points
         result = self.metric.exp(tangent_vec=log, base_point=base_points)
+        # print(gs.abs(result - expected) / expected)
         self.assertAllClose(result, expected, rtol=1e-2)
 
     @geomstats.tests.np_only
@@ -260,3 +264,87 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         result = tangent_vecs.shape
         expected = (self.n_points, self.dim)
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def tests_geodesic_ivp_and_bvp(self):
+        """Test geodesic intial and boundary value problems.
+
+        Check the shape of the geodesic.
+        """
+        n_steps = 50
+        t = gs.linspace(0., 1., n_steps)
+
+        initial_points = self.dirichlet.random_uniform(self.n_points)
+        initial_tangent_vecs = self.dirichlet.random_uniform(self.n_points)
+        geodesic = self.metric._geodesic_ivp(
+            initial_points, initial_tangent_vecs)
+        geodesic_at_t = geodesic(t)
+        result = geodesic_at_t.shape
+        expected = (self.n_points, n_steps, self.dim)
+        self.assertAllClose(result, expected)
+
+        end_points = self.dirichlet.random_uniform(self.n_points)
+        geodesic = self.metric._geodesic_bvp(initial_points, end_points)
+        geodesic_at_t = geodesic(t)
+        result = geodesic_at_t.shape
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_geodesic(self):
+        """Test geodesic.
+
+        Check that the norm of the velocity is constant.
+        """
+        initial_point = self.dirichlet.random_uniform()
+        end_point = self.dirichlet.random_uniform()
+
+        n_steps = 10000
+        geod = self.metric.geodesic(
+            initial_point=initial_point,
+            end_point=end_point)
+        t = gs.linspace(0., 1., n_steps)
+        geod_at_t = geod(t)
+        velocity = n_steps * (geod_at_t[1:, :] - geod_at_t[:-1, :])
+        velocity_norm = self.metric.norm(velocity, geod_at_t[:-1, :])
+        result = 1 / velocity_norm.min() * (
+            velocity_norm.max() - velocity_norm.min())
+        expected = 0.
+
+        self.assertAllClose(expected, result, atol=1e-4, rtol=1.)
+
+    @geomstats.tests.np_only
+    def test_geodesic_vectorization(self):
+        """Check vectorization of geodesic.
+
+        Check the shape of geodesic at time t for
+        different scenarios.
+        """
+        initial_point = self.dirichlet.random_uniform()
+        initial_tangent_vec = self.dirichlet.random_uniform()
+        geod = self.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec)
+        time = 0.5
+        result = geod(time).shape
+        expected = (self.dim,)
+        self.assertAllClose(expected, result)
+
+        n_vecs = 5
+        n_times = 10
+        initial_tangent_vecs = self.dirichlet.random_uniform(n_vecs)
+        geod = self.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vecs)
+        times = gs.linspace(0., 1., n_times)
+        result = geod(times).shape
+        expected = (n_vecs, n_times, self.dim)
+        self.assertAllClose(result, expected)
+
+        end_points = self.dirichlet.random_uniform(self.n_points)
+        geod = self.metric.geodesic(
+            initial_point=initial_point,
+            end_point=end_points)
+        time = 0.5
+        result = geod(time).shape
+        expected = (self.n_points, self.dim)
+        self.assertAllClose(expected, result)

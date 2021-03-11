@@ -4,7 +4,9 @@ import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
 from geomstats.geometry.beta_distributions import BetaDistributions
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.landmarks import Landmarks
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
@@ -28,7 +30,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
     def test_load_poses_only_rotations(self):
         """Test that the poses belong to SO(3)."""
-        so3 = SpecialOrthogonal(n=3, point_type='vector')
+        so3 = SpecialOrthogonal(n=3, point_type="vector")
         data, _ = data_utils.load_poses()
         result = so3.belongs(data)
 
@@ -36,7 +38,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
     def test_load_poses(self):
         """Test that the poses belong to SE(3)."""
-        se3 = SpecialEuclidean(n=3, point_type='vector')
+        se3 = SpecialEuclidean(n=3, point_type="vector")
         data, _ = data_utils.load_poses(only_rotations=False)
         result = se3.belongs(data)
 
@@ -65,12 +67,12 @@ class TestDatasets(geomstats.tests.TestCase):
         walk_length = 3
         n_walks_per_node = 1
 
-        paths = graph.random_walk(walk_length=walk_length,
-                                  n_walks_per_node=n_walks_per_node)
+        paths = graph.random_walk(
+            walk_length=walk_length, n_walks_per_node=n_walks_per_node
+        )
 
         result = [len(paths), len(paths[0])]
-        expected = [len(graph.edges) * n_walks_per_node,
-                    walk_length + 1]
+        expected = [len(graph.edges) * n_walks_per_node, walk_length + 1]
 
         self.assertAllClose(result, expected)
 
@@ -81,17 +83,17 @@ class TestDatasets(geomstats.tests.TestCase):
         walk_length = 6
         n_walks_per_node = 2
 
-        paths = graph.random_walk(walk_length=walk_length,
-                                  n_walks_per_node=n_walks_per_node)
+        paths = graph.random_walk(
+            walk_length=walk_length, n_walks_per_node=n_walks_per_node
+        )
 
         result = [len(paths), len(paths[0])]
-        expected = [len(graph.edges) * n_walks_per_node,
-                    walk_length + 1]
+        expected = [len(graph.edges) * n_walks_per_node, walk_length + 1]
 
         self.assertAllClose(result, expected)
 
     def test_load_connectomes(self):
-        """Test that the connectomes belong to SPD"""
+        """Test that the connectomes belong to SPD."""
         spd = SPDMatrices(28)
         data, _, _ = data_utils.load_connectomes(as_vectors=True)
         result = data.shape
@@ -116,3 +118,66 @@ class TestDatasets(geomstats.tests.TestCase):
         result = len(distrib_type)
         expected = beta_param.shape[0]
         self.assertAllClose(result, expected)
+
+    def test_load_emg(self):
+        """Test that data have the correct column names."""
+        data_emg = data_utils.load_emg()
+        expected_col_name = [
+            'time',
+            'c0',
+            'c1',
+            'c2',
+            'c3',
+            'c4',
+            'c5',
+            'c6',
+            'c7',
+            'label',
+            'exp',
+        ]
+        good_col_name = (expected_col_name == data_emg.keys()).all()
+        self.assertTrue(good_col_name)
+
+    def test_load_optical_nerves(self):
+        """Test that optical nerves belong to space of landmarks."""
+        data, labels, monkeys = data_utils.load_optical_nerves()
+        result = data.shape
+        n_monkeys = 11
+        n_eyes_per_monkey = 2
+        k_landmarks = 5
+        dim = 3
+        expected = (n_monkeys * n_eyes_per_monkey, k_landmarks, dim)
+        self.assertAllClose(result, expected)
+
+        landmarks_space = Landmarks(
+            ambient_manifold=Euclidean(dim=dim), k_landmarks=k_landmarks
+        )
+
+        result = landmarks_space.belongs(data)
+        self.assertTrue(gs.all(result))
+
+        result = gs.logical_and(labels >= 0, labels <= 1)
+        self.assertTrue(gs.all(result))
+
+        result = gs.logical_and(monkeys >= 0, monkeys <= 11)
+        self.assertTrue(gs.all(result))
+
+    def test_hands(self):
+        """Test that hands belong to space of landmarks."""
+        data, labels, _ = data_utils.load_hands()
+        result = data.shape
+        n_hands = 52
+        k_landmarks = 22
+        dim = 3
+        expected = (n_hands, k_landmarks, dim)
+        self.assertAllClose(result, expected)
+
+        landmarks_space = Landmarks(
+            ambient_manifold=Euclidean(dim=3), k_landmarks=k_landmarks
+        )
+
+        result = landmarks_space.belongs(data)
+        self.assertTrue(gs.all(result))
+
+        result = gs.logical_and(labels >= 0, labels <= 1)
+        self.assertTrue(gs.all(result))
