@@ -5,6 +5,7 @@ import scipy.special
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.matrices import Matrices
 
 MEAN_ESTIMATION_TOL = 1e-6
 KAPPA_ESTIMATION_TOL = 1e-2
@@ -416,7 +417,6 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_dist_pairwise(self):
 
         point_a = (1. / gs.sqrt(129.)
@@ -431,6 +431,15 @@ class TestHypersphere(geomstats.tests.TestCase):
                              [1.24864502, 0.]])
 
         self.assertAllClose(result, expected, rtol=1e-3)
+
+    def test_dist_pairwise_parallel(self):
+        n_samples = 15
+        points = self.space.random_uniform(n_samples)
+        result = self.metric.dist_pairwise(points, n_jobs=2, prefer='threads')
+        is_sym = Matrices.is_symmetric(result)
+        belongs = Matrices(n_samples, n_samples).belongs(result)
+        self.assertTrue(is_sym)
+        self.assertTrue(belongs)
 
     def test_dist_orthogonal_points(self):
         # Distance between two orthogonal points is pi / 2.

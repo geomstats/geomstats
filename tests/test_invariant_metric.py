@@ -8,6 +8,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
@@ -704,7 +705,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         result = metric.exp(
             tangent_vec, identity, n_steps=100, step='rk4')
         expected = group.exp(tangent_vec, identity)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=1e-5)
 
         result = metric.exp(
             tangent_vec, identity, n_steps=100, step='rk2')
@@ -738,7 +739,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         result = metric.exp(
             tangent_vec, identity, n_steps=100, step='rk4')
         expected = canonical_metric.exp(tangent_vec, identity)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=1e-5)
 
         result = metric.exp(
             tangent_vec, identity, n_steps=100, step='rk2')
@@ -763,3 +764,15 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         result = metric.exp(
             tangent_vec, point, n_steps=100, step='rk2')
         self.assertAllClose(expected, result, atol=4e-5)
+
+    def test_dist_pairwise_parallel(self):
+        gs.random.seed(0)
+        n_samples = 2
+        group = self.matrix_so3
+        metric = InvariantMetric(group=group)
+        points = group.random_uniform(n_samples)
+        result = metric.dist_pairwise(points, n_jobs=2)
+        is_sym = Matrices.is_symmetric(result)
+        belongs = Matrices(n_samples, n_samples).belongs(result)
+        self.assertTrue(is_sym)
+        self.assertTrue(belongs)

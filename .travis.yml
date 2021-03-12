@@ -3,9 +3,7 @@ dist: xenial
 cache: pip
 language: python
 python:
-  - "3.6"
   - "3.7"
-  - "3.8"
 
 install:
   - pip install --upgrade pip setuptools wheel
@@ -22,7 +20,7 @@ script:
     if [[ $TRAVIS_PYTHON_VERSION != 3.8 ||
           ($TRAVIS_PYTHON_VERSION == 3.8 &&
            $GEOMSTATS_BACKEND != tensorflow) ]]; then
-      nose2 --with-coverage --verbose tests
+      nose2 --with-coverage tests
     fi
 env:
   - GEOMSTATS_BACKEND=numpy
