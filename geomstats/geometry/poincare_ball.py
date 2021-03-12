@@ -12,9 +12,6 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-6
 EPSILON = 1e-6
-NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
-PI_2_3 = gs.power(gs.array([2. * gs.pi]), gs.array([2 / 3]))
-SQRT_2 = gs.sqrt(2.)
 
 
 class PoincareBall(Hyperbolic):
