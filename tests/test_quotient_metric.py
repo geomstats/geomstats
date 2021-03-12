@@ -154,7 +154,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         expected = self.base_metric.squared_dist(points[1], points[0])
         self.assertAllClose(result, expected, atol=1e-5)
 
-    def test_fundamental_tensor(self):
+    def test_fundamental_a_tensor(self):
         mat = self.bundle.total_space.random_uniform()
         point = self.bundle.submersion(mat)
         tangent_vec = GeneralLinear.to_symmetric(
