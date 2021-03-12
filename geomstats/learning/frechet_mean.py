@@ -119,29 +119,24 @@ def _default_gradient_descent(points, metric, weights,
     var = 0.
 
     while iteration < max_iter:
+        logs = metric.log(point=points, base_point=mean)
+
+        var = gs.sum(
+            metric.squared_norm(logs, mean) * weights) / gs.sum(weights)
+
+        tangent_mean = gs.einsum(einsum_str, weights, logs)
+        tangent_mean /= sum_weights
+
+        sq_dist = metric.squared_norm(tangent_mean, mean)
+        sq_dists_between_iterates.append(sq_dist)
+
         var_is_0 = gs.isclose(var, 0.)
         sq_dist_is_small = gs.less_equal(sq_dist, epsilon * var)
         condition = ~gs.logical_or(var_is_0, sq_dist_is_small)
         if not (condition or iteration == 0):
             break
 
-        logs = metric.log(point=points, base_point=mean)
-
-        tangent_mean = gs.einsum(einsum_str, weights, logs)
-        tangent_mean /= sum_weights
-
         estimate_next = metric.exp(tangent_vec=tangent_mean, base_point=mean)
-
-        sq_dist = metric.squared_norm(tangent_mean, mean)
-        sq_dists_between_iterates.append(sq_dist)
-
-        var = variance(
-            points=points,
-            weights=weights,
-            metric=metric,
-            base_point=estimate_next,
-            point_type=point_type)
-
         mean = estimate_next
         iteration += 1
 
@@ -394,6 +389,10 @@ class FrechetMean(BaseEstimator):
         """
         is_linear_metric = isinstance(
             self.metric, (EuclideanMetric, MatricesMetric, MinkowskiMetric))
+
+        error.check_parameter_accepted_values(
+            self.method, 'method',
+            ['default', 'adaptive', 'frechet-poincare-ball'])
 
         if is_linear_metric:
             mean = linear_mean(
