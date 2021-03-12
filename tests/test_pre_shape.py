@@ -364,9 +364,16 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         horizontal_a = space.horizontal_projection(tangent_vec_a, base_point)
         result = space.fundamental_a_tensor(
             horizontal_a, horizontal_b, base_point)
-        expected = space.fundamental_a_tensor(
+        expected = -space.fundamental_a_tensor(
             horizontal_b, horizontal_a, base_point)
         self.assertAllClose(result, expected)
 
         is_vertical = space.is_vertical(result, base_point)
         self.assertTrue(is_vertical)
+
+        vertical_b = tangent_vec_b - horizontal_b
+        result = space.fundamental_a_tensor(
+            horizontal_a, vertical_b, base_point)
+        is_horizontal = space.is_horizontal(result, base_point)
+        self.assertTrue(is_horizontal)
+
