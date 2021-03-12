@@ -118,7 +118,10 @@ class PoincareBallMetric(RiemannianMetric):
         super(PoincareBallMetric, self).__init__(dim=dim, signature=(dim, 0))
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
-        self.scale = scale
+        self.scale = scale()
+
+        # inner classes instance
+        self.Gaussian = _InnerGaussian(self)
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
