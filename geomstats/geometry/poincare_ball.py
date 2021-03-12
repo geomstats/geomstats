@@ -121,7 +121,10 @@ class PoincareBallMetric(RiemannianMetric):
             signature=(dim, 0, 0))
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
-        self.scale = scale
+        self.scale = scale()
+
+        # inner classes instance
+        self.Gaussian = _InnerGaussian(self)
 
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
@@ -406,9 +409,27 @@ class PoincareBallMetric(RiemannianMetric):
 
         return gs.einsum('i,jk->ijk', lambda_base, identity)
 
-    class Gaussian():
+    class _InnerGaussian():
+        def __init__(self, outer):
+            self.outer = outer
+            self.dim = outer.dim
     
-        def normalization_factor(self, variance)
+        def normalization_factor(self, variance):
+            """Compute normalization factor.
+
+            Compute normalization factor given current variance
+            and dimensionality.
+
+            Parameters
+            ----------
+            variances : array-like, shape=[n]
+                Value of variance.
+
+            Returns
+            -------
+            norm_factor : array-like, shape=[n]
+                Normalisation factor.
+            """
             variances = gs.transpose(gs.to_ndarray(variances, to_ndim=2))
             dim_range = gs.arange(0, self.dim, 1.)
             alpha = self.dim - 1 - 2 * current_dim) / gs.sqrt(2.)
@@ -446,8 +467,6 @@ class PoincareBallMetric(RiemannianMetric):
                 -------
                 norm_factor : array-like, shape=[n]
                     Normalisation factor.
-                norm_factor_gradient : array-like, shape=[n]
-                    Gradient of the normalization factor.
                 """
                 variances = gs.transpose(gs.to_ndarray(variances, to_ndim=2))
                 dim_range = gs.arange(0, self.dim, 1.)
