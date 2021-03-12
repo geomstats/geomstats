@@ -369,13 +369,16 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         skew_hor = gs.linalg.solve_sylvester(
             left_term, left_term, alignment_hor)
 
-        alignment_vert = Matrices.transpose(horizontal_a) @ vertical_b
-        alignment_vert -= Matrices.transpose(alignment_vert)
-        skew_vert = gs.linalg.solve_sylvester(
-            left_term, left_term, alignment_hor)
+        # alignment_vert = Matrices.transpose(horizontal_a) @ vertical_b
+        # alignment_vert -= Matrices.transpose(alignment_vert)
+        # skew_vert = gs.linalg.solve_sylvester(
+        #     left_term, left_term, alignment_hor)
 
-        return gs.matmul(base_point, skew_hor - skew_vert) + gs.matmul(
-            horizontal_a, skew)
+        vert_part = gs.matmul(horizontal_a, skew)
+        tangent_vert = self.to_tangent(vert_part, base_point)
+        horizontal_ = self.horizontal_projection(tangent_vert, base_point)
+
+        return gs.matmul(base_point, skew_hor) + horizontal_
 
 
 class PreShapeMetric(RiemannianMetric):
