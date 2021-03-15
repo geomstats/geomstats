@@ -376,4 +376,3 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             horizontal_a, vertical_b, base_point)
         is_horizontal = space.is_horizontal(result, base_point)
         self.assertTrue(is_horizontal)
-
