@@ -323,7 +323,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
                 Matrices.transpose(right), Matrices.transpose(left))
         return gs.matmul(point, Matrices.transpose(rotation))
 
-    def fundamental_a_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
+    def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the fundamental tensor A of the submersion.
 
         The fundamental tensor A is defined for tangent vectors of the total
@@ -356,24 +356,26 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         Michigan Mathematical Journal 13, no. 4 (December 1966): 459–69.
         https://doi.org/10.1307/mmj/1028999604.
         """
+        # Only the horizontal part of a counts
         horizontal_a = self.horizontal_projection(tangent_vec_a, base_point)
         vertical_b, skew = self.vertical_projection(
             tangent_vec_b, base_point, return_skew=True)
         horizontal_b = tangent_vec_b - vertical_b
 
+        # For the horizontal part of b
         transposed_point = Matrices.transpose(base_point)
-        left_term = gs.matmul(transposed_point, base_point)
+        sigma = gs.matmul(transposed_point, base_point)
+        alignment = gs.matmul(Matrices.transpose(horizontal_a), horizontal_b)
+        right_term = alignment - Matrices.transpose(alignment)
+        skew_hor = gs.linalg.solve_sylvester(sigma, sigma, right_term)
+        vertical = - gs.matmul(base_point, skew_hor)
 
-        alignment_hor = Matrices.transpose(horizontal_b) @ horizontal_a
-        alignment_hor -= Matrices.transpose(alignment_hor)
-        skew_hor = gs.linalg.solve_sylvester(
-            left_term, left_term, alignment_hor)
-
-        vert_part = gs.matmul(horizontal_a, skew)
+        # For the vertical part of b
+        vert_part = -gs.matmul(horizontal_a, skew)
         tangent_vert = self.to_tangent(vert_part, base_point)
         horizontal_ = self.horizontal_projection(tangent_vert, base_point)
 
-        return gs.matmul(base_point, skew_hor) + horizontal_
+        return vertical + horizontal_
 
 
 class PreShapeMetric(RiemannianMetric):

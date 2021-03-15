@@ -349,7 +349,7 @@ class FiberBundle(Manifold):
                                  'given.')
         return self.horizontal_projection(tangent_vec, point)
 
-    def fundamental_a_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
+    def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the fundamental tensor A of the submersion.
 
         The fundamental tensor A is defined for tangent vectors of the total

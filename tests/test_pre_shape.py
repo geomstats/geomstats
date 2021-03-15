@@ -345,26 +345,26 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         expected = gs.zeros_like(result)
         self.assertAllClose(result, expected)
 
-    def test_fundamental_a_tensor(self):
+    def test_integrability_tensor(self):
         space = self.space
         base_point = space.random_uniform()
         vector = gs.random.rand(
             2, self.k_landmarks, self.m_ambient)
         tangent_vec_a = space.to_tangent(vector[0], base_point)
         tangent_vec_b = space.to_tangent(vector[1], base_point)
-        result_ab = space.fundamental_a_tensor(
+        result_ab = space.integrability_tensor(
             tangent_vec_a, tangent_vec_b, base_point)
 
         result = space.ambient_metric.inner_product(
             tangent_vec_b, result_ab, base_point)
         expected = 0.
-        # self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
         horizontal_b = space.horizontal_projection(tangent_vec_b, base_point)
         horizontal_a = space.horizontal_projection(tangent_vec_a, base_point)
-        result = space.fundamental_a_tensor(
+        result = space.integrability_tensor(
             horizontal_a, horizontal_b, base_point)
-        expected = -space.fundamental_a_tensor(
+        expected = -space.integrability_tensor(
             horizontal_b, horizontal_a, base_point)
         self.assertAllClose(result, expected)
 
@@ -372,7 +372,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(is_vertical)
 
         vertical_b = tangent_vec_b - horizontal_b
-        result = space.fundamental_a_tensor(
+        result = space.integrability_tensor(
             horizontal_a, vertical_b, base_point)
         is_horizontal = space.is_horizontal(result, base_point)
         self.assertTrue(is_horizontal)
