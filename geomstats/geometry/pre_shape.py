@@ -47,11 +47,12 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             dim=m_ambient * (k_landmarks - 1) - 1,
             embedding_manifold=embedding_manifold,
             default_point_type='matrix',
-            total_space=embedding_manifold)
+            total_space=embedding_manifold,
+            ambient_metric=PreShapeMetric(k_landmarks, m_ambient))
         self.embedding_metric = self.embedding_manifold.metric
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
-        self.metric = ProcrustesMetric(k_landmarks, m_ambient)
+        self.ambient_metric = PreShapeMetric(k_landmarks, m_ambient)
 
     def belongs(self, point, atol=TOLERANCE):
         """Test if a point belongs to the pre-shape space.
@@ -73,7 +74,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Boolean evaluating if point belongs to the pre-shape space.
         """
         shape = point.shape[-2:] == (self.k_landmarks, self.m_ambient)
-        frob_norm = self.embedding_metric.norm(point)
+        frob_norm = self.ambient_metric.norm(point)
         diff = gs.abs(frob_norm - 1)
         is_centered = gs.logical_and(self.is_centered(point, atol), shape)
         return gs.logical_and(
@@ -93,7 +94,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Point projected on the pre-shape space.
         """
         centered_point = self.center(point)
-        frob_norm = self.embedding_metric.norm(centered_point)
+        frob_norm = self.ambient_metric.norm(centered_point)
         projected_point = gs.einsum(
             '...,...ij->...ij', 1. / frob_norm, centered_point)
 
@@ -186,7 +187,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
                              ' space')
         vector = self.center(vector)
         sq_norm = gs.sum(base_point ** 2, axis=(-1, -2))
-        inner_prod = self.embedding_metric.inner_product(base_point, vector)
+        inner_prod = self.ambient_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
         tangent_vec = vector - gs.einsum('...,...ij->...ij', coef, base_point)
 
@@ -212,12 +213,12 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Boolean denoting if vector is a tangent vector at the base point.
         """
         is_centered = self.is_centered(vector, atol)
-        inner_prod = self.embedding_metric.inner_product(base_point, vector)
+        inner_prod = self.ambient_metric.inner_product(base_point, vector)
         is_normal = gs.isclose(inner_prod, 0., atol=atol)
         return gs.logical_and(is_centered, is_normal)
 
     @staticmethod
-    def vertical_projection(tangent_vec, base_point):
+    def vertical_projection(tangent_vec, base_point, return_skew=False):
         r"""Project to vertical subspace.
 
         Compute the vertical component of a tangent vector :math: `w` at a
@@ -225,7 +226,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         .. math::
                         `Axx^T + xx^TA = wx^T - xw^T`
 
-        Then Ax is returned.
+        where A is skew-symmetric. Then Ax is the vertical projection of w.
 
         Parameters
         ----------
@@ -233,10 +234,15 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Tangent vector to the pre-shape space at `base_point`.
         base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the pre-shape space.
+        return_skew : bool
+            Whether to return the skew-symmetric matrix A.
+            Optional, default: False
 
         Returns
         -------
         vertical : array-like, shape=[..., k_landmarks, m_ambient]
+            Vertical component of `tangent_vec`.
+        skew : array-like, shape=[..., m_ambient, m_ambient]
             Vertical component of `tangent_vec`.
         """
         transposed_point = Matrices.transpose(base_point)
@@ -245,7 +251,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         right_term = alignment - Matrices.transpose(alignment)
         skew = gs.linalg.solve_sylvester(left_term, left_term, right_term)
 
-        return - gs.matmul(base_point, skew)
+        vertical = - gs.matmul(base_point, skew)
+        return (vertical, skew) if return_skew else vertical
 
     def is_horizontal(self, tangent_vec, base_point, atol=TOLERANCE):
         """Check whether the tangent vector is horizontal at base_point.
@@ -316,8 +323,62 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
                 Matrices.transpose(right), Matrices.transpose(left))
         return gs.matmul(point, Matrices.transpose(rotation))
 
+    def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
+        r"""Compute the fundamental tensor A of the submersion.
 
-class ProcrustesMetric(RiemannianMetric):
+        The fundamental tensor A is defined for tangent vectors of the total
+        space by [O'Neill]_
+        :math: `A_X Y = ver\nabla^M_{hor X} (hor Y)
+            + hor \nabla^M_{hor X}( ver Y)`
+        where :math: `hor,ver` are the horizontal and vertical projections.
+
+        For the pre-shape space, we have closed-form expressions and the result
+        does not depend on the vertical part of :math: `X`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Point of the total space.
+
+        Returns
+        -------
+        vector : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`, result of the A tensor applied to
+            `tangent_vec_a` and `tangent_vec_b`.
+
+        References
+        ----------
+        [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a Submersion,
+        Michigan Mathematical Journal 13, no. 4 (December 1966): 459–69.
+        https://doi.org/10.1307/mmj/1028999604.
+        """
+        # Only the horizontal part of a counts
+        horizontal_a = self.horizontal_projection(tangent_vec_a, base_point)
+        vertical_b, skew = self.vertical_projection(
+            tangent_vec_b, base_point, return_skew=True)
+        horizontal_b = tangent_vec_b - vertical_b
+
+        # For the horizontal part of b
+        transposed_point = Matrices.transpose(base_point)
+        sigma = gs.matmul(transposed_point, base_point)
+        alignment = gs.matmul(Matrices.transpose(horizontal_a), horizontal_b)
+        right_term = alignment - Matrices.transpose(alignment)
+        skew_hor = gs.linalg.solve_sylvester(sigma, sigma, right_term)
+        vertical = - gs.matmul(base_point, skew_hor)
+
+        # For the vertical part of b
+        vert_part = -gs.matmul(horizontal_a, skew)
+        tangent_vert = self.to_tangent(vert_part, base_point)
+        horizontal_ = self.horizontal_projection(tangent_vert, base_point)
+
+        return vertical + horizontal_
+
+
+class PreShapeMetric(RiemannianMetric):
     """Procrustes metric on the pre-shape space.
 
     Parameters
@@ -329,7 +390,7 @@ class ProcrustesMetric(RiemannianMetric):
     """
 
     def __init__(self, k_landmarks, m_ambient):
-        super(ProcrustesMetric, self).__init__(
+        super(PreShapeMetric, self).__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
             default_point_type='matrix')
 
@@ -408,6 +469,49 @@ class ProcrustesMetric(RiemannianMetric):
             log = gs.reshape(flat_log, point.shape)
         return log
 
+    def curvature(
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
+            base_point):
+        r"""Compute the curvature.
+
+        For three tangent vectors at a base point :math: `x,y,z`,
+        the curvature is defined by
+        :math: `R(X, Y)Z = \nabla_{[X,Y]}Z
+        - \nabla_X\nabla_Y Z + - \nabla_Y\nabla_X Z`, where :math: `\nabla`
+        is the Levi-Civita connection. In the case of the hypersphere,
+        we have the closed formula
+        :math: `R(X,Y)Z = \langle X, Z \rangle Y - \langle Y,Z \rangle X`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., n, n]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        """
+        max_shape = base_point.shape
+        for arg in [tangent_vec_a, tangent_vec_b, tangent_vec_c]:
+            if arg.ndim >= 3:
+                max_shape = arg.shape
+        flat_shape = (-1, self.sphere_metric.dim + 1)
+        flat_a = gs.reshape(tangent_vec_a, flat_shape)
+        flat_b = gs.reshape(tangent_vec_b, flat_shape)
+        flat_c = gs.reshape(tangent_vec_c, flat_shape)
+        flat_bp = gs.reshape(base_point, flat_shape)
+        curvature = self.sphere_metric.curvature(
+            flat_a, flat_b, flat_c, flat_bp)
+        curvature = gs.reshape(curvature, max_shape)
+        return curvature
+
 
 class KendallShapeMetric(QuotientMetric):
     """Quotient metric on the shape space.
@@ -425,5 +529,4 @@ class KendallShapeMetric(QuotientMetric):
 
     def __init__(self, k_landmarks, m_ambient):
         super(KendallShapeMetric, self).__init__(
-            fiber_bundle=PreShapeSpace(k_landmarks, m_ambient),
-            ambient_metric=ProcrustesMetric(k_landmarks, m_ambient))
+            fiber_bundle=PreShapeSpace(k_landmarks, m_ambient))

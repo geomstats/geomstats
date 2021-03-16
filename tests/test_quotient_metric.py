@@ -19,9 +19,9 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         self.base_metric = SPDMetricBuresWasserstein(n)
         self.group = SpecialOrthogonal(n)
         self.bundle = FiberBundle(
-            GeneralLinear(n), base=self.base, group=self.group)
-        self.quotient_metric = QuotientMetric(
-            self.bundle, ambient_metric=MatricesMetric(n, n))
+            GeneralLinear(n), base=self.base, group=self.group,
+            ambient_metric=MatricesMetric(n, n))
+        self.quotient_metric = QuotientMetric(self.bundle)
 
         def submersion(point):
             return GeneralLinear.mul(point, GeneralLinear.transpose(point))
@@ -153,3 +153,14 @@ class TestQuotientMetric(geomstats.tests.TestCase):
             points[1], points[0], tol=1e-10)
         expected = self.base_metric.squared_dist(points[1], points[0])
         self.assertAllClose(result, expected, atol=1e-5)
+
+    def test_integrability_tensor(self):
+        mat = self.bundle.total_space.random_uniform()
+        point = self.bundle.submersion(mat)
+        tangent_vec = GeneralLinear.to_symmetric(
+            self.bundle.total_space.random_uniform()) / 5
+
+        self.assertRaises(
+            NotImplementedError,
+            lambda: self.bundle.integrability_tensor(
+                tangent_vec, tangent_vec, point))

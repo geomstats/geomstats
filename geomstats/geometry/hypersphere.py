@@ -590,6 +590,41 @@ class HypersphereMetric(RiemannianMetric):
             christoffel = gs.squeeze(christoffel, axis=0)
         return christoffel
 
+    def curvature(
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
+            base_point):
+        r"""Compute the curvature.
+
+        For three tangent vectors at a base point :math: `x,y,z`,
+        the curvature is defined by
+        :math: `R(X, Y)Z = \nabla_{[X,Y]}Z
+        - \nabla_X\nabla_Y Z + - \nabla_Y\nabla_X Z`, where :math: `\nabla`
+        is the Levi-Civita connection. In the case of the hypersphere,
+        we have the closed formula
+        :math: `R(X,Y)Z = \langle X, Z \rangle Y - \langle Y,Z \rangle X`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., dim]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        """
+        inner_ac = self.inner_product(tangent_vec_a, tangent_vec_c)
+        inner_bc = self.inner_product(tangent_vec_b, tangent_vec_c)
+        first_term = gs.einsum('...,...i->...i', inner_bc, tangent_vec_a)
+        second_term = gs.einsum('...,...i->...i', inner_ac, tangent_vec_b)
+        return - first_term + second_term
+
 
 class Hypersphere(_Hypersphere):
     """Class for the n-dimensional hypersphere.

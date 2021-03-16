@@ -192,18 +192,18 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_uniform()
         tan = self.space.to_tangent(vector, point)
-        inner = self.space.metric.inner_product(tan, tan, point)
+        inner = self.space.ambient_metric.inner_product(tan, tan, point)
         self.assertAllClose(inner.shape, (self.n_samples,))
 
     def test_exp_and_belongs(self):
         vector = gs.random.rand(self.k_landmarks, self.m_ambient)
         point = self.space.random_uniform()
         tan = self.space.to_tangent(vector, point)
-        exp = self.space.metric.exp(tan, point)
+        exp = self.space.ambient_metric.exp(tan, point)
         result = self.space.belongs(exp)
         self.assertTrue(result)
 
-        exp = self.space.metric.exp(gs.zeros_like(point), point)
+        exp = self.space.ambient_metric.exp(gs.zeros_like(point), point)
         result = gs.isclose(point, exp)
         self.assertTrue(gs.all(result))
 
@@ -212,31 +212,31 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_uniform(self.n_samples)
         tan = self.space.to_tangent(vector, point)
-        exp = self.space.metric.exp(tan, point)
+        exp = self.space.ambient_metric.exp(tan, point)
         result = self.space.belongs(exp)
         self.assertTrue(gs.all(result))
 
         point = point[0]
         tan = self.space.to_tangent(vector, point)
-        exp = self.space.metric.exp(tan, point)
+        exp = self.space.ambient_metric.exp(tan, point)
         result = self.space.belongs(exp)
         self.assertTrue(gs.all(result))
 
     def test_log_and_exp(self):
         point, base_point = self.space.random_uniform(2)
-        log = self.space.metric.log(point, base_point)
+        log = self.space.ambient_metric.log(point, base_point)
         result = self.space.is_tangent(log, base_point)
         self.assertTrue(result)
 
-        exp = self.space.metric.exp(log, base_point)
+        exp = self.space.ambient_metric.exp(log, base_point)
         self.assertAllClose(exp, point)
 
     def test_exp_and_log(self):
         base_point = self.space.random_uniform()
         vector = gs.random.rand(self.k_landmarks, self.m_ambient)
         tangent_vec = self.space.to_tangent(vector, base_point)
-        point = self.space.metric.exp(tangent_vec, base_point)
-        log = self.space.metric.log(point, base_point)
+        point = self.space.ambient_metric.exp(tangent_vec, base_point)
+        log = self.space.ambient_metric.log(point, base_point)
         result = self.space.is_tangent(log, base_point)
         self.assertTrue(result)
 
@@ -245,18 +245,18 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     def test_log_vectorization(self):
         point = self.space.random_uniform(self.n_samples)
         base_point = self.space.random_uniform()
-        log = self.space.metric.log(point, base_point)
+        log = self.space.ambient_metric.log(point, base_point)
         result = self.space.is_tangent(log, base_point)
         self.assertTrue(gs.all(result))
 
-        exp = self.space.metric.exp(log, base_point)
+        exp = self.space.ambient_metric.exp(log, base_point)
         self.assertAllClose(exp, point)
 
-        log = self.space.metric.log(base_point, point)
+        log = self.space.ambient_metric.log(base_point, point)
         result = self.space.is_tangent(log, point)
         self.assertTrue(gs.all(result))
 
-        exp = self.space.metric.exp(log, point)
+        exp = self.space.ambient_metric.exp(log, point)
         expected = gs.stack([base_point] * self.n_samples)
         self.assertAllClose(exp, expected)
 
@@ -311,3 +311,68 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         log = self.shape_metric.log(aligned, base_point)
         expected = self.shape_metric.norm(log, base_point)
         self.assertAllClose(result, expected)
+
+    def test_curvature_is_skew_operator(self):
+        space = self.space
+        base_point = space.random_uniform(2)
+        vector = gs.random.rand(
+            4, self.k_landmarks, self.m_ambient)
+        tangent_vec_a = space.to_tangent(vector[:2], base_point)
+        tangent_vec_b = space.to_tangent(vector[2:], base_point)
+
+        result = self.shape_metric.curvature(
+            tangent_vec_a, tangent_vec_a, tangent_vec_b, base_point)
+        expected = gs.zeros_like(result)
+        self.assertAllClose(result, expected)
+
+    def test_curvature_bianchi_identity(self):
+        space = self.space
+        base_point = space.random_uniform()
+        vector = gs.random.rand(
+            3, self.k_landmarks, self.m_ambient)
+        tangent_vec_a = space.to_tangent(vector[0], base_point)
+        tangent_vec_b = space.to_tangent(vector[1], base_point)
+        tangent_vec_c = space.to_tangent(vector[2], base_point)
+
+        curvature_1 = self.shape_metric.curvature(
+            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point)
+        curvature_2 = self.shape_metric.curvature(
+            tangent_vec_b, tangent_vec_c, tangent_vec_a, base_point)
+        curvature_3 = self.shape_metric.curvature(
+            tangent_vec_c, tangent_vec_a, tangent_vec_b, base_point)
+
+        result = curvature_1 + curvature_2 + curvature_3
+        expected = gs.zeros_like(result)
+        self.assertAllClose(result, expected)
+
+    def test_integrability_tensor(self):
+        space = self.space
+        base_point = space.random_uniform()
+        vector = gs.random.rand(
+            2, self.k_landmarks, self.m_ambient)
+        tangent_vec_a = space.to_tangent(vector[0], base_point)
+        tangent_vec_b = space.to_tangent(vector[1], base_point)
+        result_ab = space.integrability_tensor(
+            tangent_vec_a, tangent_vec_b, base_point)
+
+        result = space.ambient_metric.inner_product(
+            tangent_vec_b, result_ab, base_point)
+        expected = 0.
+        self.assertAllClose(result, expected)
+
+        horizontal_b = space.horizontal_projection(tangent_vec_b, base_point)
+        horizontal_a = space.horizontal_projection(tangent_vec_a, base_point)
+        result = space.integrability_tensor(
+            horizontal_a, horizontal_b, base_point)
+        expected = -space.integrability_tensor(
+            horizontal_b, horizontal_a, base_point)
+        self.assertAllClose(result, expected)
+
+        is_vertical = space.is_vertical(result, base_point)
+        self.assertTrue(is_vertical)
+
+        vertical_b = tangent_vec_b - horizontal_b
+        result = space.integrability_tensor(
+            horizontal_a, vertical_b, base_point)
+        is_horizontal = space.is_horizontal(result, base_point)
+        self.assertTrue(is_horizontal)
