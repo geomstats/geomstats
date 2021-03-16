@@ -14,7 +14,7 @@ EPSILON = 1e-6
 TOLERANCE = 1e-12
 
 
-class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
+class SPDMatrices(SymmetricMatrices):
     """Class for the manifold of symmetric positive definite (SPD) matrices.
 
     Parameters

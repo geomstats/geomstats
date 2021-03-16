@@ -22,9 +22,12 @@ class SymmetricMatrices(EmbeddedManifold):
     """
 
     def __init__(self, n, **kwargs):
-        super(SymmetricMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2),
-            embedding_manifold=Matrices(n, n))
+        if 'embedding_manifold' in kwargs:
+            manifold = kwargs.get('embedding_manifold')
+        else:
+            manifold = Matrices(n, n)
+
+        super().__init__(dim=int(n * (n + 1) / 2), embedding_manifold=manifold)
         self.n = n
 
     def belongs(self, mat, atol=TOLERANCE):
