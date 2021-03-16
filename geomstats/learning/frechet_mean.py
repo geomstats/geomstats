@@ -118,6 +118,9 @@ def _default_gradient_descent(points, metric, weights,
     sq_dist = 0.
     var = 0.
 
+    norm_old = gs.linalg.norm(points)
+    step = 1.
+
     while iteration < max_iter:
         logs = metric.log(point=points, base_point=mean)
 
@@ -126,6 +129,7 @@ def _default_gradient_descent(points, metric, weights,
 
         tangent_mean = gs.einsum(einsum_str, weights, logs)
         tangent_mean /= sum_weights
+        norm = gs.linalg.norm(tangent_mean)
 
         sq_dist = metric.squared_norm(tangent_mean, mean)
         sq_dists_between_iterates.append(sq_dist)
@@ -139,6 +143,11 @@ def _default_gradient_descent(points, metric, weights,
         estimate_next = metric.exp(tangent_vec=tangent_mean, base_point=mean)
         mean = estimate_next
         iteration += 1
+
+        if norm < norm_old:
+            norm_old = norm
+        elif norm > norm_old:
+            step = step / 2.
 
     if iteration == max_iter:
         logging.warning(
