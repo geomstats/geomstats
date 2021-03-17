@@ -108,6 +108,9 @@ class TestStiefel(geomstats.tests.TestCase):
         point = self.point_b
 
         log = self.metric.log(point=point, base_point=base_point)
+        is_tangent = self.space.is_tangent(log, base_point)
+        self.assertTrue(is_tangent)
+
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
 
@@ -283,3 +286,10 @@ class TestStiefel(geomstats.tests.TestCase):
         result = Stiefel.to_grassmannian(points)
         expected = gs.array([p_xy, p_xy, p_xy])
         self.assertAllClose(result, expected)
+
+    def test_to_tangent_is_tangent(self):
+        point = self.space.random_uniform()
+        vector = gs.random.rand(*point.shape)
+        tangent_vec = self.space.to_tangent(vector, point)
+        result = self.space.is_tangent(tangent_vec, point)
+        self.assertTrue(result)

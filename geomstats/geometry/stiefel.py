@@ -128,6 +128,15 @@ class Stiefel(EmbeddedManifold):
 
         return samples
 
+    def is_tangent(self, vector, base_point=None, atol=EPSILON):
+        aux = Matrices.mul(Matrices.transpose(base_point), vector)
+        return Matrices.is_skew_symmetric(aux, atol=atol)
+
+    def to_tangent(self, vector, base_point=None):
+        aux = Matrices.mul(Matrices.transpose(base_point), vector)
+        sym_aux = Matrices.to_symmetric(aux)
+        return vector - Matrices.mul(base_point, sym_aux)
+
 
 class StiefelCanonicalMetric(RiemannianMetric):
     """Class that defines the canonical metric for Stiefel manifolds.
@@ -353,7 +362,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             if norm_matrix_c <= tol:
                 break
 
-            matrix_phi = gs.linalg.expm(-matrix_c)
+            matrix_phi = gs.linalg.expm(-Matrices.to_skew_symmetric(matrix_c))
             aux_matrix = gs.matmul(
                 matrix_v[..., :, p:], matrix_phi)
             matrix_v = gs.concatenate(
