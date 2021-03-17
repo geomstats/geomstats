@@ -325,12 +325,24 @@ class StiefelCanonicalMetric(RiemannianMetric):
         matrix_v : array-like
         """
         [matrix_d, _, matrix_r] = gs.linalg.svd(matrix_v[..., p:, p:])
-        matrix_rd = gs.matmul(
-            matrix_r, Matrices.transpose(matrix_d))
-        sub_matrix_v = gs.matmul(matrix_v[..., :, p:], matrix_rd)
-        matrix_v = gs.concatenate(
-            [gs.concatenate([matrix_m, matrix_n], axis=-2),
-             sub_matrix_v], axis=-1)
+        j_matrix = gs.eye(p)
+        for i in range(1, p):
+            matrix_rd = Matrices.mul(
+                matrix_r, j_matrix, Matrices.transpose(matrix_d))
+            sub_matrix_v = gs.matmul(matrix_v[..., :, p:], matrix_rd)
+            matrix_v = gs.concatenate([
+                gs.concatenate([matrix_m, matrix_n], axis=-2),
+                sub_matrix_v], axis=-1)
+            det = gs.linalg.det(matrix_v)
+            if gs.all(det > 0):
+                break
+            ones = gs.ones(p)
+            reflection_vec = gs.concatenate(
+                [ones[:-i], gs.array([-1.] * i)], axis=0)
+            mask = gs.cast(det < 0, gs.float32)
+            sign = (mask[..., None] * reflection_vec
+                    + (1. - mask)[..., None] * ones)
+            j_matrix = algebra_utils.from_vector_to_diagonal_matrix(sign)
         return matrix_v
 
     def log(self, point, base_point, max_iter=30, tol=1e-6):
