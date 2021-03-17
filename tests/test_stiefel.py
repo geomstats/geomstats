@@ -147,7 +147,7 @@ class TestStiefel(geomstats.tests.TestCase):
         result = self.metric.exp(n_tangent_vecs, one_base_point)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
-        result = self.metric.exp(one_tangent_vec, n_base_points)
+        result = self.metric.exp(n_tangent_vecs, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
     @geomstats.tests.np_and_tf_only
@@ -177,7 +177,7 @@ class TestStiefel(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
     @geomstats.tests.np_only
-    def test_retractation_and_lifting(self):
+    def test_retraction_and_lifting(self):
         """
         Test that the Riemannian exponential
         and the Riemannian logarithm are inverse.

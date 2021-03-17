@@ -41,9 +41,8 @@ class Matrices:
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the Matrices space.
         """
-        point = gs.to_ndarray(point, to_ndim=3)
-        _, mat_dim_1, mat_dim_2 = point.shape
-        return mat_dim_1 == self.m & mat_dim_2 == self.n
+        mat_dim_1, mat_dim_2 = point.shape[-2:]
+        return (mat_dim_1 == self.m) & (mat_dim_2 == self.n)
 
     @staticmethod
     def equal(mat_a, mat_b, atol=TOLERANCE):
