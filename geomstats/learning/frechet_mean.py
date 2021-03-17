@@ -311,7 +311,8 @@ def _adaptive_gradient_descent(points,
 
         logs = metric.log(point=points, base_point=next_mean)
         var = gs.sum(
-            metric.squared_norm(logs, current_mean) * weights) / gs.sum(weights)
+            metric.squared_norm(logs, current_mean) * weights
+        ) / gs.sum(weights)
 
         next_tangent_mean = gs.einsum(einsum_str, weights, logs)
         next_tangent_mean /= sum_weights
