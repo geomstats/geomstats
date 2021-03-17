@@ -93,8 +93,9 @@ def linear_mean(points, weights=None, point_type='vector'):
     return mean
 
 
-def _default_gradient_descent(points, metric, weights,
-                              max_iter, point_type, epsilon, verbose):
+def _default_gradient_descent(
+        points, metric, weights, max_iter, point_type, epsilon,
+        initial_step_size, verbose):
     """Perform default gradient descent."""
     if point_type == 'vector':
         points = gs.to_ndarray(points, to_ndim=2)
@@ -119,7 +120,7 @@ def _default_gradient_descent(points, metric, weights,
     var = 0.
 
     norm_old = gs.linalg.norm(points)
-    step = 1.
+    step = initial_step_size
 
     while iteration < max_iter:
         logs = metric.log(point=points, base_point=mean)
@@ -412,6 +413,7 @@ class FrechetMean(BaseEstimator):
                 points=X, weights=weights, metric=self.metric,
                 max_iter=self.max_iter,
                 point_type=self.point_type, epsilon=self.epsilon,
+                initial_step_size=self.lr,
                 verbose=self.verbose)
         elif self.method == 'adaptive':
             mean = _adaptive_gradient_descent(

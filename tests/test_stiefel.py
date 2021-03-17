@@ -159,25 +159,28 @@ class TestStiefel(geomstats.tests.TestCase):
         n = self.n
         p = self.p
 
-        one_point = self.space.random_uniform()
         one_base_point = self.space.random_uniform()
+        vector = gs.random.rand(*one_base_point.shape)
+        tangent_vec = self.space.to_tangent(vector, one_base_point) * gs.pi * 2
+        one_point = self.metric.exp(tangent_vec, one_base_point)
 
         n_points = self.space.random_uniform(n_samples=n_samples)
         n_base_points = self.space.random_uniform(n_samples=n_samples)
 
         # With single point and base point
         result = self.metric.log(one_point, one_base_point)
+        print(gs.isclose(result, tangent_vec))
         self.assertAllClose(gs.shape(result), (n, p))
 
         # With multiple points and base points
         result = self.metric.log(n_points, one_base_point)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
-        result = self.metric.log(one_point, n_base_points)
-        self.assertAllClose(gs.shape(result), (n_samples, n, p))
-
-        result = self.metric.log(n_points, n_base_points)
-        self.assertAllClose(gs.shape(result), (n_samples, n, p))
+    def test_log_and_exp_random(self):
+        base_point, point = self.space.random_uniform(2)
+        log = self.metric.log(point, base_point)
+        result = self.metric.exp(log, base_point)
+        self.assertAllClose(result, point)
 
     @geomstats.tests.np_only
     def test_retraction_and_lifting(self):
