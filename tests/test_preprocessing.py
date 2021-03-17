@@ -54,7 +54,7 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     def test_estimate_transform_spd(self):
-        point = spd.SPDMatrices(3).random_uniform()
+        point = spd.SPDMatrices(3).random_point()
         points = gs.stack([point, point])
         transformer = ToTangentSpace(geometry=spd.SPDMetricAffine(3))
         transformer.fit(X=points)
@@ -71,7 +71,7 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     def test_inverse_transform_hyperbolic(self):
-        points = self.hyperbolic.random_uniform(10)
+        points = self.hyperbolic.random_point(10)
         transformer = ToTangentSpace(geometry=self.hyperbolic.metric)
         X = transformer.fit_transform(X=points)
         result = transformer.inverse_transform(X)
@@ -79,7 +79,7 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     def test_inverse_transform_spd(self):
-        point = spd.SPDMatrices(3).random_uniform(10)
+        point = spd.SPDMatrices(3).random_point(10)
         transformer = ToTangentSpace(geometry=spd.SPDMetricLogEuclidean(3))
         X = transformer.fit_transform(X=point)
         result = transformer.inverse_transform(X)

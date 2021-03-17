@@ -127,6 +127,7 @@ class TestStiefel(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_exp_and_log(self):
         base_point = self.space.random_uniform()
         vector = gs.random.rand(*base_point.shape)
@@ -187,6 +188,7 @@ class TestStiefel(geomstats.tests.TestCase):
         result = self.metric.log(n_points, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
+    @geomstats.tests.np_and_tf_only
     def test_log_and_exp_random(self):
         base_point, point = self.space.random_uniform(2)
         log = self.metric.log(point, base_point)
@@ -305,5 +307,5 @@ class TestStiefel(geomstats.tests.TestCase):
         point = self.space.random_uniform()
         vector = gs.random.rand(*point.shape)
         tangent_vec = self.space.to_tangent(vector, point)
-        result = self.space.is_tangent(tangent_vec, point)
+        result = self.space.is_tangent(tangent_vec, point, atol=1e-5)
         self.assertTrue(result)

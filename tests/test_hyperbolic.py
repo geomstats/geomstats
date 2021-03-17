@@ -48,14 +48,14 @@ class TestHyperbolic(geomstats.tests.TestCase):
             lambda: self.space.extrinsic_to_intrinsic_coords(point))
 
     def test_random_uniform_and_belongs(self):
-        point = self.space.random_uniform()
+        point = self.space.random_point()
         result = self.space.belongs(point)
         expected = True
 
         self.assertAllClose(result, expected)
 
     def test_random_uniform(self):
-        result = self.space.random_uniform()
+        result = self.space.random_point()
 
         self.assertAllClose(gs.shape(result), (self.dimension + 1,))
 
@@ -161,8 +161,8 @@ class TestHyperbolic(geomstats.tests.TestCase):
         h5 = Hyperboloid(dim=dim)
         h5_metric = h5.metric
 
-        base_point = h5.random_uniform()
-        point = h5.random_uniform()
+        base_point = h5.random_point()
+        point = h5.random_point()
         point = gs.cast(point, gs.float64)
         base_point = gs.cast(base_point, gs.float64)
         one_log = h5_metric.log(point=point, base_point=base_point)

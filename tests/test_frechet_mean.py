@@ -214,7 +214,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     def test_estimate_spd(self):
-        point = SPDMatrices(3).random_uniform()
+        point = SPDMatrices(3).random_point()
         points = gs.array([point, point])
         mean = FrechetMean(metric=SPDMetricAffine(3), point_type='matrix')
         mean.fit(X=points)
@@ -244,9 +244,9 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_estimate_and_belongs_hyperbolic(self):
-        point_a = self.hyperbolic.random_uniform()
-        point_b = self.hyperbolic.random_uniform()
-        point_c = self.hyperbolic.random_uniform()
+        point_a = self.hyperbolic.random_point()
+        point_b = self.hyperbolic.random_point()
+        point_c = self.hyperbolic.random_point()
         points = gs.stack([point_a, point_b, point_c], axis=0)
 
         mean = FrechetMean(metric=self.hyperbolic.metric)

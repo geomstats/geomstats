@@ -44,41 +44,41 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         self.bundle.lift = gs.linalg.cholesky
 
     def test_belongs(self):
-        point = self.base.random_uniform()
+        point = self.base.random_point()
         result = self.bundle.belongs(point)
         self.assertTrue(result)
 
     def test_submersion(self):
-        mat = self.bundle.total_space.random_uniform()
+        mat = self.bundle.total_space.random_point()
         point = self.bundle.submersion(mat)
         result = self.bundle.belongs(point)
         self.assertTrue(result)
 
     def test_lift_and_submersion(self):
-        point = self.base.random_uniform()
+        point = self.base.random_point()
         mat = self.bundle.lift(point)
         result = self.bundle.submersion(mat)
         self.assertAllClose(result, point)
 
     def test_tangent_submersion(self):
-        mat = self.bundle.total_space.random_uniform()
+        mat = self.bundle.total_space.random_point()
         point = self.bundle.submersion(mat)
-        vec = self.bundle.total_space.random_uniform()
+        vec = self.bundle.total_space.random_point()
         tangent_vec = self.bundle.tangent_submersion(vec, point)
         result = self.base.is_tangent(tangent_vec, point)
         self.assertTrue(result)
 
     def test_horizontal_projection(self):
-        mat = self.bundle.total_space.random_uniform()
-        vec = self.bundle.total_space.random_uniform()
+        mat = self.bundle.total_space.random_point()
+        vec = self.bundle.total_space.random_point()
         horizontal_vec = self.bundle.horizontal_projection(vec, mat)
         product = GeneralLinear.mul(horizontal_vec, GeneralLinear.inverse(mat))
         is_horizontal = GeneralLinear.is_symmetric(product)
         self.assertTrue(is_horizontal)
 
     def test_vertical_projection(self):
-        mat = self.bundle.total_space.random_uniform()
-        vec = self.bundle.total_space.random_uniform()
+        mat = self.bundle.total_space.random_point()
+        vec = self.bundle.total_space.random_point()
         vertical_vec = self.bundle.vertical_projection(vec, mat)
 
         result = self.bundle.tangent_submersion(vertical_vec, mat)
@@ -86,30 +86,30 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         self.assertAllClose(result, expected, atol=1e-5)
 
     def test_horizontal_lift_and_tangent_submersion(self):
-        mat = self.bundle.total_space.random_uniform()
+        mat = self.bundle.total_space.random_point()
         tangent_vec = GeneralLinear.to_symmetric(
-            self.bundle.total_space.random_uniform())
+            self.bundle.total_space.random_point())
         horizontal = self.bundle.horizontal_lift(tangent_vec, mat)
         result = self.bundle.tangent_submersion(horizontal, mat)
         self.assertAllClose(result, tangent_vec)
 
     def test_is_horizontal(self):
-        mat = self.bundle.total_space.random_uniform()
+        mat = self.bundle.total_space.random_point()
         tangent_vec = GeneralLinear.to_symmetric(
-            self.bundle.total_space.random_uniform())
+            self.bundle.total_space.random_point())
         horizontal = self.bundle.horizontal_lift(tangent_vec, mat)
         result = self.bundle.is_horizontal(horizontal, mat)
         self.assertTrue(result)
 
     def test_is_vertical(self):
-        mat = self.bundle.total_space.random_uniform()
-        tangent_vec = self.bundle.total_space.random_uniform()
+        mat = self.bundle.total_space.random_point()
+        tangent_vec = self.bundle.total_space.random_point()
         vertical = self.bundle.vertical_projection(tangent_vec, mat)
         result = self.bundle.is_vertical(vertical, mat)
         self.assertTrue(result)
 
     def test_align(self):
-        point = self.bundle.total_space.random_uniform(2)
+        point = self.bundle.total_space.random_point(2)
         aligned = self.bundle.align(
             point[0], point[1], tol=1e-10)
         result = self.bundle.is_horizontal(
@@ -117,10 +117,10 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         self.assertTrue(result)
 
     def test_inner_product(self):
-        mat = self.bundle.total_space.random_uniform()
+        mat = self.bundle.total_space.random_point()
         point = self.bundle.submersion(mat)
         tangent_vecs = GeneralLinear.to_symmetric(
-            self.bundle.total_space.random_uniform(2)) / 10
+            self.bundle.total_space.random_point(2)) / 10
         result = self.quotient_metric.inner_product(
             tangent_vecs[0], tangent_vecs[1], point=mat)
         expected = self.base_metric.inner_product(
@@ -128,17 +128,17 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_exp(self):
-        mat = self.bundle.total_space.random_uniform()
+        mat = self.bundle.total_space.random_point()
         point = self.bundle.submersion(mat)
         tangent_vec = GeneralLinear.to_symmetric(
-            self.bundle.total_space.random_uniform()) / 5
+            self.bundle.total_space.random_point()) / 5
 
         result = self.quotient_metric.exp(tangent_vec, point)
         expected = self.base_metric.exp(tangent_vec, point)
         self.assertAllClose(result, expected)
 
     def test_log(self):
-        mats = self.bundle.total_space.random_uniform(2)
+        mats = self.bundle.total_space.random_point(2)
         points = self.bundle.submersion(mats)
 
         result = self.quotient_metric.log(points[1], points[0], tol=1e-10)
@@ -146,7 +146,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         self.assertAllClose(result, expected, atol=3e-4)
 
     def test_squared_dist(self):
-        mats = self.bundle.total_space.random_uniform(2)
+        mats = self.bundle.total_space.random_point(2)
         points = self.bundle.submersion(mats)
 
         result = self.quotient_metric.squared_dist(
@@ -155,10 +155,10 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         self.assertAllClose(result, expected, atol=1e-5)
 
     def test_integrability_tensor(self):
-        mat = self.bundle.total_space.random_uniform()
+        mat = self.bundle.total_space.random_point()
         point = self.bundle.submersion(mat)
         tangent_vec = GeneralLinear.to_symmetric(
-            self.bundle.total_space.random_uniform()) / 5
+            self.bundle.total_space.random_point()) / 5
 
         self.assertRaises(
             NotImplementedError,

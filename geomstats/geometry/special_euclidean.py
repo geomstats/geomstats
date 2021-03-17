@@ -138,7 +138,7 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
             return gs.squeeze(belongs)
         return gs.flatten(belongs)
 
-    def random_uniform(self, n_samples=1, tol=1e-6):
+    def random_point(self, n_samples=1, bound=1.):
         """Sample in SE(n) from the uniform distribution.
 
         Parameters
@@ -146,14 +146,17 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        tol : unused
+        bound: float
+            Bound of the interval in which to sample each entry of the
+            translation part.
+            Optional, default: 1.
 
         Returns
         -------
         samples : array-like, shape=[..., n + 1, n + 1]
             Sample in SE(n).
         """
-        random_translation = self.translations.random_uniform(n_samples)
+        random_translation = self.translations.random_point(n_samples)
         random_rotation = self.rotations.random_uniform(n_samples)
         output_shape = (
             (n_samples, self.n + 1, self.n + 1) if n_samples != 1
@@ -470,7 +473,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         return gs.concatenate([rot_vec, log_translation], axis=1)
 
-    def random_uniform(self, n_samples=1):
+    def random_point(self, n_samples=1, **kwargs):
         """Sample in SE(n) with the uniform distribution.
 
         Parameters
@@ -484,7 +487,7 @@ class _SpecialEuclideanVectors(LieGroup):
         random_point : array-like, shape=[..., dimension]
             Sample.
         """
-        random_translation = self.translations.random_uniform(n_samples)
+        random_translation = self.translations.random_point(n_samples)
         random_rot_vec = self.rotations.random_uniform(n_samples)
         return gs.concatenate([random_rot_vec, random_translation], axis=-1)
 

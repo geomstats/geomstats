@@ -50,14 +50,14 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs(self):
-        point = self.group.random_uniform()
+        point = self.group.random_point()
         result = self.group.belongs(point)
         expected = True
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs_vectorization(self):
         n_samples = 4
-        point = self.group.random_uniform(n_samples)
+        point = self.group.random_point(n_samples)
         result = self.group.belongs(point)
         expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)

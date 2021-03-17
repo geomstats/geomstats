@@ -51,13 +51,16 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         belongs = gs.logical_and(is_symmetric, is_positive)
         return belongs
 
-    def random_uniform(self, n_samples=1):
+    def random_point(self, n_samples=1, bound=1.):
         """Sample in SPD(n) from the log-uniform distribution.
 
         Parameters
         ----------
         n_samples : int
             Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample in the tangent space.
             Optional, default: 1.
 
         Returns
@@ -68,12 +71,12 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         n = self.n
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
-        mat = 2 * gs.random.rand(*size) - 1
+        mat = bound * (2 * gs.random.rand(*size) - 1)
         spd_mat = GeneralLinear.exp(Matrices.to_symmetric(mat))
 
         return spd_mat
 
-    def random_tangent_vec_uniform(self, n_samples=1, base_point=None):
+    def random_tangent_vec(self, n_samples=1, base_point=None):
         """Sample on the tangent space of SPD(n) from the uniform distribution.
 
         Parameters

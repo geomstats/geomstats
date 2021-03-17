@@ -244,7 +244,7 @@ class Matrices:
             gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
         return is_diagonal
 
-    def random_uniform(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.):
         """Sample from a uniform distribution.
 
         Parameters
@@ -253,7 +253,7 @@ class Matrices:
             Number of samples.
             Optional, default: 1.
         bound : float
-            Bound.
+            Bound of the interval in which to sample each entry.
             Optional, default: 1.
 
         Returns
