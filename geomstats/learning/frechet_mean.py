@@ -140,7 +140,7 @@ def _default_gradient_descent(points, metric, weights,
         if not (condition or iteration == 0):
             break
 
-        estimate_next = metric.exp(tangent_vec=tangent_mean, base_point=mean)
+        estimate_next = metric.exp(step * tangent_mean, mean)
         mean = estimate_next
         iteration += 1
 
