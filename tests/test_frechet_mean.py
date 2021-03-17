@@ -138,6 +138,20 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(result, expected, atol=1e-5)
 
     @geomstats.tests.np_and_tf_only
+    def test_estimate_adaptive_gradient_descent_so_matrix(self):
+        points = self.so_matrix.random_uniform(2)
+
+        mean_vec = FrechetMean(
+            metric=self.so_matrix.bi_invariant_metric, method='adaptive')
+        mean_vec.fit(points)
+
+        logs = self.so_matrix.bi_invariant_metric.log(
+            points, mean_vec.estimate_)
+        result = gs.sum(logs, axis=0)
+        expected = gs.zeros_like(points[0])
+        self.assertAllClose(result, expected, atol=1e-5)
+
+    @geomstats.tests.np_and_tf_only
     def test_estimate_and_belongs_default_gradient_descent_so_matrix(self):
         point = self.so_matrix.random_uniform(10)
 
