@@ -42,12 +42,13 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
     """
 
     def __init__(
-            self, metric, n_clusters=8, init='random',
+            self, metric, n_clusters=8, init='random', lr=5e-3,
             tol=1e-2, mean_method='default', verbose=0, point_type='vector'):
         self.n_clusters = n_clusters
         self.init = init
         self.metric = metric
         self.tol = tol
+        self.lr = lr
         self.verbose = verbose
         self.mean_method = mean_method
         self.point_type = point_type
@@ -97,6 +98,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                         metric=self.metric,
                         method=self.mean_method,
                         max_iter=150,
+                        lr=self.lr,
                         point_type=self.point_type)
                     mean.fit(fold)
 

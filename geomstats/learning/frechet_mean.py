@@ -201,27 +201,25 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
         while convergence > tau and max_iter > iteration:
 
             iteration += 1
-
-            barycenter_flattened = gs.repeat(barycenter,
-                                             len(points_gs), axis=0)
+            barycenter_flattened = gs.repeat(
+                barycenter, len(points_gs), axis=0)
             barycenter_flattened = gs.reshape(
                 barycenter_flattened,
                 (-1, barycenter_flattened.shape[-1]))
 
-            grad_tangent = 2 * metric.log(points_flattened,
-                                          barycenter_flattened)
-            grad_tangent = gs.reshape(grad_tangent,
-                                      points.shape)
+            grad_tangent = 2 * metric.log(
+                points_flattened, barycenter_flattened)
+            grad_tangent = gs.reshape(
+                grad_tangent, points.shape)
             grad_tangent = grad_tangent * weights
 
             lr_grad_tangent = lr * grad_tangent.sum(0, keepdims=True)
             lr_grad_tangent_s = lr_grad_tangent.squeeze()
 
-            cc_barycenter = metric.exp(barycenter_gs,
-                                       lr_grad_tangent_s)
-
-            convergence = metric.dist(cc_barycenter,
-                                      barycenter_gs).max().item()
+            cc_barycenter = metric.exp(
+                barycenter_gs, lr_grad_tangent_s)
+            convergence = metric.dist(
+                cc_barycenter, barycenter_gs).max().item()
 
             barycenter_gs = cc_barycenter
             barycenter = gs.expand_dims(cc_barycenter, 0)
