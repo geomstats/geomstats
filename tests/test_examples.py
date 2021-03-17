@@ -57,10 +57,10 @@ class TestExamples(geomstats.tests.TestCase):
         plt.rcParams.update({'figure.max_open_warning': 0})
         plt.figure()
 
-    # @staticmethod
-    # @geomstats.tests.np_only
-    # def test_empirical_frechet_mean_uncertainty_sn():
-    #     empirical_frechet_mean_uncertainty_sn.main()
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_empirical_frechet_mean_uncertainty_sn():
+        empirical_frechet_mean_uncertainty_sn.main()
 
     @staticmethod
     @geomstats.tests.np_only
