@@ -129,10 +129,47 @@ class Stiefel(EmbeddedManifold):
         return samples
 
     def is_tangent(self, vector, base_point=None, atol=EPSILON):
+        """Check whether the vector is tangent at base_point.
+
+        A matrix :math: `X` is tangent to the Stiefel manifold at a point
+        :math: `U` if :math: `U^TX` is skew-symmetric.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, p]
+            Vector.
+        base_point : array-like, shape=[..., n, p]
+            Point on the manifold.
+            Optional, default: none.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-6.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
         aux = Matrices.mul(Matrices.transpose(base_point), vector)
         return Matrices.is_skew_symmetric(aux, atol=atol)
 
     def to_tangent(self, vector, base_point=None):
+        """Project a vector to a tangent space of the manifold.
+
+        Inspired by the method of Pymanopt.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, p]
+            Vector.
+        base_point : array-like, shape=[..., n, p]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, p]
+            Tangent vector at base point.
+        """
         aux = Matrices.mul(Matrices.transpose(base_point), vector)
         sym_aux = Matrices.to_symmetric(aux)
         return vector - Matrices.mul(base_point, sym_aux)
