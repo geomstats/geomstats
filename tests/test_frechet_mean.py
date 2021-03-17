@@ -150,6 +150,18 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
+    def test_estimate_and_belongs_adaptive_gradient_descent_so_matrix(self):
+        point = self.so_matrix.random_uniform(10)
+
+        mean = FrechetMean(
+            metric=self.so_matrix.bi_invariant_metric, method='adaptive')
+        mean.fit(point)
+
+        result = self.so_matrix.belongs(mean.estimate_)
+        expected = True
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
     def test_estimate_and_coincide_default_so_vec_and_mat(self):
         point = self.so_matrix.random_uniform(3)
 
