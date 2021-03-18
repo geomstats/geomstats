@@ -420,7 +420,6 @@ class FrechetMean(BaseEstimator):
                 points=X, weights=weights, metric=self.metric,
                 max_iter=self.max_iter, initial_step_size=self.lr,
                 point_type=self.point_type, epsilon=self.epsilon,
-                initial_step_size=self.lr,
                 verbose=self.verbose)
         elif self.method == 'adaptive':
             mean = _adaptive_gradient_descent(
