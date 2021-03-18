@@ -45,6 +45,25 @@ class SymmetricMatrices(EmbeddedManifold):
         check_shape = self.embedding_manifold.belongs(mat)
         return gs.logical_and(check_shape, Matrices.is_symmetric(mat, atol))
 
+    def random_point(self, n_samples=1, bound=1.):
+        """Sample from a uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample each entry.
+            Optional, default: 1.
+
+        Returns
+        -------
+        point : array-like, shape=[m, n] or [n_samples, m, n]
+            Sample.
+        """
+        return Matrices.to_symmetric(Matrices.random_point(n_samples, bound))
+
     def get_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
         basis = []

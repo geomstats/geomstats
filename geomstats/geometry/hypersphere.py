@@ -276,7 +276,7 @@ class _Hypersphere(EmbeddedManifold):
         value_indices = list(product(replaced_indices, range(self.dim + 1)))
         return gs.assignment(samples, gs.flatten(new_samples), value_indices)
 
-    def random_uniform(self, n_samples=1, tol=1e-6):
+    def random_point(self, n_samples=1, bound=1.):
         """Sample in the hypersphere from the uniform distribution.
 
         Parameters
@@ -284,9 +284,22 @@ class _Hypersphere(EmbeddedManifold):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        tol : float
-            Tolerance.
-            Optional, default: 1e-6.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., dim + 1]
+            Points sampled on the hypersphere.
+        """
+        return self.random_uniform(n_samples)
+
+    def random_uniform(self, n_samples=1):
+        """Sample in the hypersphere from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
 
         Returns
         -------
@@ -298,7 +311,7 @@ class _Hypersphere(EmbeddedManifold):
         samples = gs.random.normal(size=size)
         while True:
             norms = gs.linalg.norm(samples, axis=1)
-            indcs = gs.isclose(norms, 0.0, atol=tol)
+            indcs = gs.isclose(norms, 0.0, atol=TOLERANCE)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break

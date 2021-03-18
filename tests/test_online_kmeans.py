@@ -27,7 +27,7 @@ class TestOnlineKmeans(geomstats.tests.TestCase):
         clustering.fit(X)
 
         center = clustering.cluster_centers_
-        mean = FrechetMean(metric=self.metric)
+        mean = FrechetMean(metric=self.metric, lr=1.)
         mean.fit(X)
 
         result = self.metric.dist(center, mean.estimate_)

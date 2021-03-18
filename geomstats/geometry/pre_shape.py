@@ -100,7 +100,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         return projected_point
 
-    def random_uniform(self, n_samples=1, tol=1e-6):
+    def random_point(self, n_samples=1, bound=1.):
         """Sample in the pre-shape space from the uniform distribution.
 
         Parameters
@@ -108,9 +108,24 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        tol : float
-            Tolerance.
-            Optional, default: 1e-6.
+        bound : float
+            Not used.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., dim + 1]
+            Points sampled on the pre-shape space.
+        """
+        return self.random_uniform(n_samples)
+
+    def random_uniform(self, n_samples=1):
+        """Sample in the pre-shape space from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
 
         Returns
         -------
@@ -118,8 +133,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Points sampled on the pre-shape space.
         """
         samples = Hypersphere(
-            self.m_ambient * self.k_landmarks - 1).random_uniform(
-            n_samples, tol)
+            self.m_ambient * self.k_landmarks - 1).random_uniform(n_samples)
         samples = gs.reshape(samples, (-1, self.k_landmarks, self.m_ambient))
         if n_samples == 1:
             samples = samples[0]

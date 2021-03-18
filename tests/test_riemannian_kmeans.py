@@ -37,7 +37,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         dim = 3
         n_points = 2
         space = spd_matrices.SPDMatrices(dim)
-        data = space.random_uniform(n_samples=n_points)
+        data = space.random_point(n_samples=n_points)
         metric = spd_matrices.SPDMetricAffine(dim)
 
         kmeans = RiemannianKMeans(
