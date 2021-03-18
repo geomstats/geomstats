@@ -24,7 +24,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         kmeans.fit(x)
         center = kmeans.centroids
 
-        mean = FrechetMean(metric=metric)
+        mean = FrechetMean(metric=metric, lr=1.)
         mean.fit(x)
 
         result = metric.dist(center, mean.estimate_)
@@ -40,7 +40,8 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         data = space.random_point(n_samples=n_points)
         metric = spd_matrices.SPDMetricAffine(dim)
 
-        kmeans = RiemannianKMeans(metric, n_clusters=1, point_type='matrix')
+        kmeans = RiemannianKMeans(
+            metric, n_clusters=1, point_type='matrix', lr=1.)
         kmeans.fit(data)
         result = kmeans.centroids
 

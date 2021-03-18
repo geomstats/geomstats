@@ -97,7 +97,7 @@ class TestEM(geomstats.tests.TestCase):
         weights = gs.array([3., 1.])
         mean_o = FrechetMean(
             metric=self.metric,
-            point_type='vector')
+            point_type='vector', lr=1.)
         mean_o.fit(data, weights=weights)
         result = mean_o.estimate_
         expected = self.metric.exp(
