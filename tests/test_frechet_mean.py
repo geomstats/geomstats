@@ -156,12 +156,12 @@ class TestFrechetMean(geomstats.tests.TestCase):
         point = self.so_matrix.random_uniform(10)
 
         mean = FrechetMean(
-            metric=self.so_matrix.bi_invariant_metric, method='adaptive')
+            metric=self.so_matrix.bi_invariant_metric, method='adaptive',
+            verbose=True, lr=0.5)
         mean.fit(point)
 
         result = self.so_matrix.belongs(mean.estimate_)
-        expected = True
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
     @geomstats.tests.np_and_tf_only
     def test_estimate_and_coincide_default_so_vec_and_mat(self):
