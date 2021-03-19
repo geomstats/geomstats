@@ -104,10 +104,8 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         tangent_vec_at_id = 2 * gs.random.rand(*size) - 1
         tangent_vec_at_id += Matrices.transpose(tangent_vec_at_id)
 
-        tangent_vec = gs.einsum(
-            '...ij,...jk->...ik', sqrt_base_point, tangent_vec_at_id)
-        tangent_vec = gs.einsum(
-            '...ij,...jk->...ik', tangent_vec, sqrt_base_point)
+        tangent_vec = Matrices.mul(
+            sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
         return tangent_vec
 
@@ -141,7 +139,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
 
         eigvalues, eigvectors = gs.linalg.eigh(base_point)
         eigvalues = gs.to_ndarray(eigvalues, to_ndim=3, axis=1)
-        transp_eigvalues = gs.transpose(eigvalues, (0, 2, 1))
+        transp_eigvalues = Matrices.transpose(eigvalues)
 
         if power == 0:
             powered_eigvalues = gs.log(eigvalues)
