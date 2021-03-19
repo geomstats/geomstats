@@ -184,9 +184,13 @@ class SymmetricMatrices(EmbeddedManifold):
         powerm : array_like, shape=[..., n, n]
             Matrix power of mat.
         """
-        def _power(eigvals):
-            return gs.power(eigvals, power)
-        return cls.apply_func_to_eigvals(mat, _power, check_positive=True)
+        if isinstance(power, list):
+            power_ = [lambda ev, p=p: gs.power(ev, p) for p in power]
+        else:
+            def power_(ev):
+                return gs.power(ev, power)
+        return cls.apply_func_to_eigvals(
+            mat, power_, check_positive=True)
 
     @staticmethod
     def apply_func_to_eigvals(mat, function, check_positive=False):
@@ -214,9 +218,15 @@ class SymmetricMatrices(EmbeddedManifold):
                 logging.warning(
                     'Negative eigenvalue encountered in'
                     ' {}'.format(function.__name__))
-        eigvals = function(eigvals)
-        eigvals = algebra_utils.from_vector_to_diagonal_matrix(eigvals)
+        return_list = True
+        if not isinstance(function, list):
+            function = [function]
+            return_list = False
+        reconstruction = []
         transp_eigvecs = Matrices.transpose(eigvecs)
-        reconstruction = gs.matmul(eigvecs, eigvals)
-        reconstruction = gs.matmul(reconstruction, transp_eigvecs)
-        return reconstruction
+        for fun in function:
+            eigvals_f = fun(eigvals)
+            eigvals_f = algebra_utils.from_vector_to_diagonal_matrix(eigvals_f)
+            reconstruction.append(
+                Matrices.mul(eigvecs, eigvals_f, transp_eigvecs))
+        return reconstruction if return_list else reconstruction[0]
