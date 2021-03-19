@@ -475,13 +475,13 @@ class SPDMetricAffine(RiemannianMetric):
         -------
         inner_product : array-like, shape=[..., n, n]
         """
-        aux_a = gs.einsum(
-            '...ij,...jk->...ik', inv_base_point, tangent_vec_a)
-        aux_b = gs.einsum(
-            '...ij,...jk->...ik', inv_base_point, tangent_vec_b)
-        prod = gs.einsum(
-            '...ij,...jk->...ik', aux_a, aux_b)
-        inner_product = gs.trace(prod, axis1=-2, axis2=-1)
+        aux_a = Matrices.mul(inv_base_point, tangent_vec_a)
+        aux_b = Matrices.mul(inv_base_point, tangent_vec_b)
+
+        # Use product instead of matrix product and trace to save time
+        inner_product = gs.sum(
+            aux_a * Matrices.transpose(aux_b), axis=(-2, -1))
+
         return inner_product
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -541,17 +541,14 @@ class SPDMetricAffine(RiemannianMetric):
         -------
         exp : array-like, shape=[..., n, n]
         """
-        tangent_vec_at_id = gs.einsum(
-            '...ij,...jk->...ik', inv_sqrt_base_point, tangent_vec)
-        tangent_vec_at_id = gs.einsum(
-            '...ij,...jk->...ik', tangent_vec_at_id, inv_sqrt_base_point)
+        tangent_vec_at_id = Matrices.mul(
+            inv_sqrt_base_point, tangent_vec, inv_sqrt_base_point)
+
         tangent_vec_at_id = GeneralLinear.to_symmetric(tangent_vec_at_id)
         exp_from_id = SymmetricMatrices.expm(tangent_vec_at_id)
 
-        exp = gs.einsum(
-            '...ij,...jk->...ik', exp_from_id, sqrt_base_point)
-        exp = gs.einsum(
-            '...ij,...jk->...ik', sqrt_base_point, exp)
+        exp = Matrices.mul(
+            sqrt_base_point, exp_from_id, sqrt_base_point)
         return exp
 
     def exp(self, tangent_vec, base_point, **kwargs):
@@ -609,17 +606,12 @@ class SPDMetricAffine(RiemannianMetric):
         -------
         log : array-like, shape=[..., n, n]
         """
-        point_near_id = gs.einsum(
-            '...ij,...jk->...ik', inv_sqrt_base_point, point)
-        point_near_id = gs.einsum(
-            '...ij,...jk->...ik', point_near_id, inv_sqrt_base_point)
+        point_near_id = Matrices.mul(
+            inv_sqrt_base_point, point, inv_sqrt_base_point)
         point_near_id = GeneralLinear.to_symmetric(point_near_id)
-        log_at_id = SPDMatrices.logm(point_near_id)
 
-        log = gs.einsum(
-            '...ij,...jk->...ik', sqrt_base_point, log_at_id)
-        log = gs.einsum(
-            '...ij,...jk->...ik', log, sqrt_base_point)
+        log_at_id = SPDMatrices.logm(point_near_id)
+        log = Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
         return log
 
     def log(self, point, base_point, **kwargs):
