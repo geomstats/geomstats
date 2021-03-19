@@ -453,8 +453,7 @@ class Connection:
         raise NotImplementedError('The curvature is not implemented.')
 
     def geodesic(self, initial_point,
-                 end_point=None, initial_tangent_vec=None,
-                 point_type=None):
+                 end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
@@ -472,9 +471,6 @@ class Connection:
             Tangent vector at base point, the initial speed of the geodesics.
             Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
-        point_type : str, {'vector', 'matrix'}
-            Point type.
-            Optional, default: 'vector'.
 
         Returns
         -------
@@ -484,10 +480,7 @@ class Connection:
             represents time, and the second corresponds to the different
             initial conditions.
         """
-        if point_type is None:
-            point_type = self.default_point_type
-        geomstats.errors.check_parameter_accepted_values(
-            point_type, 'point_type', ['vector', 'matrix'])
+        point_type = self.default_point_type
 
         if end_point is None and initial_tangent_vec is None:
             raise ValueError('Specify an end point or an initial tangent '
