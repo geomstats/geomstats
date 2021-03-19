@@ -276,7 +276,7 @@ class _Hypersphere(EmbeddedManifold):
         value_indices = list(product(replaced_indices, range(self.dim + 1)))
         return gs.assignment(samples, gs.flatten(new_samples), value_indices)
 
-    def random_uniform(self, n_samples=1, tol=1e-6):
+    def random_point(self, n_samples=1, bound=1.):
         """Sample in the hypersphere from the uniform distribution.
 
         Parameters
@@ -284,9 +284,22 @@ class _Hypersphere(EmbeddedManifold):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        tol : float
-            Tolerance.
-            Optional, default: 1e-6.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., dim + 1]
+            Points sampled on the hypersphere.
+        """
+        return self.random_uniform(n_samples)
+
+    def random_uniform(self, n_samples=1):
+        """Sample in the hypersphere from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
 
         Returns
         -------
@@ -298,7 +311,7 @@ class _Hypersphere(EmbeddedManifold):
         samples = gs.random.normal(size=size)
         while True:
             norms = gs.linalg.norm(samples, axis=1)
-            indcs = gs.isclose(norms, 0.0, atol=tol)
+            indcs = gs.isclose(norms, 0.0, atol=TOLERANCE)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
@@ -589,6 +602,41 @@ class HypersphereMetric(RiemannianMetric):
         if gs.ndim(christoffel) == 4 and gs.shape(christoffel)[0] == 1:
             christoffel = gs.squeeze(christoffel, axis=0)
         return christoffel
+
+    def curvature(
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
+            base_point):
+        r"""Compute the curvature.
+
+        For three tangent vectors at a base point :math: `x,y,z`,
+        the curvature is defined by
+        :math: `R(X, Y)Z = \nabla_{[X,Y]}Z
+        - \nabla_X\nabla_Y Z + - \nabla_Y\nabla_X Z`, where :math: `\nabla`
+        is the Levi-Civita connection. In the case of the hypersphere,
+        we have the closed formula
+        :math: `R(X,Y)Z = \langle X, Z \rangle Y - \langle Y,Z \rangle X`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., dim]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        """
+        inner_ac = self.inner_product(tangent_vec_a, tangent_vec_c)
+        inner_bc = self.inner_product(tangent_vec_b, tangent_vec_c)
+        first_term = gs.einsum('...,...i->...i', inner_bc, tangent_vec_a)
+        second_term = gs.einsum('...,...i->...i', inner_ac, tangent_vec_b)
+        return - first_term + second_term
 
 
 class Hypersphere(_Hypersphere):

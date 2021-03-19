@@ -6,6 +6,9 @@ import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 
 
+ATOL = 1e-6
+
+
 class GeneralLinear(Matrices):
     """Class for the general linear group GL(n).
 
@@ -68,7 +71,7 @@ class GeneralLinear(Matrices):
             product(replaced_indices, range(self.n), range(self.n)))
         return gs.assignment(samples, gs.flatten(new_samples), value_indices)
 
-    def random_uniform(self, n_samples=1, tol=1e-6):
+    def random_point(self, n_samples=1, bound=1.):
         """Sample in GL(n) from the uniform distribution.
 
         Parameters
@@ -76,10 +79,9 @@ class GeneralLinear(Matrices):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        tol: float
-            Threshold for the absolute value of the determinant of the
-            returned matrix.
-            Optional, default: 1e-6.
+        bound: float
+            Bound of the interval in which to sample each matrix entry.
+            Optional, default: 1.
 
         Returns
         -------
@@ -89,7 +91,7 @@ class GeneralLinear(Matrices):
         samples = gs.random.normal(size=(n_samples, self.n, self.n))
         while True:
             dets = gs.linalg.det(samples)
-            indcs = gs.isclose(dets, 0.0, atol=tol)
+            indcs = gs.isclose(dets, 0.0, atol=ATOL)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
