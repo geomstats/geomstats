@@ -19,7 +19,7 @@ class NormalDistributions(PoincareHalfSpace):
         self.metric = FisherRaoMetric()
 
     @staticmethod
-    def random_uniform(n_samples=1, bound=5.):
+    def random_point(n_samples=1, bound=1.):
         """Sample parameters of normal distributions.
 
         The uniform distribution on [-bound/2, bound/2]x[0, bound] is used.

@@ -58,8 +58,8 @@ class Euclidean(Manifold):
 
         return belongs
 
-    def random_uniform(self, n_samples=1, bound=1.):
-        """Sample in the Euclidean space with the uniform distribution.
+    def random_point(self, n_samples=1, bound=1.):
+        """Sample in the Euclidean space with a uniform distribution in a box.
 
         Parameters
         ----------

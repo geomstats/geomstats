@@ -95,6 +95,27 @@ class Manifold:
         raise NotImplementedError(
             'to_tangent is not implemented.')
 
+    def random_point(self, n_samples=1, bound=1.):
+        """Sample random points on the manifold.
+
+        If the manifold is compact, a uniform distribution is used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact manifolds.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., {dim, [n, n]}]
+            Points sampled on the hypersphere.
+        """
+        raise NotImplementedError('random_point is not implemented')
+
     def regularize(self, point):
         """Regularize a point to the canonical representation for the manifold.
 
