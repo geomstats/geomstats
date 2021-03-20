@@ -1,4 +1,7 @@
 # Geomstats
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/geomstats-papers.svg?style=social&label=Follow%20%40geomstats-papers)](https://twitter.com/geomstats)[![PyPI version](https://badge.fury.io/py/geomstats.svg)](https://badge.fury.io/py/geomstats)[![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats)[![Slack](https://img.shields.io/badge/Slack-Join-yellow)](https://geomstats.slack.com/)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy)](https://codecov.io/gh/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow)](https://codecov.io/gh/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=pytorch)](https://codecov.io/gh/geomstats/geomstats) (Coverages for: numpy, tensorflow, pytorch)
 
 **NEWS**: Interested in pushing forward the fields of computational differential geometry and topology? The [ICLR 2021 challenge of geometry and topology](https://gt-rl.github.io/challenge) is open for submissions. Deadline: May 2nd, 2021. $3500 in prizes.
@@ -123,3 +126,23 @@ This work is supported by:
 - the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation program (grant agreement [G-Statistics](https://team.inria.fr/epione/en/research/erc-g-statistics/) No. 786854),
 - the French society for applied and industrial mathematics ([SMAI](http://smai.emath.fr/)),
 - the National Science Foundation (grant NSF DMS RTG 1501767).
+
+## Contributors ✨
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="http://linkedin.com/in/nicolas-guigui"><img src="https://avatars.githubusercontent.com/u/35696957?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Nicolas Guigui</b></sub></a><br /><a href="https://github.com/geomstats/geomstats/commits?author=nguigs" title="Tests">⚠️</a> <a href="https://github.com/geomstats/geomstats/commits?author=nguigs" title="Code">💻</a></td>
+  </tr>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
