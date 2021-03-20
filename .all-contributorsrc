@@ -1,0 +1,25 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "nguigs",
+      "name": "Nicolas Guigui",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35696957?v=4",
+      "profile": "http://linkedin.com/in/nicolas-guigui",
+      "contributions": [
+        "test",
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "geomstats",
+  "projectOwner": "geomstats",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
