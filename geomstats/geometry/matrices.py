@@ -42,7 +42,7 @@ class Matrices:
             Boolean evaluating if point belongs to the Matrices space.
         """
         mat_dim_1, mat_dim_2 = point.shape[-2:]
-        return (mat_dim_1 == self.m) & (mat_dim_2 == self.n)
+        return (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
 
     @staticmethod
     def equal(mat_a, mat_b, atol=TOLERANCE):
