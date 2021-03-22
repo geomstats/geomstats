@@ -110,7 +110,6 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         return tangent_vec
 
     @staticmethod
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def aux_differential_power(power, tangent_vec, base_point):
         """Compute the differential of the matrix power.
 
@@ -134,12 +133,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         denominator : array-like, shape=[..., n, n]
         temp_result : array-like, shape=[..., n, n]
         """
-        n_tangent_vecs, _, _ = tangent_vec.shape
-        n_base_points, _, n = base_point.shape
-
         eigvalues, eigvectors = gs.linalg.eigh(base_point)
-        eigvalues = gs.to_ndarray(eigvalues, to_ndim=3, axis=1)
-        transp_eigvalues = Matrices.transpose(eigvalues)
 
         if power == 0:
             powered_eigvalues = gs.log(eigvalues)
@@ -147,48 +141,36 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             powered_eigvalues = gs.exp(eigvalues)
         else:
             powered_eigvalues = eigvalues**power
-        transp_powered_eigvalues = Matrices.transpose(powered_eigvalues)
-        ones = gs.ones((n_base_points, 1, n))
-        transp_ones = Matrices.transpose(ones)
 
-        vertical_index = gs.matmul(transp_eigvalues, ones)
-        horizontal_index = gs.matmul(transp_ones, eigvalues)
-        one_matrix = gs.matmul(transp_ones, ones)
-        vertical_index_power = gs.matmul(transp_powered_eigvalues, ones)
-        horizontal_index_power = gs.matmul(transp_ones, powered_eigvalues)
-        denominator = vertical_index - horizontal_index
-        numerator = vertical_index_power - horizontal_index_power
+        denominator = eigvalues[..., :, None] - eigvalues[..., None, :]
+        numerator = (
+            powered_eigvalues[..., :, None] - powered_eigvalues[..., None, :])
 
         if power == 0:
-            numerator = gs.where(denominator == 0, one_matrix, numerator)
-            denominator = gs.where(denominator == 0, vertical_index,
-                                   denominator)
+            numerator = gs.where(
+                denominator == 0, gs.ones_like(numerator), numerator)
+            denominator = gs.where(
+                denominator == 0, eigvalues[..., :, None], denominator)
         elif power == math.inf:
-            numerator = gs.where(denominator == 0, vertical_index_power,
-                                 numerator)
-            denominator = gs.where(denominator == 0, one_matrix, denominator)
+            numerator = gs.where(
+                denominator == 0, powered_eigvalues[..., :, None], numerator)
+            denominator = gs.where(
+                denominator == 0, gs.ones_like(numerator), denominator)
         else:
             numerator = gs.where(
                 denominator == 0,
-                power * vertical_index_power,
+                power * powered_eigvalues[..., :, None],
                 numerator)
             denominator = gs.where(
                 denominator == 0,
-                vertical_index,
+                eigvalues[..., :, None],
                 denominator)
 
         transp_eigvectors = Matrices.transpose(eigvectors)
         temp_result = Matrices.mul(transp_eigvectors, tangent_vec, eigvectors)
 
-        if n_base_points == n_tangent_vecs == 1:
-            transp_eigvectors = gs.squeeze(transp_eigvectors, axis=0)
-            eigvectors = gs.squeeze(eigvectors, axis=0)
-            temp_result = gs.squeeze(temp_result, axis=0)
-            numerator = gs.squeeze(numerator, axis=0)
-            denominator = gs.squeeze(denominator, axis=0)
-
-        return (eigvectors, transp_eigvectors, numerator, denominator,
-                temp_result)
+        return (
+            eigvectors, transp_eigvectors, numerator, denominator, temp_result)
 
     @classmethod
     @geomstats.vectorization.decorator(['else', 'else', 'matrix', 'matrix'])
