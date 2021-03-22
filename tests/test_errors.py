@@ -20,7 +20,7 @@ class TestBackends(geomstats.tests.TestCase):
     @staticmethod
     def test_check_belongs_with_tol():
         spd = SPDMatrices(5)
-        point = spd.random_uniform()
+        point = spd.random_point()
 
         geomstats.errors.check_belongs(point, spd, atol=1e-5)
 

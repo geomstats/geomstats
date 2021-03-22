@@ -402,3 +402,42 @@ class RiemannianMetric(Connection):
         norms = self.squared_norm(basis, base_point)
 
         return gs.einsum('i, ikl->ikl', 1. / gs.sqrt(norms), basis)
+
+    def sectional_curvature(
+            self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute the sectional curvature.
+
+        For two orthonormal tangent vectors at a base point :math: `x,y`,
+        the sectional curvature is defined by :math: `<R(x, y)x,
+        y>`. Non-orthonormal vectors can be given.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., n, n]
+            Point in the group. Optional, default is the identity
+
+        Returns
+        -------
+        sectional_curvature : array-like, shape=[...,]
+            Sectional curvature at `base_point`.
+
+        See Also
+        --------
+        https://en.wikipedia.org/wiki/Sectional_curvature
+        """
+        curvature = self.curvature(
+            tangent_vec_a, tangent_vec_b, tangent_vec_a, base_point)
+        sectional = self.inner_product(curvature, tangent_vec_b, base_point)
+        norm_a = self.squared_norm(tangent_vec_a, base_point)
+        norm_b = self.squared_norm(tangent_vec_b, base_point)
+        inner_ab = self.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        normalization_factor = norm_a * norm_b - inner_ab ** 2
+
+        condition = gs.isclose(normalization_factor, 0.)
+        normalization_factor = gs.where(
+            condition, EPSILON, normalization_factor)
+        return gs.where(~condition, sectional / normalization_factor, 0.)

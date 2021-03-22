@@ -13,8 +13,8 @@ class TestIntegrator(geomstats.tests.TestCase):
         self.dt = 0.1
         self.euclidean = Euclidean(self.dimension)
         self.matrices = Matrices(self.dimension, self.dimension)
-        self.intercept = self.euclidean.random_uniform(1)
-        self.slope = Matrices.to_symmetric(self.matrices.random_uniform(1))
+        self.intercept = self.euclidean.random_point(1)
+        self.slope = Matrices.to_symmetric(self.matrices.random_point(1))
 
     def function_linear(self, point, vector):
         return point, - gs.dot(self.slope, vector)
@@ -36,7 +36,7 @@ class TestIntegrator(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_integrator(self):
-        initial_state = self.euclidean.random_uniform(2)
+        initial_state = self.euclidean.random_point(2)
 
         def function(_, velocity):
             return velocity, gs.zeros_like(velocity)

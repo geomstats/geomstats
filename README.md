@@ -1,6 +1,7 @@
 # Geomstats
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/geomstats-papers.svg?style=social&label=Follow%20%40geomstats-papers)](https://twitter.com/geomstats)[![PyPI version](https://badge.fury.io/py/geomstats.svg)](https://badge.fury.io/py/geomstats)[![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats)[![Slack](https://img.shields.io/badge/Slack-Join-yellow)](https://geomstats.slack.com/)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy)](https://codecov.io/gh/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow)](https://codecov.io/gh/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=pytorch)](https://codecov.io/gh/geomstats/geomstats) (Coverages for: numpy, tensorflow, pytorch)
 
+**NEWS**: Interested in pushing forward the fields of computational differential geometry and topology? The [ICLR 2021 challenge of geometry and topology](https://gt-rl.github.io/challenge) is open for submissions. Deadline: May 2nd, 2021. $3500 in prizes.
 
 Geomstats is an open-source Python package for computations and statistics on manifolds. The package is organized into two main modules:
 ``geometry`` and ``learning``.

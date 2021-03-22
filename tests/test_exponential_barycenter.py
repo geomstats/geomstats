@@ -23,7 +23,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_estimate_and_belongs_se(self):
-        point = self.se_mat.random_uniform(self.n_samples)
+        point = self.se_mat.random_point(self.n_samples)
         estimator = ExponentialBarycenter(self.se_mat)
         estimator.fit(point)
         barexp = estimator.estimate_
@@ -40,7 +40,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_estimate_one_sample_se(self):
-        point = self.se_mat.random_uniform()
+        point = self.se_mat.random_point()
         estimator = ExponentialBarycenter(self.se_mat)
         estimator.fit(point)
         result = estimator.estimate_
@@ -56,7 +56,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_estimate_and_reach_max_iter_se(self):
-        point = self.se_mat.random_uniform(1)
+        point = self.se_mat.random_point(1)
         estimator = ExponentialBarycenter(self.se_mat, max_iter=2)
         points = gs.array([point, point])
         estimator.fit(points)
@@ -144,7 +144,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         estimator.fit(point)
         result = estimator.estimate_
         frechet_estimator = FrechetMean(
-            self.so.bi_invariant_metric, max_iter=40, epsilon=1e-10)
+            self.so.bi_invariant_metric, max_iter=40, epsilon=1e-10, lr=1.)
         frechet_estimator.fit(point)
         expected = frechet_estimator.estimate_
         self.assertAllClose(result, expected)
@@ -170,7 +170,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
 
     def test_linear_mean(self):
         euclidean = Euclidean(3)
-        point = euclidean.random_uniform(self.n_samples)
+        point = euclidean.random_point(self.n_samples)
 
         estimator = ExponentialBarycenter(euclidean)
 

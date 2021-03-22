@@ -68,6 +68,25 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         return gs.logical_and(
             is_skew, super(SkewSymmetricMatrices, self).belongs(mat))
 
+    def random_point(self, n_samples=1, bound=1.):
+        """Sample from a uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample each entry.
+            Optional, default: 1.
+
+        Returns
+        -------
+        point : array-like, shape=[m, n] or [n_samples, m, n]
+            Sample.
+        """
+        return self.projection(self.random_point(n_samples, bound))
+
     @classmethod
     def projection(cls, mat):
         r"""Compute the skew-symmetric component of a matrix.

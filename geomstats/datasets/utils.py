@@ -18,31 +18,26 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 MODULE_PATH = os.path.dirname(__file__)
-DATA_PATH = os.path.join(
-    MODULE_PATH, 'data')
-CITIES_PATH = os.path.join(
-    DATA_PATH, 'cities', 'cities.json')
-CONNECTOMES_PATH = os.path.join(
-    DATA_PATH, 'connectomes/train_FNC.csv')
+DATA_PATH = os.path.join(MODULE_PATH, 'data')
+CITIES_PATH = os.path.join(DATA_PATH, 'cities', 'cities.json')
+CONNECTOMES_PATH = os.path.join(DATA_PATH, 'connectomes/train_FNC.csv')
 CONNECTOMES_LABELS_PATH = os.path.join(
     DATA_PATH, 'connectomes/train_labels.csv')
 
-POSES_PATH = os.path.join(
-    DATA_PATH, 'poses', 'poses.json')
-KARATE_PATH = os.path.join(
-    DATA_PATH, 'graph_karate', 'karate.txt')
+POSES_PATH = os.path.join(DATA_PATH, 'poses', 'poses.json')
+KARATE_PATH = os.path.join(DATA_PATH, 'graph_karate', 'karate.txt')
 KARATE_LABELS_PATH = os.path.join(
     DATA_PATH, 'graph_karate', 'karate_labels.txt')
-GRAPH_RANDOM_PATH = os.path.join(
-    DATA_PATH, 'graph_random', 'graph_random.txt')
+GRAPH_RANDOM_PATH = os.path.join(DATA_PATH, 'graph_random', 'graph_random.txt')
 GRAPH_RANDOM_LABELS_PATH = os.path.join(
-    DATA_PATH, 'graph_random', 'graph_random_labels.txt')
-LEAVES_PATH = os.path.join(
-    DATA_PATH, 'leaves', 'leaves.csv')
-EMG_PATH = os.path.join(
-    DATA_PATH, 'emg', 'emg.csv')
+    DATA_PATH, 'graph_random', 'graph_random_labels.txt'
+)
+LEAVES_PATH = os.path.join(DATA_PATH, 'leaves', 'leaves.csv')
+EMG_PATH = os.path.join(DATA_PATH, 'emg', 'emg.csv')
 OPTICAL_NERVES_PATH = os.path.join(
     DATA_PATH, 'optical_nerves', 'optical_nerves.txt')
+HANDS_PATH = os.path.join(DATA_PATH, 'hands', 'hands.txt')
+HANDS_LABELS_PATH = os.path.join(DATA_PATH, 'hands', 'labels.txt')
 
 
 def load_cities():
@@ -162,8 +157,8 @@ def load_connectomes(as_vectors=False):
     with open(CONNECTOMES_PATH) as csvfile:
         data_list = list(csv.reader(csvfile))
     patient_id = gs.array([int(row[0]) for row in data_list[1:]])
-    data = gs.array([
-        [float(value) for value in row[1:]] for row in data_list[1:]])
+    data = gs.array(
+        [[float(value) for value in row[1:]] for row in data_list[1:]])
 
     with open(CONNECTOMES_LABELS_PATH) as csvfile:
         labels = list(csv.reader(csvfile))
@@ -235,8 +230,14 @@ def load_optical_nerves():
 
     Returns
     -------
-    data : array-like, shape=[23, 5, 3]
-        Data representing the 5 landmarks, in 3D, for 23 different monkeys.
+    data : array-like, shape=[22, 5, 3]
+        Data representing the 5 landmarks, in 3D, for 11 different monkeys.
+    labels : array-like, shape=[22,]
+        Labels in {0, 1} classifying the corresponding optical nerve as
+        normal (label = 0) or glaucoma (label = 1).
+    monkeys : array-like, shape=[22,]
+        Indices in 0...10 referencing the index of the monkey to which a given
+        optical nerve belongs.
     """
     nerves = pd.read_csv(OPTICAL_NERVES_PATH, sep='\t')
     nerves = nerves.set_index('Filename')
@@ -244,7 +245,73 @@ def load_optical_nerves():
     nerves = nerves.reset_index(drop=True)
     nerves_gs = gs.array(nerves.values)
 
-    nerves_gs = gs.reshape(nerves_gs, (nerves_gs.shape[0], -1, 3))
+    data = gs.reshape(nerves_gs, (nerves_gs.shape[0], -1, 3))
     labels = gs.tile([0, 1], [nerves_gs.shape[0] // 2])
+    monkeys = gs.repeat(gs.arange(11), 2)
 
-    return nerves_gs, labels
+    return data, labels, monkeys
+
+
+def load_hands():
+    """Load data from data/hands/hands.txt and labels.txt.
+
+    Load the dataset of hand poses, where a hand is represented as a
+    set of 22 landmarks - the hands joints - in 3D.
+
+    The hand poses represent two different hand poses:
+    - Label 0: hand is in the position "Grab"
+    - Label 1: hand is in the position "Expand"
+
+    This is a subset of the SHREC 2017 dataset [SWVGLF2017].
+
+    References
+    ----------
+        .. [SWVGLF2017] Q. De Smedt, H. Wannous, J.P. Vandeborre,
+        J. Guerry, B. Le Saux, D. Filliat, SHREC'17 Track: 3D Hand Gesture
+        Recognition Using a Depth and Skeletal Dataset, 10th Eurographics
+        Workshop on 3D Object Retrieval, 2017.
+        https://doi.org/10.2312/3dor.20171049
+
+
+    Returns
+    -------
+    data : array-like, shape=[52, 22, 3]
+        Hand data, represented as a list of 22 joints, specifically as
+        the 3D coordinates of these joints.
+    labels : array-like, shape=[52,]
+        Label representing hands poses. Label 0: "Grab", Label 1: "Expand"
+    bone_list : array-like
+        List of bones, as a list of connexions between joints.
+    """
+    data = gs.array(pd.read_csv(HANDS_PATH, sep=' ').values)
+    n_landmarks = 22
+    dim = 3
+    data = gs.reshape(data, (data.shape[0], n_landmarks, dim))
+    labels = gs.array(pd.read_csv(HANDS_LABELS_PATH).values.squeeze())
+
+    bone_list = gs.array(
+        [
+            [0, 1],
+            [0, 2],
+            [2, 3],
+            [3, 4],
+            [4, 5],
+            [1, 6],
+            [6, 7],
+            [7, 8],
+            [8, 9],
+            [1, 10],
+            [10, 11],
+            [11, 12],
+            [12, 13],
+            [1, 14],
+            [14, 15],
+            [15, 16],
+            [16, 17],
+            [1, 18],
+            [18, 19],
+            [19, 20],
+            [20, 21],
+        ]
+    )
+    return data, labels, bone_list
