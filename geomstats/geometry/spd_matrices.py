@@ -540,10 +540,9 @@ class SPDMetricAffine(RiemannianMetric):
         power_affine = self.power_affine
 
         if power_affine == 1:
-            res = SymmetricMatrices.powerm(base_point, [1. / 2, -1. / 2])
-            sqrt_base_point, inv_sqrt_base_point = res
+            powers = SymmetricMatrices.powerm(base_point, [1. / 2, -1. / 2])
             exp = self._aux_exp(
-                tangent_vec, sqrt_base_point, inv_sqrt_base_point)
+                tangent_vec, powers[0], powers[1])
         else:
             modified_tangent_vec = self.space.differential_power(
                 power_affine, tangent_vec, base_point)
@@ -603,18 +602,14 @@ class SPDMetricAffine(RiemannianMetric):
         power_affine = self.power_affine
 
         if power_affine == 1:
-            res = SymmetricMatrices.powerm(base_point, [1. / 2, -1. / 2])
-            sqrt_base_point, inv_sqrt_base_point = res
-            log = self._aux_log(point, sqrt_base_point, inv_sqrt_base_point)
+            powers = SymmetricMatrices.powerm(base_point, [1. / 2, -1. / 2])
+            log = self._aux_log(point, powers[0], powers[1])
         else:
             power_point = SymmetricMatrices.powerm(point, power_affine)
-            res = SymmetricMatrices.powerm(
+            powers = SymmetricMatrices.powerm(
                 base_point, [power_affine / 2, -power_affine / 2])
-            power_sqrt_base_point, power_inv_sqrt_base_point = res
             log = self._aux_log(
-                power_point,
-                power_sqrt_base_point,
-                power_inv_sqrt_base_point)
+                power_point, powers[0], powers[1])
             log = self.space.inverse_differential_power(
                 power_affine, log, base_point)
         return log
@@ -1020,7 +1015,9 @@ class SPDMetricLogEuclidean(RiemannianMetric):
                              'vector to define the geodesic.')
         if end_point is not None:
             shooting_tangent_vec = end_point - initial_point
+            # Avoid comparison with None
             if initial_tangent_vec is not None:
+                # check it coincides with potential input initial_tangent_vec
                 if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
                     raise RuntimeError(
                         'The shooting tangent vector is too'
