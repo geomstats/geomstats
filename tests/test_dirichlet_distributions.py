@@ -355,7 +355,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
 
         Compare with autograd jacobian and check vectorization.
         """
-        base_point = self.dirichlet.random_uniform()
+        base_point = self.dirichlet.random_point()
         result = self.metric.jac_christoffels(base_point)
         self.assertAllClose(
             (self.dim, self.dim, self.dim, self.dim),
@@ -365,7 +365,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
             self.metric.christoffels)(base_point)
         self.assertAllClose(expected, result)
 
-        base_points = self.dirichlet.random_uniform(2)
+        base_points = self.dirichlet.random_point(2)
         result = self.metric.jac_christoffels(base_points)
         expected = [
             self.metric.jac_christoffels(base_points[0, :]),
@@ -380,8 +380,8 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         Check that dist yields the same result with
         and without.
         """
-        point_a = self.dirichlet.random_uniform()
-        point_b = self.dirichlet.random_uniform()
+        point_a = self.dirichlet.random_point()
+        point_b = self.dirichlet.random_point()
         result = self.dirichlet.metric.dist(point_a, point_b, jacobian=True)
         expected = self.dirichlet.metric.dist(point_a, point_b)
         self.assertAllClose(expected, result)
@@ -391,8 +391,8 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         """Check timer for geodesic bvp."""
         max_time = 1e-4
         gs.random.seed(123)
-        point_a = self.dirichlet.random_uniform()
-        point_b = self.dirichlet.random_uniform()
+        point_a = self.dirichlet.random_point()
+        point_b = self.dirichlet.random_point()
         result = self.dirichlet.metric.dist(
             point_a, point_b, max_time=max_time)
         expected = gs.nan
