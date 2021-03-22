@@ -173,7 +173,6 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             eigvectors, transp_eigvectors, numerator, denominator, temp_result)
 
     @classmethod
-    @geomstats.vectorization.decorator(['else', 'else', 'matrix', 'matrix'])
     def differential_power(cls, power, tangent_vec, base_point):
         r"""Compute the differential of the matrix power function.
 
@@ -202,7 +201,6 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         return result
 
     @classmethod
-    @geomstats.vectorization.decorator(['else', 'else', 'matrix', 'matrix'])
     def inverse_differential_power(cls, power, tangent_vec, base_point):
         r"""Compute the inverse of the differential of the matrix power.
 
@@ -232,7 +230,6 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         return result
 
     @classmethod
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def differential_log(cls, tangent_vec, base_point):
         """Compute the differential of the matrix logarithm.
 
@@ -259,7 +256,6 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         return result
 
     @classmethod
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def inverse_differential_log(cls, tangent_vec, base_point):
         """Compute the inverse of the differential of the matrix logarithm.
 
@@ -287,7 +283,6 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         return result
 
     @classmethod
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def differential_exp(cls, tangent_vec, base_point):
         """Compute the differential of the matrix exponential.
 
@@ -314,7 +309,6 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         return result
 
     @classmethod
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def inverse_differential_exp(cls, tangent_vec, base_point):
         """Compute the inverse of the differential of the matrix exponential.
 
