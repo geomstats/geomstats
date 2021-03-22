@@ -176,12 +176,13 @@ class SymmetricMatrices(EmbeddedManifold):
         ----------
         mat : array_like, shape=[..., n, n]
             Symmetric matrix with non-negative eigenvalues.
-        power : float
-            Power at which mat will be raised.
+        power : float, list
+            Power at which mat will be raised. If a list of powers is passed,
+            a list of results will be returned.
 
         Returns
         -------
-        powerm : array_like, shape=[..., n, n]
+        powerm : array_like or list of arrays, shape=[..., n, n]
             Matrix power of mat.
         """
         if isinstance(power, list):
@@ -201,8 +202,9 @@ class SymmetricMatrices(EmbeddedManifold):
         ----------
         mat : array_like, shape=[..., n, n]
             Symmetric matrix.
-        function : callable
-            Function to apply to eigenvalues.
+        function : callable, list of callables
+            Function to apply to eigenvalues. If a list of functions is passed,
+            a list of results will be returned.
         check_positive : bool
             Whether to check positivity of the eigenvalues.
             Optional. Default: False.
