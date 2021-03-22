@@ -26,12 +26,12 @@ class TestMinkowski(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    def test_random_uniform(self):
-        point = self.space.random_uniform()
+    def test_random_point(self):
+        point = self.space.random_point()
         self.assertAllClose(gs.shape(point), (self.dimension,))
 
-    def test_random_uniform_and_belongs(self):
-        point = self.space.random_uniform()
+    def test_random_point_and_belongs(self):
+        point = self.space.random_point()
         result = self.space.belongs(point)
         expected = True
         self.assertAllClose(result, expected)

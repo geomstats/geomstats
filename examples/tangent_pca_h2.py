@@ -17,7 +17,7 @@ def main():
 
     hyperbolic_plane = Hyperboloid(dim=2)
 
-    data = hyperbolic_plane.random_uniform(n_samples=140)
+    data = hyperbolic_plane.random_point(n_samples=140)
 
     mean = FrechetMean(metric=hyperbolic_plane.metric)
     mean.fit(data)

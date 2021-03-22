@@ -46,7 +46,7 @@ if __name__ == '__main__':
         description='Geometric statistics on manifolds',
         url='http://github.com/geomstats/geomstats',
         author='Nina Miolane',
-        author_email='ninamio78@gmail.com',
+        author_email='nmiolane@gmail.com',
         license='MIT',
         classifiers=[
             'Development Status :: 5 - Production/Stable',

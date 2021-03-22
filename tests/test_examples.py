@@ -65,7 +65,7 @@ class TestExamples(geomstats.tests.TestCase):
     @staticmethod
     @geomstats.tests.np_only
     def test_gradient_descent_s2():
-        gradient_descent_s2.main(max_iter=32, output_file=None)
+        gradient_descent_s2.main(max_iter=64, output_file=None)
 
     @staticmethod
     def test_loss_and_gradient_so3():

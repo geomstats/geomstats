@@ -146,35 +146,35 @@ class ProductManifold(Manifold):
             regularized_point = gs.stack(regularized_point, axis=1)
         return regularized_point
 
-    def random_uniform(self, n_samples, point_type=None):
+    def random_point(self, n_samples=1, bound=1.):
         """Sample in the product space from the uniform distribution.
 
         Parameters
         ----------
         n_samples : int, optional
             Number of samples.
-        point_type : str, {'vector', 'matrix'}
-            Representation of point.
-            Optional, default: None.
+        bound : float
+            Bound of the interval in which to sample for non compact manifolds.
+            Optional, default: 1.
 
         Returns
         -------
         samples : array-like, shape=[..., dim + 1]
             Points sampled on the hypersphere.
         """
-        if point_type is None:
-            point_type = self.default_point_type
+        point_type = self.default_point_type
         geomstats.errors.check_parameter_accepted_values(
             point_type, 'point_type', ['vector', 'matrix'])
 
         if point_type == 'vector':
-            data = self.manifolds[0].random_uniform(n_samples)
+            data = self.manifolds[0].random_point(n_samples, bound)
             if len(self.manifolds) > 1:
                 for space in self.manifolds[1:]:
-                    samples = space.random_uniform(n_samples)
+                    samples = space.random_point(n_samples, bound)
                     data = gs.concatenate([data, samples], axis=-1)
             return data
 
-        point = [space.random_uniform(n_samples) for space in self.manifolds]
+        point = [
+            space.random_point(n_samples, bound) for space in self.manifolds]
         samples = gs.stack(point, axis=-2)
         return samples

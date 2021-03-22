@@ -47,7 +47,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_fit_to_target_explained_variance(self):
-        X = self.spd.random_uniform(n_samples=5)
+        X = self.spd.random_point(n_samples=5)
         target = 0.90
         tpca = TangentPCA(
             self.spd_metric, n_components=target)
@@ -59,7 +59,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_fit_matrix(self):
         expected = 2
-        X = self.spd.random_uniform(n_samples=5)
+        X = self.spd.random_point(n_samples=5)
         tpca = TangentPCA(
             metric=self.spd_metric, n_components=expected)
         tpca.fit(X)
@@ -69,7 +69,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_fit_transform_matrix(self):
         expected = 2
-        X = self.spd.random_uniform(n_samples=5)
+        X = self.spd.random_point(n_samples=5)
         tpca = TangentPCA(
             metric=self.spd_metric, n_components=expected)
         tangent_projected_data = tpca.fit_transform(X)
@@ -78,7 +78,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_fit_inverse_transform_matrix(self):
-        X = self.spd.random_uniform(n_samples=5)
+        X = self.spd.random_point(n_samples=5)
         tpca = TangentPCA(
             metric=self.spd_metric)
         tangent_projected_data = tpca.fit_transform(X)
@@ -105,7 +105,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_fit_fit_transform_matrix(self):
-        X = self.spd.random_uniform(n_samples=5)
+        X = self.spd.random_point(n_samples=5)
         tpca = TangentPCA(
             metric=self.spd_metric)
         expected = tpca.fit_transform(X)
@@ -115,7 +115,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_fit_matrix_se(self):
         se_mat = SpecialEuclidean(n=3)
-        X = se_mat.random_uniform(self.n_samples)
+        X = se_mat.random_point(self.n_samples)
         estimator = ExponentialBarycenter(se_mat)
         estimator.fit(X)
         mean = estimator.estimate_
