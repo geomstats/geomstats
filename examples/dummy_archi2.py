@@ -1,8 +1,8 @@
 from typing import Callable, List, Dict, Optional, Union
 from abc import ABC, abstractmethod
 
-import geomstats.backend as gs
-from geomstats.geometry.pre_shape import PreShapeSpace
+#import geomstats.backend as gs
+#from geomstats.geometry.pre_shape import PreShapeSpace
 
 
 class Metric(ABC):
@@ -16,9 +16,9 @@ class Metric(ABC):
     def exp(self, tangent_vec):
         pass
 
-    @abstractmethod
-    def name(self) -> str:
-        pass
+    @classmethod
+    def name(cls) -> str:
+        return cls.__name__
 
 
 class Manifold(ABC):
@@ -47,23 +47,75 @@ class Manifold(ABC):
             return 0
 
     
-# if abstractManifoldFactory method create(self, metrics_names , **kwargs) and creator(kwargs)
 
-# factory class needs to be a singleton for registration to work
-class SingletonMeta(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            instance = super().__call__(*args, **kwargs)
-            cls._instances[cls] = instance
-        return cls._instances[cls]
-
-
-
-class SpecialEuclidienManifoldFactory:
-    """ Factory for Euclidien Manifold """
+class AbstractManifoldFactory(ABC):
     metrics_creators = {}
+    
+    @classmethod
+    @abstractmethod
+    def create(cls, *args, metrics_names : Optional[Union[str, List[str]]] = None, **kwargs ):
+        pass
+    
+    @classmethod
+    def register(cls, name: str = None) -> Callable:
+        """decorator to register a new class
+
+        Args:
+            name (str): the name of the metric to Register 
+            
+        Returns:
+            Callable: a metric creator
+        """
+        def inner_wrapper(wrapped_class: Metric) -> Callable:
+            inner_name = name
+            if inner_name is None:
+                print(f"no name, will use class name {wrapped_class.__name__}")
+                inner_name = wrapped_class.__name__
+                
+            if inner_name in cls.metrics_creators:
+                print(f"Executor {inner_name} already exists. Will replace it")
+            cls.metrics_creators[inner_name] = wrapped_class
+            return wrapped_class
+
+        return inner_wrapper
+
+    @classmethod
+    def metric_keys(cls):
+        """getter for list of metric keys
+
+        Returns:
+            List[str]: a list of metric keys for this class of manifold
+        """
+         
+        return cls.metrics_creators.keys()
+
+    @classmethod
+    def _get_metrics(cls, metrics_name : List[str]) -> List[Metric]:
+        """internal method to create metrics from a list of names
+
+        Args:
+            metrics_name (List[str]): List of metrics names 
+
+        Returns:
+            List[Metric]: List of metrics
+        """
+        
+        res = []
+        for m in metrics_name:
+            if m not in cls.metrics_creators:
+                print(f"error {m} not in metrics keys: {cls.metrics_creators.keys()}")
+                continue 
+            metric = cls.metrics_creators[m]()
+            res.append(metric)
+
+        return res
+        #return [cls.metrics_creators[m] for m in metrics_name if m in cls.metrics_creators]
+
+    
+
+
+class SpecialEuclidienManifoldFactory(AbstractManifoldFactory):
+    """ Factory for Euclidien Manifold """
 
     @classmethod
     def create(cls, *args, metrics_names : Optional[Union[str, List[str]]] = None, n: int = 2,  **kwargs):
@@ -82,31 +134,6 @@ class SpecialEuclidienManifoldFactory:
             raise NotImplementedError
 
         
-    @classmethod
-    def register(cls, name: str) -> Callable:
-        """ decorator to register a new class"""
-        def inner_wrapper(wrapped_class: Metric) -> Callable:
-            if name in cls.metrics_creators:
-                print(f"Executor {name} already exists. Will replace it")
-            cls.metrics_creators[name] = wrapped_class
-            return wrapped_class
-
-        return inner_wrapper
-
-    @classmethod
-    def metric_keys(cls):
-        """ return list of metric keys for this class of manifold""" 
-        return cls.metrics_creators.keys()
-
-    @classmethod
-    def _get_metrics(cls, metrics_name : List[str]) -> List[Metric]:
-        res = []
-        for m in metrics_name:
-            metric = cls.metrics_creators[m]()
-            print(f"creating metric of type {m} : {metric}")
-            res.append(metric)
-
-        return res
 
 
 class _SpecialEuclideanMatrices(Manifold):
@@ -137,19 +164,19 @@ class LeftEuclidianMetric(Metric):
     def name(self):
         return "LEFT"
 
-@SpecialEuclidienManifoldFactory.register("RIGHT")
+@SpecialEuclidienManifoldFactory.register()
 class RightEuclidianMetric(Metric):
     def exp(self, tangent_vec):
         print("call droite")
         return 20
 
-    def name(self):
-        return "RIGHT"
+    #def name(self):
+    #    return "RIGHT"
 
 
-def main():
+def main(): 
     factory = SpecialEuclidienManifoldFactory
-    manifold = factory.create(n=2, point_type="matrix", metrics_names = ["LEFT", "RIGHT"])
+    manifold = factory.create(n=2, point_type="matrix", metrics_names = ["LEFT", "RightEuclidianMetric"])
 
     tangent_vec = "toto"
 
