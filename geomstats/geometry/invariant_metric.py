@@ -96,11 +96,11 @@ class _InvariantMetricMatrix(RiemannianMetric):
         inner_prod : array-like, shape=[...]
             Inner-product of the two tangent vectors.
         """
-        tan_b = gs.copy(tangent_vec_b)
+        tan_b = tangent_vec_b
         metric_mat = self.metric_mat_at_identity
         if (Matrices.is_diagonal(metric_mat)
                 and self.lie_algebra is not None):
-            tan_b *= self.reshaped_metric_matrix
+            tan_b = tangent_vec_b * self.reshaped_metric_matrix
         inner_prod = Matrices.frobenius_product(tangent_vec_a, tan_b)
         return inner_prod
 
