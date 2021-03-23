@@ -234,7 +234,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         aux = gs.matmul(
             Matrices.transpose(tangent_vec_a),
             gs.eye(self.n) - 0.5 * gs.matmul(base_point, base_point_transpose))
-        inner_prod = gs.einsum('...ik,...ki->...', aux, tangent_vec_b)
+        inner_prod = Matrices.trace_product(aux, tangent_vec_b)
 
         return inner_prod
 
