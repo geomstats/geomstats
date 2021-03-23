@@ -18,42 +18,42 @@ class TestNormalDistributions(geomstats.tests.TestCase):
         self.n_samples = 10
         self.dim = self.normal.dim
 
-    def test_random_uniform_and_belongs(self):
-        """Test random_uniform and belongs.
+    def test_random_point_and_belongs(self):
+        """Test random_point and belongs.
 
         Test that the random uniform method samples
         on the normal distribution space.
         """
-        point = self.normal.random_uniform()
+        point = self.normal.random_point()
         result = self.normal.belongs(point)
         expected = True
         self.assertAllClose(expected, result)
 
-    def test_random_uniform_and_belongs_vectorization(self):
-        """Test random_uniform and belongs.
+    def test_random_point_and_belongs_vectorization(self):
+        """Test random_point and belongs.
 
         Test that the random uniform method samples
         on the normal distribution space.
         """
         n_samples = self.n_samples
-        point = self.normal.random_uniform(n_samples)
+        point = self.normal.random_point(n_samples)
         result = self.normal.belongs(point)
         expected = gs.array([True] * n_samples)
         self.assertAllClose(expected, result)
 
-    def test_random_uniform(self):
-        """Test random_uniform.
+    def test_random_point(self):
+        """Test random_point.
 
         Test that the random uniform method samples points of the right shape
         """
-        point = self.normal.random_uniform(self.n_samples)
+        point = self.normal.random_point(self.n_samples)
         self.assertAllClose(gs.shape(point), (self.n_samples, self.dim))
 
     def test_sample(self):
         """Test samples."""
         n_points = self.n_samples
         n_samples = 100
-        points = self.normal.random_uniform(n_points)
+        points = self.normal.random_point(n_points)
         samples = self.normal.sample(points, n_samples)
         result = samples.shape
         expected = (n_points, n_samples)
@@ -65,7 +65,7 @@ class TestNormalDistributions(geomstats.tests.TestCase):
 
         Check vectorization of the computation of the pdf.
         """
-        point = self.normal.random_uniform(n_samples=2)
+        point = self.normal.random_point(n_samples=2)
         pdf = self.normal.point_to_pdf(point)
         x = gs.linspace(0., 1., 10)
         result = pdf(x)

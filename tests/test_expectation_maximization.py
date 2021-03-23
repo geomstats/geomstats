@@ -44,7 +44,8 @@ class TestEM(geomstats.tests.TestCase):
             initialisation_method=self.initialisation_method,
             mean_method=self.mean_method)
 
-        means, variances, coefficients = gmm_learning.fit(self.data)
+        means, variances, coefficients = gmm_learning.fit(
+            self.data, lr_mean=5e-3)
 
         self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
         self.assertTrue((variances < 1).all() and (variances > 0).all())
@@ -56,7 +57,8 @@ class TestEM(geomstats.tests.TestCase):
             initialisation_method='kmeans',
             mean_method=self.mean_method)
 
-        means, variances, coefficients = gmm_learning.fit(self.data)
+        means, variances, coefficients = gmm_learning.fit(
+            self.data, lr_mean=5e-3)
 
         self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
         self.assertTrue((variances < 1).all() and (variances > 0).all())
@@ -97,7 +99,7 @@ class TestEM(geomstats.tests.TestCase):
         weights = gs.array([3., 1.])
         mean_o = FrechetMean(
             metric=self.metric,
-            point_type='vector')
+            point_type='vector', lr=1.)
         mean_o.fit(data, weights=weights)
         result = mean_o.estimate_
         expected = self.metric.exp(

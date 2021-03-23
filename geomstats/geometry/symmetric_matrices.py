@@ -37,6 +37,8 @@ class SymmetricMatrices(EmbeddedManifold):
         ----------
         mat : array-like, shape=[..., n, n]
             Matrix to check.
+        atol : float
+            Tolerance to evaluate equality.
 
         Returns
         -------
@@ -45,6 +47,25 @@ class SymmetricMatrices(EmbeddedManifold):
         """
         check_shape = self.embedding_manifold.belongs(mat)
         return gs.logical_and(check_shape, Matrices.is_symmetric(mat, atol))
+
+    def random_point(self, n_samples=1, bound=1.):
+        """Sample from a uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample each entry.
+            Optional, default: 1.
+
+        Returns
+        -------
+        point : array-like, shape=[m, n] or [n_samples, m, n]
+            Sample.
+        """
+        return Matrices.to_symmetric(Matrices.random_point(n_samples, bound))
 
     def get_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
@@ -108,6 +129,9 @@ class SymmetricMatrices(EmbeddedManifold):
         ----------
         vec : array-like, shape=[..., n(n+1)/2]
             Vector.
+        dtype : dtype, {gs.float32, gs.float64}
+            Data type object to use for the output.
+            Optional. Default: gs.float32.
 
         Returns
         -------
@@ -130,7 +154,6 @@ class SymmetricMatrices(EmbeddedManifold):
         return mat
 
     @classmethod
-    @geomstats.vectorization.decorator(['else', 'matrix'])
     def expm(cls, mat):
         """
         Compute the matrix exponential for a symmetric matrix.
@@ -179,6 +202,9 @@ class SymmetricMatrices(EmbeddedManifold):
             Symmetric matrix.
         function : callable
             Function to apply to eigenvalues.
+        check_positive : bool
+            Whether to check positivity of the eigenvalues.
+            Optional. Default: False.
 
         Returns
         -------
