@@ -440,14 +440,13 @@ class SPDMetricAffine(RiemannianMetric):
 
         Returns
         -------
-        inner_product : array-like, shape=[..., n, n]
+        inner_product : array-like, shape=[...]
         """
         aux_a = Matrices.mul(inv_base_point, tangent_vec_a)
         aux_b = Matrices.mul(inv_base_point, tangent_vec_b)
 
         # Use product instead of matrix product and trace to save time
-        inner_product = gs.sum(
-            aux_a * Matrices.transpose(aux_b), axis=(-2, -1))
+        inner_product = Matrices.trace_product(aux_a, aux_b)
 
         return inner_product
 
@@ -708,9 +707,8 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
             transp_eigvecs, tangent_vec_b, eigvecs)
 
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
-        result = gs.sum(
-            coefficients * rotated_tangent_vec_a * rotated_tangent_vec_b,
-            axis=(-2, -1)) / 2
+        result = Matrices.frobenius_product(
+            coefficients * rotated_tangent_vec_a, rotated_tangent_vec_b) / 2
 
         return result
 
@@ -786,9 +784,9 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         """
         product = gs.matmul(point_a, point_b)
         sqrt_product = gs.linalg.sqrtm(product)
-        trace_a = gs.trace(point_a)
-        trace_b = gs.trace(point_b)
-        trace_prod = gs.trace(sqrt_product)
+        trace_a = gs.trace(point_a, axis1=-2, axis2=-1)
+        trace_b = gs.trace(point_b, axis1=-2, axis2=-1)
+        trace_prod = gs.trace(sqrt_product, axis1=-2, axis2=-1)
 
         return trace_a + trace_b - 2 * trace_prod
 
@@ -827,21 +825,20 @@ class SPDMetricEuclidean(RiemannianMetric):
             Inner-product.
         """
         power_euclidean = self.power_euclidean
-
         spd_space = self.space
 
         if power_euclidean == 1:
-            inner_product = gs.sum(
-                tangent_vec_a * tangent_vec_b, axis=(-2, -1))
+            inner_product = Matrices.frobenius_product(
+                tangent_vec_a, tangent_vec_b)
         else:
             modified_tangent_vec_a = spd_space.differential_power(
                 power_euclidean, tangent_vec_a, base_point)
             modified_tangent_vec_b = spd_space.differential_power(
                 power_euclidean, tangent_vec_b, base_point)
 
-            product = modified_tangent_vec_a * modified_tangent_vec_b
-            inner_product = gs.sum(
-                product, axis=(-2, 1)) / (power_euclidean ** 2)
+            inner_product = Matrices.frobenius_product(
+                modified_tangent_vec_a, modified_tangent_vec_b
+            ) / (power_euclidean ** 2)
         return inner_product
 
     @staticmethod
@@ -926,8 +923,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
             tangent_vec_a, base_point)
         modified_tangent_vec_b = spd_space.differential_log(
             tangent_vec_b, base_point)
-        product = gs.einsum(
-            '...ij,...ji->...',
+        product = Matrices.trace_product(
             modified_tangent_vec_a, modified_tangent_vec_b)
         return product
 
