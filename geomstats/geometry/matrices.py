@@ -307,7 +307,7 @@ class Matrices:
 
     @staticmethod
     def trace_product(mat_1, mat_2):
-        """Compute Frobenius inner-product of two matrices.
+        """Compute trace of the product of two matrices.
 
         Parameters
         ----------
