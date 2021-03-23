@@ -5,6 +5,7 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
@@ -262,6 +263,12 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         metric = SPDMetricEuclidean(3, power_euclidean=.5)
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
         expected = 3472 / 576
+        self.assertAllClose(result, expected)
+
+        result = self.metric_euclidean.inner_product(
+            tangent_vec, tangent_vec, base_point)
+        expected = MatricesMetric(3, 3).inner_product(
+            tangent_vec, tangent_vec)
 
         self.assertAllClose(result, expected)
 
