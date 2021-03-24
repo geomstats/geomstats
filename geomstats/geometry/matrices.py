@@ -290,6 +290,9 @@ class Matrices:
     def frobenius_product(mat_1, mat_2):
         """Compute Frobenius inner-product of two matrices.
 
+        The `einsum` function is used to avoid computing a matrix product. It
+        is also faster than using a sum an element-wise product.
+
         Parameters
         ----------
         mat_1 : array-like, shape=[..., m, n]
@@ -308,6 +311,9 @@ class Matrices:
     @staticmethod
     def trace_product(mat_1, mat_2):
         """Compute trace of the product of two matrices.
+
+        The `einsum` function is used to avoid computing a matrix product. It
+        is also faster than using a sum an element-wise product.
 
         Parameters
         ----------
