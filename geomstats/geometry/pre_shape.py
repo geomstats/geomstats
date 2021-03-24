@@ -200,7 +200,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             raise ValueError('The base_point does not belong to the pre-shape'
                              ' space')
         vector = self.center(vector)
-        sq_norm = gs.sum(base_point ** 2, axis=(-1, -2))
+        sq_norm = Matrices.frobenius_product(base_point, base_point)
         inner_prod = self.ambient_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
         tangent_vec = vector - gs.einsum('...,...ij->...ij', coef, base_point)

@@ -96,12 +96,12 @@ class _InvariantMetricMatrix(RiemannianMetric):
         inner_prod : array-like, shape=[...]
             Inner-product of the two tangent vectors.
         """
-        aux_prod = tangent_vec_a * tangent_vec_b
+        tan_b = tangent_vec_b
         metric_mat = self.metric_mat_at_identity
         if (Matrices.is_diagonal(metric_mat)
                 and self.lie_algebra is not None):
-            aux_prod *= self.reshaped_metric_matrix
-        inner_prod = gs.sum(aux_prod, axis=(-2, -1))
+            tan_b = tangent_vec_b * self.reshaped_metric_matrix
+        inner_prod = Matrices.frobenius_product(tangent_vec_a, tan_b)
         return inner_prod
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -710,11 +710,8 @@ class _InvariantMetricVector(RiemannianMetric):
         inv_jacobian = GeneralLinear.inverse(jacobian)
         inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
 
-        metric_mat = gs.einsum(
-            '...ij,...jk->...ik',
-            inv_jacobian_transposed, self.metric_mat_at_identity)
-        metric_mat = gs.einsum(
-            '...ij,...jk->...ik', metric_mat, inv_jacobian)
+        metric_mat = Matrices.mul(
+            inv_jacobian_transposed, self.metric_mat_at_identity, inv_jacobian)
         return metric_mat
 
     def left_exp_from_identity(self, tangent_vec):
@@ -1048,7 +1045,7 @@ class BiInvariantMetric(_InvariantMetricVector):
         if self.default_point_type == 'vector':
             return super(BiInvariantMetric, self).inner_product_at_identity(
                 tangent_vec_a, tangent_vec_b)
-        return gs.einsum('...ij,...ij->...', tangent_vec_a, tangent_vec_b)
+        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product of two vectors in tangent space at base point.
