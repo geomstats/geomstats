@@ -59,7 +59,25 @@ nbsphinx_thumbnails = {
     'notebooks/usecase_hand_poses_analysis_in_kendall_shape_space':'../../notebooks/figures/hand_skeleton.png',
 }
 
+nbsphinx_prolog = r"""
+{% set docname = env.doc2path(env.docname, base=None) %}
 
+.. raw:: html
+
+    <div class="admonition note">
+      <p>Notebook source code:
+        <a class="reference external" href="https://github.com/geomstats/geomstats/blob/master/{{ docname|e }}">{{ docname|e }}</a>
+        <br>Run it yourself on binder
+        <a href="https://hub.gke2.mybinder.org/user/geomstats-geomstats-c8tgg07f/tree"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>
+      </p>
+    </div>
+
+.. raw:: latex
+
+    \nbsphinxstartnotebook{\scriptsize\noindent\strut
+    \textcolor{gray}{The following section was generated from
+    \sphinxcode{\sphinxupquote{\strut {{ docname | escape_latex }}}} \dotfill}}
+"""
 exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']
 
 pygments_style = None
