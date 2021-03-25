@@ -648,18 +648,27 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         # check mean value for concentrated distribution
         kappa = 10000000
-        points = sphere.random_von_mises_fisher(kappa, n_points)
+        points = sphere.random_von_mises_fisher(
+            kappa=kappa, n_samples=n_points)
         sum_points = gs.sum(points, axis=0)
-        mean = gs.array([0., 0., 1.])
-        mean_estimate = sum_points / gs.linalg.norm(sum_points)
+        expected = gs.array([0., 0., 1.])
+        result = sum_points / gs.linalg.norm(sum_points)
+        self.assertAllClose(result, expected, atol=MEAN_ESTIMATION_TOL)
+
+        # check mean value for concentrated distribution for different mean
+        kappa = 10000000
+        mean = sphere.random_uniform()
+        points = sphere.random_von_mises_fisher(
+            mu=mean, kappa=kappa, n_samples=n_points)
+        sum_points = gs.sum(points, axis=0)
+        result = sum_points / gs.linalg.norm(sum_points)
         expected = mean
-        result = mean_estimate
-        self.assertTrue(
-            gs.allclose(result, expected, atol=MEAN_ESTIMATION_TOL)
-        )
+        self.assertAllClose(result, expected, atol=MEAN_ESTIMATION_TOL)
+
         # check concentration parameter for dispersed distribution
         kappa = 1.
-        points = sphere.random_von_mises_fisher(kappa, n_points)
+        points = sphere.random_von_mises_fisher(
+            kappa=kappa, n_samples=n_points)
         sum_points = gs.sum(points, axis=0)
         mean_norm = gs.linalg.norm(sum_points) / n_points
         kappa_estimate = (mean_norm * (dim + 1. - mean_norm**2)
