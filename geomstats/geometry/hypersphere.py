@@ -14,6 +14,7 @@ from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 TOLERANCE = 1e-6
 EPSILON = 1e-4
@@ -324,7 +325,7 @@ class _Hypersphere(EmbeddedManifold):
             samples = gs.squeeze(samples, axis=0)
         return samples
 
-    def random_von_mises_fisher(self, kappa=10, n_samples=1):
+    def random_von_mises_fisher(self, mu=None, kappa=10, n_samples=1):
         """Sample in the 2-sphere with the von Mises distribution.
 
         Sample in the 2-sphere with the von Mises distribution centered at the
@@ -332,11 +333,13 @@ class _Hypersphere(EmbeddedManifold):
 
         References
         ----------
-        https://en.wikipedia.org/wiki/Von_Mises_distribution
+        https://en.wikipedia.org/wiki/Von_Mises-Fisher_distribution
 
         Parameters
         ----------
-        kappa : int
+        mu : array-like, shape=[dim]
+            Mean parameter of the distribution.
+        kappa : float
             Kappa parameter of the von Mises distribution.
             Optional, default: 10.
         n_samples : int
@@ -349,26 +352,29 @@ class _Hypersphere(EmbeddedManifold):
             Points sampled on the sphere in extrinsic coordinates
             in Euclidean space of dimension 3.
         """
-        if self.dim != 2:
-            raise NotImplementedError(
-                'Sampling from the von Mises Fisher distribution'
-                'is only implemented in dimension 2.')
-        angle = 2. * gs.pi * gs.random.rand(n_samples)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
-        unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
-        scalar = gs.random.rand(n_samples)
+        if self.dim == 2:
+            angle = 2. * gs.pi * gs.random.rand(n_samples)
+            angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+            unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
+            scalar = gs.random.rand(n_samples)
 
-        coord_z = 1. + 1. / kappa * gs.log(
-            scalar + (1. - scalar) * gs.exp(gs.array(-2. * kappa)))
-        coord_z = gs.to_ndarray(coord_z, to_ndim=2, axis=1)
+            coord_z = 1. + 1. / kappa * gs.log(
+                scalar + (1. - scalar) * gs.exp(gs.array(-2. * kappa)))
+            coord_z = gs.to_ndarray(coord_z, to_ndim=2, axis=1)
+            coord_xy = gs.sqrt(1. - coord_z**2) * unit_vector
+            point = gs.hstack((coord_xy, coord_z))
 
-        coord_xy = gs.sqrt(1. - coord_z**2) * unit_vector
+            if mu is not None:
+                rot_vec = gs.cross(
+                    gs.array([0., 0., 1.]), mu)
+                rot_vec *= gs.arccos(mu[-1]) / gs.linalg.norm(rot_vec)
+                rot = SpecialOrthogonal(
+                    3, 'vector').matrix_from_rotation_vector(rot_vec)
+                point = gs.matmul(point, gs.transpose(rot))
 
-        point = gs.hstack((coord_xy, coord_z))
-
-        if n_samples == 1:
-            point = gs.squeeze(point, axis=0)
-        return point
+            if n_samples == 1:
+                point = gs.squeeze(point, axis=0)
+            return point
 
 
 class HypersphereMetric(RiemannianMetric):
@@ -507,8 +513,7 @@ class HypersphereMetric(RiemannianMetric):
         norm_b = self.embedding_metric.norm(point_b)
         inner_prod = self.embedding_metric.inner_product(point_a, point_b)
 
-        cos_angle = gs.einsum(
-            '...,...->...', inner_prod, 1. / (norm_a * norm_b))
+        cos_angle = inner_prod / (norm_a * norm_b)
         cos_angle = gs.clip(cos_angle, -1, 1)
 
         dist = gs.arccos(cos_angle)
