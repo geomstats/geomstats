@@ -17,7 +17,8 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode', 
+    'sphinx_gallery.load_style',
 ]
 
 # Configure napoleon for numpy docstring
@@ -29,7 +30,18 @@ napoleon_use_rtype = False
 napoleon_include_init_with_doc = False
 
 # Configure nbsphinx for notebooks execution
+nbsphinx_execute_arguments = [
+    "--InlineBackend.figure_formats={'svg', 'pdf'}",
+    "--InlineBackend.rc={'figure.dpi': 96}",
+]
+
 nbsphinx_execute = 'never'
+
+# To get a prompt similar to the Classic Notebook, use
+nbsphinx_input_prompt = ' In [%s]:'
+nbsphinx_output_prompt = ' Out [%s]:'
+#nbsphinx_prompt_width = '10'
+
 nbsphinx_allow_errors = True
 
 templates_path = ['_templates']
