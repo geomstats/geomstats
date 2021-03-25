@@ -52,6 +52,14 @@ master_doc = 'index'
 
 language = None
 
+nbsphinx_thumbnails = {
+    'notebooks/usecase_emg_sign_classification_in_spd_manifold':'../../notebooks/figures/paper_rock_scissors.png',
+    'notebooks/usecase_graph_embedding_and_clustering_in_hyperbolic_space':'../../notebooks/figures/karate_graph.png',
+    'notebooks/usecase_optic_nerve_heads_analysis_in_kendall_shape_space':'../../notebooks/figures/optic_nerves.png',
+    'notebooks/usecase_hand_poses_analysis_in_kendall_shape_space':'../../notebooks/figures/hand_skeleton.png',
+}
+
+
 exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']
 
 pygments_style = None
