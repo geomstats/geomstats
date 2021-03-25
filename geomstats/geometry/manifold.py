@@ -5,7 +5,7 @@ Euclidean space near each point.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Dict, Union
+from typing import Callable, Dict, List, Optional, Union
 from connection import Connection
 import geomstats.errors
 
@@ -189,7 +189,7 @@ class AbstractManifoldFactory(ABC):
                 inner_name = wrapped_class.__name__
                 
             if inner_name in cls.metrics_creators:
-                print(f"Executor {inner_name} already exists. Will replace it")
+                print(f"Metric creator with key {inner_name} already exists. Will replace it")
             cls.metrics_creators[inner_name] = wrapped_class
             return wrapped_class
 
@@ -206,7 +206,7 @@ class AbstractManifoldFactory(ABC):
         return cls.metrics_creators.keys()
 
     @classmethod
-    def _get_metrics(cls, metrics_name : List[str]) -> List[Connection]:
+    def _get_metrics(cls, metrics_name : Union[str, List[str]]) -> List[Connection]:
         """internal method to create metrics from a list of names
 
         Args:
@@ -215,6 +215,9 @@ class AbstractManifoldFactory(ABC):
         Returns:
             List[Connection]: List of metrics
         """
+        
+        if not isinstance(metrics_names, list):
+            metrics_names = [metrics_names]
         
         res = []
         for m in metrics_name:

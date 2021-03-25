@@ -1,5 +1,6 @@
 from typing import Callable, List, Dict, Optional, Union
 from abc import ABC, abstractmethod
+import itertools
 
 #import geomstats.backend as gs
 #from geomstats.geometry.pre_shape import PreShapeSpace
@@ -50,15 +51,55 @@ class Manifold(ABC):
 
 class AbstractManifoldFactory(ABC):
     metrics_creators = {}
+    manifolds_creators = {}
     
     @classmethod
-    @abstractmethod
-    def create(cls, *args, metrics_names : Optional[Union[str, List[str]]] = None, **kwargs ):
-        pass
+    def create(cls, metrics_names : Optional[Union[str, List[str]]] = None, **kwargs ):
+        args_dict = kwargs
+        
+        # check the incremental combination of args to see if a key exist        
+        for length in range(len(args_dict), 0, -1):
+            for key in itertools.combinations(args_dict.items(), length):
+                if key in cls.manifolds_creators:
+                    print(f"found key {key}  from args {args_dict}")
+                    
+                    if not isinstance(metrics_names, list):
+                        print(f"{metrics_names} is a str, transforming to list")
+                        metrics_names = [metrics_names]
+
+                    metrics = cls._get_metrics(metrics_names)
+                    print(f"metrics created are {metrics}")
+            
+                    key_keys = [k for k,v in key]
+                    rest_of_args =  {k:v for k,v in args_dict.items() if k not in key_keys}
+                    return cls.manifolds_creators[key](metrics, rest_of_args)
+
+        raise Exception(f"no manifold with key containing {args_dict}")
+                
+    @classmethod
+    def register(cls, **kwargs):
+        """decorator to register new manifold type
+
+        Returns:
+            Callable: [description]
+        """
+        def wrapper(manifold_class: Manifold):
+            args_dict = kwargs
+            key = tuple(sorted(args_dict.items()))  # TODO without sorted
+            
+            if key in cls.manifolds_creators:
+                print(f"warning, this combination of args alreay exist: {key} . I will replace it")
+            
+            cls.manifolds_creators[key] = manifold_class
+            return manifold_class 
+
+        return wrapper
+                        
+    
     
     @classmethod
-    def register(cls, name: str = None) -> Callable:
-        """decorator to register a new class
+    def registerMetric(cls, name: str = None) -> Callable:
+        """decorator to register a new Metric class
 
         Args:
             name (str): the name of the metric to Register 
@@ -117,25 +158,9 @@ class AbstractManifoldFactory(ABC):
 class SpecialEuclidienManifoldFactory(AbstractManifoldFactory):
     """ Factory for Euclidien Manifold """
 
-    @classmethod
-    def create(cls, *args, metrics_names : Optional[Union[str, List[str]]] = None, n: int = 2,  **kwargs):
-        """ create a new manifold with associated metrics"""
-        if not isinstance(metrics_names, list):
-            print(f"{metrics_names} is a str, transforming to list")
-            metrics_names = [metrics_names]
-
-        metrics = cls._get_metrics(metrics_names)
-        print(f"metrics created are {metrics}")
-        if n == 2:
-            return _SpecialEuclideanVec(metrics, *args, **kwargs)
-        elif n == 3:
-            return _SpecialEuclideanMatrices(metrics, *args, **kwargs)
-        else:
-            raise NotImplementedError
-
         
 
-
+@SpecialEuclidienManifoldFactory.register(n=3)
 class _SpecialEuclideanMatrices(Manifold):
     def __init__(self, metrics : List[Metric], point_type : str = "matrix"):
         super().__init__(metrics)
@@ -145,17 +170,27 @@ class _SpecialEuclideanMatrices(Manifold):
         print("Matrices")
 
 
-
+@SpecialEuclidienManifoldFactory.register(n=2)
 class _SpecialEuclideanVec(Manifold):
     def __init__(self, metrics : List[Metric], point_type : str = "matrix"):
         super().__init__(metrics)
         self.point_type = point_type
 
     def thats_my_method(self):
-        print("vec")
+        print(self.point_type)
 
 
-@SpecialEuclidienManifoldFactory.register("LEFT")
+@SpecialEuclidienManifoldFactory.register(n=2, miaou="toto")
+class _SpecialEuclideanDummy(Manifold):
+    def __init__(self, metrics : List[Metric], point_type : str = "matrix"):
+        super().__init__(metrics)
+        self.point_type = point_type
+
+    def thats_my_method(self):
+        print(self.point_type)
+
+
+@SpecialEuclidienManifoldFactory.registerMetric("LEFT")
 class LeftEuclidianMetric(Metric):
     def exp(self, tangent_vec):
         print(f"call gauche witht manifold  {self.manifold}")
@@ -164,19 +199,18 @@ class LeftEuclidianMetric(Metric):
     def name(self):
         return "LEFT"
 
-@SpecialEuclidienManifoldFactory.register()
+@SpecialEuclidienManifoldFactory.registerMetric()
 class RightEuclidianMetric(Metric):
     def exp(self, tangent_vec):
         print("call droite")
         return 20
 
-    #def name(self):
-    #    return "RIGHT"
-
 
 def main(): 
     factory = SpecialEuclidienManifoldFactory
-    manifold = factory.create(n=2, point_type="matrix", metrics_names = ["LEFT", "RightEuclidianMetric"])
+    
+    print("First manifold")
+    manifold = factory.create(n=3, point_type="matrix", metrics_names = ["LEFT", "RightEuclidianMetric"])
 
     tangent_vec = "toto"
 
@@ -184,11 +218,21 @@ def main():
     for name, geo_points in res.items():
         print(name, geo_points)
 
-
-    print("manifold2 (1 metric)")
-    manifold2 = factory.create(n=2, point_type="matrix", metrics_names = "LEFT")
+    print("\nSecond manifold")
+    manifold2 = factory.create(n=2, point_type="miaou", metrics_names = "LEFT")
     res = manifold2.call_method_on_metrics('exp', tangent_vec)
     print(res)
+    manifold2.thats_my_method()
+
+    print("\nThird manifold")
+    manifold3 = factory.create(miaou="toto", n=2, point_type="miaou", metrics_names = "LEFT")
+    res = manifold3.call_method_on_metrics('exp', tangent_vec)
+
+    print("\nFourth manifold")
+    try:
+        manifold_dont_exist = factory.create(n=4, metrics_names = "LEFT")
+    except:
+        print("good, exception is here")
 
 
 if __name__ == '__main__':

@@ -39,7 +39,7 @@ class Connection:
         self.default_coords_type = default_coords_type
         self.manifold = None
 
-    def setManifold(manifold):
+    def setManifold(self, manifold):
         """set the manifold associated to this metric
 
         Args:
