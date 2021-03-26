@@ -569,8 +569,7 @@ class KendallSphere:
                 raise ValueError(
                     'Points do not belong to Matrices(3, 2).')
             points = S32.projection(points)
-        elif self.point_type == 'pre-shape':
-            if not gs.all(S32.belongs(points)):
+        elif self.point_type == 'pre-shape' and not gs.all(S32.belongs(points)):
                 raise ValueError(
                     'Points do not belong to the pre-shape space.')
         points = self.convert_to_spherical_coordinates(points)
@@ -584,7 +583,7 @@ class KendallSphere:
 
     def draw(self, n_theta=25, n_phi=13, scale=.05):
         """Draw the underlying sphere regularly sampled with corresponding
-        triangles """
+        triangles."""
         self.ax.set_axis_off()
         plt.tight_layout()
 
@@ -600,17 +599,21 @@ class KendallSphere:
         self.ax.plot_wireframe(coords_x, coords_y, coords_z, linewidths=.6,
                                color='grey', alpha=.6, zorder=-1)
 
-        lim = lambda theta: gs.pi - self.elev + (2 * self.elev - gs.pi) / (gs.pi) * abs(self.azim - theta)
+        def lim(theta):
+            return gs.pi - self.elev + (2 * self.elev - gs.pi) \
+                   / (gs.pi) * abs(self.azim - theta)
+
         for theta in gs.linspace(0, 2 * gs.pi, n_theta // 2 + 1):
             for phi in gs.linspace(0, gs.pi, n_phi):
                 if theta <= self.azim + gs.pi and phi <= lim(theta):
                     self.draw_triangle(theta, phi, scale)
-                if theta > self.azim + gs.pi and phi < lim(2 * self.azim + 2 * gs.pi - theta):
+                if theta > self.azim + gs.pi and phi \
+                        < lim(2 * self.azim + 2 * gs.pi - theta):
                     self.draw_triangle(theta, phi, scale)
 
     def draw_triangle(self, theta, phi, scale):
         """Draw the corresponding triangle on the Kendall sphere at
-        location theta, phi"""
+        location theta, phi."""
         u_theta = gs.cos(theta) * self.ua + gs.sin(theta) * self.na
         T = gs.cos(phi / 2) * self.can + gs.sin(phi / 2) * u_theta
         T = scale * T
@@ -626,9 +629,10 @@ class KendallSphere:
         for i in range(3):
             self.ax.scatter(x[i], y[i], z[i], color=c[i], s=10, alpha=1, zorder=1)
 
-    def R_theta_phi(self, theta, phi):
+    @staticmethod
+    def R_theta_phi(theta, phi):
         """Build the needed rotation to send a triangle at the north
-        to any location theta, phi"""
+        to any location theta, phi."""
         Rth = gs.array([[gs.cos(theta), -gs.sin(theta), 0.],
                         [gs.sin(theta), gs.cos(theta), 0.],
                         [0., 0., 1.]])
