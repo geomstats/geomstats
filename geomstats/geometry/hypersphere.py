@@ -329,14 +329,20 @@ class _Hypersphere(EmbeddedManifold):
 
     def random_von_mises_fisher(
             self, mu=None, kappa=10, n_samples=1, max_iter=100):
-        """Sample in the 2-sphere with the von Mises distribution.
+        """Sample with the von Mises-Fisher distribution.
 
-        Sample in the 2-sphere with the von Mises distribution centered at the
-        north pole.
+        This distribution corresponds to the maximum entropy distribution
+        given a mean. In dimension 2, a closed form expression is available.
+        In larger dimension, rejection sampling is used according to [Wood94]_
 
         References
         ----------
         https://en.wikipedia.org/wiki/Von_Mises-Fisher_distribution
+
+        .. [Wood94]   Wood, Andrew T. A. “Simulation of the von Mises Fisher
+                      Distribution.” Communications in Statistics - Simulation
+                      and Computation, June 27, 2007.
+                      https://doi.org/10.1080/03610919408813161.
 
         Parameters
         ----------
@@ -383,24 +389,20 @@ class _Hypersphere(EmbeddedManifold):
         dim = self.dim
         sqrt = gs.sqrt(4 * kappa ** 2 + dim ** 2)
         envelop_param = (-2 * kappa + sqrt) / dim
-        a = (dim + 2 * kappa + sqrt) / 4
-        d = 4 * a * envelop_param / (1 + envelop_param) - dim * gs.log(dim)
-        theta = .01
+        node = (1. - envelop_param) / (1. + envelop_param)
+        correction = kappa * node + dim * gs.log(1. - node ** 2)
 
         n_accepted, n_iter = 0, 0
         result = []
         while (n_accepted < n_samples) and (n_iter < max_iter):
-            envelope = beta.rvs(dim / 2, dim / 2, size=n_samples - n_accepted)
-            coord_z = (1 - (1 + envelop_param) * envelope) / (
-                    1 + (1 - envelop_param) * envelope)
+            sym_beta = beta.rvs(dim / 2, dim / 2, size=n_samples - n_accepted)
+            coord_z = (1 - (1 + envelop_param) * sym_beta) / (
+                    1 + (1 - envelop_param) * sym_beta)
             accept_tol = gs.random.rand(n_samples - n_accepted)
-            threshold = 2 * a * envelop_param / (
-                    1 + (1 - envelop_param) * envelope)
-            criterion = dim * gs.log(threshold) - threshold + d > gs.log(
-                accept_tol)
-            # criterion = (
-            #     dim + 1 + gs.log(dim ** dim * theta) + d
-            #     - dim * theta / threshold - threshold) >= theta * accept_tol
+            criterion = (
+                kappa * coord_z
+                + dim * gs.log(1 - node * coord_z)
+                - correction) > gs.log(accept_tol)
             result.append(coord_z[criterion])
             n_accepted += gs.sum(criterion)
             n_iter += 1
@@ -412,6 +414,7 @@ class _Hypersphere(EmbeddedManifold):
         coord_rest = _Hypersphere(dim - 1).random_uniform(n_accepted)
         coord_rest = gs.einsum(
             '...,...i->...i', gs.sqrt(1 - coord_z ** 2), coord_rest)
+        # TODO(nguigs): add parameter mu
         return gs.hstack([coord_rest, coord_z[:, None]])
 
 
