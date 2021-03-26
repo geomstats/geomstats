@@ -6,6 +6,7 @@ Euclidean space.
 
 import logging
 from itertools import product
+from scipy.stats import beta
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
@@ -285,6 +286,7 @@ class _Hypersphere(EmbeddedManifold):
         n_samples : int
             Number of samples.
             Optional, default: 1.
+        bound : unused
 
         Returns
         -------
@@ -325,7 +327,8 @@ class _Hypersphere(EmbeddedManifold):
             samples = gs.squeeze(samples, axis=0)
         return samples
 
-    def random_von_mises_fisher(self, mu=None, kappa=10, n_samples=1):
+    def random_von_mises_fisher(
+            self, mu=None, kappa=10, n_samples=1, max_iter=100):
         """Sample in the 2-sphere with the von Mises distribution.
 
         Sample in the 2-sphere with the von Mises distribution centered at the
@@ -375,6 +378,41 @@ class _Hypersphere(EmbeddedManifold):
             if n_samples == 1:
                 point = gs.squeeze(point, axis=0)
             return point
+
+        # rejection sampling in the general case
+        dim = self.dim
+        sqrt = gs.sqrt(4 * kappa ** 2 + dim ** 2)
+        envelop_param = (-2 * kappa + sqrt) / dim
+        a = (dim + 2 * kappa + sqrt) / 4
+        d = 4 * a * envelop_param / (1 + envelop_param) - dim * gs.log(dim)
+        theta = .01
+
+        n_accepted, n_iter = 0, 0
+        result = []
+        while (n_accepted < n_samples) and (n_iter < max_iter):
+            envelope = beta.rvs(dim / 2, dim / 2, size=n_samples - n_accepted)
+            coord_z = (1 - (1 + envelop_param) * envelope) / (
+                    1 + (1 - envelop_param) * envelope)
+            accept_tol = gs.random.rand(n_samples - n_accepted)
+            threshold = 2 * a * envelop_param / (
+                    1 + (1 - envelop_param) * envelope)
+            criterion = dim * gs.log(threshold) - threshold + d > gs.log(
+                accept_tol)
+            # criterion = (
+            #     dim + 1 + gs.log(dim ** dim * theta) + d
+            #     - dim * theta / threshold - threshold) >= theta * accept_tol
+            result.append(coord_z[criterion])
+            n_accepted += gs.sum(criterion)
+            n_iter += 1
+        if n_accepted < n_samples:
+            logging.warning('Maximum number of iteration reached in rejection '
+                            'sampling before n_samples were accepted.')
+        coord_z = gs.concatenate(result)
+
+        coord_rest = _Hypersphere(dim - 1).random_uniform(n_accepted)
+        coord_rest = gs.einsum(
+            '...,...i->...i', gs.sqrt(1 - coord_z ** 2), coord_rest)
+        return gs.hstack([coord_rest, coord_z[:, None]])
 
 
 class HypersphereMetric(RiemannianMetric):
