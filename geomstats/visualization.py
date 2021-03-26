@@ -7,7 +7,9 @@ import matplotlib.pyplot as plt
 import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
+from geomstats.geometry.pre_shape import PreShapeSpace
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
@@ -20,6 +22,8 @@ S1 = Hypersphere(dim=1)
 S2 = Hypersphere(dim=2)
 H2 = Hyperboloid(dim=2)
 POINCARE_HALF_PLANE = PoincareHalfSpace(dim=2)
+M32 = Matrices(m=3, n=2)
+S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
 
 AX_SCALE = 1.2
 
@@ -490,6 +494,169 @@ class SpecialEuclidean2:
         ax.quiver(translation[:, 0], translation[:, 1], frame_2[:, 0],
                   frame_2[:, 1], width=0.005, color='r')
         ax.scatter(translation[:, 0], translation[:, 1], s=16, **kwargs)
+
+
+class KendallSphere:
+    """Class used to plot points in Kendall shape space of 2D triangles."""
+
+    def __init__(self, points=None, point_type='pre-shape'):
+        self.points = []
+        self.point_type = point_type
+        self.ax = None
+        self.elev, self.azim = None, None
+
+        # equilateral triangle (north pole)
+        self.can = gs.array([[1., 0.],
+                             [-.5, gs.sqrt(3) / 2],
+                             [-.5, -gs.sqrt(3) / 2]]) / gs.sqrt(3)
+
+        # tangent direction toward isocele triangle at vertex A
+        self.ua = gs.array([[-1., 0.],
+                            [.5, gs.sqrt(3) / 2],
+                            [.5, -gs.sqrt(3) / 2]]) / gs.sqrt(3)
+
+        # tangent direction toward isocele triangle at vertex B
+        self.ub = gs.array([[.5, gs.sqrt(3) / 2],
+                            [.5, -gs.sqrt(3) / 2],
+                            [-1., 0.]]) / gs.sqrt(3)
+
+        # (ua,na) is a positively oriented othonormal basis of
+        # the horizontal space at north pole
+        self.na = self.ub - S32.metric.inner_product(self.ub, self.ua) * self.ua
+        self.na = self.na / S32.metric.norm(self.na)
+
+        if points is not None:
+            self.add_points(points)
+
+    def set_ax(self, ax=None):
+        if ax is None:
+            ax = plt.subplot(111, projection='3d')
+
+        ax_s = .5
+        plt.setp(ax,
+                 xlim=(-ax_s, ax_s),
+                 ylim=(-ax_s, ax_s),
+                 zlim=(-ax_s, ax_s),
+                 xlabel='X', ylabel='Y', zlabel='Z')
+        self.ax = ax
+
+    def set_view(self, elev=30., azim=90.):
+        self.elev, self.azim = gs.pi * elev / 180, gs.pi * azim / 180
+        self.ax.view_init(elev, azim)
+
+    def convert_to_polar_coordinates(self, points):
+        aligned_points = S32.align(points, self.can)
+        speeds = S32.metric.log(aligned_points, self.can)
+
+        coords_theta = gs.arctan2(S32.metric.inner_product(speeds, self.na),
+                                  S32.metric.inner_product(speeds, self.ua))
+        coords_phi = 2 * S32.metric.dist(self.can, aligned_points)
+
+        return coords_theta, coords_phi
+
+    def convert_to_spherical_coordinates(self, points):
+        coords_theta, coords_phi = self.convert_to_polar_coordinates(points)
+        coords_x = .5 * gs.cos(coords_theta) * gs.sin(coords_phi)
+        coords_y = .5 * gs.sin(coords_theta) * gs.sin(coords_phi)
+        coords_z = .5 * gs.cos(coords_phi)
+        spherical_coords = gs.transpose(gs.vstack(
+            [coords_x, coords_y, coords_z]))
+        return spherical_coords
+
+    def add_points(self, points):
+        if self.point_type == 'extrinsic':
+            if not gs.all(M32.belongs(points)):
+                raise ValueError(
+                    'Points do not belong to Matrices(3, 2).')
+            points = S32.projection(points)
+        elif self.point_type == 'pre-shape':
+            if not gs.all(S32.belongs(points)):
+                raise ValueError(
+                    'Points do not belong to the pre-shape space.')
+        points = self.convert_to_spherical_coordinates(points)
+        if not isinstance(points, list):
+            points = list(points)
+        self.points.extend(points)
+
+    def clear_points(self):
+        """Clear the points to draw."""
+        self.points = []
+
+    def draw(self, n_theta=25, n_phi=13, scale=.05):
+        """Draw the underlying sphere regularly sampled with corresponding
+        triangles """
+        self.ax.set_axis_off()
+        plt.tight_layout()
+
+        coords_theta = gs.linspace(0, 2 * gs.pi, n_theta)
+        coords_phi = gs.linspace(0, gs.pi, n_phi)
+
+        coords_x = .5 * gs.outer(gs.sin(coords_phi), gs.cos(coords_theta))
+        coords_y = .5 * gs.outer(gs.sin(coords_phi), gs.sin(coords_theta))
+        coords_z = .5 * gs.outer(gs.cos(coords_phi), gs.ones_like(coords_theta))
+
+        self.ax.plot_surface(coords_x, coords_y, coords_z, rstride=1, cstride=1,
+                             color='grey', linewidth=0, alpha=.1, zorder=-1)
+        self.ax.plot_wireframe(coords_x, coords_y, coords_z, linewidths=.6,
+                               color='grey', alpha=.6, zorder=-1)
+
+        lim = lambda theta: gs.pi - self.elev + (2 * self.elev - gs.pi) / (gs.pi) * abs(self.azim - theta)
+        for theta in gs.linspace(0, 2 * gs.pi, n_theta // 2 + 1):
+            for phi in gs.linspace(0, gs.pi, n_phi):
+                if theta <= self.azim + gs.pi and phi <= lim(theta):
+                    self.draw_triangle(theta, phi, scale)
+                if theta > self.azim + gs.pi and phi < lim(2 * self.azim + 2 * gs.pi - theta):
+                    self.draw_triangle(theta, phi, scale)
+
+    def draw_triangle(self, theta, phi, scale):
+        """Draw the corresponding triangle on the Kendall sphere at
+        location theta, phi"""
+        u_theta = gs.cos(theta) * self.ua + gs.sin(theta) * self.na
+        T = gs.cos(phi / 2) * self.can + gs.sin(phi / 2) * u_theta
+        T = scale * T
+        T = gs.hstack((T, .5 * gs.ones((3, 1))))
+        T = self.R_theta_phi(theta, phi) @ T.transpose()
+
+        x = gs.hstack((T[0], T[0, 0]))
+        y = gs.hstack((T[1], T[1, 0]))
+        z = gs.hstack((T[2], T[2, 0]))
+
+        self.ax.plot3D(x, y, z, 'grey', zorder=1)
+        c = ['red', 'green', 'blue']
+        for i in range(3):
+            self.ax.scatter(x[i], y[i], z[i], color=c[i], s=10, alpha=1, zorder=1)
+
+    def R_theta_phi(self, theta, phi):
+        """Build the needed rotation to send a triangle at the north
+        to any location theta, phi"""
+        Rth = gs.array([[gs.cos(theta), -gs.sin(theta), 0.],
+                        [gs.sin(theta), gs.cos(theta), 0.],
+                        [0., 0., 1.]])
+        Rphi = gs.array([[gs.cos(phi), 0., gs.sin(phi)],
+                         [0., 1., 0.],
+                         [-gs.sin(phi), 0, gs.cos(phi)]])
+        return Rth @ Rphi @ Rth.transpose()
+
+    def draw_points(self, al=1, zo=0, **kwargs):
+        points_x = [gs.to_numpy(point[0]) for point in self.points]
+        points_y = [gs.to_numpy(point[1]) for point in self.points]
+        points_z = [gs.to_numpy(point[2]) for point in self.points]
+        self.ax.scatter(points_x, points_y, points_z, alpha=al, zorder=zo, **kwargs)
+
+    def draw_curve(self, al=1, zo=0, **kwargs):
+        points_x = [gs.to_numpy(point[0]) for point in self.points]
+        points_y = [gs.to_numpy(point[1]) for point in self.points]
+        points_z = [gs.to_numpy(point[2]) for point in self.points]
+        self.ax.plot3D(points_x, points_y, points_z, alpha=al, zorder=zo, **kwargs)
+
+    def draw_vector(self, v, bp, **kwargs):
+        norm = S32.metric.norm(v)
+        exp = S32.metric.exp(v, bp)
+        bp = self.convert_to_spherical_coordinates(bp)[0]
+        exp = self.convert_to_spherical_coordinates(exp)[0]
+        v = exp - gs.dot(exp, bp / gs.linalg.norm(bp)) * bp / gs.linalg.norm(bp)
+        v = v / gs.linalg.norm(v) * norm
+        self.ax.quiver(bp[0], bp[1], bp[2], v[0], v[1], v[2], **kwargs)
 
 
 def convert_to_trihedron(point, space=None):
