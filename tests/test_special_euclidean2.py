@@ -60,19 +60,19 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         self.n_samples = 4
 
     def test_random_and_belongs(self):
-        """Checks random_uniform and belongs
+        """Checks random_point and belongs
 
         Test that the random uniform method samples
         on the special euclidean group.
         """
-        base_point = self.group.random_uniform()
+        base_point = self.group.random_point()
         result = self.group.belongs(base_point)
         expected = True
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
-        points = self.group.random_uniform(n_samples=n_samples)
+        points = self.group.random_point(n_samples=n_samples)
         result = self.group.belongs(points)
         expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
@@ -85,7 +85,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
 
     def test_regularize_vectorization(self):
         n_samples = self.n_samples
-        points = self.group.random_uniform(n_samples=n_samples)
+        points = self.group.random_point(n_samples=n_samples)
         regularized_points = self.group.regularize(points)
 
         self.assertAllClose(
@@ -135,9 +135,9 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
 
     def test_compose_vectorization(self):
         n_samples = self.n_samples
-        n_points_a = self.group.random_uniform(n_samples=n_samples)
-        n_points_b = self.group.random_uniform(n_samples=n_samples)
-        one_point = self.group.random_uniform(n_samples=1)
+        n_points_a = self.group.random_point(n_samples=n_samples)
+        n_points_b = self.group.random_point(n_samples=n_samples)
+        one_point = self.group.random_point(n_samples=1)
 
         result = self.group.compose(one_point,
                                     n_points_a)
@@ -160,14 +160,14 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
 
     def test_inverse_vectorization(self):
         n_samples = self.n_samples
-        points = self.group.random_uniform(n_samples=n_samples)
+        points = self.group.random_point(n_samples=n_samples)
         result = self.group.inverse(points)
         self.assertAllClose(
             gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
 
     def test_group_exp_from_identity_vectorization(self):
         n_samples = self.n_samples
-        tangent_vecs = self.group.random_uniform(n_samples=n_samples)
+        tangent_vecs = self.group.random_point(n_samples=n_samples)
         result = self.group.exp_from_identity(tangent_vecs)
 
         self.assertAllClose(
@@ -175,7 +175,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
 
     def test_group_log_from_identity_vectorization(self):
         n_samples = self.n_samples
-        points = self.group.random_uniform(n_samples=n_samples)
+        points = self.group.random_point(n_samples=n_samples)
         result = self.group.log_from_identity(points)
 
         self.assertAllClose(
@@ -185,8 +185,8 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
     def test_group_exp_vectorization(self):
         n_samples = self.n_samples
         # Test with the 1 base_point, and several different tangent_vecs
-        tangent_vecs = self.group.random_uniform(n_samples=n_samples)
-        base_point = self.group.random_uniform(n_samples=1)
+        tangent_vecs = self.group.random_point(n_samples=n_samples)
+        base_point = self.group.random_point(n_samples=1)
         result = self.group.exp(tangent_vecs, base_point)
 
         self.assertAllClose(
@@ -194,8 +194,8 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
 
         if not geomstats.tests.tf_backend():
             # Test with the same number of base_points and tangent_vecs
-            tangent_vecs = self.group.random_uniform(n_samples=n_samples)
-            base_points = self.group.random_uniform(n_samples=n_samples)
+            tangent_vecs = self.group.random_point(n_samples=n_samples)
+            base_points = self.group.random_point(n_samples=n_samples)
             result = self.group.exp(tangent_vecs, base_points)
 
             self.assertAllClose(
@@ -203,8 +203,8 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
                 (n_samples, *self.group.get_point_type_shape()))
 
             # Test with the several base_points, and 1 tangent_vec
-            tangent_vec = self.group.random_uniform(n_samples=1)
-            base_points = self.group.random_uniform(n_samples=n_samples)
+            tangent_vec = self.group.random_point(n_samples=1)
+            base_points = self.group.random_point(n_samples=n_samples)
             result = self.group.exp(tangent_vec, base_points)
 
             self.assertAllClose(
@@ -214,8 +214,8 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
     def test_group_log_vectorization(self):
         n_samples = self.n_samples
         # Test with the 1 base point, and several different points
-        points = self.group.random_uniform(n_samples=n_samples)
-        base_point = self.group.random_uniform(n_samples=1)
+        points = self.group.random_point(n_samples=n_samples)
+        base_point = self.group.random_point(n_samples=1)
         result = self.group.log(points, base_point)
 
         self.assertAllClose(
@@ -224,8 +224,8 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         if not geomstats.tests.tf_backend():
 
             # Test with the same number of base points and points
-            points = self.group.random_uniform(n_samples=n_samples)
-            base_points = self.group.random_uniform(n_samples=n_samples)
+            points = self.group.random_point(n_samples=n_samples)
+            base_points = self.group.random_point(n_samples=n_samples)
             result = self.group.log(points, base_points)
 
             self.assertAllClose(
@@ -233,8 +233,8 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
                 (n_samples, *self.group.get_point_type_shape()))
 
             # Test with the several base points, and 1 point
-            point = self.group.random_uniform(n_samples=1)
-            base_points = self.group.random_uniform(n_samples=n_samples)
+            point = self.group.random_point(n_samples=1)
+            base_points = self.group.random_point(n_samples=n_samples)
             result = self.group.log(point, base_points)
 
             self.assertAllClose(

@@ -132,7 +132,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             metric=self.metric,
             method=self.mean_method,
             lr=lr_means,
-            tau=tau_means,
+            epsilon=tau_means,
             max_iter=max_iter,
             point_type=self.point_type)
 

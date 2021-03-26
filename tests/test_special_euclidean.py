@@ -12,7 +12,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         self.n = 2
         self.group = SpecialEuclidean(n=self.n)
         self.n_samples = 4
-        self.point = self.group.random_uniform(self.n_samples)
+        self.point = self.group.random_point(self.n_samples)
         self.tangent_vec = self.group.to_tangent(gs.random.rand(
             self.n_samples, self.group.n + 1, self.group.n + 1), self.point)
 
@@ -39,13 +39,13 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         result = self.group.belongs(point)
         self.assertAllClose(result, expected)
 
-    def test_random_uniform_and_belongs(self):
-        point = self.group.random_uniform()
+    def test_random_point_and_belongs(self):
+        point = self.group.random_point()
         result = self.group.belongs(point)
         expected = True
         self.assertAllClose(result, expected)
 
-        point = self.group.random_uniform(self.n_samples)
+        point = self.group.random_point(self.n_samples)
         result = self.group.belongs(point)
         expected = gs.array([True] * self.n_samples)
         self.assertAllClose(result, expected)
@@ -61,7 +61,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             [0., - theta, 2.],
             [theta, 0., 3.],
             [0., 0., 0.]])
-        point = self.group.random_uniform()
+        point = self.group.random_point()
         tangent_vec = self.group.compose(point, vec_1)
         result = self.group.is_tangent(tangent_vec, point)
         expected = True
@@ -87,7 +87,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         tangent_vecs = gs.cast(tangent_vecs, gs.float32)
         tangent_vecs = gs.reshape(
             tangent_vecs, (self.n_samples,) + (n + 1,) * 2)
-        point = self.group.random_uniform(self.n_samples)
+        point = self.group.random_point(self.n_samples)
         tangent_vecs = self.group.compose(point, tangent_vecs)
         regularized = self.group.to_tangent(tangent_vecs, point)
         result = self.group.compose(
@@ -98,7 +98,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_compose_and_inverse_matrix_form(self):
-        point = self.group.random_uniform()
+        point = self.group.random_point()
         inv_point = self.group.inverse(point)
         result = self.group.compose(point, inv_point)
         expected = self.group.identity
@@ -111,9 +111,9 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
 
     def test_compose_vectorization(self):
         n_samples = self.n_samples
-        n_points_a = self.group.random_uniform(n_samples=n_samples)
-        n_points_b = self.group.random_uniform(n_samples=n_samples)
-        one_point = self.group.random_uniform(n_samples=1)
+        n_points_a = self.group.random_point(n_samples=n_samples)
+        n_points_b = self.group.random_point(n_samples=n_samples)
+        one_point = self.group.random_point(n_samples=1)
 
         result = self.group.compose(one_point, n_points_a)
         self.assertAllClose(
@@ -131,13 +131,13 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
 
     def test_inverse_vectorization(self):
         n_samples = self.n_samples
-        points = self.group.random_uniform(n_samples=n_samples)
+        points = self.group.random_point(n_samples=n_samples)
         result = self.group.inverse(points)
         self.assertAllClose(
             gs.shape(result), (n_samples,) + (self.group.n + 1,) * 2)
 
     def test_compose_matrix_form(self):
-        point = self.group.random_uniform()
+        point = self.group.random_point()
         result = self.group.compose(point, self.group.identity)
         expected = point
         self.assertAllClose(result, expected)

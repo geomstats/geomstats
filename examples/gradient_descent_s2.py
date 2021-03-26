@@ -85,7 +85,7 @@ def plot_and_save_video(geodesics,
 
 def generate_well_behaved_matrix():
     """Generate a matrix with real eigenvalues."""
-    matrix = 2 * SPDMatrices(n=3).random_uniform()
+    matrix = 2 * SPDMatrices(n=3).random_point()
     return matrix
 
 

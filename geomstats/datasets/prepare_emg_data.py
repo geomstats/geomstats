@@ -17,14 +17,16 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 class TimeSeriesCovariance:
     """Class for generating a list of covariance matrices from time series.
 
+    Prepare a TimeSeriesCovariance Object from time series in dictionary.
+
     Parameters
     ----------
     data_dict : dict
-        Dictionary with 'time_vec', 'raw_data', 'label' as key
+        Dictionary with 'time', 'raw_data', 'label' as key
         and the corresponding array as values.
     n_steps : int
         Size of the batches.
-    n_elec : int
+    n_timeseries : int
         The number of electrodes used for the recording.
     label_map : dictionary
         Encode the label into digits.
@@ -36,11 +38,11 @@ class TimeSeriesCovariance:
     label_map : dictionary
         Encode the label into digits.
     data_dict : dict
-        Dictionary with 'time_vec', 'raw_data', 'label' as key
+        Dictionary with 'time', 'raw_data', 'label' as key
         and the corresponding array as values.
     n_steps : int
         Size of the batches.
-    n_elec : int
+    n_timeseries : int
         The number of electrodes used for the recording.
     batches : array
         The start indexes of the batches to use to compute covariance matrices.
@@ -57,11 +59,11 @@ class TimeSeriesCovariance:
         The covariance matrices diagonals.
     """
 
-    def __init__(self, data, n_steps, n_elec, label_map, margin=0):
+    def __init__(self, data, n_steps, n_timeseries, label_map, margin=0):
         self.label_map = label_map
         self.data = data
         self.n_steps = n_steps
-        self.n_elec = n_elec
+        self.n_timeseries = n_timeseries
         self.batches = gs.array([])
         self.margin = margin
         self.covs = gs.array([])

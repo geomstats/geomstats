@@ -29,7 +29,8 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
     def test_logs_at_mean_default_gradient_descent_sphere(self):
         n_tests = 10
-        estimator = FrechetMean(metric=self.sphere.metric, method='default')
+        estimator = FrechetMean(
+            metric=self.sphere.metric, method='default', lr=1.)
 
         result = []
         for _ in range(n_tests):
@@ -104,7 +105,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         points = self.so3.random_uniform(2)
 
         mean_vec = FrechetMean(
-            metric=self.so3.bi_invariant_metric, method='default')
+            metric=self.so3.bi_invariant_metric, method='default', lr=1.)
         mean_vec.fit(points)
 
         logs = self.so3.bi_invariant_metric.log(points, mean_vec.estimate_)
@@ -128,7 +129,8 @@ class TestFrechetMean(geomstats.tests.TestCase):
         points = self.so_matrix.random_uniform(2)
 
         mean_vec = FrechetMean(
-            metric=self.so_matrix.bi_invariant_metric, method='default')
+            metric=self.so_matrix.bi_invariant_metric, method='default',
+            lr=1.)
         mean_vec.fit(points)
 
         logs = self.so_matrix.bi_invariant_metric.log(
@@ -148,6 +150,18 @@ class TestFrechetMean(geomstats.tests.TestCase):
         result = self.so_matrix.belongs(mean.estimate_)
         expected = True
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_estimate_and_belongs_adaptive_gradient_descent_so_matrix(self):
+        point = self.so_matrix.random_uniform(10)
+
+        mean = FrechetMean(
+            metric=self.so_matrix.bi_invariant_metric, method='adaptive',
+            verbose=True, lr=0.5)
+        mean.fit(point)
+
+        result = self.so_matrix.belongs(mean.estimate_)
+        self.assertTrue(result)
 
     @geomstats.tests.np_and_tf_only
     def test_estimate_and_coincide_default_so_vec_and_mat(self):
@@ -214,7 +228,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     def test_estimate_spd(self):
-        point = SPDMatrices(3).random_uniform()
+        point = SPDMatrices(3).random_point()
         points = gs.array([point, point])
         mean = FrechetMean(metric=SPDMetricAffine(3), point_type='matrix')
         mean.fit(X=points)
@@ -244,9 +258,9 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_estimate_and_belongs_hyperbolic(self):
-        point_a = self.hyperbolic.random_uniform()
-        point_b = self.hyperbolic.random_uniform()
-        point_c = self.hyperbolic.random_uniform()
+        point_a = self.hyperbolic.random_point()
+        point_b = self.hyperbolic.random_point()
+        point_c = self.hyperbolic.random_point()
         points = gs.stack([point_a, point_b, point_c], axis=0)
 
         mean = FrechetMean(metric=self.hyperbolic.metric)

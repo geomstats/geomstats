@@ -44,7 +44,8 @@ class TestEM(geomstats.tests.TestCase):
             initialisation_method=self.initialisation_method,
             mean_method=self.mean_method)
 
-        means, variances, coefficients = gmm_learning.fit(self.data)
+        means, variances, coefficients = gmm_learning.fit(
+            self.data, lr_mean=5e-3)
 
         self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
         self.assertTrue((variances < 1).all() and (variances > 0).all())
@@ -56,7 +57,8 @@ class TestEM(geomstats.tests.TestCase):
             initialisation_method='kmeans',
             mean_method=self.mean_method)
 
-        means, variances, coefficients = gmm_learning.fit(self.data)
+        means, variances, coefficients = gmm_learning.fit(
+            self.data, lr_mean=5e-3)
 
         self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
         self.assertTrue((variances < 1).all() and (variances > 0).all())
@@ -93,17 +95,17 @@ class TestEM(geomstats.tests.TestCase):
     def test_weighted_frechet_mean(self):
         """Test for weighted mean."""
         data = gs.array([[0.1, 0.2],
-                         [0.25, 0.35],
-                        [-0.1, -0.2],
-                        [-0.4, 0.3]])
-        weights = gs.repeat([0.5], data.shape[0])
+                         [0.25, 0.35]])
+        weights = gs.array([3., 1.])
         mean_o = FrechetMean(
             metric=self.metric,
-            point_type='vector')
-        mean_o.fit(data, weights)
-        mean = mean_o.estimate_
-        mean_verdict = [-0.03857, 0.15922]
-        self.assertAllClose(mean, mean_verdict, TOLERANCE)
+            point_type='vector', lr=1.)
+        mean_o.fit(data, weights=weights)
+        result = mean_o.estimate_
+        expected = self.metric.exp(
+            weights[1] / gs.sum(weights) * self.metric.log(data[1], data[0]),
+            data[0])
+        self.assertAllClose(result, expected, TOLERANCE)
 
     @geomstats.tests.np_and_pytorch_only
     def test_normalization_factor(self):
