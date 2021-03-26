@@ -68,7 +68,7 @@ nbsphinx_prolog = r"""
       <p>Notebook source code:
         <a class="reference external" href="https://github.com/geomstats/geomstats/blob/master/{{ docname|e }}">{{ docname|e }}</a>
         <br>Run it yourself on binder
-        <a href="https://hub.gke2.mybinder.org/user/geomstats-geomstats-c8tgg07f/tree"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>
+        <a href="https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath={{ docname|e }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>
       </p>
     </div>
 
