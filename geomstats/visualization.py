@@ -522,8 +522,8 @@ class KendallSphere:
 
         # (ua,na) is a positively oriented othonormal basis of
         # the horizontal space at north pole
-        self.na = self.ub - S32.metric.inner_product(self.ub, self.ua) * self.ua
-        self.na = self.na / S32.metric.norm(self.na)
+        self.na = self.ub - S32.ambient_metric.inner_product(self.ub, self.ua) * self.ua
+        self.na = self.na / S32.ambient_metric.norm(self.na)
 
         if points is not None:
             self.add_points(points)
@@ -546,11 +546,11 @@ class KendallSphere:
 
     def convert_to_polar_coordinates(self, points):
         aligned_points = S32.align(points, self.can)
-        speeds = S32.metric.log(aligned_points, self.can)
+        speeds = S32.ambient_metric.log(aligned_points, self.can)
 
-        coords_theta = gs.arctan2(S32.metric.inner_product(speeds, self.na),
-                                  S32.metric.inner_product(speeds, self.ua))
-        coords_phi = 2 * S32.metric.dist(self.can, aligned_points)
+        coords_theta = gs.arctan2(S32.ambient_metric.inner_product(speeds, self.na),
+                                  S32.ambient_metric.inner_product(speeds, self.ua))
+        coords_phi = 2 * S32.ambient_metric.dist(self.can, aligned_points)
 
         return coords_theta, coords_phi
 
@@ -654,8 +654,8 @@ class KendallSphere:
         self.ax.plot3D(points_x, points_y, points_z, alpha=al, zorder=zo, **kwargs)
 
     def draw_vector(self, v, bp, **kwargs):
-        norm = S32.metric.norm(v)
-        exp = S32.metric.exp(v, bp)
+        norm = S32.ambient_metric.norm(v)
+        exp = S32.ambient_metric.exp(v, bp)
         bp = self.convert_to_spherical_coordinates(bp)[0]
         exp = self.convert_to_spherical_coordinates(exp)[0]
         v = exp - gs.dot(exp, bp / gs.linalg.norm(bp)) * bp / gs.linalg.norm(bp)
