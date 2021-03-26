@@ -658,7 +658,7 @@ class TestHypersphere(geomstats.tests.TestCase):
 
     def test_random_von_mises_kappa(self):
         # check concentration parameter for dispersed distribution
-        kappa = 1.
+        kappa = 5.
         n_points = 100000
         for dim in [2, 9]:
             sphere = Hypersphere(dim)
@@ -695,7 +695,8 @@ class TestHypersphere(geomstats.tests.TestCase):
             sum_points = gs.sum(points, axis=0)
             expected = gs.array([0.] * dim + [1.])
             result = sum_points / gs.linalg.norm(sum_points)
-            self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
+            self.assertAllClose(
+                result, expected, atol=KAPPA_ESTIMATION_TOL)
 
     def test_spherical_to_extrinsic(self):
         """
