@@ -226,7 +226,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         n_mats, _, _ = mat.shape
 
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
-        rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
+        rot_mat = GeneralLinear.mul(mat_unitary_u, mat_unitary_v)
         mask = gs.less(gs.linalg.det(rot_mat), 0.)
         mask_float = gs.cast(mask, gs.float32) + self.epsilon
         diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
@@ -236,11 +236,10 @@ class _SpecialOrthogonalVectors(LieGroup):
             to_ndim=3) + self.epsilon
         new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
-        aux_mat = gs.einsum(
-            'nij,njk->nik', mat_unitary_u, new_mat_diag_s)
-        rot_mat += gs.einsum(
-            'n,njk->njk', mask_float,
-            gs.einsum('nij,njk->nik', aux_mat, mat_unitary_v))
+        aux_mat = GeneralLinear.mul(mat_unitary_u, new_mat_diag_s)
+        rot_mat = rot_mat + gs.einsum(
+            '...,...jk->...jk', mask_float,
+            GeneralLinear.mul(aux_mat, mat_unitary_v))
         return rot_mat
 
     def inverse(self, point):
@@ -772,8 +771,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         term_1 = (gs.eye(self.dim)
                   + gs.einsum('...,...jk->...jk', coef_1, skew_rot_vec))
 
-        squared_skew_rot_vec = gs.einsum(
-            '...ij,...jk->...ik', skew_rot_vec, skew_rot_vec)
+        squared_skew_rot_vec = GeneralLinear.mul(skew_rot_vec, skew_rot_vec)
 
         term_2 = gs.einsum('...,...jk->...jk', coef_2, squared_skew_rot_vec)
 

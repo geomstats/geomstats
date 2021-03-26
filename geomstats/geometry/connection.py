@@ -160,7 +160,8 @@ class Connection:
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point.
         """
-        max_shape = point.shape if point.ndim == 3 else base_point.shape
+        max_shape = point.shape if point.ndim > base_point.ndim else \
+            base_point.shape
 
         def objective(velocity):
             """Define the objective function."""
@@ -412,7 +413,7 @@ class Connection:
                 'end_point': current_point,
                 'trajectory': trajectory}
 
-    def riemannian_curvature(self, base_point):
+    def riemannian_curvature_tensor(self, base_point):
         """Compute Riemannian curvature tensor associated with the connection.
 
         Parameters
@@ -423,9 +424,36 @@ class Connection:
         raise NotImplementedError(
             'The Riemannian curvature tensor is not implemented.')
 
+    def curvature(
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
+            base_point):
+        r"""Compute the curvature.
+
+        For three tangent vectors at a base point :math: `X,Y,Z`,
+        the curvature is defined by
+        :math: `R(X, Y)Z = \nabla_{[X,Y]}Z
+        - \nabla_X\nabla_Y Z + - \nabla_Y\nabla_X Z`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., {dim, [n, n]}]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at `base_point`.
+        """
+        raise NotImplementedError('The curvature is not implemented.')
+
     def geodesic(self, initial_point,
-                 end_point=None, initial_tangent_vec=None,
-                 point_type=None):
+                 end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
@@ -443,9 +471,6 @@ class Connection:
             Tangent vector at base point, the initial speed of the geodesics.
             Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
-        point_type : str, {'vector', 'matrix'}
-            Point type.
-            Optional, default: 'vector'.
 
         Returns
         -------
@@ -455,10 +480,7 @@ class Connection:
             represents time, and the second corresponds to the different
             initial conditions.
         """
-        if point_type is None:
-            point_type = self.default_point_type
-        geomstats.errors.check_parameter_accepted_values(
-            point_type, 'point_type', ['vector', 'matrix'])
+        point_type = self.default_point_type
 
         if end_point is None and initial_tangent_vec is None:
             raise ValueError('Specify an end point or an initial tangent '
