@@ -1,37 +1,26 @@
-datasets package
-================
+********
+Datasets
+********
 
-Submodules
+Datasets
 ----------
 
 datasets.prepare\_emg\_data module
 ----------------------------------
 
-.. automodule:: datasets.prepare_emg_data
+.. automodule:: geomstats.datasets.prepare_emg_data
    :members:
-   :undoc-members:
-   :show-inheritance:
 
 datasets.prepare\_graph\_data module
 ------------------------------------
 
-.. automodule:: datasets.prepare_graph_data
+.. automodule:: geomstats.datasets.prepare_graph_data
    :members:
-   :undoc-members:
-   :show-inheritance:
+
 
 datasets.utils module
 ---------------------
 
-.. automodule:: datasets.utils
+.. automodule:: geomstats.datasets.utils
    :members:
-   :undoc-members:
-   :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: datasets
-   :members:
-   :undoc-members:
-   :show-inheritance:
