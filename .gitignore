@@ -135,5 +135,5 @@ dmypy.json
 out.mp4
 examples/out.mp4
 
-#python virutal environment
+# Python virtual environment
 venv/
