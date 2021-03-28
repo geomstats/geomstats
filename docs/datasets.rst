@@ -2,8 +2,6 @@
 Datasets
 ********
 
-Datasets
-----------
 
 Prepare EMG data
 ----------------------------------
