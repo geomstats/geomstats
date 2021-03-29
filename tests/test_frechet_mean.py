@@ -157,7 +157,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         mean = FrechetMean(
             metric=self.so_matrix.bi_invariant_metric, method='adaptive',
-            verbose=True, lr=0.5)
+            verbose=True, lr=.5)
         mean.fit(point)
 
         result = self.so_matrix.belongs(mean.estimate_)
