@@ -17,7 +17,7 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
-    'sphinx.ext.viewcode', 
+    'sphinx.ext.viewcode',
     'sphinx_gallery.load_style',
 ]
 
@@ -40,7 +40,6 @@ nbsphinx_execute = 'never'
 # To get a prompt similar to the Classic Notebook, use
 nbsphinx_input_prompt = ' In [%s]:'
 nbsphinx_output_prompt = ' Out [%s]:'
-#nbsphinx_prompt_width = '10'
 
 nbsphinx_allow_errors = True
 
@@ -53,10 +52,14 @@ master_doc = 'index'
 language = None
 
 nbsphinx_thumbnails = {
-    'notebooks/usecase_emg_sign_classification_in_spd_manifold':'../../notebooks/figures/paper_rock_scissors.png',
-    'notebooks/usecase_graph_embedding_and_clustering_in_hyperbolic_space':'../../notebooks/figures/karate_graph.png',
-    'notebooks/usecase_optic_nerve_heads_analysis_in_kendall_shape_space':'../../notebooks/figures/optic_nerves.png',
-    'notebooks/usecase_hand_poses_analysis_in_kendall_shape_space':'../../notebooks/figures/hand_skeleton.png',
+    'notebooks/usecase_emg_sign_classification_in_spd_manifold': 
+                        '../../notebooks/figures/paper_rock_scissors.png',
+    'notebooks/usecase_graph_embedding_and_clustering_in_hyperbolic_space': 
+                        '../../notebooks/figures/karate_graph.png',
+    'notebooks/usecase_optic_nerve_heads_analysis_in_kendall_shape_space': 
+                        '../../notebooks/figures/optic_nerves.png',
+    'notebooks/usecase_hand_poses_analysis_in_kendall_shape_space': 
+                        '../../notebooks/figures/hand_skeleton.png',
 }
 
 nbsphinx_prolog = r"""
@@ -66,9 +69,12 @@ nbsphinx_prolog = r"""
 
     <div class="admonition note">
       <p>Notebook source code:
-        <a class="reference external" href="https://github.com/geomstats/geomstats/blob/master/{{ docname|e }}">{{ docname|e }}</a>
+        <a class="reference external" href="https://github.com/geomstats/geomstats/blob/master/
+                            {{ docname|e }}">{{ docname|e }}</a>
         <br>Run it yourself on binder
-        <a href="https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath={{ docname|e }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>
+        <a href="https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath=
+                            {{ docname|e }}"><img alt="Binder badge" 
+                            src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>
       </p>
     </div>
 
