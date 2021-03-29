@@ -6,6 +6,7 @@ Euclidean space.
 
 import logging
 from itertools import product
+
 from scipy.stats import beta
 
 import geomstats.algebra_utils as utils
@@ -362,16 +363,29 @@ class _Hypersphere(EmbeddedManifold):
             in Euclidean space of dimension 3.
         """
         dim = self.dim
-        if mu is None:
-            mu = gs.array([0.] * dim + [1.])
 
         if dim == 2:
+            angle = 2. * gs.pi * gs.random.rand(n_samples)
+            angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+            unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
             scalar = gs.random.rand(n_samples)
+
             coord_z = 1. + 1. / kappa * gs.log(
                 scalar + (1. - scalar) * gs.exp(gs.array(-2. * kappa)))
-            n_accepted = n_samples
+            coord_z = gs.to_ndarray(coord_z, to_ndim=2, axis=1)
+            coord_xy = gs.sqrt(1. - coord_z ** 2) * unit_vector
+            sample = gs.hstack((coord_xy, coord_z))
 
+            if mu is not None:
+                rot_vec = gs.cross(
+                    gs.array([0., 0., 1.]), mu)
+                rot_vec *= gs.arccos(mu[-1]) / gs.linalg.norm(rot_vec)
+                rot = SpecialOrthogonal(
+                    3, 'vector').matrix_from_rotation_vector(rot_vec)
+                sample = gs.matmul(sample, gs.transpose(rot))
         else:
+            if mu is None:
+                mu = gs.array([0.] * dim + [1.])
             # rejection sampling in the general case
             sqrt = gs.sqrt(4 * kappa ** 2. + dim ** 2)
             envelop_param = (-2 * kappa + sqrt) / dim
@@ -384,7 +398,7 @@ class _Hypersphere(EmbeddedManifold):
                 sym_beta = beta.rvs(
                     dim / 2, dim / 2, size=n_samples - n_accepted)
                 coord_z = (1 - (1 + envelop_param) * sym_beta) / (
-                        1 - (1 - envelop_param) * sym_beta)
+                    1 - (1 - envelop_param) * sym_beta)
                 accept_tol = gs.random.rand(n_samples - n_accepted)
                 criterion = (
                     kappa * coord_z
@@ -398,13 +412,13 @@ class _Hypersphere(EmbeddedManifold):
                     'Maximum number of iteration reached in rejection '
                     'sampling before n_samples were accepted.')
             coord_z = gs.concatenate(result)
+            coord_rest = self.random_uniform(n_accepted)
+            coord_rest = self.to_tangent(coord_rest, mu)
+            coord_rest = self.projection(coord_rest)
+            coord_rest = gs.einsum(
+                '...,...i->...i', gs.sqrt(1 - coord_z ** 2), coord_rest)
+            sample = coord_rest + coord_z[:, None] * mu[None, :]
 
-        coord_rest = self.random_uniform(n_accepted)
-        coord_rest = self.to_tangent(coord_rest, mu)
-        coord_rest = self.projection(coord_rest)
-        coord_rest = gs.einsum(
-            '...,...i->...i', gs.sqrt(1 - coord_z ** 2), coord_rest)
-        sample = coord_rest + coord_z[:, None] * mu[None, :]
         return sample if n_samples > 1 else sample[0]
 
 
