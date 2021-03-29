@@ -7,7 +7,7 @@ import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 
-MEAN_ESTIMATION_TOL = 1e-6
+MEAN_ESTIMATION_TOL = 1e-3
 KAPPA_ESTIMATION_TOL = 1e-2
 ONLINE_KMEANS_TOL = 2e-2
 
@@ -642,23 +642,23 @@ class TestHypersphere(geomstats.tests.TestCase):
         estimation of the concentration parameter is obtained by a
         closed-form expression and improved through the Newton method.
         """
-        dim = 2
-        n_points = 1000000
-        sphere = Hypersphere(dim)
+        for dim in [2, 9]:
+            n_points = 10000
+            sphere = Hypersphere(dim)
 
-        # check mean value for concentrated distribution for different mean
-        kappa = 10000000
-        mean = sphere.random_uniform()
-        points = sphere.random_von_mises_fisher(
-            mu=mean, kappa=kappa, n_samples=n_points)
-        sum_points = gs.sum(points, axis=0)
-        result = sum_points / gs.linalg.norm(sum_points)
-        expected = mean
-        self.assertAllClose(result, expected, atol=MEAN_ESTIMATION_TOL)
+            # check mean value for concentrated distribution for different mean
+            kappa = 1000.
+            mean = sphere.random_uniform()
+            points = sphere.random_von_mises_fisher(
+                mu=mean, kappa=kappa, n_samples=n_points)
+            sum_points = gs.sum(points, axis=0)
+            result = sum_points / gs.linalg.norm(sum_points)
+            expected = mean
+            self.assertAllClose(result, expected, atol=MEAN_ESTIMATION_TOL)
 
     def test_random_von_mises_kappa(self):
         # check concentration parameter for dispersed distribution
-        kappa = 5.
+        kappa = 1.
         n_points = 100000
         for dim in [2, 9]:
             sphere = Hypersphere(dim)
@@ -697,6 +697,14 @@ class TestHypersphere(geomstats.tests.TestCase):
             result = sum_points / gs.linalg.norm(sum_points)
             self.assertAllClose(
                 result, expected, atol=KAPPA_ESTIMATION_TOL)
+
+    def test_random_von_mises_one_sample_belongs(self):
+        for dim in [2, 9]:
+            sphere = Hypersphere(dim)
+            point = sphere.random_von_mises_fisher()
+            self.assertAllClose(point.shape, (dim + 1, ))
+            result = sphere.belongs(point)
+            self.assertTrue(result)
 
     def test_spherical_to_extrinsic(self):
         """
