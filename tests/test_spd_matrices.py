@@ -5,6 +5,7 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
@@ -262,6 +263,12 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         metric = SPDMetricEuclidean(3, power_euclidean=.5)
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
         expected = 3472 / 576
+        self.assertAllClose(result, expected)
+
+        result = self.metric_euclidean.inner_product(
+            tangent_vec, tangent_vec, base_point)
+        expected = MatricesMetric(3, 3).inner_product(
+            tangent_vec, tangent_vec)
 
         self.assertAllClose(result, expected)
 
@@ -535,6 +542,21 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         point_a = gs.array([[5., 0., 0.],
                             [0., 7., 2.],
                             [0., 2., 8.]])
+        point_b = gs.array([[9., 0., 0.],
+                            [0., 5., 0.],
+                            [0., 0., 1.]])
+
+        metric = self.metric_bureswasserstein
+        result = metric.squared_dist(point_a, point_b)
+
+        log = metric.log(point=point_b, base_point=point_a)
+        expected = metric.squared_norm(vector=log, base_point=point_a)
+
+        self.assertAllClose(result, expected, atol=1e-5)
+
+    def test_squared_dist_bureswasserstein_vectorization(self):
+        """Test of SPDMetricBuresWasserstein.squared_dist method."""
+        point_a = self.space.random_point(2)
         point_b = gs.array([[9., 0., 0.],
                             [0., 5., 0.],
                             [0., 0., 1.]])

@@ -286,6 +286,50 @@ class Matrices:
         """
         return cls.mul(mat_2, mat_1, cls.transpose(mat_2))
 
+    @staticmethod
+    def frobenius_product(mat_1, mat_2):
+        """Compute Frobenius inner-product of two matrices.
+
+        The `einsum` function is used to avoid computing a matrix product. It
+        is also faster than using a sum an element-wise product.
+
+        Parameters
+        ----------
+        mat_1 : array-like, shape=[..., m, n]
+            Matrix.
+        mat_2 : array-like, shape=[..., m, n]
+            Matrix.
+
+        Returns
+        -------
+        product : array-like, shape=[...,]
+            Frobenius inner-product of mat_1 and mat_2
+        """
+        return gs.einsum(
+            '...ij,...ij->...', mat_1, mat_2)
+
+    @staticmethod
+    def trace_product(mat_1, mat_2):
+        """Compute trace of the product of two matrices.
+
+        The `einsum` function is used to avoid computing a matrix product. It
+        is also faster than using a sum an element-wise product.
+
+        Parameters
+        ----------
+        mat_1 : array-like, shape=[..., m, n]
+            Matrix.
+        mat_2 : array-like, shape=[..., m, n]
+            Matrix.
+
+        Returns
+        -------
+        product : array-like, shape=[...,]
+            Frobenius inner-product of mat_1 and mat_2
+        """
+        return gs.einsum(
+            '...ij,...ji->...', mat_1, mat_2)
+
 
 class MatricesMetric(EuclideanMetric):
     """Euclidean metric on matrices given by Frobenius inner-product.
@@ -302,7 +346,7 @@ class MatricesMetric(EuclideanMetric):
             dim=dimension, default_point_type='matrix')
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute Frobenius inner-product of two tan vecs at `base_point`.
+        """Compute Frobenius inner-product of two tangent vectors.
 
         Parameters
         ----------
@@ -319,6 +363,4 @@ class MatricesMetric(EuclideanMetric):
         inner_prod : array-like, shape=[...,]
             Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
-        inner_prod = gs.einsum(
-            '...ij,...ij->...', tangent_vec_a, tangent_vec_b)
-        return inner_prod
+        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
