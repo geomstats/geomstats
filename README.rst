@@ -198,10 +198,10 @@ This work is supported by:
 .. |Zenodo| image:: https://zenodo.org/badge/108200238.svg
    :target: https://zenodo.org/badge/latestdoi/108200238
 .. |python| image:: https://img.shields.io/badge/python-3.6+-blue?logo=python
-.. _python: https://www.python.org/
+   :target: https://www.python.org/
 .. |tutorial| image:: https://img.shields.io/youtube/views/Ju-Wsd84uG0?label=watch&style=social
-.. _tutorial: https://www.youtube.com/watch?v=Ju-Wsd84uG0
+   :target: https://www.youtube.com/watch?v=Ju-Wsd84uG0
 .. |readthedocs| image:: https://readthedocs.org/projects/geomstats/badge/?version=latest
-.. _readthedocs: https://geomstats.github.io/?badge=latest
+   :target: https://geomstats.github.io/?badge=latest
 .. |binder| image:: https://mybinder.org/badge_logo.svg
-. _binder: https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath=notebooks
+   :target: https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath=notebooks
