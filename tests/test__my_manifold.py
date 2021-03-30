@@ -37,7 +37,7 @@ class TestMyManifold(geomstats.tests.TestCase):
     - needs to start with `test_`
     - represents a unit-test, i.e. tests one and only one method
     or attribute of the class MyManifold,
-    - ends with the line: `self.assertallclose(result, expected)`, see below.
+    - ends with the line: `self.assertAllClose(result, expected)`, see below.
     """
     def setUp(self):
         """setUp method.
@@ -61,7 +61,7 @@ class TestMyManifold(geomstats.tests.TestCase):
         expected = self.dimension
         # Each test ends with the following syntax, comparing
         # the result with the expected result, using self.assertAllClose
-        self.assertallclose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_belongs(self):
         """Test belongs.

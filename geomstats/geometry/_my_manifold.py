@@ -17,6 +17,7 @@ from geomstats.geometry.manifold import Manifold
 # that is in the Manifold class.
 class MyManifold(Manifold):
     r"""Give a one-liner description/definition of MyManifold.
+
     For example: Class for Euclidean spaces.
 
     Give a more detailed description/definition of MyManifold.
@@ -40,6 +41,7 @@ class MyManifold(Manifold):
     # Implement the main methods of MyManifold, for example belongs:
     def belongs(self, point):
         """Give a one-liner description of the method.
+
         For example: Evaluate if a point belongs to MyManifold.
 
         List the parameters of the method.
