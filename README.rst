@@ -4,14 +4,16 @@ Geomstats
 .. list-table::
    :header-rows: 0
 
+   * - **Code**
+     - |PyPI version|\ |Zenodo|\
    * - **Continuous Integration**
      - |Build Status|\ |python|\
    * - **Code coverage (numpy, tensorflow, pytorch)**
      - |Coverage Status np|\ |Coverage Status tf|\ |Coverage Status torch|
+   * - **Documentation**
+     - |readthedocs|\ |binder|\ |tutorial|\
    * - **Community**
-     - |Slack|\ |Twitter|\ |tutorial|\
-   * - **Code**
-     - |PyPI version|\ |Zenodo|\
+     - |Slack|\ |Twitter|\
 
 **NEWS**: Interested in pushing forward the fields of computational
 differential geometry and topology? The `ICLR 2021 challenge of geometry
@@ -174,9 +176,9 @@ Acknowledgements
 
 This work is supported by:
 
--  the Inria-Stanford associated team `GeomStats <http://www-sop.inria.fr/asclepios/projects/GeomStats/>`__, 
--  the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation program (grant agreement `G-Statistics <https://team.inria.fr/epione/en/research/erc-g-statistics/>`__ No. 786854), 
--  the French society for applied and industrial mathematics (`SMAI <http://smai.emath.fr/>`__), 
+-  the Inria-Stanford associated team `GeomStats <http://www-sop.inria.fr/asclepios/projects/GeomStats/>`__,
+-  the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation program (grant agreement `G-Statistics <https://team.inria.fr/epione/en/research/erc-g-statistics/>`__ No. 786854),
+-  the French society for applied and industrial mathematics (`SMAI <http://smai.emath.fr/>`__),
 -  the National Science Foundation (grant NSF DMS RTG 1501767).
 
 .. |Twitter| image:: https://img.shields.io/twitter/url/https/twitter.com/geomstats-papers.svg?style=social&label=Follow%20%40geomstats-papers
@@ -199,3 +201,7 @@ This work is supported by:
 .. _python: https://www.python.org/
 .. |tutorial| image:: https://img.shields.io/youtube/views/Ju-Wsd84uG0?label=watch&style=social
 .. _tutorial: https://www.youtube.com/watch?v=Ju-Wsd84uG0
+.. |readthedocs| image:: https://readthedocs.org/projects/geomstats/badge/?version=latest
+.. _readthedocs: https://geomstats.github.io/?badge=latest
+.. |binder| image:: https://mybinder.org/badge_logo.svg
+.. _binder: https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath=notebooks
