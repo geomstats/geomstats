@@ -41,7 +41,7 @@ algorithms for data on manifolds.
 -  The documentation of ``geomstats`` can be found on the `documentation
    website <https://geomstats.github.io/>`__.
 -  To follow the scientific literature on geometric statistics, follow
-   our twitter-bot [@geomstats-papers](https://twitter.com/geomstats)!
+   our twitter-bot `@geomstats-papers <https://twitter.com/geomstats>`__!
 
 If you find ``geomstats`` useful, please kindly cite our
 `paper <https://jmlr.org/papers/v21/19-027.html>`__:
@@ -172,14 +172,12 @@ guidelines!
 Acknowledgements
 ----------------
 
-This work is supported by: - the Inria-Stanford associated team
-`GeomStats <http://www-sop.inria.fr/asclepios/projects/GeomStats/>`__, -
-the European Research Council (ERC) under the European Union's Horizon
-2020 research and innovation program (grant agreement
-`G-Statistics <https://team.inria.fr/epione/en/research/erc-g-statistics/>`__
-No. 786854), - the French society for applied and industrial mathematics
-(`SMAI <http://smai.emath.fr/>`__), - the National Science Foundation
-(grant NSF DMS RTG 1501767).
+This work is supported by:
+
+-  the Inria-Stanford associated team `GeomStats <http://www-sop.inria.fr/asclepios/projects/GeomStats/>`__, 
+-  the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation program (grant agreement `G-Statistics <https://team.inria.fr/epione/en/research/erc-g-statistics/>`__ No. 786854), 
+-  the French society for applied and industrial mathematics (`SMAI <http://smai.emath.fr/>`__), 
+-  the National Science Foundation (grant NSF DMS RTG 1501767).
 
 .. |Twitter| image:: https://img.shields.io/twitter/url/https/twitter.com/geomstats-papers.svg?style=social&label=Follow%20%40geomstats-papers
    :target: https://twitter.com/geomstats
