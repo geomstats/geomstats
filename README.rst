@@ -13,7 +13,7 @@ Geomstats
    * - **Documentation**
      - |readthedocs|\ |binder|\ |tutorial|\
    * - **Community**
-     - |Slack|\ |Twitter|\
+     - |contributions|\ |Slack|\ |Twitter|\
 
 **NEWS**: Interested in pushing forward the fields of computational
 differential geometry and topology? The `ICLR 2021 challenge of geometry
@@ -205,3 +205,5 @@ This work is supported by:
    :target: https://geomstats.github.io/?badge=latest
 .. |binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath=notebooks
+.. |contributions| image:: https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat
+   :target: https://geomstats.github.io/contributing.html
