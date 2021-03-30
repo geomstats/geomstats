@@ -53,16 +53,21 @@ language = None
 
 nbsphinx_thumbnails = {
     'notebooks/usecase_emg_sign_'
-    'classification_in_spd_manifold': '../../notebooks/figures/'
-                                      'paper_rock_scissors.png',
+    'classification_in_spd_manifold':
+        'https://raw.githubusercontent.com/ninamiolane/geomstats/master/'
+        'notebooks/figures/paper_rock_scissors.png',
     'notebooks/usecase_graph_embedding'
-    '_and_clustering_in_hyperbolic_space': '../../notebooks/figures/'
-                                           'karate_graph.png',
+    '_and_clustering_in_hyperbolic_space':
+        'https://raw.githubusercontent.com/ninamiolane/geomstats/master/'
+        'notebooks/figures/karate_graph.png',
     'notebooks/usecase_optic_nerve_heads_'
-    'analysis_in_kendall_shape_space': '../../figures/optic_nerves.png',
+    'analysis_in_kendall_shape_space':
+        'https://raw.githubusercontent.com/ninamiolane/geomstats/master/'
+        'notebooks/figures/optic_nerves.png',
     'notebooks/usecase_hand_poses_'
-    'analysis_in_kendall_shape_space': '../../notebooks/figures/'
-                                      'hand_skeleton.png'
+    'analysis_in_kendall_shape_space':
+        'https://raw.githubusercontent.com/ninamiolane/geomstats/master/'
+        'notebooks/figures/hand_skeleton.png'
 }
 
 nbsphinx_prolog = r"""
