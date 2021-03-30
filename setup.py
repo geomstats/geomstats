@@ -35,7 +35,7 @@ if __name__ == '__main__':
     }
     extras_require['all'] = list(chain(*extras_require.values()))
 
-    with open(os.path.join(base_dir, "README.md")) as f:
+    with open(os.path.join(base_dir, "README.rst")) as f:
         long_description = f.read()
 
     setup(
@@ -66,7 +66,7 @@ if __name__ == '__main__':
         packages=find_packages(),
         data_files=[
             "LICENSE.md",
-            "README.md",
+            "README.rst",
         ],
         include_package_data=True,
         package_data={'': ['datasets/data/*',
