@@ -5,11 +5,11 @@ Geomstats
    :header-rows: 0
 
    * - **Continuous Integration**
-     - |Build Status|\
+     - |Build Status|\ |python|\
    * - **Code coverage (numpy, tensorflow, pytorch)**
      - |Coverage Status np|\ |Coverage Status tf|\ |Coverage Status torch|
    * - **Community**
-     - |Slack|\ |Twitter|\
+     - |Slack|\ |Twitter|\ |tutorial|\
    * - **Code**
      - |PyPI version|\ |Zenodo|\
 
@@ -195,3 +195,7 @@ This work is supported by:
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Zenodo| image:: https://zenodo.org/badge/108200238.svg
    :target: https://zenodo.org/badge/latestdoi/108200238
+.. |python| image:: https://img.shields.io/badge/python-3.6+-blue?logo=python
+.. _python: https://www.python.org/
+.. |tutorial| image:: https://img.shields.io/youtube/views/Ju-Wsd84uG0?label=watch&style=social
+.. _tutorial: https://www.youtube.com/watch?v=Ju-Wsd84uG0
