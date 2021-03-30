@@ -1,4 +1,6 @@
-"""Template file showing unit tests for the manifold in:
+"""Template file showing unit tests for MyManifold.
+
+MyManifold is the template manifold defined in:
 geomstats/geometry/_my_manifold.py.
 
 For additional guidelines on how to contribute to geomstats, visit:
