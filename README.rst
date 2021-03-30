@@ -181,7 +181,7 @@ This work is supported by:
 -  the French society for applied and industrial mathematics (`SMAI <http://smai.emath.fr/>`__),
 -  the National Science Foundation (grant NSF DMS RTG 1501767).
 
-.. |Twitter| image:: https://img.shields.io/twitter/url/https/twitter.com/geomstats-papers.svg?style=social&label=Follow%20%40geomstats-papers
+.. |Twitter| image:: https://img.shields.io/twitter/follow/geomstats?label=Follow%20%40geomstats-papers%20%20%20%20&style=social
    :target: https://twitter.com/geomstats
 .. |PyPI version| image:: https://badge.fury.io/py/geomstats.svg
    :target: https://badge.fury.io/py/geomstats
@@ -204,4 +204,4 @@ This work is supported by:
 .. |readthedocs| image:: https://readthedocs.org/projects/geomstats/badge/?version=latest
 .. _readthedocs: https://geomstats.github.io/?badge=latest
 .. |binder| image:: https://mybinder.org/badge_logo.svg
-.. _binder: https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath=notebooks
+. _binder: https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath=notebooks
