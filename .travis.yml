@@ -10,9 +10,10 @@ install:
   - |
     for req in ci-requirements.txt dev-requirements.txt opt-requirements.txt requirements.txt; do
       pip install -q -r $req
-    done
+    done  
 before_script:
   - export PYTHONPATH=$PYTHONPATH:$(pwd)
+  - sphinx-build --version
   - pandoc --version
 script:
   - flake8 --ignore=D,W503,W504 geomstats examples tests
