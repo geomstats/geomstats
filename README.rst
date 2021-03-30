@@ -1,9 +1,17 @@
 Geomstats
 =========
 
-|Twitter|\ |PyPI version|\ |Build Status|\ |Slack|\ |Coverage
-Status|\ |Coverage Status|\ |Coverage Status| (Coverages for: numpy,
-tensorflow, pytorch)
+.. list-table::
+   :header-rows: 0
+
+   * - **Continuous Integration**
+     - |Build Status|\
+   * - **Code coverage (numpy, tensorflow, pytorch)**
+     - |Coverage Status np|\ |Coverage Status tf|\ |Coverage Status torch|
+   * - **Community**
+     - |Slack|\ |Twitter|\
+   * - **Code**
+     - |PyPI version|\ |Zenodo|\
 
 **NEWS**: Interested in pushing forward the fields of computational
 differential geometry and topology? The `ICLR 2021 challenge of geometry
@@ -17,6 +25,11 @@ statistics on manifolds. The package is organized into two main modules:
 The module ``geometry`` implements concepts in differential geometry,
 and the module ``learning`` implements statistics and learning
 algorithms for data on manifolds.
+
+.. raw:: html
+
+    <img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" height="120px" width="120px" align="left">
+
 
 -  To get an overview of ``geomstats``, see our `introductory
    video <https://www.youtube.com/watch?v=Ju-Wsd84uG0&list=PLYx7XA2nY5GejOB1lsvriFeMytD1-VS1B&index=3>`__.
@@ -176,9 +189,11 @@ No. 786854), - the French society for applied and industrial mathematics
    :target: https://travis-ci.org/geomstats/geomstats
 .. |Slack| image:: https://img.shields.io/badge/Slack-Join-yellow
    :target: https://geomstats.slack.com/
-.. |Coverage Status| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy
+.. |Coverage Status np| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy
    :target: https://codecov.io/gh/geomstats/geomstats
-.. |Coverage Status| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow
+.. |Coverage Status tf| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow
    :target: https://codecov.io/gh/geomstats/geomstats
-.. |Coverage Status| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=pytorch
+.. |Coverage Status torch| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=pytorch
    :target: https://codecov.io/gh/geomstats/geomstats
+.. |Zenodo| image:: https://zenodo.org/badge/108200238.svg
+   :target: https://zenodo.org/badge/latestdoi/108200238
