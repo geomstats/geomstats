@@ -11,7 +11,7 @@ Geomstats
    * - **Code coverage (numpy, tensorflow, pytorch)**
      - |Coverage Status np|\ |Coverage Status tf|\ |Coverage Status torch|
    * - **Documentation**
-     - |readthedocs|\ |binder|\ |tutorial|\
+     - |doc|\ |binder|\ |tutorial|\
    * - **Community**
      - |contributions|\ |Slack|\ |Twitter|\
 
@@ -201,7 +201,7 @@ This work is supported by:
    :target: https://www.python.org/
 .. |tutorial| image:: https://img.shields.io/youtube/views/Ju-Wsd84uG0?label=watch&style=social
    :target: https://www.youtube.com/watch?v=Ju-Wsd84uG0
-.. |readthedocs| image:: https://readthedocs.org/projects/geomstats/badge/?version=latest
+.. |doc| image:: https://img.shields.io/badge/Docs-Website-brightgreen?style=flat
    :target: https://geomstats.github.io/?badge=latest
 .. |binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath=notebooks
