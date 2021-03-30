@@ -4,14 +4,16 @@ Geomstats
 .. list-table::
    :header-rows: 0
 
+   * - **Code**
+     - |PyPI version|\ |Zenodo|\
    * - **Continuous Integration**
      - |Build Status|\ |python|\
    * - **Code coverage (numpy, tensorflow, pytorch)**
      - |Coverage Status np|\ |Coverage Status tf|\ |Coverage Status torch|
+   * - **Documentation**
+     - |doc|\ |binder|\ |tutorial|\
    * - **Community**
-     - |Slack|\ |Twitter|\ |tutorial|\
-   * - **Code**
-     - |PyPI version|\ |Zenodo|\
+     - |contributions|\ |Slack|\ |Twitter|\
 
 **NEWS**: Interested in pushing forward the fields of computational
 differential geometry and topology? The `ICLR 2021 challenge of geometry
@@ -174,12 +176,12 @@ Acknowledgements
 
 This work is supported by:
 
--  the Inria-Stanford associated team `GeomStats <http://www-sop.inria.fr/asclepios/projects/GeomStats/>`__, 
--  the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation program (grant agreement `G-Statistics <https://team.inria.fr/epione/en/research/erc-g-statistics/>`__ No. 786854), 
--  the French society for applied and industrial mathematics (`SMAI <http://smai.emath.fr/>`__), 
+-  the Inria-Stanford associated team `GeomStats <http://www-sop.inria.fr/asclepios/projects/GeomStats/>`__,
+-  the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation program (grant agreement `G-Statistics <https://team.inria.fr/epione/en/research/erc-g-statistics/>`__ No. 786854),
+-  the French society for applied and industrial mathematics (`SMAI <http://smai.emath.fr/>`__),
 -  the National Science Foundation (grant NSF DMS RTG 1501767).
 
-.. |Twitter| image:: https://img.shields.io/twitter/url/https/twitter.com/geomstats-papers.svg?style=social&label=Follow%20%40geomstats-papers
+.. |Twitter| image:: https://img.shields.io/twitter/follow/geomstats?label=Follow%20%40geomstats-papers%20%20%20%20&style=social
    :target: https://twitter.com/geomstats
 .. |PyPI version| image:: https://badge.fury.io/py/geomstats.svg
    :target: https://badge.fury.io/py/geomstats
@@ -196,6 +198,12 @@ This work is supported by:
 .. |Zenodo| image:: https://zenodo.org/badge/108200238.svg
    :target: https://zenodo.org/badge/latestdoi/108200238
 .. |python| image:: https://img.shields.io/badge/python-3.6+-blue?logo=python
-.. _python: https://www.python.org/
+   :target: https://www.python.org/
 .. |tutorial| image:: https://img.shields.io/youtube/views/Ju-Wsd84uG0?label=watch&style=social
-.. _tutorial: https://www.youtube.com/watch?v=Ju-Wsd84uG0
+   :target: https://www.youtube.com/watch?v=Ju-Wsd84uG0
+.. |doc| image:: https://img.shields.io/badge/docs-website-brightgreen?style=flat
+   :target: https://geomstats.github.io/?badge=latest
+.. |binder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath=notebooks
+.. |contributions| image:: https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat
+   :target: https://geomstats.github.io/contributing.html
