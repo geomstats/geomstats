@@ -13,6 +13,7 @@ install:
     done
 before_script:
   - export PYTHONPATH=$PYTHONPATH:$(pwd)
+  - pandoc --version
 script:
   - flake8 --ignore=D,W503,W504 geomstats examples tests
   - flake8 geomstats/geometry geomstats/learning
