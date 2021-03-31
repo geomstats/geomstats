@@ -41,7 +41,7 @@ def main():
             label='Barycenter of class ' + str(i))
 
     # generate random test samples, and predict with MDM classifier
-    data_test = SPDMatrices(n=n_features).random_uniform(n_samples=3)
+    data_test = SPDMatrices(n=n_features).random_point(n_samples=3)
     predictions = MDMEstimator.predict(data_test)
 
     for i in range(data_test.shape[0]):
