@@ -1,9 +1,9 @@
 """Exposes the `SpecialOrthogonal` group class."""
 
+import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
-from geomstats import algebra_utils
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup
@@ -13,14 +13,6 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 ATOL = 1e-5
 
-TAYLOR_COEFFS_1_AT_0 = [1., 0.,
-                        - 1. / 12., 0.,
-                        - 1. / 720., 0.,
-                        - 1. / 30240., 0.]
-TAYLOR_COEFFS_2_AT_0 = [1. / 12., 0.,
-                        1. / 720., 0.,
-                        1. / 30240., 0.,
-                        1. / 1209600., 0.]
 TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 4., - gs.pi / 48.,
                          - 1. / 48., - gs.pi / 480.,
@@ -38,9 +30,10 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
 
     def __init__(self, n):
         super(_SpecialOrthogonalMatrices, self).__init__(
-            dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n)
-        self.lie_algebra = SkewSymmetricMatrices(n=n)
+            dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n,
+            lie_algebra=SkewSymmetricMatrices(n=n))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
+        self.dim = int((n * (n - 1)) / 2)
 
     def belongs(self, point, atol=ATOL):
         """Check whether point is an orthogonal matrix.
@@ -97,13 +90,16 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         rot_mat = cls.mul(point, inv_sqrt_mat)
         return rot_mat
 
+
     def _is_in_lie_algebra(self, tangent_vec, atol=ATOL):
         return self.lie_algebra.belongs(tangent_vec, atol=atol)
-
+      
+      
     @classmethod
     def _to_lie_algebra(cls, tangent_vec):
         """Project vector onto skew-symmetric matrices."""
         return cls.to_skew_symmetric(tangent_vec)
+
 
     def random_uniform(self, n_samples=1, tol=1e-6):
         """Sample in SO(n) from the uniform distribution.
@@ -123,14 +119,21 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             random_mat = gs.random.rand(self.n, self.n)
         else:
             random_mat = gs.random.rand(n_samples, self.n, self.n)
-        skew = self.to_tangent(random_mat)
-        return self.exp(skew)
+        rotation_mat, _ = gs.linalg.qr(random_mat)
+        return rotation_mat
 
     def rotation_from_angle(self, theta):
         """Create 2D rotation matrices from scalar angles.
-
-        :param theta: float, or list of.
-        :return array-like, shape = [2, 2], or list of.
+        
+        Parameters
+        ----------
+        theta : float
+            Rotation angle
+            
+        Returns
+        -------
+        mat : array-like, shape = [2, 2],
+            2D Rotation matrix
         """
         if self.n != 2:
             raise NotImplementedError
@@ -146,10 +149,17 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         return mat
 
     def angle_of_rot2(self, point):
-        """Get angle of a 2D rotation; vectorized version.
+        """Get scalar angles from 2D rotation matrices.
 
-        :param r: array-like (or a list of), shape=[n, n]: rotation
-        :return: float (or a list of): angle of rotation
+        Parameters
+        ----------
+        point : array-like, shape=[2, 2]
+            2D rotation matrix
+            
+        Returns
+        -------
+        float
+            Angle of 2D rotation
         """
         if self.n != 2:
             raise NotImplementedError
@@ -159,13 +169,20 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             '...,...->...', gs.sign(sinus), gs.arccos(cosinus))
 
     def multiply_angle_of_rot2(self, point, alpha):
-        """Divide the angle of a 2D rotation by a scalar; vectorized version.
+        """Divide the angle of a 2D rotation by a scalar.
 
         Best to have original angle in :math [0, PI].
-        :param point: array-like (or a list of), shape = [n, n]: rotation
-        :param alpha: float: scalar (or a list of) to divide of angle by
-        :return: array-like (or a list of), shape=[n, n]:
-                 rotation with divided angle
+        
+        Parameters
+        ----------
+        point : array-like, shape=[2, 2]
+            2D rotation matrix   
+        alpha : float
+            Scalar used for division
+            
+        Returns 
+        array-like, shape=[2, 2]
+            2D rotation with divided angle
         """
         if self.n != 2:
             raise NotImplementedError
@@ -174,24 +191,52 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         return self.rotation_from_angle(angle)
 
     def random_gaussian(self, mean, var, n_samples=1):
-        """Emulate a Gaussian distribution in SO(n).
+        """Sample from a Gaussian distribution in SO(n).
 
-        WARNING: This was only tested and may be viable only in SO(2).
-
-        :param mean: array-like, shape=[n, n]
-                     Mean rotation.
-        :param var: float
-                    Variance of the distribution,
-                    corresponds to an angle in dimension 2.
-        :param n_samples: int, number of samples
-        :return: rot_gaussian: array-like, shape=[n_samples, n, n]
+        Parameters
+        ----------
+        mean : array-like, shape=[n, n]
+            Mean rotation.
+        var : float
+            Variance of the distribution,
+            corresponds to an angle in dimension 2.
+        n_samples : int
+            Number of samples.
+            
+        Returns
+        -------
+        rot_gaussian : array-like, shape=[n_samples, n, n]
+            Sampled rotations
         """
+        # TODO(ninamiolane): Check that this works for n != 2
         if self.n != 2:
             raise NotImplementedError
         rot_uniform = self.random_uniform(n_samples)
         rot_normalized = self.multiply_angle_of_rot2(rot_uniform, var)
         rot_gaussian = gs.matmul(mean, rot_normalized)
         return rot_gaussian
+
+    def skew_matrix_from_vector(self, vec):
+        """Get the skew-symmetric matrix derived from the vector."""
+        return self.lie_algebra.matrix_representation(vec)
+
+    def vector_from_skew_matrix(self, skew_mat):
+        """Derive a vector from the skew-symmetric matrix.
+
+        In 3D, compute the vector defining the cross product
+        associated to the skew-symmetric matrix skew mat.
+
+        Parameters
+        ----------
+        skew_mat : array-like, shape=[..., n, n]
+            Skew-symmetric matrix.
+
+        Returns
+        -------
+        vec : array-like, shape=[..., dim]
+            Vector.
+        """
+        return SkewSymmetricMatrices(self.n).basis_representation(skew_mat)
 
 
 class _SpecialOrthogonalVectors(LieGroup):
@@ -272,21 +317,20 @@ class _SpecialOrthogonalVectors(LieGroup):
         n_mats, _, _ = mat.shape
 
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
-        rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
+        rot_mat = GeneralLinear.mul(mat_unitary_u, mat_unitary_v)
         mask = gs.less(gs.linalg.det(rot_mat), 0.)
         mask_float = gs.cast(mask, gs.float32) + self.epsilon
         diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
         diag = gs.to_ndarray(diag, to_ndim=2)
         diag = gs.to_ndarray(
-            algebra_utils.from_vector_to_diagonal_matrix(diag),
+            utils.from_vector_to_diagonal_matrix(diag),
             to_ndim=3) + self.epsilon
         new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
-        aux_mat = gs.einsum(
-            'nij,njk->nik', mat_unitary_u, new_mat_diag_s)
-        rot_mat += gs.einsum(
-            'n,njk->njk', mask_float,
-            gs.einsum('nij,njk->nik', aux_mat, mat_unitary_v))
+        aux_mat = GeneralLinear.mul(mat_unitary_u, new_mat_diag_s)
+        rot_mat = rot_mat + gs.einsum(
+            '...,...jk->...jk', mask_float,
+            GeneralLinear.mul(aux_mat, mat_unitary_v))
         return rot_mat
 
     def inverse(self, point):
@@ -316,9 +360,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         ----------
         tangent_vec : array-like, shape=[..., dimension]
             Tangent vector at base point.
-        point_type : str, {'vector', 'matrix'}
-            Point type.
-            Optional, default: self.default_point_type.
 
         Returns
         -------
@@ -347,6 +388,42 @@ class _SpecialOrthogonalVectors(LieGroup):
             Group logarithm.
         """
         return self.regularize(point)
+
+    def skew_matrix_from_vector(self, vec):
+        """Get the skew-symmetric matrix derived from the vector.
+
+        In 3D, compute the skew-symmetric matrix,known as the cross-product of
+        a vector, associated to the vector `vec`.
+
+        Parameters
+        ----------
+        vec : array-like, shape=[..., dim]
+            Vector.
+
+        Returns
+        -------
+        skew_mat : array-like, shape=[..., n, n]
+            Skew-symmetric matrix.
+        """
+        return SkewSymmetricMatrices(self.n).matrix_representation(vec)
+
+    def vector_from_skew_matrix(self, skew_mat):
+        """Derive a vector from the skew-symmetric matrix.
+
+        In 3D, compute the vector defining the cross product
+        associated to the skew-symmetric matrix skew mat.
+
+        Parameters
+        ----------
+        skew_mat : array-like, shape=[..., n, n]
+            Skew-symmetric matrix.
+
+        Returns
+        -------
+        vec : array-like, shape=[..., dim]
+            Vector.
+        """
+        return SkewSymmetricMatrices(self.n).basis_representation(skew_mat)
 
 
 class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
@@ -440,65 +517,6 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         """
         return self.regularize_tangent_vec_at_identity(tangent_vec)
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
-    def skew_matrix_from_vector(self, vec):
-        """Get the skew-symmetric matrix derived from the vector.
-
-        In 3D, compute the skew-symmetric matrix,known as the cross-product of
-        a vector, associated to the vector `vec`.
-
-        In nD, fill a skew-symmetric matrix with the values of the vector.
-
-        Parameters
-        ----------
-        vec : array-like, shape=[..., dim]
-            Vector.
-
-        Returns
-        -------
-        skew_mat : array-like, shape=[..., n, n]
-            Skew-symmetric matrix.
-        """
-        n_vecs, _ = gs.shape(vec)
-
-        vec = gs.tile(vec, [1, self.n])
-        vec = gs.reshape(vec, (n_vecs, self.n))
-
-        id_skew = gs.array(
-            gs.tile([[[0., 1.], [-1., 0.]]], (n_vecs, 1, 1)))
-        skew_mat = gs.einsum(
-            '...ij,...i->...ij', gs.cast(id_skew, gs.float32), vec)
-
-        return skew_mat
-
-    @geomstats.vectorization.decorator(['else', 'matrix', 'output_point'])
-    def vector_from_skew_matrix(self, skew_mat):
-        """Derive a vector from the skew-symmetric matrix.
-
-        In 3D, compute the vector defining the cross product
-        associated to the skew-symmetric matrix skew mat.
-
-        Parameters
-        ----------
-        skew_mat : array-like, shape=[..., n, n]
-            Skew-symmetric matrix.
-
-        Returns
-        -------
-        vec : array-like, shape=[..., dim]
-            Vector.
-        """
-        n_skew_mats, _, _ = skew_mat.shape
-
-        vec_dim = self.dim
-        vec = gs.zeros((n_skew_mats, vec_dim))
-
-        vec = skew_mat[:, 0, 1]
-        vec = gs.expand_dims(vec, axis=1)
-
-        return vec
-
-    @geomstats.vectorization.decorator(['else', 'matrix', 'output_point'])
     def rotation_vector_from_matrix(self, rot_mat):
         r"""Convert rotation matrix (in 2D) to rotation vector (axis-angle).
 
@@ -514,12 +532,9 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         regularized_rot_vec : array-like, shape=[..., 1]
             Rotation vector.
         """
-        rot_vec = gs.arctan2(rot_mat[:, 1, 0], rot_mat[:, 0, 0])
-        n_states = rot_vec.shape[0]
-        rot_vec = gs.reshape(rot_vec, (n_states, 1))
-        return self.regularize(rot_vec)
+        rot_vec = gs.arctan2(rot_mat[..., 1, 0], rot_mat[..., 0, 0])
+        return self.regularize(rot_vec[..., None])
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def matrix_from_rotation_vector(self, rot_vec):
         """Convert rotation vector to rotation matrix.
 
@@ -534,13 +549,11 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
             Rotation matrix.
         """
         rot_vec = self.regularize(rot_vec)
-        n_samples = rot_vec.shape[0]
 
-        cos_term = gs.to_ndarray(gs.cos(rot_vec), to_ndim=3, axis=2)
-        cos_matrix = cos_term * gs.array([gs.eye(2)] * n_samples)
-        sin_term = gs.to_ndarray(gs.sin(rot_vec), to_ndim=3, axis=2)
-        sin_matrix = -sin_term * self.skew_matrix_from_vector(
-            gs.array([[1]] * n_samples))
+        cos_term = gs.cos(rot_vec)
+        cos_matrix = gs.einsum('...l,ij->...ij', cos_term, gs.eye(2))
+        sin_term = gs.sin(rot_vec)
+        sin_matrix = self.skew_matrix_from_vector(sin_term)
         return cos_matrix + sin_matrix
 
     def compose(self, point_a, point_b):
@@ -648,7 +661,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         to be between 0 and pi, following the axis-angle
         representation's convention.
 
-        If the angle angle is between pi and 2pi,
+        If the angle is between pi and 2pi,
         the function computes its complementary in 2pi and
         inverts the direction of the rotation axis.
 
@@ -660,38 +673,25 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         -------
         regularized_point : array-like, shape=[..., 3]
         """
-        regularized_point = point
-        angle = gs.linalg.norm(regularized_point, axis=-1)
+        theta = gs.linalg.norm(point, axis=-1)
+        k = gs.floor(theta / 2. / gs.pi)
 
-        mask_0 = gs.isclose(angle, 0.)
-        mask_not_0 = ~mask_0
-        mask_pi = gs.isclose(angle, gs.pi)
+        # angle in [0;2pi)
+        angle = theta - 2 * k * gs.pi
 
-        # This avoids division by 0.
-        mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
-        mask_not_0_float = (
-            gs.cast(mask_not_0, gs.float32)
-            + self.epsilon)
-        mask_pi_float = gs.cast(mask_pi, gs.float32) + self.epsilon
+        # this avoids dividing by 0
+        theta_eps = gs.where(gs.isclose(theta, 0.), 1., theta)
 
-        k = gs.floor(angle / (2 * gs.pi) + .5)
-        angle += mask_0_float
+        # angle in [0, pi]
+        normalized_angle = gs.where(angle <= gs.pi, angle, 2 * gs.pi - angle)
+        norm_ratio = gs.where(
+            gs.isclose(theta, 0.), 1., normalized_angle / theta_eps)
 
-        norms_ratio = gs.zeros_like(angle)
-        norms_ratio += mask_not_0_float * (
-            1. - 2. * gs.pi * k / angle)
-        norms_ratio += mask_0_float
-        norms_ratio += mask_pi_float * (
-            gs.pi / angle
-            - (1. - 2. * gs.pi * k / angle))
+        # reverse sign if angle was greater than pi
+        norm_ratio = gs.where(angle > gs.pi, -norm_ratio, norm_ratio)
+        return gs.einsum(
+            '...,...i->...i', norm_ratio, point)
 
-        regularized_point = gs.einsum(
-            '...,...i->...i', norms_ratio, regularized_point)
-
-        return regularized_point
-
-    @geomstats.vectorization.decorator(
-        ['else', 'vector', 'else', 'output_point'])
     def regularize_tangent_vec_at_identity(
             self, tangent_vec, metric=None):
         """Regularize a tangent vector at the identity.
@@ -710,47 +710,23 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         regularized_vec : array-like, shape=[..., 3]]
         """
         if metric is None:
-            metric = self.left_canonical_metric
+            return self.regularize(tangent_vec)
+
         tangent_vec_metric_norm = metric.norm(tangent_vec)
         tangent_vec_canonical_norm = gs.linalg.norm(tangent_vec, axis=-1)
 
-        mask_norm_0 = gs.isclose(tangent_vec_metric_norm, 0.)
-        mask_canonical_norm_0 = gs.isclose(tangent_vec_canonical_norm, 0.)
+        # This avoids dividing by 0
+        norm_eps = gs.where(
+            tangent_vec_canonical_norm == 0, ATOL, tangent_vec_canonical_norm)
+        coef = gs.where(
+            tangent_vec_canonical_norm == 0.,
+            1., tangent_vec_metric_norm / norm_eps)
+        coef_tangent_vec = gs.einsum('...,...i->...i', coef, tangent_vec)
 
-        mask_0 = mask_norm_0 | mask_canonical_norm_0
-        mask_else = ~mask_0
-
-        # This avoids division by 0.
-        mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
-        mask_else_float = gs.cast(mask_else, gs.float32) + self.epsilon
-
-        regularized_vec = gs.zeros_like(tangent_vec)
-        regularized_vec += gs.einsum(
-            '...,...i->...i', mask_0_float, tangent_vec)
-
-        tangent_vec_canonical_norm += mask_0_float
-
-        coef = gs.zeros_like(tangent_vec_metric_norm)
-        coef += mask_else_float * (
-            tangent_vec_metric_norm
-            / tangent_vec_canonical_norm)
-
-        coef_tangent_vec = gs.einsum(
-            '...,...i->...i', coef, tangent_vec)
-        regularized_vec += gs.einsum(
-            '...,...i->...i',
-            mask_else_float,
-            self.regularize(coef_tangent_vec))
-
-        coef += mask_0_float
-        regularized_vec = gs.einsum(
+        regularized_vec = self.regularize(coef_tangent_vec)
+        return gs.einsum(
             '...,...i->...i', 1. / coef, regularized_vec)
-        regularized_vec = gs.einsum(
-            '...,...i->...i', mask_else_float, regularized_vec)
-        return regularized_vec
 
-    @geomstats.vectorization.decorator(
-        ['else', 'vector', 'vector', 'else', 'output_point'])
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None):
         """Regularize tangent vector at a base point.
@@ -910,6 +886,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         return vec
 
+
     @geomstats.vectorization.decorator(['else', 'matrix', 'output_point'])
     def rotation_vector_from_matrix(self, rot_mat):
         r"""Convert rotation matrix (in 3D) to rotation vector (axis-angle).
@@ -920,12 +897,13 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         so that:
         :math:`trace = 1 + 2 \cos(angle), \{-1 \leq trace \leq 3\}`
 
-        Get the rotation vector through the formula:
+        The rotation vector is the vector associated to the skew-symmetric
+        matrix
         :math:`S_r = \frac{angle}{(2 * \sin(angle) ) (R - R^T)}`
 
         For the edge case where the angle is close to pi,
-        the formulation is derived by using the following equality (see the
-        Axis-angle representation on Wikipedia):
+        the rotation vector (up to sign) is derived by using the following
+        equality (see the Axis-angle representation on Wikipedia):
         :math:`outer(r, r) = \frac{1}{2} (R + I_3)`
         In nD, the rotation vector stores the :math:`n(n-1)/2` values
         of the skew-symmetric matrix representing the rotation.
@@ -947,8 +925,8 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         rot_mat_transpose = gs.transpose(rot_mat, axes=(0, 2, 1))
         rot_vec_not_pi = self.vector_from_skew_matrix(
             rot_mat - rot_mat_transpose)
-        mask_0 = gs.cast(gs.isclose(angle, 0.), gs.float32)
-        mask_pi = gs.cast(gs.isclose(angle, gs.pi, atol=1e-2), gs.float32)
+        mask_0 = gs.cast(gs.isclose(angle, 0.), angle.dtype)
+        mask_pi = gs.cast(gs.isclose(angle, gs.pi, atol=1e-2), angle.dtype)
         mask_else = (1 - mask_0) * (1 - mask_pi)
 
         numerator = 0.5 * mask_0 + angle * mask_else
@@ -958,7 +936,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         rot_vec_not_pi = rot_vec_not_pi * numerator / denominator
 
         vector_outer = 0.5 * (gs.eye(3) + rot_mat)
-        gs.set_diag(
+        vector_outer = gs.set_diag(
             vector_outer, gs.maximum(
                 0., gs.diagonal(vector_outer, axis1=1, axis2=2)))
         squared_diag_comp = gs.diagonal(vector_outer, axis1=1, axis2=2)
@@ -974,7 +952,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         return self.regularize(rot_vec)
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def matrix_from_rotation_vector(self, rot_vec):
         """Convert rotation vector to rotation matrix.
 
@@ -988,40 +965,18 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         """
         rot_vec = self.regularize(rot_vec)
 
-        angle = gs.linalg.norm(rot_vec, axis=1)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
-
+        squared_angle = gs.sum(rot_vec ** 2, axis=-1)
         skew_rot_vec = self.skew_matrix_from_vector(rot_vec)
 
-        coef_1 = gs.zeros_like(angle)
-        coef_2 = gs.zeros_like(angle)
+        coef_1 = utils.taylor_exp_even_func(squared_angle, utils.sinc_close_0)
+        coef_2 = utils.taylor_exp_even_func(squared_angle, utils.cosc_close_0)
 
-        # This avoids dividing by 0.
-        mask_0 = gs.isclose(angle, 0.)
-        mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
-
-        coef_1 += mask_0_float * (1. - (angle ** 2) / 6.)
-        coef_2 += mask_0_float * (1. / 2. - angle ** 2)
-
-        # This avoids dividing by 0.
-        mask_else = ~mask_0
-        mask_else_float = gs.cast(mask_else, gs.float32) + self.epsilon
-
-        angle += mask_0_float
-
-        coef_1 += mask_else_float * (gs.sin(angle) / angle)
-        coef_2 += mask_else_float * (
-            (1. - gs.cos(angle)) / (angle ** 2))
-
-        coef_1 = gs.squeeze(coef_1, axis=1)
-        coef_2 = gs.squeeze(coef_2, axis=1)
         term_1 = (gs.eye(self.dim)
-                  + gs.einsum('n,njk->njk', coef_1, skew_rot_vec))
+                  + gs.einsum('...,...jk->...jk', coef_1, skew_rot_vec))
 
-        squared_skew_rot_vec = gs.einsum(
-            'nij,njk->nik', skew_rot_vec, skew_rot_vec)
+        squared_skew_rot_vec = GeneralLinear.mul(skew_rot_vec, skew_rot_vec)
 
-        term_2 = gs.einsum('n,njk->njk', coef_2, squared_skew_rot_vec)
+        term_2 = gs.einsum('...,...jk->...jk', coef_2, squared_skew_rot_vec)
 
         return term_1 + term_2
 
@@ -1130,17 +1085,20 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         for i in range(n_quaternions):
             # TODO (nina): Vectorize by applying the composition of
             # quaternions to the identity matrix
-            column_1 = [w[i] ** 2 + x[i] ** 2 - y[i] ** 2 - z[i] ** 2,
-                        2 * x[i] * y[i] - 2 * w[i] * z[i],
-                        2 * x[i] * z[i] + 2 * w[i] * y[i]]
+            column_1 = gs.array([
+                w[i] ** 2 + x[i] ** 2 - y[i] ** 2 - z[i] ** 2,
+                2 * x[i] * y[i] - 2 * w[i] * z[i],
+                2 * x[i] * z[i] + 2 * w[i] * y[i]])
 
-            column_2 = [2 * x[i] * y[i] + 2 * w[i] * z[i],
-                        w[i] ** 2 - x[i] ** 2 + y[i] ** 2 - z[i] ** 2,
-                        2 * y[i] * z[i] - 2 * w[i] * x[i]]
+            column_2 = gs.array([
+                2 * x[i] * y[i] + 2 * w[i] * z[i],
+                w[i] ** 2 - x[i] ** 2 + y[i] ** 2 - z[i] ** 2,
+                2 * y[i] * z[i] - 2 * w[i] * x[i]])
 
-            column_3 = [2 * x[i] * z[i] - 2 * w[i] * y[i],
-                        2 * y[i] * z[i] + 2 * w[i] * x[i],
-                        w[i] ** 2 - x[i] ** 2 - y[i] ** 2 + z[i] ** 2]
+            column_3 = gs.array([
+                2 * x[i] * z[i] - 2 * w[i] * y[i],
+                2 * y[i] * z[i] + 2 * w[i] * x[i],
+                w[i] ** 2 - x[i] ** 2 - y[i] ** 2 + z[i] ** 2])
 
             mask_i = gs.get_mask_i_float(i, n_quaternions)
             rot_mat_i = gs.transpose(
@@ -1189,19 +1147,22 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             cos_angle_3 = gs.cos(angle_3[i])
             sin_angle_3 = gs.sin(angle_3[i])
 
-            column_1 = [[cos_angle_1 * cos_angle_2],
-                        [cos_angle_2 * sin_angle_1],
-                        [- sin_angle_2]]
-            column_2 = [[(cos_angle_1 * sin_angle_2 * sin_angle_3
-                          - cos_angle_3 * sin_angle_1)],
-                        [(cos_angle_1 * cos_angle_3
-                          + sin_angle_1 * sin_angle_2 * sin_angle_3)],
-                        [cos_angle_2 * sin_angle_3]]
-            column_3 = [[(sin_angle_1 * sin_angle_3
-                          + cos_angle_1 * cos_angle_3 * sin_angle_2)],
-                        [(cos_angle_3 * sin_angle_1 * sin_angle_2
-                          - cos_angle_1 * sin_angle_3)],
-                        [cos_angle_2 * cos_angle_3]]
+            column_1 = gs.array([
+                [cos_angle_1 * cos_angle_2],
+                [cos_angle_2 * sin_angle_1],
+                [- sin_angle_2]])
+            column_2 = gs.array([
+                [(cos_angle_1 * sin_angle_2 * sin_angle_3
+                  - cos_angle_3 * sin_angle_1)],
+                [(cos_angle_1 * cos_angle_3
+                  + sin_angle_1 * sin_angle_2 * sin_angle_3)],
+                [cos_angle_2 * sin_angle_3]])
+            column_3 = gs.array([
+                [(sin_angle_1 * sin_angle_3
+                  + cos_angle_1 * cos_angle_3 * sin_angle_2)],
+                [(cos_angle_3 * sin_angle_1 * sin_angle_2
+                  - cos_angle_1 * sin_angle_3)],
+                [cos_angle_2 * cos_angle_3]])
 
             rot_mat.append(gs.hstack((column_1, column_2, column_3)))
         return gs.stack(rot_mat)
@@ -1244,21 +1205,24 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             cos_angle_3 = gs.cos(angle_3[i])
             sin_angle_3 = gs.sin(angle_3[i])
 
-            column_1 = [[cos_angle_2 * cos_angle_3],
-                        [(cos_angle_1 * sin_angle_3
-                          + cos_angle_3 * sin_angle_1 * sin_angle_2)],
-                        [(sin_angle_1 * sin_angle_3
-                          - cos_angle_1 * cos_angle_3 * sin_angle_2)]]
+            column_1 = gs.array(
+                [[cos_angle_2 * cos_angle_3],
+                 [(cos_angle_1 * sin_angle_3
+                   + cos_angle_3 * sin_angle_1 * sin_angle_2)],
+                 [(sin_angle_1 * sin_angle_3
+                   - cos_angle_1 * cos_angle_3 * sin_angle_2)]])
 
-            column_2 = [[- cos_angle_2 * sin_angle_3],
-                        [(cos_angle_1 * cos_angle_3
-                          - sin_angle_1 * sin_angle_2 * sin_angle_3)],
-                        [(cos_angle_3 * sin_angle_1
-                          + cos_angle_1 * sin_angle_2 * sin_angle_3)]]
+            column_2 = gs.array(
+                [[- cos_angle_2 * sin_angle_3],
+                 [(cos_angle_1 * cos_angle_3
+                   - sin_angle_1 * sin_angle_2 * sin_angle_3)],
+                 [(cos_angle_3 * sin_angle_1
+                   + cos_angle_1 * sin_angle_2 * sin_angle_3)]])
 
-            column_3 = [[sin_angle_2],
-                        [- cos_angle_2 * sin_angle_1],
-                        [cos_angle_1 * cos_angle_2]]
+            column_3 = gs.array(
+                [[sin_angle_2],
+                 [- cos_angle_2 * sin_angle_1],
+                 [cos_angle_1 * cos_angle_2]])
             rot_mat.append(gs.hstack((column_1, column_2, column_3)))
         return gs.stack(rot_mat)
 
@@ -1653,10 +1617,10 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         Parameters
         ----------
         point : array-like, shape=[..., 3]
-        left_or_right : str, {'left', 'right'}, optional
-            default: 'left'
-        point_type : str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
+            Point.
+        left_or_right : str, {'left', 'right'}
+            Whether to use left or right invariant metric.
+            Optional, default: 'left'.
 
         Returns
         -------
@@ -1666,76 +1630,33 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             left_or_right, 'left_or_right', ['left', 'right'])
 
         point = self.regularize(point)
-        point = gs.to_ndarray(point, to_ndim=2)
-        n_points, _ = point.shape
+        squared_angle = gs.sum(point ** 2, axis=-1)
 
-        angle = gs.linalg.norm(point, axis=-1)
-        angle = gs.expand_dims(angle, axis=-1)
-
-        coef_1 = gs.zeros([n_points, 1])
-        coef_2 = gs.zeros([n_points, 1])
-
-        # This avoids dividing by 0.
-        mask_0 = gs.isclose(angle, 0.)
-        mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
-
-        coef_1 += mask_0_float * (
-            TAYLOR_COEFFS_1_AT_0[0]
-            + TAYLOR_COEFFS_1_AT_0[2] * angle ** 2
-            + TAYLOR_COEFFS_1_AT_0[4] * angle ** 4
-            + TAYLOR_COEFFS_1_AT_0[6] * angle ** 6)
-
-        coef_2 += mask_0_float * (
-            TAYLOR_COEFFS_2_AT_0[0]
-            + TAYLOR_COEFFS_2_AT_0[2] * angle ** 2
-            + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
-            + TAYLOR_COEFFS_2_AT_0[6] * angle ** 6)
-
-        # This avoids dividing by 0.
-        mask_pi = gs.isclose(angle, gs.pi)
-        mask_pi_float = gs.cast(mask_pi, gs.float32) + self.epsilon
-
+        angle = gs.sqrt(squared_angle)
         delta_angle = angle - gs.pi
-        coef_1 += mask_pi_float * (
-            TAYLOR_COEFFS_1_AT_PI[1] * delta_angle
-            + TAYLOR_COEFFS_1_AT_PI[2] * delta_angle ** 2
-            + TAYLOR_COEFFS_1_AT_PI[3] * delta_angle ** 3
-            + TAYLOR_COEFFS_1_AT_PI[4] * delta_angle ** 4
-            + TAYLOR_COEFFS_1_AT_PI[5] * delta_angle ** 5
-            + TAYLOR_COEFFS_1_AT_PI[6] * delta_angle ** 6)
+        approx_at_pi = gs.sum(gs.array([
+            TAYLOR_COEFFS_1_AT_PI[k] * delta_angle ** k for k in range(1, 7)
+        ]))
+        coef_1 = utils.taylor_exp_even_func(
+            squared_angle / 4, utils.inv_tanc_close_0)
+        coef_1 = gs.where(
+            -delta_angle < utils.EPSILON, approx_at_pi, coef_1)
 
-        angle += mask_0_float
-        coef_2 += mask_pi_float * ((1 - coef_1) / angle ** 2)
+        coef_2 = utils.taylor_exp_even_func(
+            squared_angle, utils.var_inv_tanc_close_0, order=4)
+        squared_angle_ = gs.where(
+            squared_angle < utils.EPSILON, utils.EPSILON, squared_angle)
+        coef_2 = gs.where(
+            squared_angle < utils.EPSILON,
+            coef_2, (1 - coef_1) / squared_angle_)
 
-        # This avoids dividing by 0.
-        mask_else = ~mask_0 & ~mask_pi
-        mask_else_float = gs.cast(mask_else, gs.float32) + self.epsilon
+        outer_ = gs.einsum('...i,...j->...ij', point, point)
+        sign = - 1. if left_or_right == 'right' else 1.
 
-        # This avoids division by 0.
-        angle += mask_pi_float
-        coef_1 += mask_else_float * ((angle / 2) / gs.tan(angle / 2))
-        coef_2 += mask_else_float * ((1 - coef_1) / angle ** 2)
-        jacobian = gs.zeros((n_points, self.dim, self.dim))
-        n_points_tensor = gs.array(n_points)
-        for i in range(n_points):
-            # This avoids dividing by 0.
-            mask_i_float = (
-                gs.get_mask_i_float(i, n_points_tensor)
-                + self.epsilon)
-
-            sign = - 1.
-            if left_or_right == 'left':
-                sign = + 1.
-
-            jacobian_i = (
-                coef_1[i] * gs.eye(self.dim)
-                + coef_2[i] * gs.outer(point[i], point[i])
-                + sign * self.skew_matrix_from_vector(point[i]) / 2.)
-
-            jacobian += gs.einsum('n,ij->nij', mask_i_float, jacobian_i)
-
-        return jacobian[0] if (len(point) == 1 or point.ndim == 1) \
-            else jacobian
+        return (
+            gs.einsum('...,...ij->...ij', coef_1, gs.eye(self.dim))
+            + gs.einsum('...,...ij->...ij', coef_2, outer_)
+            + sign * self.skew_matrix_from_vector(point) / 2.)
 
     def random_uniform(self, n_samples=1):
         """Sample in SO(3) with the uniform distribution.
@@ -1789,10 +1710,12 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         Parameters
         ----------
         point : array-like, shape=[..., 3]
+            Group element.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., {dimension, [n, n]}]
+        tangent_vec : array-like, shape=[..., 3]
+            Group logarithn.
         """
         return self.regularize(point)
 

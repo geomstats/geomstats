@@ -17,6 +17,14 @@ def normal(loc=0.0, scale=1.0, size=(1,)):
 permutation = torch.randperm
 
 
+def choice(x, a):
+    """Generate a random sample from an array of given size."""
+    if torch.is_tensor(x):
+        return x[torch.randint(len(x), (a,))]
+
+    return x
+
+
 def rand(*args, **kwargs):
     return torch.rand(*args, **kwargs)
 

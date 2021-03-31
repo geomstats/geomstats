@@ -17,7 +17,8 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode',
+    'sphinx_gallery.load_style',
 ]
 
 # Configure napoleon for numpy docstring
@@ -29,7 +30,17 @@ napoleon_use_rtype = False
 napoleon_include_init_with_doc = False
 
 # Configure nbsphinx for notebooks execution
+nbsphinx_execute_arguments = [
+    "--InlineBackend.figure_formats={'svg', 'pdf'}",
+    "--InlineBackend.rc={'figure.dpi': 96}",
+]
+
 nbsphinx_execute = 'never'
+
+# To get a prompt similar to the Classic Notebook, use
+nbsphinx_input_prompt = ' In [%s]:'
+nbsphinx_output_prompt = ' Out [%s]:'
+
 nbsphinx_allow_errors = True
 
 templates_path = ['_templates']
@@ -40,6 +51,49 @@ master_doc = 'index'
 
 language = None
 
+nbsphinx_thumbnails = {
+    'notebooks/usecase_emg_sign_'
+    'classification_in_spd_manifold':
+        'https://raw.githubusercontent.com/ninamiolane/geomstats/master/'
+        'notebooks/figures/paper_rock_scissors.png',
+    'notebooks/usecase_graph_embedding'
+    '_and_clustering_in_hyperbolic_space':
+        'https://raw.githubusercontent.com/ninamiolane/geomstats/master/'
+        'notebooks/figures/karate_graph.png',
+    'notebooks/usecase_optic_nerve_heads_'
+    'analysis_in_kendall_shape_space':
+        'https://raw.githubusercontent.com/ninamiolane/geomstats/master/'
+        'notebooks/figures/optic_nerves.png',
+    'notebooks/usecase_hand_poses_'
+    'analysis_in_kendall_shape_space':
+        'https://raw.githubusercontent.com/ninamiolane/geomstats/master/'
+        'notebooks/figures/hand_skeleton.png'
+}
+
+nbsphinx_prolog = r"""
+{% set docname = env.doc2path(env.docname, base=None) %}
+
+.. raw:: html
+
+    <div class="admonition note">
+      <p>Notebook source code:
+        <a class="reference external"
+        href="https://github.com/geomstats/geomstats/blob/master/\
+            {{ docname|e }}">{{ docname|e }}</a>
+        <br>Run it yourself on binder\
+        <a href="https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath=\
+                            {{ docname|e }}"><img alt="Binder badge" \
+                            src="https://mybinder.org/badge_logo.svg" \
+                            style="vertical-align:text-bottom"></a>
+      </p>
+    </div>
+
+.. raw:: latex
+
+    \nbsphinxstartnotebook{\scriptsize\noindent\strut
+    \textcolor{gray}{The following section was generated from
+    \sphinxcode{\sphinxupquote{\strut {{ docname | escape_latex }}}} \dotfill}}
+"""
 exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']
 
 pygments_style = None

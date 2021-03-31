@@ -6,6 +6,7 @@ the hyperboloid representation (embedded in minkowsky space).
 
 import math
 
+import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
@@ -15,26 +16,6 @@ from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.minkowski import MinkowskiMetric
 
 TOLERANCE = 1e-6
-
-SINH_TAYLOR_COEFFS = [0., 1.,
-                      0., 1 / math.factorial(3),
-                      0., 1 / math.factorial(5),
-                      0., 1 / math.factorial(7),
-                      0., 1 / math.factorial(9)]
-COSH_TAYLOR_COEFFS = [1., 0.,
-                      1 / math.factorial(2), 0.,
-                      1 / math.factorial(4), 0.,
-                      1 / math.factorial(6), 0.,
-                      1 / math.factorial(8), 0.]
-INV_SINH_TAYLOR_COEFFS = [0., - 1. / 6.,
-                          0., + 7. / 360.,
-                          0., - 31. / 15120.,
-                          0., + 127. / 604800.]
-INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
-                          0., - 1. / 45.,
-                          0., + 2. / 945.,
-                          0., -1. / 4725.]
-
 EPSILON = 1e-6
 
 
@@ -64,13 +45,10 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
     default_point_type = 'vector'
 
     def __init__(self, dim, coords_type='extrinsic', scale=1):
-        # TODO (ninamiolane): Call __init__ from parent classes
-        # and remove ignore rule of corresponding DeepSource issue
-        self.scale = scale
-        self.dim = dim
+        super(Hyperboloid, self).__init__(
+            dim=dim, scale=scale, embedding_manifold=Minkowski(dim + 1))
         self.coords_type = coords_type
         self.point_type = Hyperboloid.default_point_type
-        self.embedding_manifold = Minkowski(dim + 1)
         self.embedding_metric = self.embedding_manifold.metric
         self.metric =\
             HyperboloidMetric(self.dim, self.coords_type, self.scale)
@@ -106,7 +84,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
             return belongs
 
         sq_norm = self.embedding_metric.squared_norm(point)
-        euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2
+        euclidean_sq_norm = gs.sum(point ** 2, axis=-1)
         diff = gs.abs(sq_norm + 1)
         belongs = diff < tolerance * euclidean_sq_norm
         return belongs
@@ -131,20 +109,13 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         if self.coords_type == 'intrinsic':
             point = self.intrinsic_to_extrinsic_coords(point)
 
-        point = gs.to_ndarray(point, to_ndim=2)
-
         sq_norm = self.embedding_metric.squared_norm(point)
+        if not gs.all(sq_norm):
+            raise ValueError('Cannot project a vector of norm 0. in the '
+                             'Minkowski space to the hyperboloid')
         real_norm = gs.sqrt(gs.abs(sq_norm))
+        projected_point = gs.einsum('...i,...->...i', point, 1. / real_norm)
 
-        mask_0 = gs.isclose(real_norm, 0.)
-        mask_not_0 = ~mask_0
-        mask_not_0_float = gs.cast(mask_not_0, gs.float32)
-        projected_point = point
-
-        normalized_point = gs.einsum(
-            '...,...i->...i', 1. / real_norm, point)
-        projected_point = gs.einsum(
-            '...,...i->...i', mask_not_0_float, normalized_point)
         return projected_point
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
@@ -215,7 +186,8 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         """
         belong_point = self.belongs(point_extrinsic)
         if not gs.all(belong_point):
-            raise NameError("Point do not belong to the hyperboloid")
+            raise NameError("Point that does not belong to the hyperboloid "
+                            "found")
         return\
             Hyperbolic.change_coordinates_system(point_extrinsic,
                                                  'extrinsic',
@@ -252,7 +224,7 @@ class HyperboloidMetric(HyperbolicMetric):
 
         self.scale = scale
 
-    def inner_product_matrix(self, base_point=None):
+    def metric_matrix(self, base_point=None):
         """Compute the inner product matrix.
 
         Parameters
@@ -266,7 +238,7 @@ class HyperboloidMetric(HyperbolicMetric):
         inner_prod_mat: array-like, shape=[..., dim+1, dim + 1]
             Inner-product matrix.
         """
-        self.embedding_metric.inner_product_matrix(base_point)
+        self.embedding_metric.metric_matrix(base_point)
 
     def _inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -310,7 +282,6 @@ class HyperboloidMetric(HyperbolicMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
@@ -330,43 +301,19 @@ class HyperboloidMetric(HyperbolicMetric):
         sq_norm_tangent_vec = self.embedding_metric.squared_norm(
             tangent_vec)
         sq_norm_tangent_vec = gs.clip(sq_norm_tangent_vec, 0, math.inf)
-        norm_tangent_vec = gs.sqrt(sq_norm_tangent_vec)
 
-        mask_0 = gs.isclose(sq_norm_tangent_vec, 0.)
-        mask_0 = gs.to_ndarray(mask_0, to_ndim=1)
-        mask_else = ~mask_0
-        mask_else = gs.to_ndarray(mask_else, to_ndim=1)
-        mask_0_float = gs.cast(mask_0, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
-
-        coef_1 = gs.zeros_like(norm_tangent_vec)
-        coef_2 = gs.zeros_like(norm_tangent_vec)
-
-        coef_1 += mask_0_float * (
-            1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
-            + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
-            + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
-            + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
-        coef_2 += mask_0_float * (
-            1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
-            + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
-            + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
-            + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
-        # This avoids dividing by 0.
-        norm_tangent_vec += mask_0_float * 1.0
-        coef_1 += mask_else_float * (gs.cosh(norm_tangent_vec))
-        coef_2 += mask_else_float * (
-            (gs.sinh(norm_tangent_vec) / (norm_tangent_vec)))
+        coef_1 = utils.taylor_exp_even_func(
+            sq_norm_tangent_vec, utils.cosh_close_0, order=5)
+        coef_2 = utils.taylor_exp_even_func(
+            sq_norm_tangent_vec, utils.sinch_close_0, order=5)
 
         exp = (
             gs.einsum('...,...j->...j', coef_1, base_point)
             + gs.einsum('...,...j->...j', coef_2, tangent_vec))
 
-        hyperbolic_space = Hyperboloid(dim=self.dim)
-        exp = hyperbolic_space.regularize(exp)
+        exp = Hyperboloid(dim=self.dim).regularize(exp)
         return exp
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
 
@@ -388,35 +335,14 @@ class HyperboloidMetric(HyperbolicMetric):
             of point at the base point.
         """
         angle = self.dist(base_point, point) / self.scale
-        angle = gs.to_ndarray(angle, to_ndim=1)
 
-        mask_0 = gs.isclose(angle, 0.)
-        mask_else = ~mask_0
+        coef_1_ = utils.taylor_exp_even_func(
+            angle ** 2, utils.inv_sinch_close_0, order=4)
+        coef_2_ = utils.taylor_exp_even_func(
+            angle ** 2, utils.inv_tanh_close_0, order=4)
 
-        mask_0_float = gs.cast(mask_0, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
-
-        coef_1 = gs.zeros_like(angle)
-        coef_2 = gs.zeros_like(angle)
-
-        coef_1 += mask_0_float * (
-            1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
-            + INV_SINH_TAYLOR_COEFFS[3] * angle ** 4
-            + INV_SINH_TAYLOR_COEFFS[5] * angle ** 6
-            + INV_SINH_TAYLOR_COEFFS[7] * angle ** 8)
-        coef_2 += mask_0_float * (
-            1. + INV_TANH_TAYLOR_COEFFS[1] * angle ** 2
-            + INV_TANH_TAYLOR_COEFFS[3] * angle ** 4
-            + INV_TANH_TAYLOR_COEFFS[5] * angle ** 6
-            + INV_TANH_TAYLOR_COEFFS[7] * angle ** 8)
-
-        # This avoids dividing by 0.
-        angle += mask_0_float * 1.
-
-        coef_1 += mask_else_float * (angle / gs.sinh(angle))
-        coef_2 += mask_else_float * (angle / gs.tanh(angle))
-        log_term_1 = gs.einsum('...,...j->...j', coef_1, point)
-        log_term_2 = - gs.einsum('...,...j->...j', coef_2, base_point)
+        log_term_1 = gs.einsum('...,...j->...j', coef_1_, point)
+        log_term_2 = - gs.einsum('...,...j->...j', coef_2_, base_point)
         log = log_term_1 + log_term_2
         return log
 

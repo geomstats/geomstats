@@ -15,7 +15,7 @@ from tensorflow import (  # NOQA
     atan as arctan,
     atan2 as arctan2,
     clip_by_value as clip,
-    concat as concatenate,
+    concat,
     cos,
     cosh,
     divide,
@@ -93,6 +93,10 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 def to_numpy(x):
     return x.numpy()
+
+
+def concatenate(x, axis=0, out=None):
+    return concat(x, axis=axis)
 
 
 def convert_to_wider_dtype(tensor_list):
@@ -522,7 +526,7 @@ def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
 
 def split(x, indices_or_sections, axis=0):
     if isinstance(indices_or_sections, int):
-        return tf.split(x, indices_or_sections, dim=axis)
+        return tf.split(x, indices_or_sections, axis=axis)
     indices_or_sections = _np.array(indices_or_sections)
     intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
     last_interval_length = x.shape[axis] - indices_or_sections[-1]
@@ -764,5 +768,14 @@ def where(condition, x=None, y=None):
     return tf.where(condition, x, y)
 
 
-# def zeros(*args, **kwargs):
-#     return tf.Variable(*args, **kwargs)
+def triu_to_vec(x, k=0):
+    n = x.shape[-1]
+    axis = 1 if x.ndim == 3 else 0
+    mask = tf.ones((n, n))
+    mask_a = tf.linalg.band_part(mask, 0, -1)
+    if k > 0:
+        mask_b = tf.linalg.band_part(mask, 0, k - 1)
+    else:
+        mask_b = tf.zeros_like(mask_a)
+    mask = tf.cast(mask_a - mask_b, dtype=tf.bool)
+    return tf.boolean_mask(x, mask, axis=axis)

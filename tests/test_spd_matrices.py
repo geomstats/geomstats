@@ -5,12 +5,13 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
+    SPDMetricBuresWasserstein,
     SPDMetricEuclidean,
-    SPDMetricLogEuclidean,
-    SPDMetricProcrustes
+    SPDMetricLogEuclidean
 )
 
 
@@ -26,7 +27,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         self.n = 3
         self.space = SPDMatrices(n=self.n)
         self.metric_affine = SPDMetricAffine(n=self.n)
-        self.metric_procrustes = SPDMetricProcrustes(n=self.n)
+        self.metric_bureswasserstein = SPDMetricBuresWasserstein(n=self.n)
         self.metric_euclidean = SPDMetricEuclidean(n=self.n)
         self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
         self.n_samples = 4
@@ -74,16 +75,16 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         expected = gs.array([True, False, False])
         self.assertAllClose(result, expected)
 
-    def test_random_uniform_and_belongs(self):
-        """Test of random_uniform and belongs methods."""
-        point = self.space.random_uniform()
+    def test_random_point_and_belongs(self):
+        """Test of random_point and belongs methods."""
+        point = self.space.random_point()
         result = self.space.belongs(point)
         expected = True
         self.assertAllClose(result, expected)
 
-    def test_random_uniform_and_belongs_vectorization(self):
-        """Test of random_uniform and belongs methods."""
-        points = self.space.random_uniform(4)
+    def test_random_point_and_belongs_vectorization(self):
+        """Test of random_point and belongs methods."""
+        points = self.space.random_point(4)
         result = self.space.belongs(points)
         expected = gs.array([True] * 4)
         self.assertAllClose(result, expected)
@@ -151,7 +152,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
-        sym_mat = self.space.random_uniform(n_samples)
+        sym_mat = self.space.random_point(n_samples)
         vector = self.space.to_vector(sym_mat)
         result = self.space.from_vector(vector)
         expected = sym_mat
@@ -268,8 +269,8 @@ class TestSPDMatrices(geomstats.tests.TestCase):
                              [1., 1., 1.]])
         self.assertAllClose(result, expected)
 
-    def test_procrustes_inner_product(self):
-        """Test of SPDMetricProcrustes.inner_product method."""
+    def test_bureswasserstein_inner_product(self):
+        """Test of SPDMetricBuresWasserstein.inner_product method."""
         base_point = gs.array([[1., 0., 0.],
                                [0., 1.5, .5],
                                [0., .5, 1.5]])
@@ -279,7 +280,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         tangent_vec_b = gs.array([[1., 2., 4.],
                                   [2., 3., 8.],
                                   [4., 8., 5.]])
-        metric = SPDMetricProcrustes(3)
+        metric = SPDMetricBuresWasserstein(3)
         result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         expected = gs.array(4.)
 
@@ -310,6 +311,12 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         metric = SPDMetricEuclidean(3, power_euclidean=.5)
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
         expected = 3472 / 576
+        self.assertAllClose(result, expected)
+
+        result = self.metric_euclidean.inner_product(
+            tangent_vec, tangent_vec, base_point)
+        expected = MatricesMetric(3, 3).inner_product(
+            tangent_vec, tangent_vec)
 
         self.assertAllClose(result, expected)
 
@@ -373,6 +380,22 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(result, expected)
 
+    def test_log_and_exp_bureswasserstein(self):
+        """Test of SPDMetricBuresWasserstein.log and exp methods."""
+        base_point = gs.array([[5., 0., 0.],
+                               [0., 7., 2.],
+                               [0., 2., 8.]])
+        point = gs.array([[9., 0., 0.],
+                          [0., 5., 0.],
+                          [0., 0., 1.]])
+
+        metric = self.metric_bureswasserstein
+        log = metric.log(point=point, base_point=base_point)
+        result = metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+
+        self.assertAllClose(result, expected, atol=1e-5)
+
     def test_log_and_exp_logeuclidean(self):
         """Test of SPDMetricLogEuclidean.log and exp methods."""
         base_point = gs.array([[5., 0., 0.],
@@ -392,9 +415,9 @@ class TestSPDMatrices(geomstats.tests.TestCase):
     def test_exp_and_belongs(self):
         """Test of SPDMetricAffine.exp with power=1 and belongs methods."""
         n_samples = self.n_samples
-        base_point = self.space.random_uniform(n_samples=1)
-        tangent_vec = self.space.random_tangent_vec_uniform(
-            n_samples=n_samples, base_point=base_point)
+        base_point = self.space.random_point(n_samples=1)
+        tangent_vec = self.space.random_tangent_vec(n_samples=n_samples,
+                                                    base_point=base_point)
         metric = self.metric_affine
         exps = metric.exp(tangent_vec, base_point)
         result = self.space.belongs(exps)
@@ -405,13 +428,13 @@ class TestSPDMatrices(geomstats.tests.TestCase):
     def test_exp_vectorization(self):
         """Test of SPDMetricAffine.exp with power=1 and vectorization."""
         n_samples = self.n_samples
-        one_base_point = self.space.random_uniform(n_samples=1)
-        n_base_point = self.space.random_uniform(n_samples=n_samples)
+        one_base_point = self.space.random_point(n_samples=1)
+        n_base_point = self.space.random_point(n_samples=n_samples)
 
-        n_tangent_vec_same_base = self.space.random_tangent_vec_uniform(
+        n_tangent_vec_same_base = self.space.random_tangent_vec(
             n_samples=n_samples, base_point=one_base_point)
-        n_tangent_vec = self.space.random_tangent_vec_uniform(
-            n_samples=n_samples, base_point=n_base_point)
+        n_tangent_vec = self.space.random_tangent_vec(n_samples=n_samples,
+                                                      base_point=n_base_point)
         metric = self.metric_affine
 
         # Test with the 1 base_point, and several different tangent_vecs
@@ -429,11 +452,11 @@ class TestSPDMatrices(geomstats.tests.TestCase):
     def test_log_vectorization(self):
         """Test of SPDMetricAffine.log with power 1 and vectorization."""
         n_samples = self.n_samples
-        one_base_point = self.space.random_uniform(n_samples=1)
-        n_base_point = self.space.random_uniform(n_samples=n_samples)
+        one_base_point = self.space.random_point(n_samples=1)
+        n_base_point = self.space.random_point(n_samples=n_samples)
 
-        one_point = self.space.random_uniform(n_samples=1)
-        n_point = self.space.random_uniform(n_samples=n_samples)
+        one_point = self.space.random_point(n_samples=1)
+        n_point = self.space.random_point(n_samples=n_samples)
         metric = self.metric_affine
 
         # Test with different points, one base point
@@ -456,8 +479,8 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
     def test_geodesic_and_belongs(self):
         """Test of SPDMetricAffine.geodesic with power 1 and belongs."""
-        initial_point = self.space.random_uniform()
-        initial_tangent_vec = self.space.random_tangent_vec_uniform(
+        initial_point = self.space.random_point()
+        initial_tangent_vec = self.space.random_tangent_vec(
             n_samples=1, base_point=initial_point)
         metric = self.metric_affine
         geodesic = metric.geodesic(
@@ -467,17 +490,15 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         n_points = 10
         t = gs.linspace(start=0., stop=1., num=n_points)
         points = geodesic(t)
-        result = self.space.belongs(points)
-        expected = gs.array([True] * n_points)
-
-        self.assertAllClose(result, expected)
+        result = self.space.belongs(points, atol=1e-5)
+        self.assertTrue(gs.all(result))
 
     def test_squared_dist_is_symmetric(self):
         """Test of SPDMetricAffine.squared_dist (power=1) and is_symmetric."""
         n_samples = self.n_samples
 
-        point_1 = self.space.random_uniform(n_samples=1)
-        point_2 = self.space.random_uniform(n_samples=1)
+        point_1 = self.space.random_point(n_samples=1)
+        point_2 = self.space.random_point(n_samples=1)
         point_1 = gs.cast(point_1, gs.float64)
         point_2 = gs.cast(point_2, gs.float64)
 
@@ -488,15 +509,15 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
         self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-3)
 
-        point_2 = self.space.random_uniform(n_samples=n_samples)
+        point_2 = self.space.random_point(n_samples=n_samples)
         point_2 = gs.cast(point_2, gs.float64)
 
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
         self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-3)
 
-        point_1 = self.space.random_uniform(n_samples=n_samples)
-        point_2 = self.space.random_uniform(n_samples=1)
+        point_1 = self.space.random_point(n_samples=n_samples)
+        point_2 = self.space.random_point(n_samples=1)
         point_1 = gs.cast(point_1, gs.float64)
         point_2 = gs.cast(point_2, gs.float64)
 
@@ -505,8 +526,8 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
         self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-3)
 
-        point_1 = self.space.random_uniform(n_samples=n_samples)
-        point_2 = self.space.random_uniform(n_samples=n_samples)
+        point_1 = self.space.random_point(n_samples=n_samples)
+        point_2 = self.space.random_point(n_samples=n_samples)
         point_1 = gs.cast(point_1, gs.float64)
         point_2 = gs.cast(point_2, gs.float64)
 
@@ -518,30 +539,30 @@ class TestSPDMatrices(geomstats.tests.TestCase):
     def test_squared_dist_vectorization(self):
         """Test of SPDMetricAffine.squared_dist (power=1) and vectorization."""
         n_samples = self.n_samples
-        point_1 = self.space.random_uniform(n_samples=n_samples)
-        point_2 = self.space.random_uniform(n_samples=n_samples)
+        point_1 = self.space.random_point(n_samples=n_samples)
+        point_2 = self.space.random_point(n_samples=n_samples)
 
         metric = self.metric_affine
         result = metric.squared_dist(point_1, point_2)
 
         self.assertAllClose(gs.shape(result), (n_samples,))
 
-        point_1 = self.space.random_uniform(n_samples=1)
-        point_2 = self.space.random_uniform(n_samples=n_samples)
+        point_1 = self.space.random_point(n_samples=1)
+        point_2 = self.space.random_point(n_samples=n_samples)
 
         result = metric.squared_dist(point_1, point_2)
 
         self.assertAllClose(gs.shape(result), (n_samples,))
 
-        point_1 = self.space.random_uniform(n_samples=n_samples)
-        point_2 = self.space.random_uniform(n_samples=1)
+        point_1 = self.space.random_point(n_samples=n_samples)
+        point_2 = self.space.random_point(n_samples=1)
 
         result = metric.squared_dist(point_1, point_2)
 
         self.assertAllClose(gs.shape(result), (n_samples,))
 
-        point_1 = self.space.random_uniform(n_samples=1)
-        point_2 = self.space.random_uniform(n_samples=1)
+        point_1 = self.space.random_point(n_samples=1)
+        point_2 = self.space.random_point(n_samples=1)
 
         result = metric.squared_dist(point_1, point_2)
 
@@ -551,9 +572,9 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         """Test of SPDMetricAffine.parallel_transport method with power=1."""
         n_samples = self.n_samples
         gs.random.seed(1)
-        point = self.space.random_uniform(n_samples)
-        tan_a = self.space.random_tangent_vec_uniform(n_samples, point)
-        tan_b = self.space.random_tangent_vec_uniform(n_samples, point)
+        point = self.space.random_point(n_samples)
+        tan_a = self.space.random_tangent_vec(n_samples, point)
+        tan_b = self.space.random_tangent_vec(n_samples, point)
 
         metric = self.metric_affine
         expected = metric.norm(tan_a, point)
@@ -564,7 +585,40 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result, atol=1e-4)
 
+    def test_squared_dist_bureswasserstein(self):
+        """Test of SPDMetricBuresWasserstein.squared_dist method."""
+        point_a = gs.array([[5., 0., 0.],
+                            [0., 7., 2.],
+                            [0., 2., 8.]])
+        point_b = gs.array([[9., 0., 0.],
+                            [0., 5., 0.],
+                            [0., 0., 1.]])
 
-if __name__ == '__main__':
-    TestSPDMatrices().test_random_gaussian_rotation_orbit()
-    TestSPDMatrices().test_random_gaussian_rotation_orbit_noisy()
+        metric = self.metric_bureswasserstein
+        result = metric.squared_dist(point_a, point_b)
+
+        log = metric.log(point=point_b, base_point=point_a)
+        expected = metric.squared_norm(vector=log, base_point=point_a)
+
+        self.assertAllClose(result, expected, atol=1e-5)
+
+    def test_squared_dist_bureswasserstein_vectorization(self):
+        """Test of SPDMetricBuresWasserstein.squared_dist method."""
+        point_a = self.space.random_point(2)
+        point_b = gs.array([[9., 0., 0.],
+                            [0., 5., 0.],
+                            [0., 0., 1.]])
+
+        metric = self.metric_bureswasserstein
+        result = metric.squared_dist(point_a, point_b)
+
+        log = metric.log(point=point_b, base_point=point_a)
+        expected = metric.squared_norm(vector=log, base_point=point_a)
+
+        self.assertAllClose(result, expected, atol=1e-5)
+
+    def test_to_tangent_and_is_tangent(self):
+        mat = gs.random.rand(3, 3)
+        projection = self.space.to_tangent(mat)
+        result = self.space.is_tangent(projection)
+        self.assertTrue(result)

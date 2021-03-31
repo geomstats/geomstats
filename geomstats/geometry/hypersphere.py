@@ -5,9 +5,9 @@ Euclidean space.
 """
 
 import logging
-import math
 from itertools import product
 
+import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
@@ -16,21 +16,7 @@ from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-6
-EPSILON = 1e-8
-
-COS_TAYLOR_COEFFS = [1., 0.,
-                     - 1.0 / math.factorial(2), 0.,
-                     + 1.0 / math.factorial(4), 0.,
-                     - 1.0 / math.factorial(6), 0.,
-                     + 1.0 / math.factorial(8), 0.]
-INV_SIN_TAYLOR_COEFFS = [0., 1. / 6.,
-                         0., 7. / 360.,
-                         0., 31. / 15120.,
-                         0., 127. / 604800.]
-INV_TAN_TAYLOR_COEFFS = [0., - 1. / 3.,
-                         0., - 1. / 45.,
-                         0., - 2. / 945.,
-                         0., -1. / 4725.]
+EPSILON = 1e-4
 
 
 class _Hypersphere(EmbeddedManifold):
@@ -82,7 +68,7 @@ class _Hypersphere(EmbeddedManifold):
             if gs.ndim(point) == 2:
                 belongs = gs.tile([belongs], (point.shape[0],))
             return belongs
-        sq_norm = self.embedding_metric.squared_norm(point)
+        sq_norm = gs.sum(point ** 2, axis=-1)
         diff = gs.abs(sq_norm - 1)
         return gs.less_equal(diff, tolerance)
 
@@ -107,7 +93,6 @@ class _Hypersphere(EmbeddedManifold):
 
         return self.projection(point)
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def projection(self, point):
         """Project a point on the hypersphere.
 
@@ -121,12 +106,11 @@ class _Hypersphere(EmbeddedManifold):
         projected_point : array-like, shape=[..., dim + 1]
             Point projected on the hypersphere.
         """
-        norm = self.embedding_metric.norm(point)
+        norm = gs.linalg.norm(point, axis=-1)
         projected_point = gs.einsum('...,...i->...i', 1. / norm, point)
 
         return projected_point
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def to_tangent(self, vector, base_point):
         """Project a vector to the tangent space.
 
@@ -147,14 +131,13 @@ class _Hypersphere(EmbeddedManifold):
             Tangent vector in the tangent space of the hypersphere
             at the base point.
         """
-        sq_norm = self.embedding_metric.squared_norm(base_point)
+        sq_norm = gs.sum(base_point ** 2, axis=-1)
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
         tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
 
         return tangent_vec
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def spherical_to_extrinsic(self, point_spherical):
         """Convert point from spherical to extrinsic coordinates.
 
@@ -178,14 +161,14 @@ class _Hypersphere(EmbeddedManifold):
                 ' to extrinsic coordinates is implemented'
                 ' only in dimension 2.')
 
-        theta = point_spherical[:, 0]
-        phi = point_spherical[:, 1]
+        theta = point_spherical[..., 0]
+        phi = point_spherical[..., 1]
 
         point_extrinsic = gs.stack(
             [gs.sin(theta) * gs.cos(phi),
              gs.sin(theta) * gs.sin(phi),
              gs.cos(theta)],
-            axis=1)
+            axis=-1)
 
         if not gs.all(self.belongs(point_extrinsic)):
             raise ValueError('Points do not belong to the manifold.')
@@ -223,7 +206,6 @@ class _Hypersphere(EmbeddedManifold):
         n_samples = base_point_spherical.shape[0]
         theta = base_point_spherical[:, 0]
         phi = base_point_spherical[:, 1]
-        jac = gs.zeros((n_samples, self.dim + 1, self.dim))
 
         zeros = gs.zeros(n_samples)
 
@@ -240,7 +222,6 @@ class _Hypersphere(EmbeddedManifold):
 
         return tangent_vec_extrinsic
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert point from intrinsic to extrinsic coordinates.
 
@@ -258,17 +239,16 @@ class _Hypersphere(EmbeddedManifold):
             Point on the hypersphere, in extrinsic coordinates in
             Euclidean space.
         """
-        sq_coord_0 = 1. - gs.linalg.norm(point_intrinsic, axis=-1) ** 2
+        sq_coord_0 = 1. - gs.sum(point_intrinsic ** 2, axis=-1)
         if gs.any(gs.less(sq_coord_0, 0.)):
             raise ValueError('Square-root of a negative number.')
         coord_0 = gs.sqrt(sq_coord_0)
-        coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=-1)
 
-        point_extrinsic = gs.concatenate([coord_0, point_intrinsic], axis=-1)
+        point_extrinsic = gs.concatenate([
+            coord_0[..., None], point_intrinsic], axis=-1)
 
         return point_extrinsic
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """Convert point from extrinsic to intrinsic coordinates.
 
@@ -286,7 +266,7 @@ class _Hypersphere(EmbeddedManifold):
         point_intrinsic : array-like, shape=[..., dim]
             Point on the hypersphere, in intrinsic coordinates.
         """
-        point_intrinsic = point_extrinsic[:, 1:]
+        point_intrinsic = point_extrinsic[..., 1:]
 
         return point_intrinsic
 
@@ -296,7 +276,7 @@ class _Hypersphere(EmbeddedManifold):
         value_indices = list(product(replaced_indices, range(self.dim + 1)))
         return gs.assignment(samples, gs.flatten(new_samples), value_indices)
 
-    def random_uniform(self, n_samples=1, tol=1e-6):
+    def random_point(self, n_samples=1, bound=1.):
         """Sample in the hypersphere from the uniform distribution.
 
         Parameters
@@ -304,9 +284,22 @@ class _Hypersphere(EmbeddedManifold):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        tol : float
-            Tolerance.
-            Optional, default: 1e-6.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., dim + 1]
+            Points sampled on the hypersphere.
+        """
+        return self.random_uniform(n_samples)
+
+    def random_uniform(self, n_samples=1):
+        """Sample in the hypersphere from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
 
         Returns
         -------
@@ -318,7 +311,7 @@ class _Hypersphere(EmbeddedManifold):
         samples = gs.random.normal(size=size)
         while True:
             norms = gs.linalg.norm(samples, axis=1)
-            indcs = gs.isclose(norms, 0.0, atol=tol)
+            indcs = gs.isclose(norms, 0.0, atol=TOLERANCE)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
@@ -437,7 +430,6 @@ class HypersphereMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
@@ -454,51 +446,21 @@ class HypersphereMetric(RiemannianMetric):
             Point on the hypersphere equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        _, extrinsic_dim = base_point.shape
-        n_tangent_vecs, _ = tangent_vec.shape
+        hypersphere = Hypersphere(dim=self.dim)
+        proj_tangent_vec = hypersphere.to_tangent(tangent_vec, base_point)
+        norm2 = self.embedding_metric.squared_norm(proj_tangent_vec)
 
-        hypersphere = Hypersphere(dim=extrinsic_dim - 1)
-        proj_tangent_vec = hypersphere.to_tangent(
-            tangent_vec, base_point)
-        norm_tangent_vec = self.embedding_metric.norm(proj_tangent_vec)
-        norm_tangent_vec = gs.to_ndarray(norm_tangent_vec, to_ndim=1)
-
-        mask_0 = gs.isclose(norm_tangent_vec, 0.)
-        mask_non0 = ~mask_0
-
-        coef_1 = gs.zeros((n_tangent_vecs,))
-        coef_2 = gs.zeros((n_tangent_vecs,))
-        norm2 = norm_tangent_vec[mask_0]**2
-        norm4 = norm2**2
-        norm6 = norm2**3
-
-        coef_1 = gs.assignment(
-            coef_1,
-            1. - norm2 / 2. + norm4 / 24. - norm6 / 720.,
-            mask_0)
-        coef_2 = gs.assignment(
-            coef_2,
-            1. - norm2 / 6. + norm4 / 120. - norm6 / 5040.,
-            mask_0)
-
-        coef_1 = gs.assignment(
-            coef_1,
-            gs.cos(norm_tangent_vec[mask_non0]),
-            mask_non0)
-        coef_2 = gs.assignment(
-            coef_2,
-            gs.sin(
-                norm_tangent_vec[mask_non0]) /
-            norm_tangent_vec[mask_non0],
-            mask_non0)
-
+        coef_1 = utils.taylor_exp_even_func(
+            norm2, utils.cos_close_0, order=4)
+        coef_2 = utils.taylor_exp_even_func(
+            norm2, utils.sinc_close_0, order=4)
         exp = (gs.einsum('...,...j->...j', coef_1, base_point)
                + gs.einsum('...,...j->...j', coef_2, proj_tangent_vec))
 
         return exp
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
         Parameters
@@ -514,59 +476,15 @@ class HypersphereMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        norm_base_point = self.embedding_metric.norm(base_point)
-        norm_point = self.embedding_metric.norm(point)
         inner_prod = self.embedding_metric.inner_product(base_point, point)
-        cos_angle = inner_prod / (norm_base_point * norm_point)
-        cos_angle = gs.clip(cos_angle, -1., 1.)
-
-        angle = gs.arccos(cos_angle)
-        angle = gs.to_ndarray(angle, to_ndim=1)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
-
-        mask_0 = gs.isclose(angle, 0.)
-        mask_else = gs.equal(mask_0, gs.array(False))
-
-        mask_0_float = gs.cast(mask_0, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
-
-        coef_1 = gs.zeros_like(angle)
-        coef_2 = gs.zeros_like(angle)
-
-        coef_1 += mask_0_float * (
-            1. + INV_SIN_TAYLOR_COEFFS[1] * angle ** 2
-            + INV_SIN_TAYLOR_COEFFS[3] * angle ** 4
-            + INV_SIN_TAYLOR_COEFFS[5] * angle ** 6
-            + INV_SIN_TAYLOR_COEFFS[7] * angle ** 8)
-        coef_2 += mask_0_float * (
-            1. + INV_TAN_TAYLOR_COEFFS[1] * angle ** 2
-            + INV_TAN_TAYLOR_COEFFS[3] * angle ** 4
-            + INV_TAN_TAYLOR_COEFFS[5] * angle ** 6
-            + INV_TAN_TAYLOR_COEFFS[7] * angle ** 8)
-
-        # This avoids division by 0.
-        angle += mask_0_float * 1.
-
-        coef_1 += mask_else_float * angle / gs.sin(angle)
-        coef_2 += mask_else_float * angle / gs.tan(angle)
-
-        log = (gs.einsum('...i,...j->...j', coef_1, point)
-               - gs.einsum('...i,...j->...j', coef_2, base_point))
-
-        mask_same_values = gs.isclose(point, base_point)
-
-        mask_else = gs.equal(mask_same_values, gs.array(False))
-        mask_else_float = gs.cast(mask_else, gs.float32)
-        mask_else_float = gs.to_ndarray(mask_else_float, to_ndim=1)
-        mask_else_float = gs.to_ndarray(mask_else_float, to_ndim=2)
-        mask_not_same_points = gs.sum(mask_else_float, axis=1)
-        mask_same_points = gs.isclose(mask_not_same_points, 0.)
-        mask_same_points = gs.cast(mask_same_points, gs.float32)
-        mask_same_points = gs.to_ndarray(mask_same_points, to_ndim=2, axis=1)
-
-        mask_same_points_float = gs.cast(mask_same_points, gs.float32)
-
-        log -= mask_same_points_float * log
+        cos_angle = gs.clip(inner_prod, -1., 1.)
+        squared_angle = gs.arccos(cos_angle) ** 2
+        coef_1_ = utils.taylor_exp_even_func(
+            squared_angle, utils.inv_sinc_close_0, order=5)
+        coef_2_ = utils.taylor_exp_even_func(
+            squared_angle, utils.inv_tanc_close_0, order=5)
+        log = (gs.einsum('...,...j->...j', coef_1_, point)
+               - gs.einsum('...,...j->...j', coef_2_, base_point))
 
         return log
 
@@ -615,10 +533,11 @@ class HypersphereMetric(RiemannianMetric):
 
     @staticmethod
     def parallel_transport(tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the parallel transport of a tangent vector.
+        r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by exp_(base_point)(tangent_vec_b).
+        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        tangent_vec_b)`.
 
         Parameters
         ----------
@@ -633,7 +552,7 @@ class HypersphereMetric(RiemannianMetric):
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., dim + 1]
-            Transported tangent vector at exp_(base_point)(tangent_vec_b).
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         theta = gs.linalg.norm(tangent_vec_b, axis=-1)
         normalized_b = gs.einsum('..., ...i->...i', 1 / theta, tangent_vec_b)
@@ -683,6 +602,41 @@ class HypersphereMetric(RiemannianMetric):
         if gs.ndim(christoffel) == 4 and gs.shape(christoffel)[0] == 1:
             christoffel = gs.squeeze(christoffel, axis=0)
         return christoffel
+
+    def curvature(
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
+            base_point):
+        r"""Compute the curvature.
+
+        For three tangent vectors at a base point :math: `x,y,z`,
+        the curvature is defined by
+        :math: `R(X, Y)Z = \nabla_{[X,Y]}Z
+        - \nabla_X\nabla_Y Z + - \nabla_Y\nabla_X Z`, where :math: `\nabla`
+        is the Levi-Civita connection. In the case of the hypersphere,
+        we have the closed formula
+        :math: `R(X,Y)Z = \langle X, Z \rangle Y - \langle Y,Z \rangle X`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., dim]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        """
+        inner_ac = self.inner_product(tangent_vec_a, tangent_vec_c)
+        inner_bc = self.inner_product(tangent_vec_b, tangent_vec_c)
+        first_term = gs.einsum('...,...i->...i', inner_bc, tangent_vec_a)
+        second_term = gs.einsum('...,...i->...i', inner_ac, tangent_vec_b)
+        return - first_term + second_term
 
 
 class Hypersphere(_Hypersphere):

@@ -67,19 +67,24 @@ def create_data(kalman, true_init, true_inputs, obs_freq):
         for pose in true_traj[obs_freq::obs_freq]]
 
     obs_dtype = true_obs[0].dtype
-    observations = [
-        np.random.multivariate_normal(obs, kalman.measurement_noise)
-        for obs in true_obs]
-    observations = [gs.cast(obs, obs_dtype) for obs in observations]
+    observations = gs.stack([
+        gs.array(
+            np.random.multivariate_normal(obs, kalman.measurement_noise),
+            dtype=obs_dtype)
+        for obs in true_obs])
 
     input_dtype = true_inputs[0].dtype
-    inputs = [gs.concatenate(
-        (incr[:1], np.random.multivariate_normal(
-            incr[1:], kalman.process_noise)), axis=0)
+    inputs = [
+        gs.concatenate([
+            incr[:1],
+            gs.array(
+                np.random.multivariate_normal(
+                    incr[1:], kalman.process_noise), dtype=input_dtype)],
+            axis=0)
         for incr in true_inputs]
     inputs = [gs.cast(incr, input_dtype) for incr in inputs]
 
-    return gs.array(true_traj), inputs, gs.array(observations)
+    return gs.array(true_traj), inputs, observations
 
 
 def estimation(kalman, initial_state, inputs, observations, obs_freq):
