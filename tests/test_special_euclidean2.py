@@ -12,7 +12,7 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.special_euclidean import SpecialEuclidean
+from geomstats.geometry.special_euclidean import SpecialEuclideanManifoldFactory
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
 # of the vector, as opposed to the standard behavior of gs.allclose
@@ -26,7 +26,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         warnings.simplefilter('ignore', category=ImportWarning)
         gs.random.seed(1234)
 
-        group = SpecialEuclidean(n=2, point_type='vector')
+        group = SpecialEuclideanManifoldFactory(n=2, point_type='vector')
 
         point_1 = gs.array([0.1, 0.2, 0.3])
         point_2 = gs.array([0.5, 5., 60.])

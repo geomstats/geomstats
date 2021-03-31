@@ -7,6 +7,7 @@ import geomstats.vectorization
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup
+from geomstats.geometry.manifold import AbstractManifoldFactory
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -19,7 +20,12 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
+
+class SpecialOrthogonalManifoldFactory(AbstractManifoldFactory):
+    """ Factory for SpecialOrthogonal Manifolds """
+
+@SpecialOrthogonalManifoldFactory.register(point_type="matrix")
+class _SpecialOrthogonalMatrices(LieGroup):
     """Class for special orthogonal groups in matrix representation.
 
     Parameters
@@ -28,9 +34,9 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, metrics=None):
         super(_SpecialOrthogonalMatrices, self).__init__(
-            dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n,
+            dim=int((n * (n - 1)) / 2), metrics=metrics, default_point_type='matrix', n=n,
             lie_algebra=SkewSymmetricMatrices(n=n))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.dim = int((n * (n - 1)) / 2)
@@ -147,7 +153,6 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         """
         return SkewSymmetricMatrices(self.n).basis_representation(skew_mat)
 
-
 class _SpecialOrthogonalVectors(LieGroup):
     """Class for the special orthogonal groups SO({2,3}) in vector form.
 
@@ -163,10 +168,10 @@ class _SpecialOrthogonalVectors(LieGroup):
         Optional, default: 0.
     """
 
-    def __init__(self, n, epsilon=0.):
+    def __init__(self, n, metrics=None, epsilon=0.):
         dim = n * (n - 1) // 2
         LieGroup.__init__(
-            self, dim=dim, default_point_type='vector')
+            self, dim=dim, metrics=metrics, default_point_type='vector')
 
         self.n = n
         self.epsilon = epsilon
@@ -335,7 +340,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return SkewSymmetricMatrices(self.n).basis_representation(skew_mat)
 
-
+@SpecialOrthogonalManifoldFactory.register(n=2, point_type="vector")
 class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
     """Class for the special orthogonal group SO(2) in vector representation.
 
@@ -542,7 +547,7 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         """
         return self.regularize(point - base_point)
 
-
+@SpecialOrthogonalManifoldFactory.register(n=3, point_type="vector")
 class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
     """Class for the special orthogonal group SO(3) in vector representation.
 
@@ -558,9 +563,9 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         Optional, default: 0.
     """
 
-    def __init__(self, epsilon=0.):
+    def __init__(self, metrics=None, epsilon=0.):
         super(_SpecialOrthogonal3Vectors, self).__init__(
-            n=3, epsilon=epsilon)
+            n=3, metrics=metrics, epsilon=epsilon)
 
         self.bi_invariant_metric = BiInvariantMetric(group=self)
 
@@ -1535,34 +1540,34 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         return LieGroup.log(self, point, base_point)
 
 
-class SpecialOrthogonal(_SpecialOrthogonal2Vectors,
-                        _SpecialOrthogonal3Vectors,
-                        _SpecialOrthogonalMatrices):
-    r"""Class for the special orthogonal groups.
+# class SpecialOrthogonal(_SpecialOrthogonal2Vectors,
+#                         _SpecialOrthogonal3Vectors,
+#                         _SpecialOrthogonalMatrices):
+#     r"""Class for the special orthogonal groups.
 
-    Parameters
-    ----------
-    n : int
-        Integer representing the shapes of the matrices : n x n.
-    point_type : str, {\'vector\', \'matrix\'}
-        Representation of the elements of the group.
-    epsilon : float, optional
-        precision to use for calculations involving potential divison by 0 in
-        rotations
-        default: 0
-    """
+#     Parameters
+#     ----------
+#     n : int
+#         Integer representing the shapes of the matrices : n x n.
+#     point_type : str, {\'vector\', \'matrix\'}
+#         Representation of the elements of the group.
+#     epsilon : float, optional
+#         precision to use for calculations involving potential divison by 0 in
+#         rotations
+#         default: 0
+#     """
 
-    def __new__(cls, n, point_type='matrix', epsilon=0.):
-        """Instantiate a special orthogonal group.
+#     def __new__(cls, n, point_type='matrix', epsilon=0.):
+#         """Instantiate a special orthogonal group.
 
-        Select the object to instantiate depending on the point_type.
-        """
-        if n == 2 and point_type == 'vector':
-            return _SpecialOrthogonal2Vectors(epsilon)
-        if n == 3 and point_type == 'vector':
-            return _SpecialOrthogonal3Vectors(epsilon)
-        if point_type == 'vector':
-            raise NotImplementedError(
-                'SO(n) is only implemented in matrix representation'
-                ' when n > 3.')
-        return _SpecialOrthogonalMatrices(n)
+#         Select the object to instantiate depending on the point_type.
+#         """
+#         if n == 2 and point_type == 'vector':
+#             return _SpecialOrthogonal2Vectors(epsilon)
+#         if n == 3 and point_type == 'vector':
+#             return _SpecialOrthogonal3Vectors(epsilon)
+#         if point_type == 'vector':
+#             raise NotImplementedError(
+#                 'SO(n) is only implemented in matrix representation'
+#                 ' when n > 3.')
+#         return _SpecialOrthogonalMatrices(n)

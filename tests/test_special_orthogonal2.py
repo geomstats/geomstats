@@ -7,7 +7,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats import algebra_utils
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory
 
 
 EPSILON = 1e-5
@@ -21,7 +21,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
 
         gs.random.seed(1234)
 
-        self.group = SpecialOrthogonal(n=2, point_type='vector')
+        self.group = SpecialOrthogonalManifoldFactory(n=2, point_type='vector')
 
         # -- Set attributes
         self.n_samples = 4

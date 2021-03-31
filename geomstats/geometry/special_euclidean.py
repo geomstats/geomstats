@@ -79,7 +79,7 @@ def homogeneous_representation(
     return mat
 
 class SpecialEuclideanManifoldFactory(AbstractManifoldFactory):
-    """ Factory for LieGroup Manifold """
+    """ Factory for SpecialEuclidean Manifolds """
 
 
 @SpecialEuclideanManifoldFactory.register(point_type="matrix")
@@ -93,9 +93,9 @@ class _SpecialEuclideanMatrices(LieGroup):
         be of size: (n+1) x (n+1).
     """
 
-    def __init__(self, n):
+    def __init__(self, n, metrics=None):
         super().__init__(
-            n=n + 1, dim=int((n * (n + 1)) / 2), default_point_type='matrix',
+            n=n + 1, dim=int((n * (n + 1)) / 2), metrics=metrics, default_point_type='matrix',
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n))
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
@@ -205,10 +205,10 @@ class _SpecialEuclideanVectors(LieGroup):
         Optional, default: 0.
     """
 
-    def __init__(self, n, epsilon=0.):
+    def __init__(self, n, metrics=None, epsilon=0.):
         dim = n * (n + 1) // 2
         LieGroup.__init__(
-            self, dim=dim, default_point_type='vector')
+            self, dim=dim, metrics=metrics, default_point_type='vector')
 
         self.n = n
         self.epsilon = epsilon
@@ -514,9 +514,9 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         Optional, default: 0.
     """
 
-    def __init__(self, epsilon=0.):
+    def __init__(self, metrics=None epsilon=0.):
         super(_SpecialEuclidean2Vectors, self).__init__(
-            n=2, epsilon=epsilon)
+            n=2, metrics=metrics, epsilon=epsilon)
 
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None):
@@ -625,9 +625,9 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         Optional, default: 0.
     """
 
-    def __init__(self, epsilon=0.):
+    def __init__(self, metrics=None, epsilon=0.):
         super(_SpecialEuclidean3Vectors, self).__init__(
-            n=3, epsilon=epsilon)
+            n=3, metrics=metrics, epsilon=epsilon)
 
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None):

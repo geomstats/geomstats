@@ -2,13 +2,13 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory
 
 
 class TestSpecialOrthogonal(geomstats.tests.TestCase):
     def setUp(self):
         self.n = 2
-        self.group = SpecialOrthogonal(n=self.n)
+        self.group = SpecialOrthogonalManifoldFactory(n=self.n)
         self.n_samples = 4
 
     def test_belongs(self):
@@ -105,7 +105,7 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
 
     def test_projection_and_belongs(self):
         gs.random.seed(3)
-        group = SpecialOrthogonal(n=4)
+        group = SpecialOrthogonalManifoldFactory(n=4)
         mat = gs.random.rand(4, 4)
         point = group.projection(mat)
         result = group.belongs(point, atol=1e-5)

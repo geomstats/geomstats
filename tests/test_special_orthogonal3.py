@@ -7,7 +7,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory
 
 
 EPSILON = 1e-5
@@ -21,7 +21,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         gs.random.seed(1234)
 
-        self.group = SpecialOrthogonal(n=3, point_type='vector')
+        self.group = SpecialOrthogonalManifoldFactory(n=3, point_type='vector')
 
         # -- Rotation vectors with angles
         # 0, close to 0, closely lower than pi, pi,
