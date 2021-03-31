@@ -90,16 +90,13 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         rot_mat = cls.mul(point, inv_sqrt_mat)
         return rot_mat
 
-
     def _is_in_lie_algebra(self, tangent_vec, atol=ATOL):
         return self.lie_algebra.belongs(tangent_vec, atol=atol)
-      
-      
+
     @classmethod
     def _to_lie_algebra(cls, tangent_vec):
         """Project vector onto skew-symmetric matrices."""
         return cls.to_skew_symmetric(tangent_vec)
-
 
     def random_uniform(self, n_samples=1, tol=1e-6):
         """Sample in SO(n) from the uniform distribution.
@@ -124,12 +121,12 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
 
     def rotation_from_angle(self, theta):
         """Create 2D rotation matrices from scalar angles.
-        
+
         Parameters
         ----------
         theta : float
             Rotation angle
-            
+
         Returns
         -------
         mat : array-like, shape = [2, 2],
@@ -155,7 +152,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         ----------
         point : array-like, shape=[2, 2]
             2D rotation matrix
-            
+
         Returns
         -------
         float
@@ -172,15 +169,16 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         """Divide the angle of a 2D rotation by a scalar.
 
         Best to have original angle in :math [0, PI].
-        
+
         Parameters
         ----------
         point : array-like, shape=[2, 2]
-            2D rotation matrix   
+            2D rotation matrix
         alpha : float
             Scalar used for division
-            
-        Returns 
+
+        Returns
+        -------
         array-like, shape=[2, 2]
             2D rotation with divided angle
         """
@@ -202,7 +200,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             corresponds to an angle in dimension 2.
         n_samples : int
             Number of samples.
-            
+
         Returns
         -------
         rot_gaussian : array-like, shape=[n_samples, n, n]
@@ -787,7 +785,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         mask_float = gs.cast(mask, gs.float32) + self.epsilon
         diag = gs.array([[1., 1., -1.]])
         diag = gs.to_ndarray(
-            algebra_utils.from_vector_to_diagonal_matrix(diag),
+            utils.from_vector_to_diagonal_matrix(diag),
             to_ndim=3) + self.epsilon
         new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
@@ -885,7 +883,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         vec = gs.concatenate([vec_1, vec_2, vec_3], axis=1)
 
         return vec
-
 
     @geomstats.vectorization.decorator(['else', 'matrix', 'output_point'])
     def rotation_vector_from_matrix(self, rot_mat):

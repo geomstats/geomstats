@@ -11,7 +11,8 @@ from geomstats.geometry.spd_matrices import (
     SPDMetricAffine,
     SPDMetricBuresWasserstein,
     SPDMetricEuclidean,
-    SPDMetricLogEuclidean
+    SPDMetricLogEuclidean,
+    SPDMetricProcrustes
 )
 
 
