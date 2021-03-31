@@ -31,7 +31,7 @@ EPS = 1e-8
 
 
 def nice_matplotlib():
-    """Wrapper function for nice plotting style."""
+    """Enable nice plotting syle."""
     plt.style.use('seaborn')
     fontsize = 15
     matplotlib.rc('font', size=fontsize)

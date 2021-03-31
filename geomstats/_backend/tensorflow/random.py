@@ -22,7 +22,7 @@ def permutation(n):
 def rand(*args):
     return tf.random.uniform(shape=args)
 
-  
+
 def choice(x, size, axis=0):
     dim_x = tf.cast(tf.shape(x)[axis], tf.int64)
     indices = tf.range(0, dim_x, dtype=tf.int64)

@@ -143,7 +143,6 @@ def shuffle(X, y):
     X_ : Shuffled version of X
     Y_ : Shuffled version of Y
     """
-
     idx_shuffled = gs.random.permutation(X.shape[0])
     X_ = X[idx_shuffled]
     y_ = y[idx_shuffled]

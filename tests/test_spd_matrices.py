@@ -28,6 +28,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         self.n = 3
         self.space = SPDMatrices(n=self.n)
         self.metric_affine = SPDMetricAffine(n=self.n)
+        self.metric_procrustes = SPDMetricProcrustes(n=self.n)
         self.metric_bureswasserstein = SPDMetricBuresWasserstein(n=self.n)
         self.metric_euclidean = SPDMetricEuclidean(n=self.n)
         self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
