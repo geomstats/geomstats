@@ -1,6 +1,7 @@
 """The manifold of symmetric positive definite (SPD) matrices."""
 
 import math
+from collections import namedtuple
 
 import geomstats.backend as gs
 import geomstats.vectorization
@@ -8,10 +9,13 @@ from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 EPSILON = 1e-6
 TOLERANCE = 1e-12
+
+EigenSummary = namedtuple("Eigen", "eigenspace eigenvalues")
 
 
 class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
@@ -108,6 +112,110 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
         return tangent_vec
+
+    def random_gaussian_rotation_orbit(
+            self, mean_spd=None, eigensummary=None, var_rotations=1.,
+            n_samples=1):
+        r"""
+        Define a Gaussian-like random sample of SPD matrices.
+
+        Formally speaking, sample an orbit for given rotations in the SPD
+        manifold. For all means and purposes, it looks rather Gaussian.
+
+        Parameters
+        ----------
+        mean_spd : array-like, shape = [n, n]
+            Mean SPD matrix.
+        var_rotations : float
+            Variance in rotation.
+        eigensummary : EigenSummary
+            Represents the mean SPD matrix decomposed in eigenspace and
+            eigenvalues.
+
+        Notes
+        -----
+        :math:'mean_spd' is the mean SPD matrix; :math:'var_rotations' is the
+        scalar variance by which the mean is rotated:
+        :math:'X_{out} = R \Sigma_{in} R^T'.
+        mean_spd and eigensummary are mutually exclusive; an error is thrown
+        if both are not None, or if both are None.
+        """
+        n = self.n
+
+        if mean_spd is not None and eigensummary is not None:
+            raise NotImplementedError
+        if mean_spd is None and eigensummary is None:
+            raise NotImplementedError
+        if eigensummary is None:
+            eigenvalues, eigenspace = gs.linalg.eigh(mean_spd)
+            eigenvalues = gs.diag(eigenvalues)
+        if mean_spd is None:
+            eigenvalues, eigenspace\
+                = eigensummary.eigenvalues, eigensummary.eigenspace
+        rotations = SpecialOrthogonal(n).random_gaussian(
+            eigenspace, var_rotations, n_samples=n_samples)
+
+        spd_mat = Matrices.mul(rotations, eigenvalues, Matrices.transpose(
+            rotations))
+
+        return spd_mat
+
+    def random_gaussian_rotation_orbit_noisy(self, mean_spd=None,
+                                             eigensummary=None,
+                                             var_rotations=1.,
+                                             var_eigenvalues=None,
+                                             n_samples=1):
+        r"""
+        Define a Gaussian-like random sample of SPD matrices.
+
+        Formally speaking, sample an orbit for given rotations in the SPD
+        manifold. For all means and purposes, it looks rather Gaussian.
+
+        Parameters
+        ----------
+        mean_spd : array-like, shape = [n, n]
+            Mean SPD matrix.
+        var_rotations : float
+            Variance in rotation.
+        var_eigenvalues : array-like, shape = [n,]
+            Additional variance in eigenvalues.
+        eigensummary : EigenSummary
+            Represents the mean SPD matrix decomposed in eigenspace and
+            eigenvalues.
+
+        Notes
+        -----
+        :math:'mean_spd' is the mean SPD matrix; :math:'var_rotations' is the
+        scalar variance by which the mean is rotated:
+        :math:'\Sigma_{mid} \sim \mathcal{N}(\Sigma_{in}, \sigma_{eig}';
+        :math:'X_{out} = R \Sigma_{in} R^T'.
+        mean_spd and eigensummary are mutually exclusive; an error is thrown
+        if both are not None, or if both are None.
+        """
+        n = self.n
+        if var_eigenvalues is None:
+            var_eigenvalues = gs.ones(n)
+
+        if mean_spd is not None and eigensummary is not None:
+            raise NotImplementedError
+        if mean_spd is None and eigensummary is None:
+            raise NotImplementedError
+        if eigensummary is None:
+            eigenvalues, eigenspace = gs.linalg.eigh(mean_spd)
+            eigenvalues = gs.diag(eigenvalues)
+        if mean_spd is None:
+            eigenvalues, eigenspace\
+                = eigensummary.eigenvalues, eigensummary.eigenspace
+        rotations = SpecialOrthogonal(n).random_gaussian(
+            eigenspace, var_rotations, n_samples=n_samples)
+
+        eigenvalues =\
+            gs.abs(gs.diag(gs.random.multivariate_normal(
+                gs.diag(eigenvalues), gs.diag(var_eigenvalues))))
+        spd_mat = Matrices.mul(rotations, eigenvalues, Matrices.transpose(
+            rotations))
+
+        return spd_mat
 
     @staticmethod
     def aux_differential_power(power, tangent_vec, base_point):

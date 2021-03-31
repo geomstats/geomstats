@@ -9,7 +9,6 @@ def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 
-eig = _raise_not_implemented_error
 expm = torch.matrix_exp
 logm = _raise_not_implemented_error
 inv = torch.inverse
@@ -31,6 +30,11 @@ def eigvalsh(a, **kwargs):
     if 'UPLO' in kwargs:
         upper = (kwargs['UPLO'] == 'U')
     return torch.symeig(a, eigenvectors=False, upper=upper)[0]
+
+
+def eig(*args, **kwargs):
+    eigs = np.linalg.eig(*args, **kwargs)
+    return torch.from_numpy(eigs[0]), torch.from_numpy(eigs[1])
 
 
 def eigh(*args, **kwargs):

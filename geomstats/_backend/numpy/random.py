@@ -2,9 +2,12 @@
 
 from numpy.random import (  # NOQA
     choice,
+    multivariate_normal,
     normal,
+    permutation,
     rand,
     randint,
     seed,
-    uniform
+    shuffle,
+    uniform,
 )

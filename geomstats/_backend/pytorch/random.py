@@ -3,6 +3,20 @@
 import torch
 
 
+def multivariate_normal(*args, **kwargs):
+    return torch.distributions.multivariate_normal.MultivariateNormal(
+        *args, **kwargs)
+
+
+def normal(loc=0.0, scale=1.0, size=(1,)):
+    if not hasattr(size, '__iter__'):
+        size = (size,)
+    return torch.normal(mean=loc, std=scale, size=size)
+
+
+permutation = torch.randperm
+
+
 def choice(x, a):
     """Generate a random sample from an array of given size."""
     if torch.is_tensor(x):
@@ -27,10 +41,10 @@ def seed(*args, **kwargs):
     return torch.manual_seed(*args, **kwargs)
 
 
-def normal(loc=0.0, scale=1.0, size=(1,)):
-    if not hasattr(size, '__iter__'):
-        size = (size,)
-    return torch.normal(mean=loc, std=scale, size=size)
+def shuffle(x):
+    n = x.shape[0]
+    idx = torch.randperm(n)
+    return x[idx]
 
 
 def uniform(low=0.0, high=1.0, size=(1,)):

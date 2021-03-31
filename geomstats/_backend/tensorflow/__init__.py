@@ -12,6 +12,7 @@ from tensorflow import (  # NOQA
     argmax,
     argmin,
     asin as arcsin,
+    atan as arctan,
     atan2 as arctan2,
     clip_by_value as clip,
     concat,
@@ -76,6 +77,7 @@ ceil = tf.math.ceil
 cross = tf.linalg.cross
 erf = tf.math.erf
 isnan = tf.math.is_nan
+diag = tf.linalg.diag
 log = tf.math.log
 mod = tf.math.mod
 polygamma = tf.math.polygamma
@@ -649,7 +651,12 @@ def sum(x, axis=None, keepdims=False, name=None):
 
 def einsum(equation, *inputs, **kwargs):
     einsum_str = equation
-    input_tensors_list = inputs
+    input_tensors_list = []
+
+    for x in inputs:
+        if not tf.is_tensor(x):
+            x = tf.convert_to_tensor(x)
+        input_tensors_list.append(x)
 
     input_tensors_list = convert_to_wider_dtype(input_tensors_list)
 
