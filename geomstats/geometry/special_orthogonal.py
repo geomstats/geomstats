@@ -259,7 +259,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return -self.regularize(point)
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'output_point'])
     def exp_from_identity(self, tangent_vec):
         """Compute the group exponential of the tangent vector at the identity.
 
@@ -279,7 +278,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return self.regularize(tangent_vec)
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'output_point'])
     def log_from_identity(self, point):
         """Compute the group logarithm of the point at the identity.
 
@@ -339,8 +337,6 @@ class _SpecialOrthogonalVectors(LieGroup):
     def to_tangent(self, vector, base_point=None):
         return self.regularize_tangent_vec(vector, base_point)
 
-    @geomstats.vectorization.decorator(
-        ['else', 'vector', 'else', 'output_point'])
     def regularize_tangent_vec_at_identity(
             self, tangent_vec, metric=None):
         """Regularize a tangent vector at the identity.
@@ -363,8 +359,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return self.regularize(tangent_vec)
 
-    @geomstats.vectorization.decorator(
-        ['else', 'vector', 'vector', 'else', 'output_point'])
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None):
         """Regularize tangent vector at a base point.
@@ -378,13 +372,16 @@ class _SpecialOrthogonalVectors(LieGroup):
             Tangent vector at base point.
         base_point : array-like, shape=[..., 1]
             Point on the manifold.
+        metric : RiemannianMetric
+            Metric to compute the norm of the tangent vector.
+            Optional, default is the Euclidean metric.
 
         Returns
         -------
         regularized_tangent_vec : array-like, shape=[..., 1]
             Regularized tangent vector.
         """
-        return self.regularize_tangent_vec_at_identity(tangent_vec)
+        return self.regularize(tangent_vec)
 
 
 class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
