@@ -51,25 +51,6 @@ master_doc = 'index'
 
 language = None
 
-nbsphinx_thumbnails = {
-    'notebooks/usecase_emg_sign_'
-    'classification_in_spd_manifold':
-        'https://raw.githubusercontent.com/ninamiolane/geomstats/master/'
-        'notebooks/figures/paper_rock_scissors.png',
-    'notebooks/usecase_graph_embedding'
-    '_and_clustering_in_hyperbolic_space':
-        'https://raw.githubusercontent.com/ninamiolane/geomstats/master/'
-        'notebooks/figures/karate_graph.png',
-    'notebooks/usecase_optic_nerve_heads_'
-    'analysis_in_kendall_shape_space':
-        'https://raw.githubusercontent.com/ninamiolane/geomstats/master/'
-        'notebooks/figures/optic_nerves.png',
-    'notebooks/usecase_hand_poses_'
-    'analysis_in_kendall_shape_space':
-        'https://raw.githubusercontent.com/ninamiolane/geomstats/master/'
-        'notebooks/figures/hand_skeleton.png'
-}
-
 nbsphinx_prolog = r"""
 {% set docname = env.doc2path(env.docname, base=None) %}
 
@@ -80,7 +61,7 @@ nbsphinx_prolog = r"""
         <a class="reference external"
         href="https://github.com/geomstats/geomstats/blob/master/\
             {{ docname|e }}">{{ docname|e }}</a>
-        <br>Run it yourself on binder\
+        <br>Run it yourself on binder
         <a href="https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath=\
                             {{ docname|e }}"><img alt="Binder badge" \
                             src="https://mybinder.org/badge_logo.svg" \
