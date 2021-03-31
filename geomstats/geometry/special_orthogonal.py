@@ -126,12 +126,12 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         Parameters
         ----------
         theta : float
-            Rotation angle
+            Rotation angle.
 
         Returns
         -------
         mat : array-like, shape = [2, 2],
-            2D Rotation matrix
+            2D Rotation matrix.
         """
         if self.n != 2:
             raise NotImplementedError
@@ -152,12 +152,12 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         Parameters
         ----------
         point : array-like, shape=[2, 2]
-            2D rotation matrix
+            2D rotation matrix.
 
         Returns
         -------
         float
-            Angle of 2D rotation
+            Angle of 2D rotation.
         """
         if self.n != 2:
             raise NotImplementedError
@@ -174,14 +174,14 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         Parameters
         ----------
         point : array-like, shape=[2, 2]
-            2D rotation matrix
+            2D rotation matrix.
         alpha : float
-            Scalar used for division
+            Scalar used for division.
 
         Returns
         -------
         array-like, shape=[2, 2]
-            2D rotation with divided angle
+            2D rotation with divided angle.
         """
         if self.n != 2:
             raise NotImplementedError
@@ -261,8 +261,7 @@ class _SpecialOrthogonalVectors(LieGroup):
     Parameters
     ----------
     epsilon : float
-        precision to use for calculations involving potential divison by 0 in
-        rotations.
+        Precision used for calculations involving potential divison by 0.
         Optional, default: 0.
     """
 
@@ -719,7 +718,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             Tangent vector at base point.
         metric : RiemannianMetric
             Metric.
-            Optional, default: self.left_canonical_metric
+            Optional, default: self.left_canonical_metric.
 
         Returns
         -------
@@ -758,7 +757,8 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         base_point : array-like, shape=[..., 3]
             Point on the manifold.
         metric : RiemannianMetric
-            Optional, default: self.left_canonical_metric
+            Metric.
+            Optional, default: self.left_canonical_metric.
 
         Returns
         -------
@@ -1798,6 +1798,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             Tangent vector at base point.
         base_point : array-like, shape=[..., 3]
             Group element.
+
         Returns
         -------
         point : array-like, shape=[..., 3]
@@ -1814,6 +1815,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             Point of the group, i.e. rotation vector.
         base_point : array-like, shape=[..., 3]
             Base point for the log, i.e. rotation vector.
+
         Returns
         -------
         tangent_vec : array-like, shape=[..., 3]
