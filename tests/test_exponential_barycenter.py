@@ -144,7 +144,8 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         estimator.fit(point)
         result = estimator.estimate_
         frechet_estimator = FrechetMean(
-            self.so.bi_invariant_metric, max_iter=40, epsilon=1e-10, lr=1.)
+            self.so.bi_invariant_metric, max_iter=40, epsilon=1e-10, lr=1.,
+            method='adaptive')
         frechet_estimator.fit(point)
         expected = frechet_estimator.estimate_
         self.assertAllClose(result, expected)
