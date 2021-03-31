@@ -336,6 +336,28 @@ class _SpecialOrthogonalVectors(LieGroup):
     def to_tangent(self, vector, base_point=None):
         return self.regularize_tangent_vec(vector, base_point)
 
+    def regularize_tangent_vec_at_identity(
+            self, tangent_vec, metric=None):
+        """Regularize a tangent vector at the identity.
+
+        In 2D, regularize a tangent_vector by getting its norm at the identity,
+        to be less than pi.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        metric : RiemannianMetric
+            Metric to compute the norm of the tangent vector.
+            Optional, default is the Euclidean metric.
+
+        Returns
+        -------
+        regularized_vec : array-like, shape=[..., 1]
+            Regularized tangent vector.
+        """
+        return self.regularize(tangent_vec)
+
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None):
         """Regularize tangent vector at a base point.
@@ -358,7 +380,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         regularized_tangent_vec : array-like, shape=[..., 1]
             Regularized tangent vector.
         """
-        return self.regularize(tangent_vec)
+        return self.regularize_tangent_vec_at_identity(tangent_vec)
 
 
 class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
