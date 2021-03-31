@@ -6,7 +6,7 @@ Euclidean space near each point.
 
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, List, Optional, Union
-from connection import Connection
+from geomstats.geometry.connection import Connection
 import geomstats.errors
 
 
@@ -41,8 +41,9 @@ class Manifold(ABC):
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
         self.metrics = metrics
-        for metric in metrics:
-            metric.setManifold(self)
+        if self.metrics is not None:
+            for metric in self.metrics:
+                metric.setManifold(self)
 
     @abstractmethod
     def belongs(self, point, atol=ATOL):
@@ -166,14 +167,53 @@ class Manifold(ABC):
 
 class AbstractManifoldFactory(ABC):
     metrics_creators = {}
+    manifolds_creators = {}
     
     @classmethod
-    @abstractmethod
-    def create(cls, *args, metrics_names : Optional[Union[str, List[str]]] = None, **kwargs ):
-        pass
+    def create(cls, metrics_names : Optional[Union[str, List[str]]] = None, **kwargs ):
+        args_dict = kwargs
+        
+        # check the incremental combination of args to see if a key exist        
+        for length in range(len(args_dict), 0, -1):
+            for key in itertools.combinations(args_dict.items(), length):
+                if key in cls.manifolds_creators:
+                    print(f"found key {key}  from args {args_dict}")
+                    
+                    if not isinstance(metrics_names, list):
+                        print(f"{metrics_names} is a str, transforming to list")
+                        metrics_names = [metrics_names]
+
+                    metrics = cls._get_metrics(metrics_names)
+                    print(f"metrics created are {metrics}")
+            
+                    key_keys = [k for k,v in key]
+                    rest_of_args =  {k:v for k,v in args_dict.items() if k not in key_keys}
+                    return cls.manifolds_creators[key](metrics, rest_of_args)
+
+        raise Exception(f"no manifold with key containing {args_dict}")
+                
+    @classmethod
+    def register(cls, **kwargs):
+        """decorator to register new manifold type
+
+        Returns:
+            Callable: [description]
+        """
+        def wrapper(manifold_class: Manifold):
+            args_dict = kwargs
+            key = tuple(sorted(args_dict.items()))  # TODO without sorted
+            
+            if key in cls.manifolds_creators:
+                print(f"warning, this combination of args alreay exist: {key} . I will replace it")
+            
+            cls.manifolds_creators[key] = manifold_class
+            return manifold_class 
+
+        return wrapper
+    
     
     @classmethod
-    def register(cls, name: str = None) -> Callable:
+    def registerMetric(cls, name: str = None) -> Callable:
         """decorator to register a new class
 
         Args:
@@ -185,7 +225,7 @@ class AbstractManifoldFactory(ABC):
         def inner_wrapper(wrapped_class: Connection) -> Callable:
             inner_name = name
             if inner_name is None:
-                print(f"no name, will use class name {wrapped_class.__name__}")
+                print(f"register new metric without name, will use class name {wrapped_class.__name__}")
                 inner_name = wrapped_class.__name__
                 
             if inner_name in cls.metrics_creators:

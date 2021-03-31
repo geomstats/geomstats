@@ -12,6 +12,7 @@ from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import LieGroup
+from geomstats.geometry.manifold import AbstractManifoldFactory
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
@@ -77,8 +78,12 @@ def homogeneous_representation(
     mat = gs.concatenate((mat, last_line[..., None, :]), axis=-2)
     return mat
 
+class SpecialEuclideanManifoldFactory(AbstractManifoldFactory):
+    """ Factory for LieGroup Manifold """
 
-class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
+
+@SpecialEuclideanManifoldFactory.register(point_type="matrix")
+class _SpecialEuclideanMatrices(LieGroup):
     """Class for special Euclidean group.
 
     Parameters
@@ -491,7 +496,7 @@ class _SpecialEuclideanVectors(LieGroup):
         random_rot_vec = self.rotations.random_uniform(n_samples)
         return gs.concatenate([random_rot_vec, random_translation], axis=-1)
 
-
+@SpecialEuclideanManifoldFactory.register(n=2, point_type="vector")
 class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
     """Class for the special Euclidean group in 2d, SE(2).
 
@@ -602,7 +607,7 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
 
         return transform
 
-
+@SpecialEuclideanManifoldFactory.register(n=3, point_type="vector")
 class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
     """Class for the special Euclidean group in 3d, SE(3).
 
@@ -877,7 +882,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
 
         return transform
 
-
+@SpecialEuclideanManifoldFactory.registerMetric()
 class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
     """Class for the canonical left-invariant metric on SE(n).
 
@@ -1015,38 +1020,38 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         return transported_vec
 
 
-class SpecialEuclidean(_SpecialEuclidean2Vectors,
-                       _SpecialEuclidean3Vectors,
-                       _SpecialEuclideanMatrices):
-    r"""Class for the special Euclidean groups.
+# class SpecialEuclidean(_SpecialEuclidean2Vectors,
+#                        _SpecialEuclidean3Vectors,
+#                        _SpecialEuclideanMatrices):
+#     r"""Class for the special Euclidean groups.
 
-    Parameters
-    ----------
-    n : int
-        Integer representing the shapes of the matrices : n x n.
-    point_type : str, {\'vector\', \'matrix\'}
-        Representation of the elements of the group.
-        Optional, default: 'matrix',
-    epsilon : float
-        Precision used for calculations involving potential divison by 0 in
-        rotations.
-        Optional, default: 0.
-    """
+#     Parameters
+#     ----------
+#     n : int
+#         Integer representing the shapes of the matrices : n x n.
+#     point_type : str, {\'vector\', \'matrix\'}
+#         Representation of the elements of the group.
+#         Optional, default: 'matrix',
+#     epsilon : float
+#         Precision used for calculations involving potential divison by 0 in
+#         rotations.
+#         Optional, default: 0.
+#     """
 
-    def __new__(cls, n, point_type='matrix', epsilon=0.):
-        """Instantiate a special Euclidean group.
+#     def __new__(cls, n, point_type='matrix', epsilon=0.):
+#         """Instantiate a special Euclidean group.
 
-        Select the object to instantiate depending on the point_type.
-        """
-        if n == 2 and point_type == 'vector':
-            return _SpecialEuclidean2Vectors(epsilon)
-        if n == 3 and point_type == 'vector':
-            return _SpecialEuclidean3Vectors(epsilon)
-        if point_type == 'vector':
-            raise NotImplementedError(
-                'SE(n) is only implemented in matrix representation'
-                ' when n > 3.')
-        return _SpecialEuclideanMatrices(n)
+#         Select the object to instantiate depending on the point_type.
+#         """
+#         if n == 2 and point_type == 'vector':
+#             return _SpecialEuclidean2Vectors(epsilon)
+#         if n == 3 and point_type == 'vector':
+#             return _SpecialEuclidean3Vectors(epsilon)
+#         if point_type == 'vector':
+#             raise NotImplementedError(
+#                 'SE(n) is only implemented in matrix representation'
+#                 ' when n > 3.')
+#         return _SpecialEuclideanMatrices(n)
 
 
 class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
