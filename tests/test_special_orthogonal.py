@@ -135,7 +135,6 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         theta = gs.array([gs.pi / 4, 3 * gs.pi / 4])
         point_1 = self.group.rotation_from_angle(theta)
         theta_result = self.group.angle_of_rot2(point_1)
-        # self.assertAllClose((theta - theta_result) % (2 * gs.pi), 0)
         self.assertAllClose(gs.abs(theta - theta_result) % (2 * gs.pi), 0)
 
     @geomstats.tests.np_and_pytorch_only
