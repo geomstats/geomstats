@@ -93,7 +93,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_random_gaussian_rotation_orbit(self):
-        """Test random_gaussian_rotation_orbit"""
+        """Test random_gaussian_rotation_orbit."""
         n = 2
         self.setUp_alt(n)
         mean_spd = self.space.random_uniform()
@@ -112,7 +112,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_random_gaussian_rotation_orbit_noisy(self):
-        """Test random_gaussian_rotation_orbit"""
+        """Test random_gaussian_rotation_orbit."""
         n = 2
         self.setUp_alt(n)
         mean_spd = self.space.random_uniform()
