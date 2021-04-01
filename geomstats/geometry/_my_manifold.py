@@ -12,6 +12,9 @@ tests/test__my_manifold.py.
 from geomstats.geometry.manifold import Manifold
 
 
+ATOL = 1e-6
+
+
 # This class inherits from the class Manifold.
 # Inheritance in geomstats means that the class MyManifold will reuse code
 # that is in the Manifold class.
@@ -39,18 +42,31 @@ class MyManifold(Manifold):
         self.another_parameter = another_parameter
 
     # Implement the main methods of MyManifold, for example belongs:
-    def belongs(self, point):
+    def belongs(self, point, atol=ATOL):
         """Give a one-liner description of the method.
 
         For example: Evaluate if a point belongs to MyManifold.
 
+        The signature of the method should match the signature of the parent
+        method, in this case the method `belongs` from the class `Manifold`.
+
         List the parameters of the method.
+        In what follows, the ellipsis ... indicate either nothing
+        or any number n of elements, i.e. shape=[..., dim] means
+        shape=[dim] or shape=[n, dim] for any n.
+        All functions/methods of geomstats should work for any number
+        of inputs. In the case of the method `belongs`, it means:
+        for any number of input points.
         For example:
 
         Parameters
         ----------
         point : array-like, shape=[..., dim]
             Point to evaluate.
+        #  The ellipsis ... indicates
+        atol : float
+            Tolerance, unused.
+            Optional, default: ATOL
 
         List the outputs of the method.
         For example:
@@ -68,6 +84,13 @@ class MyManifold(Manifold):
     # Another example of method of MyManifold.
     def is_tangent(self, vector, base_point=None):
         """Check whether vector is tangent to the manifold at base_point.
+
+        In what follows, the ellipsis ... indicate either nothing
+        or any number n of elements, i.e. shape=[..., dim] means
+        shape=[dim] or shape=[n, dim] for any n.
+        All functions/methods of geomstats should work for any number
+        of inputs. In the case of the function `is_tangent`, it means:
+        for any number of input vectors.
 
         Parameters
         ----------
