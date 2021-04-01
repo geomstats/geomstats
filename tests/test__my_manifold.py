@@ -78,3 +78,43 @@ class TestMyManifold(geomstats.tests.TestCase):
         result = self.manifold.belongs(point)
         expected = False
         self.assertAllClose(result, expected)
+
+    def test_belongs_vectorization(self):
+        """Test belongs with several input points.
+
+        All functions and methods should work with several input points,
+        or vectors.
+        """
+        point = gs.array([
+            [1., 2., 3.], [4., 5., 6.]])
+        result = self.manifold.belongs(point)
+        expected = gs.array([False, False])
+        self.assertAllClose(result, expected)
+
+    def test_is_tangent(self):
+        """Test is_tangent.
+
+        The method test_is_tangent tests the `is_tangent` method.
+
+        Note that arrays are defined using geomstats backend
+        through the prefix `gs.`.
+        This allows the code to be tested simultaneously in numpy,
+        pytorch and tensorflow. `gs.` is the equivalent of numpy's `np.` and
+        most of numpy's functions are available with `gs.`.
+        """
+        vector = gs.array([1., 2., 3., 4.])
+        result = self.manifold.is_tangent(vector)
+        expected = True
+        self.assertAllClose(result, expected)
+
+    def test_is_tangent_vectorization(self):
+        """Test is_tangent with several input vectors
+
+        All functions and methods should work with several input points,
+        or vectors.
+        """
+        vector = gs.array([
+            [1., 2., 3., 4.], [5., 6., 7., 8.]])
+        result = self.manifold.is_tangent(vector)
+        expected = gs.array([True, True])
+        self.assertAllClose(result, expected)
