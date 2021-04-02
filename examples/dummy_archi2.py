@@ -4,7 +4,7 @@ import itertools
 
 #import geomstats.backend as gs
 #from geomstats.geometry.pre_shape import PreShapeSpace
-
+import geomstats.visualization as visualization
 
 class Metric(ABC):
     def __init__(self):
@@ -182,9 +182,10 @@ class _SpecialEuclideanVec(Manifold):
 
 @SpecialEuclidienManifoldFactory.register(n=2, miaou="toto")
 class _SpecialEuclideanDummy(Manifold):
-    def __init__(self, metrics : List[Metric], point_type : str = "matrix"):
+    def __init__(self, metrics : List[Metric], point_type : str = "matrix", epsilon: float = 0.001):
         super().__init__(metrics)
         self.point_type = point_type
+        self.epsilon = epsilon
 
     def thats_my_method(self):
         print(self.point_type)
@@ -225,7 +226,7 @@ def main():
     manifold2.thats_my_method()
 
     print("\nThird manifold")
-    manifold3 = factory.create(miaou="toto", n=2, point_type="miaou", metrics_names = "LEFT")
+    manifold3 = factory.create(miaou="toto", n=2, point_type="miaou", metrics_names = "LEFT", epsilon=0.002)
     res = manifold3.call_method_on_metrics('exp', tangent_vec)
 
     print("\nFourth manifold")

@@ -19,7 +19,7 @@ TOLERANCE = 1e-6
 EPSILON = 1e-6
 
 
-class Hyperboloid(Hyperbolic, EmbeddedManifold):
+class Hyperboloid(EmbeddedManifold):
     """Class for the n-dimensional hyperbolic space.
 
     Class for the n-dimensional hyperbolic space
@@ -50,6 +50,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         self.coords_type = coords_type
         self.point_type = Hyperboloid.default_point_type
         self.embedding_metric = self.embedding_manifold.metric
+        self.scale = scale
         self.metric =\
             HyperboloidMetric(self.dim, self.coords_type, self.scale)
 

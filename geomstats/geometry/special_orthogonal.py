@@ -23,6 +23,9 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
 
 class SpecialOrthogonalManifoldFactory(AbstractManifoldFactory):
     """ Factory for SpecialOrthogonal Manifolds """
+    metrics_creators = {}
+    manifolds_creators = {}
+
 
 @SpecialOrthogonalManifoldFactory.register(point_type="matrix")
 class _SpecialOrthogonalMatrices(LieGroup):
@@ -34,7 +37,7 @@ class _SpecialOrthogonalMatrices(LieGroup):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n, metrics=None):
+    def __init__(self, n=2, metrics=None):
         super(_SpecialOrthogonalMatrices, self).__init__(
             dim=int((n * (n - 1)) / 2), metrics=metrics, default_point_type='matrix', n=n,
             lie_algebra=SkewSymmetricMatrices(n=n))
@@ -356,9 +359,9 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         Optional, default: 0.
     """
 
-    def __init__(self, epsilon=0.):
+    def __init__(self, metrics=None, epsilon=0.):
         super(_SpecialOrthogonal2Vectors, self).__init__(
-            n=2, epsilon=epsilon)
+            n=2, metrics=metrics, epsilon=epsilon)
 
     def regularize(self, point):
         """Regularize a point to be in accordance with convention.

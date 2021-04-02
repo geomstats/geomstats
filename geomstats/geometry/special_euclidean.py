@@ -14,7 +14,7 @@ from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.manifold import AbstractManifoldFactory
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory
 
 PI = gs.pi
 PI2 = PI * PI
@@ -80,6 +80,8 @@ def homogeneous_representation(
 
 class SpecialEuclideanManifoldFactory(AbstractManifoldFactory):
     """ Factory for SpecialEuclidean Manifolds """
+    metrics_creators = {}
+    manifolds_creators = {}
 
 
 @SpecialEuclideanManifoldFactory.register(point_type="matrix")
@@ -93,11 +95,11 @@ class _SpecialEuclideanMatrices(LieGroup):
         be of size: (n+1) x (n+1).
     """
 
-    def __init__(self, n, metrics=None):
+    def __init__(self, n=2, metrics=None):
         super().__init__(
             n=n + 1, dim=int((n * (n + 1)) / 2), metrics=metrics, default_point_type='matrix',
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n))
-        self.rotations = SpecialOrthogonal(n=n)
+        self.rotations = SpecialOrthogonalManifoldFactory.create(n=n, point_type="matrix")
         self.translations = Euclidean(dim=n)
         self.n = n
 
@@ -150,7 +152,7 @@ class _SpecialEuclideanMatrices(LieGroup):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+            Optional, default: 1.   
         bound: float
             Bound of the interval in which to sample each entry of the
             translation part.
@@ -212,7 +214,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         self.n = n
         self.epsilon = epsilon
-        self.rotations = SpecialOrthogonal(
+        self.rotations = SpecialOrthogonalManifoldFactory.create(
             n=n, point_type='vector', epsilon=epsilon)
         self.translations = Euclidean(dim=n)
 
@@ -514,7 +516,7 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         Optional, default: 0.
     """
 
-    def __init__(self, metrics=None epsilon=0.):
+    def __init__(self, metrics=None, epsilon=0.):
         super(_SpecialEuclidean2Vectors, self).__init__(
             n=2, metrics=metrics, epsilon=epsilon)
 
