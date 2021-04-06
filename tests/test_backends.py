@@ -974,7 +974,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllCloseToNp(result, expected)
 
     def test_cholesky(self):
-        mat = SPDMatrices(3).random_uniform(2)
+        mat = SPDMatrices(3).random_point(2)
         result = gs.linalg.cholesky(mat)
         expected = _np.linalg.cholesky(mat)
         self.assertAllClose(result, expected)

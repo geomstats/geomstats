@@ -108,6 +108,9 @@ class TestStiefel(geomstats.tests.TestCase):
         point = self.point_b
 
         log = self.metric.log(point=point, base_point=base_point)
+        is_tangent = self.space.is_tangent(log, base_point)
+        self.assertTrue(is_tangent)
+
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
 
@@ -123,6 +126,15 @@ class TestStiefel(geomstats.tests.TestCase):
         result = self.space.belongs(exp)
         expected = True
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_exp_and_log(self):
+        base_point = self.space.random_uniform()
+        vector = gs.random.rand(*base_point.shape)
+        tangent_vec = self.space.to_tangent(vector, base_point) / 4
+        point = self.metric.exp(tangent_vec, base_point)
+        result = self.metric.log(point, base_point, max_iter=32, tol=1e-10)
+        self.assertAllClose(result, tangent_vec)
 
     def test_exp_vectorization_shape(self):
         n_samples = self.n_samples
@@ -147,7 +159,7 @@ class TestStiefel(geomstats.tests.TestCase):
         result = self.metric.exp(n_tangent_vecs, one_base_point)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
-        result = self.metric.exp(one_tangent_vec, n_base_points)
+        result = self.metric.exp(n_tangent_vecs, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
     @geomstats.tests.np_and_tf_only
@@ -176,8 +188,15 @@ class TestStiefel(geomstats.tests.TestCase):
         result = self.metric.log(n_points, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
+    @geomstats.tests.np_and_tf_only
+    def test_log_and_exp_random(self):
+        base_point, point = self.space.random_uniform(2)
+        log = self.metric.log(point, base_point)
+        result = self.metric.exp(log, base_point)
+        self.assertAllClose(result, point)
+
     @geomstats.tests.np_only
-    def test_retractation_and_lifting(self):
+    def test_retraction_and_lifting(self):
         """
         Test that the Riemannian exponential
         and the Riemannian logarithm are inverse.
@@ -283,3 +302,10 @@ class TestStiefel(geomstats.tests.TestCase):
         result = Stiefel.to_grassmannian(points)
         expected = gs.array([p_xy, p_xy, p_xy])
         self.assertAllClose(result, expected)
+
+    def test_to_tangent_is_tangent(self):
+        point = self.space.random_uniform()
+        vector = gs.random.rand(*point.shape)
+        tangent_vec = self.space.to_tangent(vector, point)
+        result = self.space.is_tangent(tangent_vec, point, atol=1e-5)
+        self.assertTrue(result)
