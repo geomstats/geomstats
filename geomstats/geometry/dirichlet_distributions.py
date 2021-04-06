@@ -239,7 +239,7 @@ class DirichletMetric(RiemannianMetric):
 
         return gs.squeeze(christoffels)
 
-    def jac_christoffels(self, base_point):
+    def jacobian_christoffels(self, base_point):
         """Compute the Jacobian of the Christoffel symbols.
 
         Compute the Jacobian of the Christoffel symbols of the
@@ -257,49 +257,49 @@ class DirichletMetric(RiemannianMetric):
             :math: 'jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l'
         """
         n_dim = base_point.ndim
-        position = gs.transpose(base_point)
-        t_param = gs.sum(position, 0)
-        f_y = 1 / gs.polygamma(1, position)
-        f_t = 1 / gs.polygamma(1, t_param)
-        df_y = - gs.polygamma(2, position) / gs.polygamma(1, position)**2
-        df_t = - gs.polygamma(2, t_param) / gs.polygamma(1, t_param)**2
-        g_y = df_y / f_y
-        g_t = df_t / f_t
-        dg_y = (gs.polygamma(2, position)**2 - gs.polygamma(1, position) *
-                gs.polygamma(3, position)) / gs.polygamma(1, position)**2
-        dg_t = (gs.polygamma(2, t_param)**2 - gs.polygamma(1, t_param) *
-                gs.polygamma(3, t_param)) / gs.polygamma(1, t_param)**2
-        const = f_t - gs.sum(f_y, 0)
+        param = gs.transpose(base_point)
+        sum_param = gs.sum(param, 0)
+        term_1 = 1 / gs.polygamma(1, param)
+        term_2 = 1 / gs.polygamma(1, sum_param)
+        term_3 = - gs.polygamma(2, param) / gs.polygamma(1, param)**2
+        term_4 = - gs.polygamma(2, sum_param) / gs.polygamma(1, sum_param)**2
+        term_5 = term_3 / term_1
+        term_6 = term_4 / term_2
+        term_7 = (gs.polygamma(2, param)**2 - gs.polygamma(1, param) *
+                  gs.polygamma(3, param)) / gs.polygamma(1, param)**2
+        term_8 = (gs.polygamma(2, sum_param)**2 - gs.polygamma(1, sum_param) *
+                  gs.polygamma(3, sum_param)) / gs.polygamma(1, sum_param)**2
+        term_9 = term_2 - gs.sum(term_1, 0)
 
-        jac_1 = f_y * dg_t / const
+        jac_1 = term_1 * term_8 / term_9
         jac_1_mat = gs.squeeze(
             gs.tile(jac_1, (self.dim, self.dim, self.dim, 1, 1)))
-        jac_2 = - g_t / const**2 * gs.einsum(
-            'j...,i...->ji...', df_t - df_y, f_y)
+        jac_2 = - term_6 / term_9**2 * gs.einsum(
+            'j...,i...->ji...', term_4 - term_3, term_1)
         jac_2_mat = gs.squeeze(
             gs.tile(jac_2, (self.dim, self.dim, 1, 1, 1)))
-        jac_3 = df_y * g_t / const
+        jac_3 = term_3 * term_6 / term_9
         jac_3_mat = gs.transpose(
             from_vector_to_diagonal_matrix(gs.transpose(jac_3)))
         jac_3_mat = gs.squeeze(
             gs.tile(jac_3_mat, (self.dim, self.dim, 1, 1, 1)))
-        jac_4 = 1 / const**2 * gs.einsum(
-            'k...,j...,i...->kji...', g_y, df_t - df_y, f_y)
+        jac_4 = 1 / term_9**2 * gs.einsum(
+            'k...,j...,i...->kji...', term_5, term_4 - term_3, term_1)
         jac_4_mat = gs.transpose(
             from_vector_to_diagonal_matrix(gs.transpose(jac_4)))
-        jac_5 = - gs.einsum('j...,i...->ji...', dg_y, f_y) / const
+        jac_5 = - gs.einsum('j...,i...->ji...', term_7, term_1) / term_9
         jac_5_mat = from_vector_to_diagonal_matrix(
             gs.transpose(jac_5))
         jac_5_mat = gs.transpose(from_vector_to_diagonal_matrix(
             jac_5_mat))
-        jac_6 = - gs.einsum('k...,j...->kj...', g_y, df_y) / const
+        jac_6 = - gs.einsum('k...,j...->kj...', term_5, term_3) / term_9
         jac_6_mat = gs.transpose(from_vector_to_diagonal_matrix(
             gs.transpose(jac_6)))
         jac_6_mat = gs.transpose(from_vector_to_diagonal_matrix(
             gs.transpose(jac_6_mat, [0, 1, 3, 2])), [0, 1, 3, 4, 2]) \
             if n_dim > 1 else from_vector_to_diagonal_matrix(
             jac_6_mat)
-        jac_7 = - from_vector_to_diagonal_matrix(gs.transpose(dg_y))
+        jac_7 = - from_vector_to_diagonal_matrix(gs.transpose(term_7))
         jac_7_mat = from_vector_to_diagonal_matrix(jac_7)
         jac_7_mat = gs.transpose(
             from_vector_to_diagonal_matrix(jac_7_mat))
@@ -394,7 +394,7 @@ class DirichletMetric(RiemannianMetric):
                     geod.append(solution[:, :self.dim])
 
             return geod[0] if len(initial_point) == 1 else \
-                gs.stack(geod)  # , axis=1)
+                gs.stack(geod)
 
         return path
 
@@ -510,7 +510,7 @@ class DirichletMetric(RiemannianMetric):
             n_times = state.shape[1] if n_dim > 1 else 1
             position, velocity = state[:self.dim], state[self.dim:]
 
-            dgamma = self.jac_christoffels(gs.transpose(position))
+            dgamma = self.jacobian_christoffels(gs.transpose(position))
 
             df_dposition = - gs.einsum(
                 'j...,...ijkl,k...->il...', velocity, dgamma, velocity)

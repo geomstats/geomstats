@@ -350,22 +350,22 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
-    def test_jac_christoffels(self):
+    def test_jacobian_christoffels(self):
         """Test jacobian of Christoffel symbols.
 
         Check vectorization.
         """
         base_point = self.dirichlet.random_point()
-        result = self.metric.jac_christoffels(base_point)
+        result = self.metric.jacobian_christoffels(base_point)
         self.assertAllClose(
             (self.dim, self.dim, self.dim, self.dim),
             result.shape)
 
         base_points = self.dirichlet.random_point(2)
-        result = self.metric.jac_christoffels(base_points)
+        result = self.metric.jacobian_christoffels(base_points)
         expected = [
-            self.metric.jac_christoffels(base_points[0, :]),
-            self.metric.jac_christoffels(base_points[1, :])]
+            self.metric.jacobian_christoffels(base_points[0, :]),
+            self.metric.jacobian_christoffels(base_points[1, :])]
         expected = gs.stack(expected, 0)
         self.assertAllClose(expected, result)
 
