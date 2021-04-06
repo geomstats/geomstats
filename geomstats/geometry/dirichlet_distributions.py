@@ -195,6 +195,12 @@ class DirichletMetric(RiemannianMetric):
 
         Compute the Christoffel symbols of the Fisher information metric.
 
+        References
+        ----------
+        .. [LPP2021] A. Le Brigant, S. C. Preston, S. Puechmorel. Fisher-Rao
+          geometry of Dirichlet Distributions. Differential Geometry
+          and its Applications, 74, 101702, 2021.
+
         Parameters
         ----------
         base_point : array-like, shape=[..., dim]
