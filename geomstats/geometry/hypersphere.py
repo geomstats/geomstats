@@ -7,6 +7,8 @@ Euclidean space.
 import logging
 from itertools import product
 
+from scipy.stats import beta
+
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
@@ -14,6 +16,7 @@ from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 TOLERANCE = 1e-6
 EPSILON = 1e-4
@@ -284,6 +287,7 @@ class _Hypersphere(EmbeddedManifold):
         n_samples : int
             Number of samples.
             Optional, default: 1.
+        bound : unused
 
         Returns
         -------
@@ -324,19 +328,28 @@ class _Hypersphere(EmbeddedManifold):
             samples = gs.squeeze(samples, axis=0)
         return samples
 
-    def random_von_mises_fisher(self, kappa=10, n_samples=1):
-        """Sample in the 2-sphere with the von Mises distribution.
+    def random_von_mises_fisher(
+            self, mu=None, kappa=10, n_samples=1, max_iter=100):
+        """Sample with the von Mises-Fisher distribution.
 
-        Sample in the 2-sphere with the von Mises distribution centered at the
-        north pole.
+        This distribution corresponds to the maximum entropy distribution
+        given a mean. In dimension 2, a closed form expression is available.
+        In larger dimension, rejection sampling is used according to [Wood94]_
 
         References
         ----------
-        https://en.wikipedia.org/wiki/Von_Mises_distribution
+        https://en.wikipedia.org/wiki/Von_Mises-Fisher_distribution
+
+        .. [Wood94]   Wood, Andrew T. A. “Simulation of the von Mises Fisher
+                      Distribution.” Communications in Statistics - Simulation
+                      and Computation, June 27, 2007.
+                      https://doi.org/10.1080/03610919408813161.
 
         Parameters
         ----------
-        kappa : int
+        mu : array-like, shape=[dim]
+            Mean parameter of the distribution.
+        kappa : float
             Kappa parameter of the von Mises distribution.
             Optional, default: 10.
         n_samples : int
@@ -349,26 +362,64 @@ class _Hypersphere(EmbeddedManifold):
             Points sampled on the sphere in extrinsic coordinates
             in Euclidean space of dimension 3.
         """
-        if self.dim != 2:
-            raise NotImplementedError(
-                'Sampling from the von Mises Fisher distribution'
-                'is only implemented in dimension 2.')
-        angle = 2. * gs.pi * gs.random.rand(n_samples)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
-        unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
-        scalar = gs.random.rand(n_samples)
+        dim = self.dim
 
-        coord_z = 1. + 1. / kappa * gs.log(
-            scalar + (1. - scalar) * gs.exp(gs.array(-2. * kappa)))
-        coord_z = gs.to_ndarray(coord_z, to_ndim=2, axis=1)
+        if dim == 2:
+            angle = 2. * gs.pi * gs.random.rand(n_samples)
+            angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+            unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
+            scalar = gs.random.rand(n_samples)
 
-        coord_xy = gs.sqrt(1. - coord_z**2) * unit_vector
+            coord_z = 1. + 1. / kappa * gs.log(
+                scalar + (1. - scalar) * gs.exp(gs.array(-2. * kappa)))
+            coord_z = gs.to_ndarray(coord_z, to_ndim=2, axis=1)
+            coord_xy = gs.sqrt(1. - coord_z ** 2) * unit_vector
+            sample = gs.hstack((coord_xy, coord_z))
 
-        point = gs.hstack((coord_xy, coord_z))
+            if mu is not None:
+                rot_vec = gs.cross(
+                    gs.array([0., 0., 1.]), mu)
+                rot_vec *= gs.arccos(mu[-1]) / gs.linalg.norm(rot_vec)
+                rot = SpecialOrthogonal(
+                    3, 'vector').matrix_from_rotation_vector(rot_vec)
+                sample = gs.matmul(sample, gs.transpose(rot))
+        else:
+            if mu is None:
+                mu = gs.array([0.] * dim + [1.])
+            # rejection sampling in the general case
+            sqrt = gs.sqrt(4 * kappa ** 2. + dim ** 2)
+            envelop_param = (-2 * kappa + sqrt) / dim
+            node = (1. - envelop_param) / (1. + envelop_param)
+            correction = kappa * node + dim * gs.log(1. - node ** 2)
 
-        if n_samples == 1:
-            point = gs.squeeze(point, axis=0)
-        return point
+            n_accepted, n_iter = 0, 0
+            result = []
+            while (n_accepted < n_samples) and (n_iter < max_iter):
+                sym_beta = beta.rvs(
+                    dim / 2, dim / 2, size=n_samples - n_accepted)
+                coord_z = (1 - (1 + envelop_param) * sym_beta) / (
+                    1 - (1 - envelop_param) * sym_beta)
+                accept_tol = gs.random.rand(n_samples - n_accepted)
+                criterion = (
+                    kappa * coord_z
+                    + dim * gs.log(1 - node * coord_z)
+                    - correction) > gs.log(accept_tol)
+                result.append(coord_z[criterion])
+                n_accepted += gs.sum(criterion)
+                n_iter += 1
+            if n_accepted < n_samples:
+                logging.warning(
+                    'Maximum number of iteration reached in rejection '
+                    'sampling before n_samples were accepted.')
+            coord_z = gs.concatenate(result)
+            coord_rest = self.random_uniform(n_accepted)
+            coord_rest = self.to_tangent(coord_rest, mu)
+            coord_rest = self.projection(coord_rest)
+            coord_rest = gs.einsum(
+                '...,...i->...i', gs.sqrt(1 - coord_z ** 2), coord_rest)
+            sample = coord_rest + coord_z[:, None] * mu[None, :]
+
+        return sample if n_samples > 1 else sample[0]
 
 
 class HypersphereMetric(RiemannianMetric):
@@ -507,8 +558,7 @@ class HypersphereMetric(RiemannianMetric):
         norm_b = self.embedding_metric.norm(point_b)
         inner_prod = self.embedding_metric.inner_product(point_a, point_b)
 
-        cos_angle = gs.einsum(
-            '...,...->...', inner_prod, 1. / (norm_a * norm_b))
+        cos_angle = inner_prod / (norm_a * norm_b)
         cos_angle = gs.clip(cos_angle, -1, 1)
 
         dist = gs.arccos(cos_angle)

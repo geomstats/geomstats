@@ -106,9 +106,10 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             Points sampled on the SO(n).
         """
         if n_samples == 1:
-            random_mat = gs.random.rand(self.n, self.n)
+            size = (self.n, self.n)
         else:
-            random_mat = gs.random.rand(n_samples, self.n, self.n)
+            size = (n_samples, self.n, self.n)
+        random_mat = gs.random.normal(size=size)
         rotation_mat, _ = gs.linalg.qr(random_mat)
         return rotation_mat
 
@@ -226,7 +227,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         n_mats, _, _ = mat.shape
 
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
-        rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
+        rot_mat = GeneralLinear.mul(mat_unitary_u, mat_unitary_v)
         mask = gs.less(gs.linalg.det(rot_mat), 0.)
         mask_float = gs.cast(mask, gs.float32) + self.epsilon
         diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
@@ -236,11 +237,10 @@ class _SpecialOrthogonalVectors(LieGroup):
             to_ndim=3) + self.epsilon
         new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
-        aux_mat = gs.einsum(
-            'nij,njk->nik', mat_unitary_u, new_mat_diag_s)
-        rot_mat += gs.einsum(
-            'n,njk->njk', mask_float,
-            gs.einsum('nij,njk->nik', aux_mat, mat_unitary_v))
+        aux_mat = GeneralLinear.mul(mat_unitary_u, new_mat_diag_s)
+        rot_mat = rot_mat + gs.einsum(
+            '...,...jk->...jk', mask_float,
+            GeneralLinear.mul(aux_mat, mat_unitary_v))
         return rot_mat
 
     def inverse(self, point):
@@ -258,7 +258,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return -self.regularize(point)
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'output_point'])
     def exp_from_identity(self, tangent_vec):
         """Compute the group exponential of the tangent vector at the identity.
 
@@ -278,7 +277,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return self.regularize(tangent_vec)
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'output_point'])
     def log_from_identity(self, point):
         """Compute the group logarithm of the point at the identity.
 
@@ -335,6 +333,55 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return SkewSymmetricMatrices(self.n).basis_representation(skew_mat)
 
+    def to_tangent(self, vector, base_point=None):
+        return self.regularize_tangent_vec(vector, base_point)
+
+    def regularize_tangent_vec_at_identity(
+            self, tangent_vec, metric=None):
+        """Regularize a tangent vector at the identity.
+
+        In 2D, regularize a tangent_vector by getting its norm at the identity,
+        to be less than pi.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        metric : RiemannianMetric
+            Metric to compute the norm of the tangent vector.
+            Optional, default is the Euclidean metric.
+
+        Returns
+        -------
+        regularized_vec : array-like, shape=[..., 1]
+            Regularized tangent vector.
+        """
+        return self.regularize(tangent_vec)
+
+    def regularize_tangent_vec(
+            self, tangent_vec, base_point, metric=None):
+        """Regularize tangent vector at a base point.
+
+        In 2D, regularize a tangent_vector by getting the norm of its parallel
+        transport to the identity, determined by the metric, less than pi.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[...,1]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., 1]
+            Point on the manifold.
+        metric : RiemannianMetric
+            Metric to compute the norm of the tangent vector.
+            Optional, default is the Euclidean metric.
+
+        Returns
+        -------
+        regularized_tangent_vec : array-like, shape=[..., 1]
+            Regularized tangent vector.
+        """
+        return self.regularize_tangent_vec_at_identity(tangent_vec)
+
 
 class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
     """Class for the special orthogonal group SO(2) in vector representation.
@@ -382,50 +429,6 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
             regularized_point < gs.pi,
             regularized_point, regularized_point - 2 * gs.pi)
         return regularized_point
-
-    @geomstats.vectorization.decorator(
-        ['else', 'vector', 'else', 'output_point'])
-    def regularize_tangent_vec_at_identity(
-            self, tangent_vec, metric=None):
-        """Regularize a tangent vector at the identity.
-
-        In 2D, regularize a tangent_vector by getting its norm at the identity,
-        to be less than pi.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., 1]
-            Tangent vector at base point.
-
-        Returns
-        -------
-        regularized_vec : array-like, shape=[..., 1]
-            Regularized tangent vector.
-        """
-        return self.regularize(tangent_vec)
-
-    @geomstats.vectorization.decorator(
-        ['else', 'vector', 'vector', 'else', 'output_point'])
-    def regularize_tangent_vec(
-            self, tangent_vec, base_point, metric=None):
-        """Regularize tangent vector at a base point.
-
-        In 2D, regularize a tangent_vector by getting the norm of its parallel
-        transport to the identity, determined by the metric, less than pi.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[...,1]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., 1]
-            Point on the manifold.
-
-        Returns
-        -------
-        regularized_tangent_vec : array-like, shape=[..., 1]
-            Regularized tangent vector.
-        """
-        return self.regularize_tangent_vec_at_identity(tangent_vec)
 
     def rotation_vector_from_matrix(self, rot_mat):
         r"""Convert rotation matrix (in 2D) to rotation vector (axis-angle).
@@ -772,8 +775,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         term_1 = (gs.eye(self.dim)
                   + gs.einsum('...,...jk->...jk', coef_1, skew_rot_vec))
 
-        squared_skew_rot_vec = gs.einsum(
-            '...ij,...jk->...ik', skew_rot_vec, skew_rot_vec)
+        squared_skew_rot_vec = GeneralLinear.mul(skew_rot_vec, skew_rot_vec)
 
         term_2 = gs.einsum('...,...jk->...jk', coef_2, squared_skew_rot_vec)
 
