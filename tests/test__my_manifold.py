@@ -21,6 +21,10 @@ In command line, select the backend of interest with:
  or ```export GEOMSTATS_BACKEND=pytorch```
  or ```export GEOMSTATS_BACKEND=tensorflow```
  and repeat the steps from the previous paragraph.
+
+When you submit a PR, the tests are run with the three backends, except if you
+add a decorator such as `@geomstats.tests.np_only` or
+`@geomstats.tests.np_and_tf_only` etc.
 """
 
 # Import the tests module
@@ -87,7 +91,9 @@ class TestMyManifold(geomstats.tests.TestCase):
         """
         point = gs.array([
             [1., 2., 3.], [4., 5., 6.]])
+        print(point.shape)
         result = self.manifold.belongs(point)
+        print(result)
         expected = gs.array([False, False])
         self.assertAllClose(result, expected)
 
@@ -115,6 +121,8 @@ class TestMyManifold(geomstats.tests.TestCase):
         """
         vector = gs.array([
             [1., 2., 3., 4.], [5., 6., 7., 8.]])
+        print(vector.shape)
         result = self.manifold.is_tangent(vector)
+        print(result)
         expected = gs.array([True, True])
         self.assertAllClose(result, expected)
