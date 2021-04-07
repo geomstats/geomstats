@@ -7,7 +7,7 @@ Note: A manifold needs to be created with an associated test file.
 The test file for this manifold can be found at:
 tests/test__my_manifold.py.
 """
-
+import geomstats.backend as gs
 # Import the class(es) that MyManifold inherits from
 from geomstats.geometry.manifold import Manifold
 
@@ -78,7 +78,7 @@ class MyManifold(Manifold):
         """
         # Perform operations to check if point belongs
         # to the manifold, for example:
-        belongs = point.shape[-1] == self.dim
+        belongs = gs.shape(point)[-1] == self.dim
         return belongs
 
     # Another example of method of MyManifold.
@@ -107,5 +107,5 @@ class MyManifold(Manifold):
         """
         # Perform operations to determine if vector is a tangent vector,
         # for example:
-        is_tangent = vector.shape[-1] == self.dim
+        is_tangent = gs.shape(vector)[-1] == self.dim
         return is_tangent
