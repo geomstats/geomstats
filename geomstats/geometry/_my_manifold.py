@@ -63,7 +63,6 @@ class MyManifold(Manifold):
         ----------
         point : array-like, shape=[..., dim]
             Point to evaluate.
-        #  The ellipsis ... indicates
         atol : float
             Tolerance, unused.
             Optional, default: ATOL
@@ -78,14 +77,16 @@ class MyManifold(Manifold):
         """
         # Perform operations to check if point belongs
         # to the manifold, for example:
-        belongs = gs.shape(point)[-1] == self.dim
+        belongs = point.shape[-1] == self.dim
+        if gs.ndim(point) == 2:
+            belongs = gs.tile([belongs], (point.shape[0],))
         return belongs
 
     # Another example of method of MyManifold.
     def is_tangent(self, vector, base_point=None):
         """Check whether vector is tangent to the manifold at base_point.
 
-        In what follows, the ellipsis ... indicate either nothing
+        In what follows, the ellipsis ... indicates either nothing
         or any number n of elements, i.e. shape=[..., dim] means
         shape=[dim] or shape=[n, dim] for any n.
         All functions/methods of geomstats should work for any number
@@ -108,4 +109,6 @@ class MyManifold(Manifold):
         # Perform operations to determine if vector is a tangent vector,
         # for example:
         is_tangent = gs.shape(vector)[-1] == self.dim
+        if gs.ndim(vector) == 2:
+            is_tangent = gs.tile([is_tangent], (vector.shape[0],))
         return is_tangent
