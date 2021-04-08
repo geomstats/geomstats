@@ -33,7 +33,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         rot_mat_plus_delta = rot_mat + delta
         result = self.group.projection(rot_mat_plus_delta)
         expected = rot_mat
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_projection_vectorization(self):
         n_samples = self.n_samples
@@ -47,7 +47,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         result = gs.matmul(skew_matrix, skew_matrix)
         diag = gs.array([-0.81, -0.81])
         expected = algebra_utils.from_vector_to_diagonal_matrix(diag)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_skew_matrix_and_vector(self):
         rot_vec = gs.array([0.8])
@@ -56,7 +56,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         result = self.group.vector_from_skew_matrix(skew_mat)
         expected = rot_vec
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_skew_matrix_from_vector_vectorization(self):
         n_samples = self.n_samples
@@ -73,20 +73,20 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         point = self.group.random_uniform()
         result = self.group.belongs(point)
         expected = True
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         result = self.group.belongs(points)
         expected = gs.array([True] * n_samples)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_regularize(self):
         angle = 2 * gs.pi + 1
         result = self.group.regularize(gs.array([angle]))
         expected = gs.array([1.])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_regularize_vectorization(self):
         n_samples = self.n_samples
@@ -100,7 +100,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         expected = gs.array([[1. / 2, -gs.sqrt(3.) / 2],
                              [gs.sqrt(3.) / 2, 1. / 2]])
         result = self.group.matrix_from_rotation_vector(gs.array([angle]))
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_matrix_from_rotation_vector_vectorization(self):
         n_samples = self.n_samples
@@ -118,7 +118,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         result = self.group.rotation_vector_from_matrix(rot_mat)
         expected = gs.array([.12])
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_rotation_vector_and_rotation_matrix(self):
         """
@@ -136,7 +136,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
 
         expected = point
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_rotation_vector_and_rotation_matrix_vectorization(self):
         rot_vecs = gs.array([
@@ -150,14 +150,14 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
 
         expected = self.group.regularize(rot_vecs)
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_compose(self):
         point_a = gs.array([.12])
         point_b = gs.array([-.15])
         result = self.group.compose(point_a, point_b)
         expected = self.group.regularize(gs.array([-.03]))
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_compose_and_inverse(self):
         angle = 0.986
@@ -165,11 +165,11 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         inv_point = self.group.inverse(point)
         result = self.group.compose(point, inv_point)
         expected = self.group.identity
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         result = self.group.compose(inv_point, point)
         expected = self.group.identity
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_compose_vectorization(self):
         point_type = 'vector'
@@ -211,7 +211,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         expected = gs.array([3 * gs.pi / 5])
         result = self.group.exp(base_point=rot_vec_base_point,
                                 tangent_vec=rot_vec)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_group_exp_vectorization(self):
         n_samples = self.n_samples
@@ -246,7 +246,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
 
         expected = gs.array([1 * gs.pi / 5])
         result = self.group.log(point=rot_vec, base_point=rot_vec_base_point)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_group_log_vectorization(self):
         n_samples = self.n_samples
@@ -281,7 +281,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         result = helper.group_exp_then_log_from_identity(
             group=self.group, tangent_vec=tangent_vec)
         expected = self.group.regularize(tangent_vec)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_group_log_then_exp_from_identity(self):
         """
@@ -293,7 +293,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         result = helper.group_log_then_exp_from_identity(
             group=self.group, point=point)
         expected = self.group.regularize(point)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_group_exp_then_log(self):
         """
@@ -313,7 +313,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
             tangent_vec=tangent_vec,
             base_point=base_point)
 
-        self.assertAllClose(result, expected, atol=1e-5)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_group_log_then_exp(self):
         """
@@ -330,4 +330,4 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
 
         expected = self.group.regularize(point)
 
-        self.assertAllClose(result, expected, atol=1e-5)
+        self.assertAllClose(result, expected, atol=gs.atol)

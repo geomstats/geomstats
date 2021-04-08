@@ -113,7 +113,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         aligned = self.bundle.align(
             point[0], point[1], tol=1e-10)
         result = self.bundle.is_horizontal(
-            point[1] - aligned, point[1], atol=1e-5)
+            point[1] - aligned, point[1], atol=gs.atol)
         self.assertTrue(result)
 
     def test_inner_product(self):
@@ -125,7 +125,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
             tangent_vecs[0], tangent_vecs[1], point=mat)
         expected = self.base_metric.inner_product(
             tangent_vecs[0], tangent_vecs[1], point)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_exp(self):
         mat = self.bundle.total_space.random_point()
@@ -135,7 +135,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
 
         result = self.quotient_metric.exp(tangent_vec, point)
         expected = self.base_metric.exp(tangent_vec, point)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_log(self):
         mats = self.bundle.total_space.random_point(2)

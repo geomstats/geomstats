@@ -12,7 +12,7 @@ from geomstats.learning.radial_kernel_functions import \
     uniform_radial_kernel
 
 
-TOLERANCE = 1e-4
+TOLERANCE = gs.atol
 
 
 class TestRadialKernelFunctions(geomstats.tests.TestCase):
@@ -51,7 +51,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             bandwidth=self.bandwidth)
         result = weight
         expected = gs.array([[1], [0]])
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_uniform_radial_kernel_bandwidth(self):
         """Test the bandwidth using the uniform radial kernel ."""
@@ -61,7 +61,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             bandwidth=1 / 4)
         result = weight
         expected = gs.array([[0], [0]])
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_triangular_radial_kernel(self):
         """Test the triangular radial kernel."""

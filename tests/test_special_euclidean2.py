@@ -68,20 +68,20 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         base_point = self.group.random_point()
         result = self.group.belongs(base_point)
         expected = True
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_point(n_samples=n_samples)
         result = self.group.belongs(points)
         expected = gs.array([True] * n_samples)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_regularize(self):
         point = self.elements_all['point_1']
         result = self.group.regularize(point)
         expected = point
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_regularize_vectorization(self):
         n_samples = self.n_samples
@@ -99,7 +99,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         result = self.group.compose(point,
                                     self.group.identity)
         expected = point
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         if not geomstats.tests.tf_backend():
             # Composition by identity, on the left
@@ -107,7 +107,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
             result = self.group.compose(self.group.identity,
                                         point)
             expected = point
-            self.assertAllClose(result, expected)
+            self.assertAllClose(result, expected, atol=gs.atol)
 
             # Composition of translations (no rotational part)
             # Expect the sum of the translations
@@ -115,7 +115,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
                                         self.elements_all['translation_large'])
             expected = (self.elements_all['translation_small']
                         + self.elements_all['translation_large'])
-            self.assertAllClose(result, expected)
+            self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_compose_and_inverse(self):
         point = self.elements_all['point_1']
@@ -124,14 +124,14 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         # Expect the group identity
         result = self.group.compose(point, inv_point)
         expected = self.group.identity
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         if not geomstats.tests.tf_backend():
             # Compose transformation by its inverse on the left
             # Expect the group identity
             result = self.group.compose(inv_point, point)
             expected = self.group.identity
-            self.assertAllClose(result, expected)
+            self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_compose_vectorization(self):
         n_samples = self.n_samples
@@ -248,7 +248,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         result = self.group.exp(
             base_point=self.group.identity, tangent_vec=tangent_vec)
         expected = tangent_vec
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_group_exp_from_identity_vectorized(self):
         # Group exponential of a translation (no rotational part)
@@ -257,7 +257,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         result = self.group.exp(
             base_point=self.group.identity, tangent_vec=tangent_vec)
         expected = tangent_vec
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_group_log_from_identity(self):
         # Group logarithm of a translation (no rotational part)
@@ -266,7 +266,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         result = self.group.log(
             base_point=self.group.identity, point=point)
         expected = point
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_group_log_then_exp_from_identity(self):
         """
@@ -280,7 +280,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
             result = helper.group_log_then_exp_from_identity(
                 group=self.group, point=point)
             expected = self.group.regularize(point)
-            self.assertAllClose(result, expected, atol=1e-3)
+            self.assertAllClose(result, expected, atol=gs.atol)
 
             if geomstats.tests.tf_backend():
                 break
@@ -297,7 +297,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
             tangent_vec=self.elements_all['translation_large'])
         expected = (self.elements_all['translation_small']
                     + self.elements_all['translation_large'])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_group_log(self):
         # Reference point is a translation (no rotational part)
@@ -312,7 +312,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         expected = (self.elements_all['translation_large']
                     - self.elements_all['translation_small'])
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_group_log_then_exp(self):
         """
@@ -328,7 +328,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
                                                    point=point,
                                                    base_point=base_point)
                 expected = self.group.regularize(point)
-                self.assertAllClose(result, expected, rtol=1e-4, atol=1e-4)
+                self.assertAllClose(result, expected, rtol=1e-4, atol=gs.atol)
 
                 if geomstats.tests.tf_backend():
                     break
@@ -350,7 +350,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
                 expected = self.group.regularize_tangent_vec(
                     tangent_vec=tangent_vec,
                     base_point=base_point)
-                self.assertAllClose(result, expected, rtol=1e-4, atol=1e-4)
+                self.assertAllClose(result, expected, rtol=1e-4, atol=gs.atol)
 
                 if geomstats.tests.tf_backend():
                     break

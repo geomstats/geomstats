@@ -13,7 +13,7 @@ class TestManifold(geomstats.tests.TestCase):
     def test_dimension(self):
         result = self.manifold.dim
         expected = self.dimension
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_belongs(self):
         point = gs.array([1., 2., 3.])
@@ -24,4 +24,4 @@ class TestManifold(geomstats.tests.TestCase):
         point = gs.array([1., 2., 3.])
         result = self.manifold.regularize(point)
         expected = point
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)

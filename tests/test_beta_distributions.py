@@ -27,7 +27,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         point = self.beta.random_point()
         result = self.beta.belongs(point)
         expected = True
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_random_uniform_and_belongs_vectorization(self):
         """Test random_uniform and belongs.
@@ -39,7 +39,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         point = self.beta.random_point(n_samples)
         result = self.beta.belongs(point)
         expected = gs.array([True] * n_samples)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_random_uniform(self):
         """Test random_uniform.
@@ -75,7 +75,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         fits = self.beta.maximum_likelihood_fit(samples)
         expected = self.beta.belongs(fits)
         result = gs.array([True] * n_samples)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_only
     def test_exp(self):
@@ -94,7 +94,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         result_points = self.metric.exp(initial_vectors, points)
         result = gs.isclose(result_points[:, 0], result_points[:, 1]).all()
         expected = gs.array([True] * n_samples)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     @geomstats.tests.np_only
     def test_log_and_exp(self):
@@ -112,7 +112,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         log = self.metric.log(point, base_point, n_steps=500)
         expected = point
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
-        self.assertAllClose(result, expected, rtol=1e-2)
+        self.assertAllClose(result, expected, atol=gs.atol, rtol=1e-2)
 
     @geomstats.tests.np_only
     def test_exp_vectorization(self):
@@ -129,7 +129,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
             tangent_vec=tangent_vecs, base_point=point)
         result = end_points.shape
         expected = (n_tangent_vecs, 2)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_only
     def test_log_vectorization(self):
@@ -144,7 +144,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
             base_point=base_points, point=point)
         result = tangent_vecs.shape
         expected = (n_points, 2)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_and_tf_only
     def test_christoffels_vectorization(self):
@@ -157,13 +157,13 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         result = christoffel.shape
         expected = gs.array(
             [self.n_samples, self.dim, self.dim, self.dim])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_metric_matrix(self):
         point = gs.array([1., 1.])
         result = self.beta.metric.metric_matrix(point)
         expected = gs.array([[1., -0.644934066], [-0.644934066, 1.]])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
         self.assertRaises(ValueError, self.beta.metric.metric_matrix)
 
     def test_point_to_pdf(self):
@@ -178,4 +178,4 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         pdf1 = beta.pdf(x, a=point[0, 0], b=point[0, 1])
         pdf2 = beta.pdf(x, a=point[1, 0], b=point[1, 1])
         expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=1)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)

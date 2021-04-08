@@ -27,7 +27,7 @@ class TestNormalDistributions(geomstats.tests.TestCase):
         point = self.normal.random_point()
         result = self.normal.belongs(point)
         expected = True
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_random_point_and_belongs_vectorization(self):
         """Test random_point and belongs.
@@ -39,7 +39,7 @@ class TestNormalDistributions(geomstats.tests.TestCase):
         point = self.normal.random_point(n_samples)
         result = self.normal.belongs(point)
         expected = gs.array([True] * n_samples)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_random_point(self):
         """Test random_point.
@@ -58,7 +58,7 @@ class TestNormalDistributions(geomstats.tests.TestCase):
         result = samples.shape
         expected = (n_points, n_samples)
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_point_to_pdf(self):
         """Test point_to_pdf
@@ -73,4 +73,4 @@ class TestNormalDistributions(geomstats.tests.TestCase):
         pdf2 = norm.pdf(x, loc=point[1, 0], scale=point[1, 1])
         expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=1)
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)

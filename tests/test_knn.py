@@ -5,7 +5,7 @@ import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.learning.knn import KNearestNeighborsClassifier
 
-TOLERANCE = 1e-4
+TOLERANCE = gs.atol
 
 
 class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
@@ -30,7 +30,7 @@ class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
         neigh.fit(training_dataset, labels)
         result = neigh.predict([[1.1]])
         expected = gs.array([0])
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     @geomstats.tests.np_only
     def test_predict_proba(self):

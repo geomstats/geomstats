@@ -31,7 +31,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         point = self.dirichlet.random_point()
         result = self.dirichlet.belongs(point)
         expected = True
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_random_uniform_and_belongs_vectorization(self):
         """Test random_uniform and belongs.
@@ -42,7 +42,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         points = self.dirichlet.random_point(self.n_points)
         result = self.dirichlet.belongs(points)
         expected = gs.array([True] * self.n_points)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_random_uniform(self):
         """Test random_uniform.
@@ -62,13 +62,13 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         samples = self.dirichlet.sample(point, self.n_samples)
         result = samples.shape
         expected = (self.n_samples, self.dim)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
         points = self.dirichlet.random_point(self.n_points)
         samples = self.dirichlet.sample(points, self.n_samples)
         result = samples.shape
         expected = (self.n_points, self.n_samples, self.dim)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     @geomstats.tests.np_only
     def test_sample_belong(self):
@@ -81,7 +81,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         samples = self.dirichlet.sample(points, self.n_samples)
         result = gs.sum(samples, -1)
         expected = gs.ones((self.n_points, self.n_samples))
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     @geomstats.tests.np_only
     def test_point_to_pdf(self):
@@ -98,7 +98,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         pdf1 = [dirichlet.pdf(x, points[0, :]) for x in samples]
         pdf2 = [dirichlet.pdf(x, points[1, :]) for x in samples]
         expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=0)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_and_pytorch_only
     def test_metric_matrix_vectorization(self):
@@ -110,7 +110,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         mat = self.dirichlet.metric.metric_matrix(points)
         result = mat.shape
         expected = (self.n_points, self.dim, self.dim)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_and_pytorch_only
     def test_metric_matrix_dim2(self):
@@ -132,7 +132,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
              - polygamma_ab,
              polygamma_b - polygamma_ab], axis=-1)
         expected = SymmetricMatrices.from_vector(vector)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_and_tf_only
     def test_christoffels(self):
@@ -168,7 +168,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         gamma_0 = SymmetricMatrices.from_vector(vector_0)
         gamma_1 = SymmetricMatrices.from_vector(vector_1)
         expected = gs.stack([gamma_0, gamma_1], axis=-3)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_and_tf_only
     def test_christoffels_vectorization(self):
@@ -185,7 +185,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         result = christoffels.shape
         expected = gs.array(
             [n_points, self.dim, self.dim, self.dim])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         expected = gs.stack((christoffel_1, christoffel_2), axis=0)
         self.assertAllClose(christoffels, expected)
@@ -207,14 +207,14 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
             [[param_x, param_x, param_x] for param_x in points[:, 0]])
         result = self.metric.exp(initial_vectors, base_points)
         expected = gs.transpose(gs.tile(result[:, 0], (self.dim, 1)))
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
         initial_vectors[:, 2] = gs.random.rand(n_points)
         base_points[:, 2] = gs.random.rand(n_points)
         result_points = self.metric.exp(initial_vectors, base_points)
         result = gs.isclose(result_points[:, 0], result_points[:, 1]).all()
         expected = gs.array([True] * n_points)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     @geomstats.tests.np_only
     def test_log_and_exp(self):
@@ -249,7 +249,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
             tangent_vec=tangent_vecs, base_point=point)
         result = end_points.shape
         expected = (n_tangent_vecs, self.dim)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_only
     def test_log_vectorization(self):
@@ -263,7 +263,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
             base_point=base_points, point=point)
         result = tangent_vecs.shape
         expected = (self.n_points, self.dim)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_only
     def tests_geodesic_ivp_and_bvp(self):
@@ -281,13 +281,13 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         geodesic_at_t = geodesic(t)
         result = geodesic_at_t.shape
         expected = (self.n_points, n_steps, self.dim)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         end_points = self.dirichlet.random_point(self.n_points)
         geodesic = self.metric._geodesic_bvp(initial_points, end_points)
         geodesic_at_t = geodesic(t)
         result = geodesic_at_t.shape
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_only
     def test_geodesic(self):
@@ -310,7 +310,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
             velocity_norm.max() - velocity_norm.min())
         expected = 0.
 
-        self.assertAllClose(expected, result, atol=1e-4, rtol=1.)
+        self.assertAllClose(expected, result, atol=gs.atol, rtol=1.)
 
     @geomstats.tests.np_only
     def test_geodesic_vectorization(self):
@@ -327,7 +327,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         time = 0.5
         result = geod(time).shape
         expected = (self.dim,)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
         n_vecs = 5
         n_times = 10
@@ -338,7 +338,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         times = gs.linspace(0., 1., n_times)
         result = geod(times).shape
         expected = (n_vecs, n_times, self.dim)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         end_points = self.dirichlet.random_point(self.n_points)
         geod = self.metric.geodesic(
@@ -347,4 +347,4 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         time = 0.5
         result = geod(time).shape
         expected = (self.n_points, self.dim)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=gs.atol)

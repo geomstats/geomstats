@@ -24,7 +24,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             [0., 0., 1.]])
         result = self.group.belongs(point_1)
         expected = True
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         point_2 = gs.array([
             [gs.cos(theta), - gs.sin(theta), 2.],
@@ -32,28 +32,28 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             [0., 0., 0.]])
         result = self.group.belongs(point_2)
         expected = False
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         point = gs.array([point_1, point_2])
         expected = gs.array([True, False])
         result = self.group.belongs(point)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_random_point_and_belongs(self):
         point = self.group.random_point()
         result = self.group.belongs(point)
         expected = True
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         point = self.group.random_point(self.n_samples)
         result = self.group.belongs(point)
         expected = gs.array([True] * self.n_samples)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_identity(self):
         result = self.group.identity
         expected = gs.eye(self.n + 1)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_is_tangent(self):
         theta = gs.pi / 3
@@ -65,7 +65,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         tangent_vec = self.group.compose(point, vec_1)
         result = self.group.is_tangent(tangent_vec, point)
         expected = True
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         vec_2 = gs.array([
             [0., - theta, 2.],
@@ -74,12 +74,12 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         tangent_vec = self.group.compose(point, vec_2)
         result = self.group.is_tangent(tangent_vec, point)
         expected = False
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         vec = gs.array([vec_1, vec_2])
         expected = gs.array([True, False])
         result = self.group.is_tangent(vec)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_to_tangent_vec_vectorization(self):
         n = self.group.n
@@ -95,19 +95,19 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             self.group.compose(self.group.transpose(regularized), point)
         result = result[:, :n, :n]
         expected = gs.zeros_like(result)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_compose_and_inverse_matrix_form(self):
         point = self.group.random_point()
         inv_point = self.group.inverse(point)
         result = self.group.compose(point, inv_point)
         expected = self.group.identity
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         if not geomstats.tests.tf_backend():
             result = self.group.compose(inv_point, point)
             expected = self.group.identity
-            self.assertAllClose(result, expected)
+            self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_compose_vectorization(self):
         n_samples = self.n_samples
@@ -140,14 +140,14 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         point = self.group.random_point()
         result = self.group.compose(point, self.group.identity)
         expected = point
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         if not geomstats.tests.tf_backend():
             # Composition by identity, on the left
             # Expect the original transformation
             result = self.group.compose(self.group.identity, point)
             expected = point
-            self.assertAllClose(result, expected)
+            self.assertAllClose(result, expected, atol=gs.atol)
 
             # Composition of translations (no rotational part)
             # Expect the sum of the translations
@@ -162,7 +162,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             last_line_0 = gs.array_from_sparse(
                 [(0, 2), (1, 2)], [1., 1.], (3, 3))
             expected = point_a + point_b * last_line_0
-            self.assertAllClose(result, expected)
+            self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_left_exp_coincides(self):
         vector_group = SpecialEuclidean(n=2, point_type='vector')
@@ -173,7 +173,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         vector_exp = vector_group.left_canonical_metric.exp(initial_vec)
         result = self.group.left_canonical_metric.exp(initial_matrix_vec)
         expected = vector_group.matrix_from_vector(vector_exp)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_right_exp_coincides(self):
         vector_group = SpecialEuclidean(n=2, point_type='vector')
@@ -205,7 +205,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             [0., 0., 0.]])
         result = self.group.lie_algebra.belongs(vec_1)
         expected = True
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         vec_2 = gs.array([
             [0., - theta, 2.],
@@ -213,12 +213,12 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             [0., 0., 1.]])
         result = self.group.lie_algebra.belongs(vec_2)
         expected = False
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         vec = gs.array([vec_1, vec_2])
         expected = gs.array([True, False])
         result = self.group.lie_algebra.belongs(vec)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_basis_representation_is_correctly_vectorized(self):
         for n in range(2, 5):
@@ -288,7 +288,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         end_point = metric.exp(tan_b, self.point)
 
         def is_isometry(tan_a, trans_a, basepoint, endpoint):
-            is_tangent = self.group.is_tangent(trans_a, endpoint, atol=1e-6)
+            is_tangent = self.group.is_tangent(trans_a, endpoint, atol=gs.atol)
             is_equinormal = gs.isclose(
                 metric.norm(trans_a, endpoint), metric.norm(tan_a, basepoint))
             return gs.logical_and(is_tangent, is_equinormal)

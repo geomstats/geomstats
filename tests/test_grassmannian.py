@@ -45,14 +45,14 @@ class TestGrassmannian(geomstats.tests.TestCase):
         result = self.metric.exp(
             vec, gs.array([p_xy, p_yz]))
         expected = gs.array([p_yz, p_xy])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         vec = Matrices.bracket(
             pi_2 * gs.array([r_y, r_z]), gs.array([p_xy, p_yz]))
         result = self.metric.exp(
             vec, gs.array([p_xy, p_yz]))
         expected = gs.array([p_yz, p_xz])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_and_tf_only
     def test_log(self):
@@ -60,7 +60,7 @@ class TestGrassmannian(geomstats.tests.TestCase):
         result = self.metric.log(
             self.metric.exp(expected, p_xy), p_xy)
         self.assertTrue(self.space.is_tangent(result, p_xy))
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_and_tf_only
     def test_log_vectorized(self):
@@ -69,7 +69,7 @@ class TestGrassmannian(geomstats.tests.TestCase):
         points = self.metric.exp(tangent_vecs, base_points)
         result = self.metric.log(points, base_points)
         expected = tangent_vecs
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_belongs(self):
         point = p_xy
@@ -90,7 +90,7 @@ class TestGrassmannian(geomstats.tests.TestCase):
         point = gs.array([p_xy, not_a_point])
         result = self.space.belongs(point)
         expected = gs.array([True, False])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_random_and_belongs(self):
         point = self.space.random_uniform()

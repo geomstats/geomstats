@@ -25,7 +25,7 @@ class TestIntegrator(geomstats.tests.TestCase):
             integrator.euler_step(state, self.function_linear, self.dt))
         expected = len(state)
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_rk4_step(self):
         state = (self.intercept, self.slope)
@@ -33,7 +33,7 @@ class TestIntegrator(geomstats.tests.TestCase):
             state, self.function_linear, self.dt))
         expected = len(state)
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_integrator(self):
         initial_state = self.euclidean.random_point(2)
@@ -46,4 +46,4 @@ class TestIntegrator(geomstats.tests.TestCase):
             result = flow[-1]
             expected = initial_state[0] + initial_state[1]
 
-            self.assertAllClose(result, expected)
+            self.assertAllClose(result, expected, atol=gs.atol)

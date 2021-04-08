@@ -31,12 +31,12 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         mat = gs.eye(3)
         result = self.group.belongs(mat)
         expected = True
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         mat = gs.ones((3, 3))
         result = self.group.belongs(mat)
         expected = False
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_belongs_vectorization_shape(self):
         mats = gs.array([gs.eye(3), gs.ones((3, 3))])
@@ -47,20 +47,20 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         mats = gs.array([gs.eye(3), gs.ones((3, 3))])
         result = self.group.belongs(mats)
         expected = gs.array([True, False])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_random_and_belongs(self):
         point = self.group.random_point()
         result = self.group.belongs(point)
         expected = True
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_random_and_belongs_vectorization(self):
         n_samples = 4
         point = self.group.random_point(n_samples)
         result = self.group.belongs(point)
         expected = gs.array([True] * n_samples)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_replace_values(self):
         points = gs.ones((3, 3, 3))
@@ -79,7 +79,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
             [0., 1.]])
         result = self.group.compose(mat1, mat2)
         expected = 2. * GeneralLinear(2).identity
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_inv(self):
         mat_a = gs.array([
@@ -92,7 +92,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
             [3., -6., 3.]])
         expected = imat_a
         result = self.group.inverse(mat_a)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_inv_vectorized(self):
         mat_a = gs.array([
@@ -102,7 +102,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         mat_b = - gs.eye(3, 3)
         result = self.group.inverse(gs.array([mat_a, mat_b]))
         expected = gs.array([mat_a, mat_b])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_and_tf_only
     def test_log_and_exp(self):
@@ -111,7 +111,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
 
         result = self.group.exp(group_log)
         expected = point
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_exp_vectorization(self):
         point = gs.array([[[2., 0., 0.],
@@ -127,6 +127,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
                              [[2.718281828, 0., 0.],
                               [0., 148.413159, 0.],
                               [0., 0., 403.42879349]]])
+
         result = self.group.exp(point)
         self.assertAllClose(result, expected, rtol=1e-3)
 
@@ -145,7 +146,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
                               [0., 1.609437912, 0.],
                               [0., 0., 1.79175946]]])
         result = self.group.log(point)
-        self.assertAllClose(result, expected, atol=1e-4)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_and_tf_only
     def test_orbit(self):
@@ -162,7 +163,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
 
         result = path(time)
         expected = gs.array([idty, sqrt, point])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_and_tf_only
     def test_expm_and_logm_vectorization_symmetric(self):
@@ -174,4 +175,4 @@ class TestGeneralLinear(geomstats.tests.TestCase):
                            [0., 0., 6.]]])
         result = self.group.exp(self.group.log(point))
         expected = point
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)

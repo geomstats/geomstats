@@ -31,11 +31,11 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
                                 [3., 5., 6.]])
         result = sym_n.belongs(mat_sym)
         expected = True
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         result = sym_n.belongs(mat_not_sym)
         expected = False
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_basis(self):
         """Test of belongs method."""
@@ -45,7 +45,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         mat_sym_3 = gs.array([[0, 0.], [0, 1.]])
         expected = gs.stack([mat_sym_1, mat_sym_2, mat_sym_3])
         result = sym_n.basis
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_expm(self):
         """Test of expm method."""
@@ -60,7 +60,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         expected = gs.array([[c, s, 0.],
                              [s, c, 0.],
                              [0., 0., e]])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_powerm(self):
         """Test of powerm method."""
@@ -72,7 +72,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         power = gs.cast(power, gs.float64)
         result = sym_n.powerm(expected, power)
         result = gs.matmul(result, gs.transpose(result, (0, 2, 1)))
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(
             self):
@@ -113,7 +113,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         vector_2 = gs.array([1, 2, 3, 4, 5, 6])
         result = self.space.from_vector(vector_2)
         expected = gs.array([[1., 2., 3.], [2., 4., 5.], [3., 5., 6.]])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_projection_and_belongs(self):
         mat = gs.random.rand(3, 3)

@@ -88,6 +88,7 @@ std = tf.math.reduce_std
 def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
+atol = 1e-6
 
 def to_numpy(x):
     return x.numpy()

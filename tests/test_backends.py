@@ -96,7 +96,7 @@ class TestBackends(geomstats.tests.TestCase):
         expected = gs.array([[0.693147180, 0., 0.],
                              [0., 1.098612288, 0.],
                              [0., 0., 1.38629436]])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         np_point = _np.array(
             [[2., 0., 0.],
@@ -112,7 +112,7 @@ class TestBackends(geomstats.tests.TestCase):
                           [0., 0., 4.]])
         result = gs.linalg.expm(gs.linalg.logm(point))
         expected = point
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         np_point = _np.array(
             [[2., 0., 0.],
@@ -140,7 +140,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         result = gs.linalg.expm(point)
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_and_tf_only
     def test_logm_vectorization_diagonal(self):
@@ -161,7 +161,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         result = gs.linalg.logm(point)
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_and_tf_only
     def test_expm_and_logm_vectorization_random_rotation(self):
@@ -170,7 +170,7 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.linalg.expm(gs.linalg.logm(point))
         expected = point
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_and_tf_only
     def test_expm_and_logm_vectorization(self):
@@ -183,7 +183,7 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.linalg.expm(gs.linalg.logm(point))
         expected = point
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.tf_only
     def test_vstack(self):
@@ -196,32 +196,32 @@ class TestBackends(geomstats.tests.TestCase):
             [1., 2., 3.],
             [4., 5., 6.],
             [7., 8., 9.]])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_cumprod(self):
         result = gs.cumprod(gs.arange(1, 10))
         expected = gs.array(([1, 2, 6, 24, 120, 720, 5040, 40320, 362880]))
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         result = gs.reshape(gs.arange(1, 11), (2, 5))
         result = gs.cumprod(result, axis=1)
         expected = gs.array(([[1, 2, 6, 24, 120], [6, 42, 336, 3024, 30240]]))
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.pytorch_only
     def test_cumsum(self):
         result = gs.cumsum(gs.arange(10))
         expected = gs.array(([0, 1, 3, 6, 10, 15, 21, 28, 36, 45]))
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
         result = gs.cumsum(gs.arange(10).reshape(2, 5), axis=1)
         expected = gs.array(([[0, 1, 3, 6, 10], [5, 11, 18, 26, 35]]))
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_array_from_sparse(self):
         expected = gs.array([[0, 1, 0], [0, 0, 2]])
         result = gs.array_from_sparse([(0, 1), (1, 2)], [1, 2], (2, 3))
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     def test_einsum(self):
         np_array_1 = _np.array([[1, 4]])
@@ -777,8 +777,8 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.isclose(gs_array, 22.)
         self.assertAllCloseToNp(gs_result, np_result)
 
-        np_result = _np.isclose(np_array, 22., atol=1e-8)
-        gs_result = gs.isclose(gs_array, 22., atol=1e-8)
+        np_result = _np.isclose(np_array, 22., atol=gs.atol)
+        gs_result = gs.isclose(gs_array, 22., atol=gs.atol)
         self.assertAllCloseToNp(gs_result, np_result)
 
         np_result = _np.isclose(np_array, 22., rtol=1e-8, atol=1e-7)
@@ -853,8 +853,8 @@ class TestBackends(geomstats.tests.TestCase):
         result_verdict = [gs.array([[1, 2, 3], [1, 2, 3]]),
                           gs.array([[4, 4, 4], [5, 5, 5]])]
 
-        self.assertAllClose(result[0], result_verdict[0])
-        self.assertAllClose(result[1], result_verdict[1])
+        self.assertAllClose(result[0], result_verdict[0], atol=gs.atol)
+        self.assertAllClose(result[1], result_verdict[1], atol=gs.atol)
 
         with self.assertRaises((ValueError, RuntimeError)):
             gs.broadcast_arrays(gs.array([1, 2]), gs.array([3, 4, 5]))
@@ -866,8 +866,8 @@ class TestBackends(geomstats.tests.TestCase):
             lambda v: gs.sum(v ** 2))(vector)
         expected_loss = n
         expected_grad = 2 * vector
-        self.assertAllClose(result_loss, expected_loss)
-        self.assertAllClose(result_grad, expected_grad)
+        self.assertAllClose(result_loss, expected_loss, atol=gs.atol)
+        self.assertAllClose(result_grad, expected_grad, atol=gs.atol)
 
     def test_value_and_grad_numpy_input(self):
         n = 10
@@ -876,8 +876,8 @@ class TestBackends(geomstats.tests.TestCase):
             lambda v: gs.sum(v ** 2))(vector)
         expected_loss = n
         expected_grad = 2 * vector
-        self.assertAllClose(result_loss, expected_loss)
-        self.assertAllClose(result_grad, expected_grad)
+        self.assertAllClose(result_loss, expected_loss, atol=gs.atol)
+        self.assertAllClose(result_grad, expected_grad, atol=gs.atol)
 
     def test_choice(self):
         x = gs.array([0.1, 0.2, 0.3, 0.4, 0.5])
@@ -898,7 +898,7 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.split(x, 2)
         expected = _np.split(x, 2)
         for res, exp in zip(result, expected):
-            self.assertAllClose(res, exp)
+            self.assertAllClose(res, exp, atol=gs.atol)
 
     def test_svd(self):
         gs_point = gs.reshape(gs.arange(12), (4, 3))
@@ -913,7 +913,7 @@ class TestBackends(geomstats.tests.TestCase):
             u_r, s_r_reconstructed), v_r)
         s_reconstructed = _np.einsum('kl,l->kl', reconstruction, s)
         np_a_approx = _np.dot(u, _np.dot(s_reconstructed, v))
-        self.assertAllClose(gs_a_approx, np_a_approx)
+        self.assertAllClose(gs_a_approx, np_a_approx, atol=gs.atol)
 
         full_matrices = False
         u, s, v = _np.linalg.svd(
@@ -926,12 +926,12 @@ class TestBackends(geomstats.tests.TestCase):
             u_r, s_r_reconstructed), v_r)
         s_reconstructed = _np.einsum('kl,l->kl', reconstruction, s)
         np_a_approx = _np.dot(u, _np.dot(s_reconstructed, v))
-        self.assertAllClose(gs_a_approx, np_a_approx)
+        self.assertAllClose(gs_a_approx, np_a_approx, atol=gs.atol)
 
         compute_uv = False
         s = _np.linalg.svd(np_point, compute_uv=compute_uv)
         s_r = gs.linalg.svd(gs_point, compute_uv=compute_uv)
-        self.assertAllClose(s, s_r)
+        self.assertAllClose(s, s_r, atol=gs.atol)
 
     def test_sylvester_solve(self):
         mat = gs.random.rand(4, 3)
@@ -943,7 +943,7 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.matmul(spd, solution)
         result += gs.matmul(solution, spd)
 
-        self.assertAllClose(result, skew)
+        self.assertAllClose(result, skew, atol=gs.atol)
 
     @geomstats.tests.np_and_pytorch_only
     def test_general_sylvester_solve(self):
@@ -952,7 +952,7 @@ class TestBackends(geomstats.tests.TestCase):
         q = gs.array([[1.], [2.], [3.]])
         sol = gs.linalg.solve_sylvester(a, b, q)
         result = gs.matmul(a, sol) + gs.matmul(sol, b)
-        self.assertAllClose(result, q)
+        self.assertAllClose(result, q, atol=gs.atol)
 
     def test_sylvester_solve_vectorization(self):
         gs.random.seed(0)
@@ -965,19 +965,19 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.matmul(spd, solution)
         result += gs.matmul(solution, spd)
 
-        self.assertAllClose(result, skew)
+        self.assertAllClose(result, skew, atol=gs.atol)
 
     def test_eigvalsh(self):
         mat = gs.array([[2., 1.], [1., -1.]])
         result = gs.linalg.eigvalsh(mat, UPLO='U')
         expected = _np.linalg.eigvalsh(mat)
-        self.assertAllCloseToNp(result, expected)
+        self.assertAllCloseToNp(result, expected, atol=gs.atol)
 
     def test_cholesky(self):
         mat = SPDMatrices(3).random_point(2)
         result = gs.linalg.cholesky(mat)
         expected = _np.linalg.cholesky(mat)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol)
 
     @geomstats.tests.np_and_pytorch_only
     def test_expm_backward(self):
@@ -998,5 +998,5 @@ class TestBackends(geomstats.tests.TestCase):
         value.backward()
         grad = torch_mat.grad
 
-        self.assertAllClose(result[0], value.detach())
+        self.assertAllClose(result[0], value.detach(), atol=gs.atol)
         self.assertAllClose(result[1], grad)
