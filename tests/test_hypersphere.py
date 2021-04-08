@@ -7,7 +7,7 @@ import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 
-MEAN_ESTIMATION_TOL = 1e-6
+MEAN_ESTIMATION_TOL = 1e-3
 KAPPA_ESTIMATION_TOL = 1e-2
 ONLINE_KMEANS_TOL = 2e-2
 
@@ -635,48 +635,76 @@ class TestHypersphere(geomstats.tests.TestCase):
         result = test > 0
         self.assertTrue(result)
 
-    def test_sample_von_mises_fisher(self):
+    def test_sample_von_mises_fisher_arbitrary_mean(self):
         """
         Check that the maximum likelihood estimates of the mean and
         concentration parameter are close to the real values. A first
         estimation of the concentration parameter is obtained by a
         closed-form expression and improved through the Newton method.
         """
-        dim = 2
-        n_points = 1000000
-        sphere = Hypersphere(dim)
+        for dim in [2, 9]:
+            n_points = 10000
+            sphere = Hypersphere(dim)
 
-        # check mean value for concentrated distribution
-        kappa = 10000000
-        points = sphere.random_von_mises_fisher(kappa, n_points)
-        sum_points = gs.sum(points, axis=0)
-        mean = gs.array([0., 0., 1.])
-        mean_estimate = sum_points / gs.linalg.norm(sum_points)
-        expected = mean
-        result = mean_estimate
-        self.assertTrue(
-            gs.allclose(result, expected, atol=MEAN_ESTIMATION_TOL)
-        )
+            # check mean value for concentrated distribution for different mean
+            kappa = 1000.
+            mean = sphere.random_uniform()
+            points = sphere.random_von_mises_fisher(
+                mu=mean, kappa=kappa, n_samples=n_points)
+            sum_points = gs.sum(points, axis=0)
+            result = sum_points / gs.linalg.norm(sum_points)
+            expected = mean
+            self.assertAllClose(result, expected, atol=MEAN_ESTIMATION_TOL)
+
+    def test_random_von_mises_kappa(self):
         # check concentration parameter for dispersed distribution
         kappa = 1.
-        points = sphere.random_von_mises_fisher(kappa, n_points)
-        sum_points = gs.sum(points, axis=0)
-        mean_norm = gs.linalg.norm(sum_points) / n_points
-        kappa_estimate = (mean_norm * (dim + 1. - mean_norm**2)
-                          / (1. - mean_norm**2))
-        kappa_estimate = gs.cast(kappa_estimate, gs.float64)
-        p = dim + 1
-        n_steps = 100
-        for _ in range(n_steps):
-            bessel_func_1 = scipy.special.iv(p / 2., kappa_estimate)
-            bessel_func_2 = scipy.special.iv(p / 2. - 1., kappa_estimate)
-            ratio = bessel_func_1 / bessel_func_2
-            denominator = 1. - ratio**2 - (p - 1.) * ratio / kappa_estimate
-            mean_norm = gs.cast(mean_norm, gs.float64)
-            kappa_estimate = kappa_estimate - (ratio - mean_norm) / denominator
-        result = kappa_estimate
-        expected = kappa
-        self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
+        n_points = 100000
+        for dim in [2, 9]:
+            sphere = Hypersphere(dim)
+            points = sphere.random_von_mises_fisher(
+                kappa=kappa, n_samples=n_points)
+            sum_points = gs.sum(points, axis=0)
+            mean_norm = gs.linalg.norm(sum_points) / n_points
+            kappa_estimate = (mean_norm * (dim + 1. - mean_norm**2)
+                              / (1. - mean_norm**2))
+            kappa_estimate = gs.cast(kappa_estimate, gs.float64)
+            p = dim + 1
+            n_steps = 100
+            for _ in range(n_steps):
+                bessel_func_1 = scipy.special.iv(p / 2., kappa_estimate)
+                bessel_func_2 = scipy.special.iv(p / 2. - 1., kappa_estimate)
+                ratio = bessel_func_1 / bessel_func_2
+                denominator = 1. - ratio**2 - (p - 1.) * ratio / kappa_estimate
+                mean_norm = gs.cast(mean_norm, gs.float64)
+                kappa_estimate = (
+                    kappa_estimate - (ratio - mean_norm) / denominator)
+            result = kappa_estimate
+            expected = kappa
+            self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
+
+    def test_random_von_mises_general_dim_mean(self):
+        for dim in [2, 9]:
+            sphere = Hypersphere(dim)
+            n_points = 100000
+
+            # check mean value for concentrated distribution
+            kappa = 10
+            points = sphere.random_von_mises_fisher(
+                kappa=kappa, n_samples=n_points)
+            sum_points = gs.sum(points, axis=0)
+            expected = gs.array([0.] * dim + [1.])
+            result = sum_points / gs.linalg.norm(sum_points)
+            self.assertAllClose(
+                result, expected, atol=KAPPA_ESTIMATION_TOL)
+
+    def test_random_von_mises_one_sample_belongs(self):
+        for dim in [2, 9]:
+            sphere = Hypersphere(dim)
+            point = sphere.random_von_mises_fisher()
+            self.assertAllClose(point.shape, (dim + 1, ))
+            result = sphere.belongs(point)
+            self.assertTrue(result)
 
     def test_spherical_to_extrinsic(self):
         """
