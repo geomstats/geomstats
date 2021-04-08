@@ -13,6 +13,7 @@ from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.manifold import AbstractManifoldFactory
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory
 
@@ -83,6 +84,13 @@ class SpecialEuclideanManifoldFactory(AbstractManifoldFactory):
     metrics_creators = {}
     manifolds_creators = {}
 
+# for backward compatibility
+def SpecialEuclidean(*args, **kwargs):
+    if "point_type" not in kwargs:
+        kwargs["point_type"]="matrix"
+
+    return SpecialEuclideanManifoldFactory.create(*args, **kwargs)
+
 
 @SpecialEuclideanManifoldFactory.register(point_type="matrix")
 class _SpecialEuclideanMatrices(LieGroup):
@@ -110,6 +118,18 @@ class _SpecialEuclideanMatrices(LieGroup):
         """Return the identity matrix."""
         return gs.eye(self.n + 1, self.n + 1)
     identity = property(get_identity)
+
+    @classmethod
+    def log(cls, point, base_point=None):
+        return GeneralLinear.log(point, base_point)
+            
+    @classmethod
+    def compose(cls, *args):
+        return GeneralLinear.compose(*args)
+    
+    @classmethod
+    def exp(cls, tangent_vec, base_point=None):
+        return GeneralLinear.exp(tangent_vec=tangent_vec, base_point=base_point)
 
     def belongs(self, point):
         """Check whether point is of the form rotation, translation.
@@ -182,7 +202,7 @@ class _SpecialEuclideanMatrices(LieGroup):
             Point to be inverted.
         """
         n = point.shape[-1] - 1
-        transposed_rot = cls.transpose(point[..., :n, :n])
+        transposed_rot = Matrices.transpose(point[..., :n, :n])
         translation = point[..., :n, -1]
         translation = gs.einsum(
             '...ij,...j->...i', transposed_rot, translation)

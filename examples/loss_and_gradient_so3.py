@@ -4,7 +4,7 @@ import logging
 
 import geomstats.backend as gs
 import geomstats.geometry.lie_group as lie_group
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory
 
 
 SO3 = SpecialOrthogonal(n=3, point_type='vector')

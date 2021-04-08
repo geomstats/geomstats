@@ -8,9 +8,9 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.manifold import AbstractManifoldFactory
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-
 
 ATOL = 1e-5
 
@@ -26,6 +26,12 @@ class SpecialOrthogonalManifoldFactory(AbstractManifoldFactory):
     metrics_creators = {}
     manifolds_creators = {}
 
+# for backward compatibility
+def SpecialOrthogonal(*args, **kwargs):
+    if "point_type" not in kwargs:  # TODO put a default_args in the factory? 
+        kwargs["point_type"]="matrix"
+    
+    return SpecialOrthogonalManifoldFactory.create(*args, **kwargs)
 
 @SpecialOrthogonalManifoldFactory.register(point_type="matrix")
 class _SpecialOrthogonalMatrices(LieGroup):
@@ -43,6 +49,7 @@ class _SpecialOrthogonalMatrices(LieGroup):
             lie_algebra=SkewSymmetricMatrices(n=n))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.dim = int((n * (n - 1)) / 2)
+        self.n = n
 
     def belongs(self, point, atol=ATOL):
         """Check whether point is an orthogonal matrix.
@@ -61,9 +68,27 @@ class _SpecialOrthogonalMatrices(LieGroup):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to SO(n).
         """
-        return self.equal(
-            self.mul(point, self.transpose(point)), self.identity, atol=atol)
+        return Matrices.equal(
+            Matrices.mul(point, Matrices.transpose(point)), self.identity, atol=atol)
 
+    def get_identity(self, point_type='vector'):
+        """Return the identity matrix
+        """
+        return gs.eye(self.n, self.n)
+    identity = property(get_identity)
+        
+    @classmethod
+    def log(cls, point, base_point=None):
+        return GeneralLinear.log(point, base_point)
+            
+    @classmethod
+    def compose(cls, *args):
+        return GeneralLinear.compose(*args)
+    
+    @classmethod
+    def exp(cls, tangent_vec, base_point=None):
+        return GeneralLinear.exp(tangent_vec=tangent_vec, base_point=base_point)
+        
     @classmethod
     def inverse(cls, point):
         """Return the transpose matrix of point.
@@ -78,7 +103,7 @@ class _SpecialOrthogonalMatrices(LieGroup):
         inverse : array-like, shape=[..., n, n]
             Inverse.
         """
-        return cls.transpose(point)
+        return Matrices.transpose(point)
 
     @classmethod
     def projection(cls, point):
@@ -94,7 +119,7 @@ class _SpecialOrthogonalMatrices(LieGroup):
         rot_mat : array-like, shape=[..., n, n]
             Rotation matrix.
         """
-        aux_mat = cls.mul(cls.transpose(point), point)
+        aux_mat = Matrices.mul(Matrices.transpose(point), point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, - 1 / 2)
         rot_mat = cls.mul(point, inv_sqrt_mat)
         return rot_mat

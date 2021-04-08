@@ -334,9 +334,9 @@ vectors, hence: ``point_type='vector'``.
 
 .. code:: ipython3
 
-    from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+    from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory
     
-    so3 = SpecialOrthogonal(n=3, point_type='vector')
+    so3 = SpecialOrthogonalManifoldFactory.create(n=3, point_type='vector')
 
 We verify that the poses belong to the space of 3D rotations.
 
