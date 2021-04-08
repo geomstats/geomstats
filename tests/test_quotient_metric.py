@@ -113,7 +113,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         aligned = self.bundle.align(
             point[0], point[1], tol=1e-10)
         result = self.bundle.is_horizontal(
-            point[1] - aligned, point[1], atol=gs.atol)
+            point[1] - aligned, point[1], atol=1e-5)
         self.assertTrue(result)
 
     def test_inner_product(self):
