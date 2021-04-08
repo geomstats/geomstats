@@ -150,6 +150,28 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
         return tangent_vec
 
+    def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim + 1]
+            Vector.
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the manifold.
+            Optional, default: none.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-6.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        product = self.embedding_metric.inner_product(vector, base_point)
+        return gs.isclose(product, 0., atol=atol)
+
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert from intrinsic to extrinsic coordinates.
 
@@ -371,3 +393,32 @@ class HyperboloidMetric(HyperbolicMetric):
         dist = gs.arccosh(cosh_angle)
         dist *= self.scale
         return dist
+
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        r"""Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector a
+        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        tangent_vec_b)`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim + 1]
+            Tangent vector at base point to be transported.
+        tangent_vec_b : array-like, shape=[..., dim + 1]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the hypersphere.
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[..., dim + 1]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+        """
+        end_point = self.exp(tangent_vec_b, base_point)
+        angle = - self.inner_product(base_point, end_point)
+        coef = self.inner_product(
+            end_point - angle * base_point, tangent_vec_a) / (
+            angle + 1)
+        return tangent_vec_a + coef * (base_point + end_point)

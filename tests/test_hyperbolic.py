@@ -542,3 +542,60 @@ class TestHyperbolic(geomstats.tests.TestCase):
         result = distance_scaled_metric
         expected = scale * distance_default_metric
         self.assertAllClose(result, expected)
+
+    def test_is_tangent(self):
+        base_point = gs.array([4.0, 1., 3.0, math.sqrt(5.)])
+        point = gs.array([2.0, 1.0, 1.0, 1.0])
+
+        log = self.metric.log(point=point, base_point=base_point)
+        result = self.space.is_tangent(log, base_point)
+        self.assertTrue(result)
+
+    @geomstats.tests.np_and_tf_only
+    def test_parallel_transport_vectorization(self):
+        space = self.space
+        n_samples = 4
+
+        def is_isometry(tan_a, trans_a, endpoint):
+            is_tangent = space.is_tangent(trans_a, endpoint)
+            is_equinormal = gs.isclose(
+                gs.linalg.norm(trans_a, axis=-1),
+                gs.linalg.norm(tan_a, axis=-1))
+            return gs.logical_and(is_tangent, is_equinormal)
+
+        base_point = space.random_point(n_samples)
+        tan_vec_a = space.to_tangent(gs.random.rand(n_samples, 4), base_point)
+        tan_vec_b = space.to_tangent(gs.random.rand(n_samples, 4), base_point)
+        end_point = space.metric.exp(tan_vec_b, base_point)
+
+        transported = space.metric.parallel_transport(
+            tan_vec_a, tan_vec_b, base_point)
+        result = is_isometry(tan_vec_a, transported, end_point)
+        self.assertTrue(gs.all(result))
+
+        base_point = base_point[0]
+        tan_vec_a = space.to_tangent(tan_vec_a, base_point)
+        tan_vec_b = space.to_tangent(tan_vec_b, base_point)
+        end_point = space.metric.exp(tan_vec_b, base_point)
+        transported = space.metric.parallel_transport(
+            tan_vec_a, tan_vec_b, base_point)
+        result = is_isometry(tan_vec_a, transported, end_point)
+        self.assertTrue(gs.all(result))
+
+        one_tan_vec_a = tan_vec_a[0]
+        transported = space.metric.parallel_transport(
+            one_tan_vec_a, tan_vec_b, base_point)
+        result = is_isometry(one_tan_vec_a, transported, end_point)
+        self.assertTrue(gs.all(result))
+
+        one_tan_vec_b = tan_vec_b[0]
+        end_point = end_point[0]
+        transported = space.metric.parallel_transport(
+            tan_vec_a, one_tan_vec_b, base_point)
+        result = is_isometry(tan_vec_a, transported, end_point)
+        self.assertTrue(gs.all(result))
+
+        transported = space.metric.parallel_transport(
+            one_tan_vec_a, one_tan_vec_b, base_point)
+        result = is_isometry(one_tan_vec_a, transported, end_point)
+        self.assertTrue(result)
