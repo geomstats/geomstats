@@ -39,14 +39,15 @@ class TestMyManifold(geomstats.tests.TestCase):
 
     In the class TestMyManifold, each test method:
     - needs to start with `test_`
-    - represents a unit-test, i.e. tests one and only one method
+    - represents a unit-test, i.e. it tests one and only one method
     or attribute of the class MyManifold,
-    - ends with the line: `self.assertAllClose(result, expected)`, see below.
+    - ends with the line: `self.assertAllClose(result, expected)`,
+    as in the examples below.
     """
     def setUp(self):
         """setUp method.
 
-        Use the setUp method to define variables that stay constant
+        Use the setUp method to define variables that remain constant
         during all tests. For example, here we test the
         4-dimensional manifold of the class MyManifold.
         """
@@ -91,9 +92,7 @@ class TestMyManifold(geomstats.tests.TestCase):
         """
         point = gs.array([
             [1., 2., 3.], [4., 5., 6.]])
-        print(point.shape)
         result = self.manifold.belongs(point)
-        print(result)
         expected = gs.array([False, False])
         self.assertAllClose(result, expected)
 
@@ -121,8 +120,6 @@ class TestMyManifold(geomstats.tests.TestCase):
         """
         vector = gs.array([
             [1., 2., 3., 4.], [5., 6., 7., 8.]])
-        print(vector.shape)
         result = self.manifold.is_tangent(vector)
-        print(result)
         expected = gs.array([True, True])
         self.assertAllClose(result, expected)
