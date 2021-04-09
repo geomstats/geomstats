@@ -2326,7 +2326,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
             expected = matrix
 
-            self.assertAllClose(result, expected, gs.atol)
+            self.assertAllClose(result, expected)
 
         angle = gs.pi / 9.
         cos_angle = gs.cos(angle)
