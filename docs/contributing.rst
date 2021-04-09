@@ -94,6 +94,12 @@ Contributing: Code Workflow
   the `issue tracker <https://github.com/geomstats/geomstats/issues>`_
   to get some feedbacks from core developers.
 
+
+Contributing: Adding a new geometry or manifold
+-----------------------------------------------
+
+  Get used to the code design of geomstats' classes by having a look at the `template manifold <https://github.com/geomstats/geomstats/tree/master/geomstats/geometry/_my_manifold.py>`__ and `template unit-tests <https://github.com/geomstats/geomstats/tree/master/tests/test__my_manifold.py>`__ implementations.
+
 Contributing: GitHub Workflow
 =============================
 

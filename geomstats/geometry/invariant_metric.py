@@ -1025,7 +1025,8 @@ class BiInvariantMetric(_InvariantMetricVector):
                        Geonger International Publishing, 2020.
                        https://doi.org/10.1007/978-3-030-46040-2.
         """
-        return self.group.log(point, base_point)
+        log = self.group.log(point, base_point)
+        return self.group.to_tangent(log, base_point)
 
     def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
         """Compute inner product at tangent space at identity.
