@@ -5,6 +5,7 @@ import joblib
 
 import geomstats.backend as gs
 from geomstats.geometry.connection import Connection
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 EPSILON = 1e-4
 N_CENTERS = 10
@@ -324,8 +325,7 @@ class RiemannianMetric(Connection):
         out = pool(
             pickable_dist(points[i], points[j]) for i, j in zip(rows, cols))
 
-        pairwise_dist = geomstats.geometry.symmetric_matrices.\
-            SymmetricMatrices.from_vector(gs.array(out))
+        pairwise_dist = SymmetricMatrices.from_vector(gs.array(out))
 
         return pairwise_dist
 
