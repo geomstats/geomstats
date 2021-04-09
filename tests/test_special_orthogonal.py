@@ -108,7 +108,7 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         group = SpecialOrthogonal(n=4)
         mat = gs.random.rand(4, 4)
         point = group.projection(mat)
-        result = group.belongs(point, atol=1e-5)
+        result = group.belongs(point)
         self.assertTrue(result)
 
         mat = gs.random.rand(2, 4, 4)

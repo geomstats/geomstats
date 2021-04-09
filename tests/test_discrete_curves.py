@@ -34,7 +34,6 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         self.n_discretized_curves = 5
         self.times = gs.linspace(0., 1., self.n_discretized_curves)
-        self.atol = 1e-6
         gs.random.seed(1234)
         self.space_curves_in_euclidean_3d = DiscreteCurves(
             ambient_manifold=r3)

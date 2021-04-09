@@ -982,7 +982,8 @@ class TestBackends(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_expm_backward(self):
         mat = gs.array([[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]])
-
+        mat = gs.cast(mat, gs.float64)
+        
         def loss(p):
             return gs.sum((gs.linalg.expm(p) - gs.eye(3)) ** 2)
 
@@ -993,7 +994,7 @@ class TestBackends(geomstats.tests.TestCase):
             return torch.sum((torch.matrix_exp(p) - torch.eye(3)) ** 2)
 
         torch_mat = torch.tensor(
-            [[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]], requires_grad=True)
+            [[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]], dtype=torch.float64, requires_grad=True)
         value = loss_torch(torch_mat)
         value.backward()
         grad = torch_mat.grad

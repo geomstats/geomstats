@@ -96,7 +96,7 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
         dst_ball = self.ball_metric.dist(x_ball, y_ball)
         dst_extr = self.extrinsic_metric.dist(x_extr, y_extr)
 
-        self.assertAllClose(dst_ball, dst_extr, gs.atol)
+        self.assertAllClose(dst_ball, dst_extr)
 
     def test_distance_ball_extrinsic_from_extr(self):
         x_int = gs.array([10, 0.2])
@@ -112,7 +112,7 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
         dst_ball = self.ball_metric.dist(x_ball, y_ball)
         dst_extr = self.extrinsic_metric.dist(x_extr, y_extr)
 
-        self.assertAllClose(dst_ball, dst_extr, gs.atol)
+        self.assertAllClose(dst_ball, dst_extr)
 
     def test_distance_ball_extrinsic_from_extr_4_dim(self):
         x_int = gs.array([10, 0.2, 3, 4])
@@ -135,7 +135,7 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
         dst_ball = ball_metric.dist(x_ball, y_ball)
         dst_extr = extrinsic_metric.dist(x_extr, y_extr)
 
-        self.assertAllClose(dst_ball, dst_extr, gs.atol)
+        self.assertAllClose(dst_ball, dst_extr)
 
     def test_log_exp_ball_extrinsic_from_extr(self):
         """Compare log exp in different parameterizations."""
