@@ -477,7 +477,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
         self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
-        
+
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 

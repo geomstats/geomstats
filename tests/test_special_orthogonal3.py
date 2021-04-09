@@ -2284,8 +2284,8 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
             expected = self.group.regularize(point)
 
-            self.assertAllClose(result, expected) 
-            
+            self.assertAllClose(result, expected)
+
     def test_quaternion_and_rotation_vector_with_angles_close_to_pi(self):
         angle_types = self.angles_close_to_pi
         for angle_type in angle_types:
@@ -2392,6 +2392,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         expected = rot_mats
         self.assertAllClose(result, expected)
+
     def test_compose(self):
         for element_type in self.elements:
             point = self.elements[element_type]

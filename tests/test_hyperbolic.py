@@ -18,7 +18,7 @@ RTOL = 1e-6
 
 
 class TestHyperbolic(geomstats.tests.TestCase):
-    
+
     def setUp(self):
         gs.random.seed(1234)
         self.dimension = 3
@@ -543,4 +543,3 @@ class TestHyperbolic(geomstats.tests.TestCase):
         result = distance_scaled_metric
         expected = scale * distance_default_metric
         self.assertAllClose(result, expected)
-

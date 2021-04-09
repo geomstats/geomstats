@@ -111,13 +111,11 @@ class TestStiefel(geomstats.tests.TestCase):
         point = gs.cast(point, gs.float64)
 
         log = self.metric.log(point=point, base_point=base_point)
-        print('log', log,'\n',point,'\n',base_point)
         is_tangent = self.space.is_tangent(log, base_point)
         self.assertTrue(is_tangent)
 
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
-        print(abs(result-expected))
         self.assertAllClose(result, expected)
 
     def test_exp_and_belongs(self):
