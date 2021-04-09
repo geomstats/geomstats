@@ -26,3 +26,14 @@ def value_and_grad(objective):
             loss = objective(velocity)
         return loss.numpy(), t.gradient(loss, velocity).numpy()
     return objective_with_grad
+
+
+def jacobian(f):
+    def jac(x):
+        if isinstance(x, np.ndarray):
+            x = tf.Variable(x)
+        with tf.GradientTape() as g:
+            g.watch(x)
+            y = f(x)
+        return g.jacobian(y, x)
+    return jac

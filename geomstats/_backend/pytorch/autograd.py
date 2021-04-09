@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from torch.autograd.functional import jacobian as torch_jac
 
 
 def value_and_grad(objective):
@@ -26,3 +27,7 @@ def value_and_grad(objective):
         loss.backward()
         return loss.detach().numpy(), vel.grad.detach().numpy()
     return objective_with_grad
+
+
+def jacobian(f):
+    return lambda x: torch_jac(f, x)

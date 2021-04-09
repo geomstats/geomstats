@@ -354,13 +354,17 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
     def test_jacobian_christoffels(self):
         """Test jacobian of Christoffel symbols.
 
-        Check vectorization.
+        Compare with autograd and check vectorization.
         """
         base_point = self.dirichlet.random_point()
         result = self.metric.jacobian_christoffels(base_point)
         self.assertAllClose(
             (self.dim, self.dim, self.dim, self.dim),
             result.shape)
+
+        expected = gs.autograd.jacobian(
+            self.metric.christoffels)(base_point)
+        self.assertAllClose(expected, result)
 
         base_points = self.dirichlet.random_point(2)
         result = self.metric.jacobian_christoffels(base_points)
