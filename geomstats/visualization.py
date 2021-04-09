@@ -676,8 +676,8 @@ class KendallSphere:
     def rotation(theta, phi):
         """Rotation sending a triangle at pole to location theta, phi."""
         rot_th = gs.array([[gs.cos(theta), -gs.sin(theta), 0.],
-                            [gs.sin(theta), gs.cos(theta), 0.],
-                            [0., 0., 1.]])
+                           [gs.sin(theta), gs.cos(theta), 0.],
+                           [0., 0., 1.]])
         rot_phi = gs.array([[gs.cos(phi), 0., gs.sin(phi)],
                             [0., 1., 0.],
                             [-gs.sin(phi), 0, gs.cos(phi)]])
