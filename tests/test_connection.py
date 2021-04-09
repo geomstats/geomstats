@@ -128,7 +128,7 @@ class TestConnection(geomstats.tests.TestCase):
             vector, point, n_steps=50, step='rk4')
         result = self.hypersphere.spherical_to_extrinsic(result_spherical)
 
-        self.assertAllClose(result, expected, rtol=1e-6)
+        self.assertAllClose(result, expected)
 
     def test_exp_connection_metric_vectorization(self):
         point = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
@@ -142,7 +142,7 @@ class TestConnection(geomstats.tests.TestCase):
             vector, point, n_steps=50, step='rk4')
         result = self.hypersphere.spherical_to_extrinsic(result_spherical)
 
-        self.assertAllClose(result, expected, rtol=1e-6)
+        self.assertAllClose(result, expected)
 
     def test_log_connection_metric(self):
         base_point = gs.array([gs.pi / 3, gs.pi / 4])
