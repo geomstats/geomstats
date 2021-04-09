@@ -36,7 +36,7 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
         kde.fit(training_dataset, labels)
         result = kde.predict(gs.array([[1.1, 0.0]]))
         expected = gs.array([0])
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_predict_one_dimensional_data(self):
         """Test the 'predict' class method."""
@@ -51,7 +51,7 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
         kde.fit(training_dataset, labels)
         result = kde.predict(gs.array([1.1]))
         expected = gs.array([0])
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
     def test_predict_one_dimensional_data_callable_distance(self):
@@ -63,7 +63,7 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
         kde.fit(training_dataset, labels)
         result = kde.predict(gs.array([1.1]))
         expected = gs.array([0])
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
     def test_predict_proba_uniform_kernel_one_dimensional_data(self):
@@ -194,7 +194,7 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
              [0, 2 ** (1 / 2) / 2, 2 ** (1 / 2) / 2]])
         result = kde.predict(target_dataset)
         expected = [0, 0, 0, 1, 1, 1]
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_predict_poincare_ball_distance(self):
         """Test the 'predict' class method using the Poincare ball distance."""
@@ -222,7 +222,7 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
              [- 1 / 2, - 1 / 5]])
         result = kde.predict(target_dataset)
         expected = [0, 0, 0, 1, 1, 1]
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_predict_hyperboloid_distance(self):
         """Test the 'predict' class method using the hyperboloid distance."""
@@ -258,4 +258,4 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
             to_coordinates_system='extrinsic')
         result = kde.predict(target_dataset)
         expected = [0, 0, 0, 1, 1, 1]
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)

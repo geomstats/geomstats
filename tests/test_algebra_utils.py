@@ -28,4 +28,4 @@ class TestAlgebraUtils(geomstats.tests.TestCase):
                 expected = taylor_function['function'](math.sqrt(x))
                 result = utils.taylor_exp_even_func(
                     x, taylor_function, order=4)
-                self.assertAllClose(result, expected, atol=gs.atol)
+                self.assertAllClose(result, expected)

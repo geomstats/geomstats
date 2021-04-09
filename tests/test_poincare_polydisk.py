@@ -21,13 +21,13 @@ class TestPoincarePolydisk(geomstats.tests.TestCase):
         """Test the dimension."""
         expected = self.n_disks * 2
         result = self.space.dim
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_metric_signature(self):
         """Test the signature."""
         expected = (self.n_disks * 2, 0, 0)
         result = self.metric.signature
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
     def test_product_distance_extrinsic_representation(self):
@@ -52,4 +52,4 @@ class TestPoincarePolydisk(geomstats.tests.TestCase):
             duplicate_point_a, duplicate_point_b)
         result = distance_two_disks
         expected = 3 ** 0.5 * distance_single_disk
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)

@@ -133,7 +133,7 @@ class TestVectorization(geomstats.tests.TestCase):
         expected = gs.array([0, 2, 0])
 
         self.assertAllClose(result.shape, expected.shape)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_with_squeeze_dim0_with_kwargs(self):
         vec_a = gs.array([1, 2, 3])
@@ -142,7 +142,7 @@ class TestVectorization(geomstats.tests.TestCase):
         expected = gs.array([0, 2, 0])
 
         self.assertAllClose(result.shape, expected.shape)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_without_squeeze_dim0(self):
         vec_a = gs.array([[1, 2, 3]])
@@ -151,7 +151,7 @@ class TestVectorization(geomstats.tests.TestCase):
         expected = gs.array([[0, 2, 0]])
 
         self.assertAllClose(result.shape, expected.shape)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_without_squeeze_dim0_with_kwargs(self):
         vec_a = gs.array([[1, 2, 3]])
@@ -160,7 +160,7 @@ class TestVectorization(geomstats.tests.TestCase):
         expected = gs.array([[0, 2, 0]])
 
         self.assertAllClose(result.shape, expected.shape)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_vectorization(self):
         vec_a = gs.array([[1, 2, 3], [1, 2, 3]])
@@ -169,7 +169,7 @@ class TestVectorization(geomstats.tests.TestCase):
         expected = gs.array([[0, 2, 0], [0, 2, 0]])
 
         self.assertAllClose(result.shape, expected.shape)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_vectorization_with_kwargs(self):
         vec_a = gs.array([[1, 2, 3], [1, 2, 3]])
@@ -178,7 +178,7 @@ class TestVectorization(geomstats.tests.TestCase):
         expected = gs.array([[0, 2, 0], [0, 2, 0]])
 
         self.assertAllClose(result.shape, expected.shape)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_scalar_with_squeeze_dim1(self):
         vec_a = gs.array([1, 2, 3])
@@ -186,7 +186,7 @@ class TestVectorization(geomstats.tests.TestCase):
         result = self.func_scalar_output(vec_a, vec_b)
         expected = 2
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_scalar_with_squeeze_dim1_with_kwargs(self):
         vec_a = gs.array([1, 2, 3])
@@ -195,7 +195,7 @@ class TestVectorization(geomstats.tests.TestCase):
             tangent_vec_a=vec_a, tangent_vec_b=vec_b)
         expected = 2
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_scalar_without_squeeze_dim1(self):
         vec_a = gs.array([1, 2, 3])
@@ -204,7 +204,7 @@ class TestVectorization(geomstats.tests.TestCase):
         result = self.func_scalar_input_output(vec_a, vec_b, scalar)
         expected = 8
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_scalar_without_squeeze_dim1_with_kwargs(self):
         vec_a = gs.array([1, 2, 3])
@@ -214,7 +214,7 @@ class TestVectorization(geomstats.tests.TestCase):
             tangent_vec_a=vec_a, tangent_vec_b=vec_b, in_scalar=scalar)
         expected = 8
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_scalar_output_vectorization(self):
         vec_a = gs.array([[1, 2, 3], [1, 2, 3]])
@@ -223,7 +223,7 @@ class TestVectorization(geomstats.tests.TestCase):
         expected = gs.array([2, 2])
 
         self.assertAllClose(result.shape, expected.shape)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_scalar_output_vectorization_with_kwargs(self):
         vec_a = gs.array([[1, 2, 3], [1, 2, 3]])
@@ -233,7 +233,7 @@ class TestVectorization(geomstats.tests.TestCase):
         expected = gs.array([2, 2])
 
         self.assertAllClose(result.shape, expected.shape)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_optional_input(self):
         vec_a = gs.array([1, 2, 3])
@@ -241,7 +241,7 @@ class TestVectorization(geomstats.tests.TestCase):
         result = self.func_optional_input(vec_a, vec_b)
         expected = 2
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_optional_input_with_kwargs(self):
         vec_a = gs.array([1, 2, 3])
@@ -250,7 +250,7 @@ class TestVectorization(geomstats.tests.TestCase):
             tangent_vec_a=vec_a, tangent_vec_b=vec_b, in_scalar=3)
         expected = 6
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_optional_input_with_optional_kwargs(self):
         vec_a = gs.array([1, 2, 3])
@@ -259,7 +259,7 @@ class TestVectorization(geomstats.tests.TestCase):
             tangent_vec_a=vec_a, tangent_vec_b=vec_b)
         expected = 2
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_else(self):
         vec_a = gs.array([1, 2, 3])
@@ -269,7 +269,7 @@ class TestVectorization(geomstats.tests.TestCase):
         result = self.func_else(else_a, vec_a, else_b, vec_b)
         expected = 4
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_decorator_else_with_kwargs(self):
         vec_a = gs.array([1, 2, 3])
@@ -281,50 +281,50 @@ class TestVectorization(geomstats.tests.TestCase):
             else_b=else_b, tangent_vec_b=vec_b)
         expected = 4
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_is_scalar_vectorized(self):
         scalar = 1.3
         result = self.is_scalar_vectorized(scalar)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_is_scalar_vectorized_with_kwargs(self):
         scalar = 1.3
         result = self.is_scalar_vectorized(scalar=scalar)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_is_vector_vectorized(self):
         vector = gs.array([1.3, 3.3])
         result = self.is_vector_vectorized(vector)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_is_vector_vectorizedi_with_kwargs(self):
         vector = gs.array([1.3, 3.3])
         result = self.is_vector_vectorized(vector=vector)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_is_matrix_vectorized(self):
         matrix = gs.array([[1.3, 3.3], [1.2, 3.1]])
         result = self.is_matrix_vectorized(matrix)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_is_matrix_vectorized_with_kwargs(self):
         matrix = gs.array([[1.3, 3.3], [1.2, 3.1]])
         result = self.is_matrix_vectorized(matrix=matrix)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_vectorize_args(self):
         point_types = ['scalar']
         args = (1.3,)
         result = geomstats.vectorization.vectorize_args(point_types, args)
         expected = (gs.array([[1.3]]),)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_vectorize_kwargs(self):
         point_types = ['scalar']
@@ -337,60 +337,60 @@ class TestVectorization(geomstats.tests.TestCase):
         result = gs.array([result_dict[key] for key in keys])
         expected = gs.array([expected_dict[key] for key in keys])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_is_point_type_vector(self):
         point = gs.array([1., 2., 3.])
         result = self.is_point_type_vector(
             self.obj, point, point_type='vector')
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_is_point_type_vector_optional(self):
         point = gs.array([1., 2., 3.])
         result = self.is_point_type_vector(
             self.obj, point)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_is_point_type_matrix(self):
         point = gs.array([[1., 2., 3.], [2., 3., 4.]])
         result = self.is_point_type_matrix(
             self.obj, point, point_type='matrix')
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_is_vector_vectorized_with_point_type(self):
         vector = gs.array([1.3, 3.3])
         result = self.is_vector_vectorized_with_point_type(
             self.obj, point=vector, point_type='vector')
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_is_vector_vectorized_with_optional_point_type(self):
         vector = gs.array([1.3, 3.3])
         result = self.is_vector_vectorized_with_point_type(
             self.obj, point=vector)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_is_matrix_vectorized_with_point_type(self):
         matrix = gs.array([[1.3, 3.3], [1.2, 3.1]])
         result = self.is_matrix_vectorized_with_point_type(
             self.obj, matrix, point_type='matrix')
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_output_single_1d_vector(self):
         point = gs.array([1., 2., 3.])
         result = self.output_1d_vector(
             self.obj, point)
         expected = gs.array([5.])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_output_multiple_1d_vector(self):
         point = gs.array([[1., 2., 3.], [2., 3., 4.]])
         result = self.output_1d_vector(
             self.obj, point)
         expected = gs.array([[5.], [5.]])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)

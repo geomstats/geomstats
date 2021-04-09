@@ -112,7 +112,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         rot_mat_plus_delta = rot_mat + delta
         result = self.group.projection(rot_mat_plus_delta)
         expected = rot_mat
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_projection_vectorization(self):
         n_samples = self.n_samples
@@ -127,7 +127,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         result = gs.dot(skew_matrix, rot_vec)
         expected = gs.zeros(3)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_skew_matrix_and_vector(self):
         rot_vec = gs.array([0.8, 0.2, -0.1])
@@ -136,7 +136,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         result = self.group.vector_from_skew_matrix(skew_mat)
         expected = rot_vec
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_skew_matrix_from_vector_vectorization(self):
         n_samples = self.n_samples
@@ -153,14 +153,14 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         point = self.group.random_uniform()
         result = self.group.belongs(point)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         result = self.group.belongs(points)
         expected = gs.array([True] * n_samples)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_regularize(self):
         point = gs.random.rand(6) * 2 * gs.pi
@@ -174,7 +174,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         self.assertAllClose(gs.linalg.norm(point), 0.)
         result = self.group.regularize(point)
         expected = point
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         less_than_pi = ['with_angle_close_0',
                         'with_angle_close_pi_low']
@@ -182,13 +182,13 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             point = self.elements_all[angle_type]
             result = self.group.regularize(point)
             expected = point
-            self.assertAllClose(result, expected, atol=gs.atol)
+            self.assertAllClose(result, expected)
 
         angle_type = 'with_angle_pi'
         point = self.elements_all[angle_type]
         result = self.group.regularize(point)
         expected = point
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         angle_type = 'with_angle_close_pi_high'
         point = self.elements_all[angle_type]
@@ -196,7 +196,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         self.assertTrue(0 <= gs.linalg.norm(result) < gs.pi)
         norm = gs.linalg.norm(point)
         expected = point / norm * (norm - 2 * gs.pi)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         in_pi_2pi = ['with_angle_in_pi_2pi',
                      'with_angle_close_2pi_low']
@@ -210,13 +210,13 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             result = self.group.regularize(point)
 
             expected = - (new_angle / angle) * point_initial
-            self.assertAllClose(result, expected, atol=gs.atol)
+            self.assertAllClose(result, expected)
 
         angle_type = 'with_angle_2pi'
         point = self.elements_all[angle_type]
         result = self.group.regularize(point)
         expected = gs.array([0., 0., 0.])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         angle_type = 'with_angle_close_2pi_high'
         point = self.elements_all[angle_type]
@@ -225,7 +225,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         result = self.group.regularize(point)
         expected = new_angle * point / angle
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_regularize_vectorization(self):
         n_samples = self.n_samples
@@ -243,13 +243,13 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
              expected_2,
              [0., 0., 0.],
              [(gs.pi + 1e-7) / 2., 0., 0.]])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_matrix_from_rotation_vector(self):
         rot_vec_0 = self.group.identity
         result = self.group.matrix_from_rotation_vector(rot_vec_0)
         expected = gs.eye(3)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         rot_vec_1 = gs.array([gs.pi / 3., 0., 0.])
         result = self.group.matrix_from_rotation_vector(rot_vec_1)
@@ -257,7 +257,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             [1., 0., 0.],
             [0., 0.5, -gs.sqrt(3.) / 2],
             [0., gs.sqrt(3.) / 2, 0.5]])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         rot_vec_3 = 1e-11 * gs.array([12., 1., -81.])
         angle = gs.linalg.norm(rot_vec_3)
@@ -271,7 +271,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             + coef_1 * skew_rot_vec_3
             + coef_2 * gs.matmul(skew_rot_vec_3, skew_rot_vec_3))
         result = self.group.matrix_from_rotation_vector(rot_vec_3)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         rot_vec_6 = gs.array([.1, 1.3, -.5])
         angle = gs.linalg.norm(rot_vec_6)
@@ -286,7 +286,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             gs.eye(3)
             + coef_1 * skew_rot_vec_6
             + coef_2 * gs.matmul(skew_rot_vec_6, skew_rot_vec_6))
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_matrix_from_rotation_vector_vectorization(self):
         n_samples = self.n_samples
@@ -305,7 +305,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         result = self.group.rotation_vector_from_matrix(rot_mat)
         expected = .12 * gs.array([1., 0., 0.])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_rotation_vector_and_rotation_matrix(self):
         """
@@ -324,7 +324,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
             expected = self.group.regularize(point)
 
-            self.assertAllClose(result, expected, atol=gs.atol)
+            self.assertAllClose(result, expected)
 
     def test_matrix_from_tait_bryan_angles_extrinsic_xyz(self):
         tait_bryan_angles = gs.array([0., 0., 0.])
@@ -332,7 +332,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             tait_bryan_angles)
         expected = gs.eye(3)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
@@ -345,7 +345,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                              [sin_angle, cos_angle, 0.],
                              [0., 0., 1.]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([0., angle, 0.])
         result = self.group.matrix_from_tait_bryan_angles_extrinsic_xyz(
@@ -354,7 +354,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                              [0., 1., 0.],
                              [- sin_angle, 0., cos_angle]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([0., 0., angle])
         result = self.group.matrix_from_tait_bryan_angles_extrinsic_xyz(
@@ -363,7 +363,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                              [0., cos_angle, - sin_angle],
                              [0., sin_angle, cos_angle]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_matrix_from_tait_bryan_angles_extrinsic_zyx(self):
         tait_bryan_angles = gs.array([0., 0., 0.])
@@ -371,7 +371,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             tait_bryan_angles)
         expected = gs.eye(3)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
@@ -384,7 +384,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                              [0., cos_angle, - sin_angle],
                              [0., sin_angle, cos_angle]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([0., angle, 0.])
         result = self.group.matrix_from_tait_bryan_angles_extrinsic_zyx(
@@ -393,7 +393,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                              [0., 1., 0.],
                              [- sin_angle, 0., cos_angle]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([0., 0., angle])
         result = self.group.matrix_from_tait_bryan_angles_extrinsic_zyx(
@@ -402,7 +402,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                              [sin_angle, cos_angle, 0.],
                              [0., 0., 1.]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         angle_bis = gs.pi / 7.
         cos_angle_bis = gs.cos(angle_bis)
@@ -419,7 +419,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                               sin_angle,
                               cos_angle * cos_angle_bis]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([angle, 0., angle_bis])
         result = self.group.matrix_from_tait_bryan_angles_extrinsic_zyx(
@@ -432,7 +432,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                               sin_angle * cos_angle_bis,
                               cos_angle]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([0., angle, angle_bis])
         result = self.group.matrix_from_tait_bryan_angles_extrinsic_zyx(
@@ -445,7 +445,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                               sin_angle * sin_angle_bis,
                               cos_angle]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_matrix_from_tait_bryan_angles_intrinsic_xyz(self):
         """
@@ -461,7 +461,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
         expected = gs.eye(3)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
@@ -476,7 +476,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                              [sin_angle, cos_angle, 0.],
                              [0., 0., 1.]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([0., angle, 0.])
         result = self.group.matrix_from_tait_bryan_angles(
@@ -487,7 +487,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                              [0., 1., 0.],
                              [- sin_angle, 0., cos_angle]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([0., 0., angle])
         result = self.group.matrix_from_tait_bryan_angles(
@@ -498,7 +498,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                              [0., cos_angle, - sin_angle],
                              [0., sin_angle, cos_angle]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_matrix_from_tait_bryan_angles_intrinsic_zyx(self):
         """
@@ -515,7 +515,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             order=order)
         expected = gs.eye(3)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
@@ -530,7 +530,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                              [0., cos_angle, - sin_angle],
                              [0., sin_angle, cos_angle]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([0., angle, 0.])
         result = self.group.matrix_from_tait_bryan_angles(
@@ -541,7 +541,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                              [0., 1., 0.],
                              [- sin_angle, 0., cos_angle]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([0., 0., angle])
         result = self.group.matrix_from_tait_bryan_angles(
@@ -552,7 +552,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                              [sin_angle, cos_angle, 0.],
                              [0., 0., 1.]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_tait_bryan_angles_from_matrix_extrinsic_xyz(self):
         extrinsic_or_intrinsic = 'extrinsic'
@@ -563,7 +563,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             matrix, extrinsic_or_intrinsic, order)
         expected = gs.array([0., 0., 0.])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
@@ -576,7 +576,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             rot_mat, extrinsic_or_intrinsic, order)
         expected = gs.array([0., 0., angle])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         rot_mat = gs.array([[cos_angle, 0., sin_angle],
                             [0., 1., 0.],
@@ -585,7 +585,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             rot_mat, extrinsic_or_intrinsic, order)
         expected = gs.array([0., angle, 0.])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         rot_mat = gs.array([[cos_angle, - sin_angle, 0.],
                             [sin_angle, cos_angle, 0.],
@@ -594,7 +594,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             rot_mat, extrinsic_or_intrinsic, order)
         expected = gs.array([angle, 0., 0.])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_tait_bryan_angles_from_matrix_extrinsic_zyx(self):
         extrinsic_or_intrinsic = 'extrinsic'
@@ -605,7 +605,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             rot_mat, extrinsic_or_intrinsic, order)
         expected = gs.array([0., 0., 0.])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
@@ -618,7 +618,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             rot_mat, extrinsic_or_intrinsic, order)
         expected = gs.array([angle, 0., 0.])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         rot_mat = gs.array([[cos_angle, 0., sin_angle],
                             [0., 1., 0.],
@@ -627,7 +627,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             rot_mat, extrinsic_or_intrinsic, order)
         expected = gs.array([0., angle, 0.])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         rot_mat = gs.array([[cos_angle, - sin_angle, 0.],
                             [sin_angle, cos_angle, 0.],
@@ -636,7 +636,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             rot_mat, extrinsic_or_intrinsic, order)
         expected = gs.array([0., 0., angle])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         angle_bis = gs.pi / 7.
         cos_angle_bis = gs.cos(angle_bis)
@@ -684,7 +684,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             order=order)
         expected = gs.array([0., angle, angle_bis])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_tait_bryan_angles_from_matrix_intrinsic_xyz(self):
         extrinsic_or_intrinsic = 'intrinsic'
@@ -695,7 +695,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             matrix, extrinsic_or_intrinsic, order)
         expected = gs.array([0., 0., 0.])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
@@ -708,7 +708,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             rot_mat, extrinsic_or_intrinsic, order)
         expected = gs.array([0., 0., angle])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         rot_mat = gs.array([[cos_angle, 0., sin_angle],
                             [0., 1., 0.],
@@ -717,7 +717,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             rot_mat, extrinsic_or_intrinsic, order)
         expected = gs.array([0., angle, 0.])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         rot_mat = gs.array([[cos_angle, - sin_angle, 0.],
                             [sin_angle, cos_angle, 0.],
@@ -726,7 +726,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             rot_mat, extrinsic_or_intrinsic, order)
         expected = gs.array([angle, 0., 0.])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_tait_bryan_angles_from_matrix_intrinsic_zyx(self):
         extrinsic_or_intrinsic = 'intrinsic'
@@ -737,7 +737,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             rot_mat, extrinsic_or_intrinsic, order)
         expected = gs.array([0., 0., 0.])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
@@ -750,7 +750,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             rot_mat, extrinsic_or_intrinsic, order)
         expected = gs.array([angle, 0., 0.])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         rot_mat = gs.array([[cos_angle, 0., sin_angle],
                             [0., 1., 0.],
@@ -759,7 +759,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             rot_mat, extrinsic_or_intrinsic, order)
         expected = gs.array([0., angle, 0.])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         rot_mat = gs.array([[cos_angle, - sin_angle, 0.],
                             [sin_angle, cos_angle, 0.],
@@ -768,7 +768,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             rot_mat, extrinsic_or_intrinsic, order)
         expected = gs.array([0., 0., angle])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_matrix_and_tait_bryan_angles_extrinsic_xyz(self):
         """
@@ -2249,7 +2249,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         expected = self.group.regularize(rot_vecs)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_rotation_vector_and_rotation_matrix_with_angles_close_to_pi(self):
         """
@@ -2350,7 +2350,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             quaternion)
 
         expected = rot_mat
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         point = gs.pi / (6 * gs.sqrt(3.)) * gs.array([0., 2., 1.])
         rot_mat = self.group.matrix_from_rotation_vector(point)
@@ -2361,7 +2361,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             quaternion)
 
         expected = rot_mat
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_quaternion_and_matrix_with_angles_close_to_pi(self):
         angle_types = self.angles_close_to_pi
@@ -2391,7 +2391,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         result = self.group.matrix_from_quaternion(quaternions)
 
         expected = rot_mats
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
     def test_compose(self):
         for element_type in self.elements:
             point = self.elements[element_type]
@@ -2400,7 +2400,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             result = self.group.compose(point, self.group.identity)
             expected = self.group.regularize(point)
             if element_type not in self.angles_close_to_pi:
-                self.assertAllClose(result, expected, atol=gs.atol)
+                self.assertAllClose(result, expected)
 
             else:
                 inv_expected = - expected
@@ -2414,7 +2414,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                 expected = self.group.regularize(point)
 
                 if element_type not in self.angles_close_to_pi:
-                    self.assertAllClose(result, expected, atol=gs.atol)
+                    self.assertAllClose(result, expected)
                 else:
                     inv_expected = - expected
                     self.assertTrue(
@@ -2428,13 +2428,13 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             # Expect the self.group identity
             result = self.group.compose(point, inv_point)
             expected = self.group.identity
-            self.assertAllClose(result, expected, atol=gs.atol)
+            self.assertAllClose(result, expected)
 
             # Compose transformation by its inverse on the left
             # Expect the self.group identity
             result = self.group.compose(inv_point, point)
             expected = self.group.identity
-            self.assertAllClose(result, expected, atol=gs.atol)
+            self.assertAllClose(result, expected)
 
     def test_compose_vectorization(self):
         n_samples = self.n_samples
@@ -2478,7 +2478,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             else:
                 expected = angle ** 2 / (4 * gs.sin(angle / 2) ** 2)
 
-            self.assertAllClose(result, expected, atol=gs.atol)
+            self.assertAllClose(result, expected)
 
     def test_left_jacobian_vectorization(self):
         n_samples = self.n_samples
@@ -2505,7 +2505,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         result = metric.exp(base_point=rot_vec_base_point,
                             tangent_vec=rot_vec_1)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         # 2: General case - computed manually
         rot_vec_2 = gs.pi / 4 * gs.array([1., 0., 0.])
@@ -2522,7 +2522,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         result = metric.exp(
             base_point=rot_vec_base_point, tangent_vec=rot_vec_2)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_exp_vectorization(self):
         n_samples = self.n_samples
@@ -2565,7 +2565,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         expected = gs.array([0., 0., 0.])
         result = metric.log(base_point=rot_vec_base_point,
                             point=rot_vec_1)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         # General case: this is the inverse test of test 1 for Riemannian exp
         expected = gs.pi / 4 * gs.array([1., 0., 0.])
@@ -2583,7 +2583,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         result = metric.log(
             base_point=rot_vec_base_point, point=rot_vec_2)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_log_vectorization(self):
         n_samples = self.n_samples
@@ -2649,7 +2649,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     tangent_vec=tangent_vec, metric=metric)
                 expected = reg_vec
 
-                self.assertAllClose(result, expected, atol=gs.atol)
+                self.assertAllClose(result, expected)
 
     def test_exp_then_log_from_identity_with_angles_close_to_pi(self):
         """
@@ -2689,7 +2689,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                 result = helper.log_then_exp_from_identity(metric, point)
                 expected = self.group.regularize(point)
 
-                self.assertAllClose(result, expected, atol=gs.atol)
+                self.assertAllClose(result, expected)
 
     def test_log_then_exp_from_identity_with_angles_close_to_pi(self):
         """
@@ -2789,7 +2789,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     inv_expected = - expected
 
                     self.assertTrue(
-                        gs.allclose(result, expected, atol=gs.atol)
+                        gs.allclose(result, expected)
                         or gs.allclose(result, inv_expected, atol=1e-5))
 
     @geomstats.tests.np_and_pytorch_only
@@ -2842,7 +2842,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
     #
     #         expected = gs.linalg.expm(tangent_sample)
     #
-    #         self.assertAllClose(result, expected, atol=gs.atol)
+    #         self.assertAllClose(result, expected)
 
     def test_group_exp_from_identity_vectorization(self):
         n_samples = self.n_samples
@@ -2925,7 +2925,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             result = helper.group_exp_then_log_from_identity(
                 group=self.group, tangent_vec=tangent_vec)
             expected = self.group.regularize(tangent_vec)
-            self.assertAllClose(result, expected, atol=gs.atol)
+            self.assertAllClose(result, expected)
 
     def test_group_exp_then_log_from_identity_with_angles_close_to_pi(self):
         """
@@ -2959,7 +2959,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                 group=self.group,
                 point=point)
             expected = self.group.regularize(point)
-            self.assertAllClose(result, expected, atol=gs.atol)
+            self.assertAllClose(result, expected)
 
     def test_group_log_then_exp_from_identity_with_angles_close_to_pi(self):
         """
@@ -3200,7 +3200,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         points = geodesic(t)
         result = gs.all(self.group.belongs(points))
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_geodesic_subsample(self):
         """Test geodesic."""
@@ -3229,7 +3229,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             first_tan, second_tan, base_point)
         expected = gs.zeros(3)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         first_tan = gs.array([0., 0., 1.])
         second_tan = gs.array([0., 1., 0.])
@@ -3238,7 +3238,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             first_tan, second_tan, base_point)
         expected = gs.array([-1., 0., 0.])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_lie_bracket_vectorization(self):
         base_point = gs.array([self.group.identity, self.group.identity])
@@ -3249,7 +3249,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             first_tan, second_tan, base_point)
         expected = gs.array([gs.zeros(3), gs.array([-1., 0., 0.])])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     # def test_lie_bracket_at_non_identity(self):
     #     base_point = gs.array([
@@ -3281,4 +3281,4 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
     #             [0., 0., -1.],
     #             [0., 1., 0.]]))
     #
-    #     self.assertAllClose(result, expected, atol=gs.atol)
+    #     self.assertAllClose(result, expected)

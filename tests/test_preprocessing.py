@@ -30,7 +30,7 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         transformer.fit(X=points)
         result = transformer.transform(points)
         expected = gs.zeros_like(points)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_inverse_transform_no_fit_sphere(self):
         point = self.sphere.random_uniform(3)
@@ -40,7 +40,7 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         X = transformer.transform(point, base_point=base_point)
         result = transformer.inverse_transform(X, base_point=base_point)
         expected = point
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     @geomstats.tests.np_and_tf_only
     def test_estimate_transform_so_group(self):
@@ -51,7 +51,7 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         transformer.fit(X=points)
         result = transformer.transform(points)
         expected = gs.zeros((2, 6))
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_estimate_transform_spd(self):
         point = spd.SPDMatrices(3).random_point()
@@ -68,7 +68,7 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         transformer = ToTangentSpace(geometry=self.hyperbolic.metric)
         result = transformer.fit_transform(X=points)
         expected = gs.zeros_like(points)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_inverse_transform_hyperbolic(self):
         points = self.hyperbolic.random_point(10)
@@ -76,7 +76,7 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         X = transformer.fit_transform(X=points)
         result = transformer.inverse_transform(X)
         expected = points
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_inverse_transform_spd(self):
         point = spd.SPDMatrices(3).random_point(10)
@@ -102,4 +102,4 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         result = transformer.inverse_transform(
             X, base_point=self.so_matrix.identity)
         expected = point
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)

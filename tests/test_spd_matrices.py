@@ -38,18 +38,18 @@ class TestSPDMatrices(geomstats.tests.TestCase):
             [[3., -1.], [-1., 3.]])
         result = SPDMatrices(2).belongs(mats)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         mats = gs.array(
             [[-1., -1.], [-1., 3.]])
         result = SPDMatrices(2).belongs(mats)
         expected = False
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         mats = gs.eye(3)
         result = SPDMatrices(2).belongs(mats)
         expected = False
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_belongs_vectorization(self):
         """Test of belongs method."""
@@ -59,21 +59,21 @@ class TestSPDMatrices(geomstats.tests.TestCase):
             [[1., 0.], [1., 1.]]])
         result = SPDMatrices(2).belongs(mats)
         expected = gs.array([True, False, False])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_random_point_and_belongs(self):
         """Test of random_point and belongs methods."""
         point = self.space.random_point()
         result = self.space.belongs(point)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_random_point_and_belongs_vectorization(self):
         """Test of random_point and belongs methods."""
         points = self.space.random_point(4)
         result = self.space.belongs(points)
         expected = gs.array([True] * 4)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(
             self):
@@ -119,7 +119,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         e = math.exp(1)
         v = gs.array([[[c, s, 0.], [s, c, 0.], [0., 0., e]]])
         result = self.space.logm(v)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_differential_power(self):
         """Test of differential_power method."""
@@ -137,7 +137,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         expected = gs.array([[1., 1 / 3, 1 / 3],
                              [1 / 3, .125, .125],
                              [1 / 3, .125, .125]])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_inverse_differential_power(self):
         """Test of inverse_differential_power method."""
@@ -155,7 +155,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         expected = gs.array([[2., 1., 1.],
                              [1., .5, .5],
                              [1., .5, .5]])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_differential_log(self):
         """Test of differential_log method."""
@@ -171,7 +171,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
                              [1., 1., x],
                              [x, x, 1]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_inverse_differential_log(self):
         """Test of inverse_differential_log method."""
@@ -186,7 +186,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         expected = gs.array([[1., 1., 3.],
                              [1., 1., 3.],
                              [3., 3., 4.]])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_differential_exp(self):
         """Test of differential_exp method."""
@@ -203,7 +203,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
                              [x, x, y],
                              [y, y, 1 / x]])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_inverse_differential_exp(self):
         """Test of inverse_differential_exp method."""
@@ -219,7 +219,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         expected = gs.array([[1., 1., 1.],
                              [1., 1., 1.],
                              [1., 1., 1.]])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_bureswasserstein_inner_product(self):
         """Test of SPDMetricBuresWasserstein.inner_product method."""
@@ -236,7 +236,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         expected = gs.array(4.)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_power_affine_inner_product(self):
         """Test of SPDMetricAffine.inner_product method."""
@@ -250,7 +250,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
         expected = 713 / 144
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_power_euclidean_inner_product(self):
         """Test of SPDMetricEuclidean.inner_product method."""
@@ -263,14 +263,14 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         metric = SPDMetricEuclidean(3, power_euclidean=.5)
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
         expected = 3472 / 576
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         result = self.metric_euclidean.inner_product(
             tangent_vec, tangent_vec, base_point)
         expected = MatricesMetric(3, 3).inner_product(
             tangent_vec, tangent_vec)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_euclidean_exp_domain(self):
@@ -285,7 +285,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         result = metric.exp_domain(tangent_vec, base_point)
         expected = gs.array([-3, 1])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_log_euclidean_inner_product(self):
         """Test of SPDMetricLogEuclidean.inner_product method."""
@@ -300,7 +300,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         x = 2 * gs.log(2.)
         expected = 5. + 4. * x ** 2
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_log_and_exp_affine_invariant(self):
         """Test of SPDMetricAffine.log and exp methods with power=1."""
@@ -316,7 +316,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         result = metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_log_and_exp_power_affine(self):
         """Test of SPDMetricAffine.log and exp methods with power!=1."""
@@ -330,7 +330,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         log = metric.log(point, base_point)
         result = metric.exp(log, base_point)
         expected = point
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_log_and_exp_bureswasserstein(self):
         """Test of SPDMetricBuresWasserstein.log and exp methods."""
@@ -346,7 +346,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         result = metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_log_and_exp_logeuclidean(self):
         """Test of SPDMetricLogEuclidean.log and exp methods."""
@@ -362,7 +362,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         result = metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_exp_and_belongs(self):
         """Test of SPDMetricAffine.exp with power=1 and belongs methods."""
@@ -375,7 +375,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         result = self.space.belongs(exps)
         expected = gs.array([True] * n_samples)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_exp_vectorization(self):
         """Test of SPDMetricAffine.exp with power=1 and vectorization."""
@@ -442,7 +442,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         n_points = 10
         t = gs.linspace(start=0., stop=1., num=n_points)
         points = geodesic(t)
-        result = self.space.belongs(points, atol=gs.atol)
+        result = self.space.belongs(points)
         self.assertTrue(gs.all(result))
 
     def test_squared_dist_is_symmetric(self):
@@ -459,14 +459,14 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
-        self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=gs.atol)
+        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
         point_2 = self.space.random_point(n_samples=n_samples)
         point_2 = gs.cast(point_2, gs.float64)
 
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
-        self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=gs.atol)
+        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
         point_1 = self.space.random_point(n_samples=n_samples)
         point_2 = self.space.random_point(n_samples=1)
@@ -476,12 +476,12 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
-        self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=gs.atol)
+        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
         
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
-        self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=gs.atol)
+        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
     def test_squared_dist_vectorization(self):
         """Test of SPDMetricAffine.squared_dist (power=1) and vectorization."""
@@ -534,7 +534,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         transported = metric.parallel_transport(tan_a, tan_b, point)
         result = metric.norm(transported, end_point)
 
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_squared_dist_bureswasserstein(self):
         """Test of SPDMetricBuresWasserstein.squared_dist method."""
@@ -551,7 +551,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         log = metric.log(point=point_b, base_point=point_a)
         expected = metric.squared_norm(vector=log, base_point=point_a)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_squared_dist_bureswasserstein_vectorization(self):
         """Test of SPDMetricBuresWasserstein.squared_dist method."""

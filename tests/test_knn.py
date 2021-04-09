@@ -30,7 +30,7 @@ class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
         neigh.fit(training_dataset, labels)
         result = neigh.predict([[1.1]])
         expected = gs.array([0])
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
     def test_predict_proba(self):

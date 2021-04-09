@@ -32,7 +32,7 @@ class TestPrepareGraphData(geomstats.tests.TestCase):
         result = self.embedding.log_sigmoid(point)
 
         expected = gs.array([-0.644397, -0.554355])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_grad_log_sigmoid(self):
         """Test grad_log_sigmoid."""
@@ -40,7 +40,7 @@ class TestPrepareGraphData(geomstats.tests.TestCase):
         result = self.embedding.grad_log_sigmoid(point)
 
         expected = gs.array([0.47502081, 0.42555748])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_loss(self):
         """Test loss function."""

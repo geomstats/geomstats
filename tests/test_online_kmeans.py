@@ -46,4 +46,4 @@ class TestOnlineKmeans(geomstats.tests.TestCase):
 
         result = prediction
         expected = clustering.labels_[0]
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)

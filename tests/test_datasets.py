@@ -74,7 +74,7 @@ class TestDatasets(geomstats.tests.TestCase):
         result = [len(paths), len(paths[0])]
         expected = [len(graph.edges) * n_walks_per_node, walk_length + 1]
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
     def test_random_walks_karate_graph(self):
@@ -90,7 +90,7 @@ class TestDatasets(geomstats.tests.TestCase):
         result = [len(paths), len(paths[0])]
         expected = [len(graph.edges) * n_walks_per_node, walk_length + 1]
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_load_connectomes(self):
         """Test that the connectomes belong to SPD."""
@@ -98,7 +98,7 @@ class TestDatasets(geomstats.tests.TestCase):
         data, _, _ = data_utils.load_connectomes(as_vectors=True)
         result = data.shape
         expected = (86, 27 * 14)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         data, _, labels = data_utils.load_connectomes()
         result = spd.belongs(data)
@@ -117,7 +117,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
         result = len(distrib_type)
         expected = beta_param.shape[0]
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_load_emg(self):
         """Test that data have the correct column names."""
@@ -147,7 +147,7 @@ class TestDatasets(geomstats.tests.TestCase):
         k_landmarks = 5
         dim = 3
         expected = (n_monkeys * n_eyes_per_monkey, k_landmarks, dim)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         landmarks_space = Landmarks(
             ambient_manifold=Euclidean(dim=dim), k_landmarks=k_landmarks
@@ -170,7 +170,7 @@ class TestDatasets(geomstats.tests.TestCase):
         k_landmarks = 22
         dim = 3
         expected = (n_hands, k_landmarks, dim)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         landmarks_space = Landmarks(
             ambient_manifold=Euclidean(dim=3), k_landmarks=k_landmarks

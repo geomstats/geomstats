@@ -87,7 +87,7 @@ class TestStiefel(geomstats.tests.TestCase):
         result = self.space.belongs(point, tolerance=1e-4)
         expected = True
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_random_uniform_shape(self):
         result = self.space.random_uniform()
@@ -126,7 +126,7 @@ class TestStiefel(geomstats.tests.TestCase):
             base_point=base_point)
         result = self.space.belongs(exp)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log(self):
@@ -135,7 +135,7 @@ class TestStiefel(geomstats.tests.TestCase):
         tangent_vec = self.space.to_tangent(vector, base_point) / 4
         point = self.metric.exp(tangent_vec, base_point)
         result = self.metric.log(point, base_point, max_iter=32, tol=1e-10)
-        self.assertAllClose(result, tangent_vec, atol=gs.atol)
+        self.assertAllClose(result, tangent_vec)
 
     def test_exp_vectorization_shape(self):
         n_samples = self.n_samples
@@ -194,7 +194,7 @@ class TestStiefel(geomstats.tests.TestCase):
         base_point, point = self.space.random_uniform(2)
         log = self.metric.log(point, base_point)
         result = self.metric.exp(log, base_point)
-        self.assertAllClose(result, point, atol=gs.atol)
+        self.assertAllClose(result, point)
 
     @geomstats.tests.np_only
     def test_retraction_and_lifting(self):
@@ -215,14 +215,14 @@ class TestStiefel(geomstats.tests.TestCase):
             tangent_vec=lifted, base_point=base_point)
         expected = point
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         retract = self.metric.retraction(
             tangent_vec=tangent_vec, base_point=base_point)
         result = self.metric.lifting(point=retract, base_point=base_point)
         expected = tangent_vec
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_lifting_vectorization_shape(self):
@@ -293,7 +293,7 @@ class TestStiefel(geomstats.tests.TestCase):
         point2 = gs.array([[1., -1.], [1., 1.], [0., 0.]]) / gs.sqrt(2.)
         result = self.space.to_grassmannian(point2)
         expected = p_xy
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_to_grassmanniann_vectorized(self):
         inf_rots = gs.array([gs.pi * r_z / n for n in [2, 3, 4]])
@@ -302,7 +302,7 @@ class TestStiefel(geomstats.tests.TestCase):
 
         result = Stiefel.to_grassmannian(points)
         expected = gs.array([p_xy, p_xy, p_xy])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_to_tangent_is_tangent(self):
         point = self.space.random_uniform()

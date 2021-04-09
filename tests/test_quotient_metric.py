@@ -125,7 +125,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
             tangent_vecs[0], tangent_vecs[1], point=mat)
         expected = self.base_metric.inner_product(
             tangent_vecs[0], tangent_vecs[1], point)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_exp(self):
         mat = self.bundle.total_space.random_point()
@@ -135,7 +135,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
 
         result = self.quotient_metric.exp(tangent_vec, point)
         expected = self.base_metric.exp(tangent_vec, point)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_log(self):
         mats = self.bundle.total_space.random_point(2)

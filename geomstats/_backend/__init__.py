@@ -83,6 +83,7 @@ BACKEND_ATTRIBUTES = {
         'power',
         'repeat',
         'reshape',
+        'rtol',
         'searchsorted',
         'set_diag',
         'shape',

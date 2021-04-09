@@ -71,7 +71,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
             vector=log_ab, base_point=self.curve_a)
         expected = self.l2_metric_s2.dist(self.curve_a, self.curve_b) ** 2
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_l2_metric_log_and_exp(self):
         """Test that exp and log are inverse maps."""
@@ -81,7 +81,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
                                        base_point=self.curve_a)
         expected = self.curve_b
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_l2_metric_inner_product_vectorization(self):
         """Test the vectorization inner_product."""
@@ -152,7 +152,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
                 end_point=self.curve_b[k, :])
             expected.append(geod(self.times))
         expected = gs.stack(expected, axis=1)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_srv_metric_pointwise_inner_product(self):
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
@@ -191,7 +191,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
             srv_curves, starting_points)
         expected = curves
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_srv_metric_exp_and_log(self):
         """Test that exp and log are inverse maps and vectorized.
@@ -237,7 +237,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = self.srv_metric_r3.square_root_velocity_inverse(
             geod_srv, starting_points)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_srv_metric_dist_and_geod(self):
         """Test that the length of the geodesic gives the distance.
@@ -257,4 +257,4 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         result = gs.sum(norms, 0) / self.n_discretized_curves
 
         expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)[0]
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)

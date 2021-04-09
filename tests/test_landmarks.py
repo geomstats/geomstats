@@ -50,13 +50,13 @@ class TestLandmarks(geomstats.tests.TestCase):
     def test_belongs(self):
         result = self.space_landmarks_in_sphere_2d.belongs(self.landmarks_a)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_belongs_vectorization(self):
         landmark_sets = gs.array([self.landmarks_a, self.landmarks_b])
         result = self.space_landmarks_in_sphere_2d.belongs(landmark_sets)
         expected = gs.array([True, True])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_l2_metric_log_and_squared_norm_and_dist(self):
         """Test that squared norm of logarithm is squared dist."""
@@ -68,7 +68,7 @@ class TestLandmarks(geomstats.tests.TestCase):
         expected = self.l2_metric_s2.dist(
             self.landmarks_a, self.landmarks_b) ** 2
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_l2_metric_log_and_exp(self):
         """Test that exp and log are inverse maps."""
@@ -78,7 +78,7 @@ class TestLandmarks(geomstats.tests.TestCase):
             tangent_vec=tangent_vec, base_point=self.landmarks_a)
         expected = self.landmarks_b
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_l2_metric_inner_product_vectorization(self):
@@ -163,4 +163,4 @@ class TestLandmarks(geomstats.tests.TestCase):
             expected.append(geod(self.times))
         expected = gs.stack(expected, axis=1)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)

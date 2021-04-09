@@ -17,7 +17,7 @@ class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
             result.append(gs.all(skew.belongs(skew.basis)))
         result = gs.stack(result)
         expected = gs.array([True] * len(self.n_seq))
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_basis_has_the_right_dimension(self):
         for n in self.n_seq:
@@ -34,14 +34,14 @@ class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
             result = skew.baker_campbell_hausdorff(
                 first_base, second_base, order=1
             )
-            self.assertAllClose(expected, result, atol=gs.atol)
+            self.assertAllClose(expected, result)
 
             lb_first_second = skew.bracket(first_base, second_base)
             expected = expected + 0.5 * lb_first_second
             result = skew.baker_campbell_hausdorff(
                 first_base, second_base, order=2
             )
-            self.assertAllClose(expected, result, atol=gs.atol)
+            self.assertAllClose(expected, result)
 
             expected = (
                 expected
@@ -51,14 +51,14 @@ class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
             result = skew.baker_campbell_hausdorff(
                 first_base, second_base, order=3
             )
-            self.assertAllClose(expected, result, atol=gs.atol)
+            self.assertAllClose(expected, result)
 
             expected = expected - 1.0 / 24.0 * skew.bracket(
                 second_base, skew.bracket(first_base, lb_first_second))
             result = skew.baker_campbell_hausdorff(
                 first_base, second_base, order=4
             )
-            self.assertAllClose(expected, result, atol=gs.atol)
+            self.assertAllClose(expected, result)
 
     def test_basis_representation_is_correctly_vectorized(self):
         for n in self.n_seq:

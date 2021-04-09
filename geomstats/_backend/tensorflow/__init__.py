@@ -89,6 +89,7 @@ def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 atol = 1e-6
+rtol = 1e-6
 
 def to_numpy(x):
     return x.numpy()
@@ -616,7 +617,7 @@ def dot(x, y):
     return tf.tensordot(x, y, axes=1)
 
 
-def isclose(x, y, rtol=1e-05, atol=1e-08):
+def isclose(x, y, rtol=1e-05, atol=atol):
     if not tf.is_tensor(x):
         x = tf.constant(x)
     if not tf.is_tensor(y):

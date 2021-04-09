@@ -29,7 +29,7 @@ class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):
         result = ((clustering_labels == gs.array([1, 1, 1, 0, 0, 0])).all() or
                   (clustering_labels == gs.array([0, 0, 0, 1, 1, 1])).all())
         expected = True
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
     def test_fit_euclidean_distance_callable(self):
@@ -47,7 +47,7 @@ class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):
         result = ((clustering_labels == gs.array([1, 1, 1, 0, 0, 0])).all() or
                   (clustering_labels == gs.array([0, 0, 0, 1, 1, 1])).all())
         expected = True
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
     def test_fit_hypersphere_distance(self):
@@ -71,4 +71,4 @@ class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):
         result = ((clustering_labels == gs.array([1, 1, 1, 0, 0, 0])).all() or
                   (clustering_labels == gs.array([0, 0, 0, 1, 1, 1])).all())
         expected = True
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)

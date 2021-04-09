@@ -29,7 +29,7 @@ class TestKalmanFilter(geomstats.tests.TestCase):
 
         expected = gs.array([1., 2.])
         result = self.linear_model.propagate(initial_state, increment)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_LocalizationLinear_propagation_jacobian(self):
         time_step = 0.5
@@ -38,25 +38,25 @@ class TestKalmanFilter(geomstats.tests.TestCase):
         expected = gs.array([[1., 0.5],
                              [0., 1.]])
         result = self.linear_model.propagation_jacobian(None, increment)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_LocalizationLinear_observation_model(self):
         initial_state = gs.array([0.5, 1.])
         expected = gs.array([0.5])
         result = self.linear_model.observation_model(initial_state)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_LocalizationLinear_observation_jacobian(self):
         expected = gs.array([[1., 0.]])
         result = self.linear_model.observation_jacobian(None, None)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_LocalizationLinear_innovation(self):
         initial_state = gs.array([0.5, 1.])
         measurement = gs.array([0.7])
         expected = gs.array([0.2])
         result = self.linear_model.innovation(initial_state, measurement)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_Localization_preprocess_input(self):
         time_step = gs.array([0.5])
@@ -78,7 +78,7 @@ class TestKalmanFilter(geomstats.tests.TestCase):
                              [gs.sin(angle), gs.cos(angle)]])
         expected = rotation
         result = self.nonlinear_model.rotation_matrix(angle)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_Localization_adjoint_map(self):
         initial_state = gs.array([0.5, 1., 2.])
@@ -90,7 +90,7 @@ class TestKalmanFilter(geomstats.tests.TestCase):
         last_lines = gs.hstack((gs.array([[2.], [-1.]]), rotation))
         expected = gs.vstack((first_line, last_lines))
         result = self.nonlinear_model.adjoint_map(initial_state)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_Localization_propagate(self):
         initial_state = gs.array([0.5, 1., 2.])
@@ -107,7 +107,7 @@ class TestKalmanFilter(geomstats.tests.TestCase):
             rotation, linear_vel)
         expected = gs.concatenate((gs.array([angle]), next_position), axis=0)
         result = self.nonlinear_model.propagate(initial_state, increment)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_Localization_propagation_jacobian(self):
         time_step = gs.array([0.5])
@@ -120,19 +120,19 @@ class TestKalmanFilter(geomstats.tests.TestCase):
         last_lines = gs.hstack((gs.array([[-0.25], [0.5]]), gs.eye(2)))
         expected = gs.vstack((first_line, last_lines))
         result = self.nonlinear_model.propagation_jacobian(None, increment)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_Localization_observation_model(self):
         initial_state = gs.array([0.5, 1., 2.])
         expected = gs.array([1., 2.])
         result = self.nonlinear_model.observation_model(initial_state)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_Localization_observation_jacobian(self):
         expected = gs.array([[0., 1., 0.],
                              [0., 0., 1.]])
         result = self.nonlinear_model.observation_jacobian(None, None)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_Localization_innovation(self):
         initial_state = gs.array([0.5, 1., 2.])
@@ -143,7 +143,7 @@ class TestKalmanFilter(geomstats.tests.TestCase):
                              [gs.sin(angle), gs.cos(angle)]])
         expected = gs.matmul(gs.transpose(rotation), gs.array([-0.3, 0.1]))
         result = self.nonlinear_model.innovation(initial_state, measurement)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_initialize_covariances(self):
         self.kalman.initialize_covariances(
@@ -183,7 +183,7 @@ class TestKalmanFilter(geomstats.tests.TestCase):
         expected = gs.vstack(
             (1. / innovation_cov, gs.zeros_like(innovation_cov)))
         result = self.kalman.compute_gain(None)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_update(self):
         self.kalman.state = gs.zeros(2)

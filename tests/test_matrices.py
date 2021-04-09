@@ -30,11 +30,11 @@ class TestMatrices(geomstats.tests.TestCase):
             [0., 0., 1.]])
         result = self.space.mul([a, b], [b, a])
         expected = gs.array([c, d])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         result = self.space.mul(a, [a, b])
         expected = gs.array([gs.eye(3, 3, 2), c])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_bracket(self):
@@ -52,11 +52,11 @@ class TestMatrices(geomstats.tests.TestCase):
             [0., 0., 0.]])
         result = self.space.bracket([x, y], [y, z])
         expected = gs.array([z, x])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         result = self.space.bracket(x, [x, y, z])
         expected = gs.array([gs.zeros((3, 3)), z, -y])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_transpose(self):
@@ -71,19 +71,19 @@ class TestMatrices(geomstats.tests.TestCase):
         not_squared = gs.array([[1., 2.], [2., 1.], [3., 1.]])
         result = self.space.is_symmetric(not_squared)
         expected = False
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         sym_mat = gs.array([[1., 2.], [2., 1.]])
         result = self.space.is_symmetric(sym_mat)
         expected = gs.array(True)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         not_a_sym_mat = gs.array([[1., 0.6, -3.],
                                   [6., -7., 0.],
                                   [0., 7., 8.]])
         result = self.space.is_symmetric(not_a_sym_mat)
         expected = gs.array(False)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_is_skew_symmetric(self):
@@ -91,14 +91,14 @@ class TestMatrices(geomstats.tests.TestCase):
                             [2., 0]])
         result = self.space.is_skew_symmetric(skew_mat)
         expected = gs.array(True)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         not_a_sym_mat = gs.array([[1., 0.6, -3.],
                                   [6., -7., 0.],
                                   [0., 7., 8.]])
         result = self.space.is_skew_symmetric(not_a_sym_mat)
         expected = gs.array(False)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_is_symmetric_vectorization(self):
@@ -111,7 +111,7 @@ class TestMatrices(geomstats.tests.TestCase):
              [3., 4.]]])
         result = self.space.is_symmetric(points)
         expected = [True, True, False]
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
     def test_make_symmetric(self):
@@ -119,7 +119,7 @@ class TestMatrices(geomstats.tests.TestCase):
                             [2., 1.]])
         result = self.space.to_symmetric(sym_mat)
         expected = sym_mat
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         mat = gs.array([[1., 2., 3.],
                         [0., 0., 0.],
@@ -128,7 +128,7 @@ class TestMatrices(geomstats.tests.TestCase):
         expected = gs.array([[1., 1., 3.],
                              [1., 0., 0.5],
                              [3., 0.5, 1.]])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         mat = gs.array([[1e100, 1e-100, 1e100],
                         [1e100, 1e-100, 1e100],
@@ -140,7 +140,7 @@ class TestMatrices(geomstats.tests.TestCase):
         expected = gs.array([[1e100, res, res],
                              [res, 1e-100, res],
                              [res, res, 1e100]])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_make_symmetric_and_is_symmetric_vectorization(self):
@@ -153,7 +153,7 @@ class TestMatrices(geomstats.tests.TestCase):
         sym_points = self.space.to_symmetric(points)
         result = gs.all(self.space.is_symmetric(sym_points))
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_inner_product(self):
         base_point = gs.array([
@@ -181,7 +181,7 @@ class TestMatrices(geomstats.tests.TestCase):
                 gs.transpose(tangent_vector_1),
                 tangent_vector_2))
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_cong(self):
         base_point = gs.array([
@@ -199,7 +199,7 @@ class TestMatrices(geomstats.tests.TestCase):
             tangent_vector, gs.transpose(base_point))
         expected = gs.matmul(base_point, expected)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_belongs(self):
         base_point_square = gs.zeros((self.n, self.n))
@@ -207,17 +207,17 @@ class TestMatrices(geomstats.tests.TestCase):
 
         result = self.space.belongs(base_point_square)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
         result = self.space_nonsquare.belongs(base_point_square)
         expected = False
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         result = self.space.belongs(base_point_nonsquare)
         expected = False
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
         result = self.space_nonsquare.belongs(base_point_nonsquare)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_is_diagonal(self):
         base_point = gs.array([
@@ -226,7 +226,7 @@ class TestMatrices(geomstats.tests.TestCase):
             [3., 1., 1.]])
         result = self.space.is_diagonal(base_point)
         expected = False
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         diagonal = gs.eye(3)
         result = self.space.is_diagonal(diagonal)
@@ -235,7 +235,7 @@ class TestMatrices(geomstats.tests.TestCase):
         base_point = gs.stack([base_point, diagonal])
         result = self.space.is_diagonal(base_point)
         expected = gs.array([False, True])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         base_point = gs.stack([diagonal] * 2)
         result = self.space.is_diagonal(base_point)

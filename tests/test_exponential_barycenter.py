@@ -29,7 +29,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         barexp = estimator.estimate_
         result = self.se_mat.belongs(barexp)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         point = self.so_vec.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(self.so_vec)
@@ -37,7 +37,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         barexp = estimator.estimate_
         result = self.so_vec.belongs(barexp)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_estimate_one_sample_se(self):
         point = self.se_mat.random_point()
@@ -45,14 +45,14 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         estimator.fit(point)
         result = estimator.estimate_
         expected = point
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         point = self.so_vec.random_uniform(1)
         estimator = ExponentialBarycenter(self.so_vec)
         estimator.fit(point)
         result = estimator.estimate_
         expected = point
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_estimate_and_reach_max_iter_se(self):
@@ -62,7 +62,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         estimator.fit(points)
         result = estimator.estimate_
         expected = point
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         point = self.so_vec.random_uniform(1)
         estimator = ExponentialBarycenter(self.so_vec, max_iter=2)
@@ -70,7 +70,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         estimator.fit(points)
         result = estimator.estimate_
         expected = point
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_estimate_so_matrix(self):
@@ -82,7 +82,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         logs = self.so.log(points, mean_vec.estimate_)
         result = gs.sum(logs, axis=0)
         expected = gs.zeros_like(points[0])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_estimate_and_belongs_so(self):
@@ -92,7 +92,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         barexp = estimator.estimate_
         result = self.so.belongs(barexp)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         point = self.so_vec.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(self.so_vec)
@@ -100,7 +100,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         barexp = estimator.estimate_
         result = self.so_vec.belongs(barexp)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_estimate_one_sample_so(self):
@@ -109,14 +109,14 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         estimator.fit(point)
         result = estimator.estimate_
         expected = point
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         point = self.so_vec.random_uniform(1)
         estimator = ExponentialBarycenter(self.so_vec)
         estimator.fit(point)
         result = estimator.estimate_
         expected = point
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_estimate_and_reach_max_iter_so(self):
@@ -126,7 +126,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         barexp = estimator.estimate_
         result = self.so.belongs(barexp)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         point = self.so_vec.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(self.so_vec, max_iter=2)
@@ -134,7 +134,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         barexp = estimator.estimate_
         result = self.so_vec.belongs(barexp)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_coincides_with_frechet_so(self):
@@ -158,7 +158,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         barexp = estimator.estimate_
         result = self.so.belongs(barexp)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         point = self.so_vec.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(self.so_vec)
@@ -166,7 +166,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         barexp = estimator.estimate_
         result = self.so_vec.belongs(barexp)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_linear_mean(self):
         euclidean = Euclidean(3)
@@ -179,4 +179,4 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
 
         expected = gs.mean(point, axis=0)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)

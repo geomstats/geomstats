@@ -26,7 +26,7 @@ class TestConnection(geomstats.tests.TestCase):
         result = self.euc_metric.metric_matrix(base_point)
         expected = gs.eye(self.dim)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_cometric_matrix(self):
         base_point = gs.array([0., 1., 0., 0.])
@@ -34,7 +34,7 @@ class TestConnection(geomstats.tests.TestCase):
         result = self.euc_metric.inner_product_inverse_matrix(base_point)
         expected = gs.eye(self.dim)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_metric_derivative(self):
@@ -43,7 +43,7 @@ class TestConnection(geomstats.tests.TestCase):
         result = self.euc_metric.inner_product_derivative_matrix(base_point)
         expected = gs.zeros((self.dim,) * 3)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_christoffels(self):
@@ -52,7 +52,7 @@ class TestConnection(geomstats.tests.TestCase):
         result = self.euc_metric.christoffels(base_point)
         expected = gs.zeros((self.dim,) * 3)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_parallel_transport(self):
         n_samples = 2
@@ -157,7 +157,7 @@ class TestConnection(geomstats.tests.TestCase):
         q_ext = self.hypersphere.spherical_to_extrinsic(point)
         expected = self.hypersphere.metric.log(base_point=p_ext, point=q_ext)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_log_connection_metric_vectorization(self):
         base_point = gs.array([[gs.pi / 3, gs.pi / 4], [gs.pi / 2, gs.pi / 4]])
@@ -172,7 +172,7 @@ class TestConnection(geomstats.tests.TestCase):
         q_ext = self.hypersphere.spherical_to_extrinsic(point)
         expected = self.hypersphere.metric.log(base_point=p_ext, point=q_ext)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_geodesic_and_coincides_exp_hypersphere(self):
         n_geodesic_points = 10
@@ -187,7 +187,7 @@ class TestConnection(geomstats.tests.TestCase):
         points = geodesic(t)
         result = points[-1]
         expected = self.hypersphere.metric.exp(vector, initial_point)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
         initial_point = initial_point[0]
         initial_tangent_vec = initial_tangent_vec[0]
@@ -198,7 +198,7 @@ class TestConnection(geomstats.tests.TestCase):
         result = points[-1]
         expected = self.hypersphere.metric.exp(
             initial_tangent_vec, initial_point)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_geodesic_and_coincides_exp_son(self):
         n_geodesic_points = 10
@@ -215,7 +215,7 @@ class TestConnection(geomstats.tests.TestCase):
         result = points[-1]
         expected = space.bi_invariant_metric.exp(
             initial_tangent_vec, initial_point)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         initial_point = initial_point[0]
         initial_tangent_vec = initial_tangent_vec[0]
@@ -226,7 +226,7 @@ class TestConnection(geomstats.tests.TestCase):
         result = points[-1]
         expected = space.bi_invariant_metric.exp(
             initial_tangent_vec, initial_point)
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_geodesic_invalid_initial_conditions(self):
         space = SpecialOrthogonal(n=4)

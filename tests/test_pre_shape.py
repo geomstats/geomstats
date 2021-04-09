@@ -39,19 +39,19 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = self.space.belongs(point)
         expected = gs.array([True] * n_samples)
 
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_random_point_shape(self):
         point = self.space.random_point()
         result = gs.shape(point)
         expected = (self.k_landmarks, self.m_ambient,)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         point = self.space.random_point(self.n_samples)
         result = gs.shape(point)
         expected = (self.n_samples, self.k_landmarks, self.m_ambient,)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_projection_and_belongs(self):
         point = Matrices.transpose(gs.array(
@@ -62,7 +62,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = self.space.belongs(proj)
         expected = True
 
-        self.assertAllClose(expected, result, atol=gs.atol)
+        self.assertAllClose(expected, result)
 
     def test_is_centered(self):
         point = gs.ones((self.k_landmarks, self.m_ambient))
@@ -99,7 +99,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         vec = gs.array([tangent_vec, vector])
         result = self.space.is_tangent(vec, point)
         expected = gs.array([True, False])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_vertical_projection(self):
         vector = gs.random.rand(self.k_landmarks, self.m_ambient)
@@ -113,7 +113,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         tmp_result = gs.matmul(transposed_point, vertical)
         result = Matrices.transpose(tmp_result) - tmp_result
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_vertical_projection_vectorization(self):
         vector = gs.random.rand(
@@ -128,7 +128,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         tmp_result = gs.matmul(transposed_point, vertical)
         result = Matrices.transpose(tmp_result) - tmp_result
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_horizontal_projection(self):
         vector = gs.random.rand(self.k_landmarks, self.m_ambient)
@@ -139,7 +139,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = gs.matmul(transposed_point, horizontal)
         expected = Matrices.transpose(result)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_horizontal_projection_vectorized(self):
         vector = gs.random.rand(
@@ -151,7 +151,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = gs.matmul(transposed_point, horizontal)
         expected = Matrices.transpose(result)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_horizontal_and_is_tangent(self):
         vector = gs.random.rand(self.k_landmarks, self.m_ambient)
@@ -163,7 +163,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = self.space.is_tangent(horizontal, point)
         expected = gs.array([True, False])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_align(self):
         point, base_point = self.space.random_point(2)
@@ -294,14 +294,14 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         point = self.space.projection(gs.eye(self.k_landmarks, self.m_ambient))
         result = self.shape_metric.dist(point, point)
         expected = 0.
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_dist(self):
         point, base_point = self.space.random_point(2)
         result = self.shape_metric.dist(point, base_point)
         log = self.shape_metric.log(point, base_point)
         expected = self.shape_metric.norm(log, base_point)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_dist_vectorization(self):
         point = self.space.random_point(self.n_samples)
@@ -310,7 +310,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = self.shape_metric.dist(aligned, base_point)
         log = self.shape_metric.log(aligned, base_point)
         expected = self.shape_metric.norm(log, base_point)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_curvature_is_skew_operator(self):
         space = self.space
@@ -323,7 +323,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = self.shape_metric.curvature(
             tangent_vec_a, tangent_vec_a, tangent_vec_b, base_point)
         expected = gs.zeros_like(result)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_curvature_bianchi_identity(self):
         space = self.space
@@ -343,7 +343,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         result = curvature_1 + curvature_2 + curvature_3
         expected = gs.zeros_like(result)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_integrability_tensor(self):
         space = self.space
@@ -358,7 +358,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = space.ambient_metric.inner_product(
             tangent_vec_b, result_ab, base_point)
         expected = 0.
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         horizontal_b = space.horizontal_projection(tangent_vec_b, base_point)
         horizontal_a = space.horizontal_projection(tangent_vec_a, base_point)
@@ -366,7 +366,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             horizontal_a, horizontal_b, base_point)
         expected = -space.integrability_tensor(
             horizontal_b, horizontal_a, base_point)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         is_vertical = space.is_vertical(result, base_point)
         self.assertTrue(is_vertical)

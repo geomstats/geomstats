@@ -30,7 +30,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
         distance_a_b = self.metric.dist(point_a, point_b)
         squared_distance = self.metric.squared_dist(point_a, point_b)
 
-        self.assertAllClose(distance_a_b**2, squared_distance, atol=gs.atol)
+        self.assertAllClose(distance_a_b**2, squared_distance)
 
     @geomstats.tests.np_and_pytorch_only
     def test_coordinates(self):
@@ -47,7 +47,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
         dist_in_hype =\
             self.hyperboloid_metric.dist(point_a_h, point_b_h)
 
-        self.assertAllClose(dist_in_ball, dist_in_hype, atol=gs.atol)
+        self.assertAllClose(dist_in_ball, dist_in_hype)
 
     def test_dist_poincare(self):
 
@@ -60,7 +60,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
         result = dist_a_b
         expected = 2.887270927429199
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_dist_vectorization(self):
         point_a = gs.array([0.2, 0.5])
@@ -201,7 +201,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
         expected = gs.array([-0.01733576, 0.21958634])
 
         self.manifold.metric.coords_type = 'extrinsic'
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_belong_true_poincare(self):
         point = gs.array([0.3, 0.5])

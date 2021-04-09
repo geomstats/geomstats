@@ -24,7 +24,7 @@ class TestMinkowski(geomstats.tests.TestCase):
         result = self.space.belongs(point)
         expected = True
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_random_point(self):
         point = self.space.random_point()
@@ -34,13 +34,13 @@ class TestMinkowski(geomstats.tests.TestCase):
         point = self.space.random_point()
         result = self.space.belongs(point)
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_inner_product_matrix(self):
         result = self.metric.metric_matrix()
 
         expected = gs.array([[-1., 0.], [0., 1.]])
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_inner_product(self):
         point_a = gs.array([0., 1.])
@@ -51,7 +51,7 @@ class TestMinkowski(geomstats.tests.TestCase):
         expected -= (2 * point_a[self.time_like_dim]
                      * point_b[self.time_like_dim])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_inner_product_vectorization(self):
         n_samples = 3
@@ -78,7 +78,7 @@ class TestMinkowski(geomstats.tests.TestCase):
 
         result_nn = self.metric.inner_product(n_points_a, n_points_b)
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
         self.assertAllClose(gs.shape(result_no), (n_samples,))
         self.assertAllClose(gs.shape(result_on), (n_samples,))
         self.assertAllClose(gs.shape(result_nn), (n_samples,))
@@ -96,7 +96,7 @@ class TestMinkowski(geomstats.tests.TestCase):
 
         result = self.metric.squared_norm(point)
         expected = 12.
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_squared_norm_vectorization(self):
         n_samples = 3
@@ -115,7 +115,7 @@ class TestMinkowski(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=vector,
                                  base_point=base_point)
         expected = base_point + vector
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_exp_vectorization(self):
         dim = self.dimension
@@ -134,7 +134,7 @@ class TestMinkowski(geomstats.tests.TestCase):
 
         result = self.metric.exp(one_tangent_vec, one_base_point)
         expected = one_tangent_vec + one_base_point
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         result = self.metric.exp(n_tangent_vecs, one_base_point)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
@@ -151,7 +151,7 @@ class TestMinkowski(geomstats.tests.TestCase):
 
         result = self.metric.log(point=point, base_point=base_point)
         expected = point - base_point
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_log_vectorization(self):
         dim = self.dimension
@@ -170,7 +170,7 @@ class TestMinkowski(geomstats.tests.TestCase):
 
         result = self.metric.log(one_point, one_base_point)
         expected = one_point - one_base_point
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
         result = self.metric.log(n_points, one_base_point)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
@@ -189,7 +189,7 @@ class TestMinkowski(geomstats.tests.TestCase):
         vec = point_b - point_a
         expected = gs.dot(vec, vec)
         expected -= 2 * vec[self.time_like_dim] * vec[self.time_like_dim]
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_geodesic_and_belongs(self):
         n_geodesic_points = 100
@@ -206,4 +206,4 @@ class TestMinkowski(geomstats.tests.TestCase):
         result = self.space.belongs(points)
         expected = gs.array(n_geodesic_points * [True])
 
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)

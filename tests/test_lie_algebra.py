@@ -18,7 +18,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
     def test_dimension(self):
         result = self.algebra.dim
         expected = self.dim
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_matrix_representation_and_belongs(self):
         n_samples = 2
@@ -27,7 +27,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         mat = self.algebra.matrix_representation(point)
         result = gs.all(self.algebra.belongs(mat))
         expected = True
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_basis_and_matrix_representation(self):
         n_samples = 2
@@ -35,7 +35,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         expected = gs.reshape(expected, (n_samples, self.dim))
         mat = self.algebra.matrix_representation(expected)
         result = self.algebra.basis_representation(mat)
-        self.assertAllClose(result, expected, atol=gs.atol)
+        self.assertAllClose(result, expected)
 
     def test_orthonormal_basis(self):
         group = SpecialOrthogonal(3)
@@ -69,7 +69,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
             for y in basis[i:]:
                 result = metric.inner_product_at_identity(x, y)
                 expected = 0. if gs.any(x != y) else 1.
-                self.assertAllClose(result, expected, atol=gs.atol)
+                self.assertAllClose(result, expected)
 
         metric_mat = from_vector_to_diagonal_matrix(
             gs.cast(gs.arange(1, group.dim + 1), gs.float32))
@@ -81,4 +81,4 @@ class TestLieAlgebra(geomstats.tests.TestCase):
             for y in basis[i:]:
                 result = metric.inner_product_at_identity(x, y)
                 expected = 0. if gs.any(x != y) else 1.
-                self.assertAllClose(result, expected, atol=gs.atol)
+                self.assertAllClose(result, expected)
