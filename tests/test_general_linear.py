@@ -128,8 +128,11 @@ class TestGeneralLinear(geomstats.tests.TestCase):
                               [0., 148.413159, 0.],
                               [0., 0., 403.42879349]]])
 
+        expected = gs.cast(expected, gs.float64)
+        point = gs.cast(point, gs.float64)
+
         result = self.group.exp(point)
-        self.assertAllClose(result, expected, rtol=1e-3)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_log_vectorization(self):
