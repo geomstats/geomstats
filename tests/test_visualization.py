@@ -7,7 +7,9 @@ import geomstats.tests
 import geomstats.visualization as visualization
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
+from geomstats.geometry.pre_shape import PreShapeSpace
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
@@ -23,6 +25,8 @@ class TestVisualization(geomstats.tests.TestCase):
         self.S2 = Hypersphere(dim=2)
         self.H2 = Hyperbolic(dim=2)
         self.H2_half_plane = PoincareHalfSpace(dim=2)
+        self.M32 = Matrices(m=3, n=2)
+        self.S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
 
         plt.figure()
 
@@ -37,6 +41,14 @@ class TestVisualization(geomstats.tests.TestCase):
     def test_plot_points_se3(self):
         points = self.SE3_GROUP.random_point(self.n_samples)
         visualization.plot(points, space='SE3_GROUP')
+
+    def test_plot_points_s32(self):
+        points = self.S32.random_uniform(self.n_samples)
+        visualization.plot(points, space='S32')
+
+    def test_plot_points_m32(self):
+        points = self.S32.random_point(self.n_samples)
+        visualization.plot(points, space='M32')
 
     @geomstats.tests.np_and_pytorch_only
     def test_plot_points_s1(self):
