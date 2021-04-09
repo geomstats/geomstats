@@ -560,13 +560,16 @@ class TestSPDMatrices(geomstats.tests.TestCase):
                             [0., 5., 0.],
                             [0., 0., 1.]])
 
+        point_a = gs.cast(point_a, gs.float64)
+        point_b = gs.cast(point_b, gs.float64)
+
         metric = self.metric_bureswasserstein
         result = metric.squared_dist(point_a, point_b)
 
         log = metric.log(point=point_b, base_point=point_a)
         expected = metric.squared_norm(vector=log, base_point=point_a)
 
-        self.assertAllClose(result, expected, atol=1e-5)
+        self.assertAllClose(result, expected)
 
     def test_to_tangent_and_is_tangent(self):
         mat = gs.random.rand(3, 3)
