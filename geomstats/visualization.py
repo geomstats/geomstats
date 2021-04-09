@@ -876,8 +876,8 @@ def plot(points, ax=None, space=None,
         ax = sphere.ax
 
     elif space == 'M32':
-        sphere = KendallSphere()
-        sphere.add_points(points, point_type='extrinsic')
+        sphere = KendallSphere(point_type='extrinsic')
+        sphere.add_points(points)
         sphere.draw()
         sphere.draw_points()
         ax = sphere.ax
