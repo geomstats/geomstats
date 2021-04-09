@@ -800,7 +800,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         return quaternion
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def quaternion_from_rotation_vector(self, rot_vec):
         """Convert a rotation vector into a unit quaternion.
 
@@ -816,26 +815,19 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         """
         rot_vec = self.regularize(rot_vec)
 
-        angle = gs.linalg.norm(rot_vec, axis=1)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+        squared_angle = gs.sum(rot_vec ** 2, axis=-1)
 
-        mask_0 = gs.isclose(angle, 0.)
-        mask_not_0 = ~mask_0
+        coef_cos = utils.taylor_exp_even_func(
+            squared_angle / 4, utils.cos_close_0)
+        coef_sinc = .5 * utils.taylor_exp_even_func(
+            squared_angle / 4, utils.sinc_close_0)
 
-        rotation_axis = gs.divide(
-            rot_vec,
-            angle
-            * gs.cast(mask_not_0, gs.float32)
-            + gs.cast(mask_0, gs.float32))
-
-        quaternion = gs.concatenate(
-            (gs.cos(angle / 2),
-             gs.sin(angle / 2) * rotation_axis[:]),
-            axis=1)
+        quaternion = gs.concatenate((
+            coef_cos[..., None],
+            gs.einsum('...,...i->...i', coef_sinc, rot_vec)), axis=-1)
 
         return quaternion
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def rotation_vector_from_quaternion(self, quaternion):
         """Convert a unit quaternion into a rotation vector.
 
@@ -849,24 +841,15 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         rot_vec : array-like, shape=[..., 3]
             Rotation vector.
         """
-        cos_half_angle = quaternion[:, 0]
+        cos_half_angle = quaternion[..., 0]
         cos_half_angle = gs.clip(cos_half_angle, -1, 1)
         half_angle = gs.arccos(cos_half_angle)
 
-        half_angle = gs.to_ndarray(half_angle, to_ndim=2, axis=1)
+        coef_isinc = 2 * utils.taylor_exp_even_func(
+            half_angle ** 2, utils.inv_sinc_close_0)
 
-        mask_0 = gs.isclose(half_angle, 0.)
-        mask_not_0 = ~mask_0
-
-        rotation_axis = gs.divide(
-            quaternion[:, 1:],
-            gs.sin(half_angle) *
-            gs.cast(mask_not_0, gs.float32)
-            + gs.cast(mask_0, gs.float32))
-        rot_vec = gs.array(
-            2 * half_angle
-            * rotation_axis
-            * gs.cast(mask_not_0, gs.float32))
+        rot_vec = gs.einsum(
+            '...,...i->...i', coef_isinc, quaternion[..., 1:])
 
         rot_vec = self.regularize(rot_vec)
         return rot_vec

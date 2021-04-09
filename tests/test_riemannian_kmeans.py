@@ -60,7 +60,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
 
         x = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
-        kmeans = RiemannianKMeans(metric, 5, tol=1e-5)
+        kmeans = RiemannianKMeans(metric, 5, tol=1e-5, lr=1.)
         kmeans.fit(x, max_iter=100)
         result = kmeans.predict(x)
 
