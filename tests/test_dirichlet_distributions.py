@@ -1,5 +1,6 @@
 """Unit tests for the Dirichlet manifold."""
 
+import math
 import warnings
 
 from scipy.stats import dirichlet
@@ -391,5 +392,5 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         point_b = self.dirichlet.random_point()
         result = self.dirichlet.metric.dist(
             point_a, point_b, max_time=max_time)
-        expected = gs.nan
+        expected = math.nan
         self.assertAllClose(expected, result)

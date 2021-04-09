@@ -11,7 +11,6 @@ BACKEND_ATTRIBUTES = {
         'float32',
         'float64',
         'uint8',
-        'nan',
         # Functions
         'abs',
         'all',

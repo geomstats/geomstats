@@ -767,7 +767,3 @@ def triu_to_vec(x, k=0):
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
-
-
-def nan():
-    return _np.nan()

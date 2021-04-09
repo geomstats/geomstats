@@ -772,7 +772,3 @@ def triu_to_vec(x, k=0):
         mask_b = tf.zeros_like(mask_a)
     mask = tf.cast(mask_a - mask_b, dtype=tf.bool)
     return tf.boolean_mask(x, mask, axis=axis)
-
-
-def nan():
-    return _np.nan()

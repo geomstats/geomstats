@@ -1,6 +1,7 @@
 """Statistical Manifold of Dirichlet distributions with the Fisher metric."""
 
 import logging
+import math
 import multiprocessing
 
 from scipy.integrate import odeint
@@ -592,7 +593,7 @@ class DirichletMetric(RiemannianMetric):
                     logging.info('Maximum time of {} seconds reached. '
                                  'Process terminated. '
                                  'Result is inaccurate.'.format(max_time))
-                    geod.append(gs.nan * gs.zeros((n_steps, self.dim)))
+                    geod.append(math.nan * gs.zeros((n_steps, self.dim)))
                 else:
                     geod = return_dict[0]
 
