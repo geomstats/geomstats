@@ -83,13 +83,13 @@ power = tf.math.pow
 real = tf.math.real
 set_diag = tf.linalg.set_diag
 std = tf.math.reduce_std
+atol = 1e-6
+rtol = 1e-6
 
 
 def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
-atol = 1e-6
-rtol = 1e-6
 
 def to_numpy(x):
     return x.numpy()

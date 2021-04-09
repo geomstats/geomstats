@@ -71,8 +71,10 @@ DTYPES = {
     float32: 2,
     float64: 3}
 
+
 atol = 1e-6
 rtol = 1e-6
+
 
 def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
