@@ -29,7 +29,7 @@ AX_SCALE = 1.2
 
 IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'SE2_GROUP', 'S1', 'S2',
                'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk',
-               'poincare_polydisk']
+               'poincare_polydisk', 'S32', 'M32']
 
 
 def tutorial_matplotlib():
