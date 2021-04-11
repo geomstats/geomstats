@@ -22,18 +22,18 @@ jobs:
           python-version: ${{matrix.python-version}}
 
       - name: install pandoc [apt-get] (not installing with pip)
-      - run: |
+        run: |
           sudo apt-get update
           sudo apt-get -y install pandoc
 
       - name: setting PYTHONPATH to geomstats folder
-      - run: export PYTHONPATH=$PYTHONPATH:$(pwd)
+        run: export PYTHONPATH=$PYTHONPATH:$(pwd)
 
       - name: linting [flake8]
-      - run: |
+        run: |
           flake8 --ignore=D,W503,W504 geomstats examples tests
           flake8 geomstats/geometry geomstats/learning 
 
       - name: unit testing [nose2]
-      - if: ${{ matrix.geomstats_backend != 'tensorflow' }}   
-      - run: nose2 --with-coverage tests
+        if: ${{ matrix.geomstats_backend != 'tensorflow' }}   
+        run: nose2 --with-coverage tests
