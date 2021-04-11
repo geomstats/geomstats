@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [master]
+    branches: [master,github-actions-test]
   pull_request:
     branches: [master]
 
