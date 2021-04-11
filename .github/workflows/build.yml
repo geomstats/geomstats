@@ -31,9 +31,7 @@ jobs:
           for req in ci-requirements.txt dev-requirements.txt opt-requirements.txt requirements.txt; do 
           pip install -q -r $req 
           done    
-
-      - name: setting PYTHONPATH to geomstats folder
-        run: export PYTHONPATH=$PYTHONPATH:$(pwd)
+          pip install -e .      
 
       - name: linting [flake8]
         run: |
