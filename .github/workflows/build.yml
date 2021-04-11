@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [master,github-actions-test]
+    branches: [master]
   pull_request:
     branches: [master]
 
@@ -39,7 +39,6 @@ jobs:
           flake8 geomstats/geometry geomstats/learning 
 
       - name: unit testing [nose2]
-        if: ${{ matrix.geomstats-backend != 'tensorflow' }}   
         run: |
           nose2 --with-coverage tests
           
