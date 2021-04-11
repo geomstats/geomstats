@@ -1,0 +1,47 @@
+name : testing and deploying of geomstats
+
+on:
+  push:
+    branches: [master]
+  pull_requests:
+    branches: [master]
+
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7]
+        geomstats-backend : ['numpy','pytorch','tensorflow']
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build using Python ${{matrix.python-version}} and Backend ${{matrix.geomstats-backend}}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{matrix.python-version}}
+
+      - name: install dependencies [pip]
+      - run:  |
+          for req in ci-requirements.txt dev-requirements.txt opt-requirements.txt requirements.txt; do 
+          pip install -q -r $req 
+          done
+
+      - name: install pandoc [apt-get] (not installing with pip)
+      - run: |
+          sudo apt-get update
+          sudo apt-get -y install pandoc
+
+      - name: setting PYTHONPATH to geomstats folder
+      - run: export PYTHONPATH=$PYTHONPATH:$(pwd)
+
+      - name: linting [flake8]
+      - run: |
+          flake8 --ignore=D,W503,W504 geomstats examples tests
+          flake8 geomstats/geometry geomstats/learning 
+
+      - name: unit testing [nose2]
+      - if: ${{ matrix.geomstats_backend != 'tensorflow' }}   
+      - run: nose2 --with-coverage tests
