@@ -31,7 +31,7 @@ class Manifold(ABC):
     """
 
     def __init__(
-            self, dim, 
+            self, dim,
             metrics : List[Connection]=None,
             default_point_type='vector',
             default_coords_type='intrinsic', **kwargs):
@@ -144,9 +144,8 @@ class Manifold(ABC):
         regularized_point = point
         return regularized_point
         
-    
     def call_method_on_metrics(self, function_name: str, *args, **kwargs) -> Union[any, Dict[str, any]]:
-        """Call a method on all metrics of this manifold and return the result. 
+        """Call a method on all metrics of this manifold and return the result.
 
         Args:
             function_name (str): method name to call on metrics
@@ -161,11 +160,12 @@ class Manifold(ABC):
             for metric in metrics:
                 res[metric.name()] = getattr(metric, function_name)(*args, **kwargs)
             return res
-        elif len(metrics) == 1:
+        
+        if len(metrics) == 1:
             return getattr(metrics[0], function_name)(*args, **kwargs)
-        else :
-            logging.warn(f"no metric to call function {function_name}")
-            return 0
+        
+        logging.warning(f"no metric to call function {function_name}")
+        return 0
 
 
 class AbstractManifoldFactory(ABC):
@@ -173,11 +173,12 @@ class AbstractManifoldFactory(ABC):
     manifolds_creators = {}
     
     @classmethod
-    def create(cls, metrics_names : Optional[Union[str, List[str]]] = None, **kwargs ):
+    def create(cls, metrics_names : Optional[Union[str, List[str]]] = None, **kwargs):
         args_dict = kwargs
         
-        # check the incremental combination of args to see if a key exist        
-        for length in range(len(args_dict), 0, -1):
+        # check the incremental combination of args to see if a key exist
+        nb_args = len(args_dict)
+        for length in range(nb_args, 0, -1):
             for key in itertools.combinations(args_dict.items(), length):
                 if key in cls.manifolds_creators:
                     logging.debug(f"found key {key}  from args {args_dict}")
@@ -190,20 +191,17 @@ class AbstractManifoldFactory(ABC):
                         metrics = cls._get_metrics(metrics_names)
                         logging.debug(f"metrics created are {metrics}")
                     else:
-                        metrics=None
+                        metrics = None
             
-                    key_keys = [k for k,v in key]
-                    rest_of_args =  {k:v for k,v in args_dict.items() if k not in key_keys}
-                    #if rest_of_args:
+                    key_keys = [k for k, v in key]
+                    rest_of_args =  {k: v for k, v in args_dict.items() if k not in key_keys}
                     return cls.manifolds_creators[key](metrics=metrics, **rest_of_args)
-                    #else: 
-                    #    return cls.manifolds_creators[key](metrics)
 
         raise Exception(f"no manifold with key containing {args_dict} . keys ars {cls.manifolds_creators.keys()}")
                 
     @classmethod
     def register(cls, **kwargs):
-        """decorator to register new manifold type
+        """Decorator to register new manifold type
 
         Returns:
             Callable: [description]
@@ -220,13 +218,12 @@ class AbstractManifoldFactory(ABC):
 
         return wrapper
     
-    
     @classmethod
     def registerMetric(cls, name: str = None) -> Callable:
-        """decorator to register a new class
+        """Decorator to register a new class
 
         Args:
-            name (str): the name of the metric to Register 
+            name (str): the name of the metric to Register
             
         Returns:
             Callable: a metric creator
@@ -246,7 +243,7 @@ class AbstractManifoldFactory(ABC):
 
     @classmethod
     def metric_keys(cls):
-        """getter for list of metric keys
+        """Getter for list of metric keys
 
         Returns:
             List[str]: a list of metric keys for this class of manifold
@@ -256,19 +253,19 @@ class AbstractManifoldFactory(ABC):
 
     @classmethod
     def _get_metrics(cls, metrics_name : List[str]) -> List[Connection]:
-        """internal method to create metrics from a list of names
+        """Internal method to create metrics from a list of names
 
         Args:
-            metrics_name (List[str]): List of metrics names 
+            metrics_name (List[str]): List of metrics names
 
         Returns:
             List[Connection]: List of metrics
-        """        
+        """
         res = []
         for m in metrics_name:
             if m not in cls.metrics_creators:
-                logging.warn(f"{m} not in metrics keys: {cls.metrics_creators.keys()}")
-                continue 
+                logging.warning(f"{m} not in metrics keys: {cls.metrics_creators.keys()}")
+                continue
             metric = cls.metrics_creators[m]()
             res.append(metric)
 

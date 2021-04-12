@@ -7,7 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.landmarks import L2Metric
-from geomstats.geometry.manifold import Manifold, AbstractManifoldFactory
+from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 R2 = Euclidean(dim=2)

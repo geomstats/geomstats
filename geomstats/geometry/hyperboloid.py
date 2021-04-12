@@ -51,8 +51,26 @@ class Hyperboloid(EmbeddedManifold):
         self.point_type = Hyperboloid.default_point_type
         self.embedding_metric = self.embedding_manifold.metric
         self.scale = scale
+        self.hyperbolic = Hyperbolic(dim=dim, scale=scale)
         self.metric =\
             HyperboloidMetric(self.dim, self.coords_type, self.scale)
+
+    def random_point(self, n_samples=1, bound=1.):
+        return self.hyperbolic.random_point(n_samples=n_samples, bound=bound)
+    
+    def from_coordinates(self, point, from_coords_type):
+        return self.hyperbolic.from_coordinates(point, from_coords_type)
+
+    def to_coordinates(self, point, to_coords_type='ball'):
+        return self.hyperbolic.to_coordinates(point=point, to_coords_type=to_coords_type)
+
+    @staticmethod
+    def change_coordinates_system(point,
+                                  from_coordinates_system,
+                                  to_coordinates_system):
+        return Hyperbolic.change_coordinates_system(point=point,
+                                                    from_coordinates_system=from_coordinates_system,
+                                                    to_coordinates_system=to_coordinates_system)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to the hyperbolic space.

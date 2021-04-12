@@ -80,14 +80,16 @@ def homogeneous_representation(
     return mat
 
 class SpecialEuclideanManifoldFactory(AbstractManifoldFactory):
-    """ Factory for SpecialEuclidean Manifolds """
+    """Factory for SpecialEuclidean Manifolds """
+    
     metrics_creators = {}
     manifolds_creators = {}
+
 
 # for backward compatibility
 def SpecialEuclidean(*args, **kwargs):
     if "point_type" not in kwargs:
-        kwargs["point_type"]="matrix"
+        kwargs["point_type"] = "matrix"
 
     return SpecialEuclideanManifoldFactory.create(*args, **kwargs)
 
@@ -172,7 +174,7 @@ class _SpecialEuclideanMatrices(LieGroup):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.   
+            Optional, default: 1.
         bound: float
             Bound of the interval in which to sample each entry of the
             translation part.
@@ -518,6 +520,7 @@ class _SpecialEuclideanVectors(LieGroup):
         random_rot_vec = self.rotations.random_uniform(n_samples)
         return gs.concatenate([random_rot_vec, random_translation], axis=-1)
 
+
 @SpecialEuclideanManifoldFactory.register(n=2, point_type="vector")
 class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
     """Class for the special Euclidean group in 2d, SE(2).
@@ -628,6 +631,7 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
             GeneralLinear.transpose(exp_transform))
 
         return transform
+
 
 @SpecialEuclideanManifoldFactory.register(n=3, point_type="vector")
 class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
@@ -903,6 +907,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         transform = term_id + term_1 + term_2
 
         return transform
+
 
 @SpecialEuclideanManifoldFactory.registerMetric()
 class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):

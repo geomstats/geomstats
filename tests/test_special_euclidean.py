@@ -2,7 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.special_euclidean import SpecialEuclideanManifoldFactory,\
+from geomstats.geometry.special_euclidean import SpecialEuclidean,\
     SpecialEuclideanMatrixCannonicalLeftMetric,\
     SpecialEuclideanMatrixLieAlgebra
 
@@ -10,7 +10,7 @@ from geomstats.geometry.special_euclidean import SpecialEuclideanManifoldFactory
 class TestSpecialEuclidean(geomstats.tests.TestCase):
     def setUp(self):
         self.n = 2
-        self.group = SpecialEuclideanManifoldFactory.create(n=self.n, point_type="vector")
+        self.group = SpecialEuclidean(n=self.n, point_type="vector")
         self.n_samples = 4
         self.point = self.group.random_point(self.n_samples)
         self.tangent_vec = self.group.to_tangent(gs.random.rand(
@@ -165,7 +165,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             self.assertAllClose(result, expected)
 
     def test_left_exp_coincides(self):
-        vector_group = SpecialEuclideanManifoldFactory.create(n=2, point_type='vector')
+        vector_group = SpecialEuclidean(n=2, point_type='vector')
         theta = gs.pi / 3
         initial_vec = gs.array([theta, 2., 2.])
         initial_matrix_vec = self.group.lie_algebra.matrix_representation(
@@ -176,7 +176,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_right_exp_coincides(self):
-        vector_group = SpecialEuclideanManifoldFactory.create(n=2, point_type='vector')
+        vector_group = SpecialEuclidean(n=2, point_type='vector')
         theta = gs.pi / 2
         initial_vec = gs.array([theta, 1., 1.])
         initial_matrix_vec = self.group.lie_algebra.matrix_representation(

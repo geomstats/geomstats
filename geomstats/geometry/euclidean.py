@@ -17,7 +17,7 @@ class Euclidean(Manifold):
         Dimension of the Euclidean space.
     """
 
-    def __init__(self, dim, metrics = None):
+    def __init__(self, dim, metrics=None):
         super(Euclidean, self).__init__(dim=dim, metrics=metrics)
         self.metric = EuclideanMetric(dim)
 
@@ -101,8 +101,10 @@ class Euclidean(Manifold):
             raise ValueError('The update must be of the same dimension')
         return tangent_vec + base_point
 
+
 class EuclidienManifoldFactory(AbstractManifoldFactory):
-    """ Factory for Euclidien Manifold """
+    """Factory for Euclidien Manifold """
+
 
 @EuclidienManifoldFactory.registerMetric()
 class EuclideanMetric(RiemannianMetric):

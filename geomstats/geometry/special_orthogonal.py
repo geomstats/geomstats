@@ -20,18 +20,20 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-
 class SpecialOrthogonalManifoldFactory(AbstractManifoldFactory):
-    """ Factory for SpecialOrthogonal Manifolds """
+    """Factory for SpecialOrthogonal Manifolds """
+    
     metrics_creators = {}
     manifolds_creators = {}
 
+
 # for backward compatibility
 def SpecialOrthogonal(*args, **kwargs):
-    if "point_type" not in kwargs:  # TODO put a default_args in the factory? 
-        kwargs["point_type"]="matrix"
+    if "point_type" not in kwargs:
+        kwargs["point_type"] = "matrix"
     
     return SpecialOrthogonalManifoldFactory.create(*args, **kwargs)
+
 
 @SpecialOrthogonalManifoldFactory.register(point_type="matrix")
 class _SpecialOrthogonalMatrices(LieGroup):
@@ -72,8 +74,7 @@ class _SpecialOrthogonalMatrices(LieGroup):
             Matrices.mul(point, Matrices.transpose(point)), self.identity, atol=atol)
 
     def get_identity(self, point_type='vector'):
-        """Return the identity matrix
-        """
+        """Return the identity matrix"""
         return gs.eye(self.n, self.n)
     identity = property(get_identity)
         
@@ -121,7 +122,7 @@ class _SpecialOrthogonalMatrices(LieGroup):
         """
         aux_mat = Matrices.mul(Matrices.transpose(point), point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, - 1 / 2)
-        rot_mat = cls.mul(point, inv_sqrt_mat)
+        rot_mat = Matrices.mul(point, inv_sqrt_mat)
         return rot_mat
 
     def random_uniform(self, n_samples=1, tol=1e-6):
@@ -181,6 +182,7 @@ class _SpecialOrthogonalMatrices(LieGroup):
             Vector.
         """
         return SkewSymmetricMatrices(self.n).basis_representation(skew_mat)
+
 
 class _SpecialOrthogonalVectors(LieGroup):
     """Class for the special orthogonal groups SO({2,3}) in vector form.
@@ -415,6 +417,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return self.regularize_tangent_vec_at_identity(tangent_vec)
 
+
 @SpecialOrthogonalManifoldFactory.register(n=2, point_type="vector")
 class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
     """Class for the special orthogonal group SO(2) in vector representation.
@@ -577,6 +580,7 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
             Group logarithm.
         """
         return self.regularize(point - base_point)
+
 
 @SpecialOrthogonalManifoldFactory.register(n=3, point_type="vector")
 class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):

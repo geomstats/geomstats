@@ -40,7 +40,7 @@ class Connection:
         self.manifold = None
 
     def setManifold(self, manifold):
-        """set the manifold associated to this metric
+        """Set the manifold associated to this metric
 
         Args:
             manifold : the new manifold to set
