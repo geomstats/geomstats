@@ -48,8 +48,3 @@ jobs:
       - name: generating code coverage 
         run: |
           bash <(curl -s https://codecov.io/bash) -c -F $${{matrix.geomstats-backend}}
-          
-      - name: building docs [sphinx]
-        if:  ${{ matrix.geomstats-backend == 'pytorch' && matrix.os == 'ubuntu-latest' }}
-        run: |
-          sphinx-build -b html -D version=latest -D release=latest docs docs/_build 
