@@ -141,6 +141,28 @@ class _Hypersphere(EmbeddedManifold):
 
         return tangent_vec
 
+    def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+            Optional, default: none.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-6.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        inner_prod = self.embedding_metric.inner_product(base_point, vector)
+        return gs.isclose(inner_prod, 0.)
+
     def spherical_to_extrinsic(self, point_spherical):
         """Convert point from spherical to extrinsic coordinates.
 

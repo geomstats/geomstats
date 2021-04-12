@@ -395,11 +395,10 @@ class HyperboloidMetric(HyperbolicMetric):
         return dist
 
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
-        r"""Compute the parallel transport of a tangent vector.
+        """Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
-        tangent_vec_b)`.
+        along the geodesic defined by exp_(base_point)(tangent_vec_b).
 
         Parameters
         ----------
@@ -414,11 +413,14 @@ class HyperboloidMetric(HyperbolicMetric):
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., dim + 1]
-            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+            Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
-        end_point = self.exp(tangent_vec_b, base_point)
-        angle = - self.inner_product(base_point, end_point)
-        coef = self.inner_product(
-            end_point - angle * base_point, tangent_vec_a) / (
-            angle + 1)
-        return tangent_vec_a + coef * (base_point + end_point)
+        theta = self.embedding_metric.norm(tangent_vec_b)
+        normalized_b = gs.einsum('...,...i->...i', 1 / theta, tangent_vec_b)
+        pb = self.embedding_metric.inner_product(tangent_vec_a, normalized_b)
+        p_orth = tangent_vec_a - gs.einsum('...,...i->...i', pb, normalized_b)
+        transported = \
+            gs.einsum('...,...i->...i', gs.sinh(theta) * pb, base_point)\
+            + gs.einsum('...,...i->...i', gs.cosh(theta) * pb, normalized_b)\
+            + p_orth
+        return transported
