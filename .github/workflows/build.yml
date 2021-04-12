@@ -53,7 +53,7 @@ jobs:
 
       - name: unit testing [nose2]
         run: |
-          nose2 --with-coverage tests
+          nose2 --with-coverage tests.basic_tests
           
       - name: generating code coverage 
         run: |
