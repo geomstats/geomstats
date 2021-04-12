@@ -1,8 +1,21 @@
 on:
   push:
     branches: [master,github-actions-test]
+    paths-ignore: 
+    - 'docs/**'
+    - 'README.rst'
+    - 'LICENSE.md'
+    - '.deepsource.toml'
+    - '.gitignore'
+    
   pull_request:
     branches: [master]
+    paths-ignore: 
+    - 'docs/**'
+    - 'README.rst'
+    - 'LICENSE.md'
+    - '.deepsource.toml'
+    - '.gitignore'
 
 
 jobs:
