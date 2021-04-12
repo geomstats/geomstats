@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os: [ubuntu-latest , windows-latest , macOS-latest]
+        os: [ubuntu-latest]
         python-version: [3.6,3.7,3.8]
         geomstats-backend : ['numpy','pytorch','tensorflow']
 
@@ -31,6 +31,9 @@ jobs:
       - name: install dependencies [pip]
         run:  |
           pip install --upgrade pip setuptools wheel
+          for req in ci-requirements.txt dev-requirements.txt opt-requirements.txt requirements.txt; do
+            pip install -q -r $req
+          done  
           pip install -e .      
 
       - name: linting [flake8]
