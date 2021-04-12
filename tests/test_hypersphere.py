@@ -567,36 +567,9 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = gs.array([0.])
         self.assertAllClose(expected, result)
 
-        tangent_vec_a = gs.array([1., 0., 0., 0., 0.])
-        tangent_vec_b = gs.array([0., 1., 0., 0., 0.])
-        base_point = gs.array([[0., 0., 0., 0., 1.]])
-
-        result = self.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array([0.])
-        self.assertAllClose(expected, result)
-
         tangent_vec_a = gs.array([[1., 0., 0., 0., 0.]])
         tangent_vec_b = gs.array([[0., 1., 0., 0., 0.]])
         base_point = gs.array([0., 0., 0., 0., 1.])
-
-        result = self.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array([0.])
-        self.assertAllClose(expected, result)
-
-        tangent_vec_a = gs.array([1., 0., 0., 0., 0.])
-        tangent_vec_b = gs.array([[0., 1., 0., 0., 0.]])
-        base_point = gs.array([[0., 0., 0., 0., 1.]])
-
-        result = self.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array([0.])
-        self.assertAllClose(expected, result)
-
-        tangent_vec_a = gs.array([[1., 0., 0., 0., 0.]])
-        tangent_vec_b = gs.array([0., 1., 0., 0., 0.])
-        base_point = gs.array([[0., 0., 0., 0., 1.]])
 
         result = self.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point)
