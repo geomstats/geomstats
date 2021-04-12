@@ -9,11 +9,11 @@ import geomstats.backend as gs
 
 def wrap(function):
     """Wrap a function to first convert args to arrays."""
-    def wrapped_function(*args):
+    def wrapped_function(*args, **kwargs):
         new_args = ()
         for array in args:
             new_args += (gs.array(array),)
-        return function(*new_args)
+        return function(*new_args, **kwargs)
     return wrapped_function
 
 
