@@ -161,7 +161,7 @@ class _Hypersphere(EmbeddedManifold):
             Boolean denoting if vector is a tangent vector at the base point.
         """
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
-        return gs.isclose(inner_prod, 0.)
+        return gs.isclose(inner_prod, 0., atol=atol)
 
     def spherical_to_extrinsic(self, point_spherical):
         """Convert point from spherical to extrinsic coordinates.
