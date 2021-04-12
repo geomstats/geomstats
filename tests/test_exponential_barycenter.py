@@ -147,7 +147,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
             self.so.bi_invariant_metric, max_iter=40, epsilon=1e-10, lr=1.)
         frechet_estimator.fit(point)
         expected = frechet_estimator.estimate_
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-6)
 
     @geomstats.tests.np_only
     def test_estimate_weights(self):

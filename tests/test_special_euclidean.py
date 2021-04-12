@@ -185,7 +185,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         result = self.group.right_canonical_metric.exp(
             initial_matrix_vec, n_steps=25)
         expected = vector_group.matrix_from_vector(vector_exp)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-6)
 
     def test_basis_belongs(self):
         lie_algebra = self.group.lie_algebra
