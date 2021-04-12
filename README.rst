@@ -20,6 +20,8 @@ differential geometry and topology? The `ICLR 2021 challenge of geometry
 and topology <https://gt-rl.github.io/challenge>`__ is open for
 submissions. Deadline: May 2nd, 2021. $3500 in prizes.
 
+**Testing** Testing github-actions triggering mechanism
+
 Geomstats is an open-source Python package for computations and
 statistics on manifolds. The package is organized into two main modules:
 ``geometry`` and ``learning``.
