@@ -70,7 +70,7 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
 
         x2 = Hyperbolic.change_coordinates_system(
             x_up, 'half-space', 'extrinsic')
-        self.assertAllClose(x, x2, gs.atol)
+        self.assertAllClose(x, x2)
 
     def test_intrinsic_extrinsic_intrinsic(self):
         x_intr = gs.array([0.5, 7])

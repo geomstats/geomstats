@@ -5,9 +5,10 @@ Euclidean space near each point.
 """
 
 import geomstats.errors
+import geomstats.backend as gs
 
+ATOL = gs.atol
 
-ATOL = 1e-6
 
 
 class Manifold:

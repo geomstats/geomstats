@@ -15,7 +15,6 @@ from geomstats.geometry.hyperbolic import HyperbolicMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.minkowski import MinkowskiMetric
 
-TOLERANCE = 1e-6
 EPSILON = 1e-6
 
 
@@ -53,7 +52,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         self.metric =\
             HyperboloidMetric(self.dim, self.coords_type, self.scale)
 
-    def belongs(self, point, tolerance=TOLERANCE):
+    def belongs(self, point, tolerance=gs.atol):
         """Test if a point belongs to the hyperbolic space.
 
         Test if a point belongs to the hyperbolic space in

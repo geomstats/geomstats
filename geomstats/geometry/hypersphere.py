@@ -15,9 +15,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-TOLERANCE = 1e-6
-EPSILON = 1e-4
-
+TOLERANCE = gs.atol
 
 class _Hypersphere(EmbeddedManifold):
     """Private class for the n-dimensional hypersphere.

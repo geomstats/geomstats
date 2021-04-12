@@ -418,7 +418,6 @@ class TestHyperbolic(geomstats.tests.TestCase):
         tangent_vec = self.space.to_tangent(
             vector=vector,
             base_point=base_point)
-        print(tangent_vec)
         exp = self.metric.exp(
             tangent_vec=tangent_vec,
             base_point=base_point)

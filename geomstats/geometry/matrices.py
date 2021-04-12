@@ -8,7 +8,6 @@ from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import EuclideanMetric
 
 
-TOLERANCE = 1e-5
 
 
 class Matrices:
@@ -45,7 +44,7 @@ class Matrices:
         return (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
 
     @staticmethod
-    def equal(mat_a, mat_b, atol=TOLERANCE):
+    def equal(mat_a, mat_b, atol=gs.atol):
         """Test if matrices a and b are close.
 
         Parameters
@@ -144,7 +143,7 @@ class Matrices:
         return m == n
 
     @classmethod
-    def is_symmetric(cls, mat, atol=TOLERANCE):
+    def is_symmetric(cls, mat, atol=gs.atol):
         """Check if a matrix is symmetric.
 
         Parameters
@@ -167,7 +166,7 @@ class Matrices:
         return cls.equal(mat, cls.transpose(mat), atol)
 
     @classmethod
-    def is_skew_symmetric(cls, mat, atol=TOLERANCE):
+    def is_skew_symmetric(cls, mat, atol=gs.atol):
         """Check if a matrix is skew symmetric.
 
         Parameters
@@ -219,7 +218,7 @@ class Matrices:
         return 1 / 2 * (mat - cls.transpose(mat))
 
     @classmethod
-    def is_diagonal(cls, mat, atol=TOLERANCE):
+    def is_diagonal(cls, mat, atol=gs.atol):
         """Check if a matrix is square and diagonal.
 
         Parameters
