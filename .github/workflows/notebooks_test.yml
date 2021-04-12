@@ -1,23 +1,20 @@
-name: "Linting and Testing"
+name: "Testing Notebooks"
 
 on:
   push:
     branches: [master,github-actions-test]
-    paths-ignore: 
-    - 'docs/**'
-    - 'README.rst'
-    - 'LICENSE.md'
-    - '.deepsource.toml'
-    - '.gitignore'
+    paths: 
+    - 'notebooks/**'
+    - 'geomstats/**'
+    - 'tests/notebook_test/**'
     
   pull_request:
     branches: [master]
-    paths-ignore: 
-    - 'docs/**'
-    - 'README.rst'
-    - 'LICENSE.md'
-    - '.deepsource.toml'
-    - '.gitignore'
+    paths: 
+    - 'notebooks/**'
+    - 'geomstats/**'
+    - 'tests/notebook_test/**'
+
 
 
 jobs:
@@ -37,7 +34,6 @@ jobs:
         with:
           python-version: ${{matrix.python-version}}
 
-          
       - name: install dependencies [pip]
         run:  |
           pip install --upgrade pip setuptools wheel
@@ -46,15 +42,6 @@ jobs:
           done  
           pip install -e .      
 
-      - name: linting [flake8]
-        run: |
-          flake8 --ignore=D,W503,W504 geomstats examples tests
-          flake8 geomstats/geometry geomstats/learning 
-
       - name: unit testing [nose2]
         run: |
           nose2 --with-coverage tests/notebook_test
-          
-      - name: generating code coverage 
-        run: |
-          bash <(curl -s https://codecov.io/bash) -c -F $${{matrix.geomstats-backend}}
