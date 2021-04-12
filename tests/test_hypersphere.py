@@ -790,7 +790,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         tangent_vec = space.to_tangent(vec, base_point)
         result = space.is_tangent(tangent_vec, base_point)
         self.assertAllClose(gs.shape(result), (2, ))
-        print(result)
         self.assertTrue(gs.all(result))
 
     def test_sectional_curvature(self):
