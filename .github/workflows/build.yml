@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest , windows-latest , macOS-latest]
-        python-version: [3.6,3.7]
+        python-version: [3.6,3.7,3.8]
         geomstats-backend : ['numpy','pytorch','tensorflow']
 
     steps:
@@ -23,6 +23,7 @@ jobs:
           python-version: ${{matrix.python-version}}
 
       - name: install pandoc [apt-get] (not installing with pip)
+        if: ${{matrix.os == 'ubuntu-latest'}}
         run: |
           sudo apt-get update
           sudo apt-get -y install pandoc
@@ -48,6 +49,6 @@ jobs:
           bash <(curl -s https://codecov.io/bash) -c -F $${{matrix.geomstats-backend}}
           
       - name: building docs [sphinx]
-        if:  ${{ matrix.geomstats-backend == 'pytorch' }}
+        if:  ${{ matrix.geomstats-backend == 'pytorch' && matrix.os == 'ubuntu-latest' }}
         run: |
           sphinx-build -b html -D version=latest -D release=latest docs docs/_build 
