@@ -7,9 +7,10 @@ import geomstats.vectorization
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup
+from geomstats.geometry.manifold import AbstractManifoldFactory
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-
 
 ATOL = 1e-5
 
@@ -19,7 +20,23 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
+class SpecialOrthogonalManifoldFactory(AbstractManifoldFactory):
+    """Factory for SpecialOrthogonal Manifolds """
+    
+    metrics_creators = {}
+    manifolds_creators = {}
+
+
+# for backward compatibility
+def SpecialOrthogonal(*args, **kwargs):
+    if "point_type" not in kwargs:
+        kwargs["point_type"] = "matrix"
+    
+    return SpecialOrthogonalManifoldFactory.create(*args, **kwargs)
+
+
+@SpecialOrthogonalManifoldFactory.register(point_type="matrix")
+class _SpecialOrthogonalMatrices(LieGroup):
     """Class for special orthogonal groups in matrix representation.
 
     Parameters
@@ -28,12 +45,13 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n):
+    def __init__(self, n=2, metrics=None):
         super(_SpecialOrthogonalMatrices, self).__init__(
-            dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n,
+            dim=int((n * (n - 1)) / 2), metrics=metrics, default_point_type='matrix', n=n,
             lie_algebra=SkewSymmetricMatrices(n=n))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.dim = int((n * (n - 1)) / 2)
+        self.n = n
 
     def belongs(self, point, atol=ATOL):
         """Check whether point is an orthogonal matrix.
@@ -52,9 +70,26 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to SO(n).
         """
-        return self.equal(
-            self.mul(point, self.transpose(point)), self.identity, atol=atol)
+        return Matrices.equal(
+            Matrices.mul(point, Matrices.transpose(point)), self.identity, atol=atol)
 
+    def get_identity(self, point_type='vector'):
+        """Return the identity matrix"""
+        return gs.eye(self.n, self.n)
+    identity = property(get_identity)
+        
+    @classmethod
+    def log(cls, point, base_point=None):
+        return GeneralLinear.log(point, base_point)
+            
+    @classmethod
+    def compose(cls, *args):
+        return GeneralLinear.compose(*args)
+    
+    @classmethod
+    def exp(cls, tangent_vec, base_point=None):
+        return GeneralLinear.exp(tangent_vec=tangent_vec, base_point=base_point)
+        
     @classmethod
     def inverse(cls, point):
         """Return the transpose matrix of point.
@@ -69,7 +104,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         inverse : array-like, shape=[..., n, n]
             Inverse.
         """
-        return cls.transpose(point)
+        return Matrices.transpose(point)
 
     @classmethod
     def projection(cls, point):
@@ -85,9 +120,9 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         rot_mat : array-like, shape=[..., n, n]
             Rotation matrix.
         """
-        aux_mat = cls.mul(cls.transpose(point), point)
+        aux_mat = Matrices.mul(Matrices.transpose(point), point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, - 1 / 2)
-        rot_mat = cls.mul(point, inv_sqrt_mat)
+        rot_mat = Matrices.mul(point, inv_sqrt_mat)
         return rot_mat
 
     def random_uniform(self, n_samples=1, tol=1e-6):
@@ -164,10 +199,10 @@ class _SpecialOrthogonalVectors(LieGroup):
         Optional, default: 0.
     """
 
-    def __init__(self, n, epsilon=0.):
+    def __init__(self, n, metrics=None, epsilon=0.):
         dim = n * (n - 1) // 2
         LieGroup.__init__(
-            self, dim=dim, default_point_type='vector')
+            self, dim=dim, metrics=metrics, default_point_type='vector')
 
         self.n = n
         self.epsilon = epsilon
@@ -383,6 +418,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         return self.regularize_tangent_vec_at_identity(tangent_vec)
 
 
+@SpecialOrthogonalManifoldFactory.register(n=2, point_type="vector")
 class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
     """Class for the special orthogonal group SO(2) in vector representation.
 
@@ -398,9 +434,9 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         Optional, default: 0.
     """
 
-    def __init__(self, epsilon=0.):
+    def __init__(self, metrics=None, epsilon=0.):
         super(_SpecialOrthogonal2Vectors, self).__init__(
-            n=2, epsilon=epsilon)
+            n=2, metrics=metrics, epsilon=epsilon)
 
     def regularize(self, point):
         """Regularize a point to be in accordance with convention.
@@ -546,6 +582,7 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         return self.regularize(point - base_point)
 
 
+@SpecialOrthogonalManifoldFactory.register(n=3, point_type="vector")
 class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
     """Class for the special orthogonal group SO(3) in vector representation.
 
@@ -561,9 +598,9 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         Optional, default: 0.
     """
 
-    def __init__(self, epsilon=0.):
+    def __init__(self, metrics=None, epsilon=0.):
         super(_SpecialOrthogonal3Vectors, self).__init__(
-            n=3, epsilon=epsilon)
+            n=3, metrics=metrics, epsilon=epsilon)
 
         self.bi_invariant_metric = BiInvariantMetric(group=self)
 
@@ -1520,34 +1557,34 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         return LieGroup.log(self, point, base_point)
 
 
-class SpecialOrthogonal(_SpecialOrthogonal2Vectors,
-                        _SpecialOrthogonal3Vectors,
-                        _SpecialOrthogonalMatrices):
-    r"""Class for the special orthogonal groups.
+# class SpecialOrthogonal(_SpecialOrthogonal2Vectors,
+#                         _SpecialOrthogonal3Vectors,
+#                         _SpecialOrthogonalMatrices):
+#     r"""Class for the special orthogonal groups.
 
-    Parameters
-    ----------
-    n : int
-        Integer representing the shapes of the matrices : n x n.
-    point_type : str, {\'vector\', \'matrix\'}
-        Representation of the elements of the group.
-    epsilon : float, optional
-        precision to use for calculations involving potential divison by 0 in
-        rotations
-        default: 0
-    """
+#     Parameters
+#     ----------
+#     n : int
+#         Integer representing the shapes of the matrices : n x n.
+#     point_type : str, {\'vector\', \'matrix\'}
+#         Representation of the elements of the group.
+#     epsilon : float, optional
+#         precision to use for calculations involving potential divison by 0 in
+#         rotations
+#         default: 0
+#     """
 
-    def __new__(cls, n, point_type='matrix', epsilon=0.):
-        """Instantiate a special orthogonal group.
+#     def __new__(cls, n, point_type='matrix', epsilon=0.):
+#         """Instantiate a special orthogonal group.
 
-        Select the object to instantiate depending on the point_type.
-        """
-        if n == 2 and point_type == 'vector':
-            return _SpecialOrthogonal2Vectors(epsilon)
-        if n == 3 and point_type == 'vector':
-            return _SpecialOrthogonal3Vectors(epsilon)
-        if point_type == 'vector':
-            raise NotImplementedError(
-                'SO(n) is only implemented in matrix representation'
-                ' when n > 3.')
-        return _SpecialOrthogonalMatrices(n)
+#         Select the object to instantiate depending on the point_type.
+#         """
+#         if n == 2 and point_type == 'vector':
+#             return _SpecialOrthogonal2Vectors(epsilon)
+#         if n == 3 and point_type == 'vector':
+#             return _SpecialOrthogonal3Vectors(epsilon)
+#         if point_type == 'vector':
+#             raise NotImplementedError(
+#                 'SO(n) is only implemented in matrix representation'
+#                 ' when n > 3.')
+#         return _SpecialOrthogonalMatrices(n)

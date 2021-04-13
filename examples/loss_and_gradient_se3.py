@@ -4,12 +4,12 @@ import logging
 
 import geomstats.backend as gs
 import geomstats.geometry.lie_group as lie_group
-from geomstats.geometry.special_euclidean import SpecialEuclidean
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.special_euclidean import SpecialEuclideanManifoldFactory
+from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory
 
 
-SE3 = SpecialEuclidean(n=3, point_type='vector')
-SO3 = SpecialOrthogonal(n=3, point_type='vector')
+SE3 = SpecialEuclideanManifoldFactory.create(n=3, point_type='vector')
+SO3 = SpecialOrthogonalManifoldFactory.create(n=3, point_type='vector')
 
 
 def loss(y_pred, y_true,

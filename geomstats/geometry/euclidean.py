@@ -1,7 +1,7 @@
 """Euclidean space."""
 
 import geomstats.backend as gs
-from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.manifold import Manifold, AbstractManifoldFactory
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
@@ -17,8 +17,8 @@ class Euclidean(Manifold):
         Dimension of the Euclidean space.
     """
 
-    def __init__(self, dim):
-        super(Euclidean, self).__init__(dim=dim)
+    def __init__(self, dim, metrics=None):
+        super(Euclidean, self).__init__(dim=dim, metrics=metrics)
         self.metric = EuclideanMetric(dim)
 
     def get_identity(self, point_type=None):
@@ -102,6 +102,11 @@ class Euclidean(Manifold):
         return tangent_vec + base_point
 
 
+class EuclidienManifoldFactory(AbstractManifoldFactory):
+    """Factory for Euclidien Manifold """
+
+
+@EuclidienManifoldFactory.registerMetric()
 class EuclideanMetric(RiemannianMetric):
     """Class for Euclidean metrics.
 

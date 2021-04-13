@@ -10,7 +10,7 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean,\
 class TestSpecialEuclidean(geomstats.tests.TestCase):
     def setUp(self):
         self.n = 2
-        self.group = SpecialEuclidean(n=self.n)
+        self.group = SpecialEuclidean(n=self.n, point_type="vector")
         self.n_samples = 4
         self.point = self.group.random_point(self.n_samples)
         self.tangent_vec = self.group.to_tangent(gs.random.rand(

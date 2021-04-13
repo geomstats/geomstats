@@ -403,7 +403,7 @@ class _Hypersphere(EmbeddedManifold):
                     gs.array([0., 0., 1.]), mu)
                 rot_vec *= gs.arccos(mu[-1]) / gs.linalg.norm(rot_vec)
                 rot = SpecialOrthogonal(
-                    3, 'vector').matrix_from_rotation_vector(rot_vec)
+                    n=3, point_type='vector').matrix_from_rotation_vector(rot_vec)
                 sample = gs.matmul(sample, gs.transpose(rot))
         else:
             if mu is None:

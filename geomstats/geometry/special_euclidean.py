@@ -12,8 +12,10 @@ from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import LieGroup
+from geomstats.geometry.manifold import AbstractManifoldFactory
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory
 
 PI = gs.pi
 PI2 = PI * PI
@@ -77,8 +79,23 @@ def homogeneous_representation(
     mat = gs.concatenate((mat, last_line[..., None, :]), axis=-2)
     return mat
 
+class SpecialEuclideanManifoldFactory(AbstractManifoldFactory):
+    """Factory for SpecialEuclidean Manifolds """
+    
+    metrics_creators = {}
+    manifolds_creators = {}
 
-class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
+
+# for backward compatibility
+def SpecialEuclidean(*args, **kwargs):
+    if "point_type" not in kwargs:
+        kwargs["point_type"] = "matrix"
+
+    return SpecialEuclideanManifoldFactory.create(*args, **kwargs)
+
+
+@SpecialEuclideanManifoldFactory.register(point_type="matrix")
+class _SpecialEuclideanMatrices(LieGroup):
     """Class for special Euclidean group.
 
     Parameters
@@ -88,11 +105,11 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
         be of size: (n+1) x (n+1).
     """
 
-    def __init__(self, n):
+    def __init__(self, n=2, metrics=None):
         super().__init__(
-            n=n + 1, dim=int((n * (n + 1)) / 2), default_point_type='matrix',
+            n=n + 1, dim=int((n * (n + 1)) / 2), metrics=metrics, default_point_type='matrix',
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n))
-        self.rotations = SpecialOrthogonal(n=n)
+        self.rotations = SpecialOrthogonalManifoldFactory.create(n=n, point_type="matrix")
         self.translations = Euclidean(dim=n)
         self.n = n
 
@@ -103,6 +120,18 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
         """Return the identity matrix."""
         return gs.eye(self.n + 1, self.n + 1)
     identity = property(get_identity)
+
+    @classmethod
+    def log(cls, point, base_point=None):
+        return GeneralLinear.log(point, base_point)
+            
+    @classmethod
+    def compose(cls, *args):
+        return GeneralLinear.compose(*args)
+    
+    @classmethod
+    def exp(cls, tangent_vec, base_point=None):
+        return GeneralLinear.exp(tangent_vec=tangent_vec, base_point=base_point)
 
     def belongs(self, point):
         """Check whether point is of the form rotation, translation.
@@ -175,7 +204,7 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
             Point to be inverted.
         """
         n = point.shape[-1] - 1
-        transposed_rot = cls.transpose(point[..., :n, :n])
+        transposed_rot = Matrices.transpose(point[..., :n, :n])
         translation = point[..., :n, -1]
         translation = gs.einsum(
             '...ij,...j->...i', transposed_rot, translation)
@@ -200,14 +229,14 @@ class _SpecialEuclideanVectors(LieGroup):
         Optional, default: 0.
     """
 
-    def __init__(self, n, epsilon=0.):
+    def __init__(self, n, metrics=None, epsilon=0.):
         dim = n * (n + 1) // 2
         LieGroup.__init__(
-            self, dim=dim, default_point_type='vector')
+            self, dim=dim, metrics=metrics, default_point_type='vector')
 
         self.n = n
         self.epsilon = epsilon
-        self.rotations = SpecialOrthogonal(
+        self.rotations = SpecialOrthogonalManifoldFactory.create(
             n=n, point_type='vector', epsilon=epsilon)
         self.translations = Euclidean(dim=n)
 
@@ -492,6 +521,7 @@ class _SpecialEuclideanVectors(LieGroup):
         return gs.concatenate([random_rot_vec, random_translation], axis=-1)
 
 
+@SpecialEuclideanManifoldFactory.register(n=2, point_type="vector")
 class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
     """Class for the special Euclidean group in 2d, SE(2).
 
@@ -509,9 +539,9 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         Optional, default: 0.
     """
 
-    def __init__(self, epsilon=0.):
+    def __init__(self, metrics=None, epsilon=0.):
         super(_SpecialEuclidean2Vectors, self).__init__(
-            n=2, epsilon=epsilon)
+            n=2, metrics=metrics, epsilon=epsilon)
 
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None):
@@ -603,6 +633,7 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         return transform
 
 
+@SpecialEuclideanManifoldFactory.register(n=3, point_type="vector")
 class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
     """Class for the special Euclidean group in 3d, SE(3).
 
@@ -620,9 +651,9 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         Optional, default: 0.
     """
 
-    def __init__(self, epsilon=0.):
+    def __init__(self, metrics=None, epsilon=0.):
         super(_SpecialEuclidean3Vectors, self).__init__(
-            n=3, epsilon=epsilon)
+            n=3, metrics=metrics, epsilon=epsilon)
 
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None):
@@ -878,6 +909,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         return transform
 
 
+@SpecialEuclideanManifoldFactory.registerMetric()
 class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
     """Class for the canonical left-invariant metric on SE(n).
 
@@ -1015,38 +1047,38 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         return transported_vec
 
 
-class SpecialEuclidean(_SpecialEuclidean2Vectors,
-                       _SpecialEuclidean3Vectors,
-                       _SpecialEuclideanMatrices):
-    r"""Class for the special Euclidean groups.
+# class SpecialEuclidean(_SpecialEuclidean2Vectors,
+#                        _SpecialEuclidean3Vectors,
+#                        _SpecialEuclideanMatrices):
+#     r"""Class for the special Euclidean groups.
 
-    Parameters
-    ----------
-    n : int
-        Integer representing the shapes of the matrices : n x n.
-    point_type : str, {\'vector\', \'matrix\'}
-        Representation of the elements of the group.
-        Optional, default: 'matrix',
-    epsilon : float
-        Precision used for calculations involving potential divison by 0 in
-        rotations.
-        Optional, default: 0.
-    """
+#     Parameters
+#     ----------
+#     n : int
+#         Integer representing the shapes of the matrices : n x n.
+#     point_type : str, {\'vector\', \'matrix\'}
+#         Representation of the elements of the group.
+#         Optional, default: 'matrix',
+#     epsilon : float
+#         Precision used for calculations involving potential divison by 0 in
+#         rotations.
+#         Optional, default: 0.
+#     """
 
-    def __new__(cls, n, point_type='matrix', epsilon=0.):
-        """Instantiate a special Euclidean group.
+#     def __new__(cls, n, point_type='matrix', epsilon=0.):
+#         """Instantiate a special Euclidean group.
 
-        Select the object to instantiate depending on the point_type.
-        """
-        if n == 2 and point_type == 'vector':
-            return _SpecialEuclidean2Vectors(epsilon)
-        if n == 3 and point_type == 'vector':
-            return _SpecialEuclidean3Vectors(epsilon)
-        if point_type == 'vector':
-            raise NotImplementedError(
-                'SE(n) is only implemented in matrix representation'
-                ' when n > 3.')
-        return _SpecialEuclideanMatrices(n)
+#         Select the object to instantiate depending on the point_type.
+#         """
+#         if n == 2 and point_type == 'vector':
+#             return _SpecialEuclidean2Vectors(epsilon)
+#         if n == 3 and point_type == 'vector':
+#             return _SpecialEuclidean3Vectors(epsilon)
+#         if point_type == 'vector':
+#             raise NotImplementedError(
+#                 'SE(n) is only implemented in matrix representation'
+#                 ' when n > 3.')
+#         return _SpecialEuclideanMatrices(n)
 
 
 class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):

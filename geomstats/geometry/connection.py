@@ -37,6 +37,24 @@ class Connection:
         self.dim = dim
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
+        self.manifold = None
+
+    def setManifold(self, manifold):
+        """Set the manifold associated to this metric
+
+        Args:
+            manifold : the new manifold to set
+        """
+        self.manifold = manifold
+        
+    @classmethod
+    def name(cls) -> str:
+        """Get the name of this metric
+
+        Returns:
+            str: the metric's name
+        """
+        return cls.__name__
 
     def christoffels(self, base_point):
         """Christoffel symbols associated with the connection.
