@@ -6,7 +6,6 @@ import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 
 
-
 class GeneralLinear(Matrices):
     """Class for the general linear group GL(n).
 

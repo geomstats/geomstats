@@ -9,7 +9,6 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-
 class Hyperbolic(Manifold):
     """Class for the n-dimensional hyperbolic space.
 

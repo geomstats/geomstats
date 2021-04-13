@@ -8,8 +8,6 @@ from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import EuclideanMetric
 
 
-
-
 class Matrices:
     """Class for the space of matrices (m, n).
 

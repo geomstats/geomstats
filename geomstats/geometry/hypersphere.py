@@ -17,6 +17,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = gs.atol
 
+
 class _Hypersphere(EmbeddedManifold):
     """Private class for the n-dimensional hypersphere.
 

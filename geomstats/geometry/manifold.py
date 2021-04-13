@@ -4,11 +4,10 @@ In other words, a topological space that locally resembles
 Euclidean space near each point.
 """
 
-import geomstats.errors
 import geomstats.backend as gs
+import geomstats.errors
 
 ATOL = gs.atol
-
 
 
 class Manifold:

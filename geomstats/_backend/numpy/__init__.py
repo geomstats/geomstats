@@ -103,9 +103,12 @@ DTYPES = {
     dtype('int64'): 1,
     dtype('float32'): 2,
     dtype('float64'): 3}
-    
+
+
 atol = 1e-12
 rtol = 1e-6
+
+
 def to_numpy(x):
     return x
 
