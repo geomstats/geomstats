@@ -11,7 +11,6 @@ from scipy.stats import beta
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-import geomstats.vectorization
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
@@ -197,7 +196,6 @@ class _Hypersphere(EmbeddedManifold):
 
         return point_extrinsic
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def tangent_spherical_to_extrinsic(self, tangent_vec_spherical,
                                        base_point_spherical):
         """Convert tangent vector from spherical to extrinsic coordinates.
@@ -225,19 +223,17 @@ class _Hypersphere(EmbeddedManifold):
                 ' to extrinsic coordinates is implemented'
                 ' only in dimension 2.')
 
-        n_samples = base_point_spherical.shape[0]
-        theta = base_point_spherical[:, 0]
-        phi = base_point_spherical[:, 1]
+        axes = (2, 0, 1) if base_point_spherical.ndim == 2 else (0, 1)
+        theta = base_point_spherical[..., 0]
+        phi = base_point_spherical[..., 1]
 
-        zeros = gs.zeros(n_samples)
+        zeros = gs.zeros_like(theta)
 
-        jac = gs.concatenate([gs.array([[
-            [gs.cos(theta[i]) * gs.cos(phi[i]),
-             - gs.sin(theta[i]) * gs.sin(phi[i])],
-            [gs.cos(theta[i]) * gs.sin(phi[i]),
-             gs.sin(theta[i]) * gs.cos(phi[i])],
-            [- gs.sin(theta[i]),
-             zeros[i]]]]) for i in range(n_samples)], axis=0)
+        jac = gs.array([
+            [gs.cos(theta) * gs.cos(phi), - gs.sin(theta) * gs.sin(phi)],
+            [gs.cos(theta) * gs.sin(phi), gs.sin(theta) * gs.cos(phi)],
+            [- gs.sin(theta), zeros]])
+        jac = gs.transpose(jac, axes)
 
         tangent_vec_extrinsic = gs.einsum(
             '...ij,...j->...i', jac, tangent_vec_spherical)
@@ -374,12 +370,16 @@ class _Hypersphere(EmbeddedManifold):
         n_samples : int
             Number of samples.
             Optional, default: 1.
+        max_iter : int
+            Maximum number of trials in the rejection algorithm. In case it
+            is reached, the current number of samples < n_samples is returned.
+            Optional, default: 100.
 
         Returns
         -------
-        point : array-like, shape=[..., 3]
+        point : array-like, shape=[n_samples, dim + 1]
             Points sampled on the sphere in extrinsic coordinates
-            in Euclidean space of dimension 3.
+            in Euclidean space of dimension dim + 1.
         """
         dim = self.dim
 
@@ -439,6 +439,51 @@ class _Hypersphere(EmbeddedManifold):
             sample = coord_rest + coord_z[:, None] * mu[None, :]
 
         return sample if n_samples > 1 else sample[0]
+
+    def random_riemannian_normal(
+            self, mean=None, precision=None, n_samples=1, max_iter=100):
+        dim = self.dim
+        n_accepted, n_iter = 0, 0
+        result = []
+        if precision is None:
+            precision = gs.eye(self.dim)
+        precision_2 = precision + (dim - 1) / gs.pi * gs.eye(dim)
+        tangent_cov = gs.linalg.inv(precision_2)
+
+        def threshold(v):
+            squared_norm = gs.sum(v ** 2, axis=-1)
+            sinc = utils.taylor_exp_even_func(
+                squared_norm, utils.sinc_close_0) ** (dim - 1)
+            threshold_val = sinc * gs.exp(squared_norm * (dim - 1) / 2 / gs.pi)
+            return threshold_val, squared_norm ** .5
+
+        while (n_accepted < n_samples) and (n_iter < max_iter):
+            envelope = gs.random.multivariate_normal(
+                gs.zeros(dim), tangent_cov, size=(n_samples - n_accepted,))
+            thresh, norm = threshold(envelope)
+            proposal = gs.random.rand(n_samples - n_accepted)
+            criterion = gs.logical_and(norm <= gs.pi, proposal <= thresh)
+            result.append(envelope[criterion])
+            n_accepted += gs.sum(criterion)
+            n_iter += 1
+        if n_accepted < n_samples:
+            logging.warning(
+                'Maximum number of iteration reached in rejection '
+                'sampling before n_samples were accepted.')
+        tangent_sample_intr = gs.concatenate(result)
+        tangent_sample = gs.concatenate(
+            [gs.zeros(n_accepted)[:, None], tangent_sample_intr], axis=1)
+
+        metric = HypersphereMetric(dim)
+        if mean is not None:
+            north_pole = gs.array([0.] * dim + [1.])
+            mean_from_north = metric.log(mean, north_pole)
+            tangent_sample_at_pt = metric.parallel_transport(
+                tangent_sample, mean_from_north, north_pole)
+        else:
+            tangent_sample_at_pt = tangent_sample
+        sample = metric.exp(tangent_sample_at_pt, mean)
+        return sample[0] if (n_samples == 1) else sample
 
 
 class HypersphereMetric(RiemannianMetric):
@@ -529,7 +574,6 @@ class HypersphereMetric(RiemannianMetric):
 
         return exp
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
