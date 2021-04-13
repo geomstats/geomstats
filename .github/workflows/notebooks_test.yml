@@ -44,4 +44,4 @@ jobs:
 
       - name: unit testing [nose2]
         run: |
-          nose2 --with-coverage tests.notebook_test
+          nose2 --with-coverage tests.test_notebooks
