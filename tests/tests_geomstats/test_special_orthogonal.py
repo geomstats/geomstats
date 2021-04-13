@@ -115,3 +115,10 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         point = group.projection(mat)
         result = group.belongs(point, atol=1e-4)
         self.assertTrue(gs.all(result))
+
+    def test_skew_to_vec_and_back(self):
+        group = SpecialOrthogonal(n=4)
+        vec = gs.random.rand(group.dim)
+        mat = group.skew_matrix_from_vector(vec)
+        result = group.vector_from_skew_matrix(mat)
+        self.assertAllClose(result, vec)
