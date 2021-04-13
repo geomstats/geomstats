@@ -542,3 +542,21 @@ class TestHyperbolic(geomstats.tests.TestCase):
         result = distance_scaled_metric
         expected = scale * distance_default_metric
         self.assertAllClose(result, expected)
+
+    def test_is_tangent(self):
+        base_point = gs.array([4.0, 1., 3.0, math.sqrt(5.)])
+        point = gs.array([2.0, 1.0, 1.0, 1.0])
+
+        log = self.metric.log(point=point, base_point=base_point)
+        result = self.space.is_tangent(log, base_point)
+        self.assertTrue(result)
+
+    @geomstats.tests.np_and_tf_only
+    def test_parallel_transport_vectorization(self):
+        space = self.space
+        shape = (4, space.dim + 1)
+        metric = space.metric
+
+        results = helper.test_parallel_transport(space, metric, shape)
+        for res in results:
+            self.assertTrue(res)
