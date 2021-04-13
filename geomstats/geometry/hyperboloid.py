@@ -150,6 +150,28 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
         return tangent_vec
 
+    def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim + 1]
+            Vector.
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the manifold.
+            Optional, default: none.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-6.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        product = self.embedding_metric.inner_product(vector, base_point)
+        return gs.isclose(product, 0., atol=atol)
+
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert from intrinsic to extrinsic coordinates.
 
@@ -224,7 +246,7 @@ class HyperboloidMetric(HyperbolicMetric):
 
         self.scale = scale
 
-    def inner_product_matrix(self, base_point=None):
+    def metric_matrix(self, base_point=None):
         """Compute the inner product matrix.
 
         Parameters
@@ -238,7 +260,7 @@ class HyperboloidMetric(HyperbolicMetric):
         inner_prod_mat: array-like, shape=[..., dim+1, dim + 1]
             Inner-product matrix.
         """
-        self.embedding_metric.inner_product_matrix(base_point)
+        self.embedding_metric.metric_matrix(base_point)
 
     def _inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -371,3 +393,34 @@ class HyperboloidMetric(HyperbolicMetric):
         dist = gs.arccosh(cosh_angle)
         dist *= self.scale
         return dist
+
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        """Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector a
+        along the geodesic defined by exp_(base_point)(tangent_vec_b).
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim + 1]
+            Tangent vector at base point to be transported.
+        tangent_vec_b : array-like, shape=[..., dim + 1]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the hypersphere.
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[..., dim + 1]
+            Transported tangent vector at exp_(base_point)(tangent_vec_b).
+        """
+        theta = self.embedding_metric.norm(tangent_vec_b)
+        normalized_b = gs.einsum('...,...i->...i', 1 / theta, tangent_vec_b)
+        pb = self.embedding_metric.inner_product(tangent_vec_a, normalized_b)
+        p_orth = tangent_vec_a - gs.einsum('...,...i->...i', pb, normalized_b)
+        transported = \
+            gs.einsum('...,...i->...i', gs.sinh(theta) * pb, base_point)\
+            + gs.einsum('...,...i->...i', gs.cosh(theta) * pb, normalized_b)\
+            + p_orth
+        return transported

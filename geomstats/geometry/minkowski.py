@@ -38,7 +38,7 @@ class Minkowski(Manifold):
 
         return belongs
 
-    def random_uniform(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.):
         """Sample in the Minkowski space from the uniform distribution.
 
         Parameters
@@ -79,7 +79,7 @@ class MinkowskiMetric(RiemannianMetric):
             dim=dim,
             signature=(dim - 1, 1, 0))
 
-    def inner_product_matrix(self, base_point=None):
+    def metric_matrix(self, base_point=None):
         """Compute the inner product matrix, independent of the base point.
 
         Parameters

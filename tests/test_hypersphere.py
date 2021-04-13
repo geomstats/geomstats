@@ -1,12 +1,14 @@
 """Unit tests for the Hypersphere."""
 
 import scipy.special
+import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.matrices import Matrices
 
-MEAN_ESTIMATION_TOL = 1e-6
+MEAN_ESTIMATION_TOL = 1e-3
 KAPPA_ESTIMATION_TOL = 1e-2
 ONLINE_KMEANS_TOL = 2e-2
 
@@ -416,7 +418,6 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_dist_pairwise(self):
 
         point_a = (1. / gs.sqrt(129.)
@@ -431,6 +432,15 @@ class TestHypersphere(geomstats.tests.TestCase):
                              [1.24864502, 0.]])
 
         self.assertAllClose(result, expected, rtol=1e-3)
+
+    def test_dist_pairwise_parallel(self):
+        n_samples = 15
+        points = self.space.random_uniform(n_samples)
+        result = self.metric.dist_pairwise(points, n_jobs=2, prefer='threads')
+        is_sym = Matrices.is_symmetric(result)
+        belongs = Matrices(n_samples, n_samples).belongs(result)
+        self.assertTrue(is_sym)
+        self.assertTrue(belongs)
 
     def test_dist_orthogonal_points(self):
         # Distance between two orthogonal points is pi / 2.
@@ -558,36 +568,9 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = gs.array([0.])
         self.assertAllClose(expected, result)
 
-        tangent_vec_a = gs.array([1., 0., 0., 0., 0.])
-        tangent_vec_b = gs.array([0., 1., 0., 0., 0.])
-        base_point = gs.array([[0., 0., 0., 0., 1.]])
-
-        result = self.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array([0.])
-        self.assertAllClose(expected, result)
-
         tangent_vec_a = gs.array([[1., 0., 0., 0., 0.]])
         tangent_vec_b = gs.array([[0., 1., 0., 0., 0.]])
         base_point = gs.array([0., 0., 0., 0., 1.])
-
-        result = self.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array([0.])
-        self.assertAllClose(expected, result)
-
-        tangent_vec_a = gs.array([1., 0., 0., 0., 0.])
-        tangent_vec_b = gs.array([[0., 1., 0., 0., 0.]])
-        base_point = gs.array([[0., 0., 0., 0., 1.]])
-
-        result = self.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array([0.])
-        self.assertAllClose(expected, result)
-
-        tangent_vec_a = gs.array([[1., 0., 0., 0., 0.]])
-        tangent_vec_b = gs.array([0., 1., 0., 0., 0.])
-        base_point = gs.array([[0., 0., 0., 0., 1.]])
 
         result = self.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point)
@@ -626,48 +609,76 @@ class TestHypersphere(geomstats.tests.TestCase):
         result = test > 0
         self.assertTrue(result)
 
-    def test_sample_von_mises_fisher(self):
+    def test_sample_von_mises_fisher_arbitrary_mean(self):
         """
         Check that the maximum likelihood estimates of the mean and
         concentration parameter are close to the real values. A first
         estimation of the concentration parameter is obtained by a
         closed-form expression and improved through the Newton method.
         """
-        dim = 2
-        n_points = 1000000
-        sphere = Hypersphere(dim)
+        for dim in [2, 9]:
+            n_points = 10000
+            sphere = Hypersphere(dim)
 
-        # check mean value for concentrated distribution
-        kappa = 10000000
-        points = sphere.random_von_mises_fisher(kappa, n_points)
-        sum_points = gs.sum(points, axis=0)
-        mean = gs.array([0., 0., 1.])
-        mean_estimate = sum_points / gs.linalg.norm(sum_points)
-        expected = mean
-        result = mean_estimate
-        self.assertTrue(
-            gs.allclose(result, expected, atol=MEAN_ESTIMATION_TOL)
-        )
+            # check mean value for concentrated distribution for different mean
+            kappa = 1000.
+            mean = sphere.random_uniform()
+            points = sphere.random_von_mises_fisher(
+                mu=mean, kappa=kappa, n_samples=n_points)
+            sum_points = gs.sum(points, axis=0)
+            result = sum_points / gs.linalg.norm(sum_points)
+            expected = mean
+            self.assertAllClose(result, expected, atol=MEAN_ESTIMATION_TOL)
+
+    def test_random_von_mises_kappa(self):
         # check concentration parameter for dispersed distribution
         kappa = 1.
-        points = sphere.random_von_mises_fisher(kappa, n_points)
-        sum_points = gs.sum(points, axis=0)
-        mean_norm = gs.linalg.norm(sum_points) / n_points
-        kappa_estimate = (mean_norm * (dim + 1. - mean_norm**2)
-                          / (1. - mean_norm**2))
-        kappa_estimate = gs.cast(kappa_estimate, gs.float64)
-        p = dim + 1
-        n_steps = 100
-        for _ in range(n_steps):
-            bessel_func_1 = scipy.special.iv(p / 2., kappa_estimate)
-            bessel_func_2 = scipy.special.iv(p / 2. - 1., kappa_estimate)
-            ratio = bessel_func_1 / bessel_func_2
-            denominator = 1. - ratio**2 - (p - 1.) * ratio / kappa_estimate
-            mean_norm = gs.cast(mean_norm, gs.float64)
-            kappa_estimate = kappa_estimate - (ratio - mean_norm) / denominator
-        result = kappa_estimate
-        expected = kappa
-        self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
+        n_points = 100000
+        for dim in [2, 9]:
+            sphere = Hypersphere(dim)
+            points = sphere.random_von_mises_fisher(
+                kappa=kappa, n_samples=n_points)
+            sum_points = gs.sum(points, axis=0)
+            mean_norm = gs.linalg.norm(sum_points) / n_points
+            kappa_estimate = (mean_norm * (dim + 1. - mean_norm**2)
+                              / (1. - mean_norm**2))
+            kappa_estimate = gs.cast(kappa_estimate, gs.float64)
+            p = dim + 1
+            n_steps = 100
+            for _ in range(n_steps):
+                bessel_func_1 = scipy.special.iv(p / 2., kappa_estimate)
+                bessel_func_2 = scipy.special.iv(p / 2. - 1., kappa_estimate)
+                ratio = bessel_func_1 / bessel_func_2
+                denominator = 1. - ratio**2 - (p - 1.) * ratio / kappa_estimate
+                mean_norm = gs.cast(mean_norm, gs.float64)
+                kappa_estimate = (
+                    kappa_estimate - (ratio - mean_norm) / denominator)
+            result = kappa_estimate
+            expected = kappa
+            self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
+
+    def test_random_von_mises_general_dim_mean(self):
+        for dim in [2, 9]:
+            sphere = Hypersphere(dim)
+            n_points = 100000
+
+            # check mean value for concentrated distribution
+            kappa = 10
+            points = sphere.random_von_mises_fisher(
+                kappa=kappa, n_samples=n_points)
+            sum_points = gs.sum(points, axis=0)
+            expected = gs.array([0.] * dim + [1.])
+            result = sum_points / gs.linalg.norm(sum_points)
+            self.assertAllClose(
+                result, expected, atol=KAPPA_ESTIMATION_TOL)
+
+    def test_random_von_mises_one_sample_belongs(self):
+        for dim in [2, 9]:
+            sphere = Hypersphere(dim)
+            point = sphere.random_von_mises_fisher()
+            self.assertAllClose(point.shape, (dim + 1, ))
+            result = sphere.belongs(point)
+            self.assertTrue(result)
 
     def test_spherical_to_extrinsic(self):
         """
@@ -729,49 +740,40 @@ class TestHypersphere(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_parallel_transport_vectorization(self):
         sphere = Hypersphere(2)
-        n_samples = 4
+        metric = sphere.metric
+        shape = (4, 3)
 
-        def is_isometry(tan_a, trans_a, endpoint):
-            is_tangent = gs.isclose(
-                sphere.metric.inner_product(endpoint, trans_a), 0., atol=1e-6)
-            is_equinormal = gs.isclose(
-                gs.linalg.norm(trans_a, axis=-1),
-                gs.linalg.norm(tan_a, axis=-1))
-            return gs.logical_and(is_tangent, is_equinormal)
+        results = helper.test_parallel_transport(sphere, metric, shape)
+        for res in results:
+            self.assertTrue(res)
 
-        base_point = sphere.random_uniform(n_samples)
-        tan_vec_a = sphere.to_tangent(gs.random.rand(n_samples, 3), base_point)
-        tan_vec_b = sphere.to_tangent(gs.random.rand(n_samples, 3), base_point)
-        end_point = sphere.metric.exp(tan_vec_b, base_point)
+    def test_is_tangent(self):
+        space = self.space
+        vec = space.random_uniform()
+        result = space.is_tangent(vec, vec)
+        self.assertFalse(result)
 
-        transported = sphere.metric.parallel_transport(
-            tan_vec_a, tan_vec_b, base_point)
-        result = is_isometry(tan_vec_a, transported, end_point)
-        self.assertTrue(gs.all(result))
-
-        base_point = base_point[0]
-        tan_vec_a = sphere.to_tangent(tan_vec_a, base_point)
-        tan_vec_b = sphere.to_tangent(tan_vec_b, base_point)
-        end_point = sphere.metric.exp(tan_vec_b, base_point)
-        transported = sphere.metric.parallel_transport(
-            tan_vec_a, tan_vec_b, base_point)
-        result = is_isometry(tan_vec_a, transported, end_point)
-        self.assertTrue(gs.all(result))
-
-        one_tan_vec_a = tan_vec_a[0]
-        transported = sphere.metric.parallel_transport(
-            one_tan_vec_a, tan_vec_b, base_point)
-        result = is_isometry(one_tan_vec_a, transported, end_point)
-        self.assertTrue(gs.all(result))
-
-        one_tan_vec_b = tan_vec_b[0]
-        end_point = end_point[0]
-        transported = sphere.metric.parallel_transport(
-            tan_vec_a, one_tan_vec_b, base_point)
-        result = is_isometry(tan_vec_a, transported, end_point)
-        self.assertTrue(gs.all(result))
-
-        transported = sphere.metric.parallel_transport(
-            one_tan_vec_a, one_tan_vec_b, base_point)
-        result = is_isometry(one_tan_vec_a, transported, end_point)
+        base_point = space.random_uniform()
+        tangent_vec = space.to_tangent(vec, base_point)
+        result = space.is_tangent(tangent_vec, base_point)
         self.assertTrue(result)
+
+        base_point = space.random_uniform(2)
+        vec = space.random_uniform(2)
+        tangent_vec = space.to_tangent(vec, base_point)
+        result = space.is_tangent(tangent_vec, base_point)
+        self.assertAllClose(gs.shape(result), (2, ))
+        self.assertTrue(gs.all(result))
+
+    def test_sectional_curvature(self):
+        n_samples = 4
+        sphere = self.space
+        base_point = sphere.random_uniform(n_samples)
+        tan_vec_a = sphere.to_tangent(
+            gs.random.rand(n_samples, sphere.dim + 1), base_point)
+        tan_vec_b = sphere.to_tangent(
+            gs.random.rand(n_samples, sphere.dim + 1), base_point)
+        result = sphere.metric.sectional_curvature(
+            tan_vec_a, tan_vec_b, base_point)
+        expected = gs.ones(result.shape)
+        self.assertAllClose(result, expected)

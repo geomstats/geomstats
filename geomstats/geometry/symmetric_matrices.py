@@ -34,6 +34,8 @@ class SymmetricMatrices(EmbeddedManifold):
         ----------
         mat : array-like, shape=[..., n, n]
             Matrix to check.
+        atol : float
+            Tolerance to evaluate equality.
 
         Returns
         -------
@@ -43,21 +45,60 @@ class SymmetricMatrices(EmbeddedManifold):
         check_shape = self.embedding_manifold.belongs(mat)
         return gs.logical_and(check_shape, Matrices.is_symmetric(mat, atol))
 
+    def random_point(self, n_samples=1, bound=1.):
+        """Sample from a uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample each entry.
+            Optional, default: 1.
+
+        Returns
+        -------
+        point : array-like, shape=[m, n] or [n_samples, m, n]
+            Sample.
+        """
+        return Matrices.to_symmetric(Matrices.random_point(n_samples, bound))
+
     def get_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
-        basis = [
-            gs.array_from_sparse([
-                (row, col), (col, row)], [1., 1.], (self.n, self.n))
-            for row in gs.arange(self.n)
-            for col in gs.arange(row, self.n)]
-        basis = gs.stack(
-            basis) * (gs.ones((self.n, self.n)) - 1. / 2 * gs.eye(self.n))
+        basis = []
+        for row in gs.arange(self.n):
+            for col in gs.arange(row, self.n):
+                if row == col:
+                    indices = [(row, row)]
+                    values = [1.]
+                else:
+                    indices = [(row, col), (col, row)]
+                    values = [1., 1.]
+                basis.append(gs.array_from_sparse(
+                    indices, values, (self.n, ) * 2))
+        basis = gs.stack(basis)
         return basis
 
     basis = property(get_basis)
 
     @staticmethod
-    @geomstats.vectorization.decorator(['matrix'])
+    def projection(point):
+        """Make a matrix symmetric, by averaging with its transpose.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        sym : array-like, shape=[..., n, n]
+            Symmetric matrix.
+        """
+        return Matrices.to_symmetric(point)
+
+    @staticmethod
     def to_vector(mat):
         """Convert a symmetric matrix into a vector.
 
@@ -74,14 +115,7 @@ class SymmetricMatrices(EmbeddedManifold):
         if not gs.all(Matrices.is_symmetric(mat)):
             logging.warning('non-symmetric matrix encountered.')
         mat = Matrices.to_symmetric(mat)
-        _, dim, _ = mat.shape
-        indices_i, indices_j = gs.triu_indices(dim)
-        vec = []
-        for i, j in zip(indices_i, indices_j):
-            vec.append(mat[:, i, j])
-        vec = gs.stack(vec, axis=1)
-
-        return vec
+        return gs.triu_to_vec(mat)
 
     @staticmethod
     @geomstats.vectorization.decorator(['vector', 'else'])
@@ -92,6 +126,9 @@ class SymmetricMatrices(EmbeddedManifold):
         ----------
         vec : array-like, shape=[..., n(n+1)/2]
             Vector.
+        dtype : dtype, {gs.float32, gs.float64}
+            Data type object to use for the output.
+            Optional. Default: gs.float32.
 
         Returns
         -------
@@ -114,7 +151,6 @@ class SymmetricMatrices(EmbeddedManifold):
         return mat
 
     @classmethod
-    @geomstats.vectorization.decorator(['else', 'matrix'])
     def expm(cls, mat):
         """
         Compute the matrix exponential for a symmetric matrix.
@@ -140,17 +176,22 @@ class SymmetricMatrices(EmbeddedManifold):
         ----------
         mat : array_like, shape=[..., n, n]
             Symmetric matrix with non-negative eigenvalues.
-        power : float
-            Power at which mat will be raised.
+        power : float, list
+            Power at which mat will be raised. If a list of powers is passed,
+            a list of results will be returned.
 
         Returns
         -------
-        powerm : array_like, shape=[..., n, n]
+        powerm : array_like or list of arrays, shape=[..., n, n]
             Matrix power of mat.
         """
-        def _power(eigvals):
-            return gs.power(eigvals, power)
-        return cls.apply_func_to_eigvals(mat, _power, check_positive=True)
+        if isinstance(power, list):
+            power_ = [lambda ev, p=p: gs.power(ev, p) for p in power]
+        else:
+            def power_(ev):
+                return gs.power(ev, power)
+        return cls.apply_func_to_eigvals(
+            mat, power_, check_positive=True)
 
     @staticmethod
     def apply_func_to_eigvals(mat, function, check_positive=False):
@@ -161,8 +202,12 @@ class SymmetricMatrices(EmbeddedManifold):
         ----------
         mat : array_like, shape=[..., n, n]
             Symmetric matrix.
-        function : callable
-            Function to apply to eigenvalues.
+        function : callable, list of callables
+            Function to apply to eigenvalues. If a list of functions is passed,
+            a list of results will be returned.
+        check_positive : bool
+            Whether to check positivity of the eigenvalues.
+            Optional. Default: False.
 
         Returns
         -------
@@ -175,9 +220,15 @@ class SymmetricMatrices(EmbeddedManifold):
                 logging.warning(
                     'Negative eigenvalue encountered in'
                     ' {}'.format(function.__name__))
-        eigvals = function(eigvals)
-        eigvals = algebra_utils.from_vector_to_diagonal_matrix(eigvals)
+        return_list = True
+        if not isinstance(function, list):
+            function = [function]
+            return_list = False
+        reconstruction = []
         transp_eigvecs = Matrices.transpose(eigvecs)
-        reconstuction = gs.matmul(eigvecs, eigvals)
-        reconstuction = gs.matmul(reconstuction, transp_eigvecs)
-        return reconstuction
+        for fun in function:
+            eigvals_f = fun(eigvals)
+            eigvals_f = algebra_utils.from_vector_to_diagonal_matrix(eigvals_f)
+            reconstruction.append(
+                Matrices.mul(eigvecs, eigvals_f, transp_eigvecs))
+        return reconstruction if return_list else reconstruction[0]

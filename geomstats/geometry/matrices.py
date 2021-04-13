@@ -4,14 +4,14 @@ from functools import reduce
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.geometry.manifold import Manifold
 
 
 TOLERANCE = 1e-5
 
 
-class Matrices(Manifold):
+class Matrices:
     """Class for the space of matrices (m, n).
 
     Parameters
@@ -20,13 +20,12 @@ class Matrices(Manifold):
         Integers representing the shapes of the matrices: m x n.
     """
 
-    def __init__(self, m, n):
-        super(Matrices, self).__init__(dim=m * n)
+    def __init__(self, m, n, **kwargs):
+        super(Matrices, self).__init__(**kwargs)
         geomstats.errors.check_integer(n, 'n')
         geomstats.errors.check_integer(m, 'm')
         self.m = m
         self.n = n
-        self.default_point_type = 'matrix'
         self.metric = MatricesMetric(m, n)
 
     def belongs(self, point):
@@ -42,9 +41,8 @@ class Matrices(Manifold):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the Matrices space.
         """
-        point = gs.to_ndarray(point, to_ndim=3)
-        _, mat_dim_1, mat_dim_2 = point.shape
-        return mat_dim_1 == self.m & mat_dim_2 == self.n
+        mat_dim_1, mat_dim_2 = point.shape[-2:]
+        return (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
 
     @staticmethod
     def equal(mat_a, mat_b, atol=TOLERANCE):
@@ -220,7 +218,33 @@ class Matrices(Manifold):
         """
         return 1 / 2 * (mat - cls.transpose(mat))
 
-    def random_uniform(self, n_samples=1, bound=1.):
+    @classmethod
+    def is_diagonal(cls, mat, atol=TOLERANCE):
+        """Check if a matrix is square and diagonal.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-5.
+
+        Returns
+        -------
+        is_diagonal : array-like, shape=[...,]
+            Boolean evaluating if the matrix is square and diagonal.
+        """
+        is_square = cls.is_square(mat)
+        if not gs.all(is_square):
+            return False
+        diagonal_mat = from_vector_to_diagonal_matrix(
+            gs.diagonal(mat, axis1=-2, axis2=-1))
+        is_diagonal = gs.all(
+            gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
+        return is_diagonal
+
+    def random_point(self, n_samples=1, bound=1.):
         """Sample from a uniform distribution.
 
         Parameters
@@ -229,7 +253,7 @@ class Matrices(Manifold):
             Number of samples.
             Optional, default: 1.
         bound : float
-            Bound.
+            Bound of the interval in which to sample each entry.
             Optional, default: 1.
 
         Returns
@@ -262,6 +286,50 @@ class Matrices(Manifold):
         """
         return cls.mul(mat_2, mat_1, cls.transpose(mat_2))
 
+    @staticmethod
+    def frobenius_product(mat_1, mat_2):
+        """Compute Frobenius inner-product of two matrices.
+
+        The `einsum` function is used to avoid computing a matrix product. It
+        is also faster than using a sum an element-wise product.
+
+        Parameters
+        ----------
+        mat_1 : array-like, shape=[..., m, n]
+            Matrix.
+        mat_2 : array-like, shape=[..., m, n]
+            Matrix.
+
+        Returns
+        -------
+        product : array-like, shape=[...,]
+            Frobenius inner-product of mat_1 and mat_2
+        """
+        return gs.einsum(
+            '...ij,...ij->...', mat_1, mat_2)
+
+    @staticmethod
+    def trace_product(mat_1, mat_2):
+        """Compute trace of the product of two matrices.
+
+        The `einsum` function is used to avoid computing a matrix product. It
+        is also faster than using a sum an element-wise product.
+
+        Parameters
+        ----------
+        mat_1 : array-like, shape=[..., m, n]
+            Matrix.
+        mat_2 : array-like, shape=[..., m, n]
+            Matrix.
+
+        Returns
+        -------
+        product : array-like, shape=[...,]
+            Frobenius inner-product of mat_1 and mat_2
+        """
+        return gs.einsum(
+            '...ij,...ji->...', mat_1, mat_2)
+
 
 class MatricesMetric(EuclideanMetric):
     """Euclidean metric on matrices given by Frobenius inner-product.
@@ -278,7 +346,7 @@ class MatricesMetric(EuclideanMetric):
             dim=dimension, default_point_type='matrix')
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute Frobenius inner-product of two tan vecs at `base_point`.
+        """Compute Frobenius inner-product of two tangent vectors.
 
         Parameters
         ----------
@@ -295,6 +363,4 @@ class MatricesMetric(EuclideanMetric):
         inner_prod : array-like, shape=[...,]
             Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
-        inner_prod = gs.einsum(
-            '...ij,...ij->...', tangent_vec_a, tangent_vec_b)
-        return inner_prod
+        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)

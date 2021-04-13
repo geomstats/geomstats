@@ -6,6 +6,9 @@ import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 
 
+ATOL = 1e-6
+
+
 class GeneralLinear(Matrices):
     """Class for the general linear group GL(n).
 
@@ -16,8 +19,7 @@ class GeneralLinear(Matrices):
     """
 
     def __init__(self, n, **kwargs):
-        Matrices.__init__(self, n, n)
-
+        super(GeneralLinear, self).__init__(n=n, m=n, **kwargs)
         self.n = n
 
     def belongs(self, point):
@@ -69,7 +71,7 @@ class GeneralLinear(Matrices):
             product(replaced_indices, range(self.n), range(self.n)))
         return gs.assignment(samples, gs.flatten(new_samples), value_indices)
 
-    def random_uniform(self, n_samples=1, tol=1e-6):
+    def random_point(self, n_samples=1, bound=1.):
         """Sample in GL(n) from the uniform distribution.
 
         Parameters
@@ -77,24 +79,24 @@ class GeneralLinear(Matrices):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        tol: float
-            Threshold for the absolute value of the determinant of the
-            returned matrix.
-            Optional, default: 1e-6.
+        bound: float
+            Bound of the interval in which to sample each matrix entry.
+            Optional, default: 1.
 
         Returns
         -------
         samples : array-like, shape=[..., n, n]
             Point sampled on GL(n).
         """
-        samples = gs.random.rand(n_samples, self.n, self.n)
+        samples = gs.random.normal(size=(n_samples, self.n, self.n))
         while True:
             dets = gs.linalg.det(samples)
-            indcs = gs.isclose(dets, 0.0, atol=tol)
+            indcs = gs.isclose(dets, 0.0, atol=ATOL)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
-            new_samples = gs.random.rand(num_bad_samples, self.n, self.n)
+            new_samples = gs.random.normal(
+                size=(num_bad_samples, self.n, self.n))
             samples = self._replace_values(samples, new_samples, indcs)
         if n_samples == 1:
             samples = gs.squeeze(samples, axis=0)

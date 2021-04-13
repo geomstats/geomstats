@@ -48,14 +48,14 @@ class TestHyperbolic(geomstats.tests.TestCase):
             lambda: self.space.extrinsic_to_intrinsic_coords(point))
 
     def test_random_uniform_and_belongs(self):
-        point = self.space.random_uniform()
+        point = self.space.random_point()
         result = self.space.belongs(point)
         expected = True
 
         self.assertAllClose(result, expected)
 
     def test_random_uniform(self):
-        result = self.space.random_uniform()
+        result = self.space.random_point()
 
         self.assertAllClose(gs.shape(result), (self.dimension + 1,))
 
@@ -161,8 +161,8 @@ class TestHyperbolic(geomstats.tests.TestCase):
         h5 = Hyperboloid(dim=dim)
         h5_metric = h5.metric
 
-        base_point = h5.random_uniform()
-        point = h5.random_uniform()
+        base_point = h5.random_point()
+        point = h5.random_point()
         point = gs.cast(point, gs.float64)
         base_point = gs.cast(base_point, gs.float64)
         one_log = h5_metric.log(point=point, base_point=base_point)
@@ -402,7 +402,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
         result = self.metric.log(point=exp, base_point=base_point)
 
         expected = vector
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-5)
 
     def test_dist(self):
         # Distance between a point and itself is 0.
@@ -542,3 +542,21 @@ class TestHyperbolic(geomstats.tests.TestCase):
         result = distance_scaled_metric
         expected = scale * distance_default_metric
         self.assertAllClose(result, expected)
+
+    def test_is_tangent(self):
+        base_point = gs.array([4.0, 1., 3.0, math.sqrt(5.)])
+        point = gs.array([2.0, 1.0, 1.0, 1.0])
+
+        log = self.metric.log(point=point, base_point=base_point)
+        result = self.space.is_tangent(log, base_point)
+        self.assertTrue(result)
+
+    @geomstats.tests.np_and_tf_only
+    def test_parallel_transport_vectorization(self):
+        space = self.space
+        shape = (4, space.dim + 1)
+        metric = space.metric
+
+        results = helper.test_parallel_transport(space, metric, shape)
+        for res in results:
+            self.assertTrue(res)

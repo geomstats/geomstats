@@ -10,28 +10,27 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 
 eig = _raise_not_implemented_error
+expm = torch.matrix_exp
 logm = _raise_not_implemented_error
-powerm = _raise_not_implemented_error
+inv = torch.inverse
+det = torch.det
+
+
+def cholesky(a):
+    return torch.cholesky(a, upper=False)
 
 
 def sqrtm(x):
     np_sqrtm = np.vectorize(
         scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
-    return torch.from_numpy(np_sqrtm)
+    return torch.as_tensor(np_sqrtm, dtype=x.dtype)
 
 
-def expm(x):
-    np_expm = np.vectorize(
-        scipy.linalg.expm, signature='(n,m)->(n,m)')(x)
-    return torch.from_numpy(np_expm)
-
-
-def inv(*args, **kwargs):
-    return torch.from_numpy(np.linalg.inv(*args, **kwargs))
-
-
-def eigvalsh(*args, **kwargs):
-    return torch.from_numpy(np.linalg.eigvalsh(*args, **kwargs))
+def eigvalsh(a, **kwargs):
+    upper = False
+    if 'UPLO' in kwargs:
+        upper = (kwargs['UPLO'] == 'U')
+    return torch.symeig(a, eigenvectors=False, upper=upper)[0]
 
 
 def eigh(*args, **kwargs):
@@ -49,14 +48,27 @@ def svd(x, full_matrices=True, compute_uv=True):
     return torch.svd(x, some=not full_matrices, compute_uv=compute_uv)[1]
 
 
-def det(*args, **kwargs):
-    return torch.from_numpy(np.array(np.linalg.det(*args, **kwargs)))
-
-
-def norm(x, ord=2, axis=None):
+def norm(x, ord=None, axis=None):
     if axis is None:
-        return torch.norm(x, p=ord)
-    return torch.norm(x, p=ord, dim=axis)
+        return torch.linalg.norm(x, ord=ord)
+    return torch.linalg.norm(x, ord=ord, dim=axis)
+
+
+def solve_sylvester(a, b, q):
+    if a.shape == b.shape:
+        if torch.all(a == b) and torch.all(
+                torch.abs(a - a.transpose(-2, -1)) < 1e-6):
+            eigvals, eigvecs = eigh(a)
+            if torch.all(eigvals >= 1e-6):
+                tilde_q = eigvecs.transpose(-2, -1) @ q @ eigvecs
+                tilde_x = tilde_q / (
+                    eigvals[..., :, None] + eigvals[..., None, :])
+                return eigvecs @ tilde_x @ eigvecs.transpose(-2, -1)
+
+    solution = np.vectorize(
+        scipy.linalg.solve_sylvester,
+        signature='(m,m),(n,n),(m,n)->(m,n)')(a, b, q)
+    return torch.from_numpy(solution)
 
 
 def qr(*args, **kwargs):

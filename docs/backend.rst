@@ -2,11 +2,11 @@
 Backend
 *******
 
-.. automodule:: geomstats.backend.numpy
+.. automodule:: geomstats._backend.numpy
    :members:
 
-.. automodule:: geomstats.backend.pytorch
+.. automodule:: geomstats._backend.pytorch
    :members:
 
-.. automodule:: geomstats.backend.tensorflow
+.. automodule:: geomstats._backend.tensorflow
    :members:

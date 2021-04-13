@@ -9,8 +9,10 @@ class TestMatrices(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 
+        self.m = 2
         self.n = 3
         self.space = Matrices(m=self.n, n=self.n)
+        self.space_nonsquare = Matrices(m=self.m, n=self.n)
         self.metric = self.space.metric
         self.n_samples = 2
 
@@ -200,10 +202,45 @@ class TestMatrices(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_belongs(self):
+        base_point_square = gs.zeros((self.n, self.n))
+        base_point_nonsquare = gs.zeros((self.m, self.n))
+
+        result = self.space.belongs(base_point_square)
+        expected = True
+        self.assertAllClose(result, expected)
+        result = self.space_nonsquare.belongs(base_point_square)
+        expected = False
+        self.assertAllClose(result, expected)
+
+        result = self.space.belongs(base_point_nonsquare)
+        expected = False
+        self.assertAllClose(result, expected)
+        result = self.space_nonsquare.belongs(base_point_nonsquare)
+        expected = True
+        self.assertAllClose(result, expected)
+
+    def test_is_diagonal(self):
         base_point = gs.array([
             [1., 2., 3.],
             [0., 0., 0.],
             [3., 1., 1.]])
-        result = self.space.belongs(base_point)
-        expected = True
+        result = self.space.is_diagonal(base_point)
+        expected = False
         self.assertAllClose(result, expected)
+
+        diagonal = gs.eye(3)
+        result = self.space.is_diagonal(diagonal)
+        self.assertTrue(result)
+
+        base_point = gs.stack([base_point, diagonal])
+        result = self.space.is_diagonal(base_point)
+        expected = gs.array([False, True])
+        self.assertAllClose(result, expected)
+
+        base_point = gs.stack([diagonal] * 2)
+        result = self.space.is_diagonal(base_point)
+        self.assertTrue(gs.all(result))
+
+        base_point = gs.reshape(gs.arange(6), (2, 3))
+        result = self.space.is_diagonal(base_point)
+        self.assertTrue(~result)
