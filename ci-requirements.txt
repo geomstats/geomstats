@@ -4,4 +4,5 @@ nbsphinx
 nbsphinx_link
 pandoc
 sphinx
+sphinx_gallery
 sphinx_rtd_theme

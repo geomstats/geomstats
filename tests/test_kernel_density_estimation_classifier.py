@@ -31,8 +31,7 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
              [2.0, 0.0],
              [3.0, 0.0]])
         labels = [0, 0, 1, 1]
-        kde = KernelDensityEstimationClassifier(
-            distance=self.distance)
+        kde = KernelDensityEstimationClassifier(distance=self.distance)
         kde.fit(training_dataset, labels)
         result = kde.predict(gs.array([[1.1, 0.0]]))
         expected = gs.array([0])

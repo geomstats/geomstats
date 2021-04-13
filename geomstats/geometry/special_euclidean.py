@@ -26,7 +26,7 @@ PI8 = PI * PI7
 
 
 ATOL = 1e-5
-TOLERANCE = 1e-8
+TOLERANCE = gs.atol
 
 TAYLOR_COEFFS_1_AT_0 = [+ 1. / 2., 0.,
                         - 1. / 24., 0.,

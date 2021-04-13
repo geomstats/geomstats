@@ -11,7 +11,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 EPSILON = 1e-6
-TOLERANCE = 1e-12
+TOLERANCE = gs.atol
 
 
 class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
