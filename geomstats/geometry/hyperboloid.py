@@ -15,7 +15,6 @@ from geomstats.geometry.hyperbolic import HyperbolicMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.minkowski import MinkowskiMetric
 
-TOLERANCE = 1e-6
 EPSILON = 1e-6
 
 
@@ -53,7 +52,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         self.metric =\
             HyperboloidMetric(self.dim, self.coords_type, self.scale)
 
-    def belongs(self, point, tolerance=TOLERANCE):
+    def belongs(self, point, tolerance=gs.atol):
         """Test if a point belongs to the hyperbolic space.
 
         Test if a point belongs to the hyperbolic space in
@@ -150,7 +149,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
         return tangent_vec
 
-    def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters

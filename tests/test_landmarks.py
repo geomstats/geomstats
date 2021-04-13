@@ -78,7 +78,7 @@ class TestLandmarks(geomstats.tests.TestCase):
             tangent_vec=tangent_vec, base_point=self.landmarks_a)
         expected = self.landmarks_b
 
-        self.assertAllClose(result, expected, atol=self.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_l2_metric_inner_product_vectorization(self):

@@ -12,7 +12,7 @@ from geomstats.learning.radial_kernel_functions import \
     uniform_radial_kernel
 
 
-TOLERANCE = 1e-4
+TOLERANCE = gs.atol
 
 
 class TestRadialKernelFunctions(geomstats.tests.TestCase):

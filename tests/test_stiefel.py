@@ -84,7 +84,7 @@ class TestStiefel(geomstats.tests.TestCase):
 
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
-        result = self.space.belongs(point, tolerance=1e-4)
+        result = self.space.belongs(point)
         expected = True
 
         self.assertAllClose(result, expected)
@@ -107,14 +107,16 @@ class TestStiefel(geomstats.tests.TestCase):
         base_point = self.point_a
         point = self.point_b
 
+        base_point = gs.cast(point, gs.float64)
+        point = gs.cast(point, gs.float64)
+
         log = self.metric.log(point=point, base_point=base_point)
         is_tangent = self.space.is_tangent(log, base_point)
         self.assertTrue(is_tangent)
 
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
-
-        self.assertAllClose(result, expected, atol=ATOL)
+        self.assertAllClose(result, expected)
 
     def test_exp_and_belongs(self):
         base_point = self.point_a
@@ -133,7 +135,7 @@ class TestStiefel(geomstats.tests.TestCase):
         vector = gs.random.rand(*base_point.shape)
         tangent_vec = self.space.to_tangent(vector, base_point) / 4
         point = self.metric.exp(tangent_vec, base_point)
-        result = self.metric.log(point, base_point, max_iter=32, tol=1e-10)
+        result = self.metric.log(point, base_point, max_iter=32)
         self.assertAllClose(result, tangent_vec)
 
     def test_exp_vectorization_shape(self):
@@ -214,14 +216,14 @@ class TestStiefel(geomstats.tests.TestCase):
             tangent_vec=lifted, base_point=base_point)
         expected = point
 
-        self.assertAllClose(result, expected, atol=ATOL)
+        self.assertAllClose(result, expected)
 
         retract = self.metric.retraction(
             tangent_vec=tangent_vec, base_point=base_point)
         result = self.metric.lifting(point=retract, base_point=base_point)
         expected = tangent_vec
 
-        self.assertAllClose(result, expected, atol=ATOL)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_lifting_vectorization_shape(self):

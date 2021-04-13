@@ -2284,7 +2284,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
             expected = self.group.regularize(point)
 
-            self.assertAllClose(result, expected)
+            self.assertAllClose(result, expected, atol=1e-5)
 
     def test_quaternion_and_rotation_vector_with_angles_close_to_pi(self):
         angle_types = self.angles_close_to_pi
@@ -2326,7 +2326,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
             expected = matrix
 
-            self.assertAllClose(result, expected)
+            self.assertAllClose(result, expected, atol=1e-6)
 
         angle = gs.pi / 9.
         cos_angle = gs.cos(angle)
@@ -2790,7 +2790,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     inv_expected = - expected
 
                     self.assertTrue(
-                        gs.allclose(result, expected, atol=1e-5)
+                        gs.allclose(result, expected)
                         or gs.allclose(result, inv_expected, atol=1e-5))
 
     @geomstats.tests.np_and_pytorch_only

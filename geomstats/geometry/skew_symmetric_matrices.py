@@ -10,7 +10,7 @@ import geomstats.backend as gs
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 
 
-TOLERANCE = 1e-8
+TOLERANCE = gs.atol
 
 
 class SkewSymmetricMatrices(MatrixLieAlgebra):

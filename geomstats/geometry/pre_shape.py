@@ -12,7 +12,7 @@ from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-TOLERANCE = 1e-6
+TOLERANCE = gs.atol
 
 
 class PreShapeSpace(EmbeddedManifold, FiberBundle):

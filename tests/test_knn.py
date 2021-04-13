@@ -5,7 +5,7 @@ import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.learning.knn import KNearestNeighborsClassifier
 
-TOLERANCE = 1e-4
+TOLERANCE = gs.atol
 
 
 class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):

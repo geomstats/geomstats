@@ -310,7 +310,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
             velocity_norm.max() - velocity_norm.min())
         expected = 0.
 
-        self.assertAllClose(expected, result, atol=1e-4, rtol=1.)
+        self.assertAllClose(expected, result, rtol=1.)
 
     @geomstats.tests.np_only
     def test_geodesic_vectorization(self):

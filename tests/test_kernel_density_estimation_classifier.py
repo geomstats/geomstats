@@ -10,7 +10,7 @@ from geomstats.learning.kernel_density_estimation_classifier \
     import KernelDensityEstimationClassifier
 from geomstats.learning.radial_kernel_functions import triangular_radial_kernel
 
-TOLERANCE = 1e-4
+TOLERANCE = gs.atol
 
 
 class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
