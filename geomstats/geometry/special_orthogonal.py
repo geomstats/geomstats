@@ -146,7 +146,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         vec : array-like, shape=[..., dim]
             Vector.
         """
-        return SkewSymmetricMatrices(self.n).basis_representation(skew_mat)
+        return self.lie_algebra.basis_representation(skew_mat)
 
 
 class _SpecialOrthogonalVectors(LieGroup):
