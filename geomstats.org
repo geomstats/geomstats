@@ -1,0 +1,10 @@
+*** Index of project geomstats
+:PROPERTIES:
+:ProjectStart: <2021-03-02 Tue 16:07>
+:END:
+
+
+
+
+
+
