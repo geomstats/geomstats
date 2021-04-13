@@ -30,4 +30,5 @@ def value_and_grad(objective):
 
 
 def jacobian(f):
+    """Returns a function that returns the jacobian of a function."""
     return lambda x: torch_jac(f, x)
