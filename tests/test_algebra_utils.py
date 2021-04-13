@@ -1,7 +1,7 @@
 import math
 
-import geomstats.tests
 import geomstats.algebra_utils as utils
+import geomstats.tests
 
 
 class TestAlgebraUtils(geomstats.tests.TestCase):

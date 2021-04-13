@@ -994,7 +994,7 @@ class TestBackends(geomstats.tests.TestCase):
             return torch.sum((torch.matrix_exp(p) - torch.eye(3)) ** 2)
 
         torch_mat = torch.tensor(
-            [[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]], dtype=torch.float64, 
+            [[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]], dtype=torch.float64,
             requires_grad=True)
         value = loss_torch(torch_mat)
         value.backward()
