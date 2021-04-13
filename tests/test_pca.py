@@ -84,7 +84,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
         tangent_projected_data = tpca.fit_transform(X)
         result = tpca.inverse_transform(tangent_projected_data)
         expected = X
-        self.assertAllClose(result, expected,atol=1e-6)
+        self.assertAllClose(result, expected, atol=1e-6)
 
     @geomstats.tests.np_only
     def test_fit_transform_vector(self):
