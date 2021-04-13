@@ -52,9 +52,10 @@ jobs:
           flake8 geomstats/geometry geomstats/learning 
 
       - name: unit testing [nose2]
-        env: GEOMSTATS_BACKEND = ${{matrix.geomstats-backend}}
         run: |
           nose2 --with-coverage tests.tests_geomstats
+        env: 
+          GEOMSTATS_BACKEND = ${{matrix.geomstats-backend}}  
           
       - name: generating code coverage 
         run: |
