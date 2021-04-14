@@ -175,6 +175,7 @@ class Sphere:
                           self.sphere_y,
                           self.sphere_z,
                           color="grey", alpha=0.2)
+        ax.set_box_aspect([1., 1., 1.])
         if self.points:
             self.draw_points(ax, **scatter_kwargs)
 

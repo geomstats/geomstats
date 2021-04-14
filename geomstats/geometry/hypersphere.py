@@ -442,12 +442,62 @@ class _Hypersphere(EmbeddedManifold):
 
     def random_riemannian_normal(
             self, mean=None, precision=None, n_samples=1, max_iter=100):
+        r"""Sample from the Riemannian normal distribution.
+
+        The Riemannian normal distribution, or spherical normal in this case,
+        is defined by the probability density function (with respect to the
+        Riemannian volume measure) proportional to:
+        .. math::
+                \exp \Big \left(- \frac{\lambda}{2} \mathtm{arccos}^2(x^T\mu)
+                \Big \right)
+
+        where :math: `\mu` is the mean and :math: `\lambda` is the isotropic
+        precision. For the anisotropic case,
+        :math: `\log_{\mu}(x)^T \Lambda \log_{\mu}(x)` is used instead.
+
+        A rejection algorithm is used to sample from this distribution [Hau18]_
+
+        Parameters
+        ----------
+        mean : array-like, shape=[dim]
+            Mean parameter of the distribution.
+            Optional, default: (0,...,0,1) (the north pole).
+        precision : float or array-like, shape=[dim, dim]
+            Inverse of the covariance parameter of the normal distribution.
+            If a float is passed, the covariance matrix is precision times
+            identity.
+            Optional, default: identity.
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        max_iter : int
+            Maximum number of trials in the rejection algorithm. In case it
+            is reached, the current number of samples < n_samples is returned.
+            Optional, default: 100.
+
+        Returns
+        -------
+        point : array-like, shape=[n_samples, dim + 1]
+            Points sampled on the sphere.
+
+        References
+        ----------
+        .. [Hau18]  Hauberg, Soren. “Directional Statistics with the
+                    Spherical Normal Distribution.”
+                    In 2018 21st International Conference on Information
+                    Fusion (FUSION), 704–11, 2018.
+                    https://doi.org/10.23919/ICIF.2018.8455242.
+        """
         dim = self.dim
         n_accepted, n_iter = 0, 0
         result = []
         if precision is None:
-            precision = gs.eye(self.dim)
-        precision_2 = precision + (dim - 1) / gs.pi * gs.eye(dim)
+            precision_ = gs.eye(self.dim)
+        elif isinstance(precision, (float, int)):
+            precision_ = precision * gs.eye(self.dim)
+        else:
+            precision_ = precision
+        precision_2 = precision_ + (dim - 1) / gs.pi * gs.eye(dim)
         tangent_cov = gs.linalg.inv(precision_2)
 
         def threshold(v):
@@ -472,16 +522,17 @@ class _Hypersphere(EmbeddedManifold):
                 'sampling before n_samples were accepted.')
         tangent_sample_intr = gs.concatenate(result)
         tangent_sample = gs.concatenate(
-            [gs.zeros(n_accepted)[:, None], tangent_sample_intr], axis=1)
+            [tangent_sample_intr, gs.zeros(n_accepted)[:, None]], axis=1)
 
         metric = HypersphereMetric(dim)
+        north_pole = gs.array([0.] * dim + [1.])
         if mean is not None:
-            north_pole = gs.array([0.] * dim + [1.])
             mean_from_north = metric.log(mean, north_pole)
             tangent_sample_at_pt = metric.parallel_transport(
                 tangent_sample, mean_from_north, north_pole)
         else:
             tangent_sample_at_pt = tangent_sample
+            mean = north_pole
         sample = metric.exp(tangent_sample_at_pt, mean)
         return sample[0] if (n_samples == 1) else sample
 
