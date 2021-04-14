@@ -12,7 +12,6 @@ from geomstats.learning.exponential_barycenter import ExponentialBarycenter
 from geomstats.learning.frechet_mean import FrechetMean
 
 
-
 class ToTangentSpace(BaseEstimator, TransformerMixin):
     """Lift data to a tangent space.
 

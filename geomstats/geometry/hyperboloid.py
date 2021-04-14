@@ -16,7 +16,6 @@ from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.minkowski import MinkowskiMetric
 
 
-
 class Hyperboloid(Hyperbolic, EmbeddedManifold):
     """Class for the n-dimensional hyperbolic space.
 

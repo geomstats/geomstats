@@ -13,7 +13,6 @@ from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-
 class PreShapeSpace(EmbeddedManifold, FiberBundle):
     r"""Class for the Kendall pre-shape space.
 

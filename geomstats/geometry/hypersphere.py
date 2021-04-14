@@ -19,7 +19,6 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
-
 class _Hypersphere(EmbeddedManifold):
     """Private class for the n-dimensional hypersphere.
 

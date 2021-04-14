@@ -11,7 +11,6 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
-
 class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
     """Class for the manifold of symmetric positive definite (SPD) matrices.
 

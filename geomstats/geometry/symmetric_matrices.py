@@ -9,7 +9,6 @@ from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.matrices import Matrices
 
 
-
 class SymmetricMatrices(EmbeddedManifold):
     """Class for the vector space of symmetric matrices of size n.
 

@@ -36,7 +36,6 @@ from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-
 class Grassmannian(EmbeddedManifold):
     """Class for Grassmann manifolds Gr(n, k).
 

@@ -6,7 +6,6 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.learning.knn import KNearestNeighborsClassifier
 
 
-
 class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
     """Class defining the KNN tests."""
 

@@ -12,8 +12,6 @@ from geomstats.learning.radial_kernel_functions import \
     uniform_radial_kernel
 
 
-
-
 class TestRadialKernelFunctions(geomstats.tests.TestCase):
     """Class defining the radial kernel functions tests."""
 

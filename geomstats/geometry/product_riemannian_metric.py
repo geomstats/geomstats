@@ -11,7 +11,6 @@ import geomstats.vectorization
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-
 class ProductRiemannianMetric(RiemannianMetric):
     """Class for product of Riemannian metrics.
 

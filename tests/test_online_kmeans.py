@@ -7,7 +7,6 @@ from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.online_kmeans import OnlineKMeans
 
 
-
 class TestOnlineKmeans(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)

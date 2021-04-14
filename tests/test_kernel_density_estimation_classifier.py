@@ -11,7 +11,6 @@ from geomstats.learning.kernel_density_estimation_classifier \
 from geomstats.learning.radial_kernel_functions import triangular_radial_kernel
 
 
-
 class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
     """Class defining the Kernel Density Estimation Classifier tests."""
 
