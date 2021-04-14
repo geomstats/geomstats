@@ -10,7 +10,6 @@ from geomstats import algebra_utils
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
-EPSILON = 1e-5
 ATOL = 1e-5
 
 
@@ -313,7 +312,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
             tangent_vec=tangent_vec,
             base_point=base_point)
 
-        self.assertAllClose(result, expected, atol=1e-5)
+        self.assertAllClose(result, expected)
 
     def test_group_log_then_exp(self):
         """
@@ -330,4 +329,4 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
 
         expected = self.group.regularize(point)
 
-        self.assertAllClose(result, expected, atol=1e-5)
+        self.assertAllClose(result, expected)

@@ -30,7 +30,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
         distance_a_b = self.metric.dist(point_a, point_b)
         squared_distance = self.metric.squared_dist(point_a, point_b)
 
-        self.assertAllClose(distance_a_b**2, squared_distance, atol=1e-8)
+        self.assertAllClose(distance_a_b**2, squared_distance)
 
     @geomstats.tests.np_and_pytorch_only
     def test_coordinates(self):
@@ -47,7 +47,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
         dist_in_hype =\
             self.hyperboloid_metric.dist(point_a_h, point_b_h)
 
-        self.assertAllClose(dist_in_ball, dist_in_hype, atol=1e-8)
+        self.assertAllClose(dist_in_ball, dist_in_hype)
 
     def test_dist_poincare(self):
 

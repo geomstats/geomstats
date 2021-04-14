@@ -10,8 +10,6 @@ import geomstats.errors
 import geomstats.vectorization
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-EPSILON = 1e-5
-
 
 class ProductRiemannianMetric(RiemannianMetric):
     """Class for product of Riemannian metrics.

@@ -12,8 +12,6 @@ from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-TOLERANCE = 1e-6
-
 
 class PreShapeSpace(EmbeddedManifold, FiberBundle):
     r"""Class for the Kendall pre-shape space.
@@ -54,7 +52,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         self.m_ambient = m_ambient
         self.ambient_metric = PreShapeMetric(k_landmarks, m_ambient)
 
-    def belongs(self, point, atol=TOLERANCE):
+    def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the pre-shape space.
 
         This tests whether the point is centered and whether the point's
@@ -140,7 +138,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         return self.projection(samples)
 
     @staticmethod
-    def is_centered(point, atol=TOLERANCE):
+    def is_centered(point, atol=gs.atol):
         """Check that landmarks are centered around 0.
 
         Parameters
@@ -207,7 +205,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         return tangent_vec
 
-    def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters
@@ -268,7 +266,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         vertical = - gs.matmul(base_point, skew)
         return (vertical, skew) if return_skew else vertical
 
-    def is_horizontal(self, tangent_vec, base_point, atol=TOLERANCE):
+    def is_horizontal(self, tangent_vec, base_point, atol=gs.atol):
         """Check whether the tangent vector is horizontal at base_point.
 
         Parameters

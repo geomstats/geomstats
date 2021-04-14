@@ -34,7 +34,6 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         self.n_discretized_curves = 5
         self.times = gs.linspace(0., 1., self.n_discretized_curves)
-        self.atol = 1e-6
         gs.random.seed(1234)
         self.space_curves_in_euclidean_3d = DiscreteCurves(
             ambient_manifold=r3)
@@ -81,7 +80,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
                                        base_point=self.curve_a)
         expected = self.curve_b
 
-        self.assertAllClose(result, expected, atol=self.atol)
+        self.assertAllClose(result, expected)
 
     def test_l2_metric_inner_product_vectorization(self):
         """Test the vectorization inner_product."""
