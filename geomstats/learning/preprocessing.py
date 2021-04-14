@@ -11,7 +11,6 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.learning.exponential_barycenter import ExponentialBarycenter
 from geomstats.learning.frechet_mean import FrechetMean
 
-EPSILON = 1e-4
 
 
 class ToTangentSpace(BaseEstimator, TransformerMixin):

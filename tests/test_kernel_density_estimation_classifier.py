@@ -10,7 +10,6 @@ from geomstats.learning.kernel_density_estimation_classifier \
     import KernelDensityEstimationClassifier
 from geomstats.learning.radial_kernel_functions import triangular_radial_kernel
 
-TOLERANCE = gs.atol
 
 
 class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
@@ -79,7 +78,7 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
         kde.fit(training_dataset, labels)
         result = kde.predict_proba(gs.array([0.9]))
         expected = gs.array([[1 / 2, 1 / 2]])
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_predict_proba_uniform_kernel(self):
         """Test the 'predict_proba' class method using the 'uniform' kernel."""
@@ -95,7 +94,7 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
         kde.fit(training_dataset, labels)
         result = kde.predict_proba(gs.array([[0.9, 0.0]]))
         expected = gs.array([[1 / 2, 1 / 2]])
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_predict_proba_distance_kernel(self):
         """Test the 'predict_proba' class method using 'distance' kernel."""
@@ -111,7 +110,7 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
         kde.fit(training_dataset, labels)
         result = kde.predict_proba(gs.array([[1.0, 0.0]]))
         expected = gs.array([[1, 0]])
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     @geomstats.tests.np_and_pytorch_only
     def test_predict_proba_triangular_kernel(self):
@@ -130,7 +129,7 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
         kde.fit(training_dataset, labels)
         result = kde.predict_proba(gs.array([[1.0, 0.0]]))
         expected = gs.array([[3 / 4, 1 / 4]])
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     @geomstats.tests.np_and_pytorch_only
     def test_predict_proba_triangular_kernel_callable_distance(self):
@@ -148,7 +147,7 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
         kde.fit(training_dataset, labels)
         result = kde.predict_proba(gs.array([[1.0, 0.0]]))
         expected = gs.array([[3 / 4, 1 / 4]])
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     @geomstats.tests.np_and_pytorch_only
     def test_predict_triangular_kernel_callable_distance(self):
@@ -166,7 +165,7 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
         kde.fit(training_dataset, labels)
         result = kde.predict(gs.array([[1.0, 0.0], [1.0, 0.0]]))
         expected = gs.array([0, 0])
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_predict_hypersphere_distance(self):
         """Test the 'predict' class method using the hypersphere distance."""
