@@ -2,6 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.special_euclidean import SpecialEuclidean,\
     SpecialEuclideanMatrixCannonicalLeftMetric,\
     SpecialEuclideanMatrixLieAlgebra
@@ -10,7 +11,7 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean,\
 class TestSpecialEuclidean(geomstats.tests.TestCase):
     def setUp(self):
         self.n = 2
-        self.group = SpecialEuclidean(n=self.n, point_type="vector")
+        self.group = SpecialEuclidean(n=self.n, point_type="matrix")
         self.n_samples = 4
         self.point = self.group.random_point(self.n_samples)
         self.tangent_vec = self.group.to_tangent(gs.random.rand(
@@ -91,7 +92,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         tangent_vecs = self.group.compose(point, tangent_vecs)
         regularized = self.group.to_tangent(tangent_vecs, point)
         result = self.group.compose(
-            self.group.transpose(point), regularized) + \
+            GeneralLinear.transpose(point), regularized) + \
             self.group.compose(self.group.transpose(regularized), point)
         result = result[:, :n, :n]
         expected = gs.zeros_like(result)
@@ -233,7 +234,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             ValueError,
             lambda: SpecialEuclideanMatrixCannonicalLeftMetric(group))
 
-        group = SpecialEuclidean(3, point_type='vector')
+        group = SpecialEuclidean(n=3, point_type='vector')
         self.assertRaises(
             ValueError,
             lambda: SpecialEuclideanMatrixCannonicalLeftMetric(group))

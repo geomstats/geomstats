@@ -194,7 +194,7 @@ class AbstractManifoldFactory(ABC):
                         metrics = None
             
                     key_keys = [k for k, v in key]
-                    rest_of_args =  {k: v for k, v in args_dict.items() if k not in key_keys}
+                    rest_of_args = {k: v for k, v in args_dict.items() if k not in key_keys}
                     return cls.manifolds_creators[key](metrics=metrics, **rest_of_args)
 
         raise Exception(f"no manifold with key containing {args_dict} . keys ars {cls.manifolds_creators.keys()}")
