@@ -127,7 +127,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
 
-        self.assertAllClose(result, expected, atol=1e-6)
+        self.assertAllClose(result, expected)
 
     def test_log_and_exp_edge_case(self):
         """Test Log and Exp.
@@ -319,7 +319,7 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
         result = self.metric.log(point=exp, base_point=base_point)
-        self.assertAllClose(result, vector, atol=1e-7)
+        self.assertAllClose(result, vector)
 
     def test_squared_norm_and_squared_dist(self):
         """

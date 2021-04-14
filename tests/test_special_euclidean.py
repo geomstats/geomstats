@@ -185,7 +185,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         result = self.group.right_canonical_metric.exp(
             initial_matrix_vec, n_steps=25)
         expected = vector_group.matrix_from_vector(vector_exp)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-6)
 
     def test_basis_belongs(self):
         lie_algebra = self.group.lie_algebra
@@ -288,7 +288,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         end_point = metric.exp(tan_b, self.point)
 
         def is_isometry(tan_a, trans_a, basepoint, endpoint):
-            is_tangent = self.group.is_tangent(trans_a, endpoint, atol=1e-6)
+            is_tangent = self.group.is_tangent(trans_a, endpoint)
             is_equinormal = gs.isclose(
                 metric.norm(trans_a, endpoint), metric.norm(tan_a, basepoint))
             return gs.logical_and(is_tangent, is_equinormal)

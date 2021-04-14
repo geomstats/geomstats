@@ -346,7 +346,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         result = metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
 
-        self.assertAllClose(result, expected, atol=1e-5)
+        self.assertAllClose(result, expected)
 
     def test_log_and_exp_logeuclidean(self):
         """Test of SPDMetricLogEuclidean.log and exp methods."""
@@ -362,7 +362,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         result = metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
 
-        self.assertAllClose(result, expected, atol=1e-5)
+        self.assertAllClose(result, expected)
 
     def test_exp_and_belongs(self):
         """Test of SPDMetricAffine.exp with power=1 and belongs methods."""
@@ -442,7 +442,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         n_points = 10
         t = gs.linspace(start=0., stop=1., num=n_points)
         points = geodesic(t)
-        result = self.space.belongs(points, atol=1e-5)
+        result = self.space.belongs(points)
         self.assertTrue(gs.all(result))
 
     def test_squared_dist_is_symmetric(self):
@@ -459,14 +459,14 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
-        self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-3)
+        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
         point_2 = self.space.random_point(n_samples=n_samples)
         point_2 = gs.cast(point_2, gs.float64)
 
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
-        self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-3)
+        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
         point_1 = self.space.random_point(n_samples=n_samples)
         point_2 = self.space.random_point(n_samples=1)
@@ -476,17 +476,12 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
-        self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-3)
-
-        point_1 = self.space.random_point(n_samples=n_samples)
-        point_2 = self.space.random_point(n_samples=n_samples)
-        point_1 = gs.cast(point_1, gs.float64)
-        point_2 = gs.cast(point_2, gs.float64)
+        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
-        self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-3)
+        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
     def test_squared_dist_vectorization(self):
         """Test of SPDMetricAffine.squared_dist (power=1) and vectorization."""
@@ -528,6 +523,10 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         tan_a = self.space.random_tangent_vec(n_samples, point)
         tan_b = self.space.random_tangent_vec(n_samples, point)
 
+        point = gs.cast(point, gs.float64)
+        tan_a = gs.cast(tan_a, gs.float64)
+        tan_b = gs.cast(tan_b, gs.float64)
+
         metric = self.metric_affine
         expected = metric.norm(tan_a, point)
         end_point = metric.exp(tan_b, point)
@@ -535,7 +534,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         transported = metric.parallel_transport(tan_a, tan_b, point)
         result = metric.norm(transported, end_point)
 
-        self.assertAllClose(expected, result, atol=1e-4)
+        self.assertAllClose(expected, result)
 
     def test_squared_dist_bureswasserstein(self):
         """Test of SPDMetricBuresWasserstein.squared_dist method."""
@@ -552,7 +551,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         log = metric.log(point=point_b, base_point=point_a)
         expected = metric.squared_norm(vector=log, base_point=point_a)
 
-        self.assertAllClose(result, expected, atol=1e-5)
+        self.assertAllClose(result, expected)
 
     def test_squared_dist_bureswasserstein_vectorization(self):
         """Test of SPDMetricBuresWasserstein.squared_dist method."""
@@ -561,13 +560,16 @@ class TestSPDMatrices(geomstats.tests.TestCase):
                             [0., 5., 0.],
                             [0., 0., 1.]])
 
+        point_a = gs.cast(point_a, gs.float64)
+        point_b = gs.cast(point_b, gs.float64)
+
         metric = self.metric_bureswasserstein
         result = metric.squared_dist(point_a, point_b)
 
         log = metric.log(point=point_b, base_point=point_a)
         expected = metric.squared_norm(vector=log, base_point=point_a)
 
-        self.assertAllClose(result, expected, atol=1e-5)
+        self.assertAllClose(result, expected)
 
     def test_to_tangent_and_is_tangent(self):
         mat = gs.random.rand(3, 3)

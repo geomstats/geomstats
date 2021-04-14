@@ -670,7 +670,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
                     for t in basis:
                         nabla_r = metric.curvature_derivative_at_identity(
                             x, y, z, t)
-                        if not gs.all(gs.isclose(nabla_r, 0., atol=1e-5)):
+                        if not gs.all(gs.isclose(nabla_r, 0.)):
                             print(nabla_r)
                             result = False
         self.assertTrue(result)

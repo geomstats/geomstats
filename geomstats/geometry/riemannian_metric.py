@@ -9,7 +9,6 @@ from geomstats.geometry.connection import Connection
 
 EPSILON = 1e-4
 N_CENTERS = 10
-TOLERANCE = 1e-5
 N_REPETITIONS = 20
 N_MAX_ITERATIONS = 50000
 N_STEPS = 10

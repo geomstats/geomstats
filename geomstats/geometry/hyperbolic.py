@@ -8,8 +8,6 @@ import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-TOLERANCE = 1e-6
-
 
 class Hyperbolic(Manifold):
     """Class for the n-dimensional hyperbolic space.
@@ -389,7 +387,7 @@ class Hyperbolic(Manifold):
             coords_transform['extrinsic-' +
                              to_coordinates_system](extrinsic)
 
-    def belongs(self, point, tolerance=TOLERANCE):
+    def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.
 
         Test if a point belongs to the hyperbolic space in
@@ -399,10 +397,10 @@ class Hyperbolic(Manifold):
         ----------
         point : array-like, shape=[..., dim]
             Point to be tested.
-        tolerance : float
+        atol : float
             Tolerance at which to evaluate how close the squared norm
             is to the reference value.
-            Optional, default: TOLERANCE.
+            Optional, default: backend atol.
 
         Returns
         -------

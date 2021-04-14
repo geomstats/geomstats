@@ -35,7 +35,6 @@ class TestLandmarks(geomstats.tests.TestCase):
 
         self.n_landmark_sets = 5
         self.times = gs.linspace(0., 1., self.n_landmark_sets)
-        self.atol = 1e-6
         gs.random.seed(1234)
         self.space_landmarks_in_euclidean_3d = Landmarks(
             ambient_manifold=r3, k_landmarks=self.n_sampling_points)
@@ -78,7 +77,7 @@ class TestLandmarks(geomstats.tests.TestCase):
             tangent_vec=tangent_vec, base_point=self.landmarks_a)
         expected = self.landmarks_b
 
-        self.assertAllClose(result, expected, atol=self.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_l2_metric_inner_product_vectorization(self):

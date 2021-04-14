@@ -566,7 +566,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
             result = helper.group_log_then_exp_from_identity(
                 group=self.group, point=point)
             expected = self.group.regularize(point)
-            self.assertAllClose(result, expected, atol=1e-3)
+            self.assertAllClose(result, expected)
 
             if geomstats.tests.tf_backend():
                 break
@@ -590,8 +590,8 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                 [- expected[:3], expected[3:6]])
 
             self.assertTrue(
-                gs.allclose(result, expected, atol=1e-4)
-                or gs.allclose(result, inv_expected, atol=1e-4))
+                gs.allclose(result, expected)
+                or gs.allclose(result, inv_expected))
 
             if geomstats.tests.tf_backend():
                 break
@@ -800,7 +800,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                 expected = self.group.regularize_tangent_vec_at_identity(
                     tangent_vec=tangent_vec, metric=metric)
 
-                self.assertAllClose(result, expected, atol=1e-4)
+                self.assertAllClose(result, expected)
 
                 if geomstats.tests.tf_backend():
                     break

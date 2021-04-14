@@ -10,7 +10,6 @@ import geomstats.vectorization
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-TOLERANCE = 1e-6
 EPSILON = 1e-6
 NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
 PI_2_3 = gs.power(gs.array([2. * gs.pi]), gs.array([2 / 3]))
@@ -44,7 +43,7 @@ class PoincareBall(Hyperbolic):
         self.point_type = PoincareBall.default_point_type
         self.metric = PoincareBallMetric(self.dim, self.scale)
 
-    def belongs(self, point, tolerance=TOLERANCE):
+    def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.
 
         Test if a point belongs to the hyperbolic space based on
@@ -54,7 +53,7 @@ class PoincareBall(Hyperbolic):
         ----------
         point : array-like, shape=[..., dim]
             Point to be tested.
-        tolerance : float, optional
+        atol : float, optional
             Tolerance at which to evaluate how close the squared norm
             is to the reference value.
             Optional, default: 1e-6.
@@ -65,7 +64,7 @@ class PoincareBall(Hyperbolic):
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
-        return gs.sum(point**2, axis=-1) < (1 - tolerance)
+        return gs.sum(point**2, axis=-1) < (1 - atol)
 
     @staticmethod
     def gmm_pdf(
@@ -196,7 +195,7 @@ class PoincareBall(Hyperbolic):
         l2_norm = gs.linalg.norm(point, axis=-1)
         if gs.any(l2_norm >= 1 - EPSILON):
             projected_point =\
-                gs.einsum('...j,...->...j', point * (1 - EPSILON - TOLERANCE),
+                gs.einsum('...j,...->...j', point * (1 - EPSILON - gs.atol),
                           1. / l2_norm)
             projected_point = -gs.maximum(-projected_point, -point)
             return projected_point

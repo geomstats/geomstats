@@ -8,9 +8,6 @@ from geomstats import algebra_utils
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.matrices import Matrices
 
-EPSILON = 1e-6
-TOLERANCE = 1e-12
-
 
 class SymmetricMatrices(EmbeddedManifold):
     """Class for the vector space of symmetric matrices of size n.
@@ -27,7 +24,7 @@ class SymmetricMatrices(EmbeddedManifold):
             embedding_manifold=Matrices(n, n))
         self.n = n
 
-    def belongs(self, mat, atol=TOLERANCE):
+    def belongs(self, mat, atol=gs.atol):
         """Check if mat belongs to the vector space of symmetric matrices.
 
         Parameters
