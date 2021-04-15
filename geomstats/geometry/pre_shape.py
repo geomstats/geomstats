@@ -3,7 +3,7 @@
 import logging
 
 import geomstats.backend as gs
-from geomstats.algebra_utils import from_vector_to_diagonal_matrix
+from geomstats.algebra_utils import flip_determinant
 from geomstats.errors import check_tf_error
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.fiber_bundle import FiberBundle
@@ -320,20 +320,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
                             f'encountered: {conditioning}')
         if gs.any(gs.isclose(conditioning, 0.)):
             logging.warning("Alignment matrix is not unique.")
-        if gs.any(det < 0):
-            ones = gs.ones(self.m_ambient)
-            reflection_vec = gs.concatenate(
-                [ones[:-1], gs.array([-1.])], axis=0)
-            mask = gs.cast(det < 0, gs.float32)
-            sign = (mask[..., None] * reflection_vec
-                    + (1. - mask)[..., None] * ones)
-            j_matrix = from_vector_to_diagonal_matrix(sign)
-            rotation = Matrices.mul(
-                Matrices.transpose(right), j_matrix, Matrices.transpose(left))
-        else:
-            rotation = gs.matmul(
-                Matrices.transpose(right), Matrices.transpose(left))
-        return gs.matmul(point, Matrices.transpose(rotation))
+        flipped = flip_determinant(Matrices.transpose(right), det)
+        return Matrices.mul(point, left, Matrices.transpose(flipped))
 
     def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the fundamental tensor A of the submersion.

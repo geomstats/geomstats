@@ -121,3 +121,15 @@ def taylor_exp_even_func(
     exact = taylor_function['function'](gs.sqrt(point_))
     result = gs.where(gs.abs(point) < tol, approx, exact)
     return result
+
+
+def flip_determinant(matrix, det):
+    if gs.any(det < 0):
+        ones = gs.ones(matrix.shape[-1])
+        reflection_vec = gs.concatenate(
+            [ones[:-1], gs.array([-1.])], axis=0)
+        mask = gs.cast(det < 0, matrix.dtype)
+        sign = (mask[..., None] * reflection_vec
+                + (1. - mask)[..., None] * ones)
+        return gs.einsum('...ij,...j->...ij', matrix, sign)
+    return matrix
