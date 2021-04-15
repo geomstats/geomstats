@@ -231,7 +231,6 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         log = self.metric.log(points, base_points, n_steps=500)
         expected = points
         result = self.metric.exp(tangent_vec=log, base_point=base_points)
-        # print(gs.abs(result - expected) / expected)
         self.assertAllClose(result, expected, rtol=1e-2)
 
     @geomstats.tests.np_only
