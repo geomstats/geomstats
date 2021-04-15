@@ -73,7 +73,7 @@ DTYPES = {
 
 
 atol = 1e-6
-rtol = 1e-6
+rtol = 1e-5
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -358,7 +358,7 @@ def sqrt(x):
     return torch.sqrt(x)
 
 
-def isclose(x, y, rtol=1e-5, atol=atol):
+def isclose(x, y, rtol=rtol, atol=atol):
     if not torch.is_tensor(x):
         x = torch.tensor(x)
     if not torch.is_tensor(y):

@@ -84,7 +84,7 @@ real = tf.math.real
 set_diag = tf.linalg.set_diag
 std = tf.math.reduce_std
 atol = 1e-6
-rtol = 1e-6
+rtol = 1e-5
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -617,7 +617,7 @@ def dot(x, y):
     return tf.tensordot(x, y, axes=1)
 
 
-def isclose(x, y, rtol=1e-05, atol=atol):
+def isclose(x, y, rtol=rtol, atol=atol):
     if not tf.is_tensor(x):
         x = tf.constant(x)
     if not tf.is_tensor(y):
@@ -631,7 +631,7 @@ def isclose(x, y, rtol=1e-05, atol=atol):
     return tf.less_equal(tf.abs(tf.subtract(x, y)), rhs)
 
 
-def allclose(x, y, rtol=1e-05, atol=1e-08):
+def allclose(x, y, rtol=rtol, atol=1e-08):
     return tf.reduce_all(isclose(x, y, rtol=rtol, atol=atol))
 
 
