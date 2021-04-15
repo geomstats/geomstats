@@ -2736,7 +2736,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                         base_point=base_point,
                         metric=metric)
                     expected = reg_tangent_vec
-                    self.assertAllClose(result, expected, rtol=1e-3, atol=1e-3)
+                    self.assertAllClose(result, expected, atol=1e-5)
 
     def test_exp_then_log_with_angles_close_to_pi(self):
         """
