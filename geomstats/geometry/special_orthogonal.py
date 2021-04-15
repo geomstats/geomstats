@@ -89,8 +89,9 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         """
         aux_mat = cls.mul(cls.transpose(point), point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, - 1 / 2)
-        rot_mat = cls.mul(point, inv_sqrt_mat)
-        return rot_mat
+        rotation_mat = cls.mul(point, inv_sqrt_mat)
+        det = gs.linalg.det(rotation_mat)
+        return utils.flip_determinant(rotation_mat, det)
 
     def random_uniform(self, n_samples=1, tol=1e-6):
         """Sample in SO(n) from the uniform distribution.
