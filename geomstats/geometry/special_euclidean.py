@@ -85,6 +85,19 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
     n : int
         Integer dimension of the underlying Euclidean space. Matrices will
         be of size: (n+1) x (n+1).
+
+    Attributes
+    ----------
+    rotations : SpecialOrthogonal
+    translations : Euclidean
+    left_canonical_metric : InvariantMetric
+        The left invariant metric that corresponds to the Frobenius inner
+        product at the identity.
+    right_canonical_metric : InvariantMetric
+        The right invariant metric that corresponds to the Frobenius inner
+        product at the identity.
+    metric :  MatricesMetric
+        The Euclidean (Frobenius) inner product.
     """
 
     def __init__(self, n):

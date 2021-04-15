@@ -45,7 +45,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def __init__(self, group,
                  metric_mat_at_identity=None,
                  left_or_right='left', **kwargs):
-        super(_InvariantMetricMatrix, self).__init__(dim=group.dim, **kwargs)
+        super(_InvariantMetricMatrix, self).__init__(
+            dim=group.dim, default_point_type='matrix', **kwargs)
 
         self.group = group
         self.lie_algebra = group.lie_algebra
