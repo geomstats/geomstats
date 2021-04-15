@@ -1,10 +1,10 @@
 """The n-dimensional hyperbolic space.
 
-The n-dimensional hyperbolic space embedded with
-the hyperboloid representation (embedded in minkowsky space).
+The n-dimensional hyperbolic space with Poincare ball model.
 """
 import logging
 
+import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.hyperbolic import Hyperbolic
@@ -172,7 +172,6 @@ class PoincareBall(Hyperbolic):
 
         return weighted_pdf
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def projection(self, point):
         """Project a point on the ball.
 
@@ -190,13 +189,12 @@ class PoincareBall(Hyperbolic):
             Point projected on the ball.
         """
         if point.shape[-1] != self.dim:
-            raise NameError("Bad dimension expected ", self.dim)
+            raise NameError("Wrong dimension, expected ", self.dim)
 
         l2_norm = gs.linalg.norm(point, axis=-1)
-        if gs.any(l2_norm >= 1 - EPSILON):
-            projected_point =\
-                gs.einsum('...j,...->...j', point * (1 - EPSILON - gs.atol),
-                          1. / l2_norm)
+        if gs.any(l2_norm >= 1 - gs.atol):
+            projected_point = gs.einsum(
+                '...j,...->...j', point * (1 - gs.atol), 1. / l2_norm)
             projected_point = -gs.maximum(-projected_point, -point)
             return projected_point
 
@@ -227,7 +225,6 @@ class PoincareBallMetric(RiemannianMetric):
         self.point_type = PoincareBall.default_point_type
         self.scale = scale
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
@@ -236,50 +233,38 @@ class PoincareBallMetric(RiemannianMetric):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at a base point.
         base_point : array-like, shape=[..., dim]
-            Point in hyperbolic space.
+            Point in Poincare Ball space.
 
         Returns
         -------
         exp : array-like, shape=[..., dim]
-            Point in hyperbolic space equal to the Riemannian exponential
+            Point in the Poincare Ball equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        norm_base_point = gs.linalg.norm(base_point, axis=-1)
+        squared_norm_bp = gs.sum(base_point ** 2, axis=-1)
         norm_tan = gs.linalg.norm(tangent_vec, axis=-1)
+        lambda_base_point = 1 / (1 - squared_norm_bp)
 
-        den = 1 - norm_base_point ** 2
-        lambda_base_point = 1 / den
+        # This avoids dividing by 0
+        norm_tan_eps = gs.where(gs.isclose(norm_tan, 0.), EPSILON, norm_tan)
+        direction = gs.einsum('...i,...->...i', tangent_vec, 1 / norm_tan_eps)
 
-        zero_tan = gs.isclose(gs.sum(tangent_vec ** 2, axis=-1), 0.)
+        factor = gs.tanh(lambda_base_point * norm_tan)
 
-        if gs.any(zero_tan):
-            norm_tan = gs.assignment(norm_tan, EPSILON, zero_tan)
-
-        direction = gs.einsum('...i,...->...i', tangent_vec, 1 / norm_tan)
-
-        factor = gs.tanh(
-            gs.einsum('...,...->...', lambda_base_point, norm_tan))
-
-        exp = self.mobius_add(
-            base_point,
-            gs.einsum('...i,...->...i', direction, factor))
+        exp = self.mobius_add(base_point,
+                              gs.einsum('...,...i->...i', factor, direction))
 
         return exp
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
-
-        If point_type = 'poincare' then base_point belongs
-        to the Poincare ball and point is a vector in the Euclidean
-        space of the same dimension as the ball.
 
         Parameters
         ----------
         point : array-like, shape=[..., dim]
-            Point in hyperbolic space.
+            Point in Poincare Ball.
         base_point : array-like, shape=[..., dim]
-            Point in hyperbolic space.
+            Point in Poincare Ball.
 
         Returns
         -------
@@ -287,38 +272,20 @@ class PoincareBallMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        add_base_point = self.mobius_add(-base_point, point)
-        norm_add =\
-            gs.expand_dims(gs.linalg.norm(
-                           add_base_point, axis=-1), axis=-1)
-
-        norm_base_point =\
-            gs.expand_dims(gs.linalg.norm(
-                           base_point, axis=-1), axis=-1)
-
-        log = (1 - norm_base_point**2) * gs.arctanh(norm_add)
-
-        mask_0 = gs.isclose(gs.squeeze(norm_add, axis=-1), 0.)
-        mask_non0 = ~mask_0
-        add_base_point = gs.assignment(
-            add_base_point,
-            gs.zeros_like(add_base_point[mask_0]),
-            mask_0)
-        add_base_point = gs.assignment(
-            add_base_point,
-            add_base_point[mask_non0] / norm_add[mask_non0],
-            mask_non0)
-
+        mobius_addition = self.mobius_add(-base_point, point)
+        squared_norm_add = gs.sum(mobius_addition ** 2, axis=-1)
+        squared_norm_bp = gs.sum(base_point ** 2, axis=-1)
+        coef = (1 - squared_norm_bp) * utils.taylor_exp_even_func(
+            squared_norm_add, utils.arctanh_card_close_0)
         log = gs.einsum(
-            '...i,...j->...j', log, add_base_point)
+            '...,...j->...j', coef, mobius_addition)
         return log
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector', 'else'])
-    def mobius_add(self, point_a, point_b, auto_project=True):
+    def mobius_add(self, point_a, point_b, project_first=True):
         r"""Compute the Mobius addition of two points.
 
-        Mobius addition operation that is a necessary operation
-        to compute the log and exp using the 'ball' representation.
+        The Mobius addition is useful to compute the log and exp in the
+        'ball' representation.
 
         .. math::
 
@@ -328,44 +295,40 @@ class PoincareBallMetric(RiemannianMetric):
         Parameters
         ----------
         point_a : array-like, shape=[..., dim]
-            Point in Poincare ball associated space.
+            Point in Poincare ball.
         point_b : array-like, shape=[..., dim]
-            Point in Poincare ball associated space.
-        auto_project : boolean
+            Point in Poincare ball.
+        project_first : boolean
             Project points on the ball or not (according to tolerance).
 
         Returns
         -------
-        mobius_add : array-like, shape=[...,]
+        mobius_add : array-like, shape=[..., dim]
             Result of the Mobius addition.
         """
         ball_manifold = PoincareBall(self.dim, scale=self.scale)
-        if auto_project:
+        if project_first:
             point_a = ball_manifold.projection(point_a)
             point_b = ball_manifold.projection(point_b)
         else:
             point_a_belong = ball_manifold.belongs(point_a)
             point_b_belong = ball_manifold.belongs(point_b)
 
-            if (not gs.all(point_a_belong) or not gs.all(point_b_belong)):
+            if not gs.all(point_a_belong) or not gs.all(point_b_belong):
                 raise ValueError("Points do not belong to the Poincare ball")
 
-        norm_point_a = gs.sum(point_a ** 2, axis=-1, keepdims=True)
-        norm_point_b = gs.sum(point_b ** 2, axis=-1, keepdims=True)
-
-        sum_prod_a_b = gs.einsum('...i,...i->...', point_a, point_b)
-        sum_prod_a_b = gs.expand_dims(sum_prod_a_b, axis=-1)
-
-        add_num_1 = 1 + 2 * sum_prod_a_b + norm_point_b
-        add_num_1 = gs.einsum('...i,...k->...k', add_num_1, point_a)
-        add_num_2 = gs.einsum('...i,...k->...k', (1 - norm_point_a), point_b)
-        add_nominator = add_num_1 + add_num_2
-
-        add_denominator = (1 + 2 * sum_prod_a_b + norm_point_a * norm_point_b)
-
-        mobius_add = gs.einsum(
-            '...i,...k->...i', add_nominator, 1 / add_denominator)
-        return ball_manifold.projection(mobius_add)
+        inner = gs.sum(point_a * point_b, axis=-1)
+        squared_norm_a = gs.sum(point_a ** 2, axis=-1)
+        squared_norm_b = gs.sum(point_b ** 2, axis=-1)
+        num_1 = gs.einsum(
+            '...,...i->...i', 1 + 2 * inner + squared_norm_b, point_a)
+        num_2 = gs.einsum(
+            '...,...i->...i', 1 - squared_norm_a, point_b)
+        result = gs.einsum(
+            '...,...i->...i',
+            1. / (1 + 2 * inner + squared_norm_b * squared_norm_a),
+            num_1 + num_2)
+        return ball_manifold.projection(result)
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def dist_broadcast(self, point_a, point_b):
@@ -381,9 +344,9 @@ class PoincareBallMetric(RiemannianMetric):
         Parameters
         ----------
         point_a : array-like, shape=[n_samples_a, dim]
-            Set of points in hyperbolic space.
+            Set of points in Poincare Ball.
         point_b : array-like, shape=[n_samples_b, dim]
-            Second set of points in hyperbolic space.
+            Second set of points in Poincare Ball.
 
         Returns
         -------
@@ -432,9 +395,9 @@ class PoincareBallMetric(RiemannianMetric):
         Parameters
         ----------
         point_a : array-like, shape=[..., dim]
-            First point in hyperbolic space.
+            First point in Poincare Ball.
         point_b : array-like, shape=[..., dim]
-            Second point in hyperbolic space.
+            Second point in Poincare Ball.
 
         Returns
         -------
@@ -456,7 +419,7 @@ class PoincareBallMetric(RiemannianMetric):
     def retraction(self, tangent_vec, base_point):
         """Poincaré ball model retraction.
 
-        Approximate the exponential map of hyperbolic space
+        Approximate the exponential map of Poincare Ball
         .. [1] nickel et.al, "Poincaré Embedding for
          Learning Hierarchical Representation", 2017.
 
@@ -466,7 +429,7 @@ class PoincareBallMetric(RiemannianMetric):
         tangent_vec : array-like, shape=[..., dim]
             vector in tangent space.
         base_point : array-like, shape=[..., dim]
-            Second point in hyperbolic space.
+            Second point in Poincare Ball.
 
         Returns
         -------

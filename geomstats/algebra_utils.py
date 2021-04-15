@@ -37,6 +37,7 @@ COSH_TAYLOR_COEFFS = [1.,
 INV_SINHC_TAYLOR_COEFFS = [
     1., - 1. / 6., 7. / 360., - 31. / 15120., 127. / 604800.]
 INV_TANH_TAYLOR_COEFFS = [1., 1. / 3., - 1. / 45., 2. / 945., -1. / 4725.]
+ARCTANH_CARD_TAYLOR_COEFFS = [1., 1. / 3., 1. / 5., 1 / 7., 1. / 9]
 
 
 cos_close_0 = {'function': gs.cos, 'coefficients': COS_TAYLOR_COEFFS}
@@ -67,6 +68,9 @@ inv_sinch_close_0 = {
 inv_tanh_close_0 = {
     'function': lambda x: x / gs.tanh(x),
     'coefficients': INV_TANH_TAYLOR_COEFFS}
+arctanh_card_close_0 = {
+    'function': lambda x: gs.arctanh(x) / x,
+    'coefficients': ARCTANH_CARD_TAYLOR_COEFFS}
 
 
 def from_vector_to_diagonal_matrix(vector):
