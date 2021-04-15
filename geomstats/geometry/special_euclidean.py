@@ -89,7 +89,9 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
     Attributes
     ----------
     rotations : SpecialOrthogonal
+        Subgroup of rotations of size n.
     translations : Euclidean
+        Subgroup of translations of size n.
     left_canonical_metric : InvariantMetric
         The left invariant metric that corresponds to the Frobenius inner
         product at the identity.

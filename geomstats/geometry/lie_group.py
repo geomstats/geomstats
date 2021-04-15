@@ -93,7 +93,6 @@ class LieGroup(Manifold):
     left_canonical_metric : InvariantMetric
         The left invariant metric that corresponds to the Euclidean inner
         product at the identity.
-
     right_canonical_metric : InvariantMetric
         The right invariant metric that corresponds to the Euclidean inner
         product at the identity.

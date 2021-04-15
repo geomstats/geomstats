@@ -124,6 +124,26 @@ def taylor_exp_even_func(
 
 
 def flip_determinant(matrix, det):
+    """Change sign of the determinant if it is negative.
+
+    For a batch of matrices, multiply the matrices which have negative
+    determinant by a diagonal matrix :math: `diag(1,...,1,-1) from the right.
+    This changes the sign of the last column of the matrix.
+
+    Parameters
+    ----------
+    matrix : array-like, shape=[...,n ,m]
+        Matrix to transform.
+
+    det : array-like, shape=[...]
+        Determinant of matrix, or any other scalar to use as threshold to
+        determine whether to change the sign of the last column of matrix.
+
+    Returns
+    -------
+    matrix_flipped : array-like, shape=[..., n, m]
+        Matrix with the sign of last column changed if det < 0.
+    """
     if gs.any(det < 0):
         ones = gs.ones(matrix.shape[-1])
         reflection_vec = gs.concatenate(
