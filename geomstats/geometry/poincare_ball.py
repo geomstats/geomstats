@@ -233,12 +233,12 @@ class PoincareBallMetric(RiemannianMetric):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at a base point.
         base_point : array-like, shape=[..., dim]
-            Point in Poincare Ball space.
+            Point in the Poincare ball.
 
         Returns
         -------
         exp : array-like, shape=[..., dim]
-            Point in the Poincare Ball equal to the Riemannian exponential
+            Point in the Poincare ball equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
         squared_norm_bp = gs.sum(base_point ** 2, axis=-1)
@@ -262,9 +262,9 @@ class PoincareBallMetric(RiemannianMetric):
         Parameters
         ----------
         point : array-like, shape=[..., dim]
-            Point in Poincare Ball.
+            Point in the Poincare ball.
         base_point : array-like, shape=[..., dim]
-            Point in Poincare Ball.
+            Point in the Poincare ball.
 
         Returns
         -------
@@ -344,9 +344,9 @@ class PoincareBallMetric(RiemannianMetric):
         Parameters
         ----------
         point_a : array-like, shape=[n_samples_a, dim]
-            Set of points in Poincare Ball.
+            Set of points in the Poincare ball.
         point_b : array-like, shape=[n_samples_b, dim]
-            Second set of points in Poincare Ball.
+            Second set of points in the Poincare ball.
 
         Returns
         -------
@@ -395,9 +395,9 @@ class PoincareBallMetric(RiemannianMetric):
         Parameters
         ----------
         point_a : array-like, shape=[..., dim]
-            First point in Poincare Ball.
+            First point in the Poincare ball.
         point_b : array-like, shape=[..., dim]
-            Second point in Poincare Ball.
+            Second point in the Poincare ball.
 
         Returns
         -------
@@ -419,7 +419,7 @@ class PoincareBallMetric(RiemannianMetric):
     def retraction(self, tangent_vec, base_point):
         """Poincaré ball model retraction.
 
-        Approximate the exponential map of Poincare Ball
+        Approximate the exponential map of the Poincare ball
         .. [1] nickel et.al, "Poincaré Embedding for
          Learning Hierarchical Representation", 2017.
 
@@ -429,7 +429,7 @@ class PoincareBallMetric(RiemannianMetric):
         tangent_vec : array-like, shape=[..., dim]
             vector in tangent space.
         base_point : array-like, shape=[..., dim]
-            Second point in Poincare Ball.
+            Second point in the Poincare ball.
 
         Returns
         -------
