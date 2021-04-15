@@ -81,3 +81,11 @@ class TestNotebooks(geomstats.tests.TestCase):
         _exec_notebook(
             'notebooks/'
             'usecase_optic_nerve_heads_analysis_in_kendall_shape_space.ipynb')
+        
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_usecase_cell_shape_analysis():
+        _exec_notebook(
+            'notebooks/'
+            'usecase_cell_shape_analysis.ipynb')
+
