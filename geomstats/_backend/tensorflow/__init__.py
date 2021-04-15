@@ -631,7 +631,7 @@ def isclose(x, y, rtol=rtol, atol=atol):
     return tf.less_equal(tf.abs(tf.subtract(x, y)), rhs)
 
 
-def allclose(x, y, rtol=rtol, atol=1e-08):
+def allclose(x, y, rtol=rtol, atol=atol):
     return tf.reduce_all(isclose(x, y, rtol=rtol, atol=atol))
 
 
