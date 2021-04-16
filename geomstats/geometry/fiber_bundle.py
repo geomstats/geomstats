@@ -156,7 +156,8 @@ class FiberBundle(Manifold):
         """
         return self.horizontal_projection(tangent_vec, base_point)
 
-    def align(self, point, base_point, max_iter=25, verbose=False, tol=gs.atol):
+    def align(self, point, base_point,
+              max_iter=25, verbose=False, tol=gs.atol):
         """Align point to base_point.
 
         Find the optimal group element g such that the base point and
