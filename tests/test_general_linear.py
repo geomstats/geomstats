@@ -127,8 +127,12 @@ class TestGeneralLinear(geomstats.tests.TestCase):
                              [[2.718281828, 0., 0.],
                               [0., 148.413159, 0.],
                               [0., 0., 403.42879349]]])
+
+        expected = gs.cast(expected, gs.float64)
+        point = gs.cast(point, gs.float64)
+
         result = self.group.exp(point)
-        self.assertAllClose(result, expected, rtol=1e-3)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_log_vectorization(self):
@@ -145,7 +149,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
                               [0., 1.609437912, 0.],
                               [0., 0., 1.79175946]]])
         result = self.group.log(point)
-        self.assertAllClose(result, expected, atol=1e-4)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_orbit(self):

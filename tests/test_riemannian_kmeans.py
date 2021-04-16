@@ -29,7 +29,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
 
         result = metric.dist(center, mean.estimate_)
         expected = 0.
-        self.assertAllClose(expected, result, atol=1e-2)
+        self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
     def test_spd_kmeans_fit(self):
@@ -48,7 +48,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         mean = FrechetMean(metric=metric, point_type='matrix', max_iter=100)
         mean.fit(data)
         expected = mean.estimate_
-        self.assertAllClose(result, expected, atol=1e-2, rtol=1e-2)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
     def test_hypersphere_kmeans_predict(self):
@@ -60,7 +60,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
 
         x = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
-        kmeans = RiemannianKMeans(metric, 5, tol=1e-5)
+        kmeans = RiemannianKMeans(metric, 5, tol=1e-5, lr=1.)
         kmeans.fit(x, max_iter=100)
         result = kmeans.predict(x)
 

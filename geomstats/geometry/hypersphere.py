@@ -18,9 +18,6 @@ from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
-TOLERANCE = 1e-6
-EPSILON = 1e-4
-
 
 class _Hypersphere(EmbeddedManifold):
     """Private class for the n-dimensional hypersphere.
@@ -43,7 +40,7 @@ class _Hypersphere(EmbeddedManifold):
             embedding_manifold=Euclidean(dim + 1))
         self.embedding_metric = self.embedding_manifold.metric
 
-    def belongs(self, point, tolerance=TOLERANCE):
+    def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hypersphere.
 
         This tests whether the point's squared norm in Euclidean space is 1.
@@ -52,7 +49,7 @@ class _Hypersphere(EmbeddedManifold):
         ----------
         point : array-like, shape=[..., dim + 1]
             Point in Euclidean space.
-        tolerance : float
+        atol : float
             Tolerance at which to evaluate norm == 1.
             Optional, default: 1e-6.
 
@@ -73,7 +70,7 @@ class _Hypersphere(EmbeddedManifold):
             return belongs
         sq_norm = gs.sum(point ** 2, axis=-1)
         diff = gs.abs(sq_norm - 1)
-        return gs.less_equal(diff, tolerance)
+        return gs.less_equal(diff, atol)
 
     def regularize(self, point):
         """Regularize a point to the canonical representation.
@@ -140,6 +137,28 @@ class _Hypersphere(EmbeddedManifold):
         tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
 
         return tangent_vec
+
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+            Optional, default: none.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-6.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        inner_prod = self.embedding_metric.inner_product(base_point, vector)
+        return gs.isclose(inner_prod, 0., atol=atol)
 
     def spherical_to_extrinsic(self, point_spherical):
         """Convert point from spherical to extrinsic coordinates.
@@ -315,7 +334,7 @@ class _Hypersphere(EmbeddedManifold):
         samples = gs.random.normal(size=size)
         while True:
             norms = gs.linalg.norm(samples, axis=1)
-            indcs = gs.isclose(norms, 0.0, atol=TOLERANCE)
+            indcs = gs.isclose(norms, 0.0, atol=gs.atol)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break

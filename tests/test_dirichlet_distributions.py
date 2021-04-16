@@ -231,7 +231,6 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         log = self.metric.log(points, base_points, n_steps=500)
         expected = points
         result = self.metric.exp(tangent_vec=log, base_point=base_points)
-        # print(gs.abs(result - expected) / expected)
         self.assertAllClose(result, expected, rtol=1e-2)
 
     @geomstats.tests.np_only
@@ -310,7 +309,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
             velocity_norm.max() - velocity_norm.min())
         expected = 0.
 
-        self.assertAllClose(expected, result, atol=1e-4, rtol=1.)
+        self.assertAllClose(expected, result, rtol=1.)
 
     @geomstats.tests.np_only
     def test_geodesic_vectorization(self):

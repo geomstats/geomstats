@@ -280,7 +280,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
             result = helper.group_log_then_exp_from_identity(
                 group=self.group, point=point)
             expected = self.group.regularize(point)
-            self.assertAllClose(result, expected, atol=1e-3)
+            self.assertAllClose(result, expected)
 
             if geomstats.tests.tf_backend():
                 break
@@ -328,7 +328,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
                                                    point=point,
                                                    base_point=base_point)
                 expected = self.group.regularize(point)
-                self.assertAllClose(result, expected, rtol=1e-4, atol=1e-4)
+                self.assertAllClose(result, expected, rtol=1e-4)
 
                 if geomstats.tests.tf_backend():
                     break
@@ -350,7 +350,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
                 expected = self.group.regularize_tangent_vec(
                     tangent_vec=tangent_vec,
                     base_point=base_point)
-                self.assertAllClose(result, expected, rtol=1e-4, atol=1e-4)
+                self.assertAllClose(result, expected, rtol=1e-4)
 
                 if geomstats.tests.tf_backend():
                     break

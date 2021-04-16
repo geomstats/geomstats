@@ -71,21 +71,21 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         vec_1 = gs.array([[0., - theta],
                          [theta, 0.]])
         vec_1 = self.group.compose(point, vec_1)
-        result = self.group.is_tangent(vec_1, point, atol=1e-6)
+        result = self.group.is_tangent(vec_1, point)
         expected = True
         self.assertAllClose(result, expected)
 
         vec_2 = gs.array([[0., - theta],
                          [theta, 1.]])
         vec_2 = self.group.compose(point, vec_2)
-        result = self.group.is_tangent(vec_2, point, atol=1e-6)
+        result = self.group.is_tangent(vec_2, point)
         expected = False
         self.assertAllClose(result, expected)
 
         vec = gs.array([vec_1, vec_2])
         point = gs.array([point, point])
         expected = gs.array([True, False])
-        result = self.group.is_tangent(vec, point, atol=1e-6)
+        result = self.group.is_tangent(vec, point)
         self.assertAllClose(result, expected)
 
     def test_to_tangent(self):
@@ -108,10 +108,17 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         group = SpecialOrthogonal(n=4)
         mat = gs.random.rand(4, 4)
         point = group.projection(mat)
-        result = group.belongs(point, atol=1e-5)
+        result = group.belongs(point)
         self.assertTrue(result)
 
         mat = gs.random.rand(2, 4, 4)
         point = group.projection(mat)
         result = group.belongs(point, atol=1e-4)
         self.assertTrue(gs.all(result))
+
+    def test_skew_to_vec_and_back(self):
+        group = SpecialOrthogonal(n=4)
+        vec = gs.random.rand(group.dim)
+        mat = group.skew_matrix_from_vector(vec)
+        result = group.vector_from_skew_matrix(mat)
+        self.assertAllClose(result, vec)

@@ -22,7 +22,7 @@ class TestBackends(geomstats.tests.TestCase):
         spd = SPDMatrices(5)
         point = spd.random_point()
 
-        geomstats.errors.check_belongs(point, spd, atol=1e-5)
+        geomstats.errors.check_belongs(point, spd)
 
     def test_check_integer(self):
         a = -2

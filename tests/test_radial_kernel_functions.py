@@ -12,9 +12,6 @@ from geomstats.learning.radial_kernel_functions import \
     uniform_radial_kernel
 
 
-TOLERANCE = 1e-4
-
-
 class TestRadialKernelFunctions(geomstats.tests.TestCase):
     """Class defining the radial kernel functions tests."""
 
@@ -72,7 +69,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             bandwidth=bandwidth)
         result = weight
         expected = gs.array([[1 / 2], [0]], dtype=float)
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_parabolic_radial_kernel(self):
         """Test the parabolic radial kernel."""
@@ -83,7 +80,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             bandwidth=bandwidth)
         result = weight
         expected = gs.array([[3 / 4], [0]], dtype=float)
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_biweight_radial_kernel(self):
         """Test the biweight radial kernel."""
@@ -94,7 +91,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             bandwidth=bandwidth)
         result = weight
         expected = gs.array([[9 / 16], [0]], dtype=float)
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_triweight_radial_kernel(self):
         """Test the triweight radial kernel."""
@@ -105,7 +102,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             bandwidth=bandwidth)
         result = weight
         expected = gs.array([[(3 / 4) ** 3], [0]], dtype=float)
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_tricube_radial_kernel(self):
         """Test the tricube radial kernel."""
@@ -116,7 +113,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             bandwidth=bandwidth)
         result = weight
         expected = gs.array([[(7 / 8) ** 3], [0]], dtype=float)
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_gaussian_radial_kernel(self):
         """Test the gaussian radial kernel."""
@@ -130,7 +127,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             [[gs.exp(- 1 / 8)],
              [gs.exp(- 1 / 2)]],
             dtype=float)
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_cosine_radial_kernel(self):
         """Test the cosine radial kernel."""
@@ -141,7 +138,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             bandwidth=bandwidth)
         result = weight
         expected = gs.array([[2 ** (1 / 2) / 2], [0]], dtype=float)
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_logistic_radial_kernel(self):
         """Test the logistic radial kernel."""
@@ -154,7 +151,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
         expected = gs.array(
             [[1 / (gs.exp(1 / 2) + 2 + gs.exp(- 1 / 2))],
              [1 / (gs.exp(1.0) + 2 + gs.exp(- 1.0))]])
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_sigmoid_radial_kernel(self):
         """Test the sigmoid radial kernel."""
@@ -168,7 +165,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             [[1 / (gs.exp(1 / 2) + gs.exp(- 1 / 2))],
              [1 / (gs.exp(1.0) + gs.exp(- 1.0))]],
             dtype=float)
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_bump_radial_kernel(self):
         """Test the bump radial kernel."""
@@ -179,7 +176,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             bandwidth=bandwidth)
         result = weight
         expected = gs.array([[gs.exp(- 1 / (3 / 4))], [0]], dtype=float)
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_inverse_quadratic_radial_kernel(self):
         """Test the inverse quadratic radial kernel."""
@@ -190,7 +187,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             bandwidth=bandwidth)
         result = weight
         expected = gs.array([[4 / 5], [1 / 2]], dtype=float)
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_inverse_multiquadric_radial_kernel(self):
         """Test the inverse multiquadric radial kernel."""
@@ -204,7 +201,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             [[2 / 5 ** (1 / 2)],
              [1 / 2 ** (1 / 2)]],
             dtype=float)
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_laplacian_radial_kernel(self):
         """Test the Laplacian radial kernel."""
@@ -218,4 +215,4 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             [[gs.exp(- 1 / 2)],
              [gs.exp(- 1.0)]],
             dtype=float)
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=gs.atol)

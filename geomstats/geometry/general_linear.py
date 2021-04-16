@@ -6,9 +6,6 @@ import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 
 
-ATOL = 1e-6
-
-
 class GeneralLinear(Matrices):
     """Class for the general linear group GL(n).
 
@@ -91,7 +88,7 @@ class GeneralLinear(Matrices):
         samples = gs.random.normal(size=(n_samples, self.n, self.n))
         while True:
             dets = gs.linalg.det(samples)
-            indcs = gs.isclose(dets, 0.0, atol=ATOL)
+            indcs = gs.isclose(dets, 0.0)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break

@@ -427,14 +427,14 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             self.left_diag_metric, self.point_1, base_point)
         expected = self.group.regularize(self.point_1)
         result = self.group.regularize(result)
-        self.assertAllClose(result, expected, atol=1e-4, rtol=1e-4)
+        self.assertAllClose(result, expected, atol=1e-4)
 
         # Edge case, small angle
         result = helper.log_then_exp(
             self.left_diag_metric, self.point_small, base_point)
         expected = self.group.regularize(self.point_small)
         result = self.group.regularize(result)
-        self.assertAllClose(result, expected, atol=1e-4, rtol=1e-4)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_left_metrics(self):
@@ -450,12 +450,12 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         result = helper.log_then_exp(
             self.left_metric, self.point_1, base_point)
         expected = self.point_1
-        self.assertAllClose(result, expected, atol=1e-4, rtol=1e-4)
+        self.assertAllClose(result, expected, atol=1e-4)
 
         result = helper.log_then_exp(
             self.left_metric, self.point_small, base_point)
         expected = self.point_small
-        self.assertAllClose(result, expected, atol=1e-4, rtol=1e-4)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_right_diag_metrics(self):
@@ -470,12 +470,12 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         result = helper.log_then_exp(
             self.right_diag_metric, self.point_1, base_point)
         expected = self.group.regularize(self.point_1)
-        self.assertAllClose(result, expected, atol=1e-4, rtol=1e-4)
+        self.assertAllClose(result, expected, atol=1e-4)
 
         result = helper.log_then_exp(
             self.right_diag_metric, self.point_small, base_point)
         expected = self.group.regularize(self.point_small)
-        self.assertAllClose(result, expected, atol=1e-4, rtol=1e-4)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_right_metrics(self):
@@ -490,12 +490,12 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         result = helper.log_then_exp(
             self.right_metric, self.point_1, base_point)
         expected = self.point_1
-        self.assertAllClose(result, expected, atol=1e-4, rtol=1e-4)
+        self.assertAllClose(result, expected, atol=1e-4)
 
         result = helper.log_then_exp(
             self.right_metric, self.point_small, base_point)
         expected = self.point_small
-        self.assertAllClose(result, expected, atol=1e-4, rtol=1e-4)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_squared_dist_left_diag_metrics(self):
@@ -670,7 +670,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
                     for t in basis:
                         nabla_r = metric.curvature_derivative_at_identity(
                             x, y, z, t)
-                        if not gs.all(gs.isclose(nabla_r, 0., atol=1e-5)):
+                        if not gs.all(gs.isclose(nabla_r, 0.)):
                             print(nabla_r)
                             result = False
         self.assertTrue(result)

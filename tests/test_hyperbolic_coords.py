@@ -37,7 +37,7 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
             x_in, to_coords_type='extrinsic')
         x_b = self.extrinsic_manifold.to_coordinates(x, to_coords_type='ball')
         x2 = self.ball_manifold.to_coordinates(x_b, to_coords_type='extrinsic')
-        self.assertAllClose(x, x2, atol=1e-8)
+        self.assertAllClose(x, x2)
 
     def test_belongs_intrinsic(self):
         x_in = gs.array([0.5, 7])
@@ -78,13 +78,13 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
             x_intr, to_coords_type='extrinsic')
         x_intr2 = self.extrinsic_manifold.to_coordinates(
             x_extr, to_coords_type='intrinsic')
-        self.assertAllClose(x_intr, x_intr2, atol=1e-8)
+        self.assertAllClose(x_intr, x_intr2)
 
     def test_ball_extrinsic_ball(self):
         x = gs.array([0.5, 0.2])
         x_e = self.ball_manifold.to_coordinates(x, to_coords_type='extrinsic')
         x2 = self.extrinsic_manifold.to_coordinates(x_e, to_coords_type='ball')
-        self.assertAllClose(x, x2, atol=1e-10)
+        self.assertAllClose(x, x2)
 
     def test_distance_ball_extrinsic_from_ball(self):
         x_ball = gs.array([0.7, 0.2])
@@ -165,7 +165,7 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
 
         log = self.ball_metric.log(point=y, base_point=x)
         exp = self.ball_metric.exp(tangent_vec=log, base_point=x)
-        self.assertAllClose(exp, y, atol=1e-1)
+        self.assertAllClose(exp, y)
 
     def test_log_exp_ball_vectorization(self):
         x = gs.array([0.1, 0.2])
@@ -173,10 +173,10 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
 
         log = self.ball_metric.log(y, x)
         exp = self.ball_metric.exp(log, x)
-        self.assertAllClose(exp, y, atol=1e-1)
+        self.assertAllClose(exp, y)
 
     def test_log_exp_ball_null_tangent(self):
         x = gs.array([[0.1, 0.2], [0.1, 0.2]])
         tangent_vec = gs.array([[0.0, 0.0], [0.0, 0.0]])
         exp = self.ball_metric.exp(tangent_vec, x)
-        self.assertAllClose(exp, x, atol=1e-10)
+        self.assertAllClose(exp, x)

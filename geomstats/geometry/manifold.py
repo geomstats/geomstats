@@ -9,10 +9,10 @@ import itertools
 import logging
 from typing import Callable, Dict, List, Optional, Union
 from geomstats.geometry.connection import Connection
+import geomstats.backend as gs
 import geomstats.errors
 
-
-ATOL = 1e-6
+ATOL = gs.atol
 
 
 class Manifold(ABC):

@@ -105,7 +105,7 @@ class TestEM(geomstats.tests.TestCase):
         expected = self.metric.exp(
             weights[1] / gs.sum(weights) * self.metric.log(data[1], data[0]),
             data[0])
-        self.assertAllClose(result, expected, TOLERANCE)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
     def test_normalization_factor(self):

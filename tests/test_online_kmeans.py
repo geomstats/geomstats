@@ -6,8 +6,6 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.online_kmeans import OnlineKMeans
 
-TOLERANCE = 1e-3
-
 
 class TestOnlineKmeans(geomstats.tests.TestCase):
     def setUp(self):
@@ -32,7 +30,7 @@ class TestOnlineKmeans(geomstats.tests.TestCase):
 
         result = self.metric.dist(center, mean.estimate_)
         expected = 0.
-        self.assertAllClose(expected, result, atol=TOLERANCE)
+        self.assertAllClose(expected, result, atol=1e-3)
 
     @geomstats.tests.np_only
     def test_predict(self):

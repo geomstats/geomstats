@@ -74,7 +74,7 @@ def linear_mean(points, weights=None, point_type='vector'):
     if isinstance(points, list):
         points = gs.stack(points, axis=0)
     if isinstance(weights, list):
-        weights = gs.stack(weights, axis=0)
+        weights = gs.array(weights)
 
     n_points = geomstats.vectorization.get_n_points(
         points, point_type)
@@ -165,9 +165,9 @@ def _default_gradient_descent(
 def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
                            lr=1e-3, tau=5e-3):
     """Perform ball gradient descent."""
-    if len(points) == 1:
-        return points
     points = gs.to_ndarray(points, to_ndim=2)
+    if len(points) == 1:
+        return points[0]
     if weights is None:
 
         iteration = 0

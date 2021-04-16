@@ -1,6 +1,7 @@
 """Unit tests for the Hypersphere."""
 
 import scipy.special
+import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
@@ -126,7 +127,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
 
-        self.assertAllClose(result, expected, atol=1e-6)
+        self.assertAllClose(result, expected)
 
     def test_log_and_exp_edge_case(self):
         """Test Log and Exp.
@@ -318,7 +319,7 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
         result = self.metric.log(point=exp, base_point=base_point)
-        self.assertAllClose(result, vector, atol=1e-7)
+        self.assertAllClose(result, vector)
 
     def test_squared_norm_and_squared_dist(self):
         """
@@ -567,36 +568,9 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = gs.array([0.])
         self.assertAllClose(expected, result)
 
-        tangent_vec_a = gs.array([1., 0., 0., 0., 0.])
-        tangent_vec_b = gs.array([0., 1., 0., 0., 0.])
-        base_point = gs.array([[0., 0., 0., 0., 1.]])
-
-        result = self.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array([0.])
-        self.assertAllClose(expected, result)
-
         tangent_vec_a = gs.array([[1., 0., 0., 0., 0.]])
         tangent_vec_b = gs.array([[0., 1., 0., 0., 0.]])
         base_point = gs.array([0., 0., 0., 0., 1.])
-
-        result = self.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array([0.])
-        self.assertAllClose(expected, result)
-
-        tangent_vec_a = gs.array([1., 0., 0., 0., 0.])
-        tangent_vec_b = gs.array([[0., 1., 0., 0., 0.]])
-        base_point = gs.array([[0., 0., 0., 0., 1.]])
-
-        result = self.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array([0.])
-        self.assertAllClose(expected, result)
-
-        tangent_vec_a = gs.array([[1., 0., 0., 0., 0.]])
-        tangent_vec_b = gs.array([0., 1., 0., 0., 0.])
-        base_point = gs.array([[0., 0., 0., 0., 1.]])
 
         result = self.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point)
@@ -766,52 +740,30 @@ class TestHypersphere(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_parallel_transport_vectorization(self):
         sphere = Hypersphere(2)
-        n_samples = 4
+        metric = sphere.metric
+        shape = (4, 3)
 
-        def is_isometry(tan_a, trans_a, endpoint):
-            is_tangent = gs.isclose(
-                sphere.metric.inner_product(endpoint, trans_a), 0., atol=1e-6)
-            is_equinormal = gs.isclose(
-                gs.linalg.norm(trans_a, axis=-1),
-                gs.linalg.norm(tan_a, axis=-1))
-            return gs.logical_and(is_tangent, is_equinormal)
+        results = helper.test_parallel_transport(sphere, metric, shape)
+        for res in results:
+            self.assertTrue(res)
 
-        base_point = sphere.random_uniform(n_samples)
-        tan_vec_a = sphere.to_tangent(gs.random.rand(n_samples, 3), base_point)
-        tan_vec_b = sphere.to_tangent(gs.random.rand(n_samples, 3), base_point)
-        end_point = sphere.metric.exp(tan_vec_b, base_point)
+    def test_is_tangent(self):
+        space = self.space
+        vec = space.random_uniform()
+        result = space.is_tangent(vec, vec)
+        self.assertFalse(result)
 
-        transported = sphere.metric.parallel_transport(
-            tan_vec_a, tan_vec_b, base_point)
-        result = is_isometry(tan_vec_a, transported, end_point)
-        self.assertTrue(gs.all(result))
-
-        base_point = base_point[0]
-        tan_vec_a = sphere.to_tangent(tan_vec_a, base_point)
-        tan_vec_b = sphere.to_tangent(tan_vec_b, base_point)
-        end_point = sphere.metric.exp(tan_vec_b, base_point)
-        transported = sphere.metric.parallel_transport(
-            tan_vec_a, tan_vec_b, base_point)
-        result = is_isometry(tan_vec_a, transported, end_point)
-        self.assertTrue(gs.all(result))
-
-        one_tan_vec_a = tan_vec_a[0]
-        transported = sphere.metric.parallel_transport(
-            one_tan_vec_a, tan_vec_b, base_point)
-        result = is_isometry(one_tan_vec_a, transported, end_point)
-        self.assertTrue(gs.all(result))
-
-        one_tan_vec_b = tan_vec_b[0]
-        end_point = end_point[0]
-        transported = sphere.metric.parallel_transport(
-            tan_vec_a, one_tan_vec_b, base_point)
-        result = is_isometry(tan_vec_a, transported, end_point)
-        self.assertTrue(gs.all(result))
-
-        transported = sphere.metric.parallel_transport(
-            one_tan_vec_a, one_tan_vec_b, base_point)
-        result = is_isometry(one_tan_vec_a, transported, end_point)
+        base_point = space.random_uniform()
+        tangent_vec = space.to_tangent(vec, base_point)
+        result = space.is_tangent(tangent_vec, base_point)
         self.assertTrue(result)
+
+        base_point = space.random_uniform(2)
+        vec = space.random_uniform(2)
+        tangent_vec = space.to_tangent(vec, base_point)
+        result = space.is_tangent(tangent_vec, base_point)
+        self.assertAllClose(gs.shape(result), (2, ))
+        self.assertTrue(gs.all(result))
 
     def test_sectional_curvature(self):
         n_samples = 4
