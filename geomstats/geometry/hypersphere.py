@@ -389,22 +389,13 @@ class _Hypersphere(EmbeddedManifold):
             unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
             scalar = gs.random.rand(n_samples)
 
-            coord_z = 1. + 1. / kappa * gs.log(
+            coord_x = 1. + 1. / kappa * gs.log(
                 scalar + (1. - scalar) * gs.exp(gs.array(-2. * kappa)))
-            coord_z = gs.to_ndarray(coord_z, to_ndim=2, axis=1)
-            coord_xy = gs.sqrt(1. - coord_z ** 2) * unit_vector
-            sample = gs.hstack((coord_xy, coord_z))
+            coord_x = gs.to_ndarray(coord_x, to_ndim=2, axis=1)
+            coord_yz = gs.sqrt(1. - coord_x ** 2) * unit_vector
+            sample = gs.hstack((coord_x, coord_yz))
 
-            if mu is not None:
-                rot_vec = gs.cross(
-                    gs.array([0., 0., 1.]), mu)
-                rot_vec *= gs.arccos(mu[-1]) / gs.linalg.norm(rot_vec)
-                rot = SpecialOrthogonal(
-                    3, 'vector').matrix_from_rotation_vector(rot_vec)
-                sample = gs.matmul(sample, gs.transpose(rot))
         else:
-            if mu is None:
-                mu = gs.array([0.] * dim + [1.])
             # rejection sampling in the general case
             sqrt = gs.sqrt(4 * kappa ** 2. + dim ** 2)
             envelop_param = (-2 * kappa + sqrt) / dim
@@ -416,29 +407,30 @@ class _Hypersphere(EmbeddedManifold):
             while (n_accepted < n_samples) and (n_iter < max_iter):
                 sym_beta = beta.rvs(
                     dim / 2, dim / 2, size=n_samples - n_accepted)
-                coord_z = (1 - (1 + envelop_param) * sym_beta) / (
+                coord_x = (1 - (1 + envelop_param) * sym_beta) / (
                     1 - (1 - envelop_param) * sym_beta)
                 accept_tol = gs.random.rand(n_samples - n_accepted)
                 criterion = (
-                    kappa * coord_z
-                    + dim * gs.log(1 - node * coord_z)
-                    - correction) > gs.log(accept_tol)
-                result.append(coord_z[criterion])
+                                    kappa * coord_x
+                                    + dim * gs.log(1 - node * coord_x)
+                                    - correction) > gs.log(accept_tol)
+                result.append(coord_x[criterion])
                 n_accepted += gs.sum(criterion)
                 n_iter += 1
             if n_accepted < n_samples:
                 logging.warning(
                     'Maximum number of iteration reached in rejection '
                     'sampling before n_samples were accepted.')
-            coord_z = gs.concatenate(result)
-            coord_rest = self.random_uniform(n_accepted)
-            coord_rest = self.to_tangent(coord_rest, mu)
-            coord_rest = self.projection(coord_rest)
+            coord_x = gs.concatenate(result)
+            coord_rest = _Hypersphere(dim - 1).random_uniform(n_accepted)
             coord_rest = gs.einsum(
-                '...,...i->...i', gs.sqrt(1 - coord_z ** 2), coord_rest)
-            sample = coord_rest + coord_z[:, None] * mu[None, :]
+                '...,...i->...i', gs.sqrt(1 - coord_x ** 2), coord_rest)
+            sample = gs.concatenate([coord_x[..., None], coord_rest], axis=1)
 
-        return sample if n_samples > 1 else sample[0]
+        if mu is not None:
+            sample = utils.rotate_points(sample, mu)
+
+        return sample if (n_samples > 1) else sample[0]
 
     def random_riemannian_normal(
             self, mean=None, precision=None, n_samples=1, max_iter=100):
