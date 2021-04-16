@@ -8,7 +8,7 @@ import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 
-MEAN_ESTIMATION_TOL = 1e-2
+MEAN_ESTIMATION_TOL = 1e-3
 KAPPA_ESTIMATION_TOL = 1e-2
 ONLINE_KMEANS_TOL = 2e-2
 
