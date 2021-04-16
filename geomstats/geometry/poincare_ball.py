@@ -420,7 +420,7 @@ class PoincareBallMetric(RiemannianMetric):
         """Poincaré ball model retraction.
 
         Approximate the exponential map of the Poincare ball
-        .. [1] nickel et.al, "Poincaré Embedding for
+        .. [1] Nickel et.al, "Poincaré Embedding for
          Learning Hierarchical Representation", 2017.
 
 
