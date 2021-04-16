@@ -71,7 +71,8 @@ class TestFrechetMean(geomstats.tests.TestCase):
         point_b = gs.array([0., 1., 0., 0., 0.])
         points = gs.array([point_a, point_b])
 
-        mean = FrechetMean(metric=self.sphere.metric, method='default')
+        mean = FrechetMean(
+            metric=self.sphere.metric, method='default', verbose=True)
         mean.fit(points)
         result = mean.estimate_
 
@@ -299,7 +300,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
             [2., 3.],
             [3., 4.],
             [4., 5.]])
-        weights = gs.array([1., 2., 1., 2.])
+        weights = [1., 2., 1., 2.]
 
         mean = FrechetMean(metric=self.euclidean.metric)
         mean.fit(points, weights=weights)
@@ -409,3 +410,21 @@ class TestFrechetMean(geomstats.tests.TestCase):
         # we expect the average of the points' Minkowski sq norms.
         expected = True
         self.assertAllClose(result, expected)
+
+    def test_one_point(self):
+        point = gs.array([0., 0., 0., 0., 1.])
+
+        mean = FrechetMean(metric=self.sphere.metric, method='default')
+        mean.fit(X=point)
+
+        result = mean.estimate_
+        expected = point
+        self.assertAllClose(expected, result)
+
+        mean = FrechetMean(
+            metric=self.sphere.metric, method='frechet-poincare-ball')
+        mean.fit(X=point)
+
+        result = mean.estimate_
+        expected = point
+        self.assertAllClose(expected, result)

@@ -6,8 +6,6 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.online_kmeans import OnlineKMeans
 
-TOLERANCE = gs.atol
-
 
 class TestOnlineKmeans(geomstats.tests.TestCase):
     def setUp(self):

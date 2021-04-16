@@ -8,8 +8,6 @@ from geomstats import algebra_utils
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.matrices import Matrices
 
-EPSILON = 1e-6
-
 
 class SymmetricMatrices(EmbeddedManifold):
     """Class for the vector space of symmetric matrices of size n.

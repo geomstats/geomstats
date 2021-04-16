@@ -35,7 +35,6 @@ class TestLandmarks(geomstats.tests.TestCase):
 
         self.n_landmark_sets = 5
         self.times = gs.linspace(0., 1., self.n_landmark_sets)
-        self.atol = 1e-6
         gs.random.seed(1234)
         self.space_landmarks_in_euclidean_3d = Landmarks(
             ambient_manifold=r3, k_landmarks=self.n_sampling_points)

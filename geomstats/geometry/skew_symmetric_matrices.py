@@ -10,9 +10,6 @@ import geomstats.backend as gs
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 
 
-TOLERANCE = gs.atol
-
-
 class SkewSymmetricMatrices(MatrixLieAlgebra):
     """Class for skew-symmetric matrices.
 
@@ -48,7 +45,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
                         [(row, col), (col, row)], [1., -1.], (n, n)))
             self.basis = gs.stack(basis)
 
-    def belongs(self, mat, atol=TOLERANCE):
+    def belongs(self, mat, atol=gs.atol):
         """Evaluate if mat is a skew-symmetric matrix.
 
         Parameters
@@ -57,7 +54,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
             Square matrix to check.
         atol : float
             Tolerance for the equality evaluation.
-            Optional, default: TOLERANCE.
+            Optional, default: backend atol.
 
         Returns
         -------

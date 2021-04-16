@@ -10,9 +10,6 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
-EPSILON = 1e-6
-TOLERANCE = gs.atol
-
 
 class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
     """Class for the manifold of symmetric positive definite (SPD) matrices.
@@ -38,7 +35,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             Matrix to be checked.
         atol : float
             Tolerance.
-            Optional, default: TOLERANCE.
+            Optional, default: backend atol.
 
         Returns
         -------

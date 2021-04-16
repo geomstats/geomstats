@@ -12,6 +12,8 @@ class TestAlgebraUtils(geomstats.tests.TestCase):
             utils.sinc_close_0,
             utils.inv_sinc_close_0,
             utils.inv_tanc_close_0,
+            {'coefficients': utils.arctanh_card_close_0['coefficients'],
+             'function': lambda x: math.atanh(x) / x},
             {'coefficients': utils.cosc_close_0['coefficients'],
              'function': lambda x: (1 - math.cos(x)) / x ** 2},
             utils.sinch_close_0,

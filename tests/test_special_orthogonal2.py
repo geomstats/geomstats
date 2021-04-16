@@ -10,7 +10,6 @@ from geomstats import algebra_utils
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
-EPSILON = 1e-5
 ATOL = 1e-5
 
 
