@@ -51,9 +51,9 @@ def solve_sylvester(a, b, q):
     axes = (0, 2, 1) if a.ndim == 3 else (1, 0)
     if a.shape == b.shape:
         if tf.reduce_all(a == b) and tf.reduce_all(
-                tf.abs(a - tf.transpose(a, perm=axes)) < gs.atol):
+                tf.abs(a - tf.transpose(a, perm=axes)) < 1e-6):
             eigvals, eigvecs = eigh(a)
-            if tf.reduce_all(eigvals >= gs.atol):
+            if tf.reduce_all(eigvals >= 1e-6):
                 tilde_q = tf.transpose(eigvecs, perm=axes) @ q @ eigvecs
                 tilde_x = tilde_q / (
                     eigvals[..., :, None] + eigvals[..., None, :])

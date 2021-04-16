@@ -8,7 +8,6 @@ import geomstats.backend as gs
 import geomstats.errors
 
 
-
 class Manifold:
     r"""Class for manifolds.
 
