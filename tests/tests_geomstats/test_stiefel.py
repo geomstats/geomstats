@@ -195,8 +195,7 @@ class TestStiefel(geomstats.tests.TestCase):
         base_point, point = self.space.random_uniform(2)
         log = self.metric.log(point, base_point)
         result = self.metric.exp(log, base_point)
-        self.assertAllClose(result, point,rtol=1e-05,atol=1e-05)
-
+        self.assertAllClose(result, point, rtol=1e-05, atol=1e-05)
 
     @geomstats.tests.np_only
     def test_retraction_and_lifting(self):
