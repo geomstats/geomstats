@@ -52,8 +52,10 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to SO(n).
         """
-        return self.equal(
+        is_orthogonal = self.equal(
             self.mul(point, self.transpose(point)), self.identity, atol=atol)
+        has_positive_det = gs.linalg.det(point) > 0.
+        return gs.logical_and(is_orthogonal, has_positive_det)
 
     @classmethod
     def inverse(cls, point):
@@ -87,8 +89,9 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         """
         aux_mat = cls.mul(cls.transpose(point), point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, - 1 / 2)
-        rot_mat = cls.mul(point, inv_sqrt_mat)
-        return rot_mat
+        rotation_mat = cls.mul(point, inv_sqrt_mat)
+        det = gs.linalg.det(rotation_mat)
+        return utils.flip_determinant(rotation_mat, det)
 
     def random_uniform(self, n_samples=1, tol=1e-6):
         """Sample in SO(n) from the uniform distribution.
@@ -111,7 +114,8 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             size = (n_samples, self.n, self.n)
         random_mat = gs.random.normal(size=size)
         rotation_mat, _ = gs.linalg.qr(random_mat)
-        return rotation_mat
+        det = gs.linalg.det(rotation_mat)
+        return utils.flip_determinant(rotation_mat, det)
 
     def skew_matrix_from_vector(self, vec):
         """Get the skew-symmetric matrix derived from the vector.
