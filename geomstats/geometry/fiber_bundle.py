@@ -65,7 +65,7 @@ class FiberBundle(Manifold):
             group_action = group.compose
         self.group_action = group_action
 
-    def belongs(self, point, atol=1e-6):
+    def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the base manifold.
 
         Evaluate if a point belongs to the base manifold when it is given,
@@ -77,7 +77,7 @@ class FiberBundle(Manifold):
             Point to evaluate.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -156,7 +156,7 @@ class FiberBundle(Manifold):
         """
         return self.horizontal_projection(tangent_vec, base_point)
 
-    def align(self, point, base_point, max_iter=25, verbose=False, tol=1e-6):
+    def align(self, point, base_point, max_iter=25, verbose=False, tol=gs.atol):
         """Align point to base_point.
 
         Find the optimal group element g such that the base point and
@@ -179,7 +179,7 @@ class FiberBundle(Manifold):
             Optional, default : False.
         tol : float
             Tolerance for the stopping criterion.
-            Optional, default : 1e-6
+            Optional, default : backend atol
 
         Returns
         -------
@@ -268,7 +268,7 @@ class FiberBundle(Manifold):
         except RecursionError:
             raise NotImplementedError
 
-    def is_horizontal(self, tangent_vec, base_point, atol=1e-6):
+    def is_horizontal(self, tangent_vec, base_point, atol=gs.atol):
         """Evaluate if the tangent vector is horizontal at base_point.
 
         Parameters
@@ -280,7 +280,7 @@ class FiberBundle(Manifold):
             Optional, default: None.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol
 
         Returns
         -------
@@ -291,7 +291,7 @@ class FiberBundle(Manifold):
             tangent_vec, self.horizontal_projection(tangent_vec, base_point),
             atol=atol), axis=(-2, -1))
 
-    def is_vertical(self, tangent_vec, base_point, atol=1e-6):
+    def is_vertical(self, tangent_vec, base_point, atol=gs.atol):
         """Evaluate if the tangent vector is vertical at base_point.
 
         Parameters
@@ -303,7 +303,7 @@ class FiberBundle(Manifold):
             Optional, default: None.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
