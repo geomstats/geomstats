@@ -487,6 +487,7 @@ def trace(x, axis1=0, axis2=1):
     raise NotImplementedError()
 
 
+@_box_scalar
 def arctanh(x):
     return 0.5 * torch.log((1 + x) / (1 - x))
 

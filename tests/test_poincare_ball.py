@@ -124,7 +124,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
         point_a = gs.array([0.5, 0.5])
         point_b = gs.array([[0.5, -0.3], [0.3, 0.4]])
 
-        dist_a_b =\
+        dist_a_b = \
             self.manifold.metric.mobius_add(point_a, point_b)
 
         result_vect = dist_a_b
@@ -134,7 +134,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-        dist_a_b =\
+        dist_a_b = \
             self.manifold.metric.mobius_add(point_b, point_a)
 
         result_vect = dist_a_b
@@ -248,4 +248,4 @@ class TestPoincareBall(geomstats.tests.TestCase):
         x, y = gs.array([0.7, 0.9]), gs.array([0.2, 0.2])
 
         with self.assertRaises(ValueError):
-            self.manifold.metric.mobius_add(x, y, auto_project=False)
+            self.manifold.metric.mobius_add(x, y, project_first=False)
