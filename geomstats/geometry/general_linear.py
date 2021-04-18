@@ -17,31 +17,31 @@ class GeneralLinear(Matrices):
 
     def __init__(self, n, **kwargs):
         super(GeneralLinear, self).__init__(n=n, m=n, **kwargs)
-        self.n = n
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Check if a matrix is invertible and of the right shape.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
             Matrix to be checked.
+        atol :  float
+            Tolerance threshold for the determinant.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
             Boolean denoting if point is in GL(n).
         """
-        point_shape = point.shape
-        mat_dim_1, mat_dim_2 = point_shape[-2], point_shape[-1]
-        det = gs.linalg.det(point)
-        return gs.logical_and(
-            mat_dim_1 == self.n and mat_dim_2 == self.n,
-            det != 0.)
+        has_right_size = super(GeneralLinear, self).belongs(point)
+        if has_right_size:
+            det = gs.linalg.det(point)
+            return gs.abs(det) > atol
+        return False if (point.ndim <= 2) else False * gs.ones(point.shape[0])
 
     def get_identity(self):
         """Return the identity matrix."""
-        return gs.eye(self.n, self.n)
+        return gs.eye(self.n)
     identity = property(get_identity)
 
     @classmethod
