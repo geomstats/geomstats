@@ -453,11 +453,11 @@ class Connection:
 
     def directional_curvature(
             self, tangent_vec_a, tangent_vec_b, base_point):
-        r"""Compute the directional curvature, better known in relativity as
-        the tidal force operator.
+        """Compute the directional curvature (tidal force operator).
 
-        For two tangent vectors at a base point :math: `X,Y`,
-        the directional curvature is defined by :math: `R_X(Y) = R(X,Y)X`.
+        For two tangent vectors at a base point :math: `X,Y`, the directional
+        curvature, better known in relativity as the tidal force operator,
+        is defined by :math: `R_X(Y) = R(X,Y)X`.
 
         Parameters
         ----------

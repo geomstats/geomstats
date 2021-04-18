@@ -397,7 +397,7 @@ class RiemannianMetric(Connection):
 
     def sectional_curvature(
             self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the sectional curvature.
+        r"""Compute the sectional curvature.
 
         For two orthonormal tangent vectors :math: `x,y` at a base point,
         the sectional curvature is defined by :math: `<R(x, y)x, y> =
