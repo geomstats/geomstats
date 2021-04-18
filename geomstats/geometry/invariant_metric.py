@@ -278,7 +278,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         For three tangent vectors at identity :math: `x,y,z`,
         the curvature is defined by
         :math: `R(x, y)z = \nabla_{[x,y]}z
-        - \nabla_x\nabla_y z + - \nabla_y\nabla_x z`.
+        - \nabla_x\nabla_y z + \nabla_y\nabla_x z`.
 
         Parameters
         ----------
@@ -315,7 +315,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         For three tangent vectors at a base point :math: `x,y,z`,
         the curvature is defined by
         :math: `R(x, y)z = \nabla_{[x,y]}z
-        - \nabla_x\nabla_y z + - \nabla_y\nabla_x z`. It is computed using
+        - \nabla_x\nabla_y z + \nabla_y\nabla_x z`. It is computed using
         the invariance of the connection and its value at identity.
 
         Parameters
