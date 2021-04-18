@@ -395,9 +395,10 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         tidal = kendall.directional_curvature(hor_a, hor_b, base_point)
 
         numerator = kendall.inner_product(tidal, hor_b, base_point)
-        denominator = kendall.inner_product(hor_a, hor_a, base_point) * \
-                      kendall.inner_product(hor_b, hor_b, base_point) - \
-                      kendall.inner_product(hor_a, hor_b, base_point) ** 2
+        denominator = \
+            kendall.inner_product(hor_a, hor_a, base_point) * \
+            kendall.inner_product(hor_b, hor_b, base_point) - \
+            kendall.inner_product(hor_a, hor_b, base_point) ** 2
         condition = ~gs.isclose(denominator, 0.)
         kappa = numerator[condition] / denominator[condition]
         kappa_direct = \
@@ -405,4 +406,3 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(kappa, kappa_direct)
         result = (kappa > 1.0 - 1e-12)
         self.assertTrue(gs.all(result))
-
