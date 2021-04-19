@@ -47,7 +47,7 @@ class TestVisualization(geomstats.tests.TestCase):
         visualization.plot(points, space='S32')
 
     def test_plot_points_m32(self):
-        points = self.S32.random_point(self.n_samples)
+        points = self.M32.random_point(self.n_samples)
         visualization.plot(points, space='M32')
 
     @geomstats.tests.np_and_pytorch_only

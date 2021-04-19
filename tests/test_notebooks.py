@@ -57,9 +57,9 @@ class TestNotebooks(geomstats.tests.TestCase):
 
     @staticmethod
     @geomstats.tests.np_only
-    def test_triangular_data_in_kendall_shape_space():
+    def test_07_triangular_data_in_kendall_shape_space():
         _exec_notebook(
-            'notebooks/triangular_data_in_kendall_shape_space.ipynb')
+            'notebooks/07_triangular_data_in_kendall_shape_space.ipynb')
 
     @staticmethod
     @geomstats.tests.np_only
