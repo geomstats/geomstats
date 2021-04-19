@@ -11,6 +11,13 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         self.group = SpecialOrthogonal(n=self.n)
         self.n_samples = 4
 
+    def test_dim(self):
+        for n in [2, 3, 4, 5, 6]:
+            group = SpecialOrthogonal(n=n)
+            result = group.dim
+            expected = n * (n - 1) / 2
+            self.assertAllClose(result, expected)
+
     def test_belongs(self):
         theta = gs.pi / 3
         point_1 = gs.array([[gs.cos(theta), - gs.sin(theta)],
