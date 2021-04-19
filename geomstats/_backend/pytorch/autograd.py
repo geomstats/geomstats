@@ -2,6 +2,19 @@ import numpy as np
 import torch
 
 
+def custom_grad(grad_func):
+    """[Decorator to define a custom gradient to a function]
+
+    Args:
+        grad_func ([callable]): The custom gradient function
+    """
+    def wrapper(func):
+        # use pytorch.autograd.Function
+        pass 
+    
+    return wrapper
+
+
 def value_and_grad(objective):
     """'Returns a function that returns both value and gradient.
 
