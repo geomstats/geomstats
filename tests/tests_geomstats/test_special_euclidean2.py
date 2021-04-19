@@ -326,7 +326,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
                                                    point=point,
                                                    base_point=base_point)
                 expected = self.group.regularize(point)
-                self.assertAllClose(result, expected)
+                self.assertAllClose(result, expected, rtol=1e-4)
 
                 if geomstats.tests.tf_backend():
                     break
@@ -348,7 +348,7 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
                 expected = self.group.regularize_tangent_vec(
                     tangent_vec=tangent_vec,
                     base_point=base_point)
-                self.assertAllClose(result, expected)
+                self.assertAllClose(result, expected, rtol=1e-4)
 
                 if geomstats.tests.tf_backend():
                     break
