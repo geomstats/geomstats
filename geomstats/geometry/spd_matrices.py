@@ -364,7 +364,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             Optional, default: None.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------

@@ -79,7 +79,7 @@ class Grassmannian(EmbeddedManifold):
         point : array-like, shape=[..., n, n]
             Point to be checked.
         atol : int
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -142,7 +142,7 @@ class Grassmannian(EmbeddedManifold):
         base_point : array-like, shape=[..., n, n]
             Base point.
         atol : int
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------

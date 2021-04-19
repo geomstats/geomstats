@@ -51,7 +51,7 @@ class _Hypersphere(EmbeddedManifold):
             Point in Euclidean space.
         atol : float
             Tolerance at which to evaluate norm == 1.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -150,7 +150,7 @@ class _Hypersphere(EmbeddedManifold):
             Optional, default: none.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
