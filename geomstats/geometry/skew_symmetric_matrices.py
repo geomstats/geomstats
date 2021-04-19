@@ -62,9 +62,9 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
             Boolean evaluating if matrix is skew symmetric.
         """
         has_right_shape = super(SkewSymmetricMatrices, self).belongs(mat)
-        if has_right_shape:
+        if gs.all(has_right_shape):
             return self.is_skew_symmetric(mat=mat, atol=atol)
-        return False if (mat.ndim <= 2) else False * gs.ones(mat.shape[0])
+        return has_right_shape
 
     def random_point(self, n_samples=1, bound=1.):
         """Sample from a uniform distribution in a cube.

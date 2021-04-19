@@ -7,7 +7,7 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.general_linear import Matrices, GeneralLinear
 from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
@@ -118,39 +118,39 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
         return gs.eye(self.n + 1, self.n + 1)
     identity = property(get_identity)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Check whether point is of the form rotation, translation.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, n].
             Point to be checked.
+        atol :  float
+            Tolerance threshold.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
             Boolean denoting if point belongs to the group.
         """
-        point_dim1, point_dim2 = point.shape[-2:]
-        belongs = (point_dim1 == point_dim2 == self.n + 1)
+        n = self.n
+        belongs = Matrices(n + 1, n + 1).belongs(point)
 
-        rotation = point[..., :self.n, :self.n]
-        rot_belongs = self.rotations.belongs(rotation)
+        if gs.all(belongs):
+            rotation = point[..., :n, :n]
+            belongs = self.rotations.belongs(rotation, atol=atol)
 
-        belongs = gs.logical_and(belongs, rot_belongs)
+            last_line_except_last_term = point[..., n:, :-1]
+            all_but_last_zeros = ~ gs.any(
+                last_line_except_last_term, axis=(-2, -1))
 
-        last_line_except_last_term = point[..., self.n:, :-1]
-        all_but_last_zeros = ~ gs.any(
-            last_line_except_last_term, axis=(-2, -1))
+            belongs = gs.logical_and(belongs, all_but_last_zeros)
 
-        belongs = gs.logical_and(belongs, all_but_last_zeros)
+            last_term = point[..., n, n]
+            belongs = gs.logical_and(
+                belongs, gs.isclose(last_term, 1., atol=atol))
 
-        last_term = point[..., self.n, self.n]
-        belongs = gs.logical_and(belongs, gs.isclose(last_term, 1.))
-
-        if point.ndim == 2:
-            return gs.squeeze(belongs)
-        return gs.flatten(belongs)
+        return belongs
 
     def random_point(self, n_samples=1, bound=1.):
         """Sample in SE(n) from the uniform distribution.

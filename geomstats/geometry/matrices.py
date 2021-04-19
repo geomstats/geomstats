@@ -38,10 +38,12 @@ class Matrices:
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the Matrices space.
         """
-        if point.ndim == 1:
+        ndim = point.ndim
+        if ndim == 1:
             return False
         mat_dim_1, mat_dim_2 = point.shape[-2:]
-        return (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
+        belongs = (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
+        return belongs if ndim == 2 else belongs * gs.ones(point.shape[0])
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):

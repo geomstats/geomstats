@@ -3,10 +3,11 @@
 from itertools import product
 
 import geomstats.backend as gs
+from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.matrices import Matrices
 
 
-class GeneralLinear(Matrices):
+class GeneralLinear(Matrices, LieGroup):
     """Class for the general linear group GL(n).
 
     Parameters
@@ -16,6 +17,8 @@ class GeneralLinear(Matrices):
     """
 
     def __init__(self, n, **kwargs):
+        if 'dim' not in kwargs.keys():
+            kwargs['dim'] = n ** 2
         super(GeneralLinear, self).__init__(n=n, m=n, **kwargs)
 
     def belongs(self, point, atol=gs.atol):
@@ -34,10 +37,10 @@ class GeneralLinear(Matrices):
             Boolean denoting if point is in GL(n).
         """
         has_right_size = super(GeneralLinear, self).belongs(point)
-        if has_right_size:
+        if gs.all(has_right_size):
             det = gs.linalg.det(point)
             return gs.abs(det) > atol
-        return False if (point.ndim <= 2) else False * gs.ones(point.shape[0])
+        return has_right_size
 
     def get_identity(self):
         """Return the identity matrix."""

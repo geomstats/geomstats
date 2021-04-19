@@ -4,7 +4,7 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
-from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.general_linear import Matrices, GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
@@ -19,7 +19,7 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
+class _SpecialOrthogonalMatrices(GeneralLinear):
     """Class for special orthogonal groups in matrix representation.
 
     Parameters
@@ -51,10 +51,14 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to SO(n).
         """
-        is_orthogonal = self.equal(
-            self.mul(point, self.transpose(point)), self.identity, atol=atol)
-        has_positive_det = gs.linalg.det(point) > 0.
-        return gs.logical_and(is_orthogonal, has_positive_det)
+        has_right_shape = Matrices(self.n, self.n).belongs(point)
+        if gs.all(has_right_shape):
+            is_orthogonal = self.equal(
+                self.mul(point, self.transpose(point)),
+                self.identity, atol=atol)
+            has_positive_det = gs.linalg.det(point) > 0.
+            return gs.logical_and(is_orthogonal, has_positive_det)
+        return has_right_shape
 
     @classmethod
     def inverse(cls, point):

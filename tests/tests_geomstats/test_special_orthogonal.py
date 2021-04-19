@@ -37,6 +37,18 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         result = self.group.belongs(point)
         self.assertAllClose(result, expected)
 
+        point = point_1[0]
+        result = self.group.belongs(point)
+        self.assertFalse(result)
+
+        point = gs.zeros((2, 3))
+        result = self.group.belongs(point)
+        self.assertFalse(result)
+
+        point = gs.zeros((2, 2, 3))
+        result = self.group.belongs(point)
+        self.assertFalse(gs.all(result))
+
     def test_random_uniform_and_belongs(self):
         point = self.group.random_uniform()
         result = self.group.belongs(point)
