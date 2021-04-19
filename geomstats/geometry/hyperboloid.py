@@ -15,9 +15,6 @@ from geomstats.geometry.hyperbolic import HyperbolicMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.minkowski import MinkowskiMetric
 
-TOLERANCE = 1e-6
-EPSILON = 1e-6
-
 
 class Hyperboloid(Hyperbolic, EmbeddedManifold):
     """Class for the n-dimensional hyperbolic space.
@@ -53,7 +50,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         self.metric =\
             HyperboloidMetric(self.dim, self.coords_type, self.scale)
 
-    def belongs(self, point, tolerance=TOLERANCE):
+    def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.
 
         Test if a point belongs to the hyperbolic space in
@@ -63,7 +60,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         ----------
         point : array-like, shape=[..., dim]
             Point to be tested.
-        tolerance : float, optional
+        atol : float, optional
             Tolerance at which to evaluate how close the squared norm
             is to the reference value.
             Optional, default: 1e-6.
@@ -86,7 +83,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         sq_norm = self.embedding_metric.squared_norm(point)
         euclidean_sq_norm = gs.sum(point ** 2, axis=-1)
         diff = gs.abs(sq_norm + 1)
-        belongs = diff < tolerance * euclidean_sq_norm
+        belongs = diff < atol * euclidean_sq_norm
         return belongs
 
     def regularize(self, point):
@@ -149,6 +146,28 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
 
         tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
         return tangent_vec
+
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim + 1]
+            Vector.
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the manifold.
+            Optional, default: none.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-6.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        product = self.embedding_metric.inner_product(vector, base_point)
+        return gs.isclose(product, 0.)
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert from intrinsic to extrinsic coordinates.
@@ -371,3 +390,34 @@ class HyperboloidMetric(HyperbolicMetric):
         dist = gs.arccosh(cosh_angle)
         dist *= self.scale
         return dist
+
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        """Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector a
+        along the geodesic defined by exp_(base_point)(tangent_vec_b).
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim + 1]
+            Tangent vector at base point to be transported.
+        tangent_vec_b : array-like, shape=[..., dim + 1]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the hypersphere.
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[..., dim + 1]
+            Transported tangent vector at exp_(base_point)(tangent_vec_b).
+        """
+        theta = self.embedding_metric.norm(tangent_vec_b)
+        normalized_b = gs.einsum('...,...i->...i', 1 / theta, tangent_vec_b)
+        pb = self.embedding_metric.inner_product(tangent_vec_a, normalized_b)
+        p_orth = tangent_vec_a - gs.einsum('...,...i->...i', pb, normalized_b)
+        transported = \
+            gs.einsum('...,...i->...i', gs.sinh(theta) * pb, base_point)\
+            + gs.einsum('...,...i->...i', gs.cosh(theta) * pb, normalized_b)\
+            + p_orth
+        return transported

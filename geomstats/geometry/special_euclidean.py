@@ -26,7 +26,6 @@ PI8 = PI * PI7
 
 
 ATOL = 1e-5
-TOLERANCE = 1e-8
 
 TAYLOR_COEFFS_1_AT_0 = [+ 1. / 2., 0.,
                         - 1. / 24., 0.,
@@ -86,6 +85,21 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
     n : int
         Integer dimension of the underlying Euclidean space. Matrices will
         be of size: (n+1) x (n+1).
+
+    Attributes
+    ----------
+    rotations : SpecialOrthogonal
+        Subgroup of rotations of size n.
+    translations : Euclidean
+        Subgroup of translations of size n.
+    left_canonical_metric : InvariantMetric
+        The left invariant metric that corresponds to the Frobenius inner
+        product at the identity.
+    right_canonical_metric : InvariantMetric
+        The right invariant metric that corresponds to the Frobenius inner
+        product at the identity.
+    metric :  MatricesMetric
+        The Euclidean (Frobenius) inner product.
     """
 
     def __init__(self, n):
@@ -840,7 +854,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         mask_close_pi_float = gs.cast(mask_close_pi, gs.float32)
         mask_else_float = gs.cast(mask_else, gs.float32)
 
-        mask_0 = gs.isclose(angle, 0., atol=1e-6)
+        mask_0 = gs.isclose(angle, 0., atol=1e-7)
         mask_0_float = gs.cast(mask_0, gs.float32)
         angle += mask_0_float * gs.ones_like(angle)
 
@@ -1091,7 +1105,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
             Square matrix to check.
         atol : float
             Tolerance for the equality evaluation.
-            Optional, default: TOLERANCE.
+            Optional, default: backend atol.
 
         Returns
         -------
