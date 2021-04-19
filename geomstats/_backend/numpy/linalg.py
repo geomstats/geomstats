@@ -18,7 +18,6 @@ from autograd.numpy.linalg import (  # NOQA
 from .common import to_ndarray
 
 
-
 def _is_symmetric(x, tol=1e-12):
     new_x = to_ndarray(x, to_ndim=3)
     return (np.abs(new_x - np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
