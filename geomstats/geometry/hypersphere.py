@@ -15,7 +15,6 @@ from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class _Hypersphere(EmbeddedManifold):
@@ -411,9 +410,9 @@ class _Hypersphere(EmbeddedManifold):
                     1 - (1 - envelop_param) * sym_beta)
                 accept_tol = gs.random.rand(n_samples - n_accepted)
                 criterion = (
-                                    kappa * coord_x
-                                    + dim * gs.log(1 - node * coord_x)
-                                    - correction) > gs.log(accept_tol)
+                    kappa * coord_x
+                    + dim * gs.log(1 - node * coord_x)
+                    - correction) > gs.log(accept_tol)
                 result.append(coord_x[criterion])
                 n_accepted += gs.sum(criterion)
                 n_iter += 1

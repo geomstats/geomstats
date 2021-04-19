@@ -5,6 +5,7 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
 
+
 class TestAlgebraUtils(geomstats.tests.TestCase):
 
     def setUp(self):
