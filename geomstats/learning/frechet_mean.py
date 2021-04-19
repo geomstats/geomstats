@@ -283,10 +283,10 @@ def _adaptive_gradient_descent(points,
     tau_min = 1e-6
     tau_mul_down = 0.1
 
-    current_mean = points[0] if init_point is None else init_point
-
     if n_points == 1:
-        return current_mean
+        return points[0]
+
+    current_mean = points[0] if init_point is None else init_point
 
     if weights is None:
         weights = gs.ones((n_points,))
