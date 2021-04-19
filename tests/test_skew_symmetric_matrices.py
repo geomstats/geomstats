@@ -82,3 +82,9 @@ class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
 
         result = self.skew[3].belongs(mat)
         self.assertFalse(result)
+
+    def test_random_point_and_belongs(self):
+        skew = self.skew[3]
+        matrices = skew.random_point(4)
+        result = skew.belongs(matrices)
+        self.assertTrue(gs.all(result))

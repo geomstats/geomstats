@@ -244,7 +244,7 @@ class Matrices:
         return is_diagonal
 
     def random_point(self, n_samples=1, bound=1.):
-        """Sample from a uniform distribution.
+        """Sample from a uniform distribution in a cube.
 
         Parameters
         ----------

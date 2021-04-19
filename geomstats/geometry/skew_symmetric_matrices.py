@@ -66,7 +66,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
             is_skew, super(SkewSymmetricMatrices, self).belongs(mat))
 
     def random_point(self, n_samples=1, bound=1.):
-        """Sample from a uniform distribution.
+        """Sample from a uniform distribution in a cube.
 
         Parameters
         ----------
@@ -82,7 +82,8 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         point : array-like, shape=[m, n] or [n_samples, m, n]
             Sample.
         """
-        return self.projection(self.random_point(n_samples, bound))
+        return self.projection(
+            super(SkewSymmetricMatrices, self).random_point(n_samples, bound))
 
     @classmethod
     def projection(cls, mat):
