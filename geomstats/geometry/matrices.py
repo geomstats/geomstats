@@ -257,7 +257,7 @@ class Matrices:
 
         Returns
         -------
-        point : array-like, shape=[m, n] or [n_samples, m, n]
+        point : array-like, shape=[..., m, n]
             Sample.
         """
         m, n = self.m, self.n

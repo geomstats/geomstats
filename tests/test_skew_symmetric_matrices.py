@@ -80,6 +80,10 @@ class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
         result = self.skew[2].belongs(mat)
         self.assertTrue(result)
 
+        mat = gs.array([[0., -1.], [1., 0.], [0., 0.]])
+        result = self.skew[2].belongs(mat)
+        self.assertFalse(result)
+
         result = self.skew[3].belongs(mat)
         self.assertFalse(result)
 

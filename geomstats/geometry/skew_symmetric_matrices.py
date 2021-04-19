@@ -61,9 +61,10 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         belongs : array-like, shape=[...,]
             Boolean evaluating if matrix is skew symmetric.
         """
-        is_skew = self.is_skew_symmetric(mat=mat, atol=atol)
-        return gs.logical_and(
-            is_skew, super(SkewSymmetricMatrices, self).belongs(mat))
+        has_right_shape = super(SkewSymmetricMatrices, self).belongs(mat)
+        if has_right_shape:
+            return self.is_skew_symmetric(mat=mat, atol=atol)
+        return False if (mat.ndim <= 2) else False * gs.ones(mat.shape[0])
 
     def random_point(self, n_samples=1, bound=1.):
         """Sample from a uniform distribution in a cube.
@@ -79,7 +80,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
 
         Returns
         -------
-        point : array-like, shape=[m, n] or [n_samples, m, n]
+        point : array-like, shape=[..., n, n]
             Sample.
         """
         return self.projection(
