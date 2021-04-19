@@ -53,7 +53,7 @@ class Matrices:
             Matrix.
         atol : float
             Tolerance.
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -150,7 +150,7 @@ class Matrices:
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -173,7 +173,7 @@ class Matrices:
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -225,7 +225,7 @@ class Matrices:
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------

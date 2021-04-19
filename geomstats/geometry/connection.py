@@ -132,7 +132,7 @@ class Connection:
         return exp
 
     def log(self, point, base_point, n_steps=N_STEPS, step='euler',
-            max_iter=25, verbose=False, tol=1e-6):
+            max_iter=25, verbose=False, tol=gs.atol):
         """Compute logarithm map associated to the affine connection.
 
         Solve the boundary value problem associated to the geodesic equation
