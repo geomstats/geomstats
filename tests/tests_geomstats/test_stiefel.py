@@ -8,7 +8,6 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stiefel import Stiefel
 
-ATOL = 1e-6
 
 p_xy = gs.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 0.]])
 r_z = gs.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]])
