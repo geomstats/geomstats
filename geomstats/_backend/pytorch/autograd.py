@@ -4,7 +4,7 @@ from torch.autograd.functional import jacobian as torch_jac
 
 
 def value_and_grad(objective):
-    """'Returns a function that returns both value and gradient.
+    """'Return a function that returns both value and gradient.
 
     Suitable for use in scipy.optimize
 
@@ -30,5 +30,5 @@ def value_and_grad(objective):
 
 
 def jacobian(f):
-    """Returns a function that returns the jacobian of a function."""
+    """Return a function that returns the jacobian of a function."""
     return lambda x: torch_jac(f, x)

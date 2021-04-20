@@ -3,7 +3,7 @@ import tensorflow as tf
 
 
 def value_and_grad(objective):
-    """'Returns a function that returns both value and gradient.
+    """'Return a function that returns both value and gradient.
 
     Suitable for use in scipy.optimize
 
@@ -29,9 +29,9 @@ def value_and_grad(objective):
 
 
 def jacobian(f):
-    """Returns a function that returns the jacobian of a function f."""
+    """Return a function that returns the jacobian of a function f."""
     def jac(x):
-        """Returns the jacobian of f at x."""
+        """Return the jacobian of f at x."""
         if isinstance(x, np.ndarray):
             x = tf.Variable(x)
         with tf.GradientTape() as g:
