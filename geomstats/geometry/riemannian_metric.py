@@ -87,28 +87,36 @@ class RiemannianMetric(Connection):
         Optional, default: 'vector'.
     """
 
-    def __init__(self, dim, signature=None, default_point_type='vector'):
+    def __init__(
+            self, dim, signature=None, default_point_type='vector',
+            metric_matrix=None):
         super(RiemannianMetric, self).__init__(
             dim=dim, default_point_type=default_point_type)
         self.signature = signature
+        if metric_matrix is None:
+            def inner_product(tangent_vec_a, tangent_vec_b, base_point=None):
+                """Canonical Euclidean inner product"""
+                return gs.sum(tangent_vec_a * tangent_vec_b, axis=-1)
 
-    def metric_matrix(self, base_point=None):
-        """Metric matrix at the tangent space at a base point.
+            def norm(vector, base_point=None):
+                return gs.linalg.norm(vector, axis=-1)
+        else:
+            def inner_product(tangent_vec_a, tangent_vec_b, base_point=None):
+                """Inner product between two tangent vectors at a base point."""
+                inner_prod_mat = metric_matrix(base_point)
+                inner_prod = gs.einsum(
+                    '...j,...jk,...k_>...', tangent_vec_a, inner_prod_mat, tangent_vec_b)
+                return inner_prod
 
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim]
-            Base point.
-            Optional, default: None.
+            def norm(self, vector, base_point=None):
+                """Compute norm of a vector."""
+                sq_norm = self.squared_norm(vector, base_point)
+                norm = gs.sqrt(sq_norm)
+                return norm
 
-        Returns
-        -------
-        mat : array-like, shape=[..., dim, dim]
-            Inner-product matrix.
-        """
-        raise NotImplementedError(
-            'The computation of the metric matrix'
-            ' is not implemented.')
+        self.inner_product = inner_product
+        self.metric_matrix = metric_matrix
+        self.norm = norm
 
     def inner_product_inverse_matrix(self, base_point=None):
         """Inner product matrix at the tangent space at a base point.
@@ -174,29 +182,6 @@ class RiemannianMetric(Connection):
         christoffels = 0.5 * (term_1 + term_2 + term_3)
         return christoffels
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Inner product between two tangent vectors at a base point.
-
-        Parameters
-        ----------
-        tangent_vec_a: array-like, shape=[..., dim]
-            Tangent vector at base point.
-        tangent_vec_b: array-like, shape=[..., dim]
-            Tangent vector at base point.
-        base_point: array-like, shape=[..., dim]
-            Base point.
-            Optional, default: None.
-
-        Returns
-        -------
-        inner_product : array-like, shape=[...,]
-            Inner-product.
-        """
-        inner_prod_mat = self.metric_matrix(base_point)
-        aux = gs.einsum('...j,...jk->...k', tangent_vec_a, inner_prod_mat)
-        inner_prod = gs.einsum('...k,...k->...', aux, tangent_vec_b)
-        return inner_prod
-
     def squared_norm(self, vector, base_point=None):
         """Compute the square of the norm of a vector.
 
@@ -218,32 +203,6 @@ class RiemannianMetric(Connection):
         """
         sq_norm = self.inner_product(vector, vector, base_point)
         return sq_norm
-
-    def norm(self, vector, base_point=None):
-        """Compute norm of a vector.
-
-        Norm of a vector associated to the inner product
-        at the tangent space at a base point.
-
-        Note: This only works for positive-definite
-        Riemannian metrics and inner products.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., dim]
-            Vector.
-        base_point : array-like, shape=[..., dim]
-            Base point.
-            Optional, default: None.
-
-        Returns
-        -------
-        norm : array-like, shape=[...,]
-            Norm.
-        """
-        sq_norm = self.squared_norm(vector, base_point)
-        norm = gs.sqrt(sq_norm)
-        return norm
 
     def squared_dist(self, point_a, point_b):
         """Squared geodesic distance between two points.
