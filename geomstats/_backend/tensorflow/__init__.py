@@ -52,7 +52,6 @@ from tensorflow import (  # NOQA
     stack,
     tan,
     tanh,
-    tile,
     uint8,
     zeros,
     zeros_like
@@ -774,3 +773,11 @@ def triu_to_vec(x, k=0):
         mask_b = tf.zeros_like(mask_a)
     mask = tf.cast(mask_a - mask_b, dtype=tf.bool)
     return tf.boolean_mask(x, mask, axis=axis)
+
+
+def tile(x, multiples):
+    t1 = tf.ones(len(multiples) - len(tf.shape(x)))
+    t1 = tf.cast(t1, tf.int32)
+    t2 = tf.shape(x)
+    x_reshape = tf.reshape(x, tf.concat([t1, t2], axis=0))
+    return tf.tile(x_reshape, multiples)
