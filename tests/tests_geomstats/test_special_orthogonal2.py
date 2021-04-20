@@ -10,7 +10,6 @@ from geomstats import algebra_utils
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
-ATOL = 1e-5
 
 
 class TestSpecialOrthogonal2(geomstats.tests.TestCase):
