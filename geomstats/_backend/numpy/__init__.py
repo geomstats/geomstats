@@ -1,97 +1,149 @@
 """Numpy based computation backend."""
+import importlib
+from importlib.util import spec_from_file_location, module_from_spec
+import pkgutil
+import os
+import sys
+
+
+def import_non_local(name: str):
+    """Import non local module
+
+    Args:
+        name (str): name of the module to import
+
+    Returns:
+        [module]: the imported module if the import is succesfull
+    """
+    paths_hints = [p for p in sys.path if 'site-packages' in p]
+    locations = [os.path.join(p, name + ".py") for p in paths_hints]
+    locations += [os.path.join(p, name,  "__init__.py") for p in paths_hints]        
+    spec = None 
+    
+    for location in locations:
+        spec = spec_from_file_location(name, location)
+        if os.path.isfile(location) and spec:
+            break 
+
+    if not spec:
+        print(f"module not found in {locations}")
+        return
+
+    the_module = module_from_spec(spec)
+    sys.modules[spec.name] = the_module
+    
+    try:
+        spec.loader.exec_module(the_module)
+    except ModuleNotFoundError as e:
+        print(f'error importing the module {name} with spec {spec} : {e}')
+        return
+
+    return the_module
+
+def import_non_local_submodule(main_module, submodule_name, mapping_name):
+    path = [os.path.dirname(main_module.__file__)]
+    for loader, module_name, is_pkg in  pkgutil.walk_packages(path):
+        if is_pkg and module_name == submodule_name:
+            
+            full_name = main_module.__name__ + '.' + module_name
+            mod = importlib.import_module(full_name)
+            return mod
 
 import autograd # NOQA
-import autograd.numpy as np
-from autograd.numpy import (  # NOQA
-    abs,
-    all,
-    allclose,
-    amax,
-    amin,
-    any,
-    arange,
-    arccos,
-    arccosh,
-    arcsin,
-    arctan2,
-    arctanh,
-    argmax,
-    argmin,
-    array,
-    broadcast_arrays,
-    ceil,
-    clip,
-    concatenate,
-    cos,
-    cosh,
-    cross,
-    cumprod,
-    cumsum,
-    diagonal,
-    divide,
-    dot,
-    dtype,
-    einsum,
-    empty,
-    empty_like,
-    equal,
-    exp,
-    expand_dims,
-    eye,
-    flip,
-    float32,
-    float64,
-    floor,
-    greater,
-    hsplit,
-    hstack,
-    int32,
-    int64,
-    isclose,
-    isnan,
-    less,
-    less_equal,
-    linspace,
-    log,
-    logical_and,
-    logical_or,
-    matmul,
-    maximum,
-    mean,
-    meshgrid,
-    mod,
-    ones,
-    ones_like,
-    outer,
-    power,
-    repeat,
-    reshape,
-    shape,
-    sign,
-    sin,
-    sinh,
-    split,
-    sqrt,
-    squeeze,
-    stack,
-    std,
-    sum,
-    tan,
-    tanh,
-    tile,
-    trace,
-    transpose,
-    triu_indices,
-    tril_indices,
-    searchsorted,
-    tril,
-    uint8,
-    vstack,
-    where,
-    zeros,
-    zeros_like
-)
-from autograd.scipy.special import polygamma # NOQA
+    
+sys_autograd = import_non_local('autograd') # NOQA
+np = import_non_local_submodule(sys_autograd, 'numpy', 'np')
+abs = getattr(np, 'abs')
+all = getattr(np, 'all')
+allclose = getattr(np, 'allclose')
+amax = getattr(np, 'amax')
+amin = getattr(np, 'amin')
+any = getattr(np, 'any')
+arange = getattr(np, 'arange')
+arccos = getattr(np, 'arccos')
+arccosh = getattr(np, 'arccosh')
+arcsin = getattr(np, 'arcsin')
+arctan2 = getattr(np, 'arctan2')
+arctanh = getattr(np, 'arctanh')
+argmax = getattr(np, 'argmax')
+argmin = getattr(np, 'argmin')
+array = getattr(np, 'array')
+broadcast_arrays = getattr(np, 'broadcast_arrays')
+ceil = getattr(np, 'ceil')
+clip = getattr(np, 'clip')
+concatenate = getattr(np, 'concatenate')
+cos = getattr(np, 'cos')
+cosh = getattr(np, 'cosh')
+cross = getattr(np, 'cross')
+cumprod = getattr(np, 'cumprod')
+cumsum = getattr(np, 'cumsum')
+diagonal = getattr(np, 'diagonal')
+divide = getattr(np, 'divide')
+dot = getattr(np, 'dot')
+dtype = getattr(np, 'dtype')
+einsum = getattr(np, 'einsum')
+empty = getattr(np, 'empty')
+empty_like = getattr(np, 'empty_like')
+equal = getattr(np, 'equal')
+exp = getattr(np, 'exp')
+expand_dims = getattr(np, 'expand_dims')
+eye = getattr(np, 'eye')
+flip = getattr(np, 'flip')
+float32 = getattr(np, 'float32')
+float64 = getattr(np, 'float64')
+floor = getattr(np, 'floor')
+greater = getattr(np, 'greater')
+hsplit = getattr(np, 'hsplit')
+hstack = getattr(np, 'hstack')
+int32 = getattr(np, 'int32')
+int64 = getattr(np, 'int64')
+isclose = getattr(np, 'isclose')
+isnan = getattr(np, 'isnan')
+less = getattr(np, 'less')
+less_equal = getattr(np, 'less_equal')
+linspace = getattr(np, 'linspace')
+log = getattr(np, 'log')
+logical_and = getattr(np, 'logical_and')
+logical_or = getattr(np, 'logical_or')
+matmul = getattr(np, 'matmul')
+maximum = getattr(np, 'maximum')
+mean = getattr(np, 'mean')
+meshgrid = getattr(np, 'meshgrid')
+mod = getattr(np, 'mod')
+ones = getattr(np, 'ones')
+ones_like = getattr(np, 'ones_like')
+outer = getattr(np, 'outer')
+power = getattr(np, 'power')
+repeat = getattr(np, 'repeat')
+reshape = getattr(np, 'reshape')
+shape = getattr(np, 'shape')
+sign = getattr(np, 'sign')
+sin = getattr(np, 'sin')
+sinh = getattr(np, 'sinh')
+split = getattr(np, 'split')
+sqrt = getattr(np, 'sqrt')
+squeeze = getattr(np, 'squeeze')
+stack = getattr(np, 'stack')
+std = getattr(np, 'std')
+sum = getattr(np, 'sum')
+tan = getattr(np, 'tan')
+tanh = getattr(np, 'tanh')
+tile = getattr(np, 'tile')
+trace = getattr(np, 'trace')
+transpose = getattr(np, 'transpose')
+triu_indices = getattr(np, 'triu_indices')
+tril_indices = getattr(np, 'tril_indices')
+searchsorted = getattr(np, 'searchsorted')
+tril = getattr(np, 'tril')
+uint8 = getattr(np, 'uint8')
+vstack = getattr(np, 'vstack')
+where = getattr(np, 'where')
+zeros = getattr(np, 'zeros')
+zeros_like = getattr(np, 'zeros_like')
+
+autograd_scipy = import_non_local_submodule(sys_autograd, 'scipy.special', 'np')
+polygamma = getattr(autograd_scipy, 'polygamma')
+
 from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA
