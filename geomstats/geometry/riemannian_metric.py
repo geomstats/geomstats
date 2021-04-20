@@ -104,8 +104,9 @@ class RiemannianMetric(Connection):
             def inner_product(tangent_vec_a, tangent_vec_b, base_point=None):
                 """Inner product between two tangent vectors at a base point."""
                 inner_prod_mat = metric_matrix(base_point)
-                inner_prod = gs.einsum(
-                    '...j,...jk,...k_>...', tangent_vec_a, inner_prod_mat, tangent_vec_b)
+                aux = gs.einsum(
+                    '...j,...jk->...k', tangent_vec_a, inner_prod_mat)
+                inner_prod = gs.einsum('...k,...k->...', aux, tangent_vec_b)
                 return inner_prod
 
             def norm(self, vector, base_point=None):
