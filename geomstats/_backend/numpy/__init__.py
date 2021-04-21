@@ -41,7 +41,7 @@ def import_non_local(name: str):
     return the_module
 
 
-def import_non_local_submodule(main_module, submodule_name, mapping_name):
+def import_non_local_submodule(main_module, submodule_name):
     path = [os.path.dirname(main_module.__file__)]
     for loader, module_name, is_pkg in pkgutil.walk_packages(path):
         if is_pkg and module_name == submodule_name:
@@ -52,7 +52,7 @@ def import_non_local_submodule(main_module, submodule_name, mapping_name):
 import autograd # NOQA
 
 sys_autograd = import_non_local('autograd') # NOQA
-np = import_non_local_submodule(sys_autograd, 'numpy', 'np')
+np = import_non_local_submodule(sys_autograd, 'numpy')
 abs = getattr(np, 'abs')
 all = getattr(np, 'all')
 allclose = getattr(np, 'allclose')
@@ -141,7 +141,8 @@ where = getattr(np, 'where')
 zeros = getattr(np, 'zeros')
 zeros_like = getattr(np, 'zeros_like')
 
-autograd_scipy = import_non_local_submodule(sys_autograd, 'scipy.special', 'np')
+autograd_scipy = import_non_local_submodule(sys_autograd,
+                                            'scipy.special')
 polygamma = getattr(autograd_scipy, 'polygamma')
 
 from scipy.sparse import coo_matrix # NOQA
