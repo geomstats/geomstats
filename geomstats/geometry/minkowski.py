@@ -96,6 +96,23 @@ class MinkowskiMetric(RiemannianMetric):
         return from_vector_to_diagonal_matrix(diagonal)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Inner product between two tangent vectors at a base point.
+
+        Parameters
+        ----------
+        tangent_vec_a: array-like, shape=[..., dim]
+            Tangent vector at base point.
+        tangent_vec_b: array-like, shape=[..., dim]
+            Tangent vector at base point.
+        base_point: array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        inner_product : array-like, shape=[...,]
+            Inner-product.
+        """
         p, q = self.signature
         diagonal = gs.array([-1.] * p + [1.] * q)
         return gs.einsum(
