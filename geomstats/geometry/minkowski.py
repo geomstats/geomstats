@@ -1,6 +1,7 @@
 """Minkowski space."""
 
 import geomstats.backend as gs
+from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -75,9 +76,7 @@ class MinkowskiMetric(RiemannianMetric):
     """
 
     def __init__(self, dim):
-        super(MinkowskiMetric, self).__init__(
-            dim=dim,
-            signature=(dim - 1, 1, 0))
+        super(MinkowskiMetric, self).__init__(dim=dim, signature=(1, dim - 1))
 
     def metric_matrix(self, base_point=None):
         """Compute the inner product matrix, independent of the base point.
@@ -92,19 +91,17 @@ class MinkowskiMetric(RiemannianMetric):
         inner_prod_mat : array-like, shape=[..., dim, dim]
             Inner-product matrix.
         """
-        inner_prod_mat = gs.eye(self.dim - 1, self.dim - 1)
-        first_row = gs.array([0.] * (self.dim - 1))
-        first_row = gs.to_ndarray(first_row, to_ndim=2, axis=1)
-        inner_prod_mat = gs.vstack(
-            [gs.transpose(first_row), inner_prod_mat])
+        p, q = self.signature
+        diagonal = gs.array([-1.] * p + [1.] * q)
+        return from_vector_to_diagonal_matrix(diagonal)
 
-        first_column = gs.array([-1.] + [0.] * (self.dim - 1))
-        first_column = gs.to_ndarray(first_column, to_ndim=2, axis=1)
-        inner_prod_mat = gs.hstack([first_column, inner_prod_mat])
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        p, q = self.signature
+        diagonal = gs.array([-1.] * p + [1.] * q)
+        return gs.einsum(
+            '...i,...i->...', diagonal * tangent_vec_a, tangent_vec_b)
 
-        return inner_prod_mat
-
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of `tangent_vec` at `base_point`.
 
         The Riemannian exponential is the addition in the Minkowski space.
@@ -124,7 +121,7 @@ class MinkowskiMetric(RiemannianMetric):
         exp = base_point + tangent_vec
         return exp
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of `point` at `base_point`.
 
         The Riemannian logarithm is the subtraction in the Minkowski space.
