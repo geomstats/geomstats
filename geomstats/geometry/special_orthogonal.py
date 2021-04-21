@@ -28,9 +28,10 @@ class SpecialOrthogonalManifoldFactory(AbstractManifoldFactory):
 
 
 def SpecialOrthogonal(*args, **kwargs):
-    """Wrapper to call the factory.
+    """Create a new manifold through the factory.
 
-    Returns:
+    Returns
+    -------
         Manifold: a special orthogonal manifold
     """
 

@@ -87,9 +87,10 @@ class SpecialEuclideanManifoldFactory(AbstractManifoldFactory):
 
 
 def SpecialEuclidean(*args, **kwargs):
-    """Wrapper to call the factory.
+    """Create a new manifold through the factory.
 
-    Returns:
+    Returns
+    -------
         Manifold: a special euclidean manifold
     """
     if "point_type" not in kwargs:

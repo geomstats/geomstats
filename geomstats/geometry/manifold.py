@@ -153,10 +153,12 @@ class Manifold(ABC):
                                **kwargs) -> Union[any, Dict[str, any]]:
         """Call a method on all metrics of this manifold.
 
-        Args:
+        Parameters
+        ----------
             function_name (str): method name to call on metrics
 
-        Returns:
+        Returns
+        -------
             Union[any, Dict[str, any]]: either the result or a dict
               containing metrics names and their associated result
         """
@@ -188,7 +190,8 @@ class AbstractManifoldFactory(ABC):
                **kwargs):
         """Create a manifold with it's metrics.
 
-        Returns:
+        Returns
+        -------
             Manifold: the new manifold
         """
         args_dict = kwargs
@@ -224,7 +227,8 @@ class AbstractManifoldFactory(ABC):
     def register(cls, **kwargs):
         """Register a new manifold class.
 
-        Returns:
+        Returns
+        -------
             Callable: [description]
         """
         def wrapper(manifold_class: Manifold):
@@ -246,10 +250,12 @@ class AbstractManifoldFactory(ABC):
     def registerMetric(cls, name: str = None) -> Callable:
         """Register a new metric class.
 
-        Args:
+        Parameters
+        ----------
             name (str): the name of the metric to Register
 
-        Returns:
+        Returns
+        -------
             Callable: a metric creator
         """
         def inner_wrapper(wrapped_class: Connection) -> Callable:
@@ -274,7 +280,8 @@ class AbstractManifoldFactory(ABC):
     def metric_keys(cls):
         """Getter for list of metric keys.
 
-        Returns:
+        Returns
+        -------
             List[str]: a list of metric keys for this class of manifold
         """
 
@@ -284,10 +291,12 @@ class AbstractManifoldFactory(ABC):
     def _get_metrics(cls, metrics_name: List[str]) -> List[Connection]:
         """Create create metrics from a list of names.
 
-        Args:
+        Parmeters
+        ---------
             metrics_name (List[str]): List of metrics names
 
-        Returns:
+        Returns
+        -------
             List[Connection]: List of metrics
         """
         res = []
