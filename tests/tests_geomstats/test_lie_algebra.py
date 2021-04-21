@@ -38,7 +38,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_orthonormal_basis(self):
-        group = SpecialOrthogonal(3)
+        group = SpecialOrthogonal(n=3)
         lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group)
         basis = metric.orthonormal_basis(lie_algebra.basis)
@@ -61,7 +61,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         self.assertAllClose(result, 1.)
 
     def test_orthonormal_basis_se3(self):
-        group = SpecialEuclidean(3)
+        group = SpecialEuclidean(n=3)
         lie_algebra = group.lie_algebra
         metric = InvariantMetric(group=group)
         basis = metric.orthonormal_basis(lie_algebra.basis)
