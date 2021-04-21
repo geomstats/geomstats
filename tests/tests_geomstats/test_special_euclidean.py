@@ -330,6 +330,6 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
     def test_metrics_expected_point_type(self):
         left = self.group.left_canonical_metric
         right = self.group.right_canonical_metric
-        metric = self.group.metric
-        for m in [left, right, metric]:
+        metrics = self.group.metrics
+        for m in [left, right] + metrics:
             self.assertTrue(m.default_point_type == 'matrix')
