@@ -17,7 +17,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         n = 3
         self.base = SPDMatrices(n)
         self.base_metric = SPDMetricBuresWasserstein(n)
-        self.group = SpecialOrthogonal(n)
+        self.group = SpecialOrthogonal(n=n)
         self.bundle = FiberBundle(
             GeneralLinear(n), base=self.base, group=self.group,
             ambient_metric=MatricesMetric(n, n))
