@@ -63,7 +63,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         atol : float, optional
             Tolerance at which to evaluate how close the squared norm
             is to the reference value.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -159,7 +159,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
             Optional, default: none.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------

@@ -8,7 +8,6 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stiefel import Stiefel
 
-ATOL = 1e-6
 
 p_xy = gs.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 0.]])
 r_z = gs.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]])
@@ -309,5 +308,5 @@ class TestStiefel(geomstats.tests.TestCase):
         point = self.space.random_uniform()
         vector = gs.random.rand(*point.shape)
         tangent_vec = self.space.to_tangent(vector, point)
-        result = self.space.is_tangent(tangent_vec, point, atol=1e-5)
+        result = self.space.is_tangent(tangent_vec, point)
         self.assertTrue(result)

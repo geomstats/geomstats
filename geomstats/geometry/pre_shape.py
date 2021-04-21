@@ -64,7 +64,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Point in Matrices space.
         atol : float
             Tolerance at which to evaluate norm == 1 and mean == 0.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -147,7 +147,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Point in Matrices space.
         atol :  float
             Tolerance at which to evaluate mean == 0.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -217,7 +217,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Optional, default: none.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -278,7 +278,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Optional, default: none.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------

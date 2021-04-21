@@ -376,3 +376,33 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             horizontal_a, vertical_b, base_point)
         is_horizontal = space.is_horizontal(result, base_point)
         self.assertTrue(is_horizontal)
+
+    def test_kendall_directional_curvature(self):
+        space = self.space
+        kendall = KendallShapeMetric(m_ambient=self.m_ambient,
+                                     k_landmarks=self.k_landmarks)
+        n_samples = 4 * self.k_landmarks * self.m_ambient
+        base_point = self.space.random_point(1)
+
+        vec_a = gs.random.rand(n_samples, self.k_landmarks, self.m_ambient)
+        tg_vec_a = space.to_tangent(space.center(vec_a), base_point)
+        hor_a = space.horizontal_projection(tg_vec_a, base_point)
+
+        vec_b = gs.random.rand(n_samples, self.k_landmarks, self.m_ambient)
+        tg_vec_b = space.to_tangent(space.center(vec_b), base_point)
+        hor_b = space.horizontal_projection(tg_vec_b, base_point)
+
+        tidal = kendall.directional_curvature(hor_a, hor_b, base_point)
+
+        numerator = kendall.inner_product(tidal, hor_b, base_point)
+        denominator = \
+            kendall.inner_product(hor_a, hor_a, base_point) * \
+            kendall.inner_product(hor_b, hor_b, base_point) - \
+            kendall.inner_product(hor_a, hor_b, base_point) ** 2
+        condition = ~gs.isclose(denominator, 0.)
+        kappa = numerator[condition] / denominator[condition]
+        kappa_direct = \
+            kendall.sectional_curvature(hor_a, hor_b, base_point)[condition]
+        self.assertAllClose(kappa, kappa_direct)
+        result = (kappa > 1.0 - 1e-12)
+        self.assertTrue(gs.all(result))

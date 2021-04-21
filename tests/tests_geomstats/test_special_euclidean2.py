@@ -18,8 +18,6 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean
 # of the vector, as opposed to the standard behavior of gs.allclose
 # where it is relative to each element of the array
 
-RTOL = 1e-5
-
 
 class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
     def setUp(self):
