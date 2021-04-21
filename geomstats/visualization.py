@@ -1,4 +1,5 @@
 """Visualization for Geometric Statistics."""
+import logging
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -472,8 +473,8 @@ class SpecialEuclidean2:
         if self.point_type == 'vector':
             points = SE2_VECT.matrix_from_vector(points)
         if not gs.all(SE2_GROUP.belongs(points)):
-            raise ValueError(
-                'Points do not belong to SE2.')
+            logging.warning(
+                'Some points do not belong to SE2.')
         if not isinstance(points, list):
             points = list(points)
         self.points.extend(points)
