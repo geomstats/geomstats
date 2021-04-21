@@ -233,9 +233,7 @@ class HyperboloidMetric(HyperbolicMetric):
     default_coords_type = 'extrinsic'
 
     def __init__(self, dim, coords_type='extrinsic', scale=1):
-        super(HyperboloidMetric, self).__init__(
-            dim=dim,
-            scale=scale)
+        super(HyperboloidMetric, self).__init__(dim=dim, scale=scale)
         self.embedding_metric = MinkowskiMetric(dim + 1)
 
         self.coords_type = coords_type

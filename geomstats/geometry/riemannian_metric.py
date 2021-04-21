@@ -93,31 +93,56 @@ class RiemannianMetric(Connection):
         super(RiemannianMetric, self).__init__(
             dim=dim, default_point_type=default_point_type)
         self.signature = signature
-        if metric_matrix is None:
-            def inner_product(tangent_vec_a, tangent_vec_b, base_point=None):
-                """Canonical Euclidean inner product"""
-                return gs.sum(tangent_vec_a * tangent_vec_b, axis=-1)
 
-            def norm(vector, base_point=None):
-                return gs.linalg.norm(vector, axis=-1)
+        if (metric_matrix is None) and (signature is None):
+            self.inner_product = self._inner_product_canonical
+            self.norm = self._norm_canonical
+        elif metric_matrix is None:  # means signature is not None
+            metric_matrix = self._metric_matrix_signature()
+            self.inner_product = self._inner_product_signature(metric_matrix)
+            self.norm = self._norm
         else:
-            def inner_product(tangent_vec_a, tangent_vec_b, base_point=None):
-                """Inner product between two tangent vectors at a base point."""
-                inner_prod_mat = metric_matrix(base_point)
-                aux = gs.einsum(
-                    '...j,...jk->...k', tangent_vec_a, inner_prod_mat)
-                inner_prod = gs.einsum('...k,...k->...', aux, tangent_vec_b)
-                return inner_prod
+            self.inner_product = self._inner_product
+            self.norm = self._norm
 
-            def norm(self, vector, base_point=None):
-                """Compute norm of a vector."""
-                sq_norm = self.squared_norm(vector, base_point)
-                norm = gs.sqrt(sq_norm)
-                return norm
-
-        self.inner_product = inner_product
         self.metric_matrix = metric_matrix
-        self.norm = norm
+
+    @staticmethod
+    def _inner_product_canonical(
+            tangent_vec_a, tangent_vec_b, base_point=None):
+        """Canonical Euclidean inner product"""
+        return gs.sum(tangent_vec_a * tangent_vec_b, axis=-1)
+
+    @staticmethod
+    def _norm_canonical(vector, base_point=None):
+        return gs.linalg.norm(vector, axis=-1)
+
+    def _inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Inner product between two tangent vectors at a base point."""
+        inner_prod_mat = self.metric_matrix(base_point)
+        aux = gs.einsum(
+            '...j,...jk->...k', tangent_vec_a, inner_prod_mat)
+        inner_prod = gs.einsum('...k,...k->...', aux, tangent_vec_b)
+        return inner_prod
+
+    def _norm(self, vector, base_point=None):
+        """Compute norm of a vector."""
+        sq_norm = self.squared_norm(vector, base_point)
+        norm = gs.sqrt(sq_norm)
+        return norm
+
+    def _metric_matrix_signature(self):
+        p, q = self.signature
+        return gs.array([-1.] * p + [1.] * q)
+
+    @staticmethod
+    def _inner_product_signature(metric_matrix):
+        def inner_product(
+                tangent_vec_a, tangent_vec_b, base_point=None):
+            return gs.sum(
+                metric_matrix * tangent_vec_a * tangent_vec_b, axis=-1)
+
+        return inner_product
 
     def inner_product_inverse_matrix(self, base_point=None):
         """Inner product matrix at the tangent space at a base point.
