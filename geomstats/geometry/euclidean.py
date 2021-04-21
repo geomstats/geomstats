@@ -1,7 +1,7 @@
 """Euclidean space."""
 
 import geomstats.backend as gs
-from geomstats.geometry.manifold import Manifold, AbstractManifoldFactory
+from geomstats.geometry.manifold import AbstractManifoldFactory, Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 

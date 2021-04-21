@@ -74,7 +74,9 @@ class _SpecialOrthogonalMatrices(LieGroup):
             Boolean evaluating if point belongs to SO(n).
         """
         is_orthogonal = Matrices.equal(
-            Matrices.mul(point, Matrices.transpose(point)), self.identity, atol=atol)
+            Matrices.mul(point, Matrices.transpose(point)),
+            self.identity,
+            atol=atol)
         has_positive_det = gs.linalg.det(point) > 0.
         return gs.logical_and(is_orthogonal, has_positive_det)
 
@@ -93,7 +95,8 @@ class _SpecialOrthogonalMatrices(LieGroup):
 
     @classmethod
     def exp(cls, tangent_vec, base_point=None):
-        return GeneralLinear.exp(tangent_vec=tangent_vec, base_point=base_point)
+        return GeneralLinear.exp(tangent_vec=tangent_vec,
+                                 base_point=base_point)
 
     @classmethod
     def inverse(cls, point):

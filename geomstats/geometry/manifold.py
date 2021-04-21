@@ -4,13 +4,14 @@ In other words, a topological space that locally resembles
 Euclidean space near each point.
 """
 
-from abc import ABC
 import itertools
 import logging
+from abc import ABC
 from typing import Callable, Dict, List, Optional, Union
-from geomstats.geometry.connection import Connection
+
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.connection import Connection
 
 
 class Manifold(ABC):
@@ -30,7 +31,7 @@ class Manifold(ABC):
 
     def __init__(
             self, dim,
-            metrics : List[Connection]=None,
+            metrics: List[Connection] = None,
             default_point_type='vector',
             default_coords_type='intrinsic', **kwargs):
         super(Manifold, self).__init__()
@@ -146,7 +147,10 @@ class Manifold(ABC):
         regularized_point = point
         return regularized_point
 
-    def call_method_on_metrics(self, function_name: str, *args, **kwargs) -> Union[any, Dict[str, any]]:
+    def call_method_on_metrics(self,
+                               function_name: str,
+                               *args,
+                               **kwargs) -> Union[any, Dict[str, any]]:
         """
         Call a method on all metrics of this manifold and return the result.
 
@@ -162,7 +166,8 @@ class Manifold(ABC):
         if len(metrics) > 1:
             res = {}
             for metric in metrics:
-                res[metric.name()] = getattr(metric, function_name)(*args, **kwargs)
+                res[metric.name()] = getattr(metric,
+                                             function_name)(*args, **kwargs)
             return res
 
         if len(metrics) == 1:
@@ -178,7 +183,9 @@ class AbstractManifoldFactory(ABC):
     manifolds_creators = {}
 
     @classmethod
-    def create(cls, metrics_names : Optional[Union[str, List[str]]] = None, **kwargs):
+    def create(cls,
+               metrics_names: Optional[Union[str, List[str]]] = None,
+               **kwargs):
         args_dict = kwargs
 
         # check the incremental combination of args to see if a key exist
@@ -190,7 +197,8 @@ class AbstractManifoldFactory(ABC):
 
                     if metrics_names is not None:
                         if not isinstance(metrics_names, list):
-                            logging.debug(f"{metrics_names} is a str, transforming to list")
+                            logging.debug(f"{metrics_names} is a str,
+                                          transforming to list")
                             metrics_names = [metrics_names]
 
                         metrics = cls._get_metrics(metrics_names)
@@ -199,10 +207,11 @@ class AbstractManifoldFactory(ABC):
                         metrics = None
 
                     key_keys = [k for k, v in key]
-                    rest_of_args = {k: v for k, v in args_dict.items() if k not in key_keys}
-                    return cls.manifolds_creators[key](metrics=metrics, **rest_of_args)
+                    rest_of_args = {k: v for k, v in args_dict.items() if k not in key_keys} # NOQA
+                    return cls.manifolds_creators[key](metrics=metrics, **rest_of_args) # NOQA
 
-        raise Exception(f"no manifold with key containing {args_dict} . keys ars {cls.manifolds_creators.keys()}")
+        raise Exception(f"no manifold with key containing {args_dict} .
+                        keys ars {cls.manifolds_creators.keys()}")
 
     @classmethod
     def register(cls, **kwargs):
@@ -260,7 +269,7 @@ class AbstractManifoldFactory(ABC):
         return cls.metrics_creators.keys()
 
     @classmethod
-    def _get_metrics(cls, metrics_name : List[str]) -> List[Connection]:
+    def _get_metrics(cls, metrics_name: List[str]) -> List[Connection]:
         """
         Create create metrics from a list of names.
 
@@ -273,7 +282,8 @@ class AbstractManifoldFactory(ABC):
         res = []
         for m in metrics_name:
             if m not in cls.metrics_creators:
-                logging.warning(f"{m} not in metrics keys: {cls.metrics_creators.keys()}")
+                logging.warning(f"{m} not in metrics
+                                keys: {cls.metrics_creators.keys()}")
                 continue
             metric = cls.metrics_creators[m]()
             res.append(metric)

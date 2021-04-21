@@ -65,7 +65,7 @@ class Hyperboloid(EmbeddedManifold):
     def change_coordinates_system(point,
                                   from_coordinates_system,
                                   to_coordinates_system):
-        return Hyperbolic.change_coordinates_system(point=point,
+        return Hyperbolic.change_coordinates_system(point=point, # NOQA
                                                     from_coordinates_system=from_coordinates_system,
                                                     to_coordinates_system=to_coordinates_system)
 

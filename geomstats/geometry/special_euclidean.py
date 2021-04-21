@@ -15,7 +15,7 @@ from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.manifold import AbstractManifoldFactory
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory
+from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory # NOQA
 
 PI = gs.pi
 PI2 = PI * PI
@@ -152,7 +152,8 @@ class _SpecialEuclideanMatrices(LieGroup):
 
     @classmethod
     def exp(cls, tangent_vec, base_point=None):
-        return GeneralLinear.exp(tangent_vec=tangent_vec, base_point=base_point)
+        return GeneralLinear.exp(tangent_vec=tangent_vec,
+                                 base_point=base_point)
 
     def belongs(self, point):
         """Check whether point is of the form rotation, translation.

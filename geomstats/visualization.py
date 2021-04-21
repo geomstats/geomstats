@@ -7,8 +7,8 @@ import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
-from geomstats.geometry.special_euclidean import SpecialEuclideanManifoldFactory
-from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory
+from geomstats.geometry.special_euclidean import SpecialEuclideanManifoldFactory # NOQA
+from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory # NOQA
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 SE3_GROUP = SpecialEuclideanManifoldFactory.create(n=3, point_type='vector')
