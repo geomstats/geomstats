@@ -745,7 +745,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = gs.array([2, dim, dim, dim])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_parallel_transport_vectorization(self):
         sphere = Hypersphere(2)
         metric = sphere.metric
@@ -786,6 +785,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = gs.ones(result.shape)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_riemannian_normal_and_belongs(self):
         mean = self.space.random_uniform()
         cov = gs.eye(self.space.dim)
@@ -793,6 +793,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         result = self.space.belongs(sample)
         self.assertTrue(gs.all(result))
 
+    @geomstats.tests.np_and_pytorch_only
     def test_riemannian_normal_mean(self):
         space = self.space
         mean = space.random_uniform()

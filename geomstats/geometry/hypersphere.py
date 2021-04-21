@@ -406,6 +406,7 @@ class _Hypersphere(EmbeddedManifold):
             while (n_accepted < n_samples) and (n_iter < max_iter):
                 sym_beta = beta.rvs(
                     dim / 2, dim / 2, size=n_samples - n_accepted)
+                sym_beta = gs.cast(sym_beta, node.dtype)
                 coord_x = (1 - (1 + envelop_param) * sym_beta) / (
                     1 - (1 - envelop_param) * sym_beta)
                 accept_tol = gs.random.rand(n_samples - n_accepted)
@@ -711,12 +712,12 @@ class HypersphereMetric(RiemannianMetric):
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         theta = gs.linalg.norm(tangent_vec_b, axis=-1)
-        normalized_b = gs.einsum('..., ...i->...i', 1 / theta, tangent_vec_b)
+        normalized_b = gs.einsum('...,...i->...i', 1 / theta, tangent_vec_b)
         pb = gs.einsum('...i,...i->...', tangent_vec_a, normalized_b)
-        p_orth = tangent_vec_a - gs.einsum('..., ...i->...i', pb, normalized_b)
+        p_orth = tangent_vec_a - gs.einsum('...,...i->...i', pb, normalized_b)
         transported = \
-            - gs.einsum('..., ...i->...i', gs.sin(theta) * pb, base_point)\
-            + gs.einsum('..., ...i->...i', gs.cos(theta) * pb, normalized_b)\
+            - gs.einsum('...,...i->...i', gs.sin(theta) * pb, base_point)\
+            + gs.einsum('...,...i->...i', gs.cos(theta) * pb, normalized_b)\
             + p_orth
         return transported
 
