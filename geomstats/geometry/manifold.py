@@ -292,8 +292,9 @@ class AbstractManifoldFactory(ABC):
         res = []
         for m in metrics_name:
             if m not in cls.metrics_creators:
-                logging.warning(f"{m} not in metrics
-                                keys: {cls.metrics_creators.keys()}")
+                logging.warning(f'''
+                                {m} not in metrics
+                                keys: {cls.metrics_creators.keys()}''')
                 continue
             metric = cls.metrics_creators[m]()
             res.append(metric)
