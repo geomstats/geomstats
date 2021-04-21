@@ -51,7 +51,7 @@ class _Hypersphere(EmbeddedManifold):
             Point in Euclidean space.
         atol : float
             Tolerance at which to evaluate norm == 1.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -150,7 +150,7 @@ class _Hypersphere(EmbeddedManifold):
             Optional, default: none.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -679,11 +679,11 @@ class HypersphereMetric(RiemannianMetric):
 
         For three tangent vectors at a base point :math: `x,y,z`,
         the curvature is defined by
-        :math: `R(X, Y)Z = \nabla_{[X,Y]}Z
-        - \nabla_X\nabla_Y Z + - \nabla_Y\nabla_X Z`, where :math: `\nabla`
+        :math: `R(x, y)z = \nabla_{[x,y]}z
+        - \nabla_z\nabla_y z + \nabla_y\nabla_x z`, where :math: `\nabla`
         is the Levi-Civita connection. In the case of the hypersphere,
         we have the closed formula
-        :math: `R(X,Y)Z = \langle X, Z \rangle Y - \langle Y,Z \rangle X`.
+        :math: `R(x,y)z = \langle x, z \rangle y - \langle y,z \rangle x`.
 
         Parameters
         ----------

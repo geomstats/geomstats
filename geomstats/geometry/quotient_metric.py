@@ -204,4 +204,4 @@ class QuotientMetric(RiemannianMetric):
             horizontal_a, f_bc, point_fiber)
         f_a_f_bc = bundle.tangent_submersion(f_a_f_bc, point_fiber)
 
-        return -(projected_top_curvature + 2 * f_c_f_ab - f_a_f_bc + f_b_f_ac)
+        return projected_top_curvature - 2 * f_c_f_ab + f_a_f_bc - f_b_f_ac

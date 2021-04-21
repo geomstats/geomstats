@@ -141,7 +141,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         mats = self.bundle.total_space.random_point(2)
         points = self.bundle.submersion(mats)
 
-        result = self.quotient_metric.log(points[1], points[0], tol=1e-10)
+        result = self.quotient_metric.log(points[1], points[0])
         expected = self.base_metric.log(points[1], points[0])
         self.assertAllClose(result, expected, atol=3e-4)
 
@@ -152,7 +152,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         result = self.quotient_metric.squared_dist(
             points[1], points[0], tol=1e-10)
         expected = self.base_metric.squared_dist(points[1], points[0])
-        self.assertAllClose(result, expected, atol=1e-5)
+        self.assertAllClose(result, expected)
 
     def test_integrability_tensor(self):
         mat = self.bundle.total_space.random_point()

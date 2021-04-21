@@ -12,8 +12,6 @@ from geomstats.geometry.connection import Connection
 import geomstats.backend as gs
 import geomstats.errors
 
-ATOL = gs.atol
-
 
 class Manifold(ABC):
     r"""Class for manifolds.
@@ -48,8 +46,7 @@ class Manifold(ABC):
             for metric in self.metrics:
                 metric.setManifold(self)
 
-    @abstractmethod
-    def belongs(self, point, atol=ATOL):
+    def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold.
 
         Parameters
@@ -58,7 +55,7 @@ class Manifold(ABC):
             Point to evaluate.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -67,7 +64,7 @@ class Manifold(ABC):
         """
         raise NotImplementedError('belongs is not implemented.')
 
-    def is_tangent(self, vector, base_point=None, atol=ATOL):
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters
@@ -79,7 +76,7 @@ class Manifold(ABC):
             Optional, default: none.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -143,7 +140,7 @@ class Manifold(ABC):
         """
         regularized_point = point
         return regularized_point
-        
+
     def call_method_on_metrics(self, function_name: str, *args, **kwargs) -> Union[any, Dict[str, any]]:
         """Call a method on all metrics of this manifold and return the result.
 
@@ -160,10 +157,10 @@ class Manifold(ABC):
             for metric in metrics:
                 res[metric.name()] = getattr(metric, function_name)(*args, **kwargs)
             return res
-        
+
         if len(metrics) == 1:
             return getattr(metrics[0], function_name)(*args, **kwargs)
-        
+
         logging.warning(f"no metric to call function {function_name}")
         return 0
 
@@ -171,18 +168,18 @@ class Manifold(ABC):
 class AbstractManifoldFactory(ABC):
     metrics_creators = {}
     manifolds_creators = {}
-    
+
     @classmethod
     def create(cls, metrics_names : Optional[Union[str, List[str]]] = None, **kwargs):
         args_dict = kwargs
-        
+
         # check the incremental combination of args to see if a key exist
         nb_args = len(args_dict)
         for length in range(nb_args, 0, -1):
             for key in itertools.combinations(args_dict.items(), length):
                 if key in cls.manifolds_creators:
                     logging.debug(f"found key {key}  from args {args_dict}")
-                    
+
                     if metrics_names is not None:
                         if not isinstance(metrics_names, list):
                             logging.debug(f"{metrics_names} is a str, transforming to list")
@@ -192,13 +189,13 @@ class AbstractManifoldFactory(ABC):
                         logging.debug(f"metrics created are {metrics}")
                     else:
                         metrics = None
-            
+
                     key_keys = [k for k, v in key]
                     rest_of_args = {k: v for k, v in args_dict.items() if k not in key_keys}
                     return cls.manifolds_creators[key](metrics=metrics, **rest_of_args)
 
         raise Exception(f"no manifold with key containing {args_dict} . keys ars {cls.manifolds_creators.keys()}")
-                
+
     @classmethod
     def register(cls, **kwargs):
         """Decorator to register new manifold type
@@ -209,22 +206,22 @@ class AbstractManifoldFactory(ABC):
         def wrapper(manifold_class: Manifold):
             args_dict = kwargs
             key = tuple(sorted(args_dict.items()))  # TODO without sorted
-            
+
             if key in cls.manifolds_creators:
                 logging.info(f"for manifold {cls} this combination of args alreay exist: {key} . I will replace it")
-            
+
             cls.manifolds_creators[key] = manifold_class
-            return manifold_class 
+            return manifold_class
 
         return wrapper
-    
+
     @classmethod
     def registerMetric(cls, name: str = None) -> Callable:
         """Decorator to register a new class
 
         Args:
             name (str): the name of the metric to Register
-            
+
         Returns:
             Callable: a metric creator
         """
@@ -233,7 +230,7 @@ class AbstractManifoldFactory(ABC):
             if inner_name is None:
                 logging.debug(f"register new metric without name, will use class name {wrapped_class.__name__}")
                 inner_name = wrapped_class.__name__
-                
+
             if inner_name in cls.metrics_creators:
                 logging.info(f"Metric creator with key {inner_name} already exists. Will replace it")
             cls.metrics_creators[inner_name] = wrapped_class
@@ -248,7 +245,7 @@ class AbstractManifoldFactory(ABC):
         Returns:
             List[str]: a list of metric keys for this class of manifold
         """
-         
+
         return cls.metrics_creators.keys()
 
     @classmethod

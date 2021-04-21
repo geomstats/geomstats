@@ -150,7 +150,7 @@ class Connection:
         return exp
 
     def log(self, point, base_point, n_steps=N_STEPS, step='euler',
-            max_iter=25, verbose=False, tol=1e-6):
+            max_iter=25, verbose=False, tol=gs.atol):
         """Compute logarithm map associated to the affine connection.
 
         Solve the boundary value problem associated to the geodesic equation
@@ -449,7 +449,7 @@ class Connection:
         For three tangent vectors at a base point :math: `X,Y,Z`,
         the curvature is defined by
         :math: `R(X, Y)Z = \nabla_{[X,Y]}Z
-        - \nabla_X\nabla_Y Z + - \nabla_Y\nabla_X Z`.
+        - \nabla_X\nabla_Y Z + \nabla_Y\nabla_X Z`.
 
         Parameters
         ----------
@@ -468,6 +468,31 @@ class Connection:
             Tangent vector at `base_point`.
         """
         raise NotImplementedError('The curvature is not implemented.')
+
+    def directional_curvature(
+            self, tangent_vec_a, tangent_vec_b, base_point):
+        """Compute the directional curvature (tidal force operator).
+
+        For two tangent vectors at a base point :math: `X,Y`, the directional
+        curvature, better known in relativity as the tidal force operator,
+        is defined by :math: `R_X(Y) = R(X,Y)X`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., {dim, [n, n]}]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        directional_curvature : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at `base_point`.
+        """
+        return self.curvature(tangent_vec_a, tangent_vec_b, tangent_vec_a,
+                              base_point)
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None):
