@@ -33,10 +33,9 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         sig_0 = sum(sig[0] for sig in signatures)
         sig_1 = sum(sig[1] for sig in signatures)
-        sig_2 = sum(sig[2] for sig in signatures)
         super(ProductRiemannianMetric, self).__init__(
             dim=sum(dims),
-            signature=(sig_0, sig_1, sig_2),
+            signature=(sig_0, sig_1),
             default_point_type=default_point_type)
 
         self.metrics = metrics
