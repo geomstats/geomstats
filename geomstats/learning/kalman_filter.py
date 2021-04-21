@@ -179,7 +179,7 @@ class Localization:
     sparse position observations.
     """
 
-    group = SpecialEuclidean(n=2, 'vector')
+    group = SpecialEuclidean(n=2, point_type='vector')
     dim = group.dim
     dim_rot = group.rotations.dim
     dim_noise = 3

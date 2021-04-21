@@ -59,15 +59,16 @@ class Hyperboloid(EmbeddedManifold):
         return self.hyperbolic.from_coordinates(point, from_coords_type)
 
     def to_coordinates(self, point, to_coords_type='ball'):
-        return self.hyperbolic.to_coordinates(point=point, to_coords_type=to_coords_type)
+        return self.hyperbolic.to_coordinates(point=point,
+                                              to_coords_type=to_coords_type)
 
     @staticmethod
     def change_coordinates_system(point,
                                   from_coordinates_system,
                                   to_coordinates_system):
         return Hyperbolic.change_coordinates_system(point=point, # NOQA
-                                                    from_coordinates_system=from_coordinates_system,
-                                                    to_coordinates_system=to_coordinates_system)
+                                                    from_coordinates_system=from_coordinates_system, # NOQA
+                                                    to_coordinates_system=to_coordinates_system) # NOQA
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.

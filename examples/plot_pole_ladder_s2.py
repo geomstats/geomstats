@@ -14,7 +14,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 SPACE = Hypersphere(2)
 METRIC = SPACE.metric
-ROTATIONS = SpecialOrthogonal(n=3, 'vector')
+ROTATIONS = SpecialOrthogonal(n=3, point_type='vector')
 
 N_STEPS = 4
 N_POINTS = 10
