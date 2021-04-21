@@ -491,8 +491,9 @@ class _Hypersphere(EmbeddedManifold):
         precision_2 = precision_ + (dim - 1) / gs.pi * gs.eye(dim)
         tangent_cov = gs.linalg.inv(precision_2)
 
-        def threshold(v):
-            squared_norm = gs.sum(v ** 2, axis=-1)
+        def threshold(random_v):
+            """Compute the acceptance threshold."""
+            squared_norm = gs.sum(random_v ** 2, axis=-1)
             sinc = utils.taylor_exp_even_func(
                 squared_norm, utils.sinc_close_0) ** (dim - 1)
             threshold_val = sinc * gs.exp(squared_norm * (dim - 1) / 2 / gs.pi)

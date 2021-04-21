@@ -160,11 +160,29 @@ def flip_determinant(matrix, det):
 
 
 def rotate_points(points, end_point):
+    """Apply to points the rotation from north_pole to end_point.
+
+    A QR decomposition is used to find the rotation that maps the north pole
+    (1, 0,...,0) to the end_point, then this rotation is applied to the
+    input points.
+
+    Parameters
+    ----------
+    points : array-like, shape=[..., n]
+        Points to rotate.
+    end_point : array-like, shape=[n, ]
+        Point to parametrise the rotation.
+
+    Returns
+    -------
+    rotated_points : array-like, shape=[..., n]
+        Points after the rotation.
+    """
     n = end_point.shape[0]
     base_point = gs.array([1.] + [0] * (n - 1))
     embedded = gs.concatenate([end_point[None, :], gs.zeros((n - 1, n))])
     norm = gs.linalg.norm(end_point)
-    q, r = gs.linalg.qr(gs.transpose(embedded) / norm)
+    q, _ = gs.linalg.qr(gs.transpose(embedded) / norm)
     new_points = gs.matmul(points[None, :], gs.transpose(q)) * norm
     if not gs.allclose(gs.matmul(q, base_point[:, None])[:, 0], end_point):
         new_points = - new_points
