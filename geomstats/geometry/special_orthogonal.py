@@ -34,7 +34,6 @@ def SpecialOrthogonal(*args, **kwargs):
     -------
         Manifold: a special orthogonal manifold
     """
-
     if "point_type" not in kwargs:
         kwargs["point_type"] = "matrix"
 

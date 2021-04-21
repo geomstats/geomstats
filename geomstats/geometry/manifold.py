@@ -284,7 +284,6 @@ class AbstractManifoldFactory(ABC):
         -------
             List[str]: a list of metric keys for this class of manifold
         """
-
         return cls.metrics_creators.keys()
 
     @classmethod
