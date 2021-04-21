@@ -39,8 +39,7 @@ class Connection:
         self.manifold = None
 
     def setManifold(self, manifold):
-        """
-        Set the manifold associated to this metric.
+        """Set the manifold associated to this metric.
 
         Args:
             manifold : the new manifold to set
@@ -49,8 +48,7 @@ class Connection:
 
     @classmethod
     def name(cls) -> str:
-        """
-        Return the name of this metric.
+        """Return the name of this metric.
 
         Returns:
             str: the metric's name

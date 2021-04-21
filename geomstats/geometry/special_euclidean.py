@@ -86,8 +86,12 @@ class SpecialEuclideanManifoldFactory(AbstractManifoldFactory):
     manifolds_creators = {}
 
 
-# for backward compatibility
 def SpecialEuclidean(*args, **kwargs):
+    """Wrapper to call the factory.
+
+    Returns:
+        Manifold: a special euclidean manifold
+    """
     if "point_type" not in kwargs:
         kwargs["point_type"] = "matrix"
 

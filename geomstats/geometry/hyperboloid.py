@@ -53,12 +53,69 @@ class Hyperboloid(EmbeddedManifold):
             HyperboloidMetric(self.dim, self.coords_type, self.scale)
 
     def random_point(self, n_samples=1, bound=1.):
+        """Sample over the hyperbolic space using uniform distribution.
+
+        Sample over the hyperbolic space. The sampling is performed
+        by sampling over uniform distribution, the sampled examples
+        are considered in the intrinsic coordinates system.
+        The function then transforms intrinsic samples into system
+        coordinate selected.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound: float
+            Bound defining the hypersquare in which to sample uniformly.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., dim + 1]
+            Samples in hyperbolic space.
+        """
         return self.hyperbolic.random_point(n_samples=n_samples, bound=bound)
 
     def from_coordinates(self, point, from_coords_type):
+        """Convert to a type of coordinates given some type.
+
+        Convert the parameterization of a point in hyperbolic space
+        from given coordinate system to the current coordinate system.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., {dim, dim + 1}]
+            Point in hyperbolic space in coordinates from_point_type.
+        from_coords_type : str, {'ball', 'extrinsic', 'intrinsic', ...}
+            Coordinates type.
+
+        Returns
+        -------
+        point_current : array-like, shape=[..., {dim, dim + 1}]
+            Point in hyperbolic space.
+        """
         return self.hyperbolic.from_coordinates(point, from_coords_type)
 
     def to_coordinates(self, point, to_coords_type='ball'):
+        """Convert coordinates of a point.
+
+        Convert the parameterization of a point in the hyperbolic space
+        from current coordinate system to the coordinate system given.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., {dim, dim + 1}]
+            Point in hyperbolic space.
+        to_coords_type : str, {'extrinsic', 'intrinsic', etc}
+            Coordinates type.
+            Optional, default: 'ball'.
+
+        Returns
+        -------
+        point_to : array-like, shape=[..., {dim, dim + 1}]
+            Point in hyperbolic space in coordinates given by to_point_type.
+        """
         return self.hyperbolic.to_coordinates(point=point,
                                               to_coords_type=to_coords_type)
 
@@ -66,6 +123,31 @@ class Hyperboloid(EmbeddedManifold):
     def change_coordinates_system(point,
                                   from_coordinates_system,
                                   to_coordinates_system):
+        """Convert coordinates of a point.
+
+        Convert the parameterization of a point in the hyperbolic space
+        from current given coordinate system to an other also given in
+        parameters. The possible coordinates system are 'extrinsic',
+        'intrinsic', 'ball' and 'half-plane' that correspond respectivelly
+        to extrinsic coordinates in the hyperboloid , intrinsic
+        coordinates in the hyperboloid, ball coordinates in the Poincare
+        ball model and coordinates in the Poincare upper half-plane model.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., {dim, dim + 1}]
+            Point in hyperbolic space.
+        from_coordinates_system : str, {'extrinsic', 'intrinsic', etc}
+            Coordinates type.
+        to_coordinates_system : str, {'extrinsic', 'intrinsic', etc}
+            Coordinates type.
+
+        Returns
+        -------
+        point_to : array-like, shape=[..., dim]
+                               or shape=[n_sample, dim + 1]
+            Point in hyperbolic space in coordinates given by to_point_type.
+        """
         return Hyperbolic.change_coordinates_system(point=point, # NOQA
                                                     from_coordinates_system=from_coordinates_system, # NOQA
                                                     to_coordinates_system=to_coordinates_system) # NOQA

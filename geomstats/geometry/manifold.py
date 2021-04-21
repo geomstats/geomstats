@@ -151,8 +151,7 @@ class Manifold(ABC):
                                function_name: str,
                                *args,
                                **kwargs) -> Union[any, Dict[str, any]]:
-        """
-        Call a method on all metrics of this manifold and return the result.
+        """Call a method on all metrics of this manifold.
 
         Args:
             function_name (str): method name to call on metrics
@@ -179,6 +178,7 @@ class Manifold(ABC):
 
 class AbstractManifoldFactory(ABC):
     """Abstract class to easily create Manifold factories."""
+
     metrics_creators = {}
     manifolds_creators = {}
 
@@ -186,6 +186,11 @@ class AbstractManifoldFactory(ABC):
     def create(cls,
                metrics_names: Optional[Union[str, List[str]]] = None,
                **kwargs):
+        """Create a manifold with it's metrics.
+
+        Returns:
+            Manifold: the new manifold
+        """
         args_dict = kwargs
 
         # check the incremental combination of args to see if a key exist
@@ -217,8 +222,7 @@ class AbstractManifoldFactory(ABC):
 
     @classmethod
     def register(cls, **kwargs):
-        """
-        Register a new manifold class.
+        """Register a new manifold class.
 
         Returns:
             Callable: [description]
@@ -240,8 +244,7 @@ class AbstractManifoldFactory(ABC):
 
     @classmethod
     def registerMetric(cls, name: str = None) -> Callable:
-        """
-        Register a new metric class.
+        """Register a new metric class.
 
         Args:
             name (str): the name of the metric to Register
@@ -269,8 +272,7 @@ class AbstractManifoldFactory(ABC):
 
     @classmethod
     def metric_keys(cls):
-        """
-        Getter for list of metric keys.
+        """Getter for list of metric keys.
 
         Returns:
             List[str]: a list of metric keys for this class of manifold
@@ -280,8 +282,7 @@ class AbstractManifoldFactory(ABC):
 
     @classmethod
     def _get_metrics(cls, metrics_name: List[str]) -> List[Connection]:
-        """
-        Create create metrics from a list of names.
+        """Create create metrics from a list of names.
 
         Args:
             metrics_name (List[str]): List of metrics names

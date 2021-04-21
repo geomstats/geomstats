@@ -27,8 +27,13 @@ class SpecialOrthogonalManifoldFactory(AbstractManifoldFactory):
     manifolds_creators = {}
 
 
-# for backward compatibility
 def SpecialOrthogonal(*args, **kwargs):
+    """Wrapper to call the factory.
+
+    Returns:
+        Manifold: a special orthogonal manifold
+    """
+
     if "point_type" not in kwargs:
         kwargs["point_type"] = "matrix"
 
@@ -81,7 +86,7 @@ class _SpecialOrthogonalMatrices(LieGroup):
         return gs.logical_and(is_orthogonal, has_positive_det)
 
     def get_identity(self, point_type='vector'):
-        """Return the identity matrix"""
+        """Return the identity matrix."""
         return gs.eye(self.n, self.n)
     identity = property(get_identity)
 
