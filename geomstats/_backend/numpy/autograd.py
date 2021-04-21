@@ -1,4 +1,5 @@
-import numpy as np
+import numpy as np # NOQA
+
 
 def value_and_grad(objective):
     """'Returns a function that returns both value and gradient.

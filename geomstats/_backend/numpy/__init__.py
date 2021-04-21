@@ -1,9 +1,9 @@
 """Numpy based computation backend."""
 import importlib
-from importlib.util import spec_from_file_location, module_from_spec
-import pkgutil
 import os
+import pkgutil
 import sys
+from importlib.util import module_from_spec, spec_from_file_location
 
 
 def import_non_local(name: str):
@@ -17,13 +17,13 @@ def import_non_local(name: str):
     """
     paths_hints = [p for p in sys.path if 'site-packages' in p]
     locations = [os.path.join(p, name + ".py") for p in paths_hints]
-    locations += [os.path.join(p, name,  "__init__.py") for p in paths_hints]        
-    spec = None 
-    
+    locations += [os.path.join(p, name, "__init__.py") for p in paths_hints]
+    spec = None
+
     for location in locations:
         spec = spec_from_file_location(name, location)
         if os.path.isfile(location) and spec:
-            break 
+            break
 
     if not spec:
         print(f"module not found in {locations}")
@@ -31,7 +31,7 @@ def import_non_local(name: str):
 
     the_module = module_from_spec(spec)
     sys.modules[spec.name] = the_module
-    
+
     try:
         spec.loader.exec_module(the_module)
     except ModuleNotFoundError as e:
@@ -40,17 +40,17 @@ def import_non_local(name: str):
 
     return the_module
 
+
 def import_non_local_submodule(main_module, submodule_name, mapping_name):
     path = [os.path.dirname(main_module.__file__)]
-    for loader, module_name, is_pkg in  pkgutil.walk_packages(path):
+    for loader, module_name, is_pkg in pkgutil.walk_packages(path):
         if is_pkg and module_name == submodule_name:
-            
             full_name = main_module.__name__ + '.' + module_name
             mod = importlib.import_module(full_name)
             return mod
 
 import autograd # NOQA
-    
+
 sys_autograd = import_non_local('autograd') # NOQA
 np = import_non_local_submodule(sys_autograd, 'numpy', 'np')
 abs = getattr(np, 'abs')
@@ -144,7 +144,7 @@ zeros_like = getattr(np, 'zeros_like')
 autograd_scipy = import_non_local_submodule(sys_autograd, 'scipy.special', 'np')
 polygamma = getattr(autograd_scipy, 'polygamma')
 
-from scipy.sparse import coo_matrix
+from scipy.sparse import coo_matrix # NOQA
 
 from . import linalg  # NOQA
 from . import random  # NOQA
