@@ -103,7 +103,7 @@ class Euclidean(Manifold):
 
 
 class EuclidienManifoldFactory(AbstractManifoldFactory):
-    """Factory for Euclidien Manifold """
+    """Factory for Euclidien Manifold."""
 
 
 @EuclidienManifoldFactory.registerMetric()

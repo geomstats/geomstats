@@ -21,7 +21,7 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
 
 
 class SpecialOrthogonalManifoldFactory(AbstractManifoldFactory):
-    """Factory for SpecialOrthogonal Manifolds """
+    """Factory for SpecialOrthogonal Manifolds."""
 
     metrics_creators = {}
     manifolds_creators = {}
@@ -47,7 +47,10 @@ class _SpecialOrthogonalMatrices(LieGroup):
 
     def __init__(self, n=2, metrics=None):
         super(_SpecialOrthogonalMatrices, self).__init__(
-            dim=int((n * (n - 1)) / 2), metrics=metrics, default_point_type='matrix', n=n,
+            dim=int((n * (n - 1)) / 2),
+            metrics=metrics,
+            default_point_type='matrix',
+            n=n,
             lie_algebra=SkewSymmetricMatrices(n=n))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.dim = int((n * (n - 1)) / 2)

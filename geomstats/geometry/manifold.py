@@ -4,7 +4,7 @@ In other words, a topological space that locally resembles
 Euclidean space near each point.
 """
 
-from abc import ABC, abstractmethod
+from abc import ABC
 import itertools
 import logging
 from typing import Callable, Dict, List, Optional, Union
@@ -47,7 +47,8 @@ class Manifold(ABC):
                 metric.setManifold(self)
 
     def belongs(self, point, atol=gs.atol):
-        """Evaluate if a point belongs to the manifold.
+        """
+        Evaluate if a point belongs to the manifold.
 
         Parameters
         ----------
@@ -65,7 +66,8 @@ class Manifold(ABC):
         raise NotImplementedError('belongs is not implemented.')
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
+        """
+        Check whether the vector is tangent at base_point.
 
         Parameters
         ----------
@@ -87,7 +89,8 @@ class Manifold(ABC):
             'is_tangent is not implemented.')
 
     def to_tangent(self, vector, base_point=None):
-        """Project a vector to a tangent space of the manifold.
+        """
+        Project a vector to a tangent space of the manifold.
 
         Parameters
         ----------
@@ -105,7 +108,8 @@ class Manifold(ABC):
             'to_tangent is not implemented.')
 
     def random_point(self, n_samples=1, bound=1.):
-        """Sample random points on the manifold.
+        """
+        Sample random points on the manifold.
 
         If the manifold is compact, a uniform distribution is used.
 
@@ -126,7 +130,8 @@ class Manifold(ABC):
         raise NotImplementedError('random_point is not implemented')
 
     def regularize(self, point):
-        """Regularize a point to the canonical representation for the manifold.
+        """
+        Regularize a point to the canonical representation for the manifold.
 
         Parameters
         ----------
@@ -142,13 +147,15 @@ class Manifold(ABC):
         return regularized_point
 
     def call_method_on_metrics(self, function_name: str, *args, **kwargs) -> Union[any, Dict[str, any]]:
-        """Call a method on all metrics of this manifold and return the result.
+        """
+        Call a method on all metrics of this manifold and return the result.
 
         Args:
             function_name (str): method name to call on metrics
 
         Returns:
-            Union[any, Dict[str, any]]: either the result or a dict containing metrics names and their associated result
+            Union[any, Dict[str, any]]: either the result or a dict
+              containing metrics names and their associated result
         """
         metrics = self.metrics
 
@@ -166,6 +173,7 @@ class Manifold(ABC):
 
 
 class AbstractManifoldFactory(ABC):
+    """Abstract class to easily create Manifold factories."""
     metrics_creators = {}
     manifolds_creators = {}
 
@@ -198,7 +206,8 @@ class AbstractManifoldFactory(ABC):
 
     @classmethod
     def register(cls, **kwargs):
-        """Decorator to register new manifold type
+        """
+        Register a new manifold class.
 
         Returns:
             Callable: [description]
@@ -217,7 +226,8 @@ class AbstractManifoldFactory(ABC):
 
     @classmethod
     def registerMetric(cls, name: str = None) -> Callable:
-        """Decorator to register a new class
+        """
+        Register a new metric class.
 
         Args:
             name (str): the name of the metric to Register
@@ -240,7 +250,8 @@ class AbstractManifoldFactory(ABC):
 
     @classmethod
     def metric_keys(cls):
-        """Getter for list of metric keys
+        """
+        Getter for list of metric keys.
 
         Returns:
             List[str]: a list of metric keys for this class of manifold
@@ -250,7 +261,8 @@ class AbstractManifoldFactory(ABC):
 
     @classmethod
     def _get_metrics(cls, metrics_name : List[str]) -> List[Connection]:
-        """Internal method to create metrics from a list of names
+        """
+        Create create metrics from a list of names.
 
         Args:
             metrics_name (List[str]): List of metrics names
@@ -267,4 +279,3 @@ class AbstractManifoldFactory(ABC):
             res.append(metric)
 
         return res
-        #return [cls.metrics_creators[m] for m in metrics_name if m in cls.metrics_creators]

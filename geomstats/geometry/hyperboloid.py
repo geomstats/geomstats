@@ -54,7 +54,7 @@ class Hyperboloid(EmbeddedManifold):
 
     def random_point(self, n_samples=1, bound=1.):
         return self.hyperbolic.random_point(n_samples=n_samples, bound=bound)
-    
+
     def from_coordinates(self, point, from_coords_type):
         return self.hyperbolic.from_coordinates(point, from_coords_type)
 

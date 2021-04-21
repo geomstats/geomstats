@@ -78,9 +78,10 @@ def homogeneous_representation(
     mat = gs.concatenate((mat, last_line[..., None, :]), axis=-2)
     return mat
 
+
 class SpecialEuclideanManifoldFactory(AbstractManifoldFactory):
-    """Factory for SpecialEuclidean Manifolds """
-    
+    """Factory for SpecialEuclidean Manifolds."""
+
     metrics_creators = {}
     manifolds_creators = {}
 
@@ -95,7 +96,8 @@ def SpecialEuclidean(*args, **kwargs):
 
 @SpecialEuclideanManifoldFactory.register(point_type="matrix")
 class _SpecialEuclideanMatrices(LieGroup):
-    """Class for special Euclidean group.
+    """
+    Class for special Euclidean group.
 
     Parameters
     ----------
@@ -121,9 +123,14 @@ class _SpecialEuclideanMatrices(LieGroup):
 
     def __init__(self, n=2, metrics=None):
         super().__init__(
-            n=n + 1, dim=int((n * (n + 1)) / 2), metrics=metrics, default_point_type='matrix',
+            n=n + 1,
+            dim=int((n * (n + 1)) / 2),
+            metrics=metrics,
+            default_point_type='matrix',
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n))
-        self.rotations = SpecialOrthogonalManifoldFactory.create(n=n, point_type="matrix")
+        self.rotations = \
+            SpecialOrthogonalManifoldFactory.create(n=n,
+                                                    point_type="matrix")
         self.translations = Euclidean(dim=n)
         self.n = n
 
@@ -138,11 +145,11 @@ class _SpecialEuclideanMatrices(LieGroup):
     @classmethod
     def log(cls, point, base_point=None):
         return GeneralLinear.log(point, base_point)
-            
+
     @classmethod
     def compose(cls, *args):
         return GeneralLinear.compose(*args)
-    
+
     @classmethod
     def exp(cls, tangent_vec, base_point=None):
         return GeneralLinear.exp(tangent_vec=tangent_vec, base_point=base_point)
