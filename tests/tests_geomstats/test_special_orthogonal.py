@@ -23,14 +23,12 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         point_1 = gs.array([[gs.cos(theta), - gs.sin(theta)],
                             [gs.sin(theta), gs.cos(theta)]])
         result = self.group.belongs(point_1)
-        expected = True
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
         point_2 = gs.array([[gs.cos(theta), gs.sin(theta)],
                             [gs.sin(theta), gs.cos(theta)]])
         result = self.group.belongs(point_2)
-        expected = False
-        self.assertAllClose(result, expected)
+        self.assertFalse(result)
 
         point = gs.array([point_1, point_2])
         expected = gs.array([True, False])

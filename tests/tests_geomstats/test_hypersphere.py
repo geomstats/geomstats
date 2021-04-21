@@ -668,7 +668,7 @@ class TestHypersphere(geomstats.tests.TestCase):
             points = sphere.random_von_mises_fisher(
                 kappa=kappa, n_samples=n_points)
             sum_points = gs.sum(points, axis=0)
-            expected = gs.array([0.] * dim + [1.])
+            expected = gs.array([1.] + [0.] * dim)
             result = sum_points / gs.linalg.norm(sum_points)
             self.assertAllClose(
                 result, expected, atol=KAPPA_ESTIMATION_TOL)

@@ -43,7 +43,8 @@ class Matrices:
             return False
         mat_dim_1, mat_dim_2 = point.shape[-2:]
         belongs = (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
-        return belongs if ndim == 2 else belongs * gs.ones(point.shape[0])
+        return belongs if ndim == 2 else gs.tile(
+            gs.array([belongs]), [point.shape[0]])
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
