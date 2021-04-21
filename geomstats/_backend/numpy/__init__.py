@@ -7,7 +7,8 @@ from importlib.util import module_from_spec, spec_from_file_location
 
 
 def import_non_local(name: str):
-    """Import non local module
+    """
+    Import non local module.
 
     Args:
         name (str): name of the module to import
@@ -27,7 +28,7 @@ def import_non_local(name: str):
 
     if not spec:
         print(f"module not found in {locations}")
-        return
+        return None
 
     the_module = module_from_spec(spec)
     sys.modules[spec.name] = the_module
@@ -36,110 +37,109 @@ def import_non_local(name: str):
         spec.loader.exec_module(the_module)
     except ModuleNotFoundError as e:
         print(f'error importing the module {name} with spec {spec} : {e}')
-        return
+        return None
 
     return the_module
 
 
 def import_non_local_submodule(main_module, submodule_name):
     path = [os.path.dirname(main_module.__file__)]
-    for loader, module_name, is_pkg in pkgutil.walk_packages(path):
+    for _, module_name, is_pkg in pkgutil.walk_packages(path):
         if is_pkg and module_name == submodule_name:
             full_name = main_module.__name__ + '.' + module_name
-            mod = importlib.import_module(full_name)
-            return mod
+            return importlib.import_module(full_name)
 
 import autograd # NOQA
 
 sys_autograd = import_non_local('autograd') # NOQA
 np = import_non_local_submodule(sys_autograd, 'numpy')
-abs = getattr(np, 'abs')
-all = getattr(np, 'all')
-allclose = getattr(np, 'allclose')
-amax = getattr(np, 'amax')
-amin = getattr(np, 'amin')
-any = getattr(np, 'any')
-arange = getattr(np, 'arange')
-arccos = getattr(np, 'arccos')
-arccosh = getattr(np, 'arccosh')
-arcsin = getattr(np, 'arcsin')
-arctan2 = getattr(np, 'arctan2')
-arctanh = getattr(np, 'arctanh')
-argmax = getattr(np, 'argmax')
-argmin = getattr(np, 'argmin')
-array = getattr(np, 'array')
-broadcast_arrays = getattr(np, 'broadcast_arrays')
-ceil = getattr(np, 'ceil')
-clip = getattr(np, 'clip')
-concatenate = getattr(np, 'concatenate')
-cos = getattr(np, 'cos')
-cosh = getattr(np, 'cosh')
-cross = getattr(np, 'cross')
-cumprod = getattr(np, 'cumprod')
-cumsum = getattr(np, 'cumsum')
-diagonal = getattr(np, 'diagonal')
-divide = getattr(np, 'divide')
-dot = getattr(np, 'dot')
-dtype = getattr(np, 'dtype')
-einsum = getattr(np, 'einsum')
-empty = getattr(np, 'empty')
-empty_like = getattr(np, 'empty_like')
-equal = getattr(np, 'equal')
-exp = getattr(np, 'exp')
-expand_dims = getattr(np, 'expand_dims')
-eye = getattr(np, 'eye')
-flip = getattr(np, 'flip')
-float32 = getattr(np, 'float32')
-float64 = getattr(np, 'float64')
-floor = getattr(np, 'floor')
-greater = getattr(np, 'greater')
-hsplit = getattr(np, 'hsplit')
-hstack = getattr(np, 'hstack')
-int32 = getattr(np, 'int32')
-int64 = getattr(np, 'int64')
-isclose = getattr(np, 'isclose')
-isnan = getattr(np, 'isnan')
-less = getattr(np, 'less')
-less_equal = getattr(np, 'less_equal')
-linspace = getattr(np, 'linspace')
-log = getattr(np, 'log')
-logical_and = getattr(np, 'logical_and')
-logical_or = getattr(np, 'logical_or')
-matmul = getattr(np, 'matmul')
-maximum = getattr(np, 'maximum')
-mean = getattr(np, 'mean')
-meshgrid = getattr(np, 'meshgrid')
-mod = getattr(np, 'mod')
-ones = getattr(np, 'ones')
-ones_like = getattr(np, 'ones_like')
-outer = getattr(np, 'outer')
-power = getattr(np, 'power')
-repeat = getattr(np, 'repeat')
-reshape = getattr(np, 'reshape')
-shape = getattr(np, 'shape')
-sign = getattr(np, 'sign')
-sin = getattr(np, 'sin')
-sinh = getattr(np, 'sinh')
-split = getattr(np, 'split')
-sqrt = getattr(np, 'sqrt')
-squeeze = getattr(np, 'squeeze')
-stack = getattr(np, 'stack')
-std = getattr(np, 'std')
-sum = getattr(np, 'sum')
-tan = getattr(np, 'tan')
-tanh = getattr(np, 'tanh')
-tile = getattr(np, 'tile')
-trace = getattr(np, 'trace')
-transpose = getattr(np, 'transpose')
-triu_indices = getattr(np, 'triu_indices')
-tril_indices = getattr(np, 'tril_indices')
-searchsorted = getattr(np, 'searchsorted')
-tril = getattr(np, 'tril')
-uint8 = getattr(np, 'uint8')
-vstack = getattr(np, 'vstack')
-where = getattr(np, 'where')
-zeros = getattr(np, 'zeros')
-zeros_like = getattr(np, 'zeros_like')
+abs = getattr(np, 'abs') #NOQA
+all = getattr(np, 'all') #NOQA
+allclose = getattr(np, 'allclose') #NOQA
+amax = getattr(np, 'amax') #NOQA
+amin = getattr(np, 'amin') #NOQA
+any = getattr(np, 'any') #NOQA
+arange = getattr(np, 'arange') #NOQA
+arccos = getattr(np, 'arccos') #NOQA
+arccosh = getattr(np, 'arccosh') #NOQA
+arcsin = getattr(np, 'arcsin') #NOQA
+arctan2 = getattr(np, 'arctan2') #NOQA
+arctanh = getattr(np, 'arctanh') #NOQA
+argmax = getattr(np, 'argmax') #NOQA
+argmin = getattr(np, 'argmin') #NOQA
+array = getattr(np, 'array') #NOQA
+broadcast_arrays = getattr(np, 'br #NOQAoadcast_arrays')
+ceil = getattr(np, 'ceil') #NOQA
+clip = getattr(np, 'clip') #NOQA
+concatenate = getattr(np, 'concate #NOQAnate')
+cos = getattr(np, 'cos') #NOQA
+cosh = getattr(np, 'cosh') #NOQA
+cross = getattr(np, 'cross') #NOQA
+cumprod = getattr(np, 'cumprod') #NOQA
+cumsum = getattr(np, 'cumsum') #NOQA
+diagonal = getattr(np, 'diagonal') #NOQA
+divide = getattr(np, 'divide') #NOQA
+dot = getattr(np, 'dot') #NOQA
+dtype = getattr(np, 'dtype') #NOQA
+einsum = getattr(np, 'einsum') #NOQA
+empty = getattr(np, 'empty') #NOQA
+empty_like = getattr(np, 'empty_li #NOQAke')
+equal = getattr(np, 'equal') #NOQA
+exp = getattr(np, 'exp') #NOQA
+expand_dims = getattr(np, 'expand_ #NOQAdims')
+eye = getattr(np, 'eye') #NOQA
+flip = getattr(np, 'flip') #NOQA
+float32 = getattr(np, 'float32') #NOQA
+float64 = getattr(np, 'float64') #NOQA
+floor = getattr(np, 'floor') #NOQA
+greater = getattr(np, 'greater') #NOQA
+hsplit = getattr(np, 'hsplit') #NOQA
+hstack = getattr(np, 'hstack') #NOQA
+int32 = getattr(np, 'int32') #NOQA
+int64 = getattr(np, 'int64') #NOQA
+isclose = getattr(np, 'isclose') #NOQA
+isnan = getattr(np, 'isnan') #NOQA
+less = getattr(np, 'less') #NOQA
+less_equal = getattr(np, 'less_equ #NOQAal')
+linspace = getattr(np, 'linspace') #NOQA
+log = getattr(np, 'log') #NOQA
+logical_and = getattr(np, 'logical #NOQA_and')
+logical_or = getattr(np, 'logical_ #NOQAor')
+matmul = getattr(np, 'matmul') #NOQA
+maximum = getattr(np, 'maximum') #NOQA
+mean = getattr(np, 'mean') #NOQA
+meshgrid = getattr(np, 'meshgrid') #NOQA
+mod = getattr(np, 'mod') #NOQA
+ones = getattr(np, 'ones') #NOQA
+ones_like = getattr(np, 'ones_like #NOQA')
+outer = getattr(np, 'outer') #NOQA
+power = getattr(np, 'power') #NOQA
+repeat = getattr(np, 'repeat') #NOQA
+reshape = getattr(np, 'reshape') #NOQA
+shape = getattr(np, 'shape') #NOQA
+sign = getattr(np, 'sign') #NOQA
+sin = getattr(np, 'sin') #NOQA
+sinh = getattr(np, 'sinh') #NOQA
+split = getattr(np, 'split') #NOQA
+sqrt = getattr(np, 'sqrt') #NOQA
+squeeze = getattr(np, 'squeeze') #NOQA
+stack = getattr(np, 'stack') #NOQA
+std = getattr(np, 'std') #NOQA
+sum = getattr(np, 'sum') #NOQA
+tan = getattr(np, 'tan') #NOQA
+tanh = getattr(np, 'tanh') #NOQA
+tile = getattr(np, 'tile') #NOQA
+trace = getattr(np, 'trace') #NOQA
+transpose = getattr(np, 'transpose') #NOQA
+triu_indices = getattr(np, 'triu_indices') #NOQA
+tril_indices = getattr(np, 'tril_indices') #NOQA
+searchsorted = getattr(np, 'searchsorted') #NOQA
+tril = getattr(np, 'tril') #NOQA
+uint8 = getattr(np, 'uint8') #NOQA
+vstack = getattr(np, 'vstack') #NOQA
+where = getattr(np, 'where') #NOQA
+zeros = getattr(np, 'zeros') #NOQA
+zeros_like = getattr(np, 'zeros_like') #NOQA
 
 autograd_scipy = import_non_local_submodule(sys_autograd,
                                             'scipy.special')

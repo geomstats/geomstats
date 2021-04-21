@@ -2,7 +2,8 @@ import numpy as np # NOQA
 
 
 def value_and_grad(objective):
-    """'Returns a function that returns both value and gradient.
+    """
+    Returns a function that returns both value and gradient.
 
     Suitable for use in scipy.optimize
 
@@ -16,7 +17,7 @@ def value_and_grad(objective):
     objective_with_grad : callable
         Function that takes the argument of the objective function as input
         and returns both value and grad at the input.
-    '"""
+    """
     def objective_with_grad(velocity):
         # TODO
         vel = velocity.clone().requires_grad_(True)
