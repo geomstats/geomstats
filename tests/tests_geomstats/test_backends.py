@@ -13,6 +13,7 @@ import torch
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
@@ -1002,3 +1003,27 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result[0], value.detach())
         self.assertAllClose(result[1], grad)
+
+    @geomstats.tests.tf_only
+    def test_custom_grad_dummy(self):
+
+        @gs.autograd.custom_grad(lambda x, y: 2 * x * y)
+        def func(x):
+            return x ** 2
+
+        arg = gs.array([1., 3.])
+        result = gs.autograd.value_and_grad(func)(arg)
+        expected = (arg ** 2, 2 * arg)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.tf_only
+    def test_custom_grad_in_action(self):
+        space = SpecialEuclidean(2)
+        metric = space.left_canonical_metric
+        point_a, point_b = space.random_point(2)
+        result = gs.autograd.value_and_grad(
+            lambda x: metric.squared_dist(x, point_b))(point_a)
+        dist = metric.squared_dist(point_a, point_b)
+        log = 2 * metric.log(point_a, point_b)
+        expected = dist, log
+        self.assertAllClose(result, expected)

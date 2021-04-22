@@ -1,3 +1,5 @@
+from functools import partial
+
 import numpy as np
 import tensorflow as tf
 
@@ -8,10 +10,14 @@ def custom_grad(grad_func):
     Args:
         grad_func ([callable]): The custom gradient function
     """
+
     def wrapper(func):
-        # use tf custom_gradient
-        pass 
-    
+        def wrapped_func(*args, **kwargs):
+            func_val = func(*args, **kwargs)
+            return func_val, lambda grad_output: grad_func(*args, grad_output)
+
+        return tf.custom_gradient(wrapped_func)
+
     return wrapper
     
 

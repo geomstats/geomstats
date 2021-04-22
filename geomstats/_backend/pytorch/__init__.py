@@ -300,7 +300,7 @@ def get_slice(x, indices):
     return x[indices]
 
 
-def allclose(a, b, **kwargs):
+def allclose(a, b, atol=atol, rtol=rtol):
     if not isinstance(a, torch.Tensor):
         a = torch.tensor(a)
     if not isinstance(b, torch.Tensor):
@@ -316,7 +316,7 @@ def allclose(a, b, **kwargs):
     elif n_a < n_b:
         reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
         a = tile(a, reps)
-    return torch.allclose(a, b, **kwargs)
+    return torch.allclose(a, b, atol=atol, rtol=rtol)
 
 
 def arccosh(x):
@@ -487,6 +487,7 @@ def trace(x, axis1=0, axis2=1):
     raise NotImplementedError()
 
 
+@_box_scalar
 def arctanh(x):
     return 0.5 * torch.log((1 + x) / (1 - x))
 

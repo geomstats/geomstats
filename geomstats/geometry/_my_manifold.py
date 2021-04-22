@@ -12,9 +12,6 @@ import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 
 
-ATOL = 1e-6
-
-
 # This class inherits from the class Manifold.
 # Inheritance in geomstats means that the class MyManifold will reuse code
 # that is in the Manifold class.
@@ -42,7 +39,7 @@ class MyManifold(Manifold):
         self.another_parameter = another_parameter
 
     # Implement the main methods of MyManifold, for example belongs:
-    def belongs(self, point, atol=ATOL):
+    def belongs(self, point, atol=gs.atol):
         """Give a one-liner description of the method.
 
         For example: Evaluate if a point belongs to MyManifold.
@@ -65,7 +62,7 @@ class MyManifold(Manifold):
             Point to evaluate.
         atol : float
             Tolerance, unused.
-            Optional, default: ATOL
+            Optional, default: backend atol
 
         List the outputs of the method.
         For example:

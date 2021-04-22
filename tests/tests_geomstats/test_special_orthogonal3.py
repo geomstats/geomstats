@@ -11,7 +11,6 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 EPSILON = 1e-5
-ATOL = 1e-5
 
 
 class TestSpecialOrthogonal3(geomstats.tests.TestCase):
@@ -1912,7 +1911,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
             expected = quaternion
 
-            self.assertTrue(gs.allclose(result, expected, atol=1e-6),
+            self.assertTrue(gs.allclose(result, expected),
                             ' for {} Tait-Bryan angles with order {}\n'
                             'for point {}:\n'
                             ' result = {};'
@@ -1977,7 +1976,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
             expected = quaternion
 
-            self.assertTrue(gs.allclose(result, expected, atol=1e-6),
+            self.assertTrue(gs.allclose(result, expected),
                             ' for {} Tait-Bryan angles with order {}\n'
                             'for point {}:\n'
                             ' result = {};'
@@ -2186,7 +2185,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
             expected = quaternion
 
-            self.assertTrue(gs.allclose(result, expected, atol=1e-6),
+            self.assertTrue(gs.allclose(result, expected),
                             ' for {} Tait-Bryan angles with order {}\n'
                             'for point {}:\n'
                             ' result = {};'
@@ -2226,7 +2225,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
             expected = quaternion
 
-            self.assertTrue(gs.allclose(result, expected, atol=1e-6),
+            self.assertTrue(gs.allclose(result, expected),
                             ' for {} Tait-Bryan angles with order {}\n'
                             'for point {}:\n'
                             ' result = {};'
@@ -2326,7 +2325,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
             expected = matrix
 
-            self.assertAllClose(result, expected, atol=1e-6)
+            self.assertAllClose(result, expected)
 
         angle = gs.pi / 9.
         cos_angle = gs.cos(angle)
@@ -2763,8 +2762,8 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     inv_expected = - expected
 
                     self.assertTrue(
-                        gs.allclose(result, expected, atol=5e-3)
-                        or gs.allclose(result, inv_expected, atol=5e-3))
+                        gs.allclose(result, expected)
+                        or gs.allclose(result, inv_expected))
 
     def test_log_then_exp(self):
         """
@@ -3056,7 +3055,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     base_point=base_point)
                 expected = self.group.regularize(point)
 
-                self.assertAllClose(result, expected, atol=ATOL)
+                self.assertAllClose(result, expected, atol=1e-5)
 
     @geomstats.tests.np_and_pytorch_only
     def test_group_log_then_exp_with_angles_close_to_pi(self):

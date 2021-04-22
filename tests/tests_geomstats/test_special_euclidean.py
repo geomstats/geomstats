@@ -325,3 +325,10 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
 
         result = self.group.lie_algebra.basis_representation(tangent_vec[0])
         self.assertAllClose(result, vec[0])
+
+    def test_metrics_expected_point_type(self):
+        left = self.group.left_canonical_metric
+        right = self.group.right_canonical_metric
+        metric = self.group.metric
+        for m in [left, right, metric]:
+            self.assertTrue(m.default_point_type == 'matrix')
