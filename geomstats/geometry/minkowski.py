@@ -114,7 +114,7 @@ class MinkowskiMetric(RiemannianMetric):
             Inner-product.
         """
         p, q = self.signature
-        diagonal = gs.array([-1.] * p + [1.] * q)
+        diagonal = gs.array([-1.] * p + [1.] * q, dtype=tangent_vec_a.dtype)
         return gs.einsum(
             '...i,...i->...', diagonal * tangent_vec_a, tangent_vec_b)
 
