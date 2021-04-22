@@ -360,9 +360,14 @@ def load_cells():
     """
     with open(CELLS_PATH) as cells_file:
         cells = cells_file.read().split('\n\n')
+<<<<<<< HEAD
     for i in range(len(cells)):
         cell = cells[i].split('\n')
 >>>>>>> Add cell data and analysis of cells
+=======
+    for i, cell in enumerate(cells):
+        cell = cell.split('\n')
+>>>>>>> loop with enumerate
         curve = []
         for point in cell:
             coords = [int(coord) for coord in point.split()]
