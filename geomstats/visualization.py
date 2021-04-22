@@ -524,12 +524,10 @@ class KendallSphere:
 
     References
     ----------
-    [Kend]  David G. Kendall.
-            "Shape Manifolds, Procrustean Metrics, and Complex
-            Projective Spaces."
-            Bulletin of the London Mathematical Society, Volume 16, Issue 2,
-            March 1984, Pages 81–121.
-            https://doi.org/10.1112/blms/16.2.81
+    .. [Kend] David G. Kendall. "Shape Manifolds, Procrustean Metrics, and
+       Complex Projective Spaces." Bulletin of the London Mathematical
+       Society, Volume 16, Issue 2, March 1984, Pages 81–121.
+       https://doi.org/10.1112/blms/16.2.81
     """
 
     def __init__(self, points=None, point_type='pre-shape'):
