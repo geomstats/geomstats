@@ -152,7 +152,7 @@ class Stiefel(EmbeddedManifold):
         aux = Matrices.mul(Matrices.transpose(base_point), vector)
         return Matrices.is_skew_symmetric(aux, atol=1e-5)
 
-    def to_tangent(self, vector, base_point=None):
+    def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
 
         Inspired by the method of Pymanopt.

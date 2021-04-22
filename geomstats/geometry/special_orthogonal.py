@@ -337,7 +337,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return SkewSymmetricMatrices(self.n).basis_representation(skew_mat)
 
-    def to_tangent(self, vector, base_point=None):
+    def to_tangent(self, vector, base_point):
         return self.regularize_tangent_vec(vector, base_point)
 
     def regularize_tangent_vec_at_identity(

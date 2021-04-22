@@ -187,7 +187,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                        Geonger International Publishing, 2020.
                        https://doi.org/10.1007/978-3-030-46040-2.
         """
-        basis = self.orthonormal_basis(self.lie_algebra.basis)
+        basis = self.normal_basis(self.lie_algebra.basis)
         return - gs.einsum(
             'i...,ijk->...jk',
             gs.array([
@@ -567,7 +567,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                      480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
         group = self.group
-        basis = self.orthonormal_basis(self.lie_algebra.basis)
+        basis = self.normal_basis(self.lie_algebra.basis)
         sign = 1. if self.left_or_right == 'left' else -1.
 
         def lie_acceleration(point, vector):

@@ -470,7 +470,7 @@ class LieGroup(Manifold):
         is_tangent = self.lie_algebra.belongs(tangent_vec_at_id, atol)
         return is_tangent
 
-    def to_tangent(self, vector, base_point=None):
+    def to_tangent(self, vector, base_point):
         """Project a vector onto the tangent space at a base point.
 
         Parameters
