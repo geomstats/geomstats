@@ -76,7 +76,7 @@ class MinkowskiMetric(RiemannianMetric):
     """
 
     def __init__(self, dim):
-        super(MinkowskiMetric, self).__init__(dim=dim, signature=(dim - 1, 1))
+        super(MinkowskiMetric, self).__init__(dim=dim, signature=(1, dim - 1))
 
     def metric_matrix(self, base_point=None):
         """Compute the inner product matrix, independent of the base point.
@@ -92,7 +92,7 @@ class MinkowskiMetric(RiemannianMetric):
             Inner-product matrix.
         """
         p, q = self.signature
-        diagonal = gs.array([1.] * p + [-1.] * q)
+        diagonal = gs.array([-1.] * p + [1.] * q)
         return from_vector_to_diagonal_matrix(diagonal)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -114,7 +114,7 @@ class MinkowskiMetric(RiemannianMetric):
             Inner-product.
         """
         p, q = self.signature
-        diagonal = gs.array([1.] * p + [-1.] * q)
+        diagonal = gs.array([-1.] * p + [1.] * q)
         return gs.einsum(
             '...i,...i->...', diagonal * tangent_vec_a, tangent_vec_b)
 
