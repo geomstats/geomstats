@@ -96,7 +96,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear):
         det = gs.linalg.det(rotation_mat)
         return utils.flip_determinant(rotation_mat, det)
 
-    def random_uniform(self, n_samples=1, tol=1e-6):
+    def random_uniform(self, n_samples=1):
         """Sample in SO(n) from the uniform distribution.
 
         Parameters
@@ -642,7 +642,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         # This avoids dividing by 0
         norm_eps = gs.where(
-            tangent_vec_canonical_norm == 0, ATOL, tangent_vec_canonical_norm)
+            tangent_vec_canonical_norm == 0, gs.atol, tangent_vec_canonical_norm)
         coef = gs.where(
             tangent_vec_canonical_norm == 0.,
             1., tangent_vec_metric_norm / norm_eps)
