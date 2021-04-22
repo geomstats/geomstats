@@ -15,7 +15,7 @@ from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.manifold import AbstractManifoldFactory
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory
+from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory # NOQA
 
 PI = gs.pi
 PI2 = PI * PI
@@ -28,7 +28,6 @@ PI8 = PI * PI7
 
 
 ATOL = 1e-5
-TOLERANCE = 1e-8
 
 TAYLOR_COEFFS_1_AT_0 = [+ 1. / 2., 0.,
                         - 1. / 24., 0.,
@@ -79,15 +78,21 @@ def homogeneous_representation(
     mat = gs.concatenate((mat, last_line[..., None, :]), axis=-2)
     return mat
 
+
 class SpecialEuclideanManifoldFactory(AbstractManifoldFactory):
-    """Factory for SpecialEuclidean Manifolds """
-    
+    """Factory for SpecialEuclidean Manifolds."""
+
     metrics_creators = {}
     manifolds_creators = {}
 
 
-# for backward compatibility
 def SpecialEuclidean(*args, **kwargs):
+    """Create a new manifold through the factory.
+
+    Returns
+    -------
+        Manifold: a special euclidean manifold
+    """
     if "point_type" not in kwargs:
         kwargs["point_type"] = "matrix"
 
@@ -96,20 +101,41 @@ def SpecialEuclidean(*args, **kwargs):
 
 @SpecialEuclideanManifoldFactory.register(point_type="matrix")
 class _SpecialEuclideanMatrices(LieGroup):
-    """Class for special Euclidean group.
+    """
+    Class for special Euclidean group.
 
     Parameters
     ----------
     n : int
         Integer dimension of the underlying Euclidean space. Matrices will
         be of size: (n+1) x (n+1).
+
+    Attributes
+    ----------
+    rotations : SpecialOrthogonal
+        Subgroup of rotations of size n.
+    translations : Euclidean
+        Subgroup of translations of size n.
+    left_canonical_metric : InvariantMetric
+        The left invariant metric that corresponds to the Frobenius inner
+        product at the identity.
+    right_canonical_metric : InvariantMetric
+        The right invariant metric that corresponds to the Frobenius inner
+        product at the identity.
+    metric :  MatricesMetric
+        The Euclidean (Frobenius) inner product.
     """
 
     def __init__(self, n=2, metrics=None):
         super().__init__(
-            n=n + 1, dim=int((n * (n + 1)) / 2), metrics=metrics, default_point_type='matrix',
+            n=n + 1,
+            dim=int((n * (n + 1)) / 2),
+            metrics=metrics,
+            default_point_type='matrix',
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n))
-        self.rotations = SpecialOrthogonalManifoldFactory.create(n=n, point_type="matrix")
+        self.rotations = \
+            SpecialOrthogonalManifoldFactory.create(n=n,
+                                                    point_type="matrix")
         self.translations = Euclidean(dim=n)
         self.n = n
 
@@ -124,14 +150,15 @@ class _SpecialEuclideanMatrices(LieGroup):
     @classmethod
     def log(cls, point, base_point=None):
         return GeneralLinear.log(point, base_point)
-            
+
     @classmethod
     def compose(cls, *args):
         return GeneralLinear.compose(*args)
-    
+
     @classmethod
     def exp(cls, tangent_vec, base_point=None):
-        return GeneralLinear.exp(tangent_vec=tangent_vec, base_point=base_point)
+        return GeneralLinear.exp(tangent_vec=tangent_vec,
+                                 base_point=base_point)
 
     def belongs(self, point):
         """Check whether point is of the form rotation, translation.
@@ -871,7 +898,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         mask_close_pi_float = gs.cast(mask_close_pi, gs.float32)
         mask_else_float = gs.cast(mask_else, gs.float32)
 
-        mask_0 = gs.isclose(angle, 0., atol=1e-6)
+        mask_0 = gs.isclose(angle, 0., atol=1e-7)
         mask_0_float = gs.cast(mask_0, gs.float32)
         angle += mask_0_float * gs.ones_like(angle)
 
@@ -1123,7 +1150,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
             Square matrix to check.
         atol : float
             Tolerance for the equality evaluation.
-            Optional, default: TOLERANCE.
+            Optional, default: backend atol.
 
         Returns
         -------

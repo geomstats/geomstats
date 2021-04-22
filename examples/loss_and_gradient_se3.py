@@ -4,8 +4,8 @@ import logging
 
 import geomstats.backend as gs
 import geomstats.geometry.lie_group as lie_group
-from geomstats.geometry.special_euclidean import SpecialEuclideanManifoldFactory
-from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory
+from geomstats.geometry.special_euclidean import SpecialEuclideanManifoldFactory # NOQA
+from geomstats.geometry.special_orthogonal import SpecialOrthogonalManifoldFactory # NOQA
 
 
 SE3 = SpecialEuclideanManifoldFactory.create(n=3, point_type='vector')

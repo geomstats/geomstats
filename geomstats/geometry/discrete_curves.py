@@ -69,7 +69,7 @@ class DiscreteCurves(Manifold):
             return gs.stack([each_belongs(pt) for pt in point])
 
         return each_belongs(point)
-        
+
 
 class SRVMetric(RiemannianMetric):
     """Elastic metric defined using the Square Root Velocity Function.

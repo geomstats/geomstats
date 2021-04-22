@@ -9,7 +9,6 @@ from geomstats.geometry.connection import Connection
 
 EPSILON = 1e-4
 N_CENTERS = 10
-TOLERANCE = 1e-5
 N_REPETITIONS = 20
 N_MAX_ITERATIONS = 50000
 N_STEPS = 10
@@ -398,11 +397,12 @@ class RiemannianMetric(Connection):
 
     def sectional_curvature(
             self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the sectional curvature.
+        r"""Compute the sectional curvature.
 
-        For two orthonormal tangent vectors at a base point :math: `x,y`,
-        the sectional curvature is defined by :math: `<R(x, y)x,
-        y>`. Non-orthonormal vectors can be given.
+        For two orthonormal tangent vectors :math: `x,y` at a base point,
+        the sectional curvature is defined by :math: `<R(x, y)x, y> =
+        <R_x(y), y>`. For non-orthonormal vectors vectors, it is :math:
+        `<R(x, y)x, y> / \\|x \\wedge y\\|^2`.
 
         Parameters
         ----------

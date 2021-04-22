@@ -21,17 +21,22 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
 
 
 class SpecialOrthogonalManifoldFactory(AbstractManifoldFactory):
-    """Factory for SpecialOrthogonal Manifolds """
-    
+    """Factory for SpecialOrthogonal Manifolds."""
+
     metrics_creators = {}
     manifolds_creators = {}
 
 
-# for backward compatibility
 def SpecialOrthogonal(*args, **kwargs):
+    """Create a new manifold through the factory.
+
+    Returns
+    -------
+        Manifold: a special orthogonal manifold
+    """
     if "point_type" not in kwargs:
         kwargs["point_type"] = "matrix"
-    
+
     return SpecialOrthogonalManifoldFactory.create(*args, **kwargs)
 
 
@@ -47,7 +52,10 @@ class _SpecialOrthogonalMatrices(LieGroup):
 
     def __init__(self, n=2, metrics=None):
         super(_SpecialOrthogonalMatrices, self).__init__(
-            dim=int((n * (n - 1)) / 2), metrics=metrics, default_point_type='matrix', n=n,
+            dim=int((n * (n - 1)) / 2),
+            metrics=metrics,
+            default_point_type='matrix',
+            n=n,
             lie_algebra=SkewSymmetricMatrices(n=n))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.dim = int((n * (n - 1)) / 2)
@@ -70,26 +78,31 @@ class _SpecialOrthogonalMatrices(LieGroup):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to SO(n).
         """
-        return Matrices.equal(
-            Matrices.mul(point, Matrices.transpose(point)), self.identity, atol=atol)
+        is_orthogonal = Matrices.equal(
+            Matrices.mul(point, Matrices.transpose(point)),
+            self.identity,
+            atol=atol)
+        has_positive_det = gs.linalg.det(point) > 0.
+        return gs.logical_and(is_orthogonal, has_positive_det)
 
     def get_identity(self, point_type='vector'):
-        """Return the identity matrix"""
+        """Return the identity matrix."""
         return gs.eye(self.n, self.n)
     identity = property(get_identity)
-        
+
     @classmethod
     def log(cls, point, base_point=None):
         return GeneralLinear.log(point, base_point)
-            
+
     @classmethod
     def compose(cls, *args):
         return GeneralLinear.compose(*args)
-    
+
     @classmethod
     def exp(cls, tangent_vec, base_point=None):
-        return GeneralLinear.exp(tangent_vec=tangent_vec, base_point=base_point)
-        
+        return GeneralLinear.exp(tangent_vec=tangent_vec,
+                                 base_point=base_point)
+
     @classmethod
     def inverse(cls, point):
         """Return the transpose matrix of point.
@@ -122,8 +135,9 @@ class _SpecialOrthogonalMatrices(LieGroup):
         """
         aux_mat = Matrices.mul(Matrices.transpose(point), point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, - 1 / 2)
-        rot_mat = Matrices.mul(point, inv_sqrt_mat)
-        return rot_mat
+        rotation_mat = Matrices.mul(point, inv_sqrt_mat)
+        det = gs.linalg.det(rotation_mat)
+        return utils.flip_determinant(rotation_mat, det)
 
     def random_uniform(self, n_samples=1, tol=1e-6):
         """Sample in SO(n) from the uniform distribution.
@@ -146,7 +160,8 @@ class _SpecialOrthogonalMatrices(LieGroup):
             size = (n_samples, self.n, self.n)
         random_mat = gs.random.normal(size=size)
         rotation_mat, _ = gs.linalg.qr(random_mat)
-        return rotation_mat
+        det = gs.linalg.det(rotation_mat)
+        return utils.flip_determinant(rotation_mat, det)
 
     def skew_matrix_from_vector(self, vec):
         """Get the skew-symmetric matrix derived from the vector.
@@ -181,7 +196,7 @@ class _SpecialOrthogonalMatrices(LieGroup):
         vec : array-like, shape=[..., dim]
             Vector.
         """
-        return SkewSymmetricMatrices(self.n).basis_representation(skew_mat)
+        return self.lie_algebra.basis_representation(skew_mat)
 
 
 class _SpecialOrthogonalVectors(LieGroup):
