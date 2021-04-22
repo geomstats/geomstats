@@ -7,8 +7,6 @@ Euclidean space near each point.
 import geomstats.backend as gs
 import geomstats.errors
 
-ATOL = gs.atol
-
 
 class Manifold:
     r"""Class for manifolds.
@@ -37,7 +35,7 @@ class Manifold:
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
 
-    def belongs(self, point, atol=ATOL):
+    def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold.
 
         Parameters
@@ -46,7 +44,7 @@ class Manifold:
             Point to evaluate.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -55,7 +53,7 @@ class Manifold:
         """
         raise NotImplementedError('belongs is not implemented.')
 
-    def is_tangent(self, vector, base_point=None, atol=ATOL):
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters
@@ -67,7 +65,7 @@ class Manifold:
             Optional, default: none.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------

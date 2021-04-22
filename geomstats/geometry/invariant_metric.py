@@ -45,7 +45,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def __init__(self, group,
                  metric_mat_at_identity=None,
                  left_or_right='left', **kwargs):
-        super(_InvariantMetricMatrix, self).__init__(dim=group.dim, **kwargs)
+        super(_InvariantMetricMatrix, self).__init__(
+            dim=group.dim, default_point_type='matrix', **kwargs)
 
         self.group = group
         self.lie_algebra = group.lie_algebra
@@ -277,7 +278,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         For three tangent vectors at identity :math: `x,y,z`,
         the curvature is defined by
         :math: `R(x, y)z = \nabla_{[x,y]}z
-        - \nabla_x\nabla_y z + - \nabla_y\nabla_x z`.
+        - \nabla_x\nabla_y z + \nabla_y\nabla_x z`.
 
         Parameters
         ----------
@@ -314,7 +315,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         For three tangent vectors at a base point :math: `x,y,z`,
         the curvature is defined by
         :math: `R(x, y)z = \nabla_{[x,y]}z
-        - \nabla_x\nabla_y z + - \nabla_y\nabla_x z`. It is computed using
+        - \nabla_x\nabla_y z + \nabla_y\nabla_x z`. It is computed using
         the invariance of the connection and its value at identity.
 
         Parameters

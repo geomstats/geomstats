@@ -305,7 +305,7 @@ class DirichletMetric(RiemannianMetric):
                     for pt, vc in zip(point, vec):
                         initial_state = gs.hstack([pt, vc])
                         solution = odeint(
-                            ivp, initial_state, t_int, (), rtol=gs.atol)
+                            ivp, initial_state, t_int, ())
                         exp.append(solution[-1, :self.dim])
                     exp = exp[0] if n_times == 1 else gs.stack(exp)
                     geod.append(exp)
@@ -314,7 +314,7 @@ class DirichletMetric(RiemannianMetric):
                 for point, vec in zip(initial_point, initial_tangent_vec):
                     initial_state = gs.hstack([point, vec])
                     solution = odeint(
-                        ivp, initial_state, t_int, (), rtol=gs.atol)
+                        ivp, initial_state, t_int, ())
                     geod.append(solution[:, :self.dim])
 
             return geod[0] if len(initial_point) == 1 else \
