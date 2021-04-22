@@ -1002,3 +1002,15 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result[0], value.detach())
         self.assertAllClose(result[1], grad)
+
+    @geomstats.tests.tf_only
+    def test_custom_grad(self):
+
+        @gs.autograd.custom_grad(lambda x, y: 2 * x * y)
+        def func(x):
+            return x ** 2
+
+        arg = gs.array([1., 3.])
+        result = gs.autograd.value_and_grad(func)(arg)
+        expected = (arg ** 2, 2 * arg)
+        self.assertAllClose(result, expected)
