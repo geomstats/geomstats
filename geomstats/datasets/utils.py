@@ -335,8 +335,8 @@ def load_cells():
     """
     with open(CELLS_PATH) as cells_file:
         cells = cells_file.read().split('\n\n')
-    for i in range(len(cells)):
-        cell = cells[i].split('\n')
+    for i, cell in enumerate(cells):
+        cell = cell.split('\n')
         curve = []
         for point in cell:
             coords = [int(coord) for coord in point.split()]
