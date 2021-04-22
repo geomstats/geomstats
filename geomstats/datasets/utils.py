@@ -326,7 +326,8 @@ def load_cells():
     Returns
     -------
     cells : list of 367 discrete 2D curves
-        Each curve represents the boundary of a cell, their lengths are not necessarily equal.
+        Each curve represents the boundary of a cell, their lengths are
+        not necessarily equal.
     cell_lines : array of 367 strings
         List of the cell lines of each cell.
     treatments : array of 367 strings
