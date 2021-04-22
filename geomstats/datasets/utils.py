@@ -351,7 +351,8 @@ def load_cells():
     Returns
     -------
     cells : list of 367 discrete 2D curves
-        Each curve represents the boundary of a cell, their lengths are not necessarily equal.
+        Each curve represents the boundary of a cell, their lengths are
+        not necessarily equal.
     cell_lines : array of 367 strings
         List of the cell lines of each cell.
     treatments : array of 367 strings
@@ -378,4 +379,7 @@ def load_cells():
     with open(CELL_TREATMENTS_PATH) as treatments_file:
         treatments = gs.array(treatments_file.read().split('\n'))
     return cells, cell_lines, treatments
+<<<<<<< HEAD
 >>>>>>> Add cell data and analysis of cells
+=======
+>>>>>>> Fix style
