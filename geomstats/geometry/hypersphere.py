@@ -138,7 +138,7 @@ class _Hypersphere(EmbeddedManifold):
 
         return tangent_vec
 
-    def is_tangent(self, vector, base_point=None, atol=gs.atol):
+    def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters
@@ -147,7 +147,6 @@ class _Hypersphere(EmbeddedManifold):
             Vector.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
-            Optional, default: none.
         atol : float
             Absolute tolerance.
             Optional, default: backend atol.
