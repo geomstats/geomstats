@@ -70,14 +70,14 @@ if tf_backend():
 
 
 class TestCase(_TestBaseClass):
-    def assertAllClose(self, a, b, rtol=1e-6, atol=1e-6):
+    def assertAllClose(self, a, b, rtol=gs.rtol, atol=gs.atol):
         if tf_backend():
             return super().assertAllClose(a, b, rtol=rtol, atol=atol)
         if np_backend():
             return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
         return self.assertTrue(gs.allclose(a, b, rtol=rtol, atol=atol))
 
-    def assertAllCloseToNp(self, a, np_a, rtol=1e-6, atol=1e-6):
+    def assertAllCloseToNp(self, a, np_a, rtol=gs.rtol, atol=gs.atol):
         are_same_shape = np.all(a.shape == np_a.shape)
         are_same = np.allclose(a, np_a, rtol=rtol, atol=atol)
         if tf_backend():

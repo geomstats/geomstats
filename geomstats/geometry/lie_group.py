@@ -82,6 +82,20 @@ class LieGroup(Manifold):
     default_point_type : str, {'vector', 'matrix'}
         Point type.
         Optional, default: 'vector'.
+    lie_algebra : MatrixLieAlgebra
+        Lie algebra for matrix groups.
+        Optional, default: None.
+
+    Attributes
+    ----------
+    lie_algebra : MatrixLieAlgebra or None
+        Tangent space at the identity.
+    left_canonical_metric : InvariantMetric
+        The left invariant metric that corresponds to the Euclidean inner
+        product at the identity.
+    right_canonical_metric : InvariantMetric
+        The right invariant metric that corresponds to the Euclidean inner
+        product at the identity.
     """
 
     def __init__(

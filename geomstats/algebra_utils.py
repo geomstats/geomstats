@@ -37,6 +37,7 @@ COSH_TAYLOR_COEFFS = [1.,
 INV_SINHC_TAYLOR_COEFFS = [
     1., - 1. / 6., 7. / 360., - 31. / 15120., 127. / 604800.]
 INV_TANH_TAYLOR_COEFFS = [1., 1. / 3., - 1. / 45., 2. / 945., -1. / 4725.]
+ARCTANH_CARD_TAYLOR_COEFFS = [1., 1. / 3., 1. / 5., 1 / 7., 1. / 9]
 
 
 cos_close_0 = {'function': gs.cos, 'coefficients': COS_TAYLOR_COEFFS}
@@ -67,6 +68,9 @@ inv_sinch_close_0 = {
 inv_tanh_close_0 = {
     'function': lambda x: x / gs.tanh(x),
     'coefficients': INV_TANH_TAYLOR_COEFFS}
+arctanh_card_close_0 = {
+    'function': lambda x: gs.arctanh(x) / x,
+    'coefficients': ARCTANH_CARD_TAYLOR_COEFFS}
 
 
 def from_vector_to_diagonal_matrix(vector):
@@ -121,3 +125,65 @@ def taylor_exp_even_func(
     exact = taylor_function['function'](gs.sqrt(point_))
     result = gs.where(gs.abs(point) < tol, approx, exact)
     return result
+
+
+def flip_determinant(matrix, det):
+    """Change sign of the determinant if it is negative.
+
+    For a batch of matrices, multiply the matrices which have negative
+    determinant by a diagonal matrix :math: `diag(1,...,1,-1) from the right.
+    This changes the sign of the last column of the matrix.
+
+    Parameters
+    ----------
+    matrix : array-like, shape=[...,n ,m]
+        Matrix to transform.
+
+    det : array-like, shape=[...]
+        Determinant of matrix, or any other scalar to use as threshold to
+        determine whether to change the sign of the last column of matrix.
+
+    Returns
+    -------
+    matrix_flipped : array-like, shape=[..., n, m]
+        Matrix with the sign of last column changed if det < 0.
+    """
+    if gs.any(det < 0):
+        ones = gs.ones(matrix.shape[-1])
+        reflection_vec = gs.concatenate(
+            [ones[:-1], gs.array([-1.])], axis=0)
+        mask = gs.cast(det < 0, matrix.dtype)
+        sign = (mask[..., None] * reflection_vec
+                + (1. - mask)[..., None] * ones)
+        return gs.einsum('...ij,...j->...ij', matrix, sign)
+    return matrix
+
+
+def rotate_points(points, end_point):
+    """Apply to points the rotation from north_pole to end_point.
+
+    A QR decomposition is used to find the rotation that maps the north pole
+    (1, 0,...,0) to the end_point, then this rotation is applied to the
+    input points.
+
+    Parameters
+    ----------
+    points : array-like, shape=[..., n]
+        Points to rotate.
+    end_point : array-like, shape=[n, ]
+        Point to parametrise the rotation.
+
+    Returns
+    -------
+    rotated_points : array-like, shape=[..., n]
+        Points after the rotation.
+    """
+    n = end_point.shape[0]
+    base_point = gs.array([1.] + [0] * (n - 1))
+    embedded = gs.concatenate([end_point[None, :], gs.zeros((n - 1, n))])
+    norm = gs.linalg.norm(end_point)
+    q, _ = gs.linalg.qr(gs.transpose(embedded) / norm)
+    new_points = gs.matmul(points[None, :], gs.transpose(q)) * norm
+    if not gs.allclose(gs.matmul(q, base_point[:, None])[:, 0], end_point):
+        new_points = - new_points
+    return new_points[0]

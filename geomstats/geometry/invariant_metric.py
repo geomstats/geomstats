@@ -2,7 +2,6 @@
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.integrator import integrate
@@ -45,7 +44,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def __init__(self, group,
                  metric_mat_at_identity=None,
                  left_or_right='left', **kwargs):
-        super(_InvariantMetricMatrix, self).__init__(dim=group.dim, **kwargs)
+        super(_InvariantMetricMatrix, self).__init__(
+            dim=group.dim, default_point_type='matrix', **kwargs)
 
         self.group = group
         self.lie_algebra = group.lie_algebra
@@ -153,7 +153,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         -------
         structure_constant : array-like, shape=[...,]
         """
-        bracket = GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
+        bracket = Matrices.bracket(tangent_vec_a, tangent_vec_b)
         return self.inner_product_at_identity(bracket, tangent_vec_c)
 
     def dual_adjoint(self, tangent_vec_a, tangent_vec_b):
@@ -223,7 +223,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                        https://doi.org/10.1007/978-3-030-46040-2.
         """
         sign = 1. if self.left_or_right == 'left' else -1.
-        return sign / 2 * (GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
+        return sign / 2 * (Matrices.bracket(tangent_vec_a, tangent_vec_b)
                            - self.dual_adjoint(tangent_vec_a, tangent_vec_b)
                            - self.dual_adjoint(tangent_vec_b, tangent_vec_a))
 
@@ -277,7 +277,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         For three tangent vectors at identity :math: `x,y,z`,
         the curvature is defined by
         :math: `R(x, y)z = \nabla_{[x,y]}z
-        - \nabla_x\nabla_y z + - \nabla_y\nabla_x z`.
+        - \nabla_x\nabla_y z + \nabla_y\nabla_x z`.
 
         Parameters
         ----------
@@ -293,7 +293,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         curvature : array-like, shape=[..., n, n]
             Tangent vector at identity.
         """
-        bracket = GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
+        bracket = Matrices.bracket(tangent_vec_a, tangent_vec_b)
         bracket_term = self.connection_at_identity(bracket, tangent_vec_c)
 
         left_term = self.connection_at_identity(
@@ -314,7 +314,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         For three tangent vectors at a base point :math: `x,y,z`,
         the curvature is defined by
         :math: `R(x, y)z = \nabla_{[x,y]}z
-        - \nabla_x\nabla_y z + - \nabla_y\nabla_x z`. It is computed using
+        - \nabla_x\nabla_y z + \nabla_y\nabla_x z`. It is computed using
         the invariance of the connection and its value at identity.
 
         Parameters
@@ -707,7 +707,7 @@ class _InvariantMetricVector(RiemannianMetric):
         jacobian = self.group.jacobian_translation(
             point=base_point, left_or_right=self.left_or_right)
 
-        inv_jacobian = GeneralLinear.inverse(jacobian)
+        inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
 
         metric_mat = Matrices.mul(
@@ -1025,7 +1025,8 @@ class BiInvariantMetric(_InvariantMetricVector):
                        Geonger International Publishing, 2020.
                        https://doi.org/10.1007/978-3-030-46040-2.
         """
-        return self.group.log(point, base_point)
+        log = self.group.log(point, base_point)
+        return self.group.to_tangent(log, base_point)
 
     def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
         """Compute inner product at tangent space at identity.
