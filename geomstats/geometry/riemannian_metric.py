@@ -4,12 +4,11 @@ import autograd
 import joblib
 
 import geomstats.backend as gs
-import geomstats.vectorization
+import geomstats.geometry as geometry
 from geomstats.geometry.connection import Connection
 
 EPSILON = 1e-4
 N_CENTERS = 10
-TOLERANCE = 1e-5
 N_REPETITIONS = 20
 N_MAX_ITERATIONS = 50000
 N_STEPS = 10
@@ -175,7 +174,6 @@ class RiemannianMetric(Connection):
         christoffels = 0.5 * (term_1 + term_2 + term_3)
         return christoffels
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector', 'vector'])
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
 
@@ -195,14 +193,8 @@ class RiemannianMetric(Connection):
             Inner-product.
         """
         inner_prod_mat = self.metric_matrix(base_point)
-        inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
-
         aux = gs.einsum('...j,...jk->...k', tangent_vec_a, inner_prod_mat)
-
         inner_prod = gs.einsum('...k,...k->...', aux, tangent_vec_b)
-        inner_prod = gs.to_ndarray(inner_prod, to_ndim=1)
-        inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
-
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
@@ -332,9 +324,9 @@ class RiemannianMetric(Connection):
         out = pool(
             pickable_dist(points[i], points[j]) for i, j in zip(rows, cols))
 
-        pairwise_dist = geomstats.geometry.symmetric_matrices.\
-            SymmetricMatrices.from_vector(gs.array(out))
-
+        pairwise_dist = (
+            geometry.symmetric_matrices.SymmetricMatrices.from_vector(
+                gs.array(out)))
         return pairwise_dist
 
     def diameter(self, points):
@@ -405,11 +397,12 @@ class RiemannianMetric(Connection):
 
     def sectional_curvature(
             self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the sectional curvature.
+        r"""Compute the sectional curvature.
 
-        For two orthonormal tangent vectors at a base point :math: `x,y`,
-        the sectional curvature is defined by :math: `<R(x, y)x,
-        y>`. Non-orthonormal vectors can be given.
+        For two orthonormal tangent vectors :math: `x,y` at a base point,
+        the sectional curvature is defined by :math: `<R(x, y)x, y> =
+        <R_x(y), y>`. For non-orthonormal vectors vectors, it is :math:
+        `<R(x, y)x, y> / \\|x \\wedge y\\|^2`.
 
         Parameters
         ----------

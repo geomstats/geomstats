@@ -30,6 +30,7 @@ BACKEND_ATTRIBUTES = {
         'array_from_sparse',
         'assignment',
         'assignment_by_sum',
+        'atol',
         'broadcast_arrays',
         'cast',
         'ceil',
@@ -82,6 +83,7 @@ BACKEND_ATTRIBUTES = {
         'power',
         'repeat',
         'reshape',
+        'rtol',
         'searchsorted',
         'set_diag',
         'shape',
@@ -130,6 +132,7 @@ BACKEND_ATTRIBUTES = {
     'random': [
         'choice',
         'normal',
+        'multivariate_normal',
         # TODO (nkoep): Remove 'rand' and replace it by 'uniform'. Much like
         #              'randn' is a convenience wrapper (which we don't use)
         #              for 'normal', 'rand' only wraps 'uniform'.

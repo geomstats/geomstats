@@ -87,3 +87,52 @@ def group_exp_then_log(group, tangent_vec, base_point):
     result = group.log(
         point=aux, base_point=base_point)
     return result
+
+
+def test_parallel_transport(space, metric, shape):
+    results = []
+
+    def is_isometry(tan_a, trans_a, endpoint):
+        is_tangent = space.is_tangent(trans_a, endpoint)
+        is_equinormal = gs.isclose(
+            metric.norm(trans_a), metric.norm(tan_a))
+        return gs.logical_and(is_tangent, is_equinormal)
+
+    base_point = space.random_point(shape[0])
+    tan_vec_a = space.to_tangent(gs.random.rand(*shape), base_point)
+    tan_vec_b = space.to_tangent(gs.random.rand(*shape), base_point)
+    end_point = metric.exp(tan_vec_b, base_point)
+
+    transported = metric.parallel_transport(
+        tan_vec_a, tan_vec_b, base_point)
+    result = is_isometry(tan_vec_a, transported, end_point)
+    results.append(gs.all(result))
+
+    base_point = base_point[0]
+    tan_vec_a = space.to_tangent(tan_vec_a, base_point)
+    tan_vec_b = space.to_tangent(tan_vec_b, base_point)
+    end_point = metric.exp(tan_vec_b, base_point)
+    transported = metric.parallel_transport(
+        tan_vec_a, tan_vec_b, base_point)
+    result = is_isometry(tan_vec_a, transported, end_point)
+    results.append(gs.all(result))
+
+    one_tan_vec_a = tan_vec_a[0]
+    transported = metric.parallel_transport(
+        one_tan_vec_a, tan_vec_b, base_point)
+    result = is_isometry(one_tan_vec_a, transported, end_point)
+    results.append(gs.all(result))
+
+    one_tan_vec_b = tan_vec_b[0]
+    end_point = end_point[0]
+    transported = metric.parallel_transport(
+        tan_vec_a, one_tan_vec_b, base_point)
+    result = is_isometry(tan_vec_a, transported, end_point)
+    results.append(gs.all(result))
+
+    transported = metric.parallel_transport(
+        one_tan_vec_a, one_tan_vec_b, base_point)
+    result = is_isometry(one_tan_vec_a, transported, end_point)
+    results.append(gs.all(result))
+
+    return results
