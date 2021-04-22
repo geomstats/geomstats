@@ -40,6 +40,19 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         result = self.group.belongs(point)
         self.assertAllClose(result, expected)
 
+        point = point_1[0]
+        result = self.group.belongs(point)
+        self.assertFalse(result)
+
+        point = gs.zeros((2, 3))
+        result = self.group.belongs(point)
+        self.assertFalse(result)
+
+        point = gs.zeros((2, 2, 3))
+        result = self.group.belongs(point)
+        self.assertFalse(gs.all(result))
+        self.assertAllClose(result.shape, (2, ))
+
     def test_random_point_and_belongs(self):
         point = self.group.random_point()
         result = self.group.belongs(point)
