@@ -1028,6 +1028,15 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         transported_vec = - self.log(first_sym, next_point)
         return transported_vec
 
+    def squared_dist_grad(self, point_a, point_b, previous):
+        grd = 2 * self.log(point_a, point_b) * previous
+        return grd, 2 * self.log(point_b, point_a) * previous
+
+    @gs.autograd.custom_grad(squared_dist_grad)
+    def squared_dist(self, point_a, point_b):
+        dist = super().squared_dist(point_a, point_b)
+        return dist
+
 
 class SpecialEuclidean(_SpecialEuclidean2Vectors,
                        _SpecialEuclidean3Vectors,
