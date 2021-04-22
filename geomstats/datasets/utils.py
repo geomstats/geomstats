@@ -38,6 +38,9 @@ OPTICAL_NERVES_PATH = os.path.join(
     DATA_PATH, 'optical_nerves', 'optical_nerves.txt')
 HANDS_PATH = os.path.join(DATA_PATH, 'hands', 'hands.txt')
 HANDS_LABELS_PATH = os.path.join(DATA_PATH, 'hands', 'labels.txt')
+CELLS_PATH = os.path.join(DATA_PATH, 'cells', 'cells.txt')
+CELL_LINES_PATH = os.path.join(DATA_PATH, 'cells', 'cell_lines.txt')
+CELL_TREATMENTS_PATH = os.path.join(DATA_PATH, 'cells', 'treatments.txt')
 
 
 def load_cities():
@@ -315,3 +318,31 @@ def load_hands():
         ]
     )
     return data, labels, bone_list
+
+
+def load_cells():
+    """Load data from data/cells/cells.txt.
+
+    Returns
+    -------
+    cells : list of 367 discrete 2D curves
+        Each curve represents the boundary of a cell, their lengths are not necessarily equal.
+    cell_lines : array of 367 strings
+        List of the cell lines of each cell.
+    treatments : array of 367 strings
+        List of the treatments given to each cell.
+    """
+    with open(CELLS_PATH) as cells_file:
+        cells = cells_file.read().split('\n\n')
+    for i in range(len(cells)):
+        cell = cells[i].split('\n')
+        curve = []
+        for point in cell:
+            coords = [int(coord) for coord in point.split()]
+            curve.append(coords)
+        cells[i] = gs.array(curve)
+    with open(CELL_LINES_PATH) as cell_lines_file:
+        cell_lines = gs.array(cell_lines_file.read().split('\n'))
+    with open(CELL_TREATMENTS_PATH) as treatments_file:
+        treatments = gs.array(treatments_file.read().split('\n'))
+    return cells, cell_lines, treatments
