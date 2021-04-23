@@ -1029,7 +1029,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
    
     @geomstats.tests.pytorch_only
-    def test_custom_grad_dummy(self):
+    def test_custom_grad_chain_rule(self):
 
         fun1_grad = lambda x : 3
 
