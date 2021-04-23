@@ -38,8 +38,13 @@ class Matrices:
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the Matrices space.
         """
+        ndim = point.ndim
+        if ndim == 1:
+            return False
         mat_dim_1, mat_dim_2 = point.shape[-2:]
-        return (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
+        belongs = (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
+        return belongs if ndim == 2 else gs.tile(
+            gs.array([belongs]), [point.shape[0]])
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
@@ -242,7 +247,7 @@ class Matrices:
         return is_diagonal
 
     def random_point(self, n_samples=1, bound=1.):
-        """Sample from a uniform distribution.
+        """Sample from a uniform distribution in a cube.
 
         Parameters
         ----------
@@ -255,7 +260,7 @@ class Matrices:
 
         Returns
         -------
-        point : array-like, shape=[m, n] or [n_samples, m, n]
+        point : array-like, shape=[..., m, n]
             Sample.
         """
         m, n = self.m, self.n

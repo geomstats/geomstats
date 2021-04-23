@@ -7,6 +7,7 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
+from geomstats.learning.frechet_mean import FrechetMean
 
 MEAN_ESTIMATION_TOL = 1e-3
 KAPPA_ESTIMATION_TOL = 3e-2
@@ -667,7 +668,7 @@ class TestHypersphere(geomstats.tests.TestCase):
             points = sphere.random_von_mises_fisher(
                 kappa=kappa, n_samples=n_points)
             sum_points = gs.sum(points, axis=0)
-            expected = gs.array([0.] * dim + [1.])
+            expected = gs.array([1.] + [0.] * dim)
             result = sum_points / gs.linalg.norm(sum_points)
             self.assertAllClose(
                 result, expected, atol=KAPPA_ESTIMATION_TOL)
@@ -712,15 +713,22 @@ class TestHypersphere(geomstats.tests.TestCase):
         """
         dim = 2
         sphere = Hypersphere(dim)
-        base_points_spherical = gs.array([[gs.pi / 2, 0],
-                                          [gs.pi / 2, 0]])
-        tangent_vecs_spherical = gs.array([[0.25, 0.5],
-                                          [0.3, 0.2]])
+        base_points_spherical = gs.array([
+            [gs.pi / 2, 0],
+            [gs.pi / 2, 0]])
+        tangent_vecs_spherical = gs.array([
+            [0.25, 0.5],
+            [0.3, 0.2]])
         result = sphere.tangent_spherical_to_extrinsic(
             tangent_vecs_spherical, base_points_spherical)
-        expected = gs.array([[0, 0.5, -0.25],
-                             [0, 0.2, -0.3]])
+        expected = gs.array([
+            [0, 0.5, -0.25],
+            [0, 0.2, -0.3]])
         self.assertAllClose(result, expected)
+
+        result = sphere.tangent_spherical_to_extrinsic(
+            tangent_vecs_spherical[0], base_points_spherical[0])
+        self.assertAllClose(result, expected[0])
 
     def test_christoffels_vectorization(self):
         """
@@ -737,7 +745,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = gs.array([2, dim, dim, dim])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_parallel_transport_vectorization(self):
         sphere = Hypersphere(2)
         metric = sphere.metric
@@ -777,3 +784,22 @@ class TestHypersphere(geomstats.tests.TestCase):
             tan_vec_a, tan_vec_b, base_point)
         expected = gs.ones(result.shape)
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_riemannian_normal_and_belongs(self):
+        mean = self.space.random_uniform()
+        cov = gs.eye(self.space.dim)
+        sample = self.space.random_riemannian_normal(mean, cov, 10)
+        result = self.space.belongs(sample)
+        self.assertTrue(gs.all(result))
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_riemannian_normal_mean(self):
+        space = self.space
+        mean = space.random_uniform()
+        precision = gs.eye(space.dim) * 10
+        sample = space.random_riemannian_normal(mean, precision, 10000)
+        estimator = FrechetMean(space.metric, method='adaptive')
+        estimator.fit(sample)
+        estimate = estimator.estimate_
+        self.assertAllClose(estimate, mean, atol=1e-2)

@@ -2,7 +2,6 @@
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.integrator import integrate
@@ -154,7 +153,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         -------
         structure_constant : array-like, shape=[...,]
         """
-        bracket = GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
+        bracket = Matrices.bracket(tangent_vec_a, tangent_vec_b)
         return self.inner_product_at_identity(bracket, tangent_vec_c)
 
     def dual_adjoint(self, tangent_vec_a, tangent_vec_b):
@@ -224,7 +223,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                        https://doi.org/10.1007/978-3-030-46040-2.
         """
         sign = 1. if self.left_or_right == 'left' else -1.
-        return sign / 2 * (GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
+        return sign / 2 * (Matrices.bracket(tangent_vec_a, tangent_vec_b)
                            - self.dual_adjoint(tangent_vec_a, tangent_vec_b)
                            - self.dual_adjoint(tangent_vec_b, tangent_vec_a))
 
@@ -294,7 +293,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         curvature : array-like, shape=[..., n, n]
             Tangent vector at identity.
         """
-        bracket = GeneralLinear.bracket(tangent_vec_a, tangent_vec_b)
+        bracket = Matrices.bracket(tangent_vec_a, tangent_vec_b)
         bracket_term = self.connection_at_identity(bracket, tangent_vec_c)
 
         left_term = self.connection_at_identity(
@@ -708,7 +707,7 @@ class _InvariantMetricVector(RiemannianMetric):
         jacobian = self.group.jacobian_translation(
             point=base_point, left_or_right=self.left_or_right)
 
-        inv_jacobian = GeneralLinear.inverse(jacobian)
+        inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
 
         metric_mat = Matrices.mul(
