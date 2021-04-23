@@ -42,3 +42,7 @@ def uniform(low=0.0, high=1.0, size=None):
     if size is None:
         size = (1,)
     return tf.random.uniform(shape=size, minval=low, maxval=high)
+
+
+def multivariate_normal(*args, **kwargs):
+    raise NotImplementedError

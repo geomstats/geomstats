@@ -219,6 +219,12 @@ class TestMatrices(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
+        result = self.space.belongs(gs.zeros((2, 2, 3)))
+        self.assertFalse(gs.all(result))
+
+        result = self.space.belongs(gs.zeros((2, 3, 3)))
+        self.assertTrue(gs.all(result))
+
     def test_is_diagonal(self):
         base_point = gs.array([
             [1., 2., 3.],
