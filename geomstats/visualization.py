@@ -662,9 +662,9 @@ class KendallSphere:
         triangle = gs.hstack((triangle, .5 * gs.ones((3, 1))))
         triangle = self.rotation(theta, phi) @ triangle.transpose(0, 1)
 
-        x = gs.hstack((triangle[0], triangle[0, 0]))
-        y = gs.hstack((triangle[1], triangle[1, 0]))
-        z = gs.hstack((triangle[2], triangle[2, 0]))
+        x = gs.hstack((triangle[0], [triangle[0, 0]]))
+        y = gs.hstack((triangle[1], [triangle[1, 0]]))
+        z = gs.hstack((triangle[2], [triangle[2, 0]]))
 
         self.ax.plot3D(x, y, z, 'grey', zorder=1)
         c = ['red', 'green', 'blue']
@@ -685,17 +685,17 @@ class KendallSphere:
 
     def draw_points(self, alpha=1, zorder=0, **kwargs):
         """Draw points on the Kendall sphere."""
-        points_x = [gs.to_numpy(point[0]) for point in self.points]
-        points_y = [gs.to_numpy(point[1]) for point in self.points]
-        points_z = [gs.to_numpy(point[2]) for point in self.points]
+        points_x = [gs.to_numpy(point)[0] for point in self.points]
+        points_y = [gs.to_numpy(point)[1] for point in self.points]
+        points_z = [gs.to_numpy(point)[2] for point in self.points]
         self.ax.scatter(points_x, points_y, points_z,
                         alpha=alpha, zorder=zorder, **kwargs)
 
     def draw_curve(self, alpha=1, zorder=0, **kwargs):
         """Draw a curve on the Kendall sphere."""
-        points_x = [gs.to_numpy(point[0]) for point in self.points]
-        points_y = [gs.to_numpy(point[1]) for point in self.points]
-        points_z = [gs.to_numpy(point[2]) for point in self.points]
+        points_x = [gs.to_numpy(point)[0] for point in self.points]
+        points_y = [gs.to_numpy(point)[1] for point in self.points]
+        points_z = [gs.to_numpy(point)[2] for point in self.points]
         self.ax.plot3D(points_x, points_y, points_z,
                        alpha=alpha, zorder=zorder, **kwargs)
 
