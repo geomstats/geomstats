@@ -36,6 +36,7 @@ class Euclidean(Manifold):
         """
         identity = gs.zeros(self.dim)
         return identity
+
     identity = property(get_identity)
 
     def belongs(self, point):
@@ -118,7 +119,7 @@ class EuclideanMetric(RiemannianMetric):
 
     def __init__(self, dim, default_point_type='vector'):
         super(EuclideanMetric, self).__init__(
-            dim=dim, signature=(dim, 0, 0),
+            dim=dim, signature=(dim, 0),
             default_point_type=default_point_type)
 
     def metric_matrix(self, base_point=None):
@@ -138,7 +139,51 @@ class EuclideanMetric(RiemannianMetric):
         mat = gs.eye(self.dim)
         return mat
 
-    def exp(self, tangent_vec, base_point):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Inner product between two tangent vectors at a base point.
+
+        Parameters
+        ----------
+        tangent_vec_a: array-like, shape=[..., dim]
+            Tangent vector at base point.
+        tangent_vec_b: array-like, shape=[..., dim]
+            Tangent vector at base point.
+        base_point: array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        inner_product : array-like, shape=[...,]
+            Inner-product.
+        """
+        return gs.einsum('...i,...i->...', tangent_vec_a, tangent_vec_b)
+
+    def norm(self, vector, base_point=None):
+        """Compute norm of a vector.
+
+        Norm of a vector associated to the inner product
+        at the tangent space at a base point.
+
+        Note: This only works for positive-definite
+        Riemannian metrics and inner products.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        norm : array-like, shape=[...,]
+            Norm.
+        """
+        return gs.linalg.norm(vector, axis=-1)
+
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute exp map of a base point in tangent vector direction.
 
         The Riemannian exponential is vector addition in the Euclidean space.
@@ -158,7 +203,7 @@ class EuclideanMetric(RiemannianMetric):
         exp = base_point + tangent_vec
         return exp
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute log map using a base point and other point.
 
         The Riemannian logarithm is the subtraction in the Euclidean space.

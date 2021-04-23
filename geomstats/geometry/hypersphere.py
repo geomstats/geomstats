@@ -542,7 +542,7 @@ class HypersphereMetric(RiemannianMetric):
     def __init__(self, dim):
         super(HypersphereMetric, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0))
+            signature=(dim, 0))
         self.embedding_metric = EuclideanMetric(dim + 1)
         self._space = _Hypersphere(dim=dim)
 
