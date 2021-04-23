@@ -87,7 +87,8 @@ class TestVisualization(geomstats.tests.TestCase):
         phi = gs.random.rand()
         rot = self.KS.rotation(theta, phi)
         result = _SpecialOrthogonalMatrices(3).belongs(rot)
-        self.assertFalse(result)
+        expected = True
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
     def test_plot_points_s1(self):
