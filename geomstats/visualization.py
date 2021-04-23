@@ -660,7 +660,7 @@ class KendallSphere:
         triangle = gs.cos(phi / 2) * self.pole + gs.sin(phi / 2) * u_theta
         triangle = scale * triangle
         triangle = gs.hstack((triangle, .5 * gs.ones((3, 1))))
-        triangle = self.rotation(theta, phi) @ triangle.transpose()
+        triangle = self.rotation(theta, phi) @ triangle.transpose(0, 1)
 
         x = gs.hstack((triangle[0], triangle[0, 0]))
         y = gs.hstack((triangle[1], triangle[1, 0]))
