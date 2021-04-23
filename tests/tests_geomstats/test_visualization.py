@@ -12,8 +12,9 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 from geomstats.geometry.pre_shape import PreShapeSpace
 from geomstats.geometry.special_euclidean import SpecialEuclidean
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal, \
-    _SpecialOrthogonalMatrices
+from geomstats.geometry.special_orthogonal import _SpecialOrthogonalMatrices, \
+    SpecialOrthogonal
+
 
 matplotlib.use('Agg')  # NOQA
 
