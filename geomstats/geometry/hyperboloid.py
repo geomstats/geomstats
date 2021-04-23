@@ -48,7 +48,7 @@ class Hyperboloid(EmbeddedManifold):
         self.point_type = Hyperboloid.default_point_type
         self.embedding_metric = self.embedding_manifold.metric
         self.scale = scale
-        self.hyperbolic = Hyperbolic(dim=dim, scale=scale)
+        self.hyperbolic = Hyperbolic(dim=dim, coords_type=self.coords_type, scale=scale)
         self.metric =\
             HyperboloidMetric(self.dim, self.coords_type, self.scale)
 
