@@ -698,7 +698,7 @@ class KendallSphere:
                        alpha=alpha, zorder=zorder, **kwargs)
 
     def draw_vector(self, tangent_vec, base_point, **kwargs):
-        """Draw vectors in the tangent space to sphere at a base point."""
+        """Draw one vector in the tangent space to sphere at a base point."""
         norm = S32.ambient_metric.norm(tangent_vec)
         exp = S32.ambient_metric.exp(tangent_vec, base_point)
         bp = self.convert_to_spherical_coordinates(base_point)[0]
