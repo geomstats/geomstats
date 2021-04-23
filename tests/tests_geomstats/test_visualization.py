@@ -79,7 +79,7 @@ class TestVisualization(geomstats.tests.TestCase):
         y = gs.array([coord[1] for coord in coords])
         z = gs.array([coord[2] for coord in coords])
         result = x ** 2 + y ** 2 + z ** 2
-        expected = .5 * gs.ones(self.n_samples)
+        expected = .25 * gs.ones(self.n_samples)
         self.assertAllClose(result, expected)
 
     def test_rotation_pre_shape(self):
