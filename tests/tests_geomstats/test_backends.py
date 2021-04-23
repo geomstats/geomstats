@@ -1046,6 +1046,6 @@ class TestBackends(geomstats.tests.TestCase):
         arg = gs.array([10.])
 
         result = gs.autograd.value_and_grad(fun2)(arg)
-        expected = (fun2(x),fun2_grad(fun1(x))*fun1_grad(x))
+        expected = (fun2(arg),fun2_grad(fun1(arg))*fun1_grad(arg))
 
         self.assertAllClose(result, expected)
