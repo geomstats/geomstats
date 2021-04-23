@@ -629,10 +629,12 @@ class KendallSphere:
         coords_theta = gs.linspace(0, 2 * gs.pi, n_theta)
         coords_phi = gs.linspace(0, gs.pi, n_phi)
 
-        coords_x = .5 * gs.outer(gs.sin(coords_phi), gs.cos(coords_theta))
-        coords_y = .5 * gs.outer(gs.sin(coords_phi), gs.sin(coords_theta))
-        coords_z = .5 * gs.outer(gs.cos(coords_phi),
-                                 gs.ones_like(coords_theta))
+        coords_x = gs.to_numpy(.5 * gs.outer(gs.sin(coords_phi),
+                                             gs.cos(coords_theta)))
+        coords_y = gs.to_numpy(.5 * gs.outer(gs.sin(coords_phi),
+                                             gs.sin(coords_theta)))
+        coords_z = gs.to_numpy(.5 * gs.outer(gs.cos(coords_phi),
+                                             gs.ones_like(coords_theta)))
 
         self.ax.plot_surface(coords_x, coords_y, coords_z,
                              rstride=1, cstride=1, color='grey',
@@ -679,7 +681,7 @@ class KendallSphere:
         rot_phi = gs.array([[gs.cos(phi), 0., gs.sin(phi)],
                             [0., 1., 0.],
                             [-gs.sin(phi), 0, gs.cos(phi)]])
-        return rot_th @ rot_phi @ rot_th.transpose()
+        return rot_th @ rot_phi @ rot_th.transpose(0,1)
 
     def draw_points(self, alpha=1, zorder=0, **kwargs):
         """Draw points on the Kendall sphere."""
