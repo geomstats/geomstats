@@ -86,8 +86,8 @@ class TestVisualization(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_rotation_pre_shape(self):
-        theta = gs.random.rand()
-        phi = gs.random.rand()
+        theta = gs.random.rand(1)[0]
+        phi = gs.random.rand(1)[0]
         rot = self.KS.rotation(theta, phi)
         result = _SpecialOrthogonalMatrices(3).belongs(rot)
         expected = True
