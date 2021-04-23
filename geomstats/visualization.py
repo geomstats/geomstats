@@ -681,7 +681,7 @@ class KendallSphere:
         rot_phi = gs.array([[gs.cos(phi), 0., gs.sin(phi)],
                             [0., 1., 0.],
                             [-gs.sin(phi), 0, gs.cos(phi)]])
-        return rot_th @ rot_phi @ rot_th.transpose(0,1)
+        return rot_th @ rot_phi @ rot_th.transpose(0, 1)
 
     def draw_points(self, alpha=1, zorder=0, **kwargs):
         """Draw points on the Kendall sphere."""
