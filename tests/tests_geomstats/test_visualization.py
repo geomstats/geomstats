@@ -78,9 +78,9 @@ class TestVisualization(geomstats.tests.TestCase):
     def test_coordinates_pre_shape(self):
         points = self.S32.random_point(self.n_samples)
         coords = self.KS.convert_to_spherical_coordinates(points)
-        x = gs.array([gs.to_numpy(coord)[0] for coord in coords])
-        y = gs.array([gs.to_numpy(coord)[1] for coord in coords])
-        z = gs.array([gs.to_numpy(coord)[2]for coord in coords])
+        x = coords[:, 0]
+        y = coords[:, 1]
+        z = coords[:, 2]
         result = x ** 2 + y ** 2 + z ** 2
         expected = .25 * gs.ones(self.n_samples)
         self.assertAllClose(result, expected)
