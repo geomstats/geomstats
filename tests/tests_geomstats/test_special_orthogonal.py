@@ -11,24 +11,41 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         self.group = SpecialOrthogonal(n=self.n)
         self.n_samples = 4
 
+    def test_dim(self):
+        for n in [2, 3, 4, 5, 6]:
+            group = SpecialOrthogonal(n=n)
+            result = group.dim
+            expected = n * (n - 1) / 2
+            self.assertAllClose(result, expected)
+
     def test_belongs(self):
         theta = gs.pi / 3
         point_1 = gs.array([[gs.cos(theta), - gs.sin(theta)],
                             [gs.sin(theta), gs.cos(theta)]])
         result = self.group.belongs(point_1)
-        expected = True
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
         point_2 = gs.array([[gs.cos(theta), gs.sin(theta)],
                             [gs.sin(theta), gs.cos(theta)]])
         result = self.group.belongs(point_2)
-        expected = False
-        self.assertAllClose(result, expected)
+        self.assertFalse(result)
 
         point = gs.array([point_1, point_2])
         expected = gs.array([True, False])
         result = self.group.belongs(point)
         self.assertAllClose(result, expected)
+
+        point = point_1[0]
+        result = self.group.belongs(point)
+        self.assertFalse(result)
+
+        point = gs.zeros((2, 3))
+        result = self.group.belongs(point)
+        self.assertFalse(result)
+
+        point = gs.zeros((2, 2, 3))
+        result = self.group.belongs(point)
+        self.assertFalse(gs.all(result))
 
     def test_random_uniform_and_belongs(self):
         point = self.group.random_uniform()

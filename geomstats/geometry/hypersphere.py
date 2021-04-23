@@ -11,12 +11,10 @@ from scipy.stats import beta
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-import geomstats.vectorization
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class _Hypersphere(EmbeddedManifold):
@@ -197,7 +195,6 @@ class _Hypersphere(EmbeddedManifold):
 
         return point_extrinsic
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def tangent_spherical_to_extrinsic(self, tangent_vec_spherical,
                                        base_point_spherical):
         """Convert tangent vector from spherical to extrinsic coordinates.
@@ -225,19 +222,17 @@ class _Hypersphere(EmbeddedManifold):
                 ' to extrinsic coordinates is implemented'
                 ' only in dimension 2.')
 
-        n_samples = base_point_spherical.shape[0]
-        theta = base_point_spherical[:, 0]
-        phi = base_point_spherical[:, 1]
+        axes = (2, 0, 1) if base_point_spherical.ndim == 2 else (0, 1)
+        theta = base_point_spherical[..., 0]
+        phi = base_point_spherical[..., 1]
 
-        zeros = gs.zeros(n_samples)
+        zeros = gs.zeros_like(theta)
 
-        jac = gs.concatenate([gs.array([[
-            [gs.cos(theta[i]) * gs.cos(phi[i]),
-             - gs.sin(theta[i]) * gs.sin(phi[i])],
-            [gs.cos(theta[i]) * gs.sin(phi[i]),
-             gs.sin(theta[i]) * gs.cos(phi[i])],
-            [- gs.sin(theta[i]),
-             zeros[i]]]]) for i in range(n_samples)], axis=0)
+        jac = gs.array([
+            [gs.cos(theta) * gs.cos(phi), - gs.sin(theta) * gs.sin(phi)],
+            [gs.cos(theta) * gs.sin(phi), gs.sin(theta) * gs.cos(phi)],
+            [- gs.sin(theta), zeros]])
+        jac = gs.transpose(jac, axes)
 
         tangent_vec_extrinsic = gs.einsum(
             '...ij,...j->...i', jac, tangent_vec_spherical)
@@ -374,12 +369,16 @@ class _Hypersphere(EmbeddedManifold):
         n_samples : int
             Number of samples.
             Optional, default: 1.
+        max_iter : int
+            Maximum number of trials in the rejection algorithm. In case it
+            is reached, the current number of samples < n_samples is returned.
+            Optional, default: 100.
 
         Returns
         -------
-        point : array-like, shape=[..., 3]
+        point : array-like, shape=[n_samples, dim + 1]
             Points sampled on the sphere in extrinsic coordinates
-            in Euclidean space of dimension 3.
+            in Euclidean space of dimension dim + 1.
         """
         dim = self.dim
 
@@ -389,23 +388,13 @@ class _Hypersphere(EmbeddedManifold):
             unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
             scalar = gs.random.rand(n_samples)
 
-            coord_z = 1. + 1. / kappa * gs.log(
+            coord_x = 1. + 1. / kappa * gs.log(
                 scalar + (1. - scalar) * gs.exp(gs.array(-2. * kappa)))
-            coord_z = gs.to_ndarray(coord_z, to_ndim=2, axis=1)
-            coord_xy = gs.sqrt(1. - coord_z ** 2) * unit_vector
-            sample = gs.hstack((coord_xy, coord_z))
+            coord_x = gs.to_ndarray(coord_x, to_ndim=2, axis=1)
+            coord_yz = gs.sqrt(1. - coord_x ** 2) * unit_vector
+            sample = gs.hstack((coord_x, coord_yz))
 
-            if mu is not None:
-                rot_vec = gs.cross(
-                    gs.array([0., 0., 1.]), mu)
-                rot_vec *= gs.arccos(mu[-1]) / gs.linalg.norm(rot_vec)
-                rot = SpecialOrthogonal(
-                    n=3,
-                    point_type='vector').matrix_from_rotation_vector(rot_vec)
-                sample = gs.matmul(sample, gs.transpose(rot))
         else:
-            if mu is None:
-                mu = gs.array([0.] * dim + [1.])
             # rejection sampling in the general case
             sqrt = gs.sqrt(4 * kappa ** 2. + dim ** 2)
             envelop_param = (-2 * kappa + sqrt) / dim
@@ -417,29 +406,128 @@ class _Hypersphere(EmbeddedManifold):
             while (n_accepted < n_samples) and (n_iter < max_iter):
                 sym_beta = beta.rvs(
                     dim / 2, dim / 2, size=n_samples - n_accepted)
-                coord_z = (1 - (1 + envelop_param) * sym_beta) / (
+                sym_beta = gs.cast(sym_beta, node.dtype)
+                coord_x = (1 - (1 + envelop_param) * sym_beta) / (
                     1 - (1 - envelop_param) * sym_beta)
                 accept_tol = gs.random.rand(n_samples - n_accepted)
                 criterion = (
-                    kappa * coord_z
-                    + dim * gs.log(1 - node * coord_z)
+                    kappa * coord_x
+                    + dim * gs.log(1 - node * coord_x)
                     - correction) > gs.log(accept_tol)
-                result.append(coord_z[criterion])
+                result.append(coord_x[criterion])
                 n_accepted += gs.sum(criterion)
                 n_iter += 1
             if n_accepted < n_samples:
                 logging.warning(
                     'Maximum number of iteration reached in rejection '
                     'sampling before n_samples were accepted.')
-            coord_z = gs.concatenate(result)
-            coord_rest = self.random_uniform(n_accepted)
-            coord_rest = self.to_tangent(coord_rest, mu)
-            coord_rest = self.projection(coord_rest)
+            coord_x = gs.concatenate(result)
+            coord_rest = _Hypersphere(dim - 1).random_uniform(n_accepted)
             coord_rest = gs.einsum(
-                '...,...i->...i', gs.sqrt(1 - coord_z ** 2), coord_rest)
-            sample = coord_rest + coord_z[:, None] * mu[None, :]
+                '...,...i->...i', gs.sqrt(1 - coord_x ** 2), coord_rest)
+            sample = gs.concatenate([coord_x[..., None], coord_rest], axis=1)
 
-        return sample if n_samples > 1 else sample[0]
+        if mu is not None:
+            sample = utils.rotate_points(sample, mu)
+
+        return sample if (n_samples > 1) else sample[0]
+
+    def random_riemannian_normal(
+            self, mean=None, precision=None, n_samples=1, max_iter=100):
+        r"""Sample from the Riemannian normal distribution.
+
+        The Riemannian normal distribution, or spherical normal in this case,
+        is defined by the probability density function (with respect to the
+        Riemannian volume measure) proportional to:
+        .. math::
+                \exp \Big \left(- \frac{\lambda}{2} \mathtm{arccos}^2(x^T\mu)
+                \Big \right)
+
+        where :math: `\mu` is the mean and :math: `\lambda` is the isotropic
+        precision. For the anisotropic case,
+        :math: `\log_{\mu}(x)^T \Lambda \log_{\mu}(x)` is used instead.
+
+        A rejection algorithm is used to sample from this distribution [Hau18]_
+
+        Parameters
+        ----------
+        mean : array-like, shape=[dim]
+            Mean parameter of the distribution.
+            Optional, default: (0,...,0,1) (the north pole).
+        precision : float or array-like, shape=[dim, dim]
+            Inverse of the covariance parameter of the normal distribution.
+            If a float is passed, the covariance matrix is precision times
+            identity.
+            Optional, default: identity.
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        max_iter : int
+            Maximum number of trials in the rejection algorithm. In case it
+            is reached, the current number of samples < n_samples is returned.
+            Optional, default: 100.
+
+        Returns
+        -------
+        point : array-like, shape=[n_samples, dim + 1]
+            Points sampled on the sphere.
+
+        References
+        ----------
+        .. [Hau18]  Hauberg, Soren. “Directional Statistics with the
+                    Spherical Normal Distribution.”
+                    In 2018 21st International Conference on Information
+                    Fusion (FUSION), 704–11, 2018.
+                    https://doi.org/10.23919/ICIF.2018.8455242.
+        """
+        dim = self.dim
+        n_accepted, n_iter = 0, 0
+        result = []
+        if precision is None:
+            precision_ = gs.eye(self.dim)
+        elif isinstance(precision, (float, int)):
+            precision_ = precision * gs.eye(self.dim)
+        else:
+            precision_ = precision
+        precision_2 = precision_ + (dim - 1) / gs.pi * gs.eye(dim)
+        tangent_cov = gs.linalg.inv(precision_2)
+
+        def threshold(random_v):
+            """Compute the acceptance threshold."""
+            squared_norm = gs.sum(random_v ** 2, axis=-1)
+            sinc = utils.taylor_exp_even_func(
+                squared_norm, utils.sinc_close_0) ** (dim - 1)
+            threshold_val = sinc * gs.exp(squared_norm * (dim - 1) / 2 / gs.pi)
+            return threshold_val, squared_norm ** .5
+
+        while (n_accepted < n_samples) and (n_iter < max_iter):
+            envelope = gs.random.multivariate_normal(
+                gs.zeros(dim), tangent_cov, size=(n_samples - n_accepted,))
+            thresh, norm = threshold(envelope)
+            proposal = gs.random.rand(n_samples - n_accepted)
+            criterion = gs.logical_and(norm <= gs.pi, proposal <= thresh)
+            result.append(envelope[criterion])
+            n_accepted += gs.sum(criterion)
+            n_iter += 1
+        if n_accepted < n_samples:
+            logging.warning(
+                'Maximum number of iteration reached in rejection '
+                'sampling before n_samples were accepted.')
+        tangent_sample_intr = gs.concatenate(result)
+        tangent_sample = gs.concatenate(
+            [tangent_sample_intr, gs.zeros(n_accepted)[:, None]], axis=1)
+
+        metric = HypersphereMetric(dim)
+        north_pole = gs.array([0.] * dim + [1.])
+        if mean is not None:
+            mean_from_north = metric.log(mean, north_pole)
+            tangent_sample_at_pt = metric.parallel_transport(
+                tangent_sample, mean_from_north, north_pole)
+        else:
+            tangent_sample_at_pt = tangent_sample
+            mean = north_pole
+        sample = metric.exp(tangent_sample_at_pt, mean)
+        return sample[0] if (n_samples == 1) else sample
 
 
 class HypersphereMetric(RiemannianMetric):
@@ -530,7 +618,6 @@ class HypersphereMetric(RiemannianMetric):
 
         return exp
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
@@ -625,12 +712,12 @@ class HypersphereMetric(RiemannianMetric):
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         theta = gs.linalg.norm(tangent_vec_b, axis=-1)
-        normalized_b = gs.einsum('..., ...i->...i', 1 / theta, tangent_vec_b)
+        normalized_b = gs.einsum('...,...i->...i', 1 / theta, tangent_vec_b)
         pb = gs.einsum('...i,...i->...', tangent_vec_a, normalized_b)
-        p_orth = tangent_vec_a - gs.einsum('..., ...i->...i', pb, normalized_b)
+        p_orth = tangent_vec_a - gs.einsum('...,...i->...i', pb, normalized_b)
         transported = \
-            - gs.einsum('..., ...i->...i', gs.sin(theta) * pb, base_point)\
-            + gs.einsum('..., ...i->...i', gs.cos(theta) * pb, normalized_b)\
+            - gs.einsum('...,...i->...i', gs.sin(theta) * pb, base_point)\
+            + gs.einsum('...,...i->...i', gs.cos(theta) * pb, normalized_b)\
             + p_orth
         return transported
 
