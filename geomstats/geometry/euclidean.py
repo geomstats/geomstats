@@ -39,13 +39,15 @@ class Euclidean(Manifold):
 
     identity = property(get_identity)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the Euclidean space.
 
         Parameters
         ----------
         point : array-like, shape=[..., dim]
             Point to evaluate.
+        atol : float
+            Unused.
 
         Returns
         -------
@@ -101,6 +103,47 @@ class Euclidean(Manifold):
         if not self.belongs(tangent_vec):
             raise ValueError('The update must be of the same dimension')
         return tangent_vec + base_point
+
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
+        """Check whether the vector is tangent at base_point.
+
+        In the Euclidean space, tangent spaces are identified with the
+        manifold itself.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        atol : float
+            Unused.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        return self.belongs(vector)
+
+    def to_tangent(self, vector, base_point=None):
+        """Project a vector to a tangent space of the manifold.
+
+        In a Euclidean space this is just the identity.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
+        return vector
 
 
 class EuclideanMetric(RiemannianMetric):
