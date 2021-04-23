@@ -3,6 +3,7 @@
 import matplotlib
 import matplotlib.pyplot as plt
 
+import geomstats.backend as gs
 import geomstats.tests
 import geomstats.visualization as visualization
 from geomstats.geometry.hyperbolic import Hyperbolic
@@ -11,7 +12,8 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 from geomstats.geometry.pre_shape import PreShapeSpace
 from geomstats.geometry.special_euclidean import SpecialEuclidean
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal, \
+    _SpecialOrthogonalMatrices
 
 matplotlib.use('Agg')  # NOQA
 
@@ -27,6 +29,7 @@ class TestVisualization(geomstats.tests.TestCase):
         self.H2_half_plane = PoincareHalfSpace(dim=2)
         self.M32 = Matrices(m=3, n=2)
         self.S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
+        self.KS = visualization.KendallSphere()
 
         plt.figure()
 
@@ -42,13 +45,49 @@ class TestVisualization(geomstats.tests.TestCase):
         points = self.SE3_GROUP.random_point(self.n_samples)
         visualization.plot(points, space='SE3_GROUP')
 
-    def test_plot_points_s32(self):
-        points = self.S32.random_uniform(self.n_samples)
-        visualization.plot(points, space='S32')
+    def test_draw_pre_shape(self):
+        self.KS.draw()
 
-    def test_plot_points_m32(self):
+    def test_plot_points_pre_shape(self):
+        points = self.S32.random_point(self.n_samples)
+        visualization.plot(points, space='S32')
         points = self.M32.random_point(self.n_samples)
         visualization.plot(points, space='M32')
+        self.KS.clear_points()
+
+    def test_plot_curve_pre_shape(self):
+        base_point = self.S32.random_point()
+        vec = self.S32.random_point()
+        tangent_vec = self.S32.to_tangent(vec, base_point)
+        times = gs.linspace(0, .5, 1000)
+        speeds = gs.array([-t * tangent_vec for t in times])
+        points = self.S32.ambient_metric.exp(speeds, base_point)
+        self.KS.add_points(points)
+        self.KS.draw_curve()
+        self.KS.clear_points()
+
+    def test_plot_vector_pre_shape(self):
+        base_point = self.S32.random_point()
+        vec = self.S32.random_point()
+        tangent_vec = self.S32.to_tangent(vec, base_point)
+        self.KS.draw_vector(tangent_vec, base_point)
+
+    def test_coordinates_pre_shape(self):
+        points = self.S32.random_point(self.n_samples)
+        coords = self.KS.convert_to_spherical_coordinates(points)
+        x2 = [coord[0] ** 2 for coord in coords]
+        y2 = [coord[1] ** 2 for coord in coords]
+        z2 = [coord[2] ** 2 for coord in coords]
+        result = x2 + y2 + z2
+        expected = [.5] * len(x2)
+        self.assertAllClose(result, expected)
+
+    def test_rotation_pre_shape(self):
+        theta = gs.random.rand()
+        phi = gs.random.rand()
+        rot = self.KS.rotation(theta, phi)
+        result = _SpecialOrthogonalMatrices(3).belongs(rot)
+        self.assertFalse(result)
 
     @geomstats.tests.np_and_pytorch_only
     def test_plot_points_s1(self):
