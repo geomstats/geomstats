@@ -1027,3 +1027,21 @@ class TestBackends(geomstats.tests.TestCase):
         log = 2 * metric.log(point_a, point_b)
         expected = dist, log
         self.assertAllClose(result, expected)
+        
+    @geomstats.tests.pytorch_only    
+    def test_custom_grad_chain_rule(self):
+
+        @gs.autograd.custom_grad(lambda x : 3)
+        def fun1(x):
+            return x
+
+        def fun2(x):
+            out = fun1(x)**2
+            return out
+
+        arg = gs.array([10.])
+
+        result = gs.autograd.value_and_grad(fun2)(arg)
+        expected = (arg**2,2*arg*3)
+
+        self.assertAllClose(result, expected)
