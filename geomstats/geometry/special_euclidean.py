@@ -7,7 +7,7 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.general_linear import GeneralLinear, Matrices
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra

@@ -4,7 +4,7 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
-from geomstats.geometry.general_linear import GeneralLinear, Matrices
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.manifold import AbstractManifoldFactory
