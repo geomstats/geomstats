@@ -56,6 +56,7 @@ class TestVisualization(geomstats.tests.TestCase):
         self.KS.clear_points()
 
     def test_plot_curve_pre_shape(self):
+        KS.draw()
         base_point = self.S32.random_point()
         vec = self.S32.random_point()
         tangent_vec = self.S32.to_tangent(vec, base_point)
@@ -67,6 +68,7 @@ class TestVisualization(geomstats.tests.TestCase):
         self.KS.clear_points()
 
     def test_plot_vector_pre_shape(self):
+        KS.draw()
         base_point = self.S32.random_point()
         vec = self.S32.random_point()
         tangent_vec = self.S32.to_tangent(vec, base_point)
