@@ -597,7 +597,7 @@ class KendallSphere:
         coords_y = .5 * gs.sin(coords_theta) * gs.sin(coords_phi)
         coords_z = .5 * gs.cos(coords_phi)
         spherical_coords = gs.transpose(gs.vstack(
-            [coords_x, coords_y, coords_z]))
+            (coords_x, coords_y, coords_z)))
         return spherical_coords
 
     def add_points(self, points):
@@ -662,9 +662,9 @@ class KendallSphere:
         triangle = gs.hstack((triangle, .5 * gs.ones((3, 1))))
         triangle = self.rotation(theta, phi) @ triangle.transpose(0, 1)
 
-        x = gs.hstack([triangle[0], gs.array(triangle[0, 0])])
-        y = gs.hstack([triangle[1], gs.array(triangle[1, 0])])
-        z = gs.hstack([triangle[2], gs.array(triangle[2, 0])])
+        x = gs.hstack((triangle[0], triangle[0, 0]))
+        y = gs.hstack((triangle[1], triangle[1, 0]))
+        z = gs.hstack((triangle[2], triangle[2, 0]))
 
         self.ax.plot3D(x, y, z, 'grey', zorder=1)
         c = ['red', 'green', 'blue']
