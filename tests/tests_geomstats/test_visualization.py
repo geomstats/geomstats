@@ -78,7 +78,6 @@ class TestVisualization(geomstats.tests.TestCase):
     def test_coordinates_pre_shape(self):
         points = self.S32.random_point(self.n_samples)
         coords = self.KS.convert_to_spherical_coordinates(points)
-        coords = gs.to_numpy(coords)
         x = coords[:, 0]
         y = coords[:, 1]
         z = coords[:, 2]

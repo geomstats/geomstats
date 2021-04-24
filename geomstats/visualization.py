@@ -596,7 +596,7 @@ class KendallSphere:
         coords_x = .5 * gs.cos(coords_theta) * gs.sin(coords_phi)
         coords_y = .5 * gs.sin(coords_theta) * gs.sin(coords_phi)
         coords_z = .5 * gs.cos(coords_phi)
-        spherical_coords = gs.transpose(gs.vstack(
+        spherical_coords = gs.transpose(gs.stack(
             (coords_x, coords_y, coords_z)))
         return spherical_coords
 
@@ -703,8 +703,8 @@ class KendallSphere:
         """Draw one vector in the tangent space to sphere at a base point."""
         norm = S32.ambient_metric.norm(tangent_vec)
         exp = S32.ambient_metric.exp(tangent_vec, base_point)
-        bp = self.convert_to_spherical_coordinates(base_point)[0]
-        exp = self.convert_to_spherical_coordinates(exp)[0]
+        bp = self.convert_to_spherical_coordinates(base_point)
+        exp = self.convert_to_spherical_coordinates(exp)
         v = exp - \
             gs.dot(exp, bp / gs.linalg.norm(bp)) * bp / gs.linalg.norm(bp)
         v = v / gs.linalg.norm(v) * norm
