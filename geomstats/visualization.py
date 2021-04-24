@@ -659,12 +659,13 @@ class KendallSphere:
         u_theta = gs.cos(theta) * self.ua + gs.sin(theta) * self.na
         triangle = gs.cos(phi / 2) * self.pole + gs.sin(phi / 2) * u_theta
         triangle = scale * triangle
-        triangle = gs.hstack((triangle, .5 * gs.ones((3, 1))))
-        triangle = self.rotation(theta, phi) @ triangle.transpose(1, 0)
+        triangle3d = .5 * gs.ones((3, 3))
+        triangle3d[:, :2] = triangle
+        triangle3d = self.rotation(theta, phi) @ triangle3d.transpose(1, 0)
 
-        x = gs.hstack((triangle[0], triangle[0, 0]))
-        y = gs.hstack((triangle[1], triangle[1, 0]))
-        z = gs.hstack((triangle[2], triangle[2, 0]))
+        x = gs.hstack((triangle3d[0], triangle3d[0, 0]))
+        y = gs.hstack((triangle3d[1], triangle3d[1, 0]))
+        z = gs.hstack((triangle3d[2], triangle3d[2, 0]))
 
         self.ax.plot3D(x, y, z, 'grey', zorder=1)
         c = ['red', 'green', 'blue']
