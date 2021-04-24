@@ -1,7 +1,9 @@
 import math
 
 import geomstats.algebra_utils as utils
+import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.hypersphere import Hypersphere
 
 
 class TestAlgebraUtils(geomstats.tests.TestCase):
@@ -31,3 +33,19 @@ class TestAlgebraUtils(geomstats.tests.TestCase):
                 result = utils.taylor_exp_even_func(
                     x, taylor_function, order=4)
                 self.assertAllClose(result, expected)
+
+    def test_rotate_points(self):
+        sphere = Hypersphere(2)
+        end_point = sphere.random_uniform()
+        north_pole = gs.array([1., 0., 0.])
+        result = utils.rotate_points(north_pole, end_point)
+        expected = end_point
+        self.assertAllClose(result, expected)
+
+        points = sphere.random_uniform(10)
+        result = utils.rotate_points(points, north_pole)
+        self.assertAllClose(result, points)
+
+        points = gs.concatenate([north_pole[None, :], points])
+        result = utils.rotate_points(points, end_point)
+        self.assertAllClose(result[0], end_point)
