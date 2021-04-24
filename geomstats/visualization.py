@@ -663,9 +663,9 @@ class KendallSphere:
         triangle3d[:, :2] = triangle
         triangle3d = self.rotation(theta, phi) @ triangle3d.transpose(1, 0)
 
-        x = gs.hstack((triangle3d[0], triangle3d[0, 0]))
-        y = gs.hstack((triangle3d[1], triangle3d[1, 0]))
-        z = gs.hstack((triangle3d[2], triangle3d[2, 0]))
+        x = list(triangle3d[0]) + [triangle3d[0, 0]]
+        y = list(triangle3d[1]) + [triangle3d[1, 0]]
+        z = list(triangle3d[2]) + [triangle3d[2, 0]]
 
         self.ax.plot3D(x, y, z, 'grey', zorder=1)
         c = ['red', 'green', 'blue']
