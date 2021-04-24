@@ -537,16 +537,16 @@ class KendallSphere:
         self.elev, self.azim = None, None
 
         self.pole = gs.array([[1., 0.],
-                              [-.5, gs.sqrt(3) / 2],
-                              [-.5, -gs.sqrt(3) / 2]]) / gs.sqrt(3)
+                              [-.5, gs.sqrt(3.) / 2.],
+                              [-.5, -gs.sqrt(3.) / 2.]]) / gs.sqrt(3.)
 
         self.ua = gs.array([[-1., 0.],
-                            [.5, gs.sqrt(3) / 2],
-                            [.5, -gs.sqrt(3) / 2]]) / gs.sqrt(3)
+                            [.5, gs.sqrt(3.) / 2.],
+                            [.5, -gs.sqrt(3.) / 2.]]) / gs.sqrt(3.)
 
-        self.ub = gs.array([[.5, gs.sqrt(3) / 2],
-                            [.5, -gs.sqrt(3) / 2],
-                            [-1., 0.]]) / gs.sqrt(3)
+        self.ub = gs.array([[.5, gs.sqrt(3.) / 2.],
+                            [.5, -gs.sqrt(3.) / 2],
+                            [-1., 0.]]) / gs.sqrt(3.)
 
         # (ua,na) is a positively oriented orthonormal basis of
         # the horizontal space at north pole
