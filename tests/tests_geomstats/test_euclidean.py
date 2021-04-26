@@ -33,6 +33,16 @@ class TestEuclidean(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    def test_is_tangent(self):
+        vector = self.space.random_point()
+        result = self.space.is_tangent(vector)
+        self.assertTrue(result)
+
+    def test_to_tangent(self):
+        vector = self.space.random_point()
+        result = self.space.to_tangent(vector)
+        self.assertAllClose(result, vector)
+
     def test_squared_norm_vectorization(self):
         n_samples = self.n_samples
         n_points = gs.array([

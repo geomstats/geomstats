@@ -128,7 +128,7 @@ class Grassmannian(EmbeddedManifold):
             Matrices.transpose(points))
         return projector[0] if n_samples == 1 else projector
 
-    def is_tangent(self, vector, base_point=None, atol=gs.atol):
+    def is_tangent(self, vector, base_point, atol=gs.atol):
         r"""Check if a vector is tangent to the manifold at the base point.
 
         Check if the (n,n)-matrix :math: `Y` is symmetric and verifies the
@@ -155,7 +155,7 @@ class Grassmannian(EmbeddedManifold):
         is_close = gs.all(gs.isclose(diff, 0., atol=atol))
         return gs.logical_and(Matrices.is_symmetric(vector), is_close)
 
-    def to_tangent(self, vector, base_point=None):
+    def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
 
         Compute the bracket (commutator) of the base_point with

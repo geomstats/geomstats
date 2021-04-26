@@ -172,7 +172,7 @@ class TestConnection(geomstats.tests.TestCase):
         q_ext = self.hypersphere.spherical_to_extrinsic(point)
         expected = self.hypersphere.metric.log(base_point=p_ext, point=q_ext)
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-6)
 
     def test_geodesic_and_coincides_exp_hypersphere(self):
         n_geodesic_points = 10
