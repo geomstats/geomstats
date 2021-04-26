@@ -29,6 +29,7 @@ jobs:
         os: [ubuntu-latest]
         python-version: [3.6,3.7,3.8]
         geomstats-backend : ['numpy','pytorch','tensorflow']
+      fail-fast: false  
 
     steps:
       - uses: actions/checkout@v2
