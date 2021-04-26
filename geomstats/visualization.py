@@ -500,9 +500,9 @@ class KendallSphere:
     """Class used to plot points in Kendall shape space of 2D triangles.
 
     David G. Kendall showed that the shape space of 2D triangles is isometric
-    to the 2-sphere of radius 1/2 [Kend]. This class encodes this isometric
-    representation, offering a 3D visualization of Kendall shape space, and its
-    related objects.
+    to the 2-sphere of radius 1/2 [K1984]. This class encodes this isometric
+    representation, offering a 3D visualization of Kendall shape space of order
+    (3,2), and its related objects.
 
     Attributes
     ----------
@@ -524,7 +524,7 @@ class KendallSphere:
 
     References
     ----------
-    .. [Kend] David G. Kendall. "Shape Manifolds, Procrustean Metrics, and
+    .. [K1984] David G. Kendall. "Shape Manifolds, Procrustean Metrics, and
        Complex Projective Spaces." Bulletin of the London Mathematical
        Society, Volume 16, Issue 2, March 1984, Pages 81–121.
        https://doi.org/10.1112/blms/16.2.81
