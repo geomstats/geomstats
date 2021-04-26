@@ -548,8 +548,6 @@ class KendallSphere:
                             [.5, -gs.sqrt(3.) / 2],
                             [-1., 0.]]) / gs.sqrt(3.)
 
-        # (ua,na) is a positively oriented orthonormal basis of
-        # the horizontal space at north pole
         self.na = self.ub - S32.ambient_metric.inner_product(
             self.ub, self.ua) * self.ua
         self.na = self.na / S32.ambient_metric.norm(self.na)
