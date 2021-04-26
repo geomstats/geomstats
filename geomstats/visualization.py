@@ -586,7 +586,7 @@ class KendallSphere:
         coords_theta = gs.arctan2(
             S32.ambient_metric.inner_product(speeds, self.na),
             S32.ambient_metric.inner_product(speeds, self.ua))
-        coords_phi = 2 * S32.ambient_metric.dist(self.pole, aligned_points)
+        coords_phi = 2. * S32.ambient_metric.dist(self.pole, aligned_points)
 
         return coords_theta, coords_phi
 
@@ -626,8 +626,8 @@ class KendallSphere:
         self.ax.set_axis_off()
         plt.tight_layout()
 
-        coords_theta = gs.linspace(0, 2 * gs.pi, n_theta)
-        coords_phi = gs.linspace(0, gs.pi, n_phi)
+        coords_theta = gs.linspace(0., 2. * gs.pi, n_theta)
+        coords_phi = gs.linspace(0., gs.pi, n_phi)
 
         coords_x = gs.to_numpy(.5 * gs.outer(gs.sin(coords_phi),
                                              gs.cos(coords_theta)))
@@ -643,21 +643,21 @@ class KendallSphere:
                                color='grey', alpha=.6, zorder=-1)
 
         def lim(theta):
-            return gs.pi - self.elev + (2 * self.elev - gs.pi) / gs.pi * abs(
+            return gs.pi - self.elev + (2. * self.elev - gs.pi) / gs.pi * abs(
                 self.azim - theta)
 
-        for theta in gs.linspace(0, 2 * gs.pi, n_theta // 2 + 1):
-            for phi in gs.linspace(0, gs.pi, n_phi):
+        for theta in gs.linspace(0., 2. * gs.pi, n_theta // 2 + 1):
+            for phi in gs.linspace(0., gs.pi, n_phi):
                 if theta <= self.azim + gs.pi and phi <= lim(theta):
                     self.draw_triangle(theta, phi, scale)
                 if theta > self.azim + gs.pi and phi \
-                        < lim(2 * self.azim + 2 * gs.pi - theta):
+                        < lim(2. * self.azim + 2. * gs.pi - theta):
                     self.draw_triangle(theta, phi, scale)
 
     def draw_triangle(self, theta, phi, scale):
         """Draw the corresponding triangle on the sphere at theta, phi."""
         u_theta = gs.cos(theta) * self.ua + gs.sin(theta) * self.na
-        triangle = gs.cos(phi / 2) * self.pole + gs.sin(phi / 2) * u_theta
+        triangle = gs.cos(phi / 2.) * self.pole + gs.sin(phi / 2.) * u_theta
         triangle = scale * triangle
         triangle3d = .5 * gs.ones((3, 3))
         triangle3d[:, :2] = triangle
