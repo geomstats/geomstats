@@ -61,7 +61,7 @@ class TestVisualization(geomstats.tests.TestCase):
         base_point = self.S32.random_point()
         vec = self.S32.random_point()
         tangent_vec = self.S32.to_tangent(vec, base_point)
-        times = gs.linspace(0, .5, 1000)
+        times = gs.linspace(0., .5, 1000)
         speeds = gs.array([-t * tangent_vec for t in times])
         points = self.S32.ambient_metric.exp(speeds, base_point)
         self.KS.add_points(points)
