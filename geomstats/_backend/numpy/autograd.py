@@ -18,7 +18,7 @@ def value_and_grad(objective):
         Function that takes the argument of the objective function as input
         and returns both value and grad at the input.
     """
-    def objective_with_grad(velocity):
+    def objective_with_grad(velocity): # NOQA
         # TODO
         vel = velocity.clone().requires_grad_(True)
         loss = objective(vel)

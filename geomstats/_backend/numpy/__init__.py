@@ -7,13 +7,14 @@ from importlib.util import module_from_spec, spec_from_file_location
 
 
 def import_non_local(name: str):
-    """
-    Import non local module.
+    """Import non local module.
 
-    Args:
+    Parameters
+    ----------
         name (str): name of the module to import
 
-    Returns:
+    Returns
+    -------
         [module]: the imported module if the import is succesfull
     """
     paths_hints = [p for p in sys.path if 'site-packages' in p]
@@ -43,11 +44,23 @@ def import_non_local(name: str):
 
 
 def import_non_local_submodule(main_module, submodule_name):
+    """Import a non local submodule from a main module.
+
+    Parameters
+    ----------
+        main_module: the main module
+        submodule_name : the submodule to import
+
+    Returns
+    -------
+        Module: the imported module or None
+    """
     path = [os.path.dirname(main_module.__file__)]
     for _, module_name, is_pkg in pkgutil.walk_packages(path):
         if is_pkg and module_name == submodule_name:
             full_name = main_module.__name__ + '.' + module_name
             return importlib.import_module(full_name)
+    return None
 
 import autograd # NOQA
 
@@ -150,7 +163,7 @@ from scipy.sparse import coo_matrix # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA
-from ..constants import np_atol, np_rtol
+from ..constants import np_atol, np_rtol # NOQA
 
 DTYPES = {
     dtype('int32'): 0,
@@ -173,7 +186,7 @@ def convert_to_wider_dtype(tensor_list):
 
     wider_dtype = list(DTYPES.keys())[wider_dtype_index]
 
-    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
+    tensor_list = [cast(x, new_type=wider_dtype) for x in tensor_list]
     return tensor_list
 
 
@@ -355,8 +368,8 @@ def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     return np.vectorize(pyfunc, signature=signature)(x)
 
 
-def cast(x, dtype):
-    return x.astype(dtype)
+def cast(x, new_type):
+    return x.astype(new_type)
 
 
 def set_diag(x, new_diag):
