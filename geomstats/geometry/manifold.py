@@ -198,8 +198,10 @@ class AbstractManifoldFactory(ABC):
 
         # check the incremental combination of args to see if a key exist
         nb_args = len(args_dict)
+
         for length in range(nb_args, 0, -1):
-            for key in itertools.combinations(args_dict.items(), length):
+            logging.debug(f" test with key length {length}")
+            for key in itertools.combinations(sorted(args_dict.items()), length):
                 if key in cls.manifolds_creators:
                     logging.debug(f"found key {key}  from args {args_dict}")
 
@@ -217,11 +219,13 @@ class AbstractManifoldFactory(ABC):
 
                     key_keys = [k for k, v in key]
                     rest_of_args = {k: v for k, v in args_dict.items() if k not in key_keys} # NOQA
+                    if 'dim' in key_keys:
+                        rest_of_args['dim'] = args_dict['dim']
+
                     return cls.manifolds_creators[key](metrics=metrics, **rest_of_args) # NOQA
 
-        raise Exception(f'''
-                        no manifold with key containing {args_dict} .
-                        keys ars {cls.manifolds_creators.keys()}''')
+        raise Exception(f'''no manifold with key containing {sorted(args_dict.items())} .'''\
+                        f'''keys ars {cls.manifolds_creators.keys()}''')
 
     @classmethod
     def register(cls, **kwargs):
@@ -233,13 +237,12 @@ class AbstractManifoldFactory(ABC):
         """
         def wrapper(manifold_class: Manifold):
             args_dict = kwargs
-            key = tuple(sorted(args_dict.items()))  # TODO without sorted
+            key = tuple(sorted(args_dict.items()))
 
             if key in cls.manifolds_creators:
-                logging.info(f'''
-                             for manifold {cls} this combination of
-                             args alreay exist: {key} .
-                             I will replace it''')
+                logging.info(f'''for manifold {cls} this combination'''\
+                             f''' of args alreay exist: {key} .'''\
+                             '''I will replace it''')
 
             cls.manifolds_creators[key] = manifold_class
             return manifold_class
@@ -261,16 +264,15 @@ class AbstractManifoldFactory(ABC):
         def inner_wrapper(wrapped_class: Connection) -> Callable:
             inner_name = name
             if inner_name is None:
-                logging.debug(f'''
-                              register new metric without name,
-                              will use class name
-                              {wrapped_class.__name__}''')
+                logging.debug('''register new metric without '''\
+                              '''name, will use class name'''\
+                              f''' {wrapped_class.__name__}''')
                 inner_name = wrapped_class.__name__
 
             if inner_name in cls.metrics_creators:
-                logging.info(f'''Metric creator with key
-                             {inner_name} already exists.
-                             Will replace it''')
+                logging.info('''Metric creator with key'''\
+                             f'''{inner_name} already exists.'''\
+                             ''' I Will replace it''')
             cls.metrics_creators[inner_name] = wrapped_class
             return wrapped_class
 
@@ -301,9 +303,8 @@ class AbstractManifoldFactory(ABC):
         res = []
         for m in metrics_name:
             if m not in cls.metrics_creators:
-                logging.warning(f'''
-                                {m} not in metrics
-                                keys: {cls.metrics_creators.keys()}''')
+                logging.warning(f'''{m} not in metrics '''\
+                                f'''keys: {cls.metrics_creators.keys()}''')
                 continue
             metric = cls.metrics_creators[m]()
             res.append(metric)
