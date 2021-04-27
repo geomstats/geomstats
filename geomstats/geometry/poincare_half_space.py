@@ -77,7 +77,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
     def __init__(self, dim, scale=1.):
         super(PoincareHalfSpaceMetric, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0))
+            signature=(dim, 0))
         self.coords_type = PoincareHalfSpace.default_coords_type
         self.point_type = PoincareHalfSpace.default_point_type
         self.scale = scale

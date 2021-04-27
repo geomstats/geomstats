@@ -4,7 +4,7 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
-from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.general_linear import GeneralLinear, Matrices
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
@@ -19,7 +19,7 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
+class _SpecialOrthogonalMatrices(GeneralLinear):
     """Class for special orthogonal groups in matrix representation.
 
     Parameters
@@ -33,7 +33,6 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n,
             lie_algebra=SkewSymmetricMatrices(n=n))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
-        self.dim = int((n * (n - 1)) / 2)
 
     def belongs(self, point, atol=ATOL):
         """Check whether point is an orthogonal matrix.
@@ -52,10 +51,14 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to SO(n).
         """
-        is_orthogonal = self.equal(
-            self.mul(point, self.transpose(point)), self.identity, atol=atol)
-        has_positive_det = gs.linalg.det(point) > 0.
-        return gs.logical_and(is_orthogonal, has_positive_det)
+        has_right_shape = Matrices(self.n, self.n).belongs(point)
+        if gs.all(has_right_shape):
+            is_orthogonal = self.equal(
+                self.mul(point, self.transpose(point)),
+                self.identity, atol=atol)
+            has_positive_det = gs.linalg.det(point) > 0.
+            return gs.logical_and(is_orthogonal, has_positive_det)
+        return has_right_shape
 
     @classmethod
     def inverse(cls, point):
@@ -93,7 +96,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         det = gs.linalg.det(rotation_mat)
         return utils.flip_determinant(rotation_mat, det)
 
-    def random_uniform(self, n_samples=1, tol=1e-6):
+    def random_uniform(self, n_samples=1):
         """Sample in SO(n) from the uniform distribution.
 
         Parameters
@@ -639,7 +642,8 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         # This avoids dividing by 0
         norm_eps = gs.where(
-            tangent_vec_canonical_norm == 0, ATOL, tangent_vec_canonical_norm)
+            tangent_vec_canonical_norm == 0,
+            gs.atol, tangent_vec_canonical_norm)
         coef = gs.where(
             tangent_vec_canonical_norm == 0.,
             1., tangent_vec_metric_norm / norm_eps)

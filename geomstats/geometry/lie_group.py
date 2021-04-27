@@ -479,6 +479,7 @@ class LieGroup(Manifold):
             Vector to project. Its shape must match the shape of base_point.
         base_point : array-like, shape=[..., {dim, [n, n]}], optional
             Point of the group.
+            Optional, default: identity.
 
         Returns
         -------

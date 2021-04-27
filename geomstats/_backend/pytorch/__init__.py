@@ -63,7 +63,7 @@ from torch import (  # NOQA
 from . import autograd # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-
+from ..constants import pytorch_atol, pytorch_rtol
 
 DTYPES = {
     int32: 0,
@@ -72,8 +72,8 @@ DTYPES = {
     float64: 3}
 
 
-atol = 1e-6
-rtol = 1e-5
+atol = pytorch_atol
+rtol = pytorch_rtol
 
 
 def _raise_not_implemented_error(*args, **kwargs):

@@ -59,7 +59,7 @@ jobs:
         run: |
           nose2 --with-coverage tests.tests_geomstats
           
-      - name: generating code coverage 
+      - name: uploading code coverage [codecov]
         if: ${{matrix.python-version == 3.7}}
         run: |
           bash <(curl -s https://codecov.io/bash) -c -F ${{matrix.geomstats-backend}}

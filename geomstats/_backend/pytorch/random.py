@@ -1,6 +1,7 @@
 """Torch based random backend."""
 
 import torch
+from torch.distributions.multivariate_normal import MultivariateNormal
 
 
 def choice(x, a):
@@ -39,3 +40,7 @@ def uniform(low=0.0, high=1.0, size=(1,)):
     if low >= high:
         raise ValueError('Upper bound must be higher than lower bound')
     return (high - low) * torch.rand(*size) + low
+
+
+def multivariate_normal(mean, cov, size=None):
+    return MultivariateNormal(mean, cov).sample(size)
