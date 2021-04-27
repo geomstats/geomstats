@@ -375,10 +375,10 @@ class RiemannianMetric(Connection):
 
         return closest_neighbor_index
 
-    def orthonormal_basis(self, basis, base_point=None):
-        """Orthonormalize the basis with respect to the metric.
+    def normal_basis(self, basis, base_point=None):
+        """Normalize the basis with respect to the metric.
 
-        This corresponds to a renormalization.
+        This corresponds to a renormalization of each basis vector.
 
         Parameters
         ----------
@@ -389,7 +389,7 @@ class RiemannianMetric(Connection):
         Returns
         -------
         basis : array-like, shape=[dim, n, n]
-            Orthonormal basis.
+            Normal basis.
         """
         norms = self.squared_norm(basis, base_point)
 

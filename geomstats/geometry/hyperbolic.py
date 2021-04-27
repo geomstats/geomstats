@@ -508,7 +508,7 @@ class HyperbolicMetric(RiemannianMetric):
     def __init__(self, dim, scale=1):
         super(HyperbolicMetric, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0))
+            signature=(dim, 0))
         self.point_type = HyperbolicMetric.default_point_type
 
         self.scale = scale
