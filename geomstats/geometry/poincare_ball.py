@@ -220,7 +220,7 @@ class PoincareBallMetric(RiemannianMetric):
     def __init__(self, dim, scale=1):
         super(PoincareBallMetric, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0))
+            signature=(dim, 0))
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
         self.scale = scale

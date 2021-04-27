@@ -366,3 +366,23 @@ class MatricesMetric(EuclideanMetric):
             Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+
+    def norm(self, vector, base_point=None):
+        """Compute norm of a matrix.
+
+        Norm of a matrix associated to the Frobenius inner product.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        norm : array-like, shape=[...,]
+            Norm.
+        """
+        return gs.linalg.norm(vector, axis=(-2, -1))

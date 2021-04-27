@@ -61,16 +61,16 @@ class TestHyperbolic(geomstats.tests.TestCase):
 
     def test_projection_to_tangent_space(self):
         base_point = gs.array([1., 0., 0., 0.])
-        self.assertTrue(self.space.belongs(base_point))
+        belongs = self.space.belongs(base_point)
+        self.assertTrue(belongs)
 
         tangent_vec = self.space.to_tangent(
             vector=gs.array([1., 2., 1., 3.]),
             base_point=base_point)
-
         result = self.metric.inner_product(tangent_vec, base_point)
         expected = 0.
 
-        self.assertAllClose(result, expected, atol=1e-2)
+        self.assertAllClose(result, expected)
 
         result = self.space.to_tangent(
             vector=gs.array([1., 2., 1., 3.]),

@@ -80,7 +80,7 @@ class MyManifold(Manifold):
         return belongs
 
     # Another example of method of MyManifold.
-    def is_tangent(self, vector, base_point=None):
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether vector is tangent to the manifold at base_point.
 
         In what follows, the ellipsis ... indicates either nothing
@@ -97,6 +97,8 @@ class MyManifold(Manifold):
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
             Optional, default: None.
+        atol : float
+            Absolute tolerance threshold
 
         Returns
         -------

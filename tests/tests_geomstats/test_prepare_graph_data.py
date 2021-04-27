@@ -54,8 +54,8 @@ class TestPrepareGraphData(geomstats.tests.TestCase):
         expected_loss = 1.00322045
         expected_grad = gs.array([-0.16565083, -0.16565083])
 
-        self.assertAllClose(loss_value[0], expected_loss, rtol=1e-3)
-        self.assertAllClose(gs.squeeze(loss_grad), expected_grad, rtol=1e-3)
+        self.assertAllClose(loss_value[0], expected_loss)
+        self.assertAllClose(gs.squeeze(loss_grad), expected_grad)
 
     def test_embed(self):
         """Test embedding function."""

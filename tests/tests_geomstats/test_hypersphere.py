@@ -9,8 +9,8 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 from geomstats.learning.frechet_mean import FrechetMean
 
-MEAN_ESTIMATION_TOL = 1e-3
-KAPPA_ESTIMATION_TOL = 1e-2
+MEAN_ESTIMATION_TOL = 5e-3
+KAPPA_ESTIMATION_TOL = 3e-2
 ONLINE_KMEANS_TOL = 2e-2
 
 
