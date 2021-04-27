@@ -66,9 +66,8 @@ class Manifold(ABC):
         """
         raise NotImplementedError('belongs is not implemented.')
 
-    def is_tangent(self, vector, base_point=None, atol=gs.atol):
-        """
-        Check whether the vector is tangent at base_point.
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check whether the vector is tangent at base_point.
 
         Parameters
         ----------
@@ -76,7 +75,6 @@ class Manifold(ABC):
             Vector.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
-            Optional, default: none.
         atol : float
             Absolute tolerance.
             Optional, default: backend atol.
@@ -89,9 +87,8 @@ class Manifold(ABC):
         raise NotImplementedError(
             'is_tangent is not implemented.')
 
-    def to_tangent(self, vector, base_point=None):
-        """
-        Project a vector to a tangent space of the manifold.
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
 
         Parameters
         ----------
@@ -109,8 +106,7 @@ class Manifold(ABC):
             'to_tangent is not implemented.')
 
     def random_point(self, n_samples=1, bound=1.):
-        """
-        Sample random points on the manifold.
+        """Sample random points on the manifold.
 
         If the manifold is compact, a uniform distribution is used.
 
@@ -131,8 +127,7 @@ class Manifold(ABC):
         raise NotImplementedError('random_point is not implemented')
 
     def regularize(self, point):
-        """
-        Regularize a point to the canonical representation for the manifold.
+        """Regularize a point to the canonical representation for the manifold.
 
         Parameters
         ----------

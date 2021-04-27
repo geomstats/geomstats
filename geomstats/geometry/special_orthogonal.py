@@ -732,7 +732,8 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         # This avoids dividing by 0
         norm_eps = gs.where(
-            tangent_vec_canonical_norm == 0, ATOL, tangent_vec_canonical_norm)
+            tangent_vec_canonical_norm == 0,
+            gs.atol, tangent_vec_canonical_norm)
         coef = gs.where(
             tangent_vec_canonical_norm == 0.,
             1., tangent_vec_metric_norm / norm_eps)

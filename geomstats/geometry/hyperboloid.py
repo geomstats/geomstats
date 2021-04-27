@@ -251,7 +251,7 @@ class Hyperboloid(EmbeddedManifold):
         tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
         return tangent_vec
 
-    def is_tangent(self, vector, base_point=None, atol=gs.atol):
+    def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters
@@ -260,7 +260,6 @@ class Hyperboloid(EmbeddedManifold):
             Vector.
         base_point : array-like, shape=[..., dim + 1]
             Point on the manifold.
-            Optional, default: none.
         atol : float
             Absolute tolerance.
             Optional, default: backend atol.
