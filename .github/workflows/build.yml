@@ -49,8 +49,7 @@ jobs:
           pip install -e .      
 
       - name: linting [flake8]
-        if: ${{matrix.test-folder == 'tests.tests_geomstats'}}
-        if: ${{matrix.python-version == 3.8 && matrix.geomstats-backend == 'tensorflow'}}
+        if: ${{matrix.test-folder == 'tests.tests_geomstats' && matrix.python-version == 3.8 && matrix.geomstats-backend == 'tensorflow'}}
         run: |
           flake8 --ignore=D,W503,W504 geomstats examples tests
           flake8 geomstats/geometry geomstats/learning 
