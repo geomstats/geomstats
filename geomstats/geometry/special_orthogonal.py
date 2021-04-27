@@ -145,7 +145,6 @@ class _SpecialOrthogonalMatrices(LieGroup):
         point : array-like, shape=[..., n, n]
             Left multiplication of `exp(algebra_mat)` with `base_point`.
         """
-
         return GeneralLinear.exp(tangent_vec=tangent_vec,
                                  base_point=base_point)
 
