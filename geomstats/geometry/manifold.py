@@ -196,7 +196,8 @@ class AbstractManifoldFactory(ABC):
 
         for length in range(nb_args, 0, -1):
             logging.debug(f" test with key length {length}")
-            for key in itertools.combinations(sorted(args_dict.items()), length):
+            for key in itertools.combinations(sorted(args_dict.items()),
+                                              length):
                 if key in cls.manifolds_creators:
                     logging.debug(f"found key {key}  from args {args_dict}")
 
