@@ -705,10 +705,10 @@ class KendallSphere:
         exp = g32.exp(tangent_vec, base_point)
         bp = self.convert_to_spherical_coordinates(base_point)
         exp = self.convert_to_spherical_coordinates(exp)
-        v = exp - \
+        tv = exp - \
             gs.dot(exp, bp / gs.linalg.norm(bp)) * bp / gs.linalg.norm(bp)
-        v = v / gs.linalg.norm(v) * norm
-        self.ax.quiver(bp[0], bp[1], bp[2], v[0], v[1], v[2], **kwargs)
+        tv = tv / gs.linalg.norm(tv) * norm
+        self.ax.quiver(bp[0], bp[1], bp[2], tv[0], tv[1], tv[2], **kwargs)
 
 
 def convert_to_trihedron(point, space=None):
