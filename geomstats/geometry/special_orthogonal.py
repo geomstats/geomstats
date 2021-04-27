@@ -94,14 +94,58 @@ class _SpecialOrthogonalMatrices(LieGroup):
 
     @classmethod
     def log(cls, point, base_point=None):
+        """Compute the group logarithm.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 3]
+            Point.
+        base_point : array-like, shape=[..., 1]
+            Point from which the log is computed.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 1]
+            Group logarithm.
+        """
         return GeneralLinear.log(point, base_point)
 
     @classmethod
     def compose(cls, *args):
+        """Return the product of a collection of matrices."""
         return GeneralLinear.compose(*args)
 
     @classmethod
     def exp(cls, tangent_vec, base_point=None):
+        r"""
+        Exponentiate a left-invariant vector field from a base point.
+
+        The vector input is not an element of the Lie algebra, but of the
+        tangent space at base_point: if :math:`g` denotes `base_point`,
+        :math:`v` the tangent vector, and :math:'V = g^{-1} v' the associated
+        Lie algebra vector, then
+
+        .. math::
+
+            \exp(v, g) = mul(g, \exp(V))
+
+        Therefore, the Lie exponential is obtained when base_point is None, or
+        the identity.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+            Optional, defaults to identity if None.
+
+        Returns
+        -------
+        point : array-like, shape=[..., n, n]
+            Left multiplication of `exp(algebra_mat)` with `base_point`.
+        """
+
         return GeneralLinear.exp(tangent_vec=tangent_vec,
                                  base_point=base_point)
 
@@ -141,7 +185,7 @@ class _SpecialOrthogonalMatrices(LieGroup):
         det = gs.linalg.det(rotation_mat)
         return utils.flip_determinant(rotation_mat, det)
 
-    def random_uniform(self, n_samples=1, tol=1e-6):
+    def random_uniform(self, n_samples=1):
         """Sample in SO(n) from the uniform distribution.
 
         Parameters
@@ -149,7 +193,6 @@ class _SpecialOrthogonalMatrices(LieGroup):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        tol : unused
 
         Returns
         -------

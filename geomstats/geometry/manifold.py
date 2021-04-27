@@ -224,7 +224,8 @@ class AbstractManifoldFactory(ABC):
 
                     return cls.manifolds_creators[key](metrics=metrics, **rest_of_args) # NOQA
 
-        raise Exception(f'''no manifold with key containing {sorted(args_dict.items())} .'''\
+        raise Exception(f'''no manifold with key containing '''
+                        f'''{sorted(args_dict.items())} .'''
                         f'''keys ars {cls.manifolds_creators.keys()}''')
 
     @classmethod
@@ -235,13 +236,13 @@ class AbstractManifoldFactory(ABC):
         -------
             Callable: [description]
         """
-        def wrapper(manifold_class: Manifold):
+        def wrapper(manifold_class: Manifold): # NOQA
             args_dict = kwargs
             key = tuple(sorted(args_dict.items()))
 
             if key in cls.manifolds_creators:
-                logging.info(f'''for manifold {cls} this combination'''\
-                             f''' of args alreay exist: {key} .'''\
+                logging.info(f'''for manifold {cls} this combination'''
+                             f''' of args alreay exist: {key} .'''
                              '''I will replace it''')
 
             cls.manifolds_creators[key] = manifold_class
@@ -261,17 +262,17 @@ class AbstractManifoldFactory(ABC):
         -------
             Callable: a metric creator
         """
-        def inner_wrapper(wrapped_class: Connection) -> Callable:
+        def inner_wrapper(wrapped_class: Connection) -> Callable: # NOQA
             inner_name = name
             if inner_name is None:
-                logging.debug('''register new metric without '''\
-                              '''name, will use class name'''\
+                logging.debug('''register new metric without '''
+                              '''name, will use class name'''
                               f''' {wrapped_class.__name__}''')
                 inner_name = wrapped_class.__name__
 
             if inner_name in cls.metrics_creators:
-                logging.info('''Metric creator with key'''\
-                             f'''{inner_name} already exists.'''\
+                logging.info('''Metric creator with key'''
+                             f'''{inner_name} already exists.'''
                              ''' I Will replace it''')
             cls.metrics_creators[inner_name] = wrapped_class
             return wrapped_class
@@ -303,7 +304,7 @@ class AbstractManifoldFactory(ABC):
         res = []
         for m in metrics_name:
             if m not in cls.metrics_creators:
-                logging.warning(f'''{m} not in metrics '''\
+                logging.warning(f'''{m} not in metrics '''
                                 f'''keys: {cls.metrics_creators.keys()}''')
                 continue
             metric = cls.metrics_creators[m]()
