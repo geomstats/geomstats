@@ -9,7 +9,7 @@ from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
-from geomstats.geometry.pre_shape import PreShapeSpace
+from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
@@ -24,6 +24,7 @@ H2 = Hyperboloid(dim=2)
 POINCARE_HALF_PLANE = PoincareHalfSpace(dim=2)
 M32 = Matrices(m=3, n=2)
 S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
+g32 = KendallShapeMetric(k_landmarks=3, m_ambient=2)
 
 AX_SCALE = 1.2
 
@@ -701,7 +702,7 @@ class KendallSphere:
     def draw_vector(self, tangent_vec, base_point, **kwargs):
         """Draw one vector in the tangent space to sphere at a base point."""
         norm = S32.ambient_metric.norm(tangent_vec)
-        exp = S32.ambient_metric.exp(tangent_vec, base_point)
+        exp = g32.exp(tangent_vec, base_point)
         bp = self.convert_to_spherical_coordinates(base_point)
         exp = self.convert_to_spherical_coordinates(exp)
         v = exp - \
