@@ -16,6 +16,7 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean
 SE2_GROUP = SpecialEuclidean(n=2, point_type='matrix')
 N_STEPS = 40
 
+
 def main():
     """Plot geodesics on SE(2) with different structures."""
     theta = gs.pi / 6

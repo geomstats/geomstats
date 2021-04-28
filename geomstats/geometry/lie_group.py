@@ -122,7 +122,8 @@ class LieGroup(Manifold):
         -------
         A list of metrics
         """
-        return self._metrics + [self.left_canonical_metric, self.right_canonical_metric]
+        return self._metrics + [self.left_canonical_metric,
+                                self.right_canonical_metric]
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.
