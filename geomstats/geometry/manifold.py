@@ -42,10 +42,9 @@ class Manifold(ABC):
         self.dim = dim
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
-        self.metrics = metrics
-        if self.metrics is not None:
-            for metric in self.metrics:
-                metric.setManifold(self)
+        self._metrics = metrics or []
+        for metric in self._metrics:
+            metric.setManifold(self)
 
     def belongs(self, point, atol=gs.atol):
         """
@@ -142,6 +141,15 @@ class Manifold(ABC):
         regularized_point = point
         return regularized_point
 
+    def getMetrics(self) -> List[Connection]:
+        """Get the list of metrics associated with this manifold.
+
+        Returns
+        -------
+        A list of metrics
+        """
+        return self._metrics
+
     def call_method_on_metrics(self,
                                function_name: str,
                                *args,
@@ -157,7 +165,7 @@ class Manifold(ABC):
             Union[any, Dict[str, any]]: either the result or a dict
               containing metrics names and their associated result
         """
-        metrics = self.metrics
+        metrics = self.getMetrics()
 
         if len(metrics) > 1:
             res = {}
@@ -170,7 +178,7 @@ class Manifold(ABC):
             return getattr(metrics[0], function_name)(*args, **kwargs)
 
         logging.warning(f"no metric to call function {function_name}")
-        return 0
+        return None
 
 
 class AbstractManifoldFactory(ABC):

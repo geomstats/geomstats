@@ -115,7 +115,14 @@ class LieGroup(Manifold):
             metric_mat_at_identity=gs.eye(self.dim),
             left_or_right='right')
 
-        self.metrics = []
+    def getMetrics(self):
+        """Get the list of metrics associated with this manifold.
+
+        Returns
+        -------
+        A list of metrics
+        """
+        return self._metrics + [self.left_canonical_metric, self.right_canonical_metric]
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.
