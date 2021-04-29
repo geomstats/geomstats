@@ -33,7 +33,7 @@ AX_SCALE = 1.2
 
 IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'SE2_GROUP', 'S1', 'S2',
                'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk',
-               'poincare_polydisk', 'S32', 'M32']
+               'poincare_polydisk', 'S32', 'M32', 'S33', 'M33']
 
 
 def tutorial_matplotlib():
@@ -977,6 +977,7 @@ def plot(points, ax=None, space=None,
       half plane and the Klein disk)
     - the Poincare polydisk
     - the Kendall shape space of 2D triangles
+    - the Kendall shape space of 3D triangles
 
     Parameters
     ----------
@@ -984,7 +985,7 @@ def plot(points, ax=None, space=None,
         Points to be plotted.
     space: str, optional, {'SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
         'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk',
-        'poincare_polydisk', 'S32', 'M32'}
+        'poincare_polydisk', 'S32', 'M32', 'S33', 'M33'}
     point_type: str, optional, {'extrinsic', 'ball', 'half-space', 'pre-shape'}
     """
     if space not in IMPLEMENTED:
@@ -1091,5 +1092,19 @@ def plot(points, ax=None, space=None,
         sphere.draw()
         sphere.draw_points()
         ax = sphere.ax
+
+    elif space == 'S33':
+        disk = KendallDisk()
+        disk.add_points(points)
+        disk.draw()
+        disk.draw_points()
+        ax = disk.ax
+
+    elif space == 'M33':
+        disk = KendallDisk(point_type='extrinsic')
+        disk.add_points(points)
+        disk.draw()
+        disk.draw_points()
+        ax = disk.ax
 
     return ax
