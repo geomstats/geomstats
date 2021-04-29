@@ -1,19 +1,15 @@
 """Unit tests for manifolds Factories."""
 
-import sys
-
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.manifold import AbstractManifoldFactory, Manifold
 from geomstats.geometry.connection import Connection
+from geomstats.geometry.manifold import AbstractManifoldFactory, Manifold
 gs.random.seed(2020)
 
 
-# first let's create the factory
 class TataManifoldFactory(AbstractManifoldFactory):
     """Factory for Tata Manifolds."""
-
-    metrics_creators = {} # These are class variables
+    metrics_creators = {}
     manifolds_creators = {}
 
 
@@ -70,23 +66,34 @@ class TestManifold(geomstats.tests.TestCase):
             TataManifoldFactory.create(dim=2, color='grey')
 
     def test_create_with_metrics(self):
-        manifold_with_one_metric = TataManifoldFactory.create(dim=2, color='yellow', metrics_names='TheName')
-        manifold_with_metrics = TataManifoldFactory.create(dim=2, color='yellow', metrics_names=['TheName', 'SecondTataMetric'])
+        m_one_metric = TataManifoldFactory.create(dim=2,
+                                                  color='yellow',
+                                                  metrics_names='TheName')
+        m_metrics = TataManifoldFactory.create(dim=2,
+                                               color='yellow',
+                                               metrics_names=['TheName',
+                                                              'SecondTataMetric']) # NOQA
 
-        assert(len(manifold_with_one_metric.getMetrics()) == 1)
-        assert(manifold_with_one_metric.getMetrics()[0].__class__ == FirstTataMetric)
+        assert(len(m_one_metric.getMetrics()) == 1)
+        assert(m_one_metric.getMetrics()[0].__class__ == FirstTataMetric)
 
-        assert(len(manifold_with_metrics.getMetrics()) == 2)
-        assert(manifold_with_metrics.getMetrics()[0].__class__ == FirstTataMetric)
-        assert(manifold_with_metrics.getMetrics()[1].__class__ == SecondTataMetric)
+        assert(len(m_metrics.getMetrics()) == 2)
+        assert(m_metrics.getMetrics()[0].__class__ == FirstTataMetric)
+        assert(m_metrics.getMetrics()[1].__class__ == SecondTataMetric)
 
-        assert(manifold_with_metrics.getMetrics()[0].manifold == manifold_with_metrics)
+        assert(m_metrics.getMetrics()[0].manifold == m_metrics)
 
     def test_with_bad_metric(self):
-        manifold_with_bad_metric = TataManifoldFactory.create(dim=2, color='yellow', metrics_names='BadName')
+        m_bad_metric = TataManifoldFactory.create(dim=2,
+                                                  color='yellow',
+                                                  metrics_names='BadName')
         self.assertIsNotNone(manifold_with_bad_metric)
 
     def test_call_method_on_metric(self):
-        manifold_with_metrics = TataManifoldFactory.create(dim=2, color='yellow', metrics_names=['TheName', 'SecondTataMetric'])
-        res = manifold_with_metrics.call_method_on_metrics('dummy_method', 4, my_kwarg='YES')
-        self.assertDictEqual(res, {'TheName': 1, 'SecondTataMetric' : '4 , YES'})
+        m = TataManifoldFactory.create(dim=2,
+                                       color='yellow',
+                                       metrics_names=['TheName',
+                                                      'SecondTataMetric'])
+        res = m.call_method_on_metrics('dummy_method', 4, my_kwarg='YES')
+        self.assertDictEqual(res,
+                             {'TheName': 1, 'SecondTataMetric': '4 , YES'})
