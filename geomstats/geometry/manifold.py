@@ -170,7 +170,7 @@ class Manifold(ABC):
         if len(metrics) > 1:
             res = {}
             for metric in metrics:
-                res[metric.name()] = getattr(metric,
+                res[metric.name] = getattr(metric,
                                              function_name)(*args, **kwargs)
             return res
 
@@ -312,6 +312,7 @@ class AbstractManifoldFactory(ABC):
                                 f'''keys: {cls.metrics_creators.keys()}''')
                 continue
             metric = cls.metrics_creators[m]()
+            metric.name=m
             res.append(metric)
 
         return res
