@@ -87,7 +87,7 @@ class TestManifold(geomstats.tests.TestCase):
         m_bad_metric = TataManifoldFactory.create(dim=2,
                                                   color='yellow',
                                                   metrics_names='BadName')
-        self.assertIsNotNone(manifold_with_bad_metric)
+        self.assertIsNotNone(m_bad_metric)
 
     def test_call_method_on_metric(self):
         m = TataManifoldFactory.create(dim=2,
