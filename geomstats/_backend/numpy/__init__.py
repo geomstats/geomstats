@@ -186,7 +186,7 @@ def convert_to_wider_dtype(tensor_list):
 
     wider_dtype = list(DTYPES.keys())[wider_dtype_index]
 
-    tensor_list = [cast(x, new_type=wider_dtype) for x in tensor_list]
+    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
     return tensor_list
 
 
@@ -368,8 +368,8 @@ def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     return np.vectorize(pyfunc, signature=signature)(x)
 
 
-def cast(x, new_type):
-    return x.astype(new_type)
+def cast(x, dtype):
+    return x.astype(dtype)
 
 
 def set_diag(x, new_diag):
