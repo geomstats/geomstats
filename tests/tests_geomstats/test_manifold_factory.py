@@ -9,6 +9,7 @@ gs.random.seed(2020)
 
 class TataManifoldFactory(AbstractManifoldFactory):
     """Factory for Tata Manifolds."""
+
     metrics_creators = {}
     manifolds_creators = {}
 
@@ -46,7 +47,7 @@ class SecondTataMetric(Connection):
         super().__init__(dim=2)
 
     def dummy_method(self, my_arg, my_kwarg=None):
-        return f"{my_arg} , {my_kwarg}"
+        return f"{my_arg} , {my_kwarg} {self.dim}"
 
 
 class TestManifold(geomstats.tests.TestCase):
@@ -56,10 +57,10 @@ class TestManifold(geomstats.tests.TestCase):
         manifold_b = TataManifoldFactory.create(dim=2, color='blue')
         manifold_y = TataManifoldFactory.create(dim=2, color='yellow')
 
-        assert(manifold_mat_b.__class__ == MatrixBlueTataManifold)
-        assert(manifold_mat_b2.__class__ == MatrixBlueTataManifold)
-        assert(manifold_b.__class__ == BlueTataManifold)
-        assert(manifold_y.__class__ == YellowTataManifold)
+        self.assertTrue(manifold_mat_b.__class__ == MatrixBlueTataManifold)
+        self.assertTrue(manifold_mat_b2.__class__ == MatrixBlueTataManifold)
+        self.assertTrue(manifold_b.__class__ == BlueTataManifold)
+        self.assertTrue(manifold_y.__class__ == YellowTataManifold)
 
     def test_bad_creation(self):
         with self.assertRaises(Exception):
@@ -74,14 +75,12 @@ class TestManifold(geomstats.tests.TestCase):
                                                metrics_names=['TheName',
                                                               'SecondTataMetric']) # NOQA
 
-        assert(len(m_one_metric.getMetrics()) == 1)
-        assert(m_one_metric.getMetrics()[0].__class__ == FirstTataMetric)
-
-        assert(len(m_metrics.getMetrics()) == 2)
-        assert(m_metrics.getMetrics()[0].__class__ == FirstTataMetric)
-        assert(m_metrics.getMetrics()[1].__class__ == SecondTataMetric)
-
-        assert(m_metrics.getMetrics()[0].manifold == m_metrics)
+        self.assertTrue(len(m_one_metric.getMetrics()) == 1)
+        self.assertTrue(m_one_metric.getMetrics()[0].__class__ == FirstTataMetric)
+        self.assertTrue(len(m_metrics.getMetrics()) == 2)
+        self.assertTrue(m_metrics.getMetrics()[0].__class__ == FirstTataMetric)
+        self.assertTrue(m_metrics.getMetrics()[1].__class__ == SecondTataMetric)
+        self.assertTrue(m_metrics.getMetrics()[0].manifold == m_metrics)
 
     def test_with_bad_metric(self):
         m_bad_metric = TataManifoldFactory.create(dim=2,
@@ -96,4 +95,5 @@ class TestManifold(geomstats.tests.TestCase):
                                                       'SecondTataMetric'])
         res = m.call_method_on_metrics('dummy_method', 4, my_kwarg='YES')
         self.assertDictEqual(res,
-                             {'TheName': 1, 'SecondTataMetric': '4 , YES'})
+                             {'TheName': 1,
+                              'SecondTataMetric': '4 , YES 2'})
