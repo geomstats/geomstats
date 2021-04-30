@@ -52,14 +52,14 @@ class TestVisualization(geomstats.tests.TestCase):
     def test_draw_pre_shape_2d(self):
         self.KS.draw()
 
-    def test_plot_points_pre_shape_2d(self):
+    def test_draw_points_pre_shape_2d(self):
         points = self.S32.random_point(self.n_samples)
         visualization.plot(points, space='S32')
         points = self.M32.random_point(self.n_samples)
         visualization.plot(points, space='M32')
         self.KS.clear_points()
 
-    def test_plot_curve_pre_shape_2d(self):
+    def test_draw_curve_pre_shape_2d(self):
         self.KS.draw()
         base_point = self.S32.random_point()
         vec = self.S32.random_point()
@@ -71,14 +71,14 @@ class TestVisualization(geomstats.tests.TestCase):
         self.KS.draw_curve()
         self.KS.clear_points()
 
-    def test_plot_vector_pre_shape_2d(self):
+    def test_draw_vector_pre_shape_2d(self):
         self.KS.draw()
         base_point = self.S32.random_point()
         vec = self.S32.random_point()
         tangent_vec = self.S32.to_tangent(vec, base_point)
         self.KS.draw_vector(tangent_vec, base_point)
 
-    def test_coordinates_pre_shape_2d(self):
+    def test_convert_to_spherical_coordinates_pre_shape_2d(self):
         points = self.S32.random_point(self.n_samples)
         coords = self.KS.convert_to_spherical_coordinates(points)
         x = coords[:, 0]
@@ -99,14 +99,14 @@ class TestVisualization(geomstats.tests.TestCase):
     def test_draw_pre_shape_3d(self):
         self.KD.draw()
 
-    def test_plot_points_pre_shape_3d(self):
+    def test_draw_points_pre_shape_3d(self):
         points = self.S33.random_point(self.n_samples)
         visualization.plot(points, space='S33')
         points = self.M33.random_point(self.n_samples)
         visualization.plot(points, space='M33')
         self.KD.clear_points()
 
-    def test_plot_curve_pre_shape_3d(self):
+    def test_draw_curve_pre_shape_3d(self):
         self.KD.draw()
         base_point = self.S33.random_point()
         vec = self.S33.random_point()
@@ -120,14 +120,14 @@ class TestVisualization(geomstats.tests.TestCase):
         self.KD.draw_curve()
         self.KD.clear_points()
 
-    def test_plot_vector_pre_shape_3d(self):
+    def test_draw_vector_pre_shape_3d(self):
         self.KS.draw()
         base_point = self.S32.random_point()
         vec = self.S32.random_point()
         tangent_vec = self.S32.to_tangent(vec, base_point)
         self.KS.draw_vector(tangent_vec, base_point)
 
-    def test_coordinates_pre_shape_3d(self):
+    def test_convert_to_planar_coordinates_pre_shape_3d(self):
         points = self.S33.random_point(self.n_samples)
         coords = self.KD.convert_to_planar_coordinates(points)
         x = coords[:, 0]

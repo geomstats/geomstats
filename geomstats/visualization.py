@@ -24,10 +24,10 @@ H2 = Hyperboloid(dim=2)
 POINCARE_HALF_PLANE = PoincareHalfSpace(dim=2)
 M32 = Matrices(m=3, n=2)
 S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
-g32 = KendallShapeMetric(k_landmarks=3, m_ambient=2)
+METRIC_S32 = KendallShapeMetric(k_landmarks=3, m_ambient=2)
 M33 = Matrices(m=3, n=3)
 S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
-g33 = KendallShapeMetric(k_landmarks=3, m_ambient=3)
+METRIC_S33 = KendallShapeMetric(k_landmarks=3, m_ambient=3)
 
 AX_SCALE = 1.2
 
@@ -614,7 +614,10 @@ class KendallSphere:
             raise ValueError('Points do not belong to the pre-shape space.')
         points = self.convert_to_spherical_coordinates(points)
         if not isinstance(points, list):
-            points = list(points)
+            if points.shape == (3,):
+                points = [gs.array(points)]
+            else:
+                points = list(points)
         self.points.extend(points)
 
     def clear_points(self):
@@ -704,11 +707,11 @@ class KendallSphere:
 
     def draw_vector(self, tangent_vec, base_point, **kwargs):
         """Draw one vector in the tangent space to sphere at a base point."""
-        norm = S32.ambient_metric.norm(tangent_vec)
-        exp = g32.exp(tangent_vec, base_point)
+        norm = METRIC_S32.norm(tangent_vec, base_point)
+        exp = METRIC_S32.exp(tangent_vec, base_point)
         bp = self.convert_to_spherical_coordinates(base_point)
         exp = self.convert_to_spherical_coordinates(exp)
-        tv = exp - gs.dot(exp, bp) * bp
+        tv = exp - gs.dot(exp, 2. * bp) * 2. * bp
         tv = tv / gs.linalg.norm(tv) * norm
         self.ax.quiver(bp[0], bp[1], bp[2], tv[0], tv[1], tv[2], **kwargs)
 
@@ -827,7 +830,10 @@ class KendallDisk:
             raise ValueError('Points do not belong to the pre-shape space.')
         points = self.convert_to_planar_coordinates(points)
         if not isinstance(points, list):
-            points = list(points)
+            if points.shape == (2,):
+                points = [gs.array(points)]
+            else:
+                points = list(points)
         self.points.extend(points)
 
     def clear_points(self):
@@ -900,7 +906,7 @@ class KendallDisk:
                        gs.sin(th_bp) * gs.sin(2 * r_bp),
                        gs.cos(2 * r_bp)])
         r_exp, th_exp = self.convert_to_polar_coordinates(
-            g33.exp(tangent_vec, base_point))
+            METRIC_S33.exp(tangent_vec, base_point))
         exp = gs.array([gs.cos(th_exp) * gs.sin(2 * r_exp),
                         gs.sin(th_exp) * gs.sin(2 * r_exp),
                         gs.cos(2 * r_exp)])
@@ -916,7 +922,7 @@ class KendallDisk:
         bp = self.convert_to_planar_coordinates(base_point)
         u_r = bp / gs.linalg.norm(bp)
         u_th = gs.array([[0., -1.], [1., 0.]]) @ u_r
-        tv = g33.norm(tangent_vec, base_point) * (x_r * u_r + x_th * u_th)
+        tv = METRIC_S33.norm(tangent_vec, base_point) * (x_r * u_r + x_th * u_th)
 
         self.ax.quiver(bp[0], bp[1], tv[0], tv[1], **kwargs)
 
