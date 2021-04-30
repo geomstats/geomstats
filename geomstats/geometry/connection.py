@@ -37,7 +37,7 @@ class Connection:
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
         self.manifold = None
-        self.name = __class__
+        self.name = __class__ # skipcq: PYL-E0602
 
     def setManifold(self, manifold):
         """Set the manifold associated to this metric.

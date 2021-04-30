@@ -15,43 +15,46 @@ class TataManifoldFactory(AbstractManifoldFactory):
 
 
 @TataManifoldFactory.register(color='blue')
-class BlueTataManifold(Manifold):
-    def belongs(self, point, atol=gs.atol):
+class BlueTataManifold(Manifold): # skipcq: PYL-D0002
+    def belongs(self, point, atol=gs.atol): # skipcq: PY-D0003
         return True
 
 
 @TataManifoldFactory.register(color='yellow')
-class YellowTataManifold(Manifold):
-    def belongs(self, point, atol=gs.atol):
+class YellowTataManifold(Manifold): # skipcq: PYL-D0002
+    def belongs(self, point, atol=gs.atol): # skipcq: PY-D0003
         return True
 
 
 @TataManifoldFactory.register(dim=3, color='blue')
-class MatrixBlueTataManifold(Manifold):
-    def belongs(self, point, atol=gs.atol):
+class MatrixBlueTataManifold(Manifold): # skipcq: PYL-D0002
+    def belongs(self, point, atol=gs.atol): # skipcq: PY-D0003
         return True
 
 
 @TataManifoldFactory.registerMetric(name='TheName')
-class FirstTataMetric(Connection):
+class FirstTataMetric(Connection): # skipcq: PYL-D0002
     def __init__(self):
         super().__init__(dim=2)
 
+    # skipcq: PYL-W0613, PYL-R0201, PYL-D0002
     def dummy_method(self, my_arg, my_kwarg=None):
         return 1
 
 
 @TataManifoldFactory.registerMetric()
-class SecondTataMetric(Connection):
+class SecondTataMetric(Connection): # skipcq: PYL-D0002
     def __init__(self):
         super().__init__(dim=2)
 
+    # skipcq: PY-D0003
     def dummy_method(self, my_arg, my_kwarg=None):
         return f"{my_arg} , {my_kwarg} {self.dim}"
 
 
-class TestManifold(geomstats.tests.TestCase):
+class TestManifold(geomstats.tests.TestCase): # skipcq: PYL-D0002
     def test_creation(self):
+        """Test creation of manifold with the factory."""
         manifold_mat_b = TataManifoldFactory.create(color='blue', dim=3)
         manifold_mat_b2 = TataManifoldFactory.create(dim=3, color='blue')
         manifold_b = TataManifoldFactory.create(dim=2, color='blue')
@@ -63,10 +66,12 @@ class TestManifold(geomstats.tests.TestCase):
         self.assertTrue(manifold_y.__class__ == YellowTataManifold)
 
     def test_bad_creation(self):
+        """Test the failure of creation of a manifold."""
         with self.assertRaises(Exception):
             TataManifoldFactory.create(dim=2, color='grey')
 
     def test_create_with_metrics(self):
+        """Test the creation of manifold with metrics."""
         m_one_metric = TataManifoldFactory.create(dim=2,
                                                   color='yellow',
                                                   metrics_names='TheName')
@@ -83,12 +88,14 @@ class TestManifold(geomstats.tests.TestCase):
         self.assertTrue(m_metrics.getMetrics()[0].manifold == m_metrics)
 
     def test_with_bad_metric(self):
+        """Test the creation of manifold with non existant metric."""
         m_bad_metric = TataManifoldFactory.create(dim=2,
                                                   color='yellow',
                                                   metrics_names='BadName')
         self.assertIsNotNone(m_bad_metric)
 
     def test_call_method_on_metric(self):
+        """Test calling a method on the metrics of a manifold."""
         m = TataManifoldFactory.create(dim=2,
                                        color='yellow',
                                        metrics_names=['TheName',
