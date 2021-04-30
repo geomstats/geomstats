@@ -1,18 +1,39 @@
 import numpy as np
 import torch
 
-
-def custom_grad(grad_func):
-    """[Decorator to define a custom gradient to a function]
-
+def custom_grad(*args):
+    """[Decorator to define a custom gradient to a function (or multiple custom-gradient functions)]
     Args:
-        grad_func ([callable]): The custom gradient function
+        *args : ([callables]): Custom gradient functions
     """
-    def wrapper(func):
-        # use pytorch.autograd.Function
-        pass 
+
+    def decorator(function):
+        
+        class function_with_grad(torch.autograd.Function):
+            @staticmethod
+            def forward(ctx, *args):
+                ctx.save_for_backward(*args)
+                return function(*args)
+
+            @staticmethod
+            def backward(ctx, grad_output):
+
+                inputs = ctx.saved_tensors
+
+                grads = tuple()
+
+                for custom_grad in args:
+                    grads = (*grads, custom_grad(*inputs)*grad_output.clone())                    
+
+                return grads
+
+        def wrapper(*args):
+                out = function_with_grad.apply(*args) 
+                return out
+            
+        return wrapper
     
-    return wrapper
+    return decorator
 
 
 def value_and_grad(objective):
