@@ -922,7 +922,8 @@ class KendallDisk:
         bp = self.convert_to_planar_coordinates(base_point)
         u_r = bp / gs.linalg.norm(bp)
         u_th = gs.array([[0., -1.], [1., 0.]]) @ u_r
-        tv = METRIC_S33.norm(tangent_vec, base_point) * (x_r * u_r + x_th * u_th)
+        tv = METRIC_S33.norm(tangent_vec, base_point) * (x_r * u_r + x_th *
+                                                         u_th)
 
         self.ax.quiver(bp[0], bp[1], tv[0], tv[1], **kwargs)
 
