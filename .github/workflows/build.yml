@@ -29,6 +29,7 @@ jobs:
         os: [ubuntu-18.04]
         python-version: [3.6,3.7,3.8]
         geomstats-backend : ['numpy','pytorch','tensorflow']
+        test-folder : ['tests.tests_geomstats' , 'tests.test_notebooks']
       fail-fast: false  
 
     steps:
@@ -48,6 +49,7 @@ jobs:
           pip install -e .      
 
       - name: linting [flake8]
+        if: ${{matrix.test-folder == 'tests.tests_geomstats' && matrix.python-version == 3.8 && matrix.geomstats-backend == 'tensorflow'}}
         run: |
           flake8 --ignore=D,W503,W504 geomstats examples tests
           flake8 geomstats/geometry geomstats/learning 
@@ -57,9 +59,9 @@ jobs:
         env: 
           GEOMSTATS_BACKEND : ${{matrix.geomstats-backend}} 
         run: |
-          nose2 --with-coverage tests.tests_geomstats
+          nose2 --with-coverage ${{matrix.test-folder}}
           
       - name: uploading code coverage [codecov]
-        if: ${{matrix.python-version == 3.7}}
+        if: ${{matrix.python-version == 3.7 && matrix.test-folder == 'tests.tests_geomstats'}}
         run: |
           bash <(curl -s https://codecov.io/bash) -c -F ${{matrix.geomstats-backend}}

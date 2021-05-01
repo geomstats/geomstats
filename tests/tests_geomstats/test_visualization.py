@@ -31,6 +31,9 @@ class TestVisualization(geomstats.tests.TestCase):
         self.M32 = Matrices(m=3, n=2)
         self.S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
         self.KS = visualization.KendallSphere()
+        self.M33 = Matrices(m=3, n=3)
+        self.S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
+        self.KD = visualization.KendallDisk()
 
         plt.figure()
 
@@ -46,36 +49,36 @@ class TestVisualization(geomstats.tests.TestCase):
         points = self.SE3_GROUP.random_point(self.n_samples)
         visualization.plot(points, space='SE3_GROUP')
 
-    def test_draw_pre_shape(self):
+    def test_draw_pre_shape_2d(self):
         self.KS.draw()
 
-    def test_plot_points_pre_shape(self):
+    def test_draw_points_pre_shape_2d(self):
         points = self.S32.random_point(self.n_samples)
         visualization.plot(points, space='S32')
         points = self.M32.random_point(self.n_samples)
         visualization.plot(points, space='M32')
         self.KS.clear_points()
 
-    def test_plot_curve_pre_shape(self):
+    def test_draw_curve_pre_shape_2d(self):
         self.KS.draw()
         base_point = self.S32.random_point()
         vec = self.S32.random_point()
         tangent_vec = self.S32.to_tangent(vec, base_point)
-        times = gs.linspace(0., .5, 1000)
+        times = gs.linspace(0., 1., 1000)
         speeds = gs.array([-t * tangent_vec for t in times])
         points = self.S32.ambient_metric.exp(speeds, base_point)
         self.KS.add_points(points)
         self.KS.draw_curve()
         self.KS.clear_points()
 
-    def test_plot_vector_pre_shape(self):
+    def test_draw_vector_pre_shape_2d(self):
         self.KS.draw()
         base_point = self.S32.random_point()
         vec = self.S32.random_point()
         tangent_vec = self.S32.to_tangent(vec, base_point)
         self.KS.draw_vector(tangent_vec, base_point)
 
-    def test_coordinates_pre_shape(self):
+    def test_convert_to_spherical_coordinates_pre_shape_2d(self):
         points = self.S32.random_point(self.n_samples)
         coords = self.KS.convert_to_spherical_coordinates(points)
         x = coords[:, 0]
@@ -85,13 +88,53 @@ class TestVisualization(geomstats.tests.TestCase):
         expected = .25 * gs.ones(self.n_samples)
         self.assertAllClose(result, expected)
 
-    def test_rotation_pre_shape(self):
+    def test_rotation_pre_shape_2d(self):
         theta = gs.random.rand(1)[0]
         phi = gs.random.rand(1)[0]
         rot = self.KS.rotation(theta, phi)
         result = _SpecialOrthogonalMatrices(3).belongs(rot)
         expected = True
         self.assertAllClose(result, expected)
+
+    def test_draw_pre_shape_3d(self):
+        self.KD.draw()
+
+    def test_draw_points_pre_shape_3d(self):
+        points = self.S33.random_point(self.n_samples)
+        visualization.plot(points, space='S33')
+        points = self.M33.random_point(self.n_samples)
+        visualization.plot(points, space='M33')
+        self.KD.clear_points()
+
+    def test_draw_curve_pre_shape_3d(self):
+        self.KD.draw()
+        base_point = self.S33.random_point()
+        vec = self.S33.random_point()
+        tangent_vec = self.S33.to_tangent(vec, base_point)
+        tangent_vec = .5 * tangent_vec / self.S33.ambient_metric.norm(
+            tangent_vec)
+        times = gs.linspace(0., 1., 1000)
+        speeds = gs.array([-t * tangent_vec for t in times])
+        points = self.S33.ambient_metric.exp(speeds, base_point)
+        self.KD.add_points(points)
+        self.KD.draw_curve()
+        self.KD.clear_points()
+
+    def test_draw_vector_pre_shape_3d(self):
+        self.KS.draw()
+        base_point = self.S32.random_point()
+        vec = self.S32.random_point()
+        tangent_vec = self.S32.to_tangent(vec, base_point)
+        self.KS.draw_vector(tangent_vec, base_point)
+
+    def test_convert_to_planar_coordinates_pre_shape_3d(self):
+        points = self.S33.random_point(self.n_samples)
+        coords = self.KD.convert_to_planar_coordinates(points)
+        x = coords[:, 0]
+        y = coords[:, 1]
+        radius = x ** 2 + y ** 2
+        result = [r <= 1. for r in radius]
+        self.assertTrue(gs.all(result))
 
     @geomstats.tests.np_and_pytorch_only
     def test_plot_points_s1(self):

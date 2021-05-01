@@ -9,7 +9,7 @@ from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
-from geomstats.geometry.pre_shape import PreShapeSpace
+from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
@@ -24,12 +24,16 @@ H2 = Hyperboloid(dim=2)
 POINCARE_HALF_PLANE = PoincareHalfSpace(dim=2)
 M32 = Matrices(m=3, n=2)
 S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
+METRIC_S32 = KendallShapeMetric(k_landmarks=3, m_ambient=2)
+M33 = Matrices(m=3, n=3)
+S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
+METRIC_S33 = KendallShapeMetric(k_landmarks=3, m_ambient=3)
 
 AX_SCALE = 1.2
 
 IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'SE2_GROUP', 'S1', 'S2',
                'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk',
-               'poincare_polydisk', 'S32', 'M32']
+               'poincare_polydisk', 'S32', 'M32', 'S33', 'M33']
 
 
 def tutorial_matplotlib():
@@ -610,7 +614,10 @@ class KendallSphere:
             raise ValueError('Points do not belong to the pre-shape space.')
         points = self.convert_to_spherical_coordinates(points)
         if not isinstance(points, list):
-            points = list(points)
+            if points.shape == (3,):
+                points = [gs.array(points)]
+            else:
+                points = list(points)
         self.points.extend(points)
 
     def clear_points(self):
@@ -700,14 +707,225 @@ class KendallSphere:
 
     def draw_vector(self, tangent_vec, base_point, **kwargs):
         """Draw one vector in the tangent space to sphere at a base point."""
-        norm = S32.ambient_metric.norm(tangent_vec)
-        exp = S32.ambient_metric.exp(tangent_vec, base_point)
+        norm = METRIC_S32.norm(tangent_vec, base_point)
+        exp = METRIC_S32.exp(tangent_vec, base_point)
         bp = self.convert_to_spherical_coordinates(base_point)
         exp = self.convert_to_spherical_coordinates(exp)
-        v = exp - \
-            gs.dot(exp, bp / gs.linalg.norm(bp)) * bp / gs.linalg.norm(bp)
-        v = v / gs.linalg.norm(v) * norm
-        self.ax.quiver(bp[0], bp[1], bp[2], v[0], v[1], v[2], **kwargs)
+        tv = exp - gs.dot(exp, 2. * bp) * 2. * bp
+        tv = tv / gs.linalg.norm(tv) * norm
+        self.ax.quiver(bp[0], bp[1], bp[2], tv[0], tv[1], tv[2], **kwargs)
+
+
+class KendallDisk:
+    """Class used to plot points in Kendall shape space of 3D triangles.
+
+    The shape space of 2D triangles is isometric to the 2-sphere of radius 1/2
+    [K1984]. This isometry induced another isometry between the shape space of
+    3D triangle and the 1-ball of radius pi/4 [LK1993]. Following the first
+    visualization class "KendallSphere" for 2D triangles, this class encodes
+    the 2D isometric representation of Kendall shape space of order (3,3).
+
+    Attributes
+    ----------
+    points : list
+        List of points to plot on the Kendall sphere.
+    point_type : str
+        Type of the points. Can be either 'pre-shape' (for points in Kendall
+        pre-shape space) or 'extrinsic' (for points given as 3x2 matrices).
+        Optional, default: 'pre-shape'.
+    pole : array-like, shape=[3,2]
+        Equilateral triangle in 2D (north pole).
+    centre : array-like, shape=[3,3]
+        Equilateral triangle in 3D (centre).
+    ua : array-like, shape=[3,2]
+        Tangent vector at north pole toward isocele triangle at vertex A.
+    ub : array-like, shape=[3,2]
+        Tangent vector at north pole toward isocele triangle at vertex B.
+    na : array-like, shape=[3,2]
+        Tangent vector such that (ua,na) is a positively oriented
+        orthonormal basis of the horizontal space at north pole.
+
+    References
+    ----------
+    .. [K1984] David G. Kendall. "Shape Manifolds, Procrustean Metrics, and
+       Complex Projective Spaces." Bulletin of the London Mathematical
+       Society, Volume 16, Issue 2, March 1984, Pages 81–121.
+       https://doi.org/10.1112/blms/16.2.81
+    .. [LK1993] Huiling Le and David G. Kendall. "The Riemannian structure of
+       Euclidean shape spaces: a novel environment for statistics." Annals of
+       statistics, 1993, vol. 21, no 3, p. 1225-1271.
+       https://doi.org/10.1112/blms/16.2.81
+    """
+
+    def __init__(self, points=None, point_type='pre-shape'):
+        self.points = []
+        self.point_type = point_type
+        self.ax = None
+
+        self.pole = gs.array([[1., 0.],
+                              [-.5, gs.sqrt(3.) / 2.],
+                              [-.5, -gs.sqrt(3.) / 2.]]) / gs.sqrt(3.)
+
+        self.centre = gs.array([[1., 0., 0.],
+                                [-.5, gs.sqrt(3.) / 2., 0.],
+                                [-.5, -gs.sqrt(3.) / 2., 0.]]) / gs.sqrt(3.)
+
+        self.ua = gs.array([[-1., 0.],
+                            [.5, gs.sqrt(3.) / 2.],
+                            [.5, -gs.sqrt(3.) / 2.]]) / gs.sqrt(3.)
+
+        self.ub = gs.array([[.5, gs.sqrt(3.) / 2.],
+                            [.5, -gs.sqrt(3.) / 2],
+                            [-1., 0.]]) / gs.sqrt(3.)
+
+        self.na = self.ub - S32.ambient_metric.inner_product(
+            self.ub, self.ua) * self.ua
+        self.na = self.na / S32.ambient_metric.norm(self.na)
+
+        if points is not None:
+            self.add_points(points)
+
+    def set_ax(self, ax=None):
+        """Set axis."""
+        if ax is None:
+            ax = plt.subplot()
+
+        ax_s = gs.pi / 4 + .05
+        plt.setp(ax,
+                 xlim=(-ax_s, ax_s),
+                 ylim=(-ax_s, ax_s),
+                 xlabel='X', ylabel='Y')
+        self.ax = ax
+
+    def convert_to_polar_coordinates(self, points):
+        """Assign polar coordinates to given pre-shapes."""
+        aligned_points = S33.align(points, self.centre)
+        aligned_points2d = aligned_points[..., :, :2]
+        speeds = S32.ambient_metric.log(aligned_points2d, self.pole)
+
+        coords_r = S32.ambient_metric.dist(self.pole, aligned_points2d)
+        coords_theta = gs.arctan2(
+            S32.ambient_metric.inner_product(speeds, self.na),
+            S32.ambient_metric.inner_product(speeds, self.ua))
+
+        return coords_r, coords_theta
+
+    def convert_to_planar_coordinates(self, points):
+        """Convert polar coordinates to spherical one."""
+        coords_r, coords_theta = self.convert_to_polar_coordinates(points)
+        coords_x = coords_r * gs.cos(coords_theta)
+        coords_y = coords_r * gs.sin(coords_theta)
+        planar_coords = gs.transpose(gs.stack((coords_x, coords_y)))
+        return planar_coords
+
+    def add_points(self, points):
+        """Add points to draw on the Kendall sphere."""
+        if self.point_type == 'extrinsic':
+            if not gs.all(M33.belongs(points)):
+                raise ValueError(
+                    'Points do not belong to Matrices(3, 3).')
+            points = S33.projection(points)
+        elif self.point_type == 'pre-shape' \
+                and not gs.all(S33.belongs(points)):
+            raise ValueError('Points do not belong to the pre-shape space.')
+        points = self.convert_to_planar_coordinates(points)
+        if not isinstance(points, list):
+            if points.shape == (2,):
+                points = [gs.array(points)]
+            else:
+                points = list(points)
+        self.points.extend(points)
+
+    def clear_points(self):
+        """Clear the points to draw."""
+        self.points = []
+
+    def draw(self, n_r=7, n_theta=25, scale=.05):
+        """Draw the disk regularly sampled with corresponding triangles."""
+        self.set_ax()
+        self.ax.set_axis_off()
+        plt.tight_layout()
+
+        coords_r = gs.linspace(0., gs.pi / 4., n_r)
+        coords_theta = gs.linspace(0., 2. * gs.pi, n_theta)
+
+        coords_x = gs.to_numpy(gs.outer(coords_r, gs.cos(coords_theta)))
+        coords_y = gs.to_numpy(gs.outer(coords_r, gs.sin(coords_theta)))
+
+        self.ax.fill(list(coords_x[-1, :]), list(coords_y[-1, :]),
+                     color='grey', alpha=.1, zorder=-1)
+        for i_r in range(n_r):
+            self.ax.plot(coords_x[i_r, :], coords_y[i_r, :],
+                         linewidth=.6, color='grey', alpha=.6, zorder=-1)
+        for i_t in range(n_theta):
+            self.ax.plot(coords_x[:, i_t], coords_y[:, i_t],
+                         linewidth=.6, color='grey', alpha=.6, zorder=-1)
+
+        for r in gs.linspace(0., gs.pi / 4, n_r):
+            for theta in gs.linspace(0., 2. * gs.pi, n_theta // 2 + 1):
+                if theta == 0.:
+                    self.draw_triangle(0., 0., scale)
+                else:
+                    self.draw_triangle(r, theta, scale)
+
+    def draw_triangle(self, r, theta, scale):
+        """Draw the corresponding triangle on the disk at r, theta."""
+        u_theta = gs.cos(theta) * self.ua + gs.sin(theta) * self.na
+        triangle = gs.cos(r) * self.pole + gs.sin(r) * u_theta
+        triangle = scale * triangle
+
+        x = list(r * gs.cos(theta) + triangle[:, 0])
+        x = x + [x[0]]
+        y = list(r * gs.sin(theta) + triangle[:, 1])
+        y = y + [y[0]]
+
+        self.ax.plot(x, y, 'grey', zorder=1)
+        c = ['red', 'green', 'blue']
+        for i in range(3):
+            self.ax.scatter(x[i], y[i],
+                            color=c[i], s=10, alpha=1, zorder=1)
+
+    def draw_points(self, alpha=1, zorder=0, **kwargs):
+        """Draw points on the Kendall sphere."""
+        points_x = [gs.to_numpy(point)[0] for point in self.points]
+        points_y = [gs.to_numpy(point)[1] for point in self.points]
+        self.ax.scatter(points_x, points_y,
+                        alpha=alpha, zorder=zorder, **kwargs)
+
+    def draw_curve(self, alpha=1, zorder=0, **kwargs):
+        """Draw a curve on the Kendall sphere."""
+        points_x = [gs.to_numpy(point)[0] for point in self.points]
+        points_y = [gs.to_numpy(point)[1] for point in self.points]
+        self.ax.plot(points_x, points_y,
+                     alpha=alpha, zorder=zorder, **kwargs)
+
+    def draw_vector(self, tangent_vec, base_point, **kwargs):
+        """Draw one vector in the tangent space to sphere at a base point."""
+        r_bp, th_bp = self.convert_to_polar_coordinates(base_point)
+        bp = gs.array([gs.cos(th_bp) * gs.sin(2 * r_bp),
+                       gs.sin(th_bp) * gs.sin(2 * r_bp),
+                       gs.cos(2 * r_bp)])
+        r_exp, th_exp = self.convert_to_polar_coordinates(
+            METRIC_S33.exp(tangent_vec, base_point))
+        exp = gs.array([gs.cos(th_exp) * gs.sin(2 * r_exp),
+                        gs.sin(th_exp) * gs.sin(2 * r_exp),
+                        gs.cos(2 * r_exp)])
+        pole = gs.array([0., 0., 1.])
+
+        tv = exp - gs.dot(exp, bp) * bp
+        u_tv = tv / gs.linalg.norm(tv)
+        u_r = (gs.dot(pole, bp) * bp - pole) / gs.linalg.norm(
+            gs.dot(pole, bp) * bp - pole)
+        u_th = gs.cross(bp, u_r)
+        x_r, x_th = gs.dot(u_tv, u_r), gs.dot(u_tv, u_th)
+
+        bp = self.convert_to_planar_coordinates(base_point)
+        u_r = bp / gs.linalg.norm(bp)
+        u_th = gs.array([[0., -1.], [1., 0.]]) @ u_r
+        tv = METRIC_S33.norm(tangent_vec, base_point) * (x_r * u_r + x_th *
+                                                         u_th)
+
+        self.ax.quiver(bp[0], bp[1], tv[0], tv[1], **kwargs)
 
 
 def convert_to_trihedron(point, space=None):
@@ -766,6 +984,7 @@ def plot(points, ax=None, space=None,
       half plane and the Klein disk)
     - the Poincare polydisk
     - the Kendall shape space of 2D triangles
+    - the Kendall shape space of 3D triangles
 
     Parameters
     ----------
@@ -773,7 +992,7 @@ def plot(points, ax=None, space=None,
         Points to be plotted.
     space: str, optional, {'SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
         'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk',
-        'poincare_polydisk', 'S32', 'M32'}
+        'poincare_polydisk', 'S32', 'M32', 'S33', 'M33'}
     point_type: str, optional, {'extrinsic', 'ball', 'half-space', 'pre-shape'}
     """
     if space not in IMPLEMENTED:
@@ -880,5 +1099,19 @@ def plot(points, ax=None, space=None,
         sphere.draw()
         sphere.draw_points()
         ax = sphere.ax
+
+    elif space == 'S33':
+        disk = KendallDisk()
+        disk.add_points(points)
+        disk.draw()
+        disk.draw_points()
+        ax = disk.ax
+
+    elif space == 'M33':
+        disk = KendallDisk(point_type='extrinsic')
+        disk.add_points(points)
+        disk.draw()
+        disk.draw_points()
+        ax = disk.ax
 
     return ax
