@@ -309,7 +309,7 @@ class RiemannianMetric(Connection):
 
         See Also
         --------
-        https://joblib.readthedocs.io/en/latest/
+        `joblib documentations <https://joblib.readthedocs.io/en/latest/>`_
         """
         n_samples = points.shape[0]
         rows, cols = gs.triu_indices(n_samples)
