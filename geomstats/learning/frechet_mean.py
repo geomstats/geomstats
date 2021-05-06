@@ -411,8 +411,11 @@ class FrechetMean(BaseEstimator):
         self : object
             Returns self.
         """
-        is_linear_metric = isinstance(
-            self.metric, (EuclideanMetric, MatricesMetric, MinkowskiMetric))
+        metric_module = self.metric.__module__
+        is_linear_metric = (
+                'euclidean' in metric_module
+                or 'matrices' in metric_module
+                or 'minkowski' in metric_module)
 
         error.check_parameter_accepted_values(
             self.method, 'method',
