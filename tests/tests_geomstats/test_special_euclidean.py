@@ -9,6 +9,7 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean,\
 
 class TestSpecialEuclidean(geomstats.tests.TestCase):
     def setUp(self):
+        gs.random.seed(12)
         self.n = 2
         self.group = SpecialEuclidean(n=self.n)
         self.n_samples = 4
