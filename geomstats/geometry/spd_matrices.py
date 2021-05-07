@@ -41,7 +41,7 @@ class SPDMatrices(SymmetricMatrices):
             Boolean denoting if mat is an SPD matrix.
         """
         is_symmetric = super(SPDMatrices, self).belongs(mat, atol)
-        eigvalues = gs.linalg.eigh(mat, eigvals_only=True)
+        eigvalues = gs.linalg.eigvalsh(mat)
         is_positive = gs.all(eigvalues > 0, axis=-1)
         belongs = gs.logical_and(is_symmetric, is_positive)
         return belongs
