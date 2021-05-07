@@ -1066,8 +1066,16 @@ class BiInvariantMetric(_InvariantMetricVector):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
+        if base_point is None or self.default_point_type == 'matrix':
+            return self.inner_product_at_identity(
+                tangent_vec_a, tangent_vec_b)
+
+        tangent_translation = self.group.tangent_translation_map(
+            base_point, left_or_right=self.left_or_right, inverse=True)
+        tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
+        tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
         inner_prod = self.inner_product_at_identity(
-            tangent_vec_a, tangent_vec_b)
+            tangent_vec_a_at_id, tangent_vec_b_at_id)
         return inner_prod
 
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
