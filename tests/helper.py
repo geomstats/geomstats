@@ -99,8 +99,8 @@ def test_parallel_transport(space, metric, shape):
         return gs.logical_and(is_tangent, is_equinormal)
 
     base_point = space.random_point(shape[0])
-    tan_vec_a = space.to_tangent(gs.random.rand(*shape), base_point)
-    tan_vec_b = space.to_tangent(gs.random.rand(*shape), base_point)
+    tan_vec_a = space.to_tangent(gs.random.rand(*shape) / 5, base_point)
+    tan_vec_b = space.to_tangent(gs.random.rand(*shape) / 5, base_point)
     end_point = metric.exp(tan_vec_b, base_point)
 
     transported = metric.parallel_transport(
