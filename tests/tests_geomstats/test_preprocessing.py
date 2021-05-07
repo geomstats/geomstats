@@ -92,6 +92,7 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(expected, result, atol=1e-4)
 
+    @geomstats.tests.np_and_tf_only
     def test_inverse_transform_so(self):
         point = self.so_matrix.random_uniform(10)
         transformer = ToTangentSpace(
