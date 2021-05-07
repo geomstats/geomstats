@@ -72,14 +72,14 @@ class Connection:
         raise NotImplementedError(
             'connection is not implemented.')
 
-    def geodesic_equation(self, position, velocity):
+    def geodesic_equation(self, state, _time):
         """Compute the geodesic ODE associated with the connection.
 
         Parameters
         ----------
-        velocity : array-like, shape=[..., dim]
+        state : array-like, shape=[..., dim]
             Tangent vector at the position.
-        position : array-like, shape=[..., dim]
+        _time : array-like, shape=[..., dim]
             Point on the manifold, the position at which to compute the
             geodesic ODE.
 
@@ -88,12 +88,13 @@ class Connection:
         geodesic_ode : array-like, shape=[..., dim]
             Value of the vector field to be integrated at position.
         """
+        position, velocity = state
         gamma = self.christoffels(position)
         equation = gs.einsum(
             '...kij,...i->...kj', gamma, velocity)
         equation = - gs.einsum(
             '...kj,...j->...k', equation, velocity)
-        return velocity, equation
+        return gs.stack([velocity, equation])
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step='euler',
             point_type=None, **kwargs):
@@ -124,11 +125,11 @@ class Connection:
         exp : array-like, shape=[..., dim]
             Point on the manifold.
         """
-        initial_state = (base_point, tangent_vec)
-        flow, _ = integrate(self.geodesic_equation, initial_state,
-                            n_steps=n_steps, step=step)
+        initial_state = gs.stack([base_point, tangent_vec])
+        flow = integrate(
+            self.geodesic_equation, initial_state, n_steps=n_steps, step=step)
 
-        exp = flow[-1]
+        exp = flow[-1][0]
         return exp
 
     def log(self, point, base_point, n_steps=N_STEPS, step='euler',
