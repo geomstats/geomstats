@@ -1099,4 +1099,3 @@ class BiInvariantMetric(_InvariantMetricVector):
         transposed = Matrices.transpose(tangent_vec_a)
         transported_vec = Matrices.mul(midpoint, transposed, midpoint)
         return transported_vec
-
