@@ -350,11 +350,11 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         
         if mat.ndim >3 :
             n = mat.shape[-1]
-            three_dim_mat = gs.reshape(mat, [-1, n, n])
-            logm = cls.apply_func_to_eigvals(three_dim_mat, gs.log, check_positive=True)
+            dim_3_mat = gs.reshape(mat, [-1, n, n])
+            logm = cls.apply_func_to_eigvals(dim_3_mat, gs.log, check_positive=True)
             logm = gs.reshape(logm, mat.shape)
         else:
-            logm cls.apply_func_to_eigvals(mat, gs.log, check_positive=True)    
+            logm = cls.apply_func_to_eigvals(mat, gs.log, check_positive=True)    
         return logm
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):

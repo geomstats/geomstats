@@ -164,8 +164,8 @@ class SymmetricMatrices(EmbeddedManifold):
         """
         if mat.ndim > 3:
             n = mat.shape[-1]
-            three_dim_mat = gs.reshape(mat, [-1, n, n])
-            expm = cls.apply_func_to_eigvals(three_dim_mat, gs.exp)
+            dim_3_mat = gs.reshape(mat, [-1, n, n])
+            expm = cls.apply_func_to_eigvals(dim_3_mat, gs.exp)
             expm = gs.reshape(mat,mat.shape)
         else:
             expm = cls.apply_func_to_eigvals(mat, gs.exp)
