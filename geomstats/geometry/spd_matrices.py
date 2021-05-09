@@ -350,7 +350,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         n = mat.shape[-1]
         three_dim_mat = gs.reshape(mat, [-1, n, n])
         logm = cls.apply_func_to_eigvals(three_dim_mat, gs.log, check_positive=True)
-        return gs.reshape(logm , mat.shape)
+        return gs.reshape(logm, mat.shape)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
