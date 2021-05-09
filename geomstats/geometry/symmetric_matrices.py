@@ -164,7 +164,7 @@ class SymmetricMatrices(EmbeddedManifold):
         """
         n = mat.shape[-1]
         three_dim_mat = mat.reshape(-1, n, n)
-        expm = cls.apply_func_to_eigvals(three_dim_mat, gs.exp
+        expm = cls.apply_func_to_eigvals(three_dim_mat, gs.exp)
         return expm.reshape(mat.shape)
 
     @classmethod
