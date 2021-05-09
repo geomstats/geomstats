@@ -347,10 +347,15 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         log : array_like, shape=[..., n, n]
             Matrix logarithm of mat.
         """
-        n = mat.shape[-1]
-        three_dim_mat = gs.reshape(mat, [-1, n, n])
-        logm = cls.apply_func_to_eigvals(three_dim_mat, gs.log, check_positive=True)
-        return gs.reshape(logm, mat.shape)
+        
+        if mat.ndim >3 :
+            n = mat.shape[-1]
+            three_dim_mat = gs.reshape(mat, [-1, n, n])
+            logm = cls.apply_func_to_eigvals(three_dim_mat, gs.log, check_positive=True)
+            logm = gs.reshape(logm, mat.shape)
+        else:
+            logm cls.apply_func_to_eigvals(mat, gs.log, check_positive=True)    
+        return logm
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
