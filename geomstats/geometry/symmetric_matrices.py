@@ -162,7 +162,9 @@ class SymmetricMatrices(EmbeddedManifold):
         exponential : array_like, shape=[..., n, n]
             Exponential of mat.
         """
-        return cls.apply_func_to_eigvals(mat, gs.exp)
+        n = mat.shape[-1]
+        three_dim_mat = mat.reshape(-1,n,n)
+        return (cls.apply_func_to_eigvals(three_dim_mat, gs.exp)).reshape(mat.shape)
 
     @classmethod
     def powerm(cls, mat, power):
