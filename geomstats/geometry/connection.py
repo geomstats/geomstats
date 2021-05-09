@@ -9,7 +9,6 @@ from geomstats.integrator import integrate
 
 
 N_STEPS = 10
-EPSILON = 1e-3
 
 
 class Connection:
@@ -133,7 +132,7 @@ class Connection:
         return exp
 
     def log(self, point, base_point, n_steps=N_STEPS, step='euler',
-            max_iter=25, verbose=False, tol=1e-6):
+            max_iter=25, verbose=False, tol=gs.atol):
         """Compute logarithm map associated to the affine connection.
 
         Solve the boundary value problem associated to the geodesic equation
@@ -333,10 +332,10 @@ class Connection:
 
         Approximate Parallel transport using either the pole ladder or the
         Schild's ladder scheme [LP2013b]_. Pole ladder is exact in symmetric
-        spaces [GJSP2019]_ while Schild's ladder is a first order
-        approximation. Both schemes are available any affine connection
-        manifolds whose exponential and logarithm maps are implemented.
-        `tangent_vec_a` is transported along the geodesic starting
+        spaces and of order two in general while Schild's ladder is a first
+        order approximation [GP2020]_. Both schemes are available on any affine
+        connection manifolds whose exponential and logarithm maps are
+        implemented. `tangent_vec_a` is transported along the geodesic starting
         at the base_point with initial tangent vector `tangent_vec_b`.
 
         Parameters
@@ -379,8 +378,8 @@ class Connection:
           Verlag, 2013, 50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
 
         .. [GP2020] Nicolas Guigui, Xavier Pennec. Numerical Accuracy of
-        Ladder Schemes for Parallel Transport on Manifolds. 2020.
-        ⟨hal-02894783⟩
+          Ladder Schemes for Parallel Transport on Manifolds. 2020.
+          ⟨hal-02894783⟩
         """
         geomstats.errors.check_integer(n_rungs, 'n_rungs')
         if alpha < 1:
@@ -432,7 +431,7 @@ class Connection:
         For three tangent vectors at a base point :math: `X,Y,Z`,
         the curvature is defined by
         :math: `R(X, Y)Z = \nabla_{[X,Y]}Z
-        - \nabla_X\nabla_Y Z + - \nabla_Y\nabla_X Z`.
+        - \nabla_X\nabla_Y Z + \nabla_Y\nabla_X Z`.
 
         Parameters
         ----------
@@ -451,6 +450,31 @@ class Connection:
             Tangent vector at `base_point`.
         """
         raise NotImplementedError('The curvature is not implemented.')
+
+    def directional_curvature(
+            self, tangent_vec_a, tangent_vec_b, base_point):
+        """Compute the directional curvature (tidal force operator).
+
+        For two tangent vectors at a base point :math: `X,Y`, the directional
+        curvature, better known in relativity as the tidal force operator,
+        is defined by :math: `R_X(Y) = R(X,Y)X`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., {dim, [n, n]}]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        directional_curvature : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector at `base_point`.
+        """
+        return self.curvature(tangent_vec_a, tangent_vec_b, tangent_vec_a,
+                              base_point)
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None):

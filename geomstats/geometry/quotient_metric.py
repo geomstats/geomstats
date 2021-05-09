@@ -27,9 +27,11 @@ class QuotientMetric(RiemannianMetric):
         metric as an attribute.
     """
 
-    def __init__(self, fiber_bundle: FiberBundle):
+    def __init__(self, fiber_bundle: FiberBundle, dim: int = None):
+        if dim is None:
+            dim = fiber_bundle.dim
         super(QuotientMetric, self).__init__(
-            dim=fiber_bundle.dim,
+            dim=dim,
             default_point_type=fiber_bundle.default_point_type)
 
         self.fiber_bundle = fiber_bundle
@@ -204,4 +206,4 @@ class QuotientMetric(RiemannianMetric):
             horizontal_a, f_bc, point_fiber)
         f_a_f_bc = bundle.tangent_submersion(f_a_f_bc, point_fiber)
 
-        return -(projected_top_curvature + 2 * f_c_f_ab - f_a_f_bc + f_b_f_ac)
+        return projected_top_curvature - 2 * f_c_f_ab + f_a_f_bc - f_b_f_ac

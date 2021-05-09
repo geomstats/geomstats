@@ -10,8 +10,6 @@ import geomstats.errors
 import geomstats.vectorization
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-EPSILON = 1e-5
-
 
 class ProductRiemannianMetric(RiemannianMetric):
     """Class for product of Riemannian metrics.
@@ -33,12 +31,11 @@ class ProductRiemannianMetric(RiemannianMetric):
         dims = [metric.dim for metric in metrics]
         signatures = [metric.signature for metric in metrics]
 
-        sig_0 = sum(sig[0] for sig in signatures)
-        sig_1 = sum(sig[1] for sig in signatures)
-        sig_2 = sum(sig[2] for sig in signatures)
+        sig_pos = sum(sig[0] for sig in signatures)
+        sig_neg = sum(sig[1] for sig in signatures)
         super(ProductRiemannianMetric, self).__init__(
             dim=sum(dims),
-            signature=(sig_0, sig_1, sig_2),
+            signature=(sig_pos, sig_neg),
             default_point_type=default_point_type)
 
         self.metrics = metrics

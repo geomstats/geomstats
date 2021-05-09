@@ -8,9 +8,6 @@ from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import EuclideanMetric
 
 
-TOLERANCE = 1e-5
-
-
 class Matrices:
     """Class for the space of matrices (m, n).
 
@@ -41,11 +38,16 @@ class Matrices:
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the Matrices space.
         """
+        ndim = point.ndim
+        if ndim == 1:
+            return False
         mat_dim_1, mat_dim_2 = point.shape[-2:]
-        return (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
+        belongs = (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
+        return belongs if ndim == 2 else gs.tile(
+            gs.array([belongs]), [point.shape[0]])
 
     @staticmethod
-    def equal(mat_a, mat_b, atol=TOLERANCE):
+    def equal(mat_a, mat_b, atol=gs.atol):
         """Test if matrices a and b are close.
 
         Parameters
@@ -56,7 +58,7 @@ class Matrices:
             Matrix.
         atol : float
             Tolerance.
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -144,7 +146,7 @@ class Matrices:
         return m == n
 
     @classmethod
-    def is_symmetric(cls, mat, atol=TOLERANCE):
+    def is_symmetric(cls, mat, atol=gs.atol):
         """Check if a matrix is symmetric.
 
         Parameters
@@ -153,7 +155,7 @@ class Matrices:
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -167,7 +169,7 @@ class Matrices:
         return cls.equal(mat, cls.transpose(mat), atol)
 
     @classmethod
-    def is_skew_symmetric(cls, mat, atol=TOLERANCE):
+    def is_skew_symmetric(cls, mat, atol=gs.atol):
         """Check if a matrix is skew symmetric.
 
         Parameters
@@ -176,7 +178,7 @@ class Matrices:
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -219,7 +221,7 @@ class Matrices:
         return 1 / 2 * (mat - cls.transpose(mat))
 
     @classmethod
-    def is_diagonal(cls, mat, atol=TOLERANCE):
+    def is_diagonal(cls, mat, atol=gs.atol):
         """Check if a matrix is square and diagonal.
 
         Parameters
@@ -228,7 +230,7 @@ class Matrices:
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -245,7 +247,7 @@ class Matrices:
         return is_diagonal
 
     def random_point(self, n_samples=1, bound=1.):
-        """Sample from a uniform distribution.
+        """Sample from a uniform distribution in a cube.
 
         Parameters
         ----------
@@ -258,7 +260,7 @@ class Matrices:
 
         Returns
         -------
-        point : array-like, shape=[m, n] or [n_samples, m, n]
+        point : array-like, shape=[..., m, n]
             Sample.
         """
         m, n = self.m, self.n
@@ -364,3 +366,23 @@ class MatricesMetric(EuclideanMetric):
             Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+
+    def norm(self, vector, base_point=None):
+        """Compute norm of a matrix.
+
+        Norm of a matrix associated to the Frobenius inner product.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        norm : array-like, shape=[...,]
+            Norm.
+        """
+        return gs.linalg.norm(vector, axis=(-2, -1))

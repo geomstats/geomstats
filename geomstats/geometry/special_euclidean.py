@@ -7,7 +7,7 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.general_linear import GeneralLinear, Matrices
 from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
@@ -26,7 +26,6 @@ PI8 = PI * PI7
 
 
 ATOL = 1e-5
-TOLERANCE = 1e-8
 
 TAYLOR_COEFFS_1_AT_0 = [+ 1. / 2., 0.,
                         - 1. / 24., 0.,
@@ -86,6 +85,21 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
     n : int
         Integer dimension of the underlying Euclidean space. Matrices will
         be of size: (n+1) x (n+1).
+
+    Attributes
+    ----------
+    rotations : SpecialOrthogonal
+        Subgroup of rotations of size n.
+    translations : Euclidean
+        Subgroup of translations of size n.
+    left_canonical_metric : InvariantMetric
+        The left invariant metric that corresponds to the Frobenius inner
+        product at the identity.
+    right_canonical_metric : InvariantMetric
+        The right invariant metric that corresponds to the Frobenius inner
+        product at the identity.
+    metric :  MatricesMetric
+        The Euclidean (Frobenius) inner product.
     """
 
     def __init__(self, n):
@@ -104,39 +118,39 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
         return gs.eye(self.n + 1, self.n + 1)
     identity = property(get_identity)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Check whether point is of the form rotation, translation.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, n].
             Point to be checked.
+        atol :  float
+            Tolerance threshold.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
             Boolean denoting if point belongs to the group.
         """
-        point_dim1, point_dim2 = point.shape[-2:]
-        belongs = (point_dim1 == point_dim2 == self.n + 1)
+        n = self.n
+        belongs = Matrices(n + 1, n + 1).belongs(point)
 
-        rotation = point[..., :self.n, :self.n]
-        rot_belongs = self.rotations.belongs(rotation)
+        if gs.all(belongs):
+            rotation = point[..., :n, :n]
+            belongs = self.rotations.belongs(rotation, atol=atol)
 
-        belongs = gs.logical_and(belongs, rot_belongs)
+            last_line_except_last_term = point[..., n:, :-1]
+            all_but_last_zeros = ~ gs.any(
+                last_line_except_last_term, axis=(-2, -1))
 
-        last_line_except_last_term = point[..., self.n:, :-1]
-        all_but_last_zeros = ~ gs.any(
-            last_line_except_last_term, axis=(-2, -1))
+            belongs = gs.logical_and(belongs, all_but_last_zeros)
 
-        belongs = gs.logical_and(belongs, all_but_last_zeros)
+            last_term = point[..., n, n]
+            belongs = gs.logical_and(
+                belongs, gs.isclose(last_term, 1., atol=atol))
 
-        last_term = point[..., self.n, self.n]
-        belongs = gs.logical_and(belongs, gs.isclose(last_term, 1.))
-
-        if point.ndim == 2:
-            return gs.squeeze(belongs)
-        return gs.flatten(belongs)
+        return belongs
 
     def random_point(self, n_samples=1, bound=1.):
         """Sample in SE(n) from the uniform distribution.
@@ -840,7 +854,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         mask_close_pi_float = gs.cast(mask_close_pi, gs.float32)
         mask_else_float = gs.cast(mask_else, gs.float32)
 
-        mask_0 = gs.isclose(angle, 0., atol=1e-6)
+        mask_0 = gs.isclose(angle, 0., atol=1e-7)
         mask_0_float = gs.cast(mask_0, gs.float32)
         angle += mask_0_float * gs.ones_like(angle)
 
@@ -1091,7 +1105,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
             Square matrix to check.
         atol : float
             Tolerance for the equality evaluation.
-            Optional, default: TOLERANCE.
+            Optional, default: backend atol.
 
         Returns
         -------

@@ -3,7 +3,7 @@
 import logging
 
 import geomstats.backend as gs
-from geomstats.algebra_utils import from_vector_to_diagonal_matrix
+from geomstats.algebra_utils import flip_determinant
 from geomstats.errors import check_tf_error
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.fiber_bundle import FiberBundle
@@ -11,8 +11,6 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-
-TOLERANCE = 1e-6
 
 
 class PreShapeSpace(EmbeddedManifold, FiberBundle):
@@ -54,7 +52,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         self.m_ambient = m_ambient
         self.ambient_metric = PreShapeMetric(k_landmarks, m_ambient)
 
-    def belongs(self, point, atol=TOLERANCE):
+    def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the pre-shape space.
 
         This tests whether the point is centered and whether the point's
@@ -66,7 +64,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Point in Matrices space.
         atol : float
             Tolerance at which to evaluate norm == 1 and mean == 0.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -140,7 +138,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         return self.projection(samples)
 
     @staticmethod
-    def is_centered(point, atol=TOLERANCE):
+    def is_centered(point, atol=gs.atol):
         """Check that landmarks are centered around 0.
 
         Parameters
@@ -149,7 +147,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Point in Matrices space.
         atol :  float
             Tolerance at which to evaluate mean == 0.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -176,7 +174,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         mean = gs.mean(point, axis=-2)
         return point - mean[..., None, :]
 
-    def to_tangent(self, vector, base_point=None):
+    def to_tangent(self, vector, base_point):
         """Project a vector to the tangent space.
 
         Project a vector in the embedding matrix space
@@ -207,7 +205,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         return tangent_vec
 
-    def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
+    def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters
@@ -219,7 +217,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Optional, default: none.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -268,7 +266,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         vertical = - gs.matmul(base_point, skew)
         return (vertical, skew) if return_skew else vertical
 
-    def is_horizontal(self, tangent_vec, base_point, atol=TOLERANCE):
+    def is_horizontal(self, tangent_vec, base_point, atol=gs.atol):
         """Check whether the tangent vector is horizontal at base_point.
 
         Parameters
@@ -280,7 +278,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Optional, default: none.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -322,20 +320,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
                             f'encountered: {conditioning}')
         if gs.any(gs.isclose(conditioning, 0.)):
             logging.warning("Alignment matrix is not unique.")
-        if gs.any(det < 0):
-            ones = gs.ones(self.m_ambient)
-            reflection_vec = gs.concatenate(
-                [ones[:-1], gs.array([-1.])], axis=0)
-            mask = gs.cast(det < 0, gs.float32)
-            sign = (mask[..., None] * reflection_vec
-                    + (1. - mask)[..., None] * ones)
-            j_matrix = from_vector_to_diagonal_matrix(sign)
-            rotation = Matrices.mul(
-                Matrices.transpose(right), j_matrix, Matrices.transpose(left))
-        else:
-            rotation = gs.matmul(
-                Matrices.transpose(right), Matrices.transpose(left))
-        return gs.matmul(point, Matrices.transpose(rotation))
+        flipped = flip_determinant(Matrices.transpose(right), det)
+        return Matrices.mul(point, left, Matrices.transpose(flipped))
 
     def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the fundamental tensor A of the submersion.
@@ -542,5 +528,7 @@ class KendallShapeMetric(QuotientMetric):
     """
 
     def __init__(self, k_landmarks, m_ambient):
+        bundle = PreShapeSpace(k_landmarks, m_ambient)
         super(KendallShapeMetric, self).__init__(
-            fiber_bundle=PreShapeSpace(k_landmarks, m_ambient))
+            fiber_bundle=bundle,
+            dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2))

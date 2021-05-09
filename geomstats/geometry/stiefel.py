@@ -13,7 +13,6 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
-TOLERANCE = 1e-5
 EPSILON = 1e-6
 
 
@@ -46,7 +45,7 @@ class Stiefel(EmbeddedManifold):
         self.p = p
         self.canonical_metric = StiefelCanonicalMetric(n, p)
 
-    def belongs(self, point, tolerance=TOLERANCE):
+    def belongs(self, point, atol=1e-5):
         """Test if a point belongs to St(n,p).
 
         Test whether the point is a p-frame in n-dimensional space,
@@ -56,7 +55,7 @@ class Stiefel(EmbeddedManifold):
         ----------
         point : array-like, shape=[..., n, p]
             Point.
-        tolerance : float, optional
+        atol : float, optional
             Tolerance at which to evaluate.
             Optional, default: 1e-5.
 
@@ -75,7 +74,7 @@ class Stiefel(EmbeddedManifold):
         diff = Matrices.mul(point_transpose, point) - identity
 
         diff_norm = gs.linalg.norm(diff, axis=(-2, -1))
-        belongs = gs.less_equal(diff_norm, tolerance)
+        belongs = gs.less_equal(diff_norm, 1e-5)
         return belongs
 
     @staticmethod
@@ -128,7 +127,7 @@ class Stiefel(EmbeddedManifold):
 
         return samples
 
-    def is_tangent(self, vector, base_point=None, atol=EPSILON):
+    def is_tangent(self, vector, base_point, atol=EPSILON):
         """Check whether the vector is tangent at base_point.
 
         A matrix :math: `X` is tangent to the Stiefel manifold at a point
@@ -140,7 +139,6 @@ class Stiefel(EmbeddedManifold):
             Vector.
         base_point : array-like, shape=[..., n, p]
             Point on the manifold.
-            Optional, default: none.
         atol : float
             Absolute tolerance.
             Optional, default: 1e-6.
@@ -151,9 +149,9 @@ class Stiefel(EmbeddedManifold):
             Boolean denoting if vector is a tangent vector at the base point.
         """
         aux = Matrices.mul(Matrices.transpose(base_point), vector)
-        return Matrices.is_skew_symmetric(aux, atol=atol)
+        return Matrices.is_skew_symmetric(aux, atol=1e-5)
 
-    def to_tangent(self, vector, base_point=None):
+    def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
 
         Inspired by the method of Pymanopt.

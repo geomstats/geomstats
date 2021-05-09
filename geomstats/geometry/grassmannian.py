@@ -35,9 +35,6 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-TOLERANCE = 1e-5
-EPSILON = 1e-6
-
 
 class Grassmannian(EmbeddedManifold):
     """Class for Grassmann manifolds Gr(n, k).
@@ -71,7 +68,7 @@ class Grassmannian(EmbeddedManifold):
         self.k = k
         self.metric = GrassmannianCanonicalMetric(3, 2)
 
-    def belongs(self, point, atol=TOLERANCE):
+    def belongs(self, point, atol=gs.atol):
         """Check if the point belongs to the manifold.
 
         Check if an (n,n)-matrix is an orthogonal projector
@@ -82,7 +79,7 @@ class Grassmannian(EmbeddedManifold):
         point : array-like, shape=[..., n, n]
             Point to be checked.
         atol : int
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -131,7 +128,7 @@ class Grassmannian(EmbeddedManifold):
             Matrices.transpose(points))
         return projector[0] if n_samples == 1 else projector
 
-    def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
+    def is_tangent(self, vector, base_point, atol=gs.atol):
         r"""Check if a vector is tangent to the manifold at the base point.
 
         Check if the (n,n)-matrix :math: `Y` is symmetric and verifies the
@@ -145,7 +142,7 @@ class Grassmannian(EmbeddedManifold):
         base_point : array-like, shape=[..., n, n]
             Base point.
         atol : int
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -158,7 +155,7 @@ class Grassmannian(EmbeddedManifold):
         is_close = gs.all(gs.isclose(diff, 0., atol=atol))
         return gs.logical_and(Matrices.is_symmetric(vector), is_close)
 
-    def to_tangent(self, vector, base_point=None):
+    def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
 
         Compute the bracket (commutator) of the base_point with
@@ -197,13 +194,13 @@ class Grassmannian(EmbeddedManifold):
         return n == p
 
     @staticmethod
-    def _check_idempotent(point, tolerance):
+    def _check_idempotent(point, atol):
         """Check that a point is idempotent.
 
         Parameters
         ----------
         point
-        tolerance
+        atol
 
         Returns
         -------
@@ -212,10 +209,10 @@ class Grassmannian(EmbeddedManifold):
         diff = gs.einsum('...ij,...jk->...ik', point, point) - point
         diff_norm = gs.linalg.norm(diff, axis=(-2, -1))
 
-        return gs.less_equal(diff_norm, tolerance)
+        return gs.less_equal(diff_norm, atol)
 
     @staticmethod
-    def _check_rank(point, rank, tolerance):
+    def _check_rank(point, rank, atol):
         """Check rank of a matrix.
 
         Check that the rank of the point is equal to the
@@ -226,7 +223,7 @@ class Grassmannian(EmbeddedManifold):
         ----------
         point
         rank
-        tolerance
+        atol
 
         Returns
         -------
@@ -234,7 +231,7 @@ class Grassmannian(EmbeddedManifold):
         """
         [_, s, _] = gs.linalg.svd(point)
 
-        return gs.sum(s > tolerance, axis=-1) == rank
+        return gs.sum(s > atol, axis=-1) == rank
 
 
 class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):

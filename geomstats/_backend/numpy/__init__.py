@@ -97,12 +97,17 @@ from scipy.sparse import coo_matrix
 from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA
+from ..constants import np_atol, np_rtol
 
 DTYPES = {
     dtype('int32'): 0,
     dtype('int64'): 1,
     dtype('float32'): 2,
     dtype('float64'): 3}
+
+
+atol = np_atol
+rtol = np_rtol
 
 
 def to_numpy(x):

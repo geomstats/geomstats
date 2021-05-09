@@ -10,9 +10,6 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
-EPSILON = 1e-6
-TOLERANCE = 1e-12
-
 
 class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
     """Class for the manifold of symmetric positive definite (SPD) matrices.
@@ -29,7 +26,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             dim=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinear(n=n))
 
-    def belongs(self, mat, atol=TOLERANCE):
+    def belongs(self, mat, atol=gs.atol):
         """Check if a matrix is symmetric and invertible.
 
         Parameters
@@ -38,7 +35,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             Matrix to be checked.
         atol : float
             Tolerance.
-            Optional, default: TOLERANCE.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -352,7 +349,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         """
         return cls.apply_func_to_eigvals(mat, gs.log, check_positive=True)
 
-    def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         A "vector" is tangent to the manifold of SPD matrices if it is a
@@ -367,7 +364,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             Optional, default: None.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -422,7 +419,7 @@ class SPDMetricAffine(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricAffine, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0),
+            signature=(dim, 0),
             default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)
@@ -670,7 +667,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricBuresWasserstein, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0),
+            signature=(dim, 0),
             default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)
@@ -798,7 +795,7 @@ class SPDMetricEuclidean(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricEuclidean, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0),
+            signature=(dim, 0),
             default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)
@@ -892,7 +889,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricLogEuclidean, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0),
+            signature=(dim, 0),
             default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)

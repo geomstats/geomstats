@@ -63,13 +63,17 @@ from torch import (  # NOQA
 from . import autograd # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-
+from ..constants import pytorch_atol, pytorch_rtol
 
 DTYPES = {
     int32: 0,
     int64: 1,
     float32: 2,
     float64: 3}
+
+
+atol = pytorch_atol
+rtol = pytorch_rtol
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -296,7 +300,7 @@ def get_slice(x, indices):
     return x[indices]
 
 
-def allclose(a, b, **kwargs):
+def allclose(a, b, atol=atol, rtol=rtol):
     if not isinstance(a, torch.Tensor):
         a = torch.tensor(a)
     if not isinstance(b, torch.Tensor):
@@ -312,7 +316,7 @@ def allclose(a, b, **kwargs):
     elif n_a < n_b:
         reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
         a = tile(a, reps)
-    return torch.allclose(a, b, **kwargs)
+    return torch.allclose(a, b, atol=atol, rtol=rtol)
 
 
 def arccosh(x):
@@ -354,7 +358,7 @@ def sqrt(x):
     return torch.sqrt(x)
 
 
-def isclose(x, y, rtol=1e-5, atol=1e-8):
+def isclose(x, y, rtol=rtol, atol=atol):
     if not torch.is_tensor(x):
         x = torch.tensor(x)
     if not torch.is_tensor(y):
@@ -483,6 +487,7 @@ def trace(x, axis1=0, axis2=1):
     raise NotImplementedError()
 
 
+@_box_scalar
 def arctanh(x):
     return 0.5 * torch.log((1 + x) / (1 - x))
 

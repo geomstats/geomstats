@@ -3,13 +3,11 @@
 from itertools import product
 
 import geomstats.backend as gs
+from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.matrices import Matrices
 
 
-ATOL = 1e-6
-
-
-class GeneralLinear(Matrices):
+class GeneralLinear(Matrices, LieGroup):
     """Class for the general linear group GL(n).
 
     Parameters
@@ -19,32 +17,34 @@ class GeneralLinear(Matrices):
     """
 
     def __init__(self, n, **kwargs):
+        if 'dim' not in kwargs.keys():
+            kwargs['dim'] = n ** 2
         super(GeneralLinear, self).__init__(n=n, m=n, **kwargs)
-        self.n = n
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Check if a matrix is invertible and of the right shape.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
             Matrix to be checked.
+        atol :  float
+            Tolerance threshold for the determinant.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
             Boolean denoting if point is in GL(n).
         """
-        point_shape = point.shape
-        mat_dim_1, mat_dim_2 = point_shape[-2], point_shape[-1]
-        det = gs.linalg.det(point)
-        return gs.logical_and(
-            mat_dim_1 == self.n and mat_dim_2 == self.n,
-            det != 0.)
+        has_right_size = super(GeneralLinear, self).belongs(point)
+        if gs.all(has_right_size):
+            det = gs.linalg.det(point)
+            return gs.abs(det) > atol
+        return has_right_size
 
     def get_identity(self):
         """Return the identity matrix."""
-        return gs.eye(self.n, self.n)
+        return gs.eye(self.n)
     identity = property(get_identity)
 
     @classmethod
@@ -91,7 +91,7 @@ class GeneralLinear(Matrices):
         samples = gs.random.normal(size=(n_samples, self.n, self.n))
         while True:
             dets = gs.linalg.det(samples)
-            indcs = gs.isclose(dets, 0.0, atol=ATOL)
+            indcs = gs.isclose(dets, 0.0)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break

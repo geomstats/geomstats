@@ -82,6 +82,20 @@ class LieGroup(Manifold):
     default_point_type : str, {'vector', 'matrix'}
         Point type.
         Optional, default: 'vector'.
+    lie_algebra : MatrixLieAlgebra
+        Lie algebra for matrix groups.
+        Optional, default: None.
+
+    Attributes
+    ----------
+    lie_algebra : MatrixLieAlgebra or None
+        Tangent space at the identity.
+    left_canonical_metric : InvariantMetric
+        The left invariant metric that corresponds to the Euclidean inner
+        product at the identity.
+    right_canonical_metric : InvariantMetric
+        The right invariant metric that corresponds to the Euclidean inner
+        product at the identity.
     """
 
     def __init__(
@@ -465,6 +479,7 @@ class LieGroup(Manifold):
             Vector to project. Its shape must match the shape of base_point.
         base_point : array-like, shape=[..., {dim, [n, n]}], optional
             Point of the group.
+            Optional, default: identity.
 
         Returns
         -------
