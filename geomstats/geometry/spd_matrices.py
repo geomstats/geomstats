@@ -348,8 +348,9 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             Matrix logarithm of mat.
         """
         n = mat.shape[-1]
-        three_dim_mat = mat.reshape(-1,n,n)
-        return cls.apply_func_to_eigvals(three_dim_mat, gs.log, check_positive=True).reshape(mat.shape)
+        three_dim_mat = mat.reshape(-1, n, n)
+        logm = cls.apply_func_to_eigvals(three_dim_mat, gs.log, check_positive=True)
+        return logm.reshape(mat.shape)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
