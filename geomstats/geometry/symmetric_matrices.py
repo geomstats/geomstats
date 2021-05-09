@@ -163,9 +163,9 @@ class SymmetricMatrices(EmbeddedManifold):
             Exponential of mat.
         """
         n = mat.shape[-1]
-        three_dim_mat = mat.reshape(-1, n, n)
+        three_dim_mat = gs.reshape(mat, [-1, n, n])
         expm = cls.apply_func_to_eigvals(three_dim_mat, gs.exp)
-        return expm.reshape(mat.shape)
+        return gs.reshape(expm, mat.shape)
 
     @classmethod
     def powerm(cls, mat, power):
