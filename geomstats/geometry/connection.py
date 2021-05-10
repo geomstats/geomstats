@@ -567,3 +567,29 @@ class Connection:
         """
         raise NotImplementedError(
             'The torsion tensor is not implemented.')
+
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        r"""Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector a
+        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        tangent_vec_b)`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim + 1]
+            Tangent vector at base point to be transported.
+        tangent_vec_b : array-like, shape=[..., dim + 1]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the hypersphere.
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[..., dim + 1]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+        """
+        raise NotImplementedError(
+            'The closed-form solution of parallel transport is not known, '
+            'use the ladder_parallel_transport instead.')

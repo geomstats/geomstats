@@ -1,5 +1,7 @@
 """Unit tests for the preshape space."""
 
+import tests.helper as helper
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import Matrices
@@ -379,8 +381,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
     def test_kendall_directional_curvature(self):
         space = self.space
-        kendall = KendallShapeMetric(m_ambient=self.m_ambient,
-                                     k_landmarks=self.k_landmarks)
+        kendall = self.shape_metric
         n_samples = 4 * self.k_landmarks * self.m_ambient
         base_point = self.space.random_point(1)
 
@@ -406,3 +407,12 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(kappa, kappa_direct)
         result = (kappa > 1.0 - 1e-12)
         self.assertTrue(gs.all(result))
+
+    def test_parallel_transport(self):
+        space = self.space
+        metric = self.shape_metric
+        shape = (self.n_samples, self.k_landmarks, self.m_ambient)
+
+        results = helper.test_parallel_transport(space, metric, shape)
+        for res in results:
+            self.assertTrue(res)

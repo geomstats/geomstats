@@ -5,6 +5,7 @@ import logging
 import geomstats.backend as gs
 from geomstats.algebra_utils import flip_determinant
 from geomstats.errors import check_tf_error
+from geomstats.integrator import integrate
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
@@ -315,7 +316,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             (singular_values[..., -2]
              + gs.sign(det) * singular_values[..., -1]) /
             singular_values[..., 0])
-        if gs.any(conditioning < 5e-4):
+        if gs.any(conditioning < gs.atol):
             logging.warning(f'Singularity close, ill-conditioned matrix '
                             f'encountered: {conditioning}')
         if gs.any(gs.isclose(conditioning, 0.)):
@@ -422,7 +423,7 @@ class PreShapeMetric(RiemannianMetric):
 
         return inner_prod
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -443,7 +444,7 @@ class PreShapeMetric(RiemannianMetric):
         flat_exp = self.sphere_metric.exp(flat_tan, flat_bp)
         return gs.reshape(flat_exp, tangent_vec.shape)
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
         Parameters
@@ -512,6 +513,38 @@ class PreShapeMetric(RiemannianMetric):
         curvature = gs.reshape(curvature, max_shape)
         return curvature
 
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        """Compute the Riemannian parallel transport of a tangent vector.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
+            Tangent vector at a base point.
+        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
+            Tangent vector at a base point.
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+            Point on the pre-shape space.
+
+        Returns
+        -------
+        transported : array-like, shape=[..., k_landmarks, m_ambient]
+            Point on the pre-shape space equal to the Riemannian exponential
+            of tangent_vec at the base point.
+        """
+        max_shape = (
+            tangent_vec_a.shape if tangent_vec_a.ndim == 3
+            else tangent_vec_b.shape)
+
+        flat_bp = gs.reshape(base_point, (-1, self.sphere_metric.dim + 1))
+        flat_tan_a = gs.reshape(
+            tangent_vec_a, (-1, self.sphere_metric.dim + 1))
+        flat_tan_b = gs.reshape(
+            tangent_vec_b, (-1, self.sphere_metric.dim + 1))
+
+        flat_transport = self.sphere_metric.parallel_transport(
+            flat_tan_a, flat_tan_b, flat_bp)
+        return gs.reshape(flat_transport, max_shape)
+
 
 class KendallShapeMetric(QuotientMetric):
     """Quotient metric on the shape space.
@@ -532,3 +565,29 @@ class KendallShapeMetric(QuotientMetric):
         super(KendallShapeMetric, self).__init__(
             fiber_bundle=bundle,
             dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2))
+
+    def parallel_transport(
+            self, tangent_vec_a, tangent_vec_b, base_point, n_steps=100,
+            step='rk4'):
+
+        horizontal_a = self.fiber_bundle.horizontal_projection(
+            tangent_vec_a, base_point)
+        horizontal_b = self.fiber_bundle.horizontal_projection(
+            tangent_vec_b, base_point)
+
+        def force(state, time):
+            gamma_t = self.ambient_metric.exp(time * horizontal_b, base_point)
+            speed = self.ambient_metric.parallel_transport(
+                horizontal_b, time * horizontal_b, base_point)
+            coef = self.inner_product(speed, state, gamma_t)
+            normal = gs.einsum('...,...ij->...ij', coef, gamma_t)
+
+            align = gs.matmul(Matrices.transpose(speed), state)
+            right = align - Matrices.transpose(align)
+            left = gs.matmul(Matrices.transpose(gamma_t), gamma_t)
+            skew_ = gs.linalg.solve_sylvester(left, left, right)
+            vertical_ = - gs.matmul(gamma_t, skew_)
+            return vertical_ - normal
+
+        flow = integrate(force, horizontal_a, n_steps=n_steps, step=step)
+        return flow[-1]
