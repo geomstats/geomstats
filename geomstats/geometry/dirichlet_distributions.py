@@ -572,7 +572,7 @@ class DirichletMetric(RiemannianMetric):
                 def bc(y0, y1, ip=ip, ep=ep):
                     return boundary_cond(y0, y1, ip, ep)
 
-                def process_function(return_dict):
+                def process_function(return_dict, ip=ip, ep=ep):
                     solution = solve_bvp(
                         bvp, bc, t_int, initialize(ip, ep), fun_jac=fun_jac)
                     solution_at_t = solution.sol(t)
