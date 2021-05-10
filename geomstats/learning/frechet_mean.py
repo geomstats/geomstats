@@ -360,6 +360,9 @@ class FrechetMean(BaseEstimator):
         Optional, default: None.
     method : str, {\'default\', \'adaptive\', \'ball\'}
         Gradient descent method.
+        The `adaptive` method uses a Levenberg-Marquardt style adaptation of
+        the learning rate. The `ball` method is for the Poincaré ball
+        manifold only.
         Optional, default: \'default\'.
     verbose : bool
         Verbose option.
