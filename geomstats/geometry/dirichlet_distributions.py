@@ -568,14 +568,13 @@ class DirichletMetric(RiemannianMetric):
             fun_jac = jac if jacobian else None
 
             for ip, ep in zip(initial_point, end_point):
-                geodesic_init = initialize(ip, ep)
 
                 def bc(y0, y1, ip=ip, ep=ep):
                     return boundary_cond(y0, y1, ip, ep)
 
                 def process_function(return_dict):
                     solution = solve_bvp(
-                        bvp, bc, t_int, geodesic_init, fun_jac=fun_jac)
+                        bvp, bc, t_int, initialize(ip, ep), fun_jac=fun_jac)
                     solution_at_t = solution.sol(t)
                     geodesic = solution_at_t[:self.dim, :]
                     geod.append(gs.squeeze(gs.transpose(geodesic)))
