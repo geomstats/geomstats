@@ -565,6 +565,7 @@ class DirichletMetric(RiemannianMetric):
                 return lin_init
 
             t_int = gs.linspace(0., 1., n_steps)
+            fun_jac = jac if jacobian else None
 
             for ip, ep in zip(initial_point, end_point):
                 geodesic_init = initialize(ip, ep)
@@ -573,7 +574,6 @@ class DirichletMetric(RiemannianMetric):
                     return boundary_cond(y0, y1, ip, ep)
 
                 def process_function(return_dict):
-                    fun_jac = jac if jacobian else None
                     solution = solve_bvp(
                         bvp, bc, t_int, geodesic_init, fun_jac=fun_jac)
                     solution_at_t = solution.sol(t)
