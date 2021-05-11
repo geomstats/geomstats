@@ -5,13 +5,13 @@ import logging
 import geomstats.backend as gs
 from geomstats.algebra_utils import flip_determinant
 from geomstats.errors import check_tf_error
-from geomstats.integrator import integrate
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.integrator import integrate
 
 
 class PreShapeSpace(EmbeddedManifold, FiberBundle):
@@ -569,7 +569,46 @@ class KendallShapeMetric(QuotientMetric):
     def parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=100,
             step='rk4'):
+        r"""Compute the parallel transport of a tangent vec along a geodesic.
 
+        Approximation of the solution of the parallel transport of a tangent
+        vector a along the geodesic defined by :math: `t \mapsto exp_(
+        base_point)(t* tangent_vec_b)`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., k, m]
+            Tangent vector at `base_point` to transport.
+        tangent_vec_b : array-like, shape=[..., k, m]
+            Tangent vector ar `base_point`, initial velocity of the geodesic to
+            transport  along.
+        base_point : array-like, shape=[..., k, m]
+            Initial point of the geodesic.
+        n_steps : int
+            Number of steps to use to approximate the solution of the
+            ordinary differential equation.
+            Optional, default: 100
+        step : str, {'euler', 'rk2', 'rk4'}
+            Scheme to use in the integration scheme.
+            Optional, default: 'rk4'.
+
+        Returns
+        -------
+        transported :  array-like, shape=[..., k, m]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+
+        References
+        ----------
+        [GMTP21]_   Guigui, Nicolas, Elodie Maignant, Alain Trouvé, and Xavier
+                    Pennec. “Parallel Transport on Kendall Shape Spaces.”
+                    5th conference on Geometric Science of Information,
+                    Paris 2021. Lecture Notes in Computer Science.
+                    Springer, 2021. https://hal.inria.fr/hal-03160677.
+
+        See Also
+        --------
+        Integration module: geomstats.integrator
+        """
         horizontal_a = self.fiber_bundle.horizontal_projection(
             tangent_vec_a, base_point)
         horizontal_b = self.fiber_bundle.horizontal_projection(

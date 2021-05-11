@@ -1,14 +1,14 @@
 r"""Integrator functions used when no closed forms are available.
 
-These are designed for second order ODE written as a first order ODE of two
-variables (x,v):
+These are designed for first order ODE written of a variable x and a time
+variable t:
 .. math::
 
-                    \frac{dx}{dt} = force_1(x, v)
-                    \frac{dv}{dt} = force_2(x, v)
+                    \frac{dx}{dt} = force(x, t)
 
-where :math: `x` is called the position variable, :math: `v` the velocity
-variable, and :math: `(x, v)` the state.
+where :math: `x` is called the state variable. It may represent many
+variables by stacking arrays, e.g. position and velocity in a geodesic
+equation.
 """
 
 from geomstats.errors import check_parameter_accepted_values
