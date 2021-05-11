@@ -1,7 +1,6 @@
 """The vector space of symmetric matrices."""
 
 import logging
-
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats import algebra_utils
@@ -162,13 +161,11 @@ class SymmetricMatrices(EmbeddedManifold):
         exponential : array_like, shape=[..., n, n]
             Exponential of mat.
         """
-        if mat.ndim > 3:
-            n = mat.shape[-1]
-            dim_3_mat = gs.reshape(mat, [-1, n, n])
-            expm = cls.apply_func_to_eigvals(dim_3_mat, gs.exp)
-            expm = gs.reshape(mat,mat.shape)
-        else:
-            expm = cls.apply_func_to_eigvals(mat, gs.exp)
+
+        n = mat.shape[-1]
+        dim_3_mat = gs.reshape(mat, [-1, n, n])
+        expm = cls.apply_func_to_eigvals(dim_3_mat, gs.exp)
+        expm = gs.reshape(expm, mat.shape)
         return expm
 
     @classmethod
