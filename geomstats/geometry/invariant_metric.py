@@ -1112,5 +1112,5 @@ class BiInvariantMetric(_InvariantMetricVector):
         """
         midpoint = self.exp(1. / 2. * tangent_vec_b, base_point)
         transposed = Matrices.transpose(tangent_vec_a)
-        transported_vec = Matrices.mul(midpoint, transposed, midpoint)
-        return - transported_vec
+        transported_vec = -Matrices.mul(midpoint, transposed, midpoint)
+        return transported_vec
