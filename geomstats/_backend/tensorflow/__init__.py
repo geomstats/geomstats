@@ -553,9 +553,8 @@ def matmul(a, b):
     This wraps both mathvec and matmul into a single function, to mimic the
     behavior of torch's and numpy's versions of matmul
     """
-    if ndim(b) < ndim(a):
-        if ndim(b) == 1 or b.shape[-2] != a.shape[-1]:
-            return tf.linalg.matvec(a, b)
+    if ndim(b) < ndim(a) and (ndim(b) == 1 or b.shape[-2] != a.shape[-1]):
+        return tf.linalg.matvec(a, b)
     return tf.linalg.matmul(a, b)
 
 
