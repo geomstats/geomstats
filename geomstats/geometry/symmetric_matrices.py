@@ -1,6 +1,7 @@
 """The vector space of symmetric matrices."""
 
 import logging
+
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats import algebra_utils
