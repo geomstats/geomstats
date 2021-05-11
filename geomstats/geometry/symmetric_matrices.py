@@ -162,7 +162,6 @@ class SymmetricMatrices(EmbeddedManifold):
         exponential : array_like, shape=[..., n, n]
             Exponential of mat.
         """
-
         n = mat.shape[-1]
         dim_3_mat = gs.reshape(mat, [-1, n, n])
         expm = cls.apply_func_to_eigvals(dim_3_mat, gs.exp)
