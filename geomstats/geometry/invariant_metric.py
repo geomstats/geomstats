@@ -1066,7 +1066,7 @@ class BiInvariantMetric(_InvariantMetricVector):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        if base_point is None:
+        if base_point is None or self.default_point_type == 'matrix':
             return self.inner_product_at_identity(
                 tangent_vec_a, tangent_vec_b)
 
@@ -1077,3 +1077,33 @@ class BiInvariantMetric(_InvariantMetricVector):
         inner_prod = self.inner_product_at_identity(
             tangent_vec_a_at_id, tangent_vec_b_at_id)
         return inner_prod
+
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        r"""Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector a
+        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        tangent_vec_b)`. As the special Euclidean group endowed with its
+        canonical left-invariant metric is a symmetric space, parallel
+        transport is achieved by a geodesic symmetry, or equivalently, one step
+         of the pole ladder scheme.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n + 1, n + 1]
+            Tangent vector at base point to be transported.
+        tangent_vec_b : array-like, shape=[..., n + 1, n + 1]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        base_point : array-like, shape=[..., n + 1, n + 1]
+            Point on the hypersphere.
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[..., n + 1, n + 1]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+        """
+        midpoint = self.exp(1. / 2. * tangent_vec_b, base_point)
+        transposed = Matrices.transpose(tangent_vec_a)
+        transported_vec = Matrices.mul(midpoint, transposed, midpoint)
+        return transported_vec

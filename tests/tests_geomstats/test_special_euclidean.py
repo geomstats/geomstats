@@ -1,5 +1,7 @@
 """Unit tests for special euclidean group in matrix representation."""
 
+import tests.helper as helper
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.special_euclidean import SpecialEuclidean,\
@@ -9,6 +11,7 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean,\
 
 class TestSpecialEuclidean(geomstats.tests.TestCase):
     def setUp(self):
+        gs.random.seed(12)
         self.n = 2
         self.group = SpecialEuclidean(n=self.n)
         self.n_samples = 4
@@ -292,31 +295,13 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         result = self.group.left_canonical_metric.log(exp, self.point[0])
         self.assertAllClose(result, self.tangent_vec[0])
 
-    @geomstats.tests.np_and_tf_only
     def test_parallel_transport(self):
         metric = self.group.left_canonical_metric
-        tan_a = self.tangent_vec
-        tan_b = self.group.to_tangent(gs.random.rand(
-            self.n_samples, self.group.n + 1, self.group.n + 1), self.point)
-        end_point = metric.exp(tan_b, self.point)
+        shape = (self.n_samples, self.group.n + 1, self.group.n + 1)
 
-        def is_isometry(tan_a, trans_a, basepoint, endpoint):
-            is_tangent = self.group.is_tangent(trans_a, endpoint)
-            is_equinormal = gs.isclose(
-                metric.norm(trans_a, endpoint), metric.norm(tan_a, basepoint))
-            return gs.logical_and(is_tangent, is_equinormal)
-
-        transported = metric.parallel_transport(
-            tan_a, tan_b, self.point)
-        result = is_isometry(tan_a, transported, self.point, end_point)
-        expected_end_point = metric.exp(tan_b, self.point)
-        self.assertTrue(gs.all(result))
-        self.assertAllClose(end_point, expected_end_point)
-
-        new_tan_b = metric.log(self.point, end_point)
-        result_vec = metric.parallel_transport(
-            transported, new_tan_b, end_point)
-        self.assertAllClose(result_vec, tan_a)
+        results = helper.test_parallel_transport(self.group, metric, shape)
+        for res in results:
+            self.assertTrue(res)
 
     def test_lie_algebra_basis_belongs(self):
         basis = self.group.lie_algebra.basis
@@ -345,3 +330,12 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         metric = self.group.metric
         for m in [left, right, metric]:
             self.assertTrue(m.default_point_type == 'matrix')
+
+    def test_metric_left_invariant(self):
+        group = self.group
+        point = group.random_point()
+        expected = group.left_canonical_metric.norm(self.tangent_vec)
+
+        translated = group.tangent_translation_map(point)(self.tangent_vec)
+        result = group.left_canonical_metric.norm(translated)
+        self.assertAllClose(result, expected)

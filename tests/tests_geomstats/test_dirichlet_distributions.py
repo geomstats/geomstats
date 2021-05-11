@@ -1,5 +1,6 @@
 """Unit tests for the Dirichlet manifold."""
 
+import math
 import warnings
 
 from scipy.stats import dirichlet
@@ -346,4 +347,53 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         time = 0.5
         result = geod(time).shape
         expected = (self.n_points, self.dim)
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_jacobian_christoffels(self):
+        """Test jacobian of Christoffel symbols.
+
+        Compare with autograd and check vectorization.
+        """
+        base_point = self.dirichlet.random_point()
+        result = self.metric.jacobian_christoffels(base_point)
+        self.assertAllClose(
+            (self.dim, self.dim, self.dim, self.dim),
+            result.shape)
+
+        expected = gs.autograd.jacobian(
+            self.metric.christoffels)(base_point)
+        self.assertAllClose(expected, result)
+
+        base_points = self.dirichlet.random_point(2)
+        result = self.metric.jacobian_christoffels(base_points)
+        expected = [
+            self.metric.jacobian_christoffels(base_points[0, :]),
+            self.metric.jacobian_christoffels(base_points[1, :])]
+        expected = gs.stack(expected, 0)
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_only
+    def test_jacobian_in_geodesic_bvp(self):
+        """Test Jacobian option in geodesic bvp.
+
+        Check that dist yields the same result with
+        and without.
+        """
+        point_a = self.dirichlet.random_point()
+        point_b = self.dirichlet.random_point()
+        result = self.dirichlet.metric.dist(point_a, point_b, jacobian=True)
+        expected = self.dirichlet.metric.dist(point_a, point_b)
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_only
+    def test_geodesic_bvp_timer(self):
+        """Check timer for geodesic bvp."""
+        max_time = 1e-4
+        gs.random.seed(123)
+        point_a = self.dirichlet.random_point()
+        point_b = self.dirichlet.random_point()
+        result = self.dirichlet.metric.dist(
+            point_a, point_b, max_time=max_time)
+        expected = math.nan
         self.assertAllClose(expected, result)

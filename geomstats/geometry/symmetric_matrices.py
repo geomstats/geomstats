@@ -59,7 +59,8 @@ class SymmetricMatrices(EmbeddedManifold):
         point : array-like, shape=[m, n] or [n_samples, m, n]
             Sample.
         """
-        return Matrices.to_symmetric(Matrices.random_point(n_samples, bound))
+        mat = self.embedding_manifold.random_point(n_samples, bound)
+        return Matrices.to_symmetric(mat)
 
     def get_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
