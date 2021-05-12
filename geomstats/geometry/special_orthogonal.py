@@ -96,6 +96,23 @@ class _SpecialOrthogonalMatrices(GeneralLinear):
         det = gs.linalg.det(rotation_mat)
         return utils.flip_determinant(rotation_mat, det)
 
+    def random_point(self, n_samples=1, bound=1.):
+        """Sample in SO(n) from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        tol : unused
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n, n]
+            Points sampled on the SO(n).
+        """
+        return self.random_uniform(n_samples)
+
     def random_uniform(self, n_samples=1):
         """Sample in SO(n) from the uniform distribution.
 

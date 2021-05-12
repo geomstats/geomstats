@@ -379,8 +379,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
     def test_kendall_directional_curvature(self):
         space = self.space
-        kendall = KendallShapeMetric(m_ambient=self.m_ambient,
-                                     k_landmarks=self.k_landmarks)
+        kendall = self.shape_metric
         n_samples = 4 * self.k_landmarks * self.m_ambient
         base_point = self.space.random_point(1)
 
@@ -406,3 +405,40 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(kappa, kappa_direct)
         result = (kappa > 1.0 - 1e-12)
         self.assertTrue(gs.all(result))
+
+    def test_parallel_transport(self):
+        space = self.space
+        metric = self.shape_metric
+        shape = (self.n_samples, self.k_landmarks, self.m_ambient)
+
+        point = space.projection(gs.eye(4)[:, :3])
+        tan_b = gs.random.rand(*shape)
+        tan_b = space.to_tangent(tan_b, point)
+        tan_b = space.horizontal_projection(tan_b, point)
+
+        # use a vector orthonormal to tan_b
+        tan_a = gs.random.rand(*shape)
+        tan_a = space.to_tangent(tan_a, point)
+        tan_a = space.horizontal_projection(tan_a, point)
+
+        # orthonormalize and move to base_point
+        tan_a -= gs.einsum(
+            '...,...ij->...ij',
+            metric.inner_product(tan_a, tan_b, point) / metric.squared_norm(
+                tan_b, point), tan_b)
+        tan_b = gs.einsum('...ij,...->...ij', tan_b,
+                          1. / metric.norm(tan_b, point))
+        tan_a = gs.einsum('...ij,...->...ij', tan_a,
+                          1. / metric.norm(tan_a, point))
+
+        transported = metric.parallel_transport(
+            tan_a, tan_b, point, n_steps=100, step='rk4')
+        end_point = metric.exp(tan_b, point)
+        result = metric.norm(transported, end_point)
+        expected = metric.norm(tan_a, point)
+        self.assertAllClose(result, expected)
+
+        is_tangent = space.is_tangent(transported, end_point)
+        is_horizontal = space.is_horizontal(transported, end_point)
+        self.assertTrue(gs.all(is_tangent))
+        self.assertTrue(gs.all(is_horizontal))

@@ -569,14 +569,15 @@ class _InvariantMetricMatrix(RiemannianMetric):
         basis = self.normal_basis(self.lie_algebra.basis)
         sign = 1. if self.left_or_right == 'left' else -1.
 
-        def lie_acceleration(point, vector):
+        def lie_acceleration(state, _time):
             """Compute the right-hand side of the geodesic equation."""
+            point, vector = state
             velocity = self.group.tangent_translation_map(
                 point, left_or_right=self.left_or_right)(vector)
             coefficients = gs.array([self.structure_constant(
                 vector, basis_vector, vector) for basis_vector in basis])
             acceleration = gs.einsum('i...,ijk->...jk', coefficients, basis)
-            return velocity, sign * acceleration
+            return gs.stack([velocity, sign * acceleration])
 
         if base_point is None:
             base_point = group.identity
@@ -585,10 +586,15 @@ class _InvariantMetricMatrix(RiemannianMetric):
             left_angular_vel = self.group.tangent_translation_map(
                 base_point,
                 left_or_right=self.left_or_right, inverse=True)(tangent_vec)
-        initial_state = (base_point, group.regularize(left_angular_vel))
-        flow, _ = integrate(lie_acceleration, initial_state, n_steps=n_steps,
-                            step=step, **kwargs)
-        return flow[-1]
+        if (base_point.ndim == 2 or base_point.shape[0] == 1) and \
+                tangent_vec.ndim == 3:
+            base_point = gs.stack([base_point] * len(tangent_vec))
+        initial_state = gs.stack(
+            [base_point, group.to_tangent(left_angular_vel)])
+        flow = integrate(
+            lie_acceleration, initial_state, n_steps=n_steps, step=step,
+            **kwargs)
+        return flow[-1][0]
 
     def log(self, point, base_point, n_steps=15, step='rk4',
             verbose=False, max_iter=25, tol=1e-10):
@@ -641,9 +647,10 @@ class _InvariantMetricMatrix(RiemannianMetric):
                      Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
                      480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
-        return super(_InvariantMetricMatrix, self).log(
-            point, base_point, n_steps=n_steps, step=step,
-            verbose=verbose, max_iter=max_iter, tol=tol)
+        return self.group.to_tangent(
+            super(_InvariantMetricMatrix, self).log(
+                point, base_point, n_steps=n_steps, step=step,
+                verbose=verbose, max_iter=max_iter, tol=tol), base_point)
 
 
 class _InvariantMetricVector(RiemannianMetric):
@@ -1066,7 +1073,7 @@ class BiInvariantMetric(_InvariantMetricVector):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        if base_point is None:
+        if base_point is None or self.default_point_type == 'matrix':
             return self.inner_product_at_identity(
                 tangent_vec_a, tangent_vec_b)
 
@@ -1077,3 +1084,33 @@ class BiInvariantMetric(_InvariantMetricVector):
         inner_prod = self.inner_product_at_identity(
             tangent_vec_a_at_id, tangent_vec_b_at_id)
         return inner_prod
+
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        r"""Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector a
+        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        tangent_vec_b)`. As the special Euclidean group endowed with its
+        canonical left-invariant metric is a symmetric space, parallel
+        transport is achieved by a geodesic symmetry, or equivalently, one step
+         of the pole ladder scheme.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n + 1, n + 1]
+            Tangent vector at base point to be transported.
+        tangent_vec_b : array-like, shape=[..., n + 1, n + 1]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        base_point : array-like, shape=[..., n + 1, n + 1]
+            Point on the hypersphere.
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[..., n + 1, n + 1]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+        """
+        midpoint = self.exp(1. / 2. * tangent_vec_b, base_point)
+        transposed = Matrices.transpose(tangent_vec_a)
+        transported_vec = Matrices.mul(midpoint, transposed, midpoint)
+        return (-1.) * transported_vec

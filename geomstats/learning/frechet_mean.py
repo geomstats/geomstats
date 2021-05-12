@@ -8,9 +8,6 @@ from sklearn.base import BaseEstimator
 import geomstats.backend as gs
 import geomstats.errors as error
 import geomstats.vectorization
-from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.geometry.matrices import MatricesMetric
-from geomstats.geometry.minkowski import MinkowskiMetric
 
 EPSILON = 1e-4
 
@@ -411,8 +408,11 @@ class FrechetMean(BaseEstimator):
         self : object
             Returns self.
         """
-        is_linear_metric = isinstance(
-            self.metric, (EuclideanMetric, MatricesMetric, MinkowskiMetric))
+        metric_module = self.metric.__module__
+        is_linear_metric = (
+            'euclidean' in metric_module
+            or 'matrices' in metric_module
+            or 'minkowski' in metric_module)
 
         error.check_parameter_accepted_values(
             self.method, 'method',

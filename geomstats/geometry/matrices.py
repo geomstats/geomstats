@@ -65,10 +65,7 @@ class Matrices:
         eq : array-like, shape=[...,]
             Boolean evaluating if the matrices are close.
         """
-        is_vectorized = \
-            (gs.ndim(gs.array(mat_a)) == 3) or (gs.ndim(gs.array(mat_b)) == 3)
-        axes = (1, 2) if is_vectorized else (0, 1)
-        return gs.all(gs.isclose(mat_a, mat_b, atol=atol), axes)
+        return gs.all(gs.isclose(mat_a, mat_b, atol=atol), (-2, -1))
 
     @staticmethod
     def mul(*args):

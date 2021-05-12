@@ -917,6 +917,26 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
             group=group)
         self.n = group.n
 
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute inner product of two vectors in tangent space at base point.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            First tangent vector at base_point.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Second tangent vector at base_point.
+        base_point : array-like, shape=[..., n, n]
+            Point in the group.
+            Optional, defaults to identity if None.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...,]
+            Inner-product of the two tangent vectors.
+        """
+        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+
     def exp(self, tangent_vec, base_point=None, **kwargs):
         """Exponential map associated to the cannonical metric.
 
@@ -1021,12 +1041,18 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         transported_tangent_vec: array-like, shape=[..., n + 1, n + 1]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
-        point = self.exp(tangent_vec_a, base_point)
-        midpoint = self.exp(1. / 2. * tangent_vec_b, base_point)
-        next_point = self.exp(tangent_vec_b, base_point)
-        first_sym = self.exp(- self.log(point, midpoint), midpoint)
-        transported_vec = - self.log(first_sym, next_point)
-        return transported_vec
+        rot_a = tangent_vec_a[..., :self.n, :self.n]
+        rot_b = tangent_vec_b[..., :self.n, :self.n]
+        rot_bp = base_point[..., :self.n, :self.n]
+        transported_rot = self.group.rotations.bi_invariant_metric\
+            .parallel_transport(rot_a, rot_b, rot_bp)
+        translation = tangent_vec_a[..., :self.n, self.n]
+        max_shape = tangent_vec_a.shape
+        if (tangent_vec_b.ndim == 3) and (tangent_vec_a.ndim == 2):
+            translation = gs.stack([translation] * tangent_vec_b.shape[0])
+            max_shape = tangent_vec_b.shape
+        return homogeneous_representation(
+            transported_rot, translation, max_shape, 0.)
 
 
 class SpecialEuclidean(_SpecialEuclidean2Vectors,
