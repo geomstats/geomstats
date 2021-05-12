@@ -213,11 +213,10 @@ class SymmetricMatrices(EmbeddedManifold):
             Symmetric matrix.
         """
         eigvals, eigvecs = gs.linalg.eigh(mat)
-        if check_positive:
-            if gs.any(gs.cast(eigvals, gs.float32) < 0.):
-                logging.warning(
-                    'Negative eigenvalue encountered in'
-                    ' {}'.format(function.__name__))
+        if check_positive and gs.any(gs.cast(eigvals, gs.float32) < 0.):
+            logging.warning(
+                'Negative eigenvalue encountered in'
+                ' {}'.format(function.__name__))
         return_list = True
         if not isinstance(function, list):
             function = [function]

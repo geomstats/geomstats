@@ -358,7 +358,9 @@ class DirichletMetric(RiemannianMetric):
         def ivp(state, _):
             """Reformat the initial value problem geodesic ODE."""
             position, velocity = state[:self.dim], state[self.dim:]
-            eq = self.geodesic_equation(velocity=velocity, position=position)
+            state = gs.stack([position, velocity])
+            vel, acc = self.geodesic_equation(state, _)
+            eq = (vel, acc)
             return gs.hstack(eq)
 
         def path(t):
@@ -489,8 +491,9 @@ class DirichletMetric(RiemannianMetric):
                 Any (time).
             """
             position, velocity = state[:self.dim].T, state[self.dim:].T
-            eq = self.geodesic_equation(
-                velocity=velocity, position=position)
+            state = gs.stack([position, velocity])
+            vel, acc = self.geodesic_equation(state, _)
+            eq = (vel, acc)
             return gs.transpose(gs.hstack(eq))
 
         def boundary_cond(

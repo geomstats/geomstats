@@ -711,7 +711,8 @@ class HypersphereMetric(RiemannianMetric):
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         theta = gs.linalg.norm(tangent_vec_b, axis=-1)
-        normalized_b = gs.einsum('...,...i->...i', 1 / theta, tangent_vec_b)
+        eps = gs.where(theta == 0., 1., theta)
+        normalized_b = gs.einsum('...,...i->...i', 1 / eps, tangent_vec_b)
         pb = gs.einsum('...i,...i->...', tangent_vec_a, normalized_b)
         p_orth = tangent_vec_a - gs.einsum('...,...i->...i', pb, normalized_b)
         transported = \
