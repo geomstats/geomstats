@@ -652,6 +652,43 @@ class _InvariantMetricMatrix(RiemannianMetric):
                 point, base_point, n_steps=n_steps, step=step,
                 verbose=verbose, max_iter=max_iter, tol=tol), base_point)
 
+    def parallel_transport(
+            self, tangent_vec_a, tangent_vec_b, base_point, n_steps=10,
+            step='rk4', **kwargs):
+        group = self.group
+        translation_map = group.tangent_translation_map(
+            base_point,
+            left_or_right=self.left_or_right, inverse=True)
+        left_angular_vel_a = group.to_tangent(translation_map(tangent_vec_a))
+        left_angular_vel_b = group.to_tangent(translation_map(tangent_vec_b))
+
+        def acceleration(state, time):
+            point, omega, zeta = state
+            gam_dot, omega_dot = self.geodesic_equation(state[:2], time)
+            zeta_dot = - self.connection_at_identity(omega, zeta)
+            return gs.stack([gam_dot, omega_dot, zeta_dot])
+
+        initial_state = (base_point, left_angular_vel_a, left_angular_vel_b)
+        flow = integrate(
+            acceleration, initial_state, n_steps=n_steps, step=step, **kwargs)
+        gamma, gamma_dot, zeta_t = flow[-1]
+        transported = group.tangent_translation_map(
+            gamma, left_or_right=self.left_or_right, inverse=False)(zeta_t)
+        return transported, gamma
+
+    def geodesic_equation(self, state, _time):
+        """Compute the right-hand side of the geodesic equation."""
+        sign = 1. if self.left_or_right == 'left' else -1.
+        basis = self.normal_basis(self.lie_algebra.basis)
+
+        point, vector = state
+        velocity = self.group.tangent_translation_map(
+            point, left_or_right=self.left_or_right)(vector)
+        coefficients = gs.array([self.structure_constant(
+            vector, basis_vector, vector) for basis_vector in basis])
+        acceleration = gs.einsum('i...,ijk->...jk', coefficients, basis)
+        return gs.stack([velocity, sign * acceleration])
+
 
 class _InvariantMetricVector(RiemannianMetric):
     """Class for invariant metrics on Lie groups represented by vectors.

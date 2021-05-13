@@ -196,6 +196,13 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
         return homogeneous_representation(
             transposed_rot, -translation, point.shape)
 
+    def projection(self, mat):
+        n = mat.shape[-1] - 1
+        projected_rot = self.rotations.projection(mat[..., :n, :n])
+        translation = mat[..., :n, -1]
+        return homogeneous_representation(
+            projected_rot, translation, mat.shape)
+
 
 class _SpecialEuclideanVectors(LieGroup):
     """Base Class for the special Euclidean groups in 2d and 3d in vector form.
