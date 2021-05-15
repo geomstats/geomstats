@@ -332,6 +332,52 @@ class Matrices:
         return gs.einsum(
             '...ij,...ji->...', mat_1, mat_2)
 
+    def math_vec(self, mat):
+        """returns a vectorized form of the matrix.
+
+        Vectorize a matrix (see wikipedia Vectorization_(mathematics)).
+        The reverse operation is math_unvect. The naming was chosen
+        instead of the classical vec / unvec to avoid confusion with
+        vectorization with respect to data on axis 0.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., m, n]
+            Matrix.
+
+        Returns
+        -------
+        vec : array-like, shape=[..., m * n]
+            Flatten copy of mat
+        """
+        is_data_vectorized = (gs.ndim(gs.array(mat)) == 3)
+        shape = (mat.shape[0], self.m * self.n) if is_data_vectorized \
+            else (self.m * self.n)
+        return gs.reshape(mat, shape)
+
+    def math_unvec(self, vec):
+        """returns a matricized form of the vector.
+
+        Matricize a vectorized matrix (see wikipedia Vectorization_(
+        mathematics)). The reverse operation of math_vec. The naming
+        math_unvec was chosen to avoid confusion with vectorization with
+        respect to data on axis 0.
+
+        Parameters
+        ----------
+        vec : array-like, shape=[..., m * n]
+            Matrix.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., m, n]
+            Matriciezed copy of vec
+        """
+        is_data_vectorized = (gs.ndim(gs.array(vec)) == 2)
+        shape = (vec.shape[0], self.m, self.n) if is_data_vectorized \
+            else (self.m, self.n)
+        return gs.reshape(vec, shape)
+
 
 class MatricesMetric(EuclideanMetric):
     """Euclidean metric on matrices given by Frobenius inner-product.
