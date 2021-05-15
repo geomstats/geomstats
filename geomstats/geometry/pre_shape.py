@@ -385,7 +385,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         space by [O'Neill]_
         :math: `A_X Y = ver\nabla^M_{hor X} (hor Y)
             + hor \nabla^M_{hor X}( ver Y)`
-        where :math: `hor,ver` are the horizontal and vertical projections.
+        where :math: `hor, ver` are the horizontal and vertical projections.
 
         For the Kendall shape space, we have the closed-form expression at
         base-point P:
@@ -414,6 +414,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a Submersion,
         Michigan Mathematical Journal 13, no. 4 (December 1966): 459–69.
         https://doi.org/10.1307/mmj/1028999604.
+        [Pennec] To appear. Equation (24) p.7.
         """
         hor_x = self.horizontal_projection(tangent_vec_x, base_point)
         p_top = Matrices.transpose(base_point)
@@ -424,13 +425,9 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
                 p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
 
         e_top_hor_x = gs.matmul(Matrices.transpose(tangent_vec_e), hor_x)
-        # sylv_e_top_hor_x = gs.linalg.solve_sylvester(
-        #     p_top_p, p_top_p, e_top_hor_x - Matrices.transpose(e_top_hor_x))
         sylv_e_top_hor_x = sylv_p(e_top_hor_x)
 
         p_top_e = gs.matmul(p_top, tangent_vec_e)
-        # sylv_p_top_e = gs.linalg.solve_sylvester(
-        #     p_top_p, p_top_p, p_top_e - Matrices.transpose(p_top_e))
         sylv_p_top_e = sylv_p(p_top_e)
 
         tensor_f = gs.matmul(hor_x, sylv_p_top_e)
@@ -440,20 +437,22 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         return result
 
     def nabla_x_a_y_a_x_y(self, tg_vec_x, tg_vec_y, base_point):
-        r"""Compute derivatives of the iterated integrability tensor A.
+        r"""Compute derivatives of the integrability tensor A.
 
         The covariant derivative :math: `\nabla_X^Q (A_Y A_X Y) = \nabla_X^S
-        (A_Y A_X Y) - A_X A_Y A_X Y` is a key ingredient in the computation of
+        (A_Y A_X Y) - A_X A_Y A_X Y` (where :math: `X`and :math: `Y` are
+        horizontal vector fields) is a key ingredient in the computation of
         the covariant derivative of the directional curvature in a submersion.
-        The components :math: `\nabla_X^S (A_Y A_X Y)`, :math: `A_X A_Y A_X Y`
-        and :math: `\nabla_X^S (A_X Y)` are computed here for the Kendall shape
-        space.
+        The components :math: `\nabla_X^S (A_Y A_X Y)`, :math: `A_X A_Y A_X Y`,
+        :math: `\nabla_X^S (A_X Y)`,  and intermediate computations
+        :math: `A_Y A_X Y` and :math: `A_X Y` are computed here for the
+        Kendall shape space.
 
         Parameters
         ----------
-        tg_vec_a : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tg_vec_x : array-like, shape=[..., {ambient_dim, [n, n]}]
             Tangent vector at `base_point`.
-        tg_vec_b : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tg_vec_y : array-like, shape=[..., {ambient_dim, [n, n]}]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
             Point of the total space.
@@ -468,7 +467,13 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             `A_X A_Y A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
         nabla_x_a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
             Tangent vector at `base_point`, result of :math:
-            `\nabla_X^S (A_Y A_X Y)` with `X = tg_vec_x` and `Y = tg_vec_y`.
+            `\nabla_X^S (A_X Y)` with `X = tg_vec_x` and `Y = tg_vec_y`.
+        a_y_a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`, result of :math:
+            `A_Y A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
+        a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`, result of :math:
+            `A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
 
         References
         ----------
@@ -478,9 +483,9 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         if not gs.all(self.is_centered(base_point)):
             raise ValueError('The base_point does not belong to the pre-shape'
                              ' space')
-        if not gs.all(self.is_horizontal(tg_vec_x)):
+        if not gs.all(self.is_horizontal(tg_vec_x, base_point)):
             raise ValueError('Tangent vector x is not horizontal')
-        if not gs.all(self.is_horizontal(tg_vec_y)):
+        if not gs.all(self.is_horizontal(tg_vec_y, base_point)):
             raise ValueError('Tangent vector y is not horizontal')
         # hor_x = self.horizontal_projection(tangent_vec_x, base_point)
         # hor_y = self.horizontal_projection(tangent_vec_y, base_point)
@@ -495,20 +500,20 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         # \Omega_{XY} = \Sylv_P(Y^\top X)
         y_top_x = gs.matmul(Matrices.transpose(tg_vec_y), tg_vec_x)
         omega_xy = sylv_p(y_top_x)
-
         # V  =  P \Omega_{XY}
         tg_vec_v = gs.matmul(base_point, omega_xy)
 
-        # F_2 =  \|X\|^2 P^\top Y  + 3V^\top X  - \scal{X}{Y}  P^\top X
-        p_top_x = gs.matmul(Matrices.transpose(base_point), tg_vec_x)
-        p_top_y = gs.matmul(Matrices.transpose(base_point), tg_vec_y)
-        v_top_x = gs.matmul(Matrices.transpose(tg_vec_v), tg_vec_x)
-        v_top_y = gs.matmul(Matrices.transpose(tg_vec_v), tg_vec_y)
+        p_top_x = gs.matmul(p_top, tg_vec_x)
+        p_top_y = gs.matmul(p_top, tg_vec_y)
+        v_top = Matrices.transpose(tg_vec_v)
+        v_top_x = gs.matmul(v_top, tg_vec_x)
+        v_top_y = gs.matmul(v_top, tg_vec_y)
 
-        sq_norm_x = Matrices.frobenius_product(tg_vec_x, tg_vec_x)
-        # could use self.ambient_metric.inner_product(tg_vec_x, tg_vec_x) ?
+        scal_x_x = Matrices.frobenius_product(tg_vec_x, tg_vec_x)
         scal_x_y = Matrices.frobenius_product(tg_vec_x, tg_vec_y)
-        tg_vec_f2 = sq_norm_x * p_top_y + 3 * v_top_x - scal_x_y * p_top_x
+
+        # F_2 =  \|X\|^2 P^\top Y  + 3V^\top X  - \scal{X}{Y}  P^\top X
+        tg_vec_f2 = scal_x_x * p_top_y + 3 * v_top_x - scal_x_y * p_top_x
 
         # \Omega_f2 = \Sylv_P ( F_2 )
         omega_f2 = sylv_p(tg_vec_f2 )
@@ -516,6 +521,12 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         # \partial_X V = P  \Omega_f2 + X \Omega_{XY}
         partial_x_v = gs.matmul(base_point, omega_f2) \
                       + gs.matmul(tg_vec_x, omega_xy)
+
+        # \nabla^S_X V = \partial_X V + \scal{X}{V} P
+        scal_x_v = Matrices.frobenius_product(tg_vec_x, tg_vec_v)
+        nabla_x_a_x_y = partial_x_v + scal_x_v * base_point
+
+        ######################
 
         # \Omega_{YV}  =  \Sylv_P(V^\top Y)
         omega_yv = sylv_p(v_top_y)
@@ -543,10 +554,6 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         tg_vec_f5 = (sq_norm_v - scal_x_y * scal_p_v + scal_y_partial_x_v) * \
                     base_point + scal_y_v * tg_vec_x
 
-        # \nabla^S_X V = \partial_X V + \scal{X}{V} P
-        scal_x_v = Matrices.frobenius_product(tg_vec_x, tg_vec_v)
-        nabla_x_a_x_y = partial_x_v + scal_x_v * base_point
-
         # \nabla^{S}_X (A_Y A_X Y)}  = P \Omega_f3  + X \Omega_{YV}
         #     + Y \Omega_4 + V \Omega_{XY} + F_5 + \scal{X}{A_Y V} P
         ## This can be computed more efficiently with precomputed quantities
@@ -559,8 +566,90 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             + gs.matmul(tg_vec_v, omega_xy) + tg_vec_f5 \
             + Matrices.frobenius_product(tg_vec_x, a_y_a_x_y) * base_point
 
-        return nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, nabla_x_a_x_y
+        return nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, nabla_x_a_x_y, a_y_a_x_y, \
+               tg_vec_v
 
+
+    def nabla_x_a_y_z(self, tg_vec_x, tg_vec_y, tg_vec_z, base_point):
+        r"""Compute derivatives of the integrability tensor A.
+
+        The covariant derivative :math: `\nabla_X^S (A_Y Z)` is useful to
+        check the skew symmetry of the derivatives of the integrability
+        tensor A. It is computed here along with :math: `A_Y Z` for the
+        Kendall shape space.
+
+        Parameters
+        ----------
+        tg_vec_x : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        tg_vec_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        tg_vec_z : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Point of the total space.
+
+        Returns
+        -------
+        nabla_x_a_y_z : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`, result of :math: `\nabla_X^S
+            (A_Y Z)` with `X = tg_vec_x`, `Y = tg_vec_y` and `Z = tg_vec_z`.
+        a_y_z : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`, result of :math:
+            `A_Y Z` with `Y = tg_vec_y` and `Z = tg_vec_z`.
+
+        References
+        ----------
+        X Pennec. To be published.
+        """
+        # Vectors X and Y have to be horizontal.
+        if not gs.all(self.is_centered(base_point)):
+            raise ValueError('The base_point does not belong to the pre-shape'
+                             ' space')
+        if not gs.all(self.is_horizontal(tg_vec_x, base_point)):
+            raise ValueError('Tangent vector x is not horizontal')
+        if not gs.all(self.is_horizontal(tg_vec_y, base_point)):
+            raise ValueError('Tangent vector y is not horizontal')
+        if not gs.all(self.is_horizontal(tg_vec_z, base_point)):
+            raise ValueError('Tangent vector z is not horizontal')
+        # hor_x = self.horizontal_projection(tangent_vec_x, base_point)
+        # hor_y = self.horizontal_projection(tangent_vec_y, base_point)
+
+        p_top = Matrices.transpose(base_point)
+        p_top_p = gs.matmul(p_top, base_point)
+
+        def sylv_p(mat_b):
+            return gs.linalg.solve_sylvester(
+                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
+
+        #\Omega_{YZ}  = \Sylv_P(Z^\top Y)
+        z_top = Matrices.transpose(tg_vec_z)
+        z_top_y = gs.matmul(z_top, tg_vec_y)
+        omega_yz = sylv_p(z_top_y)
+        a_y_z = gs.matmul(base_point, omega_yz)
+        # E = X \Sylv_P(Z^\top Y)
+        tg_vec_e = gs.matmul(tg_vec_x, omega_yz)
+
+        # these two computations could be inline to avoid repeating some
+        # computations
+        a_x_y = self.integrability_tensor(tg_vec_x, tg_vec_y, base_point)
+        a_x_z = self.integrability_tensor(tg_vec_x, tg_vec_z, base_point)
+        scal_x_y = Matrices.frobenius_product(tg_vec_x, tg_vec_y)
+        scal_x_z = Matrices.frobenius_product(tg_vec_x, tg_vec_z)
+        scal_x_a_y_z = Matrices.frobenius_product(tg_vec_x, a_y_z)
+
+        # F = Z^\top (A_X Y-\scal{X}{Y}P) + (A_X Z-\scal{X}{Z}P)^\top Y
+        #    + 2  P^\top E
+        tg_vec_f = gs.matmul(z_top, a_x_y -scal_x_y * base_point) \
+            + gs.matmul(Matrices.transpose(a_x_z -scal_x_z * base_point),
+                                           tg_vec_y) \
+            + 2. * gs.matmul(p_top, tg_vec_e)
+
+        # \nabla^S_X ( A_Y Z)} = P \Sylv_P(F) + E  + \scal{X}{A_Y Z} P.
+        nabla_x_a_y_z = gs.matmul(base_point, sylv_p(tg_vec_f)) \
+            + tg_vec_e + scal_x_a_y_z * base_point
+
+        return nabla_x_a_y_z, a_y_z
 
 class PreShapeMetric(RiemannianMetric):
     """Procrustes metric on the pre-shape space.
