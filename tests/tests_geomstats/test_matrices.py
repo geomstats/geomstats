@@ -244,3 +244,14 @@ class TestMatrices(geomstats.tests.TestCase):
         base_point = gs.reshape(gs.arange(6), (2, 3))
         result = self.space.is_diagonal(base_point)
         self.assertTrue(~result)
+
+    def test_math_vec_unvec(self):
+        matrix_list = self.space_nonsquare.random_point(n_samples=1)
+        result = self.space_nonsquare.math_unvec(
+            self.space_nonsquare.math_vec(matrix_list))
+        self.assertAllClose(result, matrix_list)
+
+        matrix_list = self.space_nonsquare.random_point(n_samples=2)
+        result = self.space_nonsquare.math_unvec(
+            self.space_nonsquare.math_vec(matrix_list))
+        self.assertAllClose(result, matrix_list)
