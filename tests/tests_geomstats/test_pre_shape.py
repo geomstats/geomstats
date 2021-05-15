@@ -420,3 +420,70 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(kappa, kappa_direct)
         result = (kappa > 1.0 - 1e-12)
         self.assertTrue(gs.all(result))
+
+    def test_derivatives_integrability_tensor(self):
+        space = self.space
+        scal = Matrices.frobenius_product
+
+        base_point = space.random_point()
+        vector = gs.random.rand(
+            3, self.k_landmarks, self.m_ambient)
+        tg_vec_x = space.to_tangent(vector[0], base_point)
+        hor_x = space.horizontal_projection(tg_vec_x, base_point)
+        tg_vec_y = space.to_tangent(vector[1], base_point)
+        hor_y = space.horizontal_projection(tg_vec_y, base_point)
+        tg_vec_z = space.to_tangent(vector[2], base_point)
+        hor_z = space.horizontal_projection(tg_vec_z, base_point)
+
+        nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, nabla_x_a_x_y, a_y_a_x_y, \
+        a_x_y \
+            = space.nabla_x_a_y_a_x_y(hor_x, hor_y, base_point)
+
+        nabla_x_a_y_z, a_y_z \
+            = space.nabla_x_a_y_z(hor_x, hor_y, hor_z, base_point)
+
+        nabla_x_a_y_x, a_y_x \
+            = space.nabla_x_a_y_z(hor_x, hor_y, hor_x, base_point)
+
+        nabla_x_a_z_y, a_z_y \
+            = space.nabla_x_a_y_z(hor_x, hor_z, hor_y, base_point)
+        self.assertAllClose(a_z_y, -a_y_z)
+
+        # a_x_y = space.integrability_tensor(hor_x, hor_y, base_point)
+        a_x_z = space.integrability_tensor(hor_x, hor_z, base_point)
+
+        # Test \scal{\nabla^S_X (A_X Y)}{Z} + \scal{A_X Y}{ A_X Z} =0
+        result = scal(nabla_x_a_x_y, hor_z) + scal(a_x_y, a_x_z)
+        self.assertAllClose(result, 0.0)
+        print('test 1 passed')
+
+        # Test \scal{A_Y Z}{Z} =0
+        # result= scal(a_y_z, hor_z)
+        # self.assertAllClose(result, 0.0)
+        # print('test 2a passed')
+
+        # Test \scal{\nabla^S_X (A_Y Z)}{Z} + \scal{A_Y Z}{ A_X Z} =0
+        result = scal(nabla_x_a_y_z, hor_z) + scal(a_y_z, a_x_z)
+        self.assertAllClose(result, 0.0)
+        print('test 2 passed')
+
+        # Test \nabla_X^S ( A_Y Z) + \nabla_X^S ( A_Z Y) = 0
+        result = nabla_x_a_y_z
+        expected = - nabla_x_a_z_y
+        self.assertAllClose(result, expected)
+        print('test 3a passed')
+
+        ## This test does not pass
+        # Test \nabla_X^S ( A_X Y) + \nabla_X^S ( A_Y X) = 0
+        result = nabla_x_a_x_y
+        expected = - nabla_x_a_y_x
+        self.assertAllClose(result, expected)
+        print('test 3b NOT passed yet....')
+
+        # test the identity \scal{\nabla^S_X (A_Y A_X Y)}{Z}
+        #  + \scal{A_Y A_X Y}{ A_X Z} +  \scal{\nabla^S_X ( A_Y Z) }{A_X Y}
+        #  + \scal{A_Y Z}{\nabla^S_X A_X Y}
+        result = scal(nabla_x_a_y_a_x_y, hor_z) \
+            + scal(a_y_a_x_y, a_x_z) + scal(nabla_x_a_y_z, a_x_y) \
+            + scal(a_y_z, nabla_x_a_x_y)
+        self.assertAllClose(result, 0.0)
