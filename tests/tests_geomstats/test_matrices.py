@@ -257,3 +257,14 @@ class TestMatrices(geomstats.tests.TestCase):
             result = self.metric.norm(mat)
             expected = self.space.frobenius_product(mat, mat) ** .5
             self.assertAllClose(result, expected)
+
+    def test_math_vec_unvec(self):
+        matrix_list = self.space_nonsquare.random_point(n_samples=1)
+        result = self.space_nonsquare.math_unvec(
+            self.space_nonsquare.math_vec(matrix_list))
+        self.assertAllClose(result, matrix_list)
+
+        matrix_list = self.space_nonsquare.random_point(n_samples=2)
+        result = self.space_nonsquare.math_unvec(
+            self.space_nonsquare.math_vec(matrix_list))
+        self.assertAllClose(result, matrix_list)
