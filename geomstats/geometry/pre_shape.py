@@ -312,18 +312,19 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         left, singular_values, right = gs.linalg.svd(mat)
         det = gs.linalg.det(mat)
         conditioning = (
-            (singular_values[..., -2]
-             + gs.sign(det) * singular_values[..., -1]) /
-            singular_values[..., 0])
-        if gs.any(conditioning < 5e-4):
+                (singular_values[..., -2]
+                 + gs.sign(det) * singular_values[..., -1]) /
+                singular_values[..., 0])
+        if gs.any(conditioning < 1e-10):
             logging.warning(f'Singularity close, ill-conditioned matrix '
-                            f'encountered: {conditioning}')
+                            f'encountered: '
+                            f'{conditioning[conditioning < 1e-10]}')
         if gs.any(gs.isclose(conditioning, 0.)):
             logging.warning("Alignment matrix is not unique.")
         flipped = flip_determinant(Matrices.transpose(right), det)
         return Matrices.mul(point, left, Matrices.transpose(flipped))
 
-    def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
+    def integrability_tensor2(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the fundamental tensor A of the submersion.
 
         The fundamental tensor A is defined for tangent vectors of the total
@@ -377,6 +378,58 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         return vertical + horizontal_
 
+    def integrability_tensor(self, tangent_vec_x, tangent_vec_e, base_point):
+        r"""Compute the fundamental tensor A of the submersion.
+
+        The fundamental tensor A is defined for tangent vectors of the total
+        space by [O'Neill]_
+        :math: `A_X Y = ver\nabla^M_{hor X} (hor Y)
+            + hor \nabla^M_{hor X}( ver Y)`
+        where :math: `hor,ver` are the horizontal and vertical projections.
+
+        For the Kendall shape space, we have the closed-form expression at
+        base-point P:
+        :math: `A_X E = P Sylv_P(E^\top hor(X)) + F + <F,P> P` where  :math:
+        `F = hor(X) Sylv_P(P^\top E)` and :math: `Sylv_P(B)` is the
+        unique skew-symmetric matrix :math: `\Omega` solution of
+        :math: `P^\top P \Omega + \Omega P^\top P = B - B^\top`.
+
+        Parameters
+        ----------
+        tangent_vec_x : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        tangent_vec_e : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Point of the total space.
+
+        Returns
+        -------
+        vector : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`, result of the A tensor applied to
+            `tangent_vec_x` and `tangent_vec_e`.
+
+        References
+        ----------
+        [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a Submersion,
+        Michigan Mathematical Journal 13, no. 4 (December 1966): 459–69.
+        https://doi.org/10.1307/mmj/1028999604.
+        """
+        hor_x = self.horizontal_projection(tangent_vec_x, base_point)
+        p_top = Matrices.transpose(base_point)
+        p_top_p = gs.matmul(p_top, base_point)
+        e_top_hor_x = gs.matmul(Matrices.transpose(tangent_vec_e), hor_x)
+        sylv_e_top_hor_x = gs.linalg.solve_sylvester(
+            p_top_p, p_top_p, e_top_hor_x - Matrices.transpose(e_top_hor_x))
+
+        p_top_e = gs.matmul(p_top, tangent_vec_e)
+        sylv_p_top_e = gs.linalg.solve_sylvester(
+            p_top_p, p_top_p, p_top_e - Matrices.transpose(p_top_e))
+        tensor_f = gs.matmul(hor_x, sylv_p_top_e)
+        result = gs.matmul(base_point, sylv_e_top_hor_x) + tensor_f + \
+                 Matrices.frobenius_product(tensor_f, base_point) * base_point
+
+        return result
 
 class PreShapeMetric(RiemannianMetric):
     """Procrustes metric on the pre-shape space.
