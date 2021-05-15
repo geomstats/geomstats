@@ -377,6 +377,20 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         is_horizontal = space.is_horizontal(result, base_point)
         self.assertTrue(is_horizontal)
 
+    def test_integrability_tensor2(self):
+        space = self.space
+        base_point = space.random_point()
+        vector = gs.random.rand(
+            2, self.k_landmarks, self.m_ambient)
+        tangent_vec_x = space.to_tangent(vector[0], base_point)
+        tangent_vec_e = space.to_tangent(vector[1], base_point)
+
+        result = space.integrability_tensor2(
+            tangent_vec_x, tangent_vec_e, base_point)
+        expected = space.integrability_tensor(
+            tangent_vec_x, tangent_vec_e, base_point)
+        self.assertAllClose(result, expected)
+
     def test_kendall_directional_curvature(self):
         space = self.space
         kendall = KendallShapeMetric(m_ambient=self.m_ambient,
