@@ -5,19 +5,17 @@ from geomstats.learning.frechet_mean import FrechetMean
 
 
 class RiemannianMinimumDistanceToMeanClassifier:
-    """
-    Classifier implementing the MDM scheme on manifolds.
+    """Classifier implementing the MDM scheme on manifolds.
 
-    Attributes
+    Parameters
     ----------
-    riemannian_metric : string or callable.
-        The distance metric to use.
-    n_clusters: int, number of clusters.
-    mean_estimates_: array-like, shape=[n_classes, n_features] if
-    point_type='vector'
-                   shape=[n_classes, n_features, n_features]
-                    if point_type='matrix'
-       Frechet means of each class.
+    riemannian_metric : RiemannianMetric
+        Riemannian metric to be Used.
+    n_clusters: int
+        Number of clusters.
+    point_type : str, {\'vector\', \'matrix\'}
+        Point type.
+        Optional, default: \'matrix\'.
     """
 
     def __init__(
@@ -31,21 +29,18 @@ class RiemannianMinimumDistanceToMeanClassifier:
         self.mean_estimates_ = None
 
     def fit(self, X, y):
-        """
-        Compute Frechet mean of each class.
-
-        Stores the mean in the class attributes mean_estimates_.
+        """Compute Frechet mean of each class.
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, n_features]
+        X : array-like, shape=[n_samples, dim]
                               if point_type='vector'
-                              shape=[n_samples, n_features, n_features]
+                              shape=[n_samples, n, n]
                               if point_type='matrix'
-                  Training data, where n_samples is the number of samples
-                  and n_features is the number of features.
+            Training data, where n_samples is the number of samples
+            and n_features is the number of features.
         y : array-like, shape=[n_samples, n_classes]
-                  Training labels, where n_classes is the number of classes.
+            Training labels, where n_classes is the number of classes.
         """
         mean_estimator = FrechetMean(
             metric=self.riemannian_metric,
@@ -53,7 +48,6 @@ class RiemannianMinimumDistanceToMeanClassifier:
         frechet_means = []
         for c in range(self.n_clusters):
             data_class = self.split_data_in_classes(X, y, c)
-            # frechet_means.append(mean_estimator.fit(data_class).estimate_[0])
             frechet_means.append(mean_estimator.fit(data_class).estimate_)
         self.mean_estimates_ = gs.array(frechet_means)
 
@@ -85,30 +79,29 @@ class RiemannianMinimumDistanceToMeanClassifier:
 
     @staticmethod
     def split_data_in_classes(X, y, c):
-        """
-        Split a labelled dataset in sub-datasets of each label.
+        """Split a labelled dataset in sub-datasets of each label.
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, n_features]
+        X : array-like, shape=[n_samples, dim]
                               if point_type='vector'
-                              shape=[n_samples, n_features, n_features]
+                              shape=[n_samples, n, n]
                               if point_type='matrix'
-                  Labelled dataset, where n_samples is the number of samples
-                  and n_features is the number of features.
+            Labelled dataset, where n_samples is the number of samples
+            and n_features is the number of features.
         y : array-like, shape=[n_samples, n_classes]
-                  Labels, where n_classes is the number of classes.
+            Labels, where n_classes is the number of classes.
         c : int
-                  Class index
+            Class index
 
         Returns
         -------
-        X_split : array-like, shape=[n_samples_in_class, n_features]
+        X_split : array-like, shape=[n_samples_in_class, dim]
                              if point_type='vector'
-                             shape=[n_samples_in_class, n_features, n_features]
+                             shape=[n_samples_in_class, n, n]
                              if point_type='matrix'
-                  Labelled dataset,
-                  where n_samples_in_class is the number of samples in class c
+            Labelled dataset,
+            where n_samples_in_class is the number of samples in class c
         """
         X_split = X[gs.where(gs.where(y)[1] == c)]
         return X_split
