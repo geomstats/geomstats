@@ -592,8 +592,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         initial_state = gs.stack(
             [base_point, group.to_tangent(left_angular_vel)])
         flow = integrate(
-            lie_acceleration, initial_state, n_steps=n_steps, step=step,
-            **kwargs)
+            lie_acceleration, initial_state, n_steps=n_steps, step=step)
         return flow[-1][0]
 
     def log(self, point, base_point, n_steps=15, step='rk4',
@@ -654,7 +653,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
     def parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=10,
-            step='rk4', **kwargs):
+            step='rk4', return_endpoint=False):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Approximate solution for the parallel transport of a tangent vector a
@@ -677,11 +676,17 @@ class _InvariantMetricMatrix(RiemannianMetric):
         step : str, {'euler', 'rk2', 'rk4'}
             Scheme to use for the approximation of the solution of the ODE
             Optional, default : rk4
+        return_endpoint : bool
+            Whether the end-point of the geodesic should be returned.
+            Optional, default : False.
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., n + 1, n + 1]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+        end_point : array-like, shape=[..., n + 1, n + 1]
+            `exp_(base_point)(tangent_vec_b)`, only returned if
+            `return_endpoint` is set to `True`.
 
         See Also
         --------
@@ -718,11 +723,11 @@ class _InvariantMetricMatrix(RiemannianMetric):
         initial_state = gs.stack([
             base_point, left_angular_vel_b, left_angular_vel_a])
         flow = integrate(
-            acceleration, initial_state, n_steps=n_steps, step=step, **kwargs)
+            acceleration, initial_state, n_steps=n_steps, step=step)
         gamma, _, zeta_t = flow[-1]
         transported = group.tangent_translation_map(
             gamma, left_or_right=self.left_or_right, inverse=False)(zeta_t)
-        return transported
+        return (transported, gamma) if return_endpoint else transported
 
     def geodesic_equation(self, state, _time):
         r"""Compute the geodesic ODE associated with the invariant metric.

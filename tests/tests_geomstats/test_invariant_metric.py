@@ -801,7 +801,9 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
         expected = group.left_canonical_metric.parallel_transport(
             tan_a, tan_b, point)
-        result = metric.parallel_transport(
-            tan_a, tan_b, point, n_steps=20, step='rk4')
+        result, end_point_result = metric.parallel_transport(
+            tan_a, tan_b, point, n_steps=20, step='rk4', return_endpoint=True)
+        expected_end_point = metric.exp(tan_b, point, n_steps=20)
 
+        self.assertAllClose(end_point_result, expected_end_point)
         self.assertAllClose(expected, result)
