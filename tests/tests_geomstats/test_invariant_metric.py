@@ -778,26 +778,20 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         self.assertTrue(belongs)
 
     def test_integrated_parallel_transport(self):
-        def is_isometry(tan_a, trans_a, basepoint, endpoint):
-            is_tangent = group.is_tangent(trans_a, endpoint, atol=1e-6)
-            is_equinormal = gs.isclose(
-                metric.norm(trans_a, endpoint),
-                metric.norm(tan_a, basepoint))
-            return gs.logical_and(is_tangent, is_equinormal)
-
         group = self.matrix_se3
         metric = InvariantMetric(group=group)
         n = 3
+        n_samples = 2
 
         point = group.identity
-        tan_b = Matrices(n + 1, n + 1).random_point()
+        tan_b = Matrices(n + 1, n + 1).random_point(n_samples)
         tan_b = group.to_tangent(tan_b)
 
         # use a vector orthonormal to tan_b
-        tan_a = Matrices(n + 1, n + 1).random_point()
+        tan_a = Matrices(n + 1, n + 1).random_point(n_samples)
         tan_a = group.to_tangent(tan_a)
-        tan_a[..., 0, -1] -= gs.sum(
-            tan_b * tan_a, axis=(-1, -2)) / tan_b[..., 0, -1]
+        coef = metric.inner_product(tan_a, tan_b) / metric.squared_norm(tan_b)
+        tan_a -= gs.einsum('...,...ij->...ij', coef, tan_b)
         tan_b = gs.einsum(
             '...ij,...->...ij', tan_b,
             1. / metric.norm(tan_b, base_point=point))
@@ -805,16 +799,9 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             '...ij,...->...ij', tan_a,
             1. / metric.norm(tan_a, base_point=point))
 
-        # normalize and move to base_point
-        # tan_b = group.compose(point, tan_b)
-        # tan_a = group.compose(point, tan_a)
+        expected = group.left_canonical_metric.parallel_transport(
+            tan_a, tan_b, point)
+        result = metric.parallel_transport(
+            tan_a, tan_b, point, n_steps=20, step='rk4')
 
-        transported = group.left_canonical_metric.parallel_transport(
-            tan_a, tan_b, point)
-        transported_, end_point = metric.parallel_transport(
-            tan_a, tan_b, point)
-        true_endpoint = group.left_canonical_metric.exp(
-            tan_b, point)
-        expected_end_point = metric.exp(tan_b, point)
-        self.assertAllClose(end_point, expected_end_point)
-        self.assertAllClose(transported, transported_)
+        self.assertAllClose(expected, result)

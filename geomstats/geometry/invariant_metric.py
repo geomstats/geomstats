@@ -655,6 +655,46 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=10,
             step='rk4', **kwargs):
+        r"""Compute the parallel transport of a tangent vec along a geodesic.
+
+        Approximate solution for the parallel transport of a tangent vector a
+        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        tangent_vec_b)`. The parallel transport equation is written entirely
+        in the Lie algbera and solved with an integration scheme.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n + 1, n + 1]
+            Tangent vector at base point to be transported.
+        tangent_vec_b : array-like, shape=[..., n + 1, n + 1]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        base_point : array-like, shape=[..., n + 1, n + 1]
+            Point on the hypersphere.
+        n_steps : int
+            Number of integration steps to take.
+            Optional, default : 10.
+        step : str, {'euler', 'rk2', 'rk4'}
+            Scheme to use for the approximation of the solution of the ODE
+            Optional, default : rk4
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[..., n + 1, n + 1]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+
+        See Also
+        --------
+        geomstats.integrator
+
+        References
+        ----------
+        [GP21]_    Guigui, Nicolas, and Xavier Pennec. “A Reduced Parallel
+                   Transport Equation on Lie Groups with a Left-Invariant
+                   Metric.” 5th conference on Geometric Science of Information,
+                   Paris 2021. Springer. Lecture Notes in Computer Science.
+                   https://hal.inria.fr/hal-03154318.
+        """
         group = self.group
         translation_map = group.tangent_translation_map(
             base_point,
@@ -668,13 +708,20 @@ class _InvariantMetricMatrix(RiemannianMetric):
             zeta_dot = - self.connection_at_identity(omega, zeta)
             return gs.stack([gam_dot, omega_dot, zeta_dot])
 
-        initial_state = (base_point, left_angular_vel_a, left_angular_vel_b)
+        if (base_point.ndim == 2 or base_point.shape[0] == 1) and \
+                (tangent_vec_a.ndim == 3 or tangent_vec_b.ndim == 3):
+            n_sample = tangent_vec_a.shape[0] if tangent_vec_a.ndim == 3 else\
+                tangent_vec_b.shape[0]
+            base_point = gs.stack([base_point] * n_sample)
+
+        initial_state = gs.stack([
+            base_point, left_angular_vel_b, left_angular_vel_a])
         flow = integrate(
             acceleration, initial_state, n_steps=n_steps, step=step, **kwargs)
         gamma, gamma_dot, zeta_t = flow[-1]
         transported = group.tangent_translation_map(
             gamma, left_or_right=self.left_or_right, inverse=False)(zeta_t)
-        return transported, gamma
+        return transported
 
     def geodesic_equation(self, state, _time):
         """Compute the right-hand side of the geodesic equation."""
@@ -1123,12 +1170,12 @@ class BiInvariantMetric(_InvariantMetricVector):
         return inner_prod
 
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
-        r"""Compute the parallel transport of a tangent vector.
+        r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Closed-form solution for the parallel transport of a tangent vector a
         along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
-        tangent_vec_b)`. As the special Euclidean group endowed with its
-        canonical left-invariant metric is a symmetric space, parallel
+        tangent_vec_b)`. As a Lie group endowed with its
+        canonical bi-invariant metric is a symmetric space, parallel
         transport is achieved by a geodesic symmetry, or equivalently, one step
          of the pole ladder scheme.
 
