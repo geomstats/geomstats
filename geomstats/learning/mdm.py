@@ -5,7 +5,7 @@ from geomstats.learning.frechet_mean import FrechetMean
 
 
 class RiemannianMinimumDistanceToMeanClassifier:
-    """Classifier implementing the MDM scheme on manifolds.
+    r"""Classifier implementing the MDM scheme on manifolds.
 
     Parameters
     ----------
@@ -61,13 +61,13 @@ class RiemannianMinimumDistanceToMeanClassifier:
                               if point_type='vector'
                               shape=[n_samples, n_features, n_features]
                               if point_type='matrix'
-                  Test data, where n_samples is the number of samples
-                  and n_features is the number of features.
+            Test data, where n_samples is the number of samples
+            and n_features is the number of features.
 
         Returns
         -------
         y : array-like, shape=[n_samples, n_classes]
-                    Predicted labels, where n_classes is the number of classes.
+            Predicted labels, where n_classes is the number of classes.
         """
         n_samples = X.shape[0]
         y = gs.zeros((n_samples, self.n_clusters))
@@ -101,7 +101,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
                              shape=[n_samples_in_class, n, n]
                              if point_type='matrix'
             Labelled dataset,
-            where n_samples_in_class is the number of samples in class c
+            Where n_samples_in_class is the number of samples in class c
         """
         X_split = X[gs.where(gs.where(y)[1] == c)]
         return X_split
