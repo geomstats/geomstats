@@ -185,8 +185,13 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n + 1, n + 1]
             Point to be inverted.
+
+        Returns
+        -------
+        inverse : array-like, shape=[..., n + 1, n + 1]
+            Inverse of point.
         """
         n = point.shape[-1] - 1
         transposed_rot = cls.transpose(point[..., :n, :n])
@@ -197,6 +202,22 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
             transposed_rot, -translation, point.shape)
 
     def projection(self, mat):
+        """Project a matrix on SE(n).
+
+        The upper-left n x n block is projected to SO(n) by minimizing the
+        Frobenius norm. The last columns is kept unchanged and used as the
+        translation part. The last row is discarded.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n + 1, n + 1]
+            Matrix.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., n + 1, n + 1]
+            Rotation-translation matrix in homogeneous representation.
+        """
         n = mat.shape[-1] - 1
         projected_rot = self.rotations.projection(mat[..., :n, :n])
         translation = mat[..., :n, -1]

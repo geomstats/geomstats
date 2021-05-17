@@ -703,13 +703,14 @@ class _InvariantMetricMatrix(RiemannianMetric):
         left_angular_vel_b = group.to_tangent(translation_map(tangent_vec_b))
 
         def acceleration(state, time):
-            point, omega, zeta = state
+            """Compute the right-hand-side of the parallel transport eq."""
+            omega, zeta = state[1:]
             gam_dot, omega_dot = self.geodesic_equation(state[:2], time)
             zeta_dot = - self.connection_at_identity(omega, zeta)
             return gs.stack([gam_dot, omega_dot, zeta_dot])
 
         if (base_point.ndim == 2 or base_point.shape[0] == 1) and \
-                (tangent_vec_a.ndim == 3 or tangent_vec_b.ndim == 3):
+                (3 in (tangent_vec_a.ndim, tangent_vec_b.ndim)):
             n_sample = tangent_vec_a.shape[0] if tangent_vec_a.ndim == 3 else\
                 tangent_vec_b.shape[0]
             base_point = gs.stack([base_point] * n_sample)
@@ -718,13 +719,33 @@ class _InvariantMetricMatrix(RiemannianMetric):
             base_point, left_angular_vel_b, left_angular_vel_a])
         flow = integrate(
             acceleration, initial_state, n_steps=n_steps, step=step, **kwargs)
-        gamma, gamma_dot, zeta_t = flow[-1]
+        gamma, _, zeta_t = flow[-1]
         transported = group.tangent_translation_map(
             gamma, left_or_right=self.left_or_right, inverse=False)(zeta_t)
         return transported
 
     def geodesic_equation(self, state, _time):
-        """Compute the right-hand side of the geodesic equation."""
+        r"""Compute the geodesic ODE associated with the invariant metric.
+
+        This is a reduced geodesic equation written entirely in the Lie
+        algebra. It is known as Euler-Poincare equation.
+        .. math:
+                        \dot{\gamma}(t) = (dL_{\gamma(t)}) X(t)
+                        \dot{X}(t) = ad^*_{X(t)}X(t)
+
+        Parameters
+        ----------
+        state : array-like, shape=[..., dim]
+            Tangent vector at the position.
+        _time : array-like, shape=[..., dim]
+            Point on the manifold, the position at which to compute the
+            geodesic ODE.
+
+        Returns
+        -------
+        geodesic_ode : array-like, shape=[..., dim]
+            Value of the vector field to be integrated at position.
+        """
         sign = 1. if self.left_or_right == 'left' else -1.
         basis = self.normal_basis(self.lie_algebra.basis)
 
