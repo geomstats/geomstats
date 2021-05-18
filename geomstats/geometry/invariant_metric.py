@@ -589,7 +589,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         if (base_point.ndim == 2 or base_point.shape[0] == 1) and \
                 tangent_vec.ndim == 3:
             base_point = gs.stack([base_point] * len(tangent_vec))
-            base_point = base_point.reshape(tangent_vec.shape)
+            base_point = gs.reshape(base_point, tangent_vec.shape)
         initial_state = gs.stack(
             [base_point, group.to_tangent(left_angular_vel)])
         flow = integrate(
