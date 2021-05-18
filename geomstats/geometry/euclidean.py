@@ -18,8 +18,7 @@ class Euclidean(Manifold):
     """
 
     def __init__(self, dim):
-        super(Euclidean, self).__init__(dim=dim)
-        self.metric = EuclideanMetric(dim)
+        super(Euclidean, self).__init__(dim=dim, metric=EuclideanMetric(dim))
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.

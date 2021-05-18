@@ -26,7 +26,7 @@ class Manifold(ABC):
     """
 
     def __init__(
-            self, dim, default_point_type='vector',
+            self, dim, metric=None, default_point_type='vector',
             default_coords_type='intrinsic', **kwargs):
         super(Manifold, self).__init__(**kwargs)
         geomstats.errors.check_integer(dim, 'dim')
@@ -36,6 +36,7 @@ class Manifold(ABC):
         self.dim = dim
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
+        self._metric = metric
 
     @abstractmethod
     def belongs(self, point, atol=gs.atol):
@@ -132,3 +133,14 @@ class Manifold(ABC):
         """
         regularized_point = point
         return regularized_point
+
+    @property
+    def metric(self):
+        return self._metric
+
+    @metric.setter
+    def metric(self, value):
+        if value.dim != self.dim:
+            raise ValueError('Dimension of the metric does not match the '
+                             'dimension of the manifold')
+        self._metric = value
