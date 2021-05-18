@@ -1,9 +1,10 @@
 """Manifold embedded in another manifold."""
+from abc import ABC, abstractmethod
 
 from geomstats.geometry.manifold import Manifold
 
 
-class EmbeddedManifold(Manifold):
+class EmbeddedManifold(Manifold, ABC):
     """Class for manifolds embedded in an embedding manifold.
 
     Parameters
@@ -60,6 +61,7 @@ class EmbeddedManifold(Manifold):
         raise NotImplementedError(
             'extrinsic_to_intrinsic_coords is not implemented.')
 
+    @abstractmethod
     def projection(self, point):
         """Project a point in embedding manifold on embedded manifold.
 
@@ -72,5 +74,4 @@ class EmbeddedManifold(Manifold):
         -------
             Projected point.
         """
-        raise NotImplementedError(
-            'projection is not implemented.')
+        pass

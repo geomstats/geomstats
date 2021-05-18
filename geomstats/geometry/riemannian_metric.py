@@ -1,4 +1,5 @@
 """Riemannian and pseudo-Riemannian metrics."""
+from abc import ABC, abstractmethod
 
 import autograd
 import joblib
@@ -72,7 +73,7 @@ def grad(y_pred, y_true, metric):
     return loss_grad
 
 
-class RiemannianMetric(Connection):
+class RiemannianMetric(Connection, ABC):
     """Class for Riemannian and pseudo-Riemannian metrics.
 
     Parameters
