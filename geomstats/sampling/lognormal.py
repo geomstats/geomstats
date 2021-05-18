@@ -1,4 +1,5 @@
 import geomstats.geometry.spd_matrices as spd
+import geomstats.backend as gs
 
 class LogNormal:
     """ LogNormal Sampler (Currently only done for SPDmanifold,EuclideanSpace)
