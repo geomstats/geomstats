@@ -339,3 +339,9 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         translated = group.tangent_translation_map(point)(self.tangent_vec)
         result = group.left_canonical_metric.norm(translated)
         self.assertAllClose(result, expected)
+
+    def test_projection_and_belongs(self):
+        mat = gs.random.rand(*self.group.identity.shape)
+        projected = self.group.projection(mat)
+        result = self.group.belongs(projected)
+        self.assertTrue(result)
