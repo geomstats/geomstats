@@ -42,11 +42,14 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
     default_point_type = 'vector'
 
     def __init__(self, dim, coords_type='extrinsic', scale=1):
+        minkowski = Minkowski(dim + 1)
         super(Hyperboloid, self).__init__(
-            dim=dim, scale=scale, embedding_manifold=Minkowski(dim + 1))
+            dim=dim, scale=scale, embedding_manifold=minkowski,
+            submersion=lambda x: minkowski.metric.squared_norm(x) + 1.,
+            tangent_submersion=lambda v, x: minkowski.metric.inner_product(
+                v, x))
         self.coords_type = coords_type
         self.point_type = Hyperboloid.default_point_type
-        self.embedding_metric = self.embedding_manifold.metric
         self.metric =\
             HyperboloidMetric(self.dim, self.coords_type, self.scale)
 
@@ -80,11 +83,10 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
                 belongs = gs.tile([belongs], (point.shape[0],))
             return belongs
 
-        sq_norm = self.embedding_metric.squared_norm(point)
-        euclidean_sq_norm = gs.sum(point ** 2, axis=-1)
-        diff = gs.abs(sq_norm + 1)
-        belongs = diff < atol * euclidean_sq_norm
-        return belongs
+        return super(Hyperboloid, self).belongs(point, atol)
+
+    def projection(self, point):
+        return self.regularize(point)
 
     def regularize(self, point):
         """Regularize a point to the canonical representation.

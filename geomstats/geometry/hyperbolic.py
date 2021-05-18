@@ -9,7 +9,7 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class Hyperbolic(Manifold):
+class Hyperbolic:
     """Class for the n-dimensional hyperbolic space.
 
     Class for the n-dimensional hyperbolic space
@@ -39,6 +39,7 @@ class Hyperbolic(Manifold):
 
     def __init__(self, dim, scale=1, **kwargs):
         super(Hyperbolic, self).__init__(dim=dim, **kwargs)
+        self.dim = dim
         self.point_type = Hyperbolic.default_point_type
         self.coords_type = Hyperbolic.default_coords_type
         self.scale = scale
@@ -386,29 +387,6 @@ class Hyperbolic(Manifold):
         return \
             coords_transform['extrinsic-' +
                              to_coordinates_system](extrinsic)
-
-    def belongs(self, point, atol=gs.atol):
-        """Test if a point belongs to the hyperbolic space.
-
-        Test if a point belongs to the hyperbolic space in
-        its hyperboloid representation.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point to be tested.
-        atol : float
-            Tolerance at which to evaluate how close the squared norm
-            is to the reference value.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        belongs : array-like, shape=[..., 1]
-            Array of booleans indicating whether the corresponding points
-            belong to the hyperbolic space.
-        """
-        raise NotImplementedError
 
     def to_coordinates(self, point, to_coords_type='ball'):
         """Convert coordinates of a point.

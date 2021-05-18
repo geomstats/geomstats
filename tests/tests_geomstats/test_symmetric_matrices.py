@@ -125,3 +125,9 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         mat = self.space.random_point()
         result = self.space.belongs(mat)
         self.assertTrue(result)
+
+    def test_dim(self):
+        result = self.space.dim
+        n = self.space.n
+        expected = int(n * (n + 1) / 2)
+        self.assertAllClose(result, expected)

@@ -2,11 +2,12 @@
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.embedded_manifold import OpenSet
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class Minkowski(Manifold):
+class Minkowski(OpenSet):
     """Class for Minkowski space.
 
     Parameters
@@ -16,51 +17,14 @@ class Minkowski(Manifold):
     """
 
     def __init__(self, dim):
-        super(Minkowski, self).__init__(dim=dim)
+        super(Minkowski, self).__init__(dim=dim,
+                                        ambient_manifold=Euclidean(dim))
         self.metric = MinkowskiMetric(dim)
 
-    def belongs(self, point):
-        """Evaluate if a point belongs to the Minkowski space.
+    def belongs(self, point, atol=gs.atol):
+        return self.ambient_manifold.belongs(point, atol)
 
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point to evaluate.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the Minkowski space.
-        """
-        point_dim = point.shape[-1]
-        belongs = point_dim == self.dim
-        if gs.ndim(point) == 2:
-            belongs = gs.tile([belongs], (point.shape[0],))
-
-        return belongs
-
-    def random_point(self, n_samples=1, bound=1.):
-        """Sample in the Minkowski space from the uniform distribution.
-
-        Parameters
-        ----------
-        n_samples: int
-            Number of samples.
-            Optional, default: 1
-        bound : float
-            Side of hypercube support of the uniform distribution.
-            Optional, default: 1
-
-        Returns
-        -------
-        points : array-like, shape=[..., dim]
-            Sample.
-        """
-        size = (self.dim,)
-        if n_samples != 1:
-            size = (n_samples, self.dim)
-        point = bound * gs.random.rand(*size) * 2 - 1
-
+    def projection(self, point):
         return point
 
 
