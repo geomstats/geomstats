@@ -33,15 +33,16 @@ class LogNormal:
         sym_matrix = SPDmanifold.logm(self.mean)
 
         mean_euclidean = gs.hstack((sym_matrix[i,i],gs.sqrt(2)*sym_matrix[j,k]))
-        samples_spd = gs.zeros((samples,self.n,self.n))
+        _samples = gs.zeros((samples,self.n,self.n))
         samples_euclidean = gs.random.multivariate_normal(mean_euclidean, self.cov, samples)
-        samples_spd[:,i,i] = samples_euclidean[:,:self.n]
-        samples_spd[:,j,k] = samples_euclidean[:,self.n:]/gs.sqrt(2)
-        samples_spd = SPDmanifold.expm(samples_spd)
+        _samples[:,i,i] = samples_euclidean[:,:self.n]
+        _samples[:,j,k] = samples_euclidean[:,self.n:]/gs.sqrt(2)
+        samples_spd = SPDmanifold.expm(_samples)
         return samples_spd
 
     def _sample_euclidean(self,samples):
-        pass    
+        _samples = gs.random.multivariate_normal(self.mean, self.cov, samples) 
+        return gs.exp(_samples)
 
     def sample(self,samples=1):
 
