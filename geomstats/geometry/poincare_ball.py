@@ -7,6 +7,8 @@ import logging
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
+from geomstats.geometry.embedded_manifold import OpenSet
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -16,7 +18,7 @@ PI_2_3 = gs.power(gs.array([2. * gs.pi]), gs.array([2 / 3]))
 SQRT_2 = gs.sqrt(2.)
 
 
-class PoincareBall(Hyperbolic):
+class PoincareBall(Hyperbolic, OpenSet):
     """Class for the n-dimensional hyperbolic space.
 
     Class for the n-dimensional hyperbolic space
@@ -36,9 +38,9 @@ class PoincareBall(Hyperbolic):
     default_point_type = 'vector'
 
     def __init__(self, dim, scale=1):
-        super(PoincareBall, self).__init__(
-            dim=dim,
-            scale=scale)
+        super(PoincareBall, self).__init__(dim=dim,
+                                           ambient_manifold=Euclidean(dim),
+                                           scale=scale)
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
         self.metric = PoincareBallMetric(self.dim, self.scale)

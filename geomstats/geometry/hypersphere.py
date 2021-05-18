@@ -35,40 +35,9 @@ class _Hypersphere(EmbeddedManifold):
     def __init__(self, dim):
         super(_Hypersphere, self).__init__(
             dim=dim,
-            embedding_manifold=Euclidean(dim + 1))
-        self.embedding_metric = self.embedding_manifold.metric
-
-    def belongs(self, point, atol=gs.atol):
-        """Test if a point belongs to the hypersphere.
-
-        This tests whether the point's squared norm in Euclidean space is 1.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim + 1]
-            Point in Euclidean space.
-        atol : float
-            Tolerance at which to evaluate norm == 1.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the hypersphere.
-        """
-        point_dim = gs.shape(point)[-1]
-        if point_dim != self.dim + 1:
-            if point_dim is self.dim:
-                logging.warning(
-                    'Use the extrinsic coordinates to '
-                    'represent points on the hypersphere.')
-            belongs = False
-            if gs.ndim(point) == 2:
-                belongs = gs.tile([belongs], (point.shape[0],))
-            return belongs
-        sq_norm = gs.sum(point ** 2, axis=-1)
-        diff = gs.abs(sq_norm - 1)
-        return gs.less_equal(diff, atol)
+            embedding_manifold=Euclidean(dim + 1),
+            submersion=lambda x: gs.sum(x ** 2, axis=-1) - 1.,
+            tangent_submersion=lambda v, x: 2 * gs.sum(x * v, axis=-1))
 
     def regularize(self, point):
         """Regularize a point to the canonical representation.
@@ -135,27 +104,6 @@ class _Hypersphere(EmbeddedManifold):
         tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
 
         return tangent_vec
-
-    def is_tangent(self, vector, base_point, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., dim]
-            Vector.
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_tangent : bool
-            Boolean denoting if vector is a tangent vector at the base point.
-        """
-        inner_prod = self.embedding_metric.inner_product(base_point, vector)
-        return gs.isclose(inner_prod, 0., atol=atol)
 
     def spherical_to_extrinsic(self, point_spherical):
         """Convert point from spherical to extrinsic coordinates.

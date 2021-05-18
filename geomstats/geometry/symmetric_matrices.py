@@ -5,11 +5,11 @@ import logging
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.embedded_manifold import EmbeddedManifold, OpenSet
 from geomstats.geometry.matrices import Matrices
 
 
-class SymmetricMatrices(EmbeddedManifold):
+class SymmetricMatrices(EmbeddedManifold, OpenSet):
     """Class for the vector space of symmetric matrices of size n.
 
     Parameters
@@ -19,9 +19,13 @@ class SymmetricMatrices(EmbeddedManifold):
     """
 
     def __init__(self, n, **kwargs):
+        matrices = Matrices(n, n)
         super(SymmetricMatrices, self).__init__(
             dim=int(n * (n + 1) / 2),
-            embedding_manifold=Matrices(n, n))
+            embedding_manifold=matrices,
+            ambient_manifold=matrices,
+            submersion=matrices.to_skew_symmetric,
+            tangent_submersion=matrices.to_skew_symmetric)
         self.n = n
 
     def belongs(self, mat, atol=gs.atol):
@@ -42,26 +46,6 @@ class SymmetricMatrices(EmbeddedManifold):
         check_shape = self.embedding_manifold.belongs(mat)
         return gs.logical_and(check_shape, Matrices.is_symmetric(mat, atol))
 
-    def random_point(self, n_samples=1, bound=1.):
-        """Sample from a uniform distribution.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Bound of the interval in which to sample each entry.
-            Optional, default: 1.
-
-        Returns
-        -------
-        point : array-like, shape=[m, n] or [n_samples, m, n]
-            Sample.
-        """
-        mat = self.embedding_manifold.random_point(n_samples, bound)
-        return Matrices.to_symmetric(mat)
-
     def get_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
         basis = []
@@ -80,8 +64,7 @@ class SymmetricMatrices(EmbeddedManifold):
 
     basis = property(get_basis)
 
-    @staticmethod
-    def projection(point):
+    def projection(self, point):
         """Make a matrix symmetric, by averaging with its transpose.
 
         Parameters
@@ -94,7 +77,7 @@ class SymmetricMatrices(EmbeddedManifold):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        return Matrices.to_symmetric(point)
+        return point - self.submersion(point)
 
     @staticmethod
     def to_vector(mat):

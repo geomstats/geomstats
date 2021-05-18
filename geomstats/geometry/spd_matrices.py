@@ -4,13 +4,14 @@ import math
 
 import geomstats.backend as gs
 import geomstats.vectorization
+from geomstats.geometry.embedded_manifold import OpenSet
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
-class SPDMatrices(SymmetricMatrices):
+class SPDMatrices(SymmetricMatrices, OpenSet):
     """Class for the manifold of symmetric positive definite (SPD) matrices.
 
     Parameters
@@ -20,9 +21,9 @@ class SPDMatrices(SymmetricMatrices):
     """
 
     def __init__(self, n):
-        super(SPDMatrices, self).__init__(
-            n=n,
-            dim=int(n * (n + 1) / 2))
+        super(SPDMatrices, self).__init__(dim=int(n * (n + 1) / 2),
+                                          ambient_manifold=SymmetricMatrices(n),
+                                          n=n)
 
     def belongs(self, mat, atol=gs.atol):
         """Check if a matrix is symmetric with positive eigenvalues.
