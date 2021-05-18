@@ -282,6 +282,9 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return -self.regularize(point)
 
+    def random_point(self, n_samples=1, bound=1.):
+        return gs.random.rand(n_samples, 3)
+
     def exp_from_identity(self, tangent_vec):
         """Compute the group exponential of the tangent vector at the identity.
 
@@ -512,6 +515,9 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         point_prod = self.regularize(point_prod)
 
         return point_prod
+
+    def random_point(self, n_samples=1, bound=1.):
+        return self.random_uniform(n_samples)
 
     def random_uniform(self, n_samples=1):
         """Sample in SO(2) with the uniform distribution.

@@ -545,6 +545,9 @@ class HypersphereMetric(RiemannianMetric):
         self.embedding_metric = EuclideanMetric(dim + 1)
         self._space = _Hypersphere(dim=dim)
 
+    def metric_matrix(self, base_point=None):
+        return gs.eye(self.dim + 1)
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
 

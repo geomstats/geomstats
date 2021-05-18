@@ -1,5 +1,6 @@
 """Affine connections."""
 
+from abc import ABC
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
@@ -11,7 +12,7 @@ from geomstats.integrator import integrate
 N_STEPS = 10
 
 
-class Connection:
+class Connection(ABC):
     r"""Class for affine connections.
 
     Parameters
@@ -53,24 +54,6 @@ class Connection:
         """
         raise NotImplementedError(
             'The Christoffel symbols are not implemented.')
-
-    def connection(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Covariant derivative.
-
-        Connection applied to `tangent_vector_b` in the direction of
-        `tangent_vector_a`, both tangent at `base_point`.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., dim]
-            Tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., dim]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-        """
-        raise NotImplementedError(
-            'connection is not implemented.')
 
     def geodesic_equation(self, state, _time):
         """Compute the geodesic ODE associated with the connection.
@@ -413,17 +396,6 @@ class Connection:
                 'end_point': current_point,
                 'trajectory': trajectory}
 
-    def riemannian_curvature_tensor(self, base_point):
-        """Compute Riemannian curvature tensor associated with the connection.
-
-        Parameters
-        ----------
-        base_point: array-like, shape=[..., dim]
-            Point on the manifold.
-        """
-        raise NotImplementedError(
-            'The Riemannian curvature tensor is not implemented.')
-
     def curvature(
             self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
             base_point):
@@ -561,17 +533,6 @@ class Connection:
             return points_at_time_t[0] if n_initial_conditions == 1 else \
                 points_at_time_t
         return path
-
-    def torsion(self, base_point):
-        """Compute torsion tensor associated with the connection.
-
-        Parameters
-        ----------
-        base_point: array-like, shape=[..., dim]
-            Point on the manifold.
-        """
-        raise NotImplementedError(
-            'The torsion tensor is not implemented.')
 
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the parallel transport of a tangent vector.
