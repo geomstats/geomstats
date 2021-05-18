@@ -88,7 +88,7 @@ def rk4_step(force, state, time, dt):
     state : array-like, shape=[2, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
-    time ; float
+    time : float
         Time variable.
     dt : float
         Time-step in the integration.

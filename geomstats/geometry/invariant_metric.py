@@ -589,6 +589,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         if (base_point.ndim == 2 or base_point.shape[0] == 1) and \
                 tangent_vec.ndim == 3:
             base_point = gs.stack([base_point] * len(tangent_vec))
+            base_point = base_point.reshape(tangent_vec.shape)
         initial_state = gs.stack(
             [base_point, group.to_tangent(left_angular_vel)])
         flow = integrate(
@@ -659,7 +660,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         Approximate solution for the parallel transport of a tangent vector a
         along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
         tangent_vec_b)`. The parallel transport equation is written entirely
-        in the Lie algbera and solved with an integration scheme.
+        in the Lie algebra and solved with an integration scheme.
 
         Parameters
         ----------
@@ -733,7 +734,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         r"""Compute the geodesic ODE associated with the invariant metric.
 
         This is a reduced geodesic equation written entirely in the Lie
-        algebra. It is known as Euler-Poincare equation.
+        algebra. It is known as Euler-Poincare equation [Kolev].
         .. math:
                         \dot{\gamma}(t) = (dL_{\gamma(t)}) X(t)
                         \dot{X}(t) = ad^*_{X(t)}X(t)
@@ -750,6 +751,12 @@ class _InvariantMetricMatrix(RiemannianMetric):
         -------
         geodesic_ode : array-like, shape=[..., dim]
             Value of the vector field to be integrated at position.
+
+        References
+        ----------
+        .. [Kolev]   Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
+             Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
+             480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
         sign = 1. if self.left_or_right == 'left' else -1.
         basis = self.normal_basis(self.lie_algebra.basis)
@@ -1200,7 +1207,7 @@ class BiInvariantMetric(_InvariantMetricVector):
 
         Closed-form solution for the parallel transport of a tangent vector a
         along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
-        tangent_vec_b)`. As a Lie group endowed with its
+        tangent_vec_b)`. As a compact Lie group endowed with its
         canonical bi-invariant metric is a symmetric space, parallel
         transport is achieved by a geodesic symmetry, or equivalently, one step
          of the pole ladder scheme.
