@@ -60,14 +60,14 @@ class PoincareHalfSpace(Hyperbolic, OpenSet):
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
 
-        The last coordinate is floored to `gs.atol` if it is negative.
+        The last coordinate is floored to `atol` if it is negative.
 
         Parameters
         ----------
         point : array-like, shape=[..., dim_embedding]
             Point in ambient space.
         atol : float
-            Unused here.
+            Tolerance to evaluate positivity.
 
         Returns
         -------

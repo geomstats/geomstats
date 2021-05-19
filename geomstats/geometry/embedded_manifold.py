@@ -75,13 +75,14 @@ class EmbeddedManifold(Manifold, ABC):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
+        belongs = self.embedding_manifold.belongs(vector, atol)
         tangent_sub_applied = self.tangent_submersion(vector, base_point)
         constraint = gs.isclose(tangent_sub_applied, 0., atol=atol)
         if constraint.ndim == 3:
             constraint = gs.all(constraint, axis=(-2, -1))
         elif constraint.ndim == 2:
             constraint = gs.all(constraint, axis=-1)
-        return constraint
+        return gs.logical_and(belongs, constraint)
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert from intrinsic to extrinsic coordinates.
@@ -127,6 +128,7 @@ class EmbeddedManifold(Manifold, ABC):
 
         Returns
         -------
+        projected : array-like, shape=[..., dim_embedding]
             Projected point.
         """
         pass

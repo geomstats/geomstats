@@ -11,7 +11,7 @@ from scipy.stats import dirichlet
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.embedded_manifold import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -19,7 +19,7 @@ N_STEPS = 100
 MAX_TIME = 300
 
 
-class DirichletDistributions(EmbeddedManifold):
+class DirichletDistributions(OpenSet):
     """Class for the manifold of Dirichlet distributions.
 
     This is :math: Dirichlet = `(R_+^*)^dim`, the positive quadrant of the
@@ -29,17 +29,14 @@ class DirichletDistributions(EmbeddedManifold):
     ----------
     dim : int
         Dimension of the manifold of Dirichlet distributions.
-    embedding_manifold : Manifold
-        Embedding manifold.
     """
 
     def __init__(self, dim):
         super(DirichletDistributions, self).__init__(
-            dim=dim,
-            embedding_manifold=Euclidean(dim=dim))
-        self.metric = DirichletMetric(dim=dim)
+            dim=dim, ambient_manifold=Euclidean(dim=dim),
+            metric=DirichletMetric(dim=dim))
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold of Dirichlet distributions.
 
         Check that point defines parameters for a Dirichlet distributions,
@@ -49,6 +46,9 @@ class DirichletDistributions(EmbeddedManifold):
         ----------
         point : array-like, shape=[..., dim]
             Point to be checked.
+        atol : float
+            Tolerance to evaluate positivity.
+            Optional, default: gs.atol
 
         Returns
         -------
@@ -59,7 +59,7 @@ class DirichletDistributions(EmbeddedManifold):
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
         belongs = gs.logical_and(
-            belongs, gs.all(gs.greater(point, 0.), axis=-1))
+            belongs, gs.all(gs.greater(point, atol), axis=-1))
         return belongs
 
     def random_point(self, n_samples=1, bound=5.):
@@ -83,6 +83,25 @@ class DirichletDistributions(EmbeddedManifold):
         """
         size = (self.dim,) if n_samples == 1 else (n_samples, self.dim)
         return bound * gs.random.rand(*size)
+
+    def projection(self, point, atol=gs.atol):
+        """Project a point in ambient space to the open set.
+
+        The last coordinate is floored to `gs.atol` if it is negative.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim_embedding]
+            Point in ambient space.
+        atol : float
+            Tolerance to evaluate positivity.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., dim_embedding]
+            Projected point.
+        """
+        return gs.where(point < atol, atol, point)
 
     def sample(self, point, n_samples=1):
         """Sample from the Dirichlet distribution.

@@ -4,6 +4,7 @@ import math
 
 
 import geomstats.backend as gs
+from geomstats.geometry.embedded_manifold import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.landmarks import L2Metric
@@ -14,7 +15,7 @@ R2 = Euclidean(dim=2)
 R3 = Euclidean(dim=3)
 
 
-class DiscreteCurves(Manifold):
+class DiscreteCurves(OpenSet):
     r"""Space of discrete curves sampled at points in ambient_manifold.
 
     Each individual curve is represented by a 2d-array of shape `[
@@ -40,13 +41,14 @@ class DiscreteCurves(Manifold):
     """
 
     def __init__(self, ambient_manifold):
-        super(DiscreteCurves, self).__init__(dim=math.inf)
+        super(DiscreteCurves, self).__init__(
+            dim=math.inf, ambient_manifold=ambient_manifold)
         self.ambient_manifold = ambient_manifold
         self.l2_metric = lambda n: L2Metric(
             self.ambient_manifold, n_landmarks=n)
         self.square_root_velocity_metric = SRVMetric(self.ambient_manifold)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to the manifold.
 
         Test that all points of the curve belong to the ambient manifold.
@@ -55,6 +57,9 @@ class DiscreteCurves(Manifold):
         ----------
         point : array-like, shape=[..., n_sampling_points, ambient_dim]
             Point representing a discrete curve.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -69,6 +74,23 @@ class DiscreteCurves(Manifold):
             return gs.stack([each_belongs(pt) for pt in point])
 
         return each_belongs(point)
+
+    def projection(self, point):
+        """Project a point in ambient manifold on manifold.
+
+        This method is for compatibility and returns the input point unchanged.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim_embedding]
+            Point in embedding manifold.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., dim_embedding]
+            Projected point.
+        """
+        return point
 
 
 class SRVMetric(RiemannianMetric):

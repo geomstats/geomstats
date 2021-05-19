@@ -42,7 +42,9 @@ class GeneralLinear(Matrices, LieGroup, OpenSet):
             Projected point.
         """
         belongs = self.belongs(point)
-        projected = point + gs.where(~belongs, gs.atol, 0.) * self.identity
+        regularization = gs.einsum(
+            '...,ij->...ij', gs.where(~belongs, gs.atol, 0.), self.identity)
+        projected = point + regularization
         return projected
 
     def belongs(self, point, atol=gs.atol):
