@@ -2,20 +2,38 @@ import geomstats.geometry.spd_matrices as spd
 import geomstats.backend as gs
 
 class LogNormal:
-    """ LogNormal Sampler (Currently only done for SPDmanifold,EuclideanSpace)
+    """ LogNormal Sampler 
 
     Parameters:
     ----------
-    manifold: Name of Manifold
-        
+    manifold: str, {\'Euclidean\', \'SPDmanifold\'}
+        Name of the Manifold
+    mean: array-like, shape=[..., dim]
+        Mean of the Distribution
+    cov: array-like, shape=[..., dim]
+        Covariance of the Distribution. Should be Positive Semi Definite
+    Returns:
+    --------
+    samples
 
+    Examples:
+    --------
+
+    References:
+    ----------
+    Lognormal Distributions and Geometric Averages of Symmetric Positive Definite Matrices
+    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5222531/
     """
     def __init__(self,manifold,mean,cov=None):
         self.manifold = manifold
         self.mean = mean
         self.n  = self.mean.shape[-1]
         self.cov_n = (self.n*(self.n+1))//2
-        self.cov = cov
+        if cov is not None:
+            if self.cov.shape[-1] != self.cov_n:
+                valid_shape = (self.cov_n,self.cov_n)
+                raise ValueError("Invalid Shape, cov should have shape" , valid_shape)
+            self.cov = cov
         if self.cov is None:
             self.cov = gs.eye(self.cov_n)
         if self.manifold == 'SPDmanifold':
