@@ -36,15 +36,19 @@ class EmbeddedManifold(Manifold, ABC):
     def belongs(self, point, atol=gs.atol):
         belongs = self.embedding_manifold.belongs(point, atol)
         constraint = gs.isclose(self.submersion(point), 0., atol=atol)
-        if self.default_point_type == 'matrix':
+        if constraint.ndim == 3:
             constraint = gs.all(constraint, axis=(-2, -1))
+        elif constraint.ndim == 2:
+            constraint = gs.all(constraint, axis=-1)
         return gs.logical_and(belongs, constraint)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         tangent_sub_applied = self.tangent_submersion(vector, base_point)
         constraint = gs.isclose(tangent_sub_applied, 0., atol=atol)
-        if self.default_point_type == 'matrix':
+        if constraint.ndim == 3:
             constraint = gs.all(constraint, axis=(-2, -1))
+        elif constraint.ndim == 2:
+            constraint = gs.all(constraint, axis=-1)
         return constraint
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):

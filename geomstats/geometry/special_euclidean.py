@@ -516,21 +516,24 @@ class _SpecialEuclideanVectors(LieGroup):
 
         return gs.concatenate([rot_vec, log_translation], axis=1)
 
-    def random_point(self, n_samples=1, **kwargs):
-        """Sample in SE(n) with the uniform distribution.
+    def random_point(self, n_samples=1, bound=1., **kwargs):
+        r"""Sample in SE(n) with the uniform distribution.
 
         Parameters
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1
+            Optional, default: 1.
+        bound : float
+            Upper bound for the translation part of the sample.
+            Optional, default: 1.
 
         Returns
         -------
         random_point : array-like, shape=[..., dimension]
             Sample.
         """
-        random_translation = self.translations.random_point(n_samples)
+        random_translation = self.translations.random_point(n_samples, bound)
         random_rot_vec = self.rotations.random_uniform(n_samples)
         return gs.concatenate([random_rot_vec, random_translation], axis=-1)
 

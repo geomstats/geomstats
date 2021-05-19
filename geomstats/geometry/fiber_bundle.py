@@ -1,4 +1,5 @@
 """Class for (principal) fiber bundles."""
+from abc import ABC
 
 from scipy.optimize import minimize
 
@@ -8,7 +9,7 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class FiberBundle(Manifold):
+class FiberBundle(Manifold, ABC):
     """Class for (principal) fiber bundles.
 
     This class implements abstract methods for fiber bundles, or more
@@ -40,24 +41,12 @@ class FiberBundle(Manifold):
     """
 
     def __init__(
-            self, total_space: Manifold, base: Manifold = None,
+            self, dim: int, base: Manifold = None,
             group: LieGroup = None, ambient_metric: RiemannianMetric = None,
-            group_action=None, dim: int = None, **kwargs):
-
-        if dim is None:
-            if base is not None:
-                dim = base.dim
-            elif group is not None:
-                dim = total_space.dim - group.dim
-            else:
-                raise ValueError('Either the base manifold, '
-                                 'its dimension, or the group acting on the '
-                                 'total space must be provided.')
+            group_action=None, **kwargs):
 
         super(FiberBundle, self).__init__(dim=dim, **kwargs)
-
         self.base = base
-        self.total_space = total_space
         self.group = group
         self.ambient_metric = ambient_metric
 
@@ -65,31 +54,8 @@ class FiberBundle(Manifold):
             group_action = group.compose
         self.group_action = group_action
 
-    def belongs(self, point, atol=gs.atol):
-        """Evaluate if a point belongs to the base manifold.
-
-        Evaluate if a point belongs to the base manifold when it is given,
-        otherwise to the total space.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point to evaluate.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the manifold.
-        """
-        if self.base is not None:
-            return self.base.belongs(point, atol=atol)
-        return self.total_space.belongs(point, atol=atol)
-
     @staticmethod
-    def submersion(point):
+    def riemannian_submersion(point):
         """Project a point to base manifold.
 
         This is the projection of the fiber bundle, defined on the total
@@ -132,7 +98,7 @@ class FiberBundle(Manifold):
         """
         return point
 
-    def tangent_submersion(self, tangent_vec, base_point):
+    def tangent_riemannian_submersion(self, tangent_vec, base_point):
         """Project a tangent vector to base manifold.
 
         This is the differential of the projection of the fiber bundle,
@@ -242,7 +208,7 @@ class FiberBundle(Manifold):
                 tangent_vec, base_point)
         except (RecursionError, NotImplementedError):
             return self.horizontal_lift(
-                self.tangent_submersion(tangent_vec, base_point),
+                self.tangent_riemannian_submersion(tangent_vec, base_point),
                 base_point)
 
     def vertical_projection(self, tangent_vec, base_point, **kwargs):
