@@ -31,10 +31,10 @@ class PoincareHalfSpace(Hyperbolic, OpenSet):
 
     def __init__(self, dim, scale=1):
         super(PoincareHalfSpace, self).__init__(
-            dim=dim, ambient_manifold=Euclidean(dim), scale=scale)
+            dim=dim, ambient_manifold=Euclidean(dim), scale=scale,
+            metric=PoincareHalfSpaceMetric(dim, scale))
         self.coords_type = PoincareHalfSpace.default_coords_type
         self.point_type = PoincareHalfSpace.default_point_type
-        self.metric = PoincareHalfSpaceMetric(self.dim, self.scale)
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the upper half space.

@@ -112,6 +112,7 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
 
         self.left_canonical_metric = \
             SpecialEuclideanMatrixCannonicalLeftMetric(group=self)
+        self.metric = self.left_canonical_metric
 
     def get_identity(self):
         """Return the identity matrix."""
@@ -1044,7 +1045,8 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
             rotation_log, translation_log, max_shape, 0.)
         return log
 
-    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+    def parallel_transport(
+            self, tangent_vec_a, tangent_vec_b, base_point, **kwargs):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a

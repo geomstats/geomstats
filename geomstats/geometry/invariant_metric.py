@@ -1086,12 +1086,12 @@ class BiInvariantMetric(_InvariantMetricVector):
     def __init__(self, group):
         super(BiInvariantMetric, self).__init__(
             group=group)
-        cond = (
+        condition = (
             'SpecialOrthogonal' not in group.__str__()
             and 'SO' not in group.__str__()
             and 'SpecialOrthogonal3' not in group.__str__())
         # TODO (nguigs): implement it for SE(3)
-        if cond:
+        if condition:
             raise ValueError(
                 'The bi-invariant metric is only implemented for SO(n)')
         self.default_point_type = group.default_point_type
@@ -1190,17 +1190,7 @@ class BiInvariantMetric(_InvariantMetricVector):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        if base_point is None or self.default_point_type == 'matrix':
-            return self.inner_product_at_identity(
-                tangent_vec_a, tangent_vec_b)
-
-        tangent_translation = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=True)
-        tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
-        tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
-        inner_prod = self.inner_product_at_identity(
-            tangent_vec_a_at_id, tangent_vec_b_at_id)
-        return inner_prod
+        return self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
 
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the parallel transport of a tangent vec along a geodesic.

@@ -33,6 +33,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear):
             dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n,
             lie_algebra=SkewSymmetricMatrices(n=n))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
+        self.metric = self.bi_invariant_metric
 
     def belongs(self, point, atol=ATOL):
         """Check whether point is an orthogonal matrix.
@@ -596,6 +597,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             n=3, epsilon=epsilon)
 
         self.bi_invariant_metric = BiInvariantMetric(group=self)
+        self.metric = self.bi_invariant_metric
 
     def regularize(self, point):
         """Regularize a point to be in accordance with convention.

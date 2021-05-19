@@ -37,45 +37,19 @@ class Stiefel(EmbeddedManifold):
             raise ValueError('p needs to be smaller than n.')
 
         dim = int(p * n - (p * (p + 1) / 2))
+        matrices = Matrices(n, p)
         super(Stiefel, self).__init__(
-            dim=dim,
-            embedding_manifold=Matrices(n, p))
+            dim=dim, default_point_type='matrix',
+            embedding_manifold=matrices,
+            metric=StiefelCanonicalMetric(n, p),
+            submersion=lambda x: matrices.mul(
+                matrices.transpose(x), x) - gs.eye(p),
+            tangent_submersion=lambda v, x: 2 * matrices.to_symmetric(
+                matrices.mul(matrices.transpose(x), v)))
 
         self.n = n
         self.p = p
-        self.canonical_metric = StiefelCanonicalMetric(n, p)
-
-    def belongs(self, point, atol=1e-5):
-        """Test if a point belongs to St(n,p).
-
-        Test whether the point is a p-frame in n-dimensional space,
-        and it is orthonormal.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, p]
-            Point.
-        atol : float, optional
-            Tolerance at which to evaluate.
-            Optional, default: 1e-5.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Array of booleans evaluating if the corresponding points
-            belong to the Stiefel manifold.
-        """
-        right_shape = self.embedding_manifold.belongs(point)
-        if not right_shape:
-            return right_shape
-
-        point_transpose = Matrices.transpose(point)
-        identity = gs.eye(self.p)
-        diff = Matrices.mul(point_transpose, point) - identity
-
-        diff_norm = gs.linalg.norm(diff, axis=(-2, -1))
-        belongs = gs.less_equal(diff_norm, 1e-5)
-        return belongs
+        self.canonical_metric = self.metric
 
     @staticmethod
     def to_grassmannian(point):
@@ -127,29 +101,8 @@ class Stiefel(EmbeddedManifold):
 
         return samples
 
-    def is_tangent(self, vector, base_point, atol=EPSILON):
-        """Check whether the vector is tangent at base_point.
-
-        A matrix :math: `X` is tangent to the Stiefel manifold at a point
-        :math: `U` if :math: `U^TX` is skew-symmetric.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., n, p]
-            Vector.
-        base_point : array-like, shape=[..., n, p]
-            Point on the manifold.
-        atol : float
-            Absolute tolerance.
-            Optional, default: 1e-6.
-
-        Returns
-        -------
-        is_tangent : bool
-            Boolean denoting if vector is a tangent vector at the base point.
-        """
-        aux = Matrices.mul(Matrices.transpose(base_point), vector)
-        return Matrices.is_skew_symmetric(aux, atol=1e-5)
+    def random_point(self, n_samples=1, bound=1.):
+        return self.random_uniform(n_samples)
 
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
@@ -171,6 +124,31 @@ class Stiefel(EmbeddedManifold):
         aux = Matrices.mul(Matrices.transpose(base_point), vector)
         sym_aux = Matrices.to_symmetric(aux)
         return vector - Matrices.mul(base_point, sym_aux)
+
+    def projection(self, point):
+        """Project a close enough matrix to the Stiefel manifold.
+
+        A singular value decomposition is used, and all singular values are
+        set to 1 [Absil]_
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, p]
+            Point in embedding manifold.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., n, p]
+
+        References
+        ----------
+        ..[Absil]   Absil, Pierre-Antoine, and Jérôme Malick.
+                    “Projection-like Retractions on Matrix Manifolds.”
+                    SIAM Journal on Optimization 22, no. 1 (January 2012):
+                     135–58. https://doi.org/10.1137/100802529.
+        """
+        u, _, v = gs.linalg.svd(point)
+        return Matrices.mul(u[..., :, :self.p], v)
 
 
 class StiefelCanonicalMetric(RiemannianMetric):
@@ -236,7 +214,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         return inner_prod
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -343,7 +321,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             j_matrix = algebra_utils.from_vector_to_diagonal_matrix(sign)
         return matrix_v
 
-    def log(self, point, base_point, max_iter=30, tol=1e-6):
+    def log(self, point, base_point, max_iter=30, tol=1e-6, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
         Based on [ZR2017]_.

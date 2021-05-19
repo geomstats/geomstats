@@ -25,13 +25,15 @@ class Matrices:
         self.n = n
         self.metric = MatricesMetric(m, n)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Check if point belongs to the Matrices space.
 
         Parameters
         ----------
         point : array-like, shape=[..., m, n]
             Point to be checked.
+        atol : float
+            Unused here.
 
         Returns
         -------
