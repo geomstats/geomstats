@@ -50,12 +50,10 @@ class TestHypersphere(geomstats.tests.TestCase):
             [gs.zeros(5), gs.ones(5), gs.zeros(5)]))
 
     def test_projection_and_belongs(self):
-        point = gs.array([1., 2., 3., 4., 5.])
-        proj = self.space.projection(point)
-        result = self.space.belongs(proj)
-        expected = True
-
-        self.assertAllClose(expected, result)
+        shape = (self.n_samples, self.dimension + 1)
+        result = helper.test_projection_and_belongs(self.space, shape)
+        for res in result:
+            self.assertTrue(res)
 
     def test_intrinsic_and_extrinsic_coords(self):
         """

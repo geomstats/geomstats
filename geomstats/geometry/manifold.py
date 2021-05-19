@@ -141,6 +141,5 @@ class Manifold(ABC):
     @metric.setter
     def metric(self, value):
         if value.dim != self.dim:
-            raise ValueError('Dimension of the metric does not match the '
-                             'dimension of the manifold')
+            value.dim= self.dim
         self._metric = value

@@ -43,7 +43,6 @@ class Hyperbolic:
         self.point_type = Hyperbolic.default_point_type
         self.coords_type = Hyperbolic.default_coords_type
         self.scale = scale
-        self.metric = HyperbolicMetric(self.dim, self.scale)
 
     @staticmethod
     def _extrinsic_to_extrinsic_coordinates(point):

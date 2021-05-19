@@ -21,9 +21,9 @@ class SPDMatrices(SymmetricMatrices, OpenSet):
     """
 
     def __init__(self, n):
-        super(SPDMatrices, self).__init__(dim=int(n * (n + 1) / 2),
-                                          ambient_manifold=SymmetricMatrices(n),
-                                          n=n)
+        super(SPDMatrices, self).__init__(
+            dim=int(n * (n + 1) / 2), n=n,
+            ambient_manifold=SymmetricMatrices(n))
 
     def belongs(self, mat, atol=gs.atol):
         """Check if a matrix is symmetric with positive eigenvalues.

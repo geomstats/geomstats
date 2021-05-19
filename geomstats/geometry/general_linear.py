@@ -3,11 +3,12 @@
 from itertools import product
 
 import geomstats.backend as gs
+from geomstats.geometry.embedded_manifold import OpenSet
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.matrices import Matrices
 
 
-class GeneralLinear(Matrices, LieGroup):
+class GeneralLinear(Matrices, LieGroup, OpenSet):
     """Class for the general linear group GL(n).
 
     Parameters
@@ -19,7 +20,13 @@ class GeneralLinear(Matrices, LieGroup):
     def __init__(self, n, **kwargs):
         if 'dim' not in kwargs.keys():
             kwargs['dim'] = n ** 2
-        super(GeneralLinear, self).__init__(n=n, m=n, **kwargs)
+        super(GeneralLinear, self).__init__(
+            n=n, m=n, ambient_manifold=Matrices(n, n), **kwargs)
+
+    def projection(self, point):
+        belongs = self.belongs(point)
+        projected = point + gs.where(~belongs, gs.atol, 0.) * self.identity
+        return projected
 
     def belongs(self, point, atol=gs.atol):
         """Check if a matrix is invertible and of the right shape.
@@ -212,7 +219,6 @@ class GeneralLinear(Matrices, LieGroup):
         Return a collection of trajectories (4-D array)
         from a collection of input matrices (3-D array).
         """
-        # TODO (nina): Will work when expm gets properly 4-D vectorized.
         tangent_vec = cls.log(point, base_point)
 
         def path(time):

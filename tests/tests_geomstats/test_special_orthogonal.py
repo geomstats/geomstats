@@ -123,17 +123,11 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_projection_and_belongs(self):
-        gs.random.seed(3)
-        group = SpecialOrthogonal(n=4)
-        mat = gs.random.rand(4, 4)
-        point = group.projection(mat)
-        result = group.belongs(point)
-        self.assertTrue(result)
-
-        mat = gs.random.rand(2, 4, 4)
-        point = group.projection(mat)
-        result = group.belongs(point, atol=1e-4)
-        self.assertTrue(gs.all(result))
+        gs.random.seed(4)
+        shape = (self.n_samples, self.n, self.n)
+        result = helper.test_projection_and_belongs(self.group, shape)
+        for res in result:
+            self.assertTrue(res)
 
     def test_skew_to_vec_and_back(self):
         group = SpecialOrthogonal(n=4)
@@ -149,3 +143,14 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         results = helper.test_parallel_transport(self.group, metric, shape)
         for res in results:
             self.assertTrue(res)
+
+    def test_metric_left_invariant(self):
+        group = self.group
+        point = group.random_point()
+        tangent_vec = self.group.lie_algebra.basis[0]
+        expected = group.bi_invariant_metric.norm(
+            tangent_vec)
+
+        translated = group.tangent_translation_map(point)(tangent_vec)
+        result = group.bi_invariant_metric.norm(translated)
+        self.assertAllClose(result, expected)

@@ -175,7 +175,7 @@ class RiemannianMetric(Connection, ABC):
         christoffels = 0.5 * (term_1 + term_2 + term_3)
         return christoffels
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Inner product between two tangent vectors at a base point.
 
         Parameters

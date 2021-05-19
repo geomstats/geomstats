@@ -3,6 +3,8 @@
 import math
 import warnings
 
+import tests.helper as helper
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -116,10 +118,10 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_projection_and_belongs(self):
-        mat = gs.random.rand(3, 3)
-        projection = self.space.projection(mat)
-        result = self.space.belongs(projection)
-        self.assertTrue(result)
+        shape = (2, self.n, self.n)
+        result = helper.test_projection_and_belongs(self.space, shape)
+        for res in result:
+            self.assertTrue(res)
 
     def test_random_and_belongs(self):
         mat = self.space.random_point()

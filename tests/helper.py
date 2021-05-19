@@ -141,3 +141,22 @@ def test_parallel_transport(space, metric, shape):
     results.append(gs.all(result))
 
     return results
+
+
+def test_projection_and_belongs(space, shape):
+    result = []
+
+    point = gs.random.rand(*shape)
+    projected = space.projection(point)
+    belongs = space.belongs(projected)
+    result.append(gs.all(belongs))
+
+    point = point[0]
+    projected = space.projection(point)
+    belongs = space.belongs(projected)
+    result.append(belongs)
+
+    point = space.random_point()
+    projected = space.projection(point)
+    result.append(gs.allclose(point, projected))
+    return result

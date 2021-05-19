@@ -38,12 +38,11 @@ class PoincareBall(Hyperbolic, OpenSet):
     default_point_type = 'vector'
 
     def __init__(self, dim, scale=1):
-        super(PoincareBall, self).__init__(dim=dim,
-                                           ambient_manifold=Euclidean(dim),
-                                           scale=scale)
+        super(PoincareBall, self).__init__(
+            dim=dim, ambient_manifold=Euclidean(dim), scale=scale,
+            metric=PoincareBallMetric(dim, scale))
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
-        self.metric = PoincareBallMetric(self.dim, self.scale)
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.

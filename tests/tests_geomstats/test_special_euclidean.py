@@ -341,7 +341,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_projection_and_belongs(self):
-        mat = gs.random.rand(*self.group.identity.shape)
-        projected = self.group.projection(mat)
-        result = self.group.belongs(projected)
-        self.assertTrue(result)
+        shape = (self.n_samples, self.n + 1, self.n + 1)
+        result = helper.test_projection_and_belongs(self.group, shape)
+        for res in result:
+            self.assertTrue(res)
