@@ -40,14 +40,15 @@ class ProductManifold(Manifold):
 
     # FIXME (nguigs): This only works for 1d points
 
-    def __init__(self, manifolds, default_point_type='vector', n_jobs=1):
+    def __init__(
+            self, manifolds, default_point_type='vector', n_jobs=1, **kwargs):
         geomstats.errors.check_parameter_accepted_values(
             default_point_type, 'default_point_type', ['vector', 'matrix'])
 
         self.dims = [manifold.dim for manifold in manifolds]
         super(ProductManifold, self).__init__(
             dim=sum(self.dims),
-            default_point_type=default_point_type)
+            default_point_type=default_point_type, **kwargs)
         self.manifolds = manifolds
         self.metric = ProductRiemannianMetric(
             [manifold.metric for manifold in manifolds],
@@ -178,3 +179,20 @@ class ProductManifold(Manifold):
             space.random_point(n_samples, bound) for space in self.manifolds]
         samples = gs.stack(point, axis=-2)
         return samples
+
+    def projection(self, point):
+        point_type = self.default_point_type
+        geomstats.errors.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
+
+        if point_type == 'vector':
+            intrinsic = self.metric.is_intrinsic(point)
+            projected_point = self._iterate_over_manifolds(
+                'projection', {'point': point}, intrinsic)
+            projected_point = gs.hstack(projected_point)
+        elif point_type == 'matrix':
+            projected_point = [
+                manifold_i.projection(point[:, i])
+                for i, manifold_i in enumerate(self.manifolds)]
+            projected_point = gs.stack(projected_point, axis=1)
+        return projected_point

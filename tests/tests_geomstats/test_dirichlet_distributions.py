@@ -5,6 +5,8 @@ import warnings
 
 from scipy.stats import dirichlet
 
+import tests.helper as helper
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.dirichlet_distributions import DirichletDistributions
@@ -398,3 +400,9 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
             point_a, point_b, max_time=max_time)
         expected = math.nan
         self.assertAllClose(expected, result)
+
+    def test_projection_and_belongs(self):
+        shape = (self.n_samples, self.dim)
+        result = helper.test_projection_and_belongs(self.dirichlet, shape)
+        for res in result:
+            self.assertTrue(res)

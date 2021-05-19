@@ -207,6 +207,6 @@ class TestGeneralLinear(geomstats.tests.TestCase):
 
     def test_projection_and_belongs(self):
         shape = (self.n_samples, self.n, self.n)
-        result = helper.test_projection_and_belongs(self.space, shape)
+        result = helper.test_projection_and_belongs(self.group, shape)
         for res in result:
             self.assertTrue(res)

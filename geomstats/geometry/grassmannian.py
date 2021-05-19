@@ -40,6 +40,7 @@ from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
 class Grassmannian(EmbeddedManifold):
@@ -62,13 +63,16 @@ class Grassmannian(EmbeddedManifold):
 
         self.n = n
         self.k = k
-        self.metric = GrassmannianCanonicalMetric(n, k)
 
         dim = int(k * (n - k))
         super(Grassmannian, self).__init__(
             dim=dim,
-            embedding_manifold=Matrices(n, n),
-            default_point_type='matrix')
+            embedding_manifold=SymmetricMatrices(n),
+            default_point_type='matrix',
+            submersion=lambda x: Matrices.mul(x, x) - x,
+            tangent_submersion=lambda v, x: 2 * Matrices.to_symmetric(
+                Matrices.mul(x, v)) - v,
+            metric=GrassmannianCanonicalMetric(n, k))
 
     def belongs(self, point, atol=gs.atol):
         """Check if the point belongs to the manifold.
@@ -130,32 +134,57 @@ class Grassmannian(EmbeddedManifold):
             Matrices.transpose(points))
         return projector[0] if n_samples == 1 else projector
 
-    def is_tangent(self, vector, base_point, atol=gs.atol):
-        r"""Check if a vector is tangent to the manifold at the base point.
+    def random_point(self, n_samples=1, bound=1.):
+        """Sample random points from a uniform distribution.
 
-        Check if the (n,n)-matrix :math: `Y` is symmetric and verifies the
-        relation :math: PY + YP = Y where :math: `P` represents the base
-        point and :math: `Y` the vector.
+        Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
+        from a standard normal distribution and reshaped to matrices,
+        the projectors on their first k columns follow a uniform distribution.
 
         Parameters
         ----------
-        vector : array-like, shape=[..., n, n]
-            Matrix to be checked.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-        atol : int
-            Optional, default: backend atol.
+        n_samples : int
+            The number of points to sample
+            Optional. default: 1.
 
         Returns
         -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if `vector` is tangent to the Grassmannian at
-            `base_point`.
+        projectors : array-like, shape=[..., n, n]
+            Points following a uniform distribution.
+
+        References
+        ----------
+        .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
+        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
-        diff = Matrices.mul(
-            base_point, vector) + Matrices.mul(vector, base_point) - vector
-        is_close = gs.all(gs.isclose(diff, 0., atol=atol))
-        return gs.logical_and(Matrices.is_symmetric(vector), is_close)
+        return self.random_uniform(n_samples)
+
+    # def is_tangent(self, vector, base_point, atol=gs.atol):
+    #     r"""Check if a vector is tangent to the manifold at the base point.
+    #
+    #     Check if the (n,n)-matrix :math: `Y` is symmetric and verifies the
+    #     relation :math: PY + YP = Y where :math: `P` represents the base
+    #     point and :math: `Y` the vector.
+    #
+    #     Parameters
+    #     ----------
+    #     vector : array-like, shape=[..., n, n]
+    #         Matrix to be checked.
+    #     base_point : array-like, shape=[..., n, n]
+    #         Base point.
+    #     atol : int
+    #         Optional, default: backend atol.
+    #
+    #     Returns
+    #     -------
+    #     belongs : array-like, shape=[...,]
+    #         Boolean evaluating if `vector` is tangent to the Grassmannian at
+    #         `base_point`.
+    #     """
+    #     diff = Matrices.mul(
+    #         base_point, vector) + Matrices.mul(vector, base_point) - vector
+    #     is_close = gs.all(gs.isclose(diff, 0., atol=atol))
+    #     return gs.logical_and(Matrices.is_symmetric(vector), is_close)
 
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
@@ -208,7 +237,7 @@ class Grassmannian(EmbeddedManifold):
         -------
         belongs : bool
         """
-        diff = gs.einsum('...ij,...jk->...ik', point, point) - point
+        diff = Matrices.mul(point, point) - point
         diff_norm = gs.linalg.norm(diff, axis=(-2, -1))
 
         return gs.less_equal(diff_norm, atol)
@@ -231,9 +260,30 @@ class Grassmannian(EmbeddedManifold):
         -------
         belongs : bool
         """
-        [_, s, _] = gs.linalg.svd(point)
+        s = gs.linalg.svd(point, compute_uv=False)
 
         return gs.sum(s > atol, axis=-1) == rank
+
+    def projection(self, point):
+        """Project a matrix to the Grassmann manifold.
+
+        An eigenvalue decomposition of (the symmetric part of) point is used.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point in embedding manifold.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., n, n]
+            Projected point.
+        """
+        mat = Matrices.to_symmetric(point)
+        _, eigvecs = gs.linalg.eigh(mat)
+        diagonal = gs.array([0.] * (self.n - self.k) + [1.] * self.k)
+        p_d = gs.einsum('...ij,...j->...ij', eigvecs, diagonal)
+        return Matrices.mul(p_d, Matrices.transpose(eigvecs))
 
 
 class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
