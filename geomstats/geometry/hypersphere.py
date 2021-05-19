@@ -494,6 +494,19 @@ class HypersphereMetric(RiemannianMetric):
         self._space = _Hypersphere(dim=dim)
 
     def metric_matrix(self, base_point=None):
+        """Metric matrix at the tangent space at a base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim + 1]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., dim + 1, dim + 1]
+            Inner-product matrix.
+        """
         return gs.eye(self.dim + 1)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):

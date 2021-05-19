@@ -24,6 +24,23 @@ class GeneralLinear(Matrices, LieGroup, OpenSet):
             n=n, m=n, ambient_manifold=Matrices(n, n), **kwargs)
 
     def projection(self, point):
+        r"""Project a matrix to the general linear group.
+
+        As GL(n) is dense in the space of matrices, this is not a projection
+        per se, but a regularization if the matrix is not already invertible:
+        :math: `X + \epsilon I_n` is returned where :math: `\epsilon=gs.atol`
+        is returned for an input X.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim_embedding]
+            Point in embedding manifold.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., dim_embedding]
+            Projected point.
+        """
         belongs = self.belongs(point)
         projected = point + gs.where(~belongs, gs.atol, 0.) * self.identity
         return projected

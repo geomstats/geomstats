@@ -58,6 +58,22 @@ class PoincareHalfSpace(Hyperbolic, OpenSet):
         return belongs
 
     def projection(self, point, atol=gs.atol):
+        """Project a point in ambient space to the open set.
+
+        The last coordinate is floored to `gs.atol` if it is negative.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim_embedding]
+            Point in ambient space.
+        atol : float
+            Unused here.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., dim_embedding]
+            Projected point.
+        """
         last = gs.where(point[..., -1] < atol, atol, point[..., -1])
         projected = gs.concatenate([point[..., :-1], last[..., None]], axis=-1)
         return projected

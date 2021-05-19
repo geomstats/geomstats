@@ -1,6 +1,7 @@
 """Affine connections."""
 
 from abc import ABC
+
 from scipy.optimize import minimize
 
 import geomstats.backend as gs

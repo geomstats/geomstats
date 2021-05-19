@@ -22,9 +22,35 @@ class Minkowski(OpenSet):
         self.metric = MinkowskiMetric(dim)
 
     def belongs(self, point, atol=gs.atol):
+        """Evaluate if a point belongs to the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point to evaluate.
+        atol : float
+            Unused here.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the manifold.
+        """
         return self.ambient_manifold.belongs(point, atol)
 
     def projection(self, point):
+        """Project a point in embedding manifold on embedded manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim_embedding]
+            Point in embedding manifold.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., dim_embedding]
+            Projected point.
+        """
         return point
 
 

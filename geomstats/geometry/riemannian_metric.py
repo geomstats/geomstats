@@ -1,5 +1,5 @@
 """Riemannian and pseudo-Riemannian metrics."""
-from abc import ABC, abstractmethod
+from abc import ABC
 
 import autograd
 import joblib

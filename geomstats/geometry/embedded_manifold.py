@@ -34,6 +34,21 @@ class EmbeddedManifold(Manifold, ABC):
         self.tangent_submersion = tangent_submersion
 
     def belongs(self, point, atol=gs.atol):
+        """Evaluate if a point belongs to the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point to evaluate.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the manifold.
+        """
         belongs = self.embedding_manifold.belongs(point, atol)
         constraint = gs.isclose(self.submersion(point), 0., atol=atol)
         if constraint.ndim == 3:
@@ -43,6 +58,23 @@ class EmbeddedManifold(Manifold, ABC):
         return gs.logical_and(belongs, constraint)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
         tangent_sub_applied = self.tangent_submersion(vector, base_point)
         constraint = gs.isclose(tangent_sub_applied, 0., atol=atol)
         if constraint.ndim == 3:
@@ -101,6 +133,20 @@ class EmbeddedManifold(Manifold, ABC):
 
 
 class OpenSet(Manifold, ABC):
+    """Class for manifolds that are open sets of a vector space.
+
+    In this case, tangent vectors are identified with vectors of the ambient
+    space.
+
+    Parameters
+    ----------
+    dim: int
+        Dimension of the manifold. It is often the same as the ambient space
+        dimension but may differ in some cases.
+    ambient_manifold: Manifold
+        Ambient manifold that contains the manifold.
+    """
+
     def __init__(self, dim, ambient_manifold, **kwargs):
         super().__init__(dim, **kwargs)
         self.ambient_manifold = ambient_manifold
@@ -143,6 +189,24 @@ class OpenSet(Manifold, ABC):
         return self.ambient_manifold.projection(vector)
 
     def random_point(self, n_samples=1, bound=1.):
+        """Sample random points on the manifold.
+
+        If the manifold is compact, a uniform distribution is used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact manifolds.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., {dim, [n, n]}]
+            Points sampled on the hypersphere.
+        """
         sample = self.ambient_manifold.random_point(n_samples, bound)
         return self.projection(sample)
 
@@ -157,6 +221,7 @@ class OpenSet(Manifold, ABC):
 
         Returns
         -------
+        projected : array-like, shape=[..., dim_embedding]
             Projected point.
         """
         pass

@@ -102,6 +102,25 @@ class Stiefel(EmbeddedManifold):
         return samples
 
     def random_point(self, n_samples=1, bound=1.):
+        r"""Sample on St(n,p) from the uniform distribution.
+
+        If :math:`Z(p,n) \sim N(0,1)`, then :math:`St(n,p) \sim U`,
+        according to Haar measure:
+        :math:`St(n,p) := Z(Z^TZ)^{-1/2}`.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Unused here.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n, p]
+            Samples on the Stiefel manifold.
+        """
         return self.random_uniform(n_samples)
 
     def to_tangent(self, vector, base_point):
