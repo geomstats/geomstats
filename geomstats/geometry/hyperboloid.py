@@ -86,6 +86,18 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         return super(Hyperboloid, self).belongs(point, atol)
 
     def projection(self, point):
+        """Project a point in space on the hyperboloid.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim + 1]
+            Point in embedding Euclidean space.
+
+        Returns
+        -------
+        projected_point : array-like, shape=[..., dim + 1]
+            Point projected on the hyperboloid.
+        """
         return self.regularize(point)
 
     def regularize(self, point):

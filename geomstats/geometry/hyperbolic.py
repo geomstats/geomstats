@@ -5,7 +5,6 @@ The n-dimensional hyperbolic space embedded and its different representations.
 
 
 import geomstats.backend as gs
-from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 

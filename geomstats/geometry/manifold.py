@@ -136,10 +136,11 @@ class Manifold(ABC):
 
     @property
     def metric(self):
+        """Riemannian Metric associated to the Manifold."""
         return self._metric
 
     @metric.setter
     def metric(self, value):
         if value.dim != self.dim:
-            value.dim= self.dim
+            value.dim = self.dim
         self._metric = value
