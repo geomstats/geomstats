@@ -421,69 +421,168 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = (kappa > 1.0 - 1e-12)
         self.assertTrue(gs.all(result))
 
-    def test_derivatives_integrability_tensor(self):
+    def test_derivatives_integrability_tensor_sigma_parallel(self):
         space = self.space
         scal = Matrices.frobenius_product
 
         base_point = space.random_point()
         vector = gs.random.rand(
-            3, self.k_landmarks, self.m_ambient)
-        tg_vec_x = space.to_tangent(vector[0], base_point)
-        hor_x = space.horizontal_projection(tg_vec_x, base_point)
-        tg_vec_y = space.to_tangent(vector[1], base_point)
-        hor_y = space.horizontal_projection(tg_vec_y, base_point)
-        tg_vec_z = space.to_tangent(vector[2], base_point)
-        hor_z = space.horizontal_projection(tg_vec_z, base_point)
+            4, self.k_landmarks, self.m_ambient)
+        tg_vec_0 = space.to_tangent(vector[0], base_point)
+        hor_x = space.horizontal_projection(tg_vec_0, base_point)
+        tg_vec_1 = space.to_tangent(vector[1], base_point)
+        hor_y = space.horizontal_projection(tg_vec_1, base_point)
+        tg_vec_2 = space.to_tangent(vector[2], base_point)
+        hor_z = space.horizontal_projection(tg_vec_2, base_point)
+        tg_vec_3 = space.to_tangent(vector[3], base_point)
+        hor_z2 = space.horizontal_projection(tg_vec_3, base_point)
 
         nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, nabla_x_a_x_y, a_y_a_x_y, \
         a_x_y \
-            = space.nabla_x_a_y_a_x_y(hor_x, hor_y, base_point)
+            = space.nabla_x_a_y_a_x_y_sigma_parallel(hor_x, hor_y, base_point)
 
         nabla_x_a_y_z, a_y_z \
-            = space.nabla_x_a_y_z(hor_x, hor_y, hor_z, base_point)
+            = space.nabla_x_a_y_z_sigma_parallel(hor_x, hor_y, hor_z,
+                                                 base_point)
+
+        nabla_x_a_x_y_2, a_x_y_2 \
+            = space.nabla_x_a_y_z_sigma_parallel(hor_x, hor_x, hor_y,
+                                                 base_point)
+        self.assertAllClose(a_x_y, a_x_y_2)
+        self.assertAllClose(nabla_x_a_x_y, nabla_x_a_x_y_2)
 
         nabla_x_a_y_x, a_y_x \
-            = space.nabla_x_a_y_z(hor_x, hor_y, hor_x, base_point)
+            = space.nabla_x_a_y_z_sigma_parallel(hor_x, hor_y, hor_x,
+                                                 base_point)
 
         nabla_x_a_z_y, a_z_y \
-            = space.nabla_x_a_y_z(hor_x, hor_z, hor_y, base_point)
+            = space.nabla_x_a_y_z_sigma_parallel(hor_x, hor_z, hor_y,
+                                                 base_point)
         self.assertAllClose(a_z_y, -a_y_z)
+        self.assertAllClose(a_x_y, -a_y_x)
 
-        # a_x_y = space.integrability_tensor(hor_x, hor_y, base_point)
-        a_x_z = space.integrability_tensor(hor_x, hor_z, base_point)
-
-        # Test \scal{\nabla^S_X (A_X Y)}{Z} + \scal{A_X Y}{ A_X Z} =0
-        result = scal(nabla_x_a_x_y, hor_z) + scal(a_x_y, a_x_z)
+        # test scal(A_Y V, W)=0 with V = A_X Y and W = A_Y Z
+        result = scal(a_y_a_x_y, a_y_z)
         self.assertAllClose(result, 0.0)
-        print('test 1 passed')
 
-        # Test \scal{A_Y Z}{Z} =0
-        # result= scal(a_y_z, hor_z)
+        # This test fails
+        # Test scal{\nabla^S_X (A_Y V)}{W}  + scal{A_Y V}{nabla_X W} =0
+        # with V = A_X Y and W = A_Y Z
+        # result = scal(nabla_x_a_y_a_x_y, a_y_z) \
+        #           + scal(a_y_a_x_y, nabla_x_a_y_z)
         # self.assertAllClose(result, 0.0)
-        # print('test 2a passed')
+
+        #############
+        # This test fails
+        # test with W = A_Z_Z2
+        # test scal(A_Y V, W)=0 with V = A_X Y and W = A_Z Z2
+        nabla_x_a_z_z2, a_z_z2 \
+            = space.nabla_x_a_y_z_sigma_parallel(hor_x, hor_z, hor_z2,
+                                                 base_point)
+        # result = scal(a_y_a_x_y, a_z_z2)
+        # self.assertAllClose(result, 0.0)
+
+        # result = scal(nabla_x_a_y_a_x_y, a_z_z2) \
+        #          + scal(a_y_a_x_y, nabla_x_a_z_z2)
+        # self.assertAllClose(result, 0.0)
 
         # Test \scal{\nabla^S_X (A_Y Z)}{Z} + \scal{A_Y Z}{ A_X Z} =0
+        a_x_z = space.integrability_tensor(hor_x, hor_z, base_point)
         result = scal(nabla_x_a_y_z, hor_z) + scal(a_y_z, a_x_z)
         self.assertAllClose(result, 0.0)
-        print('test 2 passed')
 
         # Test \nabla_X^S ( A_Y Z) + \nabla_X^S ( A_Z Y) = 0
-        result = nabla_x_a_y_z
-        expected = - nabla_x_a_z_y
-        self.assertAllClose(result, expected)
-        print('test 3a passed')
+        result = nabla_x_a_y_z + nabla_x_a_z_y
+        self.assertAllClose(result, 0.0)
 
-        ## This test does not pass
         # Test \nabla_X^S ( A_X Y) + \nabla_X^S ( A_Y X) = 0
-        result = nabla_x_a_x_y
-        expected = - nabla_x_a_y_x
-        self.assertAllClose(result, expected)
-        print('test 3b NOT passed yet....')
+        result = nabla_x_a_x_y + nabla_x_a_y_x
+        self.assertAllClose(result, 0.0)
 
         # test the identity \scal{\nabla^S_X (A_Y A_X Y)}{Z}
         #  + \scal{A_Y A_X Y}{ A_X Z} +  \scal{\nabla^S_X ( A_Y Z) }{A_X Y}
-        #  + \scal{A_Y Z}{\nabla^S_X A_X Y}
+        #  + \scal{A_Y Z}{\nabla^S_X A_X Y} = 0
         result = scal(nabla_x_a_y_a_x_y, hor_z) \
-            + scal(a_y_a_x_y, a_x_z) + scal(nabla_x_a_y_z, a_x_y) \
-            + scal(a_y_z, nabla_x_a_x_y)
+                 + scal(a_y_a_x_y, a_x_z) + scal(nabla_x_a_y_z, a_x_y) \
+                 + scal(a_y_z, nabla_x_a_x_y)
         self.assertAllClose(result, 0.0)
+
+    def test_nabla_integrability(self):
+        space = self.space
+        scal = Matrices.frobenius_product
+
+        base_point = space.random_point()
+        vector = gs.random.rand(
+            11, self.k_landmarks, self.m_ambient)
+        tg_vec_0 = space.to_tangent(vector[0], base_point)
+        hor_x = space.horizontal_projection(tg_vec_0, base_point)
+        tg_vec_1 = space.to_tangent(vector[1], base_point)
+        hor_y = space.horizontal_projection(tg_vec_1, base_point)
+        tg_vec_2 = space.to_tangent(vector[2], base_point)
+        hor_dy = space.horizontal_projection(tg_vec_2, base_point)
+        tg_vec_3 = space.to_tangent(vector[3], base_point)
+        hor_z = space.horizontal_projection(tg_vec_3, base_point)
+        tg_vec_4 = space.to_tangent(vector[4], base_point)
+        hor_dz = space.horizontal_projection(tg_vec_4, base_point)
+        tg_vec_5 = space.to_tangent(vector[5], base_point)
+        ver_v = space.vertical_projection(tg_vec_5, base_point)
+        tg_vec_6 = space.to_tangent(vector[6], base_point)
+        ver_dv = space.vertical_projection(tg_vec_6, base_point)
+        tg_vec_7 = space.to_tangent(vector[7], base_point)
+        hor_h = space.horizontal_projection(tg_vec_7, base_point)
+        tg_vec_8 = space.to_tangent(vector[8], base_point)
+        hor_dh = space.horizontal_projection(tg_vec_8, base_point)
+        tg_vec_9 = space.to_tangent(vector[9], base_point)
+        ver_w = space.vertical_projection(tg_vec_9, base_point)
+        tg_vec_10 = space.to_tangent(vector[10], base_point)
+        ver_dw = space.vertical_projection(tg_vec_10, base_point)
+
+        # test particular case for q-parallel vector fields
+        a_x_y = space.integrability_tensor(hor_x, hor_y, base_point)
+        a_x_z = space.integrability_tensor(hor_x, hor_z, base_point)
+        result = space.nabla_integrability(hor_x, hor_y, a_x_y,
+                                           hor_z, a_x_z, base_point)
+        expected = space.nabla_x_a_y_z_sigma_parallel(hor_x, hor_y, hor_z,
+                                                      base_point)
+        self.assertAllClose(result, expected)
+
+        # generate valid derivatives for nabla_X Y and nabla_X V
+        nabla_x_y = hor_dy + a_x_y
+        a_x_z = space.integrability_tensor(hor_x, hor_z, base_point)
+        nabla_x_z = hor_dz + a_x_z
+        a_x_v = space.integrability_tensor(hor_x, ver_v, base_point)
+        nabla_x_v = ver_dv + a_x_v
+        a_x_w = space.integrability_tensor(hor_x, ver_w, base_point)
+        nabla_x_w = ver_dw + a_x_w
+
+        # Test alternating property: \nabla_X ( A_Y Z + A_Z Y ) =0
+        nabla_x_a_y_z, a_y_z = space.nabla_integrability( \
+            hor_x, hor_y, nabla_x_y, hor_z, nabla_x_z, base_point)
+        nabla_x_a_z_y, a_z_y = space.nabla_integrability( \
+            hor_x, hor_z, nabla_x_z, hor_y, nabla_x_y, base_point)
+        result = nabla_x_a_y_z + nabla_x_a_z_y
+        self.assertAllClose(result, 0.0)
+
+        # reversing horizontal and vertical
+        # \nabla_X < A_Y Z, H > =0
+        a_x_h = space.integrability_tensor(hor_x, hor_h, base_point)
+        nabla_x_h = hor_dh + a_x_h
+        result = scal(nabla_x_a_y_z, hor_h) + scal(a_y_z, nabla_x_h)
+        self.assertAllClose(result, 0.0)
+
+        # \nabla_X < A_Y V, W > =0
+        nabla_x_a_y_v, a_y_v = space.nabla_integrability( \
+            hor_x, hor_y, nabla_x_y, ver_v, nabla_x_v, base_point)
+        result = scal(nabla_x_a_y_v, ver_w) + scal(a_y_v, nabla_x_w)
+        self.assertAllClose(result, 0.0)
+
+        # Skew-symmetry \nabla_X \scal{A_Y Z}{V} + nabla_X \scal{A_Y V}{Z}=0
+        result = scal(nabla_x_a_y_z, ver_v) \
+                 + scal(a_y_z, nabla_x_v) \
+                 + scal(nabla_x_a_y_v, hor_z) \
+                 + scal(a_y_v, nabla_x_z)
+        self.assertAllClose(result, 0.0)
+
+        # TBD: last test should be the optimized formula
+        # nabla_x_a_y_a_x_y_sigma_parallel for the covariante
+        # derivative of the iterated integrability tensor.
