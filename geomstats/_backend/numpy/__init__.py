@@ -27,6 +27,7 @@ from autograd.numpy import (  # NOQA
     cross,
     cumprod,
     cumsum,
+    diag_indices,
     diagonal,
     divide,
     dot,

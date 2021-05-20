@@ -742,6 +742,10 @@ def tril(m, k=0):
     return tf.linalg.band_part(m, -1, 0)
 
 
+def diag_indices(*args, **kwargs):
+    return tuple(map(tf.convert_to_tensor, _np.diag_indices(*args, **kwargs)))
+    
+
 def tril_indices(*args, **kwargs):
     return tuple(map(tf.convert_to_tensor, _np.tril_indices(*args, **kwargs)))
 

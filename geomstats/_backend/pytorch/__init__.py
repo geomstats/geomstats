@@ -506,6 +506,10 @@ def equal(a, b, **kwargs):
     return torch.eq(a, b, **kwargs)
 
 
+def diag_indices(*args, **kwargs):
+    return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
+
+
 def tril_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.tril_indices(*args, **kwargs)))
 
