@@ -38,6 +38,9 @@ OPTICAL_NERVES_PATH = os.path.join(
     DATA_PATH, 'optical_nerves', 'optical_nerves.txt')
 HANDS_PATH = os.path.join(DATA_PATH, 'hands', 'hands.txt')
 HANDS_LABELS_PATH = os.path.join(DATA_PATH, 'hands', 'labels.txt')
+CELLS_PATH = os.path.join(DATA_PATH, 'cells', 'cells.txt')
+CELL_LINES_PATH = os.path.join(DATA_PATH, 'cells', 'cell_lines.txt')
+CELL_TREATMENTS_PATH = os.path.join(DATA_PATH, 'cells', 'treatments.txt')
 
 
 def load_cities():
@@ -344,4 +347,3 @@ def load_cells():
     with open(CELL_TREATMENTS_PATH) as treatments_file:
         treatments = gs.array(treatments_file.read().split('\n'))
     return cells, cell_lines, treatments
-
