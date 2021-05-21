@@ -191,7 +191,7 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
         result = len(cell_lines)
         self.assertAllClose(result, expected)
-        result = len(cell_treatments)
+        result = len(treatments)
         self.assertAllClose(result, expected)
 
         planar_curves_space = DiscreteCurves(R2)
@@ -200,8 +200,8 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
         result = [line in ["dlm8", "dunn"] for line in cell_lines]
-        self.assertTrue(gs.all(result))
-        
+        self.assertTrue(gs.all(result))        
+
         result = [treatment in ["control", "cytd", "jasp"]
                   for treatment in treatments]
         self.assertTrue(gs.all(result))
