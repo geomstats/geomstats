@@ -315,3 +315,35 @@ def load_hands():
         ]
     )
     return data, labels, bone_list
+<<<<<<< Updated upstream
+=======
+
+
+def load_cells():
+    """Load cell data.
+
+    Returns
+    -------
+    cells : list of 650 planar discrete curves
+        Each curve represents the boundary of a cell, their lengths
+        are not necessarily equal.
+    cell_lines : array of strings
+        List of the cell lines of each cell (dlm8 or dunn).
+    treatments : array of strings
+        List of the treatments given to each cell (control, cytd or jasp).
+    """
+    with open(CELLS_PATH) as cells_file:
+        cells = cells_file.read().split('\n\n')
+    for i, cell in enumerate(cells):
+        cell = cell.split('\n')
+        curve = []
+        for point in cell:
+            coords = [int(coord) for coord in point.split()]
+            curve.append(coords)
+        cells[i] = gs.array(curve)
+    with open(CELL_LINES_PATH) as cell_lines_file:
+        cell_lines = gs.array(cell_lines_file.read().split('\n'))
+    with open(CELL_TREATMENTS_PATH) as treatments_file:
+        treatments = gs.array(treatments_file.read().split('\n'))
+    return cells, cell_lines, treatments
+>>>>>>> Stashed changes

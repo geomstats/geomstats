@@ -10,6 +10,7 @@ from geomstats.geometry.landmarks import Landmarks
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.discrete_curves import R2, DiscreteCurves
 
 
 class TestDatasets(geomstats.tests.TestCase):
@@ -180,4 +181,28 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
         result = gs.logical_and(labels >= 0, labels <= 1)
+        self.assertTrue(gs.all(result))
+
+    def test_cells(self):
+        """Test that cells belong to space of landmarks."""
+        cells, cell_lines, treatments = data_utils.load_hands()
+        expected = 650
+        
+        result = len(cells)
+        self.assertAllClose(result, expected)
+        result = len(cell_lines)
+        self.assertAllClose(result, expected)
+        result = len(cell_treatments)
+        self.assertAllClose(result, expected)
+
+        planar_curves_space = DiscreteCurves(R2)
+
+        result = planar_curves_space.belongs(cells)
+        self.assertTrue(gs.all(result))
+
+        result = [line in ["dlm8", "dunn"] for line in cell_lines]
+        self.assertTrue(gs.all(result))
+        
+        result = [treatment in ["control", "cytd", "jasp"] 
+                  for treatment in treatments]
         self.assertTrue(gs.all(result))
