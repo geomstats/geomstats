@@ -315,8 +315,6 @@ def load_hands():
         ]
     )
     return data, labels, bone_list
-<<<<<<< Updated upstream
-=======
 
 
 def load_cells():
@@ -346,4 +344,4 @@ def load_cells():
     with open(CELL_TREATMENTS_PATH) as treatments_file:
         treatments = gs.array(treatments_file.read().split('\n'))
     return cells, cell_lines, treatments
->>>>>>> Stashed changes
+
