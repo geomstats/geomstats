@@ -321,16 +321,21 @@ def load_hands():
 
 
 def load_cells():
-    """Load cell data.
+    """Load cell data which contains cell boundaries of mouse osteosarcoma 
+    (bone cancer) cells. The dlm8 cell line is derived from dunn and is more
+    aggressive as a cancer. The cells have been treated with one of three
+    treatments : control (no treatment), jasp (jasplakinolide)
+    and cytd (cytochalasin D). These are drugs which perturb the cytoskelet
+    of the cells.
 
     Returns
     -------
     cells : list of 650 planar discrete curves
-        Each curve represents the boundary of a cell, their lengths
-        are not necessarily equal.
-    cell_lines : array of strings
+        Each curve represents the boundary of a cell in counter-clockwise order,
+        their lengths are not necessarily equal.
+    cell_lines : list of 650 strings
         List of the cell lines of each cell (dlm8 or dunn).
-    treatments : array of strings
+    treatments : list of 650 strings
         List of the treatments given to each cell (control, cytd or jasp).
     """
     with open(CELLS_PATH) as cells_file:
@@ -343,7 +348,7 @@ def load_cells():
             curve.append(coords)
         cells[i] = gs.array(curve)
     with open(CELL_LINES_PATH) as cell_lines_file:
-        cell_lines = gs.array(cell_lines_file.read().split('\n'))
+        cell_lines = cell_lines_file.read().split('\n')
     with open(CELL_TREATMENTS_PATH) as treatments_file:
-        treatments = gs.array(treatments_file.read().split('\n'))
+        treatments = treatments_file.read().split('\n')
     return cells, cell_lines, treatments
