@@ -333,7 +333,7 @@ def load_cells():
     Returns
     -------
     cells : list of 650 planar discrete curves
-        Each curve represents the boundary of a cell in counter-clockwise order,
+        Each curve represents the boundary of a cell in counterclockwise order,
         their lengths are not necessarily equal.
     cell_lines : list of 650 strings
         List of the cell lines of each cell (dlm8 or dunn).
