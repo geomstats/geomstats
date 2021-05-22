@@ -321,7 +321,9 @@ def load_hands():
 
 
 def load_cells():
-    """Load cell data which contains cell boundaries of mouse osteosarcoma 
+    """Load cell data.
+
+    This cell dataset contains cell boundaries of mouse osteosarcoma
     (bone cancer) cells. The dlm8 cell line is derived from dunn and is more
     aggressive as a cancer. The cells have been treated with one of three
     treatments : control (no treatment), jasp (jasplakinolide)
