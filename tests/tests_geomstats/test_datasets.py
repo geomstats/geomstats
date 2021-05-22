@@ -184,8 +184,8 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
     def test_cells(self):
-        """Test that cells belong to space of landmarks."""
-        cells, cell_lines, treatments = data_utils.load_hands()
+        """Test that cells belong to space of planar curves."""
+        cells, cell_lines, treatments = data_utils.load_cells()
         expected = 650
         result = len(cells)
         self.assertAllClose(result, expected)
