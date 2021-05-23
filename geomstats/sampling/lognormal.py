@@ -12,6 +12,10 @@ class LogNormal:
         Mean of the Distribution
     cov: array-like, shape=[..., dim]
         Covariance of the Distribution. Should be Positive Semi Definite
+    validate_args: boolean
+        When True Checks for validity of mean,cov.
+        checks if mean is Symmetric Positive Definite Matrix
+        checks if cov  is Symmetric Positive Semi Definite Matrix    
     Returns:
     --------
     samples
@@ -24,7 +28,7 @@ class LogNormal:
     Lognormal Distributions and Geometric Averages of Symmetric Positive Definite Matrices
     https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5222531/
     """
-    def __init__(self,manifold,mean,cov=None):
+    def __init__(self,manifold, mean, cov=None, validate_args = True):
         self.manifold = manifold
         self.mean = mean
         self.n  = self.mean.shape[-1]
@@ -46,17 +50,16 @@ class LogNormal:
     
     def _sample_spd(self,samples):
         SPDmanifold = spd.SPDMatrices(self.n)
-        i,  = gs.diag_indices(self.n)
-        j,k = gs.triu_indices(self.n,k=1)
+        i,  = gs.diag_indices(self.n, ndim=1)
+        j,k = gs.triu_indices(self.n, k=1)
         sym_matrix = SPDmanifold.logm(self.mean)
-
-        mean_euclidean = gs.hstack((sym_matrix[i,i],gs.sqrt(2)*sym_matrix[j,k]))
-        _samples = gs.zeros((samples,self.n,self.n))
+        mean_euclidean = gs.hstack((sym_matrix[i,i], gs.sqrt(2)*sym_matrix[j,k]))
+        _samples = gs.zeros((samples, self.n, self.n))
         samples_euclidean = gs.random.multivariate_normal(mean_euclidean, self.cov, samples)
-        off_diag = samples_euclidean[:,self.n:]/gs.sqrt(2)
-        _samples[:,i,i] = samples_euclidean[:,:self.n]
-        _samples[:,j,k] = off_diag
-        _samples[:,k,j] = off_diag
+        off_diag = samples_euclidean[:, self.n:]/gs.sqrt(2)
+        _samples[:, i, i] = samples_euclidean[:, :self.n]
+        _samples[:, j, k] = off_diag
+        _samples[:, k, j] = off_diag
         samples_spd = SPDmanifold.expm(_samples)
         return samples_spd
 
