@@ -431,8 +431,11 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         sylv_p_top_e = sylv_p(p_top_e)
 
         tensor_f = gs.matmul(hor_x, sylv_p_top_e)
-        result = gs.matmul(base_point, sylv_e_top_hor_x) + tensor_f + \
-                 Matrices.frobenius_product(tensor_f, base_point) * base_point
+        result = gs.matmul(base_point, sylv_e_top_hor_x) + tensor_f \
+
+        #          + \
+        #          Matrices.frobenius_product(tensor_f, base_point) * base_point
+        # print(Matrices.frobenius_product(tensor_f, base_point) )
 
         return result
 
@@ -688,6 +691,149 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
                 p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
 
         # \Omega_{XY} = \Sylv_P(Y^\top X)
+        y_top = Matrices.transpose(tg_vec_y)
+        y_top_x = gs.matmul(y_top, tg_vec_x)
+        omega_xy = sylv_p(y_top_x)
+        # V  =  P \Omega_{XY}
+        tg_vec_v = gs.matmul(base_point, omega_xy)
+
+        p_top_x = gs.matmul(p_top, tg_vec_x)
+        p_top_y = gs.matmul(p_top, tg_vec_y)
+        v_top = Matrices.transpose(tg_vec_v)
+        v_top_x = gs.matmul(v_top, tg_vec_x)
+        v_top_y = gs.matmul(v_top, tg_vec_y)
+
+        # \partial_X V = 3 P  \Sylv_P(V^\top X ) + X \Omega_{XY}
+        partial_x_v = 3.0 * gs.matmul(base_point, sylv_p(v_top_x )) \
+                      + gs.matmul(tg_vec_x, omega_xy)
+        # \nabla^S_X V = \partial_X V since \scal{X}{V} P =0
+
+        # test if \nabla^S_X V = nabla_X A_X Y = \dot A(X, X, 0, Y, V)
+        # nabla_x_v, ver_v = self.nabla_integrability( \
+        #     tg_vec_x, tg_vec_x, gs.zeros_like(tg_vec_x), tg_vec_y, tg_vec_v,
+        #     base_point)
+        # assert (gs.all(gs.isclose(partial_x_v - nabla_x_v, 0.0)))
+        ## This is ok
+
+        ######################
+        omega_yv = sylv_p(v_top_y)
+
+        # a_y_v_int = self.integrability_tensor(tg_vec_y, tg_vec_v, base_point)
+        # a_y_v = gs.matmul(base_point, omega_yv) \
+        #             + gs.matmul(tg_vec_y, omega_xy)
+        # print(a_y_v_int)
+        # print(a_y_v)
+        # assert(gs.all(gs.isclose(a_y_v - a_y_v_int, 0.0)))
+        # This is ok
+
+        # tg_vec_fp = 2. * gs.matmul(p_top_x, omega_yv) \
+        #             - gs.matmul(y_top, partial_x_v)
+
+        partial_x_y = tg_vec_v - Matrices.frobenius_product(\
+            tg_vec_x, tg_vec_y) * base_point
+
+        partial_x_y_v_top = gs.matmul(v_top, partial_x_y) \
+                            - gs.matmul(y_top, partial_x_v)
+        tg_vec_fp = partial_x_y_v_top -2. * gs.matmul(omega_yv, p_top_x)
+        omega_fp = sylv_p(tg_vec_fp)
+
+        # tg_vec_fy =gs.matmul(p_top, partial_x_v) -3. * v_top_x
+
+        partial_x_v_p_top = gs.matmul(p_top, partial_x_v) \
+                            - gs.matmul(v_top, tg_vec_x)
+        tg_vec_fy = partial_x_v_p_top - 2. * gs.matmul(omega_xy, p_top_x)
+
+        tg_vec_fy = gs.matmul(p_top, partial_x_v) + v_top_x
+        omega_fy = sylv_p(tg_vec_fy)
+
+        # p_top_v = gs.matmul(p_top, tg_vec_v)
+        # omega_vp = sylv_p(p_top_v)
+        # print(omega_vp)
+        # print(omega_xy)
+        # assert (gs.all(gs.isclose(omega_vp - omega_xy, 0.0)))
+        # # This is ok
+
+        nabla_x_a_y_v = gs.matmul(base_point, omega_fp) \
+                        + gs.matmul(tg_vec_x, omega_yv) \
+                        + gs.matmul(tg_vec_y, omega_fy) \
+                        + gs.matmul(partial_x_y, omega_xy) \
+                        + Matrices.frobenius_product(tg_vec_v, tg_vec_v) * \
+                        base_point
+
+        # This can be computed more efficiently with precomputed quantities
+        a_y_a_x_y = self.integrability_tensor(tg_vec_y, tg_vec_v, base_point)
+        a_x_a_y_a_x_y = self.integrability_tensor(tg_vec_x, a_y_a_x_y,
+                                                  base_point)
+
+        return nabla_x_a_y_v, a_x_a_y_a_x_y, partial_x_v, a_y_a_x_y, \
+               tg_vec_v
+
+    def nabla_x_a_y_a_x_y_sigma_parallel_old(self, tg_vec_x, tg_vec_y,
+                                           base_point):
+        r"""Compute derivatives of the integrability tensor A (special case).
+
+        The covariant derivative :math: `\nabla_X^Q (A_Y A_X Y) = \nabla_X^S
+        (A_Y A_X Y) - A_X A_Y A_X Y` (where :math: `X`and :math: `Y` are
+        horizontal vector fields) is a key ingredient in the computation of
+        the covariant derivative of the directional curvature in a submersion.
+        The components :math: `\nabla_X^S (A_Y A_X Y)`, :math: `A_X A_Y A_X Y`,
+        :math: `\nabla_X^S (A_X Y)`,  and intermediate computations
+        :math: `A_Y A_X Y` and :math: `A_X Y` are computed here for the
+        Kendall shape space in the special case of Sigma-parallel vector
+        fields :math: `X, Y` extending the values tg_vec_x and tg_vec_y by
+        parallel transport in a neighborhood. Such vector fields verify
+        :math: `\nabla^S_X^X = A_X X` and :math: `\nabla^S_X^Y = A_X Y`.
+
+        Parameters
+        ----------
+        tg_vec_x : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        tg_vec_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Point of the total space.
+
+        Returns
+        -------
+        nabla_x_a_y_a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`, result of :math:
+            `\nabla_X^S (A_Y A_X Y)` with `X = tg_vec_x` and `Y = tg_vec_y`.
+        a_x_a_y_a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`, result of :math:
+            `A_X A_Y A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
+        nabla_x_a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`, result of :math:
+            `\nabla_X^S (A_X Y)` with `X = tg_vec_x` and `Y = tg_vec_y`.
+        a_y_a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`, result of :math:
+            `A_Y A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
+        a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`, result of :math:
+            `A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
+
+        References
+        ----------
+        X Pennec. To be published.
+        """
+        # Vectors X and Y have to be horizontal.
+        if not gs.all(self.is_centered(base_point)):
+            raise ValueError('The base_point does not belong to the pre-shape'
+                             ' space')
+        if not gs.all(self.is_horizontal(tg_vec_x, base_point)):
+            raise ValueError('Tangent vector x is not horizontal')
+        if not gs.all(self.is_horizontal(tg_vec_y, base_point)):
+            raise ValueError('Tangent vector y is not horizontal')
+        # hor_x = self.horizontal_projection(tangent_vec_x, base_point)
+        # hor_y = self.horizontal_projection(tangent_vec_y, base_point)
+
+        p_top = Matrices.transpose(base_point)
+        p_top_p = gs.matmul(p_top, base_point)
+
+        def sylv_p(mat_b):
+            return gs.linalg.solve_sylvester(
+                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
+
+        # \Omega_{XY} = \Sylv_P(Y^\top X)
         y_top_x = gs.matmul(Matrices.transpose(tg_vec_y), tg_vec_x)
         omega_xy = sylv_p(y_top_x)
         # V  =  P \Omega_{XY}
@@ -702,15 +848,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         scal_x_x = Matrices.frobenius_product(tg_vec_x, tg_vec_x)
         scal_x_y = Matrices.frobenius_product(tg_vec_x, tg_vec_y)
 
-        # F_2 = 3V^\top X - \|X\|^2 P^\top Y - \scal{X}{Y}  P^\top X
-        ## tg_vec_f2 =  3 * v_top_x - scal_x_x * p_top_y - scal_x_y * p_top_x
-        tg_vec_f2 = 3. * v_top_x - scal_x_x * p_top_y - scal_x_y * p_top_x
-
-        # \Omega_f2 = \Sylv_P ( F_2 )
-        omega_f2 = sylv_p(tg_vec_f2)
-
-        # \partial_X V = P  \Omega_f2 + X \Omega_{XY}
-        partial_x_v = gs.matmul(base_point, omega_f2) \
+        # \partial_X V = 3 P  \Sylv_P(V^\top X ) + X \Omega_{XY}
+        partial_x_v = 3.0 * gs.matmul(base_point, sylv_p(v_top_x )) \
                       + gs.matmul(tg_vec_x, omega_xy)
 
         # \nabla^S_X V = \partial_X V + \scal{X}{V} P
@@ -737,27 +876,27 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         omega_f4 = sylv_p(tg_vec_f4)
 
         # F_5 =  ( \|V\|^2 - \scal{X}{Y} \scal{P}{V}
-        #        +  \scal{Y}{\partial_X V}) P +  \scal{Y}{V} X}
+        #        +  \scal{Y}{\partial_X V}) P +  \scal{Y}{V} X} - <X,Y> V
         sq_norm_v = Matrices.frobenius_product(tg_vec_v, tg_vec_v)
         scal_p_v = Matrices.frobenius_product(base_point, tg_vec_v)
         scal_y_v = Matrices.frobenius_product(tg_vec_y, tg_vec_v)
         scal_y_partial_x_v = Matrices.frobenius_product(tg_vec_y, partial_x_v)
-        tg_vec_f5 = (sq_norm_v - scal_x_y * scal_p_v + scal_y_partial_x_v) * \
+        tg_vec_f5 = (2.0 * sq_norm_v - scal_x_y * scal_p_v +
+                     scal_y_partial_x_v)\
+                    * \
                     base_point + scal_y_v * tg_vec_x
 
         # \nabla^{S}_X (A_Y A_X Y)}  = P \Omega_f3  + X \Omega_{YV}
         #     + Y \Omega_4 + V \Omega_{XY} + F_5 + \scal{X}{A_Y V} P
-        ## This can be computed more efficiently with precomputed quantities
+        # This can be computed more efficiently with precomputed quantities
         a_y_a_x_y = self.integrability_tensor(tg_vec_y, tg_vec_v, base_point)
         a_x_a_y_a_x_y = self.integrability_tensor(tg_vec_x, a_y_a_x_y,
                                                   base_point)
-
         nabla_x_a_y_a_x_y = gs.matmul(base_point, omega_f3) \
-                            + gs.matmul(tg_vec_x, omega_yv) + gs.matmul(
-            tg_vec_y, omega_f4) \
-                            + gs.matmul(tg_vec_v, omega_xy) + tg_vec_f5 \
-                            + Matrices.frobenius_product(tg_vec_x,
-                                                         a_y_a_x_y) * base_point
+                            + gs.matmul(tg_vec_x, omega_yv) \
+                            + gs.matmul(tg_vec_y, omega_f4) \
+                            + gs.matmul(tg_vec_v, omega_xy) \
+                            + tg_vec_f5
 
         return nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, nabla_x_a_x_y, a_y_a_x_y, \
                tg_vec_v
