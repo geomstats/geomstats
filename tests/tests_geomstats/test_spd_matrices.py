@@ -119,23 +119,12 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         e = math.exp(1)
         v = gs.array([[c, s, 0.], [s, c, 0.], [0., 0., e]])
         result = self.space.logm(v)
+
         four_dim_expected = gs.broadcast_to(expected, (2,2)+expected.shape)
         four_dim_v = gs.broadcast_to(v, (2,2)+v.shape)
         four_dim_result = self.space.logm(four_dim_v)
         self.assertAllClose(result, expected)
         self.assertAllclose(four_dim_result, four_dim_expected)
-
-    def test_logm_multidim(self):
-        """Test of logm method for batch of matrices"""
-        two_dim_expected = gs.array([[0., 1., 0.], [1., 0., 0.], [0., 0., 1.]])
-        four_dim_exptected = gs.broadcast_to(expected_1, (2,2)+expected_1.shape)
-        c = math.cosh(1)
-        s = math.sinh(1)
-        e = math.exp(1)
-        two_dim_v = gs.array([[[c, s, 0.], [s, c, 0.], [0., 0., e]]])
-        two_dim_mat = 
-        expected = gs.array([[[0., 1., 0.], [1., 0., 0.], [0., 0., 1.]],  ])
-        self.assertAllClose(result, expected)    
 
     def test_differential_power(self):
         """Test of differential_power method."""
