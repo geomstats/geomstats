@@ -124,7 +124,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         four_dim_v = gs.broadcast_to(v, (2,2)+v.shape)
         four_dim_result = self.space.logm(four_dim_v)
         self.assertAllClose(result, expected)
-        self.assertAllclose(four_dim_result, four_dim_expected)
+        self.assertAllClose(four_dim_result, four_dim_expected)
 
     def test_differential_power(self):
         """Test of differential_power method."""
