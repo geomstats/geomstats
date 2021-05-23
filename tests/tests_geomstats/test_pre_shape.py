@@ -586,3 +586,25 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         # TBD: last test should be the optimized formula
         # nabla_x_a_y_a_x_y_sigma_parallel for the covariante
         # derivative of the iterated integrability tensor.
+        # V = nabla_x_y = A_X Y
+        #
+        # nabla_x_v = nabla_X A_X Y = \dot A(X, X, 0, Y, V)
+        nabla_x_v, ver_v = space.nabla_integrability( \
+            hor_x, hor_x, gs.zeros_like(hor_x), hor_y, a_x_y, base_point)
+        self.assertAllClose(ver_v, a_x_y)
+
+        # nabla_X A_Y A_X Y = nabla_X A_Y V  = \dot A (X, Y, V,  V, nabla_X V)
+        nabla_x_a_y_a_x_y, a_y_a_x_y = space.nabla_integrability( \
+            hor_x, hor_y, ver_v, ver_v, nabla_x_v, base_point)
+
+        nabla_x_a_y_a_x_y_sp, a_x_a_y_a_x_y_sp, nabla_x_a_x_y_sp, \
+        a_y_a_x_y_sp, ver_v_sp = space.nabla_x_a_y_a_x_y_sigma_parallel( \
+            hor_x, hor_y, base_point)
+        self.assertAllClose(nabla_x_a_x_y_sp, nabla_x_v)
+        self.assertAllClose(ver_v, ver_v_sp)
+        self.assertAllClose(nabla_x_v, nabla_x_a_x_y_sp)
+        self.assertAllClose(a_y_a_x_y, a_y_a_x_y_sp)
+        print(nabla_x_a_y_a_x_y)
+        print(nabla_x_a_y_a_x_y_sp)
+        self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_sp)
+
