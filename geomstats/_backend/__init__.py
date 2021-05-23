@@ -32,6 +32,7 @@ BACKEND_ATTRIBUTES = {
         'assignment_by_sum',
         'atol',
         'broadcast_arrays',
+        'broadcast_to'
         'cast',
         'ceil',
         'clip',

@@ -12,6 +12,7 @@ from torch import (  # NOQA
     atan2 as arctan2,
     bool as t_bool,
     broadcast_tensors as broadcast_arrays,
+    broadcast_to,
     ceil,
     clamp as clip,
     cos,
