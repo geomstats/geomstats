@@ -120,9 +120,10 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         v = gs.array([[c, s, 0.], [s, c, 0.], [0., 0., e]])
         result = self.space.logm(v)
 
-        four_dim_expected = gs.broadcast_to(expected, (2,2)+expected.shape)
-        four_dim_v = gs.broadcast_to(v, (2,2)+v.shape)
+        four_dim_expected = gs.broadcast_to(expected, (2, 2) + expected.shape)
+        four_dim_v = gs.broadcast_to(v, (2, 2) + v.shape)
         four_dim_result = self.space.logm(four_dim_v)
+        
         self.assertAllClose(result, expected)
         self.assertAllClose(four_dim_result, four_dim_expected)
 

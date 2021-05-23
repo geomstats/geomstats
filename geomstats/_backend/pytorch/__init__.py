@@ -351,10 +351,12 @@ def to_ndarray(x, to_ndim, axis=0):
         x = torch.unsqueeze(x, dim=axis)
     return x
 
+
 def broadcast_to(x, shape):
     if not torch.is_tensor(x):
         x = torch.tensor(x)    
-    x.expand(shape)
+    return x.expand(shape)
+    
 
 def sqrt(x):
     if not isinstance(x, torch.Tensor):
