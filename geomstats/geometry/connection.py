@@ -531,6 +531,11 @@ class Connection:
                 initial_tangent_vec, to_ndim=3)
         n_initial_conditions = initial_tangent_vec.shape[0]
 
+        if n_initial_conditions > 1 and len(initial_point) == 1:
+            initial_point = gs.tile(
+                initial_point, n_initial_conditions).reshape(
+                n_initial_conditions, *initial_point.shape)
+
         def path(t):
             """Generate parameterized function for geodesic curve.
 

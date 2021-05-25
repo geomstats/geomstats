@@ -241,3 +241,39 @@ class TestConnection(geomstats.tests.TestCase):
                 initial_point=initial_point,
                 initial_tangent_vec=initial_tangent_vec,
                 end_point=end_point))
+
+    def test_geodesic_vectorization(self):
+        space = Hypersphere(2)
+        metric = space.metric
+        initial_point = space.random_uniform(2)
+        vector = gs.random.rand(2, 3)
+        initial_tangent_vec = space.to_tangent(
+            vector=vector, base_point=initial_point)
+        end_point = space.random_uniform(2)
+        time = gs.linspace(0, 1, 10)
+
+        geo = metric.geodesic(initial_point, initial_tangent_vec)
+        path = geo(time)
+        result = path.shape
+        expected = (10, 2, 3)
+        self.assertAllClose(result, expected)
+
+        geo = metric.geodesic(initial_point, end_point=end_point)
+        path = geo(time)
+        result = path.shape
+        expected = (10, 2, 3)
+        self.assertAllClose(result, expected)
+
+        geo = metric.geodesic(initial_point, end_point=end_point[0])
+        path = geo(time)
+        result = path.shape
+        expected = (10, 2, 3)
+        self.assertAllClose(result, expected)
+
+        initial_tangent_vec = space.to_tangent(
+            vector=vector, base_point=initial_point[0])
+        geo = metric.geodesic(initial_point[0], initial_tangent_vec)
+        path = geo(time)
+        result = path.shape
+        expected = (10, 2, 3)
+        self.assertAllClose(result, expected)
