@@ -532,9 +532,8 @@ class Connection:
         n_initial_conditions = initial_tangent_vec.shape[0]
 
         if n_initial_conditions > 1 and len(initial_point) == 1:
-            initial_point = gs.tile(
-                initial_point, n_initial_conditions).reshape(
-                n_initial_conditions, *initial_point.shape)
+            initial_point = gs.stack(
+                [initial_point[0]] * n_initial_conditions)
 
         def path(t):
             """Generate parameterized function for geodesic curve.
@@ -544,7 +543,8 @@ class Connection:
             t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
             """
-            t = gs.array(t, gs.float32)
+            t = gs.array(t)
+            t = gs.cast(t, initial_tangent_vec.dtype)
             t = gs.to_ndarray(t, to_ndim=1)
             if point_type == 'vector':
                 tangent_vecs = gs.einsum(
