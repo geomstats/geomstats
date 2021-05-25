@@ -461,12 +461,11 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = scal(a_y_a_x_y, a_y_z)
         self.assertAllClose(result, 0.0)
 
-        # This test fails
         # Test scal{\nabla^S_X (A_Y V)}{W}  + scal{A_Y V}{nabla_X W} =0
         # with V = A_X Y and W = A_Y Z
-        # result = scal(nabla_x_a_y_a_x_y, a_y_z) \
-        #           + scal(a_y_a_x_y, nabla_x_a_y_z)
-        # self.assertAllClose(result, 0.0)
+        result = scal(nabla_x_a_y_a_x_y, a_y_z) \
+                  + scal(a_y_a_x_y, nabla_x_a_y_z)
+        self.assertAllClose(result, 0.0)
 
         #############
         # This test fails
@@ -475,12 +474,12 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         nabla_x_a_z_z2, a_z_z2 \
             = space.nabla_x_a_y_z_quotient_parallel(hor_x, hor_z, hor_z2,
                                                  base_point)
-        # result = scal(a_y_a_x_y, a_z_z2)
-        # self.assertAllClose(result, 0.0)
+        result = scal(a_y_a_x_y, a_z_z2)
+        self.assertAllClose(result, 0.0)
 
-        # result = scal(nabla_x_a_y_a_x_y, a_z_z2) \
-        #          + scal(a_y_a_x_y, nabla_x_a_z_z2)
-        # self.assertAllClose(result, 0.0)
+        result = scal(nabla_x_a_y_a_x_y, a_z_z2) \
+                 + scal(a_y_a_x_y, nabla_x_a_z_z2)
+        self.assertAllClose(result, 0.0)
 
         # Test \scal{\nabla^S_X (A_Y Z)}{Z} + \scal{A_Y Z}{ A_X Z} =0
         a_x_z = space.integrability_tensor(hor_x, hor_z, base_point)
