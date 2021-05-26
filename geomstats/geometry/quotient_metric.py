@@ -1,5 +1,6 @@
 """Classes for fiber bundles and quotient metrics."""
 
+import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -144,8 +145,7 @@ class QuotientMetric(RiemannianMetric):
         r"""Compute the curvature.
 
         For three tangent vectors at a base point :math: `X,Y,Z`,
-        the curvature is defined by
-        :math: `R(X,Y)Z = \nabla_{[X,Y]}Z
+        the curvature is defined by :math: `R(X,Y)Z = \nabla_{[X,Y]}Z
         - \nabla_X\nabla_Y Z + \nabla_Y\nabla_X Z`.
 
         In the case of quotient metrics, the fundamental equations of a
@@ -207,3 +207,150 @@ class QuotientMetric(RiemannianMetric):
         f_a_f_bc = bundle.tangent_submersion(f_a_f_bc, point_fiber)
 
         return projected_top_curvature - 2 * f_c_f_ab + f_a_f_bc - f_b_f_ac
+
+    def curvature_derivative(
+            self, hor_tg_vec_h, hor_tg_vec_x, hor_tg_vec_y, hor_tg_vec_z,
+            base_point=None):
+        r"""Compute the covariant derivative of the curvature.
+
+        For four horizontal tangent vectors at a base point :math: `H|_P, X|_P, 
+        Y|_P, Z|_P` given in argument, the covariant derivative of the 
+        quotient curvature :math: `(\nabla_H R)(X, Y)Z |_P` is computed at the
+        base point P. This tensor is computed with quotient-parallel vector
+        fields :math: `H, X, Y, Z` extending the horizontal tangent vectors
+        hor_tg_vec_h to hor_tg_vec_z by parallel transport in a neighborhood 
+        of the quotient space. Such vector fields verify :math: `\nabla^M_H 
+        H=0`, :math: `\nabla^M_H^X = A_H X` (and similarly for Y and Z). The 
+        covariant derivative is then computed using the formula :math: 
+        `\nabla_H^Q (R^Q(X, Y) Z) = \hor\nabla_H^M(R^M(X,Y)Z)
+        - A_H(\ver R^M(X,Y)Z ) - (2 A_H A_Z A_X Y - A_H A_X A_Y Z
+        + A_H A_Y A_X Z) + (2\nabla_H^M A_Z A_X Y -\nabla_H^M A_X A_Y Z
+        +\nabla_H^M A_Y A_X Z)`.
+
+        Parameters
+        ----------
+        hor_tg_vec_h : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        hor_tg_vec_x : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        hor_tg_vec_y : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        hor_tg_vec_z : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., n, n]
+            Point on the group.
+
+        Returns
+        -------
+        curvature_derivative : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
+        bundle = self.fiber_bundle
+        point_fiber = bundle.lift(base_point)
+        hor_h = bundle.horizontal_lift(hor_tg_vec_h, point_fiber)
+        hor_x = bundle.horizontal_lift(hor_tg_vec_x, point_fiber)
+        hor_y = bundle.horizontal_lift(hor_tg_vec_y, point_fiber)
+        hor_z = bundle.horizontal_lift(hor_tg_vec_z, point_fiber)
+
+        nabla_h_x = bundle.integrability_tensor(hor_h, hor_x, point_fiber)
+        nabla_h_y = bundle.integrability_tensor(hor_h, hor_y, point_fiber)
+        nabla_h_z = bundle.integrability_tensor(hor_h, hor_z, point_fiber)
+
+        nabla_curvature_top = self.ambient_metric.curvature_derivative(
+            hor_h, hor_x, hor_y, hor_z, point_fiber)
+
+        hor_nabla_curvature_top = bundle.horizontal_projection(
+            nabla_curvature_top, point_fiber)
+        ver_nabla_curvature_top = nabla_curvature_top - hor_nabla_curvature_top
+
+        a_h_ver_nabla_curvature_top = bundle.integrability_tensor(
+            hor_h, ver_nabla_curvature_top, point_fiber)
+
+        # A_H A_Z A_X Y and \nabla_H A_Z A_X Y
+        nabla_h_a_x_y, a_x_y = bundle.nabla_integrability(
+            hor_h, hor_x, nabla_h_x, hor_y, nabla_h_y, point_fiber)
+        nabla_h_a_z_a_x_y, a_z_a_x_y = bundle.nabla_integrability(
+            hor_h, hor_z, nabla_h_z, a_x_y, nabla_h_a_x_y, point_fiber)
+        a_h_a_z_a_x_y = bundle.integrability_tensor(
+            hor_h, a_z_a_x_y, point_fiber)
+
+        # A_H A_X A_Y Z and \nabla_H A_X A_Y Z
+        nabla_h_a_y_z, a_y_z = bundle.nabla_integrability(
+            hor_h, hor_y, nabla_h_y, hor_z, nabla_h_z, point_fiber)
+        nabla_h_a_x_a_y_z, a_x_a_y_z = bundle.nabla_integrability(
+            hor_h, hor_x, nabla_h_x, a_y_z, nabla_h_a_y_z, point_fiber)
+        a_h_a_x_a_y_z = bundle.integrability_tensor(
+            hor_h, a_x_a_y_z, point_fiber)
+
+        # A_H A_Y A_X Z and \nabla_H A_Y A_X Z
+        nabla_h_a_x_z, a_x_z = bundle.nabla_integrability(
+            hor_h, hor_x, nabla_h_x, hor_z, nabla_h_z, point_fiber)
+        nabla_h_a_y_a_x_z, a_y_a_x_z = bundle.nabla_integrability(
+            hor_h, hor_y, nabla_h_y, a_x_z, nabla_h_a_x_z, point_fiber)
+        a_h_a_y_a_x_z = bundle.integrability_tensor(
+            hor_h, a_y_a_x_z, point_fiber)
+
+        return hor_nabla_curvature_top - a_h_ver_nabla_curvature_top \
+               + 2. * (nabla_h_a_z_a_x_y - a_h_a_z_a_x_y) \
+               - nabla_h_a_x_a_y_z + a_h_a_x_a_y_z \
+               + nabla_h_a_y_a_x_z - a_h_a_y_a_x_z
+
+    def directional_curvature_derivative(
+            self, hor_tg_vec_x, hor_tg_vec_y, base_point=None):
+        r"""Compute the covariant derivative of the directional curvature.
+
+        For the two horizontal tangent vectors at a base point :math: `X|_P,
+        Y|_P` given in argument, the covariant derivative of the directional
+        curvature in quotient space  :math: `(\nabla^Q_X R^Q_Y)(X) |_P =
+        (\nabla^Q_X R^Q)(X, Y)Y |_P` is computed at the base point P. This
+        tensor is computed with quotient-parallel vector fields :math: `X,
+        Y` extending the horizontal tangent vectors hor_tg_vec_x and
+        hor_tg_vec_y by parallel transport in a neighborhood of the quotient
+        space. Such vector fields verify :math: `\nabla^M_X X=0` and :math:
+        `\nabla^M_H^X Y = A_X Y`. The covariant derivative of the directional
+        curvature is then computed using the formula :math:
+        `\nabla_X^Q (R^Q_Y(X)) = \hor\nabla_H^M(R^M_Y(X)) - A_X(\ver R^M_Y(X))
+        - 3 A_X A_Y A_X Y + 3 \nabla_X^M A_Y A_X Y `.
+
+        Parameters
+        ----------
+        hor_tg_vec_x : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        hor_tg_vec_y : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., n, n]
+            Point on the group.
+
+        Returns
+        -------
+        curvature_derivative : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
+        bundle = self.fiber_bundle
+        point_fiber = bundle.lift(base_point)
+        hor_x = bundle.horizontal_lift(hor_tg_vec_x, point_fiber)
+        hor_y = bundle.horizontal_lift(hor_tg_vec_y, point_fiber)
+
+        nabla_x_x = gs.zeros_like(hor_x)
+        nabla_x_y = bundle.integrability_tensor(hor_x, hor_y, point_fiber)
+
+        nabla_curvature_top = self.ambient_metric.curvature_derivative(
+            hor_x, hor_x, hor_y, hor_y, point_fiber)
+
+        hor_nabla_curvature_top = bundle.horizontal_projection(
+            nabla_curvature_top, point_fiber)
+        ver_nabla_curvature_top = nabla_curvature_top - hor_nabla_curvature_top
+
+        a_x_ver_nabla_curvature_top = bundle.integrability_tensor(
+            hor_x, ver_nabla_curvature_top, point_fiber)
+
+        # A_X A_Y A_X Y and \nabla_X A_Y A_X Y
+        nabla_x_a_x_y, a_x_y = bundle.nabla_integrability(
+            hor_x, hor_x, nabla_x_x, hor_y, nabla_x_y, point_fiber)
+        nabla_x_a_y_a_x_y, a_y_a_x_y = bundle.nabla_integrability(
+            hor_x, hor_y, nabla_x_y, a_x_y, nabla_x_a_x_y, point_fiber)
+        a_x_a_y_a_x_y = bundle.integrability_tensor(
+            hor_x, a_y_a_x_y, point_fiber)
+
+        return hor_nabla_curvature_top - a_x_ver_nabla_curvature_top \
+               + 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
