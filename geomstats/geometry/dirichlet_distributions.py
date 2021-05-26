@@ -91,14 +91,14 @@ class DirichletDistributions(OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim_embedding]
+        point : array-like, shape=[..., dim]
             Point in ambient space.
         atol : float
             Tolerance to evaluate positivity.
 
         Returns
         -------
-        projected : array-like, shape=[..., dim_embedding]
+        projected : array-like, shape=[..., dim]
             Projected point.
         """
         return gs.where(point < atol, atol, point)
