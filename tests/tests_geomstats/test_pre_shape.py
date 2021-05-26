@@ -393,8 +393,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
     def test_kendall_directional_curvature(self):
         space = self.space
-        kendall = KendallShapeMetric(m_ambient=self.m_ambient,
-                                     k_landmarks=self.k_landmarks)
+        metric = self.shape_metric
         n_samples = 4 * self.k_landmarks * self.m_ambient
         base_point = self.space.random_point(1)
 
@@ -406,17 +405,17 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         tg_vec_b = space.to_tangent(space.center(vec_b), base_point)
         hor_b = space.horizontal_projection(tg_vec_b, base_point)
 
-        tidal = kendall.directional_curvature(hor_a, hor_b, base_point)
+        tidal = metric.directional_curvature(hor_a, hor_b, base_point)
 
-        numerator = kendall.inner_product(tidal, hor_b, base_point)
+        numerator = metric.inner_product(tidal, hor_b, base_point)
         denominator = \
-            kendall.inner_product(hor_a, hor_a, base_point) * \
-            kendall.inner_product(hor_b, hor_b, base_point) - \
-            kendall.inner_product(hor_a, hor_b, base_point) ** 2
+            metric.inner_product(hor_a, hor_a, base_point) * \
+            metric.inner_product(hor_b, hor_b, base_point) - \
+            metric.inner_product(hor_a, hor_b, base_point) ** 2
         condition = ~gs.isclose(denominator, 0.)
         kappa = numerator[condition] / denominator[condition]
         kappa_direct = \
-            kendall.sectional_curvature(hor_a, hor_b, base_point)[condition]
+            metric.sectional_curvature(hor_a, hor_b, base_point)[condition]
         self.assertAllClose(kappa, kappa_direct)
         result = (kappa > 1.0 - 1e-12)
         self.assertTrue(gs.all(result))
@@ -441,7 +440,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         a_x_y = space.nabla_x_a_y_a_x_y_quotient_parallel(
             hor_x, hor_y, base_point)
 
-        nabla_x_a_y_z, a_y_z  = space.nabla_x_a_y_z_quotient_parallel(
+        nabla_x_a_y_z, a_y_z = space.nabla_x_a_y_z_quotient_parallel(
             hor_x, hor_y, hor_z, base_point)
 
         nabla_x_a_x_y_2, a_x_y_2 = space.nabla_x_a_y_z_quotient_parallel(
@@ -464,16 +463,13 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         # Test scal{\nabla^S_X (A_Y V)}{W}  + scal{A_Y V}{nabla_X W} =0
         # with V = A_X Y and W = A_Y Z
         result = scal(nabla_x_a_y_a_x_y, a_y_z) \
-                  + scal(a_y_a_x_y, nabla_x_a_y_z)
+                 + scal(a_y_a_x_y, nabla_x_a_y_z)
         self.assertAllClose(result, 0.0)
 
-        #############
-        # This test fails
-        # test with W = A_Z_Z2
         # test scal(A_Y V, W)=0 with V = A_X Y and W = A_Z Z2
         nabla_x_a_z_z2, a_z_z2 \
             = space.nabla_x_a_y_z_quotient_parallel(hor_x, hor_z, hor_z2,
-                                                 base_point)
+                                                    base_point)
         result = scal(a_y_a_x_y, a_z_z2)
         self.assertAllClose(result, 0.0)
 
@@ -507,8 +503,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         scal = Matrices.frobenius_product
 
         base_point = space.random_point()
-        vector = gs.random.rand(
-            11, self.k_landmarks, self.m_ambient)
+        vector = gs.random.rand(11, self.k_landmarks, self.m_ambient)
         tg_vec_0 = space.to_tangent(vector[0], base_point)
         hor_x = space.horizontal_projection(tg_vec_0, base_point)
         tg_vec_1 = space.to_tangent(vector[1], base_point)
@@ -537,7 +532,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         a_x_z = space.integrability_tensor(hor_x, hor_z, base_point)
         result, a_y_z = space.nabla_integrability(
             hor_x, hor_y, a_x_y, hor_z, a_x_z, base_point)
-        expected, a_y_z_qp = space.nabla_x_a_y_z_quotient_parallel(\
+        expected, a_y_z_qp = space.nabla_x_a_y_z_quotient_parallel(
             hor_x, hor_y, hor_z, base_point)
         self.assertAllClose(a_y_z, a_y_z_qp)
         self.assertAllClose(result, expected)
@@ -552,9 +547,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         nabla_x_w = ver_dw + a_x_w
 
         # Test alternating property: \nabla_X ( A_Y Z + A_Z Y ) =0
-        nabla_x_a_y_z, a_y_z = space.nabla_integrability( \
+        nabla_x_a_y_z, a_y_z = space.nabla_integrability(
             hor_x, hor_y, nabla_x_y, hor_z, nabla_x_z, base_point)
-        nabla_x_a_z_y, a_z_y = space.nabla_integrability( \
+        nabla_x_a_z_y, a_z_y = space.nabla_integrability(
             hor_x, hor_z, nabla_x_z, hor_y, nabla_x_y, base_point)
         result = nabla_x_a_y_z + nabla_x_a_z_y
         self.assertAllClose(result, 0.0)
@@ -567,7 +562,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, 0.0)
 
         # \nabla_X < A_Y V, W > =0
-        nabla_x_a_y_v, a_y_v = space.nabla_integrability( \
+        nabla_x_a_y_v, a_y_v = space.nabla_integrability(
             hor_x, hor_y, nabla_x_y, ver_v, nabla_x_v, base_point)
         result = scal(nabla_x_a_y_v, ver_w) + scal(a_y_v, nabla_x_w)
         self.assertAllClose(result, 0.0)
@@ -581,24 +576,84 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         # Test the optimized formula nabla_x_a_y_a_x_y_quotient_parallel for
         # the covariante derivative of the iterated integrability tensor.
-        #
         # nabla_x_v = nabla_X A_X Y = \dot A(X, X, 0, Y, V)
-        nabla_x_v, ver_v = space.nabla_integrability( \
+        nabla_x_v, ver_v = space.nabla_integrability(
             hor_x, hor_x, gs.zeros_like(hor_x), hor_y, a_x_y, base_point)
         self.assertAllClose(ver_v, a_x_y)
 
         # nabla_X A_Y A_X Y = nabla_X A_Y V  = \dot A (X, Y, V,  V, nabla_X V)
-        nabla_x_a_y_a_x_y, a_y_a_x_y = space.nabla_integrability( \
+        nabla_x_a_y_a_x_y, a_y_a_x_y = space.nabla_integrability(
             hor_x, hor_y, ver_v, ver_v, nabla_x_v, base_point)
         a_x_a_y_a_x_y = space.integrability_tensor(hor_x, a_y_a_x_y, base_point)
 
         nabla_x_a_y_a_x_y_qp, a_x_a_y_a_x_y_qp, nabla_x_v_qp, \
         a_y_a_x_y_qp, ver_v_qp = \
-            space.nabla_x_a_y_a_x_y_quotient_parallel( \
-            hor_x, hor_y, base_point)
+            space.nabla_x_a_y_a_x_y_quotient_parallel(
+                hor_x, hor_y, base_point)
         self.assertAllClose(ver_v, ver_v_qp)
         self.assertAllClose(a_y_a_x_y, a_y_a_x_y_qp)
         self.assertAllClose(nabla_x_v, nabla_x_v_qp)
         self.assertAllClose(a_x_a_y_a_x_y, a_x_a_y_a_x_y_qp)
         self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp)
 
+    def test_curvature_derivative_bianchi_identity(self):
+        space = self.space
+        metric = self.shape_metric
+
+        base_point = space.random_point()
+        vector = gs.random.rand(
+            4, self.k_landmarks, self.m_ambient)
+        tg_vec_0 = space.to_tangent(vector[0], base_point)
+        hor_x = space.horizontal_projection(tg_vec_0, base_point)
+        tg_vec_1 = space.to_tangent(vector[1], base_point)
+        hor_y = space.horizontal_projection(tg_vec_1, base_point)
+        tg_vec_2 = space.to_tangent(vector[2], base_point)
+        hor_z = space.horizontal_projection(tg_vec_2, base_point)
+        tg_vec_t = space.to_tangent(vector[3], base_point)
+
+        term_x = metric.curvature_derivative(
+            hor_x, hor_y, hor_z, tg_vec_t, base_point)
+        term_y = metric.curvature_derivative(
+            hor_y, hor_z, hor_x, tg_vec_t, base_point)
+        term_z = metric.curvature_derivative(
+            hor_z, hor_x, hor_y, tg_vec_t, base_point)
+        print(term_x)
+
+        result = term_x + term_y + term_z
+        self.assertAllClose(result, 0.0)
+
+    def test_curvature_derivative_is_skew_operator(self):
+        space = self.space
+        metric = space.metric
+
+        base_point = space.random_point()
+        vector = gs.random.rand(3, self.k_landmarks, self.m_ambient)
+        tg_vec_0 = space.to_tangent(vector[0], base_point)
+        hor_x = space.horizontal_projection(tg_vec_0, base_point)
+        tg_vec_1 = space.to_tangent(vector[1], base_point)
+        hor_y = space.horizontal_projection(tg_vec_1, base_point)
+        tg_vec_2 = space.to_tangent(vector[2], base_point)
+        hor_z = space.horizontal_projection(tg_vec_2, base_point)
+
+        result = metric.curvature_derivative(
+            hor_x, hor_y, hor_y, hor_z, base_point)
+        print(result)
+        self.assertAllClose(result, 0.0)
+
+    def test_directional_curvature_derivative(self):
+        space = self.space
+        metric = space.metric
+
+        base_point = space.random_point()
+        vector = gs.random.rand(3, self.k_landmarks, self.m_ambient)
+        tg_vec_0 = space.to_tangent(vector[0], base_point)
+        hor_x = space.horizontal_projection(tg_vec_0, base_point)
+        tg_vec_1 = space.to_tangent(vector[1], base_point)
+        hor_y = space.horizontal_projection(tg_vec_1, base_point)
+
+        result = metric.directional_curvature_derivative(
+            hor_x, hor_y, base_point)
+
+        expected = metric.curvature_derivative(
+            hor_x, hor_x, hor_y, hor_y, base_point)
+        self.assertAllClose(result, expected)
