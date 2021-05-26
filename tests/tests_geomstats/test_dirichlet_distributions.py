@@ -3,9 +3,8 @@
 import math
 import warnings
 
-from scipy.stats import dirichlet
-
 import tests.helper as helper
+from scipy.stats import dirichlet
 
 import geomstats.backend as gs
 import geomstats.tests

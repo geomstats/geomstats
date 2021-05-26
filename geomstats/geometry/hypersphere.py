@@ -34,8 +34,7 @@ class _Hypersphere(EmbeddedManifold):
 
     def __init__(self, dim):
         super(_Hypersphere, self).__init__(
-            dim=dim,
-            embedding_manifold=Euclidean(dim + 1),
+            dim=dim, embedding_space=Euclidean(dim + 1),
             submersion=lambda x: gs.sum(x ** 2, axis=-1), value=1.,
             tangent_submersion=lambda v, x: 2 * gs.sum(x * v, axis=-1))
 

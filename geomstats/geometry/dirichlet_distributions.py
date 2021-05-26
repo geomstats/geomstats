@@ -32,9 +32,11 @@ class DirichletDistributions(OpenSet):
     """
 
     def __init__(self, dim):
-        super(DirichletDistributions, self).__init__(
-            dim=dim, ambient_manifold=Euclidean(dim=dim),
-            metric=DirichletMetric(dim=dim))
+        super(DirichletDistributions, self).__init__(dim=dim,
+                                                     ambient_space=Euclidean(
+                                                         dim=dim),
+                                                     metric=DirichletMetric(
+                                                         dim=dim))
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold of Dirichlet distributions.

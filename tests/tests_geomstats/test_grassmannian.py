@@ -86,7 +86,6 @@ class TestGrassmannian(geomstats.tests.TestCase):
         result = self.space.belongs(not_a_point)
         self.assertTrue(~result)
 
-
         not_a_point = gs.random.rand(3, 3)
         result = self.space.belongs(not_a_point)
         self.assertTrue(~result)

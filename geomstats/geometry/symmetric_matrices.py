@@ -21,30 +21,11 @@ class SymmetricMatrices(EmbeddedManifold, OpenSet):
     def __init__(self, n, **kwargs):
         matrices = Matrices(n, n)
         super(SymmetricMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2),
-            embedding_manifold=matrices,
-            ambient_manifold=matrices,
+            dim=int(n * (n + 1) / 2), embedding_space=matrices,
+            ambient_space=matrices,
             submersion=matrices.to_skew_symmetric, value=gs.zeros((n, n)),
             tangent_submersion=matrices.to_skew_symmetric)
         self.n = n
-
-    def belongs(self, mat, atol=gs.atol):
-        """Check if mat belongs to the vector space of symmetric matrices.
-
-        Parameters
-        ----------
-        mat : array-like, shape=[..., n, n]
-            Matrix to check.
-        atol : float
-            Tolerance to evaluate equality.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if mat is a symmetric matrix.
-        """
-        check_shape = self.embedding_manifold.belongs(mat)
-        return gs.logical_and(check_shape, Matrices.is_symmetric(mat, atol))
 
     def get_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""

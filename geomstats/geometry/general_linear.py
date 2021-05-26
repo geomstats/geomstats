@@ -21,7 +21,7 @@ class GeneralLinear(Matrices, LieGroup, OpenSet):
         if 'dim' not in kwargs.keys():
             kwargs['dim'] = n ** 2
         super(GeneralLinear, self).__init__(
-            n=n, m=n, ambient_manifold=Matrices(n, n), **kwargs)
+            ambient_space=Matrices(n, n), n=n, m=n, **kwargs)
 
     def projection(self, point):
         r"""Project a matrix to the general linear group.

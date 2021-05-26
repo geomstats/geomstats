@@ -81,7 +81,7 @@ class ProductManifold(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., {dim, [dim_2, dim_2]}]
+        point : array-like, shape=[..., {dim, [n_manifolds, dim_each]}]
             Point.
         point_type : str, {'vector', 'matrix'}
             Representation of point.
@@ -119,7 +119,7 @@ class ProductManifold(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., {dim, [dim_2, dim_2]}]
+        point : array-like, shape=[..., {dim, [n_manifolds, dim_each]}]
             Point to be regularized.
         point_type : str, {'vector', 'matrix'}
             Representation of point.
@@ -127,7 +127,8 @@ class ProductManifold(Manifold):
 
         Returns
         -------
-        regularized_point : array-like, shape=[..., {dim, [dim_2, dim_2]}]
+        regularized_point : array-like,
+            shape=[..., {dim, [n_manifolds, dim_each]}]
             Point in the manifold's canonical representation.
         """
         if point_type is None:
@@ -160,7 +161,7 @@ class ProductManifold(Manifold):
 
         Returns
         -------
-        samples : array-like, shape=[..., dim + 1]
+        samples : array-like, shape=[..., {dim, [n_manifolds, dim_each]}]
             Points sampled on the hypersphere.
         """
         point_type = self.default_point_type
@@ -181,6 +182,18 @@ class ProductManifold(Manifold):
         return samples
 
     def projection(self, point):
+        """Project a point in product embedding manifold on each manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., {dim, [n_manifolds, dim_each]}]
+            Point in embedding manifold.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., {dim, [n_manifolds, dim_each]}]
+            Projected point.
+        """
         point_type = self.default_point_type
         geomstats.errors.check_parameter_accepted_values(
             point_type, 'point_type', ['vector', 'matrix'])

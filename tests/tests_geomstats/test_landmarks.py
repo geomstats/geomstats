@@ -10,7 +10,7 @@ class TestLandmarks(geomstats.tests.TestCase):
 
     def setUp(self):
         s2 = Hypersphere(dim=2)
-        r3 = s2.embedding_manifold
+        r3 = s2.embedding_space
 
         initial_point = [0., 0., 1.]
         initial_tangent_vec_a = [1., 0., 0.]
