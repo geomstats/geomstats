@@ -521,8 +521,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         tmp_tg_vec_y = gs.matmul(p_top, nabla_x_e) \
                        + gs.matmul(x_top, tg_vec_e_sym)
 
-        scal_x_a_y_e = self.ambient_metric.inner_product(\
-                       hor_tg_vec_x, a_y_e, base_point)
+        scal_x_a_y_e = self.ambient_metric.inner_product( \
+            hor_tg_vec_x, a_y_e, base_point)
 
         nabla_x_a_y_e = gs.matmul(base_point, sylv_p(tmp_tg_vec_p)) \
                         + tg_vec_b \
@@ -710,139 +710,6 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         return nabla_x_a_y_v, a_x_a_y_a_x_y, nabla_x_v, a_y_a_x_y, tg_vec_v
 
-    def nabla_x_a_y_a_x_y_quotient_parallel_old(self, tg_vec_x, tg_vec_y,
-                                           base_point):
-        r"""Compute derivatives of the integrability tensor A (special case).
-
-        The covariant derivative :math: `\nabla_X^Q (A_Y A_X Y) = \nabla_X^S
-        (A_Y A_X Y) - A_X A_Y A_X Y` (where :math: `X`and :math: `Y` are
-        horizontal vector fields) is a key ingredient in the computation of
-        the covariant derivative of the directional curvature in a submersion.
-        The components :math: `\nabla_X^S (A_Y A_X Y)`, :math: `A_X A_Y A_X Y`,
-        :math: `\nabla_X^S (A_X Y)`,  and intermediate computations
-        :math: `A_Y A_X Y` and :math: `A_X Y` are computed here for the
-        Kendall shape space in the special case of Sigma-parallel vector
-        fields :math: `X, Y` extending the values tg_vec_x and tg_vec_y by
-        parallel transport in a neighborhood. Such vector fields verify
-        :math: `\nabla^S_X^X = A_X X` and :math: `\nabla^S_X^Y = A_X Y`.
-
-        Parameters
-        ----------
-        tg_vec_x : array-like, shape=[..., {ambient_dim, [n, n]}]
-            Tangent vector at `base_point`.
-        tg_vec_y : array-like, shape=[..., {ambient_dim, [n, n]}]
-            Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
-            Point of the total space.
-
-        Returns
-        -------
-        nabla_x_a_y_a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
-            Tangent vector at `base_point`, result of :math:
-            `\nabla_X^S (A_Y A_X Y)` with `X = tg_vec_x` and `Y = tg_vec_y`.
-        a_x_a_y_a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
-            Tangent vector at `base_point`, result of :math:
-            `A_X A_Y A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
-        nabla_x_a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
-            Tangent vector at `base_point`, result of :math:
-            `\nabla_X^S (A_X Y)` with `X = tg_vec_x` and `Y = tg_vec_y`.
-        a_y_a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
-            Tangent vector at `base_point`, result of :math:
-            `A_Y A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
-        a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
-            Tangent vector at `base_point`, result of :math:
-            `A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
-
-        References
-        ----------
-        X Pennec. To be published.
-        """
-        # Vectors X and Y have to be horizontal.
-        if not gs.all(self.is_centered(base_point)):
-            raise ValueError('The base_point does not belong to the pre-shape'
-                             ' space')
-        if not gs.all(self.is_horizontal(tg_vec_x, base_point)):
-            raise ValueError('Tangent vector x is not horizontal')
-        if not gs.all(self.is_horizontal(tg_vec_y, base_point)):
-            raise ValueError('Tangent vector y is not horizontal')
-        # hor_x = self.horizontal_projection(tangent_vec_x, base_point)
-        # hor_y = self.horizontal_projection(tangent_vec_y, base_point)
-
-        p_top = Matrices.transpose(base_point)
-        p_top_p = gs.matmul(p_top, base_point)
-
-        def sylv_p(mat_b):
-            return gs.linalg.solve_sylvester(
-                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
-
-        # \Omega_{XY} = \Sylv_P(Y^\top X)
-        y_top_x = gs.matmul(Matrices.transpose(tg_vec_y), tg_vec_x)
-        omega_xy = sylv_p(y_top_x)
-        # V  =  P \Omega_{XY}
-        tg_vec_v = gs.matmul(base_point, omega_xy)
-
-        p_top_x = gs.matmul(p_top, tg_vec_x)
-        p_top_y = gs.matmul(p_top, tg_vec_y)
-        v_top = Matrices.transpose(tg_vec_v)
-        v_top_x = gs.matmul(v_top, tg_vec_x)
-        v_top_y = gs.matmul(v_top, tg_vec_y)
-
-        scal_x_x = Matrices.frobenius_product(tg_vec_x, tg_vec_x)
-        scal_x_y = Matrices.frobenius_product(tg_vec_x, tg_vec_y)
-
-        # \partial_X V = 3 P  \Sylv_P(V^\top X ) + X \Omega_{XY}
-        partial_x_v = 3.0 * gs.matmul(base_point, sylv_p(v_top_x )) \
-                      + gs.matmul(tg_vec_x, omega_xy)
-
-        # \nabla^S_X V = \partial_X V + \scal{X}{V} P
-        scal_x_v = Matrices.frobenius_product(tg_vec_x, tg_vec_v)
-        nabla_x_a_x_y = partial_x_v + scal_x_v * base_point
-
-        ######################
-
-        # \Omega_{YV}  =  \Sylv_P(V^\top Y)
-        omega_yv = sylv_p(v_top_y)
-
-        # F_3 =  (\partial_X V)^\top Y  + 2  X^\top P \Omega_{YV}
-        # REM: X^\top P = P^\top X
-        tg_vec_f3 = gs.matmul(Matrices.transpose(partial_x_v), tg_vec_y) \
-                    + 2 * gs.matmul(p_top_x, omega_yv)
-
-        # \Omega_f3 =  \Sylv_{P}(F_3)
-        omega_f3 = sylv_p(tg_vec_f3)
-
-        # F_4 = P^\top (\partial_X V)  +  V^\top  X
-        tg_vec_f4 = gs.matmul(p_top, partial_x_v) + v_top_x
-
-        # \Omega_f4 =  \Sylv_P(F_4)
-        omega_f4 = sylv_p(tg_vec_f4)
-
-        # F_5 =  ( \|V\|^2 - \scal{X}{Y} \scal{P}{V}
-        #        +  \scal{Y}{\partial_X V}) P +  \scal{Y}{V} X} - <X,Y> V
-        sq_norm_v = Matrices.frobenius_product(tg_vec_v, tg_vec_v)
-        scal_p_v = Matrices.frobenius_product(base_point, tg_vec_v)
-        scal_y_v = Matrices.frobenius_product(tg_vec_y, tg_vec_v)
-        scal_y_partial_x_v = Matrices.frobenius_product(tg_vec_y, partial_x_v)
-        tg_vec_f5 = (2.0 * sq_norm_v - scal_x_y * scal_p_v +
-                     scal_y_partial_x_v)\
-                    * \
-                    base_point + scal_y_v * tg_vec_x
-
-        # \nabla^{S}_X (A_Y A_X Y)}  = P \Omega_f3  + X \Omega_{YV}
-        #     + Y \Omega_4 + V \Omega_{XY} + F_5 + \scal{X}{A_Y V} P
-        # This can be computed more efficiently with precomputed quantities
-        a_y_a_x_y = self.integrability_tensor(tg_vec_y, tg_vec_v, base_point)
-        a_x_a_y_a_x_y = self.integrability_tensor(tg_vec_x, a_y_a_x_y,
-                                                  base_point)
-        nabla_x_a_y_a_x_y = gs.matmul(base_point, omega_f3) \
-                            + gs.matmul(tg_vec_x, omega_yv) \
-                            + gs.matmul(tg_vec_y, omega_f4) \
-                            + gs.matmul(tg_vec_v, omega_xy) \
-                            + tg_vec_f5
-
-        return nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, nabla_x_a_x_y, a_y_a_x_y, \
-               tg_vec_v
-
 
 class PreShapeMetric(RiemannianMetric):
     """Procrustes metric on the pre-shape space.
@@ -998,3 +865,45 @@ class KendallShapeMetric(QuotientMetric):
         super(KendallShapeMetric, self).__init__(
             fiber_bundle=bundle,
             dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2))
+
+    def directional_curvature_derivative(
+            self, hor_tg_vec_x, hor_tg_vec_y, base_point=None):
+        r"""Compute the covariant derivative of the directional curvature.
+
+        For the two horizontal tangent vectors at a base point :math: `X|_P,
+        Y|_P` given in argument, the covariant derivative of the directional
+        curvature in quotient space  :math: `(\nabla^Q_X R^Q_Y)(X) |_P =
+        (\nabla^Q_X R^Q)(X, Y)Y |_P` is computed at the base point P. This
+        tensor is computed with quotient-parallel vector fields :math: `X,
+        Y` extending the horizontal tangent vectors hor_tg_vec_x and
+        hor_tg_vec_y by parallel transport in a neighborhood of the quotient
+        space. Such vector fields verify :math: `\nabla^M_X X=0` and :math:
+        `\nabla^M_H^X Y = A_X Y`. The covariant derivative of the directional
+        curvature is then computed using the formula :math:
+        `\nabla_X^Q (R^Q_Y(X)) = \hor\nabla_H^M(R^M_Y(X)) - A_X(\ver R^M_Y(X))
+        - 3 A_X A_Y A_X Y + 3 \nabla_X^M A_Y A_X Y `.
+
+        Parameters
+        ----------
+        hor_tg_vec_x : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        hor_tg_vec_y : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., n, n]
+            Point on the group.
+
+        Returns
+        -------
+        curvature_derivative : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
+        bundle = self.fiber_bundle
+        point_fiber = bundle.lift(base_point)
+        hor_x = bundle.horizontal_lift(hor_tg_vec_x, point_fiber)
+        hor_y = bundle.horizontal_lift(hor_tg_vec_y, point_fiber)
+
+        nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, nabla_x_a_x_y, a_y_a_x_y, a_x_y = \
+            bundle.nabla_x_a_y_a_x_y_quotient_parallel(
+                hor_x, hor_y, base_point)
+
+        return 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
