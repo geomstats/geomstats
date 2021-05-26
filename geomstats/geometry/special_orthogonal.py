@@ -4,6 +4,7 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
+from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear, Matrices
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup
@@ -19,7 +20,7 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-class _SpecialOrthogonalMatrices(GeneralLinear):
+class _SpecialOrthogonalMatrices(EmbeddedManifold, GeneralLinear):
     """Class for special orthogonal groups in matrix representation.
 
     Parameters
@@ -29,9 +30,13 @@ class _SpecialOrthogonalMatrices(GeneralLinear):
     """
 
     def __init__(self, n):
+        matrices = Matrices(n, n)
         super(_SpecialOrthogonalMatrices, self).__init__(
-            dim=int((n * (n - 1)) / 2), n=n,
-            lie_algebra=SkewSymmetricMatrices(n=n))
+            dim=int((n * (n - 1)) / 2), n=n, value=gs.eye(n),
+            lie_algebra=SkewSymmetricMatrices(n=n), embedding_space=matrices,
+            submersion=lambda x: matrices.mul(matrices.transpose(x), x),
+            tangent_submersion=lambda v, x: 2 * matrices.to_symmetric(
+                matrices.mul(matrices.transpose(x), v)))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.metric = self.bi_invariant_metric
 

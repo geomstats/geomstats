@@ -48,7 +48,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             embedding_space=embedding_manifold,
             submersion=lambda x: embedding_metric.squared_norm(x), value=1.,
             tangent_submersion=lambda v, x: 2 * embedding_metric.inner_product(
-                v, x), default_point_type='matrix',
+                v, x),
             ambient_metric=PreShapeMetric(k_landmarks, m_ambient))
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient

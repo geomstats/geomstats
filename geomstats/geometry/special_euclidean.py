@@ -77,7 +77,7 @@ def homogeneous_representation(
     return mat
 
 
-class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
+class _SpecialEuclideanMatrices(GeneralLinear):
     """Class for special Euclidean group.
 
     Parameters
@@ -104,7 +104,7 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
 
     def __init__(self, n):
         super().__init__(
-            n=n + 1, dim=int((n * (n + 1)) / 2), default_point_type='matrix',
+            n=n + 1, dim=int((n * (n + 1)) / 2),
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n))
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)

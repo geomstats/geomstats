@@ -70,19 +70,16 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         vec_1 = gs.array([[0., - theta],
                          [theta, 0.]])
         result = self.group.is_tangent(vec_1)
-        expected = True
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
         vec_2 = gs.array([[0., - theta],
                          [theta, 1.]])
         result = self.group.is_tangent(vec_2)
-        expected = False
-        self.assertAllClose(result, expected)
+        self.assertFalse(result)
 
         vec = gs.array([vec_1, vec_2])
-        expected = gs.array([True, False])
         result = self.group.is_tangent(vec)
-        self.assertAllClose(result, expected)
+        self.assertTrue(gs.all(result))
 
     def test_is_tangent(self):
         point = self.group.random_uniform()
@@ -91,15 +88,13 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
                          [theta, 0.]])
         vec_1 = self.group.compose(point, vec_1)
         result = self.group.is_tangent(vec_1, point)
-        expected = True
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
         vec_2 = gs.array([[0., - theta],
                          [theta, 1.]])
         vec_2 = self.group.compose(point, vec_2)
         result = self.group.is_tangent(vec_2, point)
-        expected = False
-        self.assertAllClose(result, expected)
+        self.assertFalse(result)
 
         vec = gs.array([vec_1, vec_2])
         point = gs.array([point, point])

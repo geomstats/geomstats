@@ -209,3 +209,82 @@ class ProductManifold(Manifold):
                 for i, manifold_i in enumerate(self.manifolds)]
             projected_point = gs.stack(projected_point, axis=1)
         return projected_point
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        The tangent space of the product manifold is the direct sum of
+        tangent spaces.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
+        point_type = self.default_point_type
+        geomstats.errors.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
+
+        if point_type == 'vector':
+            intrinsic = self.metric.is_intrinsic(base_point)
+            tangent_vec = self._iterate_over_manifolds(
+                'to_tangent',
+                {'base_point': base_point, 'vector': vector}, intrinsic)
+            tangent_vec = gs.hstack(tangent_vec)
+        elif point_type == 'matrix':
+            tangent_vec = [
+                manifold_i.to_tangent(vector[:, i], base_point[:, i])
+                for i, manifold_i in enumerate(self.manifolds)]
+            tangent_vec = gs.stack(tangent_vec, axis=1)
+        return tangent_vec
+
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check whether the vector is tangent at base_point.
+
+        The tangent space of the product manifold is the direct sum of
+        tangent spaces.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        point_type = self.default_point_type
+        geomstats.errors.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
+
+        if point_type == 'vector':
+            intrinsic = self.metric.is_intrinsic(base_point)
+            is_tangent = self._iterate_over_manifolds(
+                'is_tangent',
+                {'base_point': base_point, 'vector': vector, 'atol': atol},
+                intrinsic)
+            is_tangent = gs.stack(is_tangent, axis=1)
+
+        else:
+            is_tangent = gs.stack([
+                space.is_tangent(
+                    vector[:, i], base_point[:, i], atol=atol) for i, space in
+                enumerate(self.manifolds)],
+                axis=1)
+
+        is_tangent = gs.all(is_tangent, axis=1)
+        is_tangent = gs.to_ndarray(is_tangent, to_ndim=2, axis=1)
+        return is_tangent
