@@ -255,19 +255,19 @@ class TestConnection(geomstats.tests.TestCase):
         geo = metric.geodesic(initial_point, initial_tangent_vec)
         path = geo(time)
         result = path.shape
-        expected = (10, 2, 3)
+        expected = (2, 10, 3)
         self.assertAllClose(result, expected)
 
         geo = metric.geodesic(initial_point, end_point=end_point)
         path = geo(time)
         result = path.shape
-        expected = (10, 2, 3)
+        expected = (2, 10, 3)
         self.assertAllClose(result, expected)
 
         geo = metric.geodesic(initial_point, end_point=end_point[0])
         path = geo(time)
         result = path.shape
-        expected = (10, 2, 3)
+        expected = (2, 10, 3)
         self.assertAllClose(result, expected)
 
         initial_tangent_vec = space.to_tangent(
@@ -275,5 +275,5 @@ class TestConnection(geomstats.tests.TestCase):
         geo = metric.geodesic(initial_point[0], initial_tangent_vec)
         path = geo(time)
         result = path.shape
-        expected = (10, 2, 3)
+        expected = (2, 10, 3)
         self.assertAllClose(result, expected)

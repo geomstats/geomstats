@@ -502,8 +502,8 @@ class Connection:
         path : callable
             Time parameterized geodesic curve. If a batch of initial
             conditions is passed, the output array's first dimension
-            represents time, and the second corresponds to the different
-            initial conditions.
+            represents the different initial conditions, and the second
+            corresponds to time.
         """
         point_type = self.default_point_type
 
@@ -556,9 +556,9 @@ class Connection:
             points_at_time_t = [
                 self.exp(tv, pt) for tv,
                 pt in zip(tangent_vecs, initial_point)]
-            points_at_time_t = gs.stack(points_at_time_t, axis=1)
+            points_at_time_t = gs.stack(points_at_time_t, axis=0)
 
-            return points_at_time_t[:, 0] if n_initial_conditions == 1 else \
+            return points_at_time_t[0] if n_initial_conditions == 1 else \
                 points_at_time_t
         return path
 
