@@ -30,9 +30,11 @@ class PoincareHalfSpace(Hyperbolic, OpenSet):
     default_point_type = 'vector'
 
     def __init__(self, dim, scale=1):
-        super(PoincareHalfSpace, self).__init__(
-            dim=dim, ambient_manifold=Euclidean(dim), scale=scale,
-            metric=PoincareHalfSpaceMetric(dim, scale))
+        super(PoincareHalfSpace, self).__init__(dim=dim,
+                                                ambient_space=Euclidean(dim),
+                                                scale=scale,
+                                                metric=PoincareHalfSpaceMetric(
+                                                    dim, scale))
         self.coords_type = PoincareHalfSpace.default_coords_type
         self.point_type = PoincareHalfSpace.default_point_type
 
@@ -44,7 +46,7 @@ class PoincareHalfSpace(Hyperbolic, OpenSet):
         point : array-like, shape=[..., dim]
             Point to be checked.
         atol : float
-            Absolute tolerance to evaluate positivity of the last coordinate
+            Absolute tolerance to evaluate positivity of the last coordinate.
 
         Returns
         -------

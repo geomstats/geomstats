@@ -39,13 +39,12 @@ class Stiefel(EmbeddedManifold):
         dim = int(p * n - (p * (p + 1) / 2))
         matrices = Matrices(n, p)
         super(Stiefel, self).__init__(
-            dim=dim, default_point_type='matrix',
-            embedding_manifold=matrices,
-            metric=StiefelCanonicalMetric(n, p),
-            submersion=lambda x: matrices.mul(
-                matrices.transpose(x), x), value=gs.eye(p),
+            dim=dim, embedding_space=matrices,
+            submersion=lambda x: matrices.mul(matrices.transpose(x), x),
+            value=gs.eye(p),
             tangent_submersion=lambda v, x: 2 * matrices.to_symmetric(
-                matrices.mul(matrices.transpose(x), v)))
+                matrices.mul(matrices.transpose(x), v)),
+            metric=StiefelCanonicalMetric(n, p))
 
         self.n = n
         self.p = p
@@ -166,8 +165,8 @@ class Stiefel(EmbeddedManifold):
                     SIAM Journal on Optimization 22, no. 1 (January 2012):
                      135–58. https://doi.org/10.1137/100802529.
         """
-        u, _, v = gs.linalg.svd(point)
-        return Matrices.mul(u[..., :, :self.p], v)
+        mat_u, _, mat_v = gs.linalg.svd(point)
+        return Matrices.mul(mat_u[..., :, :self.p], mat_v)
 
 
 class StiefelCanonicalMetric(RiemannianMetric):
@@ -340,7 +339,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             j_matrix = algebra_utils.from_vector_to_diagonal_matrix(sign)
         return matrix_v
 
-    def log(self, point, base_point, max_iter=30, tol=1e-6, **kwargs):
+    def log(self, point, base_point, max_iter=30, tol=gs.atol, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
         Based on [ZR2017]_.

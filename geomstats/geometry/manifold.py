@@ -4,13 +4,13 @@ In other words, a topological space that locally resembles
 Euclidean space near each point.
 """
 
-from abc import ABC, abstractmethod
+import abc
 
 import geomstats.backend as gs
 import geomstats.errors
 
 
-class Manifold(ABC):
+class Manifold(abc.ABC):
     r"""Class for manifolds.
 
     Parameters
@@ -38,7 +38,7 @@ class Manifold(ABC):
         self.default_coords_type = default_coords_type
         self._metric = metric
 
-    @abstractmethod
+    @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold.
 
@@ -57,7 +57,7 @@ class Manifold(ABC):
         """
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
@@ -78,7 +78,7 @@ class Manifold(ABC):
         """
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
 
@@ -96,7 +96,7 @@ class Manifold(ABC):
         """
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def random_point(self, n_samples=1, bound=1.):
         """Sample random points on the manifold.
 

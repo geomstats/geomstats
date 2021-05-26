@@ -44,6 +44,26 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
 def submersion(point, k):
+    r"""Submersion that defines the Grassmann manifold.
+
+    The Grassmann manifold is defined here as embedded in the set of
+    symmetric matrices, as the pre-image of the function defined around the
+    projector on the space spanned by the first k columns of the identity
+    matrix by (see Exercise E.25 in [Pau07]_).
+    .. math:
+
+            \begin{pmatrix} I_k + A & B^T \\ B & D \end{pmatrix} \mapsto
+                (D - B(I_k + A)^{-1}B^T, A + A^2 + B^TB
+
+    This map is a submersion and its zero space is the set of orthogonal
+    rank-k projectors.
+
+    References
+    ----------
+    .. [Pau07]   Paulin, Frédéric. “Géométrie diﬀérentielle élémentaire,” 2007.
+                 https://www.imo.universite-paris-saclay.fr/~paulin
+                 /notescours/cours_geodiff.pdf.
+    """
     _, eigvecs = gs.linalg.eigh(point)
     eigvecs = gs.flip(eigvecs, -1)
     flipped_point = Matrices.mul(Matrices.transpose(eigvecs), point, eigvecs)
@@ -82,42 +102,11 @@ class Grassmannian(EmbeddedManifold):
 
         dim = int(k * (n - k))
         super(Grassmannian, self).__init__(
-            dim=dim,
-            embedding_manifold=SymmetricMatrices(n),
-            default_point_type='matrix',
+            dim=dim, embedding_space=SymmetricMatrices(n),
             submersion=lambda x: submersion(x, k), value=gs.zeros((n, n)),
             tangent_submersion=lambda v, x: 2 * Matrices.to_symmetric(
                 Matrices.mul(x, v)) - v,
             metric=GrassmannianCanonicalMetric(n, k))
-
-    # def belongs(self, point, atol=gs.atol):
-    #     """Check if the point belongs to the manifold.
-    #
-    #     Check if an (n,n)-matrix is an orthogonal projector
-    #     onto a subspace of rank k.
-    #
-    #     Parameters
-    #     ----------
-    #     point : array-like, shape=[..., n, n]
-    #         Point to be checked.
-    #     atol : int
-    #         Optional, default: backend atol.
-    #
-    #     Returns
-    #     -------
-    #     belongs : array-like, shape=[...,]
-    #         Boolean evaluating if point belongs to the Grassmannian.
-    #     """
-    #     if not gs.all(self._check_square(point)):
-    #         raise ValueError('all points must be square.')
-    #
-    #     symm = Matrices.is_symmetric(point)
-    #     idem = self._check_idempotent(point, atol)
-    #     rank = self._check_rank(point, self.k, atol)
-    #
-    #     belongs = gs.all(gs.stack([symm, idem, rank], axis=0), axis=0)
-    #
-    #     return belongs
 
     def random_uniform(self, n_samples=1):
         """Sample random points from a uniform distribution.
@@ -174,33 +163,6 @@ class Grassmannian(EmbeddedManifold):
         New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
         return self.random_uniform(n_samples)
-
-    # def is_tangent(self, vector, base_point, atol=gs.atol):
-    #     r"""Check if a vector is tangent to the manifold at the base point.
-    #
-    #     Check if the (n,n)-matrix :math: `Y` is symmetric and verifies the
-    #     relation :math: PY + YP = Y where :math: `P` represents the base
-    #     point and :math: `Y` the vector.
-    #
-    #     Parameters
-    #     ----------
-    #     vector : array-like, shape=[..., n, n]
-    #         Matrix to be checked.
-    #     base_point : array-like, shape=[..., n, n]
-    #         Base point.
-    #     atol : int
-    #         Optional, default: backend atol.
-    #
-    #     Returns
-    #     -------
-    #     belongs : array-like, shape=[...,]
-    #         Boolean evaluating if `vector` is tangent to the Grassmannian at
-    #         `base_point`.
-    #     """
-    #     diff = Matrices.mul(
-    #         base_point, vector) + Matrices.mul(vector, base_point) - vector
-    #     is_close = gs.all(gs.isclose(diff, 0., atol=atol))
-    #     return gs.logical_and(Matrices.is_symmetric(vector), is_close)
 
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.

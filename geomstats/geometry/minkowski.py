@@ -2,13 +2,15 @@
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.embedded_manifold import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class Minkowski(OpenSet):
+class Minkowski(Euclidean):
     """Class for Minkowski space.
+
+    This is the Euclidean space endowed with the inner-product of signature (
+    dim-1, 1).
 
     Parameters
     ----------
@@ -16,42 +18,15 @@ class Minkowski(OpenSet):
        Dimension of Minkowski space.
     """
 
-    def __init__(self, dim):
-        super(Minkowski, self).__init__(dim=dim,
-                                        ambient_manifold=Euclidean(dim))
-        self.metric = MinkowskiMetric(dim)
+    def __new__(cls, dim, **kwargs):
+        """Instantiate a Minkowski space.
 
-    def belongs(self, point, atol=gs.atol):
-        """Evaluate if a point belongs to the manifold.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point to evaluate.
-        atol : float
-            Unused here.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the manifold.
+        This is an instance of the `Euclidean` class endowed with the
+        `MinkowskiMetric`.
         """
-        return self.ambient_manifold.belongs(point, atol)
-
-    def projection(self, point):
-        """Project a point in embedding manifold on embedded manifold.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim_embedding]
-            Point in embedding manifold.
-
-        Returns
-        -------
-        projected : array-like, shape=[..., dim_embedding]
-            Projected point.
-        """
-        return point
+        space = Euclidean(dim)
+        space.metric = MinkowskiMetric(dim)
+        return space
 
 
 class MinkowskiMetric(RiemannianMetric):

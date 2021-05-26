@@ -30,7 +30,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear):
 
     def __init__(self, n):
         super(_SpecialOrthogonalMatrices, self).__init__(
-            dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n,
+            dim=int((n * (n - 1)) / 2), n=n,
             lie_algebra=SkewSymmetricMatrices(n=n))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.metric = self.bi_invariant_metric
