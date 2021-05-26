@@ -13,7 +13,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 class TestConnection(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=UserWarning)
-
+        gs.random.seed(0)
         self.dim = 4
         self.euc_metric = EuclideanMetric(dim=self.dim)
 
@@ -185,7 +185,7 @@ class TestConnection(geomstats.tests.TestCase):
             initial_tangent_vec=initial_tangent_vec)
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
-        result = points[-1]
+        result = points[:, -1]
         expected = self.hypersphere.metric.exp(vector, initial_point)
         self.assertAllClose(expected, result)
 
@@ -212,7 +212,7 @@ class TestConnection(geomstats.tests.TestCase):
             initial_tangent_vec=initial_tangent_vec)
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
-        result = points[-1]
+        result = points[:, -1]
         expected = space.bi_invariant_metric.exp(
             initial_tangent_vec, initial_point)
         self.assertAllClose(result, expected)
