@@ -4,7 +4,6 @@ import math
 
 
 import geomstats.backend as gs
-from geomstats.geometry.embedded_manifold import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.landmarks import L2Metric
@@ -15,7 +14,7 @@ R2 = Euclidean(dim=2)
 R3 = Euclidean(dim=3)
 
 
-class DiscreteCurves(OpenSet):
+class DiscreteCurves(Manifold):
     r"""Space of discrete curves sampled at points in ambient_manifold.
 
     Each individual curve is represented by a 2d-array of shape `[
@@ -41,8 +40,7 @@ class DiscreteCurves(OpenSet):
     """
 
     def __init__(self, ambient_manifold):
-        super(DiscreteCurves, self).__init__(
-            dim=math.inf, ambient_manifold=ambient_manifold)
+        super(DiscreteCurves, self).__init__(dim=math.inf)
         self.ambient_manifold = ambient_manifold
         self.l2_metric = lambda n: L2Metric(
             self.ambient_manifold, n_landmarks=n)
@@ -75,22 +73,91 @@ class DiscreteCurves(OpenSet):
 
         return each_belongs(point)
 
-    def projection(self, point):
-        """Project a point in ambient manifold on manifold.
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check whether the vector is tangent at a curve.
 
-        This method is for compatibility and returns the input point unchanged.
+        A vector is tangent at a curve if it is a vector field along that
+        curve.
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim_embedding]
-            Point in embedding manifold.
+        vector : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Vector.
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
 
         Returns
         -------
-        projected : array-like, shape=[..., dim_embedding]
-            Projected point.
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
         """
-        return point
+        ambient_manifold = self.ambient_manifold
+        shape = vector.shape
+        stacked_vec = gs.reshape(vector, (-1, shape[-1]))
+        stacked_point = gs.reshape(base_point, (-1, shape[-1]))
+        is_tangent = ambient_manifold.is_tangent(
+            stacked_vec, stacked_point, atol)
+        is_tangent = gs.reshape(is_tangent, shape[:-1])
+        return gs.all(is_tangent, axis=-1)
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        As tangent vectors are vector fields along a curve, each component of
+        the vector is projected to the tangent space of the corresponding
+        point of the discrete curve. The number of sampling points should
+        match in the vector and the base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Vector.
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector at base point.
+        """
+        ambient_manifold = self.ambient_manifold
+        shape = vector.shape
+        stacked_vec = gs.reshape(vector, (-1, shape[-1]))
+        stacked_point = gs.reshape(base_point, (-1, shape[-1]))
+        tangent_vec = ambient_manifold.to_tangent(stacked_vec, stacked_point)
+        tangent_vec = gs.reshape(tangent_vec, vector.shape)
+        return tangent_vec
+
+    def random_point(self, n_samples=1, bound=1., n_sampling_points=10):
+        """Sample random curves.
+
+        If the ambient manifold is compact, a uniform distribution is used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact
+            ambient manifolds.
+            Optional, default: 1.
+        n_sampling_points : int
+            Number of sampling points for the discrete curves.
+            Optional, default : 10.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n_sampling_points, {dim, [n, n]}]
+            Points sampled on the hypersphere.
+        """
+        sample = self.ambient_manifold.random_point(
+            n_samples * n_sampling_points)
+        sample = gs.reshape(sample, (n_samples, n_sampling_points, -1))
+        return sample[0] if n_samples == 1 else sample
 
 
 class SRVMetric(RiemannianMetric):
