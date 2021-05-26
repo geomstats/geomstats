@@ -43,7 +43,7 @@ class Stiefel(EmbeddedManifold):
             embedding_manifold=matrices,
             metric=StiefelCanonicalMetric(n, p),
             submersion=lambda x: matrices.mul(
-                matrices.transpose(x), x) - gs.eye(p),
+                matrices.transpose(x), x), value=gs.eye(p),
             tangent_submersion=lambda v, x: 2 * matrices.to_symmetric(
                 matrices.mul(matrices.transpose(x), v)))
 

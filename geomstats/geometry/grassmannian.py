@@ -43,6 +43,22 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
+def submersion(point, k):
+    _, eigvecs = gs.linalg.eigh(point)
+    eigvecs = gs.flip(eigvecs, -1)
+    flipped_point = Matrices.mul(Matrices.transpose(eigvecs), point, eigvecs)
+    b = flipped_point[..., k:, :k]
+    d = flipped_point[..., k:, k:]
+    a = flipped_point[..., :k, :k] - gs.eye(k)
+    first = d - Matrices.mul(
+        b, GeneralLinear.inverse(a + gs.eye(k)), Matrices.transpose(b))
+    second = a + Matrices.mul(a, a) + Matrices.mul(Matrices.transpose(b), b)
+    row_1 = gs.concatenate([first, gs.zeros_like(b)], axis=-1)
+    row_2 = gs.concatenate([
+        Matrices.transpose(gs.zeros_like(b)), second], axis=-1)
+    return gs.concatenate([row_1, row_2], axis=-2)
+
+
 class Grassmannian(EmbeddedManifold):
     """Class for Grassmann manifolds Gr(n, k).
 
@@ -69,39 +85,39 @@ class Grassmannian(EmbeddedManifold):
             dim=dim,
             embedding_manifold=SymmetricMatrices(n),
             default_point_type='matrix',
-            submersion=lambda x: Matrices.mul(x, x) - x,
+            submersion=lambda x: submersion(x, k), value=gs.zeros((n, n)),
             tangent_submersion=lambda v, x: 2 * Matrices.to_symmetric(
                 Matrices.mul(x, v)) - v,
             metric=GrassmannianCanonicalMetric(n, k))
 
-    def belongs(self, point, atol=gs.atol):
-        """Check if the point belongs to the manifold.
-
-        Check if an (n,n)-matrix is an orthogonal projector
-        onto a subspace of rank k.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Point to be checked.
-        atol : int
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the Grassmannian.
-        """
-        if not gs.all(self._check_square(point)):
-            raise ValueError('all points must be square.')
-
-        symm = Matrices.is_symmetric(point)
-        idem = self._check_idempotent(point, atol)
-        rank = self._check_rank(point, self.k, atol)
-
-        belongs = gs.all(gs.stack([symm, idem, rank], axis=0), axis=0)
-
-        return belongs
+    # def belongs(self, point, atol=gs.atol):
+    #     """Check if the point belongs to the manifold.
+    #
+    #     Check if an (n,n)-matrix is an orthogonal projector
+    #     onto a subspace of rank k.
+    #
+    #     Parameters
+    #     ----------
+    #     point : array-like, shape=[..., n, n]
+    #         Point to be checked.
+    #     atol : int
+    #         Optional, default: backend atol.
+    #
+    #     Returns
+    #     -------
+    #     belongs : array-like, shape=[...,]
+    #         Boolean evaluating if point belongs to the Grassmannian.
+    #     """
+    #     if not gs.all(self._check_square(point)):
+    #         raise ValueError('all points must be square.')
+    #
+    #     symm = Matrices.is_symmetric(point)
+    #     idem = self._check_idempotent(point, atol)
+    #     rank = self._check_rank(point, self.k, atol)
+    #
+    #     belongs = gs.all(gs.stack([symm, idem, rank], axis=0), axis=0)
+    #
+    #     return belongs
 
     def random_uniform(self, n_samples=1):
         """Sample random points from a uniform distribution.

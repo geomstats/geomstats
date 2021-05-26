@@ -22,15 +22,20 @@ class EmbeddedManifold(Manifold, ABC):
         Optional, default: 'intrinsic'.
     """
 
-    def __init__(self, dim, embedding_manifold, submersion, tangent_submersion,
-                 default_point_type='vector',
-                 default_coords_type='intrinsic', **kwargs):
+    def __init__(
+            self, dim, embedding_manifold, submersion, value,
+            tangent_submersion,
+            default_point_type='vector',
+            default_coords_type='intrinsic', **kwargs):
         super(EmbeddedManifold, self).__init__(
             dim=dim, default_point_type=default_point_type,
             default_coords_type=default_coords_type, **kwargs)
         self.embedding_manifold = embedding_manifold
         self.embedding_metric = embedding_manifold.metric
         self.submersion = submersion
+        if isinstance(value, float):
+            value = gs.array(value)
+        self.value = value
         self.tangent_submersion = tangent_submersion
 
     def belongs(self, point, atol=gs.atol):
@@ -50,10 +55,13 @@ class EmbeddedManifold(Manifold, ABC):
             Boolean evaluating if point belongs to the manifold.
         """
         belongs = self.embedding_manifold.belongs(point, atol)
-        constraint = gs.isclose(self.submersion(point), 0., atol=atol)
-        if constraint.ndim == 3:
+        if not gs.any(belongs):
+            return belongs
+        value = self.value
+        constraint = gs.isclose(self.submersion(point), value, atol=atol)
+        if value.ndim == 2:
             constraint = gs.all(constraint, axis=(-2, -1))
-        elif constraint.ndim == 2:
+        elif value.ndim == 1:
             constraint = gs.all(constraint, axis=-1)
         return gs.logical_and(belongs, constraint)
 
@@ -78,9 +86,10 @@ class EmbeddedManifold(Manifold, ABC):
         belongs = self.embedding_manifold.belongs(vector, atol)
         tangent_sub_applied = self.tangent_submersion(vector, base_point)
         constraint = gs.isclose(tangent_sub_applied, 0., atol=atol)
-        if constraint.ndim == 3:
+        value = self.value
+        if value.ndim == 2:
             constraint = gs.all(constraint, axis=(-2, -1))
-        elif constraint.ndim == 2:
+        elif value.ndim == 1:
             constraint = gs.all(constraint, axis=-1)
         return gs.logical_and(belongs, constraint)
 

@@ -83,7 +83,9 @@ class TestGrassmannian(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
         not_a_point = gs.random.rand(3, 2)
-        self.assertRaises(ValueError, self.space.belongs, not_a_point)
+        result = self.space.belongs(not_a_point)
+        self.assertTrue(~result)
+
 
         not_a_point = gs.random.rand(3, 3)
         result = self.space.belongs(not_a_point)

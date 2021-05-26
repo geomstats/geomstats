@@ -24,7 +24,7 @@ class SymmetricMatrices(EmbeddedManifold, OpenSet):
             dim=int(n * (n + 1) / 2),
             embedding_manifold=matrices,
             ambient_manifold=matrices,
-            submersion=matrices.to_skew_symmetric,
+            submersion=matrices.to_skew_symmetric, value=gs.zeros((n, n)),
             tangent_submersion=matrices.to_skew_symmetric)
         self.n = n
 
