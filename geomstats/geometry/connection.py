@@ -476,6 +476,62 @@ class Connection:
         return self.curvature(tangent_vec_a, tangent_vec_b, tangent_vec_a,
                               base_point)
 
+    def curvature_derivative(
+            self, tangent_vec_u, tangent_vec_x, tangent_vec_y, tangent_vec_z,
+            base_point=None):
+        r"""Compute the covariant derivative of the curvature.
+
+        For four tangent vectors at a base point :math: `V, X, Y, Z`,
+        the covariant derivative of the curvature :math: `(\nabla_U R)(X, Y)Z`
+        is computed at the base point using Leibniz formula.
+
+        Parameters
+        ----------
+        tangent_vec_u : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        tangent_vec_x : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        tangent_vec_y : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        tangent_vec_z : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., n, n]
+            Point on the group.
+
+        Returns
+        -------
+        curvature_derivative : array-like, shape=[..., n, n]
+            Tangent vector at identity.
+        """
+        raise NotImplementedError('The curvature derivative is not '
+                                  'implemented.')
+
+    def directional_curvature_derivative(
+            self, hor_tg_vec_x, hor_tg_vec_y, base_point=None):
+        r"""Compute the covariant derivative of the directional curvature.
+
+        For the two horizontal tangent vectors :math: `X|_P, Y|_P` at a base
+        point :math: `P` given in argument, the covariant derivative of the
+        directional curvature in quotient space  :math: `(\nabla^Q_X R^Q_Y)(
+        X) |_P = (\nabla^Q_X R^Q)(X, Y)Y |_P`.
+
+        Parameters
+        ----------
+        hor_tg_vec_x : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        hor_tg_vec_y : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., n, n]
+            Point on the group.
+
+        Returns
+        -------
+        curvature_derivative : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
+        return self.curvature_derivative(
+            hor_tg_vec_x, hor_tg_vec_x, hor_tg_vec_y, hor_tg_vec_y, base_point)
+
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
