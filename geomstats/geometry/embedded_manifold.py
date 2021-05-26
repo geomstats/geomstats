@@ -1,7 +1,6 @@
 """Manifold embedded in another manifold."""
 
 import abc
-import math
 
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
@@ -22,7 +21,7 @@ class VectorSpace(Manifold, abc.ABC):
 
     def __init__(self, shape, default_point_type='vector', **kwargs):
         if 'dim' not in kwargs.keys():
-            kwargs['dim'] = math.prod(shape)
+            kwargs['dim'] = int(gs.cumprod(shape)[-1])
         super(VectorSpace, self).__init__(
             default_point_type=default_point_type, **kwargs)
         self.shape = shape
@@ -215,7 +214,7 @@ class EmbeddedManifold(Manifold, abc.ABC):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        belongs = self.embedding_space.is_tangent(vector, atol)
+        belongs = self.embedding_space.belongs(vector, atol)
         tangent_sub_applied = self.tangent_submersion(vector, base_point)
         constraint = gs.isclose(tangent_sub_applied, 0., atol=atol)
         value = self.value
