@@ -308,7 +308,7 @@ class TestStiefel(geomstats.tests.TestCase):
 
     def test_to_tangent_is_tangent(self):
         point = self.space.random_uniform()
-        vector = gs.random.rand(*point.shape)
+        vector = gs.random.rand(*point.shape) / 4
         tangent_vec = self.space.to_tangent(vector, point)
         result = self.space.is_tangent(tangent_vec, point)
         self.assertTrue(result)

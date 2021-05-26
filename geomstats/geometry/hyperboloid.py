@@ -45,7 +45,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         minkowski = Minkowski(dim + 1)
         super(Hyperboloid, self).__init__(
             dim=dim, scale=scale, embedding_manifold=minkowski,
-            submersion=lambda x: minkowski.metric.squared_norm(x) + 1.,
+            submersion=lambda x: minkowski.metric.squared_norm(x), value=- 1.,
             tangent_submersion=lambda v, x: minkowski.metric.inner_product(
                 v, x))
         self.coords_type = coords_type
