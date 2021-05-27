@@ -4,6 +4,7 @@ import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
 from geomstats.geometry.beta_distributions import BetaDistributions
+from geomstats.geometry.discrete_curves import DiscreteCurves, R2
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import Landmarks
@@ -180,4 +181,27 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
         result = gs.logical_and(labels >= 0, labels <= 1)
+        self.assertTrue(gs.all(result))
+
+    def test_cells(self):
+        """Test that cells belong to space of planar curves."""
+        cells, cell_lines, treatments = data_utils.load_cells()
+        expected = 650
+        result = len(cells)
+        self.assertAllClose(result, expected)
+        result = len(cell_lines)
+        self.assertAllClose(result, expected)
+        result = len(treatments)
+        self.assertAllClose(result, expected)
+
+        planar_curves_space = DiscreteCurves(R2)
+
+        result = planar_curves_space.belongs(cells)
+        self.assertTrue(gs.all(result))
+
+        result = [line in ["dlm8", "dunn"] for line in cell_lines]
+        self.assertTrue(gs.all(result))
+
+        result = [treatment in ["control", "cytd", "jasp"]
+                  for treatment in treatments]
         self.assertTrue(gs.all(result))

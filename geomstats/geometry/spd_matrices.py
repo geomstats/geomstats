@@ -4,14 +4,13 @@ import math
 
 import geomstats.backend as gs
 import geomstats.vectorization
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
-class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
+class SPDMatrices(SymmetricMatrices):
     """Class for the manifold of symmetric positive definite (SPD) matrices.
 
     Parameters
@@ -23,11 +22,10 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
     def __init__(self, n):
         super(SPDMatrices, self).__init__(
             n=n,
-            dim=int(n * (n + 1) / 2),
-            embedding_manifold=GeneralLinear(n=n))
+            dim=int(n * (n + 1) / 2))
 
     def belongs(self, mat, atol=gs.atol):
-        """Check if a matrix is symmetric and invertible.
+        """Check if a matrix is symmetric with positive eigenvalues.
 
         Parameters
         ----------
@@ -43,7 +41,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             Boolean denoting if mat is an SPD matrix.
         """
         is_symmetric = super(SPDMatrices, self).belongs(mat, atol)
-        eigvalues, _ = gs.linalg.eigh(mat)
+        eigvalues = gs.linalg.eigvalsh(mat)
         is_positive = gs.all(eigvalues > 0, axis=-1)
         belongs = gs.logical_and(is_symmetric, is_positive)
         return belongs

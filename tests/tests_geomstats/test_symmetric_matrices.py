@@ -127,3 +127,8 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         projection = self.space.projection(mat)
         result = self.space.belongs(projection)
         self.assertTrue(result)
+
+    def test_random_and_belongs(self):
+        mat = self.space.random_point()
+        result = self.space.belongs(mat)
+        self.assertTrue(result)

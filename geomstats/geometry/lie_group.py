@@ -449,6 +449,7 @@ class LieGroup(Manifold):
             Vector.
         base_point : array-like, shape=[..., dim_embedding]
             Point in the Lie group.
+            Optional. default: identity.
         atol : float
             Precision at which to evaluate if the rotation part is
             skew-symmetric.
@@ -460,9 +461,6 @@ class LieGroup(Manifold):
             Boolean denoting if vector is a tangent vector at the base point.
         """
         if base_point is None:
-            base_point = self.identity
-
-        if gs.allclose(base_point, self.identity):
             tangent_vec_at_id = vector
         else:
             tangent_vec_at_id = self.compose(

@@ -470,6 +470,8 @@ def transpose(x, axes=None):
         return x.permute(axes)
     if x.dim() == 1:
         return x
+    if x.dim() > 2 and axes is None:
+        return x.permute(tuple(range(x.ndim)[::-1]))
     return x.t()
 
 
