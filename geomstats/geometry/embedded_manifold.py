@@ -7,7 +7,7 @@ from geomstats.geometry.manifold import Manifold
 
 
 class VectorSpace(Manifold, abc.ABC):
-    """Abstract clas for vector spaces.
+    """Abstract class for vector spaces.
 
     Parameters
     ----------
@@ -27,7 +27,7 @@ class VectorSpace(Manifold, abc.ABC):
         self.shape = shape
 
     def belongs(self, point, atol=gs.atol):
-        """Evaluate if the shape of point belongs to the vector space.
+        """Evaluate if the point belongs to the vector space.
 
         This method checks the shape of the input point.
 
