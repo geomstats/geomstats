@@ -38,27 +38,6 @@ class _Hypersphere(EmbeddedManifold):
             submersion=lambda x: gs.sum(x ** 2, axis=-1), value=1.,
             tangent_submersion=lambda v, x: 2 * gs.sum(x * v, axis=-1))
 
-    def regularize(self, point):
-        """Regularize a point to the canonical representation.
-
-        Regularize a point to the canonical representation chosen
-        for the hypersphere, to avoid numerical issues.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim + 1]
-            Point on the hypersphere.
-
-        Returns
-        -------
-        projected_point : array-like, shape=[..., dim + 1]
-            Point in canonical representation chosen for the hypersphere.
-        """
-        if not gs.all(self.belongs(point)):
-            raise ValueError('Points do not belong to the manifold.')
-
-        return self.projection(point)
-
     def projection(self, point):
         """Project a point on the hypersphere.
 

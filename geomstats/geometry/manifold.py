@@ -8,6 +8,7 @@ import abc
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class Manifold(abc.ABC):
@@ -79,24 +80,6 @@ class Manifold(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def to_tangent(self, vector, base_point):
-        """Project a vector to a tangent space of the manifold.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., dim]
-            Vector.
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., dim]
-            Tangent vector at base point.
-        """
-        pass
-
-    @abc.abstractmethod
     def random_point(self, n_samples=1, bound=1.):
         """Sample random points on the manifold.
 
@@ -141,6 +124,8 @@ class Manifold(abc.ABC):
 
     @metric.setter
     def metric(self, value):
+        if not isinstance(value, RiemannianMetric):
+            raise ValueError('The argument must be a RiemannianMetric object')
         if value.dim != self.dim:
             value.dim = self.dim
         self._metric = value
