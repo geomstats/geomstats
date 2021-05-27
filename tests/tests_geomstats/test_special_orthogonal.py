@@ -79,7 +79,8 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
 
         vec = gs.array([vec_1, vec_2])
         result = self.group.is_tangent(vec)
-        self.assertTrue(gs.all(result))
+        expected = gs.array([True, False])
+        self.assertAllClose(result, expected)
 
     def test_is_tangent(self):
         point = self.group.random_uniform()

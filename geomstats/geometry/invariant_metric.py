@@ -811,6 +811,36 @@ class _InvariantMetricVector(RiemannianMetric):
         return gs.einsum(
             '...i,...i->...', tangent_vec_a, tangent_vec_b)
 
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute inner product of two vectors in tangent space at base point.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            First tangent vector at base_point.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Second tangent vector at base_point.
+        base_point : array-like, shape=[..., n, n]
+            Point in the group.
+            Optional, defaults to identity if None.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...,]
+            Inner-product of the two tangent vectors.
+        """
+        if base_point is None:
+            return self.inner_product_at_identity(
+                tangent_vec_a, tangent_vec_b)
+
+        tangent_translation = self.group.tangent_translation_map(
+            base_point, left_or_right=self.left_or_right, inverse=True)
+        tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
+        tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
+        inner_prod = self.inner_product_at_identity(
+            tangent_vec_a_at_id, tangent_vec_b_at_id)
+        return inner_prod
+
     def metric_matrix(self, base_point=None):
         """Compute inner product matrix at the tangent space at a base point.
 

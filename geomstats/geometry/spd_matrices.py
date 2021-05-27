@@ -511,7 +511,7 @@ class SPDMetricAffine(RiemannianMetric):
         tangent_vec_at_id = Matrices.mul(
             inv_sqrt_base_point, tangent_vec, inv_sqrt_base_point)
 
-        tangent_vec_at_id = GeneralLinear.to_symmetric(tangent_vec_at_id)
+        tangent_vec_at_id = Matrices.to_symmetric(tangent_vec_at_id)
         exp_from_id = SymmetricMatrices.expm(tangent_vec_at_id)
 
         exp = Matrices.mul(
@@ -574,7 +574,7 @@ class SPDMetricAffine(RiemannianMetric):
         """
         point_near_id = Matrices.mul(
             inv_sqrt_base_point, point, inv_sqrt_base_point)
-        point_near_id = GeneralLinear.to_symmetric(point_near_id)
+        point_near_id = Matrices.to_symmetric(point_near_id)
 
         log_at_id = SPDMatrices.logm(point_near_id)
         log = Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
@@ -644,9 +644,9 @@ class SPDMetricAffine(RiemannianMetric):
         """
         end_point = self.exp(tangent_vec_b, base_point)
         inverse_base_point = GeneralLinear.inverse(base_point)
-        congruence_mat = GeneralLinear.mul(end_point, inverse_base_point)
+        congruence_mat = Matrices.mul(end_point, inverse_base_point)
         congruence_mat = gs.linalg.sqrtm(congruence_mat)
-        return GeneralLinear.congruent(tangent_vec_a, congruence_mat)
+        return Matrices.congruent(tangent_vec_a, congruence_mat)
 
 
 class SPDMetricBuresWasserstein(RiemannianMetric):

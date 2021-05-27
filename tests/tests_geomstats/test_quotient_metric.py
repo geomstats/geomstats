@@ -4,7 +4,7 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import MatricesMetric
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDMatrices, \
     SPDMetricBuresWasserstein
@@ -19,12 +19,12 @@ class BuresWassersteinBundle(GeneralLinear, FiberBundle):
 
     @staticmethod
     def riemannian_submersion(point):
-        return GeneralLinear.mul(point, GeneralLinear.transpose(point))
+        return Matrices.mul(point, Matrices.transpose(point))
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
-        product = GeneralLinear.mul(
-            base_point, GeneralLinear.transpose(tangent_vec))
-        return 2 * GeneralLinear.to_symmetric(product)
+        product = Matrices.mul(
+            base_point, Matrices.transpose(tangent_vec))
+        return 2 * Matrices.to_symmetric(product)
 
     def horizontal_lift(self, tangent_vec, point=None, base_point=None):
         if base_point is None:
@@ -36,7 +36,7 @@ class BuresWassersteinBundle(GeneralLinear, FiberBundle):
                                  'given.')
         sylvester = gs.linalg.solve_sylvester(
             base_point, base_point, tangent_vec)
-        return GeneralLinear.mul(sylvester, point)
+        return Matrices.mul(sylvester, point)
 
     @staticmethod
     def lift(point):
@@ -81,8 +81,8 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         mat = self.bundle.random_point()
         vec = self.bundle.random_point()
         horizontal_vec = self.bundle.horizontal_projection(vec, mat)
-        product = GeneralLinear.mul(horizontal_vec, GeneralLinear.inverse(mat))
-        is_horizontal = GeneralLinear.is_symmetric(product)
+        product = Matrices.mul(horizontal_vec, GeneralLinear.inverse(mat))
+        is_horizontal = Matrices.is_symmetric(product)
         self.assertTrue(is_horizontal)
 
     def test_vertical_projection(self):
@@ -96,7 +96,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
 
     def test_horizontal_lift_and_tangent_riemannian_submersion(self):
         mat = self.bundle.random_point()
-        tangent_vec = GeneralLinear.to_symmetric(
+        tangent_vec = Matrices.to_symmetric(
             self.bundle.random_point())
         horizontal = self.bundle.horizontal_lift(tangent_vec, mat)
         result = self.bundle.tangent_riemannian_submersion(horizontal, mat)
@@ -104,7 +104,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
 
     def test_is_horizontal(self):
         mat = self.bundle.random_point()
-        tangent_vec = GeneralLinear.to_symmetric(
+        tangent_vec = Matrices.to_symmetric(
             self.bundle.random_point())
         horizontal = self.bundle.horizontal_lift(tangent_vec, mat)
         result = self.bundle.is_horizontal(horizontal, mat)
@@ -128,7 +128,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
     def test_inner_product(self):
         mat = self.bundle.random_point()
         point = self.bundle.riemannian_submersion(mat)
-        tangent_vecs = GeneralLinear.to_symmetric(
+        tangent_vecs = Matrices.to_symmetric(
             self.bundle.random_point(2)) / 10
         result = self.quotient_metric.inner_product(
             tangent_vecs[0], tangent_vecs[1], point=mat)
@@ -139,7 +139,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
     def test_exp(self):
         mat = self.bundle.random_point()
         point = self.bundle.riemannian_submersion(mat)
-        tangent_vec = GeneralLinear.to_symmetric(
+        tangent_vec = Matrices.to_symmetric(
             self.bundle.random_point()) / 5
 
         result = self.quotient_metric.exp(tangent_vec, point)
@@ -166,7 +166,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
     def test_integrability_tensor(self):
         mat = self.bundle.random_point()
         point = self.bundle.riemannian_submersion(mat)
-        tangent_vec = GeneralLinear.to_symmetric(
+        tangent_vec = Matrices.to_symmetric(
             self.bundle.random_point()) / 5
 
         self.assertRaises(

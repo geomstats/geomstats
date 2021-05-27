@@ -4,6 +4,7 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean,\
     SpecialEuclideanMatrixCannonicalLeftMetric,\
     SpecialEuclideanMatrixLieAlgebra
@@ -104,11 +105,11 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         tangent_vecs = gs.reshape(
             tangent_vecs, (self.n_samples,) + (n + 1,) * 2)
         point = self.group.random_point(self.n_samples)
-        tangent_vecs = self.group.compose(point, tangent_vecs)
+        tangent_vecs = Matrices.mul(point, tangent_vecs)
         regularized = self.group.to_tangent(tangent_vecs, point)
-        result = self.group.compose(
-            self.group.transpose(point), regularized) + \
-            self.group.compose(self.group.transpose(regularized), point)
+        result = Matrices.mul(
+            Matrices.transpose(point), regularized) + \
+            Matrices.mul(Matrices.transpose(regularized), point)
         result = result[:, :n, :n]
         expected = gs.zeros_like(result)
         self.assertAllClose(result, expected)
