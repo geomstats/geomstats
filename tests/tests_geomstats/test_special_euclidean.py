@@ -27,16 +27,14 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             [gs.sin(theta), gs.cos(theta), 3.],
             [0., 0., 1.]])
         result = self.group.belongs(point_1)
-        expected = True
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
         point_2 = gs.array([
             [gs.cos(theta), - gs.sin(theta), 2.],
             [gs.sin(theta), gs.cos(theta), 3.],
             [0., 0., 0.]])
         result = self.group.belongs(point_2)
-        expected = False
-        self.assertAllClose(result, expected)
+        self.assertFalse(result)
 
         point = gs.array([point_1, point_2])
         expected = gs.array([True, False])
@@ -59,8 +57,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
     def test_random_point_and_belongs(self):
         point = self.group.random_point()
         result = self.group.belongs(point)
-        expected = True
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
         point = self.group.random_point(self.n_samples)
         result = self.group.belongs(point)
@@ -81,8 +78,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         point = self.group.random_point()
         tangent_vec = self.group.compose(point, vec_1)
         result = self.group.is_tangent(tangent_vec, point)
-        expected = True
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
         vec_2 = gs.array([
             [0., - theta, 2.],
@@ -90,8 +86,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             [0., 0., 1.]])
         tangent_vec = self.group.compose(point, vec_2)
         result = self.group.is_tangent(tangent_vec, point)
-        expected = False
-        self.assertAllClose(result, expected)
+        self.assertFalse(result)
 
         vec = gs.array([vec_1, vec_2])
         expected = gs.array([True, False])

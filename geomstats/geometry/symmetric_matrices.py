@@ -43,6 +43,20 @@ class SymmetricMatrices(OpenSet, VectorSpace):
     basis = property(get_basis)
 
     def belongs(self, point, atol=gs.atol):
+        """Evaluate if a matrix is symmetric.
+
+        Parameters
+        ----------
+        point : array-like, shape=[.., n, n]
+            Point to test.
+        atol : float
+            Tolerance to evaluate equality with the transpose.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the space.
+        """
         belongs = super(SymmetricMatrices, self).belongs(point)
         if gs.any(belongs):
             is_symmetric = Matrices.is_symmetric(point, atol)
