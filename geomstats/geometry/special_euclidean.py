@@ -6,8 +6,8 @@ i.e. the Lie group of rigid transformations in n dimensions.
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
-from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import GeneralLinear, Matrices
 from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
 from geomstats.geometry.invariant_metric import InvariantMetric
@@ -82,19 +82,44 @@ def homogeneous_representation(
 
 
 def submersion(point):
+    """Define SE(n) as the pre-image of identity.
+
+    Parameters
+    ----------
+    point : array-like, shape=[..., n + 1, n + 1]
+        Point.
+
+    Returns
+    -------
+    submersed_point : array-like, shape=[..., n + 1, n + 1]
+        Submersed Point.
+    """
     n = point.shape[-1] - 1
     rot = point[..., :n, :n]
     vec = point[..., n, :n]
     scalar = point[..., n, n]
     det = gs.linalg.det(rot)
     submersed_rot = gs.einsum(
-        '...,...ij->...ij', det,
-        Matrices.mul(rot, Matrices.transpose(rot)))
+        '...,...ij->...ij', det, Matrices.mul(rot, Matrices.transpose(rot)))
     return homogeneous_representation(
         submersed_rot, vec, point.shape, constant=scalar)
 
 
 def tangent_submersion(vector, point):
+    """Define the tangent space of SE(n) as the kernel of this method.
+
+    Parameters
+    ----------
+    vector : array-like, shape=[..., n + 1, n + 1]
+        Point.
+    point : array-like, shape=[..., n + 1, n + 1]
+        Point.
+
+    Returns
+    -------
+    submersed_vector : array-like, shape=[..., n + 1, n + 1]
+        Submersed Vector.
+    """
     n = point.shape[-1] - 1
     rot = point[..., :n, :n]
     skew = vector[..., :n, :n]
@@ -150,40 +175,6 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, EmbeddedManifold):
     def identity(self):
         """Return the identity matrix."""
         return gs.eye(self.n + 1, self.n + 1)
-
-    # def belongs(self, point, atol=gs.atol):
-    #     """Check whether point is of the form rotation, translation.
-    #
-    #     Parameters
-    #     ----------
-    #     point : array-like, shape=[..., n, n].
-    #         Point to be checked.
-    #     atol :  float
-    #         Tolerance threshold.
-    #
-    #     Returns
-    #     -------
-    #     belongs : array-like, shape=[...,]
-    #         Boolean denoting if point belongs to the group.
-    #     """
-    #     n = self.n
-    #     belongs = Matrices(n + 1, n + 1).belongs(point)
-    #
-    #     if gs.all(belongs):
-    #         rotation = point[..., :n, :n]
-    #         belongs = self.rotations.belongs(rotation, atol=atol)
-    #
-    #         last_line_except_last_term = point[..., n:, :-1]
-    #         all_but_last_zeros = ~ gs.any(
-    #             last_line_except_last_term, axis=(-2, -1))
-    #
-    #         belongs = gs.logical_and(belongs, all_but_last_zeros)
-    #
-    #         last_term = point[..., n, n]
-    #         belongs = gs.logical_and(
-    #             belongs, gs.isclose(last_term, 1., atol=atol))
-    #
-    #     return belongs
 
     def random_point(self, n_samples=1, bound=1.):
         """Sample in SE(n) from the uniform distribution.

@@ -66,6 +66,8 @@ def grad(y_pred, y_true, group, metric=None):
 
 
 class MatrixLieGroup(Manifold, abc.ABC):
+    """Class for matrix Lie groups."""
+
     def __init__(
             self, dim, n, lie_algebra=None, **kwargs):
         super(MatrixLieGroup, self).__init__(dim=dim, **kwargs)
@@ -83,6 +85,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
 
     @property
     def identity(self):
+        """Matrix identity."""
         return gs.eye(self.n)
 
     @staticmethod

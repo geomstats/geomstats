@@ -5,9 +5,9 @@ import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.general_linear import GeneralLinear, Matrices
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
