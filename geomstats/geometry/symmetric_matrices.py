@@ -5,11 +5,11 @@ import logging
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.embedded_manifold import EmbeddedManifold, OpenSet
+from geomstats.geometry.embedded_manifold import OpenSet, VectorSpace
 from geomstats.geometry.matrices import Matrices
 
 
-class SymmetricMatrices(EmbeddedManifold, OpenSet):
+class SymmetricMatrices(OpenSet, VectorSpace):
     """Class for the vector space of symmetric matrices of size n.
 
     Parameters
@@ -21,10 +21,7 @@ class SymmetricMatrices(EmbeddedManifold, OpenSet):
     def __init__(self, n, **kwargs):
         matrices = Matrices(n, n)
         super(SymmetricMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2), embedding_space=matrices,
-            ambient_space=matrices,
-            submersion=matrices.to_skew_symmetric, value=gs.zeros((n, n)),
-            tangent_submersion=matrices.to_skew_symmetric)
+            dim=int(n * (n + 1) / 2), shape=(n, n), ambient_space=matrices)
         self.n = n
 
     def get_basis(self):
@@ -45,6 +42,13 @@ class SymmetricMatrices(EmbeddedManifold, OpenSet):
 
     basis = property(get_basis)
 
+    def belongs(self, point, atol=gs.atol):
+        belongs = super(SymmetricMatrices, self).belongs(point)
+        if gs.any(belongs):
+            is_symmetric = Matrices.is_symmetric(point, atol)
+            return gs.logical_and(belongs, is_symmetric)
+        return belongs
+
     def projection(self, point):
         """Make a matrix symmetric, by averaging with its transpose.
 
@@ -58,7 +62,7 @@ class SymmetricMatrices(EmbeddedManifold, OpenSet):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        return point - self.submersion(point)
+        return Matrices.to_symmetric(point)
 
     @staticmethod
     def to_vector(mat):

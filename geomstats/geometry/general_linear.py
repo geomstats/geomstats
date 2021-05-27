@@ -4,11 +4,11 @@ from itertools import product
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import OpenSet
-from geomstats.geometry.lie_group import LieGroup
+from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.matrices import Matrices
 
 
-class GeneralLinear(Matrices, LieGroup, OpenSet):
+class GeneralLinear(MatrixLieGroup, OpenSet):
     """Class for the general linear group GL(n).
 
     Parameters
@@ -21,7 +21,7 @@ class GeneralLinear(Matrices, LieGroup, OpenSet):
         if 'dim' not in kwargs.keys():
             kwargs['dim'] = n ** 2
         super(GeneralLinear, self).__init__(
-            ambient_space=Matrices(n, n), n=n, m=n, **kwargs)
+            ambient_space=Matrices(n, n), n=n, **kwargs)
 
     def projection(self, point):
         r"""Project a matrix to the general linear group.
@@ -62,32 +62,11 @@ class GeneralLinear(Matrices, LieGroup, OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if point is in GL(n).
         """
-        has_right_size = super(GeneralLinear, self).belongs(point)
+        has_right_size = self.ambient_space.belongs(point)
         if gs.all(has_right_size):
             det = gs.linalg.det(point)
             return gs.abs(det) > atol
         return has_right_size
-
-    def get_identity(self):
-        """Return the identity matrix."""
-        return gs.eye(self.n)
-    identity = property(get_identity)
-
-    @classmethod
-    def compose(cls, *args):
-        """Return the product of a collection of matrices."""
-        return cls.mul(*args)
-
-    @staticmethod
-    def inverse(point):
-        """Return the inverse of a matrix.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Matrix to be inverted.
-        """
-        return gs.linalg.inv(point)
 
     def _replace_values(self, samples, new_samples, indcs):
         """Replace samples with new samples at specific indices."""
@@ -127,78 +106,6 @@ class GeneralLinear(Matrices, LieGroup, OpenSet):
         if n_samples == 1:
             samples = gs.squeeze(samples, axis=0)
         return samples
-
-    @classmethod
-    def exp(cls, tangent_vec, base_point=None):
-        r"""
-        Exponentiate a left-invariant vector field from a base point.
-
-        The vector input is not an element of the Lie algebra, but of the
-        tangent space at base_point: if :math:`g` denotes `base_point`,
-        :math:`v` the tangent vector, and :math:'V = g^{-1} v' the associated
-        Lie algebra vector, then
-
-        .. math::
-
-            \exp(v, g) = mul(g, \exp(V))
-
-        Therefore, the Lie exponential is obtained when base_point is None, or
-        the identity.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-            Optional, defaults to identity if None.
-
-        Returns
-        -------
-        point : array-like, shape=[..., n, n]
-            Left multiplication of `exp(algebra_mat)` with `base_point`.
-        """
-        expm = gs.linalg.expm
-        if base_point is None:
-            return expm(tangent_vec)
-        lie_algebra_vec = cls.mul(cls.inverse(base_point), tangent_vec)
-        return cls.mul(base_point, cls.exp(lie_algebra_vec))
-
-    @classmethod
-    def log(cls, point, base_point=None):
-        r"""
-        Compute a left-invariant vector field bringing base_point to point.
-
-        The output is a vector of the tangent space at base_point, so not a Lie
-        algebra element if it is not the identity.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-            Optional, defaults to identity if None.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., n, n]
-            Matrix such that `exp(tangent_vec, base_point) = point`.
-
-        Notes
-        -----
-        Denoting `point` by :math:`g` and `base_point` by :math:`h`,
-        the output satisfies:
-
-        .. math::
-
-            g = \exp(\log(g, h), h)
-        """
-        logm = gs.linalg.logm
-        if base_point is None:
-            return logm(point)
-        lie_algebra_vec = logm(cls.mul(cls.inverse(base_point), point))
-        return cls.mul(base_point, lie_algebra_vec)
 
     @classmethod
     def orbit(cls, point, base_point=None):

@@ -290,7 +290,9 @@ class OpenSet(Manifold, abc.ABC):
     """
 
     def __init__(self, dim, ambient_space, **kwargs):
-        super().__init__(dim, **kwargs)
+        if 'default_point_type' not in kwargs:
+            kwargs['default_point_type'] = ambient_space.default_point_type
+        super().__init__(dim=dim, **kwargs)
         self.ambient_space = ambient_space
 
     def is_tangent(self, vector, base_point, atol=gs.atol):

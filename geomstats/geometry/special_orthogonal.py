@@ -7,7 +7,7 @@ import geomstats.vectorization
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear, Matrices
 from geomstats.geometry.invariant_metric import BiInvariantMetric
-from geomstats.geometry.lie_group import LieGroup
+from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -20,7 +20,7 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-class _SpecialOrthogonalMatrices(EmbeddedManifold, GeneralLinear):
+class _SpecialOrthogonalMatrices(MatrixLieGroup, EmbeddedManifold):
     """Class for special orthogonal groups in matrix representation.
 
     Parameters
@@ -39,6 +39,7 @@ class _SpecialOrthogonalMatrices(EmbeddedManifold, GeneralLinear):
                 matrices.mul(matrices.transpose(x), v)))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.metric = self.bi_invariant_metric
+        self.n = n
 
     def belongs(self, point, atol=ATOL):
         """Check whether point is an orthogonal matrix.
@@ -57,14 +58,11 @@ class _SpecialOrthogonalMatrices(EmbeddedManifold, GeneralLinear):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to SO(n).
         """
-        has_right_shape = Matrices(self.n, self.n).belongs(point)
-        if gs.all(has_right_shape):
-            is_orthogonal = self.equal(
-                self.mul(point, self.transpose(point)),
-                self.identity, atol=atol)
+        belongs = super(_SpecialOrthogonalMatrices, self).belongs(point, atol)
+        if gs.any(belongs):
             has_positive_det = gs.linalg.det(point) > 0.
-            return gs.logical_and(is_orthogonal, has_positive_det)
-        return has_right_shape
+            return gs.logical_and(belongs, has_positive_det)
+        return belongs
 
     @classmethod
     def inverse(cls, point):
@@ -80,7 +78,7 @@ class _SpecialOrthogonalMatrices(EmbeddedManifold, GeneralLinear):
         inverse : array-like, shape=[..., n, n]
             Inverse.
         """
-        return cls.transpose(point)
+        return Matrices.transpose(point)
 
     @classmethod
     def projection(cls, point):
@@ -96,9 +94,9 @@ class _SpecialOrthogonalMatrices(EmbeddedManifold, GeneralLinear):
         rot_mat : array-like, shape=[..., n, n]
             Rotation matrix.
         """
-        aux_mat = cls.mul(cls.transpose(point), point)
+        aux_mat = Matrices.mul(Matrices.transpose(point), point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, - 1 / 2)
-        rotation_mat = cls.mul(point, inv_sqrt_mat)
+        rotation_mat = Matrices.mul(point, inv_sqrt_mat)
         det = gs.linalg.det(rotation_mat)
         return utils.flip_determinant(rotation_mat, det)
 
@@ -110,7 +108,8 @@ class _SpecialOrthogonalMatrices(EmbeddedManifold, GeneralLinear):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        tol : unused
+        bound : float
+            Unused.
 
         Returns
         -------
@@ -257,7 +256,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         n_mats, _, _ = mat.shape
 
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
-        rot_mat = GeneralLinear.mul(mat_unitary_u, mat_unitary_v)
+        rot_mat = Matrices.mul(mat_unitary_u, mat_unitary_v)
         mask = gs.less(gs.linalg.det(rot_mat), 0.)
         mask_float = gs.cast(mask, gs.float32) + self.epsilon
         diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
@@ -267,10 +266,10 @@ class _SpecialOrthogonalVectors(LieGroup):
             to_ndim=3) + self.epsilon
         new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
-        aux_mat = GeneralLinear.mul(mat_unitary_u, new_mat_diag_s)
+        aux_mat = Matrices.mul(mat_unitary_u, new_mat_diag_s)
         rot_mat = rot_mat + gs.einsum(
             '...,...jk->...jk', mask_float,
-            GeneralLinear.mul(aux_mat, mat_unitary_v))
+            Matrices.mul(aux_mat, mat_unitary_v))
         return rot_mat
 
     def inverse(self, point):
@@ -813,7 +812,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         term_1 = (gs.eye(self.dim)
                   + gs.einsum('...,...jk->...jk', coef_1, skew_rot_vec))
 
-        squared_skew_rot_vec = GeneralLinear.mul(skew_rot_vec, skew_rot_vec)
+        squared_skew_rot_vec = Matrices.mul(skew_rot_vec, skew_rot_vec)
 
         term_2 = gs.einsum('...,...jk->...jk', coef_2, squared_skew_rot_vec)
 

@@ -7,11 +7,12 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear, Matrices
 from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
-from geomstats.geometry.lie_group import LieGroup
+from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
@@ -58,7 +59,7 @@ def homogeneous_representation(
         Vector.
     output_shape : tuple of int
         Desired output shape. This is need for vectorization.
-    constant : float
+    constant : float or array-like of shape [...]
         Constant to use at the last line and column of the square matrix.
         Optional, default: 1.
 
@@ -70,14 +71,42 @@ def homogeneous_representation(
     """
     mat = gs.concatenate((rotation, translation[..., None]), axis=-1)
     last_line = gs.zeros(output_shape)[..., -1]
+    if isinstance(constant, float):
+        last_col = constant * gs.ones_like(translation)[..., None, -1]
+    else:
+        last_col = constant[..., None]
     last_line = gs.concatenate(
-        [last_line[..., :-1],
-         constant * gs.ones_like(translation)[..., None, -1]], axis=-1)
+        [last_line[..., :-1], last_col], axis=-1)
     mat = gs.concatenate((mat, last_line[..., None, :]), axis=-2)
     return mat
 
 
-class _SpecialEuclideanMatrices(GeneralLinear):
+def submersion(point):
+    n = point.shape[-1] - 1
+    rot = point[..., :n, :n]
+    vec = point[..., n, :n]
+    scalar = point[..., n, n]
+    det = gs.linalg.det(rot)
+    submersed_rot = gs.einsum(
+        '...,...ij->...ij', det,
+        Matrices.mul(rot, Matrices.transpose(rot)))
+    return homogeneous_representation(
+        submersed_rot, vec, point.shape, constant=scalar)
+
+
+def tangent_submersion(vector, point):
+    n = point.shape[-1] - 1
+    rot = point[..., :n, :n]
+    skew = vector[..., :n, :n]
+    vec = vector[..., n, :n]
+    scalar = vector[..., n, n]
+    submersed_rot = Matrices.mul(Matrices.transpose(skew), rot)
+    submersed_rot = Matrices.to_symmetric(submersed_rot)
+    return homogeneous_representation(
+        submersed_rot, vec, point.shape, constant=scalar)
+
+
+class _SpecialEuclideanMatrices(MatrixLieGroup, EmbeddedManifold):
     """Class for special Euclidean group.
 
     Parameters
@@ -105,6 +134,9 @@ class _SpecialEuclideanMatrices(GeneralLinear):
     def __init__(self, n):
         super().__init__(
             n=n + 1, dim=int((n * (n + 1)) / 2),
+            embedding_space=GeneralLinear(n + 1),
+            submersion=submersion, value=gs.eye(n + 1),
+            tangent_submersion=tangent_submersion,
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n))
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
@@ -114,44 +146,44 @@ class _SpecialEuclideanMatrices(GeneralLinear):
             SpecialEuclideanMatrixCannonicalLeftMetric(group=self)
         self.metric = self.left_canonical_metric
 
-    def get_identity(self):
+    @property
+    def identity(self):
         """Return the identity matrix."""
         return gs.eye(self.n + 1, self.n + 1)
-    identity = property(get_identity)
 
-    def belongs(self, point, atol=gs.atol):
-        """Check whether point is of the form rotation, translation.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n].
-            Point to be checked.
-        atol :  float
-            Tolerance threshold.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean denoting if point belongs to the group.
-        """
-        n = self.n
-        belongs = Matrices(n + 1, n + 1).belongs(point)
-
-        if gs.all(belongs):
-            rotation = point[..., :n, :n]
-            belongs = self.rotations.belongs(rotation, atol=atol)
-
-            last_line_except_last_term = point[..., n:, :-1]
-            all_but_last_zeros = ~ gs.any(
-                last_line_except_last_term, axis=(-2, -1))
-
-            belongs = gs.logical_and(belongs, all_but_last_zeros)
-
-            last_term = point[..., n, n]
-            belongs = gs.logical_and(
-                belongs, gs.isclose(last_term, 1., atol=atol))
-
-        return belongs
+    # def belongs(self, point, atol=gs.atol):
+    #     """Check whether point is of the form rotation, translation.
+    #
+    #     Parameters
+    #     ----------
+    #     point : array-like, shape=[..., n, n].
+    #         Point to be checked.
+    #     atol :  float
+    #         Tolerance threshold.
+    #
+    #     Returns
+    #     -------
+    #     belongs : array-like, shape=[...,]
+    #         Boolean denoting if point belongs to the group.
+    #     """
+    #     n = self.n
+    #     belongs = Matrices(n + 1, n + 1).belongs(point)
+    #
+    #     if gs.all(belongs):
+    #         rotation = point[..., :n, :n]
+    #         belongs = self.rotations.belongs(rotation, atol=atol)
+    #
+    #         last_line_except_last_term = point[..., n:, :-1]
+    #         all_but_last_zeros = ~ gs.any(
+    #             last_line_except_last_term, axis=(-2, -1))
+    #
+    #         belongs = gs.logical_and(belongs, all_but_last_zeros)
+    #
+    #         last_term = point[..., n, n]
+    #         belongs = gs.logical_and(
+    #             belongs, gs.isclose(last_term, 1., atol=atol))
+    #
+    #     return belongs
 
     def random_point(self, n_samples=1, bound=1.):
         """Sample in SE(n) from the uniform distribution.
@@ -195,7 +227,7 @@ class _SpecialEuclideanMatrices(GeneralLinear):
             Inverse of point.
         """
         n = point.shape[-1] - 1
-        transposed_rot = cls.transpose(point[..., :n, :n])
+        transposed_rot = Matrices.transpose(point[..., :n, :n])
         translation = point[..., :n, -1]
         translation = gs.einsum(
             '...ij,...j->...i', transposed_rot, translation)
@@ -644,7 +676,7 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
             rot_vec ** 2, utils.cosc_close_0, order=4)
         transform = gs.einsum(
             '...l, ...jk -> ...jk', inv_determinant,
-            GeneralLinear.transpose(exp_transform))
+            Matrices.transpose(exp_transform))
 
         return transform
 

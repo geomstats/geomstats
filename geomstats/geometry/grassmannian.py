@@ -350,5 +350,5 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
             id_n, point, base_point])
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
-        rot = GLn.mul(sym2, sym1)
+        rot = GLn.compose(sym2, sym1)
         return Matrices.bracket(GLn.log(rot) / 2, base_point)
