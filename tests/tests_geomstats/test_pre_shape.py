@@ -617,14 +617,13 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             hor_y, hor_z, hor_x, tg_vec_t, base_point)
         term_z = metric.curvature_derivative(
             hor_z, hor_x, hor_y, tg_vec_t, base_point)
-        print(term_x)
 
         result = term_x + term_y + term_z
         self.assertAllClose(result, 0.0)
 
     def test_curvature_derivative_is_skew_operator(self):
         space = self.space
-        metric = space.metric
+        metric = self.shape_metric
 
         base_point = space.random_point()
         vector = gs.random.rand(3, self.k_landmarks, self.m_ambient)
@@ -637,12 +636,11 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         result = metric.curvature_derivative(
             hor_x, hor_y, hor_y, hor_z, base_point)
-        print(result)
         self.assertAllClose(result, 0.0)
 
     def test_directional_curvature_derivative(self):
         space = self.space
-        metric = space.metric
+        metric = self.shape_metric
 
         base_point = space.random_point()
         vector = gs.random.rand(3, self.k_landmarks, self.m_ambient)
@@ -651,9 +649,29 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         tg_vec_1 = space.to_tangent(vector[1], base_point)
         hor_y = space.horizontal_projection(tg_vec_1, base_point)
 
-        result = metric.directional_curvature_derivative(
-            hor_x, hor_y, base_point)
-
+        # result derived from the curvature derivative (should be identical
+        # to the implementation of directional_curvature_derivative method
+        # in the Connection class
         expected = metric.curvature_derivative(
             hor_x, hor_x, hor_y, hor_y, base_point)
-        self.assertAllClose(result, expected)
+
+        # result of the optimized directional_curvature_derivative method from
+        # the KendallShapeMetric class
+        result_kendall_shape_metric = metric.directional_curvature_derivative(
+            hor_x, hor_y, base_point)
+        self.assertAllClose(result_kendall_shape_metric, expected)
+
+        # result of the generic directional_curvature_derivative method from
+        # the class QuotientMetric
+        result_quotient_metric = super(KendallShapeMetric,
+                   metric).directional_curvature_derivative(
+            hor_x, hor_y, base_point)
+        self.assertAllClose(result_quotient_metric, expected)
+
+        # result of the most generic directional_curvature_derivative method
+        # relying on curvature_derivative from the Connection class
+        from geomstats.geometry.quotient_metric import QuotientMetric
+        result_connection = super(QuotientMetric,
+                                  metric).directional_curvature_derivative(
+            hor_x, hor_y, base_point)
+        self.assertAllClose(result_connection, expected)

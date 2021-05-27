@@ -845,6 +845,36 @@ class PreShapeMetric(RiemannianMetric):
         curvature = gs.reshape(curvature, max_shape)
         return curvature
 
+    def curvature_derivative(
+            self, hor_tg_vec_h, hor_tg_vec_x, hor_tg_vec_y, hor_tg_vec_z,
+            base_point=None):
+        r"""Compute the covariant derivative of the curvature.
+
+        For four horizontal tangent vectors at a base point :math: `H|_P, X|_P,
+        Y|_P, Z|_P` given in argument, the covariant derivative of the
+        quotient curvature :math: `(\nabla_H R)(X, Y)Z |_P` is computed at the
+        base point P. Since the sphere is a constant curvature space this
+        vanishes identically.
+
+        Parameters
+        ----------
+        hor_tg_vec_h : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        hor_tg_vec_x : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        hor_tg_vec_y : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        hor_tg_vec_z : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., n, n]
+            Point on the group.
+
+        Returns
+        -------
+        curvature_derivative : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
+        return gs.zeros_like(hor_tg_vec_h)
 
 class KendallShapeMetric(QuotientMetric):
     """Quotient metric on the shape space.
@@ -905,5 +935,4 @@ class KendallShapeMetric(QuotientMetric):
         nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, nabla_x_a_x_y, a_y_a_x_y, a_x_y = \
             bundle.nabla_x_a_y_a_x_y_quotient_parallel(
                 hor_x, hor_y, base_point)
-
         return 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
