@@ -13,6 +13,7 @@ from tensorflow import (  # NOQA
     argmin,
     asin as arcsin,
     atan2 as arctan2,
+    broadcast_to,
     clip_by_value as clip,
     concat,
     cos,

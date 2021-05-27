@@ -408,11 +408,11 @@ class FrechetMean(BaseEstimator):
         self : object
             Returns self.
         """
-        metric_module = self.metric.__module__
+        metric_str = self.metric.__str__()
         is_linear_metric = (
-            'euclidean' in metric_module
-            or 'matrices' in metric_module
-            or 'minkowski' in metric_module)
+            'EuclideanMetric' in metric_str
+            or 'MatricesMetric' in metric_str
+            or 'MinkowskiMetric' in metric_str)
 
         error.check_parameter_accepted_values(
             self.method, 'method',
