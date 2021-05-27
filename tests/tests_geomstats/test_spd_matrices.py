@@ -113,13 +113,19 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
     def test_logm(self):
         """Test of logm method."""
-        expected = gs.array([[[0., 1., 0.], [1., 0., 0.], [0., 0., 1.]]])
+        expected = gs.array([[0., 1., 0.], [1., 0., 0.], [0., 0., 1.]])
         c = math.cosh(1)
         s = math.sinh(1)
         e = math.exp(1)
-        v = gs.array([[[c, s, 0.], [s, c, 0.], [0., 0., e]]])
+        v = gs.array([[c, s, 0.], [s, c, 0.], [0., 0., e]])
         result = self.space.logm(v)
+
+        four_dim_expected = gs.broadcast_to(expected, (2, 2) + expected.shape)
+        four_dim_v = gs.broadcast_to(v, (2, 2) + v.shape)
+        four_dim_result = self.space.logm(four_dim_v)
+
         self.assertAllClose(result, expected)
+        self.assertAllClose(four_dim_result, four_dim_expected)
 
     def test_differential_power(self):
         """Test of differential_power method."""

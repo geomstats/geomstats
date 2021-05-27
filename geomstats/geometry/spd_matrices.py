@@ -345,7 +345,12 @@ class SPDMatrices(SymmetricMatrices):
         log : array_like, shape=[..., n, n]
             Matrix logarithm of mat.
         """
-        return cls.apply_func_to_eigvals(mat, gs.log, check_positive=True)
+        n = mat.shape[-1]
+        dim_3_mat = gs.reshape(mat, [-1, n, n])
+        logm = cls.apply_func_to_eigvals(
+            dim_3_mat, gs.log, check_positive=True)
+        logm = gs.reshape(logm, mat.shape)
+        return logm
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.

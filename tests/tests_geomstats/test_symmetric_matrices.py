@@ -60,7 +60,14 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         expected = gs.array([[c, s, 0.],
                              [s, c, 0.],
                              [0., 0., e]])
+
+        four_dim_v = gs.broadcast_to(v, (2, 2) + v.shape)
+        four_dim_expected = gs.broadcast_to(
+            expected, (2, 2) + expected.shape)
+        four_dim_result = sym_n.expm(four_dim_v)
+
         self.assertAllClose(result, expected)
+        self.assertAllClose(four_dim_result, four_dim_expected)
 
     def test_powerm(self):
         """Test of powerm method."""
