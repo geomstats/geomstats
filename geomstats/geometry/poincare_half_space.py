@@ -4,18 +4,18 @@ Poincare half-space representation.
 """
 
 import geomstats.backend as gs
+from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.embedded_manifold import OpenSet
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class PoincareHalfSpace(Hyperbolic, OpenSet):
-    """Class for the n-dimensional hyperbolic space.
+class PoincareHalfSpace(_Hyperbolic, OpenSet):
+    """Class for the n-dimensional Poincare half-space.
 
-    Class for the n-dimensional hyperbolic space
-    as embedded in the Poincaré half space model.
+    Class for the n-dimensional Poincaré half space model. For other
+    representations of hyperbolic spaces see the `Hyperbolic` class.
 
     Parameters
     ----------
@@ -30,11 +30,9 @@ class PoincareHalfSpace(Hyperbolic, OpenSet):
     default_point_type = 'vector'
 
     def __init__(self, dim, scale=1):
-        super(PoincareHalfSpace, self).__init__(dim=dim,
-                                                ambient_space=Euclidean(dim),
-                                                scale=scale,
-                                                metric=PoincareHalfSpaceMetric(
-                                                    dim, scale))
+        super(PoincareHalfSpace, self).__init__(
+            dim=dim, ambient_space=Euclidean(dim), scale=scale,
+            metric=PoincareHalfSpaceMetric(dim, scale))
         self.coords_type = PoincareHalfSpace.default_coords_type
         self.point_type = PoincareHalfSpace.default_point_type
 
@@ -129,7 +127,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         inner_prod = inner_prod / base_point[..., -1]**2
         return inner_prod
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential.
 
         Parameters
@@ -155,7 +153,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
             end_point_ball)
         return end_point
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute Riemannian logarithm of a point wrt a base point.
 
         Parameters

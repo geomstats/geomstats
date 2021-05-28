@@ -1039,7 +1039,7 @@ def plot(points, ax=None, space=None,
 
     elif space == 'H2_poincare_disk':
         if point_type is None:
-            point_type = 'extrinsic'
+            point_type = 'hyperboloid'
         poincare_disk = PoincareDisk(point_type=point_type)
         ax = poincare_disk.set_ax(ax=ax)
         poincare_disk.add_points(points)
@@ -1048,7 +1048,7 @@ def plot(points, ax=None, space=None,
 
     elif space == 'poincare_polydisk':
         if point_type is None:
-            point_type = 'extrinsic'
+            point_type = 'hyperboloid'
         n_disks = points.shape[1]
         poincare_poly_disk = PoincarePolyDisk(point_type=point_type,
                                               n_disks=n_disks)

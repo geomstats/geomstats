@@ -26,7 +26,7 @@ class TestVisualization(geomstats.tests.TestCase):
         self.SE3_GROUP = SpecialEuclidean(n=3, point_type='vector')
         self.S1 = Hypersphere(dim=1)
         self.S2 = Hypersphere(dim=2)
-        # self.H2 = Hyperbolic(dim=2)
+        self.H2 = Hyperbolic(dim=2)
         self.H2_half_plane = PoincareHalfSpace(dim=2)
         self.M32 = Matrices(m=3, n=2)
         self.S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)

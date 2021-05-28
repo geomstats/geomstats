@@ -7,7 +7,7 @@ distance (implemented for ball model and extrinsic only)
 """
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperbolic import _Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.poincare_ball import PoincareBall
 
@@ -68,7 +68,7 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
         x_up = self.extrinsic_manifold.to_coordinates(
             x, to_coords_type='half-space')
 
-        x2 = Hyperbolic.change_coordinates_system(
+        x2 = _Hyperbolic.change_coordinates_system(
             x_up, 'half-space', 'extrinsic')
         self.assertAllClose(x, x2)
 
