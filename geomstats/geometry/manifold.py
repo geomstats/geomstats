@@ -78,6 +78,23 @@ class Manifold(abc.ABC):
         """
 
     @abc.abstractmethod
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
+
+    @abc.abstractmethod
     def random_point(self, n_samples=1, bound=1.):
         """Sample random points on the manifold.
 
