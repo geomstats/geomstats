@@ -63,7 +63,7 @@ from torch import (  # NOQA
 from . import autograd # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-
+from ..constants import pytorch_atol, pytorch_rtol
 
 DTYPES = {
     int32: 0,
@@ -72,8 +72,8 @@ DTYPES = {
     float64: 3}
 
 
-atol = 1e-6
-rtol = 1e-5
+atol = pytorch_atol
+rtol = pytorch_rtol
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -105,6 +105,13 @@ tan = _box_scalar(tan)
 
 def to_numpy(x):
     return x.numpy()
+
+
+def one_hot(labels, num_classes):
+    if not torch.is_tensor(labels):
+        labels = torch.LongTensor(labels)
+    return torch.nn.functional.one_hot(
+        labels, num_classes).type(torch.uint8)
 
 
 def argmax(a, **kwargs):
@@ -352,6 +359,12 @@ def to_ndarray(x, to_ndim, axis=0):
     return x
 
 
+def broadcast_to(x, shape):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    return x.expand(shape)
+
+
 def sqrt(x):
     if not isinstance(x, torch.Tensor):
         x = torch.tensor(x).float()
@@ -464,6 +477,8 @@ def transpose(x, axes=None):
         return x.permute(axes)
     if x.dim() == 1:
         return x
+    if x.dim() > 2 and axes is None:
+        return x.permute(tuple(range(x.ndim)[::-1]))
     return x.t()
 
 

@@ -38,6 +38,11 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         expected = False
         self.assertAllClose(result, expected)
 
+        mat = gs.ones(3)
+        result = self.group.belongs(mat)
+        expected = False
+        self.assertAllClose(result, expected)
+
     def test_belongs_vectorization_shape(self):
         mats = gs.array([gs.eye(3), gs.ones((3, 3))])
         result = self.group.belongs(mats)

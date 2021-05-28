@@ -8,9 +8,6 @@ from sklearn.base import BaseEstimator
 import geomstats.backend as gs
 import geomstats.errors as error
 import geomstats.vectorization
-from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.geometry.matrices import MatricesMetric
-from geomstats.geometry.minkowski import MinkowskiMetric
 
 EPSILON = 1e-4
 
@@ -360,6 +357,9 @@ class FrechetMean(BaseEstimator):
         Optional, default: None.
     method : str, {\'default\', \'adaptive\', \'ball\'}
         Gradient descent method.
+        The `adaptive` method uses a Levenberg-Marquardt style adaptation of
+        the learning rate. The `ball` method is for the Poincaré ball
+        manifold only.
         Optional, default: \'default\'.
     verbose : bool
         Verbose option.
@@ -408,8 +408,11 @@ class FrechetMean(BaseEstimator):
         self : object
             Returns self.
         """
-        is_linear_metric = isinstance(
-            self.metric, (EuclideanMetric, MatricesMetric, MinkowskiMetric))
+        metric_str = self.metric.__str__()
+        is_linear_metric = (
+            'EuclideanMetric' in metric_str
+            or 'MatricesMetric' in metric_str
+            or 'MinkowskiMetric' in metric_str)
 
         error.check_parameter_accepted_values(
             self.method, 'method',

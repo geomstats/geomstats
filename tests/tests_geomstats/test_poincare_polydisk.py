@@ -25,7 +25,7 @@ class TestPoincarePolydisk(geomstats.tests.TestCase):
 
     def test_metric_signature(self):
         """Test the signature."""
-        expected = (self.n_disks * 2, 0, 0)
+        expected = (self.n_disks * 2, 0)
         result = self.metric.signature
         self.assertAllClose(result, expected)
 

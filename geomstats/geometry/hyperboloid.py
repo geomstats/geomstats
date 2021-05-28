@@ -147,7 +147,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
         return tangent_vec
 
-    def is_tangent(self, vector, base_point=None, atol=gs.atol):
+    def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters
@@ -156,7 +156,6 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
             Vector.
         base_point : array-like, shape=[..., dim + 1]
             Point on the manifold.
-            Optional, default: none.
         atol : float
             Absolute tolerance.
             Optional, default: backend atol.
@@ -413,7 +412,8 @@ class HyperboloidMetric(HyperbolicMetric):
             Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
         theta = self.embedding_metric.norm(tangent_vec_b)
-        normalized_b = gs.einsum('...,...i->...i', 1 / theta, tangent_vec_b)
+        eps = gs.where(theta == 0., 1., theta)
+        normalized_b = gs.einsum('...,...i->...i', 1 / eps, tangent_vec_b)
         pb = self.embedding_metric.inner_product(tangent_vec_a, normalized_b)
         p_orth = tangent_vec_a - gs.einsum('...,...i->...i', pb, normalized_b)
         transported = \

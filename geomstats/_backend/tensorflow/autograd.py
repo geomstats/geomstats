@@ -19,10 +19,10 @@ def custom_grad(grad_func):
         return tf.custom_gradient(wrapped_func)
 
     return wrapper
-    
+
 
 def value_and_grad(objective):
-    """'Returns a function that returns both value and gradient.
+    """'Return a function that returns both value and gradient.
 
     Suitable for use in scipy.optimize
 
@@ -45,3 +45,16 @@ def value_and_grad(objective):
             loss = objective(velocity)
         return loss.numpy(), t.gradient(loss, velocity).numpy()
     return objective_with_grad
+
+
+def jacobian(f):
+    """Return a function that returns the jacobian of a function f."""
+    def jac(x):
+        """Return the jacobian of f at x."""
+        if isinstance(x, np.ndarray):
+            x = tf.Variable(x)
+        with tf.GradientTape() as g:
+            g.watch(x)
+            y = f(x)
+        return g.jacobian(y, x)
+    return jac

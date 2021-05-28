@@ -19,6 +19,7 @@ from autograd.numpy import (  # NOQA
     argmin,
     array,
     broadcast_arrays,
+    broadcast_to,
     ceil,
     clip,
     concatenate,
@@ -97,6 +98,7 @@ from scipy.sparse import coo_matrix
 from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA
+from ..constants import np_atol, np_rtol
 
 DTYPES = {
     dtype('int32'): 0,
@@ -105,8 +107,8 @@ DTYPES = {
     dtype('float64'): 3}
 
 
-atol = 1e-12
-rtol = 1e-6
+atol = np_atol
+rtol = np_rtol
 
 
 def to_numpy(x):
@@ -125,6 +127,10 @@ def convert_to_wider_dtype(tensor_list):
 
 def flatten(x):
     return x.flatten()
+
+
+def one_hot(labels, num_classes):
+    return np.eye(num_classes, dtype=np.dtype('uint8'))[labels]
 
 
 def get_mask_i_float(i, n):
