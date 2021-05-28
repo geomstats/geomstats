@@ -330,7 +330,7 @@ class Matrices:
             '...ij,...ji->...', mat_1, mat_2)
 
     def math_vec(self, mat):
-        """returns a vectorized form of the matrix.
+        """Returns a vectorized form of the matrix.
 
         Vectorize a matrix (see wikipedia Vectorization_(mathematics)).
         The reverse operation is math_unvect. The naming was chosen
@@ -353,7 +353,7 @@ class Matrices:
         return gs.reshape(mat, shape)
 
     def math_unvec(self, vec):
-        """returns a matricized form of the vector.
+        """Returns a matricized form of the vector.
 
         Matricize a vectorized matrix (see wikipedia Vectorization_(
         mathematics)). The reverse operation of math_vec. The naming

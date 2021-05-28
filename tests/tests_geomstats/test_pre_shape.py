@@ -436,7 +436,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         tg_vec_3 = space.to_tangent(vector[3], base_point)
         hor_h = space.horizontal_projection(tg_vec_3, base_point)
 
-        nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, nabla_x_a_x_y, a_y_a_x_y, a_x_y = \
+        nabla_x_a_y_a_x_y, unused, nabla_x_a_x_y, a_y_a_x_y, a_x_y = \
             space.iterated_integrability_tensor_derivative_parallel(
                 hor_x, hor_y, base_point)
 
@@ -466,19 +466,21 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         # Test scal{\nabla^S_X (A_Y V)}{W}  + scal{A_Y V}{nabla_X W} =0
         # with V = A_X Y and W = A_Y Z
-        result = scal(nabla_x_a_y_a_x_y, a_y_z) \
-                 + scal(a_y_a_x_y, nabla_x_a_y_z)
+        result = \
+            scal(nabla_x_a_y_a_x_y, a_y_z) \
+            + scal(a_y_a_x_y, nabla_x_a_y_z)
         self.assertAllClose(result, 0.0)
 
         # test scal(A_Y V, W)=0 with V = A_X Y and W = A_Z H
-        nabla_x_a_z_h, a_z_h \
-            = space.integrability_tensor_derivative_parallel(
-            hor_x, hor_z, hor_h, base_point)
+        nabla_x_a_z_h, a_z_h = \
+            space.integrability_tensor_derivative_parallel(
+                hor_x, hor_z, hor_h, base_point)
         result = scal(a_y_a_x_y, a_z_h)
         self.assertAllClose(result, 0.0)
 
-        result = scal(nabla_x_a_y_a_x_y, a_z_h) \
-                 + scal(a_y_a_x_y, nabla_x_a_z_h)
+        result = \
+            scal(nabla_x_a_y_a_x_y, a_z_h) \
+            + scal(a_y_a_x_y, nabla_x_a_z_h)
         self.assertAllClose(result, 0.0)
 
         # Test \scal{\nabla^S_X (A_Y Z)}{Z} + \scal{A_Y Z}{ A_X Z} =0
@@ -497,9 +499,10 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         # test the identity \scal{\nabla^S_X (A_Y A_X Y)}{Z}
         #  + \scal{A_Y A_X Y}{ A_X Z} +  \scal{\nabla^S_X ( A_Y Z) }{A_X Y}
         #  + \scal{A_Y Z}{\nabla^S_X A_X Y} = 0
-        result = scal(nabla_x_a_y_a_x_y, hor_z) \
-                 + scal(a_y_a_x_y, a_x_z) + scal(nabla_x_a_y_z, a_x_y) \
-                 + scal(a_y_z, nabla_x_a_x_y)
+        result = \
+            scal(nabla_x_a_y_a_x_y, hor_z) \
+            + scal(a_y_a_x_y, a_x_z) + scal(nabla_x_a_y_z, a_x_y) \
+            + scal(a_y_z, nabla_x_a_x_y)
         self.assertAllClose(result, 0.0)
 
     def test_integrability_tensor_derivative(self):
@@ -555,7 +558,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         nabla_x_a_y_z, a_y_z = \
             space.integrability_tensor_derivative(
                 hor_x, hor_y, nabla_x_y, hor_z, nabla_x_z, base_point)
-        nabla_x_a_z_y, a_z_y = \
+        nabla_x_a_z_y, unused = \
             space.integrability_tensor_derivative(
                 hor_x, hor_z, nabla_x_z, hor_y, nabla_x_y, base_point)
         result = nabla_x_a_y_z + nabla_x_a_z_y
@@ -576,10 +579,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, 0.0)
 
         # Skew-symmetry \nabla_X \scal{A_Y Z}{V} + nabla_X \scal{A_Y V}{Z}=0
-        result = scal(nabla_x_a_y_z, ver_v) \
-                 + scal(a_y_z, nabla_x_v) \
-                 + scal(nabla_x_a_y_v, hor_z) \
-                 + scal(a_y_v, nabla_x_z)
+        result = \
+            scal(nabla_x_a_y_z, ver_v) + scal(a_y_z, nabla_x_v) \
+            + scal(nabla_x_a_y_v, hor_z) + scal(a_y_v, nabla_x_z)
         self.assertAllClose(result, 0.0)
 
         # Test the optimized iterated_integrability_tensor_derivative_parallel
@@ -597,10 +599,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             space.integrability_tensor(
                 hor_x, a_y_a_x_y, base_point)
 
-        nabla_x_a_y_a_x_y_qp, a_x_a_y_a_x_y_qp, nabla_x_v_qp, \
-        a_y_a_x_y_qp, ver_v_qp = \
-            space.iterated_integrability_tensor_derivative_parallel(
-                hor_x, hor_y, base_point)
+        nabla_x_a_y_a_x_y_qp, a_x_a_y_a_x_y_qp, nabla_x_v_qp, a_y_a_x_y_qp, \
+        ver_v_qp = space.iterated_integrability_tensor_derivative_parallel(
+            hor_x, hor_y, base_point)
         self.assertAllClose(ver_v, ver_v_qp)
         self.assertAllClose(a_y_a_x_y, a_y_a_x_y_qp)
         self.assertAllClose(nabla_x_v, nabla_x_v_qp)

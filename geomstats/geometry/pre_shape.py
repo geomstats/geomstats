@@ -849,8 +849,9 @@ class PreShapeMetric(RiemannianMetric):
         return curvature
 
     def curvature_derivative(
-            self, hor_tg_vec_h, hor_tg_vec_x, hor_tg_vec_y, hor_tg_vec_z,
-            base_point=None):
+            self, unused_hor_tg_vec_h, hor_tg_vec_x,
+            unused_hor_tg_vec_y, unused_hor_tg_vec_z,
+            unused_base_point=None):
         r"""Compute the covariant derivative of the curvature.
 
         For four horizontal tangent vectors at a base point :math: `H|_P, X|_P,
@@ -877,8 +878,8 @@ class PreShapeMetric(RiemannianMetric):
         curvature_derivative : array-like, shape=[..., n, n]
             Tangent vector at base point.
         """
-        return gs.zeros_like(hor_tg_vec_h)
-      
+        return gs.zeros_like(hor_tg_vec_x)
+
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Riemannian parallel transport of a tangent vector.
 
@@ -968,7 +969,7 @@ class KendallShapeMetric(QuotientMetric):
         hor_x = bundle.horizontal_lift(hor_tg_vec_x, point_fiber)
         hor_y = bundle.horizontal_lift(hor_tg_vec_y, point_fiber)
 
-        nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, nabla_x_a_x_y, a_y_a_x_y, a_x_y = \
+        nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, unused, unused, unused = \
             bundle.iterated_integrability_tensor_derivative_parallel(
                 hor_x, hor_y, base_point)
         return 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
