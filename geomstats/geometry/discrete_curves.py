@@ -491,15 +491,14 @@ class SRVMetric(RiemannianMetric):
             tangent_vecs = gs.einsum('il,nkm->ikm', t, new_initial_tangent_vec)
 
             curve_at_time_t = []
-            for k in range(len(t)):
-                curve_at_time_t.append(self.exp(
-                    tangent_vec=tangent_vecs[k, :],
-                    base_point=new_initial_curve))
+            for tan_vec in tangent_vecs:
+                curve_at_time_t.append(
+                    self.exp(tan_vec, new_initial_curve))
             return gs.stack(curve_at_time_t)
 
         return curve_on_geodesic
 
-    def dist(self, point_a, point_b):
+    def dist(self, point_a, point_b, **kwargs):
         """Geodesic distance between two curves.
 
         Parameters
