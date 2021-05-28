@@ -195,7 +195,7 @@ class FiberBundle(Manifold):
             n_samples = len(initial_distance)
 
         max_shape = (n_samples, group.dim) if n_samples > 1 else \
-            (group.dim, )
+            (group.dim,)
 
         def wrap(param):
             """Wrap a parameter vector to a group element."""
@@ -381,8 +381,9 @@ class FiberBundle(Manifold):
         """
         raise NotImplementedError
 
-    def nabla_integrability(self, hor_tg_vec_x, hor_tg_vec_y, nabla_x_y,
-                            tg_vec_e, nabla_x_e, base_point):
+    def integrability_tensor_derivative(self, hor_tg_vec_x, hor_tg_vec_y,
+                                        nabla_x_y, tg_vec_e, nabla_x_e,
+                                        base_point):
         r"""Compute the covariant derivative of the integrability tensor A.
 
         The covariant derivative :math: `\nabla_X^M (A_Y E)` in top space is

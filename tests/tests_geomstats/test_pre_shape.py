@@ -405,9 +405,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         tg_vec_b = space.to_tangent(space.center(vec_b), base_point)
         hor_b = space.horizontal_projection(tg_vec_b, base_point)
 
-        tidal = metric.directional_curvature(hor_a, hor_b, base_point)
+        tidal_force = metric.directional_curvature(hor_a, hor_b, base_point)
 
-        numerator = metric.inner_product(tidal, hor_b, base_point)
+        numerator = metric.inner_product(tidal_force, hor_b, base_point)
         denominator = \
             metric.inner_product(hor_a, hor_a, base_point) * \
             metric.inner_product(hor_b, hor_b, base_point) - \
@@ -420,7 +420,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = (kappa > 1.0 - 1e-12)
         self.assertTrue(gs.all(result))
 
-    def test_derivatives_integrability_tensor_quotient_parallel(self):
+    def test_integrability_tensor_derivatives_quotient_parallel(self):
         space = self.space
         scal = Matrices.frobenius_product
 
@@ -437,21 +437,21 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         hor_z2 = space.horizontal_projection(tg_vec_3, base_point)
 
         nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, nabla_x_a_x_y, a_y_a_x_y, \
-        a_x_y = space.nabla_x_a_y_a_x_y_quotient_parallel(
+        a_x_y = space.iterated_integrability_tensor_derivative_parallel(
             hor_x, hor_y, base_point)
 
-        nabla_x_a_y_z, a_y_z = space.nabla_x_a_y_z_quotient_parallel(
+        nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative_parallel(
             hor_x, hor_y, hor_z, base_point)
 
-        nabla_x_a_x_y_2, a_x_y_2 = space.nabla_x_a_y_z_quotient_parallel(
+        nabla_x_a_x_y_2, a_x_y_2 = space.integrability_tensor_derivative_parallel(
             hor_x, hor_x, hor_y, base_point)
         self.assertAllClose(a_x_y, a_x_y_2)
         self.assertAllClose(nabla_x_a_x_y, nabla_x_a_x_y_2)
 
-        nabla_x_a_y_x, a_y_x = space.nabla_x_a_y_z_quotient_parallel(
+        nabla_x_a_y_x, a_y_x = space.integrability_tensor_derivative_parallel(
             hor_x, hor_y, hor_x, base_point)
 
-        nabla_x_a_z_y, a_z_y = space.nabla_x_a_y_z_quotient_parallel(
+        nabla_x_a_z_y, a_z_y = space.integrability_tensor_derivative_parallel(
             hor_x, hor_z, hor_y, base_point)
         self.assertAllClose(a_z_y, -a_y_z)
         self.assertAllClose(a_x_y, -a_y_x)
@@ -468,8 +468,8 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         # test scal(A_Y V, W)=0 with V = A_X Y and W = A_Z Z2
         nabla_x_a_z_z2, a_z_z2 \
-            = space.nabla_x_a_y_z_quotient_parallel(hor_x, hor_z, hor_z2,
-                                                    base_point)
+            = space.integrability_tensor_derivative_parallel(hor_x, hor_z, hor_z2,
+                                                             base_point)
         result = scal(a_y_a_x_y, a_z_z2)
         self.assertAllClose(result, 0.0)
 
@@ -498,7 +498,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
                  + scal(a_y_z, nabla_x_a_x_y)
         self.assertAllClose(result, 0.0)
 
-    def test_nabla_integrability(self):
+    def test_integrability_tensor_derivative(self):
         space = self.space
         scal = Matrices.frobenius_product
 
@@ -530,9 +530,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         # test particular case for q-parallel vector fields
         a_x_y = space.integrability_tensor(hor_x, hor_y, base_point)
         a_x_z = space.integrability_tensor(hor_x, hor_z, base_point)
-        result, a_y_z = space.nabla_integrability(
+        result, a_y_z = space.integrability_tensor_derivative(
             hor_x, hor_y, a_x_y, hor_z, a_x_z, base_point)
-        expected, a_y_z_qp = space.nabla_x_a_y_z_quotient_parallel(
+        expected, a_y_z_qp = space.integrability_tensor_derivative_parallel(
             hor_x, hor_y, hor_z, base_point)
         self.assertAllClose(a_y_z, a_y_z_qp)
         self.assertAllClose(result, expected)
@@ -547,9 +547,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         nabla_x_w = ver_dw + a_x_w
 
         # Test alternating property: \nabla_X ( A_Y Z + A_Z Y ) =0
-        nabla_x_a_y_z, a_y_z = space.nabla_integrability(
+        nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
             hor_x, hor_y, nabla_x_y, hor_z, nabla_x_z, base_point)
-        nabla_x_a_z_y, a_z_y = space.nabla_integrability(
+        nabla_x_a_z_y, a_z_y = space.integrability_tensor_derivative(
             hor_x, hor_z, nabla_x_z, hor_y, nabla_x_y, base_point)
         result = nabla_x_a_y_z + nabla_x_a_z_y
         self.assertAllClose(result, 0.0)
@@ -562,7 +562,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, 0.0)
 
         # \nabla_X < A_Y V, W > =0
-        nabla_x_a_y_v, a_y_v = space.nabla_integrability(
+        nabla_x_a_y_v, a_y_v = space.integrability_tensor_derivative(
             hor_x, hor_y, nabla_x_y, ver_v, nabla_x_v, base_point)
         result = scal(nabla_x_a_y_v, ver_w) + scal(a_y_v, nabla_x_w)
         self.assertAllClose(result, 0.0)
@@ -574,21 +574,21 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
                  + scal(a_y_v, nabla_x_z)
         self.assertAllClose(result, 0.0)
 
-        # Test the optimized formula nabla_x_a_y_a_x_y_quotient_parallel for
+        # Test the optimized formula iterated_integrability_tensor_derivative_parallel for
         # the covariante derivative of the iterated integrability tensor.
         # nabla_x_v = nabla_X A_X Y = \dot A(X, X, 0, Y, V)
-        nabla_x_v, ver_v = space.nabla_integrability(
+        nabla_x_v, ver_v = space.integrability_tensor_derivative(
             hor_x, hor_x, gs.zeros_like(hor_x), hor_y, a_x_y, base_point)
         self.assertAllClose(ver_v, a_x_y)
 
         # nabla_X A_Y A_X Y = nabla_X A_Y V  = \dot A (X, Y, V,  V, nabla_X V)
-        nabla_x_a_y_a_x_y, a_y_a_x_y = space.nabla_integrability(
+        nabla_x_a_y_a_x_y, a_y_a_x_y = space.integrability_tensor_derivative(
             hor_x, hor_y, ver_v, ver_v, nabla_x_v, base_point)
         a_x_a_y_a_x_y = space.integrability_tensor(hor_x, a_y_a_x_y, base_point)
 
         nabla_x_a_y_a_x_y_qp, a_x_a_y_a_x_y_qp, nabla_x_v_qp, \
         a_y_a_x_y_qp, ver_v_qp = \
-            space.nabla_x_a_y_a_x_y_quotient_parallel(
+            space.iterated_integrability_tensor_derivative_parallel(
                 hor_x, hor_y, base_point)
         self.assertAllClose(ver_v, ver_v_qp)
         self.assertAllClose(a_y_a_x_y, a_y_a_x_y_qp)

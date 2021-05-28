@@ -265,25 +265,25 @@ class QuotientMetric(RiemannianMetric):
             hor_h, ver_nabla_curvature_top, point_fiber)
 
         # A_H A_Z A_X Y and \nabla_H A_Z A_X Y
-        nabla_h_a_x_y, a_x_y = bundle.nabla_integrability(
+        nabla_h_a_x_y, a_x_y = bundle.integrability_tensor_derivative(
             hor_h, hor_x, nabla_h_x, hor_y, nabla_h_y, point_fiber)
-        nabla_h_a_z_a_x_y, a_z_a_x_y = bundle.nabla_integrability(
+        nabla_h_a_z_a_x_y, a_z_a_x_y = bundle.integrability_tensor_derivative(
             hor_h, hor_z, nabla_h_z, a_x_y, nabla_h_a_x_y, point_fiber)
         a_h_a_z_a_x_y = bundle.integrability_tensor(
             hor_h, a_z_a_x_y, point_fiber)
 
         # A_H A_X A_Y Z and \nabla_H A_X A_Y Z
-        nabla_h_a_y_z, a_y_z = bundle.nabla_integrability(
+        nabla_h_a_y_z, a_y_z = bundle.integrability_tensor_derivative(
             hor_h, hor_y, nabla_h_y, hor_z, nabla_h_z, point_fiber)
-        nabla_h_a_x_a_y_z, a_x_a_y_z = bundle.nabla_integrability(
+        nabla_h_a_x_a_y_z, a_x_a_y_z = bundle.integrability_tensor_derivative(
             hor_h, hor_x, nabla_h_x, a_y_z, nabla_h_a_y_z, point_fiber)
         a_h_a_x_a_y_z = bundle.integrability_tensor(
             hor_h, a_x_a_y_z, point_fiber)
 
         # A_H A_Y A_X Z and \nabla_H A_Y A_X Z
-        nabla_h_a_x_z, a_x_z = bundle.nabla_integrability(
+        nabla_h_a_x_z, a_x_z = bundle.integrability_tensor_derivative(
             hor_h, hor_x, nabla_h_x, hor_z, nabla_h_z, point_fiber)
-        nabla_h_a_y_a_x_z, a_y_a_x_z = bundle.nabla_integrability(
+        nabla_h_a_y_a_x_z, a_y_a_x_z = bundle.integrability_tensor_derivative(
             hor_h, hor_y, nabla_h_y, a_x_z, nabla_h_a_x_z, point_fiber)
         a_h_a_y_a_x_z = bundle.integrability_tensor(
             hor_h, a_y_a_x_z, point_fiber)
@@ -343,9 +343,9 @@ class QuotientMetric(RiemannianMetric):
             hor_x, ver_nabla_curvature_top, point_fiber)
 
         # A_X A_Y A_X Y and \nabla_X A_Y A_X Y
-        nabla_x_a_x_y, a_x_y = bundle.nabla_integrability(
+        nabla_x_a_x_y, a_x_y = bundle.integrability_tensor_derivative(
             hor_x, hor_x, nabla_x_x, hor_y, nabla_x_y, point_fiber)
-        nabla_x_a_y_a_x_y, a_y_a_x_y = bundle.nabla_integrability(
+        nabla_x_a_y_a_x_y, a_y_a_x_y = bundle.integrability_tensor_derivative(
             hor_x, hor_y, nabla_x_y, a_x_y, nabla_x_a_x_y, point_fiber)
         a_x_a_y_a_x_y = bundle.integrability_tensor(
             hor_x, a_y_a_x_y, point_fiber)

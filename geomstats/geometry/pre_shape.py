@@ -435,20 +435,21 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         return result
 
-    def nabla_integrability(self, hor_tg_vec_x, hor_tg_vec_y, nabla_x_y,
-                            tg_vec_e, nabla_x_e, base_point):
+    def integrability_tensor_derivative(
+            self, hor_tg_vec_x, hor_tg_vec_y, nabla_x_y, tg_vec_e, nabla_x_e,
+            base_point):
         r"""Compute the covariant derivative of the integrability tensor A.
 
         The covariant derivative :math: `\nabla_X^S (A_Y E)` is necessary to
-        compute the covariant derivative of the directional curvature in a
-        submersion. The components :math: `\nabla_X^S (A_Y E)` and :math:
-        `A_Y E` are computed here for the Kendall shape space at basepoint
-        :math: `x = base_point` for horizontal vector fields fields :math:
-        `X, Y` extending the values :math: `X|_x = tg_vec_x`, :math: `Y|_x =
+        compute the covariant derivative of the curvature in a submersion.
+        The components :math: `\nabla_X^S (A_Y E)` and :math: `A_Y E` are
+        computed here for the Kendall shape space at base-point
+        :math: `P = base_point` for horizontal vector fields fields :math:
+        `X, Y` extending the values :math: `X|_P = tg_vec_x`, :math: `Y|_P =
         tg_vec_y` and a general vector field :math: `E`extending :math:
-        `E|_x = tg_vec_e` in a neighborhood of x with covariant derivatives
-        :math: `\nabla^S_X Y |_x = nabla_x_y` and
-        :math: `\nabla^S_X E |_x = nabla_x_e`.
+        `E|_P = tg_vec_e` in a neighborhood of x with covariant derivatives
+        :math: `\nabla^S_X Y |_P = nabla_x_y` and
+        :math: `\nabla^S_X E |_P = nabla_x_e`.
 
         Parameters
         ----------
@@ -521,7 +522,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         tmp_tg_vec_y = gs.matmul(p_top, nabla_x_e) \
                        + gs.matmul(x_top, tg_vec_e_sym)
 
-        scal_x_a_y_e = self.ambient_metric.inner_product( \
+        scal_x_a_y_e = self.ambient_metric.inner_product(
             hor_tg_vec_x, a_y_e, base_point)
 
         nabla_x_a_y_e = gs.matmul(base_point, sylv_p(tmp_tg_vec_p)) \
@@ -532,18 +533,19 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         return nabla_x_a_y_e, a_y_e
 
-    def nabla_x_a_y_z_quotient_parallel(self, tg_vec_x, tg_vec_y, tg_vec_z,
-                                        base_point):
-        r"""Compute derivatives of the integrability tensor A (special case).
+    def integrability_tensor_derivative_parallel(
+            self, tg_vec_x, tg_vec_y, tg_vec_z, base_point):
+        r"""Compute derivative of the integrability tensor A (special case).
 
-        The covariant derivative :math: `\nabla_X^S (A_Y Z)` is useful to
-        check the skew symmetry of the derivatives of the integrability
-        tensor A. It is computed here along with :math: `A_Y Z` for the
-        Kendall shape space in the special case of quotient-parallel vector
-        fields :math: `X, Y, Z` extending the values tg_vec_x and tg_vec_y
-        and tg_vec_z by parallel transport in a neighborhood. Such vector
-        fields verify :math: `\nabla^S_X^X = A_X X`, :math: `\nabla^S_X^Y =
-        A_X Y` and similarly for Z.
+        The covariant derivative :math: `\nabla_X^S (A_Y Z)` of the
+        integrability tensor A may be computed more efficiently in the case of
+        parallel vector fields in the quotient space. :math:
+        `\nabla_X^S (A_Y Z)` and :math: `A_Y Z` are computed here for the
+        Kendall shape space with quotient-parallel vector fields :math: `X,
+        Y, Z` extending the values tg_vec_x and tg_vec_y and tg_vec_z by
+        parallel transport in a neighborhood. Such vector fields verify
+        :math: `\nabla^S_X^X = A_X X`, :math: `\nabla^S_X^Y = A_X Y` \and
+        similarly for Z.
 
         Parameters
         ----------
@@ -609,8 +611,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         return nabla_x_a_y_z, a_y_z
 
-    def nabla_x_a_y_a_x_y_quotient_parallel(self, tg_vec_x, tg_vec_y,
-                                            base_point):
+    def iterated_integrability_tensor_derivative_parallel(
+            self, tg_vec_x, tg_vec_y, base_point):
         r"""Compute derivatives of the integrability tensor A (special case).
 
         The covariant derivative :math: `\nabla_X^Q (A_Y A_X Y) = \nabla_X^S
@@ -931,6 +933,6 @@ class KendallShapeMetric(QuotientMetric):
         hor_y = bundle.horizontal_lift(hor_tg_vec_y, point_fiber)
 
         nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, nabla_x_a_x_y, a_y_a_x_y, a_x_y = \
-            bundle.nabla_x_a_y_a_x_y_quotient_parallel(
+            bundle.iterated_integrability_tensor_derivative_parallel(
                 hor_x, hor_y, base_point)
         return 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
