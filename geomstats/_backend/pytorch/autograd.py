@@ -1,9 +1,10 @@
 import numpy as np
 import torch
+from torch.autograd.functional import jacobian as torch_jac
 
 
 def value_and_grad(objective):
-    """'Returns a function that returns both value and gradient.
+    """'Return a function that returns both value and gradient.
 
     Suitable for use in scipy.optimize
 
@@ -26,3 +27,8 @@ def value_and_grad(objective):
         loss.backward()
         return loss.detach().numpy(), vel.grad.detach().numpy()
     return objective_with_grad
+
+
+def jacobian(f):
+    """Return a function that returns the jacobian of a function."""
+    return lambda x: torch_jac(f, x)

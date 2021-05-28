@@ -412,7 +412,8 @@ class HyperboloidMetric(HyperbolicMetric):
             Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
         theta = self.embedding_metric.norm(tangent_vec_b)
-        normalized_b = gs.einsum('...,...i->...i', 1 / theta, tangent_vec_b)
+        eps = gs.where(theta == 0., 1., theta)
+        normalized_b = gs.einsum('...,...i->...i', 1 / eps, tangent_vec_b)
         pb = self.embedding_metric.inner_product(tangent_vec_a, normalized_b)
         p_orth = tangent_vec_a - gs.einsum('...,...i->...i', pb, normalized_b)
         transported = \

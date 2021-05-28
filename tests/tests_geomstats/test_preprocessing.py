@@ -92,9 +92,8 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(expected, result, atol=1e-4)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_inverse_transform_so(self):
-        # FIXME: einsum vectorization error for invariant_metric log in tf
         point = self.so_matrix.random_uniform(10)
         transformer = ToTangentSpace(
             geometry=self.so_matrix.bi_invariant_metric)

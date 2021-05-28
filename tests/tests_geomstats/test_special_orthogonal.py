@@ -1,5 +1,7 @@
 """Unit tests for special orthogonal group SO(n)."""
 
+import tests.helper as helper
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
@@ -139,3 +141,11 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         mat = group.skew_matrix_from_vector(vec)
         result = group.vector_from_skew_matrix(mat)
         self.assertAllClose(result, vec)
+
+    def test_parallel_transport(self):
+        metric = self.group.bi_invariant_metric
+        shape = (self.n_samples, self.group.n, self.group.n)
+
+        results = helper.test_parallel_transport(self.group, metric, shape)
+        for res in results:
+            self.assertTrue(res)

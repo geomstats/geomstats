@@ -116,3 +116,6 @@ class TestGrassmannian(geomstats.tests.TestCase):
         tangent_vec = self.space.to_tangent(vector, base_point)
         result = self.space.is_tangent(tangent_vec, base_point)
         self.assertTrue(result)
+
+        reprojected = self.space.to_tangent(tangent_vec, base_point)
+        self.assertAllClose(tangent_vec, reprojected)
