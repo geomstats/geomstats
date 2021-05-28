@@ -462,39 +462,39 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         # test scal(A_Y V, W)=0 with V = A_X Y and W = A_Y Z
         result = scal(a_y_a_x_y, a_y_z)
-        self.assertAllClose(result, 0.0)
+        self.assertAllClose(result, gs.zeros_like(result))
 
         # Test scal{\nabla^S_X (A_Y V)}{W}  + scal{A_Y V}{nabla_X W} =0
         # with V = A_X Y and W = A_Y Z
         result = \
             scal(nabla_x_a_y_a_x_y, a_y_z) \
             + scal(a_y_a_x_y, nabla_x_a_y_z)
-        self.assertAllClose(result, 0.0)
+        self.assertAllClose(result, gs.zeros_like(result))
 
         # test scal(A_Y V, W)=0 with V = A_X Y and W = A_Z H
         nabla_x_a_z_h, a_z_h = \
             space.integrability_tensor_derivative_parallel(
                 hor_x, hor_z, hor_h, base_point)
         result = scal(a_y_a_x_y, a_z_h)
-        self.assertAllClose(result, 0.0)
+        self.assertAllClose(result, gs.zeros_like(result))
 
         result = \
             scal(nabla_x_a_y_a_x_y, a_z_h) \
             + scal(a_y_a_x_y, nabla_x_a_z_h)
-        self.assertAllClose(result, 0.0)
+        self.assertAllClose(result, gs.zeros_like(result))
 
         # Test \scal{\nabla^S_X (A_Y Z)}{Z} + \scal{A_Y Z}{ A_X Z} =0
         a_x_z = space.integrability_tensor(hor_x, hor_z, base_point)
         result = scal(nabla_x_a_y_z, hor_z) + scal(a_y_z, a_x_z)
-        self.assertAllClose(result, 0.0)
+        self.assertAllClose(result, gs.zeros_like(result))
 
         # Test \nabla_X^S ( A_Y Z) + \nabla_X^S ( A_Z Y) = 0
         result = nabla_x_a_y_z + nabla_x_a_z_y
-        self.assertAllClose(result, 0.0)
+        self.assertAllClose(result, gs.zeros_like(result))
 
         # Test \nabla_X^S ( A_X Y) + \nabla_X^S ( A_Y X) = 0
         result = nabla_x_a_x_y + nabla_x_a_y_x
-        self.assertAllClose(result, 0.0)
+        self.assertAllClose(result, gs.zeros_like(result))
 
         # test the identity \scal{\nabla^S_X (A_Y A_X Y)}{Z}
         #  + \scal{A_Y A_X Y}{ A_X Z} +  \scal{\nabla^S_X ( A_Y Z) }{A_X Y}
@@ -503,7 +503,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             scal(nabla_x_a_y_a_x_y, hor_z) \
             + scal(a_y_a_x_y, a_x_z) + scal(nabla_x_a_y_z, a_x_y) \
             + scal(a_y_z, nabla_x_a_x_y)
-        self.assertAllClose(result, 0.0)
+        self.assertAllClose(result, gs.zeros_like(result))
 
     def test_integrability_tensor_derivative(self):
         space = self.space
@@ -562,27 +562,27 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             space.integrability_tensor_derivative(
                 hor_x, hor_z, nabla_x_z, hor_y, nabla_x_y, base_point)
         result = nabla_x_a_y_z + nabla_x_a_z_y
-        self.assertAllClose(result, 0.0)
+        self.assertAllClose(result, gs.zeros_like(result))
 
         # reversing horizontal and vertical
         # \nabla_X < A_Y Z, H > =0
         a_x_h = space.integrability_tensor(hor_x, hor_h, base_point)
         nabla_x_h = hor_dh + a_x_h
         result = scal(nabla_x_a_y_z, hor_h) + scal(a_y_z, nabla_x_h)
-        self.assertAllClose(result, 0.0)
+        self.assertAllClose(result, gs.zeros_like(result))
 
         # \nabla_X < A_Y V, W > =0
         nabla_x_a_y_v, a_y_v = \
             space.integrability_tensor_derivative(
                 hor_x, hor_y, nabla_x_y, ver_v, nabla_x_v, base_point)
         result = scal(nabla_x_a_y_v, ver_w) + scal(a_y_v, nabla_x_w)
-        self.assertAllClose(result, 0.0)
+        self.assertAllClose(result, gs.zeros_like(result))
 
         # Skew-symmetry \nabla_X \scal{A_Y Z}{V} + nabla_X \scal{A_Y V}{Z}=0
         result = \
             scal(nabla_x_a_y_z, ver_v) + scal(a_y_z, nabla_x_v) \
             + scal(nabla_x_a_y_v, hor_z) + scal(a_y_v, nabla_x_z)
-        self.assertAllClose(result, 0.0)
+        self.assertAllClose(result, gs.zeros_like(result))
 
         # Test the optimized iterated_integrability_tensor_derivative_parallel
         # formula for nabla_x_v = nabla_X A_X Y = \dot A(X, X, 0, Y, V)
@@ -631,7 +631,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             hor_z, hor_x, hor_y, tg_vec_t, base_point)
 
         result = term_x + term_y + term_z
-        self.assertAllClose(result, 0.0)
+        self.assertAllClose(result, gs.zeros_like(result))
 
     def test_curvature_derivative_is_skew_operator(self):
         space = self.space
@@ -648,7 +648,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         result = metric.curvature_derivative(
             hor_x, hor_y, hor_y, hor_z, base_point)
-        self.assertAllClose(result, 0.0)
+        self.assertAllClose(result, gs.zeros_like(result))
 
     def test_directional_curvature_derivative(self):
         space = self.space
