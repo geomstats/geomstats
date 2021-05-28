@@ -12,8 +12,8 @@ References
 """
 
 import geomstats.backend as gs
+from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.embedded_manifold import OpenSet
-from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hyperboloid import HyperboloidMetric
 from geomstats.geometry.matrices import Matrices
@@ -72,7 +72,7 @@ class PoincarePolydisk(ProductManifold, OpenSet):
         """
         n_disks = point_intrinsic.shape[1]
         point_extrinsic = gs.stack(
-            [Hyperbolic.change_coordinates_system(
+            [_Hyperbolic.change_coordinates_system(
                 point_intrinsic[:, i_disk, ...], 'intrinsic', 'extrinsic')
                 for i_disk in range(n_disks)], axis=1)
         return point_extrinsic

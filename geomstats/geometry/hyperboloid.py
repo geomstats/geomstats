@@ -9,18 +9,18 @@ import math
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
+from geomstats.geometry._hyperbolic import _Hyperbolic, HyperbolicMetric
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.hyperbolic import Hyperbolic
-from geomstats.geometry.hyperbolic import HyperbolicMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.minkowski import MinkowskiMetric
 
 
-class Hyperboloid(Hyperbolic, EmbeddedManifold):
-    """Class for the n-dimensional hyperbolic space.
+class Hyperboloid(_Hyperbolic, EmbeddedManifold):
+    """Class for the n-dimensional hyperboloid space.
 
-    Class for the n-dimensional hyperbolic space
-    as embedded in (n+1)-dimensional Minkowski space.
+    Class for the n-dimensional hyperboloid space as embedded in (
+    n+1)-dimensional Minkowski space. For other representations of
+    hyperbolic spaces see the `Hyperbolic` class.
 
     The coords_type parameter allows to choose the
     representation of the points as input.
@@ -199,7 +199,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
             raise NameError("Wrong intrinsic dimension: "
                             + str(point_intrinsic.shape[-1]) + " instead of "
                             + str(self.dim))
-        return Hyperbolic.change_coordinates_system(
+        return _Hyperbolic.change_coordinates_system(
             point_intrinsic, 'intrinsic', 'extrinsic')
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
@@ -221,9 +221,8 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
             raise NameError("Point that does not belong to the hyperboloid "
                             "found")
         return\
-            Hyperbolic.change_coordinates_system(point_extrinsic,
-                                                 'extrinsic',
-                                                 'intrinsic')
+            _Hyperbolic.change_coordinates_system(
+                point_extrinsic, 'extrinsic', 'intrinsic')
 
 
 class HyperboloidMetric(HyperbolicMetric):

@@ -7,9 +7,9 @@ import logging
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
+from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.embedded_manifold import OpenSet
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 EPSILON = 1e-6
@@ -18,11 +18,11 @@ PI_2_3 = gs.power(gs.array([2. * gs.pi]), gs.array([2 / 3]))
 SQRT_2 = gs.sqrt(2.)
 
 
-class PoincareBall(Hyperbolic, OpenSet):
-    """Class for the n-dimensional hyperbolic space.
+class PoincareBall(_Hyperbolic, OpenSet):
+    """Class for the n-dimensional Poincare ball.
 
-    Class for the n-dimensional hyperbolic space
-    as embedded in the Poincaré ball model.
+    Class for the n-dimensional Poincaré ball model. For other
+    representations of hyperbolic spaces see the `Hyperbolic` class.
 
     Parameters
     ----------
