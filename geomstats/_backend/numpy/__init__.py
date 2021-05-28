@@ -30,7 +30,7 @@ from autograd.numpy import (  # NOQA
     diagonal,
     divide,
     dot,
-    dtype,
+    dtype as ndtype,
     einsum,
     empty,
     empty_like,
@@ -101,10 +101,10 @@ from .common import to_ndarray  # NOQA
 from ..constants import np_atol, np_rtol
 
 DTYPES = {
-    dtype('int32'): 0,
-    dtype('int64'): 1,
-    dtype('float32'): 2,
-    dtype('float64'): 3}
+    ndtype('int32'): 0,
+    ndtype('int64'): 1,
+    ndtype('float32'): 2,
+    ndtype('float64'): 3}
 
 
 atol = np_atol
