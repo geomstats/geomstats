@@ -108,6 +108,8 @@ def to_numpy(x):
 
 
 def one_hot(labels, num_classes):
+    if not torch.is_tensor(labels):
+        labels = torch.LongTensor(labels)
     return torch.nn.functional.one_hot(
         labels, num_classes).type(torch.uint8)
 
