@@ -77,6 +77,7 @@ BACKEND_ATTRIBUTES = {
         'meshgrid',
         'mod',
         'ndim',
+        'one_hot',
         'ones',
         'ones_like',
         'outer',
