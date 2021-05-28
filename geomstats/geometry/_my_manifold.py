@@ -127,7 +127,6 @@ class MyManifold(Manifold):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point.
         """
-        pass
 
     def random_point(self, n_samples=1, bound=1.):
         """Sample random points on the manifold.
@@ -148,4 +147,3 @@ class MyManifold(Manifold):
         samples : array-like, shape=[..., {dim, [n, n]}]
             Points sampled on the hypersphere.
         """
-        pass

@@ -5,7 +5,7 @@ import logging
 import geomstats.backend as gs
 from geomstats.algebra_utils import flip_determinant
 from geomstats.errors import check_tf_error
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.base import EmbeddedManifold
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices, MatricesMetric
@@ -46,9 +46,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         super(PreShapeSpace, self).__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
             embedding_space=embedding_manifold,
-            submersion=lambda x: embedding_metric.squared_norm(x), value=1.,
-            tangent_submersion=lambda v, x: 2 * embedding_metric.inner_product(
-                v, x),
+            submersion=embedding_metric.squared_norm, value=1.,
+            tangent_submersion=embedding_metric.inner_product,
             ambient_metric=PreShapeMetric(k_landmarks, m_ambient))
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient

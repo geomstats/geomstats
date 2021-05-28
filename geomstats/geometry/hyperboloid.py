@@ -10,7 +10,7 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry._hyperbolic import _Hyperbolic, HyperbolicMetric
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.base import EmbeddedManifold
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.minkowski import MinkowskiMetric
 
@@ -45,9 +45,8 @@ class Hyperboloid(_Hyperbolic, EmbeddedManifold):
         minkowski = Minkowski(dim + 1)
         super(Hyperboloid, self).__init__(
             dim=dim, embedding_space=minkowski,
-            submersion=lambda x: minkowski.metric.squared_norm(x), value=- 1.,
-            tangent_submersion=lambda v, x: minkowski.metric.inner_product(
-                v, x), scale=scale)
+            submersion=minkowski.metric.squared_norm, value=- 1.,
+            tangent_submersion=minkowski.metric.inner_product, scale=scale)
         self.coords_type = coords_type
         self.point_type = Hyperboloid.default_point_type
         self.metric =\
