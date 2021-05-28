@@ -434,25 +434,29 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         tg_vec_2 = space.to_tangent(vector[2], base_point)
         hor_z = space.horizontal_projection(tg_vec_2, base_point)
         tg_vec_3 = space.to_tangent(vector[3], base_point)
-        hor_z2 = space.horizontal_projection(tg_vec_3, base_point)
+        hor_h = space.horizontal_projection(tg_vec_3, base_point)
 
-        nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, nabla_x_a_x_y, a_y_a_x_y, \
-        a_x_y = space.iterated_integrability_tensor_derivative_parallel(
-            hor_x, hor_y, base_point)
+        nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, nabla_x_a_x_y, a_y_a_x_y, a_x_y = \
+            space.iterated_integrability_tensor_derivative_parallel(
+                hor_x, hor_y, base_point)
 
-        nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative_parallel(
-            hor_x, hor_y, hor_z, base_point)
+        nabla_x_a_y_z, a_y_z = \
+            space.integrability_tensor_derivative_parallel(
+                hor_x, hor_y, hor_z, base_point)
 
-        nabla_x_a_x_y_2, a_x_y_2 = space.integrability_tensor_derivative_parallel(
-            hor_x, hor_x, hor_y, base_point)
+        nabla_x_a_x_y_2, a_x_y_2 = \
+            space.integrability_tensor_derivative_parallel(
+                hor_x, hor_x, hor_y, base_point)
         self.assertAllClose(a_x_y, a_x_y_2)
         self.assertAllClose(nabla_x_a_x_y, nabla_x_a_x_y_2)
 
-        nabla_x_a_y_x, a_y_x = space.integrability_tensor_derivative_parallel(
-            hor_x, hor_y, hor_x, base_point)
+        nabla_x_a_y_x, a_y_x = \
+            space.integrability_tensor_derivative_parallel(
+                hor_x, hor_y, hor_x, base_point)
 
-        nabla_x_a_z_y, a_z_y = space.integrability_tensor_derivative_parallel(
-            hor_x, hor_z, hor_y, base_point)
+        nabla_x_a_z_y, a_z_y = \
+            space.integrability_tensor_derivative_parallel(
+                hor_x, hor_z, hor_y, base_point)
         self.assertAllClose(a_z_y, -a_y_z)
         self.assertAllClose(a_x_y, -a_y_x)
 
@@ -466,15 +470,15 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
                  + scal(a_y_a_x_y, nabla_x_a_y_z)
         self.assertAllClose(result, 0.0)
 
-        # test scal(A_Y V, W)=0 with V = A_X Y and W = A_Z Z2
-        nabla_x_a_z_z2, a_z_z2 \
-            = space.integrability_tensor_derivative_parallel(hor_x, hor_z, hor_z2,
-                                                             base_point)
-        result = scal(a_y_a_x_y, a_z_z2)
+        # test scal(A_Y V, W)=0 with V = A_X Y and W = A_Z H
+        nabla_x_a_z_h, a_z_h \
+            = space.integrability_tensor_derivative_parallel(
+            hor_x, hor_z, hor_h, base_point)
+        result = scal(a_y_a_x_y, a_z_h)
         self.assertAllClose(result, 0.0)
 
-        result = scal(nabla_x_a_y_a_x_y, a_z_z2) \
-                 + scal(a_y_a_x_y, nabla_x_a_z_z2)
+        result = scal(nabla_x_a_y_a_x_y, a_z_h) \
+                 + scal(a_y_a_x_y, nabla_x_a_z_h)
         self.assertAllClose(result, 0.0)
 
         # Test \scal{\nabla^S_X (A_Y Z)}{Z} + \scal{A_Y Z}{ A_X Z} =0
@@ -532,8 +536,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         a_x_z = space.integrability_tensor(hor_x, hor_z, base_point)
         result, a_y_z = space.integrability_tensor_derivative(
             hor_x, hor_y, a_x_y, hor_z, a_x_z, base_point)
-        expected, a_y_z_qp = space.integrability_tensor_derivative_parallel(
-            hor_x, hor_y, hor_z, base_point)
+        expected, a_y_z_qp = \
+            space.integrability_tensor_derivative_parallel(
+                hor_x, hor_y, hor_z, base_point)
         self.assertAllClose(a_y_z, a_y_z_qp)
         self.assertAllClose(result, expected)
 
@@ -547,10 +552,12 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         nabla_x_w = ver_dw + a_x_w
 
         # Test alternating property: \nabla_X ( A_Y Z + A_Z Y ) =0
-        nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
-            hor_x, hor_y, nabla_x_y, hor_z, nabla_x_z, base_point)
-        nabla_x_a_z_y, a_z_y = space.integrability_tensor_derivative(
-            hor_x, hor_z, nabla_x_z, hor_y, nabla_x_y, base_point)
+        nabla_x_a_y_z, a_y_z = \
+            space.integrability_tensor_derivative(
+                hor_x, hor_y, nabla_x_y, hor_z, nabla_x_z, base_point)
+        nabla_x_a_z_y, a_z_y = \
+            space.integrability_tensor_derivative(
+                hor_x, hor_z, nabla_x_z, hor_y, nabla_x_y, base_point)
         result = nabla_x_a_y_z + nabla_x_a_z_y
         self.assertAllClose(result, 0.0)
 
@@ -562,8 +569,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, 0.0)
 
         # \nabla_X < A_Y V, W > =0
-        nabla_x_a_y_v, a_y_v = space.integrability_tensor_derivative(
-            hor_x, hor_y, nabla_x_y, ver_v, nabla_x_v, base_point)
+        nabla_x_a_y_v, a_y_v = \
+            space.integrability_tensor_derivative(
+                hor_x, hor_y, nabla_x_y, ver_v, nabla_x_v, base_point)
         result = scal(nabla_x_a_y_v, ver_w) + scal(a_y_v, nabla_x_w)
         self.assertAllClose(result, 0.0)
 
@@ -574,17 +582,20 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
                  + scal(a_y_v, nabla_x_z)
         self.assertAllClose(result, 0.0)
 
-        # Test the optimized formula iterated_integrability_tensor_derivative_parallel for
-        # the covariante derivative of the iterated integrability tensor.
-        # nabla_x_v = nabla_X A_X Y = \dot A(X, X, 0, Y, V)
-        nabla_x_v, ver_v = space.integrability_tensor_derivative(
-            hor_x, hor_x, gs.zeros_like(hor_x), hor_y, a_x_y, base_point)
+        # Test the optimized iterated_integrability_tensor_derivative_parallel
+        # formula for nabla_x_v = nabla_X A_X Y = \dot A(X, X, 0, Y, V)
+        nabla_x_v, ver_v = \
+            space.integrability_tensor_derivative(
+                hor_x, hor_x, gs.zeros_like(hor_x), hor_y, a_x_y, base_point)
         self.assertAllClose(ver_v, a_x_y)
 
         # nabla_X A_Y A_X Y = nabla_X A_Y V  = \dot A (X, Y, V,  V, nabla_X V)
-        nabla_x_a_y_a_x_y, a_y_a_x_y = space.integrability_tensor_derivative(
-            hor_x, hor_y, ver_v, ver_v, nabla_x_v, base_point)
-        a_x_a_y_a_x_y = space.integrability_tensor(hor_x, a_y_a_x_y, base_point)
+        nabla_x_a_y_a_x_y, a_y_a_x_y = \
+            space.integrability_tensor_derivative(
+                hor_x, hor_y, ver_v, ver_v, nabla_x_v, base_point)
+        a_x_a_y_a_x_y = \
+            space.integrability_tensor(
+                hor_x, a_y_a_x_y, base_point)
 
         nabla_x_a_y_a_x_y_qp, a_x_a_y_a_x_y_qp, nabla_x_v_qp, \
         a_y_a_x_y_qp, ver_v_qp = \
@@ -657,21 +668,22 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         # result of the optimized directional_curvature_derivative method from
         # the KendallShapeMetric class
-        result_kendall_shape_metric = metric.directional_curvature_derivative(
-            hor_x, hor_y, base_point)
+        result_kendall_shape_metric = \
+            metric.directional_curvature_derivative(
+                hor_x, hor_y, base_point)
         self.assertAllClose(result_kendall_shape_metric, expected)
 
         # result of the generic directional_curvature_derivative method from
         # the class QuotientMetric
-        result_quotient_metric = super(KendallShapeMetric,
-                   metric).directional_curvature_derivative(
+        result_quotient_metric = super(KendallShapeMetric, metric). \
+            directional_curvature_derivative(
             hor_x, hor_y, base_point)
         self.assertAllClose(result_quotient_metric, expected)
 
         # result of the most generic directional_curvature_derivative method
         # relying on curvature_derivative from the Connection class
         from geomstats.geometry.quotient_metric import QuotientMetric
-        result_connection = super(QuotientMetric,
-                                  metric).directional_curvature_derivative(
+        result_connection = super(QuotientMetric, metric). \
+            directional_curvature_derivative(
             hor_x, hor_y, base_point)
         self.assertAllClose(result_connection, expected)
