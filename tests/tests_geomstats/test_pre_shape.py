@@ -436,7 +436,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         tg_vec_3 = space.to_tangent(vector[3], base_point)
         hor_h = space.horizontal_projection(tg_vec_3, base_point)
 
-        nabla_x_a_y_a_x_y, unused, nabla_x_a_x_y, a_y_a_x_y, a_x_y = \
+        nabla_x_a_y_a_x_y, _, nabla_x_a_x_y, a_y_a_x_y, a_x_y = \
             space.iterated_integrability_tensor_derivative_parallel(
                 hor_x, hor_y, base_point)
 
@@ -558,7 +558,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         nabla_x_a_y_z, a_y_z = \
             space.integrability_tensor_derivative(
                 hor_x, hor_y, nabla_x_y, hor_z, nabla_x_z, base_point)
-        nabla_x_a_z_y, unused = \
+        nabla_x_a_z_y, _ = \
             space.integrability_tensor_derivative(
                 hor_x, hor_z, nabla_x_z, hor_y, nabla_x_y, base_point)
         result = nabla_x_a_y_z + nabla_x_a_z_y
@@ -600,8 +600,8 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
                 hor_x, a_y_a_x_y, base_point)
 
         nabla_x_a_y_a_x_y_qp, a_x_a_y_a_x_y_qp, nabla_x_v_qp, a_y_a_x_y_qp, \
-        ver_v_qp = space.iterated_integrability_tensor_derivative_parallel(
-            hor_x, hor_y, base_point)
+            ver_v_qp = space.iterated_integrability_tensor_derivative_parallel(
+                hor_x, hor_y, base_point)
         self.assertAllClose(ver_v, ver_v_qp)
         self.assertAllClose(a_y_a_x_y, a_y_a_x_y_qp)
         self.assertAllClose(nabla_x_v, nabla_x_v_qp)
@@ -725,4 +725,3 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         is_horizontal = space.is_horizontal(transported, end_point)
         self.assertTrue(gs.all(is_tangent))
         self.assertTrue(gs.all(is_horizontal))
-

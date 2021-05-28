@@ -796,8 +796,9 @@ class HypersphereMetric(RiemannianMetric):
         return - first_term + second_term
 
     def curvature_derivative(
-            self, hor_tg_vec_h, hor_tg_vec_x, hor_tg_vec_y, hor_tg_vec_z,
-            base_point=None):
+            self, unused_hor_tg_vec_h, hor_tg_vec_x,
+            unused_hor_tg_vec_y, unused_hor_tg_vec_z,
+            unused_base_point=None):
         r"""Compute the covariant derivative of the curvature.
 
         For four horizontal tangent vectors at a base point :math: `H|_P, X|_P,

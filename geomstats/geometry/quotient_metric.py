@@ -211,15 +211,15 @@ class QuotientMetric(RiemannianMetric):
             base_point=None):
         r"""Compute the covariant derivative of the curvature.
 
-        For four horizontal tangent vectors at a base point :math: `H|_P, X|_P, 
-        Y|_P, Z|_P` given in argument, the covariant derivative of the 
+        For four horizontal tangent vectors at a base point :math: `H|_P, X|_P,
+        Y|_P, Z|_P` given in argument, the covariant derivative of the
         quotient curvature :math: `(\nabla_H R)(X, Y)Z |_P` is computed at the
         base point P. This tensor is computed with quotient-parallel vector
         fields :math: `H, X, Y, Z` extending the horizontal tangent vectors
-        hor_tg_vec_h to hor_tg_vec_z by parallel transport in a neighborhood 
-        of the quotient space. Such vector fields verify :math: `\nabla^M_H 
-        H=0`, :math: `\nabla^M_H^X = A_H X` (and similarly for Y and Z). The 
-        covariant derivative is then computed using the formula :math: 
+        hor_tg_vec_h to hor_tg_vec_z by parallel transport in a neighborhood
+        of the quotient space. Such vector fields verify :math: `\nabla^M_H
+        H=0`, :math: `\nabla^M_H^X = A_H X` (and similarly for Y and Z). The
+        covariant derivative is then computed using the formula :math:
         `\nabla_H^Q (R^Q(X, Y) Z) = \hor\nabla_H^M(R^M(X,Y)Z)
         - A_H(\ver R^M(X,Y)Z ) - (2 A_H A_Z A_X Y - A_H A_X A_Y Z
         + A_H A_Y A_X Z) + (2\nabla_H^M A_Z A_X Y -\nabla_H^M A_X A_Y Z
@@ -288,10 +288,11 @@ class QuotientMetric(RiemannianMetric):
         a_h_a_y_a_x_z = bundle.integrability_tensor(
             hor_h, a_y_a_x_z, point_fiber)
 
-        return hor_nabla_curvature_top - a_h_ver_nabla_curvature_top \
-               + 2. * (nabla_h_a_z_a_x_y - a_h_a_z_a_x_y) \
-               - nabla_h_a_x_a_y_z + a_h_a_x_a_y_z \
-               + nabla_h_a_y_a_x_z - a_h_a_y_a_x_z
+        return \
+            hor_nabla_curvature_top - a_h_ver_nabla_curvature_top \
+            + 2. * (nabla_h_a_z_a_x_y - a_h_a_z_a_x_y) \
+            - nabla_h_a_x_a_y_z + a_h_a_x_a_y_z \
+            + nabla_h_a_y_a_x_z - a_h_a_y_a_x_z
 
     def directional_curvature_derivative(
             self, hor_tg_vec_x, hor_tg_vec_y, base_point=None):
@@ -350,5 +351,6 @@ class QuotientMetric(RiemannianMetric):
         a_x_a_y_a_x_y = bundle.integrability_tensor(
             hor_x, a_y_a_x_y, point_fiber)
 
-        return hor_nabla_curvature_top - a_x_ver_nabla_curvature_top \
-               + 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
+        return \
+            hor_nabla_curvature_top - a_x_ver_nabla_curvature_top \
+            + 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)

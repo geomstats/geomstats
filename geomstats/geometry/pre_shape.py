@@ -432,7 +432,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         sylv_p_top_e = sylv_p(p_top_e)
 
         result = gs.matmul(base_point, sylv_e_top_hor_x) \
-                 + gs.matmul(hor_x, sylv_p_top_e)
+            + gs.matmul(hor_x, sylv_p_top_e)
 
         return result
 
@@ -514,23 +514,21 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         tg_vec_e_sym = tg_vec_e - 2. * gs.matmul(base_point, omega_ep)
 
         a_y_e = gs.matmul(base_point, omega_ye) \
-                + gs.matmul(hor_tg_vec_y, omega_ep)
+            + gs.matmul(hor_tg_vec_y, omega_ep)
 
         tmp_tg_vec_p = gs.matmul(e_top, nabla_x_y) \
-                       - gs.matmul(y_top, nabla_x_e) \
-                       - 2. * gs.matmul(p_top, tg_vec_b)
+            - gs.matmul(y_top, nabla_x_e) \
+            - 2. * gs.matmul(p_top, tg_vec_b)
 
         tmp_tg_vec_y = gs.matmul(p_top, nabla_x_e) \
-                       + gs.matmul(x_top, tg_vec_e_sym)
+            + gs.matmul(x_top, tg_vec_e_sym)
 
         scal_x_a_y_e = self.ambient_metric.inner_product(
             hor_tg_vec_x, a_y_e, base_point)
 
         nabla_x_a_y_e = gs.matmul(base_point, sylv_p(tmp_tg_vec_p)) \
-                        + tg_vec_b \
-                        + gs.matmul(hor_tg_vec_y, sylv_p(tmp_tg_vec_y)) \
-                        + gs.matmul(nabla_x_y, omega_ep) \
-                        + scal_x_a_y_e * base_point
+            + tg_vec_b + gs.matmul(hor_tg_vec_y, sylv_p(tmp_tg_vec_y)) \
+            + gs.matmul(nabla_x_y, omega_ep) + scal_x_a_y_e * base_point
 
         return nabla_x_a_y_e, a_y_e
 
@@ -703,13 +701,13 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         omega_yv_x = gs.matmul(tg_vec_x, omega_yv)
         omega_xy_v = gs.matmul(tg_vec_v, omega_xy)
         sq_norm_v_p = Matrices.frobenius_product(tg_vec_v, tg_vec_v) * \
-                      base_point
+            base_point
 
         tmp_mat = gs.matmul(p_top, 3. * omega_xv_y + 2. * omega_yv_x) + \
-                  gs.matmul(y_top, omega_xy_x)
+            gs.matmul(y_top, omega_xy_x)
 
         nabla_x_a_y_v = 3. * omega_xv_y + omega_yv_x + omega_xy_v \
-                        - gs.matmul(base_point, sylv_p(tmp_mat)) + sq_norm_v_p
+            - gs.matmul(base_point, sylv_p(tmp_mat)) + sq_norm_v_p
 
         return nabla_x_a_y_v, a_x_a_y_a_x_y, nabla_x_v, a_y_a_x_y, tg_vec_v
 
@@ -969,7 +967,7 @@ class KendallShapeMetric(QuotientMetric):
         hor_x = bundle.horizontal_lift(hor_tg_vec_x, point_fiber)
         hor_y = bundle.horizontal_lift(hor_tg_vec_y, point_fiber)
 
-        nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, unused, unused, unused = \
+        nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, _, _, _ = \
             bundle.iterated_integrability_tensor_derivative_parallel(
                 hor_x, hor_y, base_point)
         return 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
@@ -1038,4 +1036,3 @@ class KendallShapeMetric(QuotientMetric):
 
         flow = integrate(force, horizontal_a, n_steps=n_steps, step=step)
         return flow[-1]
-
