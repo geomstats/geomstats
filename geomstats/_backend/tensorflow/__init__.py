@@ -42,6 +42,7 @@ from tensorflow import (  # NOQA
     reduce_max as amax,
     reduce_mean as mean,
     reduce_min as amin,
+    reduce_prod as prod,
     reshape,
     searchsorted,
     shape,

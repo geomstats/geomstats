@@ -21,7 +21,7 @@ class VectorSpace(Manifold, abc.ABC):
 
     def __init__(self, shape, default_point_type='vector', **kwargs):
         if 'dim' not in kwargs.keys():
-            kwargs['dim'] = int(gs.cumprod(shape)[-1])
+            kwargs['dim'] = int(gs.prod(gs.array(shape)))
         super(VectorSpace, self).__init__(
             default_point_type=default_point_type, **kwargs)
         self.shape = shape
@@ -44,12 +44,12 @@ class VectorSpace(Manifold, abc.ABC):
             Boolean evaluating if point belongs to the space.
         """
         if self.default_point_type == 'vector':
-            point_shape = point.shape[-1]
+            point_shape = point.shape[-1:]
             minimal_ndim = 1
         else:
-            point_shape = point.shape[-2]
+            point_shape = point.shape[-2:]
             minimal_ndim = 2
-        belongs = gs.allclose(point_shape, self.shape)
+        belongs = point_shape == self.shape
         if point.ndim == minimal_ndim:
             return belongs
         return gs.tile(gs.array([belongs]), [point.shape[0]])

@@ -83,6 +83,7 @@ BACKEND_ATTRIBUTES = {
         'outer',
         'polygamma',
         'power',
+        'prod',
         'repeat',
         'reshape',
         'rtol',

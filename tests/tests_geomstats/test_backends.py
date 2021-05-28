@@ -1002,3 +1002,9 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result[0], value.detach())
         self.assertAllClose(result[1], grad)
+
+    def test_prod(self):
+        vec = gs.random.rand(10)
+        result = gs.prod(vec)
+        expected = gs.cumprod(vec)[-1]
+        self.assertAllClose(result, expected)
