@@ -11,7 +11,6 @@ EULER = gs.exp(1.)
 class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
     """Test of Riemannian MDM classifier."""
 
-    @geomstats.tests.np_only
     def test_fit(self):
         """Test the fit method."""
         n_clusters = 2
@@ -43,7 +42,6 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
         self.assertAllClose(bary_a_result, bary_a_expected)
         self.assertAllClose(bary_b_result, bary_b_expected)
 
-    @geomstats.tests.np_only
     def test_predict(self):
         """Test the predict method."""
         n_clusters = 2
