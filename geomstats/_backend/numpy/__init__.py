@@ -64,6 +64,7 @@ from autograd.numpy import (  # NOQA
     ones_like,
     outer,
     power,
+    prod,
     repeat,
     reshape,
     shape,
