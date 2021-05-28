@@ -13,7 +13,7 @@ References
 
 import geomstats.backend as gs
 from geomstats.geometry._hyperbolic import _Hyperbolic
-from geomstats.geometry.embedded_manifold import OpenSet
+from geomstats.geometry.base import OpenSet
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hyperboloid import HyperboloidMetric
 from geomstats.geometry.matrices import Matrices

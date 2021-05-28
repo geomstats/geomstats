@@ -15,7 +15,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         gs.random.seed(12)
         self.n = 2
         self.group = SpecialEuclidean(n=self.n)
-        self.n_samples = 4
+        self.n_samples = 3
         self.point = self.group.random_point(self.n_samples)
         self.tangent_vec = self.group.to_tangent(gs.random.rand(
             self.n_samples, self.group.n + 1, self.group.n + 1), self.point)

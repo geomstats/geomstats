@@ -3,7 +3,7 @@
 from itertools import product
 
 import geomstats.backend as gs
-from geomstats.geometry.embedded_manifold import OpenSet
+from geomstats.geometry.base import OpenSet
 from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.matrices import Matrices
 

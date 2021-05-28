@@ -5,7 +5,7 @@ import logging
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.embedded_manifold import OpenSet, VectorSpace
+from geomstats.geometry.base import OpenSet, VectorSpace
 from geomstats.geometry.matrices import Matrices
 
 

@@ -7,7 +7,7 @@ import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.base import EmbeddedManifold
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric

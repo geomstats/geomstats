@@ -271,7 +271,23 @@ class EmbeddedManifold(Manifold, abc.ABC):
         projected : array-like, shape=[..., dim_embedding]
             Projected point.
         """
-        pass
+
+    @abc.abstractmethod
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
 
 
 class OpenSet(Manifold, abc.ABC):
@@ -295,7 +311,7 @@ class OpenSet(Manifold, abc.ABC):
         super().__init__(dim=dim, **kwargs)
         self.ambient_space = ambient_space
 
-    def is_tangent(self, vector, base_point, atol=gs.atol):
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters
@@ -315,7 +331,7 @@ class OpenSet(Manifold, abc.ABC):
         """
         return self.ambient_space.belongs(vector, atol)
 
-    def to_tangent(self, vector, base_point):
+    def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
 
         Parameters
@@ -368,4 +384,3 @@ class OpenSet(Manifold, abc.ABC):
         projected : array-like, shape=[..., dim]
             Projected point.
         """
-        pass

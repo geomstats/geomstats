@@ -56,7 +56,6 @@ class Manifold(abc.ABC):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the manifold.
         """
-        pass
 
     @abc.abstractmethod
     def is_tangent(self, vector, base_point, atol=gs.atol):
@@ -77,7 +76,6 @@ class Manifold(abc.ABC):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        pass
 
     @abc.abstractmethod
     def random_point(self, n_samples=1, bound=1.):
@@ -99,7 +97,6 @@ class Manifold(abc.ABC):
         samples : array-like, shape=[..., {dim, [n, n]}]
             Points sampled on the hypersphere.
         """
-        pass
 
     def regularize(self, point):
         """Regularize a point to the canonical representation for the manifold.

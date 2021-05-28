@@ -5,7 +5,7 @@ Poincare half-space representation.
 
 import geomstats.backend as gs
 from geomstats.geometry._hyperbolic import _Hyperbolic
-from geomstats.geometry.embedded_manifold import OpenSet
+from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.riemannian_metric import RiemannianMetric

@@ -35,7 +35,7 @@ References
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.base import EmbeddedManifold
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
