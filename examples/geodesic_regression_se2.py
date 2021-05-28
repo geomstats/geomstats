@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import os
-os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
+os.environ['GEOMSTATS_BACKEND'] = 'pytorch'
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
@@ -18,7 +18,7 @@ n_samples = 20
 data = gs.random.rand(n_samples)
 data -= gs.mean(data)
 
-intercept = space.random_uniform()
+intercept = space.random_point()
 beta = space.to_tangent(5. * gs.random.rand(3, 3), intercept)
 target = metric.exp(data[:, None, None] * beta[None], intercept)
 

@@ -128,14 +128,12 @@ class GeodesicRegression(BaseEstimator):
                 current_iter += 1
             if abs(loss - current_loss) < self.tol:
                 break
-            print(self.space.belongs(intercept_hat))
 
             grad_p, grad_v = gs.split(grad, 2)
             riemannian_grad_p = self.space.to_tangent(
                 gs.reshape(grad_p, shape), intercept_hat)
             riemannian_grad_v = self.space.to_tangent(
                 gs.reshape(grad_v, shape), intercept_hat)
-            print(i, - lr * gs.reshape(grad_p, shape), intercept_hat)
 
             intercept_hat_new = self.metric.exp(
                 - lr * riemannian_grad_p, intercept_hat)
