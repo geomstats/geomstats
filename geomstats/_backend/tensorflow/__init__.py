@@ -97,8 +97,8 @@ def to_numpy(x):
 
 
 def one_hot(labels, num_classes):
-    return tf.one_hot(labels, num_classes, dtype= tf.unit8)
-    
+    return tf.one_hot(labels, num_classes, dtype=tf.uint8)
+
 
 def concatenate(x, axis=0, out=None):
     return concat(x, axis=axis)
