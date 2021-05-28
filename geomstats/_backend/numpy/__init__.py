@@ -19,6 +19,7 @@ from autograd.numpy import (  # NOQA
     argmin,
     array,
     broadcast_arrays,
+    broadcast_to,
     ceil,
     clip,
     concatenate,
@@ -126,6 +127,10 @@ def convert_to_wider_dtype(tensor_list):
 
 def flatten(x):
     return x.flatten()
+
+
+def one_hot(labels, num_classes):
+    return np.eye(num_classes, dtype=np.dtype('uint8'))[labels]
 
 
 def get_mask_i_float(i, n):
