@@ -107,6 +107,11 @@ def to_numpy(x):
     return x.numpy()
 
 
+def one_hot(labels, num_classes):
+    return torch.nn.functional.one_hot(
+        labels, num_classes).type(torch.uint8)
+
+
 def argmax(a, **kwargs):
     if a.dtype == torch.bool:
         return torch.as_tensor(_np.argmax(a.data.numpy(), **kwargs))
