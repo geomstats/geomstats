@@ -11,8 +11,8 @@ class RiemannianMinimumDistanceToMeanClassifier:
     ----------
     riemannian_metric : RiemannianMetric
         Riemannian metric to be Used.
-    n_clusters: int
-        Number of clusters.
+    n_classes: int
+        Number of classes.
     point_type : str, {\'vector\', \'matrix\'}
         Point type.
         Optional, default: \'matrix\'.
@@ -21,10 +21,10 @@ class RiemannianMinimumDistanceToMeanClassifier:
     def __init__(
             self,
             riemannian_metric,
-            n_clusters,
+            n_classes,
             point_type='matrix'):
         self.riemannian_metric = riemannian_metric
-        self.n_clusters = n_clusters
+        self.n_classes = n_classes
         self.point_type = point_type
         self.mean_estimates_ = None
 
@@ -46,7 +46,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
             metric=self.riemannian_metric,
             point_type=self.point_type)
         frechet_means = []
-        for c in range(self.n_clusters):
+        for c in range(self.n_classes):
             data_class = self.split_data_in_classes(X, y, c)
             frechet_means.append(mean_estimator.fit(data_class).estimate_)
         self.mean_estimates_ = gs.array(frechet_means)
@@ -70,11 +70,13 @@ class RiemannianMinimumDistanceToMeanClassifier:
             Predicted labels, where n_classes is the number of classes.
         """
         n_samples = X.shape[0]
-        y = gs.zeros((n_samples, self.n_clusters))
+        _labels = []
         for i in range(n_samples):
             label = self.riemannian_metric.closest_neighbor_index(
                 X[i], self.mean_estimates_)
-            y[i, label] = 1
+            _labels.append(label) 
+        labels = gs.array(_labels)
+        y = gs.eye(self.n_classes)[labels]
         return y
 
     @staticmethod
