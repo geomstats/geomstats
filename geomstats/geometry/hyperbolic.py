@@ -1,13 +1,14 @@
 """Common interface to hyperbolic spaces."""
 
 import geomstats.errors as errors
+from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 
 
-class Hyperbolic(Manifold):
+class Hyperbolic(_Hyperbolic, Manifold):
     """Class for the n-dimensional Hyperbolic space.
 
     This class is a common interface to the different models of hyperbolic
