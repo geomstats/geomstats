@@ -74,8 +74,9 @@ class RiemannianMinimumDistanceToMeanClassifier:
         for i in range(n_samples):
             label = self.riemannian_metric.closest_neighbor_index(
                 X[i], self.mean_estimates_)
-            _labels.append(label) 
+            _labels.append(label)
         labels = gs.array(_labels)
+        print(labels)
         y = gs.eye(self.n_classes)[labels]
         return y
 
