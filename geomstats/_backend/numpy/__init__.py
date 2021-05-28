@@ -130,8 +130,8 @@ def flatten(x):
 
 
 def one_hot(labels, num_classes):
-    return np.eye(num_classes, type=np.dtype('unit8'))[array]
-    
+    return np.eye(num_classes, type=np.dtype('uint8'))[labels]
+
 
 def get_mask_i_float(i, n):
     """Create a 1D array of zeros with one element at one, with floating type.

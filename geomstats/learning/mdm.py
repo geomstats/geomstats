@@ -104,5 +104,5 @@ class RiemannianMinimumDistanceToMeanClassifier:
             Labelled dataset,
             Where n_samples_in_class is the number of samples in class c
         """
-        X_split = X[gs.where(gs.where(y)[1] == c)]
+        X_split = X[gs.argmax(y,1) == 1]
         return X_split
