@@ -59,7 +59,8 @@ class SymmetricMatrices(EmbeddedManifold):
         point : array-like, shape=[m, n] or [n_samples, m, n]
             Sample.
         """
-        return Matrices.to_symmetric(Matrices.random_point(n_samples, bound))
+        mat = self.embedding_manifold.random_point(n_samples, bound)
+        return Matrices.to_symmetric(mat)
 
     def get_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
@@ -162,7 +163,11 @@ class SymmetricMatrices(EmbeddedManifold):
         exponential : array_like, shape=[..., n, n]
             Exponential of mat.
         """
-        return cls.apply_func_to_eigvals(mat, gs.exp)
+        n = mat.shape[-1]
+        dim_3_mat = gs.reshape(mat, [-1, n, n])
+        expm = cls.apply_func_to_eigvals(dim_3_mat, gs.exp)
+        expm = gs.reshape(expm, mat.shape)
+        return expm
 
     @classmethod
     def powerm(cls, mat, power):
@@ -212,11 +217,10 @@ class SymmetricMatrices(EmbeddedManifold):
             Symmetric matrix.
         """
         eigvals, eigvecs = gs.linalg.eigh(mat)
-        if check_positive:
-            if gs.any(gs.cast(eigvals, gs.float32) < 0.):
-                logging.warning(
-                    'Negative eigenvalue encountered in'
-                    ' {}'.format(function.__name__))
+        if check_positive and gs.any(gs.cast(eigvals, gs.float32) < 0.):
+            logging.warning(
+                'Negative eigenvalue encountered in'
+                ' {}'.format(function.__name__))
         return_list = True
         if not isinstance(function, list):
             function = [function]

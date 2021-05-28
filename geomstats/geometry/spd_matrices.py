@@ -4,14 +4,13 @@ import math
 
 import geomstats.backend as gs
 import geomstats.vectorization
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
-class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
+class SPDMatrices(SymmetricMatrices):
     """Class for the manifold of symmetric positive definite (SPD) matrices.
 
     Parameters
@@ -23,11 +22,10 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
     def __init__(self, n):
         super(SPDMatrices, self).__init__(
             n=n,
-            dim=int(n * (n + 1) / 2),
-            embedding_manifold=GeneralLinear(n=n))
+            dim=int(n * (n + 1) / 2))
 
     def belongs(self, mat, atol=gs.atol):
-        """Check if a matrix is symmetric and invertible.
+        """Check if a matrix is symmetric with positive eigenvalues.
 
         Parameters
         ----------
@@ -43,7 +41,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             Boolean denoting if mat is an SPD matrix.
         """
         is_symmetric = super(SPDMatrices, self).belongs(mat, atol)
-        eigvalues, _ = gs.linalg.eigh(mat)
+        eigvalues = gs.linalg.eigvalsh(mat)
         is_positive = gs.all(eigvalues > 0, axis=-1)
         belongs = gs.logical_and(is_symmetric, is_positive)
         return belongs
@@ -347,7 +345,12 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         log : array_like, shape=[..., n, n]
             Matrix logarithm of mat.
         """
-        return cls.apply_func_to_eigvals(mat, gs.log, check_positive=True)
+        n = mat.shape[-1]
+        dim_3_mat = gs.reshape(mat, [-1, n, n])
+        logm = cls.apply_func_to_eigvals(
+            dim_3_mat, gs.log, check_positive=True)
+        logm = gs.reshape(logm, mat.shape)
+        return logm
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -364,7 +367,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             Optional, default: None.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -419,7 +422,7 @@ class SPDMetricAffine(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricAffine, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0),
+            signature=(dim, 0),
             default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)
@@ -667,7 +670,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricBuresWasserstein, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0),
+            signature=(dim, 0),
             default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)
@@ -795,7 +798,7 @@ class SPDMetricEuclidean(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricEuclidean, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0),
+            signature=(dim, 0),
             default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)
@@ -889,7 +892,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricLogEuclidean, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0),
+            signature=(dim, 0),
             default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)

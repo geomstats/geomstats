@@ -25,6 +25,12 @@ For such a representation, work in the Stiefel manifold instead.
 
     Gr(n, k) \simeq St(n, k) / SO(k)
 
+References
+----------
+[Batzies15]_    Batzies, E., K. Hüper, L. Machado, and F. Silva Leite.
+                “Geometric Mean and Geodesic Regression on Grassmannians.”
+                Linear Algebra and Its Applications 466 (February 1, 2015):
+                83–101. https://doi.org/10.1016/j.laa.2014.10.003.
 """
 
 import geomstats.backend as gs
@@ -64,10 +70,6 @@ class Grassmannian(EmbeddedManifold):
             embedding_manifold=Matrices(n, n),
             default_point_type='matrix')
 
-        self.n = n
-        self.k = k
-        self.metric = GrassmannianCanonicalMetric(3, 2)
-
     def belongs(self, point, atol=gs.atol):
         """Check if the point belongs to the manifold.
 
@@ -79,7 +81,7 @@ class Grassmannian(EmbeddedManifold):
         point : array-like, shape=[..., n, n]
             Point to be checked.
         atol : int
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -128,7 +130,7 @@ class Grassmannian(EmbeddedManifold):
             Matrices.transpose(points))
         return projector[0] if n_samples == 1 else projector
 
-    def is_tangent(self, vector, base_point=None, atol=gs.atol):
+    def is_tangent(self, vector, base_point, atol=gs.atol):
         r"""Check if a vector is tangent to the manifold at the base point.
 
         Check if the (n,n)-matrix :math: `Y` is symmetric and verifies the
@@ -142,7 +144,7 @@ class Grassmannian(EmbeddedManifold):
         base_point : array-like, shape=[..., n, n]
             Base point.
         atol : int
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -155,7 +157,7 @@ class Grassmannian(EmbeddedManifold):
         is_close = gs.all(gs.isclose(diff, 0., atol=atol))
         return gs.logical_and(Matrices.is_symmetric(vector), is_close)
 
-    def to_tangent(self, vector, base_point=None):
+    def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
 
         Compute the bracket (commutator) of the base_point with
@@ -173,8 +175,8 @@ class Grassmannian(EmbeddedManifold):
         tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point.
         """
-        skew = Matrices.to_skew_symmetric(vector)
-        return Matrices.bracket(base_point, skew)
+        sym = Matrices.to_symmetric(vector)
+        return Matrices.bracket(base_point, Matrices.bracket(base_point, sym))
 
     @staticmethod
     def _check_square(point):
