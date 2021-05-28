@@ -32,6 +32,7 @@ BACKEND_ATTRIBUTES = {
         'assignment_by_sum',
         'atol',
         'broadcast_arrays',
+        'broadcast_to',
         'cast',
         'ceil',
         'clip',
@@ -76,6 +77,7 @@ BACKEND_ATTRIBUTES = {
         'meshgrid',
         'mod',
         'ndim',
+        'one_hot',
         'ones',
         'ones_like',
         'outer',
@@ -113,7 +115,7 @@ BACKEND_ATTRIBUTES = {
         'zeros',
         'zeros_like'
     ],
-    'autograd': ['value_and_grad'],
+    'autograd': ['jacobian', 'value_and_grad'],
     'linalg': [
         'cholesky',
         'det',

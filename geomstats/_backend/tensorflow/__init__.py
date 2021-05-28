@@ -13,6 +13,7 @@ from tensorflow import (  # NOQA
     argmin,
     asin as arcsin,
     atan2 as arctan2,
+    broadcast_to,
     clip_by_value as clip,
     concat,
     cos,
@@ -52,7 +53,6 @@ from tensorflow import (  # NOQA
     stack,
     tan,
     tanh,
-    tile,
     uint8,
     zeros,
     zeros_like
@@ -94,6 +94,10 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 def to_numpy(x):
     return x.numpy()
+
+
+def one_hot(labels, num_classes):
+    return tf.one_hot(labels, num_classes, dtype=tf.uint8)
 
 
 def concatenate(x, axis=0, out=None):
@@ -555,9 +559,8 @@ def matmul(a, b):
     This wraps both mathvec and matmul into a single function, to mimic the
     behavior of torch's and numpy's versions of matmul
     """
-    if ndim(b) < ndim(a):
-        if ndim(b) == 1 or b.shape[-2] != a.shape[-1]:
-            return tf.linalg.matvec(a, b)
+    if ndim(b) < ndim(a) and (ndim(b) == 1 or b.shape[-2] != a.shape[-1]):
+        return tf.linalg.matvec(a, b)
     return tf.linalg.matmul(a, b)
 
 
@@ -775,3 +778,11 @@ def triu_to_vec(x, k=0):
         mask_b = tf.zeros_like(mask_a)
     mask = tf.cast(mask_a - mask_b, dtype=tf.bool)
     return tf.boolean_mask(x, mask, axis=axis)
+
+
+def tile(x, multiples):
+    t1 = tf.ones(len(multiples) - len(tf.shape(x)))
+    t1 = tf.cast(t1, tf.int32)
+    t2 = tf.shape(x)
+    x_reshape = tf.reshape(x, tf.concat([t1, t2], axis=0))
+    return tf.tile(x_reshape, multiples)

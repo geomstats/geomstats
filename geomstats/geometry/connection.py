@@ -72,14 +72,14 @@ class Connection:
         raise NotImplementedError(
             'connection is not implemented.')
 
-    def geodesic_equation(self, position, velocity):
+    def geodesic_equation(self, state, _time):
         """Compute the geodesic ODE associated with the connection.
 
         Parameters
         ----------
-        velocity : array-like, shape=[..., dim]
+        state : array-like, shape=[..., dim]
             Tangent vector at the position.
-        position : array-like, shape=[..., dim]
+        _time : array-like, shape=[..., dim]
             Point on the manifold, the position at which to compute the
             geodesic ODE.
 
@@ -88,12 +88,13 @@ class Connection:
         geodesic_ode : array-like, shape=[..., dim]
             Value of the vector field to be integrated at position.
         """
+        position, velocity = state
         gamma = self.christoffels(position)
         equation = gs.einsum(
             '...kij,...i->...kj', gamma, velocity)
         equation = - gs.einsum(
             '...kj,...j->...k', equation, velocity)
-        return velocity, equation
+        return gs.stack([velocity, equation])
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step='euler',
             point_type=None, **kwargs):
@@ -124,11 +125,11 @@ class Connection:
         exp : array-like, shape=[..., dim]
             Point on the manifold.
         """
-        initial_state = (base_point, tangent_vec)
-        flow, _ = integrate(self.geodesic_equation, initial_state,
-                            n_steps=n_steps, step=step)
+        initial_state = gs.stack([base_point, tangent_vec])
+        flow = integrate(
+            self.geodesic_equation, initial_state, n_steps=n_steps, step=step)
 
-        exp = flow[-1]
+        exp = flow[-1][0]
         return exp
 
     def log(self, point, base_point, n_steps=N_STEPS, step='euler',
@@ -332,10 +333,10 @@ class Connection:
 
         Approximate Parallel transport using either the pole ladder or the
         Schild's ladder scheme [LP2013b]_. Pole ladder is exact in symmetric
-        spaces [GJSP2019]_ while Schild's ladder is a first order
-        approximation. Both schemes are available any affine connection
-        manifolds whose exponential and logarithm maps are implemented.
-        `tangent_vec_a` is transported along the geodesic starting
+        spaces and of order two in general while Schild's ladder is a first
+        order approximation [GP2020]_. Both schemes are available on any affine
+        connection manifolds whose exponential and logarithm maps are
+        implemented. `tangent_vec_a` is transported along the geodesic starting
         at the base_point with initial tangent vector `tangent_vec_b`.
 
         Parameters
@@ -378,8 +379,8 @@ class Connection:
           Verlag, 2013, 50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
 
         .. [GP2020] Nicolas Guigui, Xavier Pennec. Numerical Accuracy of
-        Ladder Schemes for Parallel Transport on Manifolds. 2020.
-        ⟨hal-02894783⟩
+          Ladder Schemes for Parallel Transport on Manifolds. 2020.
+          ⟨hal-02894783⟩
         """
         geomstats.errors.check_integer(n_rungs, 'n_rungs')
         if alpha < 1:
@@ -557,8 +558,8 @@ class Connection:
         path : callable
             Time parameterized geodesic curve. If a batch of initial
             conditions is passed, the output array's first dimension
-            represents time, and the second corresponds to the different
-            initial conditions.
+            represents the different initial conditions, and the second
+            corresponds to time.
         """
         point_type = self.default_point_type
 
@@ -586,6 +587,10 @@ class Connection:
                 initial_tangent_vec, to_ndim=3)
         n_initial_conditions = initial_tangent_vec.shape[0]
 
+        if n_initial_conditions > 1 and len(initial_point) == 1:
+            initial_point = gs.stack(
+                [initial_point[0]] * n_initial_conditions)
+
         def path(t):
             """Generate parameterized function for geodesic curve.
 
@@ -594,7 +599,8 @@ class Connection:
             t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
             """
-            t = gs.array(t, gs.float32)
+            t = gs.array(t)
+            t = gs.cast(t, initial_tangent_vec.dtype)
             t = gs.to_ndarray(t, to_ndim=1)
             if point_type == 'vector':
                 tangent_vecs = gs.einsum(
@@ -606,9 +612,9 @@ class Connection:
             points_at_time_t = [
                 self.exp(tv, pt) for tv,
                 pt in zip(tangent_vecs, initial_point)]
-            points_at_time_t = gs.stack(points_at_time_t, axis=1)
+            points_at_time_t = gs.stack(points_at_time_t, axis=0)
 
-            return points_at_time_t[:, 0] if n_initial_conditions == 1 else \
+            return points_at_time_t[0] if n_initial_conditions == 1 else \
                 points_at_time_t
         return path
 
@@ -622,3 +628,29 @@ class Connection:
         """
         raise NotImplementedError(
             'The torsion tensor is not implemented.')
+
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        r"""Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector a
+        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        tangent_vec_b)`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim + 1]
+            Tangent vector at base point to be transported.
+        tangent_vec_b : array-like, shape=[..., dim + 1]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the hypersphere.
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[..., dim + 1]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+        """
+        raise NotImplementedError(
+            'The closed-form solution of parallel transport is not known, '
+            'use the ladder_parallel_transport instead.')

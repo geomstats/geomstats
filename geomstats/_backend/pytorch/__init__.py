@@ -107,6 +107,13 @@ def to_numpy(x):
     return x.numpy()
 
 
+def one_hot(labels, num_classes):
+    if not torch.is_tensor(labels):
+        labels = torch.LongTensor(labels)
+    return torch.nn.functional.one_hot(
+        labels, num_classes).type(torch.uint8)
+
+
 def argmax(a, **kwargs):
     if a.dtype == torch.bool:
         return torch.as_tensor(_np.argmax(a.data.numpy(), **kwargs))
@@ -352,6 +359,12 @@ def to_ndarray(x, to_ndim, axis=0):
     return x
 
 
+def broadcast_to(x, shape):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    return x.expand(shape)
+
+
 def sqrt(x):
     if not isinstance(x, torch.Tensor):
         x = torch.tensor(x).float()
@@ -464,6 +477,8 @@ def transpose(x, axes=None):
         return x.permute(axes)
     if x.dim() == 1:
         return x
+    if x.dim() > 2 and axes is None:
+        return x.permute(tuple(range(x.ndim)[::-1]))
     return x.t()
 
 
