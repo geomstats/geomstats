@@ -104,4 +104,4 @@ class RiemannianMinimumDistanceToMeanClassifier:
             Labelled dataset,
             Where n_samples_in_class is the number of samples in class c
         """
-        return X[gs.argmax(y,1) == c]
+        return X[gs.argmax(y, axis=1) == c]

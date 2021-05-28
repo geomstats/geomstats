@@ -130,7 +130,7 @@ def flatten(x):
 
 
 def one_hot(labels, num_classes):
-    return np.eye(num_classes, type=np.dtype('uint8'))[labels]
+    return np.eye(num_classes, dtype=np.dtype('uint8'))[labels]
 
 
 def get_mask_i_float(i, n):
