@@ -528,3 +528,150 @@ class SRVMetric(RiemannianMetric):
         dist = gs.sqrt(dist_starting_points**2 + dist_srvs**2)
 
         return dist
+
+
+class ClosedDiscreteCurves(Manifold):
+    r"""Space of closed discrete curves sampled at points in ambient_manifold.
+
+    Each individual curve is represented by a 2d-array of shape `[
+    n_sampling_points, ambient_dim]`.
+
+    Parameters
+    ----------
+    ambient_manifold : Manifold
+        Manifold in which curves take values.
+
+    Attributes
+    ----------
+    ambient_manifold : Manifold
+        Manifold in which curves take values.
+    l2_metric : callable
+        Function that takes as argument an integer number of sampled points
+        and returns the corresponding L2 metric (product) metric,
+        a RiemannianMetric object
+    square_root_velocity_metric : RiemannianMetric
+        Square root velocity metric.
+    """
+
+    def __init__(self, ambient_manifold):
+        super(ClosedDiscreteCurves, self).__init__(dim=math.inf)
+        self.ambient_manifold = ambient_manifold
+        self.l2_metric = lambda n: L2Metric(
+            self.ambient_manifold, n_landmarks=n)
+        self.square_root_velocity_metric = ClosedSRVMetric(ambient_manifold)
+
+    def project(self, curve, atol=gs.atol):
+        """Project a discrete curve into the space of closed discrete curves.
+
+        Parameters
+        ----------
+        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        atol : float
+            Tolerance of the projection algorithm.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        proj : array-like, shape=[..., n_sampling_points, ambient_dim]
+        """
+        is_euclidean = isinstance(self.ambient_manifold, Euclidean)
+        is_planar = is_euclidean and self.ambient_manifold.dim == 2
+
+        if not is_planar:
+            raise AssertionError('The projection is only implemented '
+                                 'for discrete curves embedded in a'
+                                 '2D Euclidean space.')
+
+        srv_metric = self.square_root_velocity_metric
+        srv = srv_metric.square_root_velocity(curve)[0]
+        srv_proj = srv_metric.project_srv(srv, atol=atol)
+        proj = srv_metric.square_root_velocity_inverse(srv_proj,
+                                                       gs.array([curve[0]]))
+
+        return proj
+
+
+class ClosedSRVMetric(SRVMetric):
+    """Elastic metric on closed curves.
+
+    See [Sea2011]_ for details.
+
+    Parameters
+    ----------
+    ambient_manifold : Manifold
+        Manifold in which curves take values.
+
+    References
+    ----------
+    .. [Sea2011] A. Srivastava, E. Klassen, S. H. Joshi and I. H. Jermyn,
+    "Shape Analysis of Elastic Curves in Euclidean Spaces,"
+    in IEEE Transactions on Pattern Analysis and Machine Intelligence,
+    vol. 33, no. 7, pp. 1415-1428, July 2011.
+    """
+
+    def __init__(self, ambient_manifold):
+        super(ClosedSRVMetric, self).__init__(ambient_manifold)
+
+    def project_srv(self, srv, atol=gs.atol):
+        """Project a point in the srv space into the space of closed curves srv.
+
+        Parameters
+        ----------
+        srv : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        atol : float
+            Tolerance of the projection algorithm.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        proj : array-like, shape=[..., n_sampling_points, ambient_dim]
+        """
+        is_euclidean = isinstance(self.ambient_metric, EuclideanMetric)
+        is_planar = is_euclidean and self.ambient_metric.dim == 2
+
+        if not is_planar:
+            raise AssertionError('The projection is only implemented '
+                                 'for discrete curves embedded in a'
+                                 '2D Euclidean space.')
+
+        n_sampling_points = srv.shape[-2]
+        srv_metric = self.l2_metric(n_sampling_points)
+        ambient_inner_prod = self.ambient_metric.inner_product
+
+        def G(srv, srv_norms):
+            return gs.sum(srv * srv_norms[:, None], axis=0)
+
+        initial_norm = srv_metric.norm(srv)
+        proj = srv
+        proj_norms = self.ambient_metric.norm(proj)
+        criteria = atol + 1
+        residual = G(proj, proj_norms)
+
+        while(criteria >= atol):
+            J = gs.zeros((2, 2))
+            for i in range(2):
+                for j in range(2):
+                    J[i, j] = 3 * ambient_inner_prod(proj[:, i], proj[:, j])
+            J += srv_metric.squared_norm(srv) * gs.array([[1, 0], [0, 1]])
+            beta = gs.linalg.inv(J) @ residual
+
+            e_1, e_2 = gs.array([1, 0]), gs.array([0, 1])
+            grad_1 = proj_norms[:, None] * e_1
+            grad_1 = grad_1 + (proj[:, 0] / proj_norms)[:, None] * proj
+            grad_2 = proj_norms[:, None] * e_2
+            grad_2 = grad_2 + (proj[:, 1] / proj_norms)[:, None] * proj
+
+            b_1 = grad_1 / srv_metric.norm(grad_1)
+            b_2 = grad_2 - srv_metric.inner_product(grad_2, b_1) * grad_2
+            b_2 = b_2 / srv_metric.norm(b_2)
+            b = gs.array([b_1, b_2])
+
+            proj -= gs.sum(beta[:, None, None] * b, axis=0)
+            proj = proj * initial_norm / srv_metric.norm(proj)
+            proj_norms = self.ambient_metric.norm(proj)
+            residual = G(proj, proj_norms)
+            criteria = self.ambient_metric.norm(residual)
+
+        return proj
