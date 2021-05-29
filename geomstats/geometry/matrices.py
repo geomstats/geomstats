@@ -349,7 +349,7 @@ class Matrices:
         """
         is_data_vectorized = (gs.ndim(gs.array(mat)) == 3)
         shape = (mat.shape[0], self.m * self.n) if is_data_vectorized \
-            else (self.m * self.n)
+            else (self.m * self.n,)
         return gs.reshape(mat, shape)
 
     def math_unvec(self, vec):
@@ -372,7 +372,7 @@ class Matrices:
         """
         is_data_vectorized = (gs.ndim(gs.array(vec)) == 2)
         shape = (vec.shape[0], self.m, self.n) if is_data_vectorized \
-            else (self.m, self.n)
+            else (self.m, self.n,)
         return gs.reshape(vec, shape)
 
 

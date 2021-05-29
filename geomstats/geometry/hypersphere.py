@@ -825,7 +825,7 @@ class HypersphereMetric(RiemannianMetric):
         curvature_derivative : array-like, shape=[..., n, n]
             Tangent vector at base point.
         """
-        return gs.zeros_like(hor_tg_vec_h)
+        return gs.zeros_like(hor_tg_vec_x)
 
 
 class Hypersphere(_Hypersphere):
