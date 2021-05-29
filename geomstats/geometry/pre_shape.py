@@ -962,9 +962,8 @@ class KendallShapeMetric(QuotientMetric):
         curvature_derivative : array-like, shape=[..., n, n]
             Tangent vector at base point.
         """
-
-        nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, _, _, _ = \
-            self.fiber_bundle.iterated_integrability_tensor_derivative_parallel(
+        nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, _, _, _ = self.fiber_bundle.\
+            iterated_integrability_tensor_derivative_parallel(
                 hor_tg_vec_x, hor_tg_vec_y, base_point)
         return 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
 
