@@ -528,6 +528,9 @@ class ClosedSRVMetric(SRVMetric):
     def project_srv(self, srv, atol=gs.atol):
         """Project a point in the srv space into the space of closed curves srv.
 
+        The algorithm is from the paper cited above and modifies the srv
+        iteratively so that G(srv) = (0, ..., 0) with the paper's notation.
+
         Parameters
         ----------
         srv : array-like, shape=[..., n_sampling_points, ambient_dim]
@@ -549,25 +552,27 @@ class ClosedSRVMetric(SRVMetric):
                                  '2D Euclidean space.')
 
         n_sampling_points = srv.shape[-2]
+        dim = self.ambient_metric.dim
         srv_metric = self.l2_metric(n_sampling_points)
-        ambient_inner_prod = self.ambient_metric.inner_product
+        inner_prod = self.ambient_metric.inner_product
 
-        def G(srv, srv_norms):
+        def g_criterion(srv, srv_norms):
             return gs.sum(srv * srv_norms[:, None], axis=0)
 
         initial_norm = srv_metric.norm(srv)
         proj = srv
         proj_norms = self.ambient_metric.norm(proj)
         criteria = atol + 1
-        residual = G(proj, proj_norms)
+        residual = g_criterion(proj, proj_norms)
 
-        while(criteria >= atol):
-            J = gs.zeros((2, 2))
-            for i in range(2):
-                for j in range(2):
-                    J[i, j] = 3 * ambient_inner_prod(proj[:, i], proj[:, j])
-            J += srv_metric.squared_norm(srv) * gs.array([[1, 0], [0, 1]])
-            beta = gs.linalg.inv(J) @ residual
+        while criteria >= atol:
+            g_jacobian = gs.zeros((dim, dim))
+            for i in range(dim):
+                for j in range(dim):
+                    g_jacobian[i, j] = 3 * inner_prod(proj[:, i], proj[:, j])
+            proj_squared_norm = srv_metric.squared_norm(proj)
+            g_jacobian += proj_squared_norm * gs.array([[1, 0], [0, 1]])
+            beta = gs.linalg.inv(g_jacobian) @ residual
 
             e_1, e_2 = gs.array([1, 0]), gs.array([0, 1])
             grad_1 = proj_norms[:, None] * e_1
@@ -583,7 +588,7 @@ class ClosedSRVMetric(SRVMetric):
             proj -= gs.sum(beta[:, None, None] * b, axis=0)
             proj = proj * initial_norm / srv_metric.norm(proj)
             proj_norms = self.ambient_metric.norm(proj)
-            residual = G(proj, proj_norms)
+            residual = g_criterion(proj, proj_norms)
             criteria = self.ambient_metric.norm(residual)
 
         return proj
