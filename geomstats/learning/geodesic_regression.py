@@ -68,7 +68,7 @@ class GeodesicRegression(BaseEstimator):
 
         initial_guess = gs.flatten(gs.stack([
             gs.random.normal(size=shape), gs.random.normal(size=shape)]))
-        objective_with_grad = gs.autograd.value_and_grad(
+        objective_with_grad = gs.autodiff.value_and_grad(
             lambda param: self._loss(times, y, param, shape, weights))
 
         res = minimize(
@@ -105,7 +105,7 @@ class GeodesicRegression(BaseEstimator):
             def vector_transport(tan_a, _, __, point):
                 return self.space.to_tangent(tan_a, point)
 
-        objective_with_grad = gs.autograd.value_and_grad(
+        objective_with_grad = gs.autodiff.value_and_grad(
             lambda params: self._loss(times, y, params, shape, weights))
 
         lr = self.learning_rate

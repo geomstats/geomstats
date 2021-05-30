@@ -2,7 +2,8 @@ import numpy as np
 import torch
 from torch.autograd.functional import jacobian as torch_jac
 
-def custom_grad(*args):
+
+def custom_gradient(*args):
     """[Decorator to define a custom gradient to a function (or multiple custom-gradient functions)]
     Args:
         *args : ([callables]): Custom gradient functions
@@ -17,14 +18,14 @@ def custom_grad(*args):
                 return function(*args)
 
             @staticmethod
-            def backward(ctx, grad_output):
+            def backward(ctx, *grad_output):
 
                 inputs = ctx.saved_tensors
 
                 grads = tuple()
 
-                for custom_grad in args:
-                    grads = (*grads, custom_grad(*inputs)*grad_output.clone())                    
+                for custom_grad, g in zip(args, grad_output):
+                    grads = (*grads, custom_grad(*inputs)*g.clone())
 
                 return grads
 
@@ -33,7 +34,6 @@ def custom_grad(*args):
                 return out
             
         return wrapper
-    
     return decorator
 
 
@@ -58,7 +58,10 @@ def value_and_grad(objective):
             velocity = torch.from_numpy(velocity)
         vel = velocity.clone().detach().requires_grad_(True)
         loss = objective(vel)
-        loss.backward()
+        if loss.ndim > 0:
+            loss.backward(gradient=torch.ones_like(vel))
+        else:
+            loss.backward()
         return loss.detach().numpy(), vel.grad.detach().numpy()
     return objective_with_grad
 

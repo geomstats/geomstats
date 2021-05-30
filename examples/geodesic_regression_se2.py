@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import os
-os.environ['GEOMSTATS_BACKEND'] = 'pytorch'
+os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization

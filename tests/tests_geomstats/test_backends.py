@@ -1004,36 +1004,44 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result[0], value.detach())
         self.assertAllClose(result[1], grad)
 
-    @geomstats.tests.tf_only
     def test_custom_grad_dummy(self):
 
-        @gs.autograd.custom_grad(lambda x, y: 2 * x * y)
-        def func(x):
-            return x ** 2
+        def grad_x(_ans, x, y):
+            return 2 * (x - y)
 
-        arg = gs.array([1., 3.])
-        result = gs.autograd.value_and_grad(func)(arg)
-        expected = (arg ** 2, 2 * arg)
+        def grad_y(ans, x, y):
+            return - grad_x(ans, x, y)
+
+        @gs.autodiff.custom_gradient(grad_x, grad_y)
+        def func(x, y):
+            return gs.sum((x - y) ** 2)
+
+        def func_2(x):
+            return gs.exp(-.5 * func(x, arg_y))
+
+        arg_x = gs.array([[1., 3.], [2., 3.]])
+        arg_y = gs.array([[2., 5.], [0., 4.]])
+        result = gs.autodiff.value_and_grad(func_2)(arg_x)
+        val = func_2(arg_x)
+        expected = (val, (arg_y - arg_x) * val)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.tf_only
     def test_custom_grad_in_action(self):
         space = SpecialEuclidean(2)
         metric = space.left_canonical_metric
         point_a, point_b = space.random_point(2)
-        result = gs.autograd.value_and_grad(
+        result = gs.autodiff.value_and_grad(
             lambda x: metric.squared_dist(x, point_b))(point_a)
         dist = metric.squared_dist(point_a, point_b)
         log = 2 * metric.log(point_a, point_b)
         expected = dist, log
         self.assertAllClose(result, expected)
    
-    @geomstats.tests.pytorch_only
     def test_custom_grad_chain_rule(self):
 
         fun1_grad = lambda x : 3
 
-        @gs.autograd.custom_grad(fun1_grad)
+        @gs.autodiff.custom_gradient(fun1_grad)
         def fun1(x):
             return x
 
@@ -1043,9 +1051,11 @@ class TestBackends(geomstats.tests.TestCase):
 
         fun2_grad = lambda x: 2*x
 
-        arg = gs.array([10.])
+        arg = gs.array([10., 2.])
 
-        result = gs.autograd.value_and_grad(fun2)(arg)
-        expected = (fun2(arg),fun2_grad(fun1(arg))*fun1_grad(arg))
+        result = gs.autodiff.value_and_grad(fun2)(arg)
+        result = tuple(gs.array(k) for k in result)
+        expected = (fun2(arg), fun2_grad(fun1(arg))*fun1_grad(arg))
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result[0], expected[0])
+        self.assertAllClose(result[1], expected[1])

@@ -1082,21 +1082,21 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         return homogeneous_representation(
             transported_rot, translation, max_shape, 0.)
 
-    @gs.autograd.custom_gradient
-    def squared_dist(self, point_a, point_b):
-        dist = super().squared_dist(point_a, point_b)
+    # @gs.autodiff.custom_gradient
+    # def squared_dist(self, point_a, point_b):
+    #     dist = super().squared_dist(point_a, point_b)
+    #
+    #     def grad(_):
+    #         grd = 2 * self.log(point_a, point_b)
+    #         return grd, 2 * self.log(point_b, point_a)
+    #
+    #     return dist, grad
 
-        def grad(_):
-            grd = 2 * self.log(point_a, point_b)
-            return grd, 2 * self.log(point_b, point_a)
+    def squared_dist_grad(self, point_a, point_b):
+        grd = 2 * self.log(point_a, point_b)
+        return grd, 2 * self.log(point_b, point_a)
 
-        return dist, grad
-
-    def squared_dist_grad(self, point_a, point_b, previous):
-        grd = 2 * self.log(point_a, point_b) * previous
-        return grd, 2 * self.log(point_b, point_a) * previous
-
-    @gs.autograd.custom_grad(squared_dist_grad)
+    @gs.autodiff.custom_gradient(squared_dist_grad)
     def squared_dist(self, point_a, point_b):
         dist = super().squared_dist(point_a, point_b)
         return dist

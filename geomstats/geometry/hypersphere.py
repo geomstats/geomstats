@@ -588,7 +588,7 @@ class HypersphereMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -671,7 +671,7 @@ class HypersphereMetric(RiemannianMetric):
 
         return dist
 
-    def squared_dist(self, point_a, point_b):
+    def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.
 
         Parameters
@@ -688,7 +688,7 @@ class HypersphereMetric(RiemannianMetric):
         return self.dist(point_a, point_b) ** 2
 
     @staticmethod
-    def parallel_transport(tangent_vec_a, tangent_vec_b, base_point):
+    def parallel_transport(tangent_vec_a, tangent_vec_b, base_point, **kwargs):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a

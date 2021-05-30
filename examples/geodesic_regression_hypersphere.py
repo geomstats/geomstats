@@ -35,7 +35,7 @@ variance_ = variance(target, estimator.estimate_, metric=metric)
 r2 = 1 - rss / variance_
 
 gr = GeodesicRegression(
-    space, center_data=True, algorithm='riemannian', verbose=True)
+    space, center_data=False, algorithm='riemannian', verbose=True)
 gr.fit(data, target, compute_training_score=True)
 intercept_hat, beta_hat = gr.intercept_, gr.coef_
 
@@ -68,12 +68,15 @@ i = 10
 sphere_visu.draw_points(ax, gs.array([intercept_hat]), marker='o', c='r', s=i)
 sphere_visu.draw_points(ax, target, marker='o', c='b', s=i)
 sphere_visu.draw_points(ax, fitted_data, marker='o', c='g', s=i)
-sphere_visu.draw_points(
-    ax, gs.array([intercept]), marker='x', c='r', s=i)
+# sphere_visu.draw_points(
+#     ax, gs.array([intercept]), marker='x', c='r', s=i)
 
 ax.plot(
     regressed_geodesic[:, 0],
     regressed_geodesic[:, 1],
     regressed_geodesic[:, 2], c='gray')
 sphere_visu.draw(ax, linewidth=1)
+ax.grid(False)
+plt.axis('off')
+
 plt.show()

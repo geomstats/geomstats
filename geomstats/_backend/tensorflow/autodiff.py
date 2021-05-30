@@ -1,10 +1,8 @@
-from functools import partial
-
 import numpy as np
 import tensorflow as tf
 
 
-def custom_grad(grad_func):
+def custom_gradient(grad_func):
     """[Decorator to define a custom gradient to a function]
 
     Args:
@@ -14,7 +12,10 @@ def custom_grad(grad_func):
     def wrapper(func):
         def wrapped_func(*args, **kwargs):
             func_val = func(*args, **kwargs)
-            return func_val, lambda grad_output: grad_func(*args, grad_output)
+            grad_vals = grad_func(func_val, *args, **kwargs)
+            if not isinstance(grad_vals, tuple):
+                return func_val, lambda g: grad_vals * g
+            return func_val, lambda g: tuple(k * g for k in grad_vals)
 
         return tf.custom_gradient(wrapped_func)
 

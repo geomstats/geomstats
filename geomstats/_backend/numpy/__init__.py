@@ -95,6 +95,7 @@ from autograd.numpy import (  # NOQA
 from autograd.scipy.special import polygamma # NOQA
 from scipy.sparse import coo_matrix
 
+from . import autodiff # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA

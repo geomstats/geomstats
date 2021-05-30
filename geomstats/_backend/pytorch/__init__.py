@@ -60,7 +60,7 @@ from torch import (  # NOQA
     zeros_like
 )
 
-from . import autograd # NOQA
+from . import autodiff # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 from ..constants import pytorch_atol, pytorch_rtol
