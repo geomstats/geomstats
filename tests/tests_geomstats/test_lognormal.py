@@ -37,7 +37,7 @@ class TestLogNormal(geomstats.tests.TestCase):
 
     def test_euclidean_frechet_mean(self):
         """Test if the frechet mean of the samples is close to mean"""
-        mean = gs.eye(self.n)
+        mean = gs.zeros(self.n)
         cov = gs.eye(self.n) / self.n
         data = LogNormal(self.Euclidean, mean, cov).sample(100)
         fm = data.mean(axis=0)
@@ -50,7 +50,7 @@ class TestLogNormal(geomstats.tests.TestCase):
         """Test if the frechet mean of the samples is close to mean"""
         mean = gs.eye(self.n)
         cov = gs.eye(self.spd_cov_n) / self.spd_cov_n
-        data = LogNormal(self.SPDManifold, mean, cov).sample(100) 
+        data = LogNormal(self.SPDManifold, mean, cov).sample(100)
         _fm = self.SPDManifold.logm(data).mean(axis=0)
         fm = self.SPDManifold.expm(_fm)
 
@@ -62,9 +62,9 @@ class TestLogNormal(geomstats.tests.TestCase):
         """Test if the erros are raised for invalid parameters"""
 
         mean = gs.eye(self.n)
-        invalid_eu_mean = gs.zeros(self.n+1)
+        invalid_eu_mean = gs.zeros(self.n + 1)
         invalid_spd_mean = gs.zeros((self.n, self.n))
-        invalid_cov  = gs.eye((self.n, self.n))
+        invalid_cov = gs.eye((self.n, self.n))
         invalid_manifold = Hypersphere(dim=2)
 
         with self.assertRaises(ValueError):

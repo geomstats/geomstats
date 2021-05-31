@@ -48,13 +48,13 @@ class LogNormal:
                 "Invalid Value in mean, doesn't belong to ", type(manifold).__name__)
                 
         n = mean.shape[-1]
-        cov_n = (n*(n+1))//2
+        cov_n = (n * (n + 1)) // 2
         if cov is not None:
             if (cov.ndim != 2 and 
                 (cov.shape[0] != cov_n or cov.shape[1] != cov_n)):
                 valid_shape = (self.cov_n, self.cov_n)
                 raise ValueError("Invalid Shape, cov should have shape" , valid_shape) 
-        if self.cov is None:
+        if cov is None:
             cov = gs.eye(self.cov_n)    
 
         self.manifold = manifold  
@@ -64,10 +64,10 @@ class LogNormal:
 
     def _sample_spd(self, samples):
         n = self.mean.shape[-1]
-        i,  = gs.diag_indices(n, ndim=1)
-        j,k = gs.triu_indices(n, k=1)
+        i, = gs.diag_indices(n, ndim=1)
+        j, k = gs.triu_indices(n, k=1)
         sym_matrix = self.manifold.logm(self.mean)
-        mean_euclidean = gs.hstack((sym_matrix[i,i], gs.sqrt(2)*sym_matrix[j,k]))
+        mean_euclidean = gs.hstack((sym_matrix[i, i], gs.sqrt(2) * sym_matrix[j, k]))
         _samples = gs.zeros((samples, n, n))
         samples_euclidean = gs.random.multivariate_normal(mean_euclidean, self.cov, samples)
         off_diag = samples_euclidean[:, n:]/gs.sqrt(2)
@@ -78,7 +78,7 @@ class LogNormal:
         return samples_spd
 
     def _sample_euclidean(self, samples):
-        _samples = gs.random.multivariate_normal(self.mean, self.cov, samples) 
+        _samples = gs.random.multivariate_normal(self.mean, self.cov, samples)
         return gs.exp(_samples)
 
     def sample(self, samples=1):
@@ -87,4 +87,4 @@ class LogNormal:
             return self._sample_euclidean(samples)
 
         if self.manifold == 'SPDmanifold':
-            return self._sample_spd(samples)    
+            return self._sample_spd(samples)
