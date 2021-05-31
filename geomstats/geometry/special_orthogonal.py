@@ -5,6 +5,7 @@ import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
 from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
 from geomstats.geometry.matrices import Matrices
@@ -31,38 +32,15 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, EmbeddedManifold):
 
     def __init__(self, n):
         matrices = Matrices(n, n)
+        gln = GeneralLinear(n, positive_det=True)
         super(_SpecialOrthogonalMatrices, self).__init__(
             dim=int((n * (n - 1)) / 2), n=n, value=gs.eye(n),
-            lie_algebra=SkewSymmetricMatrices(n=n), embedding_space=matrices,
+            lie_algebra=SkewSymmetricMatrices(n=n), embedding_space=gln,
             submersion=lambda x: matrices.mul(matrices.transpose(x), x),
             tangent_submersion=lambda v, x: 2 * matrices.to_symmetric(
                 matrices.mul(matrices.transpose(x), v)))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.metric = self.bi_invariant_metric
-        self.n = n
-
-    def belongs(self, point, atol=ATOL):
-        """Check whether point is an orthogonal matrix.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Point to check.
-        atol : float
-            Absolute tolerance to check equality of the transpose and the
-            inverse of point.
-            Optional, default: 1e-5.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to SO(n).
-        """
-        belongs = super(_SpecialOrthogonalMatrices, self).belongs(point, atol)
-        if gs.any(belongs):
-            has_positive_det = gs.linalg.det(point) > 0.
-            return gs.logical_and(belongs, has_positive_det)
-        return belongs
 
     @classmethod
     def inverse(cls, point):
@@ -80,8 +58,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, EmbeddedManifold):
         """
         return Matrices.transpose(point)
 
-    @classmethod
-    def projection(cls, point):
+    def projection(self, point):
         """Project a matrix on SO(n) by minimizing the Frobenius norm.
 
         Parameters
@@ -94,7 +71,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, EmbeddedManifold):
         rot_mat : array-like, shape=[..., n, n]
             Rotation matrix.
         """
-        aux_mat = Matrices.mul(Matrices.transpose(point), point)
+        aux_mat = self.submersion(point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, - 1 / 2)
         rotation_mat = Matrices.mul(point, inv_sqrt_mat)
         det = gs.linalg.det(rotation_mat)

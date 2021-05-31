@@ -1,7 +1,6 @@
 """Module exposing the GeneralLinear group class."""
 
-from itertools import product
-
+import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.lie_group import MatrixLieGroup
@@ -9,19 +8,27 @@ from geomstats.geometry.matrices import Matrices
 
 
 class GeneralLinear(MatrixLieGroup, OpenSet):
-    """Class for the general linear group GL(n).
+    """Class for the general linear group GL(n) and its identity component.
+
+    If `positive_det=True`, this is the connected component of the identity,
+    i.e. the space of matrices with positive determinant.
 
     Parameters
     ----------
     n : int
         Integer representing the shape of the matrices: n x n.
+    positive_det: bool
+        Whether to restrict to the identity connected component of the
+        general linear group, i.e. matrices with positive determinant.
+        Optional, default: False.
     """
 
-    def __init__(self, n, **kwargs):
+    def __init__(self, n, positive_det=False, **kwargs):
         if 'dim' not in kwargs.keys():
             kwargs['dim'] = n ** 2
         super(GeneralLinear, self).__init__(
             ambient_space=Matrices(n, n), n=n, **kwargs)
+        self.positive_det = positive_det
 
     def projection(self, point):
         r"""Project a matrix to the general linear group.
@@ -45,6 +52,9 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         regularization = gs.einsum(
             '...,ij->...ij', gs.where(~belongs, gs.atol, 0.), self.identity)
         projected = point + regularization
+        if self.positive_det:
+            det = gs.linalg.det(point)
+            return utils.flip_determinant(projected, det)
         return projected
 
     def belongs(self, point, atol=gs.atol):
@@ -65,16 +75,8 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         has_right_size = self.ambient_space.belongs(point)
         if gs.all(has_right_size):
             det = gs.linalg.det(point)
-            return gs.abs(det) > atol
+            return det > atol if self.positive_det else gs.abs(det) > atol
         return has_right_size
-
-    def _replace_values(self, samples, new_samples, indcs):
-        """Replace samples with new samples at specific indices."""
-        replaced_indices = [
-            i for i, is_replaced in enumerate(indcs) if is_replaced]
-        value_indices = list(
-            product(replaced_indices, range(self.n), range(self.n)))
-        return gs.assignment(samples, gs.flatten(new_samples), value_indices)
 
     def random_point(self, n_samples=1, bound=1.):
         """Sample in GL(n) from the uniform distribution.
@@ -93,19 +95,19 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         samples : array-like, shape=[..., n, n]
             Point sampled on GL(n).
         """
-        samples = gs.random.normal(size=(n_samples, self.n, self.n))
-        while True:
-            dets = gs.linalg.det(samples)
-            indcs = gs.isclose(dets, 0.0)
-            num_bad_samples = gs.sum(indcs)
-            if num_bad_samples == 0:
-                break
-            new_samples = gs.random.normal(
-                size=(num_bad_samples, self.n, self.n))
-            samples = self._replace_values(samples, new_samples, indcs)
+        n = self.n
+        sample = []
+        n_accepted = 0
+        criterion_func = (lambda x: x) if self.positive_det else gs.abs
+        while n_accepted < n_samples:
+            raw_samples = gs.random.normal(size=(n_samples - n_accepted, n, n))
+            dets = gs.linalg.det(raw_samples)
+            criterion = criterion_func(dets) > gs.atol
+            sample.append(raw_samples[criterion])
+            n_accepted += gs.sum(criterion)
         if n_samples == 1:
-            samples = gs.squeeze(samples, axis=0)
-        return samples
+            return sample[0]
+        return gs.concatenate(sample)
 
     @classmethod
     def orbit(cls, point, base_point=None):
