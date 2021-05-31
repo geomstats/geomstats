@@ -475,8 +475,8 @@ class Connection(ABC):
         path : callable
             Time parameterized geodesic curve. If a batch of initial
             conditions is passed, the output array's first dimension
-            represents time, and the second corresponds to the different
-            initial conditions.
+            represents the different initial conditions, and the second
+            corresponds to time.
         """
         point_type = self.default_point_type
 
@@ -504,6 +504,10 @@ class Connection(ABC):
                 initial_tangent_vec, to_ndim=3)
         n_initial_conditions = initial_tangent_vec.shape[0]
 
+        if n_initial_conditions > 1 and len(initial_point) == 1:
+            initial_point = gs.stack(
+                [initial_point[0]] * n_initial_conditions)
+
         def path(t):
             """Generate parameterized function for geodesic curve.
 
@@ -512,7 +516,8 @@ class Connection(ABC):
             t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
             """
-            t = gs.array(t, gs.float32)
+            t = gs.array(t)
+            t = gs.cast(t, initial_tangent_vec.dtype)
             t = gs.to_ndarray(t, to_ndim=1)
             if point_type == 'vector':
                 tangent_vecs = gs.einsum(
@@ -524,9 +529,9 @@ class Connection(ABC):
             points_at_time_t = [
                 self.exp(tv, pt) for tv,
                 pt in zip(tangent_vecs, initial_point)]
-            points_at_time_t = gs.stack(points_at_time_t, axis=1)
+            points_at_time_t = gs.stack(points_at_time_t, axis=0)
 
-            return points_at_time_t[:, 0] if n_initial_conditions == 1 else \
+            return points_at_time_t[0] if n_initial_conditions == 1 else \
                 points_at_time_t
         return path
 

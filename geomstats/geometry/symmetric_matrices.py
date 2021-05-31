@@ -145,7 +145,11 @@ class SymmetricMatrices(OpenSet, VectorSpace):
         exponential : array_like, shape=[..., n, n]
             Exponential of mat.
         """
-        return cls.apply_func_to_eigvals(mat, gs.exp)
+        n = mat.shape[-1]
+        dim_3_mat = gs.reshape(mat, [-1, n, n])
+        expm = cls.apply_func_to_eigvals(dim_3_mat, gs.exp)
+        expm = gs.reshape(expm, mat.shape)
+        return expm
 
     @classmethod
     def powerm(cls, mat, power):

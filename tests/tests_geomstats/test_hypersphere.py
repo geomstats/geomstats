@@ -525,7 +525,7 @@ class TestHypersphere(geomstats.tests.TestCase):
             end_point=initial_point[2:])
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
-        result = points[-1]
+        result = points[:, -1]
         expected = initial_point[2:]
         self.assertAllClose(expected, result)
 

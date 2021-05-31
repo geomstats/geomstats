@@ -236,6 +236,17 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(expected, result)
 
+    def test_estimate_spd_two_samples(self):
+        space = SPDMatrices(3)
+        metric = SPDMetricAffine(3)
+        point = space.random_point(2)
+        mean = FrechetMean(metric)
+        mean.fit(point)
+        result = mean.estimate_
+        expected = metric.exp(
+            metric.log(point[0], point[1]) / 2, point[1])
+        self.assertAllClose(expected, result)
+
     def test_variance_hyperbolic(self):
         point = gs.array([2., 1., 1., 1.])
         points = gs.array([point, point])
