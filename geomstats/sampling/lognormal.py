@@ -1,3 +1,5 @@
+"""LogNormal Sampler on the manifold of SPD Matrices and Euclidean Spaces"""
+
 import geomstats.backend as gs
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.euclidean import  Euclidean
@@ -27,9 +29,9 @@ class LogNormal:
     from geomstats.geometry.spd_matrices import SPDMatrices
     from geomstats.sampling.lognormal import LogNormal
 
-    SPDManifold = SPDMatrices(3)
     mean = 2*gs.eye(3)
     cov  = gs.eye(6)
+    SPDManifold = SPDMatrices(3)
     LogNormalSampler = LogNormal(SPDManifold, mean, cov)
     data = LogNormalSampler.sample(5)
 
