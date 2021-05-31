@@ -346,7 +346,12 @@ class SPDMatrices(SymmetricMatrices, OpenSet):
         log : array_like, shape=[..., n, n]
             Matrix logarithm of mat.
         """
-        return cls.apply_func_to_eigvals(mat, gs.log, check_positive=True)
+        n = mat.shape[-1]
+        dim_3_mat = gs.reshape(mat, [-1, n, n])
+        logm = cls.apply_func_to_eigvals(
+            dim_3_mat, gs.log, check_positive=True)
+        logm = gs.reshape(logm, mat.shape)
+        return logm
 
 
 class SPDMetricAffine(RiemannianMetric):

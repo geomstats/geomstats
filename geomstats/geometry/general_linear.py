@@ -78,7 +78,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
             return det > atol if self.positive_det else gs.abs(det) > atol
         return has_right_size
 
-    def random_point(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1., n_iter=100):
         """Sample in GL(n) from the uniform distribution.
 
         Parameters
@@ -89,6 +89,9 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         bound: float
             Bound of the interval in which to sample each matrix entry.
             Optional, default: 1.
+        n_iter : int
+            Maximum number of trials to sample a matrix with positive det.
+            Optional, default: 100.
 
         Returns
         -------
@@ -97,14 +100,16 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         """
         n = self.n
         sample = []
-        n_accepted = 0
+        n_accepted, iteration = 0, 0
         criterion_func = (lambda x: x) if self.positive_det else gs.abs
-        while n_accepted < n_samples:
+        while n_accepted < n_samples and iteration < n_iter:
             raw_samples = gs.random.normal(size=(n_samples - n_accepted, n, n))
             dets = gs.linalg.det(raw_samples)
             criterion = criterion_func(dets) > gs.atol
-            sample.append(raw_samples[criterion])
-            n_accepted += gs.sum(criterion)
+            if gs.any(criterion):
+                sample.append(raw_samples[criterion])
+                n_accepted += gs.sum(criterion)
+            iteration += 1
         if n_samples == 1:
             return sample[0]
         return gs.concatenate(sample)
