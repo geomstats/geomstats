@@ -45,9 +45,9 @@ class TestLogNormal(geomstats.tests.TestCase):
         """Test if the frechet mean of the samples is close to mean"""
         mean = gs.zeros(self.n)
         cov = gs.eye(self.n) / self.n
-        data = LogNormal(self.Euclidean, mean, cov).sample(100)
-        print(data)
-        fm = data.mean(axis=0)
+        data = LogNormal(self.Euclidean, mean, cov).sample(1000)
+        log_data = gs.log(data)
+        fm = log_data.mean(axis=0)
 
         expected = mean
         result = fm
@@ -57,7 +57,7 @@ class TestLogNormal(geomstats.tests.TestCase):
         """Test if the frechet mean of the samples is close to mean"""
         mean = gs.eye(self.n)
         cov = gs.eye(self.spd_cov_n) / self.spd_cov_n
-        data = LogNormal(self.SPDManifold, mean, cov).sample(100)
+        data = LogNormal(self.SPDManifold, mean, cov).sample(1000)
         _fm = self.SPDManifold.logm(data).mean(axis=0)
         fm = self.SPDManifold.expm(_fm)
 
