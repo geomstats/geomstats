@@ -43,7 +43,7 @@ BACKEND_ATTRIBUTES = {
         'cross',
         'cumprod',
         'cumsum',
-        'diag_indices'
+        'diag_indices',
         'diagonal',
         'divide',
         'dot',
