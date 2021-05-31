@@ -63,16 +63,16 @@ class TestLogNormal(geomstats.tests.TestCase):
         """Test if the erros are raised for invalid parameters"""
 
         mean = gs.eye(self.n)
-        invalid_mean = gs.zeros(self.n+1)
+        invalid_eu_mean = gs.zeros(self.n+1)
+        invalid_spd_mean = gs.zeros((self.n, self.n))
         invalid_cov  = gs.eye((self.n, self.n))
         invalid_manifold = Hypersphere(dim=2)
 
         with self.assertRaises(ValueError):
             sampler = LogNormal(invalid_manifold, invalid_mean)
         with self.assertRaises(ValueError):
-            sampler = LogNormal(self.Euclidean, invalid_mean)
+            sampler = LogNormal(self.Euclidean, invalid_eu_mean)
         with self.assertRaises(ValueError):
-            sampler = LogNormal(self.SPDManifold, invalid_mean)
+            sampler = LogNormal(self.SPDManifold, invalid_spd_mean)
         with self.assertRaises(ValueError):
             sampler = LogNormal(self.SPDManifold, mean, invalid_cov)
-            
