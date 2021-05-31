@@ -5,20 +5,16 @@ from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.euclidean import  Euclidean
 
 class LogNormal:
-    """ LogNormal Sampler 
+    """LogNormal Sampler
 
     Parameters:
     ----------
     manifold: str, {\'Euclidean\', \'SPDmanifold\'}
         Name of the Manifold
     mean: array-like, shape=[..., dim]
-        Mean of the Distribution
+        Mean of the Distribution.
     cov: array-like, shape=[..., dim]
-        Covariance of the Distribution. Should be Positive Semi Definite
-    validate_args: boolean
-        When True Checks for validity of mean,cov.
-        checks if mean is Symmetric Positive Definite Matrix
-        checks if cov  is Symmetric Positive Semi Definite Matrix    
+        Covariance of the Distribution.   
     Returns:
     --------
     samples
@@ -40,24 +36,23 @@ class LogNormal:
     Lognormal Distributions and Geometric Averages of Symmetric Positive Definite Matrices
     https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5222531/
     """
-    def __init__(self, manifold, mean, cov=None, validate= True):
+    def __init__(self, manifold, mean, cov=None):
 
         if (not isinstance(manifold, SPDMatrices) and 
             not isinstance(manifold, Euclidean)):
             raise ValueError(
                 "Invalid Manifold object, Should be of type SPDMatrices or Euclidean")
 
-        if validate:    
-            if not manifold.belongs(mean):
-                raise ValueError(
-                    "Invalid Value in mean, doesn't belong to ", type(manifold).__name__)
-        
+        if not manifold.belongs(mean):
+            raise ValueError(
+                "Invalid Value in mean, doesn't belong to ", type(manifold).__name__)
+                
         n = mean.shape[-1]
-        cov_n = (self.n*(self.n+1))//2
+        cov_n = (n*(n+1))//2
         if cov is not None:
             if (cov.ndim != 2 and 
                 (cov.shape[0] != cov_n or cov.shape[1] != cov_n)):
-                valid_shape = (self.cov_n,self.cov_n)
+                valid_shape = (self.cov_n, self.cov_n)
                 raise ValueError("Invalid Shape, cov should have shape" , valid_shape) 
         if self.cov is None:
             cov = gs.eye(self.cov_n)    
@@ -68,14 +63,15 @@ class LogNormal:
 
 
     def _sample_spd(self, samples):
-        i,  = gs.diag_indices(self.n, ndim=1)
-        j,k = gs.triu_indices(self.n, k=1)
+        n = self.mean.shape[-1]
+        i,  = gs.diag_indices(n, ndim=1)
+        j,k = gs.triu_indices(n, k=1)
         sym_matrix = self.manifold.logm(self.mean)
         mean_euclidean = gs.hstack((sym_matrix[i,i], gs.sqrt(2)*sym_matrix[j,k]))
-        _samples = gs.zeros((samples, self.n, self.n))
+        _samples = gs.zeros((samples, n, n))
         samples_euclidean = gs.random.multivariate_normal(mean_euclidean, self.cov, samples)
-        off_diag = samples_euclidean[:, self.n:]/gs.sqrt(2)
-        _samples[:, i, i] = samples_euclidean[:, :self.n]
+        off_diag = samples_euclidean[:, n:]/gs.sqrt(2)
+        _samples[:, i, i] = samples_euclidean[:, :n]
         _samples[:, j, k] = off_diag
         _samples[:, k, j] = off_diag
         samples_spd = self.manifold.expm(_samples)
