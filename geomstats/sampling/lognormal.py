@@ -1,7 +1,7 @@
 """LogNormal Sampler on the manifold of SPD Matrices and Euclidean Spaces"""
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import  Euclidean
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.spd_matrices import SPDMatrices
 
 
@@ -15,7 +15,7 @@ class LogNormal:
     mean: array-like, shape=[..., dim]
         Mean of the Distribution.
     cov: array-like, shape=[..., dim]
-        Covariance of the Distribution.   
+        Covariance of the Distribution.
     Returns:
     --------
     samples
@@ -34,7 +34,7 @@ class LogNormal:
 
     References:
     ----------
-    Lognormal Distributions and Geometric Averages of 
+    Lognormal Distributions and Geometric Averages of
     Symmetric Positive Definite Matrices
     https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5222531/
     """
@@ -62,7 +62,7 @@ class LogNormal:
             ):
                 valid_shape = (self.cov_n, self.cov_n)
                 raise ValueError("Invalid Shape, "
-                    +"cov should have shape", valid_shape)
+                    "cov should have shape", valid_shape)
 
         if cov is None:
             cov = gs.eye(self.cov_n)
