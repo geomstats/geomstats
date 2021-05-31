@@ -40,7 +40,7 @@ class LogNormal:
     """
     def __init__(self, manifold, mean, cov=None):
 
-        if (not isinstance(manifold, SPDMatrices) and 
+        if (not isinstance(manifold, SPDMatrices) and
             not isinstance(manifold, Euclidean)):
             raise ValueError(
                 "Invalid Manifold object, "
@@ -58,7 +58,7 @@ class LogNormal:
                 (cov.shape[0], cov.shape[1]) != (cov_n, cov_n)):
                 valid_shape = (self.cov_n, self.cov_n)
                 raise ValueError("Invalid Shape, "
-                 "cov should have shape", valid_shape)
+                    +"cov should have shape", valid_shape)
 
         if cov is None:
             cov = gs.eye(self.cov_n)
@@ -76,7 +76,7 @@ class LogNormal:
             (sym_matrix[i, i], gs.sqrt(2) * sym_matrix[j, k]))
         _samples = gs.zeros((samples, n, n))
         samples_euclidean = gs.random.multivariate_normal(
-            mean_euclidean, self.cov, samples)
+            mean_euclidean, self.cov, (samples,))
         off_diag = samples_euclidean[:, n:] / gs.sqrt(2)
         _samples[:, i, i] = samples_euclidean[:, :n]
         _samples[:, j, k] = off_diag
