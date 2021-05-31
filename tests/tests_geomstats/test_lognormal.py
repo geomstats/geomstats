@@ -3,8 +3,8 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.sampling.lognormal import LogNormal
 
 
@@ -25,7 +25,7 @@ class TestLogNormal(geomstats.tests.TestCase):
         cov = gs.eye(self.n)
         LogNormalSampler = LogNormal(self.Euclidean, mean, cov)
         data = LogNormalSampler.sample(self.samples)
-        
+
         result = self.Euclidean.belongs(data).all()
         expected = True
         self.assertAllClose(result, expected)
@@ -67,7 +67,6 @@ class TestLogNormal(geomstats.tests.TestCase):
 
     def test_error_handling(self):
         """Test if the erros are raised for invalid parameters"""
-
         mean = gs.eye(self.n)
         invalid_eu_mean = gs.zeros(self.n + 1)
         invalid_spd_mean = gs.zeros((self.n, self.n))

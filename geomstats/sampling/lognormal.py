@@ -34,13 +34,14 @@ class LogNormal:
 
     References:
     ----------
-    Lognormal Distributions and Geometric Averages of Symmetric Positive Definite Matrices
+    Lognormal Distributions and Geometric Averages of 
+    Symmetric Positive Definite Matrices
     https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5222531/
     """
     def __init__(self, manifold, mean, cov=None):
 
-        if (not isinstance(manifold, SPDMatrices) and
-            not isinstance(manifold, Euclidean)):
+        if (not isinstance(manifold, SPDMatrices) and 
+        not isinstance(manifold, Euclidean)):
             raise ValueError(
                 "Invalid Manifold object, "
                 "Should be of type SPDMatrices or Euclidean")
@@ -53,18 +54,18 @@ class LogNormal:
         n = mean.shape[-1]
         cov_n = (n * (n + 1)) // 2
         if cov is not None:
-            if (cov.ndim != 2 and 
-                (cov.shape[0] != cov_n or cov.shape[1] != cov_n)):
+            if (cov.ndim != 2 and
+            (cov.shape[0], cov.shape[1]) != (cov_n,cov_n)):
                 valid_shape = (self.cov_n, self.cov_n)
                 raise ValueError("Invalid Shape, "
                  "cov should have shape", valid_shape)
-        if cov is None:
-            cov = gs.eye(self.cov_n)    
 
-        self.manifold = manifold  
+        if cov is None:
+            cov = gs.eye(self.cov_n)
+
+        self.manifold = manifold
         self.mean = mean
         self.cov  = cov
-
 
     def _sample_spd(self, samples):
         n = self.mean.shape[-1]
@@ -76,7 +77,7 @@ class LogNormal:
         _samples = gs.zeros((samples, n, n))
         samples_euclidean = gs.random.multivariate_normal(
             mean_euclidean, self.cov, samples)
-        off_diag = samples_euclidean[:, n:]/gs.sqrt(2)
+        off_diag = samples_euclidean[:, n:] / gs.sqrt(2)
         _samples[:, i, i] = samples_euclidean[:, :n]
         _samples[:, j, k] = off_diag
         _samples[:, k, j] = off_diag
@@ -90,8 +91,8 @@ class LogNormal:
 
     def sample(self, samples=1):
 
-        if self.manifold == 'Euclidean':
+        if isinstance(self.manifold, Euclidean):
             return self._sample_euclidean(samples)
 
-        if self.manifold == 'SPDmanifold':
+        if isinstance(self.manifold, SPDMatrices):
             return self._sample_spd(samples)
