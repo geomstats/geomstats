@@ -1,6 +1,6 @@
-import geomstats.geometry.euclidean as euclidean
-import geomstats.geometry.spd_matrices as spd
 import geomstats.backend as gs
+from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.geometry.euclidean import  Euclidean
 
 class LogNormal:
     """ LogNormal Sampler 
@@ -23,10 +23,11 @@ class LogNormal:
 
     Examples:
     --------
-    import geomstats.geometry.spd_matrices as spd
+    import geomstats.backend as gs
+    from geomstats.geometry.spd_matrices import SPDMatrices
     from geomstats.sampling.lognormal import LogNormal
 
-    SPDManifold = spd.SPDmatrices(3)
+    SPDManifold = SPDMatrices(3)
     mean = 2*gs.eye(3)
     cov  = gs.eye(6)
     LogNormalSampler = LogNormal(SPDManifold, mean, cov)
@@ -39,8 +40,8 @@ class LogNormal:
     """
     def __init__(self, manifold, mean, cov=None, validate= True):
 
-        if (not isinstance(manifold, spd.SPDMatrices) and 
-            not isinstance(manifold, euclidean.Euclidean)):
+        if (not isinstance(manifold, SPDMatrices) and 
+            not isinstance(manifold, Euclidean)):
             raise ValueError(
                 "Invalid Manifold object, Should be of type SPDMatrices or Euclidean")
 
