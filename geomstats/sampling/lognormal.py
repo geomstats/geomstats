@@ -41,7 +41,7 @@ class LogNormal:
     def __init__(self, manifold, mean, cov=None):
 
         if (not isinstance(manifold, SPDMatrices) and 
-        not isinstance(manifold, Euclidean)):
+            not isinstance(manifold, Euclidean)):
             raise ValueError(
                 "Invalid Manifold object, "
                 "Should be of type SPDMatrices or Euclidean")
@@ -55,7 +55,7 @@ class LogNormal:
         cov_n = (n * (n + 1)) // 2
         if cov is not None:
             if (cov.ndim != 2 and
-            (cov.shape[0], cov.shape[1]) != (cov_n,cov_n)):
+                (cov.shape[0], cov.shape[1]) != (cov_n, cov_n)):
                 valid_shape = (self.cov_n, self.cov_n)
                 raise ValueError("Invalid Shape, "
                  "cov should have shape", valid_shape)
@@ -65,7 +65,7 @@ class LogNormal:
 
         self.manifold = manifold
         self.mean = mean
-        self.cov  = cov
+        self.cov = cov
 
     def _sample_spd(self, samples):
         n = self.mean.shape[-1]
