@@ -108,9 +108,9 @@ class ProductRiemannianMetric(RiemannianMetric):
             raise ValueError(
                 'Invalid default_point_type: \'vector\' expected.')
 
-        if point.shape[1] == self.dim:
+        if point.shape[-1] == self.dim:
             intrinsic = True
-        elif point.shape[1] == sum(dim + 1 for dim in self.dims):
+        elif point.shape[-1] == sum(dim + 1 for dim in self.dims):
             intrinsic = False
         else:
             raise ValueError(

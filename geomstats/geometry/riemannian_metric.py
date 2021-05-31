@@ -91,6 +91,8 @@ class RiemannianMetric(Connection, ABC):
     def __init__(self, dim, signature=None, default_point_type='vector'):
         super(RiemannianMetric, self).__init__(
             dim=dim, default_point_type=default_point_type)
+        if signature is None:
+            signature = (dim, 0)
         self.signature = signature
 
     def metric_matrix(self, base_point=None):

@@ -97,7 +97,14 @@ class Hyperboloid(_Hyperbolic, EmbeddedManifold):
         projected_point : array-like, shape=[..., dim + 1]
             Point projected on the hyperboloid.
         """
-        return self.regularize(point)
+        belongs = self.belongs(point)
+
+        # avoid dividing by 0
+        factor = gs.where(point[..., 0] == 0., 1., point[..., 0] + gs.atol)
+
+        first_coord = gs.where(belongs, 1., 1. / factor)
+        intrinsic = gs.einsum('...,...i->...i', first_coord, point)[..., 1:]
+        return self.intrinsic_to_extrinsic_coords(intrinsic)
 
     def regularize(self, point):
         """Regularize a point to the canonical representation.

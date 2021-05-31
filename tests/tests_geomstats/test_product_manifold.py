@@ -1,5 +1,6 @@
 """Unit tests for ProductManifold."""
 
+import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
@@ -18,11 +19,11 @@ class TestProductManifold(geomstats.tests.TestCase):
             manifolds=[Hypersphere(dim=2), Hyperboloid(dim=2)],
             default_point_type='matrix')
         self.space_vector = ProductManifold(
-            manifolds=[Hypersphere(dim=2), Hyperboloid(dim=5)],
+            manifolds=[Hypersphere(dim=2), Hyperboloid(dim=3)],
             default_point_type='vector')
 
     def test_dimension(self):
-        expected = 7
+        expected = 5
         result = self.space_vector.dim
         self.assertAllClose(result, expected)
 
@@ -150,3 +151,19 @@ class TestProductManifold(geomstats.tests.TestCase):
         result = self.space_matrix.metric.inner_product(logs, logs)
         expected = self.space_matrix.metric.squared_dist(base_point, expected)
         self.assertAllClose(result, expected)
+
+    def test_projection_and_belongs_vector(self):
+        space = self.space_vector
+        shape = (2, space.dim + 2)
+        result = helper.test_projection_and_belongs(
+            space, shape, atol=gs.atol * 100)
+        for res in result:
+            self.assertTrue(res)
+
+    def test_projection_and_belongs_matrix(self):
+        space = self.space_matrix
+        shape = (2, len(space.manifolds), space.manifolds[0].dim + 1)
+        result = helper.test_projection_and_belongs(
+            space, shape, atol=gs.atol * 100)
+        for res in result:
+            self.assertTrue(res)
