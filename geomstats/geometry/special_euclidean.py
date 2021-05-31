@@ -796,7 +796,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
 
         jacobian = gs.concatenate(
             [jacobian_block_line_1, jacobian_block_line_2], axis=-2)
-        return jacobian[0] if (len(point) == 1 or point.ndim == 1) \
+        return jacobian[0] if 1 in (len(point), point.ndim) \
             else jacobian
 
     def _exponential_matrix(self, rot_vec):

@@ -150,6 +150,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         expected = self.space_matrix.metric.squared_dist(base_point, expected)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_projection_and_belongs_vector(self):
         space = self.space_vector
         shape = (2, space.dim + 2)
@@ -158,6 +159,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         for res in result:
             self.assertTrue(res)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_projection_and_belongs_matrix(self):
         space = self.space_matrix
         shape = (2, len(space.manifolds), space.manifolds[0].dim + 1)
