@@ -121,7 +121,8 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
     def test_projection_and_belongs(self):
         gs.random.seed(4)
         shape = (self.n_samples, self.n, self.n)
-        result = helper.test_projection_and_belongs(self.group, shape)
+        result = helper.test_projection_and_belongs(
+            self.group, shape, gs.atol * 100)
         for res in result:
             self.assertTrue(res)
 

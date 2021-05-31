@@ -75,7 +75,7 @@ class ProductManifold(Manifold):
             else:
                 float_args[key] = value
         args_list = [
-            {key: arguments[key][j] for key in arguments.keys()}
+            {key: arguments[key][j] for key in arguments}
             for j in range(len(self.manifolds))]
         pool = joblib.Parallel(n_jobs=self.n_jobs)
         out = pool(
