@@ -116,7 +116,6 @@ class ProductManifold(Manifold):
         belongs = gs.all(belongs, axis=-1)
         return belongs
 
-    @geomstats.vectorization.decorator(['else', 'point'])
     def regularize(self, point):
         """Regularize the point into the manifold's canonical representation.
 
@@ -140,7 +139,7 @@ class ProductManifold(Manifold):
             intrinsic = self.metric.is_intrinsic(point)
             regularized_point = self._iterate_over_manifolds(
                 'regularize', {'point': point}, intrinsic)
-            regularized_point = gs.hstack(regularized_point)
+            regularized_point = gs.concatenate(regularized_point, axis=-1)
         elif point_type == 'matrix':
             regularized_point = [
                 manifold_i.regularize(point[..., i, :])
@@ -237,7 +236,7 @@ class ProductManifold(Manifold):
             tangent_vec = self._iterate_over_manifolds(
                 'to_tangent',
                 {'base_point': base_point, 'vector': vector}, intrinsic)
-            tangent_vec = gs.hstack(tangent_vec)
+            tangent_vec = gs.concatenate(tangent_vec, axis=-1)
         elif point_type == 'matrix':
             tangent_vec = [
                 manifold_i.to_tangent(vector[:, i], base_point[:, i])
@@ -276,7 +275,7 @@ class ProductManifold(Manifold):
                 'is_tangent',
                 {'base_point': base_point, 'vector': vector, 'atol': atol},
                 intrinsic)
-            is_tangent = gs.stack(is_tangent, axis=1)
+            is_tangent = gs.stack(is_tangent, axis=-1)
 
         else:
             is_tangent = gs.stack([
@@ -285,6 +284,6 @@ class ProductManifold(Manifold):
                 enumerate(self.manifolds)],
                 axis=1)
 
-        is_tangent = gs.all(is_tangent, axis=1)
+        is_tangent = gs.all(is_tangent, axis=-1)
         is_tangent = gs.to_ndarray(is_tangent, to_ndim=2, axis=1)
         return is_tangent

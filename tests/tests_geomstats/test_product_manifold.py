@@ -109,7 +109,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         expected[3, 3] = - 1
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_pytorch_only
     def test_inner_product_matrix_vector(self):
         euclidean = Euclidean(3)
         minkowski = Minkowski(3)
@@ -122,13 +122,11 @@ class TestProductManifold(geomstats.tests.TestCase):
         result = space.metric.metric_matrix(point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_regularize_vector(self):
         expected = self.space_vector.random_point(5)
         result = self.space_vector.regularize(expected)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_regularize_matrix(self):
         expected = self.space_matrix.random_point(5)
         result = self.space_matrix.regularize(expected)
@@ -167,3 +165,19 @@ class TestProductManifold(geomstats.tests.TestCase):
             space, shape, atol=gs.atol * 100)
         for res in result:
             self.assertTrue(res)
+
+    def test_to_tangent_is_tangent_vector(self):
+        space = self.space_vector
+        point = space.random_point(2)
+        vector = gs.random.rand(*point.shape)
+        tangent = space.to_tangent(vector, point)
+        result = space.is_tangent(tangent, point)
+        self.assertTrue(gs.all(result))
+
+        vector = gs.random.rand(*point.shape)
+        tangent = space.to_tangent(vector[0], point[0])
+        result = space.is_tangent(tangent, point[0])
+        self.assertTrue(result)
+
+        result = space.to_tangent(tangent, point[0])
+        self.assertAllClose(result, tangent)

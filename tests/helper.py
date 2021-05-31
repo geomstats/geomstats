@@ -160,3 +160,21 @@ def test_projection_and_belongs(space, shape, atol=gs.atol):
     projected = space.projection(point)
     result.append(gs.allclose(point, projected, atol=atol))
     return result
+
+
+def test_to_tangent_is_tangent(space, atol):
+    result = []
+
+    point = space.random_point(2)
+    vector = gs.random.rand(*point.shape)
+    tangent = space.to_tangent(vector, point)
+    is_tangent = space.is_tangent(tangent, point)
+    result.append(gs.all(is_tangent))
+
+    vector = gs.random.rand(*point.shape)
+    tangent = space.to_tangent(vector[0], point[0])
+    is_tangent = space.is_tangent(tangent, point[0])
+    result.append(is_tangent)
+
+    projection = space.to_tangent(tangent, point[0])
+    result.append(gs.allclose(projection, tangent))
