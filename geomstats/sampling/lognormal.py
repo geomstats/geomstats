@@ -57,8 +57,18 @@ class LogNormal:
         cov_n = (n * (n + 1)) // 2
         if cov is not None:
             if (
-                cov.ndim != 2 or
-                (cov.shape[0], cov.shape[1]) != (cov_n, cov_n)
+                isinstance(manifold, SPDMatrices) and
+                (cov.ndim != 2 or
+                (cov.shape[0], cov.shape[1]) != (cov_n, cov_n))
+            ):
+                valid_shape = (cov_n, cov_n)
+                raise ValueError("Invalid Shape, "
+                    "cov should have shape", valid_shape)
+            
+            if (
+                isintance(manifold, Euclidean) and
+                (cov.ndim != 2 or
+                (cov.shape[0], cov.shape[1] != (n,n))
             ):
                 valid_shape = (cov_n, cov_n)
                 raise ValueError("Invalid Shape, "
