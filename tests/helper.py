@@ -177,4 +177,5 @@ def test_to_tangent_is_tangent(space, atol=gs.atol):
     result.append(is_tangent)
 
     projection = space.to_tangent(tangent, point[0])
-    result.append(gs.allclose(projection, tangent), atol)
+    result.append(gs.allclose(projection, tangent, atol))
+    return result

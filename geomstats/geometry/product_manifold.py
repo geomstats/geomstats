@@ -239,9 +239,9 @@ class ProductManifold(Manifold):
             tangent_vec = gs.concatenate(tangent_vec, axis=-1)
         elif point_type == 'matrix':
             tangent_vec = [
-                manifold_i.to_tangent(vector[:, i], base_point[:, i])
+                manifold_i.to_tangent(vector[..., i, :], base_point[..., i, :])
                 for i, manifold_i in enumerate(self.manifolds)]
-            tangent_vec = gs.stack(tangent_vec, axis=1)
+            tangent_vec = gs.stack(tangent_vec, axis=-2)
         return tangent_vec
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
@@ -280,10 +280,8 @@ class ProductManifold(Manifold):
         else:
             is_tangent = gs.stack([
                 space.is_tangent(
-                    vector[:, i], base_point[:, i], atol=atol) for i, space in
-                enumerate(self.manifolds)],
-                axis=1)
+                    vector[..., i, :], base_point[..., i, :], atol=atol)
+                for i, space in enumerate(self.manifolds)], axis=-1)
 
         is_tangent = gs.all(is_tangent, axis=-1)
-        is_tangent = gs.to_ndarray(is_tangent, to_ndim=2, axis=1)
         return is_tangent

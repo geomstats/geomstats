@@ -170,16 +170,12 @@ class TestProductManifold(geomstats.tests.TestCase):
 
     def test_to_tangent_is_tangent_vector(self):
         space = self.space_vector
-        point = space.random_point(2)
-        vector = gs.random.rand(*point.shape)
-        tangent = space.to_tangent(vector, point)
-        result = space.is_tangent(tangent, point)
-        self.assertTrue(gs.all(result))
+        result = helper.test_to_tangent_is_tangent(space, atol=gs.atol)
+        for res in result:
+            self.assertTrue(res)
 
-        vector = gs.random.rand(*point.shape)
-        tangent = space.to_tangent(vector[0], point[0])
-        result = space.is_tangent(tangent, point[0])
-        self.assertTrue(result)
-
-        result = space.to_tangent(tangent, point[0])
-        self.assertAllClose(result, tangent)
+    def test_to_tangent_is_tangent_matrix(self):
+        space = self.space_matrix
+        result = helper.test_to_tangent_is_tangent(space, atol=gs.atol)
+        for res in result:
+            self.assertTrue(res)
