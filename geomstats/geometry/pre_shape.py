@@ -528,7 +528,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         nabla_x_a_y_e = gs.matmul(base_point, sylv_p(tmp_tg_vec_p)) \
             + tg_vec_b + gs.matmul(hor_tg_vec_y, sylv_p(tmp_tg_vec_y)) \
-            + gs.matmul(nabla_x_y, omega_ep) + scal_x_a_y_e * base_point
+            + gs.matmul(nabla_x_y, omega_ep) \
+            + gs.einsum('...,...ij->...ij', scal_x_a_y_e, base_point)
 
         return nabla_x_a_y_e, a_y_e
 
