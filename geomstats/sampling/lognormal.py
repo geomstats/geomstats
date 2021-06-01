@@ -60,7 +60,7 @@ class LogNormal:
                 cov.ndim != 2 or
                 (cov.shape[0], cov.shape[1]) != (cov_n, cov_n)
             ):
-                valid_shape = (self.cov_n, self.cov_n)
+                valid_shape = (cov_n, cov_n)
                 raise ValueError("Invalid Shape, "
                     "cov should have shape", valid_shape)
 
