@@ -54,28 +54,22 @@ class LogNormal:
                 type(manifold).__name__)
 
         n = mean.shape[-1]
-        cov_n = (n * (n + 1)) // 2
+        if isintance(manifold, Euclidean):
+            cov_n = n
+        else:
+            cov_n = (n * (n + 1)) // 2
+            
         if cov is not None:
             if (
-                isinstance(manifold, SPDMatrices) and
-                (cov.ndim != 2 or
-                (cov.shape[0], cov.shape[1]) != (cov_n, cov_n))
-            ):
-                valid_shape = (cov_n, cov_n)
-                raise ValueError("Invalid Shape, "
-                    "cov should have shape", valid_shape)
-            
-            if (
-                isintance(manifold, Euclidean) and
-                (cov.ndim != 2 or
-                (cov.shape[0], cov.shape[1] != (n,n))
+                cov.ndim != 2 or
+                (cov.shape[0], cov.shape[1]) != (cov_n, cov_n)
             ):
                 valid_shape = (cov_n, cov_n)
                 raise ValueError("Invalid Shape, "
                     "cov should have shape", valid_shape)
 
         if cov is None:
-            cov = gs.eye(self.cov_n)
+            cov = gs.eye(cov_n)
 
         self.manifold = manifold
         self.mean = mean
@@ -107,6 +101,5 @@ class LogNormal:
 
         if isinstance(self.manifold, Euclidean):
             return self._sample_euclidean(samples)
-
-        if isinstance(self.manifold, SPDMatrices):
+        else:
             return self._sample_spd(samples)
