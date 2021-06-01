@@ -57,7 +57,7 @@ class LogNormal:
         cov_n = (n * (n + 1)) // 2
         if cov is not None:
             if (
-                cov.ndim != 2 and
+                cov.ndim != 2 or
                 (cov.shape[0], cov.shape[1]) != (cov_n, cov_n)
             ):
                 valid_shape = (self.cov_n, self.cov_n)
