@@ -68,7 +68,7 @@ class LogNormal:
                 raise ValueError("Invalid Shape, "
                     "cov should have shape", valid_shape)
 
-        if cov is None:
+        else:
             cov = gs.eye(cov_n)
 
         self.manifold = manifold
@@ -81,7 +81,8 @@ class LogNormal:
         j, k = gs.triu_indices(n, k=1)
         sym_matrix = self.manifold.logm(self.mean)
         mean_euclidean = gs.hstack(
-            (sym_matrix[i, i].view(1, n), gs.sqrt(2) * sym_matrix[j, k].view(1, n)))[0]
+            (sym_matrix[i, i].reshape(1, n),
+             gs.sqrt(2) * sym_matrix[j, k].reshape(1, n)))[0]
         _samples = gs.zeros((samples, n, n))
         samples_euclidean = gs.random.multivariate_normal(
             mean_euclidean, self.cov, (samples,))
