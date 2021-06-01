@@ -81,13 +81,14 @@ class LogNormal:
         j, k = gs.triu_indices(n, k=1)
         sym_matrix = self.manifold.logm(self.mean)
         mean_euclidean = gs.hstack(
-            (sym_matrix[i, i].reshape(1, n),
-             gs.sqrt(2) * sym_matrix[j, k].reshape(1, n)))[0]
+            (gs.diagonal.reshape(1, n),
+             gs.sqrt(2) * gs.triu_to_vec(sym_matrix).reshape(1, n)))[0]
         _samples = gs.zeros((samples, n, n))
         samples_euclidean = gs.random.multivariate_normal(
             mean_euclidean, self.cov, (samples,))
+        diag = samples_euclidean[:, :n]
         off_diag = samples_euclidean[:, n:] / gs.sqrt(2)
-        _samples[:, i, i] = samples_euclidean[:, :n]
+        _samples[:, i, i] = diag
         _samples[:, j, k] = off_diag
         _samples[:, k, j] = off_diag
         samples_spd = self.manifold.expm(_samples)
