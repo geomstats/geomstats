@@ -700,8 +700,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         omega_xv_y = gs.matmul(tg_vec_y, omega_xv)
         omega_yv_x = gs.matmul(tg_vec_x, omega_yv)
         omega_xy_v = gs.matmul(tg_vec_v, omega_xy)
-        sq_norm_v_p = Matrices.frobenius_product(tg_vec_v, tg_vec_v) * \
-            base_point
+        norms = Matrices.frobenius_product(tg_vec_v, tg_vec_v)
+        sq_norm_v_p = gs.einsum('...,...ij->...ij', norms, base_point)
 
         tmp_mat = gs.matmul(p_top, 3. * omega_xv_y + 2. * omega_yv_x) + \
             gs.matmul(y_top, omega_xy_x)
