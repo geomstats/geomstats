@@ -599,9 +599,10 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             space.integrability_tensor(
                 hor_x, a_y_a_x_y, base_point)
 
-        nabla_x_a_y_a_x_y_qp, a_x_a_y_a_x_y_qp, nabla_x_v_qp, a_y_a_x_y_qp, \
-        ver_v_qp = space.iterated_integrability_tensor_derivative_parallel(
-            hor_x, hor_y, base_point)
+        nabla_x_a_y_a_x_y_qp, a_x_a_y_a_x_y_qp, \
+            nabla_x_v_qp, a_y_a_x_y_qp, ver_v_qp = \
+            space.iterated_integrability_tensor_derivative_parallel(
+                hor_x, hor_y, base_point)
         self.assertAllClose(ver_v, ver_v_qp)
         self.assertAllClose(a_y_a_x_y, a_y_a_x_y_qp)
         self.assertAllClose(nabla_x_v, nabla_x_v_qp)
@@ -695,8 +696,8 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = metric.directional_curvature_derivative(
             coef_x * hor_x, coef_y * hor_y, base_point)
         expected = coef_x ** 2 * coef_y ** 2 * \
-                   metric.directional_curvature_derivative(
-                       hor_x, hor_y, base_point)
+            metric.directional_curvature_derivative(
+                hor_x, hor_y, base_point)
         self.assertAllClose(result, expected)
 
     def test_parallel_transport(self):
