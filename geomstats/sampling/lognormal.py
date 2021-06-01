@@ -54,7 +54,7 @@ class LogNormal:
                 type(manifold).__name__)
 
         n = mean.shape[-1]
-        if isintance(manifold, Euclidean):
+        if isinstance(manifold, Euclidean):
             cov_n = n
         else:
             cov_n = (n * (n + 1)) // 2
