@@ -559,3 +559,15 @@ class TestHyperbolic(geomstats.tests.TestCase):
         results = helper.test_parallel_transport(space, metric, shape)
         for res in results:
             self.assertTrue(res)
+
+    def test_projection_and_belongs(self):
+        shape = (self.n_samples, self.dimension + 1)
+        result = helper.test_projection_and_belongs(
+            self.space, shape, atol=gs.atol * 100)
+        for res in result:
+            self.assertTrue(res)
+
+        point = gs.array([0., 1., 0., 0.])
+        projected = self.space.projection(point)
+        result = self.space.belongs(projected)
+        self.assertTrue(result)

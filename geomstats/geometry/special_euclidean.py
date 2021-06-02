@@ -98,9 +98,7 @@ def submersion(point):
     rot = point[..., :n, :n]
     vec = point[..., n, :n]
     scalar = point[..., n, n]
-    det = gs.linalg.det(rot)
-    submersed_rot = gs.einsum(
-        '...,...ij->...ij', det, Matrices.mul(rot, Matrices.transpose(rot)))
+    submersed_rot = Matrices.mul(rot, Matrices.transpose(rot))
     return homogeneous_representation(
         submersed_rot, vec, point.shape, constant=scalar)
 
@@ -159,7 +157,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, EmbeddedManifold):
     def __init__(self, n):
         super().__init__(
             n=n + 1, dim=int((n * (n + 1)) / 2),
-            embedding_space=GeneralLinear(n + 1),
+            embedding_space=GeneralLinear(n + 1, positive_det=True),
             submersion=submersion, value=gs.eye(n + 1),
             tangent_submersion=tangent_submersion,
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n))
@@ -796,7 +794,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
 
         jacobian = gs.concatenate(
             [jacobian_block_line_1, jacobian_block_line_2], axis=-2)
-        return jacobian[0] if (len(point) == 1 or point.ndim == 1) \
+        return jacobian[0] if 1 in (len(point), point.ndim) \
             else jacobian
 
     def _exponential_matrix(self, rot_vec):

@@ -371,6 +371,7 @@ class LieGroup(Manifold, abc.ABC):
             metric_mat_at_identity=gs.eye(self.dim),
             left_or_right='right')
 
+        self.metric = self.left_canonical_metric
         self.metrics = []
 
     def get_identity(self, point_type=None):

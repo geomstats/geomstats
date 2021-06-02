@@ -23,7 +23,7 @@ class SPDMatrices(SymmetricMatrices, OpenSet):
     def __init__(self, n):
         super(SPDMatrices, self).__init__(
             dim=int(n * (n + 1) / 2), n=n,
-            ambient_manifold=SymmetricMatrices(n))
+            ambient_space=SymmetricMatrices(n))
 
     def belongs(self, mat, atol=gs.atol):
         """Check if a matrix is symmetric with positive eigenvalues.
@@ -352,52 +352,6 @@ class SPDMatrices(SymmetricMatrices, OpenSet):
             dim_3_mat, gs.log, check_positive=True)
         logm = gs.reshape(logm, mat.shape)
         return logm
-
-    # def is_tangent(self, vector, base_point=None, atol=gs.atol):
-    #     """Check whether the vector is tangent at base_point.
-    #
-    #     A "vector" is tangent to the manifold of SPD matrices if it is a
-    #     symmetric matrix.
-    #
-    #     Parameters
-    #     ----------
-    #     vector : array-like, shape=[..., n, n]
-    #         Matrix.
-    #     base_point : array-like, shape=[..., n, n]
-    #         Point on the manifold.
-    #         Optional, default: None.
-    #     atol : float
-    #         Absolute tolerance.
-    #         Optional, default: backend atol.
-    #
-    #     Returns
-    #     -------
-    #     is_tangent : bool
-    #         Boolean denoting if vector is a tangent vector at the base point.
-    #     """
-    #     return super(SPDMatrices, self).belongs(vector, atol)
-    #
-    # def to_tangent(self, vector, base_point=None):
-    #     """Project a vector to a tangent space of the manifold.
-    #
-    #     A "vector" is tangent to the manifold of SPD matrices if it is a
-    #     symmetric matrix, so the symmetric component of the input matrix is
-    #     returned.
-    #
-    #     Parameters
-    #     ----------
-    #     vector : array-like, shape=[..., n, n]
-    #         Matrix.
-    #     base_point : array-like, shape=[..., n, n]
-    #         Point on the manifold.
-    #         Optional, default: None.
-    #
-    #     Returns
-    #     -------
-    #     tangent_vec : array-like, shape=[..., n, n]
-    #         Tangent vector at base point.
-    #     """
-    #     return super(SPDMatrices, self).projection(vector)
 
 
 class SPDMetricAffine(RiemannianMetric):

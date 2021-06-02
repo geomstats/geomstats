@@ -61,7 +61,7 @@ class DirichletDistributions(OpenSet):
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
         belongs = gs.logical_and(
-            belongs, gs.all(gs.greater(point, atol), axis=-1))
+            belongs, gs.all(point >= atol, axis=-1))
         return belongs
 
     def random_point(self, n_samples=1, bound=5.):
