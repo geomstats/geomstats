@@ -783,7 +783,7 @@ def mat_from_diag_triu_tril(diag, triu, tril):
     n = diag.shape[-1]
     i, = diag_indices(n, ndim=1)
     j, k = triu_indices(n, k= 1)
-    mat = torch.zeros((n, ) + diag.shape)
+    mat = torch.zeros((diag.shape+ (n, )))
     mat[..., i, i] = diag
     mat[..., j, k] = triu
     mat[..., k, j] = tril

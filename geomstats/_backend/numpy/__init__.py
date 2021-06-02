@@ -380,7 +380,7 @@ def mat_from_diag_triu_tril(diag, triu, tril):
     n = diag.shape[-1]
     i, = np.diag_indices(n, ndim=1)
     j, k = np.triu_indices(n, k= 1)
-    mat = np.zeros((n, ) + diag.shape)
+    mat = np.zeros(diag.shape + (n, ))
     mat[..., i, i] = diag
     mat[..., j, k] = triu
     mat[..., k, j] = tril
