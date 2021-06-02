@@ -47,11 +47,11 @@ class TestLogNormal(geomstats.tests.TestCase):
         cov = gs.eye(self.n) 
         data = LogNormal(self.Euclidean, mean, cov).sample(5000)
         log_data = gs.log(data)
-        fm = gs.mean(log_data, mean(axis=0))
+        fm = gs.mean(log_data, axis=0)
 
         expected = mean
         result = fm
-        self.assertAllClose(result, expected, atol=1e-2)
+        self.assertAllClose(result, expected, atol=5*1e-2)
 
     def test_spd_frechet_mean(self):
         """Test if the frechet mean of the samples is close to mean"""
@@ -63,7 +63,7 @@ class TestLogNormal(geomstats.tests.TestCase):
 
         expected = mean
         result = fm
-        self.assertAllClose(result, expected, atol=1e-2)
+        self.assertAllClose(result, expected, atol=5*1e-2)
 
     def test_error_handling(self):
         """Test if the erros are raised for invalid parameters"""
