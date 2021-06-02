@@ -58,7 +58,7 @@ class LogNormal:
             cov_n = n
         else:
             cov_n = (n * (n + 1)) // 2
-            
+
         if cov is not None:
             if (
                 cov.ndim != 2 or
@@ -75,19 +75,19 @@ class LogNormal:
         self.mean = mean
         self.cov = cov
 
-    #TODO (sait): simplify hstack after pytorch version upgrade
+    # TODO (sait): simplify hstack after pytorch version upgrade
     def _sample_spd(self, samples):
         n = self.mean.shape[-1]
         sym_matrix = self.manifold.logm(self.mean)
         mean_euclidean = gs.hstack(
             (gs.diagonal(sym_matrix)[None, :],
-             gs.sqrt(2.0) * gs.triu_to_vec(sym_matrix, k = 1)[None, :]))[0]
+             gs.sqrt(2.0) * gs.triu_to_vec(sym_matrix, k=1)[None, :]))[0]
         samples_euclidean = gs.random.multivariate_normal(
             mean_euclidean, self.cov, (samples,))
         diag = samples_euclidean[:, :n]
         off_diag = samples_euclidean[:, n:] / gs.sqrt(2.0)
         samples_sym = gs.mat_from_diag_triu_tril(
-            diag=diag, triu=off_diag, tril=off_diag)
+            diag=diag, tri_upp=off_diag, tri_low=off_diag)
         samples_spd = self.manifold.expm(samples_sym)
         return samples_spd
 
