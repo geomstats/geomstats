@@ -828,6 +828,8 @@ def vec_to_tril(vec):
 
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
+    """build matrices (or batch of matrices) from diag and
+    lower traingular and upper traingular matrices"""
     _triu = vec_to_triu(tri_upp)
     _tril = vec_to_tril(tri_low)
     triu_tril = _triu + _tril
