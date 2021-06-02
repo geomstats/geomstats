@@ -44,26 +44,26 @@ class TestLogNormal(geomstats.tests.TestCase):
     def test_euclidean_frechet_mean(self):
         """Test if the frechet mean of the samples is close to mean"""
         mean = gs.zeros(self.n)
-        cov = gs.eye(self.n) 
+        cov = gs.eye(self.n)
         data = LogNormal(self.Euclidean, mean, cov).sample(5000)
         log_data = gs.log(data)
         fm = gs.mean(log_data, axis=0)
 
         expected = mean
         result = fm
-        self.assertAllClose(result, expected, atol=5*1e-2)
+        self.assertAllClose(result, expected, atol=5 * 1e-2)
 
     def test_spd_frechet_mean(self):
         """Test if the frechet mean of the samples is close to mean"""
         mean = gs.eye(self.n)
-        cov = gs.eye(self.spd_cov_n) 
+        cov = gs.eye(self.spd_cov_n)
         data = LogNormal(self.SPDManifold, mean, cov).sample(5000)
         _fm = gs.mean(self.SPDManifold.logm(data), axis=0)
         fm = self.SPDManifold.expm(_fm)
 
         expected = mean
         result = fm
-        self.assertAllClose(result, expected, atol=5*1e-2)
+        self.assertAllClose(result, expected, atol=5 * 1e-2)
 
     def test_error_handling(self):
         """Test if the erros are raised for invalid parameters"""
@@ -71,7 +71,7 @@ class TestLogNormal(geomstats.tests.TestCase):
         spd_mean = gs.eye(self.n)
         invalid_eu_mean = gs.zeros(self.n + 1)
         invalid_spd_mean = gs.zeros((self.n, self.n))
-        invalid_cov = gs.eye(self.n+1)
+        invalid_cov = gs.eye(self.n + 1)
         invalid_manifold = Hypersphere(dim=2)
 
         with self.assertRaises(ValueError):
@@ -81,6 +81,6 @@ class TestLogNormal(geomstats.tests.TestCase):
         with self.assertRaises(ValueError):
             LogNormal(self.SPDManifold, invalid_spd_mean)
         with self.assertRaises(ValueError):
-            LogNormal(self.Euclidean, eu_mean, invalid_cov)    
+            LogNormal(self.Euclidean, eu_mean, invalid_cov)
         with self.assertRaises(ValueError):
             LogNormal(self.SPDManifold, spd_mean, invalid_cov)
