@@ -47,8 +47,8 @@ def uniform(low=0.0, high=1.0, size=None):
 
 
 def multivariate_normal(mean, cov, size=None):
-    if size == None:
+    if size is None:
         size = ()
     return tfd.Sample(
-      tfd.MultivariateNormalFullCovariance(loc=mean, covariance_matrix=cov),
-      sample_shape=size).sample()
+        tfd.MultivariateNormalFullCovariance(loc=mean, covariance_matrix=cov),
+        sample_shape=size).sample()
