@@ -10,8 +10,8 @@ class LogNormal:
 
     Parameters
     ----------
-    manifold: str, {\'Euclidean\', \'SPDmanifold\'}
-        Name of the Manifold
+    manifold: Manifold Object
+        Manifold over which to sample
     mean: array-like, shape=[..., dim]
         Mean of the Distribution.
     cov: array-like, shape=[..., dim]
