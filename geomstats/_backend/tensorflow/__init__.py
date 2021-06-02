@@ -797,7 +797,7 @@ def vec_to_triu(vec):
     """Takes vec (or batch of vec) and forms upper traingular matrix out of it
     """
     n = vec.shape[-1]
-    triu_shape = (n, ) + vec.shape
+    triu_shape = vec.shape + (n, )
     ones = tf.ones(triu_shape)
     vec = tf.reshape(vec, [-1])
     mask_a = tf.linalg.band_part(ones, 0, -1)
@@ -814,7 +814,7 @@ def vec_to_tril(vec):
     """Takes vec (or batch of vec) and forms lower traingular matrix out of it
     """
     n = vec.shape[-1]
-    tril_shape = (n, ) + vec.shape
+    tril_shape = vec.shape + (n, )
     ones = tf.ones(tril_shape)
     vec = tf.reshape(vec, [-1])
     mask_a = tf.linalg.band_part(ones, -1, 0)
