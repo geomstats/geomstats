@@ -383,6 +383,8 @@ def triu_to_vec(x, k=0):
     return x[..., rows, cols]
 
 def mat_from_diag_triu_tril(diag, triu, tril):
+    """buld matrices (or batch of matrices from diag and
+    lower traingular and upper traingular matrices"""
     n = diag.shape[-1]
     i, = np.diag_indices(n, ndim=1)
     j, k = np.triu_indices(n, k= 1)
