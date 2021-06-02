@@ -33,7 +33,6 @@ from tensorflow import (  # NOQA
     linspace,
     logical_and,
     logical_or,
-    mat_from_diag_triu_tril,
     maximum,
     meshgrid,
     ones,
@@ -821,7 +820,7 @@ def vec_to_tril(vec):
     triu = tf.sparse.to_dense(sparse)
     return triu
 
-    
+
 def mat_from_diag_triu_tril(diag, triu, tril):
     n = diag.shape[-1]
     triu = vec_to_triu(triu)

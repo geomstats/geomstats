@@ -35,7 +35,6 @@ from torch import (  # NOQA
     isnan,
     log,
     lt as less,
-    mat_from_diag_triu_tril,
     matmul,
     max as amax,
     mean,

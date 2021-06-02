@@ -56,7 +56,6 @@ from autograd.numpy import (  # NOQA
     log,
     logical_and,
     logical_or,
-    mat_from_diag_triu_tril,
     matmul,
     maximum,
     mean,
@@ -386,4 +385,3 @@ def mat_from_diag_triu_tril(diag, triu, tril):
     mat[..., j, k] = triu
     mat[..., k, j] = tril
     return mat
-    
