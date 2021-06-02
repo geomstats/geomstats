@@ -8,7 +8,7 @@ from geomstats.geometry.spd_matrices import SPDMatrices
 class LogNormal:
     """LogNormal Sampler
 
-    Parameters:
+    Parameters
     ----------
     manifold: str, {\'Euclidean\', \'SPDmanifold\'}
         Name of the Manifold
@@ -16,11 +16,11 @@ class LogNormal:
         Mean of the Distribution.
     cov: array-like, shape=[..., dim]
         Covariance of the Distribution.
-    Returns:
+    Returns
     --------
     samples
 
-    Examples:
+    Examples
     --------
     import geomstats.backend as gs
     from geomstats.geometry.spd_matrices import SPDMatrices
@@ -32,7 +32,7 @@ class LogNormal:
     LogNormalSampler = LogNormal(SPDManifold, mean, cov)
     data = LogNormalSampler.sample(5)
 
-    References:
+    References
     ----------
     Lognormal Distributions and Geometric Averages of
     Symmetric Positive Definite Matrices
