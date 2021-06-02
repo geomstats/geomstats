@@ -750,7 +750,7 @@ def tril(m, k=0):
 
 def diag_indices(*args, **kwargs):
     return tuple(map(tf.convert_to_tensor, _np.diag_indices(*args, **kwargs)))
-    
+
 
 def tril_indices(*args, **kwargs):
     return tuple(map(tf.convert_to_tensor, _np.tril_indices(*args, **kwargs)))
@@ -798,14 +798,14 @@ def vec_to_triu(vec):
     """
     n = vec.shape[-1]
     triu_shape = vec.shape + (n, )
-    ones = tf.ones(triu_shape)
+    _ones = tf.ones(triu_shape)
     vec = tf.reshape(vec, [-1])
-    mask_a = tf.linalg.band_part(ones, 0, -1)
-    mask_b = tf.linalg.band_part(ones, 0, 0)
+    mask_a = tf.linalg.band_part(_ones, 0, -1)
+    mask_b = tf.linalg.band_part(_ones, 0, 0)
     mask = tf.subtract(mask_a, mask_b)
     non_zero = tf.not_equal(mask, tf.constant(0.0))
     indices = tf.where(non_zero)
-    sparse = tf.SparseTensor(indices, values= vec, dense_shape=triu_shape)
+    sparse = tf.SparseTensor(indices, values=vec, dense_shape=triu_shape)
     triu = tf.sparse.to_dense(sparse)
     return triu
 
@@ -815,21 +815,21 @@ def vec_to_tril(vec):
     """
     n = vec.shape[-1]
     tril_shape = vec.shape + (n, )
-    ones = tf.ones(tril_shape)
+    _ones = tf.ones(tril_shape)
     vec = tf.reshape(vec, [-1])
-    mask_a = tf.linalg.band_part(ones, -1, 0)
-    mask_b = tf.linalg.band_part(ones, 0, 0)
+    mask_a = tf.linalg.band_part(_ones, -1, 0)
+    mask_b = tf.linalg.band_part(_ones, 0, 0)
     mask = tf.subtract(mask_a, mask_b)
     non_zero = tf.not_equal(mask, tf.constant(0.0))
     indices = tf.where(non_zero)
-    sparse = tf.SparseTensor(indices, values= vec, dense_shape=tril_shape)
+    sparse = tf.SparseTensor(indices, values=vec, dense_shape=tril_shape)
     tril = tf.sparse.to_dense(sparse)
     return tril
 
 
-def mat_from_diag_triu_tril(diag, triu, tril):
-    triu = vec_to_triu(triu)
-    tril = vec_to_tril(tril)
-    triu_tril = triu + tril
+def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
+    _triu = vec_to_triu(tri_upp)
+    _tril = vec_to_tril(tri_low)
+    triu_tril = _triu + _tril
     mat = tf.linalg.set_diag(triu_tril, diag)
     return mat
