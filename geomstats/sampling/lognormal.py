@@ -18,7 +18,8 @@ class LogNormal:
         Covariance of the Distribution.
     Returns
     --------
-    samples
+    samples: array-like, shape[..., dim]
+        Samples from LogNormal distribution
 
     Examples
     --------
@@ -66,7 +67,7 @@ class LogNormal:
             ):
                 valid_shape = (cov_n, cov_n)
                 raise ValueError("Invalid Shape, "
-                    "cov should have shape", valid_shape)
+                                 "cov should have shape", valid_shape)
 
         else:
             cov = gs.eye(cov_n)
