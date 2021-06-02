@@ -10,12 +10,14 @@ class LogNormal:
 
     Parameters
     ----------
-    manifold: Manifold Object
-        Manifold over which to sample
+    manifold: Manifold obj, {Euclidean(), SPDMatrices()}
+        Manifold to sample over. Manifold should
+        be of instance of Euclidean or SPDMatrices
     mean: array-like, shape=[..., dim]
         Mean of the Distribution.
     cov: array-like, shape=[..., dim]
         Covariance of the Distribution.
+
     Returns
     --------
     samples: array-like, shape[..., dim]
@@ -35,9 +37,10 @@ class LogNormal:
 
     References
     ----------
-    Lognormal Distributions and Geometric Averages of
-    Symmetric Positive Definite Matrices
-    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5222531/
+    .. [LNGASPD2016] A. Schwartzman,
+    "LogNormal distributions and"
+    "Geometric Averages of Symmetric Positive Definite Matrices.",
+    International Statistical Review 84.3 (2016): 456-486.
     """
     def __init__(self, manifold, mean, cov=None):
 
@@ -98,7 +101,6 @@ class LogNormal:
         return gs.exp(_samples)
 
     def sample(self, samples=1):
-
         if isinstance(self.manifold, Euclidean):
             return self._sample_euclidean(samples)
         return self._sample_spd(samples)
