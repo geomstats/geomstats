@@ -792,13 +792,13 @@ def triu_to_vec(x, k=0):
     rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
 
-def mat_from_diag_triu_tril(diag, triu, tril):
+
+def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     n = diag.shape[-1]
     i, = diag_indices(n, ndim=1)
-    j, k = triu_indices(n, k= 1)
-    mat = torch.zeros((diag.shape+ (n, )))
+    j, k = triu_indices(n, k=1)
+    mat = torch.zeros((diag.shape + (n, )))
     mat[..., i, i] = diag
-    mat[..., j, k] = triu
-    mat[..., k, j] = tril
+    mat[..., j, k] = tri_upp
+    mat[..., k, j] = tri_low
     return mat
-    
