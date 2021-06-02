@@ -108,14 +108,12 @@ class ProductRiemannianMetric(RiemannianMetric):
             raise ValueError(
                 'Invalid default_point_type: \'vector\' expected.')
 
-        if point.shape[1] == self.dim:
-            intrinsic = True
-        elif point.shape[1] == sum(dim + 1 for dim in self.dims):
-            intrinsic = False
-        else:
-            raise ValueError(
-                'Input shape does not match the dimension of the manifold')
-        return intrinsic
+        if point.shape[-1] == self.dim:
+            return True
+        if point.shape[-1] == sum(dim + 1 for dim in self.dims):
+            return False
+        raise ValueError(
+            'Input shape does not match the dimension of the manifold')
 
     @staticmethod
     def _get_method(metric, method_name, metric_args):

@@ -17,19 +17,18 @@ class QuotientMetric(RiemannianMetric):
     ----------
     fiber_bundle : geomstats.geometry.fiber_bundle.FiberBundle
         Bundle structure to define the quotient.
-    group : LieGroup
-        Group acting on the right.
-        Optional, default : None. In this case the group must be passed to
-        the fiber bundle instance.
-    ambient_metric : RiemannianMetric
-        Metric of the total space.
-        Optional, default : None. In this case, the total space must have a
-        metric as an attribute.
     """
 
     def __init__(self, fiber_bundle: FiberBundle, dim: int = None):
         if dim is None:
-            dim = fiber_bundle.dim
+            if fiber_bundle.base is not None:
+                dim = fiber_bundle.base.dim
+            elif fiber_bundle.group is not None:
+                dim = fiber_bundle.dim - fiber_bundle.group.dim
+            else:
+                raise ValueError('Either the base manifold, '
+                                 'its dimension, or the group acting on the '
+                                 'total space must be provided.')
         super(QuotientMetric, self).__init__(
             dim=dim,
             default_point_type=fiber_bundle.default_point_type)
@@ -93,7 +92,7 @@ class QuotientMetric(RiemannianMetric):
         lift = self.fiber_bundle.lift(base_point)
         horizontal_vec = self.fiber_bundle.horizontal_lift(
             tangent_vec, lift)
-        return self.fiber_bundle.submersion(
+        return self.fiber_bundle.riemannian_submersion(
             self.ambient_metric.exp(horizontal_vec, lift))
 
     def log(self, point, base_point, **kwargs):
@@ -115,7 +114,7 @@ class QuotientMetric(RiemannianMetric):
         point_fiber = self.fiber_bundle.lift(point)
         bp_fiber = self.fiber_bundle.lift(base_point)
         aligned = self.fiber_bundle.align(point_fiber, bp_fiber, **kwargs)
-        return self.fiber_bundle.tangent_submersion(
+        return self.fiber_bundle.tangent_riemannian_submersion(
             self.ambient_metric.log(aligned, bp_fiber), bp_fiber)
 
     def squared_dist(self, point_a, point_b, **kwargs):
@@ -177,33 +176,31 @@ class QuotientMetric(RiemannianMetric):
         """
         bundle = self.fiber_bundle
         point_fiber = bundle.lift(base_point)
-        horizontal_a = bundle.horizontal_lift(
-            tangent_vec_a, base_point)
-        horizontal_b = bundle.horizontal_lift(
-            tangent_vec_b, base_point)
-        horizontal_c = bundle.horizontal_lift(
-            tangent_vec_c, base_point)
+        horizontal_a = bundle.horizontal_lift(tangent_vec_a, base_point)
+        horizontal_b = bundle.horizontal_lift(tangent_vec_b, base_point)
+        horizontal_c = bundle.horizontal_lift(tangent_vec_c, base_point)
+
         top_curvature = self.ambient_metric.curvature(
             horizontal_a, horizontal_b, horizontal_c, point_fiber)
-        projected_top_curvature = bundle.tangent_submersion(
+        projected_top_curvature = bundle.tangent_riemannian_submersion(
             top_curvature, point_fiber)
 
         f_ab = bundle.integrability_tensor(
             horizontal_a, horizontal_b, point_fiber)
         f_c_f_ab = bundle.integrability_tensor(
             horizontal_c, f_ab, point_fiber)
-        f_c_f_ab = bundle.tangent_submersion(f_c_f_ab, point_fiber)
+        f_c_f_ab = bundle.tangent_riemannian_submersion(f_c_f_ab, point_fiber)
 
         f_ac = bundle.integrability_tensor(
             horizontal_a, horizontal_c, point_fiber)
         f_b_f_ac = bundle.integrability_tensor(
             horizontal_b, f_ac, point_fiber)
-        f_b_f_ac = bundle.tangent_submersion(f_b_f_ac, point_fiber)
+        f_b_f_ac = bundle.tangent_riemannian_submersion(f_b_f_ac, point_fiber)
 
         f_bc = bundle.integrability_tensor(
             horizontal_b, horizontal_c, point_fiber)
         f_a_f_bc = bundle.integrability_tensor(
             horizontal_a, f_bc, point_fiber)
-        f_a_f_bc = bundle.tangent_submersion(f_a_f_bc, point_fiber)
+        f_a_f_bc = bundle.tangent_riemannian_submersion(f_a_f_bc, point_fiber)
 
         return projected_top_curvature - 2 * f_c_f_ab + f_a_f_bc - f_b_f_ac

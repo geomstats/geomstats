@@ -4,13 +4,14 @@ import math
 
 import geomstats.backend as gs
 import geomstats.vectorization
+from geomstats.geometry.base import OpenSet
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
-class SPDMatrices(SymmetricMatrices):
+class SPDMatrices(SymmetricMatrices, OpenSet):
     """Class for the manifold of symmetric positive definite (SPD) matrices.
 
     Parameters
@@ -21,8 +22,8 @@ class SPDMatrices(SymmetricMatrices):
 
     def __init__(self, n):
         super(SPDMatrices, self).__init__(
-            n=n,
-            dim=int(n * (n + 1) / 2))
+            dim=int(n * (n + 1) / 2), n=n,
+            ambient_space=SymmetricMatrices(n))
 
     def belongs(self, mat, atol=gs.atol):
         """Check if a matrix is symmetric with positive eigenvalues.
@@ -345,53 +346,12 @@ class SPDMatrices(SymmetricMatrices):
         log : array_like, shape=[..., n, n]
             Matrix logarithm of mat.
         """
-        return cls.apply_func_to_eigvals(mat, gs.log, check_positive=True)
-
-    def is_tangent(self, vector, base_point=None, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
-
-        A "vector" is tangent to the manifold of SPD matrices if it is a
-        symmetric matrix.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., n, n]
-            Matrix.
-        base_point : array-like, shape=[..., n, n]
-            Point on the manifold.
-            Optional, default: None.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_tangent : bool
-            Boolean denoting if vector is a tangent vector at the base point.
-        """
-        return super(SPDMatrices, self).belongs(vector, atol)
-
-    def to_tangent(self, vector, base_point=None):
-        """Project a vector to a tangent space of the manifold.
-
-        A "vector" is tangent to the manifold of SPD matrices if it is a
-        symmetric matrix, so the symmetric component of the input matrix is
-        returned.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., n, n]
-            Matrix.
-        base_point : array-like, shape=[..., n, n]
-            Point on the manifold.
-            Optional, default: None.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        """
-        return super(SPDMatrices, self).projection(vector)
+        n = mat.shape[-1]
+        dim_3_mat = gs.reshape(mat, [-1, n, n])
+        logm = cls.apply_func_to_eigvals(
+            dim_3_mat, gs.log, check_positive=True)
+        logm = gs.reshape(logm, mat.shape)
+        return logm
 
 
 class SPDMetricAffine(RiemannianMetric):
@@ -505,7 +465,7 @@ class SPDMetricAffine(RiemannianMetric):
         tangent_vec_at_id = Matrices.mul(
             inv_sqrt_base_point, tangent_vec, inv_sqrt_base_point)
 
-        tangent_vec_at_id = GeneralLinear.to_symmetric(tangent_vec_at_id)
+        tangent_vec_at_id = Matrices.to_symmetric(tangent_vec_at_id)
         exp_from_id = SymmetricMatrices.expm(tangent_vec_at_id)
 
         exp = Matrices.mul(
@@ -568,7 +528,7 @@ class SPDMetricAffine(RiemannianMetric):
         """
         point_near_id = Matrices.mul(
             inv_sqrt_base_point, point, inv_sqrt_base_point)
-        point_near_id = GeneralLinear.to_symmetric(point_near_id)
+        point_near_id = Matrices.to_symmetric(point_near_id)
 
         log_at_id = SPDMatrices.logm(point_near_id)
         log = Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
@@ -638,9 +598,9 @@ class SPDMetricAffine(RiemannianMetric):
         """
         end_point = self.exp(tangent_vec_b, base_point)
         inverse_base_point = GeneralLinear.inverse(base_point)
-        congruence_mat = GeneralLinear.mul(end_point, inverse_base_point)
+        congruence_mat = Matrices.mul(end_point, inverse_base_point)
         congruence_mat = gs.linalg.sqrtm(congruence_mat)
-        return GeneralLinear.congruent(tangent_vec_a, congruence_mat)
+        return Matrices.congruent(tangent_vec_a, congruence_mat)
 
 
 class SPDMetricBuresWasserstein(RiemannianMetric):

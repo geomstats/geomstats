@@ -13,6 +13,7 @@ from tensorflow import (  # NOQA
     argmin,
     asin as arcsin,
     atan2 as arctan2,
+    broadcast_to,
     clip_by_value as clip,
     concat,
     cos,
@@ -41,6 +42,7 @@ from tensorflow import (  # NOQA
     reduce_max as amax,
     reduce_mean as mean,
     reduce_min as amin,
+    reduce_prod as prod,
     reshape,
     searchsorted,
     shape,
@@ -93,6 +95,10 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 def to_numpy(x):
     return x.numpy()
+
+
+def one_hot(labels, num_classes):
+    return tf.one_hot(labels, num_classes, dtype=tf.uint8)
 
 
 def concatenate(x, axis=0, out=None):

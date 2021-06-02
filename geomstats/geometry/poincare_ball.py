@@ -7,7 +7,9 @@ import logging
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry._hyperbolic import _Hyperbolic
+from geomstats.geometry.base import OpenSet
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 EPSILON = 1e-6
@@ -16,11 +18,11 @@ PI_2_3 = gs.power(gs.array([2. * gs.pi]), gs.array([2 / 3]))
 SQRT_2 = gs.sqrt(2.)
 
 
-class PoincareBall(Hyperbolic):
-    """Class for the n-dimensional hyperbolic space.
+class PoincareBall(_Hyperbolic, OpenSet):
+    """Class for the n-dimensional Poincare ball.
 
-    Class for the n-dimensional hyperbolic space
-    as embedded in the Poincaré ball model.
+    Class for the n-dimensional Poincaré ball model. For other
+    representations of hyperbolic spaces see the `Hyperbolic` class.
 
     Parameters
     ----------
@@ -37,11 +39,10 @@ class PoincareBall(Hyperbolic):
 
     def __init__(self, dim, scale=1):
         super(PoincareBall, self).__init__(
-            dim=dim,
-            scale=scale)
+            dim=dim, ambient_space=Euclidean(dim), scale=scale,
+            metric=PoincareBallMetric(dim, scale))
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
-        self.metric = PoincareBallMetric(self.dim, self.scale)
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.

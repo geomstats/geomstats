@@ -35,11 +35,48 @@ References
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.base import EmbeddedManifold
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+
+
+def submersion(point, k):
+    r"""Submersion that defines the Grassmann manifold.
+
+    The Grassmann manifold is defined here as embedded in the set of
+    symmetric matrices, as the pre-image of the function defined around the
+    projector on the space spanned by the first k columns of the identity
+    matrix by (see Exercise E.25 in [Pau07]_).
+    .. math:
+
+            \begin{pmatrix} I_k + A & B^T \\ B & D \end{pmatrix} \mapsto
+                (D - B(I_k + A)^{-1}B^T, A + A^2 + B^TB
+
+    This map is a submersion and its zero space is the set of orthogonal
+    rank-k projectors.
+
+    References
+    ----------
+    .. [Pau07]   Paulin, Frédéric. “Géométrie diﬀérentielle élémentaire,” 2007.
+                 https://www.imo.universite-paris-saclay.fr/~paulin
+                 /notescours/cours_geodiff.pdf.
+    """
+    _, eigvecs = gs.linalg.eigh(point)
+    eigvecs = gs.flip(eigvecs, -1)
+    flipped_point = Matrices.mul(Matrices.transpose(eigvecs), point, eigvecs)
+    b = flipped_point[..., k:, :k]
+    d = flipped_point[..., k:, k:]
+    a = flipped_point[..., :k, :k] - gs.eye(k)
+    first = d - Matrices.mul(
+        b, GeneralLinear.inverse(a + gs.eye(k)), Matrices.transpose(b))
+    second = a + Matrices.mul(a, a) + Matrices.mul(Matrices.transpose(b), b)
+    row_1 = gs.concatenate([first, gs.zeros_like(b)], axis=-1)
+    row_2 = gs.concatenate([
+        Matrices.transpose(gs.zeros_like(b)), second], axis=-1)
+    return gs.concatenate([row_1, row_2], axis=-2)
 
 
 class Grassmannian(EmbeddedManifold):
@@ -62,42 +99,14 @@ class Grassmannian(EmbeddedManifold):
 
         self.n = n
         self.k = k
-        self.metric = GrassmannianCanonicalMetric(n, k)
 
         dim = int(k * (n - k))
         super(Grassmannian, self).__init__(
-            dim=dim,
-            embedding_manifold=Matrices(n, n),
-            default_point_type='matrix')
-
-    def belongs(self, point, atol=gs.atol):
-        """Check if the point belongs to the manifold.
-
-        Check if an (n,n)-matrix is an orthogonal projector
-        onto a subspace of rank k.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Point to be checked.
-        atol : int
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the Grassmannian.
-        """
-        if not gs.all(self._check_square(point)):
-            raise ValueError('all points must be square.')
-
-        symm = Matrices.is_symmetric(point)
-        idem = self._check_idempotent(point, atol)
-        rank = self._check_rank(point, self.k, atol)
-
-        belongs = gs.all(gs.stack([symm, idem, rank], axis=0), axis=0)
-
-        return belongs
+            dim=dim, embedding_space=SymmetricMatrices(n),
+            submersion=lambda x: submersion(x, k), value=gs.zeros((n, n)),
+            tangent_submersion=lambda v, x: 2 * Matrices.to_symmetric(
+                Matrices.mul(x, v)) - v,
+            metric=GrassmannianCanonicalMetric(n, k))
 
     def random_uniform(self, n_samples=1):
         """Sample random points from a uniform distribution.
@@ -130,32 +139,30 @@ class Grassmannian(EmbeddedManifold):
             Matrices.transpose(points))
         return projector[0] if n_samples == 1 else projector
 
-    def is_tangent(self, vector, base_point, atol=gs.atol):
-        r"""Check if a vector is tangent to the manifold at the base point.
+    def random_point(self, n_samples=1, bound=1.):
+        """Sample random points from a uniform distribution.
 
-        Check if the (n,n)-matrix :math: `Y` is symmetric and verifies the
-        relation :math: PY + YP = Y where :math: `P` represents the base
-        point and :math: `Y` the vector.
+        Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
+        from a standard normal distribution and reshaped to matrices,
+        the projectors on their first k columns follow a uniform distribution.
 
         Parameters
         ----------
-        vector : array-like, shape=[..., n, n]
-            Matrix to be checked.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-        atol : int
-            Optional, default: backend atol.
+        n_samples : int
+            The number of points to sample
+            Optional. default: 1.
 
         Returns
         -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if `vector` is tangent to the Grassmannian at
-            `base_point`.
+        projectors : array-like, shape=[..., n, n]
+            Points following a uniform distribution.
+
+        References
+        ----------
+        .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
+        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
-        diff = Matrices.mul(
-            base_point, vector) + Matrices.mul(vector, base_point) - vector
-        is_close = gs.all(gs.isclose(diff, 0., atol=atol))
-        return gs.logical_and(Matrices.is_symmetric(vector), is_close)
+        return self.random_uniform(n_samples)
 
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
@@ -208,7 +215,7 @@ class Grassmannian(EmbeddedManifold):
         -------
         belongs : bool
         """
-        diff = gs.einsum('...ij,...jk->...ik', point, point) - point
+        diff = Matrices.mul(point, point) - point
         diff_norm = gs.linalg.norm(diff, axis=(-2, -1))
 
         return gs.less_equal(diff_norm, atol)
@@ -231,9 +238,30 @@ class Grassmannian(EmbeddedManifold):
         -------
         belongs : bool
         """
-        [_, s, _] = gs.linalg.svd(point)
+        s = gs.linalg.svd(point, compute_uv=False)
 
         return gs.sum(s > atol, axis=-1) == rank
+
+    def projection(self, point):
+        """Project a matrix to the Grassmann manifold.
+
+        An eigenvalue decomposition of (the symmetric part of) point is used.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point in embedding manifold.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., n, n]
+            Projected point.
+        """
+        mat = Matrices.to_symmetric(point)
+        _, eigvecs = gs.linalg.eigh(mat)
+        diagonal = gs.array([0.] * (self.n - self.k) + [1.] * self.k)
+        p_d = gs.einsum('...ij,...j->...ij', eigvecs, diagonal)
+        return Matrices.mul(p_d, Matrices.transpose(eigvecs))
 
 
 class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
@@ -322,5 +350,5 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
             id_n, point, base_point])
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
-        rot = GLn.mul(sym2, sym1)
+        rot = GLn.compose(sym2, sym1)
         return Matrices.bracket(GLn.log(rot) / 2, base_point)

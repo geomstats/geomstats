@@ -11,7 +11,7 @@ from scipy.stats import beta
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.base import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -34,62 +34,9 @@ class _Hypersphere(EmbeddedManifold):
 
     def __init__(self, dim):
         super(_Hypersphere, self).__init__(
-            dim=dim,
-            embedding_manifold=Euclidean(dim + 1))
-        self.embedding_metric = self.embedding_manifold.metric
-
-    def belongs(self, point, atol=gs.atol):
-        """Test if a point belongs to the hypersphere.
-
-        This tests whether the point's squared norm in Euclidean space is 1.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim + 1]
-            Point in Euclidean space.
-        atol : float
-            Tolerance at which to evaluate norm == 1.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the hypersphere.
-        """
-        point_dim = gs.shape(point)[-1]
-        if point_dim != self.dim + 1:
-            if point_dim is self.dim:
-                logging.warning(
-                    'Use the extrinsic coordinates to '
-                    'represent points on the hypersphere.')
-            belongs = False
-            if gs.ndim(point) == 2:
-                belongs = gs.tile([belongs], (point.shape[0],))
-            return belongs
-        sq_norm = gs.sum(point ** 2, axis=-1)
-        diff = gs.abs(sq_norm - 1)
-        return gs.less_equal(diff, atol)
-
-    def regularize(self, point):
-        """Regularize a point to the canonical representation.
-
-        Regularize a point to the canonical representation chosen
-        for the hypersphere, to avoid numerical issues.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim + 1]
-            Point on the hypersphere.
-
-        Returns
-        -------
-        projected_point : array-like, shape=[..., dim + 1]
-            Point in canonical representation chosen for the hypersphere.
-        """
-        if not gs.all(self.belongs(point)):
-            raise ValueError('Points do not belong to the manifold.')
-
-        return self.projection(point)
+            dim=dim, embedding_space=Euclidean(dim + 1),
+            submersion=lambda x: gs.sum(x ** 2, axis=-1), value=1.,
+            tangent_submersion=lambda v, x: 2 * gs.sum(x * v, axis=-1))
 
     def projection(self, point):
         """Project a point on the hypersphere.
@@ -135,27 +82,6 @@ class _Hypersphere(EmbeddedManifold):
         tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
 
         return tangent_vec
-
-    def is_tangent(self, vector, base_point, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., dim]
-            Vector.
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_tangent : bool
-            Boolean denoting if vector is a tangent vector at the base point.
-        """
-        inner_prod = self.embedding_metric.inner_product(base_point, vector)
-        return gs.isclose(inner_prod, 0., atol=atol)
 
     def spherical_to_extrinsic(self, point_spherical):
         """Convert point from spherical to extrinsic coordinates.
@@ -544,6 +470,22 @@ class HypersphereMetric(RiemannianMetric):
             signature=(dim, 0))
         self.embedding_metric = EuclideanMetric(dim + 1)
         self._space = _Hypersphere(dim=dim)
+
+    def metric_matrix(self, base_point=None):
+        """Metric matrix at the tangent space at a base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim + 1]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., dim + 1, dim + 1]
+            Inner-product matrix.
+        """
+        return gs.eye(self.dim + 1)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.

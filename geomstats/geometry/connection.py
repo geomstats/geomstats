@@ -1,5 +1,7 @@
 """Affine connections."""
 
+from abc import ABC
+
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
@@ -11,7 +13,7 @@ from geomstats.integrator import integrate
 N_STEPS = 10
 
 
-class Connection:
+class Connection(ABC):
     r"""Class for affine connections.
 
     Parameters
@@ -53,24 +55,6 @@ class Connection:
         """
         raise NotImplementedError(
             'The Christoffel symbols are not implemented.')
-
-    def connection(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Covariant derivative.
-
-        Connection applied to `tangent_vector_b` in the direction of
-        `tangent_vector_a`, both tangent at `base_point`.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., dim]
-            Tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., dim]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-        """
-        raise NotImplementedError(
-            'connection is not implemented.')
 
     def geodesic_equation(self, state, _time):
         """Compute the geodesic ODE associated with the connection.
@@ -413,17 +397,6 @@ class Connection:
                 'end_point': current_point,
                 'trajectory': trajectory}
 
-    def riemannian_curvature_tensor(self, base_point):
-        """Compute Riemannian curvature tensor associated with the connection.
-
-        Parameters
-        ----------
-        base_point: array-like, shape=[..., dim]
-            Point on the manifold.
-        """
-        raise NotImplementedError(
-            'The Riemannian curvature tensor is not implemented.')
-
     def curvature(
             self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
             base_point):
@@ -502,8 +475,8 @@ class Connection:
         path : callable
             Time parameterized geodesic curve. If a batch of initial
             conditions is passed, the output array's first dimension
-            represents time, and the second corresponds to the different
-            initial conditions.
+            represents the different initial conditions, and the second
+            corresponds to time.
         """
         point_type = self.default_point_type
 
@@ -531,6 +504,10 @@ class Connection:
                 initial_tangent_vec, to_ndim=3)
         n_initial_conditions = initial_tangent_vec.shape[0]
 
+        if n_initial_conditions > 1 and len(initial_point) == 1:
+            initial_point = gs.stack(
+                [initial_point[0]] * n_initial_conditions)
+
         def path(t):
             """Generate parameterized function for geodesic curve.
 
@@ -539,7 +516,8 @@ class Connection:
             t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
             """
-            t = gs.array(t, gs.float32)
+            t = gs.array(t)
+            t = gs.cast(t, initial_tangent_vec.dtype)
             t = gs.to_ndarray(t, to_ndim=1)
             if point_type == 'vector':
                 tangent_vecs = gs.einsum(
@@ -551,22 +529,11 @@ class Connection:
             points_at_time_t = [
                 self.exp(tv, pt) for tv,
                 pt in zip(tangent_vecs, initial_point)]
-            points_at_time_t = gs.stack(points_at_time_t, axis=1)
+            points_at_time_t = gs.stack(points_at_time_t, axis=0)
 
-            return points_at_time_t[:, 0] if n_initial_conditions == 1 else \
+            return points_at_time_t[0] if n_initial_conditions == 1 else \
                 points_at_time_t
         return path
-
-    def torsion(self, base_point):
-        """Compute torsion tensor associated with the connection.
-
-        Parameters
-        ----------
-        base_point: array-like, shape=[..., dim]
-            Point on the manifold.
-        """
-        raise NotImplementedError(
-            'The torsion tensor is not implemented.')
 
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the parallel transport of a tangent vector.

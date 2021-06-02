@@ -4,16 +4,18 @@ Poincare half-space representation.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry._hyperbolic import _Hyperbolic
+from geomstats.geometry.base import OpenSet
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class PoincareHalfSpace(Hyperbolic):
-    """Class for the n-dimensional hyperbolic space.
+class PoincareHalfSpace(_Hyperbolic, OpenSet):
+    """Class for the n-dimensional Poincare half-space.
 
-    Class for the n-dimensional hyperbolic space
-    as embedded in the Poincaré half space model.
+    Class for the n-dimensional Poincaré half space model. For other
+    representations of hyperbolic spaces see the `Hyperbolic` class.
 
     Parameters
     ----------
@@ -29,19 +31,20 @@ class PoincareHalfSpace(Hyperbolic):
 
     def __init__(self, dim, scale=1):
         super(PoincareHalfSpace, self).__init__(
-            dim=dim,
-            scale=scale)
+            dim=dim, ambient_space=Euclidean(dim), scale=scale,
+            metric=PoincareHalfSpaceMetric(dim, scale))
         self.coords_type = PoincareHalfSpace.default_coords_type
         self.point_type = PoincareHalfSpace.default_point_type
-        self.metric = PoincareHalfSpaceMetric(self.dim, self.scale)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the upper half space.
 
         Parameters
         ----------
         point : array-like, shape=[..., dim]
             Point to be checked.
+        atol : float
+            Absolute tolerance to evaluate positivity of the last coordinate.
 
         Returns
         -------
@@ -51,8 +54,29 @@ class PoincareHalfSpace(Hyperbolic):
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
-        belongs = gs.logical_and(belongs, point[..., -1] > 0.)
+        belongs = gs.logical_and(belongs, point[..., -1] >= atol)
         return belongs
+
+    def projection(self, point, atol=gs.atol):
+        """Project a point in ambient space to the open set.
+
+        The last coordinate is floored to `atol` if it is negative.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim_embedding]
+            Point in ambient space.
+        atol : float
+            Tolerance to evaluate positivity.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., dim_embedding]
+            Projected point.
+        """
+        last = gs.where(point[..., -1] < atol, atol, point[..., -1])
+        projected = gs.concatenate([point[..., :-1], last[..., None]], axis=-1)
+        return projected
 
 
 class PoincareHalfSpaceMetric(RiemannianMetric):
@@ -76,8 +100,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
 
     def __init__(self, dim, scale=1.):
         super(PoincareHalfSpaceMetric, self).__init__(
-            dim=dim,
-            signature=(dim, 0))
+            dim=dim, signature=(dim, 0))
         self.coords_type = PoincareHalfSpace.default_coords_type
         self.point_type = PoincareHalfSpace.default_point_type
         self.scale = scale
@@ -104,7 +127,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         inner_prod = inner_prod / base_point[..., -1]**2
         return inner_prod
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential.
 
         Parameters
@@ -130,7 +153,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
             end_point_ball)
         return end_point
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute Riemannian logarithm of a point wrt a base point.
 
         Parameters

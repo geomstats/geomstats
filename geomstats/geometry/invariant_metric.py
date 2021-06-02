@@ -589,11 +589,11 @@ class _InvariantMetricMatrix(RiemannianMetric):
         if (base_point.ndim == 2 or base_point.shape[0] == 1) and \
                 tangent_vec.ndim == 3:
             base_point = gs.stack([base_point] * len(tangent_vec))
+            base_point = gs.reshape(base_point, tangent_vec.shape)
         initial_state = gs.stack(
             [base_point, group.to_tangent(left_angular_vel)])
         flow = integrate(
-            lie_acceleration, initial_state, n_steps=n_steps, step=step,
-            **kwargs)
+            lie_acceleration, initial_state, n_steps=n_steps, step=step)
         return flow[-1][0]
 
     def log(self, point, base_point, n_steps=15, step='rk4',
@@ -651,6 +651,123 @@ class _InvariantMetricMatrix(RiemannianMetric):
             super(_InvariantMetricMatrix, self).log(
                 point, base_point, n_steps=n_steps, step=step,
                 verbose=verbose, max_iter=max_iter, tol=tol), base_point)
+
+    def parallel_transport(
+            self, tangent_vec_a, tangent_vec_b, base_point, n_steps=10,
+            step='rk4', return_endpoint=False):
+        r"""Compute the parallel transport of a tangent vec along a geodesic.
+
+        Approximate solution for the parallel transport of a tangent vector a
+        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        tangent_vec_b)`. The parallel transport equation is written entirely
+        in the Lie algebra and solved with an integration scheme.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n + 1, n + 1]
+            Tangent vector at base point to be transported.
+        tangent_vec_b : array-like, shape=[..., n + 1, n + 1]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        base_point : array-like, shape=[..., n + 1, n + 1]
+            Point on the hypersphere.
+        n_steps : int
+            Number of integration steps to take.
+            Optional, default : 10.
+        step : str, {'euler', 'rk2', 'rk4'}
+            Scheme to use for the approximation of the solution of the ODE
+            Optional, default : rk4
+        return_endpoint : bool
+            Whether the end-point of the geodesic should be returned.
+            Optional, default : False.
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[..., n + 1, n + 1]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+        end_point : array-like, shape=[..., n + 1, n + 1]
+            `exp_(base_point)(tangent_vec_b)`, only returned if
+            `return_endpoint` is set to `True`.
+
+        See Also
+        --------
+        geomstats.integrator
+
+        References
+        ----------
+        [GP21]_    Guigui, Nicolas, and Xavier Pennec. “A Reduced Parallel
+                   Transport Equation on Lie Groups with a Left-Invariant
+                   Metric.” 5th conference on Geometric Science of Information,
+                   Paris 2021. Springer. Lecture Notes in Computer Science.
+                   https://hal.inria.fr/hal-03154318.
+        """
+        group = self.group
+        translation_map = group.tangent_translation_map(
+            base_point,
+            left_or_right=self.left_or_right, inverse=True)
+        left_angular_vel_a = group.to_tangent(translation_map(tangent_vec_a))
+        left_angular_vel_b = group.to_tangent(translation_map(tangent_vec_b))
+
+        def acceleration(state, time):
+            """Compute the right-hand-side of the parallel transport eq."""
+            omega, zeta = state[1:]
+            gam_dot, omega_dot = self.geodesic_equation(state[:2], time)
+            zeta_dot = - self.connection_at_identity(omega, zeta)
+            return gs.stack([gam_dot, omega_dot, zeta_dot])
+
+        if (base_point.ndim == 2 or base_point.shape[0] == 1) and \
+                (3 in (tangent_vec_a.ndim, tangent_vec_b.ndim)):
+            n_sample = tangent_vec_a.shape[0] if tangent_vec_a.ndim == 3 else\
+                tangent_vec_b.shape[0]
+            base_point = gs.stack([base_point] * n_sample)
+
+        initial_state = gs.stack([
+            base_point, left_angular_vel_b, left_angular_vel_a])
+        flow = integrate(
+            acceleration, initial_state, n_steps=n_steps, step=step)
+        gamma, _, zeta_t = flow[-1]
+        transported = group.tangent_translation_map(
+            gamma, left_or_right=self.left_or_right, inverse=False)(zeta_t)
+        return (transported, gamma) if return_endpoint else transported
+
+    def geodesic_equation(self, state, _time):
+        r"""Compute the geodesic ODE associated with the invariant metric.
+
+        This is a reduced geodesic equation written entirely in the Lie
+        algebra. It is known as Euler-Poincare equation [Kolev].
+        .. math:
+                        \dot{\gamma}(t) = (dL_{\gamma(t)}) X(t)
+                        \dot{X}(t) = ad^*_{X(t)}X(t)
+
+        Parameters
+        ----------
+        state : array-like, shape=[..., dim]
+            Tangent vector at the position.
+        _time : array-like, shape=[..., dim]
+            Point on the manifold, the position at which to compute the
+            geodesic ODE.
+
+        Returns
+        -------
+        geodesic_ode : array-like, shape=[..., dim]
+            Value of the vector field to be integrated at position.
+
+        References
+        ----------
+        .. [Kolev]   Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
+             Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
+             480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
+        """
+        sign = 1. if self.left_or_right == 'left' else -1.
+        basis = self.normal_basis(self.lie_algebra.basis)
+
+        point, vector = state
+        velocity = self.group.tangent_translation_map(
+            point, left_or_right=self.left_or_right)(vector)
+        coefficients = gs.array([self.structure_constant(
+            vector, basis_vector, vector) for basis_vector in basis])
+        acceleration = gs.einsum('i...,ijk->...jk', coefficients, basis)
+        return gs.stack([velocity, sign * acceleration])
 
 
 class _InvariantMetricVector(RiemannianMetric):
@@ -904,6 +1021,36 @@ class _InvariantMetricVector(RiemannianMetric):
             base_point, left_or_right=self.left_or_right)(log_from_id)
         return log
 
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute inner product of two vectors in tangent space at base point.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            First tangent vector at base_point.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Second tangent vector at base_point.
+        base_point : array-like, shape=[..., n, n]
+            Point in the group.
+            Optional, defaults to identity if None.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...,]
+            Inner-product of the two tangent vectors.
+        """
+        if base_point is None:
+            return self.inner_product_at_identity(
+                tangent_vec_a, tangent_vec_b)
+
+        tangent_translation = self.group.tangent_translation_map(
+            base_point, left_or_right=self.left_or_right, inverse=True)
+        tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
+        tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
+        inner_prod = self.inner_product_at_identity(
+            tangent_vec_a_at_id, tangent_vec_b_at_id)
+        return inner_prod
+
 
 class InvariantMetric(_InvariantMetricVector, _InvariantMetricMatrix):
     """Class for invariant metrics on Lie groups.
@@ -969,12 +1116,12 @@ class BiInvariantMetric(_InvariantMetricVector):
     def __init__(self, group):
         super(BiInvariantMetric, self).__init__(
             group=group)
-        cond = (
+        condition = (
             'SpecialOrthogonal' not in group.__str__()
             and 'SO' not in group.__str__()
             and 'SpecialOrthogonal3' not in group.__str__())
         # TODO (nguigs): implement it for SE(3)
-        if cond:
+        if condition:
             raise ValueError(
                 'The bi-invariant metric is only implemented for SO(n)')
         self.default_point_type = group.default_point_type
@@ -1077,21 +1224,16 @@ class BiInvariantMetric(_InvariantMetricVector):
             return self.inner_product_at_identity(
                 tangent_vec_a, tangent_vec_b)
 
-        tangent_translation = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=True)
-        tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
-        tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
-        inner_prod = self.inner_product_at_identity(
-            tangent_vec_a_at_id, tangent_vec_b_at_id)
-        return inner_prod
+        return super(BiInvariantMetric, self).inner_product(
+            tangent_vec_a, tangent_vec_b, base_point)
 
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
-        r"""Compute the parallel transport of a tangent vector.
+        r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Closed-form solution for the parallel transport of a tangent vector a
         along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
-        tangent_vec_b)`. As the special Euclidean group endowed with its
-        canonical left-invariant metric is a symmetric space, parallel
+        tangent_vec_b)`. As a compact Lie group endowed with its
+        canonical bi-invariant metric is a symmetric space, parallel
         transport is achieved by a geodesic symmetry, or equivalently, one step
          of the pole ladder scheme.
 

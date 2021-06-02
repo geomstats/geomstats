@@ -1,4 +1,5 @@
 """Riemannian and pseudo-Riemannian metrics."""
+from abc import ABC
 
 import autograd
 import joblib
@@ -72,7 +73,7 @@ def grad(y_pred, y_true, metric):
     return loss_grad
 
 
-class RiemannianMetric(Connection):
+class RiemannianMetric(Connection, ABC):
     """Class for Riemannian and pseudo-Riemannian metrics.
 
     Parameters
@@ -90,6 +91,8 @@ class RiemannianMetric(Connection):
     def __init__(self, dim, signature=None, default_point_type='vector'):
         super(RiemannianMetric, self).__init__(
             dim=dim, default_point_type=default_point_type)
+        if signature is None:
+            signature = (dim, 0)
         self.signature = signature
 
     def metric_matrix(self, base_point=None):
@@ -174,7 +177,7 @@ class RiemannianMetric(Connection):
         christoffels = 0.5 * (term_1 + term_2 + term_3)
         return christoffels
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Inner product between two tangent vectors at a base point.
 
         Parameters

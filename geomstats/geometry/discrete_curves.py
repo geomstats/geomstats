@@ -46,7 +46,7 @@ class DiscreteCurves(Manifold):
             self.ambient_manifold, n_landmarks=n)
         self.square_root_velocity_metric = SRVMetric(self.ambient_manifold)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to the manifold.
 
         Test that all points of the curve belong to the ambient manifold.
@@ -55,6 +55,9 @@ class DiscreteCurves(Manifold):
         ----------
         point : array-like, shape=[..., n_sampling_points, ambient_dim]
             Point representing a discrete curve.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -69,6 +72,92 @@ class DiscreteCurves(Manifold):
             return gs.stack([each_belongs(pt) for pt in point])
 
         return each_belongs(point)
+
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check whether the vector is tangent at a curve.
+
+        A vector is tangent at a curve if it is a vector field along that
+        curve.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Vector.
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        ambient_manifold = self.ambient_manifold
+        shape = vector.shape
+        stacked_vec = gs.reshape(vector, (-1, shape[-1]))
+        stacked_point = gs.reshape(base_point, (-1, shape[-1]))
+        is_tangent = ambient_manifold.is_tangent(
+            stacked_vec, stacked_point, atol)
+        is_tangent = gs.reshape(is_tangent, shape[:-1])
+        return gs.all(is_tangent, axis=-1)
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        As tangent vectors are vector fields along a curve, each component of
+        the vector is projected to the tangent space of the corresponding
+        point of the discrete curve. The number of sampling points should
+        match in the vector and the base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Vector.
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector at base point.
+        """
+        ambient_manifold = self.ambient_manifold
+        shape = vector.shape
+        stacked_vec = gs.reshape(vector, (-1, shape[-1]))
+        stacked_point = gs.reshape(base_point, (-1, shape[-1]))
+        tangent_vec = ambient_manifold.to_tangent(stacked_vec, stacked_point)
+        tangent_vec = gs.reshape(tangent_vec, vector.shape)
+        return tangent_vec
+
+    def random_point(self, n_samples=1, bound=1., n_sampling_points=10):
+        """Sample random curves.
+
+        If the ambient manifold is compact, a uniform distribution is used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact
+            ambient manifolds.
+            Optional, default: 1.
+        n_sampling_points : int
+            Number of sampling points for the discrete curves.
+            Optional, default : 10.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n_sampling_points, {dim, [n, n]}]
+            Points sampled on the hypersphere.
+        """
+        sample = self.ambient_manifold.random_point(
+            n_samples * n_sampling_points)
+        sample = gs.reshape(sample, (n_samples, n_sampling_points, -1))
+        return sample[0] if n_samples == 1 else sample
 
 
 class SRVMetric(RiemannianMetric):
@@ -402,15 +491,14 @@ class SRVMetric(RiemannianMetric):
             tangent_vecs = gs.einsum('il,nkm->ikm', t, new_initial_tangent_vec)
 
             curve_at_time_t = []
-            for k in range(len(t)):
-                curve_at_time_t.append(self.exp(
-                    tangent_vec=tangent_vecs[k, :],
-                    base_point=new_initial_curve))
+            for tan_vec in tangent_vecs:
+                curve_at_time_t.append(
+                    self.exp(tan_vec, new_initial_curve))
             return gs.stack(curve_at_time_t)
 
         return curve_on_geodesic
 
-    def dist(self, point_a, point_b):
+    def dist(self, point_a, point_b, **kwargs):
         """Geodesic distance between two curves.
 
         Parameters

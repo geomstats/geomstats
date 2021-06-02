@@ -5,10 +5,11 @@ from functools import reduce
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
+from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.euclidean import EuclideanMetric
 
 
-class Matrices:
+class Matrices(VectorSpace):
     """Class for the space of matrices (m, n).
 
     Parameters
@@ -18,20 +19,24 @@ class Matrices:
     """
 
     def __init__(self, m, n, **kwargs):
-        super(Matrices, self).__init__(**kwargs)
+        if 'default_point_type' not in kwargs.keys():
+            kwargs['default_point_type'] = 'matrix'
+        super(Matrices, self).__init__(
+            shape=(m, n), metric=MatricesMetric(m, n), **kwargs)
         geomstats.errors.check_integer(n, 'n')
         geomstats.errors.check_integer(m, 'm')
         self.m = m
         self.n = n
-        self.metric = MatricesMetric(m, n)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Check if point belongs to the Matrices space.
 
         Parameters
         ----------
         point : array-like, shape=[..., m, n]
             Point to be checked.
+        atol : float
+            Unused here.
 
         Returns
         -------

@@ -2,6 +2,8 @@
 
 import warnings
 
+import tests.helper as helper
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.general_linear import GeneralLinear
@@ -15,6 +17,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         self.n = 3
         self.n_samples = 2
         self.group = GeneralLinear(n=self.n)
+        self.group_pos = GeneralLinear(self.n, positive_det=True)
 
         warnings.simplefilter('ignore', category=ImportWarning)
 
@@ -55,25 +58,18 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs(self):
-        point = self.group.random_point()
-        result = self.group.belongs(point)
-        expected = True
-        self.assertAllClose(result, expected)
+        for group in [self.group, self.group_pos]:
+            point = group.random_point()
+            result = group.belongs(point)
+            self.assertTrue(result)
 
     def test_random_and_belongs_vectorization(self):
         n_samples = 4
-        point = self.group.random_point(n_samples)
-        result = self.group.belongs(point)
         expected = gs.array([True] * n_samples)
-        self.assertAllClose(result, expected)
-
-    def test_replace_values(self):
-        points = gs.ones((3, 3, 3))
-        new_points = gs.zeros((2, 3, 3))
-        indcs = [True, False, True]
-        update = self.group._replace_values(points, new_points, indcs)
-        self.assertAllClose(update, gs.stack(
-            [gs.zeros((3, 3)), gs.ones((3, 3)), gs.zeros((3, 3))]))
+        for group in [self.group, self.group_pos]:
+            point = group.random_point(n_samples)
+            result = group.belongs(point)
+            self.assertAllClose(result, expected)
 
     def test_compose(self):
         mat1 = gs.array([
@@ -164,13 +160,31 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         sqrt = gs.array([
             [gs.exp(2.), 0.],
             [0., gs.exp(1.)]])
-        idty = GeneralLinear(2).identity
+        identity = GeneralLinear(2).identity
 
         path = GeneralLinear(2).orbit(point)
         time = gs.linspace(0., 1., 3)
 
         result = path(time)
-        expected = gs.array([idty, sqrt, point])
+        expected = gs.array([identity, sqrt, point])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_orbit_vectorization(self):
+        point = gs.array([
+            [gs.exp(4.), 0.],
+            [0., gs.exp(2.)]])
+        sqrt = gs.array([
+            [gs.exp(2.), 0.],
+            [0., gs.exp(1.)]])
+        identity = GeneralLinear(2).identity
+
+        path = GeneralLinear(2).orbit(gs.stack([point] * 2), identity)
+        time = gs.linspace(0., 1., 3)
+
+        result = path(time)
+        expected = gs.array([identity, sqrt, point])
+        expected = gs.stack([expected] * 2)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
@@ -184,3 +198,15 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         result = self.group.exp(self.group.log(point))
         expected = point
         self.assertAllClose(result, expected)
+
+    def test_projection_and_belongs(self):
+        shape = (self.n_samples, self.n, self.n)
+        result = helper.test_projection_and_belongs(self.group, shape)
+        for res in result:
+            self.assertTrue(res)
+
+    def test_projection_and_belongs_pos(self):
+        shape = (self.n_samples, self.n, self.n)
+        result = helper.test_projection_and_belongs(self.group_pos, shape)
+        for res in result:
+            self.assertTrue(res)
