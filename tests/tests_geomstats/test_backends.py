@@ -1024,8 +1024,7 @@ class TestBackends(geomstats.tests.TestCase):
                             [[0., 4., 5.,], [-4., 1., 6.], [-5., -6., 0.]],
                             [[0., 7., 8.,], [-7., 0., 9.], [-8., -9., 1.]]
                         ])
-        print("running tests" , batch_expected)
-        batch_result = batch_mat*22
+        batch_result = batch_mat
         self.assertAllClose(expected, result)
         self.assertAllClose(batch_expected, batch_result)
         
