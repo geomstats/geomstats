@@ -803,7 +803,7 @@ def vec_to_triu(vec):
     mask_a = tf.linalg.band_part(ones, 0, -1)
     mask_b = tf.linalg.band_part(ones, 0, 0)
     mask = tf.subtract(mask_a, mask_b)
-    non_zero = tf.not_equal(mask, tf.constant(0))
+    non_zero = tf.not_equal(mask, tf.constant(0.0))
     indices = tf.where(non_zero)
     sparse = tf.SparseTensor(indices, values= vec, dense_shape=triu_shape)
     triu = tf.sparse.to_dense(sparse)
@@ -820,7 +820,7 @@ def vec_to_tril(vec):
     mask_a = tf.linalg.band_part(ones, -1, 0)
     mask_b = tf.linalg.band_part(ones, 0, 0)
     mask = tf.subtract(mask_a, mask_b)
-    non_zero = tf.not_equal(mask, tf.constant(0))
+    non_zero = tf.not_equal(mask, tf.constant(0.0))
     indices = tf.where(non_zero)
     sparse = tf.SparseTensor(indices, values= vec, dense_shape=tril_shape)
     tril = tf.sparse.to_dense(sparse)
@@ -833,4 +833,3 @@ def mat_from_diag_triu_tril(diag, triu, tril):
     triu_tril = triu + tril
     mat = tf.matrix_set_diag(triu_tril, diag)
     return mat
-    
