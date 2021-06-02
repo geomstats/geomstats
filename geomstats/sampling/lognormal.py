@@ -82,7 +82,6 @@ class LogNormal:
         mean_euclidean = gs.hstack(
             (gs.diagonal(sym_matrix)[None, :],
              gs.sqrt(2) * gs.triu_to_vec(sym_matrix, k = 1)[None,:]))[0]
-        _samples = gs.zeros((samples, n, n))
         samples_euclidean = gs.random.multivariate_normal(
             mean_euclidean, self.cov, (samples,))
         diag = samples_euclidean[:, :n]

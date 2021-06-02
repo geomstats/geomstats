@@ -827,3 +827,4 @@ def mat_from_diag_triu_tril(diag, triu, tril):
     triu_tril = triu + tril
     mat = tf.matrix_set_diag(triu_tril, diag)
     return mat
+    

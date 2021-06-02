@@ -788,3 +788,4 @@ def mat_from_diag_triu_tril(diag, triu, tril):
     mat[..., j, k] = triu
     mat[..., k, j] = tril
     return mat
+    
