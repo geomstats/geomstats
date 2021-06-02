@@ -382,14 +382,15 @@ def triu_to_vec(x, k=0):
     rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
 
-def mat_from_diag_triu_tril(diag, triu, tril):
-    """buld matrices (or batch of matrices from diag and
+
+def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
+    """build matrices (or batch of matrices) from diag and
     lower traingular and upper traingular matrices"""
     n = diag.shape[-1]
     i, = np.diag_indices(n, ndim=1)
-    j, k = np.triu_indices(n, k= 1)
+    j, k = np.triu_indices(n, k=1)
     mat = np.zeros(diag.shape + (n, ))
     mat[..., i, i] = diag
-    mat[..., j, k] = triu
-    mat[..., k, j] = tril
+    mat[..., j, k] = tri_upp
+    mat[..., k, j] = tri_low
     return mat
