@@ -37,7 +37,7 @@ class TestLogNormal(geomstats.tests.TestCase):
         LogNormalSampler = LogNormal(self.SPDManifold, mean, cov)
         data = LogNormalSampler.sample(self.samples)
 
-        result = self.SPDManifold.belongs(data).all()
+        result = gs.all(self.SPDManifold.belongs(data))
         expected = True
         self.assertAllClose(result, expected)
 
@@ -47,7 +47,7 @@ class TestLogNormal(geomstats.tests.TestCase):
         cov = gs.eye(self.n) / self.n
         data = LogNormal(self.Euclidean, mean, cov).sample(1000)
         log_data = gs.log(data)
-        fm = log_data.mean(axis=0)
+        fm = gs.mean(log_data, mean(axis=0))
 
         expected = mean
         result = fm
@@ -58,7 +58,7 @@ class TestLogNormal(geomstats.tests.TestCase):
         mean = gs.eye(self.n)
         cov = gs.eye(self.spd_cov_n) / self.spd_cov_n
         data = LogNormal(self.SPDManifold, mean, cov).sample(1000)
-        _fm = self.SPDManifold.logm(data).mean(axis=0)
+        _fm = gs.mean(self.SPDManifold.logm(data), axis=0)
         fm = self.SPDManifold.expm(_fm)
 
         expected = mean
@@ -70,7 +70,7 @@ class TestLogNormal(geomstats.tests.TestCase):
         mean = gs.eye(self.n)
         invalid_eu_mean = gs.zeros(self.n + 1)
         invalid_spd_mean = gs.zeros((self.n, self.n))
-        invalid_cov = gs.eye(self.n)
+        invalid_cov = gs.eye(self.n+1)
         invalid_manifold = Hypersphere(dim=2)
 
         with self.assertRaises(ValueError):
@@ -79,5 +79,7 @@ class TestLogNormal(geomstats.tests.TestCase):
             LogNormal(self.Euclidean, invalid_eu_mean)
         with self.assertRaises(ValueError):
             LogNormal(self.SPDManifold, invalid_spd_mean)
+        with self.assertRaises(ValueError):
+            LogNormal(self.Euclidean, mean, invalid_cov)    
         with self.assertRaises(ValueError):
             LogNormal(self.SPDManifold, mean, invalid_cov)

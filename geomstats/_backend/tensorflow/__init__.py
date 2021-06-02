@@ -831,5 +831,5 @@ def mat_from_diag_triu_tril(diag, triu, tril):
     triu = vec_to_triu(triu)
     tril = vec_to_tril(tril)
     triu_tril = triu + tril
-    mat = tf.matrix_set_diag(triu_tril, diag)
+    mat = tf.linalg.set_diag(triu_tril, diag)
     return mat
