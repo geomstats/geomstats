@@ -80,8 +80,8 @@ class LogNormal:
         n = self.mean.shape[-1]
         sym_matrix = self.manifold.logm(self.mean)
         mean_euclidean = gs.hstack(
-            (gs.diagonal(sym_matrix)[None, :],
-             gs.sqrt(2) * gs.triu_to_vec(sym_matrix, k = 1)[None,:]))[0]
+            (gs.reshape(gs.diagonal(sym_matrix), [1, -1]),
+             gs.sqrt(2) * gs.reshape(gs.triu_to_vec(sym_matrix, k = 1), [1, -1])))[0]
         samples_euclidean = gs.random.multivariate_normal(
             mean_euclidean, self.cov, (samples,))
         diag = samples_euclidean[:, :n]
@@ -100,5 +100,4 @@ class LogNormal:
 
         if isinstance(self.manifold, Euclidean):
             return self._sample_euclidean(samples)
-        else:
-            return self._sample_spd(samples)
+        return self._sample_spd(samples)
