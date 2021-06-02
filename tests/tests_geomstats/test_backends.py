@@ -1014,15 +1014,15 @@ class TestBackends(geomstats.tests.TestCase):
         result = mat
 
         batch_diag = gs.eye(3)
-        batch_triu = gs.array([[1., 2., 3.], [4., 5., 6. ], [7., 8., 9.]])
+        batch_triu = gs.array([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
         batch_tril = -1 * batch_triu
         batch_mat = gs.mat_from_diag_triu_tril(
             batch_diag, batch_triu, batch_tril)
 
         batch_expected = gs.array([
-                            [[1., 1., 2.], [-1., 0., 3.], [-2., -3., 0.]],
-                            [[0., 4., 5.], [-4., 1., 6.], [-5., -6., 0.]],
-                            [[0., 7., 8.], [-7., 0., 9.], [-8., -9., 1.]]
+            [[1., 1., 2.], [-1., 0., 3.], [-2., -3., 0.]],
+            [[0., 4., 5.], [-4., 1., 6.], [-5., -6., 0.]],
+            [[0., 7., 8.], [-7., 0., 9.], [-8., -9., 1.]]
         ])
         batch_result = batch_mat
         self.assertAllClose(expected, result)
