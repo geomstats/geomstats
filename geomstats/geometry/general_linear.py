@@ -17,7 +17,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
     ----------
     n : int
         Integer representing the shape of the matrices: n x n.
-    positive_det: bool
+    positive_det : bool
         Whether to restrict to the identity connected component of the
         general linear group, i.e. matrices with positive determinant.
         Optional, default: False.
@@ -64,7 +64,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         ----------
         point : array-like, shape=[..., n, n]
             Matrix to be checked.
-        atol :  float
+        atol : float
             Tolerance threshold for the determinant.
 
         Returns
@@ -141,7 +141,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         .. math::
 
             \gamma(t) = {\mathrm e}^{t X} \cdot h \\
-            \quad {\mathrm with} \quad\\
+            \quad \text{with} \quad\\
             {\mathrm e}^{X} = g h^{-1}
 
         The path is not uniquely defined and depends on the choice of :math:`V`
