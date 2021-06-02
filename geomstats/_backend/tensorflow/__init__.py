@@ -808,21 +808,20 @@ def vec_to_tril(vec):
     """Takes vec (or batch of vec) and forms lower traingular matrix out of it
     """
     n = vec.shape[-1]
-    triu_shape = (n, ) + vec.shape
-    ones = tf.ones(triu_shape)
+    tril_shape = (n, ) + vec.shape
+    ones = tf.ones(tril_shape)
     vec = tf.reshape(vec, [-1])
     mask_a = tf.linalg.band_part(ones, -1, 0)
     mask_b = tf.linalg.band_part(ones, 0, 0)
     mask = tf.subtract(mask_a, mask_b)
     non_zero = tf.not_equal(mask, tf.constant(0))
     indices = tf.where(non_zero)
-    sparse = tf.SparseTensor(indices, values= vec, dense_shape=triu_shape)
-    triu = tf.sparse.to_dense(sparse)
-    return triu
+    sparse = tf.SparseTensor(indices, values= vec, dense_shape=tril_shape)
+    tril = tf.sparse.to_dense(sparse)
+    return tril
 
 
 def mat_from_diag_triu_tril(diag, triu, tril):
-    n = diag.shape[-1]
     triu = vec_to_triu(triu)
     tril = vec_to_tril(tril)
     triu_tril = triu + tril
