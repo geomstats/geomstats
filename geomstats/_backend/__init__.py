@@ -71,6 +71,7 @@ BACKEND_ATTRIBUTES = {
         'log',
         'logical_and',
         'logical_or',
+        'mat_from_diag_triu_tril',
         'matmul',
         'maximum',
         'mean',

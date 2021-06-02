@@ -33,6 +33,7 @@ from tensorflow import (  # NOQA
     linspace,
     logical_and,
     logical_or,
+    mat_from_diag_triu_tril,
     maximum,
     meshgrid,
     ones,
@@ -785,3 +786,46 @@ def tile(x, multiples):
     t2 = tf.shape(x)
     x_reshape = tf.reshape(x, tf.concat([t1, t2], axis=0))
     return tf.tile(x_reshape, multiples)
+
+
+def vec_to_triu(vec):
+    """Takes vec (or batch of vec) and forms upper traingular matrix out of it
+    """
+    n = vec.shape[-1]
+    triu_shape = (n, ) + vec.shape
+    ones = tf.ones(triu_shape)
+    vec = tf.reshape(vec, [-1])
+    mask_a = tf.linalg.band_part(ones, 0, -1)
+    mask_b = tf.linalg.band_part(ones, 0, 0)
+    mask = tf.subtract(mask_a, mask_b)
+    non_zero = tf.not_equal(mask, tf.constant(0))
+    indices = tf.where(non_zero)
+    sparse = tf.SparseTensor(indices, values= vec, dense_shape=triu_shape)
+    triu = tf.sparse.to_dense(sparse)
+    return triu
+
+
+def vec_to_tril(vec):
+    """Takes vec (or batch of vec) and forms lower traingular matrix out of it
+    """
+    n = vec.shape[-1]
+    triu_shape = (n, ) + vec.shape
+    ones = tf.ones(triu_shape)
+    vec = tf.reshape(vec, [-1])
+    mask_a = tf.linalg.band_part(ones, -1, 0)
+    mask_b = tf.linalg.band_part(ones, 0, 0)
+    mask = tf.subtract(mask_a, mask_b)
+    non_zero = tf.not_equal(mask, tf.constant(0))
+    indices = tf.where(non_zero)
+    sparse = tf.SparseTensor(indices, values= vec, dense_shape=triu_shape)
+    triu = tf.sparse.to_dense(sparse)
+    return triu
+
+    
+def mat_from_diag_triu_tril(diag, triu, tril):
+    n = diag.shape[-1]
+    triu = vec_to_triu(triu)
+    tril = vec_to_tril(tril)
+    triu_tril = triu + tril
+    mat = tf.matrix_set_diag(triu_tril, diag)
+    return mat

@@ -77,8 +77,6 @@ class LogNormal:
 
     def _sample_spd(self, samples):
         n = self.mean.shape[-1]
-        i, = gs.diag_indices(n, ndim=1)
-        j, k = gs.triu_indices(n, k=1)
         sym_matrix = self.manifold.logm(self.mean)
         mean_euclidean = gs.hstack(
             (gs.diagonal.reshape(1, n),
@@ -88,10 +86,9 @@ class LogNormal:
             mean_euclidean, self.cov, (samples,))
         diag = samples_euclidean[:, :n]
         off_diag = samples_euclidean[:, n:] / gs.sqrt(2)
-        _samples[:, i, i] = diag
-        _samples[:, j, k] = off_diag
-        _samples[:, k, j] = off_diag
-        samples_spd = self.manifold.expm(_samples)
+        samples_sym = gs.mat_from_diag_triu_tril(
+            diag=diag, triu=off_diag, tril=off_diag)
+        samples_spd = self.manifold.expm(samples_sym)
         return samples_spd
 
     def _sample_euclidean(self, samples):

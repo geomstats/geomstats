@@ -56,6 +56,7 @@ from autograd.numpy import (  # NOQA
     log,
     logical_and,
     logical_or,
+    mat_from_diag_triu_tril,
     matmul,
     maximum,
     mean,
@@ -375,3 +376,14 @@ def triu_to_vec(x, k=0):
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
+
+def mat_from_diag_triu_tril(diag, triu, tril):
+    n = diag.shape[-1]
+    i, = np.diag_indices(n, ndim=1)
+    j, k = np.triu_indices(n, k= 1)
+    mat = np.zeros((n, ) + diag.shape)
+    mat[..., i, i] = diag
+    mat[..., j, k] = triu
+    mat[..., k, j] = tril
+    return mat
+    

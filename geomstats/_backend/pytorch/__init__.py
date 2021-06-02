@@ -35,6 +35,7 @@ from torch import (  # NOQA
     isnan,
     log,
     lt as less,
+    mat_from_diag_triu_tril,
     matmul,
     max as amax,
     mean,
@@ -778,3 +779,13 @@ def triu_to_vec(x, k=0):
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
+
+def mat_from_diag_triu_tril(diag, triu, tril):
+    n = diag.shape[-1]
+    i, = diag_indices(n, ndim=1)
+    j, k = triu_indices(n, k= 1)
+    mat = torch.zeros((n, ) + diag.shape)
+    mat[..., i, i] = diag
+    mat[..., j, k] = triu
+    mat[..., k, j] = tril
+    return mat
