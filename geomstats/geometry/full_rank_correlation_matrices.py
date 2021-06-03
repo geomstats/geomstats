@@ -49,20 +49,14 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         -------
         result : array-like, shape=[..., n, n]
         """
-        diagonal_tangent_vec = Matrices.diagonal(tangent_vec)
-        diagonal_base_point = Matrices.diagonal(base_point)
-        inv_sqrt_diag_base_point = diagonal_base_point ** (- 0.5)
-        diagonal = (diagonal_base_point ** 1.5) * diagonal_tangent_vec
+        diagonal_bp = Matrices.diagonal(base_point)
+        diagonal_tv = Matrices.diagonal(tangent_vec)
 
-        first_term = FullRankCorrelationMatrices.diag_action(
-            inv_sqrt_diag_base_point, tangent_vec)
-
-        aux_2 = gs.einsum(
-            '...i,...j->...ij', diagonal, inv_sqrt_diag_base_point)
-        second_term = aux_2 * base_point
-
-        second_term = Matrices.to_symmetric(second_term)
-        return first_term - second_term
+        diagonal = diagonal_tv / diagonal_bp
+        aux = base_point * (diagonal[..., None, :] + diagonal[..., :, None])
+        mat = tangent_vec - .5 * aux
+        return FullRankCorrelationMatrices.diag_action(
+            diagonal_bp ** (-.5), mat)
 
     def vertical_projection(self, tangent_vec, base_point, **kwargs):
         """Compute the vertical projection wrt the affine-invariant metric.
@@ -137,7 +131,7 @@ class FullRankCorrelationMatrices(EmbeddedManifold):
         return point * aux
 
     @classmethod
-    def from_cov(cls, point):
+    def from_covariance(cls, point):
         diag_vec = Matrices.diagonal(point) ** (-.5)
         return cls.diag_action(diag_vec, point)
 
@@ -155,11 +149,11 @@ class FullRankCorrelationMatrices(EmbeddedManifold):
             Sample of full-rank correlation matrices.
         """
         spd = self.embedding_space.random_point(n_samples)
-        return self.from_cov(spd)
+        return self.from_covariance(spd)
 
     def projection(self, point):
         spd = self.embedding_space.projection(point)
-        return self.from_cov(spd)
+        return self.from_covariance(spd)
 
     def to_tangent(self, vector, base_point):
         sym = self.embedding_space.to_tangent(vector, base_point)
