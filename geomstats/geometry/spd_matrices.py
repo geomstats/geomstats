@@ -20,10 +20,10 @@ class SPDMatrices(SymmetricMatrices, OpenSet):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, **kwargs):
         super(SPDMatrices, self).__init__(
             dim=int(n * (n + 1) / 2), n=n,
-            ambient_space=SymmetricMatrices(n))
+            ambient_space=SymmetricMatrices(n), **kwargs)
 
     def belongs(self, mat, atol=gs.atol):
         """Check if a matrix is symmetric with positive eigenvalues.
@@ -104,105 +104,6 @@ class SPDMatrices(SymmetricMatrices, OpenSet):
             sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
         return tangent_vec
-
-    @staticmethod
-    def submersion(point):
-        """Compute the correlation matrix associated to an SPD matrix.
-
-                Parameters
-                ----------
-                point : array-like, shape=[..., n, n]
-                    SPD matrix.
-
-                Returns
-                -------
-                cor : array_like, shape=[..., n, n]
-                    Full rank correlation matrix.
-                """
-        diagonal = gs.einsum('...ii->...i', point)
-        cor = gs.einsum('...i,...ij->...ij', diagonal, point)
-        cor = gs.einsum('...ij,...j->...ij', cor, diagonal)
-        return cor
-
-    def tangent_submersion(self, tangent_vec, base_point):
-        """Compute the differential of the submersion.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        result : array-like, shape=[..., n, n]
-        """
-        diagonal_tangent_vec = gs.einsum('...ii->...i', tangent_vec)
-        diagonal_base_point = gs.einsum('...ii->...i', base_point)
-        inv_sqrt_diag_base_point = diagonal_base_point ** (- 0.5)
-        diagonal = (diagonal_base_point ** 1.5) * diagonal_tangent_vec
-        first_term = gs.einsum('...i,...ij->...ij',
-                               inv_sqrt_diag_base_point, tangent_vec)
-        first_term = gs.einsum('...ij,...j->...ij',
-                               first_term, inv_sqrt_diag_base_point)
-        second_term = gs.einsum('...i,...ij->...ij', diagonal, base_point)
-        second_term = gs.einsum('...ij,...j->...ij',
-                                second_term, inv_sqrt_diag_base_point)
-        second_term = Matrices.to_symmetric(second_term)
-        result = first_term - second_term
-        return result
-
-    def vertical_projection(self, tangent_vec, base_point):
-        """Compute the vertical projection wrt the affine-invariant metric.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        ver : array-like, shape=[..., n, n]
-            Vertical projection.
-        """
-        n = self.n
-        inverse_base_point = GeneralLinear.inverse(base_point)
-        operator = gs.eye(n) + base_point * inverse_base_point
-        inverse_operator = GeneralLinear.inverse(operator)
-        vector = gs.einsum('...ij,...ji->...i',
-                           inverse_base_point, tangent_vec)
-        inverse_operator_vector = Matrices.mul(inverse_operator, vector)
-        ones = Matrices.transpose(gs.ones(gs.shape(vector)))
-        factor = Matrices.mul(ones, inverse_operator_vector)
-        factor += Matrices.transpose(factor)
-        ver = base_point * factor
-        return ver
-
-    def horizontal_lift(self, tangent_vec, point=None, base_point=None):
-        """Compute the horizontal lift wrt the affine-invariant metric.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector of the manifold of full-rank correlation matrices.
-        point : array-like, shape=[..., n, n]
-            SPD matrix in the fiber above point.
-        base_point : array-like, shape=[..., n, n]
-            Full-rank correlation matrix.
-
-        Returns
-        -------
-        hor_lift : array-like, shape=[..., n, n]
-            Horizontal lift of tangent_vec from point to base_point.
-        """
-        diagonal_point = gs.einsum('...ii->...i', point) ** 0.5
-        lift = gs.einsum('...i,...ij->...ij', diagonal_point, point)
-        lift = gs.einsum('...ij,...j->...ij', lift, diagonal_point)
-        hor_lift = self.horizontal_projection(lift, base_point=point)
-        return hor_lift
 
     @staticmethod
     def aux_differential_power(power, tangent_vec, base_point):

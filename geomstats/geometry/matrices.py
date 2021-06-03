@@ -130,6 +130,10 @@ class Matrices(VectorSpace):
         return gs.transpose(mat, axes)
 
     @staticmethod
+    def diagonal(mat):
+        return gs.diagonal(mat, axis1=-2, axis2=-1)
+
+    @staticmethod
     def is_square(mat):
         """Check if a matrix is square.
 
@@ -242,8 +246,7 @@ class Matrices(VectorSpace):
         is_square = cls.is_square(mat)
         if not gs.all(is_square):
             return False
-        diagonal_mat = from_vector_to_diagonal_matrix(
-            gs.diagonal(mat, axis1=-2, axis2=-1))
+        diagonal_mat = from_vector_to_diagonal_matrix(cls.diagonal(mat))
         is_diagonal = gs.all(
             gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
         return is_diagonal
