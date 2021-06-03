@@ -7,12 +7,12 @@ import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.base import EmbeddedManifold
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
-TOLERANCE = 1e-5
 EPSILON = 1e-6
 
 
@@ -37,49 +37,18 @@ class Stiefel(EmbeddedManifold):
             raise ValueError('p needs to be smaller than n.')
 
         dim = int(p * n - (p * (p + 1) / 2))
+        matrices = Matrices(n, p)
         super(Stiefel, self).__init__(
-            dim=dim,
-            embedding_manifold=Matrices(n, p))
+            dim=dim, embedding_space=matrices,
+            submersion=lambda x: matrices.mul(matrices.transpose(x), x),
+            value=gs.eye(p),
+            tangent_submersion=lambda v, x: 2 * matrices.to_symmetric(
+                matrices.mul(matrices.transpose(x), v)),
+            metric=StiefelCanonicalMetric(n, p))
 
         self.n = n
         self.p = p
-        self.canonical_metric = StiefelCanonicalMetric(n, p)
-
-    @geomstats.vectorization.decorator(['else', 'matrix', 'else'])
-    def belongs(self, point, tolerance=TOLERANCE):
-        """Test if a point belongs to St(n,p).
-
-        Test whether the point is a p-frame in n-dimensional space,
-        and it is orthonormal.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, p]
-            Point.
-        tolerance : float, optional
-            Tolerance at which to evaluate.
-            Optional, default: 1e-5.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Array of booleans evaluating if the corresponding points
-            belong to the Stiefel manifold.
-        """
-        n_points, n, p = point.shape
-
-        if (n, p) != (self.n, self.p):
-            return gs.array([False] * n_points)
-
-        point_transpose = Matrices.transpose(point)
-        identity = gs.eye(p)
-        diff = gs.einsum(
-            '...ij,...jk->...ik', point_transpose, point) - identity
-
-        diff_norm = gs.linalg.norm(diff, axis=(-2, -1))
-        belongs = gs.less_equal(diff_norm, tolerance)
-        belongs = gs.to_ndarray(belongs, to_ndim=1)
-        return belongs
+        self.canonical_metric = self.metric
 
     @staticmethod
     def to_grassmannian(point):
@@ -125,14 +94,79 @@ class Stiefel(EmbeddedManifold):
 
         std_normal = gs.random.normal(size=size)
         std_normal_transpose = Matrices.transpose(std_normal)
-        aux = gs.einsum(
-            '...ij,...jk->...ik', std_normal_transpose, std_normal)
-        sqrt_aux = gs.linalg.sqrtm(aux)
-        inv_sqrt_aux = gs.linalg.inv(sqrt_aux)
-        samples = gs.einsum(
-            '...ij,...jk->...ik', std_normal, inv_sqrt_aux)
+        aux = Matrices.mul(std_normal_transpose, std_normal)
+        inv_sqrt_aux = SymmetricMatrices.powerm(aux, -1. / 2)
+        samples = Matrices.mul(std_normal, inv_sqrt_aux)
 
         return samples
+
+    def random_point(self, n_samples=1, bound=1.):
+        r"""Sample on St(n,p) from the uniform distribution.
+
+        If :math:`Z(p,n) \sim N(0,1)`, then :math:`St(n,p) \sim U`,
+        according to Haar measure:
+        :math:`St(n,p) := Z(Z^TZ)^{-1/2}`.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Unused here.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n, p]
+            Samples on the Stiefel manifold.
+        """
+        return self.random_uniform(n_samples)
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        Inspired by the method of Pymanopt.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, p]
+            Vector.
+        base_point : array-like, shape=[..., n, p]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, p]
+            Tangent vector at base point.
+        """
+        aux = Matrices.mul(Matrices.transpose(base_point), vector)
+        sym_aux = Matrices.to_symmetric(aux)
+        return vector - Matrices.mul(base_point, sym_aux)
+
+    def projection(self, point):
+        """Project a close enough matrix to the Stiefel manifold.
+
+        A singular value decomposition is used, and all singular values are
+        set to 1 [Absil]_
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, p]
+            Point in embedding manifold.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., n, p]
+
+        References
+        ----------
+        ..[Absil]   Absil, Pierre-Antoine, and Jérôme Malick.
+                    “Projection-like Retractions on Matrix Manifolds.”
+                    SIAM Journal on Optimization 22, no. 1 (January 2012):
+                     135–58. https://doi.org/10.1137/100802529.
+        """
+        mat_u, _, mat_v = gs.linalg.svd(point)
+        return Matrices.mul(mat_u[..., :, :self.p], mat_v)
 
 
 class StiefelCanonicalMetric(RiemannianMetric):
@@ -155,7 +189,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
         self.n = n
         self.p = p
 
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'matrix'])
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the inner-product of two tangent vectors at a base point.
 
@@ -190,18 +223,16 @@ class StiefelCanonicalMetric(RiemannianMetric):
         inner_prod : array-like, shape=[..., 1]
             Inner-product of the two tangent vectors.
         """
-        base_point_transpose = gs.transpose(base_point, axes=(0, 2, 1))
+        base_point_transpose = Matrices.transpose(base_point)
 
         aux = gs.matmul(
-            gs.transpose(tangent_vec_a, axes=(0, 2, 1)),
+            Matrices.transpose(tangent_vec_a),
             gs.eye(self.n) - 0.5 * gs.matmul(base_point, base_point_transpose))
-        inner_prod = gs.trace(gs.matmul(aux, tangent_vec_b), axis1=1, axis2=2)
+        inner_prod = Matrices.trace_product(aux, tangent_vec_b)
 
-        inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
         return inner_prod
 
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -217,51 +248,23 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Point in the Stiefel manifold equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        n_tangent_vecs, _, _ = tangent_vec.shape
-        n_base_points, _, p = base_point.shape
-
-        if not (n_tangent_vecs == n_base_points
-                or n_tangent_vecs == 1
-                or n_base_points == 1):
-            raise NotImplementedError
-
-        if n_tangent_vecs == 1:
-            tangent_vec = gs.tile(tangent_vec, (n_base_points, 1, 1))
-
-        if n_base_points == 1:
-            base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
-
-        matrix_a = gs.einsum(
-            'nij, njk->nik',
-            gs.transpose(base_point, axes=(0, 2, 1)), tangent_vec)
-        matrix_k = (tangent_vec
-                    - gs.einsum('nij,njk->nik', base_point, matrix_a))
+        p = self.p
+        matrix_a = Matrices.mul(Matrices.transpose(base_point), tangent_vec)
+        matrix_k = (tangent_vec - Matrices.mul(base_point, matrix_a))
 
         matrix_q, matrix_r = gs.linalg.qr(matrix_k)
 
         matrix_ar = gs.concatenate(
-            [matrix_a,
-             -gs.transpose(matrix_r, axes=(0, 2, 1))],
-            axis=2)
+            [matrix_a, -Matrices.transpose(matrix_r)], axis=-1)
 
-        zeros = gs.zeros(
-            (gs.maximum(n_base_points, n_tangent_vecs), p, p))
-
-        matrix_rz = gs.concatenate(
-            [matrix_r,
-             zeros],
-            axis=2)
-        block = gs.concatenate([matrix_ar, matrix_rz], axis=1)
+        zeros = gs.zeros_like(tangent_vec)[..., :p, :p]
+        matrix_rz = gs.concatenate([matrix_r, zeros], axis=-1)
+        block = gs.concatenate([matrix_ar, matrix_rz], axis=-2)
         matrix_mn_e = gs.linalg.expm(block)
 
-        exp = gs.einsum(
-            'nij,njk->nik',
-            gs.concatenate(
-                [base_point,
-                 matrix_q],
-                axis=2),
-            matrix_mn_e[:, :, 0:p])
-
+        exp = (
+            Matrices.mul(base_point, matrix_mn_e[..., :p, :p])
+            + Matrices.mul(matrix_q, matrix_mn_e[..., p:, :p]))
         return exp
 
     @staticmethod
@@ -296,8 +299,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         -------
         matrix_v : array-like
         """
-        matrix_w = gs.concatenate([matrix_m, matrix_n], axis=1)
-
+        matrix_w = gs.concatenate([matrix_m, matrix_n], axis=-2)
         matrix_v, _ = gs.linalg.qr(matrix_w, mode='complete')
 
         return matrix_v
@@ -316,20 +318,28 @@ class StiefelCanonicalMetric(RiemannianMetric):
         -------
         matrix_v : array-like
         """
-        [matrix_d, _, matrix_r] = gs.linalg.svd(
-            matrix_v[:, p:2 * p, p:2 * p])
-
-        matrix_rd = gs.matmul(
-            matrix_r, gs.transpose(matrix_d, axes=(0, 2, 1)))
-        sub_matrix_v = gs.matmul(matrix_v[:, :, p:2 * p], matrix_rd)
-        matrix_v = gs.concatenate(
-            [gs.concatenate([matrix_m, matrix_n], axis=1),
-             sub_matrix_v],
-            axis=2)
+        [matrix_d, _, matrix_r] = gs.linalg.svd(matrix_v[..., p:, p:])
+        j_matrix = gs.eye(p)
+        for i in range(1, p):
+            matrix_rd = Matrices.mul(
+                matrix_r, j_matrix, Matrices.transpose(matrix_d))
+            sub_matrix_v = gs.matmul(matrix_v[..., :, p:], matrix_rd)
+            matrix_v = gs.concatenate([
+                gs.concatenate([matrix_m, matrix_n], axis=-2),
+                sub_matrix_v], axis=-1)
+            det = gs.linalg.det(matrix_v)
+            if gs.all(det > 0):
+                break
+            ones = gs.ones(p)
+            reflection_vec = gs.concatenate(
+                [ones[:-i], gs.array([-1.] * i)], axis=0)
+            mask = gs.cast(det < 0, gs.float32)
+            sign = (mask[..., None] * reflection_vec
+                    + (1. - mask)[..., None] * ones)
+            j_matrix = algebra_utils.from_vector_to_diagonal_matrix(sign)
         return matrix_v
 
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'else'])
-    def log(self, point, base_point, max_iter=30, tol=1e-6):
+    def log(self, point, base_point, max_iter=30, tol=gs.atol, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
         Based on [ZR2017]_.
@@ -361,47 +371,48 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        p = base_point.shape[-1]
+        p = self.p
 
         transpose_base_point = Matrices.transpose(base_point)
         matrix_m = gs.matmul(transpose_base_point, point)
 
-        matrix_q, matrix_n = StiefelCanonicalMetric._normal_component_qr(
+        matrix_q, matrix_n = self._normal_component_qr(
             point, base_point, matrix_m)
 
-        matrix_v = StiefelCanonicalMetric._orthogonal_completion(
-            matrix_m, matrix_n)
-
-        matrix_v = StiefelCanonicalMetric._procrustes_preprocessing(
+        matrix_v = self._orthogonal_completion(matrix_m, matrix_n)
+        matrix_v = self._procrustes_preprocessing(
             p, matrix_v, matrix_m, matrix_n)
-
-        for _ in range(max_iter):
-            matrix_lv = gs.linalg.logm(matrix_v)
-
-            matrix_c = matrix_lv[:, p:2 * p, p:2 * p]
-
-            norm_matrix_c = gs.linalg.norm(matrix_c)
-
-            if gs.less_equal(norm_matrix_c, tol):
-                break
-
-            matrix_phi = gs.linalg.expm(-matrix_c)
-
-            aux_matrix = gs.matmul(
-                matrix_v[:, :, p:2 * p], matrix_phi)
-
-            matrix_v = gs.concatenate(
-                [matrix_v[:, :, 0:p],
-                 aux_matrix],
-                axis=2)
-
-        matrix_xv = gs.matmul(base_point, matrix_lv[:, 0:p, 0:p])
-        matrix_qv = gs.matmul(matrix_q, matrix_lv[:, p:2 * p, 0:p])
+        matrix_v = gs.to_ndarray(matrix_v, to_ndim=3)
+        result = []
+        for x in matrix_v:
+            result.append(self._iter_log(p, x, max_iter, tol))
+        result = gs.stack(result)
+        matrix_lv = (
+            result[0] if (point.ndim == 2) and (base_point.ndim == 2)
+            else result)
+        matrix_xv = gs.matmul(base_point, matrix_lv[..., :p, :p])
+        matrix_qv = gs.matmul(matrix_q, matrix_lv[..., p:, :p])
 
         return matrix_xv + matrix_qv
 
     @staticmethod
-    @geomstats.vectorization.decorator(['matrix', 'matrix'])
+    def _iter_log(p, matrix_v, max_iter, tol):
+        matrix_lv = gs.zeros_like(matrix_v)
+        for _ in range(max_iter):
+            matrix_lv = gs.linalg.logm(matrix_v)
+            matrix_c = matrix_lv[..., p:, p:]
+            norm_matrix_c = gs.linalg.norm(matrix_c)
+            if norm_matrix_c <= tol:
+                break
+
+            matrix_phi = gs.linalg.expm(-Matrices.to_skew_symmetric(matrix_c))
+            aux_matrix = gs.matmul(
+                matrix_v[..., :, p:], matrix_phi)
+            matrix_v = gs.concatenate(
+                [matrix_v[..., :, :p], aux_matrix], axis=-1)
+        return matrix_lv
+
+    @staticmethod
     def retraction(tangent_vec, base_point):
         """Compute the retraction of a tangent vector.
 
@@ -422,20 +433,12 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Point in the Stiefel manifold equal to the retraction
             of tangent_vec at the base point.
         """
-        n_tangent_vecs, _, _ = tangent_vec.shape
-        n_base_points, _, _ = base_point.shape
-
-        if not (n_tangent_vecs == n_base_points
-                or n_tangent_vecs == 1
-                or n_base_points == 1):
-            raise NotImplementedError
-
         matrix_q, matrix_r = gs.linalg.qr(base_point + tangent_vec)
 
-        diagonal = gs.diagonal(matrix_r, axis1=1, axis2=2)
+        diagonal = gs.diagonal(matrix_r, axis1=-2, axis2=-1)
         sign = gs.sign(gs.sign(diagonal) + 0.5)
         diag = algebra_utils.from_vector_to_diagonal_matrix(sign)
-        result = gs.einsum('nij,njk->nik', matrix_q, diag)
+        result = Matrices.mul(matrix_q, diag)
 
         return result
 
@@ -498,15 +501,15 @@ class StiefelCanonicalMetric(RiemannianMetric):
             return b
 
         matrix_r = gs.zeros((n_liftings, n, n))
-        matrix_m = gs.matmul(gs.transpose(base_point, axes=(0, 2, 1)), point)
+        matrix_m = gs.matmul(Matrices.transpose(base_point), point)
 
         for k in range(n_liftings):
             columns_list = []
             matrix_m_k = matrix_m[k]
 
-            for i in range(n):
-                column_r_i = _make_column_r(i, matrix_m_k)
-                columns_list.append(column_r_i)
-                matrix_r[k, :len(column_r_i), i] = gs.array(column_r_i)
+            for j in range(n):
+                column_r_j = _make_column_r(j, matrix_m_k)
+                columns_list.append(column_r_j)
+                matrix_r[k, :len(column_r_j), j] = gs.array(column_r_j)
 
         return gs.matmul(point, matrix_r) - base_point

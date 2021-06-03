@@ -10,9 +10,6 @@ import geomstats.backend as gs
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 
 
-TOLERANCE = 1e-8
-
-
 class SkewSymmetricMatrices(MatrixLieAlgebra):
     """Class for skew-symmetric matrices.
 
@@ -48,7 +45,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
                         [(row, col), (col, row)], [1., -1.], (n, n)))
             self.basis = gs.stack(basis)
 
-    def belongs(self, mat, atol=TOLERANCE):
+    def belongs(self, mat, atol=gs.atol):
         """Evaluate if mat is a skew-symmetric matrix.
 
         Parameters
@@ -57,16 +54,37 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
             Square matrix to check.
         atol : float
             Tolerance for the equality evaluation.
-            Optional, default: TOLERANCE.
+            Optional, default: backend atol.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
             Boolean evaluating if matrix is skew symmetric.
         """
-        is_skew = self.is_skew_symmetric(mat=mat, atol=atol)
-        return gs.logical_and(
-            is_skew, super(SkewSymmetricMatrices, self).belongs(mat))
+        has_right_shape = super(SkewSymmetricMatrices, self).belongs(mat)
+        if gs.all(has_right_shape):
+            return self.is_skew_symmetric(mat=mat, atol=atol)
+        return has_right_shape
+
+    def random_point(self, n_samples=1, bound=1.):
+        """Sample from a uniform distribution in a cube.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample each entry.
+            Optional, default: 1.
+
+        Returns
+        -------
+        point : array-like, shape=[..., n, n]
+            Sample.
+        """
+        return self.projection(
+            super(SkewSymmetricMatrices, self).random_point(n_samples, bound))
 
     @classmethod
     def projection(cls, mat):

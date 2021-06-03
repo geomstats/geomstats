@@ -48,14 +48,26 @@ To contribute to `geomstats` visit the page :ref:`contributing`.
 
 .. toctree::
    :maxdepth: 1
-   :caption: Getting Started
+   :caption: Getting started
 
    first-steps.rst
    examples.rst
    api-reference.rst
    contributing.rst
-   01_data_on_manifolds.rst
-   02_from_vector_spaces_to_manifolds.rst
-   03_simple_machine_learning_tangent_spaces.rst
-   04_frechet_mean_and_tangent_pca.rst
-   05_embedding_graph_structured_data_h2.rst
+
+.. nbgallery::
+   :maxdepth: 1
+   :caption: Tutorials
+
+
+   notebooks/01_data_on_manifolds
+   notebooks/02_from_vector_spaces_to_manifolds
+   notebooks/03_simple_machine_learning_on_tangent_spaces
+   notebooks/04_riemannian_frechet_mean_and_tangent_pca
+   notebooks/05_riemannian_kmeans
+   notebooks/06_information_geometry
+   notebooks/usecase_emg_sign_classification_in_spd_manifold
+   notebooks/usecase_graph_embedding_and_clustering_in_hyperbolic_space
+   notebooks/usecase_optic_nerve_heads_analysis_in_kendall_shape_space
+   notebooks/usecase_hand_poses_analysis_in_kendall_shape_space
+   

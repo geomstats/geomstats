@@ -20,7 +20,7 @@ def plot_geodesic_between_two_points(
         initial_point, end_point, n_steps=11, ax=None):
     """Plot the geodesic between two points."""
     geodesic = METRIC.geodesic(
-        initial_point=initial_point, end_point=end_point, point_type='matrix')
+        initial_point=initial_point, end_point=end_point)
     t = gs.linspace(0., 1., n_steps)
     points = geodesic(t)
     visualization.plot(points, ax=ax, space='poincare_polydisk')
@@ -31,8 +31,7 @@ def plot_geodesic_with_initial_tangent_vector(
     """Plot the geodesic with initial speed the tangent vector."""
     geodesic = METRIC.geodesic(
         initial_point=initial_point,
-        initial_tangent_vec=initial_tangent_vec,
-        point_type='matrix')
+        initial_tangent_vec=initial_tangent_vec)
     t = gs.linspace(0., 1., n_steps)
     points = geodesic(t)
     visualization.plot(points, ax=ax, space='poincare_polydisk')
@@ -53,7 +52,7 @@ def main():
     vector = gs.array([3.5, 0.6, 0.8])
     stack_vector = gs.stack([vector] * N_DISKS, axis=0)
     vector = gs.to_ndarray(stack_vector, to_ndim=3)
-    initial_tangent_vec = POINCARE_POLYDISK.projection_to_tangent_space(
+    initial_tangent_vec = POINCARE_POLYDISK.to_tangent(
         vector=vector, base_point=initial_point)
     fig = plt.figure()
     plot_geodesic_between_two_points(

@@ -19,6 +19,7 @@ from autograd.numpy import (  # NOQA
     argmin,
     array,
     broadcast_arrays,
+    broadcast_to,
     ceil,
     clip,
     concatenate,
@@ -30,7 +31,7 @@ from autograd.numpy import (  # NOQA
     diagonal,
     divide,
     dot,
-    dtype,
+    dtype as ndtype,
     einsum,
     empty,
     empty_like,
@@ -64,6 +65,7 @@ from autograd.numpy import (  # NOQA
     ones_like,
     outer,
     power,
+    prod,
     repeat,
     reshape,
     shape,
@@ -97,12 +99,17 @@ from scipy.sparse import coo_matrix
 from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA
+from ..constants import np_atol, np_rtol
 
 DTYPES = {
-    dtype('int32'): 0,
-    dtype('int64'): 1,
-    dtype('float32'): 2,
-    dtype('float64'): 3}
+    ndtype('int32'): 0,
+    ndtype('int64'): 1,
+    ndtype('float32'): 2,
+    ndtype('float64'): 3}
+
+
+atol = np_atol
+rtol = np_rtol
 
 
 def to_numpy(x):
@@ -121,6 +128,10 @@ def convert_to_wider_dtype(tensor_list):
 
 def flatten(x):
     return x.flatten()
+
+
+def one_hot(labels, num_classes):
+    return np.eye(num_classes, dtype=np.dtype('uint8'))[labels]
 
 
 def get_mask_i_float(i, n):
@@ -322,6 +333,7 @@ def set_diag(x, new_diag):
     """
     arr_shape = x.shape
     x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
+    return x
 
 
 def ndim(x):

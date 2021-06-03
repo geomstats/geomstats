@@ -7,16 +7,14 @@ Euclidean space.
 import logging
 from itertools import product
 
+from scipy.stats import beta
+
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-import geomstats.vectorization
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.base import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-
-TOLERANCE = 1e-6
-EPSILON = 1e-4
 
 
 class _Hypersphere(EmbeddedManifold):
@@ -36,62 +34,9 @@ class _Hypersphere(EmbeddedManifold):
 
     def __init__(self, dim):
         super(_Hypersphere, self).__init__(
-            dim=dim,
-            embedding_manifold=Euclidean(dim + 1))
-        self.embedding_metric = self.embedding_manifold.metric
-
-    def belongs(self, point, tolerance=TOLERANCE):
-        """Test if a point belongs to the hypersphere.
-
-        This tests whether the point's squared norm in Euclidean space is 1.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim + 1]
-            Point in Euclidean space.
-        tolerance : float
-            Tolerance at which to evaluate norm == 1.
-            Optional, default: 1e-6.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the hypersphere.
-        """
-        point_dim = gs.shape(point)[-1]
-        if point_dim != self.dim + 1:
-            if point_dim is self.dim:
-                logging.warning(
-                    'Use the extrinsic coordinates to '
-                    'represent points on the hypersphere.')
-            belongs = False
-            if gs.ndim(point) == 2:
-                belongs = gs.tile([belongs], (point.shape[0],))
-            return belongs
-        sq_norm = gs.sum(point ** 2, axis=-1)
-        diff = gs.abs(sq_norm - 1)
-        return gs.less_equal(diff, tolerance)
-
-    def regularize(self, point):
-        """Regularize a point to the canonical representation.
-
-        Regularize a point to the canonical representation chosen
-        for the hypersphere, to avoid numerical issues.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim + 1]
-            Point on the hypersphere.
-
-        Returns
-        -------
-        projected_point : array-like, shape=[..., dim + 1]
-            Point in canonical representation chosen for the hypersphere.
-        """
-        if not gs.all(self.belongs(point)):
-            raise ValueError('Points do not belong to the manifold.')
-
-        return self.projection(point)
+            dim=dim, embedding_space=Euclidean(dim + 1),
+            submersion=lambda x: gs.sum(x ** 2, axis=-1), value=1.,
+            tangent_submersion=lambda v, x: 2 * gs.sum(x * v, axis=-1))
 
     def projection(self, point):
         """Project a point on the hypersphere.
@@ -175,7 +120,6 @@ class _Hypersphere(EmbeddedManifold):
 
         return point_extrinsic
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def tangent_spherical_to_extrinsic(self, tangent_vec_spherical,
                                        base_point_spherical):
         """Convert tangent vector from spherical to extrinsic coordinates.
@@ -203,19 +147,17 @@ class _Hypersphere(EmbeddedManifold):
                 ' to extrinsic coordinates is implemented'
                 ' only in dimension 2.')
 
-        n_samples = base_point_spherical.shape[0]
-        theta = base_point_spherical[:, 0]
-        phi = base_point_spherical[:, 1]
+        axes = (2, 0, 1) if base_point_spherical.ndim == 2 else (0, 1)
+        theta = base_point_spherical[..., 0]
+        phi = base_point_spherical[..., 1]
 
-        zeros = gs.zeros(n_samples)
+        zeros = gs.zeros_like(theta)
 
-        jac = gs.concatenate([gs.array([[
-            [gs.cos(theta[i]) * gs.cos(phi[i]),
-             - gs.sin(theta[i]) * gs.sin(phi[i])],
-            [gs.cos(theta[i]) * gs.sin(phi[i]),
-             gs.sin(theta[i]) * gs.cos(phi[i])],
-            [- gs.sin(theta[i]),
-             zeros[i]]]]) for i in range(n_samples)], axis=0)
+        jac = gs.array([
+            [gs.cos(theta) * gs.cos(phi), - gs.sin(theta) * gs.sin(phi)],
+            [gs.cos(theta) * gs.sin(phi), gs.sin(theta) * gs.cos(phi)],
+            [- gs.sin(theta), zeros]])
+        jac = gs.transpose(jac, axes)
 
         tangent_vec_extrinsic = gs.einsum(
             '...ij,...j->...i', jac, tangent_vec_spherical)
@@ -276,7 +218,7 @@ class _Hypersphere(EmbeddedManifold):
         value_indices = list(product(replaced_indices, range(self.dim + 1)))
         return gs.assignment(samples, gs.flatten(new_samples), value_indices)
 
-    def random_uniform(self, n_samples=1, tol=1e-6):
+    def random_point(self, n_samples=1, bound=1.):
         """Sample in the hypersphere from the uniform distribution.
 
         Parameters
@@ -284,9 +226,23 @@ class _Hypersphere(EmbeddedManifold):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        tol : float
-            Tolerance.
-            Optional, default: 1e-6.
+        bound : unused
+
+        Returns
+        -------
+        samples : array-like, shape=[..., dim + 1]
+            Points sampled on the hypersphere.
+        """
+        return self.random_uniform(n_samples)
+
+    def random_uniform(self, n_samples=1):
+        """Sample in the hypersphere from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
 
         Returns
         -------
@@ -298,7 +254,7 @@ class _Hypersphere(EmbeddedManifold):
         samples = gs.random.normal(size=size)
         while True:
             norms = gs.linalg.norm(samples, axis=1)
-            indcs = gs.isclose(norms, 0.0, atol=tol)
+            indcs = gs.isclose(norms, 0.0, atol=gs.atol)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
@@ -311,51 +267,192 @@ class _Hypersphere(EmbeddedManifold):
             samples = gs.squeeze(samples, axis=0)
         return samples
 
-    def random_von_mises_fisher(self, kappa=10, n_samples=1):
-        """Sample in the 2-sphere with the von Mises distribution.
+    def random_von_mises_fisher(
+            self, mu=None, kappa=10, n_samples=1, max_iter=100):
+        """Sample with the von Mises-Fisher distribution.
 
-        Sample in the 2-sphere with the von Mises distribution centered at the
-        north pole.
+        This distribution corresponds to the maximum entropy distribution
+        given a mean. In dimension 2, a closed form expression is available.
+        In larger dimension, rejection sampling is used according to [Wood94]_
 
         References
         ----------
-        https://en.wikipedia.org/wiki/Von_Mises_distribution
+        https://en.wikipedia.org/wiki/Von_Mises-Fisher_distribution
+
+        .. [Wood94]   Wood, Andrew T. A. “Simulation of the von Mises Fisher
+                      Distribution.” Communications in Statistics - Simulation
+                      and Computation, June 27, 2007.
+                      https://doi.org/10.1080/03610919408813161.
 
         Parameters
         ----------
-        kappa : int
+        mu : array-like, shape=[dim]
+            Mean parameter of the distribution.
+        kappa : float
             Kappa parameter of the von Mises distribution.
             Optional, default: 10.
         n_samples : int
             Number of samples.
             Optional, default: 1.
+        max_iter : int
+            Maximum number of trials in the rejection algorithm. In case it
+            is reached, the current number of samples < n_samples is returned.
+            Optional, default: 100.
 
         Returns
         -------
-        point : array-like, shape=[..., 3]
+        point : array-like, shape=[n_samples, dim + 1]
             Points sampled on the sphere in extrinsic coordinates
-            in Euclidean space of dimension 3.
+            in Euclidean space of dimension dim + 1.
         """
-        if self.dim != 2:
-            raise NotImplementedError(
-                'Sampling from the von Mises Fisher distribution'
-                'is only implemented in dimension 2.')
-        angle = 2. * gs.pi * gs.random.rand(n_samples)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
-        unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
-        scalar = gs.random.rand(n_samples)
+        dim = self.dim
 
-        coord_z = 1. + 1. / kappa * gs.log(
-            scalar + (1. - scalar) * gs.exp(gs.array(-2. * kappa)))
-        coord_z = gs.to_ndarray(coord_z, to_ndim=2, axis=1)
+        if dim == 2:
+            angle = 2. * gs.pi * gs.random.rand(n_samples)
+            angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+            unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
+            scalar = gs.random.rand(n_samples)
 
-        coord_xy = gs.sqrt(1. - coord_z**2) * unit_vector
+            coord_x = 1. + 1. / kappa * gs.log(
+                scalar + (1. - scalar) * gs.exp(gs.array(-2. * kappa)))
+            coord_x = gs.to_ndarray(coord_x, to_ndim=2, axis=1)
+            coord_yz = gs.sqrt(1. - coord_x ** 2) * unit_vector
+            sample = gs.hstack((coord_x, coord_yz))
 
-        point = gs.hstack((coord_xy, coord_z))
+        else:
+            # rejection sampling in the general case
+            sqrt = gs.sqrt(4 * kappa ** 2. + dim ** 2)
+            envelop_param = (-2 * kappa + sqrt) / dim
+            node = (1. - envelop_param) / (1. + envelop_param)
+            correction = kappa * node + dim * gs.log(1. - node ** 2)
 
-        if n_samples == 1:
-            point = gs.squeeze(point, axis=0)
-        return point
+            n_accepted, n_iter = 0, 0
+            result = []
+            while (n_accepted < n_samples) and (n_iter < max_iter):
+                sym_beta = beta.rvs(
+                    dim / 2, dim / 2, size=n_samples - n_accepted)
+                sym_beta = gs.cast(sym_beta, node.dtype)
+                coord_x = (1 - (1 + envelop_param) * sym_beta) / (
+                    1 - (1 - envelop_param) * sym_beta)
+                accept_tol = gs.random.rand(n_samples - n_accepted)
+                criterion = (
+                    kappa * coord_x
+                    + dim * gs.log(1 - node * coord_x)
+                    - correction) > gs.log(accept_tol)
+                result.append(coord_x[criterion])
+                n_accepted += gs.sum(criterion)
+                n_iter += 1
+            if n_accepted < n_samples:
+                logging.warning(
+                    'Maximum number of iteration reached in rejection '
+                    'sampling before n_samples were accepted.')
+            coord_x = gs.concatenate(result)
+            coord_rest = _Hypersphere(dim - 1).random_uniform(n_accepted)
+            coord_rest = gs.einsum(
+                '...,...i->...i', gs.sqrt(1 - coord_x ** 2), coord_rest)
+            sample = gs.concatenate([coord_x[..., None], coord_rest], axis=1)
+
+        if mu is not None:
+            sample = utils.rotate_points(sample, mu)
+
+        return sample if (n_samples > 1) else sample[0]
+
+    def random_riemannian_normal(
+            self, mean=None, precision=None, n_samples=1, max_iter=100):
+        r"""Sample from the Riemannian normal distribution.
+
+        The Riemannian normal distribution, or spherical normal in this case,
+        is defined by the probability density function (with respect to the
+        Riemannian volume measure) proportional to:
+        .. math::
+                \exp \Big \left(- \frac{\lambda}{2} \mathtm{arccos}^2(x^T\mu)
+                \Big \right)
+
+        where :math: `\mu` is the mean and :math: `\lambda` is the isotropic
+        precision. For the anisotropic case,
+        :math: `\log_{\mu}(x)^T \Lambda \log_{\mu}(x)` is used instead.
+
+        A rejection algorithm is used to sample from this distribution [Hau18]_
+
+        Parameters
+        ----------
+        mean : array-like, shape=[dim]
+            Mean parameter of the distribution.
+            Optional, default: (0,...,0,1) (the north pole).
+        precision : float or array-like, shape=[dim, dim]
+            Inverse of the covariance parameter of the normal distribution.
+            If a float is passed, the covariance matrix is precision times
+            identity.
+            Optional, default: identity.
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        max_iter : int
+            Maximum number of trials in the rejection algorithm. In case it
+            is reached, the current number of samples < n_samples is returned.
+            Optional, default: 100.
+
+        Returns
+        -------
+        point : array-like, shape=[n_samples, dim + 1]
+            Points sampled on the sphere.
+
+        References
+        ----------
+        .. [Hau18]  Hauberg, Soren. “Directional Statistics with the
+                    Spherical Normal Distribution.”
+                    In 2018 21st International Conference on Information
+                    Fusion (FUSION), 704–11, 2018.
+                    https://doi.org/10.23919/ICIF.2018.8455242.
+        """
+        dim = self.dim
+        n_accepted, n_iter = 0, 0
+        result = []
+        if precision is None:
+            precision_ = gs.eye(self.dim)
+        elif isinstance(precision, (float, int)):
+            precision_ = precision * gs.eye(self.dim)
+        else:
+            precision_ = precision
+        precision_2 = precision_ + (dim - 1) / gs.pi * gs.eye(dim)
+        tangent_cov = gs.linalg.inv(precision_2)
+
+        def threshold(random_v):
+            """Compute the acceptance threshold."""
+            squared_norm = gs.sum(random_v ** 2, axis=-1)
+            sinc = utils.taylor_exp_even_func(
+                squared_norm, utils.sinc_close_0) ** (dim - 1)
+            threshold_val = sinc * gs.exp(squared_norm * (dim - 1) / 2 / gs.pi)
+            return threshold_val, squared_norm ** .5
+
+        while (n_accepted < n_samples) and (n_iter < max_iter):
+            envelope = gs.random.multivariate_normal(
+                gs.zeros(dim), tangent_cov, size=(n_samples - n_accepted,))
+            thresh, norm = threshold(envelope)
+            proposal = gs.random.rand(n_samples - n_accepted)
+            criterion = gs.logical_and(norm <= gs.pi, proposal <= thresh)
+            result.append(envelope[criterion])
+            n_accepted += gs.sum(criterion)
+            n_iter += 1
+        if n_accepted < n_samples:
+            logging.warning(
+                'Maximum number of iteration reached in rejection '
+                'sampling before n_samples were accepted.')
+        tangent_sample_intr = gs.concatenate(result)
+        tangent_sample = gs.concatenate(
+            [tangent_sample_intr, gs.zeros(n_accepted)[:, None]], axis=1)
+
+        metric = HypersphereMetric(dim)
+        north_pole = gs.array([0.] * dim + [1.])
+        if mean is not None:
+            mean_from_north = metric.log(mean, north_pole)
+            tangent_sample_at_pt = metric.parallel_transport(
+                tangent_sample, mean_from_north, north_pole)
+        else:
+            tangent_sample_at_pt = tangent_sample
+            mean = north_pole
+        sample = metric.exp(tangent_sample_at_pt, mean)
+        return sample[0] if (n_samples == 1) else sample
 
 
 class HypersphereMetric(RiemannianMetric):
@@ -370,9 +467,25 @@ class HypersphereMetric(RiemannianMetric):
     def __init__(self, dim):
         super(HypersphereMetric, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0))
+            signature=(dim, 0))
         self.embedding_metric = EuclideanMetric(dim + 1)
         self._space = _Hypersphere(dim=dim)
+
+    def metric_matrix(self, base_point=None):
+        """Metric matrix at the tangent space at a base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim + 1]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., dim + 1, dim + 1]
+            Inner-product matrix.
+        """
+        return gs.eye(self.dim + 1)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -446,7 +559,6 @@ class HypersphereMetric(RiemannianMetric):
 
         return exp
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
@@ -494,8 +606,7 @@ class HypersphereMetric(RiemannianMetric):
         norm_b = self.embedding_metric.norm(point_b)
         inner_prod = self.embedding_metric.inner_product(point_a, point_b)
 
-        cos_angle = gs.einsum(
-            '...,...->...', inner_prod, 1. / (norm_a * norm_b))
+        cos_angle = inner_prod / (norm_a * norm_b)
         cos_angle = gs.clip(cos_angle, -1, 1)
 
         dist = gs.arccos(cos_angle)
@@ -542,12 +653,13 @@ class HypersphereMetric(RiemannianMetric):
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         theta = gs.linalg.norm(tangent_vec_b, axis=-1)
-        normalized_b = gs.einsum('..., ...i->...i', 1 / theta, tangent_vec_b)
+        eps = gs.where(theta == 0., 1., theta)
+        normalized_b = gs.einsum('...,...i->...i', 1 / eps, tangent_vec_b)
         pb = gs.einsum('...i,...i->...', tangent_vec_a, normalized_b)
-        p_orth = tangent_vec_a - gs.einsum('..., ...i->...i', pb, normalized_b)
+        p_orth = tangent_vec_a - gs.einsum('...,...i->...i', pb, normalized_b)
         transported = \
-            - gs.einsum('..., ...i->...i', gs.sin(theta) * pb, base_point)\
-            + gs.einsum('..., ...i->...i', gs.cos(theta) * pb, normalized_b)\
+            - gs.einsum('...,...i->...i', gs.sin(theta) * pb, base_point)\
+            + gs.einsum('...,...i->...i', gs.cos(theta) * pb, normalized_b)\
             + p_orth
         return transported
 
@@ -589,6 +701,41 @@ class HypersphereMetric(RiemannianMetric):
         if gs.ndim(christoffel) == 4 and gs.shape(christoffel)[0] == 1:
             christoffel = gs.squeeze(christoffel, axis=0)
         return christoffel
+
+    def curvature(
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
+            base_point):
+        r"""Compute the curvature.
+
+        For three tangent vectors at a base point :math: `x,y,z`,
+        the curvature is defined by
+        :math: `R(x, y)z = \nabla_{[x,y]}z
+        - \nabla_z\nabla_y z + \nabla_y\nabla_x z`, where :math: `\nabla`
+        is the Levi-Civita connection. In the case of the hypersphere,
+        we have the closed formula
+        :math: `R(x,y)z = \langle x, z \rangle y - \langle y,z \rangle x`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., dim]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        """
+        inner_ac = self.inner_product(tangent_vec_a, tangent_vec_c)
+        inner_bc = self.inner_product(tangent_vec_b, tangent_vec_c)
+        first_term = gs.einsum('...,...i->...i', inner_bc, tangent_vec_a)
+        second_term = gs.einsum('...,...i->...i', inner_ac, tangent_vec_b)
+        return - first_term + second_term
 
 
 class Hypersphere(_Hypersphere):

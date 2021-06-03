@@ -10,7 +10,7 @@ import geomstats.backend as gs
 # TODO (nkoep): Move this into the OnlineKMeans class.
 
 def online_kmeans(X, metric, n_clusters, n_repetitions=20,
-                  tolerance=1e-5, max_iter=5e4):
+                  atol=1e-5, max_iter=5e4):
     """Perform online K-means clustering.
 
     Perform online version of k-means algorithm on data contained in X.
@@ -87,7 +87,7 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
 
         cluster_centers[index_to_update, :] = new_center
 
-        if gs.isclose(gap, 0, atol=tolerance):
+        if gs.isclose(gap, 0, atol=atol):
             break
 
     if iteration == max_iter - 1:
@@ -158,11 +158,11 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
     """
 
     def __init__(self, metric, n_clusters, n_repetitions=20,
-                 tolerance=1e-5, max_iter=5e4, point_type='vector'):
+                 atol=1e-5, max_iter=5e4, point_type='vector'):
         self.metric = metric
         self.n_clusters = n_clusters
         self.n_repetitions = n_repetitions
-        self.tolerance = tolerance
+        self.atol = atol
         self.max_iter = max_iter
         self.point_type = point_type
 
@@ -178,7 +178,7 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
             online_kmeans(X=X, metric=self.metric,
                           n_clusters=self.n_clusters,
                           n_repetitions=self.n_repetitions,
-                          tolerance=self.tolerance,
+                          atol=self.atol,
                           max_iter=self.max_iter)
 
         return self

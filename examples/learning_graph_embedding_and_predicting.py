@@ -22,9 +22,7 @@ def main():
     gs.random.seed(1234)
 
     karate_graph = load_karate_graph()
-
-    hyperbolic_embedding = HyperbolicEmbedding()
-
+    hyperbolic_embedding = HyperbolicEmbedding(max_epochs=3)
     embeddings = hyperbolic_embedding.embed(karate_graph)
 
     colors = {1: 'b', 2: 'r'}
@@ -43,10 +41,7 @@ def main():
         y_coords = embedding[1]
         pt_id = i_embedding
         plt.scatter(
-            x_coords, y_coords,
-            c=colors[karate_graph.labels[pt_id][0]],
-            s=150
-        )
+            x_coords, y_coords, c=colors[karate_graph.labels[pt_id][0]], s=150)
         ax.annotate(pt_id, (x_coords, y_coords))
 
     plt.tick_params(
@@ -113,7 +108,7 @@ def main():
     kmedoid = RiemannianKMedoids(
         metric=hyperbolic_embedding.manifold.metric,
         n_clusters=n_clusters,
-        init='random')
+        init='random', n_jobs=2)
 
     centroids = kmedoid.fit(data=embeddings, max_iter=100)
     labels = kmedoid.predict(data=embeddings)

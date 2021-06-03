@@ -4,9 +4,11 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
+from geomstats.geometry.base import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
-from geomstats.geometry.lie_group import LieGroup
+from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -19,7 +21,7 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
+class _SpecialOrthogonalMatrices(MatrixLieGroup, EmbeddedManifold):
     """Class for special orthogonal groups in matrix representation.
 
     Parameters
@@ -29,31 +31,16 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
     """
 
     def __init__(self, n):
+        matrices = Matrices(n, n)
+        gln = GeneralLinear(n, positive_det=True)
         super(_SpecialOrthogonalMatrices, self).__init__(
-            dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n,
-            lie_algebra=SkewSymmetricMatrices(n=n))
+            dim=int((n * (n - 1)) / 2), n=n, value=gs.eye(n),
+            lie_algebra=SkewSymmetricMatrices(n=n), embedding_space=gln,
+            submersion=lambda x: matrices.mul(matrices.transpose(x), x),
+            tangent_submersion=lambda v, x: 2 * matrices.to_symmetric(
+                matrices.mul(matrices.transpose(x), v)))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
-        self.dim = int((n * (n - 1)) / 2)
-
-    def belongs(self, point, atol=ATOL):
-        """Check whether point is an orthogonal matrix.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Point to check.
-        atol : float
-            Absolute tolerance to check equality of the transpose and the
-            inverse of point.
-            Optional, default: 1e-5.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to SO(n).
-        """
-        return self.equal(
-            self.mul(point, self.transpose(point)), self.identity, atol=atol)
+        self.metric = self.bi_invariant_metric
 
     @classmethod
     def inverse(cls, point):
@@ -69,10 +56,9 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         inverse : array-like, shape=[..., n, n]
             Inverse.
         """
-        return cls.transpose(point)
+        return Matrices.transpose(point)
 
-    @classmethod
-    def projection(cls, point):
+    def projection(self, point):
         """Project a matrix on SO(n) by minimizing the Frobenius norm.
 
         Parameters
@@ -85,12 +71,32 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         rot_mat : array-like, shape=[..., n, n]
             Rotation matrix.
         """
-        aux_mat = cls.mul(cls.transpose(point), point)
+        aux_mat = self.submersion(point)
+        aux_mat = Matrices.mul(Matrices.transpose(point), point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, - 1 / 2)
-        rot_mat = cls.mul(point, inv_sqrt_mat)
-        return rot_mat
+        rotation_mat = Matrices.mul(point, inv_sqrt_mat)
+        det = gs.linalg.det(rotation_mat)
+        return utils.flip_determinant(rotation_mat, det)
 
-    def random_uniform(self, n_samples=1, tol=1e-6):
+    def random_point(self, n_samples=1, bound=1.):
+        """Sample in SO(n) from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Unused.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n, n]
+            Points sampled on the SO(n).
+        """
+        return self.random_uniform(n_samples)
+
+    def random_uniform(self, n_samples=1):
         """Sample in SO(n) from the uniform distribution.
 
         Parameters
@@ -106,11 +112,13 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             Points sampled on the SO(n).
         """
         if n_samples == 1:
-            random_mat = gs.random.rand(self.n, self.n)
+            size = (self.n, self.n)
         else:
-            random_mat = gs.random.rand(n_samples, self.n, self.n)
+            size = (n_samples, self.n, self.n)
+        random_mat = gs.random.normal(size=size)
         rotation_mat, _ = gs.linalg.qr(random_mat)
-        return rotation_mat
+        det = gs.linalg.det(rotation_mat)
+        return utils.flip_determinant(rotation_mat, det)
 
     def skew_matrix_from_vector(self, vec):
         """Get the skew-symmetric matrix derived from the vector.
@@ -145,7 +153,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         vec : array-like, shape=[..., dim]
             Vector.
         """
-        return SkewSymmetricMatrices(self.n).basis_representation(skew_mat)
+        return self.lie_algebra.basis_representation(skew_mat)
 
 
 class _SpecialOrthogonalVectors(LieGroup):
@@ -226,7 +234,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         n_mats, _, _ = mat.shape
 
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
-        rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
+        rot_mat = Matrices.mul(mat_unitary_u, mat_unitary_v)
         mask = gs.less(gs.linalg.det(rot_mat), 0.)
         mask_float = gs.cast(mask, gs.float32) + self.epsilon
         diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
@@ -236,11 +244,10 @@ class _SpecialOrthogonalVectors(LieGroup):
             to_ndim=3) + self.epsilon
         new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
-        aux_mat = gs.einsum(
-            'nij,njk->nik', mat_unitary_u, new_mat_diag_s)
-        rot_mat += gs.einsum(
-            'n,njk->njk', mask_float,
-            gs.einsum('nij,njk->nik', aux_mat, mat_unitary_v))
+        aux_mat = Matrices.mul(mat_unitary_u, new_mat_diag_s)
+        rot_mat = rot_mat + gs.einsum(
+            '...,...jk->...jk', mask_float,
+            Matrices.mul(aux_mat, mat_unitary_v))
         return rot_mat
 
     def inverse(self, point):
@@ -258,7 +265,9 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return -self.regularize(point)
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'output_point'])
+    def random_point(self, n_samples=1, bound=1.):
+        return gs.random.rand(n_samples, 3)
+
     def exp_from_identity(self, tangent_vec):
         """Compute the group exponential of the tangent vector at the identity.
 
@@ -278,7 +287,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return self.regularize(tangent_vec)
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'output_point'])
     def log_from_identity(self, point):
         """Compute the group logarithm of the point at the identity.
 
@@ -335,6 +343,55 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return SkewSymmetricMatrices(self.n).basis_representation(skew_mat)
 
+    def to_tangent(self, vector, base_point=None):
+        return self.regularize_tangent_vec(vector, base_point)
+
+    def regularize_tangent_vec_at_identity(
+            self, tangent_vec, metric=None):
+        """Regularize a tangent vector at the identity.
+
+        In 2D, regularize a tangent_vector by getting its norm at the identity,
+        to be less than pi.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        metric : RiemannianMetric
+            Metric to compute the norm of the tangent vector.
+            Optional, default is the Euclidean metric.
+
+        Returns
+        -------
+        regularized_vec : array-like, shape=[..., 1]
+            Regularized tangent vector.
+        """
+        return self.regularize(tangent_vec)
+
+    def regularize_tangent_vec(
+            self, tangent_vec, base_point, metric=None):
+        """Regularize tangent vector at a base point.
+
+        In 2D, regularize a tangent_vector by getting the norm of its parallel
+        transport to the identity, determined by the metric, less than pi.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[...,1]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., 1]
+            Point on the manifold.
+        metric : RiemannianMetric
+            Metric to compute the norm of the tangent vector.
+            Optional, default is the Euclidean metric.
+
+        Returns
+        -------
+        regularized_tangent_vec : array-like, shape=[..., 1]
+            Regularized tangent vector.
+        """
+        return self.regularize_tangent_vec_at_identity(tangent_vec)
+
 
 class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
     """Class for the special orthogonal group SO(2) in vector representation.
@@ -382,50 +439,6 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
             regularized_point < gs.pi,
             regularized_point, regularized_point - 2 * gs.pi)
         return regularized_point
-
-    @geomstats.vectorization.decorator(
-        ['else', 'vector', 'else', 'output_point'])
-    def regularize_tangent_vec_at_identity(
-            self, tangent_vec, metric=None):
-        """Regularize a tangent vector at the identity.
-
-        In 2D, regularize a tangent_vector by getting its norm at the identity,
-        to be less than pi.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., 1]
-            Tangent vector at base point.
-
-        Returns
-        -------
-        regularized_vec : array-like, shape=[..., 1]
-            Regularized tangent vector.
-        """
-        return self.regularize(tangent_vec)
-
-    @geomstats.vectorization.decorator(
-        ['else', 'vector', 'vector', 'else', 'output_point'])
-    def regularize_tangent_vec(
-            self, tangent_vec, base_point, metric=None):
-        """Regularize tangent vector at a base point.
-
-        In 2D, regularize a tangent_vector by getting the norm of its parallel
-        transport to the identity, determined by the metric, less than pi.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[...,1]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., 1]
-            Point on the manifold.
-
-        Returns
-        -------
-        regularized_tangent_vec : array-like, shape=[..., 1]
-            Regularized tangent vector.
-        """
-        return self.regularize_tangent_vec_at_identity(tangent_vec)
 
     def rotation_vector_from_matrix(self, rot_mat):
         r"""Convert rotation matrix (in 2D) to rotation vector (axis-angle).
@@ -485,6 +498,9 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         point_prod = self.regularize(point_prod)
 
         return point_prod
+
+    def random_point(self, n_samples=1, bound=1.):
+        return self.random_uniform(n_samples)
 
     def random_uniform(self, n_samples=1):
         """Sample in SO(2) with the uniform distribution.
@@ -563,6 +579,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             n=3, epsilon=epsilon)
 
         self.bi_invariant_metric = BiInvariantMetric(group=self)
+        self.metric = self.bi_invariant_metric
 
     def regularize(self, point):
         """Regularize a point to be in accordance with convention.
@@ -585,38 +602,25 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         regularized_point : array-like, shape=[..., 3]
             Regularized point.
         """
-        regularized_point = point
-        angle = gs.linalg.norm(regularized_point, axis=-1)
+        theta = gs.linalg.norm(point, axis=-1)
+        k = gs.floor(theta / 2. / gs.pi)
 
-        mask_0 = gs.isclose(angle, 0.)
-        mask_not_0 = ~mask_0
-        mask_pi = gs.isclose(angle, gs.pi)
+        # angle in [0;2pi)
+        angle = theta - 2 * k * gs.pi
 
-        # This avoids division by 0.
-        mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
-        mask_not_0_float = (
-            gs.cast(mask_not_0, gs.float32)
-            + self.epsilon)
-        mask_pi_float = gs.cast(mask_pi, gs.float32) + self.epsilon
+        # this avoids dividing by 0
+        theta_eps = gs.where(gs.isclose(theta, 0.), 1., theta)
 
-        k = gs.floor(angle / (2 * gs.pi) + .5)
-        angle += mask_0_float
+        # angle in [0, pi]
+        normalized_angle = gs.where(angle <= gs.pi, angle, 2 * gs.pi - angle)
+        norm_ratio = gs.where(
+            gs.isclose(theta, 0.), 1., normalized_angle / theta_eps)
 
-        norms_ratio = gs.zeros_like(angle)
-        norms_ratio += mask_not_0_float * (
-            1. - 2. * gs.pi * k / angle)
-        norms_ratio += mask_0_float
-        norms_ratio += mask_pi_float * (
-            gs.pi / angle
-            - (1. - 2. * gs.pi * k / angle))
+        # reverse sign if angle was greater than pi
+        norm_ratio = gs.where(angle > gs.pi, -norm_ratio, norm_ratio)
+        return gs.einsum(
+            '...,...i->...i', norm_ratio, point)
 
-        regularized_point = gs.einsum(
-            '...,...i->...i', norms_ratio, regularized_point)
-
-        return regularized_point
-
-    @geomstats.vectorization.decorator(
-        ['else', 'vector', 'else', 'output_point'])
     def regularize_tangent_vec_at_identity(
             self, tangent_vec, metric=None):
         """Regularize a tangent vector at the identity.
@@ -638,47 +642,24 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             Regularized tangent vector.
         """
         if metric is None:
-            metric = self.left_canonical_metric
+            return self.regularize(tangent_vec)
+
         tangent_vec_metric_norm = metric.norm(tangent_vec)
         tangent_vec_canonical_norm = gs.linalg.norm(tangent_vec, axis=-1)
 
-        mask_norm_0 = gs.isclose(tangent_vec_metric_norm, 0.)
-        mask_canonical_norm_0 = gs.isclose(tangent_vec_canonical_norm, 0.)
+        # This avoids dividing by 0
+        norm_eps = gs.where(
+            tangent_vec_canonical_norm == 0,
+            gs.atol, tangent_vec_canonical_norm)
+        coef = gs.where(
+            tangent_vec_canonical_norm == 0.,
+            1., tangent_vec_metric_norm / norm_eps)
+        coef_tangent_vec = gs.einsum('...,...i->...i', coef, tangent_vec)
 
-        mask_0 = mask_norm_0 | mask_canonical_norm_0
-        mask_else = ~mask_0
-
-        # This avoids division by 0.
-        mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
-        mask_else_float = gs.cast(mask_else, gs.float32) + self.epsilon
-
-        regularized_vec = gs.zeros_like(tangent_vec)
-        regularized_vec += gs.einsum(
-            '...,...i->...i', mask_0_float, tangent_vec)
-
-        tangent_vec_canonical_norm += mask_0_float
-
-        coef = gs.zeros_like(tangent_vec_metric_norm)
-        coef += mask_else_float * (
-            tangent_vec_metric_norm
-            / tangent_vec_canonical_norm)
-
-        coef_tangent_vec = gs.einsum(
-            '...,...i->...i', coef, tangent_vec)
-        regularized_vec += gs.einsum(
-            '...,...i->...i',
-            mask_else_float,
-            self.regularize(coef_tangent_vec))
-
-        coef += mask_0_float
-        regularized_vec = gs.einsum(
+        regularized_vec = self.regularize(coef_tangent_vec)
+        return gs.einsum(
             '...,...i->...i', 1. / coef, regularized_vec)
-        regularized_vec = gs.einsum(
-            '...,...i->...i', mask_else_float, regularized_vec)
-        return regularized_vec
 
-    @geomstats.vectorization.decorator(
-        ['else', 'vector', 'vector', 'else', 'output_point'])
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None):
         """Regularize tangent vector at a base point.
@@ -769,7 +750,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         rot_vec_not_pi = rot_vec_not_pi * numerator / denominator
 
         vector_outer = 0.5 * (gs.eye(3) + rot_mat)
-        gs.set_diag(
+        vector_outer = gs.set_diag(
             vector_outer, gs.maximum(
                 0., gs.diagonal(vector_outer, axis1=1, axis2=2)))
         squared_diag_comp = gs.diagonal(vector_outer, axis1=1, axis2=2)
@@ -809,8 +790,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         term_1 = (gs.eye(self.dim)
                   + gs.einsum('...,...jk->...jk', coef_1, skew_rot_vec))
 
-        squared_skew_rot_vec = gs.einsum(
-            '...ij,...jk->...ik', skew_rot_vec, skew_rot_vec)
+        squared_skew_rot_vec = Matrices.mul(skew_rot_vec, skew_rot_vec)
 
         term_2 = gs.einsum('...,...jk->...jk', coef_2, squared_skew_rot_vec)
 
@@ -835,7 +815,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         return quaternion
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def quaternion_from_rotation_vector(self, rot_vec):
         """Convert a rotation vector into a unit quaternion.
 
@@ -851,26 +830,19 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         """
         rot_vec = self.regularize(rot_vec)
 
-        angle = gs.linalg.norm(rot_vec, axis=1)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+        squared_angle = gs.sum(rot_vec ** 2, axis=-1)
 
-        mask_0 = gs.isclose(angle, 0.)
-        mask_not_0 = ~mask_0
+        coef_cos = utils.taylor_exp_even_func(
+            squared_angle / 4, utils.cos_close_0)
+        coef_sinc = .5 * utils.taylor_exp_even_func(
+            squared_angle / 4, utils.sinc_close_0)
 
-        rotation_axis = gs.divide(
-            rot_vec,
-            angle
-            * gs.cast(mask_not_0, gs.float32)
-            + gs.cast(mask_0, gs.float32))
-
-        quaternion = gs.concatenate(
-            (gs.cos(angle / 2),
-             gs.sin(angle / 2) * rotation_axis[:]),
-            axis=1)
+        quaternion = gs.concatenate((
+            coef_cos[..., None],
+            gs.einsum('...,...i->...i', coef_sinc, rot_vec)), axis=-1)
 
         return quaternion
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
     def rotation_vector_from_quaternion(self, quaternion):
         """Convert a unit quaternion into a rotation vector.
 
@@ -884,24 +856,15 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         rot_vec : array-like, shape=[..., 3]
             Rotation vector.
         """
-        cos_half_angle = quaternion[:, 0]
+        cos_half_angle = quaternion[..., 0]
         cos_half_angle = gs.clip(cos_half_angle, -1, 1)
         half_angle = gs.arccos(cos_half_angle)
 
-        half_angle = gs.to_ndarray(half_angle, to_ndim=2, axis=1)
+        coef_isinc = 2 * utils.taylor_exp_even_func(
+            half_angle ** 2, utils.inv_sinc_close_0)
 
-        mask_0 = gs.isclose(half_angle, 0.)
-        mask_not_0 = ~mask_0
-
-        rotation_axis = gs.divide(
-            quaternion[:, 1:],
-            gs.sin(half_angle) *
-            gs.cast(mask_not_0, gs.float32)
-            + gs.cast(mask_0, gs.float32))
-        rot_vec = gs.array(
-            2 * half_angle
-            * rotation_axis
-            * gs.cast(mask_not_0, gs.float32))
+        rot_vec = gs.einsum(
+            '...,...i->...i', coef_isinc, quaternion[..., 1:])
 
         rot_vec = self.regularize(rot_vec)
         return rot_vec
@@ -1600,6 +1563,6 @@ class SpecialOrthogonal(_SpecialOrthogonal2Vectors,
             return _SpecialOrthogonal3Vectors(epsilon)
         if point_type == 'vector':
             raise NotImplementedError(
-                'SO(n) is only implemented in matrix representation'
-                ' when n > 3.')
+                'SO(n) is only implemented in vector representation'
+                ' when n = 3.')
         return _SpecialOrthogonalMatrices(n)

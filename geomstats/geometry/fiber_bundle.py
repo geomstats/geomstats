@@ -1,12 +1,15 @@
 """Class for (principal) fiber bundles."""
+from abc import ABC
 
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
+from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class FiberBundle(Manifold):
+class FiberBundle(Manifold, ABC):
     """Class for (principal) fiber bundles.
 
     This class implements abstract methods for fiber bundles, or more
@@ -23,6 +26,10 @@ class FiberBundle(Manifold):
         Group that acts on the total space by the right.
         Optional. Default : None.
         Either the group or the group action must be given.
+    ambient_metric : RiemannianMetric
+        Metric to use in the total space.
+        Optional. The `metric` attribute of the total space is used if no
+        ambient metric is passed.
     group_action : callable
         Right group action. It must take as input a point of the total space
         and an element of the group, and return a point of the total space.
@@ -33,54 +40,22 @@ class FiberBundle(Manifold):
         group. Either dim, base or group must be given as input.
     """
 
-    def __init__(self, total_space, base=None, group=None, group_action=None,
-                 dim=None, **kwargs):
-
-        if dim is None:
-            if base is not None:
-                dim = base.dim
-            elif group is not None:
-                dim = total_space.dim - group.dim
-            else:
-                raise ValueError('Either the base manifold, '
-                                 'its dimension, or the group acting on the '
-                                 'total space must be provided.')
+    def __init__(
+            self, dim: int, base: Manifold = None,
+            group: LieGroup = None, ambient_metric: RiemannianMetric = None,
+            group_action=None, **kwargs):
 
         super(FiberBundle, self).__init__(dim=dim, **kwargs)
-
         self.base = base
-        self.total_space = total_space
         self.group = group
+        self.ambient_metric = ambient_metric
 
         if group_action is None and group is not None:
             group_action = group.compose
         self.group_action = group_action
 
-    def belongs(self, point, atol=1e-6):
-        """Evaluate if a point belongs to the base manifold.
-
-        Evaluate if a point belongs to the base manifold when it is given,
-        otherwise to the total space.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point to evaluate.
-        atol : float
-            Absolute tolerance.
-            Optional, default: 1e-6.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the manifold.
-        """
-        if self.base is not None:
-            return self.base.belongs(point, atol=atol)
-        return self.total_space.belongs(point, atol=atol)
-
     @staticmethod
-    def submersion(point):
+    def riemannian_submersion(point):
         """Project a point to base manifold.
 
         This is the projection of the fiber bundle, defined on the total
@@ -123,7 +98,7 @@ class FiberBundle(Manifold):
         """
         return point
 
-    def tangent_submersion(self, tangent_vec, base_point):
+    def tangent_riemannian_submersion(self, tangent_vec, base_point):
         """Project a tangent vector to base manifold.
 
         This is the differential of the projection of the fiber bundle,
@@ -147,7 +122,8 @@ class FiberBundle(Manifold):
         """
         return self.horizontal_projection(tangent_vec, base_point)
 
-    def align(self, point, base_point, max_iter=25, verbose=False, tol=1e-6):
+    def align(self, point, base_point,
+              max_iter=25, verbose=False, tol=gs.atol):
         """Align point to base_point.
 
         Find the optimal group element g such that the base point and
@@ -170,7 +146,7 @@ class FiberBundle(Manifold):
             Optional, default : False.
         tol : float
             Tolerance for the stopping criterion.
-            Optional, default : 1e-6
+            Optional, default : backend atol
 
         Returns
         -------
@@ -178,7 +154,7 @@ class FiberBundle(Manifold):
             Action of the optimal g on point.
         """
         group = self.group
-        initial_distance = self.total_space.metric.squared_dist(
+        initial_distance = self.ambient_metric.squared_dist(
             point, base_point)
         if isinstance(initial_distance, float) or initial_distance.shape == ():
             n_samples = 1
@@ -198,7 +174,7 @@ class FiberBundle(Manifold):
             return self.group_action(point, group_elt)
 
         objective_with_grad = gs.autograd.value_and_grad(
-            lambda param: self.total_space.metric.squared_dist(
+            lambda param: self.ambient_metric.squared_dist(
                 wrap(param), base_point))
 
         tangent_vec = gs.flatten(gs.random.rand(*max_shape))
@@ -232,10 +208,10 @@ class FiberBundle(Manifold):
                 tangent_vec, base_point)
         except (RecursionError, NotImplementedError):
             return self.horizontal_lift(
-                self.tangent_submersion(tangent_vec, base_point),
+                self.tangent_riemannian_submersion(tangent_vec, base_point),
                 base_point)
 
-    def vertical_projection(self, tangent_vec, base_point):
+    def vertical_projection(self, tangent_vec, base_point, **kwargs):
         r"""Project to vertical subspace.
 
         Compute the vertical component of a tangent vector :math: `w` at a
@@ -259,7 +235,7 @@ class FiberBundle(Manifold):
         except RecursionError:
             raise NotImplementedError
 
-    def is_horizontal(self, tangent_vec, base_point, atol=1e-6):
+    def is_horizontal(self, tangent_vec, base_point, atol=gs.atol):
         """Evaluate if the tangent vector is horizontal at base_point.
 
         Parameters
@@ -271,7 +247,7 @@ class FiberBundle(Manifold):
             Optional, default: None.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol
 
         Returns
         -------
@@ -282,7 +258,7 @@ class FiberBundle(Manifold):
             tangent_vec, self.horizontal_projection(tangent_vec, base_point),
             atol=atol), axis=(-2, -1))
 
-    def is_vertical(self, tangent_vec, base_point, atol=1e-6):
+    def is_vertical(self, tangent_vec, base_point, atol=gs.atol):
         """Evaluate if the tangent vector is vertical at base_point.
 
         Parameters
@@ -294,7 +270,7 @@ class FiberBundle(Manifold):
             Optional, default: None.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -339,3 +315,35 @@ class FiberBundle(Manifold):
                                  'base point (of the base manifold) must be '
                                  'given.')
         return self.horizontal_projection(tangent_vec, point)
+
+    def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
+        r"""Compute the fundamental tensor A of the submersion.
+
+        The fundamental tensor A is defined for tangent vectors of the total
+        space by [O'Neill]_
+        :math: `A_X Y = ver\nabla^M_{hor X} (hor Y)
+            + hor \nabla^M_{hor X}( ver Y)`
+        where :math: `hor,ver` are the horizontal and vertical projections.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Point of the total space.
+
+        Returns
+        -------
+        vector : array-like, shape=[..., {ambient_dim, [n, n]}]
+            Tangent vector at `base_point`, result of the A tensor applied to
+            `tangent_vec_a` and `tangent_vec_b`.
+
+        References
+        ----------
+        [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a Submersion,
+        Michigan Mathematical Journal 13, no. 4 (December 1966): 459–69.
+        https://doi.org/10.1307/mmj/1028999604.
+        """
+        raise NotImplementedError

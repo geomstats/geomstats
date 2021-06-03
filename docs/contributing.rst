@@ -94,6 +94,12 @@ Contributing: Code Workflow
   the `issue tracker <https://github.com/geomstats/geomstats/issues>`_
   to get some feedbacks from core developers.
 
+
+Contributing: Adding a new geometry or manifold
+-----------------------------------------------
+
+  Get used to the code design of geomstats' classes by having a look at the `template manifold <https://github.com/geomstats/geomstats/tree/master/geomstats/geometry/_my_manifold.py>`__ and `template unit-tests <https://github.com/geomstats/geomstats/tree/master/tests/test__my_manifold.py>`__ implementations.
+
 Contributing: GitHub Workflow
 =============================
 
@@ -187,7 +193,9 @@ complies with the following rules. The **bolded** ones are especially important:
    good title.
 
 2. **Make sure that your code is** `vectorized
-   <https://www.geeksforgeeks.org/vectorization-in-python/>`_.
+   <https://www.geeksforgeeks.org/vectorization-in-python/>`_. For vectorized matrix operations we recommend using the
+   methods of the  `Matrices <https://github.com/geomstats/geomstats/blob/master/geomstats/geometry/matrices.py>`_
+   class instead of lower level backend functions, as they are automatically vectorized.
 
 3. **Submit your code with associated unit tests**. High-quality
    `unit testing <https://en.wikipedia.org/wiki/Unit_testing>`_
@@ -275,7 +283,7 @@ complies with the following rules. The **bolded** ones are especially important:
     large number of samples > 100000, but does not scale in dimensionality:
     n_features is expected to be lower than 100".
 
-11. **Each PR needs to be accepted by two core developpers** before
+11. **Each PR needs to be accepted by a core developer** before
     being merged.
 
 You can also check our :ref:`code_review` to get an idea of what reviewers
