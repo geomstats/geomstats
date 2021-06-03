@@ -11,6 +11,58 @@ from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
 
 
+class FullRankCorrelationMatrices(EmbeddedManifold):
+    """Class for the manifold of full-rank correlation matrices.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
+    """
+
+    def __init__(self, n):
+        super(FullRankCorrelationMatrices, self).__init__(
+            dim=int(n * (n-1) / 2), embedding_space=SPDMatrices(n=n),
+            submersion=Matrices.diagonal, value=gs.ones(n),
+            tangent_submersion=lambda v, x: Matrices.diagonal(v))
+        self.n = n
+
+    @staticmethod
+    def diag_action(diagonal_vec, point):
+        aux = gs.einsum('...i,...j->...ij', diagonal_vec, diagonal_vec)
+        return point * aux
+
+    @classmethod
+    def from_covariance(cls, point):
+        diag_vec = Matrices.diagonal(point) ** (-.5)
+        return cls.diag_action(diag_vec, point)
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample full-rank correlation matrices by projecting random SPD mats.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+
+        Returns
+        -------
+        cor : array-like, shape=[n_samples, n, n]
+            Sample of full-rank correlation matrices.
+        """
+        spd = self.embedding_space.random_point(n_samples)
+        return self.from_covariance(spd)
+
+    def projection(self, point):
+        spd = self.embedding_space.projection(point)
+        return self.from_covariance(spd)
+
+    def to_tangent(self, vector, base_point):
+        sym = self.embedding_space.to_tangent(vector, base_point)
+        mask_diag = gs.ones_like(vector) - gs.eye(self.n)
+        return sym * mask_diag
+
+
 class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
     def __init__(self, n):
         super(CorrelationMatricesBundle, self).__init__(
@@ -77,11 +129,10 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         inverse_base_point = GeneralLinear.inverse(base_point)
         operator = gs.eye(n) + base_point * inverse_base_point
         inverse_operator = GeneralLinear.inverse(operator)
-        vector = gs.einsum('...ij,...ji->...i',
-                           inverse_base_point, tangent_vec)
-        inverse_operator_vector = Matrices.mul(inverse_operator, vector)
-        return FullRankCorrelationMatrices.diag_action(
-            inverse_operator_vector, base_point)
+        vector = gs.einsum(
+            '...ij,...ji->...i', inverse_base_point, tangent_vec)
+        diagonal = gs.einsum('...ij,...j->...i', inverse_operator, vector)
+        return base_point * (diagonal[..., None, :] + diagonal[..., :, None])
 
     def horizontal_lift(self, tangent_vec, point=None, base_point=None):
         """Compute the horizontal lift wrt the affine-invariant metric.
@@ -107,58 +158,6 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
             diagonal_point, tangent_vec)
         hor_lift = self.horizontal_projection(lift, base_point=point)
         return hor_lift
-
-
-class FullRankCorrelationMatrices(EmbeddedManifold):
-    """Class for the manifold of full-rank correlation matrices.
-
-    Parameters
-    ----------
-    n : int
-        Integer representing the shape of the matrices: n x n.
-    """
-
-    def __init__(self, n):
-        super(FullRankCorrelationMatrices, self).__init__(
-            dim=int(n * (n-1) / 2), embedding_space=SPDMatrices(n=n),
-            submersion=Matrices.diagonal, value=gs.ones(n),
-            tangent_submersion=lambda v, x: Matrices.diagonal(v))
-        self.n = n
-
-    @staticmethod
-    def diag_action(diagonal_vec, point):
-        aux = gs.einsum('...i,...j->...ij', diagonal_vec, diagonal_vec)
-        return point * aux
-
-    @classmethod
-    def from_covariance(cls, point):
-        diag_vec = Matrices.diagonal(point) ** (-.5)
-        return cls.diag_action(diag_vec, point)
-
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample full-rank correlation matrices by projecting random SPD mats.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-
-        Returns
-        -------
-        cor : array-like, shape=[n_samples, n, n]
-            Sample of full-rank correlation matrices.
-        """
-        spd = self.embedding_space.random_point(n_samples)
-        return self.from_covariance(spd)
-
-    def projection(self, point):
-        spd = self.embedding_space.projection(point)
-        return self.from_covariance(spd)
-
-    def to_tangent(self, vector, base_point):
-        sym = self.embedding_space.to_tangent(vector, base_point)
-        mask_diag = gs.ones_like(vector) - gs.eye(self.n)
-        return sym * mask_diag
 
 
 class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
