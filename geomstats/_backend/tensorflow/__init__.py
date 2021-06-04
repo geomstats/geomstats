@@ -811,7 +811,7 @@ def vec_to_triu(vec):
 
 
 def vec_to_tril(vec):
-    """Takes vec ( batch of vec) and forms 
+    """Takes vec ( batch of vec) and forms
     strictly lower traingular matrix (batch of mats) out of it"""
     n = vec.shape[-1]
     tril_shape = vec.shape + (n, )
