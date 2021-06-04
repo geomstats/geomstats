@@ -1,4 +1,4 @@
-"""LogNormal Sampler on the manifold of SPD Matrices and Euclidean Spaces"""
+"""LogNormal Sampler"""
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
@@ -6,11 +6,22 @@ from geomstats.geometry.spd_matrices import SPDMatrices
 
 
 class LogNormal:
-    """LogNormal Sampler
+    """LogNormal Sampler.
 
+    LogNormal Sampler on the manifold of SPD Matrices and Euclidean Spaces.
+
+    (1)For Euclidean Spaces, if X is distributed as Normal(mean, cov), then 
+    exp(X) is distributed as LogNormal(mean, cov).
+
+    (2)For SPDMatrices, LogNormal distribution is defined by embedding mean 
+    in the Euclidean Space; mean(a SPD matrix) is embedded into
+    Symmetric Matrices Space using Matrix Logarithm, which is then embedded
+    Euclidean Space. This embedded mean and cov is used to parametrize 
+    Normal Distribution. 
+    
     Parameters
     ----------
-    manifold: Manifold obj, {Euclidean(), SPDMatrices()}
+    manifold: Manifold obj, {Euclidean(n), SPDMatrices(n)}
         Manifold to sample over. Manifold should
         be of instance of Euclidean or SPDMatrices
     mean: array-like, shape=[..., dim]
@@ -79,7 +90,6 @@ class LogNormal:
         self.__mean = mean
         self.__cov = cov
 
-
     @property
     def manifold(self):
         return self.__manifold
@@ -90,7 +100,7 @@ class LogNormal:
 
     @property
     def cov(self):
-        return self.__cov        
+        return self.__cov
 
     # TODO (sait): simplify hstack after pytorch version upgrade
     def __sample_spd(self, samples):
