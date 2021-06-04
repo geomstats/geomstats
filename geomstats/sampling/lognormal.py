@@ -75,12 +75,25 @@ class LogNormal:
         else:
             cov = gs.eye(cov_n)
 
-        self.manifold = manifold
-        self.mean = mean
-        self.cov = cov
+        self.__manifold = manifold
+        self.__mean = mean
+        self.__cov = cov
+
+
+    @property
+    def manifold(self):
+        return self.__manifold
+
+    @property
+    def mean(self):
+        return self.__mean
+
+    @property
+    def cov(self):
+        return self.__cov        
 
     # TODO (sait): simplify hstack after pytorch version upgrade
-    def _sample_spd(self, samples):
+    def __sample_spd(self, samples):
         n = self.mean.shape[-1]
         sym_matrix = self.manifold.logm(self.mean)
         mean_euclidean = gs.hstack(
@@ -95,12 +108,12 @@ class LogNormal:
         samples_spd = self.manifold.expm(samples_sym)
         return samples_spd
 
-    def _sample_euclidean(self, samples):
+    def __sample_euclidean(self, samples):
         _samples = gs.random.multivariate_normal(
             self.mean, self.cov, (samples,))
         return gs.exp(_samples)
 
     def sample(self, samples=1):
         if isinstance(self.manifold, Euclidean):
-            return self._sample_euclidean(samples)
-        return self._sample_spd(samples)
+            return self.__sample_euclidean(samples)
+        return self.__sample_spd(samples)
