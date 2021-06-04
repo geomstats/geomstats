@@ -27,7 +27,7 @@ class LogNormal:
             shape=[n, n] if manifold is SPD Manifold
         Mean of the distribution
 
-    cov: array-like, 
+    cov: array-like,
             shape=[dim, dim] if manifold is Euclidean Space
             shape=[n*(n+1)/2, n*(n+1)/2] if manifold is SPD Manifold
         Covariance of the Distribution.
