@@ -6,27 +6,30 @@ from geomstats.geometry.spd_matrices import SPDMatrices
 
 
 class LogNormal:
-    """LogNormal Sampler.
+    """LogNormal Sampler on manifold of SPD Matrices and Euclidean Spaces.
 
-    LogNormal Sampler on the manifold of SPD Matrices and Euclidean Spaces.
-
-    (1)For Euclidean Spaces, if X is distributed as Normal(mean, cov), then 
+    (1)For Euclidean Spaces, if X is distributed as Normal(mean, cov), then
     exp(X) is distributed as LogNormal(mean, cov).
 
-    (2)For SPDMatrices, LogNormal distribution is defined by embedding mean 
+    (2)For SPDMatrices, LogNormal distribution is defined by embedding mean
     in the Euclidean Space; mean(a SPD matrix) is embedded into
     Symmetric Matrices Space using Matrix Logarithm, which is then embedded
-    Euclidean Space. This embedded mean and cov is used to parametrize 
-    Normal Distribution. 
-    
+    into Euclidean Space. This embedded mean and given cov is used to
+    parametrize Normal Distribution.
+
     Parameters
     ----------
     manifold: Manifold obj, {Euclidean(n), SPDMatrices(n)}
         Manifold to sample over. Manifold should
         be of instance of Euclidean or SPDMatrices
-    mean: array-like, shape=[..., dim]
-        Mean of the Distribution.
-    cov: array-like, shape=[..., dim]
+    mean: array-like,
+            shape=[dim] if manifold is Euclidean Space
+            shape=[n, n] if manifold is SPD Manifold
+        Mean of the distribution
+
+    cov: array-like, 
+            shape=[dim, dim] if manifold is Euclidean Space
+            shape=[n*(n+1)/2, n*(n+1)/2] if manifold is SPD Manifold
         Covariance of the Distribution.
 
     Returns
@@ -51,8 +54,7 @@ class LogNormal:
     .. [LNGASPD2016] A. Schwartzman,
     "LogNormal distributions and"
     "Geometric Averages of Symmetric Positive Definite Matrices.",
-    International Statistical Review 84.3 (2016): 456-486.
-    """
+    International Statistical Review 84.3 (2016): 456-486."""
     def __init__(self, manifold, mean, cov=None):
 
         if (
