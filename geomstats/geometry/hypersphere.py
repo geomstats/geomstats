@@ -796,36 +796,35 @@ class HypersphereMetric(RiemannianMetric):
         return - first_term + second_term
 
     def curvature_derivative(
-            self, unused_hor_tg_vec_h, hor_tg_vec_x,
-            unused_hor_tg_vec_y, unused_hor_tg_vec_z,
-            unused_base_point=None):
+            self, _tangent_vec_h, _tangent_vec_x, _tangent_vec_y,
+            _tangent_vec_z, base_point=None):
         r"""Compute the covariant derivative of the curvature.
 
-        For four horizontal tangent vectors at a base point :math: `H|_P, X|_P,
-        Y|_P, Z|_P` given in argument, the covariant derivative of the
-        quotient curvature :math: `(\nabla_H R)(X, Y)Z |_P` is computed at the
-        base point P. Since the sphere is a constant curvature space this
-        vanishes identically.
+        For four tangent vectors at a base point :math: `H|_P, X|_P, Y|_P,
+        Z|_P` given in argument, the covariant derivative of the curvature
+        :math: `(\nabla_H R)(X, Y)Z |_P` is computed at the base point P.
+        Since the sphere is a constant curvature space this vanishes
+        identically.
 
         Parameters
         ----------
-        hor_tg_vec_h : array-like, shape=[..., n, n]
+        tangent_vec_h : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        hor_tg_vec_x : array-like, shape=[..., n, n]
+        tangent_vec_x : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        hor_tg_vec_y : array-like, shape=[..., n, n]
+        tangent_vec_y : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        hor_tg_vec_z : array-like, shape=[..., n, n]
+        tangent_vec_z : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., n, n]
+        base_point : array-like, shape=[..., dim]
             Point on the group.
 
         Returns
         -------
-        curvature_derivative : array-like, shape=[..., n, n]
+        curvature_derivative : array-like, shape=[..., dim]
             Tangent vector at base point.
         """
-        return gs.zeros_like(hor_tg_vec_x)
+        return gs.zeros_like(base_point)
 
 
 class Hypersphere(_Hypersphere):

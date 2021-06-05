@@ -353,7 +353,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         References
         ----------
-        ..[O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
+        .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
         Submersion, Michigan Mathematical Journal 13, no. 4 (December 1966):
         459–69. https://doi.org/10.1307/mmj/1028999604.
         """
@@ -388,9 +388,9 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         where :math: `hor, ver` are the horizontal and vertical projections.
 
         For the Kendall shape space, we have the closed-form expression at
-        base-point P:
-        :math: `A_X E = P Sylv_P(E^\top hor(X)) + F + <F,P> P` where  :math:
-        `F = hor(X) Sylv_P(P^\top E)` and :math: `Sylv_P(B)` is the
+        base-point P [Pennec]_:
+        :math: `A_X E = P Sylv_P(E^\top hor(X)) + F + <F,P> P` where
+        :math: `F = hor(X) Sylv_P(P^\top E)` and :math: `Sylv_P(B)` is the
         unique skew-symmetric matrix :math: `\Omega` solution of
         :math: `P^\top P \Omega + \Omega P^\top P = B - B^\top`.
 
@@ -411,10 +411,11 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         References
         ----------
-        [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a Submersion,
-        Michigan Mathematical Journal 13, no. 4 (December 1966): 459–69.
-        https://doi.org/10.1307/mmj/1028999604.
-        [Pennec] To appear. Equation (24) p.7.
+        .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
+        Submersion, Michigan Mathematical Journal 13, no. 4 (December 1966):
+        459–69. https://doi.org/10.1307/mmj/1028999604.
+
+        .. [Pennec] Unpublished. Equation (25) p.8.
         """
         hor_x = self.horizontal_projection(tangent_vec_x, base_point)
         p_top = Matrices.transpose(base_point)
@@ -477,7 +478,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         References
         ----------
-        X Pennec. To be published.
+        .. [Pennec]. Unpublished. Section 3.3. Eq.(26) p.9.
         """
         if not gs.all(self.belongs(base_point)):
             raise ValueError('The base_point does not belong to the pre-shape'
