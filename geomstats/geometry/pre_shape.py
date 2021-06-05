@@ -415,7 +415,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         Submersion, Michigan Mathematical Journal 13, no. 4 (December 1966):
         459–69. https://doi.org/10.1307/mmj/1028999604.
 
-        .. [Pennec] Unpublished. Equation (25) p.8.
+        .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
+        in Kendall shape spaces. Unpublished.
         """
         hor_x = self.horizontal_projection(tangent_vec_x, base_point)
         p_top = Matrices.transpose(base_point)
@@ -478,7 +479,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         References
         ----------
-        .. [Pennec]. Unpublished. Section 3.3. Eq.(26) p.9.
+        .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
+        in Kendall shape spaces. Unpublished.
         """
         if not gs.all(self.belongs(base_point)):
             raise ValueError('The base_point does not belong to the pre-shape'
@@ -571,7 +573,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         References
         ----------
-        X Pennec. To be published.
+        .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
+        in Kendall shape spaces. Unpublished.
         """
         # Vectors X and Y have to be horizontal.
         if not gs.all(self.is_centered(base_point)):
@@ -656,7 +659,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         References
         ----------
-        X Pennec. To be published.
+        [Pennec] Pennec, Xavier. Computing the curvature and its gradient
+        in Kendall shape spaces. Unpublished.
         """
         # Vectors X and Y have to be horizontal.
         if not gs.all(self.is_centered(base_point)):

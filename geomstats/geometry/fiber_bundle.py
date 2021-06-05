@@ -355,9 +355,9 @@ class FiberBundle(Manifold):
 
         The fundamental tensor A is defined for tangent vectors of the total
         space by [O'Neill]_
-        :math: `A_X Y = ver\nabla^M_{hor X} (hor Y)
-            + hor \nabla^M_{hor X}( ver Y)`
-        where :math: `hor,ver` are the horizontal and vertical projections.
+        :math: `A_X Y = ver\nabla_{hor X} (hor Y) + hor \nabla_{hor X}( ver Y)`
+        where :math: `hor, ver` are the horizontal and vertical projections
+        and :math: `nabla` is the connection of the total space.
 
         Parameters
         ----------
@@ -376,37 +376,37 @@ class FiberBundle(Manifold):
 
         References
         ----------
-        [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a Submersion,
-        Michigan Mathematical Journal 13, no. 4 (December 1966): 459–69.
-        https://doi.org/10.1307/mmj/1028999604.
+        .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
+        Submersion, Michigan Mathematical Journal 13, no. 4 (December 1966):
+        459–69. https://doi.org/10.1307/mmj/1028999604.
         """
         raise NotImplementedError
 
-    def integrability_tensor_derivative(self, hor_tg_vec_x, hor_tg_vec_y,
-                                        nabla_x_y, tg_vec_e, nabla_x_e,
-                                        base_point):
+    def integrability_tensor_derivative(
+            self, horizontal_vec_x, horizontal_vec_y, nabla_x_y,
+            tangent_vec_e, nabla_x_e, base_point):
         r"""Compute the covariant derivative of the integrability tensor A.
 
-        The covariant derivative :math: `\nabla_X^M (A_Y E)` in top space is
+        The covariant derivative :math: `\nabla_X (A_Y E)` in total space is
         necessary to compute the covariant derivative of the directional
-        curvature in a submersion. The components :math: `\nabla_X^M (A_Y E)`
-        and :math: `A_Y E` are computed at basepoint :math: `x = base_point`
+        curvature in a submersion. The components :math: `\nabla_X (A_Y E)`
+        and :math: `A_Y E` are computed at base-point :math: `x = base_point`
         for horizontal vector fields fields :math: `X, Y` extending the values
         given in argument :math: `X|_x = tg_vec_x`, :math: `Y|_x = tg_vec_y`
-        and a general vector field :math: `E`extending :math: `E|_x =
+        and a general vector field :math: `E` extending :math: `E|_x =
         tg_vec_e` in a neighborhood of x with covariant derivatives
-        :math: `\nabla^M_X Y |_x = nabla_x_y` and
-        :math: `\nabla^M_X E |_x = nabla_x_e`.
+        :math: `\nabla_X Y |_x = nabla_x_y` and
+        :math: `\nabla_X E |_x = nabla_x_e`.
 
         Parameters
         ----------
-        hor_tg_vec_x : array-like, shape=[..., {ambient_dim, [n, n]}]
+        horizontal_vec_x : array-like, shape=[..., {ambient_dim, [n, n]}]
             Horizontal tangent vector at `base_point`.
-        hor_tg_vec_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+        horizontal_vec_y : array-like, shape=[..., {ambient_dim, [n, n]}]
             Horizontal tangent vector at `base_point`.
         nabla_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
             Tangent vector at `base_point`.
-        tg_vec_e : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec_e : array-like, shape=[..., {ambient_dim, [n, n]}]
             Tangent vector at `base_point`.
         nabla_x_e : array-like, shape=[..., {ambient_dim, [n, n]}]
             Tangent vector at `base_point`.

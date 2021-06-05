@@ -443,7 +443,7 @@ class Connection:
         tangent_vec_c : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
         base_point :  array-like, shape=[..., dim]
-            Point on the group. Optional, default is the identity.
+            Base-point on the manifold.
 
         Returns
         -------
@@ -467,7 +467,7 @@ class Connection:
         tangent_vec_b : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
         base_point :  array-like, shape=[..., dim]
-            Point on the group. Optional, default is the identity.
+            Base-point on the manifold.
 
         Returns
         -------
@@ -497,7 +497,7 @@ class Connection:
         tangent_vec_z : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., dim]
-            Point on the group.
+            Base-point on the manifold.
 
         Returns
         -------
@@ -512,9 +512,13 @@ class Connection:
         r"""Compute the covariant derivative of the directional curvature.
 
         For the two tangent vectors :math: `X|_P, Y|_P` at a base point
-        :math: `P` given in argument, compute the covariant derivative of the
-        directional curvature in quotient space  :math: `(\nabla_X R_Y)(
-        X) |_P = (\nabla_X R)(X, Y)Y |_P`.
+        :math: `P` given in argument, the covariant derivative
+        :math: `(\nabla_X R_Y)(X) |_P = (\nabla_X R)(X, Y)Y |_P` of the
+        directional curvature :math: `R_Y(X) = R(X, Y)Y` in the direction
+        :math: 'X' is a quadratic tensor in :math: 'X' and :math: 'Y' that
+        plays an important role in the computation of the bias and higher
+        orders of the covariance matrix of the empirical Fréchet mean
+        [Pennec]_.
 
         Parameters
         ----------
@@ -523,12 +527,19 @@ class Connection:
         tangent_vec_y : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., dim]
-            Point on the group.
+            Base-point on the manifold.
 
         Returns
         -------
         curvature_derivative : array-like, shape=[..., dim]
-            Tangent vector at base point.
+            Tangent vector at base-point.
+
+        References
+        ----------
+        .. [Pennec] Pennec, xavier. Curvature effects on the empirical mean in
+        Riemannian and affine Manifolds: a non-asymptotic high concentration
+        expansion in the small-sample regime. Preprint. June 2019.
+        https://arxiv.org/abs/1906.07418
         """
         return self.curvature_derivative(
             tangent_vec_x, tangent_vec_x, tangent_vec_y, tangent_vec_y,
