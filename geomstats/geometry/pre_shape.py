@@ -329,34 +329,33 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         r"""Compute the fundamental tensor A of the submersion.
 
         The fundamental tensor A is defined for tangent vectors of the total
-        space by [O'Neill]_
-        :math: `A_X Y = ver\nabla^M_{hor X} (hor Y)
-            + hor \nabla^M_{hor X}( ver Y)`
-        where :math: `hor,ver` are the horizontal and vertical projections.
+        space by [O'Neill]_ :math: `A_X Y = ver\nabla^M_{hor X} (hor Y)
+        + hor \nabla^M_{hor X}( ver Y)` where :math: `hor,ver` are the
+        horizontal and vertical projections.
 
         For the pre-shape space, we have closed-form expressions and the result
         does not depend on the vertical part of :math: `X`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point of the total space.
 
         Returns
         -------
-        vector : array-like, shape=[..., {ambient_dim, [n, n]}]
+        vector : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of the A tensor applied to
             `tangent_vec_a` and `tangent_vec_b`.
 
         References
         ----------
-        [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a Submersion,
-        Michigan Mathematical Journal 13, no. 4 (December 1966): 459–69.
-        https://doi.org/10.1307/mmj/1028999604.
+        ..[O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
+        Submersion, Michigan Mathematical Journal 13, no. 4 (December 1966):
+        459–69. https://doi.org/10.1307/mmj/1028999604.
         """
         # Only the horizontal part of a counts
         horizontal_a = self.horizontal_projection(tangent_vec_a, base_point)
@@ -397,16 +396,16 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         Parameters
         ----------
-        tangent_vec_x : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        tangent_vec_e : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec_e : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point of the total space.
 
         Returns
         -------
-        vector : array-like, shape=[..., {ambient_dim, [n, n]}]
+        vector : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of the A tensor applied to
             `tangent_vec_x` and `tangent_vec_e`.
 
@@ -422,6 +421,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         p_top_p = gs.matmul(p_top, base_point)
 
         def sylv_p(mat_b):
+            """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
                 p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
 
@@ -454,32 +454,32 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         Parameters
         ----------
-        hor_tg_vec_x : array-like, shape=[..., {ambient_dim, [n, n]}]
+        hor_tg_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
             Horizontal tangent vector at `base_point`.
-        hor_tg_vec_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+        hor_tg_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
             Horizontal tangent vector at `base_point`.
-        nabla_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+        nabla_x_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        tg_vec_e : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tg_vec_e : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        nabla_x_e : array-like, shape=[..., {ambient_dim, [n, n]}]
+        nabla_x_e : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point of the total space.
 
         Returns
         -------
-        nabla_x_a_y_e : array-like, shape=[..., {ambient_dim, [n, n]}]
+        nabla_x_a_y_e : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of :math: `\nabla_X^S
             (A_Y E)`.
-        a_y_e : array-like, shape=[..., {ambient_dim, [n, n]}]
+        a_y_e : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of :math: `A_Y E`.
 
         References
         ----------
         X Pennec. To be published.
         """
-        if not gs.all(self.is_centered(base_point)):
+        if not gs.all(self.belongs(base_point)):
             raise ValueError('The base_point does not belong to the pre-shape'
                              ' space')
         if not gs.all(self.is_horizontal(hor_tg_vec_x, base_point)):
@@ -505,6 +505,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         y_top = Matrices.transpose(hor_tg_vec_y)
 
         def sylv_p(mat_b):
+            """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
                 p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
 
@@ -549,21 +550,21 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         Parameters
         ----------
-        tg_vec_x : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tg_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        tg_vec_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tg_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        tg_vec_z : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tg_vec_z : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point of the total space.
 
         Returns
         -------
-        nabla_x_a_y_z : array-like, shape=[..., {ambient_dim, [n, n]}]
+        nabla_x_a_y_z : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of :math: `\nabla_X^S
             (A_Y Z)` with `X = tg_vec_x`, `Y = tg_vec_y` and `Z = tg_vec_z`.
-        a_y_z : array-like, shape=[..., {ambient_dim, [n, n]}]
+        a_y_z : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of :math:
             `A_Y Z` with `Y = tg_vec_y` and `Z = tg_vec_z`.
 
@@ -581,17 +582,15 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             raise ValueError('Tangent vector y is not horizontal')
         if not gs.all(self.is_horizontal(tg_vec_z, base_point)):
             raise ValueError('Tangent vector z is not horizontal')
-        # hor_x = self.horizontal_projection(tangent_vec_x, base_point)
-        # hor_y = self.horizontal_projection(tangent_vec_y, base_point)
 
         p_top = Matrices.transpose(base_point)
         p_top_p = gs.matmul(p_top, base_point)
 
         def sylv_p(mat_b):
+            """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
                 p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
 
-        # \Omega_{YZ}  = \Sylv_P(Z^\top Y)
         z_top = Matrices.transpose(tg_vec_z)
         y_top = Matrices.transpose(tg_vec_y)
         omega_yz = sylv_p(gs.matmul(z_top, tg_vec_y))
@@ -629,28 +628,28 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         Parameters
         ----------
-        tg_vec_x : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tg_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        tg_vec_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tg_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point of the total space.
 
         Returns
         -------
-        nabla_x_a_y_a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+        nabla_x_a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of :math:
             `\nabla_X^S (A_Y A_X Y)` with `X = tg_vec_x` and `Y = tg_vec_y`.
-        a_x_a_y_a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+        a_x_a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of :math:
             `A_X A_Y A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
-        nabla_x_a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+        nabla_x_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of :math:
             `\nabla_X^S (A_X Y)` with `X = tg_vec_x` and `Y = tg_vec_y`.
-        a_y_a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+        a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of :math:
             `A_Y A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
-        a_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+        a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of :math:
             `A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
 
@@ -819,18 +818,18 @@ class PreShapeMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
+        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., n, n]
+        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        tangent_vec_c : array-like, shape=[..., n, n]
+        tangent_vec_c : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        base_point :  array-like, shape=[..., n, n]
+        base_point :  array-like, shape=[..., k_landmarks, m_ambient]
             Point on the group. Optional, default is the identity.
 
         Returns
         -------
-        curvature : array-like, shape=[..., n, n]
+        curvature : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
         """
         max_shape = base_point.shape
@@ -861,20 +860,20 @@ class PreShapeMetric(RiemannianMetric):
 
         Parameters
         ----------
-        hor_tg_vec_h : array-like, shape=[..., n, n]
+        hor_tg_vec_h : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        hor_tg_vec_x : array-like, shape=[..., n, n]
+        hor_tg_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        hor_tg_vec_y : array-like, shape=[..., n, n]
+        hor_tg_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        hor_tg_vec_z : array-like, shape=[..., n, n]
+        hor_tg_vec_z : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., n, n]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the group.
 
         Returns
         -------
-        curvature_derivative : array-like, shape=[..., n, n]
+        curvature_derivative : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at base point.
         """
         return gs.zeros_like(hor_tg_vec_x)
@@ -951,16 +950,16 @@ class KendallShapeMetric(QuotientMetric):
 
         Parameters
         ----------
-        hor_tg_vec_x : array-like, shape=[..., n, n]
+        hor_tg_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        hor_tg_vec_y : array-like, shape=[..., n, n]
+        hor_tg_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., n, n]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the group.
 
         Returns
         -------
-        curvature_derivative : array-like, shape=[..., n, n]
+        curvature_derivative : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at base point.
         """
         nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, _, _, _ = self.fiber_bundle.\
