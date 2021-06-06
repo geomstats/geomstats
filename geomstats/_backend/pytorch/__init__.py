@@ -154,17 +154,7 @@ def split(x, indices_or_sections, axis=0):
         intervals_length = _np.append(intervals_length, last_interval_length)
     intervals_length = _np.insert(intervals_length, 0, indices_or_sections[0])
     return torch.split(x, tuple(intervals_length), dim=axis)
-
-
-def logical_or(x, y):
-    return x or y
-
-
-def logical_and(x, y):
-    if torch.is_tensor(x):
-        return x & y
-    return x and y
-
+    
 
 def any(x, axis=None):
     if not torch.is_tensor(x):
@@ -299,26 +289,6 @@ def get_slice(x, indices):
     tensor([8, 29])
     """
     return x[indices]
-
-
-def allclose(a, b, atol=atol, rtol=rtol):
-    if not isinstance(a, torch.Tensor):
-        a = torch.tensor(a)
-    if not isinstance(b, torch.Tensor):
-        b = torch.tensor(b)
-    a = to_ndarray(a.float(), to_ndim=1)
-    b = to_ndarray(b.float(), to_ndim=1)
-    n_a = a.shape[0]
-    n_b = b.shape[0]
-    nb_dim = a.dim()
-    if n_a > n_b:
-        reps = (int(n_a / n_b),) + (nb_dim - 1) * (1,)
-        b = tile(b, reps)
-    elif n_a < n_b:
-        reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
-        a = tile(a, reps)
-    return torch.allclose(a, b, atol=atol, rtol=rtol)
-
 
 def shape(val):
     return val.shape
