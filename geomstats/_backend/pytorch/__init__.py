@@ -30,6 +30,7 @@ from torch import (  # NOQA
     fmod as mod,
     ger as outer,
     gt as greater,
+    hstack,
     int32,
     int64,
     isnan,
@@ -201,13 +202,6 @@ def concatenate(seq, axis=0, out=None):
     return torch.cat(seq, dim=axis, out=out)
 
 
-def hstack(seq):
-    return concatenate(seq, axis=1)
-
-
-def vstack(seq):
-    return concatenate(seq)
-
 
 def _get_largest_dtype(seq):
     dtype_dict = {0: t_bool,
@@ -324,20 +318,6 @@ def allclose(a, b, atol=atol, rtol=rtol):
         reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
         a = tile(a, reps)
     return torch.allclose(a, b, atol=atol, rtol=rtol)
-
-
-def arccosh(x):
-    c0 = torch.log(x)
-    c1 = torch.log1p(torch.sqrt(x * x - 1) / x)
-    return c0 + c1
-
-
-def arcsinh(x):
-    return torch.log(x + torch.sqrt(x * x + 1))
-
-
-def arcosh(x):
-    return torch.log(x + torch.sqrt(x * x - 1))
 
 
 def shape(val):
@@ -472,22 +452,6 @@ def T(x):
     return torch.t(x)
 
 
-def transpose(x, axes=None):
-    if axes:
-        return x.permute(axes)
-    if x.dim() == 1:
-        return x
-    if x.dim() > 2 and axes is None:
-        return x.permute(tuple(range(x.ndim)[::-1]))
-    return x.t()
-
-
-def squeeze(x, axis=None):
-    if axis is None:
-        return torch.squeeze(x)
-    return torch.squeeze(x, dim=axis)
-
-
 def trace(x, axis1=0, axis2=1):
     min_axis = min(axis1, axis2)
     max_axis = max(axis1, axis2)
@@ -519,14 +483,6 @@ def equal(a, b, **kwargs):
     return torch.eq(a, b, **kwargs)
 
 
-def tril_indices(*args, **kwargs):
-    return tuple(map(torch.from_numpy, _np.tril_indices(*args, **kwargs)))
-
-
-def triu_indices(*args, **kwargs):
-    return tuple(map(torch.from_numpy, _np.triu_indices(*args, **kwargs)))
-
-
 def tile(x, y):
     if not torch.is_tensor(x):
         x = torch.tensor(x)
@@ -537,18 +493,10 @@ def expand_dims(x, axis=0):
     return torch.unsqueeze(x, dim=axis)
 
 
-def ndim(x):
-    return x.dim()
-
-
 def hsplit(x, indices_or_section):
     if isinstance(indices_or_section, int):
         indices_or_section = x.shape[1] // indices_or_section
     return torch.split(x, indices_or_section, dim=1)
-
-
-def diagonal(x, offset=0, axis1=0, axis2=1):
-    return torch.diagonal(x, offset=offset, dim1=axis1, dim2=axis2)
 
 
 def set_diag(x, new_diag):
@@ -575,12 +523,6 @@ def set_diag(x, new_diag):
     diag = torch.einsum(
         'ij,...i->...ij', torch.eye(new_diag.shape[-1]), new_diag)
     return diag + off_diag
-
-
-def prod(x, axis=None):
-    if axis is None:
-        return torch.prod(x)
-    return torch.prod(x, dim=axis)
 
 
 def where(condition, x=None, y=None):
@@ -630,7 +572,7 @@ def _is_iterable(x):
     if isinstance(x, (list, tuple)):
         return True
     if torch.is_tensor(x):
-        return ndim(x) > 0
+        return x.ndim > 0
     return False
 
 
@@ -746,12 +688,6 @@ def cumsum(x, axis=None):
     return torch.cumsum(x, dim=axis)
 
 
-def cumprod(x, axis=None):
-    if axis is None:
-        return x.flatten().cumprod(dim=0)
-    return torch.cumprod(x, dim=axis)
-
-
 def array_from_sparse(indices, data, target_shape):
     """Create an array of given shape, with values at specific indices.
 
@@ -785,5 +721,5 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
 
 def triu_to_vec(x, k=0):
     n = x.shape[-1]
-    rows, cols = triu_indices(n, k=k)
+    rows, cols = torch.triu_indices(n, k=k)
     return x[..., rows, cols]
