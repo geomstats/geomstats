@@ -796,19 +796,16 @@ class HypersphereMetric(RiemannianMetric):
         return - first_term + second_term
 
     def curvature_derivative(
-            self, _tangent_vec_h, _tangent_vec_x, _tangent_vec_y,
+            self, _tangent_vec_v, _tangent_vec_x, _tangent_vec_y,
             _tangent_vec_z, base_point=None):
         r"""Compute the covariant derivative of the curvature.
 
-        For four tangent vectors at a base point :math: `H|_P, X|_P, Y|_P,
-        Z|_P` given in argument, the covariant derivative of the curvature
-        :math: `(\nabla_H R)(X, Y)Z |_P` is computed at the base point P.
-        Since the sphere is a constant curvature space this vanishes
-        identically.
+        The derivative of the curvature vanishes since the hypersphere is a
+        constant curvature space.
 
         Parameters
         ----------
-        tangent_vec_h : array-like, shape=[..., dim]
+        tangent_vec_v : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
         tangent_vec_x : array-like, shape=[..., dim]
             Tangent vector at `base_point`.

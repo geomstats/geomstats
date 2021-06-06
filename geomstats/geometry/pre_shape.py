@@ -439,30 +439,32 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         return result
 
     def integrability_tensor_derivative(
-            self, hor_tg_vec_x, hor_tg_vec_y, nabla_x_y, tg_vec_e, nabla_x_e,
-            base_point):
+            self, horizontal_vec_x, horizontal_vec_y, nabla_x_y,
+            tangent_vec_e, nabla_x_e, base_point):
         r"""Compute the covariant derivative of the integrability tensor A.
 
-        The covariant derivative :math: `\nabla_X^S (A_Y E)` is necessary to
-        compute the covariant derivative of the curvature in a submersion.
-        The components :math: `\nabla_X^S (A_Y E)` and :math: `A_Y E` are
+        The horizontal covariant derivative :math: `\nabla_X (A_Y E)` is
+        necessary to compute the covariant derivative of the curvature in a
+        submersion.
+        The components :math: `\nabla_X (A_Y E)` and :math: `A_Y E` are
         computed here for the Kendall shape space at base-point
         :math: `P = base_point` for horizontal vector fields fields :math:
-        `X, Y` extending the values :math: `X|_P = tg_vec_x`, :math: `Y|_P =
-        tg_vec_y` and a general vector field :math: `E`extending :math:
-        `E|_P = tg_vec_e` in a neighborhood of x with covariant derivatives
-        :math: `\nabla^S_X Y |_P = nabla_x_y` and
-        :math: `\nabla^S_X E |_P = nabla_x_e`.
+        `X, Y` extending the values :math: `X|_P = horizontal_vec_x`,
+        :math: `Y|_P = horizontal_vec_y` and a general vector field
+        :math: `E` extending :math: `E|_P = tangent_vec_e` in a neighborhood
+        of the base-point P with covariant derivatives
+        :math: `\nabla_X Y |_P = nabla_x_y` and
+        :math: `\nabla_X E |_P = nabla_x_e`.
 
         Parameters
         ----------
-        hor_tg_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
             Horizontal tangent vector at `base_point`.
-        hor_tg_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
             Horizontal tangent vector at `base_point`.
         nabla_x_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        tg_vec_e : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_e : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
         nabla_x_e : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
@@ -485,79 +487,81 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         if not gs.all(self.belongs(base_point)):
             raise ValueError('The base_point does not belong to the pre-shape'
                              ' space')
-        if not gs.all(self.is_horizontal(hor_tg_vec_x, base_point)):
+        if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError('Tangent vector x is not horizontal')
-        if not gs.all(self.is_horizontal(hor_tg_vec_y, base_point)):
+        if not gs.all(self.is_horizontal(horizontal_vec_y, base_point)):
             raise ValueError('Tangent vector y is not horizontal')
         if not gs.all(self.is_tangent(nabla_x_y, base_point)):
             raise ValueError('Vector nabla_x_y is not tangent')
-        a_x_y = self.integrability_tensor(hor_tg_vec_x, hor_tg_vec_y,
-                                          base_point)
+        a_x_y = self.integrability_tensor(
+            horizontal_vec_x, horizontal_vec_y, base_point)
         if not gs.all(self.is_horizontal(nabla_x_y - a_x_y, base_point)):
             raise ValueError('Tangent vector nabla_x_y is not the gradient '
                              'of a horizontal distrinbution')
-        if not gs.all(self.is_tangent(tg_vec_e, base_point)):
+        if not gs.all(self.is_tangent(tangent_vec_e, base_point)):
             raise ValueError('Tangent vector e is not tangent')
         if not gs.all(self.is_tangent(nabla_x_e, base_point)):
             raise ValueError('Vector nabla_x_e is not tangent')
 
         p_top = Matrices.transpose(base_point)
         p_top_p = gs.matmul(p_top, base_point)
-        e_top = Matrices.transpose(tg_vec_e)
-        x_top = Matrices.transpose(hor_tg_vec_x)
-        y_top = Matrices.transpose(hor_tg_vec_y)
+        e_top = Matrices.transpose(tangent_vec_e)
+        x_top = Matrices.transpose(horizontal_vec_x)
+        y_top = Matrices.transpose(horizontal_vec_y)
 
         def sylv_p(mat_b):
             """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
                 p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
 
-        omega_ep = sylv_p(gs.matmul(p_top, tg_vec_e))
-        omega_ye = sylv_p(gs.matmul(e_top, hor_tg_vec_y))
-        tg_vec_b = gs.matmul(hor_tg_vec_x, omega_ye)
-        tg_vec_e_sym = tg_vec_e - 2. * gs.matmul(base_point, omega_ep)
+        omega_ep = sylv_p(gs.matmul(p_top, tangent_vec_e))
+        omega_ye = sylv_p(gs.matmul(e_top, horizontal_vec_y))
+        tangent_vec_b = gs.matmul(horizontal_vec_x, omega_ye)
+        tangent_vec_e_sym = \
+            tangent_vec_e - 2. * gs.matmul(base_point, omega_ep)
 
         a_y_e = gs.matmul(base_point, omega_ye) \
-            + gs.matmul(hor_tg_vec_y, omega_ep)
+            + gs.matmul(horizontal_vec_y, omega_ep)
 
-        tmp_tg_vec_p = gs.matmul(e_top, nabla_x_y) \
+        tmp_tangent_vec_p = gs.matmul(e_top, nabla_x_y) \
             - gs.matmul(y_top, nabla_x_e) \
-            - 2. * gs.matmul(p_top, tg_vec_b)
+            - 2. * gs.matmul(p_top, tangent_vec_b)
 
-        tmp_tg_vec_y = gs.matmul(p_top, nabla_x_e) \
-            + gs.matmul(x_top, tg_vec_e_sym)
+        tmp_tangent_vec_y = gs.matmul(p_top, nabla_x_e) \
+            + gs.matmul(x_top, tangent_vec_e_sym)
 
         scal_x_a_y_e = self.ambient_metric.inner_product(
-            hor_tg_vec_x, a_y_e, base_point)
+            horizontal_vec_x, a_y_e, base_point)
 
-        nabla_x_a_y_e = gs.matmul(base_point, sylv_p(tmp_tg_vec_p)) \
-            + tg_vec_b + gs.matmul(hor_tg_vec_y, sylv_p(tmp_tg_vec_y)) \
-            + gs.matmul(nabla_x_y, omega_ep) \
+        nabla_x_a_y_e = gs.matmul(base_point, sylv_p(tmp_tangent_vec_p)) \
+            + gs.matmul(horizontal_vec_y, sylv_p(tmp_tangent_vec_y)) \
+            + gs.matmul(nabla_x_y, omega_ep) + tangent_vec_b \
             + gs.einsum('...,...ij->...ij', scal_x_a_y_e, base_point)
 
         return nabla_x_a_y_e, a_y_e
 
     def integrability_tensor_derivative_parallel(
-            self, tg_vec_x, tg_vec_y, tg_vec_z, base_point):
+            self, horizontal_vec_x, horizontal_vec_y, horizontal_vec_z,
+            base_point):
         r"""Compute derivative of the integrability tensor A (special case).
 
-        The covariant derivative :math: `\nabla_X^S (A_Y Z)` of the
+        The horizontal covariant derivative :math: `\nabla_X (A_Y Z)` of the
         integrability tensor A may be computed more efficiently in the case of
         parallel vector fields in the quotient space. :math:
-        `\nabla_X^S (A_Y Z)` and :math: `A_Y Z` are computed here for the
+        `\nabla_X (A_Y Z)` and :math: `A_Y Z` are computed here for the
         Kendall shape space with quotient-parallel vector fields :math: `X,
-        Y, Z` extending the values tg_vec_x and tg_vec_y and tg_vec_z by
-        parallel transport in a neighborhood. Such vector fields verify
-        :math: `\nabla^S_X^X = A_X X`, :math: `\nabla^S_X^Y = A_X Y` \and
-        similarly for Z.
+        Y, Z` extending the values horizontal_vec_x, horizontal_vec_y and
+        horizontal_vec_z by parallel transport in a neighborhood of teh
+        base-space. Such vector fields verify :math: `\nabla_X^X = A_X X =
+        0`, :math: `\nabla_X^Y = A_X Y` and similarly for Z.
 
         Parameters
         ----------
-        tg_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        tg_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        tg_vec_z : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_z : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point of the total space.
@@ -565,11 +569,12 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         Returns
         -------
         nabla_x_a_y_z : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`, result of :math: `\nabla_X^S
-            (A_Y Z)` with `X = tg_vec_x`, `Y = tg_vec_y` and `Z = tg_vec_z`.
+            Tangent vector at `base_point`, result of
+            :math: `\nabla_X (A_Y Z)` with `X = horizontal_vec_x`,
+            `Y = horizontal_vec_y` and `Z = horizontal_vec_z`.
         a_y_z : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`, result of :math:
-            `A_Y Z` with `Y = tg_vec_y` and `Z = tg_vec_z`.
+            Tangent vector at `base_point`, result of :math: `A_Y Z`
+            with `Y = horizontal_vec_y` and `Z = horizontal_vec_z`.
 
         References
         ----------
@@ -580,11 +585,11 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         if not gs.all(self.is_centered(base_point)):
             raise ValueError('The base_point does not belong to the pre-shape'
                              ' space')
-        if not gs.all(self.is_horizontal(tg_vec_x, base_point)):
+        if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError('Tangent vector x is not horizontal')
-        if not gs.all(self.is_horizontal(tg_vec_y, base_point)):
+        if not gs.all(self.is_horizontal(horizontal_vec_y, base_point)):
             raise ValueError('Tangent vector y is not horizontal')
-        if not gs.all(self.is_horizontal(tg_vec_z, base_point)):
+        if not gs.all(self.is_horizontal(horizontal_vec_z, base_point)):
             raise ValueError('Tangent vector z is not horizontal')
 
         p_top = Matrices.transpose(base_point)
@@ -595,19 +600,19 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             return gs.linalg.solve_sylvester(
                 p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
 
-        z_top = Matrices.transpose(tg_vec_z)
-        y_top = Matrices.transpose(tg_vec_y)
-        omega_yz = sylv_p(gs.matmul(z_top, tg_vec_y))
+        z_top = Matrices.transpose(horizontal_vec_z)
+        y_top = Matrices.transpose(horizontal_vec_y)
+        omega_yz = sylv_p(gs.matmul(z_top, horizontal_vec_y))
         a_y_z = gs.matmul(base_point, omega_yz)
-        omega_xy = sylv_p(gs.matmul(y_top, tg_vec_x))
-        omega_xz = sylv_p(gs.matmul(z_top, tg_vec_x))
+        omega_xy = sylv_p(gs.matmul(y_top, horizontal_vec_x))
+        omega_xz = sylv_p(gs.matmul(z_top, horizontal_vec_x))
 
-        omega_yz_x = gs.matmul(tg_vec_x, omega_yz)
-        omega_xz_y = gs.matmul(tg_vec_y, omega_xz)
-        omega_xy_z = gs.matmul(tg_vec_z, omega_xy)
+        omega_yz_x = gs.matmul(horizontal_vec_x, omega_yz)
+        omega_xz_y = gs.matmul(horizontal_vec_y, omega_xz)
+        omega_xy_z = gs.matmul(horizontal_vec_z, omega_xy)
 
-        tg_vec_f = 2. * omega_yz_x + omega_xz_y - omega_xy_z
-        omega_fp = sylv_p(gs.matmul(p_top, tg_vec_f))
+        tangent_vec_f = 2. * omega_yz_x + omega_xz_y - omega_xy_z
+        omega_fp = sylv_p(gs.matmul(p_top, tangent_vec_f))
         omega_fp_p = gs.matmul(base_point, omega_fp)
 
         nabla_x_a_y_z = omega_yz_x - omega_fp_p
@@ -615,26 +620,28 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         return nabla_x_a_y_z, a_y_z
 
     def iterated_integrability_tensor_derivative_parallel(
-            self, tg_vec_x, tg_vec_y, base_point):
+            self, horizontal_vec_x, horizontal_vec_y, base_point):
         r"""Compute derivatives of the integrability tensor A (special case).
 
-        The covariant derivative :math: `\nabla_X^Q (A_Y A_X Y) = \nabla_X^S
-        (A_Y A_X Y) - A_X A_Y A_X Y` (where :math: `X`and :math: `Y` are
+        The iterated horizontal covariant derivative
+        :math: `\nabla_X (A_Y A_X Y)` (where :math: `X`and :math: `Y` are
         horizontal vector fields) is a key ingredient in the computation of
         the covariant derivative of the directional curvature in a submersion.
-        The components :math: `\nabla_X^S (A_Y A_X Y)`, :math: `A_X A_Y A_X Y`,
-        :math: `\nabla_X^S (A_X Y)`,  and intermediate computations
+
+        The components :math: `\nabla_X (A_Y A_X Y)`, :math: `A_X A_Y A_X Y`,
+        :math: `\nabla_X (A_X Y)`,  and intermediate computations
         :math: `A_Y A_X Y` and :math: `A_X Y` are computed here for the
         Kendall shape space in the special case of quotient-parallel vector
-        fields :math: `X, Y` extending the values tg_vec_x and tg_vec_y by
-        parallel transport in a neighborhood. Such vector fields verify
-        :math: `\nabla^S_X^X = A_X X` and :math: `\nabla^S_X^Y = A_X Y`.
+        fields :math: `X, Y` extending the values horizontal_vec_x and
+        horizontal_vec_y by parallel transport in a neighborhood.
+        Such vector fields verify :math: `\nabla_X^X = A_X X` and :math:
+        `\nabla_X^Y = A_X Y`.
 
         Parameters
         ----------
-        tg_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        tg_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point of the total space.
@@ -642,36 +649,37 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         Returns
         -------
         nabla_x_a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`, result of :math:
-            `\nabla_X^S (A_Y A_X Y)` with `X = tg_vec_x` and `Y = tg_vec_y`.
+            Tangent vector at `base_point`, result of
+            :math: `\nabla_X^S (A_Y A_X Y)` with
+            `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
         a_x_a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`, result of :math:
-            `A_X A_Y A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
+            Tangent vector at `base_point`, result of
+            :math: `A_X A_Y A_X Y` with
+            `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
         nabla_x_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`, result of :math:
-            `\nabla_X^S (A_X Y)` with `X = tg_vec_x` and `Y = tg_vec_y`.
+            Tangent vector at `base_point`, result of
+            :math: `\nabla_X^S (A_X Y)` with
+            `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
         a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`, result of :math:
-            `A_Y A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
+            Tangent vector at `base_point`, result of :math: `A_Y A_X Y` with
+            `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
         a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`, result of :math:
-            `A_X Y` with `X = tg_vec_x` and `Y = tg_vec_y`.
+            Tangent vector at `base_point`, result of :math: `A_X Y` with
+            `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
 
         References
         ----------
-        [Pennec] Pennec, Xavier. Computing the curvature and its gradient
+        .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
         in Kendall shape spaces. Unpublished.
         """
         # Vectors X and Y have to be horizontal.
         if not gs.all(self.is_centered(base_point)):
             raise ValueError('The base_point does not belong to the pre-shape'
                              ' space')
-        if not gs.all(self.is_horizontal(tg_vec_x, base_point)):
+        if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError('Tangent vector x is not horizontal')
-        if not gs.all(self.is_horizontal(tg_vec_y, base_point)):
+        if not gs.all(self.is_horizontal(horizontal_vec_y, base_point)):
             raise ValueError('Tangent vector y is not horizontal')
-        # hor_x = self.horizontal_projection(tangent_vec_x, base_point)
-        # hor_y = self.horizontal_projection(tangent_vec_y, base_point)
 
         p_top = Matrices.transpose(base_point)
         p_top_p = gs.matmul(p_top, base_point)
@@ -680,20 +688,20 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             return gs.linalg.solve_sylvester(
                 p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
 
-        y_top = Matrices.transpose(tg_vec_y)
-        x_top = Matrices.transpose(tg_vec_x)
-        x_y_top = gs.matmul(y_top, tg_vec_x)
+        y_top = Matrices.transpose(horizontal_vec_y)
+        x_top = Matrices.transpose(horizontal_vec_x)
+        x_y_top = gs.matmul(y_top, horizontal_vec_x)
         omega_xy = sylv_p(x_y_top)
-        tg_vec_v = gs.matmul(base_point, omega_xy)
-        omega_xy_x = gs.matmul(tg_vec_x, omega_xy)
-        omega_xy_y = gs.matmul(tg_vec_y, omega_xy)
+        vertical_vec_v = gs.matmul(base_point, omega_xy)
+        omega_xy_x = gs.matmul(horizontal_vec_x, omega_xy)
+        omega_xy_y = gs.matmul(horizontal_vec_y, omega_xy)
 
-        v_top = Matrices.transpose(tg_vec_v)
-        x_v_top = gs.matmul(v_top, tg_vec_x)
+        v_top = Matrices.transpose(vertical_vec_v)
+        x_v_top = gs.matmul(v_top, horizontal_vec_x)
         omega_xv = sylv_p(x_v_top)
         omega_xv_p = gs.matmul(base_point, omega_xv)
 
-        y_v_top = gs.matmul(v_top, tg_vec_y)
+        y_v_top = gs.matmul(v_top, horizontal_vec_y)
         omega_yv = sylv_p(y_v_top)
         omega_yv_p = gs.matmul(base_point, omega_yv)
 
@@ -702,10 +710,10 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         tmp_mat = gs.matmul(x_top, a_y_a_x_y)
         a_x_a_y_a_x_y = - gs.matmul(base_point, sylv_p(tmp_mat))
 
-        omega_xv_y = gs.matmul(tg_vec_y, omega_xv)
-        omega_yv_x = gs.matmul(tg_vec_x, omega_yv)
-        omega_xy_v = gs.matmul(tg_vec_v, omega_xy)
-        norms = Matrices.frobenius_product(tg_vec_v, tg_vec_v)
+        omega_xv_y = gs.matmul(horizontal_vec_y, omega_xv)
+        omega_yv_x = gs.matmul(horizontal_vec_x, omega_yv)
+        omega_xy_v = gs.matmul(vertical_vec_v, omega_xy)
+        norms = Matrices.frobenius_product(vertical_vec_v, vertical_vec_v)
         sq_norm_v_p = gs.einsum('...,...ij->...ij', norms, base_point)
 
         tmp_mat = gs.matmul(p_top, 3. * omega_xv_y + 2. * omega_yv_x) + \
@@ -714,7 +722,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         nabla_x_a_y_v = 3. * omega_xv_y + omega_yv_x + omega_xy_v \
             - gs.matmul(base_point, sylv_p(tmp_mat)) + sq_norm_v_p
 
-        return nabla_x_a_y_v, a_x_a_y_a_x_y, nabla_x_v, a_y_a_x_y, tg_vec_v
+        return nabla_x_a_y_v, a_x_a_y_a_x_y, nabla_x_v, a_y_a_x_y, \
+               vertical_vec_v
 
 
 class PreShapeMetric(RiemannianMetric):
@@ -852,26 +861,26 @@ class PreShapeMetric(RiemannianMetric):
         return curvature
 
     def curvature_derivative(
-            self, unused_hor_tg_vec_h, hor_tg_vec_x,
-            unused_hor_tg_vec_y, unused_hor_tg_vec_z,
-            unused_base_point=None):
+            self, _tangent_vec_h, _tangent_vec_x,
+            _tangent_vec_y, _tangent_vec_z,
+            base_point=None):
         r"""Compute the covariant derivative of the curvature.
 
-        For four horizontal tangent vectors at a base point :math: `H|_P, X|_P,
+        For four tangent vectors at a base point :math: `H|_P, X|_P,
         Y|_P, Z|_P` given in argument, the covariant derivative of the
-        quotient curvature :math: `(\nabla_H R)(X, Y)Z |_P` is computed at the
+        curvature :math: `(\nabla_H R)(X, Y)Z |_P` is computed at the
         base point P. Since the sphere is a constant curvature space this
         vanishes identically.
 
         Parameters
         ----------
-        hor_tg_vec_h : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_h : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        hor_tg_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        hor_tg_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        hor_tg_vec_z : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_z : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the group.
@@ -881,7 +890,7 @@ class PreShapeMetric(RiemannianMetric):
         curvature_derivative : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at base point.
         """
-        return gs.zeros_like(hor_tg_vec_x)
+        return gs.zeros_like(base_point)
 
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Riemannian parallel transport of a tangent vector.
@@ -937,7 +946,7 @@ class KendallShapeMetric(QuotientMetric):
             dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2))
 
     def directional_curvature_derivative(
-            self, hor_tg_vec_x, hor_tg_vec_y, base_point=None):
+            self, tangent_vec_x, tangent_vec_y, base_point=None):
         r"""Compute the covariant derivative of the directional curvature.
 
         For the two horizontal tangent vectors at a base point :math: `X|_P,
@@ -945,8 +954,8 @@ class KendallShapeMetric(QuotientMetric):
         curvature in quotient space  :math: `(\nabla^Q_X R^Q_Y)(X) |_P =
         (\nabla^Q_X R^Q)(X, Y)Y |_P` is computed at the base point P. This
         tensor is computed with quotient-parallel vector fields :math: `X,
-        Y` extending the horizontal tangent vectors hor_tg_vec_x and
-        hor_tg_vec_y by parallel transport in a neighborhood of the quotient
+        Y` extending the horizontal tangent vectors tangent_vec_x and
+        tangent_vec_y by parallel transport in a neighborhood of the quotient
         space. Such vector fields verify :math: `\nabla^M_X X=0` and :math:
         `\nabla^M_H^X Y = A_X Y`. The covariant derivative of the directional
         curvature is then computed using the formula :math:
@@ -955,9 +964,9 @@ class KendallShapeMetric(QuotientMetric):
 
         Parameters
         ----------
-        hor_tg_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        hor_tg_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the group.
@@ -969,7 +978,7 @@ class KendallShapeMetric(QuotientMetric):
         """
         nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, _, _, _ = self.fiber_bundle.\
             iterated_integrability_tensor_derivative_parallel(
-                hor_tg_vec_x, hor_tg_vec_y, base_point)
+                tangent_vec_x, tangent_vec_y, base_point)
         return 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
 
     def parallel_transport(

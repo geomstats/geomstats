@@ -249,7 +249,7 @@ class FiberBundle(Manifold):
         r"""Project to vertical subspace.
 
         Compute the vertical component of a tangent vector :math: `w` at a
-        base point :math: `x` by removing the horizontal component.
+        base point :math: `P` by removing the horizontal component.
 
         Parameters
         ----------
@@ -339,7 +339,7 @@ class FiberBundle(Manifold):
         Returns
         -------
         horizontal_lift : array-like, shape=[..., {ambient_dim, [n, n]}]
-            Tangent vector to the total space at point.
+            Horizontal tangent vector to the total space at point.
         """
         if point is None:
             if base_point is not None:
@@ -390,13 +390,14 @@ class FiberBundle(Manifold):
         The covariant derivative :math: `\nabla_X (A_Y E)` in total space is
         necessary to compute the covariant derivative of the directional
         curvature in a submersion. The components :math: `\nabla_X (A_Y E)`
-        and :math: `A_Y E` are computed at base-point :math: `x = base_point`
-        for horizontal vector fields fields :math: `X, Y` extending the values
-        given in argument :math: `X|_x = tg_vec_x`, :math: `Y|_x = tg_vec_y`
-        and a general vector field :math: `E` extending :math: `E|_x =
-        tg_vec_e` in a neighborhood of x with covariant derivatives
-        :math: `\nabla_X Y |_x = nabla_x_y` and
-        :math: `\nabla_X E |_x = nabla_x_e`.
+        and :math: `A_Y E` are computed at base-point :math: `P = base_point`
+        for horizontal vector fields :math: `X, Y` extending the values
+        given in argument :math: `X|_P = horizontal_vec_x`,
+        :math: `Y|_P = horizontal_vec_y` and a general vector field
+        :math: `E` extending :math: `E|_x =
+        tangent_vec_e` in a neighborhood of x with covariant derivatives
+        :math: `\nabla_X Y |_P = nabla_x_y` and
+        :math: `\nabla_X E |_P = nabla_x_e`.
 
         Parameters
         ----------
@@ -416,13 +417,14 @@ class FiberBundle(Manifold):
         Returns
         -------
         nabla_x_a_y_e : array-like, shape=[..., {ambient_dim, [n, n]}]
-            Tangent vector at `base_point`, result of :math: `\nabla_X^M
+            Tangent vector at `base_point`, result of :math: `\nabla_X
             (A_Y E)`.
         a_y_e : array-like, shape=[..., {ambient_dim, [n, n]}]
             Tangent vector at `base_point`, result of :math: `A_Y E`.
 
         References
         ----------
-        X Pennec. To be published.
+        .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
+        in Kendall shape spaces. Unpublished.
         """
         raise NotImplementedError

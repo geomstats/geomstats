@@ -502,7 +502,7 @@ class Connection:
         Returns
         -------
         curvature_derivative : array-like, shape=[..., dim]
-            Tangent vector at identity.
+            Tangent vector at `base-point`.
         """
         raise NotImplementedError('The curvature derivative is not '
                                   'implemented.')
@@ -511,7 +511,7 @@ class Connection:
             self, tangent_vec_x, tangent_vec_y, base_point=None):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For the two tangent vectors :math: `X|_P, Y|_P` at a base point
+        For the two tangent vectors :math: `X|_P, Y|_P` at the base point
         :math: `P` given in argument, the covariant derivative
         :math: `(\nabla_X R_Y)(X) |_P = (\nabla_X R)(X, Y)Y |_P` of the
         directional curvature :math: `R_Y(X) = R(X, Y)Y` in the direction
