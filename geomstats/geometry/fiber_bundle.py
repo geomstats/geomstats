@@ -43,7 +43,7 @@ class FiberBundle(Manifold, ABC):
     def __init__(
             self, dim: int, base: Manifold = None,
             group: LieGroup = None, ambient_metric: RiemannianMetric = None,
-            group_action=None, **kwargs):
+            group_action=None, group_dim=None, **kwargs):
 
         super(FiberBundle, self).__init__(dim=dim, **kwargs)
         self.base = base
@@ -52,6 +52,9 @@ class FiberBundle(Manifold, ABC):
 
         if group_action is None and group is not None:
             group_action = group.compose
+        if group_dim is None and group is not None:
+            group_dim = group.dim
+        self.group_dim = group_dim
         self.group_action = group_action
 
     @staticmethod
@@ -154,24 +157,37 @@ class FiberBundle(Manifold, ABC):
             Action of the optimal g on point.
         """
         group = self.group
+        group_action = self.group_action
         initial_distance = self.ambient_metric.squared_dist(
             point, base_point)
         if isinstance(initial_distance, float) or initial_distance.shape == ():
             n_samples = 1
         else:
             n_samples = len(initial_distance)
+        max_shape = (n_samples, self.group_dim) if n_samples > 1 else \
+            (self.group_dim, )
 
-        max_shape = (n_samples, group.dim) if n_samples > 1 else \
-            (group.dim, )
+        if group is not None:
 
-        def wrap(param):
-            """Wrap a parameter vector to a group element."""
-            algebra_elt = gs.array(param)
-            algebra_elt = gs.cast(algebra_elt, dtype=base_point.dtype)
-            algebra_elt = group.lie_algebra.matrix_representation(
-                algebra_elt)
-            group_elt = group.exp(algebra_elt)
-            return self.group_action(point, group_elt)
+            def wrap(param):
+                """Wrap a parameter vector to a group element."""
+                algebra_elt = gs.array(param)
+                algebra_elt = gs.cast(algebra_elt, dtype=base_point.dtype)
+                algebra_elt = group.lie_algebra.matrix_representation(
+                    algebra_elt)
+                group_elt = group.exp(algebra_elt)
+                return self.group_action(point, group_elt)
+
+        elif group_action is not None:
+
+            def wrap(param):
+                vector = gs.array(param)
+                vector = gs.cast(vector, dtype=base_point.dtype)
+                return group_action(vector, point)
+
+        else:
+            raise ValueError(
+                'Either the group of its action must be known')
 
         objective_with_grad = gs.autograd.value_and_grad(
             lambda param: self.ambient_metric.squared_dist(
@@ -209,7 +225,7 @@ class FiberBundle(Manifold, ABC):
         except (RecursionError, NotImplementedError):
             return self.horizontal_lift(
                 self.tangent_riemannian_submersion(tangent_vec, base_point),
-                base_point)
+                point_fiber=base_point)
 
     def vertical_projection(self, tangent_vec, base_point, **kwargs):
         r"""Project to vertical subspace.
@@ -281,7 +297,7 @@ class FiberBundle(Manifold, ABC):
             tangent_vec, self.vertical_projection(tangent_vec, base_point),
             atol=atol), axis=(-2, -1))
 
-    def horizontal_lift(self, tangent_vec, point=None, base_point=None):
+    def horizontal_lift(self, tangent_vec, base_point=None, point_fiber=None):
         """Lift a tangent vector to a horizontal vector in the total space.
 
         It means that horizontal lift is the inverse of the restriction of the
@@ -293,7 +309,7 @@ class FiberBundle(Manifold, ABC):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
-        point: array-like, shape=[..., {ambient_dim, [n, n]}]
+        point_fiber: array-like, shape=[..., {ambient_dim, [n, n]}]
             Point of the total space.
             Optional, default : None. The `lift` method is used to compute a
             point at which to compute a tangent vector.
@@ -307,14 +323,14 @@ class FiberBundle(Manifold, ABC):
         horizontal_lift : array-like, shape=[..., {ambient_dim, [n, n]}]
             Tangent vector to the total space at point.
         """
-        if point is None:
+        if point_fiber is None:
             if base_point is not None:
-                point = self.lift(base_point)
+                point_fiber = self.lift(base_point)
             else:
                 raise ValueError('Either a point (of the total space) or a '
                                  'base point (of the base manifold) must be '
                                  'given.')
-        return self.horizontal_projection(tangent_vec, point)
+        return self.horizontal_projection(tangent_vec, point_fiber)
 
     def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the fundamental tensor A of the submersion.

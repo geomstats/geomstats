@@ -38,7 +38,8 @@ class QuotientMetric(RiemannianMetric):
         self.ambient_metric = fiber_bundle.ambient_metric
 
     def inner_product(
-            self, tangent_vec_a, tangent_vec_b, base_point=None, point=None):
+            self, tangent_vec_a, tangent_vec_b, base_point=None,
+            point_fiber=None):
         """Compute the inner-product of two tangent vectors at a base point.
 
         Parameters
@@ -50,7 +51,7 @@ class QuotientMetric(RiemannianMetric):
         base_point : array-like, shape=[..., {dim, [n, n]}]
             Point on the quotient manifold.
             Optional, default: None.
-        point : array-like, shape=[..., {dim, [n, n]}]
+        point_fiber : array-like, shape=[..., {dim, [n, n]}]
             Point on the total space, lift of `base_point`, i.e. such that
             `submersion` applied to `point` results in `base_point`.
             Optional, default: None. In this case, it is computed using the
@@ -61,17 +62,19 @@ class QuotientMetric(RiemannianMetric):
         inner_product : float, shape=[...]
             Inner products
         """
-        if point is None:
+        if point_fiber is None:
             if base_point is not None:
-                point = self.fiber_bundle.lift(base_point)
+                point_fiber = self.fiber_bundle.lift(base_point)
             else:
                 raise ValueError('Either a point (of the total space) or a '
                                  'base point (of the quotient manifold) must '
                                  'be given.')
-        horizontal_a = self.fiber_bundle.horizontal_lift(tangent_vec_a, point)
-        horizontal_b = self.fiber_bundle.horizontal_lift(tangent_vec_b, point)
+        horizontal_a = self.fiber_bundle.horizontal_lift(
+            tangent_vec_a, point_fiber=point_fiber)
+        horizontal_b = self.fiber_bundle.horizontal_lift(
+            tangent_vec_b, point_fiber=point_fiber)
         return self.ambient_metric.inner_product(
-            horizontal_a, horizontal_b, point)
+            horizontal_a, horizontal_b, point_fiber)
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
@@ -91,7 +94,7 @@ class QuotientMetric(RiemannianMetric):
         """
         lift = self.fiber_bundle.lift(base_point)
         horizontal_vec = self.fiber_bundle.horizontal_lift(
-            tangent_vec, lift)
+            tangent_vec, point_fiber=lift)
         return self.fiber_bundle.riemannian_submersion(
             self.ambient_metric.exp(horizontal_vec, lift))
 

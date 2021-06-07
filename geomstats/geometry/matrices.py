@@ -131,6 +131,18 @@ class Matrices(VectorSpace):
 
     @staticmethod
     def diagonal(mat):
+        """Return the diagonal of a matrix as a vector.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., m, n]
+            Matrix.
+
+        Returns
+        -------
+        diagonal : array-like, shape=[..., min(m, n)]
+            Vector of diagonal coefficients.
+        """
         return gs.diagonal(mat, axis1=-2, axis2=-1)
 
     @staticmethod

@@ -1,7 +1,5 @@
 """The manifold of full-rank correlation matrices."""
 
-import math
-
 import geomstats.backend as gs
 from geomstats.geometry.base import EmbeddedManifold
 from geomstats.geometry.fiber_bundle import FiberBundle
@@ -22,18 +20,54 @@ class FullRankCorrelationMatrices(EmbeddedManifold):
 
     def __init__(self, n):
         super(FullRankCorrelationMatrices, self).__init__(
-            dim=int(n * (n-1) / 2), embedding_space=SPDMatrices(n=n),
+            dim=int(n * (n - 1) / 2), embedding_space=SPDMatrices(n=n),
             submersion=Matrices.diagonal, value=gs.ones(n),
             tangent_submersion=lambda v, x: Matrices.diagonal(v))
         self.n = n
 
     @staticmethod
     def diag_action(diagonal_vec, point):
+        r"""Apply a diagonal matrix on an SPD matrices by congruence.
+
+        The action of :math: `D` on :math: `\Sigma` is given by :math: `D
+        \Sigma D. The diagonal matrix must be passed as a vector representing
+        its diagonal.
+
+        Parameters
+        ----------
+        diagonal_vec : array-like, shape=[..., n]
+            Vector coefficient of the diagonal matrix.
+        point : array-like, shape=[..., n, n]
+            Symmetric Positive definite matrix.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., n, n]
+            Symmetric matrix obtained by the action of `diagonal_vec` on
+            `point`.
+        """
         aux = gs.einsum('...i,...j->...ij', diagonal_vec, diagonal_vec)
         return point * aux
 
     @classmethod
     def from_covariance(cls, point):
+        r"""Compute the correlation matrix associated to an SPD matrix.
+
+        The correlaation matrix associated to an SPD matrix (the covariance)
+        :math: `\Sigma` is given by :math: `D  \Sigma D` where :math: `D` is
+        the inverse square-root of the diagonal of :math: `\Sigma`.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Symmetric Positive definite matrix.
+
+        Returns
+        -------
+        corr : array-like, shape=[..., n, n]
+            Correlation matrix obtained by dividing all elements by the
+            diagonal entries.
+        """
         diag_vec = Matrices.diagonal(point) ** (-.5)
         return cls.diag_action(diag_vec, point)
 
@@ -44,45 +78,87 @@ class FullRankCorrelationMatrices(EmbeddedManifold):
         ----------
         n_samples : int
             Number of samples.
+        bound : float
+            Bound of the interval in which to sample.
+            Optional, default: 1.
 
         Returns
         -------
         cor : array-like, shape=[n_samples, n, n]
             Sample of full-rank correlation matrices.
         """
-        spd = self.embedding_space.random_point(n_samples)
+        spd = self.embedding_space.random_point(n_samples, bound=bound)
         return self.from_covariance(spd)
 
     def projection(self, point):
+        """Project a matrix to the space of correlation matrices.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Matrix to project.
+        """
         spd = self.embedding_space.projection(point)
         return self.from_covariance(spd)
 
     def to_tangent(self, vector, base_point):
+        """Project a matrix to the tangent space at a base point.
+
+        The tangent space to the space of correlation matrices is the space of
+        symmetric matrices with null diagonal.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+            Matrix to project
+        base_point : array-like, shape=[..., n, n]
+            Correlation matrix.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Symmetric matrix with 0 diagonal.
+        """
         sym = self.embedding_space.to_tangent(vector, base_point)
         mask_diag = gs.ones_like(vector) - gs.eye(self.n)
         return sym * mask_diag
 
 
 class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
+    """Fiber bundle to construct the quotient metric on correlation matrices.
+
+    Correlation matrices are obtained as the quotient of the space of SPD
+    matrices by the action by congruence of diagonal matrices.
+
+    References
+    ----------
+    .. [TP21]  Thanwerdas, Yann, and Xavier Pennec. “Geodesics and Curvature of
+               the Quotient-Affine Metrics on Full-Rank Correlation
+               Matrices.” In Proceedings of Geometric Science of Information.
+               Paris, France, 2021.
+               https://hal.archives-ouvertes.fr/hal-03157992.
+    """
+
     def __init__(self, n):
         super(CorrelationMatricesBundle, self).__init__(
             n=n, base=FullRankCorrelationMatrices(n),
-            ambient_metric=SPDMetricAffine(n))
+            ambient_metric=SPDMetricAffine(n), group_dim=n,
+            group_action=FullRankCorrelationMatrices.diag_action)
 
     @staticmethod
     def riemannian_submersion(point):
         """Compute the correlation matrix associated to an SPD matrix.
 
-                Parameters
-                ----------
-                point : array-like, shape=[..., n, n]
-                    SPD matrix.
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            SPD matrix.
 
-                Returns
-                -------
-                cor : array_like, shape=[..., n, n]
-                    Full rank correlation matrix.
-                """
+        Returns
+        -------
+        cor : array_like, shape=[..., n, n]
+            Full rank correlation matrix.
+        """
         diagonal = Matrices.diagonal(point) ** (-.5)
         aux = gs.einsum('...i,...j->...ij', diagonal, diagonal)
         return point * aux
@@ -134,14 +210,14 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         diagonal = gs.einsum('...ij,...j->...i', inverse_operator, vector)
         return base_point * (diagonal[..., None, :] + diagonal[..., :, None])
 
-    def horizontal_lift(self, tangent_vec, point=None, base_point=None):
+    def horizontal_lift(self, tangent_vec, base_point=None, point_fiber=None):
         """Compute the horizontal lift wrt the affine-invariant metric.
 
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
             Tangent vector of the manifold of full-rank correlation matrices.
-        point : array-like, shape=[..., n, n]
+        point_fiber : array-like, shape=[..., n, n]
             SPD matrix in the fiber above point.
         base_point : array-like, shape=[..., n, n]
             Full-rank correlation matrix.
@@ -151,12 +227,12 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         hor_lift : array-like, shape=[..., n, n]
             Horizontal lift of tangent_vec from point to base_point.
         """
-        if point is None and base_point is not None:
+        if point_fiber is None and base_point is not None:
             return self.horizontal_projection(tangent_vec, base_point)
-        diagonal_point = Matrices.diagonal(point) ** 0.5
+        diagonal_point = Matrices.diagonal(point_fiber) ** 0.5
         lift = FullRankCorrelationMatrices.diag_action(
             diagonal_point, tangent_vec)
-        hor_lift = self.horizontal_projection(lift, base_point=point)
+        hor_lift = self.horizontal_projection(lift, base_point=point_fiber)
         return hor_lift
 
 
@@ -176,38 +252,3 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
     def __init__(self, n):
         super(FullRankCorrelationAffineQuotientMetric, self).__init__(
             fiber_bundle=CorrelationMatricesBundle(n=n))
-
-    # def inner_product(
-    #         self, tangent_vec_a, tangent_vec_b, base_point=None, point=None):
-    #     """Compute the inner product of the affine-quotient metric.
-    #
-    #     Parameters
-    #     ----------
-    #     tangent_vec_a : array-like, shape=[..., n, n]
-    #         Tangent vector to the manifold of full-rank correlation matrices.
-    #     tangent_vec_b : array-like, shape=[..., n, n]
-    #         Tangent vector to the manifold of full-rank correlation matrices.
-    #     base_point : array-like, shape=[..., n, n]
-    #         Full-rank correlation matrix.
-    #
-    #     Returns
-    #     -------
-    #     inner_product : array-like, shape=[...]
-    #         Inner product of tangent_vec_a and tangent_vec_b at base_point.
-    #     """
-    #     affine_part = self.ambient_metric.inner_product(
-    #         tangent_vec_a, tangent_vec_b, base_point)
-    #     n = gs.shape(base_point)[-1]
-    #     inverse_base_point = GeneralLinear.inverse(base_point)
-    #     diagonal_a = gs.einsum('...ij,...ji->...i',
-    #                            inverse_base_point, tangent_vec_a)
-    #     diagonal_b = gs.einsum('...ij,...ji->...i',
-    #                            inverse_base_point, tangent_vec_b)
-    #     operator = gs.eye(n) + base_point * inverse_base_point
-    #     inverse_operator = GeneralLinear.inverse(operator)
-    #     inverse_operator_diagonal_b = gs.einsum('...ij,...j->...ij',
-    #                                             inverse_operator, diagonal_b)
-    #     other_part = 2 * gs.einsum('...i,...ij->...',
-    #                                diagonal_a, inverse_operator_diagonal_b)
-    #     inner_product = affine_part + other_part
-    #     return inner_product
