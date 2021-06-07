@@ -132,8 +132,7 @@ class SymmetricMatrices(OpenSet, VectorSpace):
 
     @classmethod
     def expm(cls, mat):
-        """
-        Compute the matrix exponential for a symmetric matrix.
+        """Compute the matrix exponential for a symmetric matrix.
 
         Parameters
         ----------
