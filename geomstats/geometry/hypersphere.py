@@ -782,7 +782,7 @@ class HypersphereMetric(RiemannianMetric):
         tangent_vec_c : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
         base_point :  array-like, shape=[..., dim]
-            Point on the group. Optional, default is the identity.
+            Point on the hypersphere.
 
         Returns
         -------
@@ -815,7 +815,7 @@ class HypersphereMetric(RiemannianMetric):
         tangent_vec_z : array-like, shape=[..., dim]
             Unused tangent vector at `base_point`.
         base_point : array-like, shape=[..., dim]
-            Point on the group.
+            Point on the hypersphere.
 
         Returns
         -------

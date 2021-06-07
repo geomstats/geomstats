@@ -162,7 +162,7 @@ class QuotientMetric(RiemannianMetric):
         tangent_vec_c : array-like, shape=[..., {dim, [n, n]}]
             Tangent vector at `base_point`.
         base_point :  array-like, shape=[..., {dim, [n, n]}]
-            Point on the group. Optional, default is the identity.
+            Point on the base manifold.
 
         Returns
         -------
@@ -246,7 +246,7 @@ class QuotientMetric(RiemannianMetric):
         tangent_vec_z : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., n, n]
-            Point on the group.
+            Point on the base manifold.
 
         Returns
         -------
@@ -349,7 +349,7 @@ class QuotientMetric(RiemannianMetric):
         tangent_vec_y : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., n, n]
-            Point on the group.
+            Point on the base manifold.
 
         Returns
         -------

@@ -621,10 +621,10 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
     def iterated_integrability_tensor_derivative_parallel(
             self, horizontal_vec_x, horizontal_vec_y, base_point):
-        r"""Compute derivatives of the integrability tensor A (special case).
+        r"""Compute iterated derivatives of the integrability tensor A.
 
         The iterated horizontal covariant derivative
-        :math: `\nabla_X (A_Y A_X Y)` (where :math: `X`and :math: `Y` are
+        :math: `\nabla_X (A_Y A_X Y)` (where :math: `X` and :math: `Y` are
         horizontal vector fields) is a key ingredient in the computation of
         the covariant derivative of the directional curvature in a submersion.
 
@@ -672,7 +672,6 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
         in Kendall shape spaces. Unpublished.
         """
-        # Vectors X and Y have to be horizontal.
         if not gs.all(self.is_centered(base_point)):
             raise ValueError('The base_point does not belong to the pre-shape'
                              ' space')
@@ -960,7 +959,7 @@ class KendallShapeMetric(QuotientMetric):
         space. Such vector fields verify :math: `\nabla^M_X X=0` and :math:
         `\nabla^M_H^X Y = A_X Y`. The covariant derivative of the directional
         curvature is then computed using the formula :math:
-        `\nabla_X^Q (R^Q_Y(X)) = \hor\nabla_H^M(R^M_Y(X)) - A_X(\ver R^M_Y(X))
+        `\nabla_X^Q (R^Q_Y(X)) = hor\nabla_H^M(R^M_Y(X)) - A_X(ver R^M_Y(X))
         - 3 A_X A_Y A_X Y + 3 \nabla_X^M A_Y A_X Y `.
 
         Parameters

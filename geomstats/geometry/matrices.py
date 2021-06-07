@@ -345,7 +345,7 @@ class Matrices:
         Returns
         -------
         vec : array-like, shape=[..., m * n]
-            Flatten copy of mat
+            Flatten copy of mat.
         """
         is_data_vectorized = (gs.ndim(gs.array(mat)) == 3)
         shape = (mat.shape[0], self.m * self.n) if is_data_vectorized \
@@ -363,16 +363,16 @@ class Matrices:
         Parameters
         ----------
         vec : array-like, shape=[..., m * n]
-            Matrix.
+            Vector.
 
         Returns
         -------
         mat : array-like, shape=[..., m, n]
-            Matriciezed copy of vec
+            Matricized copy of vec.
         """
-        is_data_vectorized = (gs.ndim(gs.array(vec)) == 2)
-        shape = (vec.shape[0], self.m, self.n) if is_data_vectorized \
-            else (self.m, self.n,)
+        is_data_vectorized_on_axis_0 = (gs.ndim(gs.array(vec)) == 2)
+        shape = (vec.shape[0], self.m, self.n) if \
+            is_data_vectorized_on_axis_0 else (self.m, self.n,)
         return gs.reshape(vec, shape)
 
 
