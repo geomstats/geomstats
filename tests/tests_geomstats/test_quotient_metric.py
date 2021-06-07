@@ -98,7 +98,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         mat = self.bundle.random_point()
         tangent_vec = Matrices.to_symmetric(
             self.bundle.random_point())
-        horizontal = self.bundle.horizontal_lift(tangent_vec)
+        horizontal = self.bundle.horizontal_lift(tangent_vec, point_fiber=mat)
         result = self.bundle.tangent_riemannian_submersion(horizontal, mat)
         self.assertAllClose(result, tangent_vec)
 
@@ -106,7 +106,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         mat = self.bundle.random_point()
         tangent_vec = Matrices.to_symmetric(
             self.bundle.random_point())
-        horizontal = self.bundle.horizontal_lift(tangent_vec)
+        horizontal = self.bundle.horizontal_lift(tangent_vec, point_fiber=mat)
         result = self.bundle.is_horizontal(horizontal, mat)
         self.assertTrue(result)
 
