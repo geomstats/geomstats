@@ -171,9 +171,9 @@ class QuotientMetric(RiemannianMetric):
 
         References
         ----------
-        [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a Submersion,
-        Michigan Mathematical Journal 13, no. 4 (December 1966): 459–69.
-        https://doi.org/10.1307/mmj/1028999604.
+        .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
+        Submersion, Michigan Mathematical Journal 13, no. 4 (December 1966):
+        459–69. https://doi.org/10.1307/mmj/1028999604.
         """
         bundle = self.fiber_bundle
         point_fiber = bundle.lift(base_point)

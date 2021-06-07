@@ -685,6 +685,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         p_top_p = gs.matmul(p_top, base_point)
 
         def sylv_p(mat_b):
+            """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
                 p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
 
@@ -723,7 +724,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             - gs.matmul(base_point, sylv_p(tmp_mat)) + sq_norm_v_p
 
         return nabla_x_a_y_v, a_x_a_y_a_x_y, nabla_x_v, a_y_a_x_y, \
-               vertical_vec_v
+            vertical_vec_v
 
 
 class PreShapeMetric(RiemannianMetric):
