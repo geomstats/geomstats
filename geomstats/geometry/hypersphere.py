@@ -796,8 +796,8 @@ class HypersphereMetric(RiemannianMetric):
         return - first_term + second_term
 
     def curvature_derivative(
-            self, _tangent_vec_v, _tangent_vec_x, _tangent_vec_y,
-            _tangent_vec_z, base_point=None):
+            self, tangent_vec_v, tangent_vec_x=None, tangent_vec_y=None,
+            tangent_vec_z=None, base_point=None):
         r"""Compute the covariant derivative of the curvature.
 
         The derivative of the curvature vanishes since the hypersphere is a
@@ -806,13 +806,14 @@ class HypersphereMetric(RiemannianMetric):
         Parameters
         ----------
         tangent_vec_v : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at `base_point` along which the curvature is
+            derived.
         tangent_vec_x : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Unused tangent vector at `base_point`.
         tangent_vec_y : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Unused tangent vector at `base_point`.
         tangent_vec_z : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Unused tangent vector at `base_point`.
         base_point : array-like, shape=[..., dim]
             Point on the group.
 
@@ -821,7 +822,7 @@ class HypersphereMetric(RiemannianMetric):
         curvature_derivative : array-like, shape=[..., dim]
             Tangent vector at base point.
         """
-        return gs.zeros_like(base_point)
+        return gs.zeros_like(tangent_vec_v)
 
 
 class Hypersphere(_Hypersphere):
