@@ -11,7 +11,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
-class SPDMatrices(SymmetricMatrices, OpenSet):
+class SPDMatrices(OpenSet):
     """Class for the manifold of symmetric positive definite (SPD) matrices.
 
     Parameters
@@ -20,10 +20,11 @@ class SPDMatrices(SymmetricMatrices, OpenSet):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, **kwargs):
         super(SPDMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2), n=n,
-            ambient_space=SymmetricMatrices(n))
+            dim=int(n * (n + 1) / 2),
+            ambient_space=SymmetricMatrices(n), **kwargs)
+        self.n = n
 
     def belongs(self, mat, atol=gs.atol):
         """Check if a matrix is symmetric with positive eigenvalues.
@@ -41,11 +42,33 @@ class SPDMatrices(SymmetricMatrices, OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an SPD matrix.
         """
-        is_symmetric = super(SPDMatrices, self).belongs(mat, atol)
+        is_symmetric = self.ambient_space.belongs(mat, atol)
         eigvalues = gs.linalg.eigvalsh(mat)
         is_positive = gs.all(eigvalues > 0, axis=-1)
         belongs = gs.logical_and(is_symmetric, is_positive)
         return belongs
+
+    def projection(self, point):
+        """Project a matrix to the space of SPD matrices.
+
+        First the symmetric part of point is computed, then the eigenvalues
+        are floored to gs.atol.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Matrix to project.
+
+        Returns
+        -------
+        projected: array-like, shape=[..., n, n]
+            SPD matrix.
+        """
+        sym = Matrices.to_symmetric(point)
+        eigvals, eigvecs = gs.linalg.eigh(sym)
+        regularized = gs.where(eigvals < gs.atol, gs.atol, eigvals)
+        reconstruction = gs.einsum('...ij,...j->...ij', eigvecs, regularized)
+        return Matrices.mul(reconstruction, Matrices.transpose(eigvecs))
 
     def random_point(self, n_samples=1, bound=1.):
         """Sample in SPD(n) from the log-uniform distribution.
@@ -348,10 +371,15 @@ class SPDMatrices(SymmetricMatrices, OpenSet):
         """
         n = mat.shape[-1]
         dim_3_mat = gs.reshape(mat, [-1, n, n])
-        logm = cls.apply_func_to_eigvals(
+        logm = SymmetricMatrices.apply_func_to_eigvals(
             dim_3_mat, gs.log, check_positive=True)
         logm = gs.reshape(logm, mat.shape)
         return logm
+
+    expm = SymmetricMatrices.expm
+    powerm = SymmetricMatrices.powerm
+    from_vector = SymmetricMatrices.__dict__['from_vector']
+    to_vector = SymmetricMatrices.__dict__['to_vector']
 
 
 class SPDMetricAffine(RiemannianMetric):

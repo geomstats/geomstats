@@ -214,7 +214,7 @@ class EmbeddedManifold(Manifold, abc.ABC):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        belongs = self.embedding_space.belongs(vector, atol)
+        belongs = self.embedding_space.is_tangent(vector, base_point, atol)
         tangent_sub_applied = self.tangent_submersion(vector, base_point)
         constraint = gs.isclose(tangent_sub_applied, 0., atol=atol)
         value = self.value
