@@ -803,7 +803,7 @@ def vec_to_triu(vec):
     Returns
     ------
     tril : array_like, shape=[..., k, k] where
-            k is (-1 + sqrt(1 + 8 * n)) / 2 
+        k is (-1 + sqrt(1 + 8 * n)) / 2
     """
     n = vec.shape[-1]
     triu_shape = vec.shape + (n, )
@@ -821,7 +821,7 @@ def vec_to_triu(vec):
 
 def vec_to_tril(vec):
     """Take vec and forms strictly lower triangular matrix.
-    
+
     Parameters
     ---------
     vec : array_like, shape=[..., n]
@@ -829,7 +829,7 @@ def vec_to_tril(vec):
     Returns
     -------
     tril : array_like, shape=[..., k, k] where
-            k is (1 + sqrt(1 + 8 * n)) / 2 
+        k is (1 + sqrt(1 + 8 * n)) / 2
     """
     n = vec.shape[-1]
     tril_shape = vec.shape + (n, )
@@ -848,7 +848,7 @@ def vec_to_tril(vec):
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     """Build matrix from given components.
 
-    Forms a matrix from diagonal, strictly upper triangular and 
+    Forms a matrix from diagonal, strictly upper triangular and
     strictly lower traingular parts.
 
     Parameters

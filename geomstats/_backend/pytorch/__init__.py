@@ -795,8 +795,8 @@ def triu_to_vec(x, k=0):
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     """Build matrix from given components.
-    
-    Forms a matrix from diagonal, strictly upper triangular and 
+
+    Forms a matrix from diagonal, strictly upper triangular and
     strictly lower traingular parts.
 
     Parameters
