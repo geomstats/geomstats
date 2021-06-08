@@ -519,6 +519,10 @@ def equal(a, b, **kwargs):
     return torch.eq(a, b, **kwargs)
 
 
+def diag_indices(*args, **kwargs):
+    return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
+
+
 def tril_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.tril_indices(*args, **kwargs)))
 
@@ -787,3 +791,29 @@ def triu_to_vec(x, k=0):
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
+
+
+def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
+    """Build matrix from given components.
+
+    Forms a matrix from diagonal, strictly upper triangular and
+    strictly lower traingular parts.
+
+    Parameters
+    ----------
+    diag : array_like, shape=[..., n]
+    tri_upp : array_like, shape=[..., (n * (n - 1)) / 2]
+    tri_low : array_like, shape=[..., (n * (n - 1)) / 2]
+
+    Returns
+    -------
+    mat : array_like, shape=[..., n, n]
+    """
+    n = diag.shape[-1]
+    i, = diag_indices(n, ndim=1)
+    j, k = triu_indices(n, k=1)
+    mat = torch.zeros((diag.shape + (n, )))
+    mat[..., i, i] = diag
+    mat[..., j, k] = tri_upp
+    mat[..., k, j] = tri_low
+    return mat

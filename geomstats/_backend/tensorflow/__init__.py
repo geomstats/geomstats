@@ -748,6 +748,10 @@ def tril(m, k=0):
     return tf.linalg.band_part(m, -1, 0)
 
 
+def diag_indices(*args, **kwargs):
+    return tuple(map(tf.convert_to_tensor, _np.diag_indices(*args, **kwargs)))
+
+
 def tril_indices(*args, **kwargs):
     return tuple(map(tf.convert_to_tensor, _np.tril_indices(*args, **kwargs)))
 
@@ -787,3 +791,78 @@ def tile(x, multiples):
     t2 = tf.shape(x)
     x_reshape = tf.reshape(x, tf.concat([t1, t2], axis=0))
     return tf.tile(x_reshape, multiples)
+
+
+def vec_to_triu(vec):
+    """Take vec and forms strictly upper traingular matrix.
+
+    Parameters
+    ---------
+    vec : array_like, shape[..., n]
+
+    Returns
+    ------
+    tril : array_like, shape=[..., k, k] where
+        k is (1 + sqrt(1 + 8 * n)) / 2
+    """
+    n = vec.shape[-1]
+    triu_shape = vec.shape + (n, )
+    _ones = tf.ones(triu_shape)
+    vec = tf.reshape(vec, [-1])
+    mask_a = tf.linalg.band_part(_ones, 0, -1)
+    mask_b = tf.linalg.band_part(_ones, 0, 0)
+    mask = tf.subtract(mask_a, mask_b)
+    non_zero = tf.not_equal(mask, tf.constant(0.0))
+    indices = tf.where(non_zero)
+    sparse = tf.SparseTensor(indices, values=vec, dense_shape=triu_shape)
+    triu = tf.sparse.to_dense(sparse)
+    return triu
+
+
+def vec_to_tril(vec):
+    """Take vec and forms strictly lower triangular matrix.
+
+    Parameters
+    ---------
+    vec : array_like, shape=[..., n]
+
+    Returns
+    -------
+    tril : array_like, shape=[..., k, k] where
+        k is (1 + sqrt(1 + 8 * n)) / 2
+    """
+    n = vec.shape[-1]
+    tril_shape = vec.shape + (n, )
+    _ones = tf.ones(tril_shape)
+    vec = tf.reshape(vec, [-1])
+    mask_a = tf.linalg.band_part(_ones, -1, 0)
+    mask_b = tf.linalg.band_part(_ones, 0, 0)
+    mask = tf.subtract(mask_a, mask_b)
+    non_zero = tf.not_equal(mask, tf.constant(0.0))
+    indices = tf.where(non_zero)
+    sparse = tf.SparseTensor(indices, values=vec, dense_shape=tril_shape)
+    tril = tf.sparse.to_dense(sparse)
+    return tril
+
+
+def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
+    """Build matrix from given components.
+
+    Forms a matrix from diagonal, strictly upper triangular and
+    strictly lower traingular parts.
+
+    Parameters
+    ----------
+    diag : array_like, shape=[..., n]
+    tri_upp : array_like, shape=[..., (n * (n - 1)) / 2]
+    tri_low : array_like, shape=[..., (n * (n - 1)) / 2]
+
+    Returns
+    -------
+    mat : array_like, shape=[..., n, n]
+    """
+    triu_mat = vec_to_triu(tri_upp)
+    tril_mat = vec_to_tril(tri_low)
+    triu_tril_mat = triu_mat + tril_mat
+    mat = tf.linalg.set_diag(triu_tril_mat, diag)
+    return mat
