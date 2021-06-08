@@ -803,7 +803,7 @@ def vec_to_triu(vec):
     Returns
     ------
     tril : array_like, shape=[..., k, k] where
-        k is (-1 + sqrt(1 + 8 * n)) / 2
+        k is (1 + sqrt(1 + 8 * n)) / 2
     """
     n = vec.shape[-1]
     triu_shape = vec.shape + (n, )
