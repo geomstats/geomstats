@@ -1,4 +1,4 @@
-"""LogNormal Sampler"""
+"""LogNormal Sampler."""
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
@@ -8,46 +8,43 @@ from geomstats.geometry.spd_matrices import SPDMatrices
 class LogNormal:
     """LogNormal Sampler on manifold of SPD Matrices and Euclidean Spaces.
 
-    (1)For Euclidean Spaces, if X is distributed as Normal(mean, cov), then
+    (1) For Euclidean Spaces, if X is distributed as Normal(mean, cov), then
     exp(X) is distributed as LogNormal(mean, cov).
 
-    (2)For SPDMatrices, LogNormal distribution is defined by embedding mean
-    in the Euclidean Space; mean(a SPD matrix) is embedded into
-    Symmetric Matrices Space using Matrix Logarithm, which is then embedded
-    into Euclidean Space. This embedded mean and given cov is used to
-    parametrize Normal Distribution.
+    (2) For SPDMatrices, the LogNormal distribution is defined by transforming 
+    the mean -- an SPD matrix -- into a symmetric matrix through the Matrix logarithm, 
+    which gives the element "log-mean" that now belongs to a vector space. 
+    This log-mean and given cov are used to parametrize a Normal Distribution.
 
     Parameters
     ----------
-    manifold: Manifold obj, {Euclidean(n), SPDMatrices(n)}
+    manifold : Manifold obj, {Euclidean(n), SPDMatrices(n)}
         Manifold to sample over. Manifold should
-        be of instance of Euclidean or SPDMatrices
-    mean: array-like,
+        be instance of Euclidean or SPDMatrices.
+    mean : array-like,
             shape=[dim] if manifold is Euclidean Space
             shape=[n, n] if manifold is SPD Manifold
-        Mean of the distribution
-
-    cov: array-like,
+        Mean of the distribution.
+    cov : array-like,
             shape=[dim, dim] if manifold is Euclidean Space
             shape=[n*(n+1)/2, n*(n+1)/2] if manifold is SPD Manifold
-        Covariance of the Distribution.
+        Covariance of the distribution.
 
     Returns
     --------
-    samples: array-like, shape[..., dim]
-        Samples from LogNormal distribution
+    samples : array-like, shape[..., dim]
+        Samples from LogNormal distribution.
 
-    Examples
+    Example
     --------
-    import geomstats.backend as gs
-    from geomstats.geometry.spd_matrices import SPDMatrices
-    from geomstats.sampling.lognormal import LogNormal
-
-    mean = 2*gs.eye(3)
-    cov  = gs.eye(6)
-    SPDManifold = SPDMatrices(3)
-    LogNormalSampler = LogNormal(SPDManifold, mean, cov)
-    data = LogNormalSampler.sample(5)
+    >>> import geomstats.backend as gs
+    >>> from geomstats.geometry.spd_matrices import SPDMatrices
+    >>> from geomstats.sampling.lognormal import LogNormal
+    >>> mean = 2 * gs.eye(3)
+    >>> cov  = gs.eye(6)
+    >>> SPDManifold = SPDMatrices(3)
+    >>> LogNormalSampler = LogNormal(SPDManifold, mean, cov)
+    >>> data = LogNormalSampler.sample(5)
 
     References
     ----------

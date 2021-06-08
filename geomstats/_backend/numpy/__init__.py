@@ -384,8 +384,21 @@ def triu_to_vec(x, k=0):
 
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
-    """build matrices (or batch of matrices) from diag and
-    lower traingular and upper traingular matrices"""
+    """Build matrix from given components.
+    
+    Forms a matrix from diagonal, strictly upper triangular and 
+    strictly lower traingular parts.
+
+    Parameters
+    ----------
+    diag : array_like, shape=[..., n]
+    tri_upp : array_like, shape=[..., (n * (n - 1)) / 2]
+    tri_low : array_like, shape=[..., (n * (n - 1)) / 2]
+
+    Returns
+    -------
+    mat : array_like, shape=[..., n, n]
+    """
     n = diag.shape[-1]
     i, = np.diag_indices(n, ndim=1)
     j, k = np.triu_indices(n, k=1)

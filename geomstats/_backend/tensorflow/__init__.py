@@ -748,10 +748,6 @@ def tril(m, k=0):
     return tf.linalg.band_part(m, -1, 0)
 
 
-def diag_indices(*args, **kwargs):
-    return tuple(map(tf.convert_to_tensor, _np.diag_indices(*args, **kwargs)))
-
-
 def tril_indices(*args, **kwargs):
     return tuple(map(tf.convert_to_tensor, _np.tril_indices(*args, **kwargs)))
 
@@ -794,8 +790,17 @@ def tile(x, multiples):
 
 
 def vec_to_triu(vec):
-    """Takes vec (batch of vecs) and forms
-    strictly upper traingular matrix (batch of mats) out of it"""
+    """Take vec and forms strictly upper traingular matrix.
+
+    Parameters
+    ---------
+    vec : array_like, shape[..., n]
+
+    Returns
+    ------
+    tril : array_like, shape=[..., k, k] where
+            k is (-1 + sqrt(1 + 8 * n)) / 2 
+    """
     n = vec.shape[-1]
     triu_shape = vec.shape + (n, )
     _ones = tf.ones(triu_shape)
@@ -811,8 +816,17 @@ def vec_to_triu(vec):
 
 
 def vec_to_tril(vec):
-    """Takes vec ( batch of vec) and forms
-    strictly lower traingular matrix (batch of mats) out of it"""
+    """Take vec and forms strictly lower triangular matrix.
+
+    Parameters
+    ---------
+    vec : array_like, shape=[..., n]
+
+    Returns
+    ------
+    tril : array_like, shape=[..., k, k] where
+            k is (1 + sqrt(1 + 8 * n)) / 2 
+    """
     n = vec.shape[-1]
     tril_shape = vec.shape + (n, )
     _ones = tf.ones(tril_shape)
@@ -828,10 +842,23 @@ def vec_to_tril(vec):
 
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
-    """build matrices (or batch of matrices) from diag and
-    lower traingular and upper traingular matrices"""
-    _triu = vec_to_triu(tri_upp)
-    _tril = vec_to_tril(tri_low)
-    triu_tril = _triu + _tril
-    mat = tf.linalg.set_diag(triu_tril, diag)
+    """Build matrix from given components.
+    
+    Forms a matrix from diagonal, strictly upper triangular and 
+    strictly lower traingular parts.
+
+    Parameters
+    ----------
+    diag : array_like, shape=[..., n]
+    tri_upp : array_like, shape=[..., (n * (n - 1)) / 2]
+    tri_low : array_like, shape=[..., (n * (n - 1)) / 2]
+
+    Returns
+    -------
+    mat : array_like, shape=[..., n, n]
+    """
+    triu_mat = vec_to_triu(tri_upp)
+    tril_mat = vec_to_tril(tri_low)
+    triu_tril_mat = triu_mat + tril_mat
+    mat = tf.linalg.set_diag(triu_tril_mat, diag)
     return mat
