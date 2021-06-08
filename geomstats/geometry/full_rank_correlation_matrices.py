@@ -53,7 +53,7 @@ class FullRankCorrelationMatrices(EmbeddedManifold):
     def from_covariance(cls, point):
         r"""Compute the correlation matrix associated to an SPD matrix.
 
-        The correlaation matrix associated to an SPD matrix (the covariance)
+        The correlation matrix associated to an SPD matrix (the covariance)
         :math: `\Sigma` is given by :math: `D  \Sigma D` where :math: `D` is
         the inverse square-root of the diagonal of :math: `\Sigma`.
 
@@ -210,14 +210,14 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         diagonal = gs.einsum('...ij,...j->...i', inverse_operator, vector)
         return base_point * (diagonal[..., None, :] + diagonal[..., :, None])
 
-    def horizontal_lift(self, tangent_vec, base_point=None, point_fiber=None):
+    def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
         """Compute the horizontal lift wrt the affine-invariant metric.
 
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
             Tangent vector of the manifold of full-rank correlation matrices.
-        point_fiber : array-like, shape=[..., n, n]
+        fiber_point : array-like, shape=[..., n, n]
             SPD matrix in the fiber above point.
         base_point : array-like, shape=[..., n, n]
             Full-rank correlation matrix.
@@ -227,12 +227,12 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         hor_lift : array-like, shape=[..., n, n]
             Horizontal lift of tangent_vec from point to base_point.
         """
-        if point_fiber is None and base_point is not None:
+        if fiber_point is None and base_point is not None:
             return self.horizontal_projection(tangent_vec, base_point)
-        diagonal_point = Matrices.diagonal(point_fiber) ** 0.5
+        diagonal_point = Matrices.diagonal(fiber_point) ** 0.5
         lift = FullRankCorrelationMatrices.diag_action(
             diagonal_point, tangent_vec)
-        hor_lift = self.horizontal_projection(lift, base_point=point_fiber)
+        hor_lift = self.horizontal_projection(lift, base_point=fiber_point)
         return hor_lift
 
 

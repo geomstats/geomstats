@@ -9,7 +9,7 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import SymmetricMatrices
 
 
-class TestCorrelationMatrices(geomstats.tests.TestCase):
+class TestFullRankCorrelationMatrices(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(12)
         n = 3

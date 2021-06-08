@@ -74,7 +74,7 @@ class FiberBundle(Manifold, ABC):
 
         Returns
         -------
-        projection : array-like, shape=[..., {dim, [n, n]}]
+        projection : array-like, shape=[..., {base_dim, [n, n]}]
             Point of the base manifold.
         """
         return point
@@ -91,7 +91,7 @@ class FiberBundle(Manifold, ABC):
 
         Parameters
         ----------
-        point : array-like, shape=[..., {dim, [n, n]}]
+        point : array-like, shape=[..., {base_dim, [n, n]}]
             Point of the base manifold.
 
         Returns
@@ -120,7 +120,7 @@ class FiberBundle(Manifold, ABC):
 
         Returns
         -------
-        projection: array-like, shape=[..., {dim, [n, n]}]
+        projection: array-like, shape=[..., {base_dim, [n, n]}]
             Tangent vector to the base manifold.
         """
         return self.horizontal_projection(tangent_vec, base_point)
@@ -225,7 +225,7 @@ class FiberBundle(Manifold, ABC):
         except (RecursionError, NotImplementedError):
             return self.horizontal_lift(
                 self.tangent_riemannian_submersion(tangent_vec, base_point),
-                point_fiber=base_point)
+                fiber_point=base_point)
 
     def vertical_projection(self, tangent_vec, base_point, **kwargs):
         r"""Project to vertical subspace.
@@ -297,7 +297,7 @@ class FiberBundle(Manifold, ABC):
             tangent_vec, self.vertical_projection(tangent_vec, base_point),
             atol=atol), axis=(-2, -1))
 
-    def horizontal_lift(self, tangent_vec, base_point=None, point_fiber=None):
+    def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
         """Lift a tangent vector to a horizontal vector in the total space.
 
         It means that horizontal lift is the inverse of the restriction of the
@@ -308,12 +308,12 @@ class FiberBundle(Manifold, ABC):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., {dim, [n, n]}]
-        point_fiber: array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec : array-like, shape=[..., {base_dim, [n, n]}]
+        fiber_point : array-like, shape=[..., {ambient_dim, [n, n]}]
             Point of the total space.
             Optional, default : None. The `lift` method is used to compute a
             point at which to compute a tangent vector.
-        base_point : array-like, shape=[..., {dim, [n, n]}]
+        base_point : array-like, shape=[..., {base_dim, [n, n]}]
             Point of the base space.
             Optional, default : None. In this case, point must be given,
             and `submersion` is used to compute the base_point if needed.
@@ -323,14 +323,14 @@ class FiberBundle(Manifold, ABC):
         horizontal_lift : array-like, shape=[..., {ambient_dim, [n, n]}]
             Tangent vector to the total space at point.
         """
-        if point_fiber is None:
+        if fiber_point is None:
             if base_point is not None:
-                point_fiber = self.lift(base_point)
+                fiber_point = self.lift(base_point)
             else:
                 raise ValueError('Either a point (of the total space) or a '
                                  'base point (of the base manifold) must be '
                                  'given.')
-        return self.horizontal_projection(tangent_vec, point_fiber)
+        return self.horizontal_projection(tangent_vec, fiber_point)
 
     def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the fundamental tensor A of the submersion.

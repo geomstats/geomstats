@@ -376,8 +376,8 @@ class SPDMatrices(OpenSet):
         logm = gs.reshape(logm, mat.shape)
         return logm
 
-    expm = SymmetricMatrices.__dict__['expm']
-    powerm = SymmetricMatrices.__dict__['powerm']
+    expm = SymmetricMatrices.expm
+    powerm = SymmetricMatrices.powerm
     from_vector = SymmetricMatrices.__dict__['from_vector']
     to_vector = SymmetricMatrices.__dict__['to_vector']
 
