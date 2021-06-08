@@ -100,12 +100,12 @@ class FiberBundle(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., {ambient_dim, [n, n]}]
+        point : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point of the total space.
 
         Returns
         -------
-        projection : array-like, shape=[..., {dim, [n, n]}]
+        projection : array-like, shape=[..., {dim, [n, m]}]
             Point of the base manifold.
         """
         return point
@@ -122,12 +122,12 @@ class FiberBundle(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., {dim, [n, n]}]
+        point : array-like, shape=[..., {dim, [n, m]}]
             Point of the base manifold.
 
         Returns
         -------
-        lift : array-like, shape=[..., {ambient_dim, [n, n]}]
+        lift : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point of the total space.
         """
         return point
@@ -144,14 +144,14 @@ class FiberBundle(Manifold):
 
         Parameters
         ----------
-        tangent_vec :  array-like, shape=[..., ambient_dim, [n , n]}]
+        tangent_vec :  array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector to the total space at `base_point`.
-        base_point: array-like, shape=[..., {ambient_dim, [n, n]}]
+        base_point: array-like, shape=[..., {total_space.dim, [n, m]}]
             Point of the total space.
 
         Returns
         -------
-        projection: array-like, shape=[..., {dim, [n, n]}]
+        projection: array-like, shape=[..., {dim, [n, m]}]
             Tangent vector to the base manifold.
         """
         return self.horizontal_projection(tangent_vec, base_point)
@@ -168,9 +168,9 @@ class FiberBundle(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., {ambient_dim, [n, n]}]
+        point : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point on the manifold.
-        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+        base_point : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point on the manifold.
         max_iter : int
             Maximum number of gradient steps.
@@ -184,7 +184,7 @@ class FiberBundle(Manifold):
 
         Returns
         -------
-        aligned : array-like, shape=[..., {ambient_dim, [n, n]}]
+        aligned : array-like, shape=[..., {total_space.dim, [n, m]}]
             Action of the optimal g on point.
         """
         group = self.group
@@ -227,14 +227,14 @@ class FiberBundle(Manifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector to the total space at `base_point`.
-        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+        base_point : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point on the total space.
 
         Returns
         -------
-        horizontal : array-like, shape=[..., {ambient_dim, [n, n]}]
+        horizontal : array-like, shape=[..., {total_space.dim, [n, m]}]
             Horizontal component of `tangent_vec`.
         """
         try:
@@ -253,14 +253,14 @@ class FiberBundle(Manifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector to the total space at `base_point`.
-        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+        base_point : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point on the total space.
 
         Returns
         -------
-        vertical : array-like, shape=[..., {ambient_dim, [n, n]}]
+        vertical : array-like, shape=[..., {total_space.dim, [n, m]}]
             Vertical component of `tangent_vec`.
         """
         try:
@@ -274,9 +274,9 @@ class FiberBundle(Manifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector.
-        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+        base_point : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point on the manifold.
             Optional, default: None.
         atol : float
@@ -297,9 +297,9 @@ class FiberBundle(Manifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector.
-        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+        base_point : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point on the manifold.
             Optional, default: None.
         atol : float
@@ -326,19 +326,19 @@ class FiberBundle(Manifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., {dim, [n, n]}]
-        point: array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec : array-like, shape=[..., {dim, [n, m]}]
+        point: array-like, shape=[..., {total_space.dim, [n, m]}]
             Point of the total space.
             Optional, default : None. The `lift` method is used to compute a
             point at which to compute a tangent vector.
-        base_point : array-like, shape=[..., {dim, [n, n]}]
+        base_point : array-like, shape=[..., {dim, [n, m]}]
             Point of the base space.
             Optional, default : None. In this case, point must be given,
             and `submersion` is used to compute the base_point if needed.
 
         Returns
         -------
-        horizontal_lift : array-like, shape=[..., {ambient_dim, [n, n]}]
+        horizontal_lift : array-like, shape=[..., {total_space.dim, [n, m]}]
             Horizontal tangent vector to the total space at point.
         """
         if point is None:
@@ -353,24 +353,25 @@ class FiberBundle(Manifold):
     def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the fundamental tensor A of the submersion.
 
-        The fundamental tensor A is defined for tangent vectors of the total
-        space by [O'Neill]_
+        The fundamental integrability tensor A is defined for tangent vectors
+        :math: `X = tangent_vec_a` and :math: `Y = tangent_vec_b` of the
+        total space by [O'Neill]_ as
         :math: `A_X Y = ver\nabla_{hor X} (hor Y) + hor \nabla_{hor X}( ver Y)`
         where :math: `hor, ver` are the horizontal and vertical projections
-        and :math: `nabla` is the connection of the total space.
+        and :math: `\nabla` is the connection of the total space.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec_a : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec_b : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+        base_point : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point of the total space.
 
         Returns
         -------
-        vector : array-like, shape=[..., {ambient_dim, [n, n]}]
+        vector : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector at `base_point`, result of the A tensor applied to
             `tangent_vec_a` and `tangent_vec_b`.
 
@@ -401,22 +402,22 @@ class FiberBundle(Manifold):
 
         Parameters
         ----------
-        horizontal_vec_x : array-like, shape=[..., {ambient_dim, [n, n]}]
+        horizontal_vec_x : array-like, shape=[..., {total_space.dim, [n, m]}]
             Horizontal tangent vector at `base_point`.
-        horizontal_vec_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+        horizontal_vec_y : array-like, shape=[..., {total_space.dim, [n, m]}]
             Horizontal tangent vector at `base_point`.
-        nabla_x_y : array-like, shape=[..., {ambient_dim, [n, n]}]
+        nabla_x_y : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector at `base_point`.
-        tangent_vec_e : array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec_e : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector at `base_point`.
-        nabla_x_e : array-like, shape=[..., {ambient_dim, [n, n]}]
+        nabla_x_e : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., {ambient_dim, [n, n]}]
+        base_point : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point of the total space.
 
         Returns
         -------
-        nabla_x_a_y_e : array-like, shape=[..., {ambient_dim, [n, n]}]
+        nabla_x_a_y_e : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector at `base_point`, result of :math: `\nabla_X
             (A_Y E)`.
         a_y_e : array-like, shape=[..., {ambient_dim, [n, n]}]
