@@ -128,7 +128,7 @@ class MyManifold(Manifold):
             Tangent vector at base point.
         """
 
-    def random_point(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
 
         If the manifold is compact, a uniform distribution is used.

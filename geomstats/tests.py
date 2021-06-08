@@ -13,59 +13,58 @@ import geomstats.backend as gs
 
 def pytorch_backend():
     """Check if pytorch is set as backend."""
-    return os.environ['GEOMSTATS_BACKEND'] == 'pytorch'
+    return os.environ["GEOMSTATS_BACKEND"] == "pytorch"
 
 
 def tf_backend():
     """Check if tensorflow is set as backend."""
-    return os.environ['GEOMSTATS_BACKEND'] == 'tensorflow'
+    return os.environ["GEOMSTATS_BACKEND"] == "tensorflow"
 
 
 def np_backend():
     """Check if numpy is set as backend."""
-    return os.environ['GEOMSTATS_BACKEND'] == 'numpy'
+    return os.environ["GEOMSTATS_BACKEND"] == "numpy"
 
 
 def np_only(test_item):
     """Decorate to filter tests for numpy only."""
     if np_backend():
         return test_item
-    return unittest.skip('Test for numpy backend only.')(test_item)
+    return unittest.skip("Test for numpy backend only.")(test_item)
 
 
 def pytorch_only(test_item):
     """Decorate to filter tests for pytorch only."""
     if pytorch_backend():
         return test_item
-    return unittest.skip('Test for pytorch backend only.')(test_item)
+    return unittest.skip("Test for pytorch backend only.")(test_item)
 
 
 def tf_only(test_item):
     """Decorate to filter tests for tensorflow only."""
     if tf_backend():
         return test_item
-    return unittest.skip('Test for tensorflow backend only.')(test_item)
+    return unittest.skip("Test for tensorflow backend only.")(test_item)
 
 
 def np_and_tf_only(test_item):
     """Decorate to filter tests for numpy and tensorflow only."""
     if np_backend() or tf_backend():
         return test_item
-    return unittest.skip('Test for numpy and tensorflow backends only.')(
-        test_item)
+    return unittest.skip("Test for numpy and tensorflow backends only.")(test_item)
 
 
 def np_and_pytorch_only(test_item):
     """Decorate to filter tests for numpy and pytorch only."""
     if np_backend() or pytorch_backend():
         return test_item
-    return unittest.skip('Test for numpy and pytorch backends only.')(
-        test_item)
+    return unittest.skip("Test for numpy and pytorch backends only.")(test_item)
 
 
 _TestBaseClass = unittest.TestCase
 if tf_backend():
     import tensorflow as tf
+
     _TestBaseClass = tf.test.TestCase
 
 
@@ -92,4 +91,4 @@ class TestCase(_TestBaseClass):
     @classmethod
     def setUpClass(cls):
         if tf_backend():
-            os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+            os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"

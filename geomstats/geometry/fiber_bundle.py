@@ -41,9 +41,15 @@ class FiberBundle(Manifold, ABC):
     """
 
     def __init__(
-            self, dim: int, base: Manifold = None,
-            group: LieGroup = None, ambient_metric: RiemannianMetric = None,
-            group_action=None, group_dim=None, **kwargs):
+        self,
+        dim: int,
+        base: Manifold = None,
+        group: LieGroup = None,
+        ambient_metric: RiemannianMetric = None,
+        group_action=None,
+        group_dim=None,
+        **kwargs
+    ):
 
         super(FiberBundle, self).__init__(dim=dim, **kwargs)
         self.base = base
@@ -125,8 +131,7 @@ class FiberBundle(Manifold, ABC):
         """
         return self.horizontal_projection(tangent_vec, base_point)
 
-    def align(self, point, base_point,
-              max_iter=25, verbose=False, tol=gs.atol):
+    def align(self, point, base_point, max_iter=25, verbose=False, tol=gs.atol):
         """Align point to base_point.
 
         Find the optimal group element g such that the base point and
@@ -158,14 +163,12 @@ class FiberBundle(Manifold, ABC):
         """
         group = self.group
         group_action = self.group_action
-        initial_distance = self.ambient_metric.squared_dist(
-            point, base_point)
+        initial_distance = self.ambient_metric.squared_dist(point, base_point)
         if isinstance(initial_distance, float) or initial_distance.shape == ():
             n_samples = 1
         else:
             n_samples = len(initial_distance)
-        max_shape = (n_samples, self.group_dim) if n_samples > 1 else \
-            (self.group_dim, )
+        max_shape = (n_samples, self.group_dim) if n_samples > 1 else (self.group_dim,)
 
         if group is not None:
 
@@ -173,8 +176,7 @@ class FiberBundle(Manifold, ABC):
                 """Wrap a parameter vector to a group element."""
                 algebra_elt = gs.array(param)
                 algebra_elt = gs.cast(algebra_elt, dtype=base_point.dtype)
-                algebra_elt = group.lie_algebra.matrix_representation(
-                    algebra_elt)
+                algebra_elt = group.lie_algebra.matrix_representation(algebra_elt)
                 group_elt = group.exp(algebra_elt)
                 return self.group_action(point, group_elt)
 
@@ -186,17 +188,21 @@ class FiberBundle(Manifold, ABC):
                 return group_action(vector, point)
 
         else:
-            raise ValueError(
-                'Either the group of its action must be known')
+            raise ValueError("Either the group of its action must be known")
 
         objective_with_grad = gs.autograd.value_and_grad(
-            lambda param: self.ambient_metric.squared_dist(
-                wrap(param), base_point))
+            lambda param: self.ambient_metric.squared_dist(wrap(param), base_point)
+        )
 
         tangent_vec = gs.flatten(gs.random.rand(*max_shape))
         res = minimize(
-            objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
-            options={'disp': verbose, 'maxiter': max_iter}, tol=tol)
+            objective_with_grad,
+            tangent_vec,
+            method="L-BFGS-B",
+            jac=True,
+            options={"disp": verbose, "maxiter": max_iter},
+            tol=tol,
+        )
 
         return wrap(res.x)
 
@@ -220,12 +226,12 @@ class FiberBundle(Manifold, ABC):
             Horizontal component of `tangent_vec`.
         """
         try:
-            return tangent_vec - self.vertical_projection(
-                tangent_vec, base_point)
+            return tangent_vec - self.vertical_projection(tangent_vec, base_point)
         except (RecursionError, NotImplementedError):
             return self.horizontal_lift(
                 self.tangent_riemannian_submersion(tangent_vec, base_point),
-                fiber_point=base_point)
+                fiber_point=base_point,
+            )
 
     def vertical_projection(self, tangent_vec, base_point, **kwargs):
         r"""Project to vertical subspace.
@@ -246,8 +252,7 @@ class FiberBundle(Manifold, ABC):
             Vertical component of `tangent_vec`.
         """
         try:
-            return tangent_vec - self.horizontal_projection(
-                tangent_vec, base_point)
+            return tangent_vec - self.horizontal_projection(tangent_vec, base_point)
         except RecursionError:
             raise NotImplementedError
 
@@ -270,9 +275,14 @@ class FiberBundle(Manifold, ABC):
         is_horizontal : bool
             Boolean denoting if tangent vector is horizontal.
         """
-        return gs.all(gs.isclose(
-            tangent_vec, self.horizontal_projection(tangent_vec, base_point),
-            atol=atol), axis=(-2, -1))
+        return gs.all(
+            gs.isclose(
+                tangent_vec,
+                self.horizontal_projection(tangent_vec, base_point),
+                atol=atol,
+            ),
+            axis=(-2, -1),
+        )
 
     def is_vertical(self, tangent_vec, base_point, atol=gs.atol):
         """Evaluate if the tangent vector is vertical at base_point.
@@ -293,9 +303,14 @@ class FiberBundle(Manifold, ABC):
         is_vertical : bool
             Boolean denoting if tangent vector is vertical.
         """
-        return gs.all(gs.isclose(
-            tangent_vec, self.vertical_projection(tangent_vec, base_point),
-            atol=atol), axis=(-2, -1))
+        return gs.all(
+            gs.isclose(
+                tangent_vec,
+                self.vertical_projection(tangent_vec, base_point),
+                atol=atol,
+            ),
+            axis=(-2, -1),
+        )
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
         """Lift a tangent vector to a horizontal vector in the total space.
@@ -327,9 +342,11 @@ class FiberBundle(Manifold, ABC):
             if base_point is not None:
                 fiber_point = self.lift(base_point)
             else:
-                raise ValueError('Either a point (of the total space) or a '
-                                 'base point (of the base manifold) must be '
-                                 'given.')
+                raise ValueError(
+                    "Either a point (of the total space) or a "
+                    "base point (of the base manifold) must be "
+                    "given."
+                )
         return self.horizontal_projection(tangent_vec, fiber_point)
 
     def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):

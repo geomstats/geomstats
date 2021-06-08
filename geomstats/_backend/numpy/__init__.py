@@ -1,112 +1,37 @@
 """Numpy based computation backend."""
 
-import autograd # NOQA
+import autograd  # NOQA
 import autograd.numpy as np
-from autograd.numpy import (  # NOQA
-    abs,
-    all,
-    allclose,
-    amax,
-    amin,
-    any,
-    arange,
-    arccos,
-    arccosh,
-    arcsin,
-    arctan2,
-    arctanh,
-    argmax,
-    argmin,
-    array,
-    broadcast_arrays,
-    broadcast_to,
-    ceil,
-    clip,
-    concatenate,
-    cos,
-    cosh,
-    cross,
-    cumprod,
-    cumsum,
-    diag_indices,
-    diagonal,
-    divide,
-    dot,
-    dtype as ndtype,
-    einsum,
-    empty,
-    empty_like,
-    equal,
-    exp,
-    expand_dims,
-    eye,
-    flip,
-    float32,
-    float64,
-    floor,
-    greater,
-    hsplit,
-    hstack,
-    int32,
-    int64,
-    isclose,
-    isnan,
-    less,
-    less_equal,
-    linspace,
-    log,
-    logical_and,
-    logical_or,
-    matmul,
-    maximum,
-    mean,
-    meshgrid,
-    mod,
-    ones,
-    ones_like,
-    outer,
-    power,
-    prod,
-    repeat,
-    reshape,
-    shape,
-    sign,
-    sin,
-    sinh,
-    split,
-    sqrt,
-    squeeze,
-    stack,
-    std,
-    sum,
-    tan,
-    tanh,
-    tile,
-    trace,
-    transpose,
-    triu_indices,
-    tril_indices,
-    searchsorted,
-    tril,
-    uint8,
-    vstack,
-    where,
-    zeros,
-    zeros_like
-)
-from autograd.scipy.special import polygamma # NOQA
+from autograd.numpy import (abs, all, allclose, amax, amin, any, arange,
+                            arccos, arccosh, arcsin, arctan2, arctanh, argmax,
+                            argmin, array, broadcast_arrays, broadcast_to,
+                            ceil, clip, concatenate, cos, cosh, cross, cumprod,
+                            cumsum, diag_indices, diagonal, divide, dot)
+from autograd.numpy import dtype as ndtype  # NOQA
+from autograd.numpy import (einsum, empty, empty_like, equal, exp, expand_dims,
+                            eye, flip, float32, float64, floor, greater,
+                            hsplit, hstack, int32, int64, isclose, isnan, less,
+                            less_equal, linspace, log, logical_and, logical_or,
+                            matmul, maximum, mean, meshgrid, mod, ones,
+                            ones_like, outer, power, prod, repeat, reshape,
+                            searchsorted, shape, sign, sin, sinh, split, sqrt,
+                            squeeze, stack, std, sum, tan, tanh, tile, trace,
+                            transpose, tril, tril_indices, triu_indices, uint8,
+                            vstack, where, zeros, zeros_like)
+from autograd.scipy.special import polygamma  # NOQA
 from scipy.sparse import coo_matrix
 
+from ..constants import np_atol, np_rtol
 from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA
-from ..constants import np_atol, np_rtol
 
 DTYPES = {
-    ndtype('int32'): 0,
-    ndtype('int64'): 1,
-    ndtype('float32'): 2,
-    ndtype('float64'): 3}
+    ndtype("int32"): 0,
+    ndtype("int64"): 1,
+    ndtype("float32"): 2,
+    ndtype("float64"): 3,
+}
 
 
 atol = np_atol
@@ -132,7 +57,7 @@ def flatten(x):
 
 
 def one_hot(labels, num_classes):
-    return np.eye(num_classes, dtype=np.dtype('uint8'))[labels]
+    return np.eye(num_classes, dtype=np.dtype("uint8"))[labels]
 
 
 def get_mask_i_float(i, n):
@@ -204,7 +129,7 @@ def assignment(x, values, indices, axis=0):
     """
     x_new = copy(x)
 
-    use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
+    use_vectorization = hasattr(indices, "__len__") and len(indices) < ndim(x)
     if _is_boolean(indices):
         x_new[indices] = values
         return x_new
@@ -217,11 +142,10 @@ def assignment(x, values, indices, axis=0):
             len_indices = len(indices) if _is_iterable(indices) else 1
         len_values = len(values) if _is_iterable(values) else 1
         if len_values > 1 and len_values != len_indices:
-            raise ValueError('Either one value or as many values as indices')
+            raise ValueError("Either one value or as many values as indices")
         x_new[indices] = values
     else:
-        indices = tuple(
-            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        indices = tuple(list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
         x_new[indices] = values
     return x_new
 
@@ -255,7 +179,7 @@ def assignment_by_sum(x, values, indices, axis=0):
     """
     x_new = copy(x)
 
-    use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
+    use_vectorization = hasattr(indices, "__len__") and len(indices) < ndim(x)
     if _is_boolean(indices):
         x_new[indices] += values
         return x_new
@@ -266,11 +190,10 @@ def assignment_by_sum(x, values, indices, axis=0):
         len_indices = len(indices) if _is_iterable(indices) else 1
         len_values = len(values) if _is_iterable(values) else 1
         if len_values > 1 and len_values != len_indices:
-            raise ValueError('Either one value or as many values as indices')
+            raise ValueError("Either one value or as many values as indices")
         x_new[indices] += values
     else:
-        indices = tuple(
-            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        indices = tuple(list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
         x_new[indices] += values
     return x_new
 
@@ -364,17 +287,14 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return array(
-        coo_matrix((data, list(zip(*indices))), target_shape).todense())
+    return array(coo_matrix((data, list(zip(*indices))), target_shape).todense())
 
 
 def erf(x):
     cst_erf = 8.0 / (3.0 * np.pi) * (np.pi - 3.0) / (4.0 - np.pi)
-    return \
-        np.sign(x) * \
-        np.sqrt(1 - np.exp(-x * x *
-                           (4 / np.pi + cst_erf * x * x) /
-                           (1 + cst_erf * x * x)))
+    return np.sign(x) * np.sqrt(
+        1 - np.exp(-x * x * (4 / np.pi + cst_erf * x * x) / (1 + cst_erf * x * x))
+    )
 
 
 def triu_to_vec(x, k=0):
@@ -400,9 +320,9 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat : array_like, shape=[..., n, n]
     """
     n = diag.shape[-1]
-    i, = np.diag_indices(n, ndim=1)
+    (i,) = np.diag_indices(n, ndim=1)
     j, k = np.triu_indices(n, k=1)
-    mat = np.zeros(diag.shape + (n, ))
+    mat = np.zeros(diag.shape + (n,))
     mat[..., i, i] = diag
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low

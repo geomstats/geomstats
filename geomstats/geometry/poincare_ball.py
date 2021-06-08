@@ -14,8 +14,8 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 EPSILON = 1e-6
 NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
-PI_2_3 = gs.power(gs.array([2. * gs.pi]), gs.array([2 / 3]))
-SQRT_2 = gs.sqrt(2.)
+PI_2_3 = gs.power(gs.array([2.0 * gs.pi]), gs.array([2 / 3]))
+SQRT_2 = gs.sqrt(2.0)
 
 
 class PoincareBall(_Hyperbolic, OpenSet):
@@ -34,13 +34,16 @@ class PoincareBall(_Hyperbolic, OpenSet):
         Optional, default: 1.
     """
 
-    default_coords_type = 'ball'
-    default_point_type = 'vector'
+    default_coords_type = "ball"
+    default_point_type = "vector"
 
     def __init__(self, dim, scale=1):
         super(PoincareBall, self).__init__(
-            dim=dim, ambient_space=Euclidean(dim), scale=scale,
-            metric=PoincareBallMetric(dim, scale))
+            dim=dim,
+            ambient_space=Euclidean(dim),
+            scale=scale,
+            metric=PoincareBallMetric(dim, scale),
+        )
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
 
@@ -65,12 +68,12 @@ class PoincareBall(_Hyperbolic, OpenSet):
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
-        return gs.sum(point**2, axis=-1) < (1 - atol)
+        return gs.sum(point ** 2, axis=-1) < (1 - atol)
 
     @staticmethod
     def gmm_pdf(
-            data, means, variances, norm_func,
-            metric, variances_range, norm_func_var):
+        data, means, variances, norm_func, metric, variances_range, norm_func_var
+    ):
         """Return the separate probability density function of GMM.
 
         The probability density function is computed for
@@ -106,8 +109,7 @@ class PoincareBall(_Hyperbolic, OpenSet):
         distances = -(metric.dist_broadcast(data, means) ** 2)
         distances = gs.reshape(distances, (data.shape[0] * variances.shape[0]))
 
-        num = gs.exp(
-            distances / (2 * variances_flatten ** 2))
+        num = gs.exp(distances / (2 * variances_flatten ** 2))
 
         den = norm_func(variances, variances_range, norm_func_var)
 
@@ -115,17 +117,12 @@ class PoincareBall(_Hyperbolic, OpenSet):
         den = gs.repeat(den, data_length, axis=0).flatten()
 
         pdf = num / den
-        pdf = gs.reshape(
-            pdf, (data.shape[0], means.shape[0]))
+        pdf = gs.reshape(pdf, (data.shape[0], means.shape[0]))
 
         return pdf
 
     @staticmethod
-    def weighted_gmm_pdf(mixture_coefficients,
-                         mesh_data,
-                         means,
-                         variances,
-                         metric):
+    def weighted_gmm_pdf(mixture_coefficients, mesh_data, means, variances, metric):
         """Return the probability density function of a GMM.
 
         Parameters
@@ -150,24 +147,23 @@ class PoincareBall(_Hyperbolic, OpenSet):
         distance_to_mean = metric.dist_broadcast(mesh_data, means)
 
         variances_units = gs.expand_dims(variances, 0)
-        variances_units = gs.repeat(
-            variances_units, distance_to_mean.shape[0], axis=0)
+        variances_units = gs.repeat(variances_units, distance_to_mean.shape[0], axis=0)
 
         distribution_normal = gs.exp(
-            -(distance_to_mean ** 2) / (2 * variances_units ** 2))
+            -(distance_to_mean ** 2) / (2 * variances_units ** 2)
+        )
 
         zeta_sigma = PI_2_3 * variances
         zeta_sigma = zeta_sigma * gs.exp(
-            (variances ** 2 / 2) * gs.erf(variances / gs.sqrt(2)))
+            (variances ** 2 / 2) * gs.erf(variances / gs.sqrt(2))
+        )
 
         result_num = gs.expand_dims(mixture_coefficients, 0)
-        result_num = gs.repeat(
-            result_num, len(distribution_normal), axis=0)
+        result_num = gs.repeat(result_num, len(distribution_normal), axis=0)
         result_num = result_num * distribution_normal
 
         result_denum = gs.expand_dims(zeta_sigma, 0)
-        result_denum = gs.repeat(
-            result_denum, len(distribution_normal), axis=0)
+        result_denum = gs.repeat(result_denum, len(distribution_normal), axis=0)
 
         weighted_pdf = result_num / result_denum
 
@@ -195,7 +191,8 @@ class PoincareBall(_Hyperbolic, OpenSet):
         l2_norm = gs.linalg.norm(point, axis=-1)
         if gs.any(l2_norm >= 1 - gs.atol):
             projected_point = gs.einsum(
-                '...j,...->...j', point * (1 - gs.atol), 1. / l2_norm)
+                "...j,...->...j", point * (1 - gs.atol), 1.0 / l2_norm
+            )
             projected_point = -gs.maximum(-projected_point, -point)
             return projected_point
 
@@ -215,13 +212,11 @@ class PoincareBallMetric(RiemannianMetric):
         Optional, default 1.
     """
 
-    default_point_type = 'vector'
-    default_coords_type = 'ball'
+    default_point_type = "vector"
+    default_coords_type = "ball"
 
     def __init__(self, dim, scale=1):
-        super(PoincareBallMetric, self).__init__(
-            dim=dim,
-            signature=(dim, 0))
+        super(PoincareBallMetric, self).__init__(dim=dim, signature=(dim, 0))
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
         self.scale = scale
@@ -247,13 +242,14 @@ class PoincareBallMetric(RiemannianMetric):
         lambda_base_point = 1 / (1 - squared_norm_bp)
 
         # This avoids dividing by 0
-        norm_tan_eps = gs.where(gs.isclose(norm_tan, 0.), EPSILON, norm_tan)
-        direction = gs.einsum('...i,...->...i', tangent_vec, 1 / norm_tan_eps)
+        norm_tan_eps = gs.where(gs.isclose(norm_tan, 0.0), EPSILON, norm_tan)
+        direction = gs.einsum("...i,...->...i", tangent_vec, 1 / norm_tan_eps)
 
         factor = gs.tanh(lambda_base_point * norm_tan)
 
-        exp = self.mobius_add(base_point,
-                              gs.einsum('...,...i->...i', factor, direction))
+        exp = self.mobius_add(
+            base_point, gs.einsum("...,...i->...i", factor, direction)
+        )
 
         return exp
 
@@ -277,9 +273,9 @@ class PoincareBallMetric(RiemannianMetric):
         squared_norm_add = gs.sum(mobius_addition ** 2, axis=-1)
         squared_norm_bp = gs.sum(base_point ** 2, axis=-1)
         coef = (1 - squared_norm_bp) * utils.taylor_exp_even_func(
-            squared_norm_add, utils.arctanh_card_close_0)
-        log = gs.einsum(
-            '...,...j->...j', coef, mobius_addition)
+            squared_norm_add, utils.arctanh_card_close_0
+        )
+        log = gs.einsum("...,...j->...j", coef, mobius_addition)
         return log
 
     def mobius_add(self, point_a, point_b, project_first=True):
@@ -321,17 +317,16 @@ class PoincareBallMetric(RiemannianMetric):
         inner = gs.sum(point_a * point_b, axis=-1)
         squared_norm_a = gs.sum(point_a ** 2, axis=-1)
         squared_norm_b = gs.sum(point_b ** 2, axis=-1)
-        num_1 = gs.einsum(
-            '...,...i->...i', 1 + 2 * inner + squared_norm_b, point_a)
-        num_2 = gs.einsum(
-            '...,...i->...i', 1 - squared_norm_a, point_b)
+        num_1 = gs.einsum("...,...i->...i", 1 + 2 * inner + squared_norm_b, point_a)
+        num_2 = gs.einsum("...,...i->...i", 1 - squared_norm_a, point_b)
         result = gs.einsum(
-            '...,...i->...i',
-            1. / (1 + 2 * inner + squared_norm_b * squared_norm_a),
-            num_1 + num_2)
+            "...,...i->...i",
+            1.0 / (1 + 2 * inner + squared_norm_b * squared_norm_a),
+            num_1 + num_2,
+        )
         return ball_manifold.projection(result)
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
+    @geomstats.vectorization.decorator(["else", "vector", "vector"])
     def dist_broadcast(self, point_a, point_b):
         """Compute the geodesic distance between points.
 
@@ -356,28 +351,30 @@ class PoincareBallMetric(RiemannianMetric):
             Geodesic distance between the two points.
         """
         if point_a.shape[-1] != point_b.shape[-1]:
-            raise ValueError('Manifold dimensions not equal')
+            raise ValueError("Manifold dimensions not equal")
 
         if point_a.shape[0] != point_b.shape[0]:
 
             point_a_broadcast, point_b_broadcast = gs.broadcast_arrays(
-                point_a[:, None], point_b[None, ...])
+                point_a[:, None], point_b[None, ...]
+            )
 
             point_a_flatten = gs.reshape(
-                point_a_broadcast, (-1, point_a_broadcast.shape[-1]))
+                point_a_broadcast, (-1, point_a_broadcast.shape[-1])
+            )
             point_b_flatten = gs.reshape(
-                point_b_broadcast, (-1, point_b_broadcast.shape[-1]))
+                point_b_broadcast, (-1, point_b_broadcast.shape[-1])
+            )
 
-            point_a_norm = gs.clip(gs.sum(
-                point_a_flatten ** 2, -1), 0., 1 - EPSILON)
-            point_b_norm = gs.clip(gs.sum(
-                point_b_flatten ** 2, -1), 0., 1 - EPSILON)
+            point_a_norm = gs.clip(gs.sum(point_a_flatten ** 2, -1), 0.0, 1 - EPSILON)
+            point_b_norm = gs.clip(gs.sum(point_b_flatten ** 2, -1), 0.0, 1 - EPSILON)
 
             square_diff = (point_a_flatten - point_b_flatten) ** 2
 
             diff_norm = gs.sum(square_diff, -1)
-            norm_function = 1 + 2 * \
-                diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
+            norm_function = 1 + 2 * diff_norm / (
+                (1 - point_a_norm) * (1 - point_b_norm)
+            )
 
             dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
             dist *= self.scale
@@ -389,7 +386,7 @@ class PoincareBallMetric(RiemannianMetric):
 
         return dist
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
+    @geomstats.vectorization.decorator(["else", "vector", "vector"])
     def dist(self, point_a, point_b):
         """Compute the geodesic distance between two points.
 
@@ -405,18 +402,17 @@ class PoincareBallMetric(RiemannianMetric):
         dist : array-like, shape=[...,]
             Geodesic distance between the two points.
         """
-        point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
-        point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0., 1 - EPSILON)
+        point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0.0, 1 - EPSILON)
+        point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0.0, 1 - EPSILON)
 
         diff_norm = gs.sum((point_a - point_b) ** 2, -1)
-        norm_function = 1 + 2 * \
-            diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
+        norm_function = 1 + 2 * diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
 
         dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
         dist *= self.scale
         return dist
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
+    @geomstats.vectorization.decorator(["else", "vector", "vector"])
     def retraction(self, tangent_vec, base_point):
         """Poincaré ball model retraction.
 
@@ -443,13 +439,13 @@ class PoincareBallMetric(RiemannianMetric):
         if not gs.all(base_point_belong):
             raise NameError("Points do not belong to the Poincare ball")
 
-        retraction_factor =\
-            ((1 - gs.sum(base_point**2, axis=-1, keepdims=True))**2) / 4
+        retraction_factor = (
+            (1 - gs.sum(base_point ** 2, axis=-1, keepdims=True)) ** 2
+        ) / 4
 
-        return base_point\
-            - gs.einsum('...i,...j->...j', retraction_factor, tangent_vec)
+        return base_point - gs.einsum("...i,...j->...j", retraction_factor, tangent_vec)
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
+    @geomstats.vectorization.decorator(["else", "vector"])
     def metric_matrix(self, base_point=None):
         """Compute the inner product matrix.
 
@@ -467,11 +463,10 @@ class PoincareBallMetric(RiemannianMetric):
         if base_point is None:
             base_point = gs.zeros((1, self.dim))
 
-        lambda_base =\
-            (2 / (1 - gs.sum(base_point * base_point, axis=-1)))**2
+        lambda_base = (2 / (1 - gs.sum(base_point * base_point, axis=-1))) ** 2
         identity = gs.eye(self.dim, self.dim)
 
-        return gs.einsum('i,jk->ijk', lambda_base, identity)
+        return gs.einsum("i,jk->ijk", lambda_base, identity)
 
     def normalization_factor_init(self, variances):
         r"""Set up function for the normalization factor.
@@ -509,48 +504,43 @@ class PoincareBallMetric(RiemannianMetric):
             and :math:'\zeta' the normalization coefficient
             and :math:'m' the dimension.
         """
-        normalization_factor_var = \
-            self.normalization_factor(variances)
+        normalization_factor_var = self.normalization_factor(variances)
 
-        cond_1 = normalization_factor_var.sum() != \
-            normalization_factor_var.sum()
-        cond_2 = normalization_factor_var.sum() == float('+inf')
-        cond_3 = normalization_factor_var.sum() == float('-inf')
+        cond_1 = normalization_factor_var.sum() != normalization_factor_var.sum()
+        cond_2 = normalization_factor_var.sum() == float("+inf")
+        cond_3 = normalization_factor_var.sum() == float("-inf")
 
         if cond_1 or cond_2 or cond_3:
-            logging.warning(
-                'Untracktable normalization factor :')
+            logging.warning("Untracktable normalization factor :")
 
-            limit_nf = ((normalization_factor_var /
-                         normalization_factor_var)
-                        * 0).nonzero()[0].item()
+            limit_nf = (
+                ((normalization_factor_var / normalization_factor_var) * 0)
+                .nonzero()[0]
+                .item()
+            )
             max_nf = len(variances)
             variances = variances[0:limit_nf]
-            normalization_factor_var = \
-                normalization_factor_var[0:limit_nf]
+            normalization_factor_var = normalization_factor_var[0:limit_nf]
             if cond_1:
-                logging.warning('\t Nan value '
-                                'in processing normalization factor')
+                logging.warning("\t Nan value " "in processing normalization factor")
             if cond_2 or cond_3:
-                raise ValueError('\t +-inf value in '
-                                 'processing normalization factor')
+                raise ValueError("\t +-inf value in " "processing normalization factor")
 
-            logging.warning('\t Max variance is now : %s',
-                            str(variances[-1]))
-            logging.warning('\t Number of possible variance is now: %s / %s ',
-                            str(len(variances)), str(max_nf))
+            logging.warning("\t Max variance is now : %s", str(variances[-1]))
+            logging.warning(
+                "\t Number of possible variance is now: %s / %s ",
+                str(len(variances)),
+                str(max_nf),
+            )
 
-        _, log_grad_zeta = \
-            self.norm_factor_gradient(variances)
+        _, log_grad_zeta = self.norm_factor_gradient(variances)
 
         phi_inv_var = variances ** 3 * log_grad_zeta
 
-        return \
-            variances, normalization_factor_var, phi_inv_var
+        return variances, normalization_factor_var, phi_inv_var
 
     @staticmethod
-    def find_normalization_factor(
-            variance, variances_range, normalization_factor_var):
+    def find_normalization_factor(variance, variances_range, normalization_factor_var):
         """Find the normalization factor given some variances.
 
         Parameters
@@ -584,8 +574,7 @@ class PoincareBallMetric(RiemannianMetric):
         return norm_factor
 
     @staticmethod
-    def find_variance_from_index(
-            weighted_distances, variances_range, phi_inv_var):
+    def find_variance_from_index(weighted_distances, variances_range, phi_inv_var):
         r"""Return the variance given weighted distances.
 
         Parameters
@@ -611,8 +600,7 @@ class PoincareBallMetric(RiemannianMetric):
         var : array-like, shape=[n_gaussians,]
             Estimated variances for each component of the GMM.
         """
-        n_gaussians, precision = \
-            weighted_distances.shape[0], variances_range.shape[0]
+        n_gaussians, precision = weighted_distances.shape[0], variances_range.shape[0]
 
         ref = gs.expand_dims(phi_inv_var, 0)
         ref = gs.repeat(ref, n_gaussians, axis=0)
@@ -655,16 +643,19 @@ class PoincareBallMetric(RiemannianMetric):
             n_fact = dim_range.prod()
 
             k_fact = gs.concatenate(
-                [gs.expand_dims(dim_range[:i].prod(), 0)
-                 for i in range(1, dim_range.shape[0] + 1)], 0)
+                [
+                    gs.expand_dims(dim_range[:i].prod(), 0)
+                    for i in range(1, dim_range.shape[0] + 1)
+                ],
+                0,
+            )
 
             nmk_fact = gs.flip(k_fact, 0)
 
             binomial_coefficient = n_fact / (k_fact * nmk_fact)
 
         binomial_coefficient = gs.expand_dims(binomial_coefficient, -1)
-        binomial_coefficient = gs.repeat(binomial_coefficient,
-                                         n_samples, axis=1)
+        binomial_coefficient = gs.repeat(binomial_coefficient, n_samples, axis=1)
 
         range_ = gs.expand_dims(gs.arange(self.dim), -1)
         range_ = gs.repeat(range_, n_samples, axis=1)
@@ -674,16 +665,18 @@ class PoincareBallMetric(RiemannianMetric):
 
         alternate_neg = (-ones_) ** (range_)
 
-        erf_arg = (((self.dim - 1) - 2 * range_) *
-                   expand_variances) / gs.sqrt(2)
-        exp_arg = ((((self.dim - 1) - 2 * range_) *
-                    expand_variances) / gs.sqrt(2)) ** 2
+        erf_arg = (((self.dim - 1) - 2 * range_) * expand_variances) / gs.sqrt(2)
+        exp_arg = ((((self.dim - 1) - 2 * range_) * expand_variances) / gs.sqrt(2)) ** 2
         norm_func_1 = (1 + gs.erf(erf_arg)) * gs.exp(exp_arg)
         norm_func_2 = binomial_coefficient * norm_func_1
         norm_func_3 = alternate_neg * norm_func_2
 
-        norm_func = NORMALIZATION_FACTOR_CST * variances * \
-            norm_func_3.sum(0) * (1 / (2 ** (self.dim - 1)))
+        norm_func = (
+            NORMALIZATION_FACTOR_CST
+            * variances
+            * norm_func_3.sum(0)
+            * (1 / (2 ** (self.dim - 1)))
+        )
 
         return norm_func
 
@@ -718,39 +711,40 @@ class PoincareBallMetric(RiemannianMetric):
             Gradient of the normalization factor.
         """
         variances = gs.transpose(gs.to_ndarray(variances, to_ndim=2))
-        dim_range = gs.arange(0, self.dim, 1.)
+        dim_range = gs.arange(0, self.dim, 1.0)
         alpha = self._compute_alpha(dim_range)
 
         binomial_coefficient = gs.ones(self.dim)
-        binomial_coefficient[1:] = \
-            (self.dim - 1 + 1 - dim_range[1:]) / dim_range[1:]
+        binomial_coefficient[1:] = (self.dim - 1 + 1 - dim_range[1:]) / dim_range[1:]
         binomial_coefficient = gs.cumprod(binomial_coefficient)
 
         beta = ((-gs.ones(self.dim)) ** dim_range) * binomial_coefficient
 
         sigma_repeated = gs.repeat(variances, self.dim, -1)
-        prod_alpha_sigma = gs.einsum('ij,j->ij', sigma_repeated, alpha)
-        term_2 = \
-            gs.exp((prod_alpha_sigma) ** 2) * (1 + gs.erf(prod_alpha_sigma))
-        term_1 = gs.sqrt(gs.pi / 2.) * (1. / (2 ** (self.dim - 1)))
-        term_2 = gs.einsum('ij,j->ij', term_2, beta)
-        norm_factor = \
-            term_1 * variances * gs.sum(term_2, axis=-1, keepdims=True)
+        prod_alpha_sigma = gs.einsum("ij,j->ij", sigma_repeated, alpha)
+        term_2 = gs.exp((prod_alpha_sigma) ** 2) * (1 + gs.erf(prod_alpha_sigma))
+        term_1 = gs.sqrt(gs.pi / 2.0) * (1.0 / (2 ** (self.dim - 1)))
+        term_2 = gs.einsum("ij,j->ij", term_2, beta)
+        norm_factor = term_1 * variances * gs.sum(term_2, axis=-1, keepdims=True)
         grad_term_1 = 1 / variances
 
         grad_term_21 = 1 / gs.sum(term_2, axis=-1, keepdims=True)
 
-        grad_term_211 = \
-            gs.exp((prod_alpha_sigma) ** 2) \
-            * (1 + gs.erf(prod_alpha_sigma)) \
-            * gs.einsum('ij,j->ij', sigma_repeated, alpha ** 2) * 2
+        grad_term_211 = (
+            gs.exp((prod_alpha_sigma) ** 2)
+            * (1 + gs.erf(prod_alpha_sigma))
+            * gs.einsum("ij,j->ij", sigma_repeated, alpha ** 2)
+            * 2
+        )
 
-        grad_term_212 = gs.repeat(gs.expand_dims((2 / gs.sqrt(gs.pi))
-                                                 * alpha, axis=0),
-                                  variances.shape[0], axis=0)
+        grad_term_212 = gs.repeat(
+            gs.expand_dims((2 / gs.sqrt(gs.pi)) * alpha, axis=0),
+            variances.shape[0],
+            axis=0,
+        )
 
         grad_term_22 = grad_term_211 + grad_term_212
-        grad_term_22 = gs.einsum('ij, j->ij', grad_term_22, beta)
+        grad_term_22 = gs.einsum("ij, j->ij", grad_term_22, beta)
         grad_term_22 = gs.sum(grad_term_22, axis=-1, keepdims=True)
 
         norm_factor_gradient = grad_term_1 + (grad_term_21 * grad_term_22)

@@ -54,20 +54,20 @@ class LogNormal:
     "Geometric Averages of Symmetric Positive Definite Matrices.",
     International Statistical Review 84.3 (2016): 456-486.
     """
+
     def __init__(self, manifold, mean, cov=None):
 
-        if (
-            not isinstance(manifold, SPDMatrices) and
-            not isinstance(manifold, Euclidean)
+        if not isinstance(manifold, SPDMatrices) and not isinstance(
+            manifold, Euclidean
         ):
             raise ValueError(
-                "Invalid Manifold object, "
-                "Should be of type SPDMatrices or Euclidean")
+                "Invalid Manifold object, " "Should be of type SPDMatrices or Euclidean"
+            )
 
         if not manifold.belongs(mean):
             raise ValueError(
-                "Invalid Value in mean, doesn't belong to ",
-                type(manifold).__name__)
+                "Invalid Value in mean, doesn't belong to ", type(manifold).__name__
+            )
 
         n = mean.shape[-1]
         if isinstance(manifold, Euclidean):
@@ -76,13 +76,9 @@ class LogNormal:
             cov_n = (n * (n + 1)) // 2
 
         if cov is not None:
-            if (
-                cov.ndim != 2 or
-                (cov.shape[0], cov.shape[1]) != (cov_n, cov_n)
-            ):
+            if cov.ndim != 2 or (cov.shape[0], cov.shape[1]) != (cov_n, cov_n):
                 valid_shape = (cov_n, cov_n)
-                raise ValueError("Invalid Shape, "
-                                 "cov should have shape", valid_shape)
+                raise ValueError("Invalid Shape, " "cov should have shape", valid_shape)
 
         else:
             cov = gs.eye(cov_n)
@@ -108,20 +104,24 @@ class LogNormal:
         n = self.mean.shape[-1]
         sym_matrix = self.manifold.logm(self.mean)
         mean_euclidean = gs.hstack(
-            (gs.diagonal(sym_matrix)[None, :],
-             gs.sqrt(2.0) * gs.triu_to_vec(sym_matrix, k=1)[None, :]))[0]
+            (
+                gs.diagonal(sym_matrix)[None, :],
+                gs.sqrt(2.0) * gs.triu_to_vec(sym_matrix, k=1)[None, :],
+            )
+        )[0]
         samples_euclidean = gs.random.multivariate_normal(
-            mean_euclidean, self.cov, (samples,))
+            mean_euclidean, self.cov, (samples,)
+        )
         diag = samples_euclidean[:, :n]
         off_diag = samples_euclidean[:, n:] / gs.sqrt(2.0)
         samples_sym = gs.mat_from_diag_triu_tril(
-            diag=diag, tri_upp=off_diag, tri_low=off_diag)
+            diag=diag, tri_upp=off_diag, tri_low=off_diag
+        )
         samples_spd = self.manifold.expm(samples_sym)
         return samples_spd
 
     def __sample_euclidean(self, samples):
-        _samples = gs.random.multivariate_normal(
-            self.mean, self.cov, (samples,))
+        _samples = gs.random.multivariate_normal(self.mean, self.cov, (samples,))
         return gs.exp(_samples)
 
     def sample(self, samples=1):

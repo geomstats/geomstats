@@ -71,11 +71,11 @@ def submersion(point, k):
     d = flipped_point[..., k:, k:]
     a = flipped_point[..., :k, :k] - gs.eye(k)
     first = d - Matrices.mul(
-        b, GeneralLinear.inverse(a + gs.eye(k)), Matrices.transpose(b))
+        b, GeneralLinear.inverse(a + gs.eye(k)), Matrices.transpose(b)
+    )
     second = a + Matrices.mul(a, a) + Matrices.mul(Matrices.transpose(b), b)
     row_1 = gs.concatenate([first, gs.zeros_like(b)], axis=-1)
-    row_2 = gs.concatenate([
-        Matrices.transpose(gs.zeros_like(b)), second], axis=-1)
+    row_2 = gs.concatenate([Matrices.transpose(gs.zeros_like(b)), second], axis=-1)
     return gs.concatenate([row_1, row_2], axis=-2)
 
 
@@ -91,22 +91,27 @@ class Grassmannian(EmbeddedManifold):
     """
 
     def __init__(self, n, k):
-        geomstats.errors.check_integer(k, 'k')
-        geomstats.errors.check_integer(n, 'n')
+        geomstats.errors.check_integer(k, "k")
+        geomstats.errors.check_integer(n, "n")
         if k > n:
             raise ValueError(
-                'k <= n is required: k-dimensional subspaces in n dimensions.')
+                "k <= n is required: k-dimensional subspaces in n dimensions."
+            )
 
         self.n = n
         self.k = k
 
         dim = int(k * (n - k))
         super(Grassmannian, self).__init__(
-            dim=dim, embedding_space=SymmetricMatrices(n),
-            submersion=lambda x: submersion(x, k), value=gs.zeros((n, n)),
-            tangent_submersion=lambda v, x: 2 * Matrices.to_symmetric(
-                Matrices.mul(x, v)) - v,
-            metric=GrassmannianCanonicalMetric(n, k))
+            dim=dim,
+            embedding_space=SymmetricMatrices(n),
+            submersion=lambda x: submersion(x, k),
+            value=gs.zeros((n, n)),
+            tangent_submersion=lambda v, x: 2
+            * Matrices.to_symmetric(Matrices.mul(x, v))
+            - v,
+            metric=GrassmannianCanonicalMetric(n, k),
+        )
 
     def random_uniform(self, n_samples=1):
         """Sample random points from a uniform distribution.
@@ -134,12 +139,11 @@ class Grassmannian(EmbeddedManifold):
         points = gs.random.normal(size=(n_samples, self.n, self.k))
         full_rank = Matrices.mul(Matrices.transpose(points), points)
         projector = Matrices.mul(
-            points,
-            GeneralLinear.inverse(full_rank),
-            Matrices.transpose(points))
+            points, GeneralLinear.inverse(full_rank), Matrices.transpose(points)
+        )
         return projector[0] if n_samples == 1 else projector
 
-    def random_point(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample random points from a uniform distribution.
 
         Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
@@ -259,8 +263,8 @@ class Grassmannian(EmbeddedManifold):
         """
         mat = Matrices.to_symmetric(point)
         _, eigvecs = gs.linalg.eigh(mat)
-        diagonal = gs.array([0.] * (self.n - self.k) + [1.] * self.k)
-        p_d = gs.einsum('...ij,...j->...ij', eigvecs, diagonal)
+        diagonal = gs.array([0.0] * (self.n - self.k) + [1.0] * self.k)
+        p_d = gs.einsum("...ij,...j->...ij", eigvecs, diagonal)
         return Matrices.mul(p_d, Matrices.transpose(eigvecs))
 
 
@@ -278,14 +282,15 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
     """
 
     def __init__(self, n, p):
-        geomstats.errors.check_integer(p, 'p')
-        geomstats.errors.check_integer(n, 'n')
+        geomstats.errors.check_integer(p, "p")
+        geomstats.errors.check_integer(n, "n")
         if p > n:
-            raise ValueError('p <= n is required.')
+            raise ValueError("p <= n is required.")
 
         dim = int(p * (n - p))
         super(GrassmannianCanonicalMetric, self).__init__(
-            m=n, n=n, dim=dim, signature=(dim, 0, 0))
+            m=n, n=n, dim=dim, signature=(dim, 0, 0)
+        )
 
         self.n = n
         self.p = p
@@ -346,8 +351,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         """
         GLn = GeneralLinear(self.n)
         id_n = GLn.identity
-        id_n, point, base_point = gs.convert_to_wider_dtype([
-            id_n, point, base_point])
+        id_n, point, base_point = gs.convert_to_wider_dtype([id_n, point, base_point])
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
         rot = GLn.compose(sym2, sym1)

@@ -24,10 +24,9 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
     """
 
     def __init__(self, n, positive_det=False, **kwargs):
-        if 'dim' not in kwargs.keys():
-            kwargs['dim'] = n ** 2
-        super(GeneralLinear, self).__init__(
-            ambient_space=Matrices(n, n), n=n, **kwargs)
+        if "dim" not in kwargs.keys():
+            kwargs["dim"] = n ** 2
+        super(GeneralLinear, self).__init__(ambient_space=Matrices(n, n), n=n, **kwargs)
         self.positive_det = positive_det
 
     def projection(self, point):
@@ -50,7 +49,8 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         """
         belongs = self.belongs(point)
         regularization = gs.einsum(
-            '...,ij->...ij', gs.where(~belongs, gs.atol, 0.), self.identity)
+            "...,ij->...ij", gs.where(~belongs, gs.atol, 0.0), self.identity
+        )
         projected = point + regularization
         if self.positive_det:
             det = gs.linalg.det(point)
@@ -78,7 +78,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
             return det > atol if self.positive_det else gs.abs(det) > atol
         return has_right_size
 
-    def random_point(self, n_samples=1, bound=1., n_iter=100):
+    def random_point(self, n_samples=1, bound=1.0, n_iter=100):
         """Sample in GL(n) from the uniform distribution.
 
         Parameters
@@ -155,6 +155,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         tangent_vec = cls.log(point, base_point)
 
         def path(time):
-            vecs = gs.einsum('t,...ij->...tij', time, tangent_vec)
+            vecs = gs.einsum("t,...ij->...tij", time, tangent_vec)
             return cls.exp(vecs, base_point)
+
         return path

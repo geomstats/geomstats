@@ -11,40 +11,41 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         s2 = Hypersphere(dim=2)
         r3 = s2.embedding_space
 
-        initial_point = [0., 0., 1.]
-        initial_tangent_vec_a = [1., 0., 0.]
-        initial_tangent_vec_b = [0., 1., 0.]
-        initial_tangent_vec_c = [-1., 0., 0.]
+        initial_point = [0.0, 0.0, 1.0]
+        initial_tangent_vec_a = [1.0, 0.0, 0.0]
+        initial_tangent_vec_b = [0.0, 1.0, 0.0]
+        initial_tangent_vec_c = [-1.0, 0.0, 0.0]
 
         curve_a = s2.metric.geodesic(
-            initial_point=initial_point,
-            initial_tangent_vec=initial_tangent_vec_a)
+            initial_point=initial_point, initial_tangent_vec=initial_tangent_vec_a
+        )
         curve_b = s2.metric.geodesic(
-            initial_point=initial_point,
-            initial_tangent_vec=initial_tangent_vec_b)
+            initial_point=initial_point, initial_tangent_vec=initial_tangent_vec_b
+        )
         curve_c = s2.metric.geodesic(
-            initial_point=initial_point,
-            initial_tangent_vec=initial_tangent_vec_c)
+            initial_point=initial_point, initial_tangent_vec=initial_tangent_vec_c
+        )
 
         self.n_sampling_points = 10
-        sampling_times = gs.linspace(0., 1., self.n_sampling_points)
+        sampling_times = gs.linspace(0.0, 1.0, self.n_sampling_points)
         discretized_curve_a = curve_a(sampling_times)
         discretized_curve_b = curve_b(sampling_times)
         discretized_curve_c = curve_c(sampling_times)
 
         self.n_discretized_curves = 5
-        self.times = gs.linspace(0., 1., self.n_discretized_curves)
+        self.times = gs.linspace(0.0, 1.0, self.n_discretized_curves)
         gs.random.seed(1234)
-        self.space_curves_in_euclidean_3d = DiscreteCurves(
-            ambient_manifold=r3)
-        self.space_curves_in_sphere_2d = DiscreteCurves(
-            ambient_manifold=s2)
+        self.space_curves_in_euclidean_3d = DiscreteCurves(ambient_manifold=r3)
+        self.space_curves_in_sphere_2d = DiscreteCurves(ambient_manifold=s2)
         self.l2_metric_s2 = self.space_curves_in_sphere_2d.l2_metric(
-            self.n_sampling_points)
+            self.n_sampling_points
+        )
         self.l2_metric_r3 = self.space_curves_in_euclidean_3d.l2_metric(
-            self.n_sampling_points)
-        self.srv_metric_r3 = self.space_curves_in_euclidean_3d.\
-            square_root_velocity_metric
+            self.n_sampling_points
+        )
+        self.srv_metric_r3 = (
+            self.space_curves_in_euclidean_3d.square_root_velocity_metric
+        )
         self.curve_a = discretized_curve_a
         self.curve_b = discretized_curve_b
         self.curve_c = discretized_curve_c
@@ -63,21 +64,17 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
     def test_l2_metric_log_and_squared_norm_and_dist(self):
         """Test that squared norm of logarithm is squared dist."""
-        tangent_vec = self.l2_metric_s2.log(
-            point=self.curve_b, base_point=self.curve_a)
+        tangent_vec = self.l2_metric_s2.log(point=self.curve_b, base_point=self.curve_a)
         log_ab = tangent_vec
-        result = self.l2_metric_s2.squared_norm(
-            vector=log_ab, base_point=self.curve_a)
+        result = self.l2_metric_s2.squared_norm(vector=log_ab, base_point=self.curve_a)
         expected = self.l2_metric_s2.dist(self.curve_a, self.curve_b) ** 2
 
         self.assertAllClose(result, expected)
 
     def test_l2_metric_log_and_exp(self):
         """Test that exp and log are inverse maps."""
-        tangent_vec = self.l2_metric_s2.log(
-            point=self.curve_b, base_point=self.curve_a)
-        result = self.l2_metric_s2.exp(tangent_vec=tangent_vec,
-                                       base_point=self.curve_a)
+        tangent_vec = self.l2_metric_s2.log(point=self.curve_b, base_point=self.curve_a)
+        result = self.l2_metric_s2.exp(tangent_vec=tangent_vec, base_point=self.curve_a)
         expected = self.curve_b
 
         self.assertAllClose(result, expected)
@@ -90,11 +87,9 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curves_ab = curves_ab(self.times)
         curves_bc = curves_bc(self.times)
 
-        tangent_vecs = self.l2_metric_s2.log(
-            point=curves_bc, base_point=curves_ab)
+        tangent_vecs = self.l2_metric_s2.log(point=curves_bc, base_point=curves_ab)
 
-        result = self.l2_metric_s2.inner_product(
-            tangent_vecs, tangent_vecs, curves_ab)
+        result = self.l2_metric_s2.inner_product(tangent_vecs, tangent_vecs, curves_ab)
 
         self.assertAllClose(gs.shape(result), (n_samples,))
 
@@ -106,8 +101,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curves_ab = curves_ab(self.times)
         curves_bc = curves_bc(self.times)
 
-        result = self.l2_metric_s2.dist(
-            curves_ab, curves_bc)
+        result = self.l2_metric_s2.dist(curves_ab, curves_bc)
         self.assertAllClose(gs.shape(result), (n_samples,))
 
     def test_l2_metric_exp_vectorization(self):
@@ -117,12 +111,9 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curves_ab = curves_ab(self.times)
         curves_bc = curves_bc(self.times)
 
-        tangent_vecs = self.l2_metric_s2.log(
-            point=curves_bc, base_point=curves_ab)
+        tangent_vecs = self.l2_metric_s2.log(point=curves_bc, base_point=curves_ab)
 
-        result = self.l2_metric_s2.exp(
-            tangent_vec=tangent_vecs,
-            base_point=curves_ab)
+        result = self.l2_metric_s2.exp(tangent_vec=tangent_vecs, base_point=curves_ab)
         self.assertAllClose(gs.shape(result), gs.shape(curves_ab))
 
     def test_l2_metric_log_vectorization(self):
@@ -132,8 +123,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curves_ab = curves_ab(self.times)
         curves_bc = curves_bc(self.times)
 
-        tangent_vecs = self.l2_metric_s2.log(
-            point=curves_bc, base_point=curves_ab)
+        tangent_vecs = self.l2_metric_s2.log(point=curves_bc, base_point=curves_ab)
 
         result = tangent_vecs
         self.assertAllClose(gs.shape(result), gs.shape(curves_ab))
@@ -147,8 +137,8 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = []
         for k in range(self.n_sampling_points):
             geod = self.l2_metric_s2.ambient_metric.geodesic(
-                initial_point=self.curve_a[k, :],
-                end_point=self.curve_b[k, :])
+                initial_point=self.curve_a[k, :], end_point=self.curve_b[k, :]
+            )
             expected.append(geod(self.times))
         expected = gs.stack(expected, axis=1)
         self.assertAllClose(result, expected)
@@ -159,19 +149,18 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curves_ab = curves_ab(self.times)
         curves_bc = curves_bc(self.times)
 
-        tangent_vecs = self.l2_metric_s2.log(
-            point=curves_bc, base_point=curves_ab)
+        tangent_vecs = self.l2_metric_s2.log(point=curves_bc, base_point=curves_ab)
         result = self.srv_metric_r3.pointwise_inner_product(
-            tangent_vec_a=tangent_vecs,
-            tangent_vec_b=tangent_vecs,
-            base_curve=curves_ab)
+            tangent_vec_a=tangent_vecs, tangent_vec_b=tangent_vecs, base_curve=curves_ab
+        )
         expected_shape = (self.n_discretized_curves, self.n_sampling_points)
         self.assertAllClose(gs.shape(result), expected_shape)
 
         result = self.srv_metric_r3.pointwise_inner_product(
             tangent_vec_a=tangent_vecs[0],
             tangent_vec_b=tangent_vecs[0],
-            base_curve=curves_ab[0])
+            base_curve=curves_ab[0],
+        )
         expected_shape = (self.n_sampling_points,)
         self.assertAllClose(gs.shape(result), expected_shape)
 
@@ -187,7 +176,8 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         srv_curves = self.srv_metric_r3.square_root_velocity(curves)
         starting_points = curves[:, 0, :]
         result = self.srv_metric_r3.square_root_velocity_inverse(
-            srv_curves, starting_points)
+            srv_curves, starting_points
+        )
         expected = curves
 
         self.assertAllClose(result, expected)
@@ -202,10 +192,8 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curves_ab = curves_ab(self.times)
         curves_bc = curves_bc(self.times)
 
-        log = self.srv_metric_r3.log(point=curves_bc,
-                                     base_point=curves_ab)
-        result = self.srv_metric_r3.exp(tangent_vec=log,
-                                        base_point=curves_ab)
+        log = self.srv_metric_r3.log(point=curves_bc, base_point=curves_ab)
+        result = self.srv_metric_r3.exp(tangent_vec=log, base_point=curves_ab)
         expected = curves_bc
 
         self.assertAllClose(gs.squeeze(result), expected)
@@ -217,24 +205,26 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         N.B: Here curve_a and curve_b are seen as curves in R3 and not S2.
         """
         geod = self.srv_metric_r3.geodesic(
-            initial_curve=self.curve_a,
-            end_curve=self.curve_b)
+            initial_curve=self.curve_a, end_curve=self.curve_b
+        )
         result = geod(self.times)
 
         srv_a = self.srv_metric_r3.square_root_velocity(self.curve_a)
         srv_b = self.srv_metric_r3.square_root_velocity(self.curve_b)
         l2_metric = self.space_curves_in_euclidean_3d.l2_metric(
-            self.n_sampling_points - 1)
+            self.n_sampling_points - 1
+        )
         geod_srv = l2_metric.geodesic(initial_point=srv_a, end_point=srv_b)
         geod_srv = geod_srv(self.times)
 
         starting_points = self.srv_metric_r3.ambient_metric.geodesic(
-            initial_point=self.curve_a[0, :],
-            end_point=self.curve_b[0, :])
+            initial_point=self.curve_a[0, :], end_point=self.curve_b[0, :]
+        )
         starting_points = starting_points(self.times)
 
         expected = self.srv_metric_r3.square_root_velocity_inverse(
-            geod_srv, starting_points)
+            geod_srv, starting_points
+        )
 
         self.assertAllClose(result, expected)
 
@@ -244,14 +234,16 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         N.B: Here curve_a and curve_b are seen as curves in R3 and not S2.
         """
         geod = self.srv_metric_r3.geodesic(
-            initial_curve=self.curve_a, end_curve=self.curve_b)
+            initial_curve=self.curve_a, end_curve=self.curve_b
+        )
         geod = geod(self.times)
 
         srv = self.srv_metric_r3.square_root_velocity(geod)
 
         srv_derivative = self.n_discretized_curves * (srv[1:, :] - srv[:-1, :])
         l2_metric = self.space_curves_in_euclidean_3d.l2_metric(
-            self.n_sampling_points - 1)
+            self.n_sampling_points - 1
+        )
         norms = l2_metric.norm(srv_derivative, geod[:-1, :-1, :])
         result = gs.sum(norms, 0) / self.n_discretized_curves
 
@@ -271,16 +263,12 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
     def test_is_tangent_to_tangent(self):
         point = self.space_curves_in_sphere_2d.random_point()
         vector = self.space_curves_in_sphere_2d.random_point()
-        tangent_vec = self.space_curves_in_sphere_2d.to_tangent(
-            vector, point)
-        result = self.space_curves_in_sphere_2d.is_tangent(
-            tangent_vec, point)
+        tangent_vec = self.space_curves_in_sphere_2d.to_tangent(vector, point)
+        result = self.space_curves_in_sphere_2d.is_tangent(tangent_vec, point)
         self.assertTrue(result)
 
         point = self.space_curves_in_sphere_2d.random_point(2)
         vector = self.space_curves_in_sphere_2d.random_point(2)
-        tangent_vec = self.space_curves_in_sphere_2d.to_tangent(
-            vector, point)
-        result = self.space_curves_in_sphere_2d.is_tangent(
-            tangent_vec, point)
+        tangent_vec = self.space_curves_in_sphere_2d.to_tangent(vector, point)
+        result = self.space_curves_in_sphere_2d.is_tangent(tangent_vec, point)
         self.assertTrue(gs.all(result))

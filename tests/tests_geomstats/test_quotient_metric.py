@@ -6,24 +6,26 @@ from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.spd_matrices import SPDMatrices, \
-    SPDMetricBuresWasserstein
+from geomstats.geometry.spd_matrices import (SPDMatrices,
+                                             SPDMetricBuresWasserstein)
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class BuresWassersteinBundle(GeneralLinear, FiberBundle):
     def __init__(self, n):
         super(BuresWassersteinBundle, self).__init__(
-            n=n, base=SPDMatrices(n), group=SpecialOrthogonal(n),
-            ambient_metric=MatricesMetric(n, n))
+            n=n,
+            base=SPDMatrices(n),
+            group=SpecialOrthogonal(n),
+            ambient_metric=MatricesMetric(n, n),
+        )
 
     @staticmethod
     def riemannian_submersion(point):
         return Matrices.mul(point, Matrices.transpose(point))
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
-        product = Matrices.mul(
-            base_point, Matrices.transpose(tangent_vec))
+        product = Matrices.mul(base_point, Matrices.transpose(tangent_vec))
         return 2 * Matrices.to_symmetric(product)
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
@@ -31,11 +33,12 @@ class BuresWassersteinBundle(GeneralLinear, FiberBundle):
             if fiber_point is not None:
                 base_point = self.riemannian_submersion(fiber_point)
             else:
-                raise ValueError('Either a point (of the total space) or a '
-                                 'base point (of the base manifold) must be '
-                                 'given.')
-        sylvester = gs.linalg.solve_sylvester(
-            base_point, base_point, tangent_vec)
+                raise ValueError(
+                    "Either a point (of the total space) or a "
+                    "base point (of the base manifold) must be "
+                    "given."
+                )
+        sylvester = gs.linalg.solve_sylvester(base_point, base_point, tangent_vec)
         return Matrices.mul(sylvester, fiber_point)
 
     @staticmethod
@@ -96,16 +99,14 @@ class TestQuotientMetric(geomstats.tests.TestCase):
 
     def test_horizontal_lift_and_tangent_riemannian_submersion(self):
         mat = self.bundle.random_point()
-        tangent_vec = Matrices.to_symmetric(
-            self.bundle.random_point())
+        tangent_vec = Matrices.to_symmetric(self.bundle.random_point())
         horizontal = self.bundle.horizontal_lift(tangent_vec, fiber_point=mat)
         result = self.bundle.tangent_riemannian_submersion(horizontal, mat)
         self.assertAllClose(result, tangent_vec)
 
     def test_is_horizontal(self):
         mat = self.bundle.random_point()
-        tangent_vec = Matrices.to_symmetric(
-            self.bundle.random_point())
+        tangent_vec = Matrices.to_symmetric(self.bundle.random_point())
         horizontal = self.bundle.horizontal_lift(tangent_vec, fiber_point=mat)
         result = self.bundle.is_horizontal(horizontal, mat)
         self.assertTrue(result)
@@ -119,28 +120,26 @@ class TestQuotientMetric(geomstats.tests.TestCase):
 
     def test_align(self):
         point = self.bundle.random_point(2)
-        aligned = self.bundle.align(
-            point[0], point[1], tol=1e-10)
-        result = self.bundle.is_horizontal(
-            point[1] - aligned, point[1], atol=1e-5)
+        aligned = self.bundle.align(point[0], point[1], tol=1e-10)
+        result = self.bundle.is_horizontal(point[1] - aligned, point[1], atol=1e-5)
         self.assertTrue(result)
 
     def test_inner_product(self):
         mat = self.bundle.random_point()
         point = self.bundle.riemannian_submersion(mat)
-        tangent_vecs = Matrices.to_symmetric(
-            self.bundle.random_point(2)) / 10
+        tangent_vecs = Matrices.to_symmetric(self.bundle.random_point(2)) / 10
         result = self.quotient_metric.inner_product(
-            tangent_vecs[0], tangent_vecs[1], fiber_point=mat)
+            tangent_vecs[0], tangent_vecs[1], fiber_point=mat
+        )
         expected = self.base_metric.inner_product(
-            tangent_vecs[0], tangent_vecs[1], point)
+            tangent_vecs[0], tangent_vecs[1], point
+        )
         self.assertAllClose(result, expected)
 
     def test_exp(self):
         mat = self.bundle.random_point()
         point = self.bundle.riemannian_submersion(mat)
-        tangent_vec = Matrices.to_symmetric(
-            self.bundle.random_point()) / 5
+        tangent_vec = Matrices.to_symmetric(self.bundle.random_point()) / 5
 
         result = self.quotient_metric.exp(tangent_vec, point)
         expected = self.base_metric.exp(tangent_vec, point)
@@ -158,18 +157,16 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         mats = self.bundle.random_point(2)
         points = self.bundle.riemannian_submersion(mats)
 
-        result = self.quotient_metric.squared_dist(
-            points[1], points[0], tol=1e-10)
+        result = self.quotient_metric.squared_dist(points[1], points[0], tol=1e-10)
         expected = self.base_metric.squared_dist(points[1], points[0])
         self.assertAllClose(result, expected)
 
     def test_integrability_tensor(self):
         mat = self.bundle.random_point()
         point = self.bundle.riemannian_submersion(mat)
-        tangent_vec = Matrices.to_symmetric(
-            self.bundle.random_point()) / 5
+        tangent_vec = Matrices.to_symmetric(self.bundle.random_point()) / 5
 
         self.assertRaises(
             NotImplementedError,
-            lambda: self.bundle.integrability_tensor(
-                tangent_vec, tangent_vec, point))
+            lambda: self.bundle.integrability_tensor(tangent_vec, tangent_vec, point),
+        )
