@@ -11,10 +11,11 @@ class LogNormal:
     (1) For Euclidean Spaces, if X is distributed as Normal(mean, cov), then
     exp(X) is distributed as LogNormal(mean, cov).
 
-    (2) For SPDMatrices, the LogNormal distribution is defined by transforming 
-    the mean -- an SPD matrix -- into a symmetric matrix through the Matrix logarithm, 
-    which gives the element "log-mean" that now belongs to a vector space. 
-    This log-mean and given cov are used to parametrize a Normal Distribution.
+    (2) For SPDMatrices, the LogNormal distribution is defined by transforming
+    the mean -- an SPD matrix -- into a symmetric matrix through
+    the Matrix logarithm, which gives the element "log-mean" that now belongs
+    to a vector space. This log-mean and given cov are used to parametrize
+    a Normal Distribution.
 
     Parameters
     ----------
@@ -32,7 +33,7 @@ class LogNormal:
 
     Returns
     --------
-    samples : array-like, shape[..., dim]
+    samples : array-like, shape=[..., dim]
         Samples from LogNormal distribution.
 
     Example
@@ -51,7 +52,8 @@ class LogNormal:
     .. [LNGASPD2016] A. Schwartzman,
     "LogNormal distributions and"
     "Geometric Averages of Symmetric Positive Definite Matrices.",
-    International Statistical Review 84.3 (2016): 456-486."""
+    International Statistical Review 84.3 (2016): 456-486.
+    """
     def __init__(self, manifold, mean, cov=None):
 
         if (

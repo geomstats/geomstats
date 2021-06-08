@@ -748,6 +748,10 @@ def tril(m, k=0):
     return tf.linalg.band_part(m, -1, 0)
 
 
+def diag_indices(*args, **kwargs):
+    return tuple(map(tf.convert_to_tensor, _np.diag_indices(*args, **kwargs)))
+
+
 def tril_indices(*args, **kwargs):
     return tuple(map(tf.convert_to_tensor, _np.tril_indices(*args, **kwargs)))
 
@@ -817,13 +821,13 @@ def vec_to_triu(vec):
 
 def vec_to_tril(vec):
     """Take vec and forms strictly lower triangular matrix.
-
+    
     Parameters
     ---------
     vec : array_like, shape=[..., n]
 
     Returns
-    ------
+    -------
     tril : array_like, shape=[..., k, k] where
             k is (1 + sqrt(1 + 8 * n)) / 2 
     """
@@ -843,7 +847,7 @@ def vec_to_tril(vec):
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     """Build matrix from given components.
-    
+
     Forms a matrix from diagonal, strictly upper triangular and 
     strictly lower traingular parts.
 
