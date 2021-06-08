@@ -16,7 +16,6 @@ from geomstats.learning.online_kmeans import OnlineKMeans
 N_POINTS = 1000
 N_CENTERS = 5
 N_REPETITIONS = 20
-TOLERANCE = 1e-6
 
 
 def main():

@@ -57,6 +57,12 @@ class TestNotebooks(geomstats.tests.TestCase):
 
     @staticmethod
     @geomstats.tests.np_only
+    def test_07_triangular_data_in_kendall_shape_space():
+        _exec_notebook(
+            'notebooks/07_triangular_data_in_kendall_shape_space.ipynb')
+
+    @staticmethod
+    @geomstats.tests.np_only
     def test_usecase_emg_sign_classification_in_spd_manifold():
         _exec_notebook(
             'notebooks/usecase_emg_sign_classification_in_spd_manifold.ipynb')

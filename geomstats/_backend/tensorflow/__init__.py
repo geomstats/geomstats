@@ -13,6 +13,7 @@ from tensorflow import (  # NOQA
     argmin,
     asin as arcsin,
     atan2 as arctan2,
+    broadcast_to,
     clip_by_value as clip,
     concat,
     cos,
@@ -41,6 +42,7 @@ from tensorflow import (  # NOQA
     reduce_max as amax,
     reduce_mean as mean,
     reduce_min as amin,
+    reduce_prod as prod,
     reshape,
     searchsorted,
     shape,
@@ -52,7 +54,6 @@ from tensorflow import (  # NOQA
     stack,
     tan,
     tanh,
-    tile,
     uint8,
     zeros,
     zeros_like
@@ -62,6 +63,7 @@ from tensorflow import (  # NOQA
 from . import autograd # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
+from ..constants import tf_atol, tf_rtol
 
 
 DTYPES = {
@@ -83,6 +85,8 @@ power = tf.math.pow
 real = tf.math.real
 set_diag = tf.linalg.set_diag
 std = tf.math.reduce_std
+atol = tf_atol
+rtol = tf_rtol
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -91,6 +95,10 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 def to_numpy(x):
     return x.numpy()
+
+
+def one_hot(labels, num_classes):
+    return tf.one_hot(labels, num_classes, dtype=tf.uint8)
 
 
 def concatenate(x, axis=0, out=None):
@@ -552,9 +560,8 @@ def matmul(a, b):
     This wraps both mathvec and matmul into a single function, to mimic the
     behavior of torch's and numpy's versions of matmul
     """
-    if ndim(b) < ndim(a):
-        if ndim(b) == 1 or b.shape[-2] != a.shape[-1]:
-            return tf.linalg.matvec(a, b)
+    if ndim(b) < ndim(a) and (ndim(b) == 1 or b.shape[-2] != a.shape[-1]):
+        return tf.linalg.matvec(a, b)
     return tf.linalg.matmul(a, b)
 
 
@@ -615,7 +622,7 @@ def dot(x, y):
     return tf.tensordot(x, y, axes=1)
 
 
-def isclose(x, y, rtol=1e-05, atol=1e-08):
+def isclose(x, y, rtol=rtol, atol=atol):
     if not tf.is_tensor(x):
         x = tf.constant(x)
     if not tf.is_tensor(y):
@@ -629,7 +636,7 @@ def isclose(x, y, rtol=1e-05, atol=1e-08):
     return tf.less_equal(tf.abs(tf.subtract(x, y)), rhs)
 
 
-def allclose(x, y, rtol=1e-05, atol=1e-08):
+def allclose(x, y, rtol=rtol, atol=atol):
     return tf.reduce_all(isclose(x, y, rtol=rtol, atol=atol))
 
 
@@ -741,6 +748,10 @@ def tril(m, k=0):
     return tf.linalg.band_part(m, -1, 0)
 
 
+def diag_indices(*args, **kwargs):
+    return tuple(map(tf.convert_to_tensor, _np.diag_indices(*args, **kwargs)))
+
+
 def tril_indices(*args, **kwargs):
     return tuple(map(tf.convert_to_tensor, _np.tril_indices(*args, **kwargs)))
 
@@ -772,3 +783,86 @@ def triu_to_vec(x, k=0):
         mask_b = tf.zeros_like(mask_a)
     mask = tf.cast(mask_a - mask_b, dtype=tf.bool)
     return tf.boolean_mask(x, mask, axis=axis)
+
+
+def tile(x, multiples):
+    t1 = tf.ones(len(multiples) - len(tf.shape(x)))
+    t1 = tf.cast(t1, tf.int32)
+    t2 = tf.shape(x)
+    x_reshape = tf.reshape(x, tf.concat([t1, t2], axis=0))
+    return tf.tile(x_reshape, multiples)
+
+
+def vec_to_triu(vec):
+    """Take vec and forms strictly upper traingular matrix.
+
+    Parameters
+    ---------
+    vec : array_like, shape[..., n]
+
+    Returns
+    ------
+    tril : array_like, shape=[..., k, k] where
+        k is (1 + sqrt(1 + 8 * n)) / 2
+    """
+    n = vec.shape[-1]
+    triu_shape = vec.shape + (n, )
+    _ones = tf.ones(triu_shape)
+    vec = tf.reshape(vec, [-1])
+    mask_a = tf.linalg.band_part(_ones, 0, -1)
+    mask_b = tf.linalg.band_part(_ones, 0, 0)
+    mask = tf.subtract(mask_a, mask_b)
+    non_zero = tf.not_equal(mask, tf.constant(0.0))
+    indices = tf.where(non_zero)
+    sparse = tf.SparseTensor(indices, values=vec, dense_shape=triu_shape)
+    triu = tf.sparse.to_dense(sparse)
+    return triu
+
+
+def vec_to_tril(vec):
+    """Take vec and forms strictly lower triangular matrix.
+
+    Parameters
+    ---------
+    vec : array_like, shape=[..., n]
+
+    Returns
+    -------
+    tril : array_like, shape=[..., k, k] where
+        k is (1 + sqrt(1 + 8 * n)) / 2
+    """
+    n = vec.shape[-1]
+    tril_shape = vec.shape + (n, )
+    _ones = tf.ones(tril_shape)
+    vec = tf.reshape(vec, [-1])
+    mask_a = tf.linalg.band_part(_ones, -1, 0)
+    mask_b = tf.linalg.band_part(_ones, 0, 0)
+    mask = tf.subtract(mask_a, mask_b)
+    non_zero = tf.not_equal(mask, tf.constant(0.0))
+    indices = tf.where(non_zero)
+    sparse = tf.SparseTensor(indices, values=vec, dense_shape=tril_shape)
+    tril = tf.sparse.to_dense(sparse)
+    return tril
+
+
+def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
+    """Build matrix from given components.
+
+    Forms a matrix from diagonal, strictly upper triangular and
+    strictly lower traingular parts.
+
+    Parameters
+    ----------
+    diag : array_like, shape=[..., n]
+    tri_upp : array_like, shape=[..., (n * (n - 1)) / 2]
+    tri_low : array_like, shape=[..., (n * (n - 1)) / 2]
+
+    Returns
+    -------
+    mat : array_like, shape=[..., n, n]
+    """
+    triu_mat = vec_to_triu(tri_upp)
+    tril_mat = vec_to_tril(tri_low)
+    triu_tril_mat = triu_mat + tril_mat
+    mat = tf.linalg.set_diag(triu_tril_mat, diag)
+    return mat

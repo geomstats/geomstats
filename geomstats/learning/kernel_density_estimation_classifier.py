@@ -7,6 +7,16 @@ from sklearn.neighbors import RadiusNeighborsClassifier
 import geomstats.backend as gs
 
 
+def wrap(function):
+    """Wrap a function to first convert args to arrays."""
+    def wrapped_function(*args, **kwargs):
+        new_args = ()
+        for array in args:
+            new_args += (gs.array(array),)
+        return function(*new_args, **kwargs)
+    return wrapped_function
+
+
 class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
     """Classifier implementing the kernel density estimation on manifolds.
 
@@ -125,6 +135,9 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
                             bandwidth=self.bandwidth))
                 weights_matrix = gs.array(weights_list)
                 return weights_matrix
+
+        if callable(distance):
+            distance = wrap(distance)
 
         super().__init__(
             radius=radius,

@@ -5,14 +5,11 @@ import logging
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.base import OpenSet, VectorSpace
 from geomstats.geometry.matrices import Matrices
 
-EPSILON = 1e-6
-TOLERANCE = 1e-12
 
-
-class SymmetricMatrices(EmbeddedManifold):
+class SymmetricMatrices(OpenSet, VectorSpace):
     """Class for the vector space of symmetric matrices of size n.
 
     Parameters
@@ -22,47 +19,10 @@ class SymmetricMatrices(EmbeddedManifold):
     """
 
     def __init__(self, n, **kwargs):
+        matrices = Matrices(n, n)
         super(SymmetricMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2),
-            embedding_manifold=Matrices(n, n))
+            dim=int(n * (n + 1) / 2), shape=(n, n), ambient_space=matrices)
         self.n = n
-
-    def belongs(self, mat, atol=TOLERANCE):
-        """Check if mat belongs to the vector space of symmetric matrices.
-
-        Parameters
-        ----------
-        mat : array-like, shape=[..., n, n]
-            Matrix to check.
-        atol : float
-            Tolerance to evaluate equality.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if mat is a symmetric matrix.
-        """
-        check_shape = self.embedding_manifold.belongs(mat)
-        return gs.logical_and(check_shape, Matrices.is_symmetric(mat, atol))
-
-    def random_point(self, n_samples=1, bound=1.):
-        """Sample from a uniform distribution.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Bound of the interval in which to sample each entry.
-            Optional, default: 1.
-
-        Returns
-        -------
-        point : array-like, shape=[m, n] or [n_samples, m, n]
-            Sample.
-        """
-        return Matrices.to_symmetric(Matrices.random_point(n_samples, bound))
 
     def get_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
@@ -82,8 +42,28 @@ class SymmetricMatrices(EmbeddedManifold):
 
     basis = property(get_basis)
 
-    @staticmethod
-    def projection(point):
+    def belongs(self, point, atol=gs.atol):
+        """Evaluate if a matrix is symmetric.
+
+        Parameters
+        ----------
+        point : array-like, shape=[.., n, n]
+            Point to test.
+        atol : float
+            Tolerance to evaluate equality with the transpose.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the space.
+        """
+        belongs = super(SymmetricMatrices, self).belongs(point)
+        if gs.any(belongs):
+            is_symmetric = Matrices.is_symmetric(point, atol)
+            return gs.logical_and(belongs, is_symmetric)
+        return belongs
+
+    def projection(self, point):
         """Make a matrix symmetric, by averaging with its transpose.
 
         Parameters
@@ -152,8 +132,7 @@ class SymmetricMatrices(EmbeddedManifold):
 
     @classmethod
     def expm(cls, mat):
-        """
-        Compute the matrix exponential for a symmetric matrix.
+        """Compute the matrix exponential for a symmetric matrix.
 
         Parameters
         ----------
@@ -165,7 +144,11 @@ class SymmetricMatrices(EmbeddedManifold):
         exponential : array_like, shape=[..., n, n]
             Exponential of mat.
         """
-        return cls.apply_func_to_eigvals(mat, gs.exp)
+        n = mat.shape[-1]
+        dim_3_mat = gs.reshape(mat, [-1, n, n])
+        expm = cls.apply_func_to_eigvals(dim_3_mat, gs.exp)
+        expm = gs.reshape(expm, mat.shape)
+        return expm
 
     @classmethod
     def powerm(cls, mat, power):
@@ -215,11 +198,10 @@ class SymmetricMatrices(EmbeddedManifold):
             Symmetric matrix.
         """
         eigvals, eigvecs = gs.linalg.eigh(mat)
-        if check_positive:
-            if gs.any(gs.cast(eigvals, gs.float32) < 0.):
-                logging.warning(
-                    'Negative eigenvalue encountered in'
-                    ' {}'.format(function.__name__))
+        if check_positive and gs.any(gs.cast(eigvals, gs.float32) < 0.):
+            logging.warning(
+                'Negative eigenvalue encountered in'
+                ' {}'.format(function.__name__))
         return_list = True
         if not isinstance(function, list):
             function = [function]

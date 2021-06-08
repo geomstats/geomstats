@@ -30,7 +30,9 @@ BACKEND_ATTRIBUTES = {
         'array_from_sparse',
         'assignment',
         'assignment_by_sum',
+        'atol',
         'broadcast_arrays',
+        'broadcast_to',
         'cast',
         'ceil',
         'clip',
@@ -42,6 +44,7 @@ BACKEND_ATTRIBUTES = {
         'cross',
         'cumprod',
         'cumsum',
+        'diag_indices',
         'diagonal',
         'divide',
         'dot',
@@ -69,19 +72,23 @@ BACKEND_ATTRIBUTES = {
         'log',
         'logical_and',
         'logical_or',
+        'mat_from_diag_triu_tril',
         'matmul',
         'maximum',
         'mean',
         'meshgrid',
         'mod',
         'ndim',
+        'one_hot',
         'ones',
         'ones_like',
         'outer',
         'polygamma',
         'power',
+        'prod',
         'repeat',
         'reshape',
+        'rtol',
         'searchsorted',
         'set_diag',
         'shape',
@@ -111,7 +118,7 @@ BACKEND_ATTRIBUTES = {
         'zeros',
         'zeros_like'
     ],
-    'autograd': ['value_and_grad'],
+    'autograd': ['jacobian', 'value_and_grad'],
     'linalg': [
         'cholesky',
         'det',
@@ -130,6 +137,7 @@ BACKEND_ATTRIBUTES = {
     'random': [
         'choice',
         'normal',
+        'multivariate_normal',
         # TODO (nkoep): Remove 'rand' and replace it by 'uniform'. Much like
         #              'randn' is a convenience wrapper (which we don't use)
         #              for 'normal', 'rand' only wraps 'uniform'.

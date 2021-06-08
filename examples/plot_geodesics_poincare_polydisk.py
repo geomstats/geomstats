@@ -52,7 +52,7 @@ def main():
     vector = gs.array([3.5, 0.6, 0.8])
     stack_vector = gs.stack([vector] * N_DISKS, axis=0)
     vector = gs.to_ndarray(stack_vector, to_ndim=3)
-    initial_tangent_vec = POINCARE_POLYDISK.projection_to_tangent_space(
+    initial_tangent_vec = POINCARE_POLYDISK.to_tangent(
         vector=vector, base_point=initial_point)
     fig = plt.figure()
     plot_geodesic_between_two_points(

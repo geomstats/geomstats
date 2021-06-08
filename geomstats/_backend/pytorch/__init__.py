@@ -63,13 +63,17 @@ from torch import (  # NOQA
 from . import autograd # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-
+from ..constants import pytorch_atol, pytorch_rtol
 
 DTYPES = {
     int32: 0,
     int64: 1,
     float32: 2,
     float64: 3}
+
+
+atol = pytorch_atol
+rtol = pytorch_rtol
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -101,6 +105,13 @@ tan = _box_scalar(tan)
 
 def to_numpy(x):
     return x.numpy()
+
+
+def one_hot(labels, num_classes):
+    if not torch.is_tensor(labels):
+        labels = torch.LongTensor(labels)
+    return torch.nn.functional.one_hot(
+        labels, num_classes).type(torch.uint8)
 
 
 def argmax(a, **kwargs):
@@ -296,7 +307,7 @@ def get_slice(x, indices):
     return x[indices]
 
 
-def allclose(a, b, **kwargs):
+def allclose(a, b, atol=atol, rtol=rtol):
     if not isinstance(a, torch.Tensor):
         a = torch.tensor(a)
     if not isinstance(b, torch.Tensor):
@@ -312,7 +323,7 @@ def allclose(a, b, **kwargs):
     elif n_a < n_b:
         reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
         a = tile(a, reps)
-    return torch.allclose(a, b, **kwargs)
+    return torch.allclose(a, b, atol=atol, rtol=rtol)
 
 
 def arccosh(x):
@@ -348,13 +359,19 @@ def to_ndarray(x, to_ndim, axis=0):
     return x
 
 
+def broadcast_to(x, shape):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    return x.expand(shape)
+
+
 def sqrt(x):
     if not isinstance(x, torch.Tensor):
         x = torch.tensor(x).float()
     return torch.sqrt(x)
 
 
-def isclose(x, y, rtol=1e-5, atol=1e-8):
+def isclose(x, y, rtol=rtol, atol=atol):
     if not torch.is_tensor(x):
         x = torch.tensor(x)
     if not torch.is_tensor(y):
@@ -460,6 +477,8 @@ def transpose(x, axes=None):
         return x.permute(axes)
     if x.dim() == 1:
         return x
+    if x.dim() > 2 and axes is None:
+        return x.permute(tuple(range(x.ndim)[::-1]))
     return x.t()
 
 
@@ -483,6 +502,7 @@ def trace(x, axis1=0, axis2=1):
     raise NotImplementedError()
 
 
+@_box_scalar
 def arctanh(x):
     return 0.5 * torch.log((1 + x) / (1 - x))
 
@@ -497,6 +517,10 @@ def equal(a, b, **kwargs):
     if b.dtype == torch.ByteTensor:
         b = cast(b, torch.uint8).float()
     return torch.eq(a, b, **kwargs)
+
+
+def diag_indices(*args, **kwargs):
+    return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
 
 
 def tril_indices(*args, **kwargs):
@@ -767,3 +791,29 @@ def triu_to_vec(x, k=0):
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
+
+
+def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
+    """Build matrix from given components.
+
+    Forms a matrix from diagonal, strictly upper triangular and
+    strictly lower traingular parts.
+
+    Parameters
+    ----------
+    diag : array_like, shape=[..., n]
+    tri_upp : array_like, shape=[..., (n * (n - 1)) / 2]
+    tri_low : array_like, shape=[..., (n * (n - 1)) / 2]
+
+    Returns
+    -------
+    mat : array_like, shape=[..., n, n]
+    """
+    n = diag.shape[-1]
+    i, = diag_indices(n, ndim=1)
+    j, k = triu_indices(n, k=1)
+    mat = torch.zeros((diag.shape + (n, )))
+    mat[..., i, i] = diag
+    mat[..., j, k] = tri_upp
+    mat[..., k, j] = tri_low
+    return mat

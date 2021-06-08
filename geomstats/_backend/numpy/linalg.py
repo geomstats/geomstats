@@ -17,10 +17,8 @@ from autograd.numpy.linalg import (  # NOQA
 
 from .common import to_ndarray
 
-_TOL = 1e-10
 
-
-def _is_symmetric(x, tol=_TOL):
+def _is_symmetric(x, tol=1e-12):
     new_x = to_ndarray(x, to_ndim=3)
     return (np.abs(new_x - np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
 
@@ -76,9 +74,9 @@ def solve_sylvester(a, b, q):
     if a.shape == b.shape:
         axes = (0, 2, 1) if a.ndim == 3 else (1, 0)
         if np.all(a == b) and np.all(
-                np.abs(a - np.transpose(a, axes)) < 1e-6):
+                np.abs(a - np.transpose(a, axes)) < 1e-12):
             eigvals, eigvecs = eigh(a)
-            if np.all(eigvals >= 1e-6):
+            if np.all(eigvals >= 1e-12):
                 tilde_q = np.transpose(eigvecs, axes) @ q @ eigvecs
                 tilde_x = tilde_q / (
                     eigvals[..., :, None] + eigvals[..., None, :])

@@ -12,15 +12,17 @@ References
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry._hyperbolic import _Hyperbolic
+from geomstats.geometry.base import OpenSet
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hyperboloid import HyperboloidMetric
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.product_riemannian_metric \
     import ProductRiemannianMetric  # NOQA
 
 
-class PoincarePolydisk(ProductManifold):
+class PoincarePolydisk(ProductManifold, OpenSet):
     r"""Class for the Poincare polydisk.
 
     The Poincare polydisk is a direct product of n Poincare disks,
@@ -45,9 +47,10 @@ class PoincarePolydisk(ProductManifold):
         disk = Hyperboloid(2, coords_type=coords_type)
         list_disks = [disk, ] * n_disks
         super(PoincarePolydisk, self).__init__(
-            manifolds=list_disks, default_point_type='matrix')
-        self.metric = PoincarePolydiskMetric(n_disks=n_disks,
-                                             coords_type=coords_type)
+            manifolds=list_disks, default_point_type='matrix',
+            ambient_space=Matrices(n_disks, 2))
+        self.metric = PoincarePolydiskMetric(
+            n_disks=n_disks, coords_type=coords_type)
 
     @staticmethod
     def intrinsic_to_extrinsic_coords(point_intrinsic):
@@ -69,12 +72,12 @@ class PoincarePolydisk(ProductManifold):
         """
         n_disks = point_intrinsic.shape[1]
         point_extrinsic = gs.stack(
-            [Hyperbolic.change_coordinates_system(
+            [_Hyperbolic.change_coordinates_system(
                 point_intrinsic[:, i_disk, ...], 'intrinsic', 'extrinsic')
                 for i_disk in range(n_disks)], axis=1)
         return point_extrinsic
 
-    def projection_to_tangent_space(self, vector, base_point):
+    def to_tangent(self, vector, base_point):
         """Project a vector in the tangent space.
 
         Project a vector in Minkowski space
@@ -95,8 +98,8 @@ class PoincarePolydisk(ProductManifold):
         n_disks = base_point.shape[1]
         hyperbolic_space = Hyperboloid(2, self.coords_type)
         tangent_vec = gs.stack([hyperbolic_space.to_tangent(
-            vector=vector[:, i_disk, :],
-            base_point=base_point[:, i_disk, :])
+            vector=vector[..., i_disk, :],
+            base_point=base_point[..., i_disk, :])
             for i_disk in range(n_disks)], axis=1)
         return tangent_vec
 
