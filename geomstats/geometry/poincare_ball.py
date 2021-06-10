@@ -2,8 +2,6 @@
 
 The n-dimensional hyperbolic space with Poincare ball model.
 """
-import logging
-
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
@@ -120,7 +118,7 @@ class PoincareBallMetric(RiemannianMetric):
         self.point_type = PoincareBall.default_point_type
         self.scale = scale
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -151,7 +149,7 @@ class PoincareBallMetric(RiemannianMetric):
 
         return exp
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute Riemannian logarithm of a point wrt a base point.
 
         Parameters
@@ -309,163 +307,8 @@ class PoincareBallMetric(RiemannianMetric):
 
         return gs.einsum('i,jk->ijk', lambda_base, identity)
 
-    def normalization_factor_init(self, variances):
-        r"""Set up function for the normalization factor.
-
-        The normalization factor is used to define Gaussian distributions
-        on the Poincaré Ball.
-
-        Parameters
-        ----------
-        variances : array-like, shape=[n_variances,]
-            Array of standard deviations.
-        normalization_factor_var : array-like, shape=[n_variances,]
-            Array of computed normalization factor.
-        phi_inv_var : array-like, shape=[n_variances,]
-            Array of the computed inverse of a function phi
-            whose expression is closed-form
-            :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
-            {\mathstrut d\sigma}\log \zeta_m(\sigma)'
-            where :math:'\sigma' denotes the variance
-            and :math:'\zeta' the normalization coefficient
-            and :math:'m' the dimension.
-
-        Returns
-        -------
-        variances : array-like, shape=[n_variances,]
-            Array of standard deviations.
-        normalization_factor_var : array-like, shape=[n_variances,]
-            Array of computed normalization factor.
-        phi_inv_var : array-like, shape=[n_variances,]
-            Array of the computed inverse of a function phi
-            whose expression is closed-form
-            :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
-            {\mathstrut d\sigma}\log \zeta_m(\sigma)'
-            where :math:'\sigma' denotes the variance
-            and :math:'\zeta' the normalization coefficient
-            and :math:'m' the dimension.
-        """
-        normalization_factor_var = \
-            self.normalization_factor(variances)
-
-        cond_1 = normalization_factor_var.sum() != \
-            normalization_factor_var.sum()
-        cond_2 = normalization_factor_var.sum() == float('+inf')
-        cond_3 = normalization_factor_var.sum() == float('-inf')
-
-        if cond_1 or cond_2 or cond_3:
-            logging.warning(
-                'Untracktable normalization factor :')
-
-            limit_nf = ((normalization_factor_var /
-                         normalization_factor_var)
-                        * 0).nonzero()[0].item()
-            max_nf = len(variances)
-            variances = variances[0:limit_nf]
-            normalization_factor_var = \
-                normalization_factor_var[0:limit_nf]
-            if cond_1:
-                logging.warning('\t Nan value '
-                                'in processing normalization factor')
-            if cond_2 or cond_3:
-                raise ValueError('\t +-inf value in '
-                                 'processing normalization factor')
-
-            logging.warning('\t Max variance is now : %s',
-                            str(variances[-1]))
-            logging.warning('\t Number of possible variance is now: %s / %s ',
-                            str(len(variances)), str(max_nf))
-
-        _, log_grad_zeta = \
-            self.norm_factor_gradient(variances)
-
-        phi_inv_var = variances ** 3 * log_grad_zeta
-
-        return \
-            variances, normalization_factor_var, phi_inv_var
-
-    @staticmethod
-    def find_normalization_factor(
-            variance, variances_range, normalization_factor_var):
-        """Find the normalization factor given some variances.
-
-        Parameters
-        ----------
-        variance : array-like, shape=[n_gaussians,]
-            Array of standard deviations for each component
-            of some GMM.
-        variances_range : array-like, shape=[n_variances,]
-            Array of standard deviations.
-        normalization_factor_var : array-like, shape=[n_variances,]
-            Array of computed normalization factor.
-
-        Returns
-        -------
-        norm_factor : array-like, shape=[n_gaussians,]
-            Array of normalization factors for the given
-            variances.
-        """
-        n_gaussians, precision = variance.shape[0], variances_range.shape[0]
-
-        ref = gs.expand_dims(variances_range, 0)
-        ref = gs.repeat(ref, n_gaussians, axis=0)
-        val = gs.expand_dims(variance, 1)
-        val = gs.repeat(val, precision, axis=1)
-
-        difference = gs.abs(ref - val)
-
-        index = gs.argmin(difference, axis=-1)
-        norm_factor = normalization_factor_var[index]
-
-        return norm_factor
-
-    @staticmethod
-    def find_variance_from_index(
-            weighted_distances, variances_range, phi_inv_var):
-        r"""Return the variance given weighted distances.
-
-        Parameters
-        ----------
-        weighted_distances : array-like, shape=[n_gaussians,]
-            Mean of the weighted distances between training data
-            and current barycentres. The weights of each data sample
-            corresponds to the probability of belonging to a component
-            of the Gaussian mixture model.
-        variances_range : array-like, shape=[n_variances,]
-            Array of standard deviations.
-        phi_inv_var : array-like, shape=[n_variances,]
-            Array of the computed inverse of a function phi
-            whose expression is closed-form
-            :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
-            {\mathstrut d\sigma}\log \zeta_m(\sigma)'
-            where :math:'\sigma' denotes the variance
-            and :math:'\zeta' the normalization coefficient
-            and :math:'m' the dimension.
-
-        Returns
-        -------
-        var : array-like, shape=[n_gaussians,]
-            Estimated variances for each component of the GMM.
-        """
-        n_gaussians, precision = \
-            weighted_distances.shape[0], variances_range.shape[0]
-
-        ref = gs.expand_dims(phi_inv_var, 0)
-        ref = gs.repeat(ref, n_gaussians, axis=0)
-
-        val = gs.expand_dims(weighted_distances, 1)
-        val = gs.repeat(val, precision, axis=1)
-
-        abs_difference = gs.abs(ref - val)
-
-        index = gs.argmin(abs_difference, -1)
-
-        var = variances_range[index]
-
-        return var
-
     def normalization_factor(self, variances):
-        """Return normalization factor.
+        """Return normalization factor of the Gaussian distribution.
 
         Parameters
         ----------

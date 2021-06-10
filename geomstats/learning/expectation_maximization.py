@@ -126,6 +126,86 @@ def weighted_gmm_pdf(
     return weighted_pdf
 
 
+def find_normalization_factor(
+        variances, variances_range, normalization_factor_var):
+    """Find the normalization factor given some variances.
+
+    Parameters
+    ----------
+    variances : array-like, shape=[n_gaussians,]
+        Array of standard deviations for each component
+        of some GMM.
+    variances_range : array-like, shape=[n_variances,]
+        Array of standard deviations.
+    normalization_factor_var : array-like, shape=[n_variances,]
+        Array of computed normalization factor.
+
+    Returns
+    -------
+    norm_factor : array-like, shape=[n_gaussians,]
+        Array of normalization factors for the given
+        variances.
+    """
+    n_gaussians, precision = variances.shape[0], variances_range.shape[0]
+
+    ref = gs.expand_dims(variances_range, 0)
+    ref = gs.repeat(ref, n_gaussians, axis=0)
+    val = gs.expand_dims(variances, 1)
+    val = gs.repeat(val, precision, axis=1)
+
+    difference = gs.abs(ref - val)
+
+    index = gs.argmin(difference, axis=-1)
+    norm_factor = normalization_factor_var[index]
+
+    return norm_factor
+
+
+def find_variance_from_index(
+        weighted_distances, variances_range, phi_inv_var):
+    r"""Return the variance given weighted distances.
+
+    Parameters
+    ----------
+    weighted_distances : array-like, shape=[n_gaussians,]
+        Mean of the weighted distances between training data
+        and current barycentres. The weights of each data sample
+        corresponds to the probability of belonging to a component
+        of the Gaussian mixture model.
+    variances_range : array-like, shape=[n_variances,]
+        Array of standard deviations.
+    phi_inv_var : array-like, shape=[n_variances,]
+        Array of the computed inverse of a function phi
+        whose expression is closed-form
+        :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
+        {\mathstrut d\sigma}\log \zeta_m(\sigma)'
+        where :math:'\sigma' denotes the variance
+        and :math:'\zeta' the normalization coefficient
+        and :math:'m' the dimension.
+
+    Returns
+    -------
+    var : array-like, shape=[n_gaussians,]
+        Estimated variances for each component of the GMM.
+    """
+    n_gaussians, precision = \
+        weighted_distances.shape[0], variances_range.shape[0]
+
+    ref = gs.expand_dims(phi_inv_var, 0)
+    ref = gs.repeat(ref, n_gaussians, axis=0)
+
+    val = gs.expand_dims(weighted_distances, 1)
+    val = gs.repeat(val, precision, axis=1)
+
+    abs_difference = gs.abs(ref - val)
+
+    index = gs.argmin(abs_difference, -1)
+
+    var = variances_range[index]
+
+    return var
+
+
 class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     r"""Expectation-maximization class on Poincaré Ball.
 
@@ -260,11 +340,8 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                                     posterior_probabilities).sum(0) / \
             posterior_probabilities.sum(0)
 
-        self.variances = \
-            self.metric.find_variance_from_index(
-                weighted_dist_means_data,
-                self.variances_range,
-                self.phi_inv_var)
+        self.variances = find_variance_from_index(
+            weighted_dist_means_data, self.variances_range, self.phi_inv_var)
 
     def _expectation(self, data):
         """Update the posterior probabilities.
@@ -277,7 +354,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         """
         probability_distribution_function = gmm_pdf(
             data, self.means, self.variances,
-            norm_func=self.metric.find_normalization_factor,
+            norm_func=find_normalization_factor,
             metric=self.metric,
             variances_range=self.variances_range,
             norm_func_var=self.normalization_factor_var)
@@ -433,7 +510,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.variances_range,\
             self.normalization_factor_var, \
             self.phi_inv_var =\
-            self.metric.normalization_factor_init(
+            self.normalization_factor_init(
                 gs.arange(
                     ZETA_LOWER_BOUND, ZETA_UPPER_BOUND, ZETA_STEP))
 
@@ -458,3 +535,78 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                      'Please increase MINIMUM_EPOCHS.')
 
         return self.means, self.variances, self.mixture_coefficients
+
+    def normalization_factor_init(self, variances):
+        r"""Set up function for the normalization factor.
+
+        The normalization factor is used to define Gaussian distributions
+        at initialization..
+
+        Parameters
+        ----------
+        variances : array-like, shape=[n_variances,]
+            Array of standard deviations.
+        normalization_factor_var : array-like, shape=[n_variances,]
+            Array of computed normalization factor.
+        phi_inv_var : array-like, shape=[n_variances,]
+            Array of the computed inverse of a function phi
+            whose expression is closed-form
+            :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
+            {\mathstrut d\sigma}\log \zeta_m(\sigma)'
+            where :math:'\sigma' denotes the variance
+            and :math:'\zeta' the normalization coefficient
+            and :math:'m' the dimension.
+
+        Returns
+        -------
+        variances : array-like, shape=[n_variances,]
+            Array of standard deviations.
+        normalization_factor_var : array-like, shape=[n_variances,]
+            Array of computed normalization factor.
+        phi_inv_var : array-like, shape=[n_variances,]
+            Array of the computed inverse of a function phi
+            whose expression is closed-form
+            :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
+            {\mathstrut d\sigma}\log \zeta_m(\sigma)'
+            where :math:'\sigma' denotes the variance
+            and :math:'\zeta' the normalization coefficient
+            and :math:'m' the dimension.
+        """
+        normalization_factor_var = \
+            self.metric.normalization_factor(variances)
+
+        cond_1 = normalization_factor_var.sum() != \
+            normalization_factor_var.sum()
+        cond_2 = normalization_factor_var.sum() == float('+inf')
+        cond_3 = normalization_factor_var.sum() == float('-inf')
+
+        if cond_1 or cond_2 or cond_3:
+            logging.warning(
+                'Untracktable normalization factor :')
+
+            limit_nf = ((normalization_factor_var /
+                         normalization_factor_var)
+                        * 0).nonzero()[0].item()
+            max_nf = len(variances)
+            variances = variances[0:limit_nf]
+            normalization_factor_var = \
+                normalization_factor_var[0:limit_nf]
+            if cond_1:
+                logging.warning('\t Nan value '
+                                'in processing normalization factor')
+            if cond_2 or cond_3:
+                raise ValueError('\t +-inf value in '
+                                 'processing normalization factor')
+
+            logging.warning('\t Max variance is now : %s',
+                            str(variances[-1]))
+            logging.warning('\t Number of possible variance is now: %s / %s ',
+                            str(len(variances)), str(max_nf))
+
+        _, log_grad_zeta = \
+            self.metric.norm_factor_gradient(variances)
+
+        phi_inv_var = variances ** 3 * log_grad_zeta
+
+        return \
+            variances, normalization_factor_var, phi_inv_var
