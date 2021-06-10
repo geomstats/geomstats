@@ -68,59 +68,6 @@ class PoincareBall(_Hyperbolic, OpenSet):
         return gs.sum(point**2, axis=-1) < (1 - atol)
 
     @staticmethod
-    def gmm_pdf(
-            data, means, variances, norm_func,
-            metric, variances_range, norm_func_var):
-        """Return the separate probability density function of GMM.
-
-        The probability density function is computed for
-        each component of the GMM separately (i.e., mixture coefficients
-        are not taken into account).
-
-        Parameters
-        ----------
-        data : array-like, shape=[n_samples, dim]
-            Points at which the GMM probability density is computed.
-        means : array-like, shape=[n_gaussians, dim]
-            Means of each component of the GMM.
-        variances : array-like, shape=[n_gaussians,]
-            Variances of each component of the GMM.
-        norm_func : function
-            Normalisation factor function.
-        metric : function
-            Distance function associated with the used metric.
-
-        Returns
-        -------
-        pdf : array-like, shape=[n_samples, n_gaussians,]
-            Probability density function computed at each data
-            sample and for each component of the GMM.
-        """
-        data_length, _, _ = data.shape + (means.shape[0],)
-
-        variances_expanded = gs.expand_dims(variances, 0)
-        variances_expanded = gs.repeat(variances_expanded, data_length, 0)
-
-        variances_flatten = variances_expanded.flatten()
-
-        distances = -(metric.dist_broadcast(data, means) ** 2)
-        distances = gs.reshape(distances, (data.shape[0] * variances.shape[0]))
-
-        num = gs.exp(
-            distances / (2 * variances_flatten ** 2))
-
-        den = norm_func(variances, variances_range, norm_func_var)
-
-        den = gs.expand_dims(den, 0)
-        den = gs.repeat(den, data_length, axis=0).flatten()
-
-        pdf = num / den
-        pdf = gs.reshape(
-            pdf, (data.shape[0], means.shape[0]))
-
-        return pdf
-
-    @staticmethod
     def weighted_gmm_pdf(mixture_coefficients,
                          mesh_data,
                          means,
@@ -330,64 +277,6 @@ class PoincareBallMetric(RiemannianMetric):
             1. / (1 + 2 * inner + squared_norm_b * squared_norm_a),
             num_1 + num_2)
         return ball_manifold.projection(result)
-
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
-    def dist_broadcast(self, point_a, point_b):
-        """Compute the geodesic distance between points.
-
-        If n_samples_a == n_samples_b then dist is the element-wise
-        distance result of a point in points_a with the point from
-        points_b of the same index. If n_samples_a not equal to
-        n_samples_b then dist is the result of applying geodesic
-        distance for each point from points_a to all points from
-        points_b.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[n_samples_a, dim]
-            Set of points in the Poincare ball.
-        point_b : array-like, shape=[n_samples_b, dim]
-            Second set of points in the Poincare ball.
-
-        Returns
-        -------
-        dist : array-like,
-            shape=[n_samples_a, dim] or [n_samples_a, n_samples_b, dim]
-            Geodesic distance between the two points.
-        """
-        if point_a.shape[-1] != point_b.shape[-1]:
-            raise ValueError('Manifold dimensions not equal')
-
-        if point_a.shape[0] != point_b.shape[0]:
-
-            point_a_broadcast, point_b_broadcast = gs.broadcast_arrays(
-                point_a[:, None], point_b[None, ...])
-
-            point_a_flatten = gs.reshape(
-                point_a_broadcast, (-1, point_a_broadcast.shape[-1]))
-            point_b_flatten = gs.reshape(
-                point_b_broadcast, (-1, point_b_broadcast.shape[-1]))
-
-            point_a_norm = gs.clip(gs.sum(
-                point_a_flatten ** 2, -1), 0., 1 - EPSILON)
-            point_b_norm = gs.clip(gs.sum(
-                point_b_flatten ** 2, -1), 0., 1 - EPSILON)
-
-            square_diff = (point_a_flatten - point_b_flatten) ** 2
-
-            diff_norm = gs.sum(square_diff, -1)
-            norm_function = 1 + 2 * \
-                diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
-
-            dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
-            dist *= self.scale
-            dist = gs.reshape(dist, (point_a.shape[0], point_b.shape[0]))
-            dist = gs.squeeze(dist)
-
-        elif point_a.shape == point_b.shape:
-            dist = self.dist(point_a, point_b)
-
-        return dist
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def dist(self, point_a, point_b):

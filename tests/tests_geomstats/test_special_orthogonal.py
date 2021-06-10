@@ -151,3 +151,13 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         translated = group.tangent_translation_map(point)(tangent_vec)
         result = group.bi_invariant_metric.norm(translated)
         self.assertAllClose(result, expected)
+
+    def test_distance_broadcast(self):
+        group = self.group
+        point = group.random_point(5)
+        result = group.bi_invariant_metric.dist_broadcast(point[:3], point)
+        expected = []
+        for a in point[:3]:
+            expected.append(group.bi_invariant_metric.dist(a, point))
+        expected = gs.stack(expected)
+        self.assertAllClose(result, expected)

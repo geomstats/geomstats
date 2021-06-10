@@ -27,6 +27,59 @@ MEAN_MAX_ITER = 150
 MIN_VAR_INIT = 1e-3
 
 
+def gmm_pdf(
+        data, means, variances, norm_func,
+        metric, variances_range, norm_func_var):
+    """Return the separate probability density function of GMM.
+
+    The probability density function is computed for
+    each component of the GMM separately (i.e., mixture coefficients
+    are not taken into account).
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, dim]
+        Points at which the GMM probability density is computed.
+    means : array-like, shape=[n_gaussians, dim]
+        Means of each component of the GMM.
+    variances : array-like, shape=[n_gaussians,]
+        Variances of each component of the GMM.
+    norm_func : function
+        Normalisation factor function.
+    metric : function
+        Distance function associated with the used metric.
+
+    Returns
+    -------
+    pdf : array-like, shape=[n_samples, n_gaussians,]
+        Probability density function computed at each data
+        sample and for each component of the GMM.
+    """
+    data_length, _, _ = data.shape + (means.shape[0],)
+
+    variances_expanded = gs.expand_dims(variances, 0)
+    variances_expanded = gs.repeat(variances_expanded, data_length, 0)
+
+    variances_flatten = variances_expanded.flatten()
+
+    distances = -(metric.dist_broadcast(data, means) ** 2)
+    distances = gs.reshape(distances, (data.shape[0] * variances.shape[0]))
+
+    num = gs.exp(
+        distances / (2 * variances_flatten ** 2))
+
+    den = norm_func(variances, variances_range, norm_func_var)
+
+    den = gs.expand_dims(den, 0)
+    den = gs.repeat(den, data_length, axis=0).flatten()
+
+    pdf = num / den
+    pdf = gs.reshape(
+        pdf, (data.shape[0], means.shape[0]))
+
+    return pdf
+
+
 class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     r"""Expectation-maximization class on Poincaré Ball.
 
@@ -176,8 +229,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             Training data, where n_samples is the number of samples and
             n_features is the number of features.
         """
-        probability_distribution_function = \
-            PoincareBall.gmm_pdf(
+        probability_distribution_function = gmm_pdf(
                 data, self.means, self.variances,
                 norm_func=self.metric.find_normalization_factor,
                 metric=self.metric,
