@@ -809,11 +809,14 @@ class HypersphereMetric(RiemannianMetric):
             Tangent vector at `base_point` along which the curvature is
             derived.
         tangent_vec_x : array-like, shape=[..., dim]
-            Unused tangent vector at `base_point`.
+            Unused tangent vector at `base_point` (since curvature derivative
+            vanishes).
         tangent_vec_y : array-like, shape=[..., dim]
-            Unused tangent vector at `base_point`.
+            Unused tangent vector at `base_point` (since curvature derivative
+            vanishes).
         tangent_vec_z : array-like, shape=[..., dim]
-            Unused tangent vector at `base_point`.
+            Unused tangent vector at `base_point` (since curvature derivative
+            vanishes).
         base_point : array-like, shape=[..., dim]
             Point on the hypersphere.
 
