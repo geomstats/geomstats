@@ -325,7 +325,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         flipped = flip_determinant(Matrices.transpose(right), det)
         return Matrices.mul(point, left, Matrices.transpose(flipped))
 
-    def integrability_tensor2(self, tangent_vec_a, tangent_vec_b, base_point):
+    def integrability_tensor_old(
+            self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the fundamental tensor A of the submersion.
 
         The fundamental tensor A is defined for tangent vectors of the total
@@ -411,6 +412,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         References
         ----------
+
         .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
         Submersion, Michigan Mathematical Journal 13, no. 4 (December 1966):
         459–69. https://doi.org/10.1307/mmj/1028999604.
@@ -551,7 +553,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         `\nabla_X (A_Y Z)` and :math: `A_Y Z` are computed here for the
         Kendall shape space with quotient-parallel vector fields :math: `X,
         Y, Z` extending the values horizontal_vec_x, horizontal_vec_y and
-        horizontal_vec_z by parallel transport in a neighborhood of teh
+        horizontal_vec_z by parallel transport in a neighborhood of the
         base-space. Such vector fields verify :math: `\nabla_X^X = A_X X =
         0`, :math: `\nabla_X^Y = A_X Y` and similarly for Z.
 

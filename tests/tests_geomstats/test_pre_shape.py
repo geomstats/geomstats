@@ -18,6 +18,59 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.shape_metric = KendallShapeMetric(
             self.k_landmarks, self.m_ambient)
 
+        self.base_point = self.space.random_point()
+        vector = gs.random.rand(11, self.k_landmarks, self.m_ambient)
+        tg_vec_0 = self.space.to_tangent(vector[0], self.base_point)
+        self.hor_x = self.space.horizontal_projection(
+            tg_vec_0, self.base_point)
+        tg_vec_1 = self.space.to_tangent(vector[1], self.base_point)
+        self.hor_y = self.space.horizontal_projection(
+            tg_vec_1, self.base_point)
+        tg_vec_2 = self.space.to_tangent(vector[2], self.base_point)
+        self.hor_z = self.space.horizontal_projection(
+            tg_vec_2, self.base_point)
+        tg_vec_3 = self.space.to_tangent(vector[3], self.base_point)
+        self.hor_h = self.space.horizontal_projection(
+            tg_vec_3, self.base_point)
+        tg_vec_4 = self.space.to_tangent(vector[4], self.base_point)
+        self.ver_v = self.space.vertical_projection(
+            tg_vec_4, self.base_point)
+        tg_vec_5 = self.space.to_tangent(vector[5], self.base_point)
+        self.ver_w = self.space.vertical_projection(
+            tg_vec_5, self.base_point)
+        tg_vec_6 = self.space.to_tangent(vector[6], self.base_point)
+        hor_dy = self.space.horizontal_projection(
+            tg_vec_6, self.base_point)
+        tg_vec_7 = self.space.to_tangent(vector[7], self.base_point)
+        hor_dz = self.space.horizontal_projection(
+            tg_vec_7, self.base_point)
+        tg_vec_8 = self.space.to_tangent(vector[8], self.base_point)
+        ver_dv = self.space.vertical_projection(
+            tg_vec_8, self.base_point)
+        tg_vec_9 = self.space.to_tangent(vector[9], self.base_point)
+        ver_dw = self.space.vertical_projection(
+            tg_vec_9, self.base_point)
+        tg_vec_10 = self.space.to_tangent(vector[10], self.base_point)
+        hor_dh = self.space.horizontal_projection(
+            tg_vec_10, self.base_point)
+
+        # generate valid derivatives of horizontal / vertical vector fields.
+        a_x_y = self.space.integrability_tensor(
+            self.hor_x, self.hor_y, self.base_point)
+        self.nabla_x_y = hor_dy + a_x_y
+        a_x_z = self.space.integrability_tensor(
+            self.hor_x, self.hor_z, self.base_point)
+        self.nabla_x_z = hor_dz + a_x_z
+        a_x_v = self.space.integrability_tensor(
+            self.hor_x, self.ver_v, self.base_point)
+        self.nabla_x_v = ver_dv + a_x_v
+        a_x_w = self.space.integrability_tensor(
+            self.hor_x, self.ver_w, self.base_point)
+        self.nabla_x_w = ver_dw + a_x_w
+        a_x_h = self.space.integrability_tensor(
+            self.hor_x, self.hor_h, self.base_point)
+        self.nabla_x_h = hor_dh + a_x_h
+
     def test_belongs(self):
         point = gs.random.rand(self.m_ambient - 1, self.k_landmarks)
         result = self.space.belongs(point)
@@ -313,6 +366,10 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_curvature_is_skew_operator(self):
+        """Pre-shape space curvature tensor is skew in the first two arguments.
+
+        :math: `R(X,X)Y = 0`.
+        """
         space = self.space
         base_point = space.random_point(2)
         vector = gs.random.rand(
@@ -326,6 +383,10 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_curvature_bianchi_identity(self):
+        """First Bianchi identity on curvature in pre-shape space.
+
+        :math: `R(X,Y)Z + R(Y,Z)X + R(Z,X)Y = 0`.
+        """
         space = self.space
         base_point = space.random_point()
         vector = gs.random.rand(
@@ -346,6 +407,16 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_integrability_tensor(self):
+        """Identities of integrability tensor in kendall pre-shape space.
+
+        The integrability tensor A_X E is skew-symmetric with respect to the
+        pre-shape metric, :math: `< A_X E, F> + <E, A_X F> = 0`. By
+        polarization, this is equivalent to :math: `< A_X E, E> = 0`.
+
+        The integrability tensor is also alternating (:math: `A_X Y =
+        - A_Y X`)  for horizontal vector fields :math: 'X,Y',  and it is
+        exchanging horizontal and vertical vector spaces.
+        """
         space = self.space
         base_point = space.random_point()
         vector = gs.random.rand(
@@ -377,7 +448,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         is_horizontal = space.is_horizontal(result, base_point)
         self.assertTrue(is_horizontal)
 
-    def test_integrability_tensor2(self):
+    def test_integrability_tensor_old(self):
+        """Test if old and new implementation give the same result.
+        """
         space = self.space
         base_point = space.random_point()
         vector = gs.random.rand(
@@ -385,13 +458,22 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         tangent_vec_x = space.to_tangent(vector[0], base_point)
         tangent_vec_e = space.to_tangent(vector[1], base_point)
 
-        result = space.integrability_tensor2(
+        result = space.integrability_tensor_old(
             tangent_vec_x, tangent_vec_e, base_point)
         expected = space.integrability_tensor(
             tangent_vec_x, tangent_vec_e, base_point)
         self.assertAllClose(result, expected)
 
     def test_kendall_directional_curvature(self):
+        """sectional curvature of Kendall shape space is larger than 1.
+
+        The sectional curvature always increase by taking the quotient in a
+        Riemannian submersion. Thus, it should larger in kendall shape space
+        thane the sectional curvature of the pre-shape space which is 1 as it
+        a hypersphere.
+        The sectional curvature is computed here with the generic
+        directional_curvature and sectional curvature methods.
+        """
         space = self.space
         metric = self.shape_metric
         n_samples = 4 * self.k_landmarks * self.m_ambient
@@ -420,182 +502,124 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = (kappa > 1.0 - 1e-12)
         self.assertTrue(gs.all(result))
 
-    def test_integrability_tensor_derivatives_parallel(self):
-        space = self.space
-        scal = Matrices.frobenius_product
+    def test_integrability_tensor_derivative_is_alternate(self):
+        """Integrability tensor derivatives is alternate in pre-shape.
 
-        base_point = space.random_point()
-        vector = gs.random.rand(
-            4, self.k_landmarks, self.m_ambient)
-        tg_vec_0 = space.to_tangent(vector[0], base_point)
-        hor_x = space.horizontal_projection(tg_vec_0, base_point)
-        tg_vec_1 = space.to_tangent(vector[1], base_point)
-        hor_y = space.horizontal_projection(tg_vec_1, base_point)
-        tg_vec_2 = space.to_tangent(vector[2], base_point)
-        hor_z = space.horizontal_projection(tg_vec_2, base_point)
-        tg_vec_3 = space.to_tangent(vector[3], base_point)
-        hor_h = space.horizontal_projection(tg_vec_3, base_point)
-
-        nabla_x_a_y_a_x_y, _, nabla_x_a_x_y, a_y_a_x_y, a_x_y = \
-            space.iterated_integrability_tensor_derivative_parallel(
-                hor_x, hor_y, base_point)
-
+        For two horizontal vector fields :math: `X,Y` the integrability
+        tensor (hence its derivatives) is alternate:
+        :math: `\nabla_X ( A_Y Z + A_Z Y ) = 0`.
+        """
         nabla_x_a_y_z, a_y_z = \
-            space.integrability_tensor_derivative_parallel(
-                hor_x, hor_y, hor_z, base_point)
-
-        nabla_x_a_x_y_2, a_x_y_2 = \
-            space.integrability_tensor_derivative_parallel(
-                hor_x, hor_x, hor_y, base_point)
-        self.assertAllClose(a_x_y, a_x_y_2)
-        self.assertAllClose(nabla_x_a_x_y, nabla_x_a_x_y_2)
-
-        nabla_x_a_y_x, a_y_x = \
-            space.integrability_tensor_derivative_parallel(
-                hor_x, hor_y, hor_x, base_point)
-
+            self.space.integrability_tensor_derivative(
+                self.hor_x, self.hor_y, self.nabla_x_y, self.hor_z,
+                self.nabla_x_z, self.base_point)
         nabla_x_a_z_y, a_z_y = \
-            space.integrability_tensor_derivative_parallel(
-                hor_x, hor_z, hor_y, base_point)
-        self.assertAllClose(a_z_y, -a_y_z)
-        self.assertAllClose(a_x_y, -a_y_x)
-
-        # < A_Y V , W > = 0 with V = A_X Y and W = A_Y Z
-        result = scal(a_y_a_x_y, a_y_z)
-        self.assertAllClose(result, gs.zeros_like(result))
-
-        # nabla^S_X < A_Y V , W > = 0 with V = A_X Y and W = A_Y Z
-        result = \
-            scal(nabla_x_a_y_a_x_y, a_y_z) \
-            + scal(a_y_a_x_y, nabla_x_a_y_z)
-        self.assertAllClose(result, gs.zeros_like(result))
-
-        # nabla_X^S < A_Y V , W > = 0 with V = A_X Y and W = A_Z H
-        nabla_x_a_z_h, a_z_h = \
-            space.integrability_tensor_derivative_parallel(
-                hor_x, hor_z, hor_h, base_point)
-        result = scal(a_y_a_x_y, a_z_h)
-        self.assertAllClose(result, gs.zeros_like(result))
-
-        result = \
-            scal(nabla_x_a_y_a_x_y, a_z_h) \
-            + scal(a_y_a_x_y, nabla_x_a_z_h)
-        self.assertAllClose(result, gs.zeros_like(result))
-
-        # nabla_X^S < A_Y Z , Z > = 0
-        a_x_z = space.integrability_tensor(hor_x, hor_z, base_point)
-        result = scal(nabla_x_a_y_z, hor_z) + scal(a_y_z, a_x_z)
-        self.assertAllClose(result, gs.zeros_like(result))
-
-        # nabla_X^S ( A_Y Z + A_Z Y) = 0
+            self.space.integrability_tensor_derivative(
+                self.hor_x, self.hor_z, self.nabla_x_z, self.hor_y,
+                self.nabla_x_y, self.base_point)
         result = nabla_x_a_y_z + nabla_x_a_z_y
+        self.assertAllClose(a_y_z + a_z_y, gs.zeros_like(result))
         self.assertAllClose(result, gs.zeros_like(result))
 
-        # nabla_X^S ( A_X Y + A_Y X) = 0
-        result = nabla_x_a_x_y + nabla_x_a_y_x
-        self.assertAllClose(result, gs.zeros_like(result))
+    def test_integrability_tensor_derivative_is_skew_symmetric(self):
+        """Integrability tensor derivatives is skew-symmetric in pre-shape.
 
-        # nabla^S_X < A_Y A_X Y , Z > = 0
-        result = \
-            scal(nabla_x_a_y_a_x_y, hor_z) \
-            + scal(a_y_a_x_y, a_x_z) + scal(nabla_x_a_y_z, a_x_y) \
-            + scal(a_y_z, nabla_x_a_x_y)
-        self.assertAllClose(result, gs.zeros_like(result))
+        For :math: `X,Y` horizontal and :math: `V,W` vertical:
+        :math: `\nabla_X (< A_Y Z , V > + < A_Y V , Z >) = 0`.
+        """
+        scal = self.space.ambient_metric.inner_product
 
-    def test_integrability_tensor_derivative(self):
-        space = self.space
-        scal = Matrices.frobenius_product
-
-        base_point = space.random_point()
-        vector = gs.random.rand(11, self.k_landmarks, self.m_ambient)
-        tg_vec_0 = space.to_tangent(vector[0], base_point)
-        hor_x = space.horizontal_projection(tg_vec_0, base_point)
-        tg_vec_1 = space.to_tangent(vector[1], base_point)
-        hor_y = space.horizontal_projection(tg_vec_1, base_point)
-        tg_vec_2 = space.to_tangent(vector[2], base_point)
-        hor_dy = space.horizontal_projection(tg_vec_2, base_point)
-        tg_vec_3 = space.to_tangent(vector[3], base_point)
-        hor_z = space.horizontal_projection(tg_vec_3, base_point)
-        tg_vec_4 = space.to_tangent(vector[4], base_point)
-        hor_dz = space.horizontal_projection(tg_vec_4, base_point)
-        tg_vec_5 = space.to_tangent(vector[5], base_point)
-        ver_v = space.vertical_projection(tg_vec_5, base_point)
-        tg_vec_6 = space.to_tangent(vector[6], base_point)
-        ver_dv = space.vertical_projection(tg_vec_6, base_point)
-        tg_vec_7 = space.to_tangent(vector[7], base_point)
-        hor_h = space.horizontal_projection(tg_vec_7, base_point)
-        tg_vec_8 = space.to_tangent(vector[8], base_point)
-        hor_dh = space.horizontal_projection(tg_vec_8, base_point)
-        tg_vec_9 = space.to_tangent(vector[9], base_point)
-        ver_w = space.vertical_projection(tg_vec_9, base_point)
-        tg_vec_10 = space.to_tangent(vector[10], base_point)
-        ver_dw = space.vertical_projection(tg_vec_10, base_point)
-
-        # generate valid derivatives for nabla_X Y and nabla_X V
-        a_x_y = space.integrability_tensor(hor_x, hor_y, base_point)
-        nabla_x_y = hor_dy + a_x_y
-        a_x_z = space.integrability_tensor(hor_x, hor_z, base_point)
-        nabla_x_z = hor_dz + a_x_z
-        a_x_v = space.integrability_tensor(hor_x, ver_v, base_point)
-        nabla_x_v = ver_dv + a_x_v
-        a_x_w = space.integrability_tensor(hor_x, ver_w, base_point)
-        nabla_x_w = ver_dw + a_x_w
-
-        # Alternating property: \nabla_X ( A_Y Z + A_Z Y ) = 0
         nabla_x_a_y_z, a_y_z = \
-            space.integrability_tensor_derivative(
-                hor_x, hor_y, nabla_x_y, hor_z, nabla_x_z, base_point)
-        nabla_x_a_z_y, _ = \
-            space.integrability_tensor_derivative(
-                hor_x, hor_z, nabla_x_z, hor_y, nabla_x_y, base_point)
-        result = nabla_x_a_y_z + nabla_x_a_z_y
-        self.assertAllClose(result, gs.zeros_like(result))
+            self.space.integrability_tensor_derivative(
+                self.hor_x, self.hor_y, self.nabla_x_y, self.hor_z,
+                self.nabla_x_z, self.base_point)
 
-        # Reverse horizontal and vertical subspaces: nabla_X < A_Y Z, H > = 0
-        a_x_h = space.integrability_tensor(hor_x, hor_h, base_point)
-        nabla_x_h = hor_dh + a_x_h
-        result = scal(nabla_x_a_y_z, hor_h) + scal(a_y_z, nabla_x_h)
-        self.assertAllClose(result, gs.zeros_like(result))
-
-        # Reverse horizontal and vertical subspaces: nabla_X < A_Y V, W > = 0
         nabla_x_a_y_v, a_y_v = \
-            space.integrability_tensor_derivative(
-                hor_x, hor_y, nabla_x_y, ver_v, nabla_x_v, base_point)
-        result = scal(nabla_x_a_y_v, ver_w) + scal(a_y_v, nabla_x_w)
+            self.space.integrability_tensor_derivative(
+                self.hor_x, self.hor_y, self.nabla_x_y, self.ver_v,
+                self.nabla_x_v, self.base_point)
+
+        result = \
+            scal(nabla_x_a_y_z, self.ver_v) + scal(a_y_z, self.nabla_x_v) \
+            + scal(nabla_x_a_y_v, self.hor_z) + scal(a_y_v, self.nabla_x_z)
         self.assertAllClose(result, gs.zeros_like(result))
 
-        # Skew-symmetry \nabla_X < A_Y Z , V > + nabla_X < A_Y V , Z > = 0
-        result = \
-            scal(nabla_x_a_y_z, ver_v) + scal(a_y_z, nabla_x_v) \
-            + scal(nabla_x_a_y_v, hor_z) + scal(a_y_v, nabla_x_z)
+    def test_integrability_tensor_derivative_reverses_hor_ver(self):
+        """Integrability tensor derivatives exchanges hor & ver in pre-shape.
+
+        For :math: `X,Y,Z` horizontal and :math: `V,W` vertical, the
+        integrability tensor (and thus its derivative) reverses horizontal
+        and vertical subspaces: :math: `\nabla_X < A_Y Z, H > = 0`  and
+        :math: `nabla_X < A_Y V, W > = 0`.
+        """
+        scal = self.space.ambient_metric.inner_product
+
+        nabla_x_a_y_z, a_y_z = \
+            self.space.integrability_tensor_derivative(
+                self.hor_x, self.hor_y, self.nabla_x_y, self.hor_z,
+                self.nabla_x_z, self.base_point)
+        result = scal(nabla_x_a_y_z, self.hor_h) + scal(a_y_z, self.nabla_x_h)
         self.assertAllClose(result, gs.zeros_like(result))
+
+        nabla_x_a_y_v, a_y_v = \
+            self.space.integrability_tensor_derivative(
+                self.hor_x, self.hor_y, self.nabla_x_y, self.ver_v,
+                self.nabla_x_v, self.base_point)
+        result = scal(nabla_x_a_y_v, self.ver_w) + scal(a_y_v, self.nabla_x_w)
+        self.assertAllClose(result, gs.zeros_like(result))
+
+    def test_integrability_tensor_derivative_parallel(self):
+        """Test optimized integrability tensor derivatives in pre-shape space.
+
+        Optimized version for quotient-parallel vector fields should equal
+        the general implementation.
+        """
+        nabla_x_a_y_z_qp, a_y_z_qp = \
+            self.space.integrability_tensor_derivative_parallel(
+                self.hor_x, self.hor_y, self.hor_z, self.base_point)
+
+        a_x_y = self.space.integrability_tensor(
+                self.hor_x, self.hor_y, self.base_point)
+        a_x_z = self.space.integrability_tensor(
+                self.hor_x, self.hor_z, self.base_point)
+
+        nabla_x_a_y_z, a_y_z = \
+            self.space.integrability_tensor_derivative(
+                self.hor_x, self.hor_y, a_x_y, self.hor_z,
+                a_x_z, self.base_point)
+
+        self.assertAllClose(a_y_z, a_y_z_qp)
+        self.assertAllClose(nabla_x_a_y_z, nabla_x_a_y_z_qp)
 
     def test_iterated_integrability_tensor_derivative_parallel(self):
-        space = self.space
+        """Test optimized iterated integrability tensor derivatives.
 
-        base_point = space.random_point()
-        vector = gs.random.rand(2, self.k_landmarks, self.m_ambient)
-        tg_vec_0 = space.to_tangent(vector[0], base_point)
-        hor_x = space.horizontal_projection(tg_vec_0, base_point)
-        tg_vec_1 = space.to_tangent(vector[1], base_point)
-        hor_y = space.horizontal_projection(tg_vec_1, base_point)
-
-        a_x_y = space.integrability_tensor(hor_x, hor_y, base_point)
-        nabla_x_v, a_x_y = \
-            space.integrability_tensor_derivative(
-                hor_x, hor_x, gs.zeros_like(hor_x), hor_y, a_x_y, base_point)
+        The optimized version of the iterated integrability tensor
+        :math: `A_X A_Y A_X Y`, computed with the horizontal lift of
+        quotient-parallel vector fields extending the tangent vectors
+        :math: `X,Y` of Kendall shape spaces (identified to horizontal vectors
+        of the pre-shape space), is the recursive application of two general
+        integrability tensor derivatives with proper derivatives.
+        Intermediate computations returned are also verified.
+        """
+        a_x_y = self.space.integrability_tensor(
+            self.hor_x, self.hor_y, self.base_point)
+        nabla_x_v, a_x_y = self.space.integrability_tensor_derivative(
+            self.hor_x, self.hor_x, gs.zeros_like(self.hor_x),
+            self.hor_y, a_x_y, self.base_point)
 
         nabla_x_a_y_a_x_y, a_y_a_x_y = \
-            space.integrability_tensor_derivative(
-                hor_x, hor_y, a_x_y, a_x_y, nabla_x_v, base_point)
+            self.space.integrability_tensor_derivative(
+                self.hor_x, self.hor_y, a_x_y, a_x_y, nabla_x_v,
+                self.base_point)
 
-        a_x_a_y_a_x_y = \
-            space.integrability_tensor(
-                hor_x, a_y_a_x_y, base_point)
+        a_x_a_y_a_x_y = self.space.integrability_tensor(
+            self.hor_x, a_y_a_x_y, self.base_point)
+
         nabla_x_a_y_a_x_y_qp, a_x_a_y_a_x_y_qp, \
             nabla_x_v_qp, a_y_a_x_y_qp, ver_v_qp = \
-            space.iterated_integrability_tensor_derivative_parallel(
-                hor_x, hor_y, base_point)
+            self.space.iterated_integrability_tensor_derivative_parallel(
+                self.hor_x, self.hor_y, self.base_point)
         self.assertAllClose(a_x_y, ver_v_qp)
         self.assertAllClose(a_y_a_x_y, a_y_a_x_y_qp)
         self.assertAllClose(nabla_x_v, nabla_x_v_qp)
@@ -603,45 +627,30 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp)
 
     def test_curvature_derivative_bianchi_identity(self):
-        space = self.space
-        metric = self.shape_metric
+        """2nd Bianchi identity on curvature derivative in kendall Shape space.
 
-        base_point = space.random_point()
-        vector = gs.random.rand(
-            4, self.k_landmarks, self.m_ambient)
-        tg_vec_0 = space.to_tangent(vector[0], base_point)
-        hor_x = space.horizontal_projection(tg_vec_0, base_point)
-        tg_vec_1 = space.to_tangent(vector[1], base_point)
-        hor_y = space.horizontal_projection(tg_vec_1, base_point)
-        tg_vec_2 = space.to_tangent(vector[2], base_point)
-        hor_z = space.horizontal_projection(tg_vec_2, base_point)
-        tg_vec_t = space.to_tangent(vector[3], base_point)
-
-        term_x = metric.curvature_derivative(
-            hor_x, hor_y, hor_z, tg_vec_t, base_point)
-        term_y = metric.curvature_derivative(
-            hor_y, hor_z, hor_x, tg_vec_t, base_point)
-        term_z = metric.curvature_derivative(
-            hor_z, hor_x, hor_y, tg_vec_t, base_point)
+        For any 3 tangent vectors horizontally lifted from kendall shape
+        space to Kendall pre-shape space, :math: `(\nabla_X R)(Y, Z)
+        + (\nabla_Y R)(Z,X) + (\nabla_Z R)(X, Y) = 0`.
+        """
+        term_x = self.shape_metric.curvature_derivative(
+            self.hor_x, self.hor_y, self.hor_z, self.hor_h, self.base_point)
+        term_y = self.shape_metric.curvature_derivative(
+            self.hor_y, self.hor_z, self.hor_x, self.hor_h, self.base_point)
+        term_z = self.shape_metric.curvature_derivative(
+            self.hor_z, self.hor_x, self.hor_y, self.hor_h, self.base_point)
 
         result = term_x + term_y + term_z
         self.assertAllClose(result, gs.zeros_like(result))
 
     def test_curvature_derivative_is_skew_operator(self):
-        space = self.space
-        metric = self.shape_metric
+        """Derivative of a skew operator is skew.
 
-        base_point = space.random_point()
-        vector = gs.random.rand(3, self.k_landmarks, self.m_ambient)
-        tg_vec_0 = space.to_tangent(vector[0], base_point)
-        hor_x = space.horizontal_projection(tg_vec_0, base_point)
-        tg_vec_1 = space.to_tangent(vector[1], base_point)
-        hor_y = space.horizontal_projection(tg_vec_1, base_point)
-        tg_vec_2 = space.to_tangent(vector[2], base_point)
-        hor_z = space.horizontal_projection(tg_vec_2, base_point)
-
-        result = metric.curvature_derivative(
-            hor_x, hor_y, hor_y, hor_z, base_point)
+        For any 3 tangent vectors horizontally lifted from kendall shape space
+        to Kendall pre-shape space, :math: `(\nabla_X R)(Y,Y)Z = 0`.
+        """
+        result = self.shape_metric.curvature_derivative(
+            self.hor_x, self.hor_y, self.hor_y, self.hor_z, self.base_point)
         self.assertAllClose(result, gs.zeros_like(result))
 
     def test_directional_curvature_derivative(self):
