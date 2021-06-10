@@ -5,8 +5,6 @@ import logging
 from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
-from geomstats.geometry.poincare_ball \
-    import PoincareBall
 from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.frechet_mean import variance
@@ -81,53 +79,51 @@ def gmm_pdf(
 
 
 def weighted_gmm_pdf(
-        mixture_coefficients, mesh_data,  means, variances, metric):
-        """Return the probability density function of a GMM.
+        mixture_coefficients, mesh_data, means, variances, metric):
+    """Return the probability density function of a GMM.
 
-        Parameters
-        ----------
-        mixture_coefficients : array-like, shape=[n_gaussians,]
-            Coefficients of the Gaussian mixture model.
-        mesh_data : array-like, shape=[n_precision, dim]
-            Points at which the GMM probability density is computed.
-        means : array-like, shape=[n_gaussians, dim]
-            Means of each component of the GMM.
-        variances : array-like, shape=[n_gaussians,]
-            Variances of each component of the GMM.
-        metric : RiemannianMetric
-            Metric to use on the manifold.
+    Parameters
+    ----------
+    mixture_coefficients : array-like, shape=[n_gaussians,]
+        Coefficients of the Gaussian mixture model.
+    mesh_data : array-like, shape=[n_precision, dim]
+        Points at which the GMM probability density is computed.
+    means : array-like, shape=[n_gaussians, dim]
+        Means of each component of the GMM.
+    variances : array-like, shape=[n_gaussians,]
+        Variances of each component of the GMM.
+    metric : RiemannianMetric
+        Metric to use on the manifold.
 
-        Returns
-        -------
-        weighted_pdf : array-like, shape=[n_precision, n_gaussians,]
-            Probability density function computed for each point of
-            the mesh data, for each component of the GMM.
-        """
-        distance_to_mean = metric.dist_broadcast(mesh_data, means)
+    Returns
+    -------
+    weighted_pdf : array-like, shape=[n_precision, n_gaussians,]
+        Probability density function computed for each point of
+        the mesh data, for each component of the GMM.
+    """
+    distance_to_mean = metric.dist_broadcast(mesh_data, means)
 
-        variances_units = gs.expand_dims(variances, 0)
-        variances_units = gs.repeat(
-            variances_units, distance_to_mean.shape[0], axis=0)
+    variances_units = gs.expand_dims(variances, 0)
+    variances_units = gs.repeat(
+        variances_units, distance_to_mean.shape[0], axis=0)
 
-        distribution_normal = gs.exp(
-            -(distance_to_mean ** 2) / (2 * variances_units ** 2))
+    distribution_normal = gs.exp(
+        -(distance_to_mean ** 2) / (2 * variances_units ** 2))
 
-        zeta_sigma = (2 * gs.pi) ** (2./3) * variances
-        zeta_sigma = zeta_sigma * gs.exp(
-            (variances ** 2 / 2) * gs.erf(variances / gs.sqrt(2)))
+    zeta_sigma = (2 * gs.pi) ** (2 / 3) * variances
+    zeta_sigma = zeta_sigma * gs.exp(
+        (variances ** 2 / 2) * gs.erf(variances / gs.sqrt(2)))
 
-        result_num = gs.expand_dims(mixture_coefficients, 0)
-        result_num = gs.repeat(
-            result_num, len(distribution_normal), axis=0)
-        result_num = result_num * distribution_normal
+    result_num = gs.expand_dims(mixture_coefficients, 0)
+    result_num = gs.repeat(result_num, len(distribution_normal), axis=0)
+    result_num = result_num * distribution_normal
 
-        result_denum = gs.expand_dims(zeta_sigma, 0)
-        result_denum = gs.repeat(
-            result_denum, len(distribution_normal), axis=0)
+    result_denum = gs.expand_dims(zeta_sigma, 0)
+    result_denum = gs.repeat(result_denum, len(distribution_normal), axis=0)
 
-        weighted_pdf = result_num / result_denum
+    weighted_pdf = result_num / result_denum
 
-        return weighted_pdf
+    return weighted_pdf
 
 
 class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
@@ -280,11 +276,11 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             n_features is the number of features.
         """
         probability_distribution_function = gmm_pdf(
-                data, self.means, self.variances,
-                norm_func=self.metric.find_normalization_factor,
-                metric=self.metric,
-                variances_range=self.variances_range,
-                norm_func_var=self.normalization_factor_var)
+            data, self.means, self.variances,
+            norm_func=self.metric.find_normalization_factor,
+            metric=self.metric,
+            variances_range=self.variances_range,
+            norm_func_var=self.normalization_factor_var)
 
         if gs.isnan(probability_distribution_function.mean()):
             logging.warning('EXPECTATION : Probability distribution function'
