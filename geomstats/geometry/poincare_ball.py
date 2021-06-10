@@ -67,59 +67,6 @@ class PoincareBall(_Hyperbolic, OpenSet):
         """
         return gs.sum(point**2, axis=-1) < (1 - atol)
 
-    @staticmethod
-    def weighted_gmm_pdf(mixture_coefficients,
-                         mesh_data,
-                         means,
-                         variances,
-                         metric):
-        """Return the probability density function of a GMM.
-
-        Parameters
-        ----------
-        mixture_coefficients : array-like, shape=[n_gaussians,]
-            Coefficients of the Gaussian mixture model.
-        mesh_data : array-like, shape=[n_precision, dim]
-            Points at which the GMM probability density is computed.
-        means : array-like, shape=[n_gaussians, dim]
-            Means of each component of the GMM.
-        variances : array-like, shape=[n_gaussians,]
-            Variances of each component of the GMM.
-        metric : function
-            Distance function associated with the used metric.
-
-        Returns
-        -------
-        weighted_pdf : array-like, shape=[n_precision, n_gaussians,]
-            Probability density function computed for each point of
-            the mesh data, for each component of the GMM.
-        """
-        distance_to_mean = metric.dist_broadcast(mesh_data, means)
-
-        variances_units = gs.expand_dims(variances, 0)
-        variances_units = gs.repeat(
-            variances_units, distance_to_mean.shape[0], axis=0)
-
-        distribution_normal = gs.exp(
-            -(distance_to_mean ** 2) / (2 * variances_units ** 2))
-
-        zeta_sigma = PI_2_3 * variances
-        zeta_sigma = zeta_sigma * gs.exp(
-            (variances ** 2 / 2) * gs.erf(variances / gs.sqrt(2)))
-
-        result_num = gs.expand_dims(mixture_coefficients, 0)
-        result_num = gs.repeat(
-            result_num, len(distribution_normal), axis=0)
-        result_num = result_num * distribution_normal
-
-        result_denum = gs.expand_dims(zeta_sigma, 0)
-        result_denum = gs.repeat(
-            result_denum, len(distribution_normal), axis=0)
-
-        weighted_pdf = result_num / result_denum
-
-        return weighted_pdf
-
     def projection(self, point):
         """Project a point on the ball.
 
