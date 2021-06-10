@@ -327,7 +327,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
     def integrability_tensor_old(
             self, tangent_vec_a, tangent_vec_b, base_point):
-        r"""Compute the fundamental tensor A of the submersion.
+        r"""Compute the fundamental tensor A of the submersion (old).
 
         The fundamental tensor A is defined for tangent vectors of the total
         space by [O'Neill]_ :math: `A_X Y = ver\nabla^M_{hor X} (hor Y)
@@ -383,8 +383,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         r"""Compute the fundamental tensor A of the submersion.
 
         The fundamental tensor A is defined for tangent vectors of the total
-        space by [O'Neill]_
-        :math: `A_X Y = ver\nabla^M_{hor X} (hor Y)
+        space by [O'Neill]_ :math: `A_X Y = ver\nabla^M_{hor X} (hor Y)
             + hor \nabla^M_{hor X}( ver Y)`
         where :math: `hor, ver` are the horizontal and vertical projections.
 
@@ -412,7 +411,6 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         References
         ----------
-
         .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
         Submersion, Michigan Mathematical Journal 13, no. 4 (December 1966):
         459–69. https://doi.org/10.1307/mmj/1028999604.
