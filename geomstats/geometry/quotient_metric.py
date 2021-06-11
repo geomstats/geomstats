@@ -144,7 +144,9 @@ class QuotientMetric(RiemannianMetric):
             base_point):
         r"""Compute the curvature.
 
-        For three tangent vectors at a base point :math: `X,Y,Z`,
+        For three vectors fields :math: `X|_P = tangent_vec_a,
+        Y|_P = tangent_vec_b, Z|_P = tangent_vec_c` with tangent vector
+        specified in argument at the base point :math: `P`,
         the curvature is defined by :math: `R(X,Y)Z = \nabla_{[X,Y]}Z
         - \nabla_X\nabla_Y Z + \nabla_Y\nabla_X Z`.
 
@@ -152,6 +154,14 @@ class QuotientMetric(RiemannianMetric):
         Riemannian submersion allow to compute the curvature of the base
         manifold from the one of the total space and a correction term that
         uses the integrability tensor A [O'Neill]_.
+
+        In more details, let :math: `X, Y, Z` be the horizontal lift of
+        vector fields extending the tangent vectors given in argument in a
+        neighborhood of the base-point P in the base-space. Then the
+        curvature of the base-space at the base-points is
+        :math: `R(X,Y) Z = hor( R^T(X,Y) Z) - 2 A_Z A_X Y + A_X A_Y Z - A_Y
+        A_X Z`, where :math: `R^T(X,Y)Z` is the curvature tensor of the
+        total space.
 
         Parameters
         ----------
@@ -207,14 +217,15 @@ class QuotientMetric(RiemannianMetric):
         return projected_top_curvature - 2 * f_c_f_ab + f_a_f_bc - f_b_f_ac
 
     def curvature_derivative(
-            self, tangent_vec_h, tangent_vec_x, tangent_vec_y,
-            tangent_vec_z, base_point=None):
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
+            tangent_vec_d, base_point=None):
         r"""Compute the covariant derivative of the curvature.
 
-        For four tangent vectors :math: `H|_P, X|_P, Y|_P, Z|_P` at the base
-        point :math: `P` given in argument, the covariant derivative of the
-        curvature :math: `(\nabla_H R)(X, Y)Z |_P` is computed at the base
-        point P.
+        For four vectors fields :math: `H|_P = tangent_vec_a, X|_P =
+        tangent_vec_b, Y|_P = tangent_vec_c, Z|_P = tangent_vec_d` with
+        tangent vector value specified in argument at the base point `P`,
+        the covariant derivative of the curvature
+        :math: `(\nabla_H R)(X, Y)Z |_P` is computed at the base point P.
 
         In the case of quotient metrics, the fundamental equations of a
         Riemannian submersion allow to compute this tensor on the base manifold
@@ -229,21 +240,22 @@ class QuotientMetric(RiemannianMetric):
         :math: `\nabla^T_H^X = A_H X` (and similarly for Y and Z) using the
         connection :math: `\nabla^T` of the total space. Then the covariant
         derivative of the curvature tensor is given by
-        :math: `\nabla_H (R(X, Y) Z) = \hor\nabla_H^T(R^T(X,Y)Z)
-        - A_H(\ver R^T(X,Y)Z ) - (2 A_H A_Z A_X Y - A_H A_X A_Y Z
-        + A_H A_Y A_X Z) + (2\nabla_H^T A_Z A_X Y -\nabla_H^T A_X A_Y Z
-        +\nabla_H^T A_Y A_X Z)`, where :math: `R^T(X,Y)Z` is the curvature
+        :math: `\nabla_H (R(X, Y) Z) =
+        \hor\nabla_H^T(R^T(X,Y)Z) - A_H(ver R^T(X,Y)Z )
+        + (2 A_H A_Z A_X Y - A_H A_X A_Y Z + A_H A_Y A_X Z)
+        - (2 \nabla_H^T A_Z A_X Y - \nabla_H^T A_X A_Y Z +
+             \nabla_H^T A_Y A_X Z)`, where :math: `R^T(X,Y)Z` is the curvature
         tensor of the total space.
 
         Parameters
         ----------
-        tangent_vec_h : array-like, shape=[..., n, n]
+        tangent_vec_a : array-like, shape=[..., n, n]
+            Tangent vector at `base_point` (derivative direction)).
+        tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
-        tangent_vec_x : array-like, shape=[..., n, n]
+        tangent_vec_c : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
-        tangent_vec_y : array-like, shape=[..., n, n]
-            Tangent vector at `base_point`.
-        tangent_vec_z : array-like, shape=[..., n, n]
+        tangent_vec_d : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., n, n]
             Point on the base manifold.
@@ -260,10 +272,10 @@ class QuotientMetric(RiemannianMetric):
         """
         bundle = self.fiber_bundle
         point_fiber = bundle.lift(base_point)
-        hor_h = bundle.horizontal_lift(tangent_vec_h, point_fiber)
-        hor_x = bundle.horizontal_lift(tangent_vec_x, point_fiber)
-        hor_y = bundle.horizontal_lift(tangent_vec_y, point_fiber)
-        hor_z = bundle.horizontal_lift(tangent_vec_z, point_fiber)
+        hor_h = bundle.horizontal_lift(tangent_vec_a, point_fiber)
+        hor_x = bundle.horizontal_lift(tangent_vec_b, point_fiber)
+        hor_y = bundle.horizontal_lift(tangent_vec_c, point_fiber)
+        hor_z = bundle.horizontal_lift(tangent_vec_d, point_fiber)
 
         nabla_h_x = bundle.integrability_tensor(hor_h, hor_x, point_fiber)
         nabla_h_y = bundle.integrability_tensor(hor_h, hor_y, point_fiber)
@@ -305,22 +317,22 @@ class QuotientMetric(RiemannianMetric):
 
         return \
             hor_nabla_curvature_top - a_h_ver_nabla_curvature_top \
-            + 2. * (nabla_h_a_z_a_x_y - a_h_a_z_a_x_y) \
-            - nabla_h_a_x_a_y_z + a_h_a_x_a_y_z \
-            + nabla_h_a_y_a_x_z - a_h_a_y_a_x_z
+            - 2. * (nabla_h_a_z_a_x_y - a_h_a_z_a_x_y) \
+            + nabla_h_a_x_a_y_z + a_h_a_x_a_y_z \
+            - nabla_h_a_y_a_x_z - a_h_a_y_a_x_z
 
     def directional_curvature_derivative(
-            self, tangent_vec_x, tangent_vec_y, base_point=None):
+            self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For the two tangent vectors :math: `X|_P, Y|_P` at the base point
-        :math: `P` given in argument, the covariant derivative
+        For two vectors fields :math: `X|_P = tangent_vec_a, Y|_P =
+        tangent_vec_b` with tangent vector value specified in argument at the
+        base point `P`, the covariant derivative
         :math: `(\nabla_X R_Y)(X) |_P = (\nabla_X R)(X, Y)Y |_P` of the
         directional curvature :math: `R_Y(X) = R(X, Y)Y` in the direction
         :math: 'X' is computed. This is a quadratic tensor in :math: 'X' and
         :math: 'Y' that plays an important role in the computation of the
-        bias and higher orders of the covariance matrix of the empirical
-        Fréchet mean.
+        moments of the empirical Fréchet mean.
 
         This tensor can be computed from the covariant derivative of the
         curvature tensor as in done generically the Connection class.
@@ -337,16 +349,16 @@ class QuotientMetric(RiemannianMetric):
         :math: `\nabla^T_X^Y = A_X Y` using the connection :math: `\nabla^T`
         of the total space. Then the covariant derivative of the
         directional curvature tensor is given by :math:
-        `\nabla_X (R_Y(X)) = \hor\nabla_H^T(R^T_Y(X)) - A_X(\ver R^T_Y(X))
-        - 3 A_X A_Y A_X Y + 3 \nabla_X^T A_Y A_X Y `, where :math: `R^T_Y(X)`
+        `\nabla_X (R_Y(X)) = hor \nabla^T_X (R^T_Y(X)) - A_X( ver R^T_Y(X))
+        + 3 A_X A_Y A_X Y - 3 \nabla_X^T A_Y A_X Y `, where :math: `R^T_Y(X)`
         is the directional curvature tensor of the total space.
 
 
         Parameters
         ----------
-        tangent_vec_x : array-like, shape=[..., n, n]
+        tangent_vec_a : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
-        tangent_vec_y : array-like, shape=[..., n, n]
+        tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., n, n]
             Point on the base manifold.
@@ -363,8 +375,8 @@ class QuotientMetric(RiemannianMetric):
         """
         bundle = self.fiber_bundle
         point_fiber = bundle.lift(base_point)
-        hor_x = bundle.horizontal_lift(tangent_vec_x, point_fiber)
-        hor_y = bundle.horizontal_lift(tangent_vec_y, point_fiber)
+        hor_x = bundle.horizontal_lift(tangent_vec_a, point_fiber)
+        hor_y = bundle.horizontal_lift(tangent_vec_b, point_fiber)
 
         nabla_x_x = gs.zeros_like(hor_x)
         nabla_x_y = bundle.integrability_tensor(hor_x, hor_y, point_fiber)
@@ -389,4 +401,4 @@ class QuotientMetric(RiemannianMetric):
 
         return \
             hor_nabla_curvature_top - a_x_ver_nabla_curvature_top \
-            + 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
+            - 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
