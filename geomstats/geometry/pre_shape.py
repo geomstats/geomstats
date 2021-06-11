@@ -861,36 +861,41 @@ class PreShapeMetric(RiemannianMetric):
         return curvature
 
     def curvature_derivative(
-            self, _tangent_vec_h, _tangent_vec_x,
-            _tangent_vec_y, _tangent_vec_z,
-            base_point=None):
+            self, tangent_vec_a, tangent_vec_b=None, tangent_vec_c=None,
+            tangent_vec_d=None, base_point=None):
         r"""Compute the covariant derivative of the curvature.
 
-        For four tangent vectors at a base point :math: `H|_P, X|_P,
-        Y|_P, Z|_P` given in argument, the covariant derivative of the
-        curvature :math: `(\nabla_H R)(X, Y)Z |_P` is computed at the
-        base point P. Since the sphere is a constant curvature space this
+        For four vectors fields :math: `H|_P = tangent_vec_a, X|_P =
+        tangent_vec_b, Y|_P = tangent_vec_c, Z|_P = tangent_vec_d` with
+        tangent vector value specified in argument at the base point `P`,
+        the covariant derivative of the curvature
+        :math: `(\nabla_H R)(X, Y) Z |_P` is computed at the base point P.
+        Since the sphere is a constant curvature space this
         vanishes identically.
 
         Parameters
         ----------
-        tangent_vec_h : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`.
-        tangent_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`.
-        tangent_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`.
-        tangent_vec_z : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`.
+        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
+            Tangent vector at `base_point` along which the curvature is
+            derived.
+        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
+            Unused tangent vector at `base_point` (since curvature derivative
+            vanishes).
+        tangent_vec_c : array-like, shape=[..., k_landmarks, m_ambient]
+            Unused tangent vector at `base_point` (since curvature derivative
+            vanishes).
+        tangent_vec_d : array-like, shape=[..., k_landmarks, m_ambient]
+            Unused tangent vector at `base_point` (since curvature derivative
+            vanishes).
         base_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the group.
+            Unused point on the group.
 
         Returns
         -------
         curvature_derivative : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at base point.
         """
-        return gs.zeros_like(base_point)
+        return gs.zeros_like(tangent_vec_a)
 
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Riemannian parallel transport of a tangent vector.
@@ -946,27 +951,34 @@ class KendallShapeMetric(QuotientMetric):
             dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2))
 
     def directional_curvature_derivative(
-            self, tangent_vec_x, tangent_vec_y, base_point=None):
+            self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For the two horizontal tangent vectors at a base point :math: `X|_P,
-        Y|_P` given in argument, the covariant derivative of the directional
-        curvature in quotient space  :math: `(\nabla^Q_X R^Q_Y)(X) |_P =
-        (\nabla^Q_X R^Q)(X, Y)Y |_P` is computed at the base point P. This
-        tensor is computed with quotient-parallel vector fields :math: `X,
-        Y` extending the horizontal tangent vectors tangent_vec_x and
-        tangent_vec_y by parallel transport in a neighborhood of the quotient
-        space. Such vector fields verify :math: `\nabla^M_X X=0` and :math:
-        `\nabla^M_H^X Y = A_X Y`. The covariant derivative of the directional
-        curvature is then computed using the formula :math:
-        `\nabla_X^Q (R^Q_Y(X)) = hor\nabla_H^M(R^M_Y(X)) - A_X(ver R^M_Y(X))
-        - 3 A_X A_Y A_X Y + 3 \nabla_X^M A_Y A_X Y `.
+        For two vectors fields :math: `X|_P = tangent_vec_a, Y|_P =
+        tangent_vec_b` with tangent vector value specified in argument at the
+        base point `P`, the covariant derivative (in the direction 'X')
+        :math: `(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
+        directional curvature (in the direction `Y`)
+        :math: `R_Y(X) = R(Y, X) Y`  is a quadratic tensor in 'X' and 'Y' that
+        plays an important role in the computation of the moments of the
+        empirical Fréchet mean [Pennec]_.
+
+        In more details, let :math: `X, Y` be the horizontal lift of parallel
+        vector fields extending the tangent vectors given in argument by
+        parallel transport in a neighborhood of the base-point P in the
+        base-space. Such vector fields verify :math: `\nabla^T_X X=0` and
+        :math: `\nabla^T_X^Y = A_X Y` using the connection :math: `\nabla^T`
+        of the total space. Then the covariant derivative of the
+        directional curvature tensor is given by :math:
+        `\nabla_X (R_Y(X)) = hor \nabla^T_X (R^T_Y(X)) - A_X( ver R^T_Y(X))
+        - 3 (\nabla_X^T A_Y A_X Y - A_X A_Y A_X Y )`, where :math: `R^T_Y(X)`
+        is the directional curvature tensor of the total space.
 
         Parameters
         ----------
-        tangent_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
-        tangent_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the group.
@@ -976,10 +988,14 @@ class KendallShapeMetric(QuotientMetric):
         curvature_derivative : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at base point.
         """
+        horizontal_x = self.fiber_bundle.horizontal_projection(
+            tangent_vec_a, base_point)
+        horizontal_y = self.fiber_bundle.horizontal_projection(
+            tangent_vec_b, base_point)
         nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, _, _, _ = self.fiber_bundle.\
             iterated_integrability_tensor_derivative_parallel(
-                tangent_vec_x, tangent_vec_y, base_point)
-        return 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
+                horizontal_x, horizontal_y, base_point)
+        return -3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
 
     def parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=100,

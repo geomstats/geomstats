@@ -429,9 +429,10 @@ class Connection:
             base_point):
         r"""Compute the curvature.
 
-        For three tangent vectors at a base point :math: `X,Y,Z`,
-        the curvature is defined by
-        :math: `R(X, Y)Z = \nabla_{[X,Y]}Z
+        For three vectors fields :math: `X|_P = tangent_vec_a,
+        Y|_P = tangent_vec_b, Z|_P = tangent_vec_c` with tangent vector
+        specified in argument at the base point :math: `P`,
+        the curvature is defined by :math: `R(X,Y)Z = \nabla_{[X,Y]}Z
         - \nabla_X\nabla_Y Z + \nabla_Y\nabla_X Z`.
 
         Parameters
@@ -456,9 +457,11 @@ class Connection:
             self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the directional curvature (tidal force operator).
 
-        For the two tangent vectors at a base point :math: `X,Y` given in
-        argument, the directional curvature, better known in relativity as
-        the tidal force operator, is defined by :math: `R_X(Y) = R(X,Y)X`.
+        For two vectors fields :math: `X|_P = tangent_vec_a`, and :math:
+        `Y|_P = tangent_vec_b` with tangent vector specified in argument at
+        the base point :math: `P`, the directional curvature, better known
+        in relativity as the tidal force operator, is defined by
+        :math: `R_X(Y) = R(X,Y)X`.
 
         Parameters
         ----------
@@ -478,23 +481,25 @@ class Connection:
                               base_point)
 
     def curvature_derivative(
-            self, tangent_vec_v, tangent_vec_x, tangent_vec_y, tangent_vec_z,
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d,
             base_point=None):
         r"""Compute the covariant derivative of the curvature.
 
-        For the four tangent vectors at a base point :math: `V, X, Y, Z`,
-        the covariant derivative of the curvature :math: `(\nabla_V R)(X, Y)Z`
-        is computed at the base point using Leibniz formula.
+        For four vectors fields :math: `H|_P = tangent_vec_a, X|_P =
+        tangent_vec_b, Y|_P = tangent_vec_c, Z|_P = tangent_vec_d` with
+        tangent vector value specified in argument at the base point `P`,
+        the covariant derivative of the curvature
+        :math: `(\nabla_H R)(X, Y) Z |_P` is computed at the base point P.
 
         Parameters
         ----------
-        tangent_vec_v : array-like, shape=[..., dim]
+        tangent_vec_a : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_x : array-like, shape=[..., dim]
+        tangent_vec_b : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_y : array-like, shape=[..., dim]
+        tangent_vec_c : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_z : array-like, shape=[..., dim]
+        tangent_vec_d : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., dim]
             Base-point on the manifold.
@@ -508,23 +513,23 @@ class Connection:
                                   'implemented.')
 
     def directional_curvature_derivative(
-            self, tangent_vec_x, tangent_vec_y, base_point=None):
+            self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For the two tangent vectors :math: `X|_P, Y|_P` at the base point
-        :math: `P` given in argument, the covariant derivative
-        :math: `(\nabla_X R_Y)(X) |_P = (\nabla_X R)(X, Y)Y |_P` of the
-        directional curvature :math: `R_Y(X) = R(X, Y)Y` in the direction
-        :math: 'X' is a quadratic tensor in :math: 'X' and :math: 'Y' that
-        plays an important role in the computation of the bias and higher
-        orders of the covariance matrix of the empirical Fréchet mean
-        [Pennec]_.
+        For two vectors fields :math: `X|_P = tangent_vec_a, Y|_P =
+        tangent_vec_b` with tangent vector value specified in argument at the
+        base point `P`, the covariant derivative (in the direction 'X')
+        :math: `(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
+        directional curvature (in the direction `Y`)
+        :math: `R_Y(X) = R(Y, X) Y`  is a quadratic tensor in 'X' and 'Y' that
+        plays an important role in the computation of the moments of the
+        empirical Fréchet mean [Pennec]_.
 
         Parameters
         ----------
-        tangent_vec_x : array-like, shape=[..., dim]
+        tangent_vec_a : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_y : array-like, shape=[..., dim]
+        tangent_vec_b : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., dim]
             Base-point on the manifold.
@@ -542,7 +547,7 @@ class Connection:
         https://arxiv.org/abs/1906.07418
         """
         return self.curvature_derivative(
-            tangent_vec_x, tangent_vec_x, tangent_vec_y, tangent_vec_y,
+            tangent_vec_a, tangent_vec_b, tangent_vec_a, tangent_vec_b,
             base_point)
 
     def geodesic(self, initial_point,

@@ -464,7 +464,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             tangent_vec_x, tangent_vec_e, base_point)
         self.assertAllClose(result, expected)
 
-    def test_kendall_directional_curvature(self):
+    def test_kendall_sectional_curvature(self):
         """sectional curvature of Kendall shape space is larger than 1.
 
         The sectional curvature always increase by taking the quotient in a
@@ -626,7 +626,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(a_x_a_y_a_x_y, a_x_a_y_a_x_y_qp)
         self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp)
 
-    def test_curvature_derivative_bianchi_identity(self):
+    def test_kendall_curvature_derivative_bianchi_identity(self):
         """2nd Bianchi identity on curvature derivative in kendall Shape space.
 
         For any 3 tangent vectors horizontally lifted from kendall shape
@@ -664,9 +664,11 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         tg_vec_1 = space.to_tangent(vector[1], base_point)
         hor_y = space.horizontal_projection(tg_vec_1, base_point)
 
+        ##### TBD: there is a sign problem rmaining
+
         # General formula based on curvature derivative
         expected = metric.curvature_derivative(
-            hor_x, hor_x, hor_y, hor_y, base_point)
+            hor_x, hor_y, hor_x, hor_y, base_point)
 
         # Optimized method of KendallShapeMetric class
         result_kendall_shape_metric = \
