@@ -279,4 +279,3 @@ class TestMatrices(geomstats.tests.TestCase):
         result = Matrices.diagonal(mat)
         expected = gs.ones((2, 3))
         self.assertAllClose(result, expected)
-        
