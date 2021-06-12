@@ -449,8 +449,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(is_horizontal)
 
     def test_integrability_tensor_old(self):
-        """Test if old and new implementation give the same result.
-        """
+        """Test if old and new implementation give the same result."""
         space = self.space
         base_point = space.random_point()
         vector = gs.random.rand(
@@ -465,7 +464,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_kendall_sectional_curvature(self):
-        """sectional curvature of Kendall shape space is larger than 1.
+        """Sectional curvature of Kendall shape space is larger than 1.
 
         The sectional curvature always increase by taking the quotient in a
         Riemannian submersion. Thus, it should larger in kendall shape space
@@ -503,7 +502,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
     def test_integrability_tensor_derivative_is_alternate(self):
-        """Integrability tensor derivatives is alternate in pre-shape.
+        r"""Integrability tensor derivatives is alternate in pre-shape.
 
         For two horizontal vector fields :math: `X,Y` the integrability
         tensor (hence its derivatives) is alternate:
@@ -522,7 +521,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, gs.zeros_like(result))
 
     def test_integrability_tensor_derivative_is_skew_symmetric(self):
-        """Integrability tensor derivatives is skew-symmetric in pre-shape.
+        r"""Integrability tensor derivatives is skew-symmetric in pre-shape.
 
         For :math: `X,Y` horizontal and :math: `V,W` vertical:
         :math: `\nabla_X (< A_Y Z , V > + < A_Y V , Z >) = 0`.
@@ -545,7 +544,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, gs.zeros_like(result))
 
     def test_integrability_tensor_derivative_reverses_hor_ver(self):
-        """Integrability tensor derivatives exchanges hor & ver in pre-shape.
+        r"""Integrability tensor derivatives exchanges hor & ver in pre-shape.
 
         For :math: `X,Y,Z` horizontal and :math: `V,W` vertical, the
         integrability tensor (and thus its derivative) reverses horizontal
@@ -579,9 +578,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
                 self.hor_x, self.hor_y, self.hor_z, self.base_point)
 
         a_x_y = self.space.integrability_tensor(
-                self.hor_x, self.hor_y, self.base_point)
+            self.hor_x, self.hor_y, self.base_point)
         a_x_z = self.space.integrability_tensor(
-                self.hor_x, self.hor_z, self.base_point)
+            self.hor_x, self.hor_z, self.base_point)
 
         nabla_x_a_y_z, a_y_z = \
             self.space.integrability_tensor_derivative(
@@ -627,7 +626,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp)
 
     def test_kendall_curvature_derivative_bianchi_identity(self):
-        """2nd Bianchi identity on curvature derivative in kendall Shape space.
+        r"""2nd Bianchi identity on curvature derivative in kendall space.
 
         For any 3 tangent vectors horizontally lifted from kendall shape
         space to Kendall pre-shape space, :math: `(\nabla_X R)(Y, Z)
@@ -644,7 +643,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, gs.zeros_like(result))
 
     def test_curvature_derivative_is_skew_operator(self):
-        """Derivative of a skew operator is skew.
+        r"""Derivative of a skew operator is skew.
 
         For any 3 tangent vectors horizontally lifted from kendall shape space
         to Kendall pre-shape space, :math: `(\nabla_X R)(Y,Y)Z = 0`.
@@ -654,47 +653,46 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, gs.zeros_like(result))
 
     def test_directional_curvature_derivative(self):
-        space = self.space
-        metric = self.shape_metric
+        """Test equality of directional curvature derivative implementations.
 
-        base_point = space.random_point()
-        vector = gs.random.rand(2, self.k_landmarks, self.m_ambient)
-        tg_vec_0 = space.to_tangent(vector[0], base_point)
-        hor_x = space.horizontal_projection(tg_vec_0, base_point)
-        tg_vec_1 = space.to_tangent(vector[1], base_point)
-        hor_y = space.horizontal_projection(tg_vec_1, base_point)
+        General formula based on curvature derivative, optimized method of
+        KendallShapeMetric class, method from the QuotientMetric class and
+        method from the Connection class have to give identical results.
+        """
+        metric = self.shape_metric
 
         # General formula based on curvature derivative
         expected = metric.curvature_derivative(
-            hor_x, hor_y, hor_x, hor_y, base_point)
+            self.hor_x, self.hor_y, self.hor_x, self.hor_y, self.base_point)
 
         # Optimized method of KendallShapeMetric class
         result_kendall_shape_metric = \
             metric.directional_curvature_derivative(
-                hor_x, hor_y, base_point)
+                self.hor_x, self.hor_y, self.base_point)
         self.assertAllClose(result_kendall_shape_metric, expected)
 
         # Method from the QuotientMetric class
         result_quotient_metric = super(KendallShapeMetric, metric). \
             directional_curvature_derivative(
-            hor_x, hor_y, base_point)
+            self.hor_x, self.hor_y, self.base_point)
         self.assertAllClose(result_quotient_metric, expected)
 
         # Method from the Connection class
         from geomstats.geometry.quotient_metric import QuotientMetric
         result_connection = super(QuotientMetric, metric). \
             directional_curvature_derivative(
-            hor_x, hor_y, base_point)
+            self.hor_x, self.hor_y, self.base_point)
         self.assertAllClose(result_connection, expected)
 
-        # Quadratic nature of the derivative in X and Y
-        coef_x = -2.
-        coef_y = -10.0
-        result = metric.directional_curvature_derivative(
-            coef_x * hor_x, coef_y * hor_y, base_point)
+    def test_directional_curvature_derivative_is_quadratic(self):
+        """Directional curvature derivative is quadratic in both variables."""
+        coef_x = -2.5
+        coef_y = 1.5
+        result = self.shape_metric.directional_curvature_derivative(
+            coef_x * self.hor_x, coef_y * self.hor_y, self.base_point)
         expected = coef_x ** 2 * coef_y ** 2 * \
-            metric.directional_curvature_derivative(
-                hor_x, hor_y, base_point)
+            self.shape_metric.directional_curvature_derivative(
+                self.hor_x, self.hor_y, self.base_point)
         self.assertAllClose(result, expected)
 
     def test_parallel_transport(self):
