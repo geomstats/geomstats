@@ -461,7 +461,7 @@ class Connection:
         `Y|_P = tangent_vec_b` with tangent vector specified in argument at
         the base point :math: `P`, the directional curvature, better known
         in relativity as the tidal force operator, is defined by
-        :math: `R_X(Y) = R(X,Y)X`.
+        :math: `R_Y(X) = R(Y,X)Y`.
 
         Parameters
         ----------
@@ -477,7 +477,7 @@ class Connection:
         directional_curvature : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
         """
-        return self.curvature(tangent_vec_a, tangent_vec_b, tangent_vec_a,
+        return self.curvature(tangent_vec_b, tangent_vec_a, tangent_vec_b,
                               base_point)
 
     def curvature_derivative(

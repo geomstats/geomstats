@@ -489,7 +489,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         tidal_force = metric.directional_curvature(hor_a, hor_b, base_point)
 
-        numerator = metric.inner_product(tidal_force, hor_b, base_point)
+        numerator = metric.inner_product(tidal_force, hor_a, base_point)
         denominator = \
             metric.inner_product(hor_a, hor_a, base_point) * \
             metric.inner_product(hor_b, hor_b, base_point) - \
@@ -663,8 +663,6 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         hor_x = space.horizontal_projection(tg_vec_0, base_point)
         tg_vec_1 = space.to_tangent(vector[1], base_point)
         hor_y = space.horizontal_projection(tg_vec_1, base_point)
-
-        ##### TBD: there is a sign problem rmaining
 
         # General formula based on curvature derivative
         expected = metric.curvature_derivative(

@@ -995,7 +995,7 @@ class KendallShapeMetric(QuotientMetric):
         nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, _, _, _ = self.fiber_bundle.\
             iterated_integrability_tensor_derivative_parallel(
                 horizontal_x, horizontal_y, base_point)
-        return -3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
+        return 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
 
     def parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=100,

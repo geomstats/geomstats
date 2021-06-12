@@ -400,4 +400,4 @@ class QuotientMetric(RiemannianMetric):
 
         return \
             hor_nabla_curvature_top - a_x_ver_nabla_curvature_top \
-            - 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
+            + 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
