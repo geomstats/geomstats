@@ -9,7 +9,7 @@ from geomstats.geometry.hyperboloid import Hyperboloid
 H2 = Hyperboloid(dim=2)
 METRIC = H2.metric
 
-SQUARE_SIZE = 20
+SQUARE_SIZE = 10
 
 
 def main():

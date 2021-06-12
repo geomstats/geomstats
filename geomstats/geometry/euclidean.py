@@ -1,11 +1,11 @@
 """Euclidean space."""
 
 import geomstats.backend as gs
-from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class Euclidean(Manifold):
+class Euclidean(VectorSpace):
     """Class for Euclidean spaces.
 
     By definition, a Euclidean space is a vector space of a given
@@ -18,8 +18,9 @@ class Euclidean(Manifold):
     """
 
     def __init__(self, dim):
-        super(Euclidean, self).__init__(dim=dim)
-        self.metric = EuclideanMetric(dim)
+        super(Euclidean, self).__init__(
+            shape=(dim, ), default_point_type='vector',
+            metric=EuclideanMetric(dim))
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.
@@ -39,52 +40,6 @@ class Euclidean(Manifold):
 
     identity = property(get_identity)
 
-    def belongs(self, point, atol=gs.atol):
-        """Evaluate if a point belongs to the Euclidean space.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point to evaluate.
-        atol : float
-            Unused.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the Euclidean space.
-        """
-        point_dim = point.shape[-1]
-        belongs = point_dim == self.dim
-        if gs.ndim(point) == 2:
-            belongs = gs.tile([belongs], (point.shape[0],))
-
-        return belongs
-
-    def random_point(self, n_samples=1, bound=1.):
-        """Sample in the Euclidean space with a uniform distribution in a box.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0
-
-        Returns
-        -------
-        point : array-like, shape=[..., dim]
-           Sample.
-        """
-        size = (self.dim,)
-        if n_samples != 1:
-            size = (n_samples, self.dim)
-        point = bound * (gs.random.rand(*size) - 0.5) * 2
-
-        return point
-
     def exp(self, tangent_vec, base_point=None):
         """Compute the group exponential, which is simply the addition.
 
@@ -103,47 +58,6 @@ class Euclidean(Manifold):
         if not self.belongs(tangent_vec):
             raise ValueError('The update must be of the same dimension')
         return tangent_vec + base_point
-
-    def is_tangent(self, vector, base_point=None, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
-
-        In the Euclidean space, tangent spaces are identified with the
-        manifold itself.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., dim]
-            Vector.
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-        atol : float
-            Unused.
-
-        Returns
-        -------
-        is_tangent : bool
-            Boolean denoting if vector is a tangent vector at the base point.
-        """
-        return self.belongs(vector)
-
-    def to_tangent(self, vector, base_point=None):
-        """Project a vector to a tangent space of the manifold.
-
-        In a Euclidean space this is just the identity.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., dim]
-            Vector.
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., dim]
-            Tangent vector at base point.
-        """
-        return vector
 
 
 class EuclideanMetric(RiemannianMetric):

@@ -5,10 +5,11 @@ from functools import reduce
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
+from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.euclidean import EuclideanMetric
 
 
-class Matrices:
+class Matrices(VectorSpace):
     """Class for the space of matrices (m, n).
 
     Parameters
@@ -18,20 +19,24 @@ class Matrices:
     """
 
     def __init__(self, m, n, **kwargs):
-        super(Matrices, self).__init__(**kwargs)
+        if 'default_point_type' not in kwargs.keys():
+            kwargs['default_point_type'] = 'matrix'
+        super(Matrices, self).__init__(
+            shape=(m, n), metric=MatricesMetric(m, n), **kwargs)
         geomstats.errors.check_integer(n, 'n')
         geomstats.errors.check_integer(m, 'm')
         self.m = m
         self.n = n
-        self.metric = MatricesMetric(m, n)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Check if point belongs to the Matrices space.
 
         Parameters
         ----------
         point : array-like, shape=[..., m, n]
             Point to be checked.
+        atol : float
+            Unused here.
 
         Returns
         -------
@@ -123,6 +128,22 @@ class Matrices:
         is_vectorized = (gs.ndim(gs.array(mat)) == 3)
         axes = (0, 2, 1) if is_vectorized else (1, 0)
         return gs.transpose(mat, axes)
+
+    @staticmethod
+    def diagonal(mat):
+        """Return the diagonal of a matrix as a vector.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., m, n]
+            Matrix.
+
+        Returns
+        -------
+        diagonal : array-like, shape=[..., min(m, n)]
+            Vector of diagonal coefficients.
+        """
+        return gs.diagonal(mat, axis1=-2, axis2=-1)
 
     @staticmethod
     def is_square(mat):
@@ -237,8 +258,7 @@ class Matrices:
         is_square = cls.is_square(mat)
         if not gs.all(is_square):
             return False
-        diagonal_mat = from_vector_to_diagonal_matrix(
-            gs.diagonal(mat, axis1=-2, axis2=-1))
+        diagonal_mat = from_vector_to_diagonal_matrix(cls.diagonal(mat))
         is_diagonal = gs.all(
             gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
         return is_diagonal

@@ -4,6 +4,7 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean,\
     SpecialEuclideanMatrixCannonicalLeftMetric,\
     SpecialEuclideanMatrixLieAlgebra
@@ -14,7 +15,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         gs.random.seed(12)
         self.n = 2
         self.group = SpecialEuclidean(n=self.n)
-        self.n_samples = 4
+        self.n_samples = 3
         self.point = self.group.random_point(self.n_samples)
         self.tangent_vec = self.group.to_tangent(gs.random.rand(
             self.n_samples, self.group.n + 1, self.group.n + 1), self.point)
@@ -26,16 +27,14 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             [gs.sin(theta), gs.cos(theta), 3.],
             [0., 0., 1.]])
         result = self.group.belongs(point_1)
-        expected = True
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
         point_2 = gs.array([
             [gs.cos(theta), - gs.sin(theta), 2.],
             [gs.sin(theta), gs.cos(theta), 3.],
             [0., 0., 0.]])
         result = self.group.belongs(point_2)
-        expected = False
-        self.assertAllClose(result, expected)
+        self.assertFalse(result)
 
         point = gs.array([point_1, point_2])
         expected = gs.array([True, False])
@@ -58,8 +57,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
     def test_random_point_and_belongs(self):
         point = self.group.random_point()
         result = self.group.belongs(point)
-        expected = True
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
         point = self.group.random_point(self.n_samples)
         result = self.group.belongs(point)
@@ -80,8 +78,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         point = self.group.random_point()
         tangent_vec = self.group.compose(point, vec_1)
         result = self.group.is_tangent(tangent_vec, point)
-        expected = True
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
         vec_2 = gs.array([
             [0., - theta, 2.],
@@ -89,8 +86,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             [0., 0., 1.]])
         tangent_vec = self.group.compose(point, vec_2)
         result = self.group.is_tangent(tangent_vec, point)
-        expected = False
-        self.assertAllClose(result, expected)
+        self.assertFalse(result)
 
         vec = gs.array([vec_1, vec_2])
         expected = gs.array([True, False])
@@ -104,11 +100,11 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         tangent_vecs = gs.reshape(
             tangent_vecs, (self.n_samples,) + (n + 1,) * 2)
         point = self.group.random_point(self.n_samples)
-        tangent_vecs = self.group.compose(point, tangent_vecs)
+        tangent_vecs = Matrices.mul(point, tangent_vecs)
         regularized = self.group.to_tangent(tangent_vecs, point)
-        result = self.group.compose(
-            self.group.transpose(point), regularized) + \
-            self.group.compose(self.group.transpose(regularized), point)
+        result = Matrices.mul(
+            Matrices.transpose(point), regularized) + \
+            Matrices.mul(Matrices.transpose(regularized), point)
         result = result[:, :n, :n]
         expected = gs.zeros_like(result)
         self.assertAllClose(result, expected)
@@ -341,7 +337,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_projection_and_belongs(self):
-        mat = gs.random.rand(*self.group.identity.shape)
-        projected = self.group.projection(mat)
-        result = self.group.belongs(projected)
-        self.assertTrue(result)
+        shape = (self.n_samples, self.n + 1, self.n + 1)
+        result = helper.test_projection_and_belongs(self.group, shape)
+        for res in result:
+            self.assertTrue(res)

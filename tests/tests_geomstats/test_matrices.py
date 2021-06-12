@@ -268,3 +268,15 @@ class TestMatrices(geomstats.tests.TestCase):
         result = self.space_nonsquare.reshape(
             self.space_nonsquare.flatten(matrix_list))
         self.assertAllClose(result, matrix_list)
+
+    def test_diagonal(self):
+        mat = gs.eye(3)
+        result = Matrices.diagonal(mat)
+        expected = gs.ones(3)
+        self.assertAllClose(result, expected)
+
+        mat = gs.stack([mat] * 2)
+        result = Matrices.diagonal(mat)
+        expected = gs.ones((2, 3))
+        self.assertAllClose(result, expected)
+        

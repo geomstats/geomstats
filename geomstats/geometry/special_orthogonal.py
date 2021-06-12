@@ -4,9 +4,11 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
-from geomstats.geometry.general_linear import GeneralLinear, Matrices
+from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
-from geomstats.geometry.lie_group import LieGroup
+from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -19,7 +21,7 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-class _SpecialOrthogonalMatrices(GeneralLinear):
+class _SpecialOrthogonalMatrices(MatrixLieGroup, EmbeddedManifold):
     """Class for special orthogonal groups in matrix representation.
 
     Parameters
@@ -29,36 +31,16 @@ class _SpecialOrthogonalMatrices(GeneralLinear):
     """
 
     def __init__(self, n):
+        matrices = Matrices(n, n)
+        gln = GeneralLinear(n, positive_det=True)
         super(_SpecialOrthogonalMatrices, self).__init__(
-            dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n,
-            lie_algebra=SkewSymmetricMatrices(n=n))
+            dim=int((n * (n - 1)) / 2), n=n, value=gs.eye(n),
+            lie_algebra=SkewSymmetricMatrices(n=n), embedding_space=gln,
+            submersion=lambda x: matrices.mul(matrices.transpose(x), x),
+            tangent_submersion=lambda v, x: 2 * matrices.to_symmetric(
+                matrices.mul(matrices.transpose(x), v)))
         self.bi_invariant_metric = BiInvariantMetric(group=self)
-
-    def belongs(self, point, atol=ATOL):
-        """Check whether point is an orthogonal matrix.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Point to check.
-        atol : float
-            Absolute tolerance to check equality of the transpose and the
-            inverse of point.
-            Optional, default: 1e-5.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to SO(n).
-        """
-        has_right_shape = Matrices(self.n, self.n).belongs(point)
-        if gs.all(has_right_shape):
-            is_orthogonal = self.equal(
-                self.mul(point, self.transpose(point)),
-                self.identity, atol=atol)
-            has_positive_det = gs.linalg.det(point) > 0.
-            return gs.logical_and(is_orthogonal, has_positive_det)
-        return has_right_shape
+        self.metric = self.bi_invariant_metric
 
     @classmethod
     def inverse(cls, point):
@@ -74,10 +56,9 @@ class _SpecialOrthogonalMatrices(GeneralLinear):
         inverse : array-like, shape=[..., n, n]
             Inverse.
         """
-        return cls.transpose(point)
+        return Matrices.transpose(point)
 
-    @classmethod
-    def projection(cls, point):
+    def projection(self, point):
         """Project a matrix on SO(n) by minimizing the Frobenius norm.
 
         Parameters
@@ -90,9 +71,10 @@ class _SpecialOrthogonalMatrices(GeneralLinear):
         rot_mat : array-like, shape=[..., n, n]
             Rotation matrix.
         """
-        aux_mat = cls.mul(cls.transpose(point), point)
+        aux_mat = self.submersion(point)
+        aux_mat = Matrices.mul(Matrices.transpose(point), point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, - 1 / 2)
-        rotation_mat = cls.mul(point, inv_sqrt_mat)
+        rotation_mat = Matrices.mul(point, inv_sqrt_mat)
         det = gs.linalg.det(rotation_mat)
         return utils.flip_determinant(rotation_mat, det)
 
@@ -104,7 +86,8 @@ class _SpecialOrthogonalMatrices(GeneralLinear):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        tol : unused
+        bound : float
+            Unused.
 
         Returns
         -------
@@ -251,7 +234,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         n_mats, _, _ = mat.shape
 
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
-        rot_mat = GeneralLinear.mul(mat_unitary_u, mat_unitary_v)
+        rot_mat = Matrices.mul(mat_unitary_u, mat_unitary_v)
         mask = gs.less(gs.linalg.det(rot_mat), 0.)
         mask_float = gs.cast(mask, gs.float32) + self.epsilon
         diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
@@ -261,10 +244,10 @@ class _SpecialOrthogonalVectors(LieGroup):
             to_ndim=3) + self.epsilon
         new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
-        aux_mat = GeneralLinear.mul(mat_unitary_u, new_mat_diag_s)
+        aux_mat = Matrices.mul(mat_unitary_u, new_mat_diag_s)
         rot_mat = rot_mat + gs.einsum(
             '...,...jk->...jk', mask_float,
-            GeneralLinear.mul(aux_mat, mat_unitary_v))
+            Matrices.mul(aux_mat, mat_unitary_v))
         return rot_mat
 
     def inverse(self, point):
@@ -281,6 +264,9 @@ class _SpecialOrthogonalVectors(LieGroup):
             Inverse.
         """
         return -self.regularize(point)
+
+    def random_point(self, n_samples=1, bound=1.):
+        return gs.random.rand(n_samples, 3)
 
     def exp_from_identity(self, tangent_vec):
         """Compute the group exponential of the tangent vector at the identity.
@@ -513,6 +499,9 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
 
         return point_prod
 
+    def random_point(self, n_samples=1, bound=1.):
+        return self.random_uniform(n_samples)
+
     def random_uniform(self, n_samples=1):
         """Sample in SO(2) with the uniform distribution.
 
@@ -590,6 +579,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             n=3, epsilon=epsilon)
 
         self.bi_invariant_metric = BiInvariantMetric(group=self)
+        self.metric = self.bi_invariant_metric
 
     def regularize(self, point):
         """Regularize a point to be in accordance with convention.
@@ -800,7 +790,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         term_1 = (gs.eye(self.dim)
                   + gs.einsum('...,...jk->...jk', coef_1, skew_rot_vec))
 
-        squared_skew_rot_vec = GeneralLinear.mul(skew_rot_vec, skew_rot_vec)
+        squared_skew_rot_vec = Matrices.mul(skew_rot_vec, skew_rot_vec)
 
         term_2 = gs.einsum('...,...jk->...jk', coef_2, squared_skew_rot_vec)
 
@@ -1573,6 +1563,6 @@ class SpecialOrthogonal(_SpecialOrthogonal2Vectors,
             return _SpecialOrthogonal3Vectors(epsilon)
         if point_type == 'vector':
             raise NotImplementedError(
-                'SO(n) is only implemented in matrix representation'
-                ' when n > 3.')
+                'SO(n) is only implemented in vector representation'
+                ' when n = 3.')
         return _SpecialOrthogonalMatrices(n)
