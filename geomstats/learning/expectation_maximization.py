@@ -16,9 +16,9 @@ DEFAULT_MAX_ITER = 100
 DEFAULT_LR = 5e-2
 DEFAULT_CONV_FACTOR = 5e-3
 DEFAULT_TOL = 1e-2
-ZETA_LOWER_BOUND = 5e-2
+ZETA_LOWER_BOUND = 5e-1
 ZETA_UPPER_BOUND = 2.
-ZETA_STEP = 0.001
+ZETA_STEP = 0.01
 PDF_TOL = 1e-6
 SUM_CHECK_PDF = 1e-4
 MEAN_MAX_ITER = 150
@@ -584,9 +584,9 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             logging.warning(
                 'Untracktable normalization factor :')
 
-            limit_nf = ((normalization_factor_var /
-                         normalization_factor_var)
-                        * 0).nonzero()[0].item()
+            limit_nf = (
+                    (normalization_factor_var / normalization_factor_var
+                     ) * 0).nonzero()[0].item()
             max_nf = len(variances)
             variances = variances[0:limit_nf]
             normalization_factor_var = \
