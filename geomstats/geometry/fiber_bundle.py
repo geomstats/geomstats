@@ -168,7 +168,6 @@ class FiberBundle(Manifold, ABC):
             (self.group_dim, )
 
         if group is not None:
-          
             def wrap(param):
                 """Wrap a parameter vector to a group element."""
                 algebra_elt = gs.array(param)
