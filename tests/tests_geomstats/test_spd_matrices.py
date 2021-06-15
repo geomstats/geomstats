@@ -3,6 +3,8 @@
 import math
 import warnings
 
+import tests.helper as helper
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import MatricesMetric
@@ -582,3 +584,10 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         projection = self.space.to_tangent(mat)
         result = self.space.is_tangent(projection)
         self.assertTrue(result)
+
+    def test_projection_and_belongs(self):
+        shape = (2, self.n, self.n)
+        space = self.space
+        result = helper.test_projection_and_belongs(space, shape)
+        for res in result:
+            self.assertTrue(res)

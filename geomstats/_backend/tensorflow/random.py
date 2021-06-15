@@ -1,6 +1,8 @@
 """Tensorflow based random backend."""
 
 import tensorflow as tf
+import tensorflow_probability as tfp
+tfd = tfp.distributions
 
 
 def choice(x, size, axis=0):
@@ -44,5 +46,9 @@ def uniform(low=0.0, high=1.0, size=None):
     return tf.random.uniform(shape=size, minval=low, maxval=high)
 
 
-def multivariate_normal(*args, **kwargs):
-    raise NotImplementedError
+def multivariate_normal(mean, cov, size=None):
+    if size is None:
+        size = ()
+    return tfd.Sample(
+        tfd.MultivariateNormalFullCovariance(loc=mean, covariance_matrix=cov),
+        sample_shape=size).sample()
