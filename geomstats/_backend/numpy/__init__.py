@@ -96,7 +96,7 @@ from autograd.numpy import (  # NOQA
     zeros,
     zeros_like
 )
-from autograd.scipy.special import polygamma # NOQA
+from autograd.scipy.special import erf, polygamma # NOQA
 from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA
@@ -370,14 +370,14 @@ def array_from_sparse(indices, data, target_shape):
         coo_matrix((data, list(zip(*indices))), target_shape).todense())
 
 
-def erf(x):
-    cst_erf = 8.0 / (3.0 * np.pi) * (np.pi - 3.0) / (4.0 - np.pi)
-    return \
-        np.sign(x) * \
-        np.sqrt(1 - np.exp(-x * x *
-                           (4 / np.pi + cst_erf * x * x) /
-                           (1 + cst_erf * x * x)))
-
+# def erf(x):
+#     cst_erf = 8.0 / (3.0 * np.pi) * (np.pi - 3.0) / (4.0 - np.pi)
+#     return \
+#         np.sign(x) * \
+#         np.sqrt(1 - np.exp(-x * x *
+#                            (4 / np.pi + cst_erf * x * x) /
+#                            (1 + cst_erf * x * x)))
+#
 
 def triu_to_vec(x, k=0):
     n = x.shape[-1]

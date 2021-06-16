@@ -273,15 +273,14 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                  n_gaussians=8,
                  initialisation_method='random',
                  tol=DEFAULT_TOL,
-                 mean_method='default',
-                 point_type='vector'):
+                 mean_method='default'):
 
         self.n_gaussians = n_gaussians
         self.metric = metric
         self.initialisation_method = initialisation_method
         self.tol = tol
         self.mean_method = mean_method
-        self.point_type = point_type
+        self.point_type = metric.default_point_type
         self._dimension = None
         self.mixture_coefficients = None
         self.variances = None
