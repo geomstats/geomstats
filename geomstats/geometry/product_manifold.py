@@ -51,7 +51,7 @@ class ProductManifold(Manifold):
         if metrics is None:
             metrics = [manifold.metric for manifold in manifolds]
         metric = ProductRiemannianMetric(
-            metrics, default_point_type=default_point_type)
+            metrics, default_point_type=default_point_type, n_jobs=n_jobs)
         super(ProductManifold, self).__init__(
             dim=sum(self.dims), metric=metric,
             default_point_type=default_point_type, **kwargs)
