@@ -185,63 +185,6 @@ class Grassmannian(EmbeddedManifold):
         sym = Matrices.to_symmetric(vector)
         return Matrices.bracket(base_point, Matrices.bracket(base_point, sym))
 
-    @staticmethod
-    def _check_square(point):
-        """Check if a point is a square matrix.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        belongs : bool
-        """
-        n, p = point.shape[-2:]
-
-        return n == p
-
-    @staticmethod
-    def _check_idempotent(point, atol):
-        """Check that a point is idempotent.
-
-        Parameters
-        ----------
-        point
-        atol
-
-        Returns
-        -------
-        belongs : bool
-        """
-        diff = Matrices.mul(point, point) - point
-        diff_norm = gs.linalg.norm(diff, axis=(-2, -1))
-
-        return gs.less_equal(diff_norm, atol)
-
-    @staticmethod
-    def _check_rank(point, rank, atol):
-        """Check rank of a matrix.
-
-        Check that the rank of the point is equal to the
-        subspace dimension.  Matrix rank is equal to number of
-        singular values greater than 0.
-
-        Parameters
-        ----------
-        point
-        rank
-        atol
-
-        Returns
-        -------
-        belongs : bool
-        """
-        s = gs.linalg.svd(point, compute_uv=False)
-
-        return gs.sum(s > atol, axis=-1) == rank
-
     def projection(self, point):
         """Project a matrix to the Grassmann manifold.
 
@@ -291,7 +234,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         self.p = p
         self.embedding_metric = EuclideanMetric(n * p)
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Exponentiate the invariant vector field v from base point p.
 
         Parameters
@@ -313,7 +256,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         rot = Matrices.bracket(base_point, -tangent_vec)
         return mul(expm(rot), base_point, expm(-rot))
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         r"""Compute the Riemannian logarithm of point w.r.t. base_point.
 
         Given :math:`P, P'` in Gr(n, k) the logarithm from :math:`P`
@@ -352,3 +295,39 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         sym1 = 2 * base_point - id_n
         rot = GLn.compose(sym2, sym1)
         return Matrices.bracket(GLn.log(rot) / 2, base_point)
+
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        r"""Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector a
+        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        tangent_vec_b)`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            Tangent vector at base point to be transported.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        base_point : array-like, shape=[..., n, n]
+            Point on the hypersphere.
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[..., n, n]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+
+        References
+        ----------
+        .. [BZA20]  Bendokat, Thomas, Ralf Zimmermann, and P.-A. Absil.
+                    “A Grassmann Manifold Handbook: Basic Geometry and
+                    Computational Aspects.”
+                    ArXiv:2011.13699 [Cs, Math], November 27, 2020.
+                    http://arxiv.org/abs/2011.13699.
+
+        """
+        expm = gs.linalg.expm
+        mul = Matrices.mul
+        rot = Matrices.bracket(base_point, -tangent_vec_b)
+        return mul(expm(rot), tangent_vec_a, expm(-rot))
