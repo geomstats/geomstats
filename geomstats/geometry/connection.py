@@ -550,7 +550,7 @@ class Connection(ABC):
             Tangent vector at base point, along which the parallel transport
             is computed.
         base_point : array-like, shape=[..., {dim, [n, n]}]
-            Point on the hypersphere.
+            Point on the manifold.
 
         Returns
         -------

@@ -311,7 +311,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
             Tangent vector at base point, along which the parallel transport
             is computed.
         base_point : array-like, shape=[..., n, n]
-            Point on the hypersphere.
+            Point on the Grassmann manifold.
 
         Returns
         -------
