@@ -47,7 +47,7 @@ class TestEM(geomstats.tests.TestCase):
             mean_method=self.mean_method)
 
         means, variances, coefficients = gmm_learning.fit(
-            self.data, lr_mean=5e-3)
+            self.data, lr_mean=1.)
 
         self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
         self.assertTrue((variances < 1).all() and (variances > 0).all())
@@ -60,7 +60,7 @@ class TestEM(geomstats.tests.TestCase):
             mean_method=self.mean_method)
 
         means, variances, coefficients = gmm_learning.fit(
-            self.data, lr_mean=5e-3)
+            self.data, lr_mean=1.)
 
         self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
         self.assertTrue((variances < 1).all() and (variances > 0).all())
@@ -142,7 +142,7 @@ class TestEM(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_fit_init_random_sphere(self):
         """Test fitting data into a GMM."""
-        space = Hypersphere(6)
+        space = Hypersphere(2)
         gmm_learning = RiemannianEM(
             metric=space.metric,
             n_gaussians=2,
@@ -156,8 +156,8 @@ class TestEM(geomstats.tests.TestCase):
             mu=means[1], kappa=20, n_samples=140)
 
         data = gs.concatenate((cluster_1, cluster_2), axis=0)
-        means, variances, coefficients = gmm_learning.fit(data)
+        means, variances, coefficients = gmm_learning.fit(data, lr_mean=1.)
 
         self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
         self.assertTrue((variances < 1).all() and (variances > 0).all())
-        self.assertTrue(self.space.belongs(means).all())
+        self.assertTrue(space.belongs(means).all())

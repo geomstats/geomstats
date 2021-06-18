@@ -756,7 +756,11 @@ class HypersphereMetric(RiemannianMetric):
             comb = math.comb(k, dim -1)
             return sign * comb * gs.exp(exp_arg) * gs.real(gs.erf(erf_arg_2))
 
-        sum_term = gs.sum(gs.stack([summand(k)] for k in range(half_dim - 2)))
+        if half_dim > 2:
+            sum_term = gs.sum(
+                gs.stack([summand(k)] for k in range(half_dim - 2)))
+        else:
+            sum_term = summand(0)
         coef = area / 2 / erf_arg * gs.pi ** .5 * (- 1.) ** (half_dim - 1)
 
         return first_term + coef / 2 ** (dim - 2) * sum_term

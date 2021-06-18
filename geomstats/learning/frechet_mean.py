@@ -210,13 +210,11 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
                 grad_tangent, points.shape)
             grad_tangent = grad_tangent * weights
 
-            lr_grad_tangent = lr * grad_tangent.sum(0, keepdims=True)
-            lr_grad_tangent_s = lr_grad_tangent.squeeze()
+            lr_grad_tangent = lr * gs.mean(grad_tangent, axis=0)
 
-            cc_barycenter = metric.exp(
-                barycenter_gs, lr_grad_tangent_s)
-            convergence = metric.dist(
-                cc_barycenter, barycenter_gs).max().item()
+            cc_barycenter = metric.exp(lr_grad_tangent, barycenter_gs)
+
+            convergence = metric.norm(lr_grad_tangent).max().item()
 
             barycenter_gs = cc_barycenter
             barycenter = gs.expand_dims(cc_barycenter, 0)

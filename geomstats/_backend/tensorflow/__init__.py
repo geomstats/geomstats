@@ -78,6 +78,7 @@ ceil = tf.math.ceil
 cross = tf.linalg.cross
 erf = tf.math.erf
 isnan = tf.math.is_nan
+imag = tf.math.imag
 log = tf.math.log
 mod = tf.math.mod
 polygamma = tf.math.polygamma

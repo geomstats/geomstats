@@ -126,7 +126,7 @@ def expectation_maximisation_poincare_ball():
                       mean_method='frechet-poincare-ball')
 
     means, variances, mixture_coefficients = EM.fit(
-        data=data, max_iter=100)
+        data=data, max_iter=100, lr_mean=1.)
 
     # Plot result
     plot = plot_gaussian_mixture_distribution(data,
