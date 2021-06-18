@@ -5,7 +5,7 @@ import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.learning.expectation_maximization import \
-    find_normalization_factor, RiemannianEM, find_variance_from_index
+    find_normalization_factor, find_variance_from_index, RiemannianEM
 from geomstats.learning.frechet_mean import FrechetMean
 
 TOLERANCE = 1e-3

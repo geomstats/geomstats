@@ -584,8 +584,8 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                 'Untracktable normalization factor :')
 
             limit_nf = (
-                    (normalization_factor_var / normalization_factor_var
-                     ) * 0).nonzero()[0].item()
+                (normalization_factor_var / normalization_factor_var)
+                * 0).nonzero()[0].item()
             max_nf = len(variances)
             variances = variances[0:limit_nf]
             normalization_factor_var = \

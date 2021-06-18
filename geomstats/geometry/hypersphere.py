@@ -753,8 +753,8 @@ class HypersphereMetric(RiemannianMetric):
             erf_arg_2 = (gs.pi * variances - (dim - 1 - 2 * k) * 1j) / gs.sqrt(
                 2 * variances)
             sign = (- 1.) ** k
-            comb = math.comb(k, dim -1)
-            return sign * comb * gs.exp(exp_arg) * gs.real(gs.erf(erf_arg_2))
+            comb_2 = math.comb(k, dim - 1)
+            return sign * comb_2 * gs.exp(exp_arg) * gs.real(gs.erf(erf_arg_2))
 
         if half_dim > 2:
             sum_term = gs.sum(
@@ -798,8 +798,7 @@ class HypersphereMetric(RiemannianMetric):
         Parameters
         ----------
         variances : array-like, shape=[n,]
-            Array of equally distant values of the
-            variance precision time.
+            Variance of the distribution.
 
         Returns
         -------
@@ -811,6 +810,18 @@ class HypersphereMetric(RiemannianMetric):
         return self._normalization_factor_odd_dim(variances)
 
     def norm_factor_gradient(self, variances):
+        """Compute the gradient of the normalization factor.
+
+        Parameters
+        ----------
+        variances : array-like, shape=[n,]
+            Variance of the distribution.
+
+        Returns
+        -------
+        norm_func : array-like, shape=[n,]
+            Normalisation factor for all given variances.
+        """
 
         def func(var):
             return gs.sum(self.normalization_factor(var))
