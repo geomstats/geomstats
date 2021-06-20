@@ -11,7 +11,6 @@ from torch import (  # NOQA
     arccos,
     arccosh,
     arcsin,
-    arctanh,
     atan2 as arctan2,
     bool as t_bool,
     broadcast_tensors as broadcast_arrays,
@@ -60,6 +59,8 @@ from torch import (  # NOQA
     tan,
     tanh,
     tril,
+    tril_indices,
+    triu_indices,
     uint8,
     vstack,
     zeros,
@@ -503,14 +504,6 @@ def diag_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
 
 
-def tril_indices(*args, **kwargs):
-    return tuple(map(torch.from_numpy, _np.tril_indices(*args, **kwargs)))
-
-
-def triu_indices(*args, **kwargs):
-    return tuple(map(torch.from_numpy, _np.triu_indices(*args, **kwargs)))
-
-
 def tile(x, y):
     if not torch.is_tensor(x):
         x = torch.tensor(x)
@@ -769,7 +762,7 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
 
 def triu_to_vec(x, k=0):
     n = x.shape[-1]
-    rows, cols = triu_indices(n, k=k)
+    rows, cols = torch.triu_indices(n, k=k)
     return x[..., rows, cols]
 
 
@@ -791,7 +784,7 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     """
     n = diag.shape[-1]
     i, = diag_indices(n, ndim=1)
-    j, k = triu_indices(n, k=1)
+    j, k = torch.triu_indices(n, k=1)
     mat = torch.zeros((diag.shape + (n, )))
     mat[..., i, i] = diag
     mat[..., j, k] = tri_upp
