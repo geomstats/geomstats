@@ -68,14 +68,17 @@ if tf_backend():
     import tensorflow as tf
     _TestBaseClass = tf.test.TestCase
 
+if pytorch_backend():
+    import torch
 
 class TestCase(_TestBaseClass):
     def assertAllClose(self, a, b, rtol=gs.rtol, atol=gs.atol):
         if tf_backend():
             return super().assertAllClose(a, b, rtol=rtol, atol=atol)
-        if np_backend():
-            return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
-        return self.assertTrue(gs.allclose(a, b, rtol=rtol, atol=atol))
+        if pytorch_backend():
+            return torch.testing.assert_close(a, b, rtol=rtol, atol=atol)
+        return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
+        
 
     def assertAllCloseToNp(self, a, np_a, rtol=gs.rtol, atol=gs.atol):
         are_same_shape = np.all(a.shape == np_a.shape)

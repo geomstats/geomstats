@@ -31,7 +31,6 @@ from torch import (  # NOQA
     fmod as mod,
     ger as outer,
     gt as greater,
-    hstack,
     int32,
     int64,
     isnan,
@@ -59,7 +58,6 @@ from torch import (  # NOQA
     tanh,
     tril,
     uint8,
-    vstack,
     zeros,
     zeros_like
 )
@@ -201,6 +199,14 @@ def concatenate(seq, axis=0, out=None):
     return torch.cat(seq, dim=axis, out=out)
 
 
+def hstack(seq):
+    return concatenate(seq, axis=1)
+
+
+def vstack(seq):
+    return concatenate(seq)
+
+
 def _get_largest_dtype(seq):
     dtype_dict = {0: t_bool,
                   1: uint8,
@@ -315,7 +321,7 @@ def allclose(a, b, atol=atol, rtol=rtol):
     elif n_a < n_b:
         reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
         a = tile(a, reps)
-    return torch.allclose(a, b, atol=atol, rtol=rtol)
+    return torch.testing.close(a, b, atol=atol, rtol=rtol)
 
 
 def shape(val):
