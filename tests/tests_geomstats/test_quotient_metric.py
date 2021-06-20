@@ -26,17 +26,17 @@ class BuresWassersteinBundle(GeneralLinear, FiberBundle):
             base_point, Matrices.transpose(tangent_vec))
         return 2 * Matrices.to_symmetric(product)
 
-    def horizontal_lift(self, tangent_vec, point=None, base_point=None):
+    def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
         if base_point is None:
-            if point is not None:
-                base_point = self.riemannian_submersion(point)
+            if fiber_point is not None:
+                base_point = self.riemannian_submersion(fiber_point)
             else:
                 raise ValueError('Either a point (of the total space) or a '
                                  'base point (of the base manifold) must be '
                                  'given.')
         sylvester = gs.linalg.solve_sylvester(
             base_point, base_point, tangent_vec)
-        return Matrices.mul(sylvester, point)
+        return Matrices.mul(sylvester, fiber_point)
 
     @staticmethod
     def lift(point):
@@ -98,7 +98,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         mat = self.bundle.random_point()
         tangent_vec = Matrices.to_symmetric(
             self.bundle.random_point())
-        horizontal = self.bundle.horizontal_lift(tangent_vec, mat)
+        horizontal = self.bundle.horizontal_lift(tangent_vec, fiber_point=mat)
         result = self.bundle.tangent_riemannian_submersion(horizontal, mat)
         self.assertAllClose(result, tangent_vec)
 
@@ -106,7 +106,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         mat = self.bundle.random_point()
         tangent_vec = Matrices.to_symmetric(
             self.bundle.random_point())
-        horizontal = self.bundle.horizontal_lift(tangent_vec, mat)
+        horizontal = self.bundle.horizontal_lift(tangent_vec, fiber_point=mat)
         result = self.bundle.is_horizontal(horizontal, mat)
         self.assertTrue(result)
 
@@ -131,7 +131,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         tangent_vecs = Matrices.to_symmetric(
             self.bundle.random_point(2)) / 10
         result = self.quotient_metric.inner_product(
-            tangent_vecs[0], tangent_vecs[1], point=mat)
+            tangent_vecs[0], tangent_vecs[1], fiber_point=mat)
         expected = self.base_metric.inner_product(
             tangent_vecs[0], tangent_vecs[1], point)
         self.assertAllClose(result, expected)
