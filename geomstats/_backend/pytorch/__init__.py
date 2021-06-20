@@ -504,6 +504,18 @@ def diag_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
 
 
+def tril_indices(n, k=0, m=None):
+    if m is None:
+        m = n
+    return torch.tril_indices(row=n, col=m, offset=k)
+
+
+def triu_indices(n, k=0, m=None):
+    if m is None:
+        m = n
+    return torch.triu_indices(row=n, col=m, offset=k)
+
+
 def tile(x, y):
     if not torch.is_tensor(x):
         x = torch.tensor(x)
