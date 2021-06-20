@@ -103,13 +103,12 @@ class LogNormal:
     def cov(self):
         return self.__cov
 
-    # TODO (sait): simplify hstack after pytorch version upgrade
     def __sample_spd(self, samples):
         n = self.mean.shape[-1]
         sym_matrix = self.manifold.logm(self.mean)
         mean_euclidean = gs.hstack(
-            (gs.diagonal(sym_matrix)[None, :],
-             gs.sqrt(2.0) * gs.triu_to_vec(sym_matrix, k=1)[None, :]))[0]
+            (gs.diagonal(sym_matrix),
+             gs.sqrt(2.0) * gs.triu_to_vec(sym_matrix, k=1)))
         samples_euclidean = gs.random.multivariate_normal(
             mean_euclidean, self.cov, (samples,))
         diag = samples_euclidean[:, :n]

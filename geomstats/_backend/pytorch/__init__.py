@@ -5,6 +5,7 @@ from functools import wraps
 import numpy as _np
 import torch
 from torch import (  # NOQA
+    allclose,
     acos as arccos,
     arange,
     argmin,
