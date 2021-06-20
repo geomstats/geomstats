@@ -474,6 +474,16 @@ def ndim(x):
     return x.ndim()
 
 
+def transpose(x, axes=None):
+    if axes:
+        return x.permute(axes)
+    if x.dim() == 1:
+        return x
+    if x.dim() > 2 and axes is None:
+        return x.permute(tuple(range(x.ndim)[::-1]))
+    return x.t()
+    
+
 def expand_dims(x, axis=0):
     return torch.unsqueeze(x, dim=axis)
 
