@@ -5,25 +5,22 @@ from functools import wraps
 import numpy as _np
 import torch
 from torch import (  # NOQA
-    allclose,
+    acos as arccos,
     arange,
+    argmin,
     arccos,
     arccosh,
     arcsin,
     arctanh,
-    argmin,
     atan2 as arctan2,
     bool as t_bool,
     broadcast_tensors as broadcast_arrays,
-    broadcast_to,
     ceil,
     clip,
     cos,
     cosh,
-    cumprod,
     cross,
-    divide,
-    diagonal,
+    div as divide,
     empty_like,
     eq,
     erf,
@@ -34,15 +31,13 @@ from torch import (  # NOQA
     float64,
     floor,
     fmod as mod,
-    outer,
-    greater,
+    ger as outer,
+    gt as greater,
     hstack,
-    vstack,
     int32,
     int64,
     isnan,
     log,
-    logical_and,
     logical_or,
     lt as less,
     matmul,
@@ -55,21 +50,18 @@ from torch import (  # NOQA
     ones_like,
     polygamma,
     pow as power,
-    prod,
     repeat_interleave as repeat,
     reshape,
     sign,
     sin,
     sinh,
     stack,
-    squeeze,
     std,
     tan,
     tanh,
     tril,
-    tril_indices,
-    triu_indices,
     uint8,
+    vstack,
     zeros,
     zeros_like
 )
@@ -128,10 +120,6 @@ def one_hot(labels, num_classes):
         labels, num_classes).type(torch.uint8)
 
 
-def diag_indices(*args, **kwargs):
-    return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))        
-
-
 def argmax(a, **kwargs):
     if a.dtype == torch.bool:
         return torch.as_tensor(_np.argmax(a.data.numpy(), **kwargs))
@@ -171,7 +159,13 @@ def split(x, indices_or_sections, axis=0):
         intervals_length = _np.append(intervals_length, last_interval_length)
     intervals_length = _np.insert(intervals_length, 0, indices_or_sections[0])
     return torch.split(x, tuple(intervals_length), dim=axis)
-    
+
+
+def logical_and(x, y):
+    if torch.is_tensor(x):
+        return x & y
+    return x and y
+
 
 def any(x, axis=None):
     if not torch.is_tensor(x):
@@ -207,7 +201,6 @@ def flip(x, axis):
 def concatenate(seq, axis=0, out=None):
     seq = convert_to_wider_dtype(seq)
     return torch.cat(seq, dim=axis, out=out)
-
 
 
 def _get_largest_dtype(seq):
@@ -307,6 +300,26 @@ def get_slice(x, indices):
     """
     return x[indices]
 
+
+def allclose(a, b, atol=atol, rtol=rtol):
+    if not isinstance(a, torch.Tensor):
+        a = torch.tensor(a)
+    if not isinstance(b, torch.Tensor):
+        b = torch.tensor(b)
+    a = to_ndarray(a.float(), to_ndim=1)
+    b = to_ndarray(b.float(), to_ndim=1)
+    n_a = a.shape[0]
+    n_b = b.shape[0]
+    nb_dim = a.dim()
+    if n_a > n_b:
+        reps = (int(n_a / n_b),) + (nb_dim - 1) * (1,)
+        b = tile(b, reps)
+    elif n_a < n_b:
+        reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
+        a = tile(a, reps)
+    return torch.allclose(a, b, atol=atol, rtol=rtol)
+
+
 def shape(val):
     return val.shape
 
@@ -324,6 +337,12 @@ def to_ndarray(x, to_ndim, axis=0):
     if x.dim() == to_ndim - 1:
         x = torch.unsqueeze(x, dim=axis)
     return x
+
+
+def broadcast_to(x, shape):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    return x.expand(shape)
 
 
 def sqrt(x):
@@ -433,6 +452,22 @@ def T(x):
     return torch.t(x)
 
 
+def transpose(x, axes=None):
+    if axes:
+        return x.permute(axes)
+    if x.dim() == 1:
+        return x
+    if x.dim() > 2 and axes is None:
+        return x.permute(tuple(range(x.ndim)[::-1]))
+    return x.t()
+
+
+def squeeze(x, axis=None):
+    if axis is None:
+        return torch.squeeze(x)
+    return torch.squeeze(x, dim=axis)
+
+
 def trace(x, axis1=0, axis2=1):
     min_axis = min(axis1, axis2)
     max_axis = max(axis1, axis2)
@@ -463,35 +498,41 @@ def equal(a, b, **kwargs):
         b = cast(b, torch.uint8).float()
     return torch.eq(a, b, **kwargs)
 
-  
+
+def diag_indices(*args, **kwargs):
+    return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
+
+
+def tril_indices(*args, **kwargs):
+    return tuple(map(torch.from_numpy, _np.tril_indices(*args, **kwargs)))
+
+
+def triu_indices(*args, **kwargs):
+    return tuple(map(torch.from_numpy, _np.triu_indices(*args, **kwargs)))
+
+
 def tile(x, y):
     if not torch.is_tensor(x):
         x = torch.tensor(x)
     return x.repeat(y)
 
 
-def ndim(x):
-    return x.ndim()
-
-
-def transpose(x, axes=None):
-    if axes:
-        return x.permute(axes)
-    if x.dim() == 1:
-        return x
-    if x.dim() > 2 and axes is None:
-        return x.permute(tuple(range(x.ndim)[::-1]))
-    return x.t()
-    
-
 def expand_dims(x, axis=0):
     return torch.unsqueeze(x, dim=axis)
+
+
+def ndim(x):
+    return x.dim()
 
 
 def hsplit(x, indices_or_section):
     if isinstance(indices_or_section, int):
         indices_or_section = x.shape[1] // indices_or_section
     return torch.split(x, indices_or_section, dim=1)
+
+
+def diagonal(x, offset=0, axis1=0, axis2=1):
+    return torch.diagonal(x, offset=offset, dim1=axis1, dim2=axis2)
 
 
 def set_diag(x, new_diag):
@@ -518,6 +559,12 @@ def set_diag(x, new_diag):
     diag = torch.einsum(
         'ij,...i->...ij', torch.eye(new_diag.shape[-1]), new_diag)
     return diag + off_diag
+
+
+def prod(x, axis=None):
+    if axis is None:
+        return torch.prod(x)
+    return torch.prod(x, dim=axis)
 
 
 def where(condition, x=None, y=None):
@@ -567,7 +614,7 @@ def _is_iterable(x):
     if isinstance(x, (list, tuple)):
         return True
     if torch.is_tensor(x):
-        return x.ndim > 0
+        return ndim(x) > 0
     return False
 
 
@@ -683,6 +730,12 @@ def cumsum(x, axis=None):
     return torch.cumsum(x, dim=axis)
 
 
+def cumprod(x, axis=None):
+    if axis is None:
+        return x.flatten().cumprod(dim=0)
+    return torch.cumprod(x, dim=axis)
+
+
 def array_from_sparse(indices, data, target_shape):
     """Create an array of given shape, with values at specific indices.
 
@@ -716,7 +769,7 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
 
 def triu_to_vec(x, k=0):
     n = x.shape[-1]
-    rows, cols = torch.triu_indices(n, k=k)
+    rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
 
 
