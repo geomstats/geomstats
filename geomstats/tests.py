@@ -76,7 +76,7 @@ class TestCase(_TestBaseClass):
         if np_backend():
             return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
         flag =  gs.allclose(a, b, rtol=rtol, atol=atol)
-        if flag:
+        if flag is False:
             print(a)
             print("test")
             print(b)
