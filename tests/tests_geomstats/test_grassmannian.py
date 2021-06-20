@@ -128,3 +128,12 @@ class TestGrassmannian(geomstats.tests.TestCase):
         result = helper.test_projection_and_belongs(self.space, shape)
         for res in result:
             self.assertTrue(res)
+
+    def test_parallel_transport(self):
+        space = self.space
+        metric = self.metric
+        shape = (2, space.n, space.n)
+
+        result = helper.test_parallel_transport(space, metric, shape)
+        for res in result:
+            self.assertTrue(res)
