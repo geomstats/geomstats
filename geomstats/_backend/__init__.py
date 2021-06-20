@@ -38,6 +38,7 @@ BACKEND_ATTRIBUTES = {
         'clip',
         'concatenate',
         'convert_to_wider_dtype',
+        'comb',
         'copy',
         'cos',
         'cosh',

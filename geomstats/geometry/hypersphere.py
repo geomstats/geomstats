@@ -742,7 +742,7 @@ class HypersphereMetric(RiemannianMetric):
         dim = self.dim
         half_dim = int((dim + 1) / 2)
         area = 2 * gs.pi ** half_dim / math.factorial(half_dim - 1)
-        comb = math.comb(dim - 1, half_dim - 1)
+        comb = gs.comb(dim - 1, half_dim - 1)
 
         erf_arg = gs.sqrt(variances / 2) * gs.pi
         first_term = area / (2 ** dim - 1) * comb * gs.sqrt(
@@ -753,7 +753,7 @@ class HypersphereMetric(RiemannianMetric):
             erf_arg_2 = (gs.pi * variances - (dim - 1 - 2 * k) * 1j) / gs.sqrt(
                 2 * variances)
             sign = (- 1.) ** k
-            comb_2 = math.comb(k, dim - 1)
+            comb_2 = gs.comb(k, dim - 1)
             return sign * comb_2 * gs.exp(exp_arg) * gs.real(gs.erf(erf_arg_2))
 
         if half_dim > 2:
@@ -777,7 +777,7 @@ class HypersphereMetric(RiemannianMetric):
             erf_arg_2 = (gs.pi * variances - (dim - 1 - 2 * k) * 1j) / gs.sqrt(
                 2 * variances)
             sign = (- 1.) ** k
-            comb = math.comb(dim - 1, k)
+            comb = gs.comb(dim - 1, k)
             erf_terms = gs.imag(gs.erf(erf_arg_2) + gs.erf(erf_arg_1))
             return sign * comb * gs.exp(exp_arg) * erf_terms
 

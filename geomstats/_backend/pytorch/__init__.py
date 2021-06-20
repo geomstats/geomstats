@@ -1,5 +1,6 @@
 """Pytorch based computation backend."""
 
+import math
 from functools import wraps
 
 import numpy as _np
@@ -105,6 +106,10 @@ real = _box_scalar(real)
 sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
 tan = _box_scalar(tan)
+
+
+def comb(n, k):
+    return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
 
 
 def to_numpy(x):

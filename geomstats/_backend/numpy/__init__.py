@@ -1,5 +1,7 @@
 """Numpy based computation backend."""
 
+import math
+
 import autograd # NOQA
 import autograd.numpy as np
 from autograd.numpy import (  # NOQA
@@ -113,6 +115,10 @@ DTYPES = {
 
 atol = np_atol
 rtol = np_rtol
+
+
+def comb(n, k):
+    return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
 
 
 def to_numpy(x):
@@ -369,15 +375,6 @@ def array_from_sparse(indices, data, target_shape):
     return array(
         coo_matrix((data, list(zip(*indices))), target_shape).todense())
 
-
-# def erf(x):
-#     cst_erf = 8.0 / (3.0 * np.pi) * (np.pi - 3.0) / (4.0 - np.pi)
-#     return \
-#         np.sign(x) * \
-#         np.sqrt(1 - np.exp(-x * x *
-#                            (4 / np.pi + cst_erf * x * x) /
-#                            (1 + cst_erf * x * x)))
-#
 
 def triu_to_vec(x, k=0):
     n = x.shape[-1]
