@@ -42,6 +42,8 @@ from torch import (  # NOQA
     int64,
     isnan,
     log,
+    logical_and,
+    logical_or,
     lt as less,
     matmul,
     max as amax,
