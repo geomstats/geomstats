@@ -9,7 +9,6 @@ from torch import (  # NOQA
     arange,
     argmin,
     arccos,
-    arccosh,
     arcsin,
     atan2 as arctan2,
     bool as t_bool,
@@ -325,6 +324,12 @@ def shape(val):
 
 def dot(a, b):
     return einsum('...i,...i->...', a, b)
+
+
+def arccosh(x):
+    c0 = torch.log(x)
+    c1 = torch.log1p(torch.sqrt(x * x - 1) / x)
+    return c0 + c1
 
 
 def maximum(a, b):
