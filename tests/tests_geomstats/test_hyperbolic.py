@@ -255,6 +255,8 @@ class TestHyperbolic(geomstats.tests.TestCase):
             expected.append(self.metric.exp(n_tangent_vecs[i], one_base_point))
         expected = gs.stack(expected, axis=0)
         expected = helper.to_vector(gs.array(expected))
+        print("result", result)
+        print("expected", expected)
         self.assertAllClose(result, expected)
 
         one_tangent_vec = self.space.to_tangent(
