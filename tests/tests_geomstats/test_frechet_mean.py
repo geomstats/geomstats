@@ -433,7 +433,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
         mean = FrechetMean(
-            metric=self.sphere.metric, method='frechet-poincare-ball')
+            metric=self.sphere.metric, method='default')
         mean.fit(X=point)
 
         result = mean.estimate_

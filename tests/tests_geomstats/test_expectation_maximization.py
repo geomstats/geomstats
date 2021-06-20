@@ -147,7 +147,7 @@ class TestEM(geomstats.tests.TestCase):
             metric=space.metric,
             n_gaussians=2,
             initialisation_method=self.initialisation_method,
-            mean_method='frechet-poincare-ball')
+            mean_method='batch')
 
         means = space.random_uniform(2)
         cluster_1 = space.random_von_mises_fisher(
