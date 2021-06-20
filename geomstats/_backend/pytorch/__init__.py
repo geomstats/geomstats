@@ -59,8 +59,6 @@ from torch import (  # NOQA
     tan,
     tanh,
     tril,
-    tril_indices,
-    triu_indices,
     uint8,
     vstack,
     zeros,
