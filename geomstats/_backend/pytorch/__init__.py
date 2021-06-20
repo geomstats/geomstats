@@ -34,7 +34,6 @@ from torch import (  # NOQA
     int64,
     isnan,
     log,
-    logical_or,
     lt as less,
     matmul,
     max as amax,
@@ -155,6 +154,10 @@ def split(x, indices_or_sections, axis=0):
     intervals_length = _np.insert(intervals_length, 0, indices_or_sections[0])
     return torch.split(x, tuple(intervals_length), dim=axis)
 
+
+def logical_or(x, y):
+    return x or y
+    
 
 def logical_and(x, y):
     if torch.is_tensor(x):
@@ -520,16 +523,24 @@ def diag_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
 
 
-def tril_indices(n, k=0, m=None):
-    if m is None:
-        m = n
-    return torch.tril_indices(row=n, col=m, offset=k)
+# def tril_indices(n, k=0, m=None):
+#     if m is None:
+#         m = n
+#     return torch.tril_indices(row=n, col=m, offset=k)
 
 
-def triu_indices(n, k=0, m=None):
-    if m is None:
-        m = n
-    return torch.triu_indices(row=n, col=m, offset=k)
+# def triu_indices(n, k=0, m=None):
+#     if m is None:
+#         m = n
+#     return torch.triu_indices(row=n, col=m, offset=k)
+
+def tril_indices(*args, **kwargs):
+    return tuple(map(torch.from_numpy, _np.tril_indices(*args, **kwargs)))
+
+
+def triu_indices(*args, **kwargs):
+    return tuple(map(torch.from_numpy, _np.triu_indices(*args, **kwargs)))
+
 
 
 def tile(x, y):
