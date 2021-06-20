@@ -6,20 +6,23 @@ import numpy as _np
 import torch
 from torch import (  # NOQA
     allclose,
-    acos as arccos,
     arange,
+    arccos,
+    arccosh,
+    arcsin,
+    arctanh,
     argmin,
-    asin as arcsin,
     atan2 as arctan2,
     bool as t_bool,
     broadcast_tensors as broadcast_arrays,
+    broadcast_to,
     ceil,
     clamp as clip,
     cos,
     cosh,
     cumprod,
     cross,
-    div as divide,
+    divide,
     diagonal,
     empty_like,
     eq,
@@ -31,8 +34,8 @@ from torch import (  # NOQA
     float64,
     floor,
     fmod as mod,
-    ger as outer,
-    gt as greater,
+    outer,
+    greater,
     hstack,
     vstack,
     int32,
@@ -315,12 +318,6 @@ def to_ndarray(x, to_ndim, axis=0):
     if x.dim() == to_ndim - 1:
         x = torch.unsqueeze(x, dim=axis)
     return x
-
-
-def broadcast_to(x, shape):
-    if not torch.is_tensor(x):
-        x = torch.tensor(x)
-    return x.expand(shape)
 
 
 def sqrt(x):
