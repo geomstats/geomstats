@@ -17,7 +17,7 @@ from torch import (  # NOQA
     broadcast_tensors as broadcast_arrays,
     broadcast_to,
     ceil,
-    clamp as clip,
+    clip,
     cos,
     cosh,
     cumprod,
@@ -124,6 +124,10 @@ def one_hot(labels, num_classes):
         labels = torch.LongTensor(labels)
     return torch.nn.functional.one_hot(
         labels, num_classes).type(torch.uint8)
+
+
+def diag_indices(*args, **kwargs):
+    return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))        
 
 
 def argmax(a, **kwargs):
@@ -462,6 +466,10 @@ def tile(x, y):
     if not torch.is_tensor(x):
         x = torch.tensor(x)
     return x.repeat(y)
+
+
+def ndim(x):
+    return x.ndim()
 
 
 def expand_dims(x, axis=0):
