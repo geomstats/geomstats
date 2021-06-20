@@ -772,7 +772,7 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
 
 def triu_to_vec(x, k=0):
     n = x.shape[-1]
-    rows, cols = torch.triu_indices(n, k=k)
+    rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
 
 
@@ -794,7 +794,7 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     """
     n = diag.shape[-1]
     i, = diag_indices(n, ndim=1)
-    j, k = torch.triu_indices(n, k=1)
+    j, k = triu_indices(n, k=1)
     mat = torch.zeros((diag.shape + (n, )))
     mat[..., i, i] = diag
     mat[..., j, k] = tri_upp
