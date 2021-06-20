@@ -321,7 +321,7 @@ def allclose(a, b, atol=atol, rtol=rtol):
     elif n_a < n_b:
         reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
         a = tile(a, reps)
-    return torch.testing.close(a, b, atol=atol, rtol=rtol)
+    return torch.allclose(a, b, rtol=rtol, atol=atol)
 
 
 def shape(val):
