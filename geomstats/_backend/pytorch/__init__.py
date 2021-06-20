@@ -8,13 +8,12 @@ from torch import (  # NOQA
     acos as arccos,
     arange,
     argmin,
-    arccos,
-    arcsin,
+    asin as arcsin,
     atan2 as arctan2,
     bool as t_bool,
     broadcast_tensors as broadcast_arrays,
     ceil,
-    clip,
+    clamp as clip,
     cos,
     cosh,
     cross,
@@ -321,7 +320,21 @@ def allclose(a, b, atol=atol, rtol=rtol):
     elif n_a < n_b:
         reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
         a = tile(a, reps)
-    return torch.allclose(a, b, rtol=rtol, atol=atol)
+    return torch.allclose(a, b, atol=atol, rtol=rtol)
+
+
+def arccosh(x):
+    c0 = torch.log(x)
+    c1 = torch.log1p(torch.sqrt(x * x - 1) / x)
+    return c0 + c1
+
+
+def arcsinh(x):
+    return torch.log(x + torch.sqrt(x * x + 1))
+
+
+def arcosh(x):
+    return torch.log(x + torch.sqrt(x * x - 1))
 
 
 def shape(val):
@@ -330,12 +343,6 @@ def shape(val):
 
 def dot(a, b):
     return einsum('...i,...i->...', a, b)
-
-
-def arccosh(x):
-    c0 = torch.log(x)
-    c1 = torch.log1p(torch.sqrt(x * x - 1) / x)
-    return c0 + c1
 
 
 def maximum(a, b):
