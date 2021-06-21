@@ -163,7 +163,7 @@ def split(x, indices_or_sections, axis=0):
 
 def logical_and(x, y):
     if torch.is_tensor(x):
-        return x & y
+        return torch.logical_and(x, y)
     return x and y
 
 

@@ -77,8 +77,8 @@ def pytorch_error_msg(a, b):
             diff = torch.logical_xor(a,b)
         else :
             diff = torch.abs(a-b)
-        return f'tensor 1\n{a}\ntensor 2\n{b}\ndifference \n{diff}'
-    return f'tensor 1\n{a}\ntensor 2\n{b}'
+        return f'\ntensor 1\n{a}\ntensor 2\n{b}\ndifference \n{diff}'
+    return f'\ntensor 1\n{a}\ntensor 2\n{b}'
 
 
 class TestCase(_TestBaseClass):
