@@ -75,12 +75,9 @@ class TestCase(_TestBaseClass):
             return super().assertAllClose(a, b, rtol=rtol, atol=atol)
         if np_backend():
             return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
-        flag =  gs.allclose(a, b, rtol=rtol, atol=atol)
-        if flag is False:
-            print(a)
-            print("test")
-            print(b)
-        return self.assertTrue(flag)
+        
+        return self.assertTrue(
+            gs.allclose(a, b, rtol=rtol, atol=atol), msg = '{0}, {1}'.format(a, b))
 
     def assertAllCloseToNp(self, a, np_a, rtol=gs.rtol, atol=gs.atol):
         are_same_shape = np.all(a.shape == np_a.shape)
