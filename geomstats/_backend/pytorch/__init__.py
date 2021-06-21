@@ -197,6 +197,11 @@ def flip(x, axis):
     return torch.flip(x, dims=axis)
 
 
+def concatenate(seq, axis=0, out=None):
+    seq = convert_to_wider_dtype(seq)
+    return torch.cat(seq, dim=axis, out=out)
+
+
 def _get_largest_dtype(seq):
     dtype_dict = {0: t_bool,
                   1: uint8,
