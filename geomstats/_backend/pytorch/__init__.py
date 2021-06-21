@@ -464,8 +464,8 @@ def transpose(x, axes=None):
 
 def squeeze(x, axis=None):
     if axis is None:
-        axis = 0
-    return torch.squeeze(x, axis)
+        return torch.squeeze(x)
+    return torch.squeeze(x, dim=axis)
 
 
 def trace(x, axis1=0, axis2=1):

@@ -68,8 +68,17 @@ if tf_backend():
     import tensorflow as tf
     _TestBaseClass = tf.test.TestCase
 
+if pytorch_backend():
+    import torch
+
+def pytorch_error_msg(a, b):
+    diff = torch.abs(a-b)
+    message = f'tensor 1\n{a}\ntensor 2\n{b}\ndifference \n{diff}'
+    return message
+    
 
 class TestCase(_TestBaseClass):
+
     def assertAllClose(self, a, b, rtol=gs.rtol, atol=gs.atol):
         if tf_backend():
             return super().assertAllClose(a, b, rtol=rtol, atol=atol)
@@ -77,7 +86,7 @@ class TestCase(_TestBaseClass):
             return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
         
         return self.assertTrue(
-            gs.allclose(a, b, rtol=rtol, atol=atol), msg = '{0}, {1}'.format(a, b))
+            gs.allclose(a, b, rtol=rtol, atol=atol), msg = pytorch_error_msg(a, b))
 
     def assertAllCloseToNp(self, a, np_a, rtol=gs.rtol, atol=gs.atol):
         are_same_shape = np.all(a.shape == np_a.shape)
