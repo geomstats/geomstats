@@ -73,7 +73,10 @@ if pytorch_backend():
 
 def pytorch_error_msg(a, b):
     if torch.is_tensor(a) and torch.is_tensor(b):
-        diff = torch.abs(a-b)
+        if a.dtype == torch.bool and b.dtype == torch.bool:
+            diff = torch.logical_xor(a,b)
+        else :
+            diff = torch.abs(a-b)
         return f'tensor 1\n{a}\ntensor 2\n{b}\ndifference \n{diff}'
     return f'tensor 1\n{a}\ntensor 2\n{b}'
 
