@@ -5,21 +5,21 @@ from functools import wraps
 import numpy as _np
 import torch
 from torch import (  # NOQA
-    acos as arccos,
     arange,
     argmin,
     arccos,
     arccosh,
     arcsin,
+    arctanh,
     atan2 as arctan2,
     bool as t_bool,
     broadcast_tensors as broadcast_arrays,
     ceil,
-    clamp as clip,
+    clip,
     cos,
     cosh,
     cross,
-    div as divide,
+    divide,
     diagonal,
     empty_like,
     eq,
@@ -31,15 +31,15 @@ from torch import (  # NOQA
     float64,
     floor,
     fmod as mod,
-    ger as outer,
-    gt as greater,
+    outer,
+    greater,
     hstack,
     int32,
     int64,
     isnan,
     log,
     logical_or,
-    lt as less,
+    less,
     matmul,
     max as amax,
     mean,
@@ -480,11 +480,6 @@ def trace(x, axis1=0, axis2=1):
     if min_axis == 0 and max_axis == 2:
         return torch.einsum('i...i', x)
     raise NotImplementedError()
-
-
-@_box_scalar
-def arctanh(x):
-    return 0.5 * torch.log((1 + x) / (1 - x))
 
 
 def linspace(start, stop, num):
