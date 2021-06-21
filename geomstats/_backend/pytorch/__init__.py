@@ -18,6 +18,7 @@ from torch import (  # NOQA
     cosh,
     cross,
     div as divide,
+    diagonal,
     empty_like,
     eq,
     erf,
@@ -548,10 +549,6 @@ def hsplit(x, indices_or_section):
     return torch.split(x, indices_or_section, dim=1)
 
 
-def diagonal(x, offset=0, axis1=0, axis2=1):
-    return torch.diagonal(x, offset=offset, dim1=axis1, dim2=axis2)
-
-
 def set_diag(x, new_diag):
     """Set the diagonal along the last two axis.
 
@@ -580,8 +577,8 @@ def set_diag(x, new_diag):
 
 def prod(x, axis=None):
     if axis is None:
-        return torch.prod(x)
-    return torch.prod(x, dim=axis)
+        axis = 0
+    return torch.prod(x, axis)
 
 
 def where(condition, x=None, y=None):
@@ -749,8 +746,8 @@ def cumsum(x, axis=None):
 
 def cumprod(x, axis=None):
     if axis is None:
-        return x.flatten().cumprod(dim=0)
-    return torch.cumprod(x, dim=axis)
+        axis = 0
+    return torch.cumprod(x, axis)
 
 
 def array_from_sparse(indices, data, target_shape):
