@@ -8,7 +8,9 @@ from torch import (  # NOQA
     acos as arccos,
     arange,
     argmin,
-    asin as arcsin,
+    arccos,
+    arccosh,
+    arcsin,
     atan2 as arctan2,
     bool as t_bool,
     broadcast_tensors as broadcast_arrays,
@@ -316,20 +318,6 @@ def allclose(a, b, atol=atol, rtol=rtol):
         reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
         a = tile(a, reps)
     return torch.allclose(a, b, atol=atol, rtol=rtol)
-
-
-def arccosh(x):
-    c0 = torch.log(x)
-    c1 = torch.log1p(torch.sqrt(x * x - 1) / x)
-    return c0 + c1
-
-
-def arcsinh(x):
-    return torch.log(x + torch.sqrt(x * x + 1))
-
-
-def arcosh(x):
-    return torch.log(x + torch.sqrt(x * x - 1))
 
 
 def shape(val):
