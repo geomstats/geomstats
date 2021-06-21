@@ -547,6 +547,10 @@ def hsplit(x, indices_or_section):
     return torch.split(x, indices_or_section, dim=1)
 
 
+def diagonal(x, offset=0, axis1=0, axis2=1):
+    return torch.diagonal(x, offset=offset, dim1=axis1, dim2=axis2)
+
+
 def set_diag(x, new_diag):
     """Set the diagonal along the last two axis.
 
