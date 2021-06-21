@@ -34,6 +34,8 @@ from torch import (  # NOQA
     int64,
     isnan,
     log,
+    logical_or,
+    logical_and,
     lt as less,
     matmul,
     max as amax,
@@ -153,16 +155,6 @@ def split(x, indices_or_sections, axis=0):
         intervals_length = _np.append(intervals_length, last_interval_length)
     intervals_length = _np.insert(intervals_length, 0, indices_or_sections[0])
     return torch.split(x, tuple(intervals_length), dim=axis)
-
-
-def logical_or(x, y):
-    return x or y
-    
-
-def logical_and(x, y):
-    if torch.is_tensor(x):
-        return x & y
-    return x and y
 
 
 def any(x, axis=None):
