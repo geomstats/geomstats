@@ -30,12 +30,12 @@ from torch import (  # NOQA
     fmod as mod,
     ger as outer,
     gt as greater,
+    hstack,
     int32,
     int64,
     isnan,
     log,
     logical_or,
-    logical_and,
     lt as less,
     matmul,
     max as amax,
@@ -57,7 +57,10 @@ from torch import (  # NOQA
     tan,
     tanh,
     tril,
+    tril_indices,
+    triu_indices,
     uint8,
+    vstack,
     zeros,
     zeros_like
 )
@@ -157,6 +160,12 @@ def split(x, indices_or_sections, axis=0):
     return torch.split(x, tuple(intervals_length), dim=axis)
 
 
+def logical_and(x, y):
+    if torch.is_tensor(x):
+        return x & y
+    return x and y
+
+
 def any(x, axis=None):
     if not torch.is_tensor(x):
         x = torch.tensor(x)
@@ -186,19 +195,6 @@ def flip(x, axis):
     if axis is None:
         axis = list(range(x.ndim))
     return torch.flip(x, dims=axis)
-
-
-def concatenate(seq, axis=0, out=None):
-    seq = convert_to_wider_dtype(seq)
-    return torch.cat(seq, dim=axis, out=out)
-
-
-def hstack(seq):
-    return concatenate(seq, axis=1)
-
-
-def vstack(seq):
-    return concatenate(seq)
 
 
 def _get_largest_dtype(seq):
@@ -515,24 +511,16 @@ def diag_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
 
 
-# def tril_indices(n, k=0, m=None):
-#     if m is None:
-#         m = n
-#     return torch.tril_indices(row=n, col=m, offset=k)
+def tril_indices(n, k=0, m=None):
+    if m is None:
+        m = n
+    return torch.tril_indices(row=n, col=m, offset=k)
 
 
-# def triu_indices(n, k=0, m=None):
-#     if m is None:
-#         m = n
-#     return torch.triu_indices(row=n, col=m, offset=k)
-
-def tril_indices(*args, **kwargs):
-    return tuple(map(torch.from_numpy, _np.tril_indices(*args, **kwargs)))
-
-
-def triu_indices(*args, **kwargs):
-    return tuple(map(torch.from_numpy, _np.triu_indices(*args, **kwargs)))
-
+def triu_indices(n, k=0, m=None):
+    if m is None:
+        m = n
+    return torch.triu_indices(row=n, col=m, offset=k)
 
 
 def tile(x, y):
