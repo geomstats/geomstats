@@ -2,8 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry import hypersphere
-from geomstats.geometry import spd_matrices
+from geomstats.geometry import hypersphere, spd_matrices
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.kmeans import RiemannianKMeans
 
@@ -20,15 +19,15 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
 
         x = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
-        kmeans = RiemannianKMeans(metric, 1, tol=1e-3, lr=1.)
+        kmeans = RiemannianKMeans(metric, 1, tol=1e-3, lr=1.0)
         kmeans.fit(x)
         center = kmeans.centroids
 
-        mean = FrechetMean(metric=metric, lr=1.)
+        mean = FrechetMean(metric=metric, lr=1.0)
         mean.fit(x)
 
         result = metric.dist(center, mean.estimate_)
-        expected = 0.
+        expected = 0.0
         self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
@@ -40,12 +39,11 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         data = space.random_point(n_samples=n_points)
         metric = spd_matrices.SPDMetricAffine(dim)
 
-        kmeans = RiemannianKMeans(
-            metric, n_clusters=1, lr=1.)
+        kmeans = RiemannianKMeans(metric, n_clusters=1, lr=1.0)
         kmeans.fit(data)
         result = kmeans.centroids
 
-        mean = FrechetMean(metric=metric, point_type='matrix', max_iter=100)
+        mean = FrechetMean(metric=metric, point_type="matrix", max_iter=100)
         mean.fit(data)
         expected = mean.estimate_
         self.assertAllClose(result, expected)
@@ -60,12 +58,12 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
 
         x = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
-        kmeans = RiemannianKMeans(metric, 5, tol=1e-5, lr=1.)
+        kmeans = RiemannianKMeans(metric, 5, tol=1e-5, lr=1.0)
         kmeans.fit(x)
         result = kmeans.predict(x)
 
         centroids = kmeans.centroids
         expected = gs.array(
-            [int(metric.closest_neighbor_index(x_i, centroids))
-             for x_i in x])
+            [int(metric.closest_neighbor_index(x_i, centroids)) for x_i in x]
+        )
         self.assertAllClose(expected, result)
