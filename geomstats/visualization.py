@@ -901,7 +901,6 @@ class KendallDisk:
 
     def draw_vector(self, tangent_vec, base_point, tol=1e-03, **kwargs):
         """Draw one vector in the tangent space to disk at a base point."""
-        print(tol)
         r_bp, th_bp = self.convert_to_polar_coordinates(base_point)
         bp = gs.array([gs.cos(th_bp) * gs.sin(2 * r_bp),
                        gs.sin(th_bp) * gs.sin(2 * r_bp),
