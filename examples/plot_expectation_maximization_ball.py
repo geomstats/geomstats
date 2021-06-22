@@ -122,11 +122,9 @@ def expectation_maximisation_poincare_ball():
 
     EM = RiemannianEM(n_gaussians=n_clusters,
                       metric=metric,
-                      initialisation_method='random',
-                      mean_method='frechet-poincare-ball')
+                      initialisation_method='random')
 
-    means, variances, mixture_coefficients = EM.fit(
-        data=data, max_iter=100, lr_mean=1.)
+    means, variances, mixture_coefficients = EM.fit(data=data)
 
     # Plot result
     plot = plot_gaussian_mixture_distribution(data,
