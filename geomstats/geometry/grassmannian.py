@@ -291,7 +291,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         self.p = p
         self.embedding_metric = EuclideanMetric(n * p)
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Exponentiate the invariant vector field v from base point p.
 
         Parameters
@@ -313,7 +313,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         rot = Matrices.bracket(base_point, -tangent_vec)
         return mul(expm(rot), base_point, expm(-rot))
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         r"""Compute the Riemannian logarithm of point w.r.t. base_point.
 
         Given :math:`P, P'` in Gr(n, k) the logarithm from :math:`P`

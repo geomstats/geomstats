@@ -111,7 +111,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
                 n_accepted += gs.sum(criterion)
             iteration += 1
         if n_samples == 1:
-            return sample[0]
+            return sample[0][0]
         return gs.concatenate(sample)
 
     @classmethod
