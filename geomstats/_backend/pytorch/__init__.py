@@ -1,5 +1,6 @@
 """Pytorch based computation backend."""
 
+import math
 from functools import wraps
 
 import numpy as _np
@@ -30,6 +31,7 @@ from torch import (  # NOQA
     fmod as mod,
     ger as outer,
     gt as greater,
+    imag,
     int32,
     int64,
     isnan,
@@ -45,6 +47,7 @@ from torch import (  # NOQA
     ones_like,
     polygamma,
     pow as power,
+    real,
     repeat_interleave as repeat,
     reshape,
     sign,
@@ -97,10 +100,16 @@ ceil = _box_scalar(ceil)
 cos = _box_scalar(cos)
 cosh = _box_scalar(cosh)
 exp = _box_scalar(exp)
+imag = _box_scalar(imag)
 log = _box_scalar(log)
+real = _box_scalar(real)
 sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
 tan = _box_scalar(tan)
+
+
+def comb(n, k):
+    return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
 
 
 def to_numpy(x):
