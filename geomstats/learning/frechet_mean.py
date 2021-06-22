@@ -186,35 +186,45 @@ def _batch_gradient_descent(
         return points[0]
 
     if weights is None:
-        weights = gs.ones((n_points, n_batch)) / n_points
+        weights = gs.ones((n_points, n_batch))
 
-    flat_shape = (n_batch * n_points,) + shape[-ndim:]
+    flat_shape = (n_batch * n_points, ) + shape[-ndim:]
     estimates = points[0]
     points_flattened = gs.reshape(
         points, (n_points * n_batch, ) + shape[-ndim:])
     convergence = math.inf
     iteration = 0
+    convergence_old = convergence
 
     while convergence > epsilon and max_iter > iteration:
 
         iteration += 1
-        estimate_flattened = gs.reshape(estimates, flat_shape)
-        weights, _ = gs.broadcast_arrays(weights, estimates)
-        weights_flattened = gs.reshape(weights, flat_shape)
+        estimates_broadcast, _ = gs.broadcast_arrays(estimates, points)
+        estimates_flattened = gs.reshape(estimates_broadcast, flat_shape)
 
-        tangent_grad = 2 * metric.log(points_flattened, estimate_flattened)
+        tangent_grad = metric.log(points_flattened, estimates_flattened)
         tangent_grad = gs.reshape(tangent_grad, shape)
 
-        lr_grad_tangent = lr * gs.einsum(einsum_str, weights, tangent_grad)
+        tangent_mean = gs.einsum(einsum_str, weights, tangent_grad) / n_points
 
-        next_estimates = metric.exp(lr_grad_tangent, estimates)
-        convergence = gs.sum(metric.squared_norm(lr_grad_tangent))
+        next_estimates = metric.exp(lr * tangent_mean, estimates)
+        convergence = gs.sum(metric.squared_norm(tangent_mean, estimates))
         estimates = next_estimates
+
+        if convergence < convergence_old:
+            convergence_old = convergence
+        elif convergence > convergence_old:
+            lr = lr / 2.
 
     if iteration == max_iter:
         logging.warning(
             'Maximum number of iterations {} reached. The '
             'mean may be inaccurate'.format(max_iter))
+
+    if verbose:
+        logging.info(
+            'n_iter: {}, final dist: {},'
+            'final step size: {}'.format(iteration, convergence, lr))
 
     return estimates
 
@@ -337,11 +347,12 @@ class FrechetMean(BaseEstimator):
     point_type : str, {\'vector\', \'matrix\'}
         Point type.
         Optional, default: None.
-    method : str, {\'default\', \'adaptive\', \'ball\'}
+    method : str, {\'default\', \'adaptive\', \'batch\'}
         Gradient descent method.
         The `adaptive` method uses a Levenberg-Marquardt style adaptation of
-        the learning rate. The `ball` method is for the Poincaré ball
-        manifold only.
+        the learning rate. The `batch` method is similar to the default
+        method but for batches of equal length of samples. In this case,
+        samples must be of shape [n_samples, n_batch, {dim, [n,n]}].
         Optional, default: \'default\'.
     verbose : bool
         Verbose option.
@@ -375,7 +386,7 @@ class FrechetMean(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape=[..., n_features]
+        X : {array-like, sparse matrix}, shape=[..., {dim, [n, n]}]
             Training input samples.
         y : array-like, shape=[...,] or [..., n_outputs]
             Target values (class labels in classification, real numbers in
@@ -418,7 +429,8 @@ class FrechetMean(BaseEstimator):
         elif self.method == 'batch':
             mean = _batch_gradient_descent(
                 points=X, weights=weights, metric=self.metric,
-                lr=self.lr, epsilon=self.epsilon, max_iter=self.max_iter)
+                lr=self.lr, epsilon=self.epsilon, max_iter=self.max_iter,
+                point_type=self.point_type, verbose=self.verbose)
 
         self.estimate_ = mean
 

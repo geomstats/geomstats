@@ -439,3 +439,20 @@ class TestFrechetMean(geomstats.tests.TestCase):
         result = mean.estimate_
         expected = point
         self.assertAllClose(expected, result)
+
+    def test_batched(self):
+        space = SPDMatrices(3)
+        metric = SPDMetricAffine(3)
+        point = space.random_point(4)
+        mean_batch = FrechetMean(metric, method='batch', verbose=True)
+        data = gs.stack([point[:2], point[2:]], axis=1)
+        mean_batch.fit(data)
+        result = mean_batch.estimate_
+
+        mean = FrechetMean(metric)
+        mean.fit(data[:, 0])
+        expected_1 = mean.estimate_
+        mean.fit(data[:, 1])
+        expected_2 = mean.estimate_
+        expected = gs.stack([expected_1, expected_2])
+        self.assertAllClose(expected, result)

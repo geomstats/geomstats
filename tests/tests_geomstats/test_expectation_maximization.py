@@ -24,7 +24,7 @@ class TestEM(geomstats.tests.TestCase):
         self.space = PoincareBall(dim=self.dim)
         self.metric = self.space.metric
         self.initialisation_method = 'random'
-        self.mean_method = 'frechet-poincare-ball'
+        self.mean_method = 'batch'
 
         cluster_1 = gs.random.uniform(
             low=0.2, high=0.6, size=(self.n_samples, self.dim))
@@ -43,11 +43,9 @@ class TestEM(geomstats.tests.TestCase):
         gmm_learning = RiemannianEM(
             metric=self.metric,
             n_gaussians=self.n_gaussian,
-            initialisation_method=self.initialisation_method,
-            mean_method=self.mean_method)
+            initialisation_method=self.initialisation_method)
 
-        means, variances, coefficients = gmm_learning.fit(
-            self.data, lr_mean=1.)
+        means, variances, coefficients = gmm_learning.fit(self.data)
 
         self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
         self.assertTrue((variances < 1).all() and (variances > 0).all())
@@ -56,11 +54,9 @@ class TestEM(geomstats.tests.TestCase):
         gmm_learning = RiemannianEM(
             metric=self.metric,
             n_gaussians=self.n_gaussian,
-            initialisation_method='kmeans',
-            mean_method=self.mean_method)
+            initialisation_method='kmeans')
 
-        means, variances, coefficients = gmm_learning.fit(
-            self.data, lr_mean=1.)
+        means, variances, coefficients = gmm_learning.fit(self.data)
 
         self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
         self.assertTrue((variances < 1).all() and (variances > 0).all())
@@ -72,8 +68,7 @@ class TestEM(geomstats.tests.TestCase):
         gmm_learning = RiemannianEM(
             metric=self.metric,
             n_gaussians=self.n_gaussian,
-            initialisation_method=self.initialisation_method,
-            mean_method=self.mean_method)
+            initialisation_method=self.initialisation_method)
 
         means, variances, coefficients = gmm_learning.fit(self.data)
 
@@ -84,8 +79,7 @@ class TestEM(geomstats.tests.TestCase):
         gmm_learning = RiemannianEM(
             metric=self.metric,
             n_gaussians=self.n_gaussian,
-            initialisation_method='random',
-            mean_method=self.mean_method)
+            initialisation_method='random')
 
         means, variances, coefficients = gmm_learning.fit(self.data)
 
@@ -146,8 +140,7 @@ class TestEM(geomstats.tests.TestCase):
         gmm_learning = RiemannianEM(
             metric=space.metric,
             n_gaussians=2,
-            initialisation_method=self.initialisation_method,
-            mean_method='batch')
+            initialisation_method=self.initialisation_method)
 
         means = space.random_uniform(2)
         cluster_1 = space.random_von_mises_fisher(
@@ -156,7 +149,7 @@ class TestEM(geomstats.tests.TestCase):
             mu=means[1], kappa=20, n_samples=140)
 
         data = gs.concatenate((cluster_1, cluster_2), axis=0)
-        means, variances, coefficients = gmm_learning.fit(data, lr_mean=1.)
+        means, variances, coefficients = gmm_learning.fit(data)
 
         self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
         self.assertTrue((variances < 1).all() and (variances > 0).all())

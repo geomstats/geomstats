@@ -207,10 +207,11 @@ def find_variance_from_index(
 
 
 class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
-    r"""Expectation-maximization class on Poincaré Ball.
+    r"""Expectation-maximization algorithm.
 
-    A class for performing Expectation-Maximization on the
-    Poincaré Ball to fit data into a Gaussian Mixture Model (GMM).
+    A class for performing Expectation-Maximization to fit a Gaussian Mixture
+    Model (GMM) to data on a manifold. This method is only implemented for
+    the hypersphere and the Poincare ball.
 
     Parameters
     ----------
@@ -228,14 +229,27 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             variances and means that the EM will use initially.
     tol : float
         Optional, default: 1e-2.
-        Convergence factor. If the difference of mean distance
-        between two step is lower than tol.
-    mean_method : basestring
-        Optional, default: 'default'.
-        Specify the method to compute the mean.
+        Convergence tolerance. If the difference of mean distance
+        between two steps is lower than tol.
+    lr_mean : float
+        Learning rate in the gradient descent computation of the Frechet means.
+        Optional, default: 1.
+    max_iter : int
+        Maximum number of iterations for the gradient descent.
+        Optional, default: 100.
+    max_iter_mean : int
+        Maximum number of iterations for the gradient descent of each Frechet
+        mean.
+        Optional, default: 100.
+    tol_mean : float, optional
+        Tolerance for stopping the gradient descent of the computation of the
+        Frechet mean.
+        Optional, default: 1e-4.
+
+    Attributes
+    ----------
     point_type : basestring
-        Optional, default: 'vector'.
-        Specify whether to use vector or matrix representation.
+        Whether to use vector or matrix representation.
     _dimension : int
         Manifold dimension.
     mixture_coefficients : array-like, shape=[n_gaussians,]
@@ -257,15 +271,10 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         and :math:'\zeta' the normalization coefficient
         and :math:'m' the dimension.
 
-    Returns
-    -------
-    self : object
-        Returns the instance itself.
-
     Example
     -------
     Available example on the Poincaré Ball manifold
-    :mod:`examples.plot_expectation_maximization_manifolds`
+    :mod:`examples.plot_expectation_maximization_ball`
     """
 
     def __init__(self,
@@ -273,13 +282,16 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                  n_gaussians=8,
                  initialisation_method='random',
                  tol=DEFAULT_TOL,
-                 mean_method='default'):
+                 lr_mean=1.,
+                 max_iter=100,
+                 max_iter_mean=100,
+                 tol_mean=1e-4):
 
         self.n_gaussians = n_gaussians
         self.metric = metric
         self.initialisation_method = initialisation_method
         self.tol = tol
-        self.mean_method = mean_method
+        self.mean_method = 'batch'
         self.point_type = metric.default_point_type
         self._dimension = None
         self.mixture_coefficients = None
@@ -289,6 +301,10 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.variances_range = None
         self.normalization_factor_var = None
         self.phi_inv_var = None
+        self.lr_mean = lr_mean
+        self.max_iter = max_iter
+        self.max_iter_mean = max_iter_mean
+        self.tol_mean = tol_mean
 
     def update_posterior_probabilities(self, posterior_probabilities):
         """Posterior probabilities update function.
@@ -301,17 +317,17 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         """
         self.mixture_coefficients = gs.mean(posterior_probabilities, 0)
 
-    def update_means(self, data, posterior_probabilities,
-                     lr_means, tau_means, max_iter=DEFAULT_MAX_ITER):
-        """Means update function."""
+    def update_means(
+            self, data, posterior_probabilities):
+        """Update means."""
         n_gaussians = posterior_probabilities.shape[-1]
 
         mean = FrechetMean(
             metric=self.metric,
             method=self.mean_method,
-            lr=lr_means,
-            epsilon=tau_means,
-            max_iter=max_iter,
+            lr=self.lr_mean,
+            epsilon=self.tol_mean,
+            max_iter=self.max_iter_mean,
             point_type=self.point_type)
 
         data_expand = gs.expand_dims(data, 1)
@@ -393,12 +409,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
         return posterior_probabilities
 
-    def _maximization(self,
-                      data,
-                      posterior_probabilities,
-                      lr_means,
-                      conv_factor_mean,
-                      max_iter=DEFAULT_MAX_ITER):
+    def _maximization(self, data, posterior_probabilities):
         """Update function for the means and variances.
 
         Parameters
@@ -409,14 +420,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         posterior_probabilities : array-like, shape=[n_samples, n_gaussians,]
             Probability of a given sample to belong to a component
             of the GMM, computed for all components.
-        lr_means : float
-            Learning rate for computing the means.
-        conv_factor_mean : float
-            Convergence factor for means.
-        max_iter : int
-            Optional, default: 100.
-            Maximum number of iterations for computing
-            the means.
         """
         self.update_posterior_probabilities(posterior_probabilities)
 
@@ -425,11 +428,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             logging.warning('UPDATE : mixture coefficients '
                             'contain elements that are not numbers')
 
-        self.update_means(data,
-                          posterior_probabilities,
-                          lr_means=lr_means,
-                          tau_means=conv_factor_mean,
-                          max_iter=max_iter)
+        self.update_means(data, posterior_probabilities)
 
         if self.means.mean() != self.means.mean():
             logging.warning('UPDATE : means contain'
@@ -441,11 +440,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             logging.warning('UPDATE : variances contain'
                             'not a number elements')
 
-    def fit(self,
-            data,
-            max_iter=DEFAULT_MAX_ITER,
-            lr_mean=DEFAULT_LR,
-            conv_factor_mean=DEFAULT_CONV_FACTOR):
+    def fit(self, data):
         """Fit a Gaussian mixture model (GMM) given the data.
 
         Alternates between Expectation and Maximization steps
@@ -456,15 +451,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         data : array-like, shape=[n_samples, n_features]
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
-        max_iter : int
-            Optional, default: 100.
-            Maximum number of iterations.
-        lr_mean : float
-            Optional, default: 5e-2.
-            Learning rate for the mean.
-        conv_factor_mean : float
-            Optional, default: 5e-3.
-            Convergence factor for the mean.
 
         Returns
         -------
@@ -474,13 +460,11 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         """
         self._dimension = data.shape[-1]
         if self.initialisation_method == 'kmeans':
-            kmeans = RiemannianKMeans(metric=self.metric,
-                                      n_clusters=self.n_gaussians,
-                                      init='random',
-                                      mean_method='frechet-poincare-ball'
-                                      )
+            kmeans = RiemannianKMeans(
+                metric=self.metric, n_clusters=self.n_gaussians, init='random',
+                mean_method='batch', lr=self.lr_mean)
 
-            centroids = kmeans.fit(X=data, max_iter=100)
+            centroids = kmeans.fit(X=data)
             labels = kmeans.predict(X=data)
 
             self.means = centroids
@@ -513,7 +497,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                 gs.arange(
                     ZETA_LOWER_BOUND, ZETA_UPPER_BOUND, ZETA_STEP))
 
-        for epoch in range(max_iter):
+        for epoch in range(self.max_iter):
             old_posterior_probabilities = posterior_probabilities
 
             posterior_probabilities = self._expectation(data)
@@ -521,14 +505,11 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             condition = gs.mean(gs.abs(old_posterior_probabilities
                                        - posterior_probabilities))
 
-            if(condition < EM_CONV_RATE and epoch > MINIMUM_EPOCHS):
+            if condition < EM_CONV_RATE and epoch > MINIMUM_EPOCHS:
                 logging.info('EM converged in %s iterations', epoch)
                 return self.means, self.variances, self.mixture_coefficients
 
-            self._maximization(data,
-                               posterior_probabilities,
-                               lr_means=lr_mean,
-                               conv_factor_mean=conv_factor_mean)
+            self._maximization(data, posterior_probabilities)
 
         logging.info('WARNING: EM did not converge \n'
                      'Please increase MINIMUM_EPOCHS.')
