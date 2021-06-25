@@ -4,9 +4,8 @@ This class abstracts the backend type.
 """
 
 import os
-import unittest
-
 import numpy as np
+import pytest
 
 import geomstats.backend as gs
 
@@ -26,44 +25,14 @@ def np_backend():
     return os.environ['GEOMSTATS_BACKEND'] == 'numpy'
 
 
-def np_only(test_item):
-    """Decorate to filter tests for numpy only."""
-    if np_backend():
-        return test_item
-    return unittest.skip('Test for numpy backend only.')(test_item)
 
+pytorch_only = pytest.mark.skipif(not np_backend()) 
+np_only = pytest.mark.skipif(not np_backend())
+tf_only = pytest.mark.skipif(not tf_backend())
+np_and_tf_only = pytest.mark.skipif(pytorch_backend())
+np_and_pytorch_only = pytest.mark.skipif(tf_backend())
 
-def pytorch_only(test_item):
-    """Decorate to filter tests for pytorch only."""
-    if pytorch_backend():
-        return test_item
-    return unittest.skip('Test for pytorch backend only.')(test_item)
-
-
-def tf_only(test_item):
-    """Decorate to filter tests for tensorflow only."""
-    if tf_backend():
-        return test_item
-    return unittest.skip('Test for tensorflow backend only.')(test_item)
-
-
-def np_and_tf_only(test_item):
-    """Decorate to filter tests for numpy and tensorflow only."""
-    if np_backend() or tf_backend():
-        return test_item
-    return unittest.skip('Test for numpy and tensorflow backends only.')(
-        test_item)
-
-
-def np_and_pytorch_only(test_item):
-    """Decorate to filter tests for numpy and pytorch only."""
-    if np_backend() or pytorch_backend():
-        return test_item
-    return unittest.skip('Test for numpy and pytorch backends only.')(
-        test_item)
-
-
-_TestBaseClass = unittest.TestCase
+_TestBaseClass = object 
 if tf_backend():
     import tensorflow as tf
     _TestBaseClass = tf.test.TestCase
@@ -75,7 +44,7 @@ class TestCase(_TestBaseClass):
             return super().assertAllClose(a, b, rtol=rtol, atol=atol)
         if np_backend():
             return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
-        return self.assertTrue(gs.allclose(a, b, rtol=rtol, atol=atol))
+        assert gs.allclose(a, b, rtol=rtol, atol=atol)
 
     def assertAllCloseToNp(self, a, np_a, rtol=gs.rtol, atol=gs.atol):
         are_same_shape = np.all(a.shape == np_a.shape)
