@@ -15,7 +15,8 @@ from torch import ceil
 from torch import clamp as clip
 from torch import cos, cosh, cross
 from torch import div as divide
-from torch import empty_like, eq, erf, exp, eye, flatten, float32, float64, floor
+from torch import (empty_like, eq, erf, exp, eye, flatten, float32, float64,
+                   floor)
 from torch import fmod as mod
 from torch import ger as outer
 from torch import gt as greater
@@ -29,20 +30,8 @@ from torch import nonzero, ones, ones_like, polygamma
 from torch import pow as power
 from torch import real
 from torch import repeat_interleave as repeat
-from torch import (
-    reshape,
-    sign,
-    sin,
-    sinh,
-    stack,
-    std,
-    tan,
-    tanh,
-    tril,
-    uint8,
-    zeros,
-    zeros_like,
-)
+from torch import (reshape, sign, sin, sinh, stack, std, tan, tanh, tril,
+                   uint8, zeros, zeros_like)
 
 from ..constants import pytorch_atol, pytorch_rtol
 from . import autograd  # NOQA

@@ -6,7 +6,8 @@ from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricBuresWasserstein
+from geomstats.geometry.spd_matrices import (SPDMatrices,
+                                             SPDMetricBuresWasserstein)
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 

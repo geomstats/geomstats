@@ -2,7 +2,8 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.product_manifold import ProductManifold
-from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
+from geomstats.geometry.product_riemannian_metric import \
+    ProductRiemannianMetric
 
 
 class Landmarks(ProductManifold):

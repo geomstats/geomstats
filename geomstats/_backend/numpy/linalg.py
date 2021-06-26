@@ -4,16 +4,8 @@ import autograd.numpy as np
 import autograd.scipy.linalg as asp
 import scipy.linalg
 from autograd.extend import defvjp, primitive
-from autograd.numpy.linalg import (  # NOQA
-    cholesky,
-    det,
-    eig,
-    eigh,
-    eigvalsh,
-    inv,
-    norm,
-    svd,
-)
+from autograd.numpy.linalg import (cholesky, det, eig, eigh, eigvalsh,  # NOQA
+                                   inv, norm, svd)
 
 from .common import to_ndarray
 

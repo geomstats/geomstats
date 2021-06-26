@@ -5,10 +5,8 @@ import geomstats.tests
 import tests.helper as helper
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_euclidean import (
-    SpecialEuclidean,
-    SpecialEuclideanMatrixCannonicalLeftMetric,
-    SpecialEuclideanMatrixLieAlgebra,
-)
+    SpecialEuclidean, SpecialEuclideanMatrixCannonicalLeftMetric,
+    SpecialEuclideanMatrixLieAlgebra)
 
 
 class TestSpecialEuclidean(geomstats.tests.TestCase):

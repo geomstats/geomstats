@@ -30,7 +30,6 @@ add a decorator such as `@geomstats.tests.np_only` or
 # Import the tests module
 import geomstats.backend as gs
 import geomstats.tests
-
 # Import the manifold to be tested
 from geomstats.geometry._my_manifold import MyManifold
 

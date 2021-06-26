@@ -7,13 +7,10 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 from geomstats.geometry.matrices import MatricesMetric
-from geomstats.geometry.spd_matrices import (
-    SPDMatrices,
-    SPDMetricAffine,
-    SPDMetricBuresWasserstein,
-    SPDMetricEuclidean,
-    SPDMetricLogEuclidean,
-)
+from geomstats.geometry.spd_matrices import (SPDMatrices, SPDMetricAffine,
+                                             SPDMetricBuresWasserstein,
+                                             SPDMetricEuclidean,
+                                             SPDMetricLogEuclidean)
 
 
 class TestSPDMatrices(geomstats.tests.TestCase):

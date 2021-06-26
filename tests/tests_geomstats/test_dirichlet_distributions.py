@@ -8,10 +8,8 @@ from scipy.stats import dirichlet
 import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
-from geomstats.geometry.dirichlet_distributions import (
-    DirichletDistributions,
-    DirichletMetric,
-)
+from geomstats.geometry.dirichlet_distributions import (DirichletDistributions,
+                                                        DirichletMetric)
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 

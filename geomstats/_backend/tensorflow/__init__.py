@@ -14,52 +14,17 @@ from tensorflow import asin as arcsin
 from tensorflow import atan2 as arctan2
 from tensorflow import broadcast_to
 from tensorflow import clip_by_value as clip
-from tensorflow import (
-    concat,
-    cos,
-    cosh,
-    divide,
-    equal,
-    exp,
-    expand_dims,
-    float32,
-    float64,
-    floor,
-    gather,
-    greater,
-    int32,
-    int64,
-    less,
-    less_equal,
-    linspace,
-    logical_and,
-    logical_or,
-    maximum,
-    meshgrid,
-    ones,
-    ones_like,
-)
+from tensorflow import (concat, cos, cosh, divide, equal, exp, expand_dims,
+                        float32, float64, floor, gather, greater, int32, int64,
+                        less, less_equal, linspace, logical_and, logical_or,
+                        maximum, meshgrid, ones, ones_like)
 from tensorflow import range as arange
 from tensorflow import reduce_max as amax
 from tensorflow import reduce_mean as mean
 from tensorflow import reduce_min as amin
 from tensorflow import reduce_prod as prod
-from tensorflow import (
-    reshape,
-    searchsorted,
-    shape,
-    sign,
-    sin,
-    sinh,
-    sqrt,
-    squeeze,
-    stack,
-    tan,
-    tanh,
-    uint8,
-    zeros,
-    zeros_like,
-)
+from tensorflow import (reshape, searchsorted, shape, sign, sin, sinh, sqrt,
+                        squeeze, stack, tan, tanh, uint8, zeros, zeros_like)
 
 from ..constants import tf_atol, tf_rtol
 from . import autograd  # NOQA

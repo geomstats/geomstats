@@ -9,9 +9,8 @@ import numpy as np
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.kernel_density_estimation_classifier import (
-    KernelDensityEstimationClassifier,
-)
+from geomstats.learning.kernel_density_estimation_classifier import \
+    KernelDensityEstimationClassifier
 from geomstats.learning.radial_kernel_functions import triangular_radial_kernel
 
 

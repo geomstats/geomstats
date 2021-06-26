@@ -4,11 +4,9 @@ from sklearn.datasets import load_iris
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.learning._template import (
-    TemplateClassifier,
-    TemplateEstimator,
-    TemplateTransformer,
-)
+from geomstats.learning._template import (TemplateClassifier,
+                                          TemplateEstimator,
+                                          TemplateTransformer)
 
 ESTIMATORS = (TemplateClassifier, TemplateEstimator, TemplateTransformer)
 

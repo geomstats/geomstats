@@ -14,7 +14,8 @@ from matplotlib.patches import Circle
 
 import geomstats.backend as gs
 from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.learning.expectation_maximization import RiemannianEM, weighted_gmm_pdf
+from geomstats.learning.expectation_maximization import (RiemannianEM,
+                                                         weighted_gmm_pdf)
 
 DEFAULT_PLOT_PRECISION = 100
 

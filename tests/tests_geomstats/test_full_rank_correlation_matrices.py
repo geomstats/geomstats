@@ -3,9 +3,7 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.full_rank_correlation_matrices import (
-    CorrelationMatricesBundle,
-    FullRankCorrelationAffineQuotientMetric,
-)
+    CorrelationMatricesBundle, FullRankCorrelationAffineQuotientMetric)
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import SymmetricMatrices

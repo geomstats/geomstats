@@ -32,11 +32,8 @@ import numpy as np
 
 import geomstats.backend as gs
 from geomstats import algebra_utils
-from geomstats.learning.kalman_filter import (
-    KalmanFilter,
-    Localization,
-    LocalizationLinear,
-)
+from geomstats.learning.kalman_filter import (KalmanFilter, Localization,
+                                              LocalizationLinear)
 
 
 def create_data(kalman, true_init, true_inputs, obs_freq):
