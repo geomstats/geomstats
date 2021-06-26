@@ -4,8 +4,7 @@ import logging
 import math
 import multiprocessing
 
-from scipy.integrate import odeint
-from scipy.integrate import solve_bvp
+from scipy.integrate import odeint, solve_bvp
 from scipy.stats import dirichlet
 
 import geomstats.backend as gs

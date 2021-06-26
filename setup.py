@@ -5,7 +5,6 @@ from itertools import chain
 
 from setuptools import find_packages, setup
 
-
 base_dir = os.path.dirname(os.path.abspath(__file__))
 geomstats = runpy.run_path(os.path.join(base_dir, "geomstats", "__init__.py"))
 

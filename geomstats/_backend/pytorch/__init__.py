@@ -5,50 +5,31 @@ from functools import wraps
 
 import numpy as _np
 import torch
-from torch import (  # NOQA
-    acos as arccos,
-    arange,
-    argmin,
-    asin as arcsin,
-    atan2 as arctan2,
-    bool as t_bool,
-    broadcast_tensors as broadcast_arrays,
-    ceil,
-    clamp as clip,
-    cos,
-    cosh,
-    cross,
-    div as divide,
-    empty_like,
-    eq,
-    erf,
-    exp,
-    eye,
-    flatten,
-    float32,
-    float64,
-    floor,
-    fmod as mod,
-    ger as outer,
-    gt as greater,
-    imag,
-    int32,
-    int64,
-    isnan,
-    log,
-    lt as less,
-    matmul,
-    max as amax,
-    mean,
-    meshgrid,
-    min as amin,
-    nonzero,
-    ones,
-    ones_like,
-    polygamma,
-    pow as power,
-    real,
-    repeat_interleave as repeat,
+from torch import acos as arccos  # NOQA
+from torch import arange, argmin
+from torch import asin as arcsin
+from torch import atan2 as arctan2
+from torch import bool as t_bool
+from torch import broadcast_tensors as broadcast_arrays
+from torch import ceil
+from torch import clamp as clip
+from torch import cos, cosh, cross
+from torch import div as divide
+from torch import empty_like, eq, erf, exp, eye, flatten, float32, float64, floor
+from torch import fmod as mod
+from torch import ger as outer
+from torch import gt as greater
+from torch import imag, int32, int64, isnan, log
+from torch import lt as less
+from torch import matmul
+from torch import max as amax
+from torch import mean, meshgrid
+from torch import min as amin
+from torch import nonzero, ones, ones_like, polygamma
+from torch import pow as power
+from torch import real
+from torch import repeat_interleave as repeat
+from torch import (
     reshape,
     sign,
     sin,
@@ -63,10 +44,10 @@ from torch import (  # NOQA
     zeros_like,
 )
 
+from ..constants import pytorch_atol, pytorch_rtol
 from . import autograd  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-from ..constants import pytorch_atol, pytorch_rtol
 
 DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3}
 

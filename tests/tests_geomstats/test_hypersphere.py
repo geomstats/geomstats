@@ -1,10 +1,10 @@
 """Unit tests for the Hypersphere."""
 
 import scipy.special
-import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 from geomstats.learning.frechet_mean import FrechetMean

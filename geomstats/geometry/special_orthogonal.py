@@ -12,7 +12,6 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
-
 ATOL = 1e-5
 
 TAYLOR_COEFFS_1_AT_PI = [

@@ -9,10 +9,9 @@ import math
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
-from geomstats.geometry._hyperbolic import _Hyperbolic, HyperbolicMetric
+from geomstats.geometry._hyperbolic import HyperbolicMetric, _Hyperbolic
 from geomstats.geometry.base import EmbeddedManifold
-from geomstats.geometry.minkowski import Minkowski
-from geomstats.geometry.minkowski import MinkowskiMetric
+from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
 
 
 class Hyperboloid(_Hyperbolic, EmbeddedManifold):

@@ -1,9 +1,8 @@
 """Unit tests for special orthogonal group SO(n)."""
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 

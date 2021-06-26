@@ -1,11 +1,9 @@
 """Unit tests for the Grassmannian."""
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.grassmannian import Grassmannian
-from geomstats.geometry.grassmannian import GrassmannianCanonicalMetric
+import tests.helper as helper
+from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
 from geomstats.geometry.matrices import Matrices
 
 p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])

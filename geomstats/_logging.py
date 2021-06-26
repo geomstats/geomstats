@@ -1,6 +1,5 @@
 import logging
 
-
 logging.basicConfig(format="%(levelname)s: %(message)s")
 logging.getLogger().setLevel(logging.INFO)
 loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]

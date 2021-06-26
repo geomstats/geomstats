@@ -3,7 +3,6 @@ import math
 
 import geomstats.backend as gs
 
-
 EPSILON = 1e-6
 COS_TAYLOR_COEFFS = [
     1.0,

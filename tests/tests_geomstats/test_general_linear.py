@@ -2,10 +2,9 @@
 
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.general_linear import GeneralLinear
 
 RTOL = 1e-5

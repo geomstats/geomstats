@@ -4,7 +4,6 @@ import geomstats.tests
 from geomstats.geometry.spd_matrices import SPDMetricAffine
 from geomstats.learning.mdm import RiemannianMinimumDistanceToMeanClassifier
 
-
 EULER = gs.exp(1.0)
 
 

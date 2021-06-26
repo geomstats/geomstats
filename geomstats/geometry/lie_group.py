@@ -9,7 +9,6 @@ from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
 
-
 ATOL = 1e-6
 
 

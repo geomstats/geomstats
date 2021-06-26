@@ -11,8 +11,7 @@ from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.learning.frechet_mean import FrechetMean
-from geomstats.learning.frechet_mean import variance
+from geomstats.learning.frechet_mean import FrechetMean, variance
 
 
 class TestFrechetMean(geomstats.tests.TestCase):

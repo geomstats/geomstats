@@ -5,6 +5,9 @@ import os
 import sys
 import warnings
 
+import matplotlib
+import matplotlib.pyplot as plt
+
 import examples.empirical_frechet_mean_uncertainty_sn as empirical_frechet_mean_uncertainty_sn  # NOQA
 import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.kalman_filter as kalman_filter
@@ -33,9 +36,6 @@ import examples.plot_square_h2_poincare_half_plane as plot_square_h2_poincare_ha
 import examples.tangent_pca_h2 as tangent_pca_h2
 import examples.tangent_pca_s2 as tangent_pca_s2
 import examples.tangent_pca_so3 as tangent_pca_so3
-import matplotlib
-import matplotlib.pyplot as plt
-
 import geomstats.backend as gs
 import geomstats.tests
 
