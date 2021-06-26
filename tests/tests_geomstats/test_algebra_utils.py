@@ -7,37 +7,44 @@ from geomstats.geometry.hypersphere import Hypersphere
 
 
 class TestAlgebraUtils(geomstats.tests.TestCase):
-
     def setUp(self):
         self.functions = [
             utils.cos_close_0,
             utils.sinc_close_0,
             utils.inv_sinc_close_0,
             utils.inv_tanc_close_0,
-            {'coefficients': utils.arctanh_card_close_0['coefficients'],
-             'function': lambda x: math.atanh(x) / x},
-            {'coefficients': utils.cosc_close_0['coefficients'],
-             'function': lambda x: (1 - math.cos(x)) / x ** 2},
+            {
+                "coefficients": utils.arctanh_card_close_0["coefficients"],
+                "function": lambda x: math.atanh(x) / x,
+            },
+            {
+                "coefficients": utils.cosc_close_0["coefficients"],
+                "function": lambda x: (1 - math.cos(x)) / x ** 2,
+            },
             utils.sinch_close_0,
             utils.cosh_close_0,
-            {'coefficients': utils.inv_sinch_close_0['coefficients'],
-             'function': lambda x: x / math.sinh(x)},
-            {'coefficients': utils.inv_tanh_close_0['coefficients'],
-             'function': lambda x: x / math.tanh(x)}]
+            {
+                "coefficients": utils.inv_sinch_close_0["coefficients"],
+                "function": lambda x: x / math.sinh(x),
+            },
+            {
+                "coefficients": utils.inv_tanh_close_0["coefficients"],
+                "function": lambda x: x / math.tanh(x),
+            },
+        ]
 
     def test_all(self):
         for taylor_function in self.functions:
             for exponent in range(4, 12, 2):
                 x = 10 ** (-exponent)
-                expected = taylor_function['function'](math.sqrt(x))
-                result = utils.taylor_exp_even_func(
-                    x, taylor_function, order=4)
+                expected = taylor_function["function"](math.sqrt(x))
+                result = utils.taylor_exp_even_func(x, taylor_function, order=4)
                 self.assertAllClose(result, expected)
 
     def test_rotate_points(self):
         sphere = Hypersphere(2)
         end_point = sphere.random_uniform()
-        north_pole = gs.array([1., 0., 0.])
+        north_pole = gs.array([1.0, 0.0, 0.0])
         result = utils.rotate_points(north_pole, end_point)
         expected = end_point
         self.assertAllClose(result, expected)

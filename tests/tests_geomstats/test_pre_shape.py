@@ -15,16 +15,14 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.space = PreShapeSpace(self.k_landmarks, self.m_ambient)
         self.matrices = self.space.embedding_space
         self.n_samples = 10
-        self.shape_metric = KendallShapeMetric(
-            self.k_landmarks, self.m_ambient)
+        self.shape_metric = KendallShapeMetric(self.k_landmarks, self.m_ambient)
 
     def test_belongs(self):
         point = gs.random.rand(self.m_ambient - 1, self.k_landmarks)
         result = self.space.belongs(point)
         self.assertFalse(result)
 
-        point = gs.random.rand(
-            self.n_samples, self.m_ambient - 1, self.k_landmarks)
+        point = gs.random.rand(self.n_samples, self.m_ambient - 1, self.k_landmarks)
         result = self.space.belongs(point)
         self.assertFalse(gs.all(result))
 
@@ -44,20 +42,26 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     def test_random_point_shape(self):
         point = self.space.random_point()
         result = gs.shape(point)
-        expected = (self.k_landmarks, self.m_ambient,)
+        expected = (
+            self.k_landmarks,
+            self.m_ambient,
+        )
 
         self.assertAllClose(result, expected)
 
         point = self.space.random_point(self.n_samples)
         result = gs.shape(point)
-        expected = (self.n_samples, self.k_landmarks, self.m_ambient,)
+        expected = (
+            self.n_samples,
+            self.k_landmarks,
+            self.m_ambient,
+        )
         self.assertAllClose(result, expected)
 
     def test_projection_and_belongs(self):
-        point = Matrices.transpose(gs.array(
-            [[1., 0., 0., 1.],
-             [0., 1., 0., 1.],
-             [0., 0., 1., 1.]]))
+        point = Matrices.transpose(
+            gs.array([[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 1.0], [0.0, 0.0, 1.0, 1.0]])
+        )
         proj = self.space.projection(point)
         result = self.space.belongs(proj)
         expected = True
@@ -116,8 +120,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_vertical_projection_vectorization(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient)
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_point(self.n_samples)
         tan = self.space.to_tangent(vector, point)
         vertical = self.space.vertical_projection(tan, point)
@@ -142,8 +145,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_horizontal_projection_vectorized(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient)
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_point(self.n_samples)
         tan = self.space.to_tangent(vector, point)
         horizontal = self.space.horizontal_projection(tan, point)
@@ -188,8 +190,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
     def test_inner_product_shape(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient)
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_point()
         tan = self.space.to_tangent(vector, point)
         inner = self.space.ambient_metric.inner_product(tan, tan, point)
@@ -208,8 +209,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
     def test_exp_and_belongs_vectorization(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient)
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_point(self.n_samples)
         tan = self.space.to_tangent(vector, point)
         exp = self.space.ambient_metric.exp(tan, point)
@@ -261,8 +261,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(exp, expected)
 
     def test_kendall_inner_product_shape(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient)
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_point()
         tan = self.space.to_tangent(vector, point)
         inner = self.shape_metric.inner_product(tan, tan, point)
@@ -293,7 +292,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     def test_dist_extreme_case(self):
         point = self.space.projection(gs.eye(self.k_landmarks, self.m_ambient))
         result = self.shape_metric.dist(point, point)
-        expected = 0.
+        expected = 0.0
         self.assertAllClose(result, expected)
 
     def test_dist(self):
@@ -315,31 +314,33 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     def test_curvature_is_skew_operator(self):
         space = self.space
         base_point = space.random_point(2)
-        vector = gs.random.rand(
-            4, self.k_landmarks, self.m_ambient)
+        vector = gs.random.rand(4, self.k_landmarks, self.m_ambient)
         tangent_vec_a = space.to_tangent(vector[:2], base_point)
         tangent_vec_b = space.to_tangent(vector[2:], base_point)
 
         result = self.shape_metric.curvature(
-            tangent_vec_a, tangent_vec_a, tangent_vec_b, base_point)
+            tangent_vec_a, tangent_vec_a, tangent_vec_b, base_point
+        )
         expected = gs.zeros_like(result)
         self.assertAllClose(result, expected)
 
     def test_curvature_bianchi_identity(self):
         space = self.space
         base_point = space.random_point()
-        vector = gs.random.rand(
-            3, self.k_landmarks, self.m_ambient)
+        vector = gs.random.rand(3, self.k_landmarks, self.m_ambient)
         tangent_vec_a = space.to_tangent(vector[0], base_point)
         tangent_vec_b = space.to_tangent(vector[1], base_point)
         tangent_vec_c = space.to_tangent(vector[2], base_point)
 
         curvature_1 = self.shape_metric.curvature(
-            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point)
+            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
+        )
         curvature_2 = self.shape_metric.curvature(
-            tangent_vec_b, tangent_vec_c, tangent_vec_a, base_point)
+            tangent_vec_b, tangent_vec_c, tangent_vec_a, base_point
+        )
         curvature_3 = self.shape_metric.curvature(
-            tangent_vec_c, tangent_vec_a, tangent_vec_b, base_point)
+            tangent_vec_c, tangent_vec_a, tangent_vec_b, base_point
+        )
 
         result = curvature_1 + curvature_2 + curvature_3
         expected = gs.zeros_like(result)
@@ -348,32 +349,28 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     def test_integrability_tensor(self):
         space = self.space
         base_point = space.random_point()
-        vector = gs.random.rand(
-            2, self.k_landmarks, self.m_ambient)
+        vector = gs.random.rand(2, self.k_landmarks, self.m_ambient)
         tangent_vec_a = space.to_tangent(vector[0], base_point)
         tangent_vec_b = space.to_tangent(vector[1], base_point)
-        result_ab = space.integrability_tensor(
-            tangent_vec_a, tangent_vec_b, base_point)
+        result_ab = space.integrability_tensor(tangent_vec_a, tangent_vec_b, base_point)
 
         result = space.ambient_metric.inner_product(
-            tangent_vec_b, result_ab, base_point)
-        expected = 0.
+            tangent_vec_b, result_ab, base_point
+        )
+        expected = 0.0
         self.assertAllClose(result, expected)
 
         horizontal_b = space.horizontal_projection(tangent_vec_b, base_point)
         horizontal_a = space.horizontal_projection(tangent_vec_a, base_point)
-        result = space.integrability_tensor(
-            horizontal_a, horizontal_b, base_point)
-        expected = -space.integrability_tensor(
-            horizontal_b, horizontal_a, base_point)
+        result = space.integrability_tensor(horizontal_a, horizontal_b, base_point)
+        expected = -space.integrability_tensor(horizontal_b, horizontal_a, base_point)
         self.assertAllClose(result, expected)
 
         is_vertical = space.is_vertical(result, base_point)
         self.assertTrue(is_vertical)
 
         vertical_b = tangent_vec_b - horizontal_b
-        result = space.integrability_tensor(
-            horizontal_a, vertical_b, base_point)
+        result = space.integrability_tensor(horizontal_a, vertical_b, base_point)
         is_horizontal = space.is_horizontal(result, base_point)
         self.assertTrue(is_horizontal)
 
@@ -394,16 +391,16 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         tidal = kendall.directional_curvature(hor_a, hor_b, base_point)
 
         numerator = kendall.inner_product(tidal, hor_b, base_point)
-        denominator = \
-            kendall.inner_product(hor_a, hor_a, base_point) * \
-            kendall.inner_product(hor_b, hor_b, base_point) - \
-            kendall.inner_product(hor_a, hor_b, base_point) ** 2
-        condition = ~gs.isclose(denominator, 0.)
+        denominator = (
+            kendall.inner_product(hor_a, hor_a, base_point)
+            * kendall.inner_product(hor_b, hor_b, base_point)
+            - kendall.inner_product(hor_a, hor_b, base_point) ** 2
+        )
+        condition = ~gs.isclose(denominator, 0.0)
         kappa = numerator[condition] / denominator[condition]
-        kappa_direct = \
-            kendall.sectional_curvature(hor_a, hor_b, base_point)[condition]
+        kappa_direct = kendall.sectional_curvature(hor_a, hor_b, base_point)[condition]
         self.assertAllClose(kappa, kappa_direct)
-        result = (kappa > 1.0 - 1e-12)
+        result = kappa > 1.0 - 1e-12
         self.assertTrue(gs.all(result))
 
     def test_parallel_transport(self):
@@ -423,16 +420,17 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         # orthonormalize and move to base_point
         tan_a -= gs.einsum(
-            '...,...ij->...ij',
-            metric.inner_product(tan_a, tan_b, point) / metric.squared_norm(
-                tan_b, point), tan_b)
-        tan_b = gs.einsum('...ij,...->...ij', tan_b,
-                          1. / metric.norm(tan_b, point))
-        tan_a = gs.einsum('...ij,...->...ij', tan_a,
-                          1. / metric.norm(tan_a, point))
+            "...,...ij->...ij",
+            metric.inner_product(tan_a, tan_b, point)
+            / metric.squared_norm(tan_b, point),
+            tan_b,
+        )
+        tan_b = gs.einsum("...ij,...->...ij", tan_b, 1.0 / metric.norm(tan_b, point))
+        tan_a = gs.einsum("...ij,...->...ij", tan_a, 1.0 / metric.norm(tan_a, point))
 
         transported = metric.parallel_transport(
-            tan_a, tan_b, point, n_steps=100, step='rk4')
+            tan_a, tan_b, point, n_steps=100, step="rk4"
+        )
         end_point = metric.exp(tan_b, point)
         result = metric.norm(transported, end_point)
         expected = metric.norm(tan_a, point)

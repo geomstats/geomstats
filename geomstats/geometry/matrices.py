@@ -19,12 +19,13 @@ class Matrices(VectorSpace):
     """
 
     def __init__(self, m, n, **kwargs):
-        if 'default_point_type' not in kwargs.keys():
-            kwargs['default_point_type'] = 'matrix'
+        if "default_point_type" not in kwargs.keys():
+            kwargs["default_point_type"] = "matrix"
         super(Matrices, self).__init__(
-            shape=(m, n), metric=MatricesMetric(m, n), **kwargs)
-        geomstats.errors.check_integer(n, 'n')
-        geomstats.errors.check_integer(m, 'm')
+            shape=(m, n), metric=MatricesMetric(m, n), **kwargs
+        )
+        geomstats.errors.check_integer(n, "n")
+        geomstats.errors.check_integer(m, "m")
         self.m = m
         self.n = n
 
@@ -48,8 +49,7 @@ class Matrices(VectorSpace):
             return False
         mat_dim_1, mat_dim_2 = point.shape[-2:]
         belongs = (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
-        return belongs if ndim == 2 else gs.tile(
-            gs.array([belongs]), [point.shape[0]])
+        return belongs if ndim == 2 else gs.tile(gs.array([belongs]), [point.shape[0]])
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
@@ -125,7 +125,7 @@ class Matrices(VectorSpace):
         transpose : array-like, shape=[..., n, n]
             Transposed matrix.
         """
-        is_vectorized = (gs.ndim(gs.array(mat)) == 3)
+        is_vectorized = gs.ndim(gs.array(mat)) == 3
         axes = (0, 2, 1) if is_vectorized else (1, 0)
         return gs.transpose(mat, axes)
 
@@ -182,7 +182,7 @@ class Matrices(VectorSpace):
         """
         is_square = cls.is_square(mat)
         if not is_square:
-            is_vectorized = (gs.ndim(gs.array(mat)) == 3)
+            is_vectorized = gs.ndim(gs.array(mat)) == 3
             return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, cls.transpose(mat), atol)
 
@@ -203,7 +203,7 @@ class Matrices(VectorSpace):
         is_skew_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is skew-symmetric.
         """
-        return cls.equal(mat, - cls.transpose(mat), atol)
+        return cls.equal(mat, -cls.transpose(mat), atol)
 
     @classmethod
     def to_symmetric(cls, mat):
@@ -259,11 +259,10 @@ class Matrices(VectorSpace):
         if not gs.all(is_square):
             return False
         diagonal_mat = from_vector_to_diagonal_matrix(cls.diagonal(mat))
-        is_diagonal = gs.all(
-            gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
+        is_diagonal = gs.all(gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
         return is_diagonal
 
-    def random_point(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample from a uniform distribution in a cube.
 
         Parameters
@@ -324,8 +323,7 @@ class Matrices(VectorSpace):
         product : array-like, shape=[...,]
             Frobenius inner-product of mat_1 and mat_2
         """
-        return gs.einsum(
-            '...ij,...ij->...', mat_1, mat_2)
+        return gs.einsum("...ij,...ij->...", mat_1, mat_2)
 
     @staticmethod
     def trace_product(mat_1, mat_2):
@@ -346,8 +344,7 @@ class Matrices(VectorSpace):
         product : array-like, shape=[...,]
             Frobenius inner-product of mat_1 and mat_2
         """
-        return gs.einsum(
-            '...ij,...ji->...', mat_1, mat_2)
+        return gs.einsum("...ij,...ji->...", mat_1, mat_2)
 
 
 class MatricesMetric(EuclideanMetric):
@@ -361,8 +358,7 @@ class MatricesMetric(EuclideanMetric):
 
     def __init__(self, m, n, **kwargs):
         dimension = m * n
-        super(MatricesMetric, self).__init__(
-            dim=dimension, default_point_type='matrix')
+        super(MatricesMetric, self).__init__(dim=dimension, default_point_type="matrix")
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner-product of two tangent vectors.

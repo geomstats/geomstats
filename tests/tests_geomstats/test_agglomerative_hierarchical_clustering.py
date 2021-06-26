@@ -4,8 +4,9 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.agglomerative_hierarchical_clustering \
-    import AgglomerativeHierarchicalClustering
+from geomstats.learning.agglomerative_hierarchical_clustering import (
+    AgglomerativeHierarchicalClustering,
+)
 
 
 class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):
@@ -19,15 +20,16 @@ class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):
     def test_fit_euclidean_distance_string(self):
         """Test the 'fit' class method using the 'euclidean' distance."""
         n_clusters = 2
-        distance = 'euclidean'
+        distance = "euclidean"
         dataset = gs.array([[1, 2], [1, 4], [1, 0], [4, 2], [4, 4], [4, 0]])
         clustering = AgglomerativeHierarchicalClustering(
-            n_clusters=n_clusters,
-            distance=distance)
+            n_clusters=n_clusters, distance=distance
+        )
         clustering.fit(dataset)
         clustering_labels = clustering.labels_
-        result = ((clustering_labels == gs.array([1, 1, 1, 0, 0, 0])).all() or
-                  (clustering_labels == gs.array([0, 0, 0, 1, 1, 1])).all())
+        result = (clustering_labels == gs.array([1, 1, 1, 0, 0, 0])).all() or (
+            clustering_labels == gs.array([0, 0, 0, 1, 1, 1])
+        ).all()
         expected = True
         self.assertAllClose(expected, result)
 
@@ -40,12 +42,13 @@ class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):
         distance = space.metric.dist
         dataset = gs.array([[1, 2], [1, 4], [1, 0], [4, 2], [4, 4], [4, 0]])
         clustering = AgglomerativeHierarchicalClustering(
-            n_clusters=n_clusters,
-            distance=distance)
+            n_clusters=n_clusters, distance=distance
+        )
         clustering.fit(dataset)
         clustering_labels = clustering.labels_
-        result = ((clustering_labels == gs.array([1, 1, 1, 0, 0, 0])).all() or
-                  (clustering_labels == gs.array([0, 0, 0, 1, 1, 1])).all())
+        result = (clustering_labels == gs.array([1, 1, 1, 0, 0, 0])).all() or (
+            clustering_labels == gs.array([0, 0, 0, 1, 1, 1])
+        ).all()
         expected = True
         self.assertAllClose(expected, result)
 
@@ -57,18 +60,22 @@ class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):
         space = Hypersphere(dim=dimension)
         distance = space.metric.dist
         dataset = gs.array(
-            [[1, 0, 0],
-             [3 ** (1 / 2) / 2, 1 / 2, 0],
-             [3 ** (1 / 2) / 2, - 1 / 2, 0],
-             [0, 0, 1],
-             [0, 1 / 2, 3 ** (1 / 2) / 2],
-             [0, - 1 / 2, 3 ** (1 / 2) / 2]])
+            [
+                [1, 0, 0],
+                [3 ** (1 / 2) / 2, 1 / 2, 0],
+                [3 ** (1 / 2) / 2, -1 / 2, 0],
+                [0, 0, 1],
+                [0, 1 / 2, 3 ** (1 / 2) / 2],
+                [0, -1 / 2, 3 ** (1 / 2) / 2],
+            ]
+        )
         clustering = AgglomerativeHierarchicalClustering(
-            n_clusters=n_clusters,
-            distance=distance)
+            n_clusters=n_clusters, distance=distance
+        )
         clustering.fit(dataset)
         clustering_labels = clustering.labels_
-        result = ((clustering_labels == gs.array([1, 1, 1, 0, 0, 0])).all() or
-                  (clustering_labels == gs.array([0, 0, 0, 1, 1, 1])).all())
+        result = (clustering_labels == gs.array([1, 1, 1, 0, 0, 0])).all() or (
+            clustering_labels == gs.array([0, 0, 0, 1, 1, 1])
+        ).all()
         expected = True
         self.assertAllClose(expected, result)

@@ -43,22 +43,19 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         metric = InvariantMetric(group=group)
         basis = metric.normal_basis(lie_algebra.basis)
         result = metric.inner_product_at_identity(basis[0], basis[1])
-        self.assertAllClose(result, 0.)
+        self.assertAllClose(result, 0.0)
 
         result = metric.inner_product_at_identity(basis[1], basis[1])
-        self.assertAllClose(result, 1.)
+        self.assertAllClose(result, 1.0)
 
-        metric_mat = from_vector_to_diagonal_matrix(
-            gs.array([1., 2., 3.]))
-        metric = InvariantMetric(
-            group=group,
-            metric_mat_at_identity=metric_mat)
+        metric_mat = from_vector_to_diagonal_matrix(gs.array([1.0, 2.0, 3.0]))
+        metric = InvariantMetric(group=group, metric_mat_at_identity=metric_mat)
         basis = metric.normal_basis(lie_algebra.basis)
         result = metric.inner_product_at_identity(basis[0], basis[1])
-        self.assertAllClose(result, 0.)
+        self.assertAllClose(result, 0.0)
 
         result = metric.inner_product_at_identity(basis[1], basis[1])
-        self.assertAllClose(result, 1.)
+        self.assertAllClose(result, 1.0)
 
     def test_orthonormal_basis_se3(self):
         group = SpecialEuclidean(3)
@@ -68,17 +65,16 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         for i, x in enumerate(basis):
             for y in basis[i:]:
                 result = metric.inner_product_at_identity(x, y)
-                expected = 0. if gs.any(x != y) else 1.
+                expected = 0.0 if gs.any(x != y) else 1.0
                 self.assertAllClose(result, expected)
 
         metric_mat = from_vector_to_diagonal_matrix(
-            gs.cast(gs.arange(1, group.dim + 1), gs.float32))
-        metric = InvariantMetric(
-            group=group,
-            metric_mat_at_identity=metric_mat)
+            gs.cast(gs.arange(1, group.dim + 1), gs.float32)
+        )
+        metric = InvariantMetric(group=group, metric_mat_at_identity=metric_mat)
         basis = metric.normal_basis(lie_algebra.basis)
         for i, x in enumerate(basis):
             for y in basis[i:]:
                 result = metric.inner_product_at_identity(x, y)
-                expected = 0. if gs.any(x != y) else 1.
+                expected = 0.0 if gs.any(x != y) else 1.0
                 self.assertAllClose(result, expected)

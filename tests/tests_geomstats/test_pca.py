@@ -13,7 +13,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
-        self.so3 = SpecialOrthogonal(n=3, point_type='vector')
+        self.so3 = SpecialOrthogonal(n=3, point_type="vector")
         self.spd = SPDMatrices(3)
         self.spd_metric = SPDMetricAffine(3)
 
@@ -41,7 +41,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_fit_mle(self):
         X = self.X
-        tpca = TangentPCA(self.metric, n_components='mle')
+        tpca = TangentPCA(self.metric, n_components="mle")
         tpca.fit(X)
         self.assertEqual(tpca.n_features_, gs.shape(X)[1])
 
@@ -49,8 +49,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
     def test_fit_to_target_explained_variance(self):
         X = self.spd.random_point(n_samples=5)
         target = 0.90
-        tpca = TangentPCA(
-            self.spd_metric, n_components=target)
+        tpca = TangentPCA(self.spd_metric, n_components=target)
         tpca.fit(X)
         result = gs.cumsum(tpca.explained_variance_ratio_)[-1] > target
         expected = True
@@ -60,8 +59,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
     def test_fit_matrix(self):
         expected = 2
         X = self.spd.random_point(n_samples=5)
-        tpca = TangentPCA(
-            metric=self.spd_metric, n_components=expected)
+        tpca = TangentPCA(metric=self.spd_metric, n_components=expected)
         tpca.fit(X)
         result = tpca.n_components_
         self.assertAllClose(result, expected)
@@ -70,8 +68,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
     def test_fit_transform_matrix(self):
         expected = 2
         X = self.spd.random_point(n_samples=5)
-        tpca = TangentPCA(
-            metric=self.spd_metric, n_components=expected)
+        tpca = TangentPCA(metric=self.spd_metric, n_components=expected)
         tangent_projected_data = tpca.fit_transform(X)
         result = tangent_projected_data.shape[-1]
         self.assertAllClose(result, expected)
@@ -79,8 +76,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_fit_inverse_transform_matrix(self):
         X = self.spd.random_point(n_samples=5)
-        tpca = TangentPCA(
-            metric=self.spd_metric)
+        tpca = TangentPCA(metric=self.spd_metric)
         tangent_projected_data = tpca.fit_transform(X)
         result = tpca.inverse_transform(tangent_projected_data)
         expected = X
@@ -89,8 +85,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_fit_transform_vector(self):
         expected = 2
-        tpca = TangentPCA(
-            metric=self.metric, n_components=expected)
+        tpca = TangentPCA(metric=self.metric, n_components=expected)
         tangent_projected_data = tpca.fit_transform(self.X)
         result = tangent_projected_data.shape[-1]
         self.assertAllClose(result, expected)
@@ -106,8 +101,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_fit_fit_transform_matrix(self):
         X = self.spd.random_point(n_samples=5)
-        tpca = TangentPCA(
-            metric=self.spd_metric)
+        tpca = TangentPCA(metric=self.spd_metric)
         expected = tpca.fit_transform(X)
         result = tpca.fit(X).transform(X)
         self.assertAllClose(result, expected)

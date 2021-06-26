@@ -26,8 +26,8 @@ class MatrixLieAlgebra(Matrices):
 
     def __init__(self, dim, n, **kwargs):
         super(MatrixLieAlgebra, self).__init__(m=n, n=n, **kwargs)
-        geomstats.errors.check_integer(dim, 'dim')
-        geomstats.errors.check_integer(n, 'n')
+        geomstats.errors.check_integer(dim, "dim")
+        geomstats.errors.check_integer(n, "n")
         self.dim = dim
         self.basis = None
 
@@ -63,7 +63,8 @@ class MatrixLieAlgebra(Matrices):
             raise NotImplementedError("BCH is not implemented for order > 15.")
 
         number_of_hom_degree = gs.array(
-            [2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630, 1161, 2182])
+            [2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630, 1161, 2182]
+        )
         n_terms = gs.sum(number_of_hom_degree[:order])
 
         el = [matrix_a, matrix_b]
@@ -74,9 +75,9 @@ class MatrixLieAlgebra(Matrices):
             i_pp = BCH_COEFFICIENTS[i, 2] - 1
 
             el.append(self.bracket(el[i_p], el[i_pp]))
-            result += (float(BCH_COEFFICIENTS[i, 3]) /
-                       float(BCH_COEFFICIENTS[i, 4]) *
-                       el[i])
+            result += (
+                float(BCH_COEFFICIENTS[i, 3]) / float(BCH_COEFFICIENTS[i, 4]) * el[i]
+            )
         return result
 
     def basis_representation(self, matrix_representation):
@@ -128,5 +129,4 @@ class MatrixLieAlgebra(Matrices):
         projected : array-like, shape=[..., n, n]
             Matrix belonging to Lie Algebra.
         """
-        raise NotImplementedError('Projection to Lie Algebra is not '
-                                  'implemented.')
+        raise NotImplementedError("Projection to Lie Algebra is not " "implemented.")

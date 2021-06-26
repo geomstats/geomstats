@@ -21,7 +21,8 @@ class SymmetricMatrices(OpenSet, VectorSpace):
     def __init__(self, n, **kwargs):
         matrices = Matrices(n, n)
         super(SymmetricMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2), shape=(n, n), ambient_space=matrices)
+            dim=int(n * (n + 1) / 2), shape=(n, n), ambient_space=matrices
+        )
         self.n = n
 
     def get_basis(self):
@@ -31,12 +32,11 @@ class SymmetricMatrices(OpenSet, VectorSpace):
             for col in gs.arange(row, self.n):
                 if row == col:
                     indices = [(row, row)]
-                    values = [1.]
+                    values = [1.0]
                 else:
                     indices = [(row, col), (col, row)]
-                    values = [1., 1.]
-                basis.append(gs.array_from_sparse(
-                    indices, values, (self.n, ) * 2))
+                    values = [1.0, 1.0]
+                basis.append(gs.array_from_sparse(indices, values, (self.n,) * 2))
         basis = gs.stack(basis)
         return basis
 
@@ -93,12 +93,12 @@ class SymmetricMatrices(OpenSet, VectorSpace):
             Vector.
         """
         if not gs.all(Matrices.is_symmetric(mat)):
-            logging.warning('non-symmetric matrix encountered.')
+            logging.warning("non-symmetric matrix encountered.")
         mat = Matrices.to_symmetric(mat)
         return gs.triu_to_vec(mat)
 
     @staticmethod
-    @geomstats.vectorization.decorator(['vector', 'else'])
+    @geomstats.vectorization.decorator(["vector", "else"])
     def from_vector(vec, dtype=gs.float32):
         """Convert a vector into a symmetric matrix.
 
@@ -116,17 +116,20 @@ class SymmetricMatrices(OpenSet, VectorSpace):
             Symmetric matrix.
         """
         vec_dim = vec.shape[-1]
-        mat_dim = (gs.sqrt(8. * vec_dim + 1) - 1) / 2
+        mat_dim = (gs.sqrt(8.0 * vec_dim + 1) - 1) / 2
         if mat_dim != int(mat_dim):
-            raise ValueError('Invalid input dimension, it must be of the form'
-                             '(n_samples, n * (n + 1) / 2)')
+            raise ValueError(
+                "Invalid input dimension, it must be of the form"
+                "(n_samples, n * (n + 1) / 2)"
+            )
         mat_dim = int(mat_dim)
         shape = (mat_dim, mat_dim)
         mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
         indices = list(zip(*gs.triu_indices(mat_dim)))
         vec = gs.cast(vec, dtype)
-        upper_triangular = gs.stack([
-            gs.array_from_sparse(indices, data, shape) for data in vec])
+        upper_triangular = gs.stack(
+            [gs.array_from_sparse(indices, data, shape) for data in vec]
+        )
         mat = Matrices.to_symmetric(upper_triangular) * mask
         return mat
 
@@ -171,10 +174,11 @@ class SymmetricMatrices(OpenSet, VectorSpace):
         if isinstance(power, list):
             power_ = [lambda ev, p=p: gs.power(ev, p) for p in power]
         else:
+
             def power_(ev):
                 return gs.power(ev, power)
-        return cls.apply_func_to_eigvals(
-            mat, power_, check_positive=True)
+
+        return cls.apply_func_to_eigvals(mat, power_, check_positive=True)
 
     @staticmethod
     def apply_func_to_eigvals(mat, function, check_positive=False):
@@ -198,10 +202,10 @@ class SymmetricMatrices(OpenSet, VectorSpace):
             Symmetric matrix.
         """
         eigvals, eigvecs = gs.linalg.eigh(mat)
-        if check_positive and gs.any(gs.cast(eigvals, gs.float32) < 0.):
+        if check_positive and gs.any(gs.cast(eigvals, gs.float32) < 0.0):
             logging.warning(
-                'Negative eigenvalue encountered in'
-                ' {}'.format(function.__name__))
+                "Negative eigenvalue encountered in" " {}".format(function.__name__)
+            )
         return_list = True
         if not isinstance(function, list):
             function = [function]
@@ -211,6 +215,5 @@ class SymmetricMatrices(OpenSet, VectorSpace):
         for fun in function:
             eigvals_f = fun(eigvals)
             eigvals_f = algebra_utils.from_vector_to_diagonal_matrix(eigvals_f)
-            reconstruction.append(
-                Matrices.mul(eigvecs, eigvals_f, transp_eigvecs))
+            reconstruction.append(Matrices.mul(eigvecs, eigvals_f, transp_eigvecs))
         return reconstruction if return_list else reconstruction[0]

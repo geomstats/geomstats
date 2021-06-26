@@ -46,9 +46,11 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         super(PreShapeSpace, self).__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
             embedding_space=embedding_manifold,
-            submersion=embedding_metric.squared_norm, value=1.,
+            submersion=embedding_metric.squared_norm,
+            value=1.0,
             tangent_submersion=embedding_metric.inner_product,
-            ambient_metric=PreShapeMetric(k_landmarks, m_ambient))
+            ambient_metric=PreShapeMetric(k_landmarks, m_ambient),
+        )
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
         self.ambient_metric = PreShapeMetric(k_landmarks, m_ambient)
@@ -68,12 +70,11 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         """
         centered_point = self.center(point)
         frob_norm = self.ambient_metric.norm(centered_point)
-        projected_point = gs.einsum(
-            '...,...ij->...ij', 1. / frob_norm, centered_point)
+        projected_point = gs.einsum("...,...ij->...ij", 1.0 / frob_norm, centered_point)
 
         return projected_point
 
-    def random_point(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample in the pre-shape space from the uniform distribution.
 
         Parameters
@@ -105,8 +106,9 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         samples : array-like, shape=[..., k_landmarks, m_ambient]
             Points sampled on the pre-shape space.
         """
-        samples = Hypersphere(
-            self.m_ambient * self.k_landmarks - 1).random_uniform(n_samples)
+        samples = Hypersphere(self.m_ambient * self.k_landmarks - 1).random_uniform(
+            n_samples
+        )
         samples = gs.reshape(samples, (-1, self.k_landmarks, self.m_ambient))
         if n_samples == 1:
             samples = samples[0]
@@ -130,7 +132,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Boolean evaluating if point is centered.
         """
         mean = gs.mean(point, axis=-2)
-        return gs.all(gs.isclose(mean, 0., atol=atol), axis=-1)
+        return gs.all(gs.isclose(mean, 0.0, atol=atol), axis=-1)
 
     @staticmethod
     def center(point):
@@ -170,18 +172,16 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             at the base point.
         """
         if not gs.all(self.is_centered(base_point)):
-            raise ValueError('The base_point does not belong to the pre-shape'
-                             ' space')
+            raise ValueError("The base_point does not belong to the pre-shape" " space")
         vector = self.center(vector)
         sq_norm = Matrices.frobenius_product(base_point, base_point)
         inner_prod = self.ambient_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
-        tangent_vec = vector - gs.einsum('...,...ij->...ij', coef, base_point)
+        tangent_vec = vector - gs.einsum("...,...ij->...ij", coef, base_point)
 
         return tangent_vec
 
-    def vertical_projection(
-            self, tangent_vec, base_point, return_skew=False):
+    def vertical_projection(self, tangent_vec, base_point, return_skew=False):
         r"""Project to vertical subspace.
 
         Compute the vertical component of a tangent vector :math: `w` at a
@@ -214,7 +214,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         right_term = alignment - Matrices.transpose(alignment)
         skew = gs.linalg.solve_sylvester(left_term, left_term, right_term)
 
-        vertical = - gs.matmul(base_point, skew)
+        vertical = -gs.matmul(base_point, skew)
         return (vertical, skew) if return_skew else vertical
 
     def is_horizontal(self, tangent_vec, base_point, atol=gs.atol):
@@ -263,13 +263,14 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         left, singular_values, right = gs.linalg.svd(mat)
         det = gs.linalg.det(mat)
         conditioning = (
-            (singular_values[..., -2]
-             + gs.sign(det) * singular_values[..., -1]) /
-            singular_values[..., 0])
+            singular_values[..., -2] + gs.sign(det) * singular_values[..., -1]
+        ) / singular_values[..., 0]
         if gs.any(conditioning < gs.atol):
-            logging.warning(f'Singularity close, ill-conditioned matrix '
-                            f'encountered: {conditioning}')
-        if gs.any(gs.isclose(conditioning, 0.)):
+            logging.warning(
+                f"Singularity close, ill-conditioned matrix "
+                f"encountered: {conditioning}"
+            )
+        if gs.any(gs.isclose(conditioning, 0.0)):
             logging.warning("Alignment matrix is not unique.")
         flipped = flip_determinant(Matrices.transpose(right), det)
         return Matrices.mul(point, left, Matrices.transpose(flipped))
@@ -310,7 +311,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         # Only the horizontal part of a counts
         horizontal_a = self.horizontal_projection(tangent_vec_a, base_point)
         vertical_b, skew = self.vertical_projection(
-            tangent_vec_b, base_point, return_skew=True)
+            tangent_vec_b, base_point, return_skew=True
+        )
         horizontal_b = tangent_vec_b - vertical_b
 
         # For the horizontal part of b
@@ -319,7 +321,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         alignment = gs.matmul(Matrices.transpose(horizontal_a), horizontal_b)
         right_term = alignment - Matrices.transpose(alignment)
         skew_hor = gs.linalg.solve_sylvester(sigma, sigma, right_term)
-        vertical = - gs.matmul(base_point, skew_hor)
+        vertical = -gs.matmul(base_point, skew_hor)
 
         # For the vertical part of b
         vert_part = -gs.matmul(horizontal_a, skew)
@@ -342,8 +344,8 @@ class PreShapeMetric(RiemannianMetric):
 
     def __init__(self, k_landmarks, m_ambient):
         super(PreShapeMetric, self).__init__(
-            dim=m_ambient * (k_landmarks - 1) - 1,
-            default_point_type='matrix')
+            dim=m_ambient * (k_landmarks - 1) - 1, default_point_type="matrix"
+        )
 
         self.embedding_metric = MatricesMetric(k_landmarks, m_ambient)
         self.sphere_metric = Hypersphere(m_ambient * k_landmarks - 1).metric
@@ -369,7 +371,8 @@ class PreShapeMetric(RiemannianMetric):
             Inner-product of the two tangent vectors.
         """
         inner_prod = self.embedding_metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
+            tangent_vec_a, tangent_vec_b, base_point
+        )
 
         return inner_prod
 
@@ -415,14 +418,11 @@ class PreShapeMetric(RiemannianMetric):
         flat_log = self.sphere_metric.log(flat_pt, flat_bp)
         try:
             log = gs.reshape(flat_log, base_point.shape)
-        except (RuntimeError,
-                check_tf_error(ValueError, 'InvalidArgumentError')):
+        except (RuntimeError, check_tf_error(ValueError, "InvalidArgumentError")):
             log = gs.reshape(flat_log, point.shape)
         return log
 
-    def curvature(
-            self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
-            base_point):
+    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
         r"""Compute the curvature.
 
         For three tangent vectors at a base point :math: `x,y,z`,
@@ -458,8 +458,7 @@ class PreShapeMetric(RiemannianMetric):
         flat_b = gs.reshape(tangent_vec_b, flat_shape)
         flat_c = gs.reshape(tangent_vec_c, flat_shape)
         flat_bp = gs.reshape(base_point, flat_shape)
-        curvature = self.sphere_metric.curvature(
-            flat_a, flat_b, flat_c, flat_bp)
+        curvature = self.sphere_metric.curvature(flat_a, flat_b, flat_c, flat_bp)
         curvature = gs.reshape(curvature, max_shape)
         return curvature
 
@@ -482,17 +481,16 @@ class PreShapeMetric(RiemannianMetric):
             of tangent_vec at the base point.
         """
         max_shape = (
-            tangent_vec_a.shape if tangent_vec_a.ndim == 3
-            else tangent_vec_b.shape)
+            tangent_vec_a.shape if tangent_vec_a.ndim == 3 else tangent_vec_b.shape
+        )
 
         flat_bp = gs.reshape(base_point, (-1, self.sphere_metric.dim + 1))
-        flat_tan_a = gs.reshape(
-            tangent_vec_a, (-1, self.sphere_metric.dim + 1))
-        flat_tan_b = gs.reshape(
-            tangent_vec_b, (-1, self.sphere_metric.dim + 1))
+        flat_tan_a = gs.reshape(tangent_vec_a, (-1, self.sphere_metric.dim + 1))
+        flat_tan_b = gs.reshape(tangent_vec_b, (-1, self.sphere_metric.dim + 1))
 
         flat_transport = self.sphere_metric.parallel_transport(
-            flat_tan_a, flat_tan_b, flat_bp)
+            flat_tan_a, flat_tan_b, flat_bp
+        )
         return gs.reshape(flat_transport, max_shape)
 
 
@@ -513,12 +511,12 @@ class KendallShapeMetric(QuotientMetric):
     def __init__(self, k_landmarks, m_ambient):
         bundle = PreShapeSpace(k_landmarks, m_ambient)
         super(KendallShapeMetric, self).__init__(
-            fiber_bundle=bundle,
-            dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2))
+            fiber_bundle=bundle, dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2)
+        )
 
     def parallel_transport(
-            self, tangent_vec_a, tangent_vec_b, base_point, n_steps=100,
-            step='rk4'):
+        self, tangent_vec_a, tangent_vec_b, base_point, n_steps=100, step="rk4"
+    ):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Approximation of the solution of the parallel transport of a tangent
@@ -560,22 +558,25 @@ class KendallShapeMetric(QuotientMetric):
         Integration module: geomstats.integrator
         """
         horizontal_a = self.fiber_bundle.horizontal_projection(
-            tangent_vec_a, base_point)
+            tangent_vec_a, base_point
+        )
         horizontal_b = self.fiber_bundle.horizontal_projection(
-            tangent_vec_b, base_point)
+            tangent_vec_b, base_point
+        )
 
         def force(state, time):
             gamma_t = self.ambient_metric.exp(time * horizontal_b, base_point)
             speed = self.ambient_metric.parallel_transport(
-                horizontal_b, time * horizontal_b, base_point)
+                horizontal_b, time * horizontal_b, base_point
+            )
             coef = self.inner_product(speed, state, gamma_t)
-            normal = gs.einsum('...,...ij->...ij', coef, gamma_t)
+            normal = gs.einsum("...,...ij->...ij", coef, gamma_t)
 
             align = gs.matmul(Matrices.transpose(speed), state)
             right = align - Matrices.transpose(align)
             left = gs.matmul(Matrices.transpose(gamma_t), gamma_t)
             skew_ = gs.linalg.solve_sylvester(left, left, right)
-            vertical_ = - gs.matmul(gamma_t, skew_)
+            vertical_ = -gs.matmul(gamma_t, skew_)
             return vertical_ - normal
 
         flow = integrate(force, horizontal_a, n_steps=n_steps, step=step)
