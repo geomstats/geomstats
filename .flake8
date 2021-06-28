@@ -1,6 +1,7 @@
 [flake8]
-application_import_names = geomstats
+application_import_names = geomstats, tests
 docstring-convention = numpy
 exclude = examples/*.ipynb
+max-line-length = 88
 ignore = W503, W504
 import_order_style = smarkets
