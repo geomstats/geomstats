@@ -4,8 +4,12 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.spd_matrices import SPDMatrices
-from geomstats.sampling.lognormal import LogNormal
+from geomstats.geometry.spd_matrices import (
+    SPDMatrices, 
+    SPDMetricLogEuclidean,
+    SPDMetricAffine,
+) 
+from geomstats.distributions.lognormal import LogNormal
 
 
 class TestLogNormal(geomstats.tests.TestCase):
@@ -17,6 +21,8 @@ class TestLogNormal(geomstats.tests.TestCase):
         self.spd_cov_n = (self.n * (self.n + 1)) // 2
         self.samples = 5
         self.SPDManifold = SPDMatrices(self.n)
+        self.log_euclidean= SPDMetricLogEuclidean(self.n)
+        self.affine_invariant = SPDMetricAffine(self.n)
         self.Euclidean = Euclidean(self.n)
 
     def test_euclidean_belongs(self):
@@ -34,13 +40,21 @@ class TestLogNormal(geomstats.tests.TestCase):
         """Test if the samples belong to SPD Manifold"""
         mean = 2 * gs.eye(self.n)
         cov = gs.eye(self.spd_cov_n)
+
+        self.SPDManifold.metric = self.log_euclidean
         LogNormalSampler = LogNormal(self.SPDManifold, mean, cov)
         data = LogNormalSampler.sample(self.samples)
-
         result = gs.all(self.SPDManifold.belongs(data))
         expected = True
         self.assertAllClose(result, expected)
-
+        
+        self.SPDManifold.metric = self.affine_invariant
+        LogNormalSampler = LogNormal(self.SPDManifold, mean, cov)
+        data = LogNormalSampler.sample(self.samples)
+        result = gs.all(self.SPDManifold.belongs(data))
+        expected = True
+        self.assertAllClose(result, expected)
+        
     def test_euclidean_frechet_mean(self):
         """Test if the frechet mean of the samples is close to mean"""
         mean = gs.zeros(self.n)
