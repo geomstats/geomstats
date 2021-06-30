@@ -4,12 +4,12 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.distributions.lognormal import LogNormal
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
     SPDMetricLogEuclidean,
 )
-from geomstats.distributions.lognormal import LogNormal
 
 
 class TestLogNormal(geomstats.tests.TestCase):
