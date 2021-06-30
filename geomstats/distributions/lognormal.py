@@ -81,7 +81,7 @@ class LogNormal:
         else:
             cov_n = (n * (n + 1)) // 2
             if metric is None:
-                metric = SPDMetricLogEuclidean(n)
+                manifold.metric = SPDMetricLogEuclidean(n)
             else:
                 if (
                     not isinstance(metric, SPDMetricLogEuclidean) and
@@ -148,7 +148,7 @@ class LogNormal:
             _samples = samples_sym(mean_euclidean, self.cov, n_samples)
 
         else:
-            samples_sym = samples_sym(gs.zero(self.cov_n), self.cov, n_samples)
+            samples_sym = samples_sym(gs.zeros(self.cov_n), self.cov, n_samples)
             mean_half = self.manifold.powerm(self.mean, 0.5)
             _samples = Matrices.mul(mean_half, samples_sym, mean_half)
 
