@@ -1,5 +1,6 @@
 """Tensorflow based computation backend."""
 
+import math
 from collections import Counter
 from itertools import product
 
@@ -77,6 +78,7 @@ arctanh = tf.math.atanh
 ceil = tf.math.ceil
 cross = tf.linalg.cross
 erf = tf.math.erf
+imag = tf.math.imag
 isnan = tf.math.is_nan
 log = tf.math.log
 mod = tf.math.mod
@@ -91,6 +93,10 @@ rtol = tf_rtol
 
 def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
+
+
+def comb(n, k):
+    return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
 
 
 def to_numpy(x):

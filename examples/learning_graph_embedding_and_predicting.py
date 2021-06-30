@@ -55,10 +55,9 @@ def main():
     kmeans = RiemannianKMeans(
         metric=hyperbolic_embedding.manifold.metric,
         n_clusters=n_clusters,
-        init='random',
-        mean_method='frechet-poincare-ball')
+        init='random')
 
-    centroids = kmeans.fit(X=embeddings, max_iter=100)
+    centroids = kmeans.fit(X=embeddings)
     labels = kmeans.predict(X=embeddings)
 
     colors = ['g', 'c', 'm']
