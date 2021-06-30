@@ -41,7 +41,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         metric = spd_matrices.SPDMetricAffine(dim)
 
         kmeans = RiemannianKMeans(
-            metric, n_clusters=1, point_type='matrix', lr=1.)
+            metric, n_clusters=1, lr=1.)
         kmeans.fit(data)
         result = kmeans.centroids
 
@@ -61,7 +61,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         x = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
         kmeans = RiemannianKMeans(metric, 5, tol=1e-5, lr=1.)
-        kmeans.fit(x, max_iter=100)
+        kmeans.fit(x)
         result = kmeans.predict(x)
 
         centroids = kmeans.centroids

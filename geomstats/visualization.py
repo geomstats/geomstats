@@ -819,7 +819,7 @@ class KendallDisk:
         return planar_coords
 
     def add_points(self, points):
-        """Add points to draw on the Kendall sphere."""
+        """Add points to draw on the Kendall disk."""
         if self.point_type == 'extrinsic':
             if not gs.all(M33.belongs(points)):
                 raise ValueError(
@@ -886,27 +886,29 @@ class KendallDisk:
                             color=c[i], s=10, alpha=1, zorder=1)
 
     def draw_points(self, alpha=1, zorder=0, **kwargs):
-        """Draw points on the Kendall sphere."""
+        """Draw points on the Kendall disk."""
         points_x = [gs.to_numpy(point)[0] for point in self.points]
         points_y = [gs.to_numpy(point)[1] for point in self.points]
         self.ax.scatter(points_x, points_y,
                         alpha=alpha, zorder=zorder, **kwargs)
 
     def draw_curve(self, alpha=1, zorder=0, **kwargs):
-        """Draw a curve on the Kendall sphere."""
+        """Draw a curve on the Kendall disk."""
         points_x = [gs.to_numpy(point)[0] for point in self.points]
         points_y = [gs.to_numpy(point)[1] for point in self.points]
         self.ax.plot(points_x, points_y,
                      alpha=alpha, zorder=zorder, **kwargs)
 
-    def draw_vector(self, tangent_vec, base_point, **kwargs):
-        """Draw one vector in the tangent space to sphere at a base point."""
+    def draw_vector(self, tangent_vec, base_point, tol=1e-03, **kwargs):
+        """Draw one vector in the tangent space to disk at a base point."""
         r_bp, th_bp = self.convert_to_polar_coordinates(base_point)
         bp = gs.array([gs.cos(th_bp) * gs.sin(2 * r_bp),
                        gs.sin(th_bp) * gs.sin(2 * r_bp),
                        gs.cos(2 * r_bp)])
         r_exp, th_exp = self.convert_to_polar_coordinates(
-            METRIC_S33.exp(tangent_vec, base_point))
+            METRIC_S33.exp(tol * tangent_vec / METRIC_S33.norm(tangent_vec,
+                                                               base_point),
+                           base_point))
         exp = gs.array([gs.cos(th_exp) * gs.sin(2 * r_exp),
                         gs.sin(th_exp) * gs.sin(2 * r_exp),
                         gs.cos(2 * r_exp)])
