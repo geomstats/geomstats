@@ -32,15 +32,10 @@ from torch import (  # NOQA
     float64,
     floor,
     fmod as mod,
-<<<<<<< HEAD
     outer,
     greater,
     hstack,
-=======
-    ger as outer,
-    gt as greater,
-    imag,
->>>>>>> 22d21aedeace9515b7cb180b7c207b8c470bfce6
+    img,
     int32,
     int64,
     isnan,
