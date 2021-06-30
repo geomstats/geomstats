@@ -11,16 +11,23 @@ from geomstats.geometry.spd_matrices import (
 
 
 class LogNormal:
-    """LogNormal Sampler on manifold of SPD Matrices and Euclidean Spaces.
+    """LogNormal Distribution on manifold of SPD Matrices and Euclidean Spaces.
+
 
     (1) For Euclidean Spaces, if X is distributed as Normal(mean, cov), then
     exp(X) is distributed as LogNormal(mean, cov).
 
-    (2) For SPDMatrices, the LogNormal distribution is defined by transforming
-    the mean -- an SPD matrix -- into a symmetric matrix through
-    the Matrix logarithm, which gives the element "log-mean" that now belongs
-    to a vector space. This log-mean and given cov are used to parametrize
-    a Normal Distribution.
+    (2) For SPDMatrices, there are different distributions based on metric
+
+        a)LogEuclidean Metric : With this metric, LogNormal distribution
+        is defined by transforming the mean -- an SPD matrix -- into
+        a symmetric matrix through the Matrix logarithm, which gives
+        the element "log-mean" that now belongs to a vector space.
+        This log-mean and given cov are used to parametrize a Normal
+        Distribution.
+
+        b)AffineInvariant Metric : X is distribution as LogNormal(mean, cov)
+        if exp(mean^{1/2}.X.mean^{1/2}) is distributed as Normal(0, cov)
 
     Parameters
     ----------
@@ -82,7 +89,7 @@ class LogNormal:
                 manifold.metric = EuclideanMetric(n)
             else:
                 metric = manifold.metric
-                if(not isinstance(metric, EuclideanMetric)):
+                if not isinstance(metric, EuclideanMetric):
                     raise ValueError(
                         "Invalid Metric, "
                         "Should be of type EuclideanMetric")
@@ -141,7 +148,9 @@ class LogNormal:
         return self.__cov_dim
 
     def __sample_spd(self, n_samples):
+        """Generates samples for SPD manifold"""
         def samples_sym(mean, cov, n_samples):
+            """auxillary function for generating sym matrices"""
             samples_euclidean = gs.random.multivariate_normal(
                 mean, cov, (n_samples,))
             diag = samples_euclidean[:, :self.mean_dim]
@@ -166,11 +175,13 @@ class LogNormal:
         return self.manifold.expm(_samples)
 
     def __sample_euclidean(self, samples):
+        """Generates samples for Euclidean Manifold"""
         _samples = gs.random.multivariate_normal(
             self.mean, self.cov, (samples,))
         return gs.exp(_samples)
 
     def sample(self, samples=1):
+        """Generates samples"""
         if isinstance(self.manifold, Euclidean):
             return self.__sample_euclidean(samples)
         return self.__sample_spd(samples)
