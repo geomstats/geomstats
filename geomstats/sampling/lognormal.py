@@ -2,7 +2,12 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.spd_matrices import (
+    SPDMatrices, 
+    SPDMetricLogEuclidean,
+    SPDMetricAffine,
+) 
 
 
 class LogNormal:
@@ -70,10 +75,22 @@ class LogNormal:
                 type(manifold).__name__)
 
         n = mean.shape[-1]
+        metric = manifold.metric
         if isinstance(manifold, Euclidean):
             cov_n = n
         else:
             cov_n = (n * (n + 1)) // 2
+            if metric is None:
+                metric = SPDMetricLogEuclidean(n)
+            else:
+                if (
+                    not isinstance(metric, SPDMetricLogEuclidean) and
+                    not isinstance(metric, SPDMetricAffine)
+                ):
+                    raise ValueError(
+                        "Invalid Metric, "
+                        "Should be of type SPDMetricLogEuclidean or SPDMetricAffine")
+
 
         if cov is not None:
             if (
@@ -90,7 +107,9 @@ class LogNormal:
         self.__manifold = manifold
         self.__mean = mean
         self.__cov = cov
-
+        self.__mean_dim = n
+        self.__cov_dim = cov_n 
+        
     @property
     def manifold(self):
         return self.__manifold
@@ -102,23 +121,39 @@ class LogNormal:
     @property
     def cov(self):
         return self.__cov
-
-    # TODO (sait): simplify hstack after pytorch version upgrade
-    def __sample_spd(self, samples):
-        n = self.mean.shape[-1]
-        sym_matrix = self.manifold.logm(self.mean)
-        mean_euclidean = gs.hstack(
-            (gs.diagonal(sym_matrix)[None, :],
-             gs.sqrt(2.0) * gs.triu_to_vec(sym_matrix, k=1)[None, :]))[0]
-        samples_euclidean = gs.random.multivariate_normal(
-            mean_euclidean, self.cov, (samples,))
-        diag = samples_euclidean[:, :n]
-        off_diag = samples_euclidean[:, n:] / gs.sqrt(2.0)
-        samples_sym = gs.mat_from_diag_triu_tril(
+    
+    @property
+    def mean_dim(self):
+        return self.__mean_dim
+    
+    @property
+    def cov_dim(self):
+        return self.__cov_dim
+    
+    def __sample_spd(self, n_samples):
+        def samples_sym(mean, cov, n_samples):
+            samples_euclidean = gs.random.multivariate_normal(
+            mean, cov, (n_samples,))
+            diag = samples_euclidean[:, :self.mean_dim]
+            off_diag = samples_euclidean[:, self.mean_dim:]/gs.sqrt(2.0)
+            samples_sym = gs.mat_from_diag_triu_tril(
             diag=diag, tri_upp=off_diag, tri_low=off_diag)
-        samples_spd = self.manifold.expm(samples_sym)
-        return samples_spd
+            return samples_sym
+        
+        if isinstance(self.manifold.metric, SPDMetricLogEuclidean):
+            sym_matrix = self.manifold.logm(self.mean)
+            mean_euclidean = gs.hstack(
+                (gs.diagonal(sym_matrix)[None, :],
+                gs.sqrt(2.0) * gs.triu_to_vec(sym_matrix, k=1)[None, :]))[0]
+            _samples = samples_sym(mean_euclidean, self.cov, n_samples)
 
+        else:
+            samples_sym = samples_sym(gs.zero(self.cov_n), self.cov, n_samples)
+            mean_half = self.manifold.powerm(self.mean, 0.5)
+            _samples = Matrices.mul(mean_half, samples_sym, mean_half)
+
+        return self.manifold.expm(_samples)
+        
     def __sample_euclidean(self, samples):
         _samples = gs.random.multivariate_normal(
             self.mean, self.cov, (samples,))
@@ -128,3 +163,5 @@ class LogNormal:
         if isinstance(self.manifold, Euclidean):
             return self.__sample_euclidean(samples)
         return self.__sample_spd(samples)
+    
+  
