@@ -5,8 +5,8 @@ from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
-    SPDMetricLogEuclidean,
     SPDMetricAffine,
+    SPDMetricLogEuclidean,
 )
 
 
@@ -145,7 +145,7 @@ class LogNormal:
             samples_euclidean = gs.random.multivariate_normal(
                 mean, cov, (n_samples,))
             diag = samples_euclidean[:, :self.mean_dim]
-            off_diag = samples_euclidean[:, self.mean_dim:]/gs.sqrt(2.0)
+            off_diag = samples_euclidean[:, self.mean_dim:] / gs.sqrt(2.0)
             samples_sym = gs.mat_from_diag_triu_tril(
                 diag=diag, tri_upp=off_diag, tri_low=off_diag)
             return samples_sym
@@ -154,7 +154,7 @@ class LogNormal:
             sym_matrix = self.manifold.logm(self.mean)
             mean_euclidean = gs.hstack(
                 (gs.diagonal(sym_matrix)[None, :],
-                    gs.sqrt(2.0) * gs.triu_to_vec(sym_matrix, k=1)[None, :]))[0]
+                 gs.sqrt(2.0) * gs.triu_to_vec(sym_matrix, k=1)[None, :]))[0]
             _samples = samples_sym(mean_euclidean, self.cov, n_samples)
 
         else:
