@@ -77,10 +77,10 @@ def pytorch_error_msg(a, b, rtol, atol):
     if torch.is_tensor(a) and torch.is_tensor(b):
         if a.dtype == torch.bool and b.dtype == torch.bool:
             diff = torch.logical_xor(a, b)
-            msg = msg + '\ndifference \n{diff}'
+            msg = msg + f'\ndifference \n{diff}'
         else:
-            diff = torch.abs(a-b)
-            msg = msg + '\ndifference \n{diff}\nrtol {rtol}\natol {atol}'
+            diff = torch.abs(a - b)
+            msg = msg + f'\ndifference \n{diff}\nrtol {rtol}\natol {atol}'
     return msg
 
 
