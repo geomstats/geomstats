@@ -1,7 +1,7 @@
 """LogNormal Sampler."""
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import (
     SPDMatrices, 
@@ -78,6 +78,8 @@ class LogNormal:
         metric = manifold.metric
         if isinstance(manifold, Euclidean):
             cov_n = n
+            if metric is None:
+                manifold.metric = EuclideanMetric(n)
         else:
             cov_n = (n * (n + 1)) // 2
             if metric is None:
