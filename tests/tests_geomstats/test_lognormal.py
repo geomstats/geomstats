@@ -3,8 +3,8 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.distributions.lognormal import LogNormal
+from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
