@@ -45,7 +45,7 @@ class LogNormal:
     --------
     >>> import geomstats.backend as gs
     >>> from geomstats.geometry.spd_matrices import SPDMatrices
-    >>> from geomstats.distributions.lognormal import LogNormal
+    >>> from geomstats.sampling.lognormal import LogNormal
     >>> mean = 2 * gs.eye(3)
     >>> cov  = gs.eye(6)
     >>> SPDManifold = SPDMatrices(3)
