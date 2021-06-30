@@ -20,7 +20,7 @@ RTOL = 1e-6
 class TestHyperbolic(geomstats.tests.TestCase):
 
     def setUp(self):
-        gs.random.seed(1234)
+        gs.random.seed(1200)
         self.dimension = 3
         self.space = Hyperboloid(dim=self.dimension)
         self.metric = self.space.metric
