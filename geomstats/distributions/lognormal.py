@@ -1,6 +1,5 @@
 """LogNormal Distribution"""
 
-from geomstats.geometry.manifold import Manifold
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.matrices import Matrices
@@ -66,6 +65,16 @@ class _LogNormalEuclidean:
     """LogNormal Distribution on Euclidean Space"""
 
     def __init__(self, manifold, mean, cov):
+        n = mean.shape[-1]
+        metric = manifold.metric
+        if metric is None:
+                manifold.metric = EuclideanMetric(n)
+        else:
+            if not isinstance(metric, EuclideanMetric):
+                raise ValueError(
+                    "Invalid Metric, "
+                    "Should be of type EuclideanMetric")
+
         self.manifold = manifold
         self.mean = mean
         self.cov = cov
