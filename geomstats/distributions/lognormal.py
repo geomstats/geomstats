@@ -43,7 +43,7 @@ class LogNormal:
             shape=[n*(n+1)/2, n*(n+1)/2] if manifold is SPD Manifold
         Covariance of the distribution.
 
-   
+
     Example
     --------
     >>> import geomstats.backend as gs
@@ -51,8 +51,7 @@ class LogNormal:
     >>> from geomstats.distributions.lognormal import LogNormal
     >>> mean = 2 * gs.eye(3)
     >>> cov  = gs.eye(6)
-    >>> SPDManifold = SPDMatrices(3)
-    >>> SPDMan
+    >>> SPDManifold = SPDMatrices(3, metric=SPDMetricAffine(3))
     >>> LogNormalSampler = LogNormal(SPDManifold, mean, cov)
     >>> data = LogNormalSampler.sample(5)
 
@@ -81,7 +80,6 @@ class LogNormal:
         n = mean.shape[-1]
         metric = manifold.metric
         if isinstance(manifold, Euclidean):
-            cov_n = n
             if metric is None:
                 manifold.metric = EuclideanMetric(n)
             else:
@@ -92,7 +90,6 @@ class LogNormal:
                         "Should be of type EuclideanMetric")
 
         else:
-            cov_n = (n * (n + 1)) // 2
             if metric is None:
                 manifold.metric = SPDMetricLogEuclidean(n)
             else:
@@ -107,22 +104,20 @@ class LogNormal:
                         "or SPDMetricAffine")
 
         if cov is not None:
+            valid_cov_shape = (self.manifold.dim, self.manifold.dim)
             if (
                 cov.ndim != 2 or
-                (cov.shape[0], cov.shape[1]) != (cov_n, cov_n)
+                (cov.shape[0], cov.shape[1]) != valid_cov_shape
             ):
-                valid_shape = (cov_n, cov_n)
                 raise ValueError("Invalid Shape, "
-                                 "cov should have shape", valid_shape)
+                                 "cov should have shape", valid_cov_shape)
 
         else:
-            cov = gs.eye(cov_n)
+            cov = gs.eye(self.manifold.dim)
 
         self.__manifold = manifold
         self.__mean = mean
         self.__cov = cov
-        self.__mean_dim = n
-        self.__cov_dim = cov_n
 
     @property
     def manifold(self):
@@ -136,27 +131,20 @@ class LogNormal:
     def cov(self):
         return self.__cov
 
-    @property
-    def mean_dim(self):
-        return self.__mean_dim
-
-    @property
-    def cov_dim(self):
-        return self.__cov_dim
-
     def __sample_spd(self, n_samples):
         """Generate samples for SPD manifold"""
-        
+
         def samples_sym(mean, cov, n_samples):
             """Generate symmetric matrices."""
             samples_euclidean = gs.random.multivariate_normal(
                 mean, cov, (n_samples,))
-            diag = samples_euclidean[:, :self.mean_dim]
-            off_diag = samples_euclidean[:, self.mean_dim:] / gs.sqrt(2.0)
+            diag = samples_euclidean[:, :n]
+            off_diag = samples_euclidean[:, n:] / gs.sqrt(2.0)
             samples_sym = gs.mat_from_diag_triu_tril(
                 diag=diag, tri_upp=off_diag, tri_low=off_diag)
             return samples_sym
 
+        n = self.mean.shape[-1]
         if isinstance(self.manifold.metric, SPDMetricLogEuclidean):
             sym_matrix = self.manifold.logm(self.mean)
             mean_euclidean = gs.hstack(
@@ -166,7 +154,7 @@ class LogNormal:
 
         else:
             samples_sym = samples_sym(
-                gs.zeros(self.cov_dim), self.cov, n_samples)
+                gs.zeros(self.manifold.dim), self.cov, n_samples)
             mean_half = self.manifold.powerm(self.mean, 0.5)
             _samples = Matrices.mul(mean_half, samples_sym, mean_half)
 
@@ -180,9 +168,9 @@ class LogNormal:
 
     def sample(self, n_samples=1):
         """Generate samples
-        
+
         Parameters
-        ---------- 
+        ----------
         n_samples : int
                 Number of samples to be generated
 
@@ -196,6 +184,6 @@ class LogNormal:
         """
         if isinstance(self.manifold, Euclidean):
             samples = self.__sample_euclidean(n_samples)
-        else: 
+        else:
             samples = self.__sample_spd(n_samples)
         return samples
