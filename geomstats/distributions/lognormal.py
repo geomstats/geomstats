@@ -43,11 +43,7 @@ class LogNormal:
             shape=[n*(n+1)/2, n*(n+1)/2] if manifold is SPD Manifold
         Covariance of the distribution.
 
-    Returns
-    --------
-    samples : array-like, shape=[..., dim]
-        Samples from LogNormal distribution.
-
+   
     Example
     --------
     >>> import geomstats.backend as gs
@@ -56,6 +52,7 @@ class LogNormal:
     >>> mean = 2 * gs.eye(3)
     >>> cov  = gs.eye(6)
     >>> SPDManifold = SPDMatrices(3)
+    >>> SPDMan
     >>> LogNormalSampler = LogNormal(SPDManifold, mean, cov)
     >>> data = LogNormalSampler.sample(5)
 
@@ -148,9 +145,10 @@ class LogNormal:
         return self.__cov_dim
 
     def __sample_spd(self, n_samples):
-        """Generates samples for SPD manifold"""
+        """Generate samples for SPD manifold"""
+        
         def samples_sym(mean, cov, n_samples):
-            """auxillary function for generating sym matrices"""
+            """Generate symmetric matrices."""
             samples_euclidean = gs.random.multivariate_normal(
                 mean, cov, (n_samples,))
             diag = samples_euclidean[:, :self.mean_dim]
@@ -174,14 +172,30 @@ class LogNormal:
 
         return self.manifold.expm(_samples)
 
-    def __sample_euclidean(self, samples):
-        """Generates samples for Euclidean Manifold"""
+    def __sample_euclidean(self, n_samples):
+        """Generate samples for Euclidean Manifold"""
         _samples = gs.random.multivariate_normal(
-            self.mean, self.cov, (samples,))
+            self.mean, self.cov, (n_samples,))
         return gs.exp(_samples)
 
-    def sample(self, samples=1):
-        """Generates samples"""
+    def sample(self, n_samples=1):
+        """Generate samples
+        
+        Parameters
+        ---------- 
+        n_samples : int
+                Number of samples to be generated
+
+        Returns
+        -------
+        samples : array-like, shape=[n_samples, dim]
+                              if manifold is Euclidean
+                              shape=[n_samples, n, n]
+                              if manifold is SPDManifold
+            Samples from LogNormal distribution.
+        """
         if isinstance(self.manifold, Euclidean):
-            return self.__sample_euclidean(samples)
-        return self.__sample_spd(samples)
+            samples = self.__sample_euclidean(n_samples)
+        else: 
+            samples = self.__sample_spd(n_samples)
+        return samples
