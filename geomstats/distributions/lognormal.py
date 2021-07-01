@@ -17,7 +17,7 @@ class _LogNormalSPD:
         n = mean.shape[-1]
         metric = manifold.metric
         if metric is None:
-                manifold.metric = SPDMetricLogEuclidean(n)
+            manifold.metric = SPDMetricLogEuclidean(n)
         else:
             if (
                 not isinstance(metric, SPDMetricLogEuclidean) and
@@ -68,7 +68,7 @@ class _LogNormalEuclidean:
         n = mean.shape[-1]
         metric = manifold.metric
         if metric is None:
-                manifold.metric = EuclideanMetric(n)
+            manifold.metric = EuclideanMetric(n)
         else:
             if not isinstance(metric, EuclideanMetric):
                 raise ValueError(
@@ -204,5 +204,5 @@ class LogNormal:
         return self.__sampler.sample(n_samples)
 
     def pdf(self, points):
-        """evaluates probability density function for given points"""
+        """Evaluate probability density function for given points"""
         raise NotImplementedError
