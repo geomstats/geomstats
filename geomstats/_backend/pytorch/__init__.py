@@ -6,19 +6,21 @@ from functools import wraps
 import numpy as _np
 import torch
 from torch import (  # NOQA
-    acos as arccos,
     arange,
     argmin,
-    asin as arcsin,
+    arccos,
+    arccosh,
+    arcsin,
+    arctanh,
     atan2 as arctan2,
     bool as t_bool,
     broadcast_tensors as broadcast_arrays,
     ceil,
-    clamp as clip,
+    clip,
     cos,
     cosh,
     cross,
-    div as divide,
+    divide,
     empty_like,
     eq,
     erf,
@@ -29,14 +31,16 @@ from torch import (  # NOQA
     float64,
     floor,
     fmod as mod,
-    ger as outer,
-    gt as greater,
+    outer,
+    greater,
+    hstack,
     imag,
     int32,
     int64,
     isnan,
     log,
-    lt as less,
+    logical_or,
+    less,
     matmul,
     max as amax,
     mean,
@@ -59,6 +63,7 @@ from torch import (  # NOQA
     tanh,
     tril,
     uint8,
+    vstack,
     zeros,
     zeros_like
 )
@@ -164,13 +169,9 @@ def split(x, indices_or_sections, axis=0):
     return torch.split(x, tuple(intervals_length), dim=axis)
 
 
-def logical_or(x, y):
-    return x or y
-
-
 def logical_and(x, y):
     if torch.is_tensor(x):
-        return x & y
+        return torch.logical_and(x, y)
     return x and y
 
 
@@ -208,14 +209,6 @@ def flip(x, axis):
 def concatenate(seq, axis=0, out=None):
     seq = convert_to_wider_dtype(seq)
     return torch.cat(seq, dim=axis, out=out)
-
-
-def hstack(seq):
-    return concatenate(seq, axis=1)
-
-
-def vstack(seq):
-    return concatenate(seq)
 
 
 def _get_largest_dtype(seq):
@@ -333,20 +326,6 @@ def allclose(a, b, atol=atol, rtol=rtol):
         reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
         a = tile(a, reps)
     return torch.allclose(a, b, atol=atol, rtol=rtol)
-
-
-def arccosh(x):
-    c0 = torch.log(x)
-    c1 = torch.log1p(torch.sqrt(x * x - 1) / x)
-    return c0 + c1
-
-
-def arcsinh(x):
-    return torch.log(x + torch.sqrt(x * x + 1))
-
-
-def arcosh(x):
-    return torch.log(x + torch.sqrt(x * x - 1))
 
 
 def shape(val):
@@ -511,11 +490,6 @@ def trace(x, axis1=0, axis2=1):
     raise NotImplementedError()
 
 
-@_box_scalar
-def arctanh(x):
-    return 0.5 * torch.log((1 + x) / (1 - x))
-
-
 def linspace(start, stop, num):
     return torch.linspace(start=start, end=stop, steps=num)
 
@@ -532,12 +506,16 @@ def diag_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
 
 
-def tril_indices(*args, **kwargs):
-    return tuple(map(torch.from_numpy, _np.tril_indices(*args, **kwargs)))
+def tril_indices(n, k=0, m=None):
+    if m is None:
+        m = n
+    return torch.tril_indices(row=n, col=m, offset=k)
 
 
-def triu_indices(*args, **kwargs):
-    return tuple(map(torch.from_numpy, _np.triu_indices(*args, **kwargs)))
+def triu_indices(n, k=0, m=None):
+    if m is None:
+        m = n
+    return torch.triu_indices(row=n, col=m, offset=k)
 
 
 def tile(x, y):
@@ -592,8 +570,8 @@ def set_diag(x, new_diag):
 
 def prod(x, axis=None):
     if axis is None:
-        return torch.prod(x)
-    return torch.prod(x, dim=axis)
+        axis = 0
+    return torch.prod(x, axis)
 
 
 def where(condition, x=None, y=None):
@@ -761,8 +739,8 @@ def cumsum(x, axis=None):
 
 def cumprod(x, axis=None):
     if axis is None:
-        return x.flatten().cumprod(dim=0)
-    return torch.cumprod(x, dim=axis)
+        axis = 0
+    return torch.cumprod(x, axis)
 
 
 def array_from_sparse(indices, data, target_shape):
