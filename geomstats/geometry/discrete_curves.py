@@ -603,11 +603,7 @@ class ClosedDiscreteCurves(Manifold):
             self.ambient_manifold, n_landmarks=n)
         self.square_root_velocity_metric = ClosedSRVMetric(ambient_manifold)
 
-<<<<<<< HEAD
     def project(self, curve, atol=gs.atol, max_iter=1000):
-=======
-    def project(self, curve, atol=gs.atol):
->>>>>>> 9a92c97967d332b7142425d396a3c37eabbdf891
         """Project a discrete curve into the space of closed discrete curves.
 
         Parameters
@@ -617,12 +613,9 @@ class ClosedDiscreteCurves(Manifold):
         atol : float
             Tolerance of the projection algorithm.
             Optional, default: backend atol.
-<<<<<<< HEAD
         max_iter : float
             Maximum number of iteration of the algorithm.
             Optional, default: 1000
-=======
->>>>>>> 9a92c97967d332b7142425d396a3c37eabbdf891
 
         Returns
         -------
@@ -638,11 +631,7 @@ class ClosedDiscreteCurves(Manifold):
 
         srv_metric = self.square_root_velocity_metric
         srv = srv_metric.square_root_velocity(curve)[0]
-<<<<<<< HEAD
         srv_proj = srv_metric.project_srv(srv, atol=atol, max_iter=max_iter)
-=======
-        srv_proj = srv_metric.project_srv(srv, atol=atol)
->>>>>>> 9a92c97967d332b7142425d396a3c37eabbdf891
         proj = srv_metric.square_root_velocity_inverse(srv_proj,
                                                        gs.array([curve[0]]))
 
@@ -670,22 +659,15 @@ class ClosedSRVMetric(SRVMetric):
     def __init__(self, ambient_manifold):
         super(ClosedSRVMetric, self).__init__(ambient_manifold)
 
-<<<<<<< HEAD
     def project_srv(self, srv, atol=gs.atol, max_iter=1000):
-=======
-    def project_srv(self, srv, atol=gs.atol):
->>>>>>> 9a92c97967d332b7142425d396a3c37eabbdf891
         """Project a point in the srv space into the space of closed curves srv.
 
         The algorithm is from the paper cited above and modifies the srv
         iteratively so that G(srv) = (0, ..., 0) with the paper's notation.
 
-<<<<<<< HEAD
         Remark: for now, the algorithm might not converge for some curves such
         as segments.
 
-=======
->>>>>>> 9a92c97967d332b7142425d396a3c37eabbdf891
         Parameters
         ----------
         srv : array-like, shape=[..., n_sampling_points, ambient_dim]
@@ -693,12 +675,9 @@ class ClosedSRVMetric(SRVMetric):
         atol : float
             Tolerance of the projection algorithm.
             Optional, default: backend atol.
-<<<<<<< HEAD
         max_iter : float
             Maximum number of iteration of the algorithm.
             Optional, default: 1000
-=======
->>>>>>> 9a92c97967d332b7142425d396a3c37eabbdf891
 
         Returns
         -------
@@ -712,21 +691,14 @@ class ClosedSRVMetric(SRVMetric):
                                  'for discrete curves embedded in a'
                                  '2D Euclidean space.')
 
-<<<<<<< HEAD
         dim = self.ambient_metric.dim
         srv_inner_prod = self.srv_inner_product
         srv_norm = self.srv_norm
-=======
-        n_sampling_points = srv.shape[-2]
-        dim = self.ambient_metric.dim
-        srv_metric = self.l2_metric(n_sampling_points)
->>>>>>> 9a92c97967d332b7142425d396a3c37eabbdf891
         inner_prod = self.ambient_metric.inner_product
 
         def g_criterion(srv, srv_norms):
             return gs.sum(srv * srv_norms[:, None], axis=0)
 
-<<<<<<< HEAD
         initial_norm = srv_norm(srv)
         proj = srv
         proj_norms = self.ambient_metric.norm(proj)
@@ -747,21 +719,6 @@ class ClosedSRVMetric(SRVMetric):
 
             proj_squared_norm = srv_norm(proj) ** 2
             g_jacobian += proj_squared_norm * gs.eye(dim)
-=======
-        initial_norm = srv_metric.norm(srv)
-        proj = srv
-        proj_norms = self.ambient_metric.norm(proj)
-        criteria = atol + 1
-        residual = g_criterion(proj, proj_norms)
-
-        while criteria >= atol:
-            g_jacobian = gs.zeros((dim, dim))
-            for i in range(dim):
-                for j in range(dim):
-                    g_jacobian[i, j] = 3 * inner_prod(proj[:, i], proj[:, j])
-            proj_squared_norm = srv_metric.squared_norm(proj)
-            g_jacobian += proj_squared_norm * gs.array([[1, 0], [0, 1]])
->>>>>>> 9a92c97967d332b7142425d396a3c37eabbdf891
             beta = gs.linalg.inv(g_jacobian) @ residual
 
             e_1, e_2 = gs.array([1, 0]), gs.array([0, 1])
@@ -770,7 +727,6 @@ class ClosedSRVMetric(SRVMetric):
             grad_2 = proj_norms[:, None] * e_2
             grad_2 = grad_2 + (proj[:, 1] / proj_norms)[:, None] * proj
 
-<<<<<<< HEAD
             basis_vector_1 = grad_1 / srv_norm(grad_1)
             grad_2_component = srv_inner_prod(grad_2, basis_vector_1)
             grad_2_proj = grad_2_component * basis_vector_1
@@ -780,22 +736,10 @@ class ClosedSRVMetric(SRVMetric):
 
             proj -= gs.sum(beta[:, None, None] * basis, axis=0)
             proj = proj * initial_norm / srv_norm(proj)
-=======
-            b_1 = grad_1 / srv_metric.norm(grad_1)
-            b_2 = grad_2 - srv_metric.inner_product(grad_2, b_1) * grad_2
-            b_2 = b_2 / srv_metric.norm(b_2)
-            b = gs.array([b_1, b_2])
-
-            proj -= gs.sum(beta[:, None, None] * b, axis=0)
-            proj = proj * initial_norm / srv_metric.norm(proj)
->>>>>>> 9a92c97967d332b7142425d396a3c37eabbdf891
             proj_norms = self.ambient_metric.norm(proj)
             residual = g_criterion(proj, proj_norms)
             criteria = self.ambient_metric.norm(residual)
 
-<<<<<<< HEAD
             nb_iter += 1
 
-=======
->>>>>>> 9a92c97967d332b7142425d396a3c37eabbdf891
         return proj
