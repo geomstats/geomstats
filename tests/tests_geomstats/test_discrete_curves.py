@@ -1,15 +1,23 @@
 """Unit tests for parameterized manifolds."""
 
 import geomstats.backend as gs
+import geomstats.datasets.utils as data_utils
 import geomstats.tests
+from geomstats.geometry.discrete_curves import ClosedDiscreteCurves
 from geomstats.geometry.discrete_curves import DiscreteCurves
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 
 
 class TestDiscreteCurves(geomstats.tests.TestCase):
     def setUp(self):
         s2 = Hypersphere(dim=2)
+<<<<<<< HEAD
         r3 = s2.embedding_space
+=======
+        r2 = Euclidean(dim=2)
+        r3 = s2.embedding_manifold
+>>>>>>> Clean code and add unit tests
 
         initial_point = [0., 0., 1.]
         initial_tangent_vec_a = [1., 0., 0.]
@@ -35,6 +43,9 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         self.n_discretized_curves = 5
         self.times = gs.linspace(0., 1., self.n_discretized_curves)
         gs.random.seed(1234)
+        self.space_closed_curves_in_euclidean_2d = ClosedDiscreteCurves(
+            ambient_manifold=r2)
+
         self.space_curves_in_euclidean_3d = DiscreteCurves(
             ambient_manifold=r3)
         self.space_curves_in_sphere_2d = DiscreteCurves(
@@ -258,6 +269,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)[0]
         self.assertAllClose(result, expected)
 
+<<<<<<< HEAD
     def test_random_and_belongs(self):
         random = self.space_curves_in_sphere_2d.random_point()
         result = self.space_curves_in_sphere_2d.belongs(random)
@@ -284,3 +296,23 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         result = self.space_curves_in_sphere_2d.is_tangent(
             tangent_vec, point)
         self.assertTrue(gs.all(result))
+=======
+    def test_projection_closed_curves(self):
+        """Test that projecting the projection returns the projection
+
+        and that the projection is a closed curve."""
+        planar_closed_curves = self.space_closed_curves_in_euclidean_2d
+
+        cells, _, _ = data_utils.load_cells()
+        curves = [cell[:-10] for cell in cells[:5]]
+
+        for curve in curves:
+            proj = planar_closed_curves.project(curve)
+            expected = proj
+            result = planar_closed_curves.project(proj)
+            self.assertAllClose(result, expected)
+
+            result = proj[-1, :]
+            expected = proj[0, :]
+            self.assertAllClose(result, expected)
+>>>>>>> Clean code and add unit tests
