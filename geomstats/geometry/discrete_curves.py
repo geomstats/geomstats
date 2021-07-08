@@ -603,6 +603,105 @@ class ClosedDiscreteCurves(Manifold):
             self.ambient_manifold, n_landmarks=n)
         self.square_root_velocity_metric = ClosedSRVMetric(ambient_manifold)
 
+    def belongs(self, point, atol=gs.atol):
+        """Test whether a point belongs to the manifold.
+
+        Test that all points of the curve belong to the ambient manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Point representing a discrete curve.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        belongs : bool
+            Boolean evaluating if point belongs to the space of discrete
+            curves.
+        """
+        raise NotImplementedError(
+            'The belongs method is not implemented.'
+        )
+
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check whether the vector is tangent at a curve.
+
+        A vector is tangent at a curve if it is a vector field along that
+        curve.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Vector.
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        raise NotImplementedError(
+            'The is_tangent method is not implemented.'
+        )
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        As tangent vectors are vector fields along a curve, each component of
+        the vector is projected to the tangent space of the corresponding
+        point of the discrete curve. The number of sampling points should
+        match in the vector and the base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Vector.
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector at base point.
+        """
+        raise NotImplementedError(
+            'The to_tangent method is not implemented.'
+        )
+
+    def random_point(self, n_samples=1, bound=1., n_sampling_points=10):
+        """Sample random curves.
+
+        If the ambient manifold is compact, a uniform distribution is used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact
+            ambient manifolds.
+            Optional, default: 1.
+        n_sampling_points : int
+            Number of sampling points for the discrete curves.
+            Optional, default : 10.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n_sampling_points, {dim, [n, n]}]
+            Points sampled on the hypersphere.
+        """
+        raise NotImplementedError(
+            'The random_point method is not implemented.'
+        )
+
     def project(self, curve, atol=gs.atol, max_iter=1000):
         """Project a discrete curve into the space of closed discrete curves.
 
