@@ -12,8 +12,8 @@ from geomstats.geometry.hypersphere import Hypersphere
 class TestDiscreteCurves(geomstats.tests.TestCase):
     def setUp(self):
         s2 = Hypersphere(dim=2)
-        r3 = s2.embedding_space
         r2 = Euclidean(dim=2)
+        r3 = s2.embedding_space
 
         initial_point = [0., 0., 1.]
         initial_tangent_vec_a = [1., 0., 0.]
@@ -36,12 +36,12 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         discretized_curve_b = curve_b(sampling_times)
         discretized_curve_c = curve_c(sampling_times)
 
-        self.n_discretized_curves = 5
-        self.times = gs.linspace(0., 1., self.n_discretized_curves)
-        gs.random.seed(1234)
         self.space_closed_curves_in_euclidean_2d = ClosedDiscreteCurves(
             ambient_manifold=r2)
 
+        self.n_discretized_curves = 5
+        self.times = gs.linspace(0., 1., self.n_discretized_curves)
+        gs.random.seed(1234)
         self.space_curves_in_euclidean_3d = DiscreteCurves(
             ambient_manifold=r3)
         self.space_curves_in_sphere_2d = DiscreteCurves(
