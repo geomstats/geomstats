@@ -144,4 +144,4 @@ class Manifold(abc.ABC):
                     'The argument must be a RiemannianMetric object')
             if metric.dim != self.dim:
                 metric.dim = self.dim
-            self._metric = metric
+        self._metric = metric
