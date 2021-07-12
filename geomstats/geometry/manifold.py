@@ -138,8 +138,10 @@ class Manifold(abc.ABC):
 
     @metric.setter
     def metric(self, metric):
-        if not isinstance(metric, RiemannianMetric):
-            raise ValueError('The argument must be a RiemannianMetric object')
-        if metric.dim != self.dim:
-            metric.dim = self.dim
-        self._metric = metric
+        if metric is not None:
+            if not isinstance(metric, RiemannianMetric):
+                raise ValueError(
+                    'The argument must be a RiemannianMetric object')
+            if metric.dim != self.dim:
+                metric.dim = self.dim
+            self._metric = metric
