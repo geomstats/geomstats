@@ -23,7 +23,7 @@ class SPDMatrices(OpenSet):
     def __init__(self, n, **kwargs):
         super(SPDMatrices, self).__init__(
             dim=int(n * (n + 1) / 2),
-            metric=MatricesMetric(n, n),
+            metric=SPDMetricAffine(n),
             ambient_space=SymmetricMatrices(n), **kwargs)
         self.n = n
 
@@ -409,7 +409,6 @@ class SPDMetricAffine(RiemannianMetric):
             signature=(dim, 0),
             default_point_type='matrix')
         self.n = n
-        self.space = SPDMatrices(n)
         self.power_affine = power_affine
 
     @staticmethod
@@ -455,7 +454,7 @@ class SPDMetricAffine(RiemannianMetric):
             Inner-product.
         """
         power_affine = self.power_affine
-        spd_space = self.space
+        spd_space = SPDMatrices
 
         if power_affine == 1:
             inv_base_point = GeneralLinear.inverse(base_point)
@@ -527,7 +526,7 @@ class SPDMetricAffine(RiemannianMetric):
             exp = self._aux_exp(
                 tangent_vec, powers[0], powers[1])
         else:
-            modified_tangent_vec = self.space.differential_power(
+            modified_tangent_vec = SPDMatrices.differential_power(
                 power_affine, tangent_vec, base_point)
             power_sqrt_base_point = SymmetricMatrices.powerm(
                 base_point, power_affine / 2)
@@ -593,7 +592,7 @@ class SPDMetricAffine(RiemannianMetric):
                 base_point, [power_affine / 2, -power_affine / 2])
             log = self._aux_log(
                 power_point, powers[0], powers[1])
-            log = self.space.inverse_differential_power(
+            log = SPDMatrices.inverse_differential_power(
                 power_affine, log, base_point)
         return log
 
@@ -657,7 +656,6 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
             signature=(dim, 0),
             default_point_type='matrix')
         self.n = n
-        self.space = SPDMatrices(n)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the Bures-Wasserstein inner-product.
@@ -696,7 +694,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
         return result
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Bures-Wasserstein exponential map.
 
         Parameters
@@ -724,7 +722,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
         return base_point + tangent_vec + hessian
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute the Bures-Wasserstein logarithm map.
 
         Compute the Riemannian logarithm at point base_point,
@@ -749,7 +747,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
         return sqrt_product + transp_sqrt_product - 2 * base_point
 
-    def squared_dist(self, point_a, point_b):
+    def squared_dist(self, point_a, point_b, **kwargs):
         """Compute the Bures-Wasserstein squared distance.
 
         Compute the Riemannian squared distance between point_a and point_b.
@@ -785,7 +783,6 @@ class SPDMetricEuclidean(RiemannianMetric):
             signature=(dim, 0),
             default_point_type='matrix')
         self.n = n
-        self.space = SPDMatrices(n)
         self.power_euclidean = power_euclidean
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -809,7 +806,7 @@ class SPDMetricEuclidean(RiemannianMetric):
             Inner-product.
         """
         power_euclidean = self.power_euclidean
-        spd_space = self.space
+        spd_space = SPDMatrices
 
         if power_euclidean == 1:
             inner_product = Matrices.frobenius_product(
@@ -879,7 +876,6 @@ class SPDMetricLogEuclidean(RiemannianMetric):
             signature=(dim, 0),
             default_point_type='matrix')
         self.n = n
-        self.space = SPDMatrices(n)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Log-Euclidean inner-product.
@@ -901,7 +897,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        spd_space = self.space
+        spd_space = SPDMatrices
 
         modified_tangent_vec_a = spd_space.differential_log(
             tangent_vec_a, base_point)
@@ -911,7 +907,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
             modified_tangent_vec_a, modified_tangent_vec_b)
         return product
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Log-Euclidean exponential map.
 
         Compute the Riemannian exponential at point base_point
@@ -930,13 +926,13 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         exp : array-like, shape=[..., n, n]
             Riemannian exponential.
         """
-        log_base_point = self.space.logm(base_point)
-        dlog_tangent_vec = self.space.differential_log(tangent_vec, base_point)
+        log_base_point = SPDMatrices.logm(base_point)
+        dlog_tangent_vec = SPDMatrices.differential_log(tangent_vec, base_point)
         exp = SymmetricMatrices.expm(log_base_point + dlog_tangent_vec)
 
         return exp
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute the Log-Euclidean logarithm map.
 
         Compute the Riemannian logarithm at point base_point,
@@ -957,7 +953,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         """
         log_base_point = SPDMatrices.logm(base_point)
         log_point = SPDMatrices.logm(point)
-        log = self.space.differential_exp(
+        log = SPDMatrices.differential_exp(
             log_point - log_base_point, log_base_point)
 
         return log
