@@ -35,7 +35,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
 
         As GL(n) is dense in the space of matrices, this is not a projection
         per se, but a regularization if the matrix is not already invertible:
-        :math: `X + \epsilon I_n` is returned where :math: `\epsilon=gs.atol`
+        :math:`X + \epsilon I_n` is returned where :math:`\epsilon=gs.atol`
         is returned for an input X.
 
         Parameters

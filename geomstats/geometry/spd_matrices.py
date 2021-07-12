@@ -6,7 +6,7 @@ import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -927,7 +927,8 @@ class SPDMetricLogEuclidean(RiemannianMetric):
             Riemannian exponential.
         """
         log_base_point = SPDMatrices.logm(base_point)
-        dlog_tangent_vec = SPDMatrices.differential_log(tangent_vec, base_point)
+        dlog_tangent_vec = SPDMatrices.differential_log(
+            tangent_vec, base_point)
         exp = SymmetricMatrices.expm(log_base_point + dlog_tangent_vec)
 
         return exp
