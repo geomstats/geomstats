@@ -37,7 +37,7 @@ class Manifold(abc.ABC):
         self.dim = dim
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
-        self._metric = metric
+        self.metric = metric
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
@@ -137,9 +137,9 @@ class Manifold(abc.ABC):
         return self._metric
 
     @metric.setter
-    def metric(self, value):
-        if not isinstance(value, RiemannianMetric):
+    def metric(self, metric):
+        if not isinstance(metric, RiemannianMetric):
             raise ValueError('The argument must be a RiemannianMetric object')
-        if value.dim != self.dim:
-            value.dim = self.dim
-        self._metric = value
+        if metric.dim != self.dim:
+            metric.dim = self.dim
+        self._metric = metric

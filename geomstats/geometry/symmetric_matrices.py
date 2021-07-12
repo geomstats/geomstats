@@ -5,11 +5,11 @@ import logging
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.base import OpenSet, VectorSpace
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.base import VectorSpace
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
-class SymmetricMatrices(OpenSet, VectorSpace):
+class SymmetricMatrices(VectorSpace):
     """Class for the vector space of symmetric matrices of size n.
 
     Parameters
@@ -19,9 +19,9 @@ class SymmetricMatrices(OpenSet, VectorSpace):
     """
 
     def __init__(self, n, **kwargs):
-        matrices = Matrices(n, n)
         super(SymmetricMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2), shape=(n, n), ambient_space=matrices)
+            dim=int(n * (n + 1) / 2), shape=(n, n),
+            metric=MatricesMetric(n, n), default_point_type='matrix')
         self.n = n
 
     def get_basis(self):
@@ -77,6 +77,26 @@ class SymmetricMatrices(OpenSet, VectorSpace):
             Symmetric matrix.
         """
         return Matrices.to_symmetric(point)
+
+    def random_point(self, n_samples=1, bound=1.):
+        """Sample a symmetric matrix with a uniform distribution in a box.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Side of hypercube support of the uniform distribution.
+            Optional, default: 1.0
+
+        Returns
+        -------
+        point : array-like, shape=[..., n, n]
+           Sample.
+        """
+        sample = super(SymmetricMatrices, self).random_point(n_samples, bound)
+        return Matrices.to_symmetric(sample)
 
     @staticmethod
     def to_vector(mat):

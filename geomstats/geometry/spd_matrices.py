@@ -6,7 +6,7 @@ import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -23,6 +23,7 @@ class SPDMatrices(OpenSet):
     def __init__(self, n, **kwargs):
         super(SPDMatrices, self).__init__(
             dim=int(n * (n + 1) / 2),
+            metric=MatricesMetric(n, n),
             ambient_space=SymmetricMatrices(n), **kwargs)
         self.n = n
 
