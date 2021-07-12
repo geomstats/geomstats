@@ -97,7 +97,7 @@ backends:
 Choose the backend
 ------------------
 
-Geomstats can run seemlessly with ``numpy``, ``tensorflow`` or
+Geomstats can run seamlessly with ``numpy``, ``tensorflow`` or
 ``pytorch``. Note that ``pytorch`` and ``tensorflow`` requirements are
 optional, as geomstats can be used with ``numpy`` only. By default, the
 ``numpy`` backend is used. The visualizations are only available with
