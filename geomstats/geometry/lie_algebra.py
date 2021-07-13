@@ -6,13 +6,15 @@ The second is by choosing a base and remembering the coefficients of an element
 in that base. This base will be provided in child classes
 (e.g. SkewSymmetricMatrices).
 """
+
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.matrices import Matrices
 from ._bch_coefficients import BCH_COEFFICIENTS
 
 
-class MatrixLieAlgebra(Matrices):
+class MatrixLieAlgebra(VectorSpace):
     """Class implementing matrix Lie algebra related functions.
 
     Parameters
@@ -25,11 +27,14 @@ class MatrixLieAlgebra(Matrices):
     """
 
     def __init__(self, dim, n, **kwargs):
-        super(MatrixLieAlgebra, self).__init__(m=n, n=n, **kwargs)
+        super(MatrixLieAlgebra, self).__init__(shape=(n, n), **kwargs)
         geomstats.errors.check_integer(dim, 'dim')
         geomstats.errors.check_integer(n, 'n')
         self.dim = dim
         self.basis = None
+        self.n = n
+
+    bracket = Matrices.bracket
 
     def baker_campbell_hausdorff(self, matrix_a, matrix_b, order=2):
         """Calculate the Baker-Campbell-Hausdorff approximation of given order.
