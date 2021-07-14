@@ -455,7 +455,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
     def test_stiefel_n_samples(self):
         space = Stiefel(3, 2)
         metric = space.metric
-        point = space.random_point(10)
+        point = space.random_point(2)
         mean = FrechetMean(metric, lr=.5, verbose=True, method='default')
         mean.fit(point)
         result = space.belongs(mean.estimate_)
