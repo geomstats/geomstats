@@ -167,12 +167,20 @@ modifying code and submitting a PR:
    mailing list hi@geomstats.ai for more visibility.
 
 It is often helpful to keep your local feature branch synchronized with the
-latest changes of the main geomstats repository::
+latest changes of the main geomstats repository. If there are only a few new 
+commits in the master branch, use::
 
     $ git fetch upstream
     $ git rebase upstream/master
 
-Subsequently, you might need to solve potential conflicts. Refer to the
+Subsequently, you might need to solve potential conflicts.
+If it's been a while since you've last updated your branch, it might be easier
+to merge the master branch into yours::
+
+    $ git fetch upstream
+    $ git merge upstream/master
+
+Refer to the
 `Git documentation related to resolving merge conflict using the command
 line
 <https://help.github.com/articles/resolving-a-merge-conflict-using-the-command-line/>`_.
