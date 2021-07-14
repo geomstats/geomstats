@@ -290,6 +290,53 @@ class RiemannianMetric(Connection, ABC):
         dist = gs.sqrt(sq_dist)
         return dist
 
+    def dist_broadcast(self, point_a, point_b):
+        """Compute the geodesic distance between points.
+
+        If n_samples_a == n_samples_b then dist is the element-wise
+        distance result of a point in points_a with the point from
+        points_b of the same index. If n_samples_a not equal to
+        n_samples_b then dist is the result of applying geodesic
+        distance for each point from points_a to all points from
+        points_b.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[n_samples_a, dim]
+            Set of points in the Poincare ball.
+        point_b : array-like, shape=[n_samples_b, dim]
+            Second set of points in the Poincare ball.
+
+        Returns
+        -------
+        dist : array-like,
+            shape=[n_samples_a, dim] or [n_samples_a, n_samples_b, dim]
+            Geodesic distance between the two points.
+        """
+        point_type = self.default_point_type
+        ndim = 1 if point_type == 'vector' else 2
+
+        if point_a.shape[-ndim:] != point_b.shape[-ndim:]:
+            raise ValueError('Manifold dimensions not equal')
+
+        if ndim in (point_a.ndim, point_b.ndim) or (
+                point_a.shape == point_b.shape):
+            return self.dist(point_a, point_b)
+
+        n_samples = point_a.shape[0] * point_b.shape[0]
+        point_a_broadcast, point_b_broadcast = gs.broadcast_arrays(
+            point_a[:, None], point_b[None, ...])
+
+        point_a_flatten = gs.reshape(
+            point_a_broadcast, (n_samples, ) + point_a.shape[-ndim:])
+        point_b_flatten = gs.reshape(
+            point_b_broadcast, (n_samples, ) + point_a.shape[-ndim:])
+
+        dist = self.dist(point_a_flatten, point_b_flatten)
+        dist = gs.reshape(dist, (point_a.shape[0], point_b.shape[0]))
+        dist = gs.squeeze(dist)
+        return dist
+
     def dist_pairwise(self, points, n_jobs=1, **joblib_kwargs):
         """Compute the pairwise distance between points.
 

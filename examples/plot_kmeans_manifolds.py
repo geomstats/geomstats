@@ -33,11 +33,9 @@ def kmean_poincare_ball():
 
     kmeans = RiemannianKMeans(metric=metric,
                               n_clusters=n_clusters,
-                              init='random',
-                              mean_method='frechet-poincare-ball'
-                              )
+                              init='random')
 
-    centroids = kmeans.fit(X=data, max_iter=100)
+    centroids = kmeans.fit(X=data)
     labels = kmeans.predict(X=data)
 
     plt.figure(1)
@@ -86,8 +84,7 @@ def kmean_hypersphere():
 
     # Generate data on south pole
     cluster_2 = manifold.random_von_mises_fisher(kappa=50, n_samples=n_samples)
-    for point in cluster_2:
-        point[2] = -point[2]
+    cluster_2 = - cluster_2
 
     data = gs.concatenate((cluster_1, cluster_2), axis=0)
 
@@ -122,7 +119,7 @@ def kmean_hypersphere():
         s=200,
         color='green')
 
-    ax.set_title('Kmeans on Hypersphere Manifold')
+    ax.set_title('Kmeans on the sphere')
 
     return plt
 

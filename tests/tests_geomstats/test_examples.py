@@ -12,7 +12,7 @@ import examples.learning_graph_structured_data_h2 as learning_gsd_h2
 import examples.loss_and_gradient_se3 as loss_and_gradient_se3
 import examples.loss_and_gradient_so3 as loss_and_gradient_so3
 import examples.plot_bch_so3 as plot_bch_so3
-import examples.plot_expectation_maximization_manifolds as plot_em_manifolds
+import examples.plot_expectation_maximization_ball as plot_em_manifolds
 import examples.plot_geodesics_h2 as plot_geodesics_h2
 import examples.plot_geodesics_poincare_polydisk as plot_geodesics_poincare_polydisk # NOQA
 import examples.plot_geodesics_s2 as plot_geodesics_s2
