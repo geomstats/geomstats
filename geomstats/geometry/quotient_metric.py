@@ -17,19 +17,18 @@ class QuotientMetric(RiemannianMetric):
     ----------
     fiber_bundle : geomstats.geometry.fiber_bundle.FiberBundle
         Bundle structure to define the quotient.
-    group : LieGroup
-        Group acting on the right.
-        Optional, default : None. In this case the group must be passed to
-        the fiber bundle instance.
-    ambient_metric : RiemannianMetric
-        Metric of the total space.
-        Optional, default : None. In this case, the total space must have a
-        metric as an attribute.
     """
 
     def __init__(self, fiber_bundle: FiberBundle, dim: int = None):
         if dim is None:
-            dim = fiber_bundle.dim
+            if fiber_bundle.base is not None:
+                dim = fiber_bundle.base.dim
+            elif fiber_bundle.group is not None:
+                dim = fiber_bundle.dim - fiber_bundle.group.dim
+            else:
+                raise ValueError('Either the base manifold, '
+                                 'its dimension, or the group acting on the '
+                                 'total space must be provided.')
         super(QuotientMetric, self).__init__(
             dim=dim,
             default_point_type=fiber_bundle.default_point_type)
@@ -39,7 +38,8 @@ class QuotientMetric(RiemannianMetric):
         self.ambient_metric = fiber_bundle.ambient_metric
 
     def inner_product(
-            self, tangent_vec_a, tangent_vec_b, base_point=None, point=None):
+            self, tangent_vec_a, tangent_vec_b, base_point=None,
+            fiber_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
 
         Parameters
@@ -51,7 +51,7 @@ class QuotientMetric(RiemannianMetric):
         base_point : array-like, shape=[..., {dim, [n, n]}]
             Point on the quotient manifold.
             Optional, default: None.
-        point : array-like, shape=[..., {dim, [n, n]}]
+        fiber_point : array-like, shape=[..., {dim, [n, n]}]
             Point on the total space, lift of `base_point`, i.e. such that
             `submersion` applied to `point` results in `base_point`.
             Optional, default: None. In this case, it is computed using the
@@ -62,17 +62,19 @@ class QuotientMetric(RiemannianMetric):
         inner_product : float, shape=[...]
             Inner products
         """
-        if point is None:
+        if fiber_point is None:
             if base_point is not None:
-                point = self.fiber_bundle.lift(base_point)
+                fiber_point = self.fiber_bundle.lift(base_point)
             else:
                 raise ValueError('Either a point (of the total space) or a '
                                  'base point (of the quotient manifold) must '
                                  'be given.')
-        horizontal_a = self.fiber_bundle.horizontal_lift(tangent_vec_a, point)
-        horizontal_b = self.fiber_bundle.horizontal_lift(tangent_vec_b, point)
+        horizontal_a = self.fiber_bundle.horizontal_lift(
+            tangent_vec_a, fiber_point=fiber_point)
+        horizontal_b = self.fiber_bundle.horizontal_lift(
+            tangent_vec_b, fiber_point=fiber_point)
         return self.ambient_metric.inner_product(
-            horizontal_a, horizontal_b, point)
+            horizontal_a, horizontal_b, fiber_point)
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
@@ -92,8 +94,8 @@ class QuotientMetric(RiemannianMetric):
         """
         lift = self.fiber_bundle.lift(base_point)
         horizontal_vec = self.fiber_bundle.horizontal_lift(
-            tangent_vec, lift)
-        return self.fiber_bundle.submersion(
+            tangent_vec, fiber_point=lift)
+        return self.fiber_bundle.riemannian_submersion(
             self.ambient_metric.exp(horizontal_vec, lift))
 
     def log(self, point, base_point, **kwargs):
@@ -112,10 +114,10 @@ class QuotientMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        point_fiber = self.fiber_bundle.lift(point)
+        fiber_point = self.fiber_bundle.lift(point)
         bp_fiber = self.fiber_bundle.lift(base_point)
-        aligned = self.fiber_bundle.align(point_fiber, bp_fiber, **kwargs)
-        return self.fiber_bundle.tangent_submersion(
+        aligned = self.fiber_bundle.align(fiber_point, bp_fiber, **kwargs)
+        return self.fiber_bundle.tangent_riemannian_submersion(
             self.ambient_metric.log(aligned, bp_fiber), bp_fiber)
 
     def squared_dist(self, point_a, point_b, **kwargs):
@@ -176,32 +178,32 @@ class QuotientMetric(RiemannianMetric):
         https://doi.org/10.1307/mmj/1028999604.
         """
         bundle = self.fiber_bundle
-        point_fiber = bundle.lift(base_point)
+        fiber_point = bundle.lift(base_point)
         horizontal_a = bundle.horizontal_lift(tangent_vec_a, base_point)
         horizontal_b = bundle.horizontal_lift(tangent_vec_b, base_point)
         horizontal_c = bundle.horizontal_lift(tangent_vec_c, base_point)
 
         top_curvature = self.ambient_metric.curvature(
-            horizontal_a, horizontal_b, horizontal_c, point_fiber)
-        projected_top_curvature = bundle.tangent_submersion(
-            top_curvature, point_fiber)
+            horizontal_a, horizontal_b, horizontal_c, fiber_point)
+        projected_top_curvature = bundle.tangent_riemannian_submersion(
+            top_curvature, fiber_point)
 
         f_ab = bundle.integrability_tensor(
-            horizontal_a, horizontal_b, point_fiber)
+            horizontal_a, horizontal_b, fiber_point)
         f_c_f_ab = bundle.integrability_tensor(
-            horizontal_c, f_ab, point_fiber)
-        f_c_f_ab = bundle.tangent_submersion(f_c_f_ab, point_fiber)
+            horizontal_c, f_ab, fiber_point)
+        f_c_f_ab = bundle.tangent_riemannian_submersion(f_c_f_ab, fiber_point)
 
         f_ac = bundle.integrability_tensor(
-            horizontal_a, horizontal_c, point_fiber)
+            horizontal_a, horizontal_c, fiber_point)
         f_b_f_ac = bundle.integrability_tensor(
-            horizontal_b, f_ac, point_fiber)
-        f_b_f_ac = bundle.tangent_submersion(f_b_f_ac, point_fiber)
+            horizontal_b, f_ac, fiber_point)
+        f_b_f_ac = bundle.tangent_riemannian_submersion(f_b_f_ac, fiber_point)
 
         f_bc = bundle.integrability_tensor(
-            horizontal_b, horizontal_c, point_fiber)
+            horizontal_b, horizontal_c, fiber_point)
         f_a_f_bc = bundle.integrability_tensor(
-            horizontal_a, f_bc, point_fiber)
-        f_a_f_bc = bundle.tangent_submersion(f_a_f_bc, point_fiber)
+            horizontal_a, f_bc, fiber_point)
+        f_a_f_bc = bundle.tangent_riemannian_submersion(f_a_f_bc, fiber_point)
 
         return projected_top_curvature - 2 * f_c_f_ab + f_a_f_bc - f_b_f_ac

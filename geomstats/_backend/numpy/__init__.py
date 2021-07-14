@@ -1,5 +1,7 @@
 """Numpy based computation backend."""
 
+import math
+
 import autograd # NOQA
 import autograd.numpy as np
 from autograd.numpy import (  # NOQA
@@ -28,10 +30,11 @@ from autograd.numpy import (  # NOQA
     cross,
     cumprod,
     cumsum,
+    diag_indices,
     diagonal,
     divide,
     dot,
-    dtype,
+    dtype as ndtype,
     einsum,
     empty,
     empty_like,
@@ -48,6 +51,7 @@ from autograd.numpy import (  # NOQA
     hstack,
     int32,
     int64,
+    imag,
     isclose,
     isnan,
     less,
@@ -65,6 +69,8 @@ from autograd.numpy import (  # NOQA
     ones_like,
     outer,
     power,
+    prod,
+    real,
     repeat,
     reshape,
     shape,
@@ -92,7 +98,7 @@ from autograd.numpy import (  # NOQA
     zeros,
     zeros_like
 )
-from autograd.scipy.special import polygamma # NOQA
+from autograd.scipy.special import erf, polygamma # NOQA
 from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA
@@ -101,14 +107,18 @@ from .common import to_ndarray  # NOQA
 from ..constants import np_atol, np_rtol
 
 DTYPES = {
-    dtype('int32'): 0,
-    dtype('int64'): 1,
-    dtype('float32'): 2,
-    dtype('float64'): 3}
+    ndtype('int32'): 0,
+    ndtype('int64'): 1,
+    ndtype('float32'): 2,
+    ndtype('float64'): 3}
 
 
 atol = np_atol
 rtol = np_rtol
+
+
+def comb(n, k):
+    return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
 
 
 def to_numpy(x):
@@ -366,16 +376,33 @@ def array_from_sparse(indices, data, target_shape):
         coo_matrix((data, list(zip(*indices))), target_shape).todense())
 
 
-def erf(x):
-    cst_erf = 8.0 / (3.0 * np.pi) * (np.pi - 3.0) / (4.0 - np.pi)
-    return \
-        np.sign(x) * \
-        np.sqrt(1 - np.exp(-x * x *
-                           (4 / np.pi + cst_erf * x * x) /
-                           (1 + cst_erf * x * x)))
-
-
 def triu_to_vec(x, k=0):
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
+
+
+def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
+    """Build matrix from given components.
+
+    Forms a matrix from diagonal, strictly upper triangular and
+    strictly lower traingular parts.
+
+    Parameters
+    ----------
+    diag : array_like, shape=[..., n]
+    tri_upp : array_like, shape=[..., (n * (n - 1)) / 2]
+    tri_low : array_like, shape=[..., (n * (n - 1)) / 2]
+
+    Returns
+    -------
+    mat : array_like, shape=[..., n, n]
+    """
+    n = diag.shape[-1]
+    i, = np.diag_indices(n, ndim=1)
+    j, k = np.triu_indices(n, k=1)
+    mat = np.zeros(diag.shape + (n, ))
+    mat[..., i, i] = diag
+    mat[..., j, k] = tri_upp
+    mat[..., k, j] = tri_low
+    return mat

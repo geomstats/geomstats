@@ -1002,3 +1002,34 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result[0], value.detach())
         self.assertAllClose(result[1], grad)
+
+    def test_mat_from_diag_triu_tril(self):
+
+        diag = gs.array([9., 9., 9.])
+        triu = gs.array([1., 2., 3.])
+        tril = -1 * triu
+        mat = gs.mat_from_diag_triu_tril(
+            diag, triu, tril)
+        expected = gs.array([[9., 1., 2.], [-1., 9., 3., ], [-2., -3., 9.]])
+        result = mat
+
+        batch_diag = gs.eye(3)
+        batch_triu = gs.array([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+        batch_tril = -1 * batch_triu
+        batch_mat = gs.mat_from_diag_triu_tril(
+            batch_diag, batch_triu, batch_tril)
+
+        batch_expected = gs.array([
+            [[1., 1., 2.], [-1., 0., 3.], [-2., -3., 0.]],
+            [[0., 4., 5.], [-4., 1., 6.], [-5., -6., 0.]],
+            [[0., 7., 8.], [-7., 0., 9.], [-8., -9., 1.]]
+        ])
+        batch_result = batch_mat
+        self.assertAllClose(expected, result)
+        self.assertAllClose(batch_expected, batch_result)
+
+    def test_prod(self):
+        vec = gs.random.rand(10)
+        result = gs.prod(vec)
+        expected = gs.cumprod(vec)[-1]
+        self.assertAllClose(result, expected)

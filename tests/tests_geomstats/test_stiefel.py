@@ -2,6 +2,8 @@
 
 import warnings
 
+import tests.helper as helper
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.general_linear import GeneralLinear
@@ -306,7 +308,13 @@ class TestStiefel(geomstats.tests.TestCase):
 
     def test_to_tangent_is_tangent(self):
         point = self.space.random_uniform()
-        vector = gs.random.rand(*point.shape)
+        vector = gs.random.rand(*point.shape) / 4
         tangent_vec = self.space.to_tangent(vector, point)
         result = self.space.is_tangent(tangent_vec, point)
         self.assertTrue(result)
+
+    def test_projection_and_belongs(self):
+        shape = (self.n_samples, self.n, self.p)
+        result = helper.test_projection_and_belongs(self.space, shape)
+        for res in result:
+            self.assertTrue(res)

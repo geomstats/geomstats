@@ -1,4 +1,5 @@
 """Class for (principal) fiber bundles."""
+from abc import ABC
 
 from scipy.optimize import minimize
 
@@ -8,7 +9,7 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class FiberBundle(Manifold):
+class FiberBundle(Manifold, ABC):
     """Class for (principal) fiber bundles.
 
     This class implements abstract methods for fiber bundles, or more
@@ -40,56 +41,24 @@ class FiberBundle(Manifold):
     """
 
     def __init__(
-            self, total_space: Manifold, base: Manifold = None,
+            self, dim: int, base: Manifold = None,
             group: LieGroup = None, ambient_metric: RiemannianMetric = None,
-            group_action=None, dim: int = None, **kwargs):
-
-        if dim is None:
-            if base is not None:
-                dim = base.dim
-            elif group is not None:
-                dim = total_space.dim - group.dim
-            else:
-                raise ValueError('Either the base manifold, '
-                                 'its dimension, or the group acting on the '
-                                 'total space must be provided.')
+            group_action=None, group_dim=None, **kwargs):
 
         super(FiberBundle, self).__init__(dim=dim, **kwargs)
-
         self.base = base
-        self.total_space = total_space
         self.group = group
         self.ambient_metric = ambient_metric
 
         if group_action is None and group is not None:
             group_action = group.compose
+        if group_dim is None and group is not None:
+            group_dim = group.dim
+        self.group_dim = group_dim
         self.group_action = group_action
 
-    def belongs(self, point, atol=gs.atol):
-        """Evaluate if a point belongs to the base manifold.
-
-        Evaluate if a point belongs to the base manifold when it is given,
-        otherwise to the total space.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point to evaluate.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the manifold.
-        """
-        if self.base is not None:
-            return self.base.belongs(point, atol=atol)
-        return self.total_space.belongs(point, atol=atol)
-
     @staticmethod
-    def submersion(point):
+    def riemannian_submersion(point):
         """Project a point to base manifold.
 
         This is the projection of the fiber bundle, defined on the total
@@ -105,7 +74,7 @@ class FiberBundle(Manifold):
 
         Returns
         -------
-        projection : array-like, shape=[..., {dim, [n, n]}]
+        projection : array-like, shape=[..., {base_dim, [n, n]}]
             Point of the base manifold.
         """
         return point
@@ -122,7 +91,7 @@ class FiberBundle(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., {dim, [n, n]}]
+        point : array-like, shape=[..., {base_dim, [n, n]}]
             Point of the base manifold.
 
         Returns
@@ -132,7 +101,7 @@ class FiberBundle(Manifold):
         """
         return point
 
-    def tangent_submersion(self, tangent_vec, base_point):
+    def tangent_riemannian_submersion(self, tangent_vec, base_point):
         """Project a tangent vector to base manifold.
 
         This is the differential of the projection of the fiber bundle,
@@ -151,7 +120,7 @@ class FiberBundle(Manifold):
 
         Returns
         -------
-        projection: array-like, shape=[..., {dim, [n, n]}]
+        projection: array-like, shape=[..., {base_dim, [n, n]}]
             Tangent vector to the base manifold.
         """
         return self.horizontal_projection(tangent_vec, base_point)
@@ -188,24 +157,37 @@ class FiberBundle(Manifold):
             Action of the optimal g on point.
         """
         group = self.group
+        group_action = self.group_action
         initial_distance = self.ambient_metric.squared_dist(
             point, base_point)
         if isinstance(initial_distance, float) or initial_distance.shape == ():
             n_samples = 1
         else:
             n_samples = len(initial_distance)
+        max_shape = (n_samples, self.group_dim) if n_samples > 1 else \
+            (self.group_dim, )
 
-        max_shape = (n_samples, group.dim) if n_samples > 1 else \
-            (group.dim, )
+        if group is not None:
 
-        def wrap(param):
-            """Wrap a parameter vector to a group element."""
-            algebra_elt = gs.array(param)
-            algebra_elt = gs.cast(algebra_elt, dtype=base_point.dtype)
-            algebra_elt = group.lie_algebra.matrix_representation(
-                algebra_elt)
-            group_elt = group.exp(algebra_elt)
-            return self.group_action(point, group_elt)
+            def wrap(param):
+                """Wrap a parameter vector to a group element."""
+                algebra_elt = gs.array(param)
+                algebra_elt = gs.cast(algebra_elt, dtype=base_point.dtype)
+                algebra_elt = group.lie_algebra.matrix_representation(
+                    algebra_elt)
+                group_elt = group.exp(algebra_elt)
+                return self.group_action(point, group_elt)
+
+        elif group_action is not None:
+
+            def wrap(param):
+                vector = gs.array(param)
+                vector = gs.cast(vector, dtype=base_point.dtype)
+                return group_action(vector, point)
+
+        else:
+            raise ValueError(
+                'Either the group of its action must be known')
 
         objective_with_grad = gs.autograd.value_and_grad(
             lambda param: self.ambient_metric.squared_dist(
@@ -242,8 +224,8 @@ class FiberBundle(Manifold):
                 tangent_vec, base_point)
         except (RecursionError, NotImplementedError):
             return self.horizontal_lift(
-                self.tangent_submersion(tangent_vec, base_point),
-                base_point)
+                self.tangent_riemannian_submersion(tangent_vec, base_point),
+                fiber_point=base_point)
 
     def vertical_projection(self, tangent_vec, base_point, **kwargs):
         r"""Project to vertical subspace.
@@ -315,7 +297,7 @@ class FiberBundle(Manifold):
             tangent_vec, self.vertical_projection(tangent_vec, base_point),
             atol=atol), axis=(-2, -1))
 
-    def horizontal_lift(self, tangent_vec, point=None, base_point=None):
+    def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
         """Lift a tangent vector to a horizontal vector in the total space.
 
         It means that horizontal lift is the inverse of the restriction of the
@@ -326,12 +308,12 @@ class FiberBundle(Manifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., {dim, [n, n]}]
-        point: array-like, shape=[..., {ambient_dim, [n, n]}]
+        tangent_vec : array-like, shape=[..., {base_dim, [n, n]}]
+        fiber_point : array-like, shape=[..., {ambient_dim, [n, n]}]
             Point of the total space.
             Optional, default : None. The `lift` method is used to compute a
             point at which to compute a tangent vector.
-        base_point : array-like, shape=[..., {dim, [n, n]}]
+        base_point : array-like, shape=[..., {base_dim, [n, n]}]
             Point of the base space.
             Optional, default : None. In this case, point must be given,
             and `submersion` is used to compute the base_point if needed.
@@ -341,14 +323,14 @@ class FiberBundle(Manifold):
         horizontal_lift : array-like, shape=[..., {ambient_dim, [n, n]}]
             Tangent vector to the total space at point.
         """
-        if point is None:
+        if fiber_point is None:
             if base_point is not None:
-                point = self.lift(base_point)
+                fiber_point = self.lift(base_point)
             else:
                 raise ValueError('Either a point (of the total space) or a '
                                  'base point (of the base manifold) must be '
                                  'given.')
-        return self.horizontal_projection(tangent_vec, point)
+        return self.horizontal_projection(tangent_vec, fiber_point)
 
     def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the fundamental tensor A of the submersion.

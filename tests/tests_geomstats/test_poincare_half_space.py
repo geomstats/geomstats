@@ -161,3 +161,13 @@ class TestPoincareHalfSpace(geomstats.tests.TestCase):
         result = self.metric.log(end_points, points)
         expected = tangent_vecs
         self.assertAllClose(result, expected)
+
+    def test_projection(self):
+        point = gs.array([[1., -1.], [0., 1.]])
+        projected = self.manifold.projection(point)
+        result = self.manifold.belongs(projected)
+        self.assertTrue(gs.all(result))
+
+        projected = self.manifold.projection(point[0])
+        result = self.manifold.belongs(projected)
+        self.assertTrue(result)

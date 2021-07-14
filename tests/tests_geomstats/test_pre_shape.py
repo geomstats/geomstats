@@ -13,7 +13,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.k_landmarks = 4
         self.m_ambient = 3
         self.space = PreShapeSpace(self.k_landmarks, self.m_ambient)
-        self.matrices = self.space.embedding_manifold
+        self.matrices = self.space.embedding_space
         self.n_samples = 10
         self.shape_metric = KendallShapeMetric(
             self.k_landmarks, self.m_ambient)

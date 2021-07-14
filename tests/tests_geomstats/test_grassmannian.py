@@ -1,5 +1,7 @@
 """Unit tests for the Grassmannian."""
 
+import tests.helper as helper
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.grassmannian import Grassmannian
@@ -81,7 +83,8 @@ class TestGrassmannian(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
         not_a_point = gs.random.rand(3, 2)
-        self.assertRaises(ValueError, self.space.belongs, not_a_point)
+        result = self.space.belongs(not_a_point)
+        self.assertTrue(~result)
 
         not_a_point = gs.random.rand(3, 3)
         result = self.space.belongs(not_a_point)
@@ -119,3 +122,18 @@ class TestGrassmannian(geomstats.tests.TestCase):
 
         reprojected = self.space.to_tangent(tangent_vec, base_point)
         self.assertAllClose(tangent_vec, reprojected)
+
+    def test_projection_and_belongs(self):
+        shape = (2, self.n, self.n)
+        result = helper.test_projection_and_belongs(self.space, shape)
+        for res in result:
+            self.assertTrue(res)
+
+    def test_parallel_transport(self):
+        space = self.space
+        metric = self.metric
+        shape = (2, space.n, space.n)
+
+        result = helper.test_parallel_transport(space, metric, shape)
+        for res in result:
+            self.assertTrue(res)

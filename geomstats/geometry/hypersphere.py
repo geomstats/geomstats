@@ -5,13 +5,14 @@ Euclidean space.
 """
 
 import logging
+import math
 from itertools import product
 
 from scipy.stats import beta
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.base import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -34,62 +35,9 @@ class _Hypersphere(EmbeddedManifold):
 
     def __init__(self, dim):
         super(_Hypersphere, self).__init__(
-            dim=dim,
-            embedding_manifold=Euclidean(dim + 1))
-        self.embedding_metric = self.embedding_manifold.metric
-
-    def belongs(self, point, atol=gs.atol):
-        """Test if a point belongs to the hypersphere.
-
-        This tests whether the point's squared norm in Euclidean space is 1.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim + 1]
-            Point in Euclidean space.
-        atol : float
-            Tolerance at which to evaluate norm == 1.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the hypersphere.
-        """
-        point_dim = gs.shape(point)[-1]
-        if point_dim != self.dim + 1:
-            if point_dim is self.dim:
-                logging.warning(
-                    'Use the extrinsic coordinates to '
-                    'represent points on the hypersphere.')
-            belongs = False
-            if gs.ndim(point) == 2:
-                belongs = gs.tile([belongs], (point.shape[0],))
-            return belongs
-        sq_norm = gs.sum(point ** 2, axis=-1)
-        diff = gs.abs(sq_norm - 1)
-        return gs.less_equal(diff, atol)
-
-    def regularize(self, point):
-        """Regularize a point to the canonical representation.
-
-        Regularize a point to the canonical representation chosen
-        for the hypersphere, to avoid numerical issues.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim + 1]
-            Point on the hypersphere.
-
-        Returns
-        -------
-        projected_point : array-like, shape=[..., dim + 1]
-            Point in canonical representation chosen for the hypersphere.
-        """
-        if not gs.all(self.belongs(point)):
-            raise ValueError('Points do not belong to the manifold.')
-
-        return self.projection(point)
+            dim=dim, embedding_space=Euclidean(dim + 1),
+            submersion=lambda x: gs.sum(x ** 2, axis=-1), value=1.,
+            tangent_submersion=lambda v, x: 2 * gs.sum(x * v, axis=-1))
 
     def projection(self, point):
         """Project a point on the hypersphere.
@@ -135,27 +83,6 @@ class _Hypersphere(EmbeddedManifold):
         tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
 
         return tangent_vec
-
-    def is_tangent(self, vector, base_point, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., dim]
-            Vector.
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_tangent : bool
-            Boolean denoting if vector is a tangent vector at the base point.
-        """
-        inner_prod = self.embedding_metric.inner_product(base_point, vector)
-        return gs.isclose(inner_prod, 0., atol=atol)
 
     def spherical_to_extrinsic(self, point_spherical):
         """Convert point from spherical to extrinsic coordinates.
@@ -540,10 +467,25 @@ class HypersphereMetric(RiemannianMetric):
 
     def __init__(self, dim):
         super(HypersphereMetric, self).__init__(
-            dim=dim,
-            signature=(dim, 0))
+            dim=dim, signature=(dim, 0))
         self.embedding_metric = EuclideanMetric(dim + 1)
         self._space = _Hypersphere(dim=dim)
+
+    def metric_matrix(self, base_point=None):
+        """Metric matrix at the tangent space at a base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim + 1]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., dim + 1, dim + 1]
+            Inner-product matrix.
+        """
+        return gs.eye(self.dim + 1)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -794,6 +736,98 @@ class HypersphereMetric(RiemannianMetric):
         first_term = gs.einsum('...,...i->...i', inner_bc, tangent_vec_a)
         second_term = gs.einsum('...,...i->...i', inner_ac, tangent_vec_b)
         return - first_term + second_term
+
+    def _normalization_factor_odd_dim(self, variances):
+        """Compute the normalization factor - odd dimension."""
+        dim = self.dim
+        half_dim = int((dim + 1) / 2)
+        area = 2 * gs.pi ** half_dim / math.factorial(half_dim - 1)
+        comb = gs.comb(dim - 1, half_dim - 1)
+
+        erf_arg = gs.sqrt(variances / 2) * gs.pi
+        first_term = area / (2 ** dim - 1) * comb * gs.sqrt(
+            gs.pi / (2 * variances)) * gs.erf(erf_arg)
+
+        def summand(k):
+            exp_arg = - (dim - 1 - 2 * k) ** 2 / 2 / variances
+            erf_arg_2 = (gs.pi * variances - (dim - 1 - 2 * k) * 1j) / gs.sqrt(
+                2 * variances)
+            sign = (- 1.) ** k
+            comb_2 = gs.comb(k, dim - 1)
+            return sign * comb_2 * gs.exp(exp_arg) * gs.real(gs.erf(erf_arg_2))
+
+        if half_dim > 2:
+            sum_term = gs.sum(
+                gs.stack([summand(k)] for k in range(half_dim - 2)))
+        else:
+            sum_term = summand(0)
+        coef = area / 2 / erf_arg * gs.pi ** .5 * (- 1.) ** (half_dim - 1)
+
+        return first_term + coef / 2 ** (dim - 2) * sum_term
+
+    def _normalization_factor_even_dim(self, variances):
+        """Compute the normalization factor - even dimension."""
+        dim = self.dim
+        half_dim = (dim + 1) / 2
+        area = 2 * gs.pi ** half_dim / math.gamma(half_dim)
+
+        def summand(k):
+            exp_arg = - (dim - 1 - 2 * k) ** 2 / 2 / variances
+            erf_arg_1 = (dim - 1 - 2 * k) * 1j / gs.sqrt(2 * variances)
+            erf_arg_2 = (gs.pi * variances - (dim - 1 - 2 * k) * 1j) / gs.sqrt(
+                2 * variances)
+            sign = (- 1.) ** k
+            comb = gs.comb(dim - 1, k)
+            erf_terms = gs.imag(gs.erf(erf_arg_2) + gs.erf(erf_arg_1))
+            return sign * comb * gs.exp(exp_arg) * erf_terms
+
+        half_dim_2 = int((dim - 2) / 2)
+        if half_dim_2 > 0:
+            sum_term = gs.sum(
+                gs.stack([summand(k)] for k in range(half_dim_2)))
+        else:
+            sum_term = summand(0)
+        coef = area * (- 1.) ** half_dim_2 / 2 ** (dim - 2) * gs.sqrt(
+            gs.pi / 2 / variances)
+
+        return coef * sum_term
+
+    def normalization_factor(self, variances):
+        """Return normalization factor of the Gaussian distribution.
+
+        Parameters
+        ----------
+        variances : array-like, shape=[n,]
+            Variance of the distribution.
+
+        Returns
+        -------
+        norm_func : array-like, shape=[n,]
+            Normalisation factor for all given variances.
+        """
+        if self.dim % 2 == 0:
+            return self._normalization_factor_even_dim(variances)
+        return self._normalization_factor_odd_dim(variances)
+
+    def norm_factor_gradient(self, variances):
+        """Compute the gradient of the normalization factor.
+
+        Parameters
+        ----------
+        variances : array-like, shape=[n,]
+            Variance of the distribution.
+
+        Returns
+        -------
+        norm_func : array-like, shape=[n,]
+            Normalisation factor for all given variances.
+        """
+
+        def func(var):
+            return gs.sum(self.normalization_factor(var))
+
+        _, grad = gs.autograd.value_and_grad(func)(variances)
+        return _, grad
 
 
 class Hypersphere(_Hypersphere):

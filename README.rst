@@ -97,7 +97,7 @@ backends:
 Choose the backend
 ------------------
 
-Geomstats can run seemlessly with ``numpy``, ``tensorflow`` or
+Geomstats can run seamlessly with ``numpy``, ``tensorflow`` or
 ``pytorch``. Note that ``pytorch`` and ``tensorflow`` requirements are
 optional, as geomstats can be used with ``numpy`` only. By default, the
 ``numpy`` backend is used. The visualizations are only available with
@@ -185,8 +185,8 @@ This work is supported by:
    :target: https://twitter.com/geomstats
 .. |PyPI version| image:: https://badge.fury.io/py/geomstats.svg
    :target: https://badge.fury.io/py/geomstats
-.. |Build Status| image:: https://travis-ci.org/geomstats/geomstats.svg?branch=master
-   :target: https://travis-ci.org/geomstats/geomstats
+.. |Build Status| image:: https://github.com/geomstats/geomstats/actions/workflows/build.yml/badge.svg
+   :target: https://github.com/geomstats/geomstats/actions/workflows/build.yml
 .. |Slack| image:: https://img.shields.io/badge/Slack-Join-yellow
    :target: https://geomstats.slack.com/
 .. |Coverage Status np| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy

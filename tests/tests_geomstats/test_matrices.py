@@ -257,3 +257,14 @@ class TestMatrices(geomstats.tests.TestCase):
             result = self.metric.norm(mat)
             expected = self.space.frobenius_product(mat, mat) ** .5
             self.assertAllClose(result, expected)
+
+    def test_diagonal(self):
+        mat = gs.eye(3)
+        result = Matrices.diagonal(mat)
+        expected = gs.ones(3)
+        self.assertAllClose(result, expected)
+
+        mat = gs.stack([mat] * 2)
+        result = Matrices.diagonal(mat)
+        expected = gs.ones((2, 3))
+        self.assertAllClose(result, expected)

@@ -9,6 +9,7 @@ from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.landmarks import L2Metric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 R2 = Euclidean(dim=2)
 R3 = Euclidean(dim=3)
@@ -46,7 +47,7 @@ class DiscreteCurves(Manifold):
             self.ambient_manifold, n_landmarks=n)
         self.square_root_velocity_metric = SRVMetric(self.ambient_manifold)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to the manifold.
 
         Test that all points of the curve belong to the ambient manifold.
@@ -55,6 +56,9 @@ class DiscreteCurves(Manifold):
         ----------
         point : array-like, shape=[..., n_sampling_points, ambient_dim]
             Point representing a discrete curve.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -69,6 +73,92 @@ class DiscreteCurves(Manifold):
             return gs.stack([each_belongs(pt) for pt in point])
 
         return each_belongs(point)
+
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check whether the vector is tangent at a curve.
+
+        A vector is tangent at a curve if it is a vector field along that
+        curve.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Vector.
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        ambient_manifold = self.ambient_manifold
+        shape = vector.shape
+        stacked_vec = gs.reshape(vector, (-1, shape[-1]))
+        stacked_point = gs.reshape(base_point, (-1, shape[-1]))
+        is_tangent = ambient_manifold.is_tangent(
+            stacked_vec, stacked_point, atol)
+        is_tangent = gs.reshape(is_tangent, shape[:-1])
+        return gs.all(is_tangent, axis=-1)
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        As tangent vectors are vector fields along a curve, each component of
+        the vector is projected to the tangent space of the corresponding
+        point of the discrete curve. The number of sampling points should
+        match in the vector and the base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Vector.
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector at base point.
+        """
+        ambient_manifold = self.ambient_manifold
+        shape = vector.shape
+        stacked_vec = gs.reshape(vector, (-1, shape[-1]))
+        stacked_point = gs.reshape(base_point, (-1, shape[-1]))
+        tangent_vec = ambient_manifold.to_tangent(stacked_vec, stacked_point)
+        tangent_vec = gs.reshape(tangent_vec, vector.shape)
+        return tangent_vec
+
+    def random_point(self, n_samples=1, bound=1., n_sampling_points=10):
+        """Sample random curves.
+
+        If the ambient manifold is compact, a uniform distribution is used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact
+            ambient manifolds.
+            Optional, default: 1.
+        n_sampling_points : int
+            Number of sampling points for the discrete curves.
+            Optional, default : 10.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n_sampling_points, {dim, [n, n]}]
+            Points sampled on the hypersphere.
+        """
+        sample = self.ambient_manifold.random_point(
+            n_samples * n_sampling_points)
+        sample = gs.reshape(sample, (n_samples, n_sampling_points, -1))
+        return sample[0] if n_samples == 1 else sample
 
 
 class SRVMetric(RiemannianMetric):
@@ -236,6 +326,48 @@ class SRVMetric(RiemannianMetric):
 
         return curve
 
+    def srv_inner_product(self, srv_1, srv_2):
+        """
+        Compute the L² inner_product between two srv representations.
+
+        Parameters
+        ----------
+        srv_1 : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Srv representation.
+        srv_2 : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Srv representation.
+
+        Return
+        ------
+        inner_prod : array-like, shape=[...]
+            L² inner product between the two srv representations.
+        """
+        n_sampling_points = srv_1.shape[-2]
+
+        l2_inner_prod = self.l2_metric(n_sampling_points).inner_product
+        inner_prod = l2_inner_prod(srv_1, srv_2) / (n_sampling_points)
+
+        return inner_prod
+
+    def srv_norm(self, srv):
+        """
+        Compute the L² norm of a srv representation of a curve.
+
+        Parameters
+        ----------
+        srv : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Srv representation of a curve
+
+        Return
+        ------
+        norm : array-like, shape=[...]
+            L² norm of the srv representation.
+        """
+        squared_norm = self.srv_inner_product(srv, srv)
+        norm = gs.sqrt(squared_norm)
+
+        return norm
+
     def exp(self, tangent_vec, base_point):
         """Compute Riemannian exponential of tangent vector wrt to base curve.
 
@@ -402,15 +534,14 @@ class SRVMetric(RiemannianMetric):
             tangent_vecs = gs.einsum('il,nkm->ikm', t, new_initial_tangent_vec)
 
             curve_at_time_t = []
-            for k in range(len(t)):
-                curve_at_time_t.append(self.exp(
-                    tangent_vec=tangent_vecs[k, :],
-                    base_point=new_initial_curve))
+            for tan_vec in tangent_vecs:
+                curve_at_time_t.append(
+                    self.exp(tan_vec, new_initial_curve))
             return gs.stack(curve_at_time_t)
 
         return curve_on_geodesic
 
-    def dist(self, point_a, point_b):
+    def dist(self, point_a, point_b, **kwargs):
         """Geodesic distance between two curves.
 
         Parameters
@@ -440,3 +571,175 @@ class SRVMetric(RiemannianMetric):
         dist = gs.sqrt(dist_starting_points**2 + dist_srvs**2)
 
         return dist
+
+
+class ClosedDiscreteCurves(Manifold):
+    r"""Space of closed discrete curves sampled at points in ambient_manifold.
+
+    Each individual curve is represented by a 2d-array of shape `[
+    n_sampling_points, ambient_dim]`.
+
+    Parameters
+    ----------
+    ambient_manifold : Manifold
+        Manifold in which curves take values.
+
+    Attributes
+    ----------
+    ambient_manifold : Manifold
+        Manifold in which curves take values.
+    l2_metric : callable
+        Function that takes as argument an integer number of sampled points
+        and returns the corresponding L2 metric (product) metric,
+        a RiemannianMetric object
+    square_root_velocity_metric : RiemannianMetric
+        Square root velocity metric.
+    """
+
+    def __init__(self, ambient_manifold):
+        super(ClosedDiscreteCurves, self).__init__(dim=math.inf)
+        self.ambient_manifold = ambient_manifold
+        self.l2_metric = lambda n: L2Metric(
+            self.ambient_manifold, n_landmarks=n)
+        self.square_root_velocity_metric = ClosedSRVMetric(ambient_manifold)
+
+    def project(self, curve, atol=gs.atol, max_iter=1000):
+        """Project a discrete curve into the space of closed discrete curves.
+
+        Parameters
+        ----------
+        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        atol : float
+            Tolerance of the projection algorithm.
+            Optional, default: backend atol.
+        max_iter : float
+            Maximum number of iteration of the algorithm.
+            Optional, default: 1000
+
+        Returns
+        -------
+        proj : array-like, shape=[..., n_sampling_points, ambient_dim]
+        """
+        is_euclidean = isinstance(self.ambient_manifold, Euclidean)
+        is_planar = is_euclidean and self.ambient_manifold.dim == 2
+
+        if not is_planar:
+            raise AssertionError('The projection is only implemented '
+                                 'for discrete curves embedded in a'
+                                 '2D Euclidean space.')
+
+        srv_metric = self.square_root_velocity_metric
+        srv = srv_metric.square_root_velocity(curve)[0]
+        srv_proj = srv_metric.project_srv(srv, atol=atol, max_iter=max_iter)
+        proj = srv_metric.square_root_velocity_inverse(srv_proj,
+                                                       gs.array([curve[0]]))
+
+        return proj
+
+
+class ClosedSRVMetric(SRVMetric):
+    """Elastic metric on closed curves.
+
+    See [Sea2011]_ for details.
+
+    Parameters
+    ----------
+    ambient_manifold : Manifold
+        Manifold in which curves take values.
+
+    References
+    ----------
+    .. [Sea2011] A. Srivastava, E. Klassen, S. H. Joshi and I. H. Jermyn,
+    "Shape Analysis of Elastic Curves in Euclidean Spaces,"
+    in IEEE Transactions on Pattern Analysis and Machine Intelligence,
+    vol. 33, no. 7, pp. 1415-1428, July 2011.
+    """
+
+    def __init__(self, ambient_manifold):
+        super(ClosedSRVMetric, self).__init__(ambient_manifold)
+
+    def project_srv(self, srv, atol=gs.atol, max_iter=1000):
+        """Project a point in the srv space into the space of closed curves srv.
+
+        The algorithm is from the paper cited above and modifies the srv
+        iteratively so that G(srv) = (0, ..., 0) with the paper's notation.
+
+        Remark: for now, the algorithm might not converge for some curves such
+        as segments.
+
+        Parameters
+        ----------
+        srv : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        atol : float
+            Tolerance of the projection algorithm.
+            Optional, default: backend atol.
+        max_iter : float
+            Maximum number of iteration of the algorithm.
+            Optional, default: 1000
+
+        Returns
+        -------
+        proj : array-like, shape=[..., n_sampling_points, ambient_dim]
+        """
+        is_euclidean = isinstance(self.ambient_metric, EuclideanMetric)
+        is_planar = is_euclidean and self.ambient_metric.dim == 2
+
+        if not is_planar:
+            raise AssertionError('The projection is only implemented '
+                                 'for discrete curves embedded in a'
+                                 '2D Euclidean space.')
+
+        dim = self.ambient_metric.dim
+        srv_inner_prod = self.srv_inner_product
+        srv_norm = self.srv_norm
+        inner_prod = self.ambient_metric.inner_product
+
+        def g_criterion(srv, srv_norms):
+            return gs.sum(srv * srv_norms[:, None], axis=0)
+
+        initial_norm = srv_norm(srv)
+        proj = srv
+        proj_norms = self.ambient_metric.norm(proj)
+        residual = g_criterion(proj, proj_norms)
+        criteria = self.ambient_metric.norm(residual)
+
+        nb_iter = 0
+
+        while criteria >= atol and nb_iter < max_iter:
+
+            jacobian_vec = []
+            for i in range(dim):
+                for j in range(i, dim):
+                    coef = 3 * inner_prod(proj[:, i], proj[:, j])
+                    jacobian_vec.append(coef)
+            jacobian_vec = gs.stack(jacobian_vec)
+            g_jacobian = SymmetricMatrices.from_vector(jacobian_vec)
+
+            proj_squared_norm = srv_norm(proj) ** 2
+            g_jacobian += proj_squared_norm * gs.eye(dim)
+            beta = gs.linalg.inv(g_jacobian) @ residual
+
+            e_1, e_2 = gs.array([1, 0]), gs.array([0, 1])
+            grad_1 = proj_norms[:, None] * e_1
+            grad_1 = grad_1 + (proj[:, 0] / proj_norms)[:, None] * proj
+            grad_2 = proj_norms[:, None] * e_2
+            grad_2 = grad_2 + (proj[:, 1] / proj_norms)[:, None] * proj
+
+            basis_vector_1 = grad_1 / srv_norm(grad_1)
+            grad_2_component = srv_inner_prod(grad_2, basis_vector_1)
+            grad_2_proj = grad_2_component * basis_vector_1
+            basis_vector_2 = grad_2 - grad_2_proj
+            basis_vector_2 = basis_vector_2 / srv_norm(basis_vector_2)
+            basis = gs.array([basis_vector_1, basis_vector_2])
+
+            proj -= gs.sum(beta[:, None, None] * basis, axis=0)
+            proj = proj * initial_norm / srv_norm(proj)
+            proj_norms = self.ambient_metric.norm(proj)
+            residual = g_criterion(proj, proj_norms)
+            criteria = self.ambient_metric.norm(residual)
+
+            nb_iter += 1
+
+        return proj

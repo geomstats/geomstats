@@ -141,3 +141,41 @@ def test_parallel_transport(space, metric, shape):
     results.append(gs.all(result))
 
     return results
+
+
+def test_projection_and_belongs(space, shape, atol=gs.atol):
+    result = []
+
+    point = gs.random.normal(size=shape)
+    projected = space.projection(point)
+    belongs = space.belongs(projected, atol=atol)
+    result.append(gs.all(belongs))
+
+    point = point[0]
+    projected = space.projection(point)
+    belongs = space.belongs(projected, atol=atol)
+    result.append(belongs)
+
+    point = space.random_point()
+    projected = space.projection(point)
+    result.append(gs.allclose(point, projected, atol=atol))
+    return result
+
+
+def test_to_tangent_is_tangent(space, atol=gs.atol):
+    result = []
+
+    point = space.random_point(2)
+    vector = gs.random.rand(*point.shape)
+    tangent = space.to_tangent(vector, point)
+    is_tangent = space.is_tangent(tangent, point, atol)
+    result.append(gs.all(is_tangent))
+
+    vector = gs.random.rand(*point.shape)
+    tangent = space.to_tangent(vector[0], point[0])
+    is_tangent = space.is_tangent(tangent, point[0], atol)
+    result.append(is_tangent)
+
+    projection = space.to_tangent(tangent, point[0])
+    result.append(gs.allclose(projection, tangent, atol))
+    return result

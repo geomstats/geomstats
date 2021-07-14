@@ -5,7 +5,7 @@ import logging
 import geomstats.backend as gs
 from geomstats.algebra_utils import flip_determinant
 from geomstats.errors import check_tf_error
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.base import EmbeddedManifold
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices, MatricesMetric
@@ -33,51 +33,25 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
     References
     ----------
-    [Nava]  Nava-Yazdani, E., H.-C. Hege, T. J. Sullivan, and C. von Tycowicz.
-            “Geodesic Analysis in Kendall’s Shape Space with Epidemiological
-            Applications.”
-            Journal of Mathematical Imaging and Vision 62, no. 4 549–59.
-            https://doi.org/10.1007/s10851-020-00945-w.
+    ..[Nava]  Nava-Yazdani, E., H.-C. Hege, T. J.Sullivan, and C. von Tycowicz.
+              “Geodesic Analysis in Kendall’s Shape Space with Epidemiological
+              Applications.”
+              Journal of Mathematical Imaging and Vision 62, no. 4 549–59.
+              https://doi.org/10.1007/s10851-020-00945-w.
     """
 
     def __init__(self, k_landmarks, m_ambient):
         embedding_manifold = Matrices(k_landmarks, m_ambient)
+        embedding_metric = embedding_manifold.metric
         super(PreShapeSpace, self).__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
-            embedding_manifold=embedding_manifold,
-            default_point_type='matrix',
-            total_space=embedding_manifold,
+            embedding_space=embedding_manifold,
+            submersion=embedding_metric.squared_norm, value=1.,
+            tangent_submersion=embedding_metric.inner_product,
             ambient_metric=PreShapeMetric(k_landmarks, m_ambient))
-        self.embedding_metric = self.embedding_manifold.metric
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
         self.ambient_metric = PreShapeMetric(k_landmarks, m_ambient)
-
-    def belongs(self, point, atol=gs.atol):
-        """Test if a point belongs to the pre-shape space.
-
-        This tests whether the point is centered and whether the point's
-        Frobenius norm is 1.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point in Matrices space.
-        atol : float
-            Tolerance at which to evaluate norm == 1 and mean == 0.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the pre-shape space.
-        """
-        shape = point.shape[-2:] == (self.k_landmarks, self.m_ambient)
-        frob_norm = self.ambient_metric.norm(point)
-        diff = gs.abs(frob_norm - 1)
-        is_centered = gs.logical_and(self.is_centered(point, atol), shape)
-        return gs.logical_and(
-            gs.less_equal(diff, atol), is_centered)
 
     def projection(self, point):
         """Project a point on the pre-shape space.
@@ -206,32 +180,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
 
         return tangent_vec
 
-    def is_tangent(self, vector, base_point, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., k_landmarks, m_ambient]
-            Vector.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the manifold.
-            Optional, default: none.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_tangent : bool
-            Boolean denoting if vector is a tangent vector at the base point.
-        """
-        is_centered = self.is_centered(vector, atol)
-        inner_prod = self.ambient_metric.inner_product(base_point, vector)
-        is_normal = gs.isclose(inner_prod, 0., atol=atol)
-        return gs.logical_and(is_centered, is_normal)
-
-    @staticmethod
-    def vertical_projection(tangent_vec, base_point, return_skew=False):
+    def vertical_projection(
+            self, tangent_vec, base_point, return_skew=False):
         r"""Project to vertical subspace.
 
         Compute the vertical component of a tangent vector :math: `w` at a

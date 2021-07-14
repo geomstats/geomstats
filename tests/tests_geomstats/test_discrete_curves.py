@@ -1,15 +1,19 @@
 """Unit tests for parameterized manifolds."""
 
 import geomstats.backend as gs
+import geomstats.datasets.utils as data_utils
 import geomstats.tests
+from geomstats.geometry.discrete_curves import ClosedDiscreteCurves
 from geomstats.geometry.discrete_curves import DiscreteCurves
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 
 
 class TestDiscreteCurves(geomstats.tests.TestCase):
     def setUp(self):
         s2 = Hypersphere(dim=2)
-        r3 = s2.embedding_manifold
+        r2 = Euclidean(dim=2)
+        r3 = s2.embedding_space
 
         initial_point = [0., 0., 1.]
         initial_tangent_vec_a = [1., 0., 0.]
@@ -31,6 +35,9 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         discretized_curve_a = curve_a(sampling_times)
         discretized_curve_b = curve_b(sampling_times)
         discretized_curve_c = curve_c(sampling_times)
+
+        self.space_closed_curves_in_euclidean_2d = ClosedDiscreteCurves(
+            ambient_manifold=r2)
 
         self.n_discretized_curves = 5
         self.times = gs.linspace(0., 1., self.n_discretized_curves)
@@ -257,3 +264,49 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)[0]
         self.assertAllClose(result, expected)
+
+    def test_random_and_belongs(self):
+        random = self.space_curves_in_sphere_2d.random_point()
+        result = self.space_curves_in_sphere_2d.belongs(random)
+        self.assertTrue(result)
+        self.assertAllClose(random.shape, (10, 3))
+
+        random = self.space_curves_in_sphere_2d.random_point(2)
+        result = self.space_curves_in_sphere_2d.belongs(random)
+        self.assertTrue(gs.all(result))
+
+    def test_is_tangent_to_tangent(self):
+        point = self.space_curves_in_sphere_2d.random_point()
+        vector = self.space_curves_in_sphere_2d.random_point()
+        tangent_vec = self.space_curves_in_sphere_2d.to_tangent(
+            vector, point)
+        result = self.space_curves_in_sphere_2d.is_tangent(
+            tangent_vec, point)
+        self.assertTrue(result)
+
+        point = self.space_curves_in_sphere_2d.random_point(2)
+        vector = self.space_curves_in_sphere_2d.random_point(2)
+        tangent_vec = self.space_curves_in_sphere_2d.to_tangent(
+            vector, point)
+        result = self.space_curves_in_sphere_2d.is_tangent(
+            tangent_vec, point)
+        self.assertTrue(gs.all(result))
+
+    def test_projection_closed_curves(self):
+        """Test that projecting the projection returns the projection
+
+        and that the projection is a closed curve."""
+        planar_closed_curves = self.space_closed_curves_in_euclidean_2d
+
+        cells, _, _ = data_utils.load_cells()
+        curves = [cell[:-10] for cell in cells[:5]]
+
+        for curve in curves:
+            proj = planar_closed_curves.project(curve)
+            expected = proj
+            result = planar_closed_curves.project(proj)
+            self.assertAllClose(result, expected)
+
+            result = proj[-1, :]
+            expected = proj[0, :]
+            self.assertAllClose(result, expected)

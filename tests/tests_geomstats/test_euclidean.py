@@ -207,9 +207,7 @@ class TestEuclidean(geomstats.tests.TestCase):
         point = gs.array([0., 1.])
 
         result = self.space.belongs(point)
-        expected = True
-
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
     def test_random_point(self):
         result = self.space.random_point()

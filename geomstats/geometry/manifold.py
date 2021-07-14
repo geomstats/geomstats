@@ -4,11 +4,14 @@ In other words, a topological space that locally resembles
 Euclidean space near each point.
 """
 
+import abc
+
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class Manifold:
+class Manifold(abc.ABC):
     r"""Class for manifolds.
 
     Parameters
@@ -24,7 +27,7 @@ class Manifold:
     """
 
     def __init__(
-            self, dim, default_point_type='vector',
+            self, dim, metric=None, default_point_type='vector',
             default_coords_type='intrinsic', **kwargs):
         super(Manifold, self).__init__(**kwargs)
         geomstats.errors.check_integer(dim, 'dim')
@@ -34,7 +37,9 @@ class Manifold:
         self.dim = dim
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
+        self._metric = metric
 
+    @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold.
 
@@ -51,8 +56,8 @@ class Manifold:
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the manifold.
         """
-        raise NotImplementedError('belongs is not implemented.')
 
+    @abc.abstractmethod
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
@@ -71,9 +76,8 @@ class Manifold:
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        raise NotImplementedError(
-            'is_tangent is not implemented.')
 
+    @abc.abstractmethod
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
 
@@ -89,9 +93,8 @@ class Manifold:
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point.
         """
-        raise NotImplementedError(
-            'to_tangent is not implemented.')
 
+    @abc.abstractmethod
     def random_point(self, n_samples=1, bound=1.):
         """Sample random points on the manifold.
 
@@ -111,7 +114,6 @@ class Manifold:
         samples : array-like, shape=[..., {dim, [n, n]}]
             Points sampled on the hypersphere.
         """
-        raise NotImplementedError('random_point is not implemented')
 
     def regularize(self, point):
         """Regularize a point to the canonical representation for the manifold.
@@ -128,3 +130,16 @@ class Manifold:
         """
         regularized_point = point
         return regularized_point
+
+    @property
+    def metric(self):
+        """Riemannian Metric associated to the Manifold."""
+        return self._metric
+
+    @metric.setter
+    def metric(self, value):
+        if not isinstance(value, RiemannianMetric):
+            raise ValueError('The argument must be a RiemannianMetric object')
+        if value.dim != self.dim:
+            value.dim = self.dim
+        self._metric = value

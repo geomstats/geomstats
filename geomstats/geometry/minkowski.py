@@ -2,12 +2,15 @@
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class Minkowski(Manifold):
+class Minkowski(Euclidean):
     """Class for Minkowski space.
+
+    This is the Euclidean space endowed with the inner-product of signature (
+    dim-1, 1).
 
     Parameters
     ----------
@@ -15,53 +18,15 @@ class Minkowski(Manifold):
        Dimension of Minkowski space.
     """
 
-    def __init__(self, dim):
-        super(Minkowski, self).__init__(dim=dim)
-        self.metric = MinkowskiMetric(dim)
+    def __new__(cls, dim, **kwargs):
+        """Instantiate a Minkowski space.
 
-    def belongs(self, point):
-        """Evaluate if a point belongs to the Minkowski space.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point to evaluate.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the Minkowski space.
+        This is an instance of the `Euclidean` class endowed with the
+        `MinkowskiMetric`.
         """
-        point_dim = point.shape[-1]
-        belongs = point_dim == self.dim
-        if gs.ndim(point) == 2:
-            belongs = gs.tile([belongs], (point.shape[0],))
-
-        return belongs
-
-    def random_point(self, n_samples=1, bound=1.):
-        """Sample in the Minkowski space from the uniform distribution.
-
-        Parameters
-        ----------
-        n_samples: int
-            Number of samples.
-            Optional, default: 1
-        bound : float
-            Side of hypercube support of the uniform distribution.
-            Optional, default: 1
-
-        Returns
-        -------
-        points : array-like, shape=[..., dim]
-            Sample.
-        """
-        size = (self.dim,)
-        if n_samples != 1:
-            size = (n_samples, self.dim)
-        point = bound * gs.random.rand(*size) * 2 - 1
-
-        return point
+        space = Euclidean(dim)
+        space.metric = MinkowskiMetric(dim)
+        return space
 
 
 class MinkowskiMetric(RiemannianMetric):

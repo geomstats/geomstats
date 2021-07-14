@@ -2,12 +2,12 @@
 
 The n-dimensional hyperbolic space with Poincare ball model.
 """
-import logging
-
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry._hyperbolic import _Hyperbolic
+from geomstats.geometry.base import OpenSet
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 EPSILON = 1e-6
@@ -16,11 +16,11 @@ PI_2_3 = gs.power(gs.array([2. * gs.pi]), gs.array([2 / 3]))
 SQRT_2 = gs.sqrt(2.)
 
 
-class PoincareBall(Hyperbolic):
-    """Class for the n-dimensional hyperbolic space.
+class PoincareBall(_Hyperbolic, OpenSet):
+    """Class for the n-dimensional Poincare ball.
 
-    Class for the n-dimensional hyperbolic space
-    as embedded in the Poincaré ball model.
+    Class for the n-dimensional Poincaré ball model. For other
+    representations of hyperbolic spaces see the `Hyperbolic` class.
 
     Parameters
     ----------
@@ -37,11 +37,10 @@ class PoincareBall(Hyperbolic):
 
     def __init__(self, dim, scale=1):
         super(PoincareBall, self).__init__(
-            dim=dim,
-            scale=scale)
+            dim=dim, ambient_space=Euclidean(dim), scale=scale,
+            metric=PoincareBallMetric(dim, scale))
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
-        self.metric = PoincareBallMetric(self.dim, self.scale)
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.
@@ -65,112 +64,6 @@ class PoincareBall(Hyperbolic):
             belong to the hyperbolic space.
         """
         return gs.sum(point**2, axis=-1) < (1 - atol)
-
-    @staticmethod
-    def gmm_pdf(
-            data, means, variances, norm_func,
-            metric, variances_range, norm_func_var):
-        """Return the separate probability density function of GMM.
-
-        The probability density function is computed for
-        each component of the GMM separately (i.e., mixture coefficients
-        are not taken into account).
-
-        Parameters
-        ----------
-        data : array-like, shape=[n_samples, dim]
-            Points at which the GMM probability density is computed.
-        means : array-like, shape=[n_gaussians, dim]
-            Means of each component of the GMM.
-        variances : array-like, shape=[n_gaussians,]
-            Variances of each component of the GMM.
-        norm_func : function
-            Normalisation factor function.
-        metric : function
-            Distance function associated with the used metric.
-
-        Returns
-        -------
-        pdf : array-like, shape=[n_samples, n_gaussians,]
-            Probability density function computed at each data
-            sample and for each component of the GMM.
-        """
-        data_length, _, _ = data.shape + (means.shape[0],)
-
-        variances_expanded = gs.expand_dims(variances, 0)
-        variances_expanded = gs.repeat(variances_expanded, data_length, 0)
-
-        variances_flatten = variances_expanded.flatten()
-
-        distances = -(metric.dist_broadcast(data, means) ** 2)
-        distances = gs.reshape(distances, (data.shape[0] * variances.shape[0]))
-
-        num = gs.exp(
-            distances / (2 * variances_flatten ** 2))
-
-        den = norm_func(variances, variances_range, norm_func_var)
-
-        den = gs.expand_dims(den, 0)
-        den = gs.repeat(den, data_length, axis=0).flatten()
-
-        pdf = num / den
-        pdf = gs.reshape(
-            pdf, (data.shape[0], means.shape[0]))
-
-        return pdf
-
-    @staticmethod
-    def weighted_gmm_pdf(mixture_coefficients,
-                         mesh_data,
-                         means,
-                         variances,
-                         metric):
-        """Return the probability density function of a GMM.
-
-        Parameters
-        ----------
-        mixture_coefficients : array-like, shape=[n_gaussians,]
-            Coefficients of the Gaussian mixture model.
-        mesh_data : array-like, shape=[n_precision, dim]
-            Points at which the GMM probability density is computed.
-        means : array-like, shape=[n_gaussians, dim]
-            Means of each component of the GMM.
-        variances : array-like, shape=[n_gaussians,]
-            Variances of each component of the GMM.
-        metric : function
-            Distance function associated with the used metric.
-
-        Returns
-        -------
-        weighted_pdf : array-like, shape=[n_precision, n_gaussians,]
-            Probability density function computed for each point of
-            the mesh data, for each component of the GMM.
-        """
-        distance_to_mean = metric.dist_broadcast(mesh_data, means)
-
-        variances_units = gs.expand_dims(variances, 0)
-        variances_units = gs.repeat(
-            variances_units, distance_to_mean.shape[0], axis=0)
-
-        distribution_normal = gs.exp(
-            -(distance_to_mean ** 2) / (2 * variances_units ** 2))
-
-        zeta_sigma = PI_2_3 * variances
-        zeta_sigma = zeta_sigma * gs.exp(
-            (variances ** 2 / 2) * gs.erf(variances / gs.sqrt(2)))
-
-        result_num = gs.expand_dims(mixture_coefficients, 0)
-        result_num = gs.repeat(
-            result_num, len(distribution_normal), axis=0)
-        result_num = result_num * distribution_normal
-
-        result_denum = gs.expand_dims(zeta_sigma, 0)
-        result_denum = gs.repeat(
-            result_denum, len(distribution_normal), axis=0)
-
-        weighted_pdf = result_num / result_denum
-
-        return weighted_pdf
 
     def projection(self, point):
         """Project a point on the ball.
@@ -225,7 +118,7 @@ class PoincareBallMetric(RiemannianMetric):
         self.point_type = PoincareBall.default_point_type
         self.scale = scale
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -256,7 +149,7 @@ class PoincareBallMetric(RiemannianMetric):
 
         return exp
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute Riemannian logarithm of a point wrt a base point.
 
         Parameters
@@ -329,64 +222,6 @@ class PoincareBallMetric(RiemannianMetric):
             1. / (1 + 2 * inner + squared_norm_b * squared_norm_a),
             num_1 + num_2)
         return ball_manifold.projection(result)
-
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
-    def dist_broadcast(self, point_a, point_b):
-        """Compute the geodesic distance between points.
-
-        If n_samples_a == n_samples_b then dist is the element-wise
-        distance result of a point in points_a with the point from
-        points_b of the same index. If n_samples_a not equal to
-        n_samples_b then dist is the result of applying geodesic
-        distance for each point from points_a to all points from
-        points_b.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[n_samples_a, dim]
-            Set of points in the Poincare ball.
-        point_b : array-like, shape=[n_samples_b, dim]
-            Second set of points in the Poincare ball.
-
-        Returns
-        -------
-        dist : array-like,
-            shape=[n_samples_a, dim] or [n_samples_a, n_samples_b, dim]
-            Geodesic distance between the two points.
-        """
-        if point_a.shape[-1] != point_b.shape[-1]:
-            raise ValueError('Manifold dimensions not equal')
-
-        if point_a.shape[0] != point_b.shape[0]:
-
-            point_a_broadcast, point_b_broadcast = gs.broadcast_arrays(
-                point_a[:, None], point_b[None, ...])
-
-            point_a_flatten = gs.reshape(
-                point_a_broadcast, (-1, point_a_broadcast.shape[-1]))
-            point_b_flatten = gs.reshape(
-                point_b_broadcast, (-1, point_b_broadcast.shape[-1]))
-
-            point_a_norm = gs.clip(gs.sum(
-                point_a_flatten ** 2, -1), 0., 1 - EPSILON)
-            point_b_norm = gs.clip(gs.sum(
-                point_b_flatten ** 2, -1), 0., 1 - EPSILON)
-
-            square_diff = (point_a_flatten - point_b_flatten) ** 2
-
-            diff_norm = gs.sum(square_diff, -1)
-            norm_function = 1 + 2 * \
-                diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
-
-            dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
-            dist *= self.scale
-            dist = gs.reshape(dist, (point_a.shape[0], point_b.shape[0]))
-            dist = gs.squeeze(dist)
-
-        elif point_a.shape == point_b.shape:
-            dist = self.dist(point_a, point_b)
-
-        return dist
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def dist(self, point_a, point_b):
@@ -472,163 +307,8 @@ class PoincareBallMetric(RiemannianMetric):
 
         return gs.einsum('i,jk->ijk', lambda_base, identity)
 
-    def normalization_factor_init(self, variances):
-        r"""Set up function for the normalization factor.
-
-        The normalization factor is used to define Gaussian distributions
-        on the Poincaré Ball.
-
-        Parameters
-        ----------
-        variances : array-like, shape=[n_variances,]
-            Array of standard deviations.
-        normalization_factor_var : array-like, shape=[n_variances,]
-            Array of computed normalization factor.
-        phi_inv_var : array-like, shape=[n_variances,]
-            Array of the computed inverse of a function phi
-            whose expression is closed-form
-            :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
-            {\mathstrut d\sigma}\log \zeta_m(\sigma)'
-            where :math:'\sigma' denotes the variance
-            and :math:'\zeta' the normalization coefficient
-            and :math:'m' the dimension.
-
-        Returns
-        -------
-        variances : array-like, shape=[n_variances,]
-            Array of standard deviations.
-        normalization_factor_var : array-like, shape=[n_variances,]
-            Array of computed normalization factor.
-        phi_inv_var : array-like, shape=[n_variances,]
-            Array of the computed inverse of a function phi
-            whose expression is closed-form
-            :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
-            {\mathstrut d\sigma}\log \zeta_m(\sigma)'
-            where :math:'\sigma' denotes the variance
-            and :math:'\zeta' the normalization coefficient
-            and :math:'m' the dimension.
-        """
-        normalization_factor_var = \
-            self.normalization_factor(variances)
-
-        cond_1 = normalization_factor_var.sum() != \
-            normalization_factor_var.sum()
-        cond_2 = normalization_factor_var.sum() == float('+inf')
-        cond_3 = normalization_factor_var.sum() == float('-inf')
-
-        if cond_1 or cond_2 or cond_3:
-            logging.warning(
-                'Untracktable normalization factor :')
-
-            limit_nf = ((normalization_factor_var /
-                         normalization_factor_var)
-                        * 0).nonzero()[0].item()
-            max_nf = len(variances)
-            variances = variances[0:limit_nf]
-            normalization_factor_var = \
-                normalization_factor_var[0:limit_nf]
-            if cond_1:
-                logging.warning('\t Nan value '
-                                'in processing normalization factor')
-            if cond_2 or cond_3:
-                raise ValueError('\t +-inf value in '
-                                 'processing normalization factor')
-
-            logging.warning('\t Max variance is now : %s',
-                            str(variances[-1]))
-            logging.warning('\t Number of possible variance is now: %s / %s ',
-                            str(len(variances)), str(max_nf))
-
-        _, log_grad_zeta = \
-            self.norm_factor_gradient(variances)
-
-        phi_inv_var = variances ** 3 * log_grad_zeta
-
-        return \
-            variances, normalization_factor_var, phi_inv_var
-
-    @staticmethod
-    def find_normalization_factor(
-            variance, variances_range, normalization_factor_var):
-        """Find the normalization factor given some variances.
-
-        Parameters
-        ----------
-        variance : array-like, shape=[n_gaussians,]
-            Array of standard deviations for each component
-            of some GMM.
-        variances_range : array-like, shape=[n_variances,]
-            Array of standard deviations.
-        normalization_factor_var : array-like, shape=[n_variances,]
-            Array of computed normalization factor.
-
-        Returns
-        -------
-        norm_factor : array-like, shape=[n_gaussians,]
-            Array of normalization factors for the given
-            variances.
-        """
-        n_gaussians, precision = variance.shape[0], variances_range.shape[0]
-
-        ref = gs.expand_dims(variances_range, 0)
-        ref = gs.repeat(ref, n_gaussians, axis=0)
-        val = gs.expand_dims(variance, 1)
-        val = gs.repeat(val, precision, axis=1)
-
-        difference = gs.abs(ref - val)
-
-        index = gs.argmin(difference, axis=-1)
-        norm_factor = normalization_factor_var[index]
-
-        return norm_factor
-
-    @staticmethod
-    def find_variance_from_index(
-            weighted_distances, variances_range, phi_inv_var):
-        r"""Return the variance given weighted distances.
-
-        Parameters
-        ----------
-        weighted_distances : array-like, shape=[n_gaussians,]
-            Mean of the weighted distances between training data
-            and current barycentres. The weights of each data sample
-            corresponds to the probability of belonging to a component
-            of the Gaussian mixture model.
-        variances_range : array-like, shape=[n_variances,]
-            Array of standard deviations.
-        phi_inv_var : array-like, shape=[n_variances,]
-            Array of the computed inverse of a function phi
-            whose expression is closed-form
-            :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
-            {\mathstrut d\sigma}\log \zeta_m(\sigma)'
-            where :math:'\sigma' denotes the variance
-            and :math:'\zeta' the normalization coefficient
-            and :math:'m' the dimension.
-
-        Returns
-        -------
-        var : array-like, shape=[n_gaussians,]
-            Estimated variances for each component of the GMM.
-        """
-        n_gaussians, precision = \
-            weighted_distances.shape[0], variances_range.shape[0]
-
-        ref = gs.expand_dims(phi_inv_var, 0)
-        ref = gs.repeat(ref, n_gaussians, axis=0)
-
-        val = gs.expand_dims(weighted_distances, 1)
-        val = gs.repeat(val, precision, axis=1)
-
-        abs_difference = gs.abs(ref - val)
-
-        index = gs.argmin(abs_difference, -1)
-
-        var = variances_range[index]
-
-        return var
-
     def normalization_factor(self, variances):
-        """Return normalization factor.
+        """Return normalization factor of the Gaussian distribution.
 
         Parameters
         ----------

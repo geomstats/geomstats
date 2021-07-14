@@ -4,7 +4,7 @@ from torch.autograd.functional import jacobian as torch_jac
 
 
 def value_and_grad(objective):
-    """'Return a function that returns both value and gradient.
+    """Return a function that returns both value and gradient.
 
     Suitable for use in scipy.optimize
 
@@ -18,7 +18,7 @@ def value_and_grad(objective):
     objective_with_grad : callable
         Function that takes the argument of the objective function as input
         and returns both value and grad at the input.
-    '"""
+    """
     def objective_with_grad(velocity):
         if isinstance(velocity, np.ndarray):
             velocity = torch.from_numpy(velocity)
