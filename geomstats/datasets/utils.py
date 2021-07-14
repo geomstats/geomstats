@@ -321,7 +321,6 @@ def load_hands():
 
 
 def load_cells():
-<<<<<<< HEAD
     """Load cell data.
 
     This cell dataset contains cell boundaries of mouse osteosarcoma
@@ -345,46 +344,13 @@ def load_cells():
         cells = cells_file.read().split('\n\n')
     for i, cell in enumerate(cells):
         cell = cell.split('\n')
-=======
-    """Load data from data/cells/cells.txt.
-
-    Returns
-    -------
-    cells : list of 367 discrete 2D curves
-        Each curve represents the boundary of a cell, their lengths are
-        not necessarily equal.
-    cell_lines : array of 367 strings
-        List of the cell lines of each cell.
-    treatments : array of 367 strings
-        List of the treatments given to each cell.
-    """
-    with open(CELLS_PATH) as cells_file:
-        cells = cells_file.read().split('\n\n')
-<<<<<<< HEAD
-    for i in range(len(cells)):
-        cell = cells[i].split('\n')
->>>>>>> Add cell data and analysis of cells
-=======
-    for i, cell in enumerate(cells):
-        cell = cell.split('\n')
->>>>>>> loop with enumerate
         curve = []
         for point in cell:
             coords = [int(coord) for coord in point.split()]
             curve.append(coords)
         cells[i] = gs.array(curve)
     with open(CELL_LINES_PATH) as cell_lines_file:
-<<<<<<< HEAD
         cell_lines = cell_lines_file.read().split('\n')
     with open(CELL_TREATMENTS_PATH) as treatments_file:
         treatments = treatments_file.read().split('\n')
     return cells, cell_lines, treatments
-=======
-        cell_lines = gs.array(cell_lines_file.read().split('\n'))
-    with open(CELL_TREATMENTS_PATH) as treatments_file:
-        treatments = gs.array(treatments_file.read().split('\n'))
-    return cells, cell_lines, treatments
-<<<<<<< HEAD
->>>>>>> Add cell data and analysis of cells
-=======
->>>>>>> Fix style
