@@ -160,7 +160,6 @@ class CategoricalMetric(RiemannianMetric):
         mat = from_vector_to_diagonal_matrix(1 / base_point)
         return gs.squeeze(mat)
 
-    @staticmethod
     def simplex_to_sphere(self, point):
         """Send point of the simplex to the sphere.
 
@@ -178,7 +177,6 @@ class CategoricalMetric(RiemannianMetric):
         """
         return point**(1 / 2)
 
-    @staticmethod
     def sphere_to_simplex(self, point):
         """Send point of the sphere to the simplex.
 
@@ -221,7 +219,6 @@ class CategoricalMetric(RiemannianMetric):
             1 / (2 * self.simplex_to_sphere(base_point)))
         return gs.squeeze(tangent_vec_sphere)
 
-    @staticmethod
     def tangent_sphere_to_simplex(self, tangent_vec, base_point):
         """Send tangent vector of the sphere to tangent space of simplex.
 
