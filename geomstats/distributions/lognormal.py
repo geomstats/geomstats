@@ -86,7 +86,7 @@ class _LogNormalEuclidean:
         return gs.exp(_samples)
 
 
-def sampler_factory(manifold, mean, cov):
+def _sampler_factory(manifold, mean, cov):
     """Factory method for creating sampler"""
     if isinstance(manifold, Euclidean):
         return _LogNormalEuclidean(manifold, mean, cov)
@@ -108,7 +108,7 @@ class LogNormal:
         This log-mean and given cov are used to parametrize a Normal
         Distribution.
 
-        b)AffineInvariant Metric : X is distribution as LogNormal(mean, cov)
+        b)AffineInvariant Metric : X is distributed as LogNormal(mean, cov)
         if exp(mean^{1/2}.X.mean^{1/2}) is distributed as Normal(0, cov)
 
     Parameters
@@ -171,7 +171,7 @@ class LogNormal:
         else:
             cov = gs.eye(self.manifold.dim)
 
-        self.__sampler = sampler_factory(manifold, mean, cov)
+        self.__sampler = _sampler_factory(manifold, mean, cov)
 
     @property
     def manifold(self):
