@@ -292,6 +292,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
             tangent_vec, point)
         self.assertTrue(gs.all(result))
 
+    @geomstats.tests.np_and_pytorch_only
     def test_projection_closed_curves(self):
         """Test that projecting the projection returns the projection
 
@@ -300,7 +301,6 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         cells, _, _ = data_utils.load_cells()
         curves = [cell[:-10] for cell in cells[:5]]
-        curves = [gs.cast(curve, gs.float32) for curve in curves]
 
         for curve in curves:
             proj = planar_closed_curves.project(curve)
