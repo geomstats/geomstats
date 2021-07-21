@@ -70,10 +70,7 @@ class _LogNormalEuclidean:
         if metric is None:
             manifold.metric = EuclideanMetric(n)
         else:
-            if (
-                 type(metric) != EuclideanMetric and
-                 type(metric) != MatricesMetric
-            ):
+            if type(metric) not in (EuclideanMetric, MatricesMetric):
                 raise ValueError(
                     "Invalid Metric, "
                     "Should be of type EuclideanMetric or MatricesMetric")
