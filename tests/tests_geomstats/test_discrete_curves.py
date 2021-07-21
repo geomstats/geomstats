@@ -300,6 +300,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         cells, _, _ = data_utils.load_cells()
         curves = [cell[:-10] for cell in cells[:5]]
+        curves = [gs.cast(curve, gs.float64) for curve in curves]
 
         for curve in curves:
             proj = planar_closed_curves.project(curve)
@@ -310,3 +311,43 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
             result = proj[-1, :]
             expected = proj[0, :]
             self.assertAllClose(result, expected)
+
+    def test_srv_inner_product(self):
+        """Test that srv_inner_product works as expected
+
+        and that the resulting shape is right."""
+        curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
+        curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
+        curves_ab = curves_ab(self.times)
+        curves_bc = curves_bc(self.times)
+        srvs_ab = self.srv_metric_r3.square_root_velocity(curves_ab)
+        srvs_bc = self.srv_metric_r3.square_root_velocity(curves_bc)
+
+        result = self.srv_metric_r3.srv_inner_product(srvs_ab, srvs_bc)
+        products = srvs_ab * srvs_bc
+        expected = [gs.sum(product) for product in products]
+        expected = gs.array(expected) / srvs_ab.shape[-2]
+        self.assertAllClose(result, expected)
+
+        result = result.shape
+        expected = [srvs_ab.shape[0]]
+        self.assertAllClose(result, expected)
+
+    def test_srv_norm(self):
+        """Test that srv_norm works as expected
+
+        and that the resulting shape is right."""
+        curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
+        curves_ab = curves_ab(self.times)
+        srvs_ab = self.srv_metric_r3.square_root_velocity(curves_ab)
+
+        result = self.srv_metric_r3.srv_norm(srvs_ab)
+        products = srvs_ab * srvs_ab
+        sums = [gs.sum(product) for product in products]
+        squared_norm = gs.array(sums) / srvs_ab.shape[-2]
+        expected = gs.sqrt(squared_norm)
+        self.assertAllClose(result, expected)
+
+        result = result.shape
+        expected = [srvs_ab.shape[0]]
+        self.assertAllClose(result, expected)
