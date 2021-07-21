@@ -347,7 +347,7 @@ class FrechetMean(BaseEstimator):
     point_type : str, {\'vector\', \'matrix\'}
         Point type.
         Optional, default: None.
-    method : str, {\'default\', \'adaptive\', \'batch\'}
+    method : str, {\'default\', \'adaptive\', \'batch\', \'circle\'}
         Gradient descent method.
         The `adaptive` method uses a Levenberg-Marquardt style adaptation of
         the learning rate. The `batch` method is similar to the default
