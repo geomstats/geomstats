@@ -2,7 +2,7 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
@@ -70,10 +70,13 @@ class _LogNormalEuclidean:
         if metric is None:
             manifold.metric = EuclideanMetric(n)
         else:
-            if not isinstance(metric, EuclideanMetric):
+            if (
+                 type(metric) != EuclideanMetric and
+                 type(metric) != MatricesMetric
+            ):
                 raise ValueError(
                     "Invalid Metric, "
-                    "Should be of type EuclideanMetric")
+                    "Should be of type EuclideanMetric or MatricesMetric")
 
         self.manifold = manifold
         self.mean = mean
