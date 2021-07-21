@@ -300,7 +300,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         cells, _, _ = data_utils.load_cells()
         curves = [cell[:-10] for cell in cells[:5]]
-        curves = [gs.cast(curve, gs.float64) for curve in curves]
+        curves = [gs.cast(curve, gs.float32) for curve in curves]
 
         for curve in curves:
             proj = planar_closed_curves.project(curve)
