@@ -18,10 +18,10 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
     r"""Class for the Kendall pre-shape space.
 
     The pre-shape space is the sphere of the space of centered k-ad of
-    landmarks in :math: `R^m` (for the Frobenius norm). It is endowed with the
+    landmarks in :math:`R^m` (for the Frobenius norm). It is endowed with the
     spherical Procrustes metric d(x, y):= arccos(tr(xy^t)).
 
-    Points are represented by :math: `k \times m` centred matrices as in
+    Points are represented by :math:`k \times m` centred matrices as in
     [Nava]_. Beware that this is not the usual convention from the literature.
 
     Parameters
@@ -184,8 +184,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             self, tangent_vec, base_point, return_skew=False):
         r"""Project to vertical subspace.
 
-        Compute the vertical component of a tangent vector :math: `w` at a
-        base point :math: `x` by solving the sylvester equation:
+        Compute the vertical component of a tangent vector :math:`w` at a
+        base point :math:`x` by solving the sylvester equation:
         .. math::
                         `Axx^T + xx^TA = wx^T - xw^T`
 
@@ -280,12 +280,12 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         r"""Compute the fundamental tensor A of the submersion (old).
 
         The fundamental tensor A is defined for tangent vectors of the total
-        space by [O'Neill]_ :math: `A_X Y = ver\nabla^M_{hor X} (hor Y)
-        + hor \nabla^M_{hor X}( ver Y)` where :math: `hor,ver` are the
+        space by [O'Neill]_ :math:`A_X Y = ver\nabla^M_{hor X} (hor Y)
+        + hor \nabla^M_{hor X}( ver Y)` where :math:`hor,ver` are the
         horizontal and vertical projections.
 
         For the pre-shape space, we have closed-form expressions and the result
-        does not depend on the vertical part of :math: `X`.
+        does not depend on the vertical part of :math:`X`.
 
         Parameters
         ----------
@@ -333,16 +333,16 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         r"""Compute the fundamental tensor A of the submersion.
 
         The fundamental tensor A is defined for tangent vectors of the total
-        space by [O'Neill]_ :math: `A_X Y = ver\nabla^M_{hor X} (hor Y)
+        space by [O'Neill]_ :math:`A_X Y = ver\nabla^M_{hor X} (hor Y)
             + hor \nabla^M_{hor X}( ver Y)`
-        where :math: `hor, ver` are the horizontal and vertical projections.
+        where :math:`hor, ver` are the horizontal and vertical projections.
 
         For the Kendall shape space, we have the closed-form expression at
         base-point P [Pennec]_:
-        :math: `A_X E = P Sylv_P(E^\top hor(X)) + F + <F,P> P` where
-        :math: `F = hor(X) Sylv_P(P^\top E)` and :math: `Sylv_P(B)` is the
-        unique skew-symmetric matrix :math: `\Omega` solution of
-        :math: `P^\top P \Omega + \Omega P^\top P = B - B^\top`.
+        :math:`A_X E = P Sylv_P(E^\top hor(X)) + F + <F,P> P` where
+        :math:`F = hor(X) Sylv_P(P^\top E)` and :math:`Sylv_P(B)` is the
+        unique skew-symmetric matrix :math:`\Omega` solution of
+        :math:`P^\top P \Omega + \Omega P^\top P = B - B^\top`.
 
         Parameters
         ----------
@@ -393,18 +393,18 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             tangent_vec_e, nabla_x_e, base_point):
         r"""Compute the covariant derivative of the integrability tensor A.
 
-        The horizontal covariant derivative :math: `\nabla_X (A_Y E)` is
+        The horizontal covariant derivative :math:`\nabla_X (A_Y E)` is
         necessary to compute the covariant derivative of the curvature in a
         submersion.
-        The components :math: `\nabla_X (A_Y E)` and :math: `A_Y E` are
+        The components :math:`\nabla_X (A_Y E)` and :math:`A_Y E` are
         computed here for the Kendall shape space at base-point
-        :math: `P = base_point` for horizontal vector fields fields :math:
-        `X, Y` extending the values :math: `X|_P = horizontal_vec_x`,
-        :math: `Y|_P = horizontal_vec_y` and a general vector field
-        :math: `E` extending :math: `E|_P = tangent_vec_e` in a neighborhood
+        :math:`P = base_point` for horizontal vector fields fields :math:
+        `X, Y` extending the values :math:`X|_P = horizontal_vec_x`,
+        :math:`Y|_P = horizontal_vec_y` and a general vector field
+        :math:`E` extending :math:`E|_P = tangent_vec_e` in a neighborhood
         of the base-point P with covariant derivatives
-        :math: `\nabla_X Y |_P = nabla_x_y` and
-        :math: `\nabla_X E |_P = nabla_x_e`.
+        :math:`\nabla_X Y |_P = nabla_x_y` and
+        :math:`\nabla_X E |_P = nabla_x_e`.
 
         Parameters
         ----------
@@ -424,10 +424,10 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         Returns
         -------
         nabla_x_a_y_e : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`, result of :math: `\nabla_X^S
+            Tangent vector at `base_point`, result of :math:`\nabla_X^S
             (A_Y E)`.
         a_y_e : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`, result of :math: `A_Y E`.
+            Tangent vector at `base_point`, result of :math:`A_Y E`.
 
         References
         ----------
@@ -495,15 +495,15 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             base_point):
         r"""Compute derivative of the integrability tensor A (special case).
 
-        The horizontal covariant derivative :math: `\nabla_X (A_Y Z)` of the
+        The horizontal covariant derivative :math:`\nabla_X (A_Y Z)` of the
         integrability tensor A may be computed more efficiently in the case of
         parallel vector fields in the quotient space. :math:
-        `\nabla_X (A_Y Z)` and :math: `A_Y Z` are computed here for the
-        Kendall shape space with quotient-parallel vector fields :math: `X,
+        `\nabla_X (A_Y Z)` and :math:`A_Y Z` are computed here for the
+        Kendall shape space with quotient-parallel vector fields :math:`X,
         Y, Z` extending the values horizontal_vec_x, horizontal_vec_y and
         horizontal_vec_z by parallel transport in a neighborhood of the
-        base-space. Such vector fields verify :math: `\nabla_X^X = A_X X =
-        0`, :math: `\nabla_X^Y = A_X Y` and similarly for Z.
+        base-space. Such vector fields verify :math:`\nabla_X^X = A_X X =
+        0`, :math:`\nabla_X^Y = A_X Y` and similarly for Z.
 
         Parameters
         ----------
@@ -520,10 +520,10 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         -------
         nabla_x_a_y_z : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of
-            :math: `\nabla_X (A_Y Z)` with `X = horizontal_vec_x`,
+            :math:`\nabla_X (A_Y Z)` with `X = horizontal_vec_x`,
             `Y = horizontal_vec_y` and `Z = horizontal_vec_z`.
         a_y_z : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`, result of :math: `A_Y Z`
+            Tangent vector at `base_point`, result of :math:`A_Y Z`
             with `Y = horizontal_vec_y` and `Z = horizontal_vec_z`.
 
         References
@@ -574,17 +574,17 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         r"""Compute iterated derivatives of the integrability tensor A.
 
         The iterated horizontal covariant derivative
-        :math: `\nabla_X (A_Y A_X Y)` (where :math: `X` and :math: `Y` are
+        :math:`\nabla_X (A_Y A_X Y)` (where :math:`X` and :math:`Y` are
         horizontal vector fields) is a key ingredient in the computation of
         the covariant derivative of the directional curvature in a submersion.
 
-        The components :math: `\nabla_X (A_Y A_X Y)`, :math: `A_X A_Y A_X Y`,
-        :math: `\nabla_X (A_X Y)`,  and intermediate computations
-        :math: `A_Y A_X Y` and :math: `A_X Y` are computed here for the
+        The components :math:`\nabla_X (A_Y A_X Y)`, :math:`A_X A_Y A_X Y`,
+        :math:`\nabla_X (A_X Y)`,  and intermediate computations
+        :math:`A_Y A_X Y` and :math:`A_X Y` are computed here for the
         Kendall shape space in the special case of quotient-parallel vector
-        fields :math: `X, Y` extending the values horizontal_vec_x and
+        fields :math:`X, Y` extending the values horizontal_vec_x and
         horizontal_vec_y by parallel transport in a neighborhood.
-        Such vector fields verify :math: `\nabla_X^X = A_X X` and :math:
+        Such vector fields verify :math:`\nabla_X^X = A_X X` and :math:
         `\nabla_X^Y = A_X Y`.
 
         Parameters
@@ -600,21 +600,21 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         -------
         nabla_x_a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of
-            :math: `\nabla_X^S (A_Y A_X Y)` with
+            :math:`\nabla_X^S (A_Y A_X Y)` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
         a_x_a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of
-            :math: `A_X A_Y A_X Y` with
+            :math:`A_X A_Y A_X Y` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
         nabla_x_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`, result of
-            :math: `\nabla_X^S (A_X Y)` with
+            :math:`\nabla_X^S (A_X Y)` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
         a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`, result of :math: `A_Y A_X Y` with
+            Tangent vector at `base_point`, result of :math:`A_Y A_X Y` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
         a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`, result of :math: `A_X Y` with
+            Tangent vector at `base_point`, result of :math:`A_X Y` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
 
         References
@@ -772,13 +772,13 @@ class PreShapeMetric(RiemannianMetric):
             base_point):
         r"""Compute the curvature.
 
-        For three tangent vectors at a base point :math: `x,y,z`,
+        For three tangent vectors at a base point :math:`x,y,z`,
         the curvature is defined by
-        :math: `R(X, Y)Z = \nabla_{[X,Y]}Z
-        - \nabla_X\nabla_Y Z + - \nabla_Y\nabla_X Z`, where :math: `\nabla`
+        :math:`R(X, Y)Z = \nabla_{[X,Y]}Z
+        - \nabla_X\nabla_Y Z + - \nabla_Y\nabla_X Z`, where :math:`\nabla`
         is the Levi-Civita connection. In the case of the hypersphere,
         we have the closed formula
-        :math: `R(X,Y)Z = \langle X, Z \rangle Y - \langle Y,Z \rangle X`.
+        :math:`R(X,Y)Z = \langle X, Z \rangle Y - \langle Y,Z \rangle X`.
 
         Parameters
         ----------
@@ -815,11 +815,11 @@ class PreShapeMetric(RiemannianMetric):
             tangent_vec_d=None, base_point=None):
         r"""Compute the covariant derivative of the curvature.
 
-        For four vectors fields :math: `H|_P = tangent_vec_a, X|_P =
+        For four vectors fields :math:`H|_P = tangent_vec_a, X|_P =
         tangent_vec_b, Y|_P = tangent_vec_c, Z|_P = tangent_vec_d` with
         tangent vector value specified in argument at the base point `P`,
         the covariant derivative of the curvature
-        :math: `(\nabla_H R)(X, Y) Z |_P` is computed at the base point P.
+        :math:`(\nabla_H R)(X, Y) Z |_P` is computed at the base point P.
         Since the sphere is a constant curvature space this
         vanishes identically.
 
@@ -904,24 +904,24 @@ class KendallShapeMetric(QuotientMetric):
             self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For two vectors fields :math: `X|_P = tangent_vec_a, Y|_P =
+        For two vectors fields :math:`X|_P = tangent_vec_a, Y|_P =
         tangent_vec_b` with tangent vector value specified in argument at the
         base point `P`, the covariant derivative (in the direction 'X')
-        :math: `(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
+        :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
         directional curvature (in the direction `Y`)
-        :math: `R_Y(X) = R(Y, X) Y`  is a quadratic tensor in 'X' and 'Y' that
+        :math:`R_Y(X) = R(Y, X) Y`  is a quadratic tensor in 'X' and 'Y' that
         plays an important role in the computation of the moments of the
         empirical Fréchet mean [Pennec]_.
 
-        In more details, let :math: `X, Y` be the horizontal lift of parallel
+        In more details, let :math:`X, Y` be the horizontal lift of parallel
         vector fields extending the tangent vectors given in argument by
         parallel transport in a neighborhood of the base-point P in the
-        base-space. Such vector fields verify :math: `\nabla^T_X X=0` and
-        :math: `\nabla^T_X^Y = A_X Y` using the connection :math: `\nabla^T`
+        base-space. Such vector fields verify :math:`\nabla^T_X X=0` and
+        :math:`\nabla^T_X^Y = A_X Y` using the connection :math:`\nabla^T`
         of the total space. Then the covariant derivative of the
         directional curvature tensor is given by :math:
         `\nabla_X (R_Y(X)) = hor \nabla^T_X (R^T_Y(X)) - A_X( ver R^T_Y(X))
-        - 3 (\nabla_X^T A_Y A_X Y - A_X A_Y A_X Y )`, where :math: `R^T_Y(X)`
+        - 3 (\nabla_X^T A_Y A_X Y - A_X A_Y A_X Y )`, where :math:`R^T_Y(X)`
         is the directional curvature tensor of the total space.
 
         Parameters
@@ -953,7 +953,7 @@ class KendallShapeMetric(QuotientMetric):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Approximation of the solution of the parallel transport of a tangent
-        vector a along the geodesic defined by :math: `t \mapsto exp_(
+        vector a along the geodesic defined by :math:`t \mapsto exp_(
         base_point)(t* tangent_vec_b)`.
 
         Parameters

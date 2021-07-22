@@ -368,7 +368,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     def test_curvature_is_skew_operator(self):
         """Pre-shape space curvature tensor is skew in the first two arguments.
 
-        :math: `R(X,X)Y = 0`.
+        :math:`R(X,X)Y = 0`.
         """
         space = self.space
         base_point = space.random_point(2)
@@ -385,7 +385,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     def test_curvature_bianchi_identity(self):
         """First Bianchi identity on curvature in pre-shape space.
 
-        :math: `R(X,Y)Z + R(Y,Z)X + R(Z,X)Y = 0`.
+        :math:`R(X,Y)Z + R(Y,Z)X + R(Z,X)Y = 0`.
         """
         space = self.space
         base_point = space.random_point()
@@ -410,11 +410,11 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         """Identities of integrability tensor in kendall pre-shape space.
 
         The integrability tensor A_X E is skew-symmetric with respect to the
-        pre-shape metric, :math: `< A_X E, F> + <E, A_X F> = 0`. By
-        polarization, this is equivalent to :math: `< A_X E, E> = 0`.
+        pre-shape metric, :math:`< A_X E, F> + <E, A_X F> = 0`. By
+        polarization, this is equivalent to :math:`< A_X E, E> = 0`.
 
-        The integrability tensor is also alternating (:math: `A_X Y =
-        - A_Y X`)  for horizontal vector fields :math: 'X,Y',  and it is
+        The integrability tensor is also alternating (:math:`A_X Y =
+        - A_Y X`)  for horizontal vector fields :math:'X,Y',  and it is
         exchanging horizontal and vertical vector spaces.
         """
         space = self.space
@@ -504,9 +504,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     def test_integrability_tensor_derivative_is_alternate(self):
         r"""Integrability tensor derivatives is alternate in pre-shape.
 
-        For two horizontal vector fields :math: `X,Y` the integrability
+        For two horizontal vector fields :math:`X,Y` the integrability
         tensor (hence its derivatives) is alternate:
-        :math: `\nabla_X ( A_Y Z + A_Z Y ) = 0`.
+        :math:`\nabla_X ( A_Y Z + A_Z Y ) = 0`.
         """
         nabla_x_a_y_z, a_y_z = \
             self.space.integrability_tensor_derivative(
@@ -523,8 +523,8 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     def test_integrability_tensor_derivative_is_skew_symmetric(self):
         r"""Integrability tensor derivatives is skew-symmetric in pre-shape.
 
-        For :math: `X,Y` horizontal and :math: `V,W` vertical:
-        :math: `\nabla_X (< A_Y Z , V > + < A_Y V , Z >) = 0`.
+        For :math:`X,Y` horizontal and :math:`V,W` vertical:
+        :math:`\nabla_X (< A_Y Z , V > + < A_Y V , Z >) = 0`.
         """
         scal = self.space.ambient_metric.inner_product
 
@@ -546,10 +546,10 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
     def test_integrability_tensor_derivative_reverses_hor_ver(self):
         r"""Integrability tensor derivatives exchanges hor & ver in pre-shape.
 
-        For :math: `X,Y,Z` horizontal and :math: `V,W` vertical, the
+        For :math:`X,Y,Z` horizontal and :math:`V,W` vertical, the
         integrability tensor (and thus its derivative) reverses horizontal
-        and vertical subspaces: :math: `\nabla_X < A_Y Z, H > = 0`  and
-        :math: `nabla_X < A_Y V, W > = 0`.
+        and vertical subspaces: :math:`\nabla_X < A_Y Z, H > = 0`  and
+        :math:`nabla_X < A_Y V, W > = 0`.
         """
         scal = self.space.ambient_metric.inner_product
 
@@ -594,9 +594,9 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         """Test optimized iterated integrability tensor derivatives.
 
         The optimized version of the iterated integrability tensor
-        :math: `A_X A_Y A_X Y`, computed with the horizontal lift of
+        :math:`A_X A_Y A_X Y`, computed with the horizontal lift of
         quotient-parallel vector fields extending the tangent vectors
-        :math: `X,Y` of Kendall shape spaces (identified to horizontal vectors
+        :math:`X,Y` of Kendall shape spaces (identified to horizontal vectors
         of the pre-shape space), is the recursive application of two general
         integrability tensor derivatives with proper derivatives.
         Intermediate computations returned are also verified.
@@ -629,7 +629,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         r"""2nd Bianchi identity on curvature derivative in kendall space.
 
         For any 3 tangent vectors horizontally lifted from kendall shape
-        space to Kendall pre-shape space, :math: `(\nabla_X R)(Y, Z)
+        space to Kendall pre-shape space, :math:`(\nabla_X R)(Y, Z)
         + (\nabla_Y R)(Z,X) + (\nabla_Z R)(X, Y) = 0`.
         """
         term_x = self.shape_metric.curvature_derivative(
@@ -646,7 +646,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         r"""Derivative of a skew operator is skew.
 
         For any 3 tangent vectors horizontally lifted from kendall shape space
-        to Kendall pre-shape space, :math: `(\nabla_X R)(Y,Y)Z = 0`.
+        to Kendall pre-shape space, :math:`(\nabla_X R)(Y,Y)Z = 0`.
         """
         result = self.shape_metric.curvature_derivative(
             self.hor_x, self.hor_y, self.hor_y, self.hor_z, self.base_point)

@@ -146,10 +146,10 @@ class QuotientMetric(RiemannianMetric):
             base_point):
         r"""Compute the curvature.
 
-        For three vectors fields :math: `X|_P = tangent_vec_a,
+        For three vectors fields :math:`X|_P = tangent_vec_a,
         Y|_P = tangent_vec_b, Z|_P = tangent_vec_c` with tangent vector
-        specified in argument at the base point :math: `P`,
-        the curvature is defined by :math: `R(X,Y)Z = \nabla_{[X,Y]}Z
+        specified in argument at the base point :math:`P`,
+        the curvature is defined by :math:`R(X,Y)Z = \nabla_{[X,Y]}Z
         - \nabla_X\nabla_Y Z + \nabla_Y\nabla_X Z`.
 
         In the case of quotient metrics, the fundamental equations of a
@@ -157,12 +157,12 @@ class QuotientMetric(RiemannianMetric):
         manifold from the one of the total space and a correction term that
         uses the integrability tensor A [O'Neill]_.
 
-        In more details, let :math: `X, Y, Z` be the horizontal lift of
+        In more details, let :math:`X, Y, Z` be the horizontal lift of
         vector fields extending the tangent vectors given in argument in a
         neighborhood of the base-point P in the base-space. Then the
         curvature of the base-space at the base-points is
-        :math: `R(X,Y) Z = hor( R^T(X,Y) Z) - 2 A_Z A_X Y + A_X A_Y Z - A_Y
-        A_X Z`, where :math: `R^T(X,Y)Z` is the curvature tensor of the
+        :math:`R(X,Y) Z = hor( R^T(X,Y) Z) - 2 A_Z A_X Y + A_X A_Y Z - A_Y
+        A_X Z`, where :math:`R^T(X,Y)Z` is the curvature tensor of the
         total space.
 
         Parameters
@@ -223,11 +223,11 @@ class QuotientMetric(RiemannianMetric):
             tangent_vec_d, base_point=None):
         r"""Compute the covariant derivative of the curvature.
 
-        For four vectors fields :math: `H|_P = tangent_vec_a, X|_P =
+        For four vectors fields :math:`H|_P = tangent_vec_a, X|_P =
         tangent_vec_b, Y|_P = tangent_vec_c, Z|_P = tangent_vec_d` with
         tangent vector value specified in argument at the base point `P`,
         the covariant derivative of the curvature
-        :math: `(\nabla_H R)(X, Y)Z |_P` is computed at the base point P.
+        :math:`(\nabla_H R)(X, Y)Z |_P` is computed at the base point P.
 
         In the case of quotient metrics, the fundamental equations of a
         Riemannian submersion allow to compute this tensor on the base manifold
@@ -235,18 +235,18 @@ class QuotientMetric(RiemannianMetric):
         additional correction terms involving the integrability tensor A and
         its covariant derivatives [Pennec]_.
 
-        In more details, let :math: `H, X, Y, Z` be the horizontal lift of
+        In more details, let :math:`H, X, Y, Z` be the horizontal lift of
         parallel vector fields extending the tangent vectors given in argument
         by parallel transport in a neighborhood of the base-point P in the
-        base-space. Such vector fields verify :math: `\nabla^T_H H=0`,
-        :math: `\nabla^T_H^X = A_H X` (and similarly for Y and Z) using the
-        connection :math: `\nabla^T` of the total space. Then the covariant
+        base-space. Such vector fields verify :math:`\nabla^T_H H=0`,
+        :math:`\nabla^T_H^X = A_H X` (and similarly for Y and Z) using the
+        connection :math:`\nabla^T` of the total space. Then the covariant
         derivative of the curvature tensor is given by
-        :math: `\nabla_H (R(X, Y) Z) =
+        :math:`\nabla_H (R(X, Y) Z) =
         \hor\nabla_H^T(R^T(X,Y)Z) - A_H(ver R^T(X,Y)Z )
         + (2 A_H A_Z A_X Y - A_H A_X A_Y Z + A_H A_Y A_X Z)
         - (2 \nabla_H^T A_Z A_X Y - \nabla_H^T A_X A_Y Z +
-             \nabla_H^T A_Y A_X Z)`, where :math: `R^T(X,Y)Z` is the curvature
+             \nabla_H^T A_Y A_X Z)`, where :math:`R^T(X,Y)Z` is the curvature
         tensor of the total space.
 
         Parameters
@@ -327,12 +327,12 @@ class QuotientMetric(RiemannianMetric):
             self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For two vectors fields :math: `X|_P = tangent_vec_a, Y|_P =
+        For two vectors fields :math:`X|_P = tangent_vec_a, Y|_P =
         tangent_vec_b` with tangent vector value specified in argument at the
         base point `P`, the covariant derivative (in the direction 'X')
-        :math: `(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
+        :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
         directional curvature (in the direction `Y`)
-        :math: `R_Y(X) = R(Y, X) Y`  is a quadratic tensor in 'X' and 'Y' that
+        :math:`R_Y(X) = R(Y, X) Y`  is a quadratic tensor in 'X' and 'Y' that
         plays an important role in the computation of the moments of the
         empirical Fréchet mean.
 
@@ -344,15 +344,15 @@ class QuotientMetric(RiemannianMetric):
         involving the integrability tensor A and its covariant derivatives
         [Pennec]_.
 
-        In more details, let :math: `X, Y` be the horizontal lift of parallel
+        In more details, let :math:`X, Y` be the horizontal lift of parallel
         vector fields extending the tangent vectors given in argument by
         parallel transport in a neighborhood of the base-point P in the
-        base-space. Such vector fields verify :math: `\nabla^T_X X=0` and
-        :math: `\nabla^T_X^Y = A_X Y` using the connection :math: `\nabla^T`
+        base-space. Such vector fields verify :math:`\nabla^T_X X=0` and
+        :math:`\nabla^T_X^Y = A_X Y` using the connection :math:`\nabla^T`
         of the total space. Then the covariant derivative of the
         directional curvature tensor is given by :math:
         `\nabla_X (R_Y(X)) = hor \nabla^T_X (R^T_Y(X)) - A_X( ver R^T_Y(X))
-        + 3 A_X A_Y A_X Y - 3 \nabla_X^T A_Y A_X Y `, where :math: `R^T_Y(X)`
+        + 3 A_X A_Y A_X Y - 3 \nabla_X^T A_Y A_X Y `, where :math:`R^T_Y(X)`
         is the directional curvature tensor of the total space.
 
         Parameters

@@ -404,10 +404,10 @@ class Connection(ABC):
             base_point):
         r"""Compute the curvature.
 
-        For three vectors fields :math: `X|_P = tangent_vec_a,
+        For three vectors fields :math:`X|_P = tangent_vec_a,
         Y|_P = tangent_vec_b, Z|_P = tangent_vec_c` with tangent vector
-        specified in argument at the base point :math: `P`,
-        the curvature is defined by :math: `R(X,Y)Z = \nabla_{[X,Y]}Z
+        specified in argument at the base point :math:`P`,
+        the curvature is defined by :math:`R(X,Y)Z = \nabla_{[X,Y]}Z
         - \nabla_X\nabla_Y Z + \nabla_Y\nabla_X Z`.
 
         Parameters
@@ -432,11 +432,11 @@ class Connection(ABC):
             self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the directional curvature (tidal force operator).
 
-        For two vectors fields :math: `X|_P = tangent_vec_a`, and :math:
+        For two vectors fields :math:`X|_P = tangent_vec_a`, and :math:
         `Y|_P = tangent_vec_b` with tangent vector specified in argument at
-        the base point :math: `P`, the directional curvature, better known
+        the base point :math:`P`, the directional curvature, better known
         in relativity as the tidal force operator, is defined by
-        :math: `R_Y(X) = R(Y,X)Y`.
+        :math:`R_Y(X) = R(Y,X)Y`.
 
         Parameters
         ----------
@@ -460,11 +460,11 @@ class Connection(ABC):
             base_point=None):
         r"""Compute the covariant derivative of the curvature.
 
-        For four vectors fields :math: `H|_P = tangent_vec_a, X|_P =
+        For four vectors fields :math:`H|_P = tangent_vec_a, X|_P =
         tangent_vec_b, Y|_P = tangent_vec_c, Z|_P = tangent_vec_d` with
         tangent vector value specified in argument at the base point `P`,
         the covariant derivative of the curvature
-        :math: `(\nabla_H R)(X, Y) Z |_P` is computed at the base point P.
+        :math:`(\nabla_H R)(X, Y) Z |_P` is computed at the base point P.
 
         Parameters
         ----------
@@ -472,20 +472,33 @@ class Connection(ABC):
             Tangent vector at `base_point`.
         tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., {dim, [n, m]}]
+            Tangent vector at `base_point`.
+        tangent_vec_d : array-like, shape=[..., {dim, [n, m]}]
+            Tangent vector at `base_point`.
         base_point :  array-like, shape=[..., {dim, [n, m]}]
             Point on the group. Optional, default is the identity.
 
         Returns
         -------
-        directional_curvature : array-like, shape=[..., {dim, [n, m]}]
-            Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., dim]
-            Base-point on the manifold.
-
-        Returns
-        -------
         curvature_derivative : array-like, shape=[..., dim]
             Tangent vector at base-point.
+        """
+        raise NotImplementedError('The curvature is not implemented.')
+        
+
+    def directional_curvature_derivative(
+            self, tangent_vec_a, tangent_vec_b, base_point=None):
+        r"""Compute the covariant derivative of the directional curvature.
+
+        For two vectors fields :math:`X|_P = tangent_vec_a, Y|_P =
+        tangent_vec_b` with tangent vector value specified in argument at the
+        base point `P`, the covariant derivative (in the direction 'X')
+        :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
+        directional curvature (in the direction `Y`)
+        :math:`R_Y(X) = R(Y, X) Y`  is a quadratic tensor in 'X' and 'Y' that
+        plays an important role in the computation of the moments of the
+        empirical Fréchet mean.
 
         References
         ----------

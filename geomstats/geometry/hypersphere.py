@@ -369,9 +369,9 @@ class _Hypersphere(EmbeddedManifold):
                 \exp \Big \left(- \frac{\lambda}{2} \mathtm{arccos}^2(x^T\mu)
                 \Big \right)
 
-        where :math: `\mu` is the mean and :math: `\lambda` is the isotropic
+        where :math:`\mu` is the mean and :math:`\lambda` is the isotropic
         precision. For the anisotropic case,
-        :math: `\log_{\mu}(x)^T \Lambda \log_{\mu}(x)` is used instead.
+        :math:`\log_{\mu}(x)^T \Lambda \log_{\mu}(x)` is used instead.
 
         A rejection algorithm is used to sample from this distribution [Hau18]_
 
@@ -634,7 +634,7 @@ class HypersphereMetric(RiemannianMetric):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        along the geodesic defined by :math:`t \mapsto exp_(base_point)(t*
         tangent_vec_b)`.
 
         Parameters
@@ -707,13 +707,13 @@ class HypersphereMetric(RiemannianMetric):
             base_point):
         r"""Compute the curvature.
 
-        For three tangent vectors at a base point :math: `x,y,z`,
+        For three tangent vectors at a base point :math:`x,y,z`,
         the curvature is defined by
-        :math: `R(x, y)z = \nabla_{[x,y]}z
-        - \nabla_z\nabla_y z + \nabla_y\nabla_x z`, where :math: `\nabla`
+        :math:`R(x, y)z = \nabla_{[x,y]}z
+        - \nabla_z\nabla_y z + \nabla_y\nabla_x z`, where :math:`\nabla`
         is the Levi-Civita connection. In the case of the hypersphere,
         we have the closed formula
-        :math: `R(x,y)z = \langle x, z \rangle y - \langle y,z \rangle x`.
+        :math:`R(x,y)z = \langle x, z \rangle y - \langle y,z \rangle x`.
 
         Parameters
         ----------
