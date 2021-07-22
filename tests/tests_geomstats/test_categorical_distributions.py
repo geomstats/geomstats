@@ -13,7 +13,8 @@ from geomstats.geometry.categorical_distributions \
 
 
 class TestCategoricalDistributions(geomstats.tests.TestCase):
-    """Class defining the categorical distributions tests."""
+    """Class defining the categorical distributions tests.
+    """
     def setUp(self):
         """Define the parameters of the tests."""
         gs.random.seed(0)
