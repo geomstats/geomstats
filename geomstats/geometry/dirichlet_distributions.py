@@ -59,6 +59,7 @@ class DirichletDistributions(OpenSet):
             distribution.
         """
         point_dim = point.shape[-1]
+        
         belongs = point_dim == self.dim
         belongs = gs.logical_and(
             belongs, gs.all(point >= atol, axis=-1))
