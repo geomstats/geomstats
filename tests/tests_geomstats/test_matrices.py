@@ -219,6 +219,12 @@ class TestMatrices(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
+        result = self.space.belongs(gs.zeros((2, 2, 3)))
+        self.assertFalse(gs.all(result))
+
+        result = self.space.belongs(gs.zeros((2, 3, 3)))
+        self.assertTrue(gs.all(result))
+
     def test_is_diagonal(self):
         base_point = gs.array([
             [1., 2., 3.],
@@ -244,3 +250,21 @@ class TestMatrices(geomstats.tests.TestCase):
         base_point = gs.reshape(gs.arange(6), (2, 3))
         result = self.space.is_diagonal(base_point)
         self.assertTrue(~result)
+
+    def test_norm(self):
+        for n_samples in [1, 2]:
+            mat = self.space.random_point(n_samples)
+            result = self.metric.norm(mat)
+            expected = self.space.frobenius_product(mat, mat) ** .5
+            self.assertAllClose(result, expected)
+
+    def test_diagonal(self):
+        mat = gs.eye(3)
+        result = Matrices.diagonal(mat)
+        expected = gs.ones(3)
+        self.assertAllClose(result, expected)
+
+        mat = gs.stack([mat] * 2)
+        result = Matrices.diagonal(mat)
+        expected = gs.ones((2, 3))
+        self.assertAllClose(result, expected)

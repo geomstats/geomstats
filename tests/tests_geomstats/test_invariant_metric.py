@@ -554,7 +554,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     def test_structure_constant(self):
         group = self.matrix_so3
         metric = InvariantMetric(group=group)
-        basis = metric.orthonormal_basis(group.lie_algebra.basis)
+        basis = metric.normal_basis(group.lie_algebra.basis)
         x, y, z = basis
         result = metric.structure_constant(x, y, z)
         expected = 2. ** .5 / 2.
@@ -582,7 +582,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     def test_dual_adjoint(self):
         group = self.matrix_so3
         metric = InvariantMetric(group=group)
-        basis = metric.orthonormal_basis(group.lie_algebra.basis)
+        basis = metric.normal_basis(group.lie_algebra.basis)
         for x in basis:
             for y in basis:
                 for z in basis:
@@ -594,7 +594,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     def test_connection(self):
         group = self.matrix_so3
         metric = InvariantMetric(group=group)
-        x, y, z = metric.orthonormal_basis(group.lie_algebra.basis)
+        x, y, z = metric.normal_basis(group.lie_algebra.basis)
         result = metric.connection(x, y)
         expected = 1. / 2 ** .5 / 2. * z
         self.assertAllClose(result, expected)
@@ -610,7 +610,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     def test_sectional_curvature(self):
         group = self.matrix_so3
         metric = InvariantMetric(group=group)
-        x, y, z = metric.orthonormal_basis(group.lie_algebra.basis)
+        x, y, z = metric.normal_basis(group.lie_algebra.basis)
 
         result = metric.sectional_curvature(x, y)
         expected = 1. / 8
@@ -635,7 +635,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     def test_curvature(self):
         group = self.matrix_so3
         metric = InvariantMetric(group=group)
-        x, y, z = metric.orthonormal_basis(group.lie_algebra.basis)
+        x, y, z = metric.normal_basis(group.lie_algebra.basis)
 
         result = metric.curvature_at_identity(x, y, x)
         expected = 1. / 8 * y
@@ -661,7 +661,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     def test_curvature_derivative_at_identity(self):
         group = self.matrix_so3
         metric = InvariantMetric(group=group)
-        basis = metric.orthonormal_basis(group.lie_algebra.basis)
+        basis = metric.normal_basis(group.lie_algebra.basis)
 
         result = True
         for x in basis:
@@ -678,7 +678,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     def test_curvature_derivative(self):
         group = self.matrix_so3
         metric = InvariantMetric(group=group)
-        x, y, z = metric.orthonormal_basis(group.lie_algebra.basis)
+        x, y, z = metric.normal_basis(group.lie_algebra.basis)
         result = metric.curvature_derivative(
             x, y, z, x)
         expected = gs.zeros_like(x)
@@ -697,7 +697,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     def test_integrated_exp_at_id(self):
         group = self.matrix_so3
         metric = InvariantMetric(group=group)
-        basis = metric.orthonormal_basis(group.lie_algebra.basis)
+        basis = metric.normal_basis(group.lie_algebra.basis)
 
         vector = gs.random.rand(2, len(basis))
         tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
@@ -731,7 +731,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         lie_algebra = group.lie_algebra
         metric = InvariantMetric(group=group)
         canonical_metric = group.left_canonical_metric
-        basis = metric.orthonormal_basis(lie_algebra.basis)
+        basis = metric.normal_basis(lie_algebra.basis)
 
         vector = gs.random.rand(len(basis))
         tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
@@ -750,7 +750,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         lie_algebra = group.lie_algebra
         metric = InvariantMetric(group=group)
         canonical_metric = group.left_canonical_metric
-        basis = metric.orthonormal_basis(lie_algebra.basis)
+        basis = metric.normal_basis(lie_algebra.basis)
         point = group.random_point()
 
         vector = gs.random.rand(len(basis))
@@ -776,3 +776,34 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         belongs = Matrices(n_samples, n_samples).belongs(result)
         self.assertTrue(is_sym)
         self.assertTrue(belongs)
+
+    def test_integrated_parallel_transport(self):
+        group = self.matrix_se3
+        metric = InvariantMetric(group=group)
+        n = 3
+        n_samples = 2
+
+        point = group.identity
+        tan_b = Matrices(n + 1, n + 1).random_point(n_samples)
+        tan_b = group.to_tangent(tan_b)
+
+        # use a vector orthonormal to tan_b
+        tan_a = Matrices(n + 1, n + 1).random_point(n_samples)
+        tan_a = group.to_tangent(tan_a)
+        coef = metric.inner_product(tan_a, tan_b) / metric.squared_norm(tan_b)
+        tan_a -= gs.einsum('...,...ij->...ij', coef, tan_b)
+        tan_b = gs.einsum(
+            '...ij,...->...ij', tan_b,
+            1. / metric.norm(tan_b, base_point=point))
+        tan_a = gs.einsum(
+            '...ij,...->...ij', tan_a,
+            1. / metric.norm(tan_a, base_point=point))
+
+        expected = group.left_canonical_metric.parallel_transport(
+            tan_a, tan_b, point)
+        result, end_point_result = metric.parallel_transport(
+            tan_a, tan_b, point, n_steps=20, step='rk4', return_endpoint=True)
+        expected_end_point = metric.exp(tan_b, point, n_steps=20)
+
+        self.assertAllClose(end_point_result, expected_end_point)
+        self.assertAllClose(expected, result)

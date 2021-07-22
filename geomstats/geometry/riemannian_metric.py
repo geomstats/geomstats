@@ -1,4 +1,5 @@
 """Riemannian and pseudo-Riemannian metrics."""
+from abc import ABC
 
 import autograd
 import joblib
@@ -72,7 +73,7 @@ def grad(y_pred, y_true, metric):
     return loss_grad
 
 
-class RiemannianMetric(Connection):
+class RiemannianMetric(Connection, ABC):
     """Class for Riemannian and pseudo-Riemannian metrics.
 
     Parameters
@@ -90,6 +91,8 @@ class RiemannianMetric(Connection):
     def __init__(self, dim, signature=None, default_point_type='vector'):
         super(RiemannianMetric, self).__init__(
             dim=dim, default_point_type=default_point_type)
+        if signature is None:
+            signature = (dim, 0)
         self.signature = signature
 
     def metric_matrix(self, base_point=None):
@@ -174,7 +177,7 @@ class RiemannianMetric(Connection):
         christoffels = 0.5 * (term_1 + term_2 + term_3)
         return christoffels
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Inner product between two tangent vectors at a base point.
 
         Parameters
@@ -245,7 +248,7 @@ class RiemannianMetric(Connection):
         norm = gs.sqrt(sq_norm)
         return norm
 
-    def squared_dist(self, point_a, point_b):
+    def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.
 
         Parameters
@@ -260,12 +263,12 @@ class RiemannianMetric(Connection):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        log = self.log(point=point_b, base_point=point_a)
+        log = self.log(point=point_b, base_point=point_a, **kwargs)
 
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
         return sq_dist
 
-    def dist(self, point_a, point_b):
+    def dist(self, point_a, point_b, **kwargs):
         """Geodesic distance between two points.
 
         Note: It only works for positive definite
@@ -283,8 +286,55 @@ class RiemannianMetric(Connection):
         dist : array-like, shape=[...,]
             Distance.
         """
-        sq_dist = self.squared_dist(point_a, point_b)
+        sq_dist = self.squared_dist(point_a, point_b, **kwargs)
         dist = gs.sqrt(sq_dist)
+        return dist
+
+    def dist_broadcast(self, point_a, point_b):
+        """Compute the geodesic distance between points.
+
+        If n_samples_a == n_samples_b then dist is the element-wise
+        distance result of a point in points_a with the point from
+        points_b of the same index. If n_samples_a not equal to
+        n_samples_b then dist is the result of applying geodesic
+        distance for each point from points_a to all points from
+        points_b.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[n_samples_a, dim]
+            Set of points in the Poincare ball.
+        point_b : array-like, shape=[n_samples_b, dim]
+            Second set of points in the Poincare ball.
+
+        Returns
+        -------
+        dist : array-like,
+            shape=[n_samples_a, dim] or [n_samples_a, n_samples_b, dim]
+            Geodesic distance between the two points.
+        """
+        point_type = self.default_point_type
+        ndim = 1 if point_type == 'vector' else 2
+
+        if point_a.shape[-ndim:] != point_b.shape[-ndim:]:
+            raise ValueError('Manifold dimensions not equal')
+
+        if ndim in (point_a.ndim, point_b.ndim) or (
+                point_a.shape == point_b.shape):
+            return self.dist(point_a, point_b)
+
+        n_samples = point_a.shape[0] * point_b.shape[0]
+        point_a_broadcast, point_b_broadcast = gs.broadcast_arrays(
+            point_a[:, None], point_b[None, ...])
+
+        point_a_flatten = gs.reshape(
+            point_a_broadcast, (n_samples, ) + point_a.shape[-ndim:])
+        point_b_flatten = gs.reshape(
+            point_b_broadcast, (n_samples, ) + point_a.shape[-ndim:])
+
+        dist = self.dist(point_a_flatten, point_b_flatten)
+        dist = gs.reshape(dist, (point_a.shape[0], point_b.shape[0]))
+        dist = gs.squeeze(dist)
         return dist
 
     def dist_pairwise(self, points, n_jobs=1, **joblib_kwargs):
@@ -309,7 +359,7 @@ class RiemannianMetric(Connection):
 
         See Also
         --------
-        https://joblib.readthedocs.io/en/latest/
+        `joblib documentations <https://joblib.readthedocs.io/en/latest/>`_
         """
         n_samples = points.shape[0]
         rows, cols = gs.triu_indices(n_samples)
@@ -375,10 +425,10 @@ class RiemannianMetric(Connection):
 
         return closest_neighbor_index
 
-    def orthonormal_basis(self, basis, base_point=None):
-        """Orthonormalize the basis with respect to the metric.
+    def normal_basis(self, basis, base_point=None):
+        """Normalize the basis with respect to the metric.
 
-        This corresponds to a renormalization.
+        This corresponds to a renormalization of each basis vector.
 
         Parameters
         ----------
@@ -389,7 +439,7 @@ class RiemannianMetric(Connection):
         Returns
         -------
         basis : array-like, shape=[dim, n, n]
-            Orthonormal basis.
+            Normal basis.
         """
         norms = self.squared_norm(basis, base_point)
 
@@ -400,9 +450,9 @@ class RiemannianMetric(Connection):
         r"""Compute the sectional curvature.
 
         For two orthonormal tangent vectors :math: `x,y` at a base point,
-        the sectional curvature is defined by :math: `<R(x, y)x, y> =
-        <R_x(y), y>`. For non-orthonormal vectors vectors, it is :math:
-        `<R(x, y)x, y> / \\|x \\wedge y\\|^2`.
+        the sectional curvature is defined by :math:`<R(x, y)x, y> =
+        <R_x(y), y>`. For non-orthonormal vectors vectors, it is
+        :math:`<R(x, y)x, y> / \\|x \\wedge y\\|^2`.
 
         Parameters
         ----------

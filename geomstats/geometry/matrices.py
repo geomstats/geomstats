@@ -5,10 +5,11 @@ from functools import reduce
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
+from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.euclidean import EuclideanMetric
 
 
-class Matrices:
+class Matrices(VectorSpace):
     """Class for the space of matrices (m, n).
 
     Parameters
@@ -18,28 +19,37 @@ class Matrices:
     """
 
     def __init__(self, m, n, **kwargs):
-        super(Matrices, self).__init__(**kwargs)
+        if 'default_point_type' not in kwargs.keys():
+            kwargs['default_point_type'] = 'matrix'
+        super(Matrices, self).__init__(
+            shape=(m, n), metric=MatricesMetric(m, n), **kwargs)
         geomstats.errors.check_integer(n, 'n')
         geomstats.errors.check_integer(m, 'm')
         self.m = m
         self.n = n
-        self.metric = MatricesMetric(m, n)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Check if point belongs to the Matrices space.
 
         Parameters
         ----------
         point : array-like, shape=[..., m, n]
             Point to be checked.
+        atol : float
+            Unused here.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the Matrices space.
         """
+        ndim = point.ndim
+        if ndim == 1:
+            return False
         mat_dim_1, mat_dim_2 = point.shape[-2:]
-        return (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
+        belongs = (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
+        return belongs if ndim == 2 else gs.tile(
+            gs.array([belongs]), [point.shape[0]])
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
@@ -53,17 +63,14 @@ class Matrices:
             Matrix.
         atol : float
             Tolerance.
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
         eq : array-like, shape=[...,]
             Boolean evaluating if the matrices are close.
         """
-        is_vectorized = \
-            (gs.ndim(gs.array(mat_a)) == 3) or (gs.ndim(gs.array(mat_b)) == 3)
-        axes = (1, 2) if is_vectorized else (0, 1)
-        return gs.all(gs.isclose(mat_a, mat_b, atol=atol), axes)
+        return gs.all(gs.isclose(mat_a, mat_b, atol=atol), (-2, -1))
 
     @staticmethod
     def mul(*args):
@@ -123,6 +130,22 @@ class Matrices:
         return gs.transpose(mat, axes)
 
     @staticmethod
+    def diagonal(mat):
+        """Return the diagonal of a matrix as a vector.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., m, n]
+            Matrix.
+
+        Returns
+        -------
+        diagonal : array-like, shape=[..., min(m, n)]
+            Vector of diagonal coefficients.
+        """
+        return gs.diagonal(mat, axis1=-2, axis2=-1)
+
+    @staticmethod
     def is_square(mat):
         """Check if a matrix is square.
 
@@ -150,7 +173,7 @@ class Matrices:
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -173,7 +196,7 @@ class Matrices:
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -225,7 +248,7 @@ class Matrices:
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-5.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -235,14 +258,13 @@ class Matrices:
         is_square = cls.is_square(mat)
         if not gs.all(is_square):
             return False
-        diagonal_mat = from_vector_to_diagonal_matrix(
-            gs.diagonal(mat, axis1=-2, axis2=-1))
+        diagonal_mat = from_vector_to_diagonal_matrix(cls.diagonal(mat))
         is_diagonal = gs.all(
             gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
         return is_diagonal
 
     def random_point(self, n_samples=1, bound=1.):
-        """Sample from a uniform distribution.
+        """Sample from a uniform distribution in a cube.
 
         Parameters
         ----------
@@ -255,7 +277,7 @@ class Matrices:
 
         Returns
         -------
-        point : array-like, shape=[m, n] or [n_samples, m, n]
+        point : array-like, shape=[..., m, n]
             Sample.
         """
         m, n = self.m, self.n
@@ -361,3 +383,23 @@ class MatricesMetric(EuclideanMetric):
             Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+
+    def norm(self, vector, base_point=None):
+        """Compute norm of a matrix.
+
+        Norm of a matrix associated to the Frobenius inner product.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        norm : array-like, shape=[...,]
+            Norm.
+        """
+        return gs.linalg.norm(vector, axis=(-2, -1))

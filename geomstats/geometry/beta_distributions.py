@@ -20,7 +20,7 @@ class BetaDistributions(DirichletDistributions):
     ----------
     dim : int
         Dimension of the manifold of beta distributions, equal to 2.
-    embedding_manifold : Manifold
+    embedding_space : Manifold
         Embedding manifold.
     """
 

@@ -26,8 +26,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         point = gs.reshape(point, (n_samples, self.dim))
         mat = self.algebra.matrix_representation(point)
         result = gs.all(self.algebra.belongs(mat))
-        expected = True
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
     def test_basis_and_matrix_representation(self):
         n_samples = 2
@@ -41,7 +40,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         group = SpecialOrthogonal(3)
         lie_algebra = SkewSymmetricMatrices(3)
         metric = InvariantMetric(group=group)
-        basis = metric.orthonormal_basis(lie_algebra.basis)
+        basis = metric.normal_basis(lie_algebra.basis)
         result = metric.inner_product_at_identity(basis[0], basis[1])
         self.assertAllClose(result, 0.)
 
@@ -53,7 +52,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         metric = InvariantMetric(
             group=group,
             metric_mat_at_identity=metric_mat)
-        basis = metric.orthonormal_basis(lie_algebra.basis)
+        basis = metric.normal_basis(lie_algebra.basis)
         result = metric.inner_product_at_identity(basis[0], basis[1])
         self.assertAllClose(result, 0.)
 
@@ -64,7 +63,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         group = SpecialEuclidean(3)
         lie_algebra = group.lie_algebra
         metric = InvariantMetric(group=group)
-        basis = metric.orthonormal_basis(lie_algebra.basis)
+        basis = metric.normal_basis(lie_algebra.basis)
         for i, x in enumerate(basis):
             for y in basis[i:]:
                 result = metric.inner_product_at_identity(x, y)
@@ -76,7 +75,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         metric = InvariantMetric(
             group=group,
             metric_mat_at_identity=metric_mat)
-        basis = metric.orthonormal_basis(lie_algebra.basis)
+        basis = metric.normal_basis(lie_algebra.basis)
         for i, x in enumerate(basis):
             for y in basis[i:]:
                 result = metric.inner_product_at_identity(x, y)

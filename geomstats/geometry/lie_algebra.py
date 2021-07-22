@@ -6,13 +6,17 @@ The second is by choosing a base and remembering the coefficients of an element
 in that base. This base will be provided in child classes
 (e.g. SkewSymmetricMatrices).
 """
+
+import abc
+
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.matrices import Matrices
 from ._bch_coefficients import BCH_COEFFICIENTS
 
 
-class MatrixLieAlgebra(Matrices):
+class MatrixLieAlgebra(VectorSpace, abc.ABC):
     """Class implementing matrix Lie algebra related functions.
 
     Parameters
@@ -25,11 +29,14 @@ class MatrixLieAlgebra(Matrices):
     """
 
     def __init__(self, dim, n, **kwargs):
-        super(MatrixLieAlgebra, self).__init__(m=n, n=n, **kwargs)
+        super(MatrixLieAlgebra, self).__init__(shape=(n, n), **kwargs)
         geomstats.errors.check_integer(dim, 'dim')
         geomstats.errors.check_integer(n, 'n')
         self.dim = dim
         self.basis = None
+        self.n = n
+
+    bracket = Matrices.bracket
 
     def baker_campbell_hausdorff(self, matrix_a, matrix_b, order=2):
         """Calculate the Baker-Campbell-Hausdorff approximation of given order.
@@ -79,6 +86,7 @@ class MatrixLieAlgebra(Matrices):
                        el[i])
         return result
 
+    @abc.abstractmethod
     def basis_representation(self, matrix_representation):
         """Compute the coefficients of matrices in the given basis.
 
@@ -114,19 +122,3 @@ class MatrixLieAlgebra(Matrices):
             raise NotImplementedError("basis not implemented")
 
         return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)
-
-    def projection(self, mat):
-        """Project a matrix to the Lie Algebra.
-
-        Parameters
-        ----------
-        mat : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        projected : array-like, shape=[..., n, n]
-            Matrix belonging to Lie Algebra.
-        """
-        raise NotImplementedError('Projection to Lie Algebra is not '
-                                  'implemented.')

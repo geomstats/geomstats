@@ -40,18 +40,22 @@ class ProductManifold(Manifold):
 
     # FIXME (nguigs): This only works for 1d points
 
-    def __init__(self, manifolds, default_point_type='vector', n_jobs=1):
+    def __init__(
+            self, manifolds, metrics=None,
+            default_point_type='vector',
+            n_jobs=1, **kwargs):
         geomstats.errors.check_parameter_accepted_values(
             default_point_type, 'default_point_type', ['vector', 'matrix'])
 
         self.dims = [manifold.dim for manifold in manifolds]
+        if metrics is None:
+            metrics = [manifold.metric for manifold in manifolds]
+        metric = ProductRiemannianMetric(
+            metrics, default_point_type=default_point_type, n_jobs=n_jobs)
         super(ProductManifold, self).__init__(
-            dim=sum(self.dims),
-            default_point_type=default_point_type)
+            dim=sum(self.dims), metric=metric,
+            default_point_type=default_point_type, **kwargs)
         self.manifolds = manifolds
-        self.metric = ProductRiemannianMetric(
-            [manifold.metric for manifold in manifolds],
-            default_point_type=default_point_type)
         self.n_jobs = n_jobs
 
     @staticmethod
@@ -63,62 +67,61 @@ class ProductManifold(Manifold):
 
         cum_index = gs.cumsum(self.dims)[:-1] if intrinsic else \
             gs.cumsum([k + 1 for k in self.dims])
-        arguments = {key: gs.split(
-            args[key], cum_index, axis=1) for key in args.keys()}
-        args_list = [{key: arguments[key][j] for key in args.keys()} for j in
-                     range(len(self.manifolds))]
+        arguments = {}
+        float_args = {}
+        for key, value in args.items():
+            if not isinstance(value, float):
+                arguments[key] = gs.split(value, cum_index, axis=-1)
+            else:
+                float_args[key] = value
+        args_list = [
+            {key: arguments[key][j] for key in arguments}
+            for j in range(len(self.manifolds))]
         pool = joblib.Parallel(n_jobs=self.n_jobs)
         out = pool(
             joblib.delayed(self._get_method)(
-                self.manifolds[i], func, args_list[i]) for i in range(
-                len(self.manifolds)))
+                self.manifolds[i], func, {**args_list[i], **float_args})
+            for i in range(len(self.manifolds)))
         return out
 
-    @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
-    def belongs(self, point, point_type=None):
+    def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the manifold.
 
         Parameters
         ----------
-        point : array-like, shape=[..., {dim, [dim_2, dim_2]}]
+        point : array-like, shape=[..., {dim, [n_manifolds, dim_each]}]
             Point.
-        point_type : str, {'vector', 'matrix'}
-            Representation of point.
-            Optional, default: None.
+        atol : float,
+            Tolerance.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
             Boolean evaluating if the point belongs to the manifold.
         """
-        if point_type is None:
-            point_type = self.default_point_type
-        geomstats.errors.check_parameter_accepted_values(
-            point_type, 'point_type', ['vector', 'matrix'])
+        point_type = self.default_point_type
 
         if point_type == 'vector':
             intrinsic = self.metric.is_intrinsic(point)
             belongs = self._iterate_over_manifolds(
-                'belongs', {'point': point}, intrinsic)
-            belongs = gs.stack(belongs, axis=1)
+                'belongs', {'point': point, 'atol': atol}, intrinsic)
+            belongs = gs.stack(belongs, axis=-1)
 
         else:
             belongs = gs.stack([
-                space.belongs(point[:, i]) for i, space in enumerate(
-                    self.manifolds)],
-                axis=1)
+                space.belongs(point[..., i, :], atol) for i, space in
+                enumerate(self.manifolds)],
+                axis=-1)
 
-        belongs = gs.all(belongs, axis=1)
-        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
+        belongs = gs.all(belongs, axis=-1)
         return belongs
 
-    @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
-    def regularize(self, point, point_type=None):
+    def regularize(self, point):
         """Regularize the point into the manifold's canonical representation.
 
         Parameters
         ----------
-        point : array-like, shape=[..., {dim, [dim_2, dim_2]}]
+        point : array-like, shape=[..., {dim, [n_manifolds, dim_each]}]
             Point to be regularized.
         point_type : str, {'vector', 'matrix'}
             Representation of point.
@@ -126,22 +129,20 @@ class ProductManifold(Manifold):
 
         Returns
         -------
-        regularized_point : array-like, shape=[..., {dim, [dim_2, dim_2]}]
+        regularized_point : array-like,
+            shape=[..., {dim, [n_manifolds, dim_each]}]
             Point in the manifold's canonical representation.
         """
-        if point_type is None:
-            point_type = self.default_point_type
-        geomstats.errors.check_parameter_accepted_values(
-            point_type, 'point_type', ['vector', 'matrix'])
+        point_type = self.default_point_type
 
         if point_type == 'vector':
             intrinsic = self.metric.is_intrinsic(point)
             regularized_point = self._iterate_over_manifolds(
                 'regularize', {'point': point}, intrinsic)
-            regularized_point = gs.hstack(regularized_point)
+            regularized_point = gs.concatenate(regularized_point, axis=-1)
         elif point_type == 'matrix':
             regularized_point = [
-                manifold_i.regularize(point[:, i])
+                manifold_i.regularize(point[..., i, :])
                 for i, manifold_i in enumerate(self.manifolds)]
             regularized_point = gs.stack(regularized_point, axis=1)
         return regularized_point
@@ -159,7 +160,7 @@ class ProductManifold(Manifold):
 
         Returns
         -------
-        samples : array-like, shape=[..., dim + 1]
+        samples : array-like, shape=[..., {dim, [n_manifolds, dim_each]}]
             Points sampled on the hypersphere.
         """
         point_type = self.default_point_type
@@ -178,3 +179,109 @@ class ProductManifold(Manifold):
             space.random_point(n_samples, bound) for space in self.manifolds]
         samples = gs.stack(point, axis=-2)
         return samples
+
+    def projection(self, point):
+        """Project a point in product embedding manifold on each manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., {dim, [n_manifolds, dim_each]}]
+            Point in embedding manifold.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., {dim, [n_manifolds, dim_each]}]
+            Projected point.
+        """
+        point_type = self.default_point_type
+        geomstats.errors.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
+
+        if point_type == 'vector':
+            intrinsic = self.metric.is_intrinsic(point)
+            projected_point = self._iterate_over_manifolds(
+                'projection', {'point': point}, intrinsic)
+            projected_point = gs.concatenate(projected_point, axis=-1)
+        elif point_type == 'matrix':
+            projected_point = [
+                manifold_i.projection(point[..., i, :])
+                for i, manifold_i in enumerate(self.manifolds)]
+            projected_point = gs.stack(projected_point, axis=-2)
+        return projected_point
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        The tangent space of the product manifold is the direct sum of
+        tangent spaces.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
+        point_type = self.default_point_type
+        geomstats.errors.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
+
+        if point_type == 'vector':
+            intrinsic = self.metric.is_intrinsic(base_point)
+            tangent_vec = self._iterate_over_manifolds(
+                'to_tangent',
+                {'base_point': base_point, 'vector': vector}, intrinsic)
+            tangent_vec = gs.concatenate(tangent_vec, axis=-1)
+        elif point_type == 'matrix':
+            tangent_vec = [
+                manifold_i.to_tangent(vector[..., i, :], base_point[..., i, :])
+                for i, manifold_i in enumerate(self.manifolds)]
+            tangent_vec = gs.stack(tangent_vec, axis=-2)
+        return tangent_vec
+
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check whether the vector is tangent at base_point.
+
+        The tangent space of the product manifold is the direct sum of
+        tangent spaces.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        point_type = self.default_point_type
+        geomstats.errors.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
+
+        if point_type == 'vector':
+            intrinsic = self.metric.is_intrinsic(base_point)
+            is_tangent = self._iterate_over_manifolds(
+                'is_tangent',
+                {'base_point': base_point, 'vector': vector, 'atol': atol},
+                intrinsic)
+            is_tangent = gs.stack(is_tangent, axis=-1)
+
+        else:
+            is_tangent = gs.stack([
+                space.is_tangent(
+                    vector[..., i, :], base_point[..., i, :], atol=atol)
+                for i, space in enumerate(self.manifolds)], axis=-1)
+
+        is_tangent = gs.all(is_tangent, axis=-1)
+        return is_tangent

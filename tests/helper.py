@@ -95,12 +95,12 @@ def test_parallel_transport(space, metric, shape):
     def is_isometry(tan_a, trans_a, endpoint):
         is_tangent = space.is_tangent(trans_a, endpoint)
         is_equinormal = gs.isclose(
-            metric.norm(trans_a), metric.norm(tan_a))
+            metric.norm(trans_a, endpoint), metric.norm(tan_a, endpoint))
         return gs.logical_and(is_tangent, is_equinormal)
 
     base_point = space.random_point(shape[0])
-    tan_vec_a = space.to_tangent(gs.random.rand(*shape), base_point)
-    tan_vec_b = space.to_tangent(gs.random.rand(*shape), base_point)
+    tan_vec_a = space.to_tangent(gs.random.rand(*shape) / 5, base_point)
+    tan_vec_b = space.to_tangent(gs.random.rand(*shape) / 5, base_point)
     end_point = metric.exp(tan_vec_b, base_point)
 
     transported = metric.parallel_transport(
@@ -135,4 +135,47 @@ def test_parallel_transport(space, metric, shape):
     result = is_isometry(one_tan_vec_a, transported, end_point)
     results.append(gs.all(result))
 
+    transported = metric.parallel_transport(
+        one_tan_vec_a, gs.zeros_like(one_tan_vec_b), base_point)
+    result = gs.isclose(transported, one_tan_vec_a)
+    results.append(gs.all(result))
+
     return results
+
+
+def test_projection_and_belongs(space, shape, atol=gs.atol):
+    result = []
+
+    point = gs.random.normal(size=shape)
+    projected = space.projection(point)
+    belongs = space.belongs(projected, atol=atol)
+    result.append(gs.all(belongs))
+
+    point = point[0]
+    projected = space.projection(point)
+    belongs = space.belongs(projected, atol=atol)
+    result.append(belongs)
+
+    point = space.random_point()
+    projected = space.projection(point)
+    result.append(gs.allclose(point, projected, atol=atol))
+    return result
+
+
+def test_to_tangent_is_tangent(space, atol=gs.atol):
+    result = []
+
+    point = space.random_point(2)
+    vector = gs.random.rand(*point.shape)
+    tangent = space.to_tangent(vector, point)
+    is_tangent = space.is_tangent(tangent, point, atol)
+    result.append(gs.all(is_tangent))
+
+    vector = gs.random.rand(*point.shape)
+    tangent = space.to_tangent(vector[0], point[0])
+    is_tangent = space.is_tangent(tangent, point[0], atol)
+    result.append(is_tangent)
+
+    projection = space.to_tangent(tangent, point[0])
+    result.append(gs.allclose(projection, tangent, atol))
+    return result

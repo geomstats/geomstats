@@ -1,23 +1,26 @@
 """Pytorch based computation backend."""
 
+import math
 from functools import wraps
 
 import numpy as _np
 import torch
 from torch import (  # NOQA
-    acos as arccos,
     arange,
     argmin,
-    asin as arcsin,
+    arccos,
+    arccosh,
+    arcsin,
+    arctanh,
     atan2 as arctan2,
     bool as t_bool,
     broadcast_tensors as broadcast_arrays,
     ceil,
-    clamp as clip,
+    clip,
     cos,
     cosh,
     cross,
-    div as divide,
+    divide,
     empty_like,
     eq,
     erf,
@@ -28,13 +31,16 @@ from torch import (  # NOQA
     float64,
     floor,
     fmod as mod,
-    ger as outer,
-    gt as greater,
+    outer,
+    greater,
+    hstack,
+    imag,
     int32,
     int64,
     isnan,
     log,
-    lt as less,
+    logical_or,
+    less,
     matmul,
     max as amax,
     mean,
@@ -45,6 +51,7 @@ from torch import (  # NOQA
     ones_like,
     polygamma,
     pow as power,
+    real,
     repeat_interleave as repeat,
     reshape,
     sign,
@@ -56,6 +63,7 @@ from torch import (  # NOQA
     tanh,
     tril,
     uint8,
+    vstack,
     zeros,
     zeros_like
 )
@@ -63,7 +71,7 @@ from torch import (  # NOQA
 from . import autograd # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-
+from ..constants import pytorch_atol, pytorch_rtol
 
 DTYPES = {
     int32: 0,
@@ -72,8 +80,8 @@ DTYPES = {
     float64: 3}
 
 
-atol = 1e-6
-rtol = 1e-5
+atol = pytorch_atol
+rtol = pytorch_rtol
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -97,14 +105,27 @@ ceil = _box_scalar(ceil)
 cos = _box_scalar(cos)
 cosh = _box_scalar(cosh)
 exp = _box_scalar(exp)
+imag = _box_scalar(imag)
 log = _box_scalar(log)
+real = _box_scalar(real)
 sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
 tan = _box_scalar(tan)
 
 
+def comb(n, k):
+    return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
+
+
 def to_numpy(x):
     return x.numpy()
+
+
+def one_hot(labels, num_classes):
+    if not torch.is_tensor(labels):
+        labels = torch.LongTensor(labels)
+    return torch.nn.functional.one_hot(
+        labels, num_classes).type(torch.uint8)
 
 
 def argmax(a, **kwargs):
@@ -148,13 +169,9 @@ def split(x, indices_or_sections, axis=0):
     return torch.split(x, tuple(intervals_length), dim=axis)
 
 
-def logical_or(x, y):
-    return x or y
-
-
 def logical_and(x, y):
     if torch.is_tensor(x):
-        return x & y
+        return torch.logical_and(x, y)
     return x and y
 
 
@@ -192,14 +209,6 @@ def flip(x, axis):
 def concatenate(seq, axis=0, out=None):
     seq = convert_to_wider_dtype(seq)
     return torch.cat(seq, dim=axis, out=out)
-
-
-def hstack(seq):
-    return concatenate(seq, axis=1)
-
-
-def vstack(seq):
-    return concatenate(seq)
 
 
 def _get_largest_dtype(seq):
@@ -300,7 +309,7 @@ def get_slice(x, indices):
     return x[indices]
 
 
-def allclose(a, b, **kwargs):
+def allclose(a, b, atol=atol, rtol=rtol):
     if not isinstance(a, torch.Tensor):
         a = torch.tensor(a)
     if not isinstance(b, torch.Tensor):
@@ -316,21 +325,7 @@ def allclose(a, b, **kwargs):
     elif n_a < n_b:
         reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
         a = tile(a, reps)
-    return torch.allclose(a, b, **kwargs)
-
-
-def arccosh(x):
-    c0 = torch.log(x)
-    c1 = torch.log1p(torch.sqrt(x * x - 1) / x)
-    return c0 + c1
-
-
-def arcsinh(x):
-    return torch.log(x + torch.sqrt(x * x + 1))
-
-
-def arcosh(x):
-    return torch.log(x + torch.sqrt(x * x - 1))
+    return torch.allclose(a, b, atol=atol, rtol=rtol)
 
 
 def shape(val):
@@ -350,6 +345,12 @@ def to_ndarray(x, to_ndim, axis=0):
     if x.dim() == to_ndim - 1:
         x = torch.unsqueeze(x, dim=axis)
     return x
+
+
+def broadcast_to(x, shape):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    return x.expand(shape)
 
 
 def sqrt(x):
@@ -464,6 +465,8 @@ def transpose(x, axes=None):
         return x.permute(axes)
     if x.dim() == 1:
         return x
+    if x.dim() > 2 and axes is None:
+        return x.permute(tuple(range(x.ndim)[::-1]))
     return x.t()
 
 
@@ -487,11 +490,6 @@ def trace(x, axis1=0, axis2=1):
     raise NotImplementedError()
 
 
-@_box_scalar
-def arctanh(x):
-    return 0.5 * torch.log((1 + x) / (1 - x))
-
-
 def linspace(start, stop, num):
     return torch.linspace(start=start, end=stop, steps=num)
 
@@ -504,12 +502,20 @@ def equal(a, b, **kwargs):
     return torch.eq(a, b, **kwargs)
 
 
-def tril_indices(*args, **kwargs):
-    return tuple(map(torch.from_numpy, _np.tril_indices(*args, **kwargs)))
+def diag_indices(*args, **kwargs):
+    return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
 
 
-def triu_indices(*args, **kwargs):
-    return tuple(map(torch.from_numpy, _np.triu_indices(*args, **kwargs)))
+def tril_indices(n, k=0, m=None):
+    if m is None:
+        m = n
+    return torch.tril_indices(row=n, col=m, offset=k)
+
+
+def triu_indices(n, k=0, m=None):
+    if m is None:
+        m = n
+    return torch.triu_indices(row=n, col=m, offset=k)
 
 
 def tile(x, y):
@@ -564,8 +570,8 @@ def set_diag(x, new_diag):
 
 def prod(x, axis=None):
     if axis is None:
-        return torch.prod(x)
-    return torch.prod(x, dim=axis)
+        axis = 0
+    return torch.prod(x, axis)
 
 
 def where(condition, x=None, y=None):
@@ -733,8 +739,8 @@ def cumsum(x, axis=None):
 
 def cumprod(x, axis=None):
     if axis is None:
-        return x.flatten().cumprod(dim=0)
-    return torch.cumprod(x, dim=axis)
+        axis = 0
+    return torch.cumprod(x, axis)
 
 
 def array_from_sparse(indices, data, target_shape):
@@ -772,3 +778,29 @@ def triu_to_vec(x, k=0):
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
+
+
+def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
+    """Build matrix from given components.
+
+    Forms a matrix from diagonal, strictly upper triangular and
+    strictly lower traingular parts.
+
+    Parameters
+    ----------
+    diag : array_like, shape=[..., n]
+    tri_upp : array_like, shape=[..., (n * (n - 1)) / 2]
+    tri_low : array_like, shape=[..., (n * (n - 1)) / 2]
+
+    Returns
+    -------
+    mat : array_like, shape=[..., n, n]
+    """
+    n = diag.shape[-1]
+    i, = diag_indices(n, ndim=1)
+    j, k = triu_indices(n, k=1)
+    mat = torch.zeros((diag.shape + (n, )))
+    mat[..., i, i] = diag
+    mat[..., j, k] = tri_upp
+    mat[..., k, j] = tri_low
+    return mat

@@ -236,6 +236,17 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(expected, result)
 
+    def test_estimate_spd_two_samples(self):
+        space = SPDMatrices(3)
+        metric = SPDMetricAffine(3)
+        point = space.random_point(2)
+        mean = FrechetMean(metric)
+        mean.fit(point)
+        result = mean.estimate_
+        expected = metric.exp(
+            metric.log(point[0], point[1]) / 2, point[1])
+        self.assertAllClose(expected, result)
+
     def test_variance_hyperbolic(self):
         point = gs.array([2., 1., 1., 1.])
         points = gs.array([point, point])
@@ -422,9 +433,26 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
         mean = FrechetMean(
-            metric=self.sphere.metric, method='frechet-poincare-ball')
+            metric=self.sphere.metric, method='default')
         mean.fit(X=point)
 
         result = mean.estimate_
         expected = point
+        self.assertAllClose(expected, result)
+
+    def test_batched(self):
+        space = SPDMatrices(3)
+        metric = SPDMetricAffine(3)
+        point = space.random_point(4)
+        mean_batch = FrechetMean(metric, method='batch', verbose=True)
+        data = gs.stack([point[:2], point[2:]], axis=1)
+        mean_batch.fit(data)
+        result = mean_batch.estimate_
+
+        mean = FrechetMean(metric)
+        mean.fit(data[:, 0])
+        expected_1 = mean.estimate_
+        mean.fit(data[:, 1])
+        expected_2 = mean.estimate_
+        expected = gs.stack([expected_1, expected_2])
         self.assertAllClose(expected, result)

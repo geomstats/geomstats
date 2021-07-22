@@ -14,7 +14,8 @@ from matplotlib.patches import Circle
 
 import geomstats.backend as gs
 from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.learning.expectation_maximization import RiemannianEM
+from geomstats.learning.expectation_maximization import RiemannianEM, \
+    weighted_gmm_pdf
 
 DEFAULT_PLOT_PRECISION = 100
 
@@ -41,13 +42,12 @@ def plot_gaussian_mixture_distribution(data,
             gs.expand_dims(y_axis_samples[z_index], -1)),
             axis=-1)
 
-        mesh_probabilities = PoincareBall.\
-            weighted_gmm_pdf(
-                mixture_coefficients,
-                x_y_plane_mesh,
-                means,
-                variances,
-                metric)
+        mesh_probabilities = weighted_gmm_pdf(
+            mixture_coefficients,
+            x_y_plane_mesh,
+            means,
+            variances,
+            metric)
 
         z_axis_samples[z_index] = mesh_probabilities.sum(-1)
 
@@ -122,12 +122,9 @@ def expectation_maximisation_poincare_ball():
 
     EM = RiemannianEM(n_gaussians=n_clusters,
                       metric=metric,
-                      initialisation_method='random',
-                      mean_method='frechet-poincare-ball')
+                      initialisation_method='random')
 
-    means, variances, mixture_coefficients = EM.fit(
-        data=data,
-        max_iter=100)
+    means, variances, mixture_coefficients = EM.fit(data=data)
 
     # Plot result
     plot = plot_gaussian_mixture_distribution(data,

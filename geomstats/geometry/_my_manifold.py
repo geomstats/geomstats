@@ -12,9 +12,6 @@ import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 
 
-ATOL = 1e-6
-
-
 # This class inherits from the class Manifold.
 # Inheritance in geomstats means that the class MyManifold will reuse code
 # that is in the Manifold class.
@@ -42,7 +39,7 @@ class MyManifold(Manifold):
         self.another_parameter = another_parameter
 
     # Implement the main methods of MyManifold, for example belongs:
-    def belongs(self, point, atol=ATOL):
+    def belongs(self, point, atol=gs.atol):
         """Give a one-liner description of the method.
 
         For example: Evaluate if a point belongs to MyManifold.
@@ -65,7 +62,7 @@ class MyManifold(Manifold):
             Point to evaluate.
         atol : float
             Tolerance, unused.
-            Optional, default: ATOL
+            Optional, default: backend atol
 
         List the outputs of the method.
         For example:
@@ -83,7 +80,7 @@ class MyManifold(Manifold):
         return belongs
 
     # Another example of method of MyManifold.
-    def is_tangent(self, vector, base_point=None):
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether vector is tangent to the manifold at base_point.
 
         In what follows, the ellipsis ... indicates either nothing
@@ -100,6 +97,8 @@ class MyManifold(Manifold):
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
             Optional, default: None.
+        atol : float
+            Absolute tolerance threshold
 
         Returns
         -------
@@ -112,3 +111,39 @@ class MyManifold(Manifold):
         if gs.ndim(vector) == 2:
             is_tangent = gs.tile([is_tangent], (vector.shape[0],))
         return is_tangent
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
+
+    def random_point(self, n_samples=1, bound=1.):
+        """Sample random points on the manifold.
+
+        If the manifold is compact, a uniform distribution is used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact manifolds.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., {dim, [n, n]}]
+            Points sampled on the hypersphere.
+        """
