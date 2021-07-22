@@ -1,4 +1,4 @@
-"""Statistical Manifold of multinomial distributions with the Fisher metric."""
+"""Statistical Manifold of categorical distributions with the Fisher metric."""
 
 from scipy.stats import dirichlet
 from scipy.stats import multinomial
