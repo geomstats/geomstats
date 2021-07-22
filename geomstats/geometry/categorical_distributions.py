@@ -56,9 +56,10 @@ class CategoricalDistributions(EmbeddedManifold):
         return dirichlet.rvs(gs.ones(self.dim + 1), size=n_samples)
 
     def projection(self, point, atol=gs.atol):
-        """Project a point on the simplex. Negative components
-        are replaced by zero and the point is renormalized by its
-        1-norm.
+        """Project a point on the simplex.
+
+        Negative components are replaced by zero and the point is
+        renormalized by its 1-norm.
 
         Parameters
         ----------
