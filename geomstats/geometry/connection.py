@@ -357,14 +357,16 @@ class Connection(ABC):
 
         References
         ----------
-        .. [LP2013b] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport
-          of Deformations in Time Series of Images: from Schild's to
-          Pole Ladder.Journal of Mathematical Imaging and Vision, Springer
-          Verlag, 2013, 50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
+        .. [LP2013b] Lorenzi, Marco, and Xavier Pennec. “Efficient Parallel
+        Transport of Deformations in Time Series of Images: From Schild to
+        Pole Ladder.” Journal of Mathematical Imaging and Vision 50, no. 1
+        (September 1, 2014): 5–17. https://doi.org/10.1007/s10851-013-0470-3.
 
-        .. [GP2020] Nicolas Guigui, Xavier Pennec. Numerical Accuracy of
-          Ladder Schemes for Parallel Transport on Manifolds. 2020.
-          ⟨hal-02894783⟩
+
+        .. [GP2020] Guigui, Nicolas, and Xavier Pennec. “Numerical Accuracy
+        of Ladder Schemes for Parallel Transport on Manifolds.”
+        Foundations of Computational Mathematics, June 18, 2021.
+        https://doi.org/10.1007/s10208-021-09515-x.
         """
         geomstats.errors.check_integer(n_rungs, 'n_rungs')
         if alpha < 1:
@@ -410,18 +412,18 @@ class Connection(ABC):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., dim]
+        tangent_vec_a : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., dim]
+        tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at `base_point`.
-        tangent_vec_c : array-like, shape=[..., dim]
+        tangent_vec_c : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at `base_point`.
-        base_point :  array-like, shape=[..., dim]
-            Base-point on the manifold.
+        base_point :  array-like, shape=[..., {dim, [n, m]}]
+            Point on the group. Optional, default is the identity.
 
         Returns
         -------
-        curvature : array-like, shape=[..., dim]
+        curvature : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at `base_point`.
         """
         raise NotImplementedError('The curvature is not implemented.')
@@ -466,43 +468,16 @@ class Connection(ABC):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., dim]
+        tangent_vec_a : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., dim]
+        tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at `base_point`.
-        tangent_vec_c : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
-        tangent_vec_d : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., dim]
-            Base-point on the manifold.
+        base_point :  array-like, shape=[..., {dim, [n, m]}]
+            Point on the group. Optional, default is the identity.
 
         Returns
         -------
-        curvature_derivative : array-like, shape=[..., dim]
-            Tangent vector at `base-point`.
-        """
-        raise NotImplementedError('The curvature derivative is not '
-                                  'implemented.')
-
-    def directional_curvature_derivative(
-            self, tangent_vec_a, tangent_vec_b, base_point=None):
-        r"""Compute the covariant derivative of the directional curvature.
-
-        For two vectors fields :math: `X|_P = tangent_vec_a, Y|_P =
-        tangent_vec_b` with tangent vector value specified in argument at the
-        base point `P`, the covariant derivative (in the direction 'X')
-        :math: `(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
-        directional curvature (in the direction `Y`)
-        :math: `R_Y(X) = R(Y, X) Y`  is a quadratic tensor in 'X' and 'Y' that
-        plays an important role in the computation of the moments of the
-        empirical Fréchet mean [Pennec]_.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., dim]
+        directional_curvature : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., dim]
             Base-point on the manifold.
@@ -612,22 +587,22 @@ class Connection(ABC):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        along the geodesic defined by :math:`t \mapsto exp_(base_point)(t*
         tangent_vec_b)`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., dim]
+        tangent_vec_a : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[..., dim]
+        tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at base point, along which the parallel transport
             is computed.
-        base_point : array-like, shape=[..., dim]
-            Point on the hypersphere.
+        base_point : array-like, shape=[..., {dim, [n, m]}]
+            Point on the manifold.
 
         Returns
         -------
-        transported_tangent_vec: array-like, shape=[..., dim]
+        transported_tangent_vec: array-like, shape=[..., {dim, [n, m]}]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         raise NotImplementedError(

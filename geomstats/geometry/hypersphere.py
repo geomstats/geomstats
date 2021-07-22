@@ -5,6 +5,7 @@ Euclidean space.
 """
 
 import logging
+import math
 from itertools import product
 
 from scipy.stats import beta
@@ -466,8 +467,7 @@ class HypersphereMetric(RiemannianMetric):
 
     def __init__(self, dim):
         super(HypersphereMetric, self).__init__(
-            dim=dim,
-            signature=(dim, 0))
+            dim=dim, signature=(dim, 0))
         self.embedding_metric = EuclideanMetric(dim + 1)
         self._space = _Hypersphere(dim=dim)
 
@@ -736,6 +736,98 @@ class HypersphereMetric(RiemannianMetric):
         first_term = gs.einsum('...,...i->...i', inner_bc, tangent_vec_a)
         second_term = gs.einsum('...,...i->...i', inner_ac, tangent_vec_b)
         return - first_term + second_term
+
+    def _normalization_factor_odd_dim(self, variances):
+        """Compute the normalization factor - odd dimension."""
+        dim = self.dim
+        half_dim = int((dim + 1) / 2)
+        area = 2 * gs.pi ** half_dim / math.factorial(half_dim - 1)
+        comb = gs.comb(dim - 1, half_dim - 1)
+
+        erf_arg = gs.sqrt(variances / 2) * gs.pi
+        first_term = area / (2 ** dim - 1) * comb * gs.sqrt(
+            gs.pi / (2 * variances)) * gs.erf(erf_arg)
+
+        def summand(k):
+            exp_arg = - (dim - 1 - 2 * k) ** 2 / 2 / variances
+            erf_arg_2 = (gs.pi * variances - (dim - 1 - 2 * k) * 1j) / gs.sqrt(
+                2 * variances)
+            sign = (- 1.) ** k
+            comb_2 = gs.comb(k, dim - 1)
+            return sign * comb_2 * gs.exp(exp_arg) * gs.real(gs.erf(erf_arg_2))
+
+        if half_dim > 2:
+            sum_term = gs.sum(
+                gs.stack([summand(k)] for k in range(half_dim - 2)))
+        else:
+            sum_term = summand(0)
+        coef = area / 2 / erf_arg * gs.pi ** .5 * (- 1.) ** (half_dim - 1)
+
+        return first_term + coef / 2 ** (dim - 2) * sum_term
+
+    def _normalization_factor_even_dim(self, variances):
+        """Compute the normalization factor - even dimension."""
+        dim = self.dim
+        half_dim = (dim + 1) / 2
+        area = 2 * gs.pi ** half_dim / math.gamma(half_dim)
+
+        def summand(k):
+            exp_arg = - (dim - 1 - 2 * k) ** 2 / 2 / variances
+            erf_arg_1 = (dim - 1 - 2 * k) * 1j / gs.sqrt(2 * variances)
+            erf_arg_2 = (gs.pi * variances - (dim - 1 - 2 * k) * 1j) / gs.sqrt(
+                2 * variances)
+            sign = (- 1.) ** k
+            comb = gs.comb(dim - 1, k)
+            erf_terms = gs.imag(gs.erf(erf_arg_2) + gs.erf(erf_arg_1))
+            return sign * comb * gs.exp(exp_arg) * erf_terms
+
+        half_dim_2 = int((dim - 2) / 2)
+        if half_dim_2 > 0:
+            sum_term = gs.sum(
+                gs.stack([summand(k)] for k in range(half_dim_2)))
+        else:
+            sum_term = summand(0)
+        coef = area * (- 1.) ** half_dim_2 / 2 ** (dim - 2) * gs.sqrt(
+            gs.pi / 2 / variances)
+
+        return coef * sum_term
+
+    def normalization_factor(self, variances):
+        """Return normalization factor of the Gaussian distribution.
+
+        Parameters
+        ----------
+        variances : array-like, shape=[n,]
+            Variance of the distribution.
+
+        Returns
+        -------
+        norm_func : array-like, shape=[n,]
+            Normalisation factor for all given variances.
+        """
+        if self.dim % 2 == 0:
+            return self._normalization_factor_even_dim(variances)
+        return self._normalization_factor_odd_dim(variances)
+
+    def norm_factor_gradient(self, variances):
+        """Compute the gradient of the normalization factor.
+
+        Parameters
+        ----------
+        variances : array-like, shape=[n,]
+            Variance of the distribution.
+
+        Returns
+        -------
+        norm_func : array-like, shape=[n,]
+            Normalisation factor for all given variances.
+        """
+
+        def func(var):
+            return gs.sum(self.normalization_factor(var))
+
+        _, grad = gs.autograd.value_and_grad(func)(variances)
+        return _, grad
 
     def curvature_derivative(
             self, tangent_vec_a, tangent_vec_b=None, tangent_vec_c=None,
