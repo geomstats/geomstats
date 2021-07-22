@@ -266,7 +266,6 @@ class CategoricalMetric(RiemannianMetric):
             End point of the geodesic starting at base_point with
             initial velocity tangent_vec and stopping at time 1.
         """
-
         base_point_sphere = self.simplex_to_sphere(base_point)
         tangent_vec_sphere = self.tangent_simplex_to_sphere(
             tangent_vec, base_point)
@@ -331,7 +330,6 @@ class CategoricalMetric(RiemannianMetric):
             represents time, and the second corresponds to the different
             initial conditions.
         """
-
         initial_point_sphere = self.simplex_to_sphere(initial_point)
         end_point_sphere = None
         vec_sphere = None
