@@ -344,6 +344,18 @@ class CategoricalMetric(RiemannianMetric):
             initial_point_sphere, end_point_sphere, vec_sphere)
 
         def path(t):
+            """Generate parameterized function for geodesic curve.
+
+            Parameters
+            ----------
+            t : array-like, shape=[n_times,]
+                Times at which to compute points of the geodesics.
+
+            Returns
+            -------
+            geodesic : array-like, shape=[..., n_times, dim + 1]
+                Values of the geodesic at times t.
+            """
             geod_sphere_at_t = geodesic_sphere(t)
             geod_at_t = self.sphere_to_simplex(geod_sphere_at_t)
             return gs.squeeze(geod_at_t)
