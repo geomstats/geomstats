@@ -485,7 +485,6 @@ class Connection(ABC):
             Tangent vector at base-point.
         """
         raise NotImplementedError('The curvature is not implemented.')
-        
 
     def directional_curvature_derivative(
             self, tangent_vec_a, tangent_vec_b, base_point=None):
