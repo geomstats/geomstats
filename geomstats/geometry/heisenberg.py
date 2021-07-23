@@ -1,4 +1,4 @@
-"""Implementation of the 2D Heisenberg group"""
+"""Implementation of the 3D Heisenberg group."""
 
 import geomstats.backend as gs
 from geomstats.geometry.lie_group import LieGroup
