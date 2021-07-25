@@ -341,7 +341,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(result)
 
         expected = self.space.horizontal_projection(tangent_vec, base_point)
-        self.assertAllClose(expected, log, rtol=1.5e-5)
+        self.assertAllClose(expected, log, rtol=2e-5)
 
     def test_dist_extreme_case(self):
         point = self.space.projection(gs.eye(self.k_landmarks, self.m_ambient))
