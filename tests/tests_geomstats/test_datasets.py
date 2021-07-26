@@ -3,7 +3,6 @@
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
-from geomstats.geometry.beta_distributions import BetaDistributions
 from geomstats.geometry.discrete_curves import DiscreteCurves, R2
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
@@ -11,6 +10,7 @@ from geomstats.geometry.landmarks import Landmarks
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.information_geometry.beta import BetaDistributions
 
 
 class TestDatasets(geomstats.tests.TestCase):
