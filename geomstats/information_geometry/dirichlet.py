@@ -231,12 +231,16 @@ class DirichletMetric(RiemannianMetric):
         Returns
         -------
         christoffels : array-like, shape=[..., dim, dim, dim]
-            Christoffel symbols.
+            Christoffel symbols, with the contravariant index on
+            the first dimension.
+            :math: 'christoffels[..., i, j, k] = Gamma^i_{jk}'
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         n_points = base_point.shape[0]
 
         def coefficients(ind_k):
+            """Christoffel symbols for contravariant index ind_k.
+            """
             param_k = base_point[..., ind_k]
             param_sum = gs.sum(base_point, -1)
             c1 = 1 / gs.polygamma(1, param_k) / (

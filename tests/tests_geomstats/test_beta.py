@@ -11,7 +11,10 @@ from geomstats.information_geometry.beta import BetaMetric
 
 
 class TestBetaDistributions(geomstats.tests.TestCase):
+    """Class defining the beta distributions tests.
+    """
     def setUp(self):
+        """Define the parameters of the tests."""
         warnings.simplefilter('ignore', category=UserWarning)
         self.beta = BetaDistributions()
         self.metric = BetaMetric()
@@ -160,6 +163,10 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_metric_matrix(self):
+        """Test metric matrix.
+
+        Check the value of the metric matrix for a particular
+        point in the space of beta distributions."""
         point = gs.array([1., 1.])
         result = self.beta.metric.metric_matrix(point)
         expected = gs.array([[1., -0.644934066], [-0.644934066, 1.]])

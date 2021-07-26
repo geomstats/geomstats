@@ -14,7 +14,8 @@ from geomstats.information_geometry.dirichlet import DirichletMetric
 
 
 class TestDirichletDistributions(geomstats.tests.TestCase):
-    """Class defining the Dirichlet distributions tests."""
+    """Class defining the Dirichlet distributions tests.
+    """
     def setUp(self):
         """Define the parameters of the tests."""
         gs.random.seed(0)
@@ -401,6 +402,10 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     def test_projection_and_belongs(self):
+        """Test projection and belongs.
+
+        Check that result of projection belongs to the space of
+        Dirichlet distributions."""
         shape = (self.n_samples, self.dim)
         result = helper.test_projection_and_belongs(self.dirichlet, shape)
         for res in result:
