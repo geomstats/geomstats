@@ -98,7 +98,7 @@ Contributing: Code Workflow
 Contributing: Adding a new geometry or manifold
 -----------------------------------------------
 
-  Get used to the code design of geomstats' classes by having a look at the `template manifold <https://github.com/geomstats/geomstats/tree/master/geomstats/geometry/_my_manifold.py>`__ and `template unit-tests <https://github.com/geomstats/geomstats/tree/master/tests/test__my_manifold.py>`__ implementations.
+  Get used to the code design of geomstats' classes by having a look at the `template manifold <https://github.com/geomstats/geomstats/tree/master/geomstats/geometry/_my_manifold.py>`__ and `template unit-tests <https://github.com/geomstats/geomstats/blob/master/tests/tests_geomstats/test__my_manifold.py>`__ implementations.
 
 Contributing: GitHub Workflow
 =============================
