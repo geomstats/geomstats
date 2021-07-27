@@ -807,9 +807,12 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
 
 
 def vec_to_sym(vec, mat_dim):
-    shape = (vec.shape[0] , ) + (mat_dim, mat_dim)  
+    shape = (mat_dim, mat_dim)  
+    shape = (vec.shape[0],) + shape if vec.ndim>1 else shape
     mat = torch.zeros(shape)
-    i, j = triu_indices(mat_dim , k=0)
-    mat[... , i, j] = vec
-    sym = 0.5 * ( mat + torch.permute(mat, [0,2,1]))
+    i, i = gs.diag_indices(mat_dim)
+    j, k = gs.tril_indices(mat_dim)
+    mat[... , j, k] = vec
+    sym = mat+ mat.swapaxes(-1,-2)
+    sym[..., i, i] *= 0.5
     return sym
