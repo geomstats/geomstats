@@ -811,8 +811,11 @@ def vec_to_triu(vec , strict=True):
     tril : array_like, shape=[..., k, k] where
         k is (1 + sqrt(1 + 8 * n)) / 2
     """
-    n = vec.shape[-1]
-    triu_shape = vec.shape + (n, )
+     if strict:
+      n = vec.shape[-1]
+      triu_shape = vec.shape + (n, )
+    else:
+      triu_shape = shape
     _ones = tf.ones(triu_shape)
     vec = tf.reshape(vec, [-1])
     mask_a = tf.linalg.band_part(_ones, 0, -1)
@@ -840,8 +843,11 @@ def vec_to_tril(vec, strict=True):
     tril : array_like, shape=[..., k, k] where
         k is (1 + sqrt(1 + 8 * n)) / 2
     """
-    n = vec.shape[-1]
-    tril_shape = vec.shape + (n, )
+    if strict:
+      n = vec.shape[-1]
+      tril_shape = vec.shape + (n, )
+    else:
+      tril_shape = shape
     _ones = tf.ones(tril_shape)
     vec = tf.reshape(vec, [-1])
     mask_a = tf.linalg.band_part(_ones, -1, 0)
@@ -879,7 +885,11 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat = tf.linalg.set_diag(triu_tril_mat, diag)
     return mat
 
-def vec_to_sym(vec):
-    triu = vec_to_triu(vec)
-    sym = 1/2 * (triu + tf.linalg.tranpose(triu)) 
+def vec_to_sym(vec, mat_dim):
+    shape = (mat_dim, mat_dim)  
+    shape = (vec.shape[0],) + shape if vec.ndim>1 else shape
+    triu = vec_to_triu(vec , strict = False , shape=shape)
+    tril = vec_to_tril(vec , strict = False , shape=shape)
+    diag = tf.linalg.band_part(triu, 0, 0)
+    sym = triu + tril - diag
     return sym
