@@ -116,6 +116,7 @@ BACKEND_ATTRIBUTES = {
         'triu_indices',
         'triu_to_vec',
         'vectorize',
+        'vec_to_sym',
         'vstack',
         'where',
         'zeros',

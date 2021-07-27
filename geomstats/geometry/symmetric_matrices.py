@@ -118,7 +118,6 @@ class SymmetricMatrices(VectorSpace):
         return gs.triu_to_vec(mat)
 
     @staticmethod
-    @geomstats.vectorization.decorator(['vector', 'else'])
     def from_vector(vec, dtype=gs.float32):
         """Convert a vector into a symmetric matrix.
 
@@ -141,13 +140,7 @@ class SymmetricMatrices(VectorSpace):
             raise ValueError('Invalid input dimension, it must be of the form'
                              '(n_samples, n * (n + 1) / 2)')
         mat_dim = int(mat_dim)
-        shape = (mat_dim, mat_dim)
-        mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
-        indices = list(zip(*gs.triu_indices(mat_dim)))
-        vec = gs.cast(vec, dtype)
-        upper_triangular = gs.stack([
-            gs.array_from_sparse(indices, data, shape) for data in vec])
-        mat = Matrices.to_symmetric(upper_triangular) * mask
+        mat = gs.vec_to_sym(vec, mat_dim)
         return mat
 
     @classmethod

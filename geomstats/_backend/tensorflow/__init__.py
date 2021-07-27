@@ -799,8 +799,8 @@ def tile(x, multiples):
     return tf.tile(x_reshape, multiples)
 
 
-def vec_to_triu(vec):
-    """Take vec and forms strictly upper traingular matrix.
+def vec_to_triu(vec , strict=True):
+    """Take vec and forms (strictly) upper traingular matrix.
 
     Parameters
     ---------
@@ -816,8 +816,11 @@ def vec_to_triu(vec):
     _ones = tf.ones(triu_shape)
     vec = tf.reshape(vec, [-1])
     mask_a = tf.linalg.band_part(_ones, 0, -1)
-    mask_b = tf.linalg.band_part(_ones, 0, 0)
-    mask = tf.subtract(mask_a, mask_b)
+    if strict:
+        mask_b = tf.linalg.band_part(_ones, 0, 0)
+        mask = tf.subtract(mask_a, mask_b)
+    else :
+        mask= mask_a
     non_zero = tf.not_equal(mask, tf.constant(0.0))
     indices = tf.where(non_zero)
     sparse = tf.SparseTensor(indices, values=vec, dense_shape=triu_shape)
@@ -825,8 +828,8 @@ def vec_to_triu(vec):
     return triu
 
 
-def vec_to_tril(vec):
-    """Take vec and forms strictly lower triangular matrix.
+def vec_to_tril(vec, strict=True):
+    """Take vec and forms (strictly) lower triangular matrix.
 
     Parameters
     ---------
@@ -842,8 +845,11 @@ def vec_to_tril(vec):
     _ones = tf.ones(tril_shape)
     vec = tf.reshape(vec, [-1])
     mask_a = tf.linalg.band_part(_ones, -1, 0)
-    mask_b = tf.linalg.band_part(_ones, 0, 0)
-    mask = tf.subtract(mask_a, mask_b)
+    if strict:
+        mask_b = tf.linalg.band_part(_ones, 0, 0)
+        mask = tf.subtract(mask_a, mask_b)
+    else :
+        mask= mask_a
     non_zero = tf.not_equal(mask, tf.constant(0.0))
     indices = tf.where(non_zero)
     sparse = tf.SparseTensor(indices, values=vec, dense_shape=tril_shape)
@@ -872,3 +878,8 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     triu_tril_mat = triu_mat + tril_mat
     mat = tf.linalg.set_diag(triu_tril_mat, diag)
     return mat
+
+def vec_to_sym(vec):
+    triu = vec_to_triu(vec)
+    sym = 1/2 * (triu + tf.linalg.tranpose(triu)) 
+    return sym

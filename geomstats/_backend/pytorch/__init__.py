@@ -804,3 +804,12 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
     return mat
+
+
+def vec_to_sym(vec, mat_dim):
+    shape = (vec.shape[0] , ) + (mat_dim, mat_dim)  
+    mat = torch.zeros(shape)
+    i, j = triu_indices(mat_dim , k=0)
+    mat[... , i, j] = vec
+    sym = 0.5 * ( mat + torch.permute(mat, [0,2,1]))
+    return sym
