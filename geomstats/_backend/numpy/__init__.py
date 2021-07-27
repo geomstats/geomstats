@@ -408,9 +408,12 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     return mat
 
 def vec_to_sym(vec, mat_dim):
-    shape = (vec.shape[0] , ) + (mat_dim, mat_dim)  
+    shape = (mat_dim, mat_dim)  
+    shape = (vec.shape[0],) + shape if vec.ndim>1 else shape
     mat = np.zeros(shape)
-    i, j = np.triu_indices(mat_dim , k=0)
-    mat[... , i, j] = vec
-    sym = 0.5 * ( mat + np.tranpose(mat, [0,2,1]))
+    i, = np.diag_indices(mat_dim, ndim=1)
+    j, k = np.tril_indices(mat_dim)
+    mat[... , j, k] = vec
+    sym = mat+ mat.swapaxes(-1,-2)
+    sym[..., i, i] *= 0.5
     return sym
