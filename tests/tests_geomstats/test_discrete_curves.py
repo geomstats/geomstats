@@ -375,7 +375,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_elastic_dist(self):
-        """Test shape and positivity"""
+        """Test shape and positivity."""
         cells, _, _ = data_utils.load_cells()
         curve_1, curve_2 = cells[0][:10], cells[1][:10]
         metric = self.elastic_metric
