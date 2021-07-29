@@ -123,8 +123,9 @@ class BetaDistributions(DirichletDistributions):
             Estimate of parameter obtained by maximum likelihood.
         """
         data = gs.cast(data, gs.float32)
-        data = gs.to_ndarray(
-            gs.where(data == 1., 1. - EPSILON, data), to_ndim=2)
+        data = gs.where(data == 1., 1. - EPSILON, data)
+        data = gs.where(data == 0., EPSILON, data)
+        data = gs.to_ndarray(data, to_ndim=2)
         parameters = []
         for sample in data:
             param_a, param_b, _, _ = beta.fit(sample, floc=loc, fscale=scale)
