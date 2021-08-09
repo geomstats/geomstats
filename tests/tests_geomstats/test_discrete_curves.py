@@ -1,14 +1,18 @@
 """Unit tests for parameterized manifolds."""
 
 import geomstats.backend as gs
+import geomstats.datasets.utils as data_utils
 import geomstats.tests
+from geomstats.geometry.discrete_curves import ClosedDiscreteCurves
 from geomstats.geometry.discrete_curves import DiscreteCurves
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 
 
 class TestDiscreteCurves(geomstats.tests.TestCase):
     def setUp(self):
         s2 = Hypersphere(dim=2)
+        r2 = Euclidean(dim=2)
         r3 = s2.embedding_space
 
         initial_point = [0., 0., 1.]
@@ -31,6 +35,9 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         discretized_curve_a = curve_a(sampling_times)
         discretized_curve_b = curve_b(sampling_times)
         discretized_curve_c = curve_c(sampling_times)
+
+        self.space_closed_curves_in_euclidean_2d = ClosedDiscreteCurves(
+            ambient_manifold=r2)
 
         self.n_discretized_curves = 5
         self.times = gs.linspace(0., 1., self.n_discretized_curves)
@@ -284,3 +291,63 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         result = self.space_curves_in_sphere_2d.is_tangent(
             tangent_vec, point)
         self.assertTrue(gs.all(result))
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_projection_closed_curves(self):
+        """Test that projecting the projection returns the projection
+
+        and that the projection is a closed curve."""
+        planar_closed_curves = self.space_closed_curves_in_euclidean_2d
+
+        cells, _, _ = data_utils.load_cells()
+        curves = [cell[:-10] for cell in cells[:5]]
+
+        for curve in curves:
+            proj = planar_closed_curves.project(curve)
+            expected = proj
+            result = planar_closed_curves.project(proj)
+            self.assertAllClose(result, expected)
+
+            result = proj[-1, :]
+            expected = proj[0, :]
+            self.assertAllClose(result, expected)
+
+    def test_srv_inner_product(self):
+        """Test that srv_inner_product works as expected
+
+        and that the resulting shape is right."""
+        curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
+        curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
+        curves_ab = curves_ab(self.times)
+        curves_bc = curves_bc(self.times)
+        srvs_ab = self.srv_metric_r3.square_root_velocity(curves_ab)
+        srvs_bc = self.srv_metric_r3.square_root_velocity(curves_bc)
+
+        result = self.srv_metric_r3.srv_inner_product(srvs_ab, srvs_bc)
+        products = srvs_ab * srvs_bc
+        expected = [gs.sum(product) for product in products]
+        expected = gs.array(expected) / srvs_ab.shape[-2]
+        self.assertAllClose(result, expected)
+
+        result = result.shape
+        expected = [srvs_ab.shape[0]]
+        self.assertAllClose(result, expected)
+
+    def test_srv_norm(self):
+        """Test that srv_norm works as expected
+
+        and that the resulting shape is right."""
+        curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
+        curves_ab = curves_ab(self.times)
+        srvs_ab = self.srv_metric_r3.square_root_velocity(curves_ab)
+
+        result = self.srv_metric_r3.srv_norm(srvs_ab)
+        products = srvs_ab * srvs_ab
+        sums = [gs.sum(product) for product in products]
+        squared_norm = gs.array(sums) / srvs_ab.shape[-2]
+        expected = gs.sqrt(squared_norm)
+        self.assertAllClose(result, expected)
+
+        result = result.shape
+        expected = [srvs_ab.shape[0]]
+        self.assertAllClose(result, expected)

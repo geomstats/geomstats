@@ -357,14 +357,16 @@ class Connection(ABC):
 
         References
         ----------
-        .. [LP2013b] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transpor
-          of Deformations in Time Series of Images: from Schild's to
-          Pole Ladder.Journal of Mathematical Imaging and Vision, Springer
-          Verlag, 2013, 50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
+        .. [LP2013b] Lorenzi, Marco, and Xavier Pennec. “Efficient Parallel
+        Transport of Deformations in Time Series of Images: From Schild to
+        Pole Ladder.” Journal of Mathematical Imaging and Vision 50, no. 1
+        (September 1, 2014): 5–17. https://doi.org/10.1007/s10851-013-0470-3.
 
-        .. [GP2020] Nicolas Guigui, Xavier Pennec. Numerical Accuracy of
-          Ladder Schemes for Parallel Transport on Manifolds. 2020.
-          ⟨hal-02894783⟩
+
+        .. [GP2020] Guigui, Nicolas, and Xavier Pennec. “Numerical Accuracy
+        of Ladder Schemes for Parallel Transport on Manifolds.”
+        Foundations of Computational Mathematics, June 18, 2021.
+        https://doi.org/10.1007/s10208-021-09515-x.
         """
         geomstats.errors.check_integer(n_rungs, 'n_rungs')
         if alpha < 1:
@@ -402,9 +404,9 @@ class Connection(ABC):
             base_point):
         r"""Compute the curvature.
 
-        For three tangent vectors at a base point :math: `X,Y,Z`,
+        For three tangent vectors at a base point :math:`X,Y,Z`,
         the curvature is defined by
-        :math: `R(X, Y)Z = \nabla_{[X,Y]}Z
+        :math:`R(X, Y)Z = \nabla_{[X,Y]}Z
         - \nabla_X\nabla_Y Z + \nabla_Y\nabla_X Z`.
 
         Parameters
@@ -429,9 +431,9 @@ class Connection(ABC):
             self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the directional curvature (tidal force operator).
 
-        For two tangent vectors at a base point :math: `X,Y`, the directional
+        For two tangent vectors at a base point :math:`X,Y`, the directional
         curvature, better known in relativity as the tidal force operator,
-        is defined by :math: `R_X(Y) = R(X,Y)X`.
+        is defined by :math:`R_X(Y) = R(X,Y)X`.
 
         Parameters
         ----------
@@ -539,22 +541,22 @@ class Connection(ABC):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        along the geodesic defined by :math:`t \mapsto exp_(base_point)(t*
         tangent_vec_b)`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., dim + 1]
+        tangent_vec_a : array-like, shape=[..., {dim, [n, n]}]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[..., dim + 1]
+        tangent_vec_b : array-like, shape=[..., {dim, [n, n]}]
             Tangent vector at base point, along which the parallel transport
             is computed.
-        base_point : array-like, shape=[..., dim + 1]
-            Point on the hypersphere.
+        base_point : array-like, shape=[..., {dim, [n, n]}]
+            Point on the manifold.
 
         Returns
         -------
-        transported_tangent_vec: array-like, shape=[..., dim + 1]
+        transported_tangent_vec: array-like, shape=[..., {dim, [n, n]}]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         raise NotImplementedError(

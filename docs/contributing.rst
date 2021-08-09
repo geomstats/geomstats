@@ -98,7 +98,7 @@ Contributing: Code Workflow
 Contributing: Adding a new geometry or manifold
 -----------------------------------------------
 
-  Get used to the code design of geomstats' classes by having a look at the `template manifold <https://github.com/geomstats/geomstats/tree/master/geomstats/geometry/_my_manifold.py>`__ and `template unit-tests <https://github.com/geomstats/geomstats/tree/master/tests/test__my_manifold.py>`__ implementations.
+  Get used to the code design of geomstats' classes by having a look at the `template manifold <https://github.com/geomstats/geomstats/tree/master/geomstats/geometry/_my_manifold.py>`__ and `template unit-tests <https://github.com/geomstats/geomstats/blob/master/tests/tests_geomstats/test__my_manifold.py>`__ implementations.
 
 Contributing: GitHub Workflow
 =============================
@@ -167,12 +167,20 @@ modifying code and submitting a PR:
    mailing list hi@geomstats.ai for more visibility.
 
 It is often helpful to keep your local feature branch synchronized with the
-latest changes of the main geomstats repository::
+latest changes of the main geomstats repository. If there are only a few new 
+commits in the master branch, use::
 
     $ git fetch upstream
     $ git rebase upstream/master
 
-Subsequently, you might need to solve potential conflicts. Refer to the
+Subsequently, you might need to solve potential conflicts.
+If it's been a while since you've last updated your branch, it might be easier
+to merge the master branch into yours::
+
+    $ git fetch upstream
+    $ git merge upstream/master
+
+Refer to the
 `Git documentation related to resolving merge conflict using the command
 line
 <https://help.github.com/articles/resolving-a-merge-conflict-using-the-command-line/>`_.

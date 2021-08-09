@@ -26,8 +26,7 @@ class TestLieAlgebra(geomstats.tests.TestCase):
         point = gs.reshape(point, (n_samples, self.dim))
         mat = self.algebra.matrix_representation(point)
         result = gs.all(self.algebra.belongs(mat))
-        expected = True
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
     def test_basis_and_matrix_representation(self):
         n_samples = 2

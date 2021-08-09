@@ -4,8 +4,8 @@ from scipy.stats import beta
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.dirichlet_distributions import DirichletDistributions
-from geomstats.geometry.dirichlet_distributions import DirichletMetric
+from geomstats.information_geometry.dirichlet import DirichletDistributions
+from geomstats.information_geometry.dirichlet import DirichletMetric
 
 EPSILON = 1e-6
 
@@ -123,8 +123,9 @@ class BetaDistributions(DirichletDistributions):
             Estimate of parameter obtained by maximum likelihood.
         """
         data = gs.cast(data, gs.float32)
-        data = gs.to_ndarray(
-            gs.where(data == 1., 1. - EPSILON, data), to_ndim=2)
+        data = gs.where(data == 1., 1. - EPSILON, data)
+        data = gs.where(data == 0., EPSILON, data)
+        data = gs.to_ndarray(data, to_ndim=2)
         parameters = []
         for sample in data:
             param_a, param_b, _, _ = beta.fit(sample, floc=loc, fscale=scale)

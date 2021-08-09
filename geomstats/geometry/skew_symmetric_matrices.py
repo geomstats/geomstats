@@ -8,6 +8,7 @@ of the matrices (and a -1 in its lower triangular part), except in dim 2 and
 
 import geomstats.backend as gs
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
+from geomstats.geometry.matrices import Matrices
 
 
 class SkewSymmetricMatrices(MatrixLieAlgebra):
@@ -22,6 +23,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
     def __init__(self, n):
         dim = int(n * (n - 1) / 2)
         super(SkewSymmetricMatrices, self).__init__(dim, n)
+        self.ambient_space = Matrices(n, n)
 
         if n == 2:
             self.basis = gs.array([[[0., -1.], [1., 0.]]])
@@ -61,9 +63,9 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         belongs : array-like, shape=[...,]
             Boolean evaluating if matrix is skew symmetric.
         """
-        has_right_shape = super(SkewSymmetricMatrices, self).belongs(mat)
+        has_right_shape = self.ambient_space.belongs(mat)
         if gs.all(has_right_shape):
-            return self.is_skew_symmetric(mat=mat, atol=atol)
+            return Matrices.is_skew_symmetric(mat=mat, atol=atol)
         return has_right_shape
 
     def random_point(self, n_samples=1, bound=1.):
@@ -104,7 +106,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         skew_sym : array-like, shape=[..., n, n]
             Skew-symmetric matrix.
         """
-        return cls.to_skew_symmetric(mat)
+        return Matrices.to_skew_symmetric(mat)
 
     def basis_representation(self, matrix_representation):
         """Calculate the coefficients of given matrix in the basis.
