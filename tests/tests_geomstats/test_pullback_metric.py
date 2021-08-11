@@ -20,7 +20,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             theta = spherical_coords[..., 0]
             phi = spherical_coords[..., 1]
             return gs.array([
-                gs.cos(phi) * gs.sin(theta), 
+                gs.cos(phi) * gs.sin(theta),
                 gs.sin(phi) * gs.sin(theta),
                 gs.cos(theta)])
 
@@ -49,7 +49,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         expected = self.immersion(point)
         result = self.sphere.spherical_to_extrinsic(point)
         self.assertAllClose(result, expected)
-        
+
         point = gs.array([0.2, 0.1])
         expected = self.immersion(point)
         result = self.sphere.spherical_to_extrinsic(point)
@@ -71,12 +71,12 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         result = self.pullback_metric.jacobian_immersion(pole)
         expected = _expected_jacobian_immersion(pole)
         self.assertAllClose(result, expected)
-        
+
         base_point = gs.array([0.22, 0.1])
         result = self.pullback_metric.jacobian_immersion(base_point)
         expected = _expected_jacobian_immersion(base_point)
         self.assertAllClose(result, expected)
-        
+
         base_point = gs.array([0.1, 0.88])
         result = self.pullback_metric.jacobian_immersion(base_point)
         expected = _expected_jacobian_immersion(base_point)
@@ -97,15 +97,15 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             tangent_vec, point)
         expected = gs.array([-1., 0., 0.])
         self.assertAllClose(result, expected)
-        
+
         point = gs.array([gs.pi / 2., 0.])
-        
+
         tangent_vec = gs.array([1., 0.])
         result = self.pullback_metric.tangent_immersion(
             tangent_vec, point)
         expected = gs.array([0., 0., -1.])
         self.assertAllClose(result, expected)
-        
+
         tangent_vec = gs.array([0., 1.])
         result = self.pullback_metric.tangent_immersion(
             tangent_vec, point)
@@ -126,17 +126,16 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         result = self.pullback_metric.metric_matrix(base_point)
         expected = _expected_metric_matrix(base_point)
         self.assertAllClose(result, expected)
-        
+
         base_point = gs.array([1., 1.])
         result = self.pullback_metric.metric_matrix(base_point)
         expected = _expected_metric_matrix(base_point)
         self.assertAllClose(result, expected)
-        
+
         base_point = gs.array([0.3, 0.8])
         result = self.pullback_metric.metric_matrix(base_point)
         expected = _expected_metric_matrix(base_point)
         self.assertAllClose(result, expected)
-
 
     @geomstats.tests.np_only
     def test_inverse_metric_matrix(self):
@@ -147,13 +146,13 @@ class TestPullbackMetric(geomstats.tests.TestCase):
                 [0., gs.sin(theta) ** (-2)]
             ])
             return mat
-        
+
         base_point = gs.array([.6, -1.])
         result = self.pullback_metric.inner_product_inverse_matrix(
             base_point)
         expected = _expected_inverse_metric_matrix(base_point)
         self.assertAllClose(result, expected)
-        
+
         base_point = gs.array([0.8, -0.8])
         result = self.pullback_metric.inner_product_inverse_matrix(
             base_point)
@@ -182,15 +181,15 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             jac_immersion, tangent_vec_b)
 
         result = self.pullback_metric.inner_product(
-            tangent_vec_a, 
-            tangent_vec_b, 
+            tangent_vec_a,
+            tangent_vec_b,
             base_point=base_point)
         expected = self.sphere_metric.inner_product(
-            immersed_tangent_vec_a, 
-            immersed_tangent_vec_b, 
+            immersed_tangent_vec_a,
+            immersed_tangent_vec_b,
             base_point=immersed_base_point)
         self.assertAllClose(result, expected)
-        
+
         tangent_vec_a = gs.array([0.4, 1.])
         tangent_vec_b = gs.array([0.2, 0.6])
         base_point = gs.array([gs.pi / 2., 0.1])
@@ -203,12 +202,12 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             jac_immersion, tangent_vec_b)
 
         result = self.pullback_metric.inner_product(
-            tangent_vec_a, 
-            tangent_vec_b, 
+            tangent_vec_a,
+            tangent_vec_b,
             base_point=base_point)
         expected = self.sphere_metric.inner_product(
-            immersed_tangent_vec_a, 
-            immersed_tangent_vec_b, 
+            immersed_tangent_vec_a,
+            immersed_tangent_vec_b,
             base_point=immersed_base_point)
         self.assertAllClose(result, expected)
 
@@ -227,12 +226,10 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         expected = self.sphere_metric.christoffels(point=base_point)
         self.assertAllClose(result, expected)
 
-        
         base_point = gs.array([0.7, 0.233])
         result = self.pullback_metric.christoffels(base_point=base_point)
         expected = self.sphere_metric.christoffels(point=base_point)
         self.assertAllClose(result, expected)
-
 
     @geomstats.tests.np_only
     def test_exp_and_sphere_exp(self):
@@ -251,14 +248,14 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             base_point)
         immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec_a)
         result = self.pullback_metric.exp(
-            tangent_vec_a, 
+            tangent_vec_a,
             base_point=base_point)
         result = self.sphere.spherical_to_extrinsic(result)
         expected = self.sphere.metric.exp(
-            immersed_tangent_vec_a, 
+            immersed_tangent_vec_a,
             base_point=immersed_base_point)
         self.assertAllClose(result, expected)
-        
+
         base_point = gs.array([gs.pi / 2., 0.1])
         tangent_vec_a = gs.array([0.4, 1.])
         immersed_base_point = self.immersion(base_point)
@@ -266,15 +263,15 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             base_point)
         immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec_a)
         result = self.pullback_metric.exp(
-            tangent_vec_a, 
+            tangent_vec_a,
             base_point=base_point)
         result = self.sphere.spherical_to_extrinsic(result)
         expected = self.sphere.metric.exp(
-            immersed_tangent_vec_a, 
+            immersed_tangent_vec_a,
             base_point=immersed_base_point)
 
         self.assertAllClose(result, expected, atol=1e-1)
-    
+
     @geomstats.tests.np_only
     def test_parallel_transport_and_sphere_parallel_transport(self):
         """Test consistency between sphere's parallel transports.
@@ -293,18 +290,18 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             base_point)
         immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec_a)
         immersed_tangent_vec_b = gs.matmul(jac_immersion, tangent_vec_b)
-        
+
         result_dict = self.pullback_metric.ladder_parallel_transport(
-            tangent_vec_a, 
-            tangent_vec_b, 
+            tangent_vec_a,
+            tangent_vec_b,
             base_point=base_point)
-            
+
         result = result_dict["transported_tangent_vec"]
         end_point = result_dict["end_point"]
         result = self.pullback_metric.tangent_immersion(v=result, x=end_point)
 
         expected = self.sphere_metric.parallel_transport(
-            immersed_tangent_vec_a, 
-            immersed_tangent_vec_b, 
+            immersed_tangent_vec_a,
+            immersed_tangent_vec_b,
             base_point=immersed_base_point)
         self.assertAllClose(result, expected, atol=1e-5)
