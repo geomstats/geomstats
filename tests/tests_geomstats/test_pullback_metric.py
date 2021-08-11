@@ -53,7 +53,33 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         point = gs.array([0.2, 0.1])
         expected = self.immersion(point)
         result = self.sphere.spherical_to_extrinsic(point)
-        self.assertAllClose(result, expected) 
+        self.assertAllClose(result, expected)
+
+    def test_jacobian_immersion(self):
+        def _expected_jacobian_immersion(point):
+            theta = point[..., 0]
+            phi = point[..., 1]
+            jacobian = gs.array([
+                [gs.cos(phi) * gs.cos(theta), - gs.sin(phi) * gs.sin(theta)],
+                [gs.sin(phi) * gs.cos(theta), gs.cos(phi) * gs.sin(theta)],
+                [-gs.sin(theta), 0.]
+            ])
+            return jacobian
+
+        pole = gs.array([0., 0.])
+        result = self.pullback_metric.jacobian_immersion(pole)
+        expected = _expected_jacobian_immersion(pole)
+        self.assertAllClose(result, expected)
+        
+        base_point = gs.array([0.22, 0.1])
+        result = self.pullback_metric.jacobian_immersion(base_point)
+        expected = _expected_jacobian_immersion(base_point)
+        self.assertAllClose(result, expected)
+        
+        base_point = gs.array([0.1, 0.88])
+        result = self.pullback_metric.jacobian_immersion(base_point)
+        expected = _expected jacobian_immersion(base_point)
+        self.assertAllClose(result, expected)
 
      
     # def test_cometric_matrix(self):
