@@ -44,10 +44,10 @@ class PullbackMetric(RiemannianMetric):
             jacobian_immersion = autograd.jacobian(immersion)
         self.jacobian_immersion = jacobian_immersion
         if tangent_immersion is None:
-            def tangent_immersion(v, x):
+            def _tangent_immersion(v, x):
                 return gs.matmul(
                     jacobian_immersion(x), v)
-        self.tangent_immersion = tangent_immersion
+        self.tangent_immersion = _tangent_immersion
 
     def metric_matrix(self, base_point=None):
         r"""Metric matrix at the tangent space at a base point.
