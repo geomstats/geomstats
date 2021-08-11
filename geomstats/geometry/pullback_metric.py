@@ -2,6 +2,7 @@
 
 import autograd
 
+import geomstats.backend as gs
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
