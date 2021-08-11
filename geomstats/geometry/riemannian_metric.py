@@ -97,7 +97,9 @@ class RiemannianMetric(Connection, ABC):
         expression of the Christoffel symbols with respect to the metric:
         :math:`\Gamma^k_{ij}(p) = \frac{1}{2} g^{lk}(
             \partial_i g_{jl} + \partial_j g_{li} - \partial_l g_{ij})`,
-        where :math:`p` represents the base point, and `g` the Riemannian metric.
+        where:
+        - :math:`p` represents the base point, and
+        - :math:`g` represents the Riemannian metric tensor.
 
         Parameters
         ----------
@@ -436,6 +438,7 @@ class RiemannianMetric(Connection, ABC):
         normalization_factor = gs.where(
             condition, EPSILON, normalization_factor)
         return gs.where(~condition, sectional / normalization_factor, 0.)
+
 
 def loss(y_pred, y_true, metric):
     """Compute loss function between prediction and ground truth.
