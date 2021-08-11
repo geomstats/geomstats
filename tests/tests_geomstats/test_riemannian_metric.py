@@ -91,4 +91,29 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    
+    @geomstats.tests.np_only
+    def test_christoffels_eucl_metric(self):
+        base_point = gs.array([0.2, -.9])
+
+        result = self.euc_metric.christoffels(base_point)
+        expected = gs.zeros((self.dim,) * 3)
+
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_christoffels_new_eucl_metric(self):
+        base_point = gs.array([0.2, -.9])
+
+        result = self.new_euc_metric.christoffels(base_point)
+        expected = gs.zeros((self.dim,) * 3)
+
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_christoffels_sphere_metrics(self):
+        base_point = gs.array([0.3, -.7])
+
+        expected = self.sphere_metric.christoffels(base_point)
+        result =self.new_sphere_metric.christoffels(base_point)
+
+        self.assertAllClose(result, expected)
