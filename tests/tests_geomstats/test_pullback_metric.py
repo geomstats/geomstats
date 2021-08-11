@@ -111,6 +111,31 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             tangent_vec, point)
         expected = gs.array([0., 1., 0.])
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_metric_matrix(self):
+        def _expected_metric_matrix(point):
+            theta = point[..., 0]
+            mat = gs.array([
+                [1., 0.],
+                [0., gs.sin(theta) ** 2]
+            ])
+            return mat
+
+        point = gs.array([0., 0.])
+        result = self.pullback_metric.metric_matrix(point)
+        expected = _expected_metric_matrix(point)
+        self.assertAllClose(result, expected)
+        
+        base_point = gs.array([1., 1.])
+        result = self.pullback_metric.metric_matrix(base_point)
+        expected = _expected_metric_matrix(base_point)
+        self.assertAllClose(result, expected)
+        
+        base_point = gs.array([0.3, 0.8])
+        result = self.pullback_metric.metric_matrix(base_point)
+        expected = _expected_metric_matrix(base_point)
+        self.assertAllClose(result, expected)
     
 
      

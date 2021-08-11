@@ -79,7 +79,7 @@ class PullbackMetric(RiemannianMetric):
                 jacobian_immersion, basis_elements[i])
             for j in range(self.dim):
                 immersed_basis_element_j = gs.matmul(
-                    jacobian_immersion, basis_element[j])
+                    jacobian_immersion, basis_elements[j])
                 
                 value = self.embedding_metric.inner_product(
                     immersed_basis_element_i, 
