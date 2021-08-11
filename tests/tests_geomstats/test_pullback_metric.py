@@ -228,7 +228,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
         
-        base_point = gs.array([0.1, 0.233])
+        base_point = gs.array([0.7, 0.233])
         result = self.pullback_metric.christoffels(base_point=base_point)
         expected = self.sphere_metric.christoffels(point=base_point)
         self.assertAllClose(result, expected)
@@ -259,9 +259,8 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             base_point=immersed_base_point)
         self.assertAllClose(result, expected)
         
-        
-        tangent_vec_a = gs.array([0.4, 1.])
         base_point = gs.array([gs.pi / 2., 0.1])
+        tangent_vec_a = gs.array([0.4, 1.])
         immersed_base_point = self.immersion(base_point)
         jac_immersion = self.pullback_metric.jacobian_immersion(
             base_point)
@@ -276,109 +275,36 @@ class TestPullbackMetric(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-1)
     
+    @geomstats.tests.np_only
+    def test_parallel_transport_and_sphere_parallel_transport(self):
+        """Test consistency between sphere's parallel transports.
 
-     
-    # def test_cometric_matrix(self):
-    #     base_point = gs.array([0., 1.])
+        The parallel transport of the class Hypersphere is
+        defined in terms of extrinsic coordinates.
 
-    #     result = self.euc_metric.inner_product_inverse_matrix(base_point)
-    #     expected = gs.eye(self.dim)
+        The parallel transport of pullback_metric is defined
+        in terms of the spherical coordinates.
+        """
+        tangent_vec_a = gs.array([0., 1.])
+        tangent_vec_b = gs.array([0., 1.])
+        base_point = gs.array([gs.pi / 2., 0.])
+        immersed_base_point = self.immersion(base_point)
+        jac_immersion = self.pullback_metric.jacobian_immersion(
+            base_point)
+        immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec_a)
+        immersed_tangent_vec_b = gs.matmul(jac_immersion, tangent_vec_b)
+        
+        result_dict = self.pullback_metric.ladder_parallel_transport(
+            tangent_vec_a, 
+            tangent_vec_b, 
+            base_point=base_point)
+            
+        result = result_dict["transported_tangent_vec"]
+        end_point = result_dict["end_point"]
+        result = self.pullback_metric.tangent_immersion(v=result, x=end_point)
 
-    #     self.assertAllClose(result, expected)
-
-    # @geomstats.tests.np_only
-    # def test_metric_derivative_euc_metric(self):
-    #     base_point = gs.array([5., 1.])
-
-    #     result = self.euc_metric.inner_product_derivative_matrix(base_point)
-    #     expected = gs.zeros((self.dim,) * 3)
-
-    #     self.assertAllClose(result, expected)
-
-    # @geomstats.tests.np_only
-    # def test_metric_derivative_new_euc_metric(self):
-    #     base_point = gs.array([5., 1.])
-
-    #     result = self.new_euc_metric.inner_product_derivative_matrix(
-    #         base_point)
-    #     expected = gs.zeros((self.dim,) * 3)
-
-    #     self.assertAllClose(result, expected)
-
-    # def test_inner_product_new_euc_metric(self):
-    #     base_point = gs.array([0., 1.])
-    #     tangent_vec_a = gs.array([0.3, 0.4])
-    #     tangent_vec_b = gs.array([0.1, -0.5])
-    #     expected = -0.17
-
-    #     result = self.new_euc_metric.inner_product(
-    #         tangent_vec_a, tangent_vec_b, base_point=base_point
-    #     )
-
-    #     self.assertAllClose(result, expected)
-
-    # def test_inner_product_new_sphere_metric(self):
-    #     base_point = gs.array([gs.pi / 3., gs.pi / 5.])
-    #     tangent_vec_a = gs.array([0.3, 0.4])
-    #     tangent_vec_b = gs.array([0.1, -0.5])
-    #     expected = -0.12
-
-    #     result = self.new_sphere_metric.inner_product(
-    #         tangent_vec_a, tangent_vec_b, base_point=base_point
-    #     )
-
-    #     self.assertAllClose(result, expected)
-
-    # @geomstats.tests.np_only
-    # def test_christoffels_eucl_metric(self):
-    #     base_point = gs.array([0.2, -.9])
-
-    #     result = self.euc_metric.christoffels(base_point)
-    #     expected = gs.zeros((self.dim,) * 3)
-
-    #     self.assertAllClose(result, expected)
-
-    # @geomstats.tests.np_only
-    # def test_christoffels_new_eucl_metric(self):
-    #     base_point = gs.array([0.2, -.9])
-
-    #     result = self.new_euc_metric.christoffels(base_point)
-    #     expected = gs.zeros((self.dim,) * 3)
-
-    #     self.assertAllClose(result, expected)
-
-    # @geomstats.tests.np_only
-    # def test_christoffels_sphere_metrics(self):
-    #     base_point = gs.array([0.3, -.7])
-
-    #     expected = self.sphere_metric.christoffels(base_point)
-    #     result = self.new_sphere_metric.christoffels(base_point)
-
-    #     self.assertAllClose(result, expected)
-
-    # @geomstats.tests.np_only
-    # def test_exp_new_eucl_metric(self):
-    #     base_point = gs.array([7.2, -8.9])
-    #     tan = gs.array([-1., 4.5])
-
-    #     expected = base_point + tan
-    #     result = self.new_euc_metric.exp(tan, base_point)
-    #     self.assertAllClose(result, expected)
-
-    # @geomstats.tests.np_only
-    # def test_log_new_eucl_metric(self):
-    #     base_point = gs.array([7.2, -8.9])
-    #     point = gs.array([-3., 1.2])
-
-    #     expected = point - base_point
-    #     result = self.new_euc_metric.log(point, base_point)
-    #     self.assertAllClose(result, expected)
-
-    # @geomstats.tests.np_only
-    # def test_exp_new_sphere_metric(self):
-    #     base_point = gs.array([gs.pi / 10., gs. pi / 10.])
-    #     tan = gs.array([gs.pi / 2., 0.])
-
-    #     expected = gs.array([gs.pi / 10. + gs.pi / 2., gs.pi / 10.])
-    #     result = self.new_sphere_metric.exp(tan, base_point)
-    #     self.assertAllClose(result, expected)
+        expected = self.sphere_metric.parallel_transport(
+            immersed_tangent_vec_a, 
+            immersed_tangent_vec_b, 
+            base_point=immersed_base_point)
+        self.assertAllClose(result, expected, atol=1e-5)
