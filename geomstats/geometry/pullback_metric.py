@@ -2,7 +2,7 @@
 
 import autograd
 
-from geomstats.geometry.fiber_bundle import FiberBundle
+from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
