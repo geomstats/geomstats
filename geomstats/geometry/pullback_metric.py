@@ -65,18 +65,16 @@ class PullbackMetric(RiemannianMetric):
         """
         metric_mat = gs.zeros((self.dim,) * 2)
         immersed_base_point = self.immersion(base_point)
+        tangent_immersion = self.tangent_immersion(base_point)
         all_lines = []
+        basis_elements = gs.eye(self.dim)
         for i in range(self.dim):
             line_i = []
-            basis_element_i = gs.zeros_like(base_point)
-            basis_element_i[i] = 1.
             immersed_basis_element_i = gs.matmul(
-                self.tangent_immersion(base_point), basis_element_i)
+                tangent_immersion, basis_elements[i])
             for j in range(self.dim):
-                basis_element_j = gs.zeros_like(base_point)
-                basis_element_j[j] = 1.
                 immersed_basis_element_j = gs.matmul(
-                    self.tangent_immersion(base_point), basis_element_j)
+                    tangent_immersion, basis_element[j])
                 
                 value = self.embedding_metric.inner_product(
                     immersed_basis_element_i, 
