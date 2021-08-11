@@ -91,7 +91,13 @@ class RiemannianMetric(Connection, ABC):
         return metric_derivative(base_point)
 
     def christoffels(self, base_point):
-        """Compute Christoffel symbols associated with the connection.
+        r"""Compute Christoffel symbols of the Levi-Civita connection.
+
+        The Koszul formula defining the Levi-Civita connection gives the
+        expression of the Christoffel symbols with respect to the metric:
+        :math:`\Gamma^k_{ij}(p) = \frac{1}{2} g^{lk}(
+            \partial_i g_{jl} + \partial_j g_{li} - \partial_l g_{ij})`,
+        where :math:`p` represents the base point, and `g` the Riemannian metric.
 
         Parameters
         ----------
