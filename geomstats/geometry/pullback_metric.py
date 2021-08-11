@@ -21,7 +21,7 @@ class PullbackMetric(RiemannianMetric):
     Note
     ----
     The pull-back metric is currently only implemented for an
-    immersion into the Euclidean space, i.e. for 
+    immersion into the Euclidean space, i.e. for
     :math:`N=\mathbb{R}^n`.
 
     Parameters
@@ -33,29 +33,33 @@ class PullbackMetric(RiemannianMetric):
     immersion : callable
         Map defining the immersion into the Euclidean space.
     """
-    def __init__(self, dim, embedding_dim, immersion, jacobian_immersion=None, tangent_immersion=None):
+
+    def __init__(
+            self, dim, embedding_dim, immersion,
+            jacobian_immersion=None, tangent_immersion=None):
         super(PullbackMetric, self).__init__(dim=dim)
-        self.embedding_metric = EuclideanMetric(embedding_dim)       
+        self.embedding_metric = EuclideanMetric(embedding_dim)
         self.immersion = immersion
         if jacobian_immersion is None:
             jacobian_immersion = autograd.jacobian(immersion)
         self.jacobian_immersion = jacobian_immersion
         if tangent_immersion is None:
-            tangent_immersion = lambda v, x: gs.matmul(
-                jacobian_immersion(x), v)
+            def tangent_immersion(v, x):
+                return gs.matmul(
+                    jacobian_immersion(x), v)
         self.tangent_immersion = tangent_immersion
 
     def metric_matrix(self, base_point=None):
         r"""Metric matrix at the tangent space at a base point.
 
-        Let :math:`f` be the immersion 
+        Let :math:`f` be the immersion
         :math:`f: M \rightarrow \mathbb{R}^n` of the manifold
-       :math:`M` into the Euclidean space :math:`\mathbb{R}^n`.
+        :math:`M` into the Euclidean space :math:`\mathbb{R}^n`.
 
-       The elements of the metric matrix at a base point :math:`p`
-       are defined as:
-       :math:`(f*g)_{ij}(p) = <df_p e_i , df_p e_j>`,
-       for :math:`e_i, e_j` basis elements of :math:`M`.
+        The elements of the metric matrix at a base point :math:`p`
+        are defined as:
+        :math:`(f*g)_{ij}(p) = <df_p e_i , df_p e_j>`,
+        for :math:`e_i, e_j` basis elements of :math:`M`.
 
         Parameters
         ----------
@@ -68,7 +72,6 @@ class PullbackMetric(RiemannianMetric):
         mat : array-like, shape=[..., dim, dim]
             Inner-product matrix.
         """
-        metric_mat = gs.zeros((self.dim,) * 2)
         immersed_base_point = self.immersion(base_point)
         jacobian_immersion = self.jacobian_immersion(base_point)
         all_lines = []
@@ -80,10 +83,10 @@ class PullbackMetric(RiemannianMetric):
             for j in range(self.dim):
                 immersed_basis_element_j = gs.matmul(
                     jacobian_immersion, basis_elements[j])
-                
+
                 value = self.embedding_metric.inner_product(
-                    immersed_basis_element_i, 
-                    immersed_basis_element_j, 
+                    immersed_basis_element_i,
+                    immersed_basis_element_j,
                     base_point=immersed_base_point)
                 line_i.append(value)
             all_lines.append(gs.array(line_i))
