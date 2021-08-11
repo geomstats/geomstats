@@ -15,64 +15,6 @@ N_MAX_ITERATIONS = 50000
 N_STEPS = 10
 
 
-def loss(y_pred, y_true, metric):
-    """Compute loss function between prediction and ground truth.
-
-    Loss function given by a Riemannian metric,
-    expressed as the squared geodesic distance between the prediction
-    and the ground truth.
-
-    Parameters
-    ----------
-    y_pred : array-like, shape=[..., dim]
-        Prediction.
-    y_true : array-like, shape=[..., dim]
-        Ground-truth.
-    metric : RiemannianMetric
-        Metric.
-
-    Returns
-    -------
-    sq_dist : array-like, shape=[...,]
-        Loss, i.e. the squared distance.
-    """
-    sq_dist = metric.squared_dist(y_pred, y_true)
-    return sq_dist
-
-
-def grad(y_pred, y_true, metric):
-    """Closed-form for the gradient of the loss function.
-
-    Parameters
-    ----------
-    y_pred : array-like, shape=[..., dim]
-        Prediction.
-    y_true : array-like, shape=[..., dim]
-        Ground-truth.
-    metric : RiemannianMetric
-        Metric.
-
-    Returns
-    -------
-    loss_grad : array-like, shape=[...,]
-        Gradient of the loss.
-
-    """
-    tangent_vec = metric.log(base_point=y_pred, point=y_true)
-    grad_vec = - 2. * tangent_vec
-
-    inner_prod_mat = metric.metric_matrix(base_point=y_pred)
-    is_vectorized = inner_prod_mat.ndim == 3
-    axes = (0, 2, 1) if is_vectorized else (1, 0)
-
-    loss_grad = gs.einsum(
-        '...i,...ij->...i',
-        grad_vec,
-        gs.transpose(inner_prod_mat, axes=axes))
-
-    return loss_grad
-
-
 class RiemannianMetric(Connection, ABC):
     """Class for Riemannian and pseudo-Riemannian metrics.
 
@@ -484,3 +426,60 @@ class RiemannianMetric(Connection, ABC):
         normalization_factor = gs.where(
             condition, EPSILON, normalization_factor)
         return gs.where(~condition, sectional / normalization_factor, 0.)
+
+def loss(y_pred, y_true, metric):
+    """Compute loss function between prediction and ground truth.
+
+    Loss function given by a Riemannian metric,
+    expressed as the squared geodesic distance between the prediction
+    and the ground truth.
+
+    Parameters
+    ----------
+    y_pred : array-like, shape=[..., dim]
+        Prediction.
+    y_true : array-like, shape=[..., dim]
+        Ground-truth.
+    metric : RiemannianMetric
+        Metric.
+
+    Returns
+    -------
+    sq_dist : array-like, shape=[...,]
+        Loss, i.e. the squared distance.
+    """
+    sq_dist = metric.squared_dist(y_pred, y_true)
+    return sq_dist
+
+
+def grad(y_pred, y_true, metric):
+    """Closed-form for the gradient of the loss function.
+
+    Parameters
+    ----------
+    y_pred : array-like, shape=[..., dim]
+        Prediction.
+    y_true : array-like, shape=[..., dim]
+        Ground-truth.
+    metric : RiemannianMetric
+        Metric.
+
+    Returns
+    -------
+    loss_grad : array-like, shape=[...,]
+        Gradient of the loss.
+
+    """
+    tangent_vec = metric.log(base_point=y_pred, point=y_true)
+    grad_vec = - 2. * tangent_vec
+
+    inner_prod_mat = metric.metric_matrix(base_point=y_pred)
+    is_vectorized = inner_prod_mat.ndim == 3
+    axes = (0, 2, 1) if is_vectorized else (1, 0)
+
+    loss_grad = gs.einsum(
+        '...i,...ij->...i',
+        grad_vec,
+        gs.transpose(inner_prod_mat, axes=axes))
+
+    return loss_grad
