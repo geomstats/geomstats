@@ -106,13 +106,13 @@ class RiemannianMetric(Connection, ABC):
         cometric_mat_at_point = self.inner_product_inverse_matrix(base_point)
         metric_derivative_at_point = self.inner_product_derivative_matrix(
             base_point)
-        term_1 = gs.einsum('...im,...mkl->...ikl',
+        term_1 = gs.einsum('...lk,...jli->...kij',
                            cometric_mat_at_point,
                            metric_derivative_at_point)
-        term_2 = gs.einsum('...im,...mlk->...ilk',
+        term_2 = gs.einsum('...lk,...lij->...kij',
                            cometric_mat_at_point,
                            metric_derivative_at_point)
-        term_3 = - gs.einsum('...im,...klm->...ikl',
+        term_3 = - gs.einsum('...lk,...ijl->...kij',
                              cometric_mat_at_point,
                              metric_derivative_at_point)
 
