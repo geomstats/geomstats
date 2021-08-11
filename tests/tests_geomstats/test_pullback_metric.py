@@ -159,6 +159,58 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             base_point)
         expected = _expected_inverse_metric_matrix(base_point)
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_inner_product_and_sphere_inner_product(self):
+        """Test consistency between sphere's inner-products.
+
+        The inner-product of the class Hypersphere is
+        defined in terms of extrinsic coordinates.
+
+        The inner-product of pullback_metric is defined in terms
+        of the spherical coordinates.
+        """
+        tangent_vec_a = gs.array([0., 1.])
+        tangent_vec_b = gs.array([0., 1.])
+        base_point = gs.array([gs.pi / 2., 0.])
+        immersed_base_point = self.immersion(base_point)
+        jac_immersion = self.pullback_metric.jacobian_immersion(
+            base_point)
+        immersed_tangent_vec_a = gs.matmul(
+            jac_immersion, tangent_vec_a)
+        immersed_tangent_vec_b = gs.matmul(
+            jac_immersion, tangent_vec_b)
+
+        result = self.pullback_metric.inner_product(
+            tangent_vec_a, 
+            tangent_vec_b, 
+            base_point=base_point)
+        expected = self.sphere_metric.inner_product(
+            immersed_tangent_vec_a, 
+            immersed_tangent_vec_b, 
+            base_point=immersed_base_point)
+        self.assertAllClose(result, expected)
+        
+        tangent_vec_a = gs.array([0.4, 1.])
+        tangent_vec_b = gs.array([0.2, 0.6])
+        base_point = gs.array([gs.pi / 2., 0.1])
+        immersed_base_point = self.immersion(base_point)
+        jac_immersion = self.pullback_metric.jacobian_immersion(
+            base_point)
+        immersed_tangent_vec_a = gs.matmul(
+            jac_immersion, tangent_vec_a)
+        immersed_tangent_vec_b = gs.matmul(
+            jac_immersion, tangent_vec_b)
+
+        result = self.pullback_metric.inner_product(
+            tangent_vec_a, 
+            tangent_vec_b, 
+            base_point=base_point)
+        expected = self.sphere_metric.inner_product(
+            immersed_tangent_vec_a, 
+            immersed_tangent_vec_b, 
+            base_point=immersed_base_point)
+        self.assertAllClose(result, expected)
     
 
      
@@ -191,24 +243,24 @@ class TestPullbackMetric(geomstats.tests.TestCase):
 
     # def test_inner_product_new_euc_metric(self):
     #     base_point = gs.array([0., 1.])
-    #     tan_a = gs.array([0.3, 0.4])
-    #     tan_b = gs.array([0.1, -0.5])
+    #     tangent_vec_a = gs.array([0.3, 0.4])
+    #     tangent_vec_b = gs.array([0.1, -0.5])
     #     expected = -0.17
 
     #     result = self.new_euc_metric.inner_product(
-    #         tan_a, tan_b, base_point=base_point
+    #         tangent_vec_a, tangent_vec_b, base_point=base_point
     #     )
 
     #     self.assertAllClose(result, expected)
 
     # def test_inner_product_new_sphere_metric(self):
     #     base_point = gs.array([gs.pi / 3., gs.pi / 5.])
-    #     tan_a = gs.array([0.3, 0.4])
-    #     tan_b = gs.array([0.1, -0.5])
+    #     tangent_vec_a = gs.array([0.3, 0.4])
+    #     tangent_vec_b = gs.array([0.1, -0.5])
     #     expected = -0.12
 
     #     result = self.new_sphere_metric.inner_product(
-    #         tan_a, tan_b, base_point=base_point
+    #         tangent_vec_a, tangent_vec_b, base_point=base_point
     #     )
 
     #     self.assertAllClose(result, expected)
