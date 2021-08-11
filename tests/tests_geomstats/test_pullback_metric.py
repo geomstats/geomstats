@@ -211,6 +211,70 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             immersed_tangent_vec_b, 
             base_point=immersed_base_point)
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_christoffels_and_sphere_christoffels(self):
+        """Test consistency between sphere's christoffels.
+
+        The christoffels of the class Hypersphere are
+        defined in terms of spherical coordinates.
+
+        The christoffels of pullback_metric are also defined
+        in terms of the spherical coordinates.
+        """
+        base_point = gs.array([0.1, 0.2])
+        result = self.pullback_metric.christoffels(base_point=base_point)
+        expected = self.sphere_metric.christoffels(point=base_point)
+        self.assertAllClose(result, expected)
+
+        
+        base_point = gs.array([0.1, 0.233])
+        result = self.pullback_metric.christoffels(base_point=base_point)
+        expected = self.sphere_metric.christoffels(point=base_point)
+        self.assertAllClose(result, expected)
+
+
+    @geomstats.tests.np_only
+    def test_exp_and_sphere_exp(self):
+        """Test consistency between sphere's Riemannian exp.
+
+        The exp map of the class Hypersphere is
+        defined in terms of extrinsic coordinates.
+
+        The exp map of pullback_metric is defined
+        in terms of the spherical coordinates.
+        """
+        base_point = gs.array([gs.pi / 2., 0.])
+        tangent_vec_a = gs.array([0., 1.])
+        immersed_base_point = self.immersion(base_point)
+        jac_immersion = self.pullback_metric.jacobian_immersion(
+            base_point)
+        immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec_a)
+        result = self.pullback_metric.exp(
+            tangent_vec_a, 
+            base_point=base_point)
+        result = self.sphere.spherical_to_extrinsic(result)
+        expected = self.sphere.metric.exp(
+            immersed_tangent_vec_a, 
+            base_point=immersed_base_point)
+        self.assertAllClose(result, expected)
+        
+        
+        tangent_vec_a = gs.array([0.4, 1.])
+        base_point = gs.array([gs.pi / 2., 0.1])
+        immersed_base_point = self.immersion(base_point)
+        jac_immersion = self.pullback_metric.jacobian_immersion(
+            base_point)
+        immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec_a)
+        result = self.pullback_metric.exp(
+            tangent_vec_a, 
+            base_point=base_point)
+        result = self.sphere.spherical_to_extrinsic(result)
+        expected = self.sphere.metric.exp(
+            immersed_tangent_vec_a, 
+            base_point=immersed_base_point)
+
+        self.assertAllClose(result, expected, atol=1e-1)
     
 
      
