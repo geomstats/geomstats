@@ -117,3 +117,32 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
         result =self.new_sphere_metric.christoffels(base_point)
 
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_exp_new_eucl_metric(self):
+        base_point = gs.array([7.2, -8.9])
+        tan = gs.array([-1., 4.5])
+
+        expected = base_point + tan
+        result = self.new_euc_metric.exp(tan, base_point)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_log_new_eucl_metric(self):
+        base_point = gs.array([7.2, -8.9])
+        point = gs.array([-3., 1.2])
+
+        expected = point - base_point
+        result = self.new_euc_metric.log(point, base_point)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_exp_new_sphere_metric(self):
+        base_point = gs.array([gs.pi / 10. , gs. pi / 10.])
+        tan = gs.array([gs.pi / 2., 0.])
+
+        expected = gs.array([gs.pi / 10. + gs.pi / 2., gs.pi / 10.])
+        result = self.new_sphere_metric.exp(tan, base_point)
+        self.assertAllClose(result, expected)
+
+

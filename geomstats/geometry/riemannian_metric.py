@@ -109,18 +109,22 @@ class RiemannianMetric(Connection, ABC):
         christoffels: array-like, shape=[..., dim, dim, dim]
             Christoffel symbols.
         """
-        cometric_mat_at_point = self.inner_product_inverse_matrix(base_point)
+        cometric_mat_at_point = self.inner_product_inverse_matrix(
+            base_point)
         metric_derivative_at_point = self.inner_product_derivative_matrix(
             base_point)
-        term_1 = gs.einsum('...lk,...jli->...kij',
-                           cometric_mat_at_point,
-                           metric_derivative_at_point)
-        term_2 = gs.einsum('...lk,...lij->...kij',
-                           cometric_mat_at_point,
-                           metric_derivative_at_point)
-        term_3 = - gs.einsum('...lk,...ijl->...kij',
-                             cometric_mat_at_point,
-                             metric_derivative_at_point)
+        term_1 = gs.einsum(
+            '...lk,...jli->...kij',
+            cometric_mat_at_point,
+            metric_derivative_at_point)
+        term_2 = gs.einsum(
+            '...lk,...lij->...kij',
+            cometric_mat_at_point,
+            metric_derivative_at_point)
+        term_3 = - gs.einsum(
+            '...lk,...ijl->...kij',
+            cometric_mat_at_point,
+            metric_derivative_at_point)
 
         christoffels = 0.5 * (term_1 + term_2 + term_3)
         return christoffels
