@@ -13,7 +13,6 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=UserWarning)
         gs.random.seed(0)
-        
         self.dim = 2
         self.euc_metric = EuclideanMetric(dim=self.dim)
         self.sphere_metric = HypersphereMetric(dim=self.dim)
@@ -62,7 +61,8 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
     def test_metric_derivative_new_euc_metric(self):
         base_point = gs.array([5., 1.])
 
-        result = self.new_euc_metric.inner_product_derivative_matrix(base_point)
+        result = self.new_euc_metric.inner_product_derivative_matrix(
+            base_point)
         expected = gs.zeros((self.dim,) * 3)
 
         self.assertAllClose(result, expected)
@@ -114,7 +114,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
         base_point = gs.array([0.3, -.7])
 
         expected = self.sphere_metric.christoffels(base_point)
-        result =self.new_sphere_metric.christoffels(base_point)
+        result = self.new_sphere_metric.christoffels(base_point)
 
         self.assertAllClose(result, expected)
 
@@ -138,11 +138,9 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_exp_new_sphere_metric(self):
-        base_point = gs.array([gs.pi / 10. , gs. pi / 10.])
+        base_point = gs.array([gs.pi / 10., gs. pi / 10.])
         tan = gs.array([gs.pi / 2., 0.])
 
         expected = gs.array([gs.pi / 10. + gs.pi / 2., gs.pi / 10.])
         result = self.new_sphere_metric.exp(tan, base_point)
         self.assertAllClose(result, expected)
-
-
