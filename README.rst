@@ -94,6 +94,14 @@ backends:
 
     pip3 install -r dev-requirements.txt -r opt-requirements.txt
 
+To add the `requirements.txt` into a conda environment, you can use the
+`enviroment.yml` file as follows:
+
+::
+
+   conda env create --file environment.yml 
+
+
 Choose the backend
 ------------------
 
