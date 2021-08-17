@@ -95,7 +95,7 @@ class TestStiefel(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (self.n, self.p))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_log_and_exp(self):
         """
         Test that the Riemannian exponential
@@ -198,7 +198,7 @@ class TestStiefel(geomstats.tests.TestCase):
         result = self.metric.exp(log, base_point)
         self.assertAllClose(result, point, rtol=1e-05, atol=1e-05)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_retraction_and_lifting(self):
         """
         Test that the Riemannian exponential
@@ -226,7 +226,7 @@ class TestStiefel(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_lifting_vectorization_shape(self):
         n_samples = self.n_samples
         n = self.n

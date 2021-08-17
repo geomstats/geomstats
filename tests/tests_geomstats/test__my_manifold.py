@@ -23,7 +23,7 @@ In command line, select the backend of interest with:
  and repeat the steps from the previous paragraph.
 
 When you submit a PR, the tests are run with the three backends, except if you
-add a decorator such as `@geomstats.tests.np_only` or
+add a decorator such as `@geomstats.tests.np_and_autograd_only` or
 `@geomstats.tests.np_and_tf_only` etc.
 """
 

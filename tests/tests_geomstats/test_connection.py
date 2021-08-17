@@ -36,7 +36,7 @@ class TestConnection(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_metric_derivative(self):
         base_point = gs.array([0., 1., 0., 0.])
 
@@ -45,7 +45,7 @@ class TestConnection(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_christoffels(self):
         base_point = gs.array([0., 1., 0., 0.])
 

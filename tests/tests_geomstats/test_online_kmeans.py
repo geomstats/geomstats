@@ -17,7 +17,7 @@ class TestOnlineKmeans(geomstats.tests.TestCase):
         self.data = self.space.random_von_mises_fisher(
             kappa=100, n_samples=50)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_fit(self):
         X = self.data
         clustering = OnlineKMeans(
@@ -32,7 +32,7 @@ class TestOnlineKmeans(geomstats.tests.TestCase):
         expected = 0.
         self.assertAllClose(expected, result, atol=1e-3)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_predict(self):
         X = self.data
         clustering = OnlineKMeans(

@@ -46,7 +46,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_log_vector(self):
         n_samples = 5
         expected = self.space_vector.random_point(n_samples)
@@ -64,7 +64,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         result = self.space_matrix.metric.exp(logs, base_point)
         self.assertAllClose(result, expected, atol=1e-5)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_dist_log_exp_norm_vector(self):
         n_samples = 5
         point = self.space_vector.random_point(n_samples)

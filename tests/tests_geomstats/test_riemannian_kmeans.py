@@ -31,7 +31,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         expected = 0.
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_spd_kmeans_fit(self):
         gs.random.seed(0)
         dim = 3

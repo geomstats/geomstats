@@ -11,6 +11,16 @@ import numpy as np
 import geomstats.backend as gs
 
 
+def autograd_backend():
+    """Check if numpy is set as backend."""
+    return os.environ['GEOMSTATS_BACKEND'] == 'autograd'
+
+
+def np_backend():
+    """Check if numpy is set as backend."""
+    return os.environ['GEOMSTATS_BACKEND'] == 'numpy'
+
+
 def pytorch_backend():
     """Check if pytorch is set as backend."""
     return os.environ['GEOMSTATS_BACKEND'] == 'pytorch'
@@ -21,14 +31,9 @@ def tf_backend():
     return os.environ['GEOMSTATS_BACKEND'] == 'tensorflow'
 
 
-def np_backend():
-    """Check if numpy is set as backend."""
-    return os.environ['GEOMSTATS_BACKEND'] == 'numpy'
-
-
-def np_only(test_item):
+def np_and_autograd_only(test_item):
     """Decorate to filter tests for numpy only."""
-    if np_backend():
+    if np_backend() or autograd_backend():
         return test_item
     return unittest.skip('Test for numpy backend only.')(test_item)
 
@@ -64,6 +69,9 @@ def np_and_pytorch_only(test_item):
 
 
 _TestBaseClass = unittest.TestCase
+if autograd_backend():
+    import autograd
+
 if tf_backend():
     import tensorflow as tf
     _TestBaseClass = tf.test.TestCase

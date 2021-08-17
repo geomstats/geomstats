@@ -56,7 +56,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         points = self.dirichlet.random_point(self.n_points)
         self.assertAllClose(gs.shape(points), (self.n_points, self.dim))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_sample(self):
         """Test sample.
 
@@ -74,7 +74,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = (self.n_points, self.n_samples, self.dim)
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_sample_belong(self):
         """Test that sample samples in the simplex.
 
@@ -87,7 +87,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = gs.ones((self.n_points, self.n_samples))
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_point_to_pdf(self):
         """Test point_to_pdf.
 
@@ -194,7 +194,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = gs.stack((christoffel_1, christoffel_2), axis=0)
         self.assertAllClose(christoffels, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp(self):
         """Test Exp.
 
@@ -220,7 +220,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = gs.array([True] * n_points)
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_log_and_exp(self):
         """Test Log and Exp.
 
@@ -237,7 +237,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=log, base_point=base_points)
         self.assertAllClose(result, expected, rtol=1e-2)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_vectorization(self):
         """Test vectorization of Exp.
 
@@ -254,7 +254,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = (n_tangent_vecs, self.dim)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_log_vectorization(self):
         """Test vectorization of Log.
 
@@ -268,7 +268,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = (self.n_points, self.dim)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def tests_geodesic_ivp_and_bvp(self):
         """Test geodesic intial and boundary value problems.
 
@@ -292,7 +292,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         result = geodesic_at_t.shape
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_geodesic(self):
         """Test geodesic.
 
@@ -315,7 +315,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result, rtol=1.)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_geodesic_vectorization(self):
         """Check vectorization of geodesic.
 
@@ -376,7 +376,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = gs.stack(expected, 0)
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_jacobian_in_geodesic_bvp(self):
         """Test Jacobian option in geodesic bvp.
 
@@ -389,7 +389,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = self.dirichlet.metric.dist(point_a, point_b)
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_geodesic_bvp_timer(self):
         """Check timer for geodesic bvp."""
         max_time = 1e-4

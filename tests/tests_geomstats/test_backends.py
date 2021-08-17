@@ -121,7 +121,7 @@ class TestBackends(geomstats.tests.TestCase):
         scipy_result = scipy.linalg.expm(scipy.linalg.logm(np_point))
         self.assertAllCloseToNp(result, scipy_result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_expm_vectorization(self):
         # Note: scipy.linalg.expm is not vectorized
         point = gs.array([[[2., 0., 0.],

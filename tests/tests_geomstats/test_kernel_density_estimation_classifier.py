@@ -50,7 +50,7 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
         expected = gs.array([0])
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_predict_one_dimensional_data_callable_distance(self):
         """Test the 'predict' class method on one dimensional data."""
         training_dataset = gs.array([0, 1, 2, 3])
@@ -62,7 +62,7 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
         expected = gs.array([0])
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_predict_proba_uniform_kernel_one_dimensional_data(self):
         """Test the 'predict_proba' class method using the 'uniform' kernel.
 

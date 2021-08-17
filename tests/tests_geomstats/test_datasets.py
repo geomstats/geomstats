@@ -108,7 +108,7 @@ class TestDatasets(geomstats.tests.TestCase):
         result = gs.logical_and(labels >= 0, labels <= 1)
         self.assertTrue(gs.all(result))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_leaves(self):
         """Test that leaves data are beta distribution parameters."""
         beta = BetaDistributions()

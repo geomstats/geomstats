@@ -90,7 +90,7 @@ class TestPoincareHalfSpace(geomstats.tests.TestCase):
             tangent_vec_ball, base_point_ball)
         self.assertAllClose(result, tangent_vec)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp(self):
         point = gs.array([1., 1.])
         tangent_vec = gs.array([2., 1.])
@@ -121,7 +121,7 @@ class TestPoincareHalfSpace(geomstats.tests.TestCase):
 
         self.assertAllClose(end_point, end_point_expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_vectorization(self):
         point = gs.array([[1., 1.], [1., 1.]])
         tangent_vec = gs.array([[2., 1.], [2., 1.]])

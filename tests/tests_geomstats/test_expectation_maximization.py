@@ -37,7 +37,7 @@ class TestEM(geomstats.tests.TestCase):
         self.n_gaussian = 3
         self.data = gs.concatenate((cluster_1, cluster_2, cluster_3), axis=0)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_fit_init_kmeans(self):
         """Test fitting data into a GMM."""
         gmm_learning = RiemannianEM(
@@ -62,7 +62,7 @@ class TestEM(geomstats.tests.TestCase):
         self.assertTrue((variances < 1).all() and (variances > 0).all())
         self.assertTrue(self.space.belongs(means).all())
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_fit_init_random(self):
         """Test fitting data into a GMM."""
         gmm_learning = RiemannianEM(
@@ -133,7 +133,7 @@ class TestEM(geomstats.tests.TestCase):
         find_var_verdict = gs.array([0.481, 0.434, 0.378, 0.311])
         self.assertAllClose(find_var_test, find_var_verdict, TOLERANCE)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_fit_init_random_sphere(self):
         """Test fitting data into a GMM."""
         space = Hypersphere(2)
