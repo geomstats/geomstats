@@ -28,7 +28,7 @@ jobs:
       matrix:
         os: [ubuntu-18.04]
         python-version: [3.7]
-        geomstats-backend : ['numpy','pytorch','tensorflow']
+        geomstats-backend : ['autograd','numpy','pytorch','tensorflow']
         test-folder : ['tests.tests_geomstats' , 'tests.test_notebooks']
       fail-fast: false  
 
