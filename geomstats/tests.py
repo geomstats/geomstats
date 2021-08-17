@@ -31,6 +31,13 @@ def tf_backend():
     return os.environ['GEOMSTATS_BACKEND'] == 'tensorflow'
 
 
+def autograd_only(test_item):
+    """Decorate to filter tests for autograd only."""
+    if autograd_backend():
+        return test_item
+    return unittest.skip('Test for autograd backend only.')(test_item)
+
+
 def np_only(test_item):
     """Decorate to filter tests for numpy only."""
     if np_backend():
