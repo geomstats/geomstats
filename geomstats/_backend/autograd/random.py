@@ -1,6 +1,6 @@
-"""Numpy based random backend."""
+"""Autograd based random backend."""
 
-from numpy.random import (  # NOQA
+from autograd.numpy.random import (  # NOQA
     choice,
     normal,
     multivariate_normal,

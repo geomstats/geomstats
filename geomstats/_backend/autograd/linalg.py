@@ -1,4 +1,4 @@
-"""Numpy based linear algebra backend."""
+"""Autograd based linear algebra backend."""
 
 import autograd.numpy as np
 import autograd.scipy.linalg as asp
