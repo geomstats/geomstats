@@ -208,7 +208,7 @@ class TestBackends(geomstats.tests.TestCase):
         expected = gs.array(([[1, 2, 6, 24, 120], [6, 42, 336, 3024, 30240]]))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.pytorch_only
+    @geomstats.tests.torch_only
     def test_cumsum(self):
         result = gs.cumsum(gs.arange(10))
         expected = gs.array(([0, 1, 3, 6, 10, 15, 21, 28, 36, 45]))
