@@ -97,7 +97,7 @@ class TestCase(_TestBaseClass):
     def assertAllClose(self, a, b, rtol=gs.rtol, atol=gs.atol):
         if tf_backend():
             return super().assertAllClose(a, b, rtol=rtol, atol=atol)
-        if np_backend():
+        if np_backend() or autograd_backend():
             return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
 
         return self.assertTrue(
