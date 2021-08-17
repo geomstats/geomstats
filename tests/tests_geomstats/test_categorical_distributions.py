@@ -2,8 +2,6 @@
 
 import warnings
 
-# from scipy.stats import multinomial
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.categorical_distributions \
