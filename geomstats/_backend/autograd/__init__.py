@@ -1,4 +1,4 @@
-"""Numpy based computation backend."""
+"""Autograd based computation backend."""
 
 import math
 
