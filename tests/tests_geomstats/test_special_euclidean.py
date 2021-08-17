@@ -261,7 +261,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         result = self.group.belongs(exp)
         self.assertTrue(result)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_log_and_is_tan(self):
         exp = self.group.left_canonical_metric.exp(
             self.tangent_vec, self.point)
@@ -279,7 +279,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
         result = self.group.is_tangent(log, self.point[0])
         self.assertTrue(result)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_exp_log(self):
         exp = self.group.left_canonical_metric.exp(
             self.tangent_vec, self.point)

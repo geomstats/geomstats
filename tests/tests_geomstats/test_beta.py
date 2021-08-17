@@ -149,7 +149,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         expected = (n_points, 2)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_christoffels_vectorization(self):
         """Test Christoffel synbols.
 

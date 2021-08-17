@@ -138,7 +138,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = SymmetricMatrices.from_vector(vector)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_christoffels(self):
         """Test Christoffel symbols in dimension 2.
 
@@ -174,7 +174,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = gs.stack([gamma_0, gamma_1], axis=-3)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_christoffels_vectorization(self):
         """Test Christoffel synbols.
 

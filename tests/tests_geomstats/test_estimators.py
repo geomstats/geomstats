@@ -55,7 +55,7 @@ class TestEstimators(geomstats.tests.TestCase):
         X_trans = trans.fit_transform(X)
         self.assertAllClose(X_trans, gs.sqrt(X))
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_template_classifier(self):
         X, y = self.data
         clf = TemplateClassifier()

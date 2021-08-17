@@ -171,7 +171,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         result = 0 <= gs.linalg.norm(regularized[:3]) <= gs.pi
         self.assertTrue(result)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_regularize_extreme_cases(self):
         point = self.elements_all['with_angle_0']
         result = self.group.regularize(point)

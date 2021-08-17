@@ -185,7 +185,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = gs.array([4., 5.])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_left_exp_and_exp_from_identity_left_diag_metrics(self):
         left_exp_from_id = self.left_diag_metric.left_exp_from_identity(
             self.point_1)
@@ -193,7 +193,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
         self.assertAllClose(left_exp_from_id, exp_from_id)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_left_log_and_log_from_identity_left_diag_metrics(self):
         left_log_from_id = self.left_diag_metric.left_log_from_identity(
             self.point_1)
@@ -201,7 +201,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
         self.assertAllClose(left_log_from_id, log_from_id)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_left_exp_and_log_from_identity_left_diag_metrics(self):
         """
         Test that the Riemannian left exponential and the
@@ -237,7 +237,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = self.point_small
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_left_exp_and_log_from_identity_left_metrics(self):
         """
         Test that the Riemannian left exponential and the
@@ -278,7 +278,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = self.point_small
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_exp_and_log_from_identity_left_diag_metrics(self):
         """
         Test that the Riemannian exponential and the
@@ -313,7 +313,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = self.point_small
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_exp_and_log_from_identity_left_metrics(self):
         """
         Test that the Riemannian exponential and the
@@ -348,7 +348,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = self.point_small
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_exp_and_log_from_identity_right_diag_metrics(self):
         """
         Test that the Riemannian exponential and the
@@ -383,7 +383,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = self.point_small
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_exp_and_log_from_identity_right_metrics(self):
         """
         Test that the Riemannian exponential and the
@@ -413,7 +413,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = self.point_small
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_exp_and_log_left_diag_metrics(self):
         """
         Test that the Riemannian exponential and the
@@ -436,7 +436,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         result = self.group.regularize(result)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_exp_and_log_left_metrics(self):
         """
         Test that the Riemannian exponential and the
@@ -457,7 +457,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = self.point_small
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_exp_and_log_right_diag_metrics(self):
         """
         Test that the Riemannian exponential and the
@@ -477,7 +477,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = self.group.regularize(self.point_small)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_exp_and_log_right_metrics(self):
         """
         Test that the Riemannian exponential and the
@@ -497,7 +497,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = self.point_small
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_squared_dist_left_diag_metrics(self):
         sq_dist_1_2 = self.left_diag_metric.squared_dist(self.point_1,
                                                          self.point_2)
@@ -505,7 +505,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
                                                          self.point_1)
         self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_squared_dist_left_metrics(self):
         sq_dist_1_2 = self.left_metric.squared_dist(self.point_1,
                                                     self.point_2)
@@ -513,7 +513,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
                                                     self.point_1)
         self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_squared_dist_and_squared_norm_left_diag_metrics(self):
         result = self.left_diag_metric.squared_dist(self.point_1,
                                                     self.point_2)
@@ -524,7 +524,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             base_point=self.point_1)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_squared_dist_and_squared_norm_left_metrics(self):
         result = self.left_metric.squared_dist(self.point_1, self.point_2)
         log = self.left_metric.log(base_point=self.point_1, point=self.point_2)
@@ -532,7 +532,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             vector=log, base_point=self.point_1)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_squared_dist_and_squared_norm_right_diag_metrics(self):
         result = self.right_diag_metric.squared_dist(self.point_1,
                                                      self.point_2)
@@ -542,7 +542,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             vector=log, base_point=self.point_1)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_squared_dist_and_squared_norm_right_metrics(self):
         result = self.right_metric.squared_dist(self.point_1, self.point_2)
         log = self.right_metric.log(

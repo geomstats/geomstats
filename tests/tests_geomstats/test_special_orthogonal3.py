@@ -167,7 +167,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         result = 0 <= gs.linalg.norm(regularized) <= gs.pi
         self.assertTrue(result)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_regularize_extreme_cases(self):
         point = self.elements_all['with_angle_0']
         self.assertAllClose(gs.linalg.norm(point), 0.)
@@ -2980,7 +2980,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                 gs.allclose(result, expected)
                 or gs.allclose(result, inv_expected))
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_group_exp_then_log(self):
         """
         This tests that the composition of

@@ -24,7 +24,7 @@ In command line, select the backend of interest with:
 
 When you submit a PR, the tests are run with the three backends, except if you
 add a decorator such as `@geomstats.tests.np_and_autograd_only` or
-`@geomstats.tests.np_and_tf_only` etc.
+`@geomstats.tests.np_autograd_and_tf_only` etc.
 """
 
 # Import the tests module
