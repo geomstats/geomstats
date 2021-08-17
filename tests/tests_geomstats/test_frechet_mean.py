@@ -458,6 +458,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = gs.stack([expected_1, expected_2])
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_only
     def test_stiefel_two_samples(self):
         space = Stiefel(3, 2)
         metric = space.metric
@@ -469,6 +470,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
             metric.log(point[0], point[1]) / 2, point[1])
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_only
     def test_stiefel_n_samples(self):
         space = Stiefel(3, 2)
         metric = space.metric
