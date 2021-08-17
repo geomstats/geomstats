@@ -126,7 +126,7 @@ class TestFullRankCorrelationMatrices(geomstats.tests.TestCase):
         result = self.base.belongs(exp)
         self.assertTrue(result)
 
-    #@geomstats.test.autograd_tf_and_torch_only
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_align(self):
         point = self.bundle.random_point(2)
         aligned = self.bundle.align(
@@ -136,7 +136,7 @@ class TestFullRankCorrelationMatrices(geomstats.tests.TestCase):
             log, point[1], atol=gs.atol * 100)
         self.assertTrue(result)
 
-    #@geomstats.test.autograd_tf_and_torch_only
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_exp_and_log(self):
         mats = self.bundle.random_point(2)
         points = self.bundle.riemannian_submersion(mats)

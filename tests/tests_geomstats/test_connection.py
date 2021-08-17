@@ -144,7 +144,7 @@ class TestConnection(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    #@geomstats.test.autograd_tf_and_torch_only
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_log_connection_metric(self):
         base_point = gs.array([gs.pi / 3, gs.pi / 4])
         point = gs.array([1.0, gs.pi / 2])
@@ -160,7 +160,7 @@ class TestConnection(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    #@geomstats.test.autograd_tf_and_torch_only
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_log_connection_metric_vectorization(self):
         base_point = gs.array([[gs.pi / 3, gs.pi / 4], [gs.pi / 2, gs.pi / 4]])
         point = gs.array([[1.0, gs.pi / 2], [gs.pi / 6, gs.pi / 3]])
