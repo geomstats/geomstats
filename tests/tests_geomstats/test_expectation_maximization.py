@@ -101,7 +101,7 @@ class TestEM(geomstats.tests.TestCase):
             data[0])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_normalization_factor(self):
         """Test for Gaussian distribution normalization factor."""
         gmm = RiemannianEM(self.metric)

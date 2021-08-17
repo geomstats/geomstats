@@ -113,7 +113,7 @@ class TestMatrices(geomstats.tests.TestCase):
         expected = [True, True, False]
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_make_symmetric(self):
         sym_mat = gs.array([[1., 2.],
                             [2., 1.]])

@@ -118,7 +118,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         expected = gs.eye(self.group.dim)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_inner_product_at_identity(self):
         lie_algebra = SkewSymmetricMatrices(3)
         tangent_vec_a = lie_algebra.matrix_representation(

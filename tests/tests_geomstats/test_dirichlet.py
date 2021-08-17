@@ -104,7 +104,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=0)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_metric_matrix_vectorization(self):
         """Test metric matrix vectorization..
 
@@ -116,7 +116,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = (self.n_points, self.dim, self.dim)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_metric_matrix_dim2(self):
         """Test metric matrix in dimension 2.
 
@@ -352,7 +352,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = (self.n_points, self.dim)
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_jacobian_christoffels(self):
         """Test jacobian of Christoffel symbols.
 

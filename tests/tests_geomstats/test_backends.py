@@ -785,7 +785,7 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.isclose(gs_array, 22., rtol=1e-8, atol=1e-7)
         self.assertAllCloseToNp(gs_result, np_result)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_where(self):
         # TODO (ninamiolane): Make tf behavior consistent with np
         # Currently, tf returns array, while np returns tuple
@@ -945,7 +945,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, skew)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_general_sylvester_solve(self):
         a = gs.array([[-3., -2., 0.], [-1., -1., 3.], [3., -5., -1.]])
         b = gs.array([[1.]])
@@ -979,7 +979,7 @@ class TestBackends(geomstats.tests.TestCase):
         expected = _np.linalg.cholesky(mat)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_expm_backward(self):
         mat = gs.array([[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]])
         mat = gs.cast(mat, gs.float64)

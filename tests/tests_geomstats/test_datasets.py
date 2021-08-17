@@ -45,7 +45,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
         self.assertTrue(gs.all(result))
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_karate_graph(self):
         """Test the correct number of edges and nodes for each graph."""
         graph = data_utils.load_karate_graph()
@@ -53,7 +53,7 @@ class TestDatasets(geomstats.tests.TestCase):
         expected = 68
         self.assertTrue(result == expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_random_graph(self):
         """Test the correct number of edges and nodes for each graph."""
         graph = data_utils.load_random_graph()
@@ -61,7 +61,7 @@ class TestDatasets(geomstats.tests.TestCase):
         expected = 20
         self.assertTrue(result == expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_random_walks_random_graph(self):
         """Test that random walks have the right length and number."""
         graph = data_utils.load_random_graph()
@@ -77,7 +77,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_random_walks_karate_graph(self):
         """Test that random walks have the right length and number."""
         graph = data_utils.load_karate_graph()

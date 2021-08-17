@@ -34,7 +34,7 @@ class TestNotebooks(geomstats.tests.TestCase):
         _exec_notebook('notebooks/02_from_vector_spaces_to_manifolds.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_03_simple_machine_learning_on_tangent_spaces():
         _exec_notebook(
             'notebooks/03_simple_machine_learning_on_tangent_spaces.ipynb')
@@ -46,7 +46,7 @@ class TestNotebooks(geomstats.tests.TestCase):
             'notebooks/04_riemannian_frechet_mean_and_tangent_pca.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_05_riemannian_kmeans():
         _exec_notebook('notebooks/05_riemannian_kmeans.ipynb')
 
@@ -68,7 +68,7 @@ class TestNotebooks(geomstats.tests.TestCase):
             'notebooks/usecase_emg_sign_classification_in_spd_manifold.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_usecase_graph_embedding_and_clustering_in_hyperbolic_space():
         _exec_notebook(
             'notebooks/'
