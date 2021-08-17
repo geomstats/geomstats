@@ -160,7 +160,9 @@ class BackendImporter:
 
     @staticmethod
     def _import_backend(backend_name):
-        if backend_name == 'numpy':
+        if backend_name == 'autograd':
+            from geomstats._backend import autograd as backend
+        elif backend_name == 'numpy':
             from geomstats._backend import numpy as backend
         elif backend_name == 'pytorch':
             from geomstats._backend import pytorch as backend
