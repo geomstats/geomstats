@@ -55,7 +55,6 @@ jobs:
           flake8 geomstats/geometry geomstats/learning 
 
       - name: unit testing [nose2]
-        if: ${{matrix.python-version != 3.8 || matrix.geomstats-backend != 'tensorflow'}}
         env: 
           GEOMSTATS_BACKEND : ${{matrix.geomstats-backend}} 
         run: |
