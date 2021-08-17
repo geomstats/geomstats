@@ -711,6 +711,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             tangent_vec, identity, n_steps=100, step='rk2')
         self.assertAllClose(expected, result, atol=1e-5)
 
+    #@geomstats.test.autograd_tf_and_torch_only
     def test_integrated_exp_and_log_at_id(self):
         group = self.matrix_so3
         metric = InvariantMetric(group=group)
@@ -765,6 +766,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             tangent_vec, point, n_steps=100, step='rk2')
         self.assertAllClose(expected, result, atol=4e-5)
 
+    #@geomstats.test.autograd_tf_and_torch_only
     def test_dist_pairwise_parallel(self):
         gs.random.seed(0)
         n_samples = 2

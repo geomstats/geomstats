@@ -117,6 +117,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         result = self.bundle.is_vertical(vertical, mat)
         self.assertTrue(result)
 
+    #@geomstats.test.autograd_tf_and_torch_only
     def test_align(self):
         point = self.bundle.random_point(2)
         aligned = self.bundle.align(
@@ -146,6 +147,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         expected = self.base_metric.exp(tangent_vec, point)
         self.assertAllClose(result, expected)
 
+    #@geomstats.test.autograd_tf_and_torch_only
     def test_log(self):
         mats = self.bundle.random_point(2)
         points = self.bundle.riemannian_submersion(mats)
@@ -154,6 +156,7 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         expected = self.base_metric.log(points[1], points[0])
         self.assertAllClose(result, expected, atol=3e-4)
 
+    #@geomstats.test.autograd_tf_and_torch_only
     def test_squared_dist(self):
         mats = self.bundle.random_point(2)
         points = self.bundle.riemannian_submersion(mats)
