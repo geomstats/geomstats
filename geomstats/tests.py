@@ -42,14 +42,18 @@ def np_and_autograd_only(test_item):
     """Decorate to filter tests for numpy and autograd only."""
     if np_backend() or autograd_backend():
         return test_item
-    return unittest.skip('Test for numpy and autograd backends only.')(test_item)
+    return unittest.skip(
+        'Test for numpy and autograd backends only.')(
+            test_item)
 
 
 def autograd_and_torch_only(test_item):
     """Decorate to filter tests for autograd and torch only."""
     if autograd_backend() or pytorch_backend():
         return test_item
-    return unittest.skip('Test for autograd and torch backends only.')(test_item)
+    return unittest.skip(
+        'Test for autograd and torch backends only.')(
+            test_item)
 
 
 def torch_only(test_item):
@@ -92,9 +96,6 @@ def autograd_tf_and_torch_only(test_item):
 
 
 _TestBaseClass = unittest.TestCase
-if autograd_backend():
-    import autograd
-
 if tf_backend():
     import tensorflow as tf
     _TestBaseClass = tf.test.TestCase

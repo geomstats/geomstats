@@ -3,7 +3,8 @@ def value_and_grad(objective):
     raise RuntimeError(
         "Automatic differentiation is not supported with numpy backend. "
         "Use autograd, pytorch or tensorflow backend instead.\n"
-        "Change backend via the command export GEOMSTATS_BACKEND=autograd in a terminal.")
+        "Change backend via the command "
+        "export GEOMSTATS_BACKEND=autograd in a terminal.")
 
 
 def jacobian(f):
@@ -11,4 +12,5 @@ def jacobian(f):
     raise RuntimeError(
         "Automatic differentiation is not supported with numpy backend. "
         "Use autograd, pytorch or tensorflow backend instead.\n"
-        "Change backend via the command export GEOMSTATS_BACKEND=autograd in a terminal.")
+        "Change backend via the command "
+        "export GEOMSTATS_BACKEND=autograd in a terminal.")
