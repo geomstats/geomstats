@@ -101,7 +101,7 @@ from autograd.numpy import (  # NOQA
 from autograd.scipy.special import erf, polygamma # NOQA
 from scipy.sparse import coo_matrix
 
-
+# Note: this import overwrites the initial import of autograd
 from . import autograd # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
