@@ -11,6 +11,7 @@ from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.stiefel import Stiefel
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.frechet_mean import variance
 
@@ -456,3 +457,25 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected_2 = mean.estimate_
         expected = gs.stack([expected_1, expected_2])
         self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_only
+    def test_stiefel_two_samples(self):
+        space = Stiefel(3, 2)
+        metric = space.metric
+        point = space.random_point(2)
+        mean = FrechetMean(metric)
+        mean.fit(point)
+        result = mean.estimate_
+        expected = metric.exp(
+            metric.log(point[0], point[1]) / 2, point[1])
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_only
+    def test_stiefel_n_samples(self):
+        space = Stiefel(3, 2)
+        metric = space.metric
+        point = space.random_point(2)
+        mean = FrechetMean(metric, lr=.5, verbose=True, method='default')
+        mean.fit(point)
+        result = space.belongs(mean.estimate_)
+        self.assertTrue(result)
