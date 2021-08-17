@@ -352,7 +352,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         expected = (self.n_points, self.dim)
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @geomstats.tests.autograd_and_torch_only
     def test_jacobian_christoffels(self):
         """Test jacobian of Christoffel symbols.
 

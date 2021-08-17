@@ -133,7 +133,7 @@ class TestEM(geomstats.tests.TestCase):
         find_var_verdict = gs.array([0.481, 0.434, 0.378, 0.311])
         self.assertAllClose(find_var_test, find_var_verdict, TOLERANCE)
 
-    @geomstats.tests.np_and_autograd_only
+    @geomstats.tests.autograd_only
     def test_fit_init_random_sphere(self):
         """Test fitting data into a GMM."""
         space = Hypersphere(2)
