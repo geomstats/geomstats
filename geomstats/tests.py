@@ -67,6 +67,7 @@ def np_autograd_and_torch_only(test_item):
     return unittest.skip('Test for numpy and pytorch backends only.')(
         test_item)
 
+
 def autograd_tf_and_torch_only(test_item):
     """Decorate to filter tests for backends with autodiff only."""
     if np_backend():
