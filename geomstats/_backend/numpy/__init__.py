@@ -2,9 +2,8 @@
 
 import math
 
-import autograd # NOQA
-import autograd.numpy as np
-from autograd.numpy import (  # NOQA
+import numpy as np
+from numpy import (  # NOQA
     abs,
     all,
     allclose,
@@ -98,7 +97,7 @@ from autograd.numpy import (  # NOQA
     zeros,
     zeros_like
 )
-from autograd.scipy.special import erf, polygamma # NOQA
+from scipy.special import erf, polygamma # NOQA
 from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA
