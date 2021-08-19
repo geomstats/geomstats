@@ -5,15 +5,15 @@ Geomstats
    :header-rows: 0
 
    * - **Code**
-     - |PyPI version|\ |Zenodo|\ |Downloads|\
+     - |PyPI version|\ |Downloads|\  |Zenodo|\ 
    * - **Continuous Integration**
      - |Build Status|\ |python|\
    * - **Code coverage (numpy, tensorflow, pytorch)**
      - |Coverage Status np|\ |Coverage Status tf|\ |Coverage Status torch|
    * - **Documentation**
-     - |doc|\ |binder|\ |tutorial|\
+     - |doc|\  |binder|\ |tutorial|\
    * - **Community**
-     - |contributions|\ |Slack|\ |Twitter|\
+     - |contributions|\  |Slack|\  |Twitter|\
 
 **NEWS**: Interested in pushing forward the fields of computational
 differential geometry and topology? The `ICLR 2021 challenge of geometry
@@ -197,7 +197,7 @@ This work is supported by:
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Zenodo| image:: https://zenodo.org/badge/108200238.svg
    :target: https://zenodo.org/badge/latestdoi/108200238
-.. |Downloads| image:: https://static.pepy.tech/personalized-badge/geomstats?period=total&units=international_system&left_color=black&right_color=brightgreen&left_text=Downloads
+.. |Downloads| image:: https://static.pepy.tech/personalized-badge/geomstats?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads
    :target: https://pepy.tech/project/geomstats
 .. |python| image:: https://img.shields.io/badge/python-3.6+-blue?logo=python
    :target: https://www.python.org/
