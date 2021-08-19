@@ -5,7 +5,7 @@ Geomstats
    :header-rows: 0
 
    * - **Code**
-     - |PyPI version|\ |Zenodo|\
+     - |PyPI version|\ |Zenodo|\ |Downloads|\
    * - **Continuous Integration**
      - |Build Status|\ |python|\
    * - **Code coverage (numpy, tensorflow, pytorch)**
@@ -197,6 +197,8 @@ This work is supported by:
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Zenodo| image:: https://zenodo.org/badge/108200238.svg
    :target: https://zenodo.org/badge/latestdoi/108200238
+.. |Downloads| image:: https://pepy.tech/project/geomstats
+   :target: https://static.pepy.tech/badge/geomstats
 .. |python| image:: https://img.shields.io/badge/python-3.6+-blue?logo=python
    :target: https://www.python.org/
 .. |tutorial| image:: https://img.shields.io/youtube/views/Ju-Wsd84uG0?label=watch&style=social
