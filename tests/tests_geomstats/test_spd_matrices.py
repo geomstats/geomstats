@@ -280,7 +280,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_euclidean_exp_domain(self):
         """Test of SPDMetricEuclidean.exp_domain method."""
         base_point = gs.array([[1., 0., 0.],

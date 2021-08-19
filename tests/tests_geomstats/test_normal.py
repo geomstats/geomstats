@@ -76,4 +76,4 @@ class TestNormalDistributions(geomstats.tests.TestCase):
         pdf2 = norm.pdf(x, loc=point[1, 0], scale=point[1, 1])
         expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=1)
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-8)

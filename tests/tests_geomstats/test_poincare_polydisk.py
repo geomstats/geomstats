@@ -29,7 +29,7 @@ class TestPoincarePolydisk(geomstats.tests.TestCase):
         result = self.metric.signature
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_product_distance_extrinsic_representation(self):
         """Test the distance using the extrinsic representation."""
         coords_type = 'extrinsic'

@@ -46,7 +46,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_log_vector(self):
         n_samples = 5
         expected = self.space_vector.random_point(n_samples)
@@ -55,7 +55,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         result = self.space_vector.metric.exp(logs, base_point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_exp_log_matrix(self):
         n_samples = 5
         expected = self.space_matrix.random_point(n_samples)
@@ -64,7 +64,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         result = self.space_matrix.metric.exp(logs, base_point)
         self.assertAllClose(result, expected, atol=1e-5)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_dist_log_exp_norm_vector(self):
         n_samples = 5
         point = self.space_vector.random_point(n_samples)
@@ -81,7 +81,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         expected = gs.ones(n_samples)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_dist_log_exp_norm_matrix(self):
         n_samples = 10
         point = self.space_matrix.random_point(n_samples)
@@ -96,7 +96,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         expected = gs.ones((n_samples,))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_inner_product_matrix_matrix(self):
         euclidean = Euclidean(3)
         minkowski = Minkowski(3)
@@ -109,7 +109,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         expected[3, 3] = - 1
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_inner_product_matrix_vector(self):
         euclidean = Euclidean(3)
         minkowski = Minkowski(3)
@@ -132,7 +132,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         result = self.space_matrix.regularize(expected)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_inner_product_matrix(self):
         n_samples = 1
         expected = self.space_matrix.random_point(n_samples)
@@ -150,7 +150,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         expected = self.space_matrix.metric.squared_dist(base_point, expected)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_projection_and_belongs_vector(self):
         space = self.space_vector
         shape = (2, space.dim + 2)
@@ -159,7 +159,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         for res in result:
             self.assertTrue(res)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_projection_and_belongs_matrix(self):
         space = self.space_matrix
         shape = (2, len(space.manifolds), space.manifolds[0].dim + 1)

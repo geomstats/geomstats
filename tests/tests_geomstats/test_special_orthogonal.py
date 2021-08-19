@@ -152,7 +152,7 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         result = group.bi_invariant_metric.norm(translated)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_distance_broadcast(self):
         group = self.group
         point = group.random_point(5)

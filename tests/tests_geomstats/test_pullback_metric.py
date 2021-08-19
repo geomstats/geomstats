@@ -31,6 +31,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             immersion=self.immersion
         )
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_immersion(self):
         expected = gs.array([0., 0., 1.])
         result = self.immersion(gs.array([0., 0.]))
@@ -44,6 +45,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         result = self.immersion(gs.array([gs.pi / 2., gs.pi]))
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_immersion_and_spherical_to_extrinsic(self):
         point = gs.array([0., 0.])
         expected = self.immersion(point)
@@ -55,6 +57,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         result = self.sphere.spherical_to_extrinsic(point)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_jacobian_immersion(self):
         def _expected_jacobian_immersion(point):
             theta = point[..., 0]
@@ -81,6 +84,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         expected = _expected_jacobian_immersion(base_point)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_tangent_immersion(self):
         point = gs.array([gs.pi / 2., gs.pi / 2.])
 
@@ -110,6 +114,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         expected = gs.array([0., 1., 0.])
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_metric_matrix(self):
         def _expected_metric_matrix(point):
             theta = point[..., 0]
@@ -134,6 +139,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         expected = _expected_metric_matrix(base_point)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_inverse_metric_matrix(self):
         def _expected_inverse_metric_matrix(point):
             theta = point[..., 0]
@@ -155,6 +161,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         expected = _expected_inverse_metric_matrix(base_point)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_inner_product_and_sphere_inner_product(self):
         """Test consistency between sphere's inner-products.
 
@@ -206,7 +213,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             base_point=immersed_base_point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.autograd_and_tf_only
     def test_christoffels_and_sphere_christoffels(self):
         """Test consistency between sphere's christoffels.
 
@@ -226,6 +233,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         expected = self.sphere_metric.christoffels(point=base_point)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_exp_and_sphere_exp(self):
         """Test consistency between sphere's Riemannian exp.
 
@@ -266,7 +274,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-1)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.autograd_and_torch_only
     def test_parallel_transport_and_sphere_parallel_transport(self):
         """Test consistency between sphere's parallel transports.
 

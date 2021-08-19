@@ -105,7 +105,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         expected = gs.array([mat_a, mat_b])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_log_and_exp(self):
         point = 5 * gs.eye(self.n)
         group_log = self.group.log(point)
@@ -135,7 +135,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         result = self.group.exp(point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_log_vectorization(self):
         point = gs.array([[[2., 0., 0.],
                            [0., 3., 0.],
@@ -152,7 +152,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         result = self.group.log(point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_orbit(self):
         point = gs.array([
             [gs.exp(4.), 0.],
@@ -169,7 +169,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         expected = gs.array([identity, sqrt, point])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_orbit_vectorization(self):
         point = gs.array([
             [gs.exp(4.), 0.],
@@ -187,7 +187,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         expected = gs.stack([expected] * 2)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_expm_and_logm_vectorization_symmetric(self):
         point = gs.array([[[2., 0., 0.],
                            [0., 3., 0.],

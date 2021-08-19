@@ -58,12 +58,12 @@ class TestExamples(geomstats.tests.TestCase):
         plt.figure()
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_empirical_frechet_mean_uncertainty_sn():
         empirical_frechet_mean_uncertainty_sn.main()
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_gradient_descent_s2():
         gradient_descent_s2.main(max_iter=64, output_file=None)
 
@@ -80,12 +80,12 @@ class TestExamples(geomstats.tests.TestCase):
         kalman_filter.main()
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_learning_graph_structured_data_h2():
         learning_gsd_h2.main()
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_plot_bch_so3():
         plot_bch_so3.main()
 
@@ -126,52 +126,52 @@ class TestExamples(geomstats.tests.TestCase):
         plot_square_h2_klein_disk.main()
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_tangent_pca_s2():
         tangent_pca_h2.main()
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_tangent_pca_h2():
         tangent_pca_s2.main()
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_tangent_pca_so3():
         tangent_pca_so3.main()
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_plot_kernel_density_estimation_classifier_s2():
         plot_kernel_density_estimation_classifier_s2.main()
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_plot_kmeans_manifolds():
         plot_kmeans_manifolds.main()
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_plot_kmedoids_manifolds():
         plot_kmedoids_manifolds.main()
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_plot_em_manifolds():
         plot_em_manifolds.main()
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_plot_knn_s2():
         plot_knn_s2.main()
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_plot_online_kmeans_s1():
         plot_online_kmeans_s1.main()
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_plot_online_kmeans_s2():
         plot_online_kmeans_s2.main()
 

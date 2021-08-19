@@ -21,7 +21,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         self.so = SpecialOrthogonal(n=3)
         self.n_samples = 4
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_estimate_and_belongs_se(self):
         point = self.se_mat.random_point(self.n_samples)
         estimator = ExponentialBarycenter(self.se_mat)
@@ -54,7 +54,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_estimate_and_reach_max_iter_se(self):
         point = self.se_mat.random_point(1)
         estimator = ExponentialBarycenter(self.se_mat, max_iter=2)
@@ -72,7 +72,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_estimate_so_matrix(self):
         points = self.so.random_uniform(2)
 
@@ -84,7 +84,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         expected = gs.zeros_like(points[0])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_estimate_and_belongs_so(self):
         point = self.so.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(self.so)
@@ -102,7 +102,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_estimate_one_sample_so(self):
         point = self.so.random_uniform(1)
         estimator = ExponentialBarycenter(self.so)
@@ -118,7 +118,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_estimate_and_reach_max_iter_so(self):
         point = self.so.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(self.so, max_iter=2)
@@ -136,7 +136,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_coincides_with_frechet_so(self):
         gs.random.seed(0)
         point = self.so.random_uniform(self.n_samples)
@@ -150,7 +150,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         expected = frechet_estimator.estimate_
         self.assertAllClose(result, expected, atol=1e-6)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_estimate_weights(self):
         point = self.so.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(self.so, verbose=True)

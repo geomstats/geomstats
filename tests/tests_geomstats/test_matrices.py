@@ -16,7 +16,7 @@ class TestMatrices(geomstats.tests.TestCase):
         self.metric = self.space.metric
         self.n_samples = 2
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_mul(self):
         a = gs.eye(3, 3, 1)
         b = gs.eye(3, 3, -1)
@@ -36,7 +36,7 @@ class TestMatrices(geomstats.tests.TestCase):
         expected = gs.array([gs.eye(3, 3, 2), c])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_bracket(self):
         x = gs.array([
             [0., 0., 0.],
@@ -58,7 +58,7 @@ class TestMatrices(geomstats.tests.TestCase):
         expected = gs.array([gs.zeros((3, 3)), z, -y])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_transpose(self):
         tr = self.space.transpose
         ar = gs.array
@@ -85,7 +85,7 @@ class TestMatrices(geomstats.tests.TestCase):
         expected = gs.array(False)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_is_skew_symmetric(self):
         skew_mat = gs.array([[0, - 2.],
                             [2., 0]])
@@ -100,7 +100,7 @@ class TestMatrices(geomstats.tests.TestCase):
         expected = gs.array(False)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_is_symmetric_vectorization(self):
         points = gs.array([
             [[1., 2.],
@@ -113,7 +113,7 @@ class TestMatrices(geomstats.tests.TestCase):
         expected = [True, True, False]
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_make_symmetric(self):
         sym_mat = gs.array([[1., 2.],
                             [2., 1.]])
@@ -142,7 +142,7 @@ class TestMatrices(geomstats.tests.TestCase):
                              [res, res, 1e100]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_make_symmetric_and_is_symmetric_vectorization(self):
         points = gs.array([
             [[1., 2.],

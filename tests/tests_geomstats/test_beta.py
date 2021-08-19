@@ -80,7 +80,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         result = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp(self):
         """Test Exp.
 
@@ -99,7 +99,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         expected = gs.array([True] * n_samples)
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_log_and_exp(self):
         """Test Log and Exp.
 
@@ -117,7 +117,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         self.assertAllClose(result, expected, rtol=1e-2)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_vectorization(self):
         """Test vectorization of Exp.
 
@@ -134,7 +134,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         expected = (n_tangent_vecs, 2)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_log_vectorization(self):
         """Test vectorization of Log.
 
@@ -149,7 +149,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         expected = (n_points, 2)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_christoffels_vectorization(self):
         """Test Christoffel synbols.
 
