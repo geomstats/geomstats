@@ -1,6 +1,5 @@
 """Classes for the pullback metric."""
 
-import autograd
 import itertools
 import joblib
 
@@ -44,7 +43,7 @@ class PullbackMetric(RiemannianMetric):
         self.embedding_metric = EuclideanMetric(embedding_dim)
         self.immersion = immersion
         if jacobian_immersion is None:
-            jacobian_immersion = autograd.jacobian(immersion)
+            jacobian_immersion = gs.autograd.jacobian(immersion)
         self.jacobian_immersion = jacobian_immersion
         if tangent_immersion is None:
             def _tangent_immersion(v, x):
@@ -98,37 +97,6 @@ class PullbackMetric(RiemannianMetric):
         out = pool(
             pickable_inner_product(i, j) 
             for i, j in itertools.product(range(self.dim), range(self.dim)))
-        print(type(out))
-        print(out)
-       
-        out = gs.array(out)
-        print(out.shape)
 
         metric_mat = gs.reshape(gs.array(out), (-1, self.dim, self.dim))
         return metric_mat[0] if base_point.ndim == 1 else metric_mat
-
-
-        # upper_triangular = gs.stack([
-        #     gs.array_from_sparse(indices, data, shape) for data in vec])
-
-        # return SymmetricMatrices.from_vector(
-        #         gs.array(out))
-
-        # all_lines = []
-        # 
-        # for i in range(self.dim):
-        #     line_i = []
-        #     immersed_basis_element_i = gs.matmul(
-        #         jacobian_immersion, basis_elements[i])
-        #     for j in range(self.dim):
-        #         immersed_basis_element_j = gs.matmul(
-        #             jacobian_immersion, basis_elements[j])
-
-        #         value = self.embedding_metric.inner_product(
-        #             immersed_basis_element_i,
-        #             immersed_basis_element_j,
-        #             base_point=immersed_base_point)
-        #         line_i.append(value)
-        #     all_lines.append(gs.array(line_i))
-
-        # return gs.vstack(all_lines)

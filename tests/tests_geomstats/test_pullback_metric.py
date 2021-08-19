@@ -223,11 +223,8 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         """
         base_point = gs.array([0.1, 0.2])
         result = self.pullback_metric.christoffels(base_point=base_point)
-        print("!")
         expected = self.sphere_metric.christoffels(point=base_point)
         self.assertAllClose(result, expected)
-
-        print("HELLO")
 
         base_point = gs.array([0.7, 0.233])
         result = self.pullback_metric.christoffels(base_point=base_point)
