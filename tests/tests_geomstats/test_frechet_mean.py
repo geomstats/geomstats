@@ -126,7 +126,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_estimate_default_gradient_descent_so_matrix(self):
         points = self.so_matrix.random_uniform(2)
         mean_vec = FrechetMean(
@@ -140,7 +140,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-5)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_estimate_and_belongs_default_gradient_descent_so_matrix(self):
         point = self.so_matrix.random_uniform(10)
 
@@ -152,7 +152,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_estimate_and_belongs_adaptive_gradient_descent_so_matrix(self):
         point = self.so_matrix.random_uniform(10)
 
@@ -164,7 +164,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         result = self.so_matrix.belongs(mean.estimate_)
         self.assertTrue(result)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_estimate_and_coincide_default_so_vec_and_mat(self):
         point = self.so_matrix.random_uniform(3)
 
@@ -458,7 +458,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = gs.stack([expected_1, expected_2])
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_stiefel_two_samples(self):
         space = Stiefel(3, 2)
         metric = space.metric
@@ -470,7 +470,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
             metric.log(point[0], point[1]) / 2, point[1])
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_stiefel_n_samples(self):
         space = Stiefel(3, 2)
         metric = space.metric

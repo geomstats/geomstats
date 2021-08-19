@@ -34,29 +34,29 @@ class TestNotebooks(geomstats.tests.TestCase):
         _exec_notebook('notebooks/02_from_vector_spaces_to_manifolds.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_03_simple_machine_learning_on_tangent_spaces():
         _exec_notebook(
             'notebooks/03_simple_machine_learning_on_tangent_spaces.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_04_riemannian_frechet_mean_and_tangent_pca():
         _exec_notebook(
             'notebooks/04_riemannian_frechet_mean_and_tangent_pca.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_05_riemannian_kmeans():
         _exec_notebook('notebooks/05_riemannian_kmeans.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_06_information_geometry():
         _exec_notebook('notebooks/06_information_geometry.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.autograd_only
     def test_07_implement_your_own_riemannian_geometry():
         _exec_notebook(
             'notebooks/07_implement_your_own_riemannian_geometry.ipynb')
@@ -68,27 +68,27 @@ class TestNotebooks(geomstats.tests.TestCase):
             'notebooks/usecase_visualizations_in_kendall_shape_spaces.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_usecase_emg_sign_classification_in_spd_manifold():
         _exec_notebook(
             'notebooks/usecase_emg_sign_classification_in_spd_manifold.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_usecase_graph_embedding_and_clustering_in_hyperbolic_space():
         _exec_notebook(
             'notebooks/'
             'usecase_graph_embedding_and_clustering_in_hyperbolic_space.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_usecase_hand_poses_analysis_in_kendall_shape_space():
         _exec_notebook(
             'notebooks/'
             'usecase_hand_poses_analysis_in_kendall_shape_space.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_usecase_optic_nerve_heads_analysis_in_kendall_shape_space():
         _exec_notebook(
             'notebooks/'

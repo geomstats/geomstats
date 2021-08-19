@@ -171,7 +171,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         result = 0 <= gs.linalg.norm(regularized[:3]) <= gs.pi
         self.assertTrue(result)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_regularize_extreme_cases(self):
         point = self.elements_all['with_angle_0']
         result = self.group.regularize(point)
@@ -430,7 +430,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                 gs.shape(result),
                 (n_samples, *self.group.get_point_type_shape()))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_group_exp_from_identity_vectorization(self):
         n_samples = self.n_samples
         tangent_vecs = self.group.random_point(n_samples=n_samples)
@@ -439,7 +439,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_group_log_from_identity_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_point(n_samples=n_samples)
@@ -449,7 +449,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
             gs.shape(result),
             (n_samples, *self.group.get_point_type_shape()))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_group_exp_vectorization(self):
         n_samples = self.n_samples
         # Test with the 1 base_point, and several different tangent_vecs
@@ -479,7 +479,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                 gs.shape(result),
                 (n_samples, *self.group.get_point_type_shape()))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_group_log_vectorization(self):
         n_samples = self.n_samples
         # Test with the 1 base point, and several different points
@@ -510,7 +510,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                 gs.shape(result),
                 (n_samples, *self.group.get_point_type_shape()))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_group_exp_from_identity(self):
         # Group exponential of a translation (no rotational part)
         # Expect the original translation
@@ -531,7 +531,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
             expected = tangent_vec
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_group_log_from_identity(self):
         # Group logarithm of a translation (no rotational part)
         # Expect the original translation
@@ -551,7 +551,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
             expected = point
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_group_log_then_exp_from_identity(self):
         """
         Test that the group exponential from the identity
@@ -571,7 +571,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
             if geomstats.tests.tf_backend():
                 break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_group_log_then_exp_from_identity_with_angles_close_to_pi(self):
         """
         Test that the group exponential from the identity
@@ -596,7 +596,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
             if geomstats.tests.tf_backend():
                 break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_group_exp(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -611,7 +611,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                     + self.elements_all['translation_large'])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_group_log(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -627,7 +627,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_group_log_then_exp(self):
         """
         Test that the group exponential
@@ -649,7 +649,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                 if geomstats.tests.tf_backend():
                     break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_group_exp_then_log(self):
         """
         Test that the group exponential
@@ -676,7 +676,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                 if geomstats.tests.tf_backend():
                     break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_from_identity_left(self):
         # Riemannian left-invariant metric given by
         # the canonical inner product on the lie algebra
@@ -695,7 +695,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_log_from_identity_left(self):
         # Riemannian left-invariant metric given by
         # the canonical inner product on the lie algebra
@@ -727,7 +727,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
 
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_then_log_from_identity_left(self):
         """
         Test that the Riemannian left exponential from the identity
@@ -752,7 +752,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                 if geomstats.tests.tf_backend():
                     break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_then_log_from_identity_left_with_angles_close_to_pi(self):
         """
         Test that the Riemannian left exponential from the identity
@@ -780,7 +780,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                 if geomstats.tests.tf_backend():
                     break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_then_log_from_identity_right(self):
         """
         Test that the Riemannian right exponential from the identity
@@ -805,7 +805,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                 if geomstats.tests.tf_backend():
                     break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_then_log_from_identity_right_with_angles_close_to_pi(self):
         """
         Test that the Riemannian right exponential from the identity
@@ -830,7 +830,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                     gs.allclose(result, expected)
                     or gs.allclose(result, inv_expected))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_left(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -855,7 +855,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
             axis=0)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_log_left(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -883,7 +883,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_log_then_exp_left(self):
         """
         Test that the Riemannian left exponential and the
@@ -910,7 +910,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                     if geomstats.tests.tf_backend():
                         break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_log_then_exp_left_with_angles_close_to_pi(self):
         """
         Test that the Riemannian left exponential and the
@@ -941,7 +941,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                     if geomstats.tests.tf_backend():
                         break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_then_log_left(self):
         """
         Test that the Riemannian left exponential and the
@@ -973,7 +973,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                     if geomstats.tests.tf_backend():
                         break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_then_log_left_with_angles_close_to_pi(self):
         """
         Test that the Riemannian left exponential and the
@@ -1007,7 +1007,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                     if geomstats.tests.tf_backend():
                         break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_log_then_exp_right(self):
         """
         Test that the Riemannian right exponential and the
@@ -1038,7 +1038,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                     if geomstats.tests.tf_backend():
                         break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_log_then_exp_right_with_angles_close_to_pi(self):
         """
         Test that the Riemannian right exponential and the
@@ -1074,7 +1074,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                     if geomstats.tests.tf_backend():
                         break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_then_log_right(self):
         """
         Test that the Riemannian left exponential and the
@@ -1103,7 +1103,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         #             if geomstats.tests.tf_backend():
         #                 break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_then_log_right_with_angles_close_to_pi(self):
         """
         Test that the Riemannian right exponential and the
@@ -1209,7 +1209,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                                           n_base_point)
             self.assertAllClose(gs.shape(result), (n_samples,))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_squared_dist_is_symmetric(self):
         for metric in self.metrics.values():
             for point_a in self.elements.values():
@@ -1225,7 +1225,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                     if geomstats.tests.tf_backend():
                         break
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_dist_is_symmetric(self):
         for metric in self.metrics.values():
             for point_a in self.elements.values():

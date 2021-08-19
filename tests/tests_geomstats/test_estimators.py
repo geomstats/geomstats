@@ -19,7 +19,7 @@ class TestEstimators(geomstats.tests.TestCase):
     def setUp(self):
         self.data = load_iris(return_X_y=True)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_template_estimator(self):
         est = TemplateEstimator()
         self.assertEqual(est.demo_param, 'demo_param')
@@ -32,7 +32,7 @@ class TestEstimators(geomstats.tests.TestCase):
         y_pred = est.predict(X)
         self.assertAllClose(y_pred, gs.ones(gs.shape(X)[0]))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_template_transformer_error(self):
         X, _ = self.data
         n_samples = gs.shape(X)[0]
@@ -55,7 +55,7 @@ class TestEstimators(geomstats.tests.TestCase):
         X_trans = trans.fit_transform(X)
         self.assertAllClose(X_trans, gs.sqrt(X))
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_template_classifier(self):
         X, y = self.data
         clf = TemplateClassifier()

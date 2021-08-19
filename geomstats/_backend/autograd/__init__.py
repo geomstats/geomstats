@@ -1,9 +1,10 @@
-"""Numpy based computation backend."""
+"""Autograd based computation backend."""
 
 import math
 
-import numpy as np
-from numpy import (  # NOQA
+import autograd # NOQA
+import autograd.numpy as np
+from autograd.numpy import (  # NOQA
     abs,
     all,
     allclose,
@@ -97,11 +98,10 @@ from numpy import (  # NOQA
     zeros,
     zeros_like
 )
+from autograd.scipy.special import erf, polygamma # NOQA
+from scipy.sparse import coo_matrix
 
-from scipy.sparse import coo_matrix # NOQA
-from scipy.special import erf, polygamma # NOQA
-
-
+# Note: this import overwrites the initial import of autograd
 from . import autograd # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA

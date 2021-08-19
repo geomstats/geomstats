@@ -550,7 +550,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
         result = self.space.is_tangent(log, base_point)
         self.assertTrue(result)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_parallel_transport_vectorization(self):
         space = self.space
         shape = (4, space.dim + 1)

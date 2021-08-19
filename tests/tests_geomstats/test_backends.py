@@ -64,7 +64,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllCloseToNp(gs_result, np_result)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_matmul_vectorization(self):
         mat_a = [[2., 0., 0.],
                  [0., 3., 0.],
@@ -87,7 +87,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllCloseToNp(gs_result, np_result)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_logm(self):
         point = gs.array([[2., 0., 0.],
                           [0., 3., 0.],
@@ -105,7 +105,7 @@ class TestBackends(geomstats.tests.TestCase):
         scipy_result = scipy.linalg.logm(np_point)
         self.assertAllCloseToNp(result, scipy_result)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_expm_and_logm(self):
         point = gs.array([[2., 0., 0.],
                           [0., 3., 0.],
@@ -121,7 +121,7 @@ class TestBackends(geomstats.tests.TestCase):
         scipy_result = scipy.linalg.expm(scipy.linalg.logm(np_point))
         self.assertAllCloseToNp(result, scipy_result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_expm_vectorization(self):
         # Note: scipy.linalg.expm is not vectorized
         point = gs.array([[[2., 0., 0.],
@@ -142,7 +142,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_logm_vectorization_diagonal(self):
         # Note: scipy.linalg.expm is not vectorized
         point = gs.array([[[2., 0., 0.],
@@ -163,7 +163,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_expm_and_logm_vectorization_random_rotation(self):
         point = self.so3_group.random_uniform(self.n_samples)
 
@@ -172,7 +172,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_expm_and_logm_vectorization(self):
         point = gs.array([[[2., 0., 0.],
                            [0., 3., 0.],
@@ -208,7 +208,7 @@ class TestBackends(geomstats.tests.TestCase):
         expected = gs.array(([[1, 2, 6, 24, 120], [6, 42, 336, 3024, 30240]]))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.pytorch_only
+    @geomstats.tests.torch_only
     def test_cumsum(self):
         result = gs.cumsum(gs.arange(10))
         expected = gs.array(([0, 1, 3, 6, 10, 15, 21, 28, 36, 45]))
@@ -785,7 +785,7 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.isclose(gs_array, 22., rtol=1e-8, atol=1e-7)
         self.assertAllCloseToNp(gs_result, np_result)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_where(self):
         # TODO (ninamiolane): Make tf behavior consistent with np
         # Currently, tf returns array, while np returns tuple
@@ -859,6 +859,17 @@ class TestBackends(geomstats.tests.TestCase):
         with self.assertRaises((ValueError, RuntimeError)):
             gs.broadcast_arrays(gs.array([1, 2]), gs.array([3, 4, 5]))
 
+    @geomstats.tests.np_only
+    def test_value_and_grad_np_backend(self):
+        n = 10
+        vector = gs.ones(n)
+
+        self.assertRaises(
+            RuntimeError,
+            lambda: gs.autograd.value_and_grad(
+                lambda v: gs.sum(v ** 2))(vector))
+
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_value_and_grad(self):
         n = 10
         vector = gs.ones(n)
@@ -869,6 +880,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_value_and_grad_numpy_input(self):
         n = 10
         vector = _np.ones(n)
@@ -945,7 +957,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, skew)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_general_sylvester_solve(self):
         a = gs.array([[-3., -2., 0.], [-1., -1., 3.], [3., -5., -1.]])
         b = gs.array([[1.]])
@@ -979,7 +991,7 @@ class TestBackends(geomstats.tests.TestCase):
         expected = _np.linalg.cholesky(mat)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.autograd_and_torch_only
     def test_expm_backward(self):
         mat = gs.array([[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]])
         mat = gs.cast(mat, gs.float64)

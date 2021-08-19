@@ -95,7 +95,7 @@ class TestStiefel(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (self.n, self.p))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_log_and_exp(self):
         """
         Test that the Riemannian exponential
@@ -130,7 +130,7 @@ class TestStiefel(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_exp_and_log(self):
         base_point = self.space.random_uniform()
         vector = gs.random.rand(*base_point.shape)
@@ -165,7 +165,7 @@ class TestStiefel(geomstats.tests.TestCase):
         result = self.metric.exp(n_tangent_vecs, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_log_vectorization_shape(self):
         n_samples = self.n_samples
         n = self.n
@@ -191,14 +191,14 @@ class TestStiefel(geomstats.tests.TestCase):
         result = self.metric.log(n_points, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_log_and_exp_random(self):
         base_point, point = self.space.random_uniform(2)
         log = self.metric.log(point, base_point)
         result = self.metric.exp(log, base_point)
         self.assertAllClose(result, point, rtol=1e-05, atol=1e-05)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_retraction_and_lifting(self):
         """
         Test that the Riemannian exponential
@@ -226,7 +226,7 @@ class TestStiefel(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_lifting_vectorization_shape(self):
         n_samples = self.n_samples
         n = self.n
@@ -253,7 +253,7 @@ class TestStiefel(geomstats.tests.TestCase):
         result = self.metric.lifting(n_points, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_retraction_vectorization_shape(self):
         n_samples = self.n_samples
         n = self.n

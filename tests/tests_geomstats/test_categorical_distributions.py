@@ -23,7 +23,7 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         self.n_points = 10
         self.n_samples = 20
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_random_point(self):
         """Test random_point.
 
@@ -34,7 +34,7 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         expected = gs.ones(self.n_points)
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_projection(self):
         """Test projection.
 
@@ -46,7 +46,7 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         expected = gs.ones(self.n_points)
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_to_tangent(self):
         """Test to_tangent.
 
@@ -59,7 +59,7 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         expected = gs.zeros(self.n_points)
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_sample(self):
         """Test sample.
 
@@ -71,7 +71,7 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         expected = (self.n_points, self.n_samples)
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_simplex_to_sphere_and_back(self):
         """Test simplex_to_sphere and sphere_to_simplex.
 
@@ -83,7 +83,7 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         expected = points
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_tangent_simplex_to_sphere_and_back(self):
         """Test tangent_simplex_to_sphere and back.
 
@@ -100,7 +100,7 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         expected = tangent_vec
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_tangent_simplex_to_sphere_vectorization(self):
         """Test tangent_simplex_to_sphere vectorization.
 
@@ -117,7 +117,7 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         expected = tangent_vec
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_and_log(self):
         """Test exp and log.
 
@@ -130,7 +130,7 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         expected = points
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_and_log_vectorization(self):
         """Test exp and log vectorization.
 
@@ -143,7 +143,7 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         expected = points
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_geodesic(self):
         """Test geodesic.
 
@@ -166,7 +166,7 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result, rtol=1.)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_geodesic_vectorization(self):
         """Check vectorization of geodesic.
 

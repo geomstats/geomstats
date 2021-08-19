@@ -1,4 +1,4 @@
-import numpy as np
+import autograd.numpy as np
 
 
 def to_ndarray(x, to_ndim, axis=0):

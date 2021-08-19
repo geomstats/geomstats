@@ -8,8 +8,8 @@ Geomstats
      - |PyPI version|\ |Downloads|\  |Zenodo|\ 
    * - **Continuous Integration**
      - |Build Status|\ |python|\
-   * - **Code coverage (numpy, tensorflow, pytorch)**
-     - |Coverage Status np|\ |Coverage Status tf|\ |Coverage Status torch|
+   * - **Code coverage (numpy, autograd, tensorflow, pytorch)**
+     - |Coverage Status np|\ |Coverage Status autograd|\ |Coverage Status tf|\ |Coverage Status torch|
    * - **Documentation**
      - |doc|\  |binder|\ |tutorial|\
    * - **Community**
@@ -201,6 +201,8 @@ This work is supported by:
 .. |Slack| image:: https://img.shields.io/badge/Slack-Join-yellow
    :target: https://geomstats.slack.com/
 .. |Coverage Status np| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy
+   :target: https://codecov.io/gh/geomstats/geomstats
+.. |Coverage Status autograd| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=autograd
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Coverage Status tf| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow
    :target: https://codecov.io/gh/geomstats/geomstats

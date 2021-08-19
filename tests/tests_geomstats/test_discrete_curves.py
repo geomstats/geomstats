@@ -292,7 +292,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
             tangent_vec, point)
         self.assertTrue(gs.all(result))
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_projection_closed_curves(self):
         """Test that projecting the projection returns the projection
 

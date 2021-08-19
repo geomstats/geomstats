@@ -167,7 +167,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         result = 0 <= gs.linalg.norm(regularized) <= gs.pi
         self.assertTrue(result)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_regularize_extreme_cases(self):
         point = self.elements_all['with_angle_0']
         self.assertAllClose(gs.linalg.norm(point), 0.)
@@ -2792,7 +2792,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                         gs.allclose(result, expected)
                         or gs.allclose(result, inv_expected, atol=1e-5))
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_log_then_exp_with_angles_close_to_pi(self):
         """
         This tests that the composition of log and exp gives identity.
@@ -2980,7 +2980,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                 gs.allclose(result, expected)
                 or gs.allclose(result, inv_expected))
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_group_exp_then_log(self):
         """
         This tests that the composition of
@@ -3057,7 +3057,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
                 self.assertAllClose(result, expected, atol=1e-5)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_group_log_then_exp_with_angles_close_to_pi(self):
         """
         This tests that the composition of
