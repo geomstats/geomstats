@@ -274,7 +274,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-1)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @geomstats.tests.autograd_and_torch_only
     def test_parallel_transport_and_sphere_parallel_transport(self):
         """Test consistency between sphere's parallel transports.
 
