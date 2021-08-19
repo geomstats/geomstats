@@ -56,7 +56,7 @@ class TestNotebooks(geomstats.tests.TestCase):
         _exec_notebook('notebooks/06_information_geometry.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_only
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_07_implement_your_own_riemannian_geometry():
         _exec_notebook(
             'notebooks/07_implement_your_own_riemannian_geometry.ipynb')
