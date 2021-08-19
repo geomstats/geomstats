@@ -43,7 +43,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
     def test_cometric_matrix(self):
         base_point = gs.array([0., 1.])
 
-        result = self.euc_metric.inner_product_inverse_matrix(base_point)
+        result = self.euc_metric.metric_inverse_matrix(base_point)
         expected = gs.eye(self.dim)
 
         self.assertAllClose(result, expected)

@@ -55,7 +55,7 @@ class RiemannianMetric(Connection, ABC):
             'The computation of the metric matrix'
             ' is not implemented.')
 
-    def inner_product_inverse_matrix(self, base_point=None):
+    def metric_inverse_matrix(self, base_point=None):
         """Inner product matrix at the tangent space at a base point.
 
         Parameters
@@ -111,7 +111,7 @@ class RiemannianMetric(Connection, ABC):
         christoffels: array-like, shape=[..., dim, dim, dim]
             Christoffel symbols.
         """
-        cometric_mat_at_point = self.inner_product_inverse_matrix(
+        cometric_mat_at_point = self.metric_inverse_matrix(
             base_point)
         metric_derivative_at_point = self.inner_product_derivative_matrix(
             base_point)
