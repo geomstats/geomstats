@@ -10,7 +10,7 @@ Geomstats
      - |Build Status|\ |python|\
    * - **Code coverage (numpy)**
      - |Coverage Status np|\
-   * - **Code coverage with autodiff (autograd, tensorflow, pytorch)**
+   * - **Code coverage - autodiff (autograd, tensorflow, pytorch)**
      - |Coverage Status autograd|\ |Coverage Status tf|\ |Coverage Status torch|
    * - **Documentation**
      - |doc|\  |binder|\ |tutorial|\
