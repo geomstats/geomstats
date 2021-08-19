@@ -148,13 +148,13 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             return mat
 
         base_point = gs.array([.6, -1.])
-        result = self.pullback_metric.inner_product_inverse_matrix(
+        result = self.pullback_metric.metric_inverse_matrix(
             base_point)
         expected = _expected_inverse_metric_matrix(base_point)
         self.assertAllClose(result, expected)
 
         base_point = gs.array([0.8, -0.8])
-        result = self.pullback_metric.inner_product_inverse_matrix(
+        result = self.pullback_metric.metric_inverse_matrix(
             base_point)
         expected = _expected_inverse_metric_matrix(base_point)
         self.assertAllClose(result, expected)

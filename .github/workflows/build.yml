@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-18.04]
-        python-version: [3.6,3.7,3.8, 3.9]
+        python-version: [3.7,3.8, 3.9]
         geomstats-backend : ['numpy','pytorch','tensorflow']
         test-folder : ['tests.tests_geomstats' , 'tests.test_notebooks']
       fail-fast: false  
@@ -51,8 +51,8 @@ jobs:
       - name: linting [flake8]
         if: ${{matrix.test-folder == 'tests.tests_geomstats' && matrix.python-version == 3.8 && matrix.geomstats-backend == 'tensorflow'}}
         run: |
-          flake8 --ignore=D,W292,W503,W504, geomstats examples tests
-          flake8 --ignore=W292,W503,W504 geomstats/geometry geomstats/learning 
+          flake8 --ignore=D,W503,W504 geomstats examples tests
+          flake8 geomstats/geometry geomstats/learning 
 
       - name: unit testing [nose2]
         env: 
