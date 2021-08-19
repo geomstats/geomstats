@@ -12,7 +12,7 @@ import geomstats.backend as gs
 
 
 def autograd_backend():
-    """Check if numpy is set as backend."""
+    """Check if autograd is set as backend."""
     return os.environ['GEOMSTATS_BACKEND'] == 'autograd'
 
 
