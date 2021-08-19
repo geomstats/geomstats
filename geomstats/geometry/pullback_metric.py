@@ -1,10 +1,13 @@
 """Classes for the pullback metric."""
 
 import autograd
+import itertools
+import joblib
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
 class PullbackMetric(RiemannianMetric):
@@ -49,7 +52,7 @@ class PullbackMetric(RiemannianMetric):
                     jacobian_immersion(x), v)
         self.tangent_immersion = _tangent_immersion
 
-    def metric_matrix(self, base_point=None):
+    def metric_matrix(self, base_point=None, n_jobs=1, **joblib_kwargs):
         r"""Metric matrix at the tangent space at a base point.
 
         Let :math:`f` be the immersion
@@ -74,21 +77,58 @@ class PullbackMetric(RiemannianMetric):
         """
         immersed_base_point = self.immersion(base_point)
         jacobian_immersion = self.jacobian_immersion(base_point)
-        all_lines = []
         basis_elements = gs.eye(self.dim)
-        for i in range(self.dim):
-            line_i = []
+
+        #n_samples = base_point.shape[0]
+        #rows, cols = gs.triu_indices(n_samples)
+
+        @joblib.delayed
+        @joblib.wrap_non_picklable_objects
+        def pickable_inner_product(i, j):
             immersed_basis_element_i = gs.matmul(
                 jacobian_immersion, basis_elements[i])
-            for j in range(self.dim):
-                immersed_basis_element_j = gs.matmul(
+            immersed_basis_element_j = gs.matmul(
                     jacobian_immersion, basis_elements[j])
-
-                value = self.embedding_metric.inner_product(
+            return self.embedding_metric.inner_product(
                     immersed_basis_element_i,
                     immersed_basis_element_j,
                     base_point=immersed_base_point)
-                line_i.append(value)
-            all_lines.append(gs.array(line_i))
 
-        return gs.vstack(all_lines)
+        pool = joblib.Parallel(n_jobs=n_jobs, **joblib_kwargs)
+        out = pool(
+            pickable_inner_product(i, j) 
+            for i, j in itertools.product(range(self.dim), range(self.dim)))
+        print(type(out))
+        print(out)
+       
+        out = gs.array(out)
+        print(out.shape)
+
+        metric_mat = gs.reshape(gs.array(out), (-1, self.dim, self.dim))
+        return metric_mat[0] if base_point.ndim == 1 else metric_mat
+
+
+        # upper_triangular = gs.stack([
+        #     gs.array_from_sparse(indices, data, shape) for data in vec])
+
+        # return SymmetricMatrices.from_vector(
+        #         gs.array(out))
+
+        # all_lines = []
+        # 
+        # for i in range(self.dim):
+        #     line_i = []
+        #     immersed_basis_element_i = gs.matmul(
+        #         jacobian_immersion, basis_elements[i])
+        #     for j in range(self.dim):
+        #         immersed_basis_element_j = gs.matmul(
+        #             jacobian_immersion, basis_elements[j])
+
+        #         value = self.embedding_metric.inner_product(
+        #             immersed_basis_element_i,
+        #             immersed_basis_element_j,
+        #             base_point=immersed_base_point)
+        #         line_i.append(value)
+        #     all_lines.append(gs.array(line_i))
+
+        # return gs.vstack(all_lines)
