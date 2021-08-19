@@ -2,10 +2,10 @@
 
 from autograd.numpy.random import (  # NOQA
     choice,
-    normal,
     multivariate_normal,
+    normal,
     rand,
     randint,
     seed,
-    uniform
+    uniform,
 )
