@@ -65,3 +65,7 @@ def value_and_grad(objective):
         return loss.detach().numpy(), vel.grad.detach().numpy()
     return objective_with_grad
     
+
+def jacobian(f):
+    """Return a function that returns the jacobian of a function."""
+    return lambda x: torch_jac(f, x)
