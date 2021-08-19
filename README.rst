@@ -103,7 +103,7 @@ To add the `requirements.txt` into a conda environment, you can use the
 
 Note that this only installs the minimum requirements. To add the optional,
 development, continuous integration and documentation requirements, 
-refer to the files *-requirements.txt.
+refer to the files `*-requirements.txt`.
 
 Choose the backend
 ------------------
