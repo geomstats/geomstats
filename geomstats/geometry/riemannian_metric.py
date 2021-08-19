@@ -30,9 +30,10 @@ class RiemannianMetric(Connection, ABC):
         Optional, default: 'vector'.
     """
 
-    def __init__(self, dim, signature=None, default_point_type='vector'):
+    def __init__(self, dim, signature=None, default_point_type="vector"):
         super(RiemannianMetric, self).__init__(
-            dim=dim, default_point_type=default_point_type)
+            dim=dim, default_point_type=default_point_type
+        )
         if signature is None:
             signature = (dim, 0)
         self.signature = signature
@@ -52,8 +53,8 @@ class RiemannianMetric(Connection, ABC):
             Inner-product matrix.
         """
         raise NotImplementedError(
-            'The computation of the metric matrix'
-            ' is not implemented.')
+            "The computation of the metric matrix" " is not implemented."
+        )
 
     def metric_inverse_matrix(self, base_point=None):
         """Inner product matrix at the tangent space at a base point.
@@ -111,22 +112,17 @@ class RiemannianMetric(Connection, ABC):
         christoffels: array-like, shape=[..., dim, dim, dim]
             Christoffel symbols.
         """
-        cometric_mat_at_point = self.metric_inverse_matrix(
-            base_point)
-        metric_derivative_at_point = self.inner_product_derivative_matrix(
-            base_point)
+        cometric_mat_at_point = self.metric_inverse_matrix(base_point)
+        metric_derivative_at_point = self.inner_product_derivative_matrix(base_point)
         term_1 = gs.einsum(
-            '...lk,...jli->...kij',
-            cometric_mat_at_point,
-            metric_derivative_at_point)
+            "...lk,...jli->...kij", cometric_mat_at_point, metric_derivative_at_point
+        )
         term_2 = gs.einsum(
-            '...lk,...lij->...kij',
-            cometric_mat_at_point,
-            metric_derivative_at_point)
-        term_3 = - gs.einsum(
-            '...lk,...ijl->...kij',
-            cometric_mat_at_point,
-            metric_derivative_at_point)
+            "...lk,...lij->...kij", cometric_mat_at_point, metric_derivative_at_point
+        )
+        term_3 = -gs.einsum(
+            "...lk,...ijl->...kij", cometric_mat_at_point, metric_derivative_at_point
+        )
 
         christoffels = 0.5 * (term_1 + term_2 + term_3)
         return christoffels
@@ -150,8 +146,8 @@ class RiemannianMetric(Connection, ABC):
             Inner-product.
         """
         inner_prod_mat = self.metric_matrix(base_point)
-        aux = gs.einsum('...j,...jk->...k', tangent_vec_a, inner_prod_mat)
-        inner_prod = gs.einsum('...k,...k->...', aux, tangent_vec_b)
+        aux = gs.einsum("...j,...jk->...k", tangent_vec_a, inner_prod_mat)
+        inner_prod = gs.einsum("...k,...k->...", aux, tangent_vec_b)
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
@@ -268,23 +264,25 @@ class RiemannianMetric(Connection, ABC):
             Geodesic distance between the two points.
         """
         point_type = self.default_point_type
-        ndim = 1 if point_type == 'vector' else 2
+        ndim = 1 if point_type == "vector" else 2
 
         if point_a.shape[-ndim:] != point_b.shape[-ndim:]:
-            raise ValueError('Manifold dimensions not equal')
+            raise ValueError("Manifold dimensions not equal")
 
-        if ndim in (point_a.ndim, point_b.ndim) or (
-                point_a.shape == point_b.shape):
+        if ndim in (point_a.ndim, point_b.ndim) or (point_a.shape == point_b.shape):
             return self.dist(point_a, point_b)
 
         n_samples = point_a.shape[0] * point_b.shape[0]
         point_a_broadcast, point_b_broadcast = gs.broadcast_arrays(
-            point_a[:, None], point_b[None, ...])
+            point_a[:, None], point_b[None, ...]
+        )
 
         point_a_flatten = gs.reshape(
-            point_a_broadcast, (n_samples, ) + point_a.shape[-ndim:])
+            point_a_broadcast, (n_samples,) + point_a.shape[-ndim:]
+        )
         point_b_flatten = gs.reshape(
-            point_b_broadcast, (n_samples, ) + point_a.shape[-ndim:])
+            point_b_broadcast, (n_samples,) + point_a.shape[-ndim:]
+        )
 
         dist = self.dist(point_a_flatten, point_b_flatten)
         dist = gs.reshape(dist, (point_a.shape[0], point_b.shape[0]))
@@ -325,12 +323,11 @@ class RiemannianMetric(Connection, ABC):
             return self.dist(x, y)
 
         pool = joblib.Parallel(n_jobs=n_jobs, **joblib_kwargs)
-        out = pool(
-            pickable_dist(points[i], points[j]) for i, j in zip(rows, cols))
+        out = pool(pickable_dist(points[i], points[j]) for i, j in zip(rows, cols))
 
-        pairwise_dist = (
-            geometry.symmetric_matrices.SymmetricMatrices.from_vector(
-                gs.array(out)))
+        pairwise_dist = geometry.symmetric_matrices.SymmetricMatrices.from_vector(
+            gs.array(out)
+        )
         return pairwise_dist
 
     def diameter(self, points):
@@ -353,7 +350,7 @@ class RiemannianMetric(Connection, ABC):
         n_points = points.shape[0]
 
         for i in range(n_points - 1):
-            dist_to_neighbors = self.dist(points[i, :], points[i + 1:, :])
+            dist_to_neighbors = self.dist(points[i, :], points[i + 1 :, :])
             dist_to_farthest_neighbor = gs.amax(dist_to_neighbors)
             diameter = gs.maximum(diameter, dist_to_farthest_neighbor)
 
@@ -397,10 +394,9 @@ class RiemannianMetric(Connection, ABC):
         """
         norms = self.squared_norm(basis, base_point)
 
-        return gs.einsum('i, ikl->ikl', 1. / gs.sqrt(norms), basis)
+        return gs.einsum("i, ikl->ikl", 1.0 / gs.sqrt(norms), basis)
 
-    def sectional_curvature(
-            self, tangent_vec_a, tangent_vec_b, base_point=None):
+    def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the sectional curvature.
 
         For two orthonormal tangent vectors :math: `x,y` at a base point,
@@ -427,17 +423,17 @@ class RiemannianMetric(Connection, ABC):
         https://en.wikipedia.org/wiki/Sectional_curvature
         """
         curvature = self.curvature(
-            tangent_vec_a, tangent_vec_b, tangent_vec_a, base_point)
+            tangent_vec_a, tangent_vec_b, tangent_vec_a, base_point
+        )
         sectional = self.inner_product(curvature, tangent_vec_b, base_point)
         norm_a = self.squared_norm(tangent_vec_a, base_point)
         norm_b = self.squared_norm(tangent_vec_b, base_point)
         inner_ab = self.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         normalization_factor = norm_a * norm_b - inner_ab ** 2
 
-        condition = gs.isclose(normalization_factor, 0.)
-        normalization_factor = gs.where(
-            condition, EPSILON, normalization_factor)
-        return gs.where(~condition, sectional / normalization_factor, 0.)
+        condition = gs.isclose(normalization_factor, 0.0)
+        normalization_factor = gs.where(condition, EPSILON, normalization_factor)
+        return gs.where(~condition, sectional / normalization_factor, 0.0)
 
 
 def loss(y_pred, y_true, metric):
@@ -484,15 +480,14 @@ def grad(y_pred, y_true, metric):
 
     """
     tangent_vec = metric.log(base_point=y_pred, point=y_true)
-    grad_vec = - 2. * tangent_vec
+    grad_vec = -2.0 * tangent_vec
 
     inner_prod_mat = metric.metric_matrix(base_point=y_pred)
     is_vectorized = inner_prod_mat.ndim == 3
     axes = (0, 2, 1) if is_vectorized else (1, 0)
 
     loss_grad = gs.einsum(
-        '...i,...ij->...i',
-        grad_vec,
-        gs.transpose(inner_prod_mat, axes=axes))
+        "...i,...ij->...i", grad_vec, gs.transpose(inner_prod_mat, axes=axes)
+    )
 
     return loss_grad
