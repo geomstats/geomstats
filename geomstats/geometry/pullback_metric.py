@@ -35,8 +35,13 @@ class PullbackMetric(RiemannianMetric):
     """
 
     def __init__(
-            self, dim, embedding_dim, immersion,
-            jacobian_immersion=None, tangent_immersion=None):
+        self,
+        dim,
+        embedding_dim,
+        immersion,
+        jacobian_immersion=None,
+        tangent_immersion=None,
+    ):
         super(PullbackMetric, self).__init__(dim=dim)
         self.embedding_metric = EuclideanMetric(embedding_dim)
         self.immersion = immersion
@@ -44,9 +49,10 @@ class PullbackMetric(RiemannianMetric):
             jacobian_immersion = autograd.jacobian(immersion)
         self.jacobian_immersion = jacobian_immersion
         if tangent_immersion is None:
+
             def _tangent_immersion(v, x):
-                return gs.matmul(
-                    jacobian_immersion(x), v)
+                return gs.matmul(jacobian_immersion(x), v)
+
         self.tangent_immersion = _tangent_immersion
 
     def metric_matrix(self, base_point=None):
@@ -78,16 +84,17 @@ class PullbackMetric(RiemannianMetric):
         basis_elements = gs.eye(self.dim)
         for i in range(self.dim):
             line_i = []
-            immersed_basis_element_i = gs.matmul(
-                jacobian_immersion, basis_elements[i])
+            immersed_basis_element_i = gs.matmul(jacobian_immersion, basis_elements[i])
             for j in range(self.dim):
                 immersed_basis_element_j = gs.matmul(
-                    jacobian_immersion, basis_elements[j])
+                    jacobian_immersion, basis_elements[j]
+                )
 
                 value = self.embedding_metric.inner_product(
                     immersed_basis_element_i,
                     immersed_basis_element_j,
-                    base_point=immersed_base_point)
+                    base_point=immersed_base_point,
+                )
                 line_i.append(value)
             all_lines.append(gs.array(line_i))
 
