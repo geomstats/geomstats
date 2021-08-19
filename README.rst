@@ -101,6 +101,9 @@ To add the `requirements.txt` into a conda environment, you can use the
 
    conda env create --file environment.yml 
 
+Note that this only installs the minimum requirements. To add the optional,
+development, continuous integration and documentation requirements, 
+refer to the files *-requirements.txt.
 
 Choose the backend
 ------------------
