@@ -28,32 +28,6 @@ class TestConnection(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    def test_cometric_matrix(self):
-        base_point = gs.array([0., 1., 0., 0.])
-
-        result = self.euc_metric.inner_product_inverse_matrix(base_point)
-        expected = gs.eye(self.dim)
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_metric_derivative(self):
-        base_point = gs.array([0., 1., 0., 0.])
-
-        result = self.euc_metric.inner_product_derivative_matrix(base_point)
-        expected = gs.zeros((self.dim,) * 3)
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_christoffels(self):
-        base_point = gs.array([0., 1., 0., 0.])
-
-        result = self.euc_metric.christoffels(base_point)
-        expected = gs.zeros((self.dim,) * 3)
-
-        self.assertAllClose(result, expected)
-
     def test_parallel_transport(self):
         n_samples = 2
         base_point = self.hypersphere.random_uniform(n_samples)

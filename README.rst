@@ -5,15 +5,15 @@ Geomstats
    :header-rows: 0
 
    * - **Code**
-     - |PyPI version|\ |Zenodo|\
+     - |PyPI version|\ |Downloads|\  |Zenodo|\ 
    * - **Continuous Integration**
      - |Build Status|\ |python|\
    * - **Code coverage (numpy, autograd, tensorflow, pytorch)**
      - |Coverage Status np|\ |Coverage Status autograd|\ |Coverage Status tf|\ |Coverage Status torch|
    * - **Documentation**
-     - |doc|\ |binder|\ |tutorial|\
+     - |doc|\  |binder|\ |tutorial|\
    * - **Community**
-     - |contributions|\ |Slack|\ |Twitter|\
+     - |contributions|\  |Slack|\  |Twitter|\
 
 **NEWS**: Interested in pushing forward the fields of computational
 differential geometry and topology? The `ICLR 2021 challenge of geometry
@@ -93,6 +93,17 @@ backends:
 ::
 
     pip3 install -r dev-requirements.txt -r opt-requirements.txt
+
+To add the `requirements.txt` into a conda environment, you can use the
+`enviroment.yml` file as follows:
+
+::
+
+   conda env create --file environment.yml 
+
+Note that this only installs the minimum requirements. To add the optional,
+development, continuous integration and documentation requirements, 
+refer to the files `*-requirements.txt`.
 
 Choose the backend
 ------------------
@@ -199,6 +210,8 @@ This work is supported by:
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Zenodo| image:: https://zenodo.org/badge/108200238.svg
    :target: https://zenodo.org/badge/latestdoi/108200238
+.. |Downloads| image:: https://static.pepy.tech/personalized-badge/geomstats?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads
+   :target: https://pepy.tech/project/geomstats
 .. |python| image:: https://img.shields.io/badge/python-3.6+-blue?logo=python
    :target: https://www.python.org/
 .. |tutorial| image:: https://img.shields.io/youtube/views/Ju-Wsd84uG0?label=watch&style=social

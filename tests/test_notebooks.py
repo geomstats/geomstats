@@ -56,10 +56,16 @@ class TestNotebooks(geomstats.tests.TestCase):
         _exec_notebook('notebooks/06_information_geometry.ipynb')
 
     @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_07_triangular_data_in_kendall_shape_space():
+    @geomstats.tests.np_only
+    def test_07_implement_your_own_riemannian_geometry():
         _exec_notebook(
-            'notebooks/07_triangular_data_in_kendall_shape_space.ipynb')
+            'notebooks/07_implement_your_own_riemannian_geometry.ipynb')
+
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_usecase_visualizations_in_kendall_shape_spaces():
+        _exec_notebook(
+            'notebooks/usecase_visualizations_in_kendall_shape_spaces.ipynb')
 
     @staticmethod
     @geomstats.tests.np_and_autograd_only
