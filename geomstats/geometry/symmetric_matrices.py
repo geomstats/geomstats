@@ -145,8 +145,6 @@ class SymmetricMatrices(VectorSpace):
         mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
         indices = list(zip(*gs.triu_indices(mat_dim)))
         vec = gs.cast(vec, dtype)
-        print(type(vec))
-        print(vec.shape) 
         upper_triangular = gs.stack([
             gs.array_from_sparse(indices, data, shape) for data in vec])
         mat = Matrices.to_symmetric(upper_triangular) * mask

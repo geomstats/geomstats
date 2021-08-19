@@ -1,7 +1,6 @@
 """Riemannian and pseudo-Riemannian metrics."""
 from abc import ABC
 
-import autograd
 import joblib
 
 import geomstats.backend as gs

@@ -1,12 +1,12 @@
 """Classes for the pullback metric."""
 
 import itertools
+
 import joblib
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
 class PullbackMetric(RiemannianMetric):
@@ -78,24 +78,21 @@ class PullbackMetric(RiemannianMetric):
         jacobian_immersion = self.jacobian_immersion(base_point)
         basis_elements = gs.eye(self.dim)
 
-        #n_samples = base_point.shape[0]
-        #rows, cols = gs.triu_indices(n_samples)
-
         @joblib.delayed
         @joblib.wrap_non_picklable_objects
         def pickable_inner_product(i, j):
             immersed_basis_element_i = gs.matmul(
                 jacobian_immersion, basis_elements[i])
             immersed_basis_element_j = gs.matmul(
-                    jacobian_immersion, basis_elements[j])
+                jacobian_immersion, basis_elements[j])
             return self.embedding_metric.inner_product(
-                    immersed_basis_element_i,
-                    immersed_basis_element_j,
-                    base_point=immersed_base_point)
+                immersed_basis_element_i,
+                immersed_basis_element_j,
+                base_point=immersed_base_point)
 
         pool = joblib.Parallel(n_jobs=n_jobs, **joblib_kwargs)
         out = pool(
-            pickable_inner_product(i, j) 
+            pickable_inner_product(i, j)
             for i, j in itertools.product(range(self.dim), range(self.dim)))
 
         metric_mat = gs.reshape(gs.array(out), (-1, self.dim, self.dim))
