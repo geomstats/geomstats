@@ -197,8 +197,8 @@ This work is supported by:
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Zenodo| image:: https://zenodo.org/badge/108200238.svg
    :target: https://zenodo.org/badge/latestdoi/108200238
-.. |Downloads| image:: https://pepy.tech/project/geomstats
-   :target: https://static.pepy.tech/badge/geomstats
+.. |Downloads| image:: https://static.pepy.tech/personalized-badge/geomstats?period=total&units=international_system&left_color=black&right_color=brightgreen&left_text=Downloads
+   :target: https://pepy.tech/project/geomstats
 .. |python| image:: https://img.shields.io/badge/python-3.6+-blue?logo=python
    :target: https://www.python.org/
 .. |tutorial| image:: https://img.shields.io/youtube/views/Ju-Wsd84uG0?label=watch&style=social
