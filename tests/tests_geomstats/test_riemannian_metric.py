@@ -50,7 +50,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @geomstats.tests.autograd_and_torch_only
     def test_metric_derivative_euc_metric(self):
         base_point = self.euc.random_point()
 
@@ -59,7 +59,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @geomstats.tests.autograd_and_torch_only
     def test_metric_derivative_new_euc_metric(self):
         base_point = self.euc.random_point()
 
@@ -93,7 +93,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @geomstats.tests.autograd_and_torch_only
     def test_christoffels_eucl_metric(self):
         base_point = self.euc.random_point()
 
@@ -102,7 +102,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @geomstats.tests.autograd_and_torch_only
     def test_christoffels_new_eucl_metric(self):
         base_point = self.euc.random_point()
 
@@ -120,7 +120,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @geomstats.tests.autograd_and_torch_only
     def test_exp_new_eucl_metric(self):
         base_point = self.euc.random_point()
         tan = self.euc.random_point()
@@ -129,7 +129,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
         result = self.new_euc_metric.exp(tan, base_point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @geomstats.tests.autograd_and_torch_only
     def test_log_new_eucl_metric(self):
         base_point = self.euc.random_point()
         point = self.euc.random_point()
