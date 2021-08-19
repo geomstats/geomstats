@@ -4,8 +4,8 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.geometry.hypersphere import HypersphereMetric
+from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
+from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
@@ -14,6 +14,8 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
         warnings.simplefilter('ignore', category=UserWarning)
         gs.random.seed(0)
         self.dim = 2
+        self.euc = Euclidean(dim=self.dim)
+        self.sphere = Hypersphere(dim=self.dim)
         self.euc_metric = EuclideanMetric(dim=self.dim)
         self.sphere_metric = HypersphereMetric(dim=self.dim)
 
@@ -41,7 +43,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
         self.new_sphere_metric = new_sphere_metric
 
     def test_cometric_matrix(self):
-        base_point = gs.array([0., 1.])
+        base_point = self.euc.random_point()
 
         result = self.euc_metric.metric_inverse_matrix(base_point)
         expected = gs.eye(self.dim)
@@ -50,7 +52,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_metric_derivative_euc_metric(self):
-        base_point = gs.array([5., 1.])
+        base_point = self.euc.random_point()
 
         result = self.euc_metric.inner_product_derivative_matrix(base_point)
         expected = gs.zeros((self.dim,) * 3)
@@ -59,7 +61,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_metric_derivative_new_euc_metric(self):
-        base_point = gs.array([5., 1.])
+        base_point = self.euc.random_point()
 
         result = self.new_euc_metric.inner_product_derivative_matrix(
             base_point)
@@ -68,10 +70,10 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_inner_product_new_euc_metric(self):
-        base_point = gs.array([0., 1.])
-        tan_a = gs.array([0.3, 0.4])
-        tan_b = gs.array([0.1, -0.5])
-        expected = -0.17
+        base_point = self.euc.random_point()
+        tan_a = self.euc.random_point()
+        tan_b = self.euc.random_point()
+        expected = gs.dot(tan_a, tan_b)
 
         result = self.new_euc_metric.inner_product(
             tan_a, tan_b, base_point=base_point
@@ -93,7 +95,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_christoffels_eucl_metric(self):
-        base_point = gs.array([0.2, -.9])
+        base_point = self.euc.random_point()
 
         result = self.euc_metric.christoffels(base_point)
         expected = gs.zeros((self.dim,) * 3)
@@ -102,7 +104,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_christoffels_new_eucl_metric(self):
-        base_point = gs.array([0.2, -.9])
+        base_point = self.euc.random_point()
 
         result = self.new_euc_metric.christoffels(base_point)
         expected = gs.zeros((self.dim,) * 3)
@@ -111,7 +113,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_christoffels_sphere_metrics(self):
-        base_point = gs.array([0.3, -.7])
+        base_point = self.sphere.random_point()
 
         expected = self.sphere_metric.christoffels(base_point)
         result = self.new_sphere_metric.christoffels(base_point)
@@ -120,8 +122,8 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_exp_new_eucl_metric(self):
-        base_point = gs.array([7.2, -8.9])
-        tan = gs.array([-1., 4.5])
+        base_point = self.euc.random_point()
+        tan = self.euc.random_point()
 
         expected = base_point + tan
         result = self.new_euc_metric.exp(tan, base_point)
@@ -129,8 +131,8 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_log_new_eucl_metric(self):
-        base_point = gs.array([7.2, -8.9])
-        point = gs.array([-3., 1.2])
+        base_point = self.euc.random_point()
+        point = self.euc.random_point()
 
         expected = point - base_point
         result = self.new_euc_metric.log(point, base_point)
