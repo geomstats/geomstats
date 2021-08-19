@@ -867,14 +867,14 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertRaises(
             RuntimeError,
-            lambda: gs.autograd.value_and_grad(
+            lambda: gs.autodiff.value_and_grad(
                 lambda v: gs.sum(v ** 2))(vector))
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_value_and_grad(self):
         n = 10
         vector = gs.ones(n)
-        result_loss, result_grad = gs.autograd.value_and_grad(
+        result_loss, result_grad = gs.autodiff.value_and_grad(
             lambda v: gs.sum(v ** 2))(vector)
         expected_loss = n
         expected_grad = 2 * vector
@@ -885,7 +885,7 @@ class TestBackends(geomstats.tests.TestCase):
     def test_value_and_grad_numpy_input(self):
         n = 10
         vector = _np.ones(n)
-        result_loss, result_grad = gs.autograd.value_and_grad(
+        result_loss, result_grad = gs.autodiff.value_and_grad(
             lambda v: gs.sum(v ** 2))(vector)
         expected_loss = n
         expected_grad = 2 * vector
@@ -1000,7 +1000,7 @@ class TestBackends(geomstats.tests.TestCase):
         def loss(p):
             return gs.sum((gs.linalg.expm(p) - gs.eye(3)) ** 2)
 
-        value_and_grad = gs.autograd.value_and_grad(loss)
+        value_and_grad = gs.autodiff.value_and_grad(loss)
         result = value_and_grad(mat)
 
         def loss_torch(p):

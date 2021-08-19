@@ -826,7 +826,7 @@ class HypersphereMetric(RiemannianMetric):
         def func(var):
             return gs.sum(self.normalization_factor(var))
 
-        _, grad = gs.autograd.value_and_grad(func)(variances)
+        _, grad = gs.autodiff.value_and_grad(func)(variances)
         return _, grad
 
 

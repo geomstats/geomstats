@@ -57,7 +57,7 @@ def loss(x, y, parameter):
 parameter_ = gs.concatenate([
     gs.flatten(p_xy),
     gs.flatten(space.to_tangent(gs.random.normal(size=(space.n, ) * 2), p_xy))])
-objective_with_grad = gs.autograd.value_and_grad(
+objective_with_grad = gs.autodiff.value_and_grad(
     lambda param: loss(data, target, param))
 
 res = minimize(

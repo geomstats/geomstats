@@ -43,7 +43,7 @@ class PullbackMetric(RiemannianMetric):
         self.embedding_metric = EuclideanMetric(embedding_dim)
         self.immersion = immersion
         if jacobian_immersion is None:
-            jacobian_immersion = gs.autograd.jacobian(immersion)
+            jacobian_immersion = gs.autodiff.jacobian(immersion)
         self.jacobian_immersion = jacobian_immersion
         if tangent_immersion is None:
             def _tangent_immersion(v, x):

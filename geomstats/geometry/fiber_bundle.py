@@ -189,7 +189,7 @@ class FiberBundle(Manifold, ABC):
             raise ValueError(
                 'Either the group of its action must be known')
 
-        objective_with_grad = gs.autograd.value_and_grad(
+        objective_with_grad = gs.autodiff.value_and_grad(
             lambda param: self.ambient_metric.squared_dist(
                 wrap(param), base_point))
 

@@ -155,7 +155,7 @@ class Connection(ABC):
             delta = self.exp(velocity, base_point, n_steps, step) - point
             return gs.sum(delta ** 2)
 
-        objective_with_grad = gs.autograd.value_and_grad(objective)
+        objective_with_grad = gs.autodiff.value_and_grad(objective)
         tangent_vec = gs.flatten(gs.random.rand(*max_shape))
         res = minimize(
             objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
