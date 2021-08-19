@@ -113,7 +113,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_christoffels_sphere_metrics(self):
-        base_point = self.sphere.random_point()
+        base_point = gs.array([gs.pi / 10., gs.pi / 9.])
 
         expected = self.sphere_metric.christoffels(base_point)
         result = self.new_sphere_metric.christoffels(base_point)
@@ -140,9 +140,9 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_exp_new_sphere_metric(self):
-        base_point = gs.array([gs.pi / 10., gs. pi / 10.])
+        base_point = gs.array([gs.pi / 10., gs.pi / 9.])
         tan = gs.array([gs.pi / 2., 0.])
 
-        expected = gs.array([gs.pi / 10. + gs.pi / 2., gs.pi / 10.])
+        expected = gs.array([gs.pi / 10. + gs.pi / 2., gs.pi / 9.])
         result = self.new_sphere_metric.exp(tan, base_point)
         self.assertAllClose(result, expected)
