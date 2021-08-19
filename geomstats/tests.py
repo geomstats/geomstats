@@ -45,6 +45,15 @@ def np_only(test_item):
     return unittest.skip('Test for numpy backend only.')(test_item)
 
 
+def np_and_tf_only(test_item):
+    """Decorate to filter tests for numpy and tensorflow only."""
+    if np_backend() or tf_backend():
+        return test_item
+    return unittest.skip(
+        'Test for numpy and tensorflow backends only.')(
+            test_item)
+
+
 def np_and_autograd_only(test_item):
     """Decorate to filter tests for numpy and autograd only."""
     if np_backend() or autograd_backend():
