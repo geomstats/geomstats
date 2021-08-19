@@ -2,6 +2,26 @@ import numpy as np
 import tensorflow as tf
 
 
+def custom_gradient(grad_func):
+    """[Decorator to define a custom gradient to a function]
+
+    Args:
+        grad_func ([callable]): The custom gradient function
+    """
+
+    def wrapper(func):
+        def wrapped_func(*args, **kwargs):
+            func_val = func(*args, **kwargs)
+            grad_vals = grad_func(func_val, *args, **kwargs)
+            if not isinstance(grad_vals, tuple):
+                return func_val, lambda g: grad_vals * g
+            return func_val, lambda g: tuple(k * g for k in grad_vals)
+
+        return tf.custom_gradient(wrapped_func)
+
+    return wrapper
+
+
 def value_and_grad(objective):
     """Return a function that returns both value and gradient.
 

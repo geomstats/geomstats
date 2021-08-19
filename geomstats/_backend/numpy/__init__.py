@@ -98,9 +98,9 @@ from numpy import (  # NOQA
     zeros_like
 )
 
+
 from scipy.sparse import coo_matrix # NOQA
 from scipy.special import erf, polygamma # NOQA
-
 
 from . import autograd # NOQA
 from . import linalg  # NOQA
