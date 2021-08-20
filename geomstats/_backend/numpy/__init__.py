@@ -102,7 +102,7 @@ from numpy import (  # NOQA
 from scipy.sparse import coo_matrix # NOQA
 from scipy.special import erf, polygamma # NOQA
 
-from . import autograd # NOQA
+from . import autodiff # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA
