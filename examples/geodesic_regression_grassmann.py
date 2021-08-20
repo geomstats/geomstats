@@ -8,6 +8,7 @@ from scipy.optimize import minimize
 
 import geomstats.backend as gs
 from geomstats.geometry.grassmannian import GeneralLinear, Grassmannian
+from geomstats.geometry.matrices import Matrices
 from geomstats.learning.frechet_mean import FrechetMean, variance
 
 space = Grassmannian(3, 2)
@@ -50,7 +51,7 @@ def loss(x, y, parameter):
     p, v = gs.split(parameter, 2)
     base_point = gs.reshape(p, (space.n, ) * 2)
     vec = gs.reshape(v, (space.n, ) * 2)
-    base_point = GeneralLinear.to_symmetric(base_point)
+    base_point = Matrices.to_symmetric(base_point)
     tangent_vec = space.to_tangent(vec, base_point)
     exp = metric.exp(
         gs.einsum('...,...ij->...ij', x, tangent_vec),
@@ -73,6 +74,6 @@ res = minimize(
 intercept_hat, beta_hat = gs.split(res.x, 2)
 intercept_hat = gs.reshape(intercept_hat, (space.n, ) * 2)
 beta_hat = gs.reshape(beta_hat, (space.n, ) * 2)
-intercept_hat = GeneralLinear.to_symmetric(intercept_hat)
+intercept_hat = Matrices.to_symmetric(intercept_hat)
 beta_hat = space.to_tangent(beta_hat, intercept_hat)
 mse_intercept = metric.squared_dist(intercept_hat, intercept)
