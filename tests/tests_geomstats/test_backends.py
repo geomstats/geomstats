@@ -1079,26 +1079,28 @@ class TestBackends(geomstats.tests.TestCase):
         log = 2 * metric.log(point_a, point_b)
         expected = dist, log
         self.assertAllClose(result, expected)
-   
+
     def test_custom_grad_chain_rule(self):
 
-        fun1_grad = lambda x : 3
+        def fun1_grad(x):
+            return 3
 
         @gs.autodiff.custom_gradient(fun1_grad)
         def fun1(x):
             return x
 
         def fun2(x):
-            out = fun1(x)**2
+            out = fun1(x) ** 2
             return out
 
-        fun2_grad = lambda x: 2*x
+        def fun2_grad(x):
+            return 2 * x
 
         arg = gs.array([10., 2.])
 
         result = gs.autodiff.value_and_grad(fun2)(arg)
         result = tuple(gs.array(k) for k in result)
-        expected = (fun2(arg), fun2_grad(fun1(arg))*fun1_grad(arg))
+        expected = (fun2(arg), fun2_grad(fun1(arg)) * fun1_grad(arg))
 
         self.assertAllClose(result[0], expected[0])
         self.assertAllClose(result[1], expected[1])

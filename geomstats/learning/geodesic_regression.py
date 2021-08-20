@@ -2,6 +2,7 @@
 
 import logging
 import math
+
 from scipy.optimize import minimize
 from sklearn.base import BaseEstimator
 
@@ -88,7 +89,8 @@ class GeodesicRegression(BaseEstimator):
 
         return self
 
-    def _fit_riemannian(self, X, y, weights=None, compute_training_score=False):
+    def _fit_riemannian(
+            self, X, y, weights=None, compute_training_score=False):
         shape = (
             y.shape[-1:] if self.space.default_point_type == 'vector' else
             y.shape[-2:])

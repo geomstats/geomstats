@@ -1,10 +1,13 @@
+"""Geodesic regression on the Grassmanian."""
+
 import os
-os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
-from scipy.optimize import minimize
+os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'  # NOQA
+
 import tensorflow as tf
+from scipy.optimize import minimize
 
 import geomstats.backend as gs
-from geomstats.geometry.grassmannian import Grassmannian, GeneralLinear
+from geomstats.geometry.grassmannian import GeneralLinear, Grassmannian
 from geomstats.learning.frechet_mean import FrechetMean, variance
 
 space = Grassmannian(3, 2)
@@ -49,14 +52,17 @@ def loss(x, y, parameter):
     vec = gs.reshape(v, (space.n, ) * 2)
     base_point = GeneralLinear.to_symmetric(base_point)
     tangent_vec = space.to_tangent(vec, base_point)
-    exp = metric.exp(gs.einsum('...,...ij->...ij', x, tangent_vec), base_point)
+    exp = metric.exp(
+        gs.einsum('...,...ij->...ij', x, tangent_vec),
+        base_point)
     lo = 1. / 2. * gs.sum(tf_sqdist(exp, y))
     return lo
 
 
 parameter_ = gs.concatenate([
     gs.flatten(p_xy),
-    gs.flatten(space.to_tangent(gs.random.normal(size=(space.n, ) * 2), p_xy))])
+    gs.flatten(space.to_tangent(
+        gs.random.normal(size=(space.n, ) * 2), p_xy))])
 objective_with_grad = gs.autodiff.value_and_grad(
     lambda param: loss(data, target, param))
 

@@ -4,13 +4,16 @@ from torch.autograd.functional import jacobian as torch_jac
 
 
 def custom_gradient(*args):
-    """[Decorator to define a custom gradient to a function (or multiple custom-gradient functions)]
-    Args:
-        *args : ([callables]): Custom gradient functions
+    """Decorate a function to define its custom gradient.
+
+    Parameters
+    ----------
+    *grad_func : callables
+        Custom gradient functions.
     """
 
     def decorator(function):
-        
+
         class function_with_grad(torch.autograd.Function):
             @staticmethod
             def forward(ctx, *args):
@@ -25,16 +28,21 @@ def custom_gradient(*args):
                 grads = tuple()
 
                 for custom_grad, g in zip(args, grad_output):
-                    grads = (*grads, custom_grad(*inputs)*g.clone())
+                    grads = (*grads, custom_grad(*inputs) * g.clone())
 
                 return grads
 
         def wrapper(*args):
-                out = function_with_grad.apply(*args) 
-                return out
-            
+            out = function_with_grad.apply(*args)
+            return out
+
         return wrapper
     return decorator
+
+
+def jacobian(f):
+    """Return a function that returns the jacobian of a function."""
+    return lambda x: torch_jac(f, x)
 
 
 def value_and_grad(objective):
@@ -64,8 +72,3 @@ def value_and_grad(objective):
             loss.backward()
         return loss.detach().numpy(), vel.grad.detach().numpy()
     return objective_with_grad
-    
-
-def jacobian(f):
-    """Return a function that returns the jacobian of a function."""
-    return lambda x: torch_jac(f, x)
