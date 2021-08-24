@@ -58,7 +58,7 @@ jobs:
         env: 
           GEOMSTATS_BACKEND : ${{matrix.geomstats-backend}} 
         run: |
-          pytest --cov-report term --cov=geomstats ${{matrix.test-folder}} 
+          pytest --cov-report term  ${{matrix.test-folder}} 
           
       - name: uploading code coverage [codecov]
         if: ${{matrix.python-version == 3.7 && matrix.test-folder == 'tests/tests_geomstats/'}}
