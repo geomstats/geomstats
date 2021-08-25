@@ -48,7 +48,7 @@ def value_and_grad(objective):
         with tf.GradientTape() as t:
             t.watch(velocity)
             loss = objective(velocity)
-        return loss.numpy(), t.gradient(loss, velocity).numpy()
+        return loss, t.gradient(loss, velocity)
     return objective_with_grad
 
 
