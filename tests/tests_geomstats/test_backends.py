@@ -1092,15 +1092,26 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_custom_grad_in_action(self):
-        space = SpecialEuclidean(2)
+        space = SpecialEuclidean(n=2)
         metric = space.left_canonical_metric
         point_a, point_b = space.random_point(2)
-        result = gs.autodiff.value_and_grad(
-            lambda x: metric.squared_dist(x, point_b))(point_a)
+
+        def func(x):
+            return metric.squared_dist(x, point_b)
+
+        result_value, result_grad = gs.autodiff.value_and_grad(
+            func)(point_a)
         dist = metric.squared_dist(point_a, point_b)
         log = 2 * metric.log(point_a, point_b)
-        expected = dist, log
-        self.assertAllClose(result, expected)
+        expected_value, expected_grad = dist, log
+        print("\n expected")
+        print(expected_value)
+        print(expected_grad)
+        print("\n result")
+        print(result_value)
+        print(result_grad)
+        self.assertAllClose(result_value, expected_value)
+        self.assertAllClose(result_grad, expected_grad)
 
     def test_custom_grad_chain_rule(self):
 
