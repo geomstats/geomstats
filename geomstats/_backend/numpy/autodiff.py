@@ -5,6 +5,10 @@ The following functions return error messages.
 """
 
 
+def detach(x):
+    return x
+
+
 def value_and_grad(objective):
     """Return an error when using automatic differentiation with numpy."""
     raise RuntimeError(

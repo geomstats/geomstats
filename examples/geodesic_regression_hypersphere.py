@@ -102,14 +102,15 @@ def main():
         initial_point=intercept_hat, initial_tangent_vec=coef_hat)
     regressed_geodesic = path(
         gs.linspace(0., 1., 100) * gs.pi * 2 / METRIC.norm(coef))
+    regressed_geodesic = gs.to_numpy(gs.autodiff.detach(regressed_geodesic))
 
-    i = 10
+    size = 10
     sphere_visu.draw_points(
-        ax, gs.array([intercept_hat]), marker='o', c='r', s=i)
+        ax, gs.array([intercept_hat]), marker='o', c='r', s=size)
     sphere_visu.draw_points(
-        ax, target, marker='o', c='b', s=i)
+        ax, target, marker='o', c='b', s=size)
     sphere_visu.draw_points(
-        ax, fitted_data, marker='o', c='g', s=i)
+        ax, fitted_data, marker='o', c='g', s=size)
 
     ax.plot(
         regressed_geodesic[:, 0],

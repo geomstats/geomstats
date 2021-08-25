@@ -124,6 +124,7 @@ BACKEND_ATTRIBUTES = {
     ],
     'autodiff': [
         'custom_gradient',
+        'detach',
         'jacobian',
         'value_and_grad'],
     'linalg': [

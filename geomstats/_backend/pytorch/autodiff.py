@@ -3,6 +3,9 @@ import torch
 from torch.autograd.functional import jacobian as torch_jac
 
 
+def detach(x):
+    return x.detach()
+
 def custom_gradient(*args):
     """Decorate a function to define its custom gradient.
 
@@ -70,5 +73,5 @@ def value_and_grad(objective):
             loss.backward(gradient=torch.ones_like(vel))
         else:
             loss.backward()
-        return loss.detach().numpy(), vel.grad.detach().numpy()
+        return loss, vel
     return objective_with_grad

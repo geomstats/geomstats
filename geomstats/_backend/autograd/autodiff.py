@@ -6,6 +6,10 @@ from autograd import value_and_grad as _value_and_grad
 from autograd.extend import defvjp, primitive
 
 
+def detach(x):
+    return x
+
+
 def elementwise_grad(f):
     """Wrap autograd elementwise_grad function."""
     return _elementwise_grad(f)
