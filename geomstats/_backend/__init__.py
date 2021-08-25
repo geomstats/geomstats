@@ -60,6 +60,7 @@ BACKEND_ATTRIBUTES = {
         'flatten',
         'flip',
         'floor',
+        'from_numpy',
         'get_mask_i_float',
         'get_slice',
         'greater',

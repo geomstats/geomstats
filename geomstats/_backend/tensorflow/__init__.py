@@ -103,6 +103,10 @@ def to_numpy(x):
     return x.numpy()
 
 
+def from_numpy(x):
+    return tf.convert_to_tensor(x)
+
+
 def one_hot(labels, num_classes):
     return tf.one_hot(labels, num_classes, dtype=tf.uint8)
 

@@ -121,6 +121,10 @@ def to_numpy(x):
     return x.numpy()
 
 
+def from_numpy(x):
+    return torch.from_numpy(x)
+
+
 def one_hot(labels, num_classes):
     if not torch.is_tensor(labels):
         labels = torch.LongTensor(labels)
