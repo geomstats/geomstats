@@ -4,9 +4,9 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.categorical_distributions \
+from geomstats.information_geometry.categorical \
     import CategoricalDistributions
-from geomstats.geometry.categorical_distributions \
+from geomstats.information_geometry.categorical \
     import CategoricalMetric
 
 
