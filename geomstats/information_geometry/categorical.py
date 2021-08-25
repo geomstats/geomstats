@@ -53,7 +53,8 @@ class CategoricalDistributions(EmbeddedManifold):
         samples : array-like, shape=[..., dim + 1]
             Sample of points representing categorical distributions.
         """
-        return dirichlet.rvs(gs.ones(self.dim + 1), size=n_samples)
+        samples = dirichlet.rvs(gs.ones(self.dim + 1), size=n_samples)
+        return gs.from_numpy(samples)
 
     def projection(self, point, atol=gs.atol):
         """Project a point on the simplex.
@@ -73,6 +74,7 @@ class CategoricalDistributions(EmbeddedManifold):
         projected_point : array-like, shape=[..., dim + 1]
             Point projected on the simplex.
         """
+        geomstats.errors.check_belongs(point, self.embedding_space)
         point_quadrant = gs.where(point < atol, atol, point)
         norm = gs.sum(point_quadrant, axis=-1)
         projected_point = gs.einsum('...,...i->...i', 1. / norm,
@@ -99,6 +101,7 @@ class CategoricalDistributions(EmbeddedManifold):
             Tangent vector in the tangent space of the simplex
             at the base point.
         """
+        geomstats.errors.check_belongs(vector, self.embedding_space)
         component_mean = gs.mean(vector, axis=-1)
         return gs.transpose(gs.transpose(vector) - component_mean)
 
