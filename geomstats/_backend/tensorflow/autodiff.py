@@ -17,7 +17,7 @@ def custom_gradient(grad_func):
     def wrapper(func):
         def wrapped_func(*args, **kwargs):
             func_val = func(*args, **kwargs)
-            grad_vals = grad_func(func_val, *args, **kwargs)
+            grad_vals = grad_func(*args, **kwargs)
             if not isinstance(grad_vals, tuple):
                 return func_val, lambda g: grad_vals * g
             return func_val, lambda g: tuple(k * g for k in grad_vals)
