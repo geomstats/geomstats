@@ -132,7 +132,17 @@ class CategoricalDistributions(EmbeddedManifold):
 
 
 class CategoricalMetric(RiemannianMetric):
-    """Class for the Fisher information metric on categorical distributions."""
+    """Class for the Fisher information metric on categorical distributions.
+
+    The Fisher information metric on the $n$-simplex of categorical
+    distributions parameters can be obtained as the pullback metric of the
+    $n$-sphere using the componentwise square root.
+
+    References
+    ----------
+    .. [K2003] R. E. Kass. The Geometry of Asymptotic Inference. Statistical
+      Science, 4(3): 188 - 234, 1989.
+    """
 
     def __init__(self, dim):
         super(CategoricalMetric, self).__init__(dim=dim)
