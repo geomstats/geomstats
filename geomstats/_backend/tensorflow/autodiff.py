@@ -7,7 +7,7 @@ def detach(x):
     return x
 
 
-def custom_gradient(grad_func):
+def custom_gradient(*grad_funcs):
     """[Decorator to define a custom gradient to a function]
 
     Args:
@@ -17,9 +17,16 @@ def custom_gradient(grad_func):
     def wrapper(func):
         def wrapped_func(*args, **kwargs):
             func_val = func(*args, **kwargs)
-            grad_vals = grad_func(*args, **kwargs)
-            if not isinstance(grad_vals, tuple):
+
+            if not isinstance(grad_funcs, tuple):
+                grad_vals = grad_funcs(*args, **kwargs)
                 return func_val, lambda g: grad_vals * g
+            
+            grad_vals = []
+            for grad_fun in grad_funcs:
+                grad_vals.append(grad_fun(*args, **kwargs))
+            grad_vals = tuple(grad_vals)
+
             return func_val, lambda g: tuple(k * g for k in grad_vals)
 
         return tf.custom_gradient(wrapped_func)

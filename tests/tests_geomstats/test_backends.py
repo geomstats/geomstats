@@ -1070,21 +1070,22 @@ class TestBackends(geomstats.tests.TestCase):
 
     def test_custom_grad_dummy(self):
 
-        def grad_x(_ans, x, y):
+        def grad_x(x, y):
             return 2 * (x - y)
 
-        def grad_y(ans, x, y):
-            return - grad_x(ans, x, y)
+        def grad_y(x, y):
+            return 2 * (y - x)
 
         @gs.autodiff.custom_gradient(grad_x, grad_y)
         def func(x, y):
             return gs.sum((x - y) ** 2)
 
+        arg_x = gs.array([[1., 3.], [2., 3.]])
+        arg_y = gs.array([[2., 5.], [0., 4.]])
+
         def func_2(x):
             return gs.exp(-.5 * func(x, arg_y))
 
-        arg_x = gs.array([[1., 3.], [2., 3.]])
-        arg_y = gs.array([[2., 5.], [0., 4.]])
         result = gs.autodiff.value_and_grad(func_2)(arg_x)
         val = func_2(arg_x)
         expected = (val, (arg_y - arg_x) * val)
