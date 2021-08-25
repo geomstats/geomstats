@@ -28,9 +28,10 @@ def jacobian(f):
 
 
 def custom_gradient(*grad_func):
-    """Return an error when using automatic differentiation with numpy."""
-    raise RuntimeError(
-        "Automatic differentiation is not supported with numpy backend. "
-        "Use autograd, pytorch or tensorflow backend instead.\n"
-        "Change backend via the command "
-        "export GEOMSTATS_BACKEND=autograd in a terminal.")
+    """Decorate a function to define its custom gradient.
+
+    This is a placeholder in order to have consistent backend APIs.
+    """
+    def decorator(function):
+        return function
+    return decorator
