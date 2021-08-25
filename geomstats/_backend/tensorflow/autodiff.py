@@ -6,6 +6,7 @@ def detach(x):
     tf.stop_gradient(x)
     return x
 
+
 def custom_gradient(grad_func):
     """[Decorator to define a custom gradient to a function]
 

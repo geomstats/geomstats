@@ -105,12 +105,13 @@ def main():
     regressed_geodesic = gs.to_numpy(gs.autodiff.detach(regressed_geodesic))
 
     size = 10
+    marker = 'o'
     sphere_visu.draw_points(
-        ax, gs.array([intercept_hat]), marker='o', c='r', s=size)
+        ax, gs.array([intercept_hat]), marker=marker, c='r', s=size)
     sphere_visu.draw_points(
-        ax, target, marker='o', c='b', s=size)
+        ax, target, marker=marker, c='b', s=size)
     sphere_visu.draw_points(
-        ax, fitted_data, marker='o', c='g', s=size)
+        ax, fitted_data, marker=marker, c='g', s=size)
 
     ax.plot(
         regressed_geodesic[:, 0],
