@@ -878,6 +878,7 @@ class TestBackends(geomstats.tests.TestCase):
             lambda v: gs.sum(v ** 2))(vector)
         expected_loss = n
         expected_grad = 2 * vector
+
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 

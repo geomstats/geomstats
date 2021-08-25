@@ -49,7 +49,7 @@ def jacobian(f):
     return lambda x: torch_jac(f, x)
 
 
-def value_and_grad(objective):
+def value_and_grad(func):
     """'Return a function that returns both value and gradient.
 
     Suitable for use in scipy.optimize
@@ -65,14 +65,14 @@ def value_and_grad(objective):
         Function that takes the argument of the objective function as input
         and returns both value and grad at the input.
     '"""
-    def objective_with_grad(velocity):
-        if isinstance(velocity, np.ndarray):
-            velocity = torch.from_numpy(velocity)
-        vel = velocity.clone().detach().requires_grad_(True)
-        loss = objective(vel)
-        if loss.ndim > 0:
-            loss.backward(gradient=torch.ones_like(vel))
+    def objective_with_grad(arg_x):
+        if isinstance(arg_x, np.ndarray):
+            arg_x = torch.from_numpy(arg_x)
+        arg_x = arg_x.clone().detach().requires_grad_(True)
+        value = func(arg_x)
+        if value.ndim > 0:
+            value.backward(gradient=torch.ones_like(arg_x))
         else:
-            loss.backward()
-        return loss, vel
+            value.backward()
+        return value, torch.autograd.grad(func(arg_x), arg_x)[0]
     return objective_with_grad
