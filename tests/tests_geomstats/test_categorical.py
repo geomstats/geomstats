@@ -135,7 +135,6 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         expected = points
         self.assertAllClose(expected, result)
 
-    # @geomstats.tests.np_and_autograd_only
     def test_geodesic(self):
         """Test geodesic.
 
@@ -158,7 +157,6 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result, rtol=1.)
 
-    # @geomstats.tests.np_and_autograd_only
     def test_geodesic_vectorization(self):
         """Check vectorization of geodesic.
 
