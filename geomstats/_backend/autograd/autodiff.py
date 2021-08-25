@@ -29,7 +29,7 @@ def custom_gradient(*grad_func):
         if len(grad_func) == 1:
             defvjp(
                 wrapped_function,
-                lambda ans, *args: lambda g: g * grad_func[0](ans, *args))
+                lambda ans, *args: lambda g: g * grad_func[0](*args))
 
         return wrapped_function
     return decorator
