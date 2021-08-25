@@ -1047,6 +1047,26 @@ class TestBackends(geomstats.tests.TestCase):
         expected = gs.cumprod(vec)[-1]
         self.assertAllClose(result, expected)
 
+
+    def test_custom_grad_dummy_one_var(self):
+
+        def grad_x(x):
+            return 2 * x
+
+        @gs.autodiff.custom_gradient(grad_x)
+        def func(x):
+            return gs.sum(x ** 2)
+
+        arg_x = gs.array([1., 3.])
+        result_value, result_grad = gs.autodiff.value_and_grad(func)(arg_x)
+
+        expected_value = 10.
+        expected_grad = gs.array([2., 6.])
+
+        self.assertAllClose(result_value, expected_value)
+        self.assertAllClose(result_grad, expected_grad)
+
+
     def test_custom_grad_dummy(self):
 
         def grad_x(_ans, x, y):
