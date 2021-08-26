@@ -1141,10 +1141,11 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad)
         self.assertAllClose(result_grad, expected_grad2)
 
-    def test_custom_grad_chain_rule_bis(self):
+
+    def test_custom_grad_chain_rule_one_var_madeup_grad(self):
 
         def fun1_grad(x):
-            return 1.
+            return 3.
 
         @gs.autodiff.custom_gradient(fun1_grad)
         def fun1(x):
@@ -1159,9 +1160,69 @@ class TestBackends(geomstats.tests.TestCase):
 
         arg = gs.array(10.)
 
-        result = gs.autodiff.value_and_grad(fun2)(arg)
-        result = tuple(gs.array(k) for k in result)
-        expected = (fun2(arg), )
+        result_value, result_grad = gs.autodiff.value_and_grad(fun2)(arg)
+        expected_value = fun2(arg)
+        expected_grad_explicit = 60.
 
-        self.assertAllClose(result[0], expected[0])
-        self.assertAllClose(result[1], expected[1])
+        expected_grad_chain_rule = fun2_grad(fun1(arg)) * fun1_grad(arg)
+
+        self.assertAllClose(result_value, expected_value)
+        self.assertAllClose(result_grad, expected_grad_explicit)
+        self.assertAllClose(result_grad, expected_grad_chain_rule)
+
+    def test_custom_grad_chain_rule_two_vars(self):
+
+        def fun1_grad(x):
+            return 2 * x
+
+        @gs.autodiff.custom_gradient(fun1_grad)
+        def fun1(x):
+            return gs.sum(x) ** 2
+
+        def fun2(x):
+            out = fun1(x) ** 3
+            return out
+
+        def fun2_grad(x):
+            return 3 * x ** 2
+
+        arg = gs.array([1., 2.])
+
+        result_value, result_grad = gs.autodiff.value_and_grad(fun2)(arg)
+
+        expected_value = fun2(arg)
+        expected_grad_explicit = 6 * fun1(arg) ** 2 * arg
+        expected_grad_chain_rule = fun2_grad(fun1(arg)) * fun1_grad(arg)
+
+        self.assertAllClose(result_value, expected_value)
+        self.assertAllClose(result_grad, expected_grad_explicit)
+        self.assertAllClose(result_grad, expected_grad_chain_rule)
+
+
+    def test_custom_grad_chain_rule_two_vars_madeup_grad(self):
+
+        def fun1_grad(x):
+            return 6 * x
+
+        @gs.autodiff.custom_gradient(fun1_grad)
+        def fun1(x):
+            return gs.sum(x) ** 2
+
+        def fun2(x):
+            out = fun1(x) ** 3
+            return out
+
+        def fun2_grad(x):
+            return 3 * x ** 2
+
+        arg = gs.array([1., 2.])
+
+        result_value, result_grad = gs.autodiff.value_and_grad(fun2)(arg)
+
+        expected_value = fun2(arg)
+        expected_grad_explicit = 18 * fun1(arg) ** 2 * arg
+        expected_grad_chain_rule = fun2_grad(fun1(arg)) * fun1_grad(arg)
+
+        self.assertAllClose(result_value, expected_value)
+        self.assertAllClose(result_grad, expected_grad_explicit)
+        self.assertAllClose(result_grad, expected_grad_chain_rule)
