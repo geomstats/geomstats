@@ -1118,12 +1118,22 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
     #
     #     return dist, grad
 
-    def squared_dist_grad(self, point_a, point_b):
-        grd = 2 * self.log(point_a, point_b)
-        return grd, 2 * self.log(point_b, point_a)
+    def squared_dist_grad_self(self, point_a, point_b):
+        return gs.zeros_like(point_a)
 
-    @gs.autodiff.custom_gradient(squared_dist_grad)
+    def squared_dist_grad_point_a(self, point_a, point_b):
+        return 2 * self.log(point_b, point_a)
+
+    def squared_dist_grad_point_b(self, point_a, point_b):
+        return 2 * self.log(point_a, point_b)
+
+    # def _squared_dist(point_a, point_b, metric):
+    #     return metric.
+
+    # @gs.autodiff.custom_gradient(
+    #     squared_dist_grad_self, squared_dist_grad_point_a, squared_dist_grad_point_b)
     def squared_dist(self, point_a, point_b):
+
         dist = super().squared_dist(point_a, point_b)
         return dist
 
