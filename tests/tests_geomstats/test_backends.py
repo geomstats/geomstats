@@ -1068,7 +1068,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad)
 
 
-    def test_custom_grad_dummy(self):
+    def test_custom_grad_dummy_two_vars(self):
 
         def grad_x(x, y):
             return 2 * (x - y)

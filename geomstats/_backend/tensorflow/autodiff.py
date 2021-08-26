@@ -56,7 +56,9 @@ def value_and_grad(func):
         with tf.GradientTape() as t:
             t.watch(arg_x)
             loss = func(arg_x)
-        return loss, t.gradient(loss, arg_x)
+            print(loss)
+        loss_grad = t.gradient(loss, arg_x)
+        return loss, loss_grad
     return func_with_grad
 
 
