@@ -72,29 +72,6 @@ def custom_gradient(*grad_funcs):
     # return wrapper
 
 
-def value_and_grad(func):
-    """Return a function that returns both value and gradient.
-
-    Suitable for use in scipy.optimize
-
-    Parameters
-    ----------
-    objective : callable
-        Function to compute the gradient. It must be real-valued.
-
-    Returns
-    -------
-    objective_with_grad : callable
-        Function that takes the argument of the objective function as input
-        and returns both value and grad at the input.
-    """
-    def func_with_grad(*arg_x):
-        if isinstance(arg_x, np.ndarray):
-             arg_x = tf.Variable(arg_x)
-        return tfm.value_and_gradient(func, *arg_x)
-    return func_with_grad
-
-
 # def value_and_grad(func):
 #     """Return a function that returns both value and gradient.
 
@@ -113,17 +90,77 @@ def value_and_grad(func):
 #     """
 #     def func_with_grad(*arg_x):
 #         if isinstance(arg_x, np.ndarray):
-#             arg_x = tf.Variable(arg_x)
-#         with tf.GradientTape() as t:
-#             t.watch(*arg_x)
-#             loss = func(*arg_x)
-            
-#         print("\n\n in autodiff")
-#         print(loss)
-#         print(arg_x)
-#         loss_grad = t.gradient(loss, *arg_x)
-#         return loss, loss_grad
+#              arg_x = tf.Variable(arg_x)
+#         if isinstance(arg_x, tuple):
+#             if isinstance(arg_x[0], np.ndarray):
+#                 arg_x = (tf.Variable(one_arg_x) for one_arg_x in arg_x)
+#         return tfm.value_and_gradient(func, *arg_x)
 #     return func_with_grad
+
+
+def value_and_grad(func):
+    """Return a function that returns both value and gradient.
+
+    Suitable for use in scipy.optimize
+
+    Parameters
+    ----------
+    objective : callable
+        Function to compute the gradient. It must be real-valued.
+
+    Returns
+    -------
+    objective_with_grad : callable
+        Function that takes the argument of the objective function as input
+        and returns both value and grad at the input.
+    """
+    def func_with_grad(*arg_x):
+        print("type of arg_x")
+        print(type(arg_x))
+        # Case with one unique arg
+        if isinstance(arg_x, np.ndarray):
+            print("The arg_x is a np_arary")
+            arg_x = tf.Variable(arg_x)
+        if isinstance(arg_x, tuple) and len(arg_x) == 1:
+            arg_x = tf.Variable(arg_x[0])
+
+        if not isinstance(arg_x, tuple):
+            with tf.GradientTape() as t:
+                print("\n\n\n\n in autodiff:")
+                print("The func is:")
+                print(func)
+                print("The arg_x is:")
+                print(arg_x)
+                t.watch(arg_x)
+                print("The watched arg_x is:")
+                print(arg_x)
+                loss = func(arg_x)
+
+                print("The loss, i.e. the value of the func is:")
+                print(loss)
+
+                loss_grad = t.gradient(loss, arg_x) ## bug here
+            return loss, loss_grad
+        # Case with several args
+        if isinstance(arg_x[0], np.ndarray):
+            arg_x = (tf.Variable(one_arg_x) for one_arg_x in arg_x)
+        with tf.GradientTape() as t:
+            print("\n\n\n\n in autodiff:")
+            print("The func is:")
+            print(func)
+            print("The arg_x is:")
+            print(arg_x)
+            t.watch(*arg_x)
+            print("The watched arg_x is:")
+            print(arg_x)
+            loss = func(*arg_x)
+
+            print("The loss, i.e. the value of the func is:")
+            print(loss)
+
+            loss_grad = t.gradient(loss, *arg_x) ## bug here
+        return loss, loss_grad
+    return func_with_grad
 
 
 def jacobian(f):
