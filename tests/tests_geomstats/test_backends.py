@@ -1232,18 +1232,18 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad)
         
     def test_custom_grad_mock_squared_dist(self):
-        def squared_dist_grad_metric(point_a, point_b, metric=None):
+        def squared_dist_grad_metric(point_a, point_b, metric):
             return gs.zeros_like(point_a)
 
-        def squared_dist_grad_a(point_a, point_b, metric=None):
+        def squared_dist_grad_a(point_a, point_b, metric):
             return 2 * metric.log(point_b, point_a)
 
-        def squared_dist_grad_b(point_a, point_b, metric=None):
+        def squared_dist_grad_b(point_a, point_b, metric):
             return 2 * metric.log(point_a, point_b)
 
         @gs.autodiff.custom_gradient(
             squared_dist_grad_a, squared_dist_grad_b)
-        def squared_dist(point_a, point_b, metric=None):
+        def squared_dist(point_a, point_b, metric):
             dist = metric.squared_dist(point_a, point_b)
             return dist
 
