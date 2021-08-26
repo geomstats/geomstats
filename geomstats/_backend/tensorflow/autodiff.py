@@ -115,8 +115,6 @@ def value_and_grad(func):
         and returns both value and grad at the input.
     """
     def func_with_grad(*arg_x):
-        print("type of arg_x")
-        print(type(arg_x))
         # Case with one unique arg
         if isinstance(arg_x, np.ndarray):
             print("The arg_x is a np_arary")
@@ -125,6 +123,7 @@ def value_and_grad(func):
             arg_x = tf.Variable(arg_x[0])
 
         if not isinstance(arg_x, tuple):
+            print("---- Only one arg here!")
             with tf.GradientTape() as t:
                 print("\n\n\n\n in autodiff:")
                 print("The func is:")
@@ -142,6 +141,7 @@ def value_and_grad(func):
                 loss_grad = t.gradient(loss, arg_x) ## bug here
             return loss, loss_grad
         # Case with several args
+        print("---- SEVERAL args here!")
         if isinstance(arg_x[0], np.ndarray):
             arg_x = (tf.Variable(one_arg_x) for one_arg_x in arg_x)
         with tf.GradientTape() as t:
