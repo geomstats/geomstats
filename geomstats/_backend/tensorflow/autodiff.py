@@ -18,10 +18,22 @@ def custom_gradient(*grad_funcs):
     def wrapper(func):
         def func_with_grad(*args, **kwargs):
             def grad(upstream):
-                grad_vals = (
-                    upstream * grad_fun(*args, **kwargs)
-                    for grad_fun in grad_funcs
-                )
+                print(type(upstream))
+                print(type(grad_funcs[0](*args, **kwargs)))
+                # upstream = tf.convert_to_tensor(upstream)
+                if upstream.ndim < 1:
+                    upstream = tf.expand_dims(upstream, axis=0)
+                if upstream.ndim < 2:
+                    upstream = tf.expand_dims(upstream, axis=1)
+                grad_vals = []
+                for grad_fun in grad_funcs:
+                    grad_func_val = tf.convert_to_tensor(grad_fun(*args, **kwargs))
+                    #     if upstream.ndim < 1:
+                    # upstream = tf.expand_dims(upstream, axis=0)
+                    grad_vals.append(
+                    tf.squeeze(tf.einsum("...,...->...", upstream, grad_func_val))
+                    #upstream * grad_fun(*args, **kwargs)
+                    )
                 return tuple(grad_vals)
 
             return func(*args, **kwargs), grad
