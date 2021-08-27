@@ -18,8 +18,6 @@ def custom_gradient(*grad_funcs):
     def wrapper(func):
         def func_with_grad(*args, **kwargs):
             def grad(upstream):
-                print(type(upstream))
-                print(type(grad_funcs[0](*args, **kwargs)))
                 if upstream.ndim < 1:
                     upstream = tf.expand_dims(upstream, axis=0)
                 grad_vals = []

@@ -217,6 +217,10 @@ class SymmetricMatrices(VectorSpace):
         mat : array_like, shape=[..., n, n]
             Symmetric matrix.
         """
+        # print("\n in Symmetric matrices")
+        # print(type(mat))
+        # print(mat.shape)
+        # print(mat)
         eigvals, eigvecs = gs.linalg.eigh(mat)
         if check_positive and gs.any(gs.cast(eigvals, gs.float32) < 0.):
             logging.warning(
