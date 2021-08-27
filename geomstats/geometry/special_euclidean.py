@@ -40,10 +40,10 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
 
 
 def squared_dist_grad_point_a(point_a, point_b, metric):
-    return 2 * metric.log(point_b, point_a)
+    return 2 * metric.log(point_a, point_b)
 
 def squared_dist_grad_point_b(point_a, point_b, metric):
-    return 2 * metric.log(point_a, point_b)
+    return 2 * metric.log(point_b, point_a)
 
 @gs.autodiff.custom_gradient(
     squared_dist_grad_point_a, squared_dist_grad_point_b)
