@@ -43,9 +43,6 @@ class GeodesicRegression(BaseEstimator):
         v = gs.reshape(v, shape)
         p = gs.cast(p, dtype=y.dtype)
         v = gs.cast(v, dtype=y.dtype)
-        print("Intercept:")
-        print(p.shape)
-        print(type(p))
         base_point = self.space.projection(p)
         tangent_vec = self.space.to_tangent(v, base_point)
         distances = self.metric.squared_dist(
