@@ -77,6 +77,7 @@ def value_and_grad(func, to_numpy=False):
             if isinstance(arg_x[0], np.ndarray):
                 arg_x = (tf.Variable(one_arg_x) for one_arg_x in arg_x)
             with tf.GradientTape() as t:
+                t.watch(*arg_x)
                 loss = func(*arg_x)
             return loss, t.gradient(loss, *arg_x)
 
