@@ -73,11 +73,12 @@ def value_and_grad(func, to_numpy=False):
             assert isinstance(arg_x, tuple)
 
             # Case with several args
-            print("---- SEVERAL args here!")
+            print(f"---- SEVERAL args here! {len(arg_x)}")
             if isinstance(arg_x[0], np.ndarray):
                 arg_x = (tf.Variable(one_arg_x) for one_arg_x in arg_x)
             with tf.GradientTape() as t:
-                t.watch(*arg_x)
+                for one_arg_x in arg_x:
+                    t.watch(one_arg_x)
                 loss = func(*arg_x)
             return loss, t.gradient(loss, *arg_x)
 
