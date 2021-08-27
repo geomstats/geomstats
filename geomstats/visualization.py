@@ -191,7 +191,8 @@ class Sphere:
     def draw_points(self, ax, points=None, **scatter_kwargs):
         if points is None:
             points = self.points
-        points = gs.to_numpy(gs.autodiff.detach(points))
+        points = [gs.autodiff.detach(point) for point in points]
+        points = [gs.to_numpy(point) for point in points]
         points_x = [point[0] for point in points]
         points_y = [point[1] for point in points]
         points_z = [point[2] for point in points]
@@ -1088,7 +1089,7 @@ def plot(points, ax=None, space=None,
         plane = SpecialEuclidean2()
         ax = plane.set_ax(ax=ax)
         plane.add_points(points)
-        plane.draw(ax, **point_draw_kwargs)
+        plane.draw_points(ax, **point_draw_kwargs)
 
     elif space == 'S32':
         sphere = KendallSphere()
