@@ -30,6 +30,7 @@ rss = gs.sum(metric.squared_norm(noise, target)) / n_samples
 
 # Add noise
 target = metric.exp(noise, target)
+print(space.belongs(target))
 
 # True noise level and R2
 estimator = FrechetMean(metric)
@@ -38,7 +39,7 @@ variance_ = variance(target, estimator.estimate_, metric=metric)
 r2 = 1 - rss / variance_
 
 gr = GeodesicRegression(
-    space, metric=metric, center_data=False, algorithm='riemannian',
+    space, metric=metric, center_data=False, algorithm='extrinsic',
     verbose=True, max_iter=50, learning_rate=0.1)
 
 gr.fit(data, target, compute_training_score=True)

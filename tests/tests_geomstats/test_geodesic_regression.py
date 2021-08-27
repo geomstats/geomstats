@@ -108,7 +108,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             gs.all(gs.isclose(loss_grad, gs.zeros(expected_grad_shape))))
         self.assertTrue(gs.all(~gs.isnan(loss_grad)))
 
-    def test_loss_minimization_hypersphere(self):
+    def test_loss_minimization_extrinsic_hypersphere(self):
         gr = GeodesicRegression(
             self.sphere, metric=self.sphere.metric, center_data=False, algorithm='extrinsic',
             verbose=True, max_iter=50, learning_rate=0.1)
@@ -125,11 +125,47 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             objective_with_grad, gs.flatten(self.parameter_sphere), method='CG', jac=True,
             options={'disp': True, 'maxiter': 10})
         self.assertAllClose(gs.array(res.x).shape, ((self.dim_sphere + 1) * 2,))
+        
+    def test_loss_minimization_riemannian_hypersphere(self):
+        gr = GeodesicRegression(
+            self.sphere, metric=self.sphere.metric, center_data=False, algorithm='riemannian',
+            verbose=True, max_iter=50, learning_rate=0.1)
 
+        def loss_of_param(param):
+            return gr._loss(
+                self.input_data_sphere, 
+                self.target_sphere, 
+                param, 
+                self.shape_sphere)
 
-    def test_loss_minimization_se2(self):
+        objective_with_grad = gs.autodiff.value_and_grad(loss_of_param, to_numpy=True)
+        res = minimize(
+            objective_with_grad, gs.flatten(self.parameter_sphere), method='CG', jac=True,
+            options={'disp': True, 'maxiter': 10})
+        self.assertAllClose(gs.array(res.x).shape, ((self.dim_sphere + 1) * 2,))
+
+    def test_loss_minimization_extrinsic_se2(self):
         gr = GeodesicRegression(
             self.se2, metric=self.metric_se2, center_data=False, algorithm='extrinsic',
+            verbose=True, max_iter=50, learning_rate=0.1)
+ 
+        def loss_of_param(param):
+            return gr._loss(
+                self.input_data_se2, 
+                self.target_se2, 
+                param, 
+                self.shape_se2)
+
+        objective_with_grad = gs.autodiff.value_and_grad(loss_of_param, to_numpy=True)
+        print(self.parameter_se2.shape)
+        res = minimize(
+            objective_with_grad, gs.flatten(self.parameter_se2), method='CG', jac=True,
+            options={'disp': True, 'maxiter': 10})
+        self.assertAllClose(gs.array(res.x).shape, (18,))
+
+    def test_loss_minimization_riemannian_se2(self):
+        gr = GeodesicRegression(
+            self.se2, metric=self.metric_se2, center_data=False, algorithm='riemannian',
             verbose=True, max_iter=50, learning_rate=0.1)
  
         def loss_of_param(param):
