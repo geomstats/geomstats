@@ -15,58 +15,79 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
     def setUp(self):
         gs.random.seed(123)
-        self.n_samples = 3
+        self.n_samples = 5
 
+        # Set up for hypersphere
         self.dim_sphere = 4
         self.shape_sphere = (self.dim_sphere + 1,)
         self.sphere = Hypersphere(dim=self.dim_sphere)
-        input_data = gs.random.rand(self.n_samples)
-        self.input_data_sphere = input_data - gs.mean(input_data)
-        target = gs.random.rand(self.n_samples, self.dim_sphere + 1)
-        self.target_sphere = self.sphere.projection(target)
-        intercept = self.sphere.random_point()
-        coef = self.sphere.projection(
+        times = gs.random.rand(self.n_samples)
+        self.times_sphere = times - gs.mean(times)
+        self.intercept_sphere_true = self.sphere.random_point()
+        self.coef_sphere_true = self.sphere.projection(
             gs.random.rand(self.dim_sphere+1))
-        self.parameter_sphere = gs.vstack([intercept, coef])
 
+        self.target_sphere = self.sphere.metric.exp(
+            self.times_sphere[:, None] * self.coef_sphere_true, 
+            base_point=self.intercept_sphere_true)
+        
+        self.parameter_sphere_true = gs.vstack(
+            [self.intercept_sphere_true, 
+            self.coef_sphere_true])
+        self.parameter_sphere_guess = gs.vstack(
+            [self.target_sphere[0], 
+            self.sphere.to_tangent(
+                gs.random.normal(size=self.shape_sphere), 
+                self.target_sphere[0])])
+
+        # Set up for special euclidean
         self.se2 = SpecialEuclidean(n=2)
         self.metric_se2 = self.se2.left_canonical_metric
         self.metric_se2.default_point_type = 'matrix'
 
         self.shape_se2 = (3, 3)
-        input_data = gs.random.rand(self.n_samples)
-        self.input_data_se2 = input_data - gs.mean(input_data)
+        times = gs.random.rand(self.n_samples)
+        self.times_se2 = times - gs.mean(times)
 
-        intercept = self.se2.random_point()
-        coef = self.se2.to_tangent(5. * gs.random.rand(*self.shape_se2), intercept)
+        self.intercept_se2_true = self.se2.random_point()
+        self.coef_se2_true = self.se2.to_tangent(
+            5. * gs.random.rand(*self.shape_se2), 
+            self.intercept_se2_true)
 
-        target = self.metric_se2.exp(
-            self.input_data_se2[:, None, None] * coef[None], intercept)
-        normal_noise = gs.random.normal(size=(self.n_samples,) + self.shape_se2)
-        noise = self.se2.to_tangent(normal_noise, target) / gs.pi / 2
-        self.target_se2 = self.metric_se2.exp(noise, target)
-        self.parameter_se2 = gs.vstack([intercept, coef])
+        self.target_se2 = self.metric_se2.exp(
+            self.times_se2[:, None, None] * self.coef_se2_true[None], self.intercept_se2_true)
+
+        self.parameter_se2_true = gs.vstack([
+            gs.flatten(self.intercept_se2_true), 
+            gs.flatten(self.coef_se2_true)])
+        self.parameter_se2_guess = gs.vstack([
+            gs.flatten(self.target_se2[0]), 
+            gs.flatten(self.se2.to_tangent(
+                gs.random.normal(size=self.shape_se2), 
+                self.target_se2[0]))])
 
     def test_loss_hypersphere(self):
         gr = GeodesicRegression(
             self.sphere, metric=self.sphere.metric, center_data=False, algorithm='extrinsic',
             verbose=True, max_iter=50, learning_rate=0.1)
         loss = gr._loss(
-            self.input_data_sphere, 
+            self.times_sphere, 
             self.target_sphere, 
-            self.parameter_sphere, 
+            self.parameter_sphere_true, 
             self.shape_sphere)
         self.assertAllClose(loss.shape, ())
+        self.assertTrue(gs.isclose(loss, 0.))
 
         gr = GeodesicRegression(
             self.sphere, metric=self.sphere.metric, center_data=False, algorithm='riemannian',
             verbose=True, max_iter=50, learning_rate=0.1)
         loss = gr._loss(
-            self.input_data_sphere, 
+            self.times_sphere, 
             self.target_sphere, 
-            self.parameter_sphere, 
+            self.parameter_sphere_true, 
             self.shape_sphere)
         self.assertAllClose(loss.shape, ())
+        self.assertTrue(gs.isclose(loss, 0.))
 
 
     def test_value_and_grad_loss_hypersphere(self):
@@ -76,13 +97,14 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         def loss_of_param(param):
             return gr._loss(
-                self.input_data_sphere, 
+                self.times_sphere, 
                 self.target_sphere, 
                 param, 
                 self.shape_sphere)
 
         objective_with_grad = gs.autodiff.value_and_grad(loss_of_param)
-        loss_value, loss_grad = objective_with_grad(self.parameter_sphere)
+        loss_value, loss_grad = objective_with_grad(
+            self.parameter_sphere_guess)
 
         expected_grad_shape = (self.dim_sphere + 1) * 2,
         self.assertAllClose(loss_value.shape, ())
@@ -96,7 +118,8 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         objective_with_grad = gs.autodiff.value_and_grad(
             loss_of_param, to_numpy=True)
-        loss_value, loss_grad = objective_with_grad(self.parameter_sphere)
+        loss_value, loss_grad = objective_with_grad(
+            self.parameter_sphere_guess)
 
         expected_grad_shape = (self.dim_sphere + 1) * 2,
         self.assertAllClose(loss_value.shape, ())
@@ -109,40 +132,61 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         self.assertTrue(gs.all(~gs.isnan(loss_grad)))
 
     def test_loss_minimization_extrinsic_hypersphere(self):
+        """Minimize loss from noiseless data."""
         gr = GeodesicRegression(
             self.sphere, metric=self.sphere.metric, center_data=False, algorithm='extrinsic',
             verbose=True, max_iter=50, learning_rate=0.1)
 
         def loss_of_param(param):
             return gr._loss(
-                self.input_data_sphere, 
+                self.times_sphere, 
                 self.target_sphere, 
                 param, 
                 self.shape_sphere)
 
         objective_with_grad = gs.autodiff.value_and_grad(loss_of_param, to_numpy=True)
         res = minimize(
-            objective_with_grad, gs.flatten(self.parameter_sphere), method='CG', jac=True,
-            options={'disp': True, 'maxiter': 10})
-        self.assertAllClose(gs.array(res.x).shape, ((self.dim_sphere + 1) * 2,))
-        
-    def test_loss_minimization_riemannian_hypersphere(self):
+            objective_with_grad, gs.flatten(self.parameter_sphere_guess), method='CG', jac=True,
+            options={'disp': True, 'maxiter': 50})
+        print(res)
+        self.assertAllClose(
+            gs.array(res.x).shape, ((self.dim_sphere + 1) * 2,))
+        self.assertTrue(gs.isclose(res.fun, 0.))
+
+        intercept_hat, coef_hat = gs.split(gs.array(res.x), 2)
+        intercept_hat = self.sphere.projection(intercept_hat)
+        coef_hat = self.sphere.to_tangent(coef_hat, intercept_hat)
+        self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=1e-3)
+        # self.assertAllClose(coef_hat, self.coef_sphere_true, atol=1e-3)
+
+    def test_fit_extrinsic_hypersphere(self):
+        gr = GeodesicRegression(
+            self.sphere, metric=self.sphere.metric, center_data=False, algorithm='extrinsic',
+            verbose=True, max_iter=50, learning_rate=0.1)
+
+        gr.fit(self.times_sphere, self.target_sphere, compute_training_score=True)
+
+        training_score = gr.training_score_
+        intercept_hat, coef_hat = gr.intercept_, gr.coef_
+        self.assertAllClose(intercept_hat.shape, self.shape_sphere)
+        self.assertAllClose(coef_hat.shape, self.shape_sphere)
+        self.assertTrue(gs.isclose(training_score, 1.))
+        self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=1e-3)
+        # self.assertAllClose(coef_hat, self.coef_sphere_true)
+    
+    def test_fit_riemannian_hypersphere(self):
         gr = GeodesicRegression(
             self.sphere, metric=self.sphere.metric, center_data=False, algorithm='riemannian',
             verbose=True, max_iter=50, learning_rate=0.1)
 
-        def loss_of_param(param):
-            return gr._loss(
-                self.input_data_sphere, 
-                self.target_sphere, 
-                param, 
-                self.shape_sphere)
-
-        objective_with_grad = gs.autodiff.value_and_grad(loss_of_param, to_numpy=True)
-        res = minimize(
-            objective_with_grad, gs.flatten(self.parameter_sphere), method='CG', jac=True,
-            options={'disp': True, 'maxiter': 10})
-        self.assertAllClose(gs.array(res.x).shape, ((self.dim_sphere + 1) * 2,))
+        gr.fit(self.times_sphere, self.target_sphere, compute_training_score=True)
+        intercept_hat, coef_hat = gr.intercept_, gr.coef_
+        training_score = gr.training_score_
+        self.assertAllClose(intercept_hat.shape, self.shape_sphere)
+        self.assertAllClose(coef_hat.shape, self.shape_sphere)
+        self.assertTrue(gs.isclose(training_score, 1., atol=1e-3))
+        self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=1e-3)
+        # self.assertAllClose(coef_hat, self.coef_sphere_true)
 
     def test_loss_minimization_extrinsic_se2(self):
         gr = GeodesicRegression(
@@ -151,7 +195,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
  
         def loss_of_param(param):
             return gr._loss(
-                self.input_data_se2, 
+                self.times_se2, 
                 self.target_se2, 
                 param, 
                 self.shape_se2)
@@ -162,6 +206,31 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             objective_with_grad, gs.flatten(self.parameter_se2), method='CG', jac=True,
             options={'disp': True, 'maxiter': 10})
         self.assertAllClose(gs.array(res.x).shape, (18,))
+        intercept_hat, coef_hat = gs.split(gs.array(res.x), 2)
+        intercept_hat = gs.reshape(intercept_hat, self.shape_se2)
+        coef_hat = gs.reshape(coef_hat, self.shape_se2)
+        self.assertAllClose(intercept_hat, self.intercept_se2_true)
+        self.assertAllClose(coef_hat, self.coef_se2_true)
+
+    def test_fit_extrinsic_se2(self):
+        gr = GeodesicRegression(
+            self.se2, metric=self.metric_se2, center_data=False, algorithm='extrinsic',
+            verbose=True, max_iter=50, learning_rate=0.1)
+
+        gr.fit(self.times_se2, self.target_se2)
+        intercept_hat, coef_hat = gr.intercept_, gr.coef_
+        self.assertAllClose(intercept_hat.shape, self.shape_se2)
+        self.assertAllClose(coef_hat.shape, self.shape_se2)
+
+    def test_fit_riemannian_se2(self):
+        gr = GeodesicRegression(
+            self.se2, metric=self.metric_se2, center_data=False, algorithm='riemannian',
+            verbose=True, max_iter=50, learning_rate=0.1)
+
+        gr.fit(self.times_se2, self.target_se2)
+        intercept_hat, coef_hat = gr.intercept_, gr.coef_
+        self.assertAllClose(intercept_hat.shape, self.shape_se2)
+        self.assertAllClose(coef_hat.shape, self.shape_se2)
 
     def test_loss_minimization_riemannian_se2(self):
         gr = GeodesicRegression(
@@ -170,17 +239,13 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
  
         def loss_of_param(param):
             return gr._loss(
-                self.input_data_se2, 
+                self.times_se2, 
                 self.target_se2, 
                 param, 
                 self.shape_se2)
 
         objective_with_grad = gs.autodiff.value_and_grad(loss_of_param, to_numpy=True)
-        print(self.parameter_se2.shape)
-        res = minimize(
-            objective_with_grad, gs.flatten(self.parameter_se2), method='CG', jac=True,
-            options={'disp': True, 'maxiter': 10})
-        self.assertAllClose(gs.array(res.x).shape, (18,))
+
         
     def test_value_and_grad_loss_se2(self):
 
@@ -190,7 +255,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         def loss_of_param(param):
             return gr._loss(
-                self.input_data_se2, 
+                self.times_se2, 
                 self.target_se2, 
                 param, 
                 self.shape_se2)
@@ -225,7 +290,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             self.se2, metric=self.metric_se2, center_data=False, algorithm='extrinsic',
             verbose=True, max_iter=50, learning_rate=0.1)
         loss = gr._loss(
-            self.input_data_se2, 
+            self.times_se2, 
             self.target_se2, 
             self.parameter_se2, 
             self.shape_se2)
@@ -235,7 +300,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             self.se2, metric=self.metric_se2, center_data=False, algorithm='riemannian',
             verbose=True, max_iter=50, learning_rate=0.1)
         loss = gr._loss(
-            self.input_data_se2, 
+            self.times_se2, 
             self.target_se2, 
             self.parameter_se2, 
             self.shape_se2)

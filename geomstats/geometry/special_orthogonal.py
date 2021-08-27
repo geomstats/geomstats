@@ -71,8 +71,8 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, EmbeddedManifold):
         rot_mat : array-like, shape=[..., n, n]
             Rotation matrix.
         """
-        print("In projection: point=")
-        print(point)
+        # print("In projection: point=")
+        # print(point)
         aux_mat = self.submersion(point)
         aux_mat = Matrices.mul(Matrices.transpose(point), point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, - 1 / 2)

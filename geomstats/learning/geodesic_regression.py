@@ -80,7 +80,9 @@ class GeodesicRegression(BaseEstimator):
 
         intercept_hat, beta_hat = gs.split(gs.array(res.x), 2)
         intercept_hat = gs.reshape(intercept_hat, shape)
+        intercept_hat = gs.cast(intercept_hat, dtype=y.dtype)
         beta_hat = gs.reshape(beta_hat, shape)
+        beta_hat = gs.cast(beta_hat, dtype=y.dtype)
         self.intercept_ = self.space.projection(intercept_hat)
         self.coef_ = self.space.to_tangent(beta_hat, intercept_hat)
 
