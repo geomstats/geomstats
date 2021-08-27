@@ -62,13 +62,11 @@ def value_and_grad(func, to_numpy=False):
             arg_x = tf.Variable(arg_x[0])
 
         if not isinstance(arg_x, tuple):
-            with tf.GradientTape() as t:
-                t.watch(arg_x)
-                loss = func(arg_x)
+            loss, grad = tfm.value_and_gradient(func, arg_x)
             if to_numpy:
-                return loss.numpy(), t.gradient(loss, arg_x).numpy()
+                return loss.numpy(), grad.numpy()
             else:
-                return loss, t.gradient(loss, arg_x)
+                return loss, grad
         else:
             assert isinstance(arg_x, tuple)
 
@@ -77,11 +75,6 @@ def value_and_grad(func, to_numpy=False):
             if isinstance(arg_x[0], np.ndarray):
                 arg_x = (tf.Variable(one_arg_x) for one_arg_x in arg_x)
             return tfm.value_and_gradient(func, *arg_x)
-            # with tf.GradientTape() as t:
-            #     for one_arg_x in arg_x:
-            #         t.watch(one_arg_x)
-            #     loss = func(*arg_x)
-            # return loss, t.gradient(loss, *arg_x)
 
     return func_with_grad
 

@@ -1226,8 +1226,7 @@ class TestBackends(geomstats.tests.TestCase):
         result_value, result_grad = gs.autodiff.value_and_grad(func_2)(arg_x)
         expected_value = func_2(arg_x)
         expected_grad = - .5 * grad_x(const_dummy, arg_x, const_y) * func_2(arg_x)
-        # val = func_2(arg_x)
-        # expected = (val, (arg_y - arg_x) * val)
+
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
         
@@ -1265,20 +1264,17 @@ class TestBackends(geomstats.tests.TestCase):
         space = SpecialEuclidean(n=2)
         const_metric = space.left_canonical_metric
         const_point_b = space.random_point()
-        const_point_a = space.random_point()
 
         def func(x):
             return const_metric.squared_dist(x, const_point_b)
 
-        # compute log just because:
-        log = 2 * const_metric.log(const_point_b, const_point_a)
-
         arg_point_a = space.random_point()
         result_value, result_grad = gs.autodiff.value_and_grad(
             func)(arg_point_a)
-        dist = const_metric.squared_dist(arg_point_a, const_point_b)
-        log = 2 * const_metric.log(const_point_b, arg_point_a)
-        expected_value, expected_grad = dist, log
+        expected_value = const_metric.squared_dist(
+            arg_point_a, const_point_b)
+        expected_grad = 2 * const_metric.log(
+            const_point_b, arg_point_a)
 
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
