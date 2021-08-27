@@ -16,24 +16,17 @@ def custom_gradient(*grad_funcs):
         grad_func ([callable]): The custom gradient function
     """
     def wrapper(func):
-        def func_returning_its_grad(*args, **kwargs):
-            func_val = func(*args, **kwargs)
-
-            if not isinstance(grad_funcs, tuple):
-                def grad(upstream):
-                    return upstream * grad_funcs(*args, **kwargs)
-                return func_val, grad
-        
-            def grad_returning_tuple(upstream):
+        def func_with_grad(*args, **kwargs):
+            def grad(upstream):
                 grad_vals = (
                     upstream * grad_fun(*args, **kwargs)
                     for grad_fun in grad_funcs
                 )
                 return tuple(grad_vals)
 
-            return func_val, grad_returning_tuple
+            return func(*args, **kwargs), grad
 
-        return tf.custom_gradient(func_returning_its_grad)
+        return tf.custom_gradient(func_with_grad)
 
     return wrapper
 
