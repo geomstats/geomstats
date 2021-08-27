@@ -1,10 +1,8 @@
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
-tfd = tfp.distributions
+
 tfm = tfp.math
-from tensorflow.python.ops.numpy_ops import np_config
-np_config.enable_numpy_behavior()
 
 def detach(x):
     tf.stop_gradient(x)
@@ -17,7 +15,7 @@ def custom_gradient(*grad_funcs):
     Args:
         grad_func ([callable]): The custom gradient function
     """
-    def wrapper(func):  # functional
+    def wrapper(func):
         def func_returning_its_grad(*args, **kwargs):
             func_val = func(*args, **kwargs)
 
@@ -27,16 +25,18 @@ def custom_gradient(*grad_funcs):
                 return func_val, grad
         
             def grad_returning_tuple(upstream):
-                grad_vals = []
-                for grad_fun in grad_funcs:
-                    grad_vals.append(upstream * grad_fun(*args, **kwargs))
+                grad_vals = (
+                    upstream * grad_fun(*args, **kwargs)
+                    for grad_fun in grad_funcs
+                )
                 return tuple(grad_vals)
 
             return func_val, grad_returning_tuple
 
-        return tf.custom_gradient(func_returning_its_grad)  # returns a modified function
+        return tf.custom_gradient(func_returning_its_grad)
 
-    return wrapper  # returns the functional
+    return wrapper
+
 
 def value_and_grad(func, to_numpy=False):
     """Return a function that returns both value and gradient.
@@ -47,6 +47,10 @@ def value_and_grad(func, to_numpy=False):
     ----------
     objective : callable
         Function to compute the gradient. It must be real-valued.
+    to_numpy : bool
+        Determines if the outputs value and grad will be cast
+        to numpy arrays. Set to "True" when using scipy.optimize.
+        Default: False.
 
     Returns
     -------
@@ -55,26 +59,18 @@ def value_and_grad(func, to_numpy=False):
         and returns both value and grad at the input.
     """
     def func_with_grad(*arg_x):
-        # Case with one unique arg
-        if isinstance(arg_x, np.ndarray):
-            arg_x = tf.Variable(arg_x)
-        if isinstance(arg_x, tuple) and len(arg_x) == 1:
-            arg_x = tf.Variable(arg_x[0])
-
+        """Return the value of the function and its grad at the inputs."""
         if not isinstance(arg_x, tuple):
-            loss, grad = tfm.value_and_gradient(func, arg_x)
-            if to_numpy:
-                return loss.numpy(), grad.numpy()
-            else:
-                return loss, grad
-        else:
-            assert isinstance(arg_x, tuple)
+            raise ValueError(
+                "The inputs parameters are expected to form a tuple.")
 
-            # Case with several args
-            print(f"---- SEVERAL args here! {len(arg_x)}")
-            if isinstance(arg_x[0], np.ndarray):
-                arg_x = (tf.Variable(one_arg_x) for one_arg_x in arg_x)
-            return tfm.value_and_gradient(func, *arg_x)
+        if isinstance(arg_x[0], np.ndarray):
+            arg_x = (tf.Variable(one_arg_x) for one_arg_x in arg_x)
+
+        value, grad = tfm.value_and_gradient(func, *arg_x)
+        if to_numpy:
+            return value.numpy(), grad.numpy()
+        return value, grad
 
     return func_with_grad
 
