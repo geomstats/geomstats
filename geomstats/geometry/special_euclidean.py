@@ -38,7 +38,7 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
                         + 1. / 5040., 0.,
                         - 1. / 362880.]
 
-
+# TODO(nina): are these the right gradients?
 def squared_dist_grad_point_a(point_a, point_b, metric):
     return 2 * metric.log(point_a, point_b)
 

@@ -67,18 +67,34 @@ class GeodesicRegression(BaseEstimator):
             self.mean_ = gs.mean(X)
             times -= self.mean_
 
-        # vector = gs.array([
-        #     [1., 6., 0.],
-        #     [-1., 2., -4.],
-        #     [0., -1., 3.]
-        # ])
+        vector = gs.array([
+            [ 0.50198963,  0.59494365,  0.5332258 ],
+            [-2.18947023,  1.1374106 ,  0.5482675 ],
+            [ 0.91499351,  0.78945069,  0.87057936]])
+        vector2 = gs.array([
+            [ 0.88005482,  1.20483007, -0.87634215],
+            [-1.13142537, -1.51064679, -0.05944102],
+            [ 1.32931231, -0.60150817,  0.65693497]])
         initial_guess = gs.flatten(gs.stack([
-            gs.random.normal(size=shape), gs.random.normal(size=shape)]))
-        # initial_guess = gs.flatten(gs.stack([
-        #     vector, vector]))
+            gs.random.normal(size=shape), 
+            gs.random.normal(size=shape)
+        ]))
+        initial_guess = gs.flatten(gs.stack([
+            vector, vector2]))
         objective_with_grad = gs.autodiff.value_and_grad(
             lambda param: self._loss(times, y, param, shape, weights),
             to_numpy=True)
+
+        print("\n\nJust before minimize")
+        print("time/data:")
+        print(type(X))
+        print(X.shape)
+        print(X)
+        print("target")
+        print(type(y))
+        print(y.shape)
+        print(y)
+        print(self.space.belongs(y))
 
         print("\n\n Objective with grad")
         val, grad = objective_with_grad(initial_guess)
@@ -99,11 +115,7 @@ class GeodesicRegression(BaseEstimator):
         beta_hat = gs.cast(beta_hat, dtype=y.dtype)
 
         self.intercept_ = self.space.projection(intercept_hat)
-        print("beta hat before proj")
-        print(beta_hat)
-        print("beta hat after proj")
         self.coef_ = self.space.to_tangent(beta_hat, self.intercept_)
-        print(self.coef_)
 
         if compute_training_score:
             variance = gs.sum(self.metric.squared_dist(y, self.intercept_))

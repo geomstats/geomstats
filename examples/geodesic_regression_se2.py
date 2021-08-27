@@ -38,15 +38,7 @@ target = metric.exp(data[:, None, None] * beta[None], intercept)
 # Add noise
 #target = metric.exp(noise, target)
 
-print("\n\nIN EXAMPLE")
-print("time_se2:")
-print(type(data))
-print(data.shape)
-print(data)
-print("target")
-print(type(target))
-print(target.shape)
-print(space.belongs(target))
+
 
 # True noise level and R2
 # estimator = FrechetMean(metric)
@@ -63,8 +55,6 @@ intercept_hat, beta_hat = gr.intercept_, gr.coef_
 print("\n\n\nare intercept and beta into the right spaces:")
 print(space.belongs(intercept_hat))
 print(space.is_tangent(beta_hat, intercept_hat))
-print("Is beta hat identity for the rot part?")
-print(beta_hat)
 
 # Measure Mean Squared Error
 mse_intercept = metric.squared_dist(intercept_hat, intercept)
@@ -94,7 +84,7 @@ regressed_geodesic = path(
 i = 10
 sphere_visu.draw_points(ax, gs.array([intercept_hat]), marker='o', c='green')
 sphere_visu.draw_points(ax, target, marker='o', c='black')
-sphere_visu.draw_points(ax, fitted_data, marker='o', c='gray')
+#sphere_visu.draw_points(ax, fitted_data, marker='o', c='gray')
 sphere_visu.draw_points(
     ax, gs.array([intercept]), marker='x', c='r')
 

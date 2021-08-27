@@ -14,7 +14,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
-        gs.random.seed(0)
+        gs.random.seed(123)
         self.n_samples = 20
 
         # Set up for hypersphere
@@ -52,9 +52,9 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         self.intercept_se2_true = self.se2.identity #self.se2.random_point()
         vector = gs.array([
-            [1., 2., 3.],
+            [1., 4., 3.],
             [-1., 2., -3],
-            [0., -1., 3.]
+            [0., -1., 1.]
         ])
         self.coef_se2_true = self.se2.to_tangent(
             vector, 
@@ -233,15 +233,6 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         self.assertAllClose(coef_hat, self.coef_se2_true, atol=1e-4)
 
     def test_fit_extrinsic_se2(self):
-        print("\n\nIN test fit extrinsic se2")
-        print("time_se2:")
-        print(type(self.times_se2))
-        print(self.times_se2)
-        print("target")
-        print(type(self.target_se2))
-        print(self.target_se2.shape)
-        print(self.se2.belongs(self.target_se2))
-        print
         gr = GeodesicRegression(
             self.se2, metric=self.metric_se2, center_data=False, algorithm='extrinsic',
             verbose=True, max_iter=50, learning_rate=0.1)
