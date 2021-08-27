@@ -1085,6 +1085,8 @@ class TestBackends(geomstats.tests.TestCase):
 
         result_val, result_grad = gs.autodiff.value_and_grad(func)(
             arg_x, arg_y)
+        print("TYPETYPETYPE")
+        print(type(result_grad))
         self.assertTrue(isinstance(result_grad, tuple))
         result_grad_x, result_grad_y = result_grad
 

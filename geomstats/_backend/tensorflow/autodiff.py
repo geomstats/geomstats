@@ -158,7 +158,9 @@ def value_and_grad(func, to_numpy=False):
             else:
                 return loss, t.gradient(loss, arg_x)
         else:
-            
+            assert isinstance(arg_x, tuple)
+            print("TYPE OF ARGS")
+            print(type(arg_x))
             # Case with several args
             print("---- SEVERAL args here!")
             if isinstance(arg_x[0], np.ndarray):
@@ -169,14 +171,13 @@ def value_and_grad(func, to_numpy=False):
                 print(func)
                 print("The arg_x is:")
                 print(arg_x)
-                t.watch(*arg_x)
                 print("The watched arg_x is:")
                 print(arg_x)
                 loss = func(*arg_x)
 
                 print("The loss, i.e. the value of the func is:")
                 print(loss)
-            return loss.numpy(), t.gradient(loss, *arg_x).numpy()
+            return loss, t.gradient(loss, *arg_x)
 
     return func_with_grad
 
