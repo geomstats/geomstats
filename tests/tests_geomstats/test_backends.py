@@ -1232,7 +1232,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad)
         
     def test_custom_grad_mock_squared_dist(self):
-        
+
         def squared_dist_grad_a(point_a, point_b, metric):
             return 2 * metric.log(point_b, point_a)
 

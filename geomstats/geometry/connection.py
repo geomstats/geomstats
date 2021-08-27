@@ -157,10 +157,13 @@ class Connection(ABC):
 
         objective_with_grad = gs.autodiff.value_and_grad(objective)
         tangent_vec = gs.flatten(gs.random.rand(*max_shape))
+        print("In connection, the type of tangent_vec is:")
+        print(type(tangent_vec))
+        #tangent_vec = gs.reshape(tangent_vec, tangent_vec.shape, order="F")
         res = minimize(
             objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
             options={'disp': verbose, 'maxiter': max_iter}, tol=tol)
-
+        raise ValueError
         tangent_vec = gs.array(res.x)
         tangent_vec = gs.reshape(tangent_vec, max_shape)
         tangent_vec = gs.cast(tangent_vec, dtype=base_point.dtype)

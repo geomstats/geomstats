@@ -48,7 +48,7 @@ def squared_dist_grad_point_b(point_a, point_b, metric):
 @gs.autodiff.custom_gradient(
     squared_dist_grad_point_a, squared_dist_grad_point_b)
 def _squared_dist(point_a, point_b, metric):
-    return metric.squared_dist(point_a, point_b)
+    return metric.private_squared_dist(point_a, point_b)
 
 def homogeneous_representation(
         rotation, translation, output_shape, constant=1.):
@@ -1129,8 +1129,13 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
     #
     #     return dist, grad
 
-    def squared_dist(self, point_a, point_b):
+    def private_squared_dist(self, point_a, point_b):
         dist = super().squared_dist(point_a, point_b)
+        return dist
+
+    def squared_dist(self, point_a, point_b):
+        dist = _squared_dist(point_a, point_b, metric=self)
+        #dist = super().squared_dist(point_a, point_b)
         return dist
 
 
