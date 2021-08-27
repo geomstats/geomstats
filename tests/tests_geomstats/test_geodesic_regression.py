@@ -265,8 +265,8 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
                 self.shape_se2)
 
         objective_with_grad = gs.autodiff.value_and_grad(loss_of_param)
-        loss_value, loss_grad = objective_with_grad(self.parameter_se2)
-        expected_grad_shape = (2 * self.shape_se2[0], self.shape_se2[1])
+        loss_value, loss_grad = objective_with_grad(self.parameter_se2_guess)
+        expected_grad_shape = (2 * self.shape_se2[0] * self.shape_se2[1],)
         self.assertAllClose(loss_value.shape, ())
         self.assertAllClose(loss_grad.shape, expected_grad_shape)
 
@@ -278,8 +278,8 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         objective_with_grad = gs.autodiff.value_and_grad(
             loss_of_param, to_numpy=True)
-        loss_value, loss_grad = objective_with_grad(self.parameter_se2)
-        expected_grad_shape = (2 * self.shape_se2[0], self.shape_se2[1])
+        loss_value, loss_grad = objective_with_grad(self.parameter_se2_guess)
+        expected_grad_shape = (2 * self.shape_se2[0] * self.shape_se2[1],)
         self.assertAllClose(loss_value.shape, ())
         self.assertAllClose(loss_grad.shape, expected_grad_shape)
 
