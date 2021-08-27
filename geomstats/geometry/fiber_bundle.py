@@ -191,7 +191,7 @@ class FiberBundle(Manifold, ABC):
 
         objective_with_grad = gs.autodiff.value_and_grad(
             lambda param: self.ambient_metric.squared_dist(
-                wrap(param), base_point))
+                wrap(param), base_point), to_numpy=True)
 
         tangent_vec = gs.flatten(gs.random.rand(*max_shape))
         res = minimize(
