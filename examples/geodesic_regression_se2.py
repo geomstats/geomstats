@@ -15,28 +15,44 @@ gs.random.seed(0)
 
 # Generate data
 n_samples = 20
-data = gs.random.rand(n_samples)
+data = gs.linspace(0., 1., n_samples)  #gs.random.rand(n_samples)
 data -= gs.mean(data)
 
-intercept = space.random_point()
-beta = space.to_tangent(5. * gs.random.rand(3, 3), intercept)
+intercept = space.identity  #space.random_point()
+vector = gs.array([
+    [1., 4., 3.],
+    [-1., 2., -3],
+    [0., -1., 1.]
+])
+beta = space.to_tangent(vector, intercept)
+#beta = space.to_tangent(5. * gs.random.rand(3, 3), intercept)
+
 target = metric.exp(data[:, None, None] * beta[None], intercept)
 
 # Generate normal noise
-normal_noise = gs.random.normal(size=(n_samples, 3, 3))
-noise = space.to_tangent(normal_noise, target) / gs.pi / 2
+# normal_noise = gs.random.normal(size=(n_samples, 3, 3))
+# noise = space.to_tangent(normal_noise, target) / gs.pi / 2
 
-rss = gs.sum(metric.squared_norm(noise, target)) / n_samples
+# rss = gs.sum(metric.squared_norm(noise, target)) / n_samples
 
 # Add noise
-target = metric.exp(noise, target)
+#target = metric.exp(noise, target)
+
+print("\n\nIN EXAMPLE")
+print("time_se2:")
+print(type(data))
+print(data.shape)
+print(data)
+print("target")
+print(type(target))
+print(target.shape)
 print(space.belongs(target))
 
 # True noise level and R2
-estimator = FrechetMean(metric)
-estimator.fit(target)
-variance_ = variance(target, estimator.estimate_, metric=metric)
-r2 = 1 - rss / variance_
+# estimator = FrechetMean(metric)
+# estimator.fit(target)
+# variance_ = variance(target, estimator.estimate_, metric=metric)
+# r2 = 1 - rss / variance_
 
 gr = GeodesicRegression(
     space, metric=metric, center_data=False, algorithm='extrinsic',
@@ -44,6 +60,11 @@ gr = GeodesicRegression(
 
 gr.fit(data, target, compute_training_score=True)
 intercept_hat, beta_hat = gr.intercept_, gr.coef_
+print("\n\n\nare intercept and beta into the right spaces:")
+print(space.belongs(intercept_hat))
+print(space.is_tangent(beta_hat, intercept_hat))
+print("Is beta hat identity for the rot part?")
+print(beta_hat)
 
 # Measure Mean Squared Error
 mse_intercept = metric.squared_dist(intercept_hat, intercept)

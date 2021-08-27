@@ -67,11 +67,25 @@ class GeodesicRegression(BaseEstimator):
             self.mean_ = gs.mean(X)
             times -= self.mean_
 
+        # vector = gs.array([
+        #     [1., 6., 0.],
+        #     [-1., 2., -4.],
+        #     [0., -1., 3.]
+        # ])
         initial_guess = gs.flatten(gs.stack([
             gs.random.normal(size=shape), gs.random.normal(size=shape)]))
+        # initial_guess = gs.flatten(gs.stack([
+        #     vector, vector]))
         objective_with_grad = gs.autodiff.value_and_grad(
             lambda param: self._loss(times, y, param, shape, weights),
             to_numpy=True)
+
+        print("\n\n Objective with grad")
+        val, grad = objective_with_grad(initial_guess)
+        print(val)
+        print(type(grad))
+        print(grad.shape)
+        print(grad)
 
         res = minimize(
             objective_with_grad, initial_guess, method='CG', jac=True,
@@ -83,8 +97,13 @@ class GeodesicRegression(BaseEstimator):
         intercept_hat = gs.cast(intercept_hat, dtype=y.dtype)
         beta_hat = gs.reshape(beta_hat, shape)
         beta_hat = gs.cast(beta_hat, dtype=y.dtype)
+
         self.intercept_ = self.space.projection(intercept_hat)
-        self.coef_ = self.space.to_tangent(beta_hat, intercept_hat)
+        print("beta hat before proj")
+        print(beta_hat)
+        print("beta hat after proj")
+        self.coef_ = self.space.to_tangent(beta_hat, self.intercept_)
+        print(self.coef_)
 
         if compute_training_score:
             variance = gs.sum(self.metric.squared_dist(y, self.intercept_))

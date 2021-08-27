@@ -23,8 +23,11 @@ def custom_gradient(*grad_funcs):
                 grad_vals = []
                 for grad_fun in grad_funcs:
                     grad_func_val = tf.convert_to_tensor(grad_fun(*args, **kwargs))
+                    # grad_vals.append(
+                    #     tf.squeeze(tf.einsum("...k,...->...", upstream, grad_func_val))
+                    # )
                     grad_vals.append(
-                        tf.squeeze(tf.einsum("...k,...->...", upstream, grad_func_val))
+                        grad_func_val
                     )
                 return tuple(grad_vals)
 
