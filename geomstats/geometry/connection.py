@@ -2,6 +2,7 @@
 
 from abc import ABC
 
+import scipy.optimize as opt
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
@@ -155,15 +156,23 @@ class Connection(ABC):
             delta = self.exp(velocity, base_point, n_steps, step) - point
             return gs.sum(delta ** 2)
 
-        objective_with_grad = gs.autodiff.value_and_grad(objective)
+        objective_with_grad = gs.autodiff.value_and_grad(objective, to_numpy=True)
+
+        def grad_of_objective(velocity):
+            return objective_with_grad(velocity)[1]
         tangent_vec = gs.flatten(gs.random.rand(*max_shape))
         print("In connection, the type of tangent_vec is:")
         print(type(tangent_vec))
+        print(tangent_vec.dtype)
+        print(tangent_vec.shape)
         #tangent_vec = gs.reshape(tangent_vec, tangent_vec.shape, order="F")
         res = minimize(
             objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
             options={'disp': verbose, 'maxiter': max_iter}, tol=tol)
-        raise ValueError
+        # res = opt.fmin_l_bfgs_b(
+        #     objective, tangent_vec, fprime=grad_of_objective#jac=True,
+        #     ) #options={'disp': verbose, 'maxiter': max_iter}, tol=tol)
+        # #raise ValueError
         tangent_vec = gs.array(res.x)
         tangent_vec = gs.reshape(tangent_vec, max_shape)
         tangent_vec = gs.cast(tangent_vec, dtype=base_point.dtype)
