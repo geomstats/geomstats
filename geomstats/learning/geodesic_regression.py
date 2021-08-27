@@ -52,21 +52,21 @@ class GeodesicRegression(BaseEstimator):
         return 1. / 2. * gs.sum(weights * distances)
 
     def fit(self, X, y, weights=None, compute_training_score=False):
-        if self.algorithm == 'extrinsic':
-            return self._fit_extrinsic(X, y, weights, compute_training_score)
-        if self.algorithm == 'riemannian':
-            return self._fit_riemannian(X, y, weights, compute_training_score)
-
-    def _fit_extrinsic(self, X, y, weights=None, compute_training_score=False):
-        shape = (
-            y.shape[-1:] if self.space.default_point_type == 'vector' else
-            y.shape[-2:])
-
         times = gs.copy(X)
         if self.center_data:
             self.mean_ = gs.mean(X)
             times -= self.mean_
 
+        if self.algorithm == 'extrinsic':
+            return self._fit_extrinsic(times, y, weights, compute_training_score)
+        if self.algorithm == 'riemannian':
+            return self._fit_riemannian(times, y, weights, compute_training_score)
+
+    def _fit_extrinsic(self, X, y, weights=None, compute_training_score=False):
+        shape = (
+            y.shape[-1:] if self.space.default_point_type == 'vector' else
+            y.shape[-2:])
+        
         vector = gs.array([
             [ 0.50198963,  0.59494365,  0.5332258 ],
             [-2.18947023,  1.1374106 ,  0.5482675 ],
@@ -75,14 +75,14 @@ class GeodesicRegression(BaseEstimator):
             [ 0.88005482,  1.20483007, -0.87634215],
             [-1.13142537, -1.51064679, -0.05944102],
             [ 1.32931231, -0.60150817,  0.65693497]])
-        initial_guess = gs.flatten(gs.stack([
-            gs.random.normal(size=shape), 
-            gs.random.normal(size=shape)
-        ]))
+        # initial_guess = gs.flatten(gs.stack([
+        #     gs.random.normal(size=shape), 
+        #     gs.random.normal(size=shape)
+        # ]))
         initial_guess = gs.flatten(gs.stack([
             vector, vector2]))
         objective_with_grad = gs.autodiff.value_and_grad(
-            lambda param: self._loss(times, y, param, shape, weights),
+            lambda param: self._loss(X, y, param, shape, weights),
             to_numpy=True)
 
         print("\n\nJust before minimize")
@@ -128,12 +128,6 @@ class GeodesicRegression(BaseEstimator):
         shape = (
             y.shape[-1:] if self.space.default_point_type == 'vector' else
             y.shape[-2:])
-
-        times = gs.copy(X)
-        if self.center_data:
-            self.mean_ = gs.mean(X)
-            times = times - self.mean_
-
         if hasattr(self.metric, 'parallel_transport'):
             def vector_transport(tan_a, tan_b, base_point, _):
                 return self.metric.parallel_transport(tan_a, tan_b, base_point)
@@ -142,7 +136,7 @@ class GeodesicRegression(BaseEstimator):
                 return self.space.to_tangent(tan_a, point)
 
         objective_with_grad = gs.autodiff.value_and_grad(
-            lambda params: self._loss(times, y, params, shape, weights),
+            lambda params: self._loss(X, y, params, shape, weights),
             to_numpy=True)
 
         lr = self.learning_rate
@@ -176,7 +170,15 @@ class GeodesicRegression(BaseEstimator):
                 - lr * riemannian_grad_p, intercept_hat)
             beta_hat_new = vector_transport(
                 beta_hat - lr * riemannian_grad_v,
-                - lr * riemannian_grad_p, intercept_hat, intercept_hat_new)
+                - lr * riemannian_grad_p, 
+                intercept_hat, 
+                intercept_hat_new)
+            # Hack alert
+            beta_hat_new = self.space.to_tangent(
+                beta_hat_new, intercept_hat_new)
+            print("\n\n in riem, is beta hat new in the right space")
+            print(self.space.is_tangent(beta_hat_new, intercept_hat_new))
+            print(beta_hat_new)
 
             param = gs.vstack(
                 [gs.flatten(intercept_hat_new), gs.flatten(beta_hat_new)])
@@ -184,7 +186,11 @@ class GeodesicRegression(BaseEstimator):
             current_loss = loss
 
         self.intercept_ = self.space.projection(intercept_hat)
-        self.coef_ = self.space.to_tangent(beta_hat, intercept_hat)
+        self.coef_ = self.space.to_tangent(beta_hat, self.intercept_)
+        print("\n\n is it tanget now?")
+        print(self.space.is_tangent(self.coef_, self.intercept_ ))
+        print(self.coef_)
+
 
         if self.verbose:
             logging.info(f'Number of iteration: {current_iter},'

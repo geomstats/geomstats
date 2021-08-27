@@ -243,8 +243,8 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         self.assertAllClose(intercept_hat.shape, self.shape_se2)
         self.assertAllClose(coef_hat.shape, self.shape_se2)
-        print("TRAINING SCORE SE@ EXTR")
-        print(training_score)
+        # print("TRAINING SCORE SE@ EXTR")
+        # print(training_score)
         self.assertTrue(gs.isclose(training_score, 1.))
         self.assertAllClose(intercept_hat, self.intercept_se2_true)
         self.assertAllClose(coef_hat, self.coef_se2_true)

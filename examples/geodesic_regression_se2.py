@@ -47,7 +47,7 @@ target = metric.exp(data[:, None, None] * beta[None], intercept)
 # r2 = 1 - rss / variance_
 
 gr = GeodesicRegression(
-    space, metric=metric, center_data=False, algorithm='extrinsic',
+    space, metric=metric, center_data=False, algorithm='riemannian',
     verbose=True, max_iter=50, learning_rate=0.1)
 
 gr.fit(data, target, compute_training_score=True)
@@ -84,7 +84,7 @@ regressed_geodesic = path(
 i = 10
 sphere_visu.draw_points(ax, gs.array([intercept_hat]), marker='o', c='green')
 sphere_visu.draw_points(ax, target, marker='o', c='black')
-#sphere_visu.draw_points(ax, fitted_data, marker='o', c='gray')
+sphere_visu.draw_points(ax, fitted_data, marker='o', c='gray')
 sphere_visu.draw_points(
     ax, gs.array([intercept]), marker='x', c='r')
 
