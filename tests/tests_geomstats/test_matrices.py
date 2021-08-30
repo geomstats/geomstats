@@ -258,6 +258,17 @@ class TestMatrices(geomstats.tests.TestCase):
             expected = self.space.frobenius_product(mat, mat) ** .5
             self.assertAllClose(result, expected)
 
+    def test_flatten_reshape(self):
+        matrix_list = self.space_nonsquare.random_point(n_samples=1)
+        result = self.space_nonsquare.reshape(
+            self.space_nonsquare.flatten(matrix_list))
+        self.assertAllClose(result, matrix_list)
+
+        matrix_list = self.space_nonsquare.random_point(n_samples=2)
+        result = self.space_nonsquare.reshape(
+            self.space_nonsquare.flatten(matrix_list))
+        self.assertAllClose(result, matrix_list)
+
     def test_diagonal(self):
         mat = gs.eye(3)
         result = Matrices.diagonal(mat)
