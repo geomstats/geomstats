@@ -899,6 +899,31 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
+    @geomstats.tests.autograd_tf_and_torch_only
+    def test_value_and_grad_two_vector_vars(self):
+        
+        def func(x, y):
+            return gs.sum((x-y)**2)
+
+        arg_x, arg_y = 1., 2.
+        val, grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
+        self.assertAllClose(val, 1.)
+        self.assertAllClose(grad, (-2., 2.))
+
+        arg_x = gs.array([1., 2.])
+        arg_y = gs.array([2., 3.])
+        val, grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
+        self.assertAllClose(val, 2.)
+        self.assertAllClose(grad[0], gs.array([-2., -2.]))
+        self.assertAllClose(grad[1], gs.array([2., 2.]))
+
+        arg_x = gs.array([[1., 3.], [2., 3.]])
+        arg_y = gs.array([[2., 5.], [0., 4.]])
+        val, grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
+        self.assertAllClose(val, 10.)
+        self.assertAllClose(grad[0], gs.array([[-2., -4.], [4., -2.]]))
+        self.assertAllClose(grad[1], gs.array([[2., 4.], [-4., 2.]]))
+
     def test_choice(self):
         x = gs.array([0.1, 0.2, 0.3, 0.4, 0.5])
         a = 4
@@ -1104,6 +1129,38 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad_x, expected_grad_x)
         self.assertAllClose(result_grad_y, expected_grad_y)
 
+    @geomstats.tests.autograd_and_tf_only
+    def test_custom_grad_two_vars_madeup_grads(self):
+
+        def grad_x(x, y):
+            return 6 * (x - y)
+
+        def grad_y(x, y):
+            return 6 * (y - x)
+
+        @gs.autodiff.custom_gradient(grad_x, grad_y)
+        def func(x, y):
+            return gs.sum((x - y) ** 2)
+
+        arg_x = gs.array([[1., 3.], [2., 3.]])
+        arg_y = gs.array([[2., 5.], [0., 4.]])     
+
+        result_val, result_grad  = gs.autodiff.value_and_grad(func)(
+            arg_x, arg_y)
+
+        print("result_grad", result_grad)
+        self.assertTrue(isinstance(result_grad, tuple))
+        result_grad_x, result_grad_y = result_grad
+
+        expected_val = func(arg_x, arg_y)
+        expected_grad_x = grad_x(arg_x, arg_y)
+        expected_grad_y = grad_y(arg_x, arg_y)
+
+        self.assertAllClose(result_val, expected_val)
+        self.assertAllClose(result_grad_y, expected_grad_y)
+        self.assertAllClose(result_grad_x, expected_grad_x)
+
+
     @geomstats.tests.tf_only
     def test_custom_grad_dummy_two_vars_composed(self):
 
@@ -1242,7 +1299,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
         
-    @geomstats.tests.tf_only
+    @geomstats.tests.autograd_and_tf_only
     def test_custom_grad_mock_squared_dist(self):
 
         def squared_dist_grad_a(point_a, point_b, metric):
@@ -1349,7 +1406,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad_explicit)
         self.assertAllClose(result_grad, expected_grad_chain_rule)
 
-    def test_custom_grad_chain_rule_two_vars(self):
+    def test_custom_grad_chain_rule_one_vector_var(self):
 
         def fun1_grad(x):
             return 2 * x
@@ -1378,7 +1435,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad_chain_rule)
 
 
-    def test_custom_grad_chain_rule_two_vars_madeup_grad(self):
+    def test_custom_grad_chain_rule_one_vector_var_madeup_grad(self):
 
         def fun1_grad(x):
             return 6 * x
