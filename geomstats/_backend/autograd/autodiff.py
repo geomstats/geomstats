@@ -62,7 +62,8 @@ def jacobian(f):
 
 def value_and_grad(objective, to_numpy=False):
     """Wrap autograd value_and_grad function."""
-    n_args = 2
+    # return _value_and_grad(objective)
+    # n_args = 2
 
     def aux_value_and_grad(x, y):
         def objective_rev(aux_y, aux_x):
@@ -73,6 +74,12 @@ def value_and_grad(objective, to_numpy=False):
         def grad_y_rev(x, y):
             return grad_y(y, x)
         return value, (grad_x, grad_y)
+
+    def aux_aux_value_and_grad(*args):
+        if len(args) == 1:
+            return _value_and_grad(objective)(*args)
+        elif len(args) == 2:
+            return aux_value_and_grad(*args)
     
     # def aux_value_and_grad(*args):
     #     value = objective(*args)
@@ -92,7 +99,7 @@ def value_and_grad(objective, to_numpy=False):
         #     all_grads.append(grad_i)
 
         #return value, tuple(all_grads)
-    return aux_value_and_grad
+    return aux_aux_value_and_grad
     # def objective_one_concat(vector_arg):
     #     args = np.split(vector_arg, n_args)
     #     print(type(args))
