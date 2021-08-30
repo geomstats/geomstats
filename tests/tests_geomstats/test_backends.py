@@ -4,6 +4,12 @@ The functions are tested in order to match numpy's results and API.
 In exceptional cases, numpy's results or API may not be followed.
 """
 
+from autograd import elementwise_grad as _elementwise_grad
+from autograd import jacobian as _jacobian
+from autograd import value_and_grad as _value_and_grad
+from autograd import multigrad_dict
+from autograd.extend import defvjp, primitive
+
 import warnings
 
 import numpy as _np
@@ -1049,7 +1055,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
 
-    def test_custom_grad_dummy_one_var(self):
+    def test_custom_grad_one_var(self):
 
         def grad_x(x):
             return 2 * x
@@ -1068,7 +1074,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad)
 
 
-    @geomstats.tests.tf_only
+    @geomstats.tests.autograd_and_tf_only
     def test_custom_grad_two_vars(self):
 
         def grad_x(x, y):
@@ -1077,6 +1083,25 @@ class TestBackends(geomstats.tests.TestCase):
         def grad_y(x, y):
             return 2 * (y - x)
 
+        # def func(x, y):
+        #     return gs.sum((x - y) ** 2)
+
+        # arg_x = gs.array([[1., 3.], [2., 3.]])
+        # arg_y = gs.array([[2., 5.], [0., 4.]])
+
+        # wrapped_function = func #primitive(func)
+
+
+
+        # defvjp(
+        #     wrapped_function, 
+        #     lambda ans, *args: lambda g: g * grad_x(*args),
+        #     lambda ans, *args: lambda g: g * grad_y(*args))
+
+        # print(wrapped_function)
+        # print(wrapped_function.__dict__)
+
+
         @gs.autodiff.custom_gradient(grad_x, grad_y)
         def func(x, y):
             return gs.sum((x - y) ** 2)
@@ -1084,10 +1109,23 @@ class TestBackends(geomstats.tests.TestCase):
         arg_x = gs.array([[1., 3.], [2., 3.]])
         arg_y = gs.array([[2., 5.], [0., 4.]])
 
-        result_val, result_grad = gs.autodiff.value_and_grad(func)(
-            arg_x, arg_y)
-        self.assertTrue(isinstance(result_grad, tuple))
-        result_grad_x, result_grad_y = result_grad
+        result_val = func(arg_x, arg_y)
+        result_grad = multigrad_dict(func)
+        print(result_grad)
+        print(result_grad.__dict__)
+        print("^multigrad  here")
+        result_grad_vals = result_grad(arg_x, arg_y)
+        print(result_grad_vals)
+        
+
+        # result_val, result_grad = gs.autodiff.value_and_grad(func)(
+        #     arg_x, arg_y)
+
+        # print(result_val)
+        # print(type(result_grad))
+        # print(result_grad)
+        # self.assertTrue(isinstance(result_grad, tuple))
+        result_grad_x, result_grad_y = result_grad_vals["x"], result_grad_vals["y"]
 
         expected_val = func(arg_x, arg_y)
         expected_grad_x = grad_x(arg_x, arg_y)

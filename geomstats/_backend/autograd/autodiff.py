@@ -25,21 +25,28 @@ def custom_gradient(*grad_func):
     """
     def decorator(function):
 
-        wrapped_function = primitive(function)
+        wrapped_function = function #primitive(function)
         if len(grad_func) == 1:
             defvjp(
                 wrapped_function,
                 lambda ans, *args: lambda g: g * grad_func[0](*args))
 
-        # General case:
-        vjps = []
-        for one_grad_func in grad_func:
-            one_vjp = \
-                lambda ans, *args: lambda g: g * one_grad_func(*args)
-            vjps.append(one_vjp)
-        vjps = tuple(vjps)
+        else:
+            print(f"Number of grad functions: {len(grad_func)}")
+            # vjps = []
+            # for one_grad_func in grad_func:
+            #     one_vjp = \
+            #         lambda ans, *args: lambda g: g * one_grad_func(
+            #             *args)
+            #     vjps.append(one_vjp)
+            # vjps = tuple(vjps)
 
-        defvjp(wrapped_function, *vjps)
+            print(grad_func[0])
+            print(grad_func[1])
+            defvjp(
+                wrapped_function, 
+                lambda ans, *args: lambda g: g * grad_func[0](*args),
+                lambda ans, *args: lambda g: g * grad_func[1](*args))
 
         return wrapped_function
     return decorator
@@ -50,6 +57,15 @@ def jacobian(f):
     return _jacobian(f)
 
 
-def value_and_grad(objective):
+def value_and_grad(objective, to_numpy=False):
     """Wrap autograd value_and_grad function."""
+
+        # import funcsigs
+        
+        # sig = funcsigs.signature(wrapped_function)
+        # print(sig.parameters)
+        # bindings = sig.bind(arg_x, arg_y)
+        # print(bindings.arguments)
+        # print("bindings.arguments")
+
     return _value_and_grad(objective)
