@@ -64,35 +64,13 @@ def jacobian(f):
 
 def value_and_grad(objective, to_numpy=False):
     """Wrap autograd value_and_grad function."""
-    # return _value_and_grad(objective)
-    func_sign = funcsigs.signature(objective)
-    print(func_sign)
-    print(type(func_sign))
-    print("func_sign.parameters")
-    print((func_sign.parameters))
-    # if len(func_sign.parameters) == 1 or "args" in func_sign.parameters:
-    #     print('indeed, one args!')
-    #     # def to_return(*args):
-    #     #     aux = _value_and_grad(objective)(*args)
-    #     #     return aux[0], np.squeeze(aux[1])
-
-    #     return _value_and_grad(objective)
-    # else:
-        # sig = funcsigs.signature(objective)  # {"x": Param, "y": Param}
-        # print(sig.parameters)
-        # bindings = sig.bind(arg_x, arg_y)
-        # print(bindings.arguments)
-        # print("bindings.arguments")
     if "_is_autograd_primitive" in objective.__dict__:
-        objective = objective.fun
-    multigradfunc_dict = multigrad_dict(objective)
+        multigradfunc_dict = multigrad_dict(objective.fun)
+    else:
+        multigradfunc_dict = multigrad_dict(objective)
     def multigrad_val(*args):
-        values = []
-        grad_vals = multigradfunc_dict(*args)
-        for one_grad in grad_vals.values(): #multigradfunc_dict.values():
-            print(one_grad.shape)
-            print(type(one_grad))
-            values.append(one_grad)
-        result = tuple(values) if len(values) >1 else values[0]
-        return result
+        multigradvals_dict = multigradfunc_dict(*args)
+        multigradvals = tuple(multigradvals_dict.values())
+        multigradvals = multigradvals[0] if len(multigradvals) == 1 else multigradvals
+        return multigradvals
     return lambda *args: (objective(*args), multigrad_val(*args))
