@@ -38,20 +38,17 @@ def custom_gradient(*grad_func):
 
         else:
             print(f"Number of grad functions: {len(grad_func)}")
-            # vjps = []
-            # for one_grad_func in grad_func:
-            #     one_vjp = \
-            #         lambda ans, *args: lambda g: g * one_grad_func(
-            #             *args)
-            #     vjps.append(one_vjp)
-            # vjps = tuple(vjps)
+            vjps = []
+            for one_grad_func in grad_func:
+                one_vjp = \
+                    lambda ans, *args: lambda g: g * one_grad_func(
+                        *args)
+                vjps.append(one_vjp)
+            vjps = tuple(vjps)
 
-            print(grad_func[0])
-            print(grad_func[1])
             defvjp(
                 wrapped_function, 
-                lambda ans, *args: lambda g: g * grad_func[0](*args),
-                lambda ans, *args: lambda g: g * grad_func[1](*args))
+                *vjps)
 
         return wrapped_function
     return decorator
@@ -68,9 +65,10 @@ def value_and_grad(objective, to_numpy=False):
         multigradfunc_dict = multigrad_dict(objective.fun)
     else:
         multigradfunc_dict = multigrad_dict(objective)
-    def multigrad_val(*args):
+
+    def grads(*args):
         multigradvals_dict = multigradfunc_dict(*args)
         multigradvals = tuple(multigradvals_dict.values())
         multigradvals = multigradvals[0] if len(multigradvals) == 1 else multigradvals
         return multigradvals
-    return lambda *args: (objective(*args), multigrad_val(*args))
+    return lambda *args: (objective(*args), grads(*args))
