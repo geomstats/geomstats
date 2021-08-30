@@ -49,7 +49,7 @@ def jacobian(f):
     return lambda x: torch_jac(f, x)
 
 
-def value_and_grad(func):
+def value_and_grad(func, to_numpy=False):
     """'Return a function that returns both value and gradient.
 
     Suitable for use in scipy.optimize

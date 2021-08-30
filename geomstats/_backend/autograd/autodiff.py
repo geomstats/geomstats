@@ -31,6 +31,16 @@ def custom_gradient(*grad_func):
                 wrapped_function,
                 lambda ans, *args: lambda g: g * grad_func[0](*args))
 
+        # General case:
+        vjps = []
+        for one_grad_func in grad_func:
+            one_vjp = \
+                lambda ans, *args: lambda g: g * one_grad_func(*args)
+            vjps.append(one_vjp)
+        vjps = tuple(vjps)
+
+        defvjp(wrapped_function, *vjps)
+
         return wrapped_function
     return decorator
 
