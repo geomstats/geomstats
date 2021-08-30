@@ -38,17 +38,18 @@ def custom_gradient(*grad_func):
 
         else:
             print(f"Number of grad functions: {len(grad_func)}")
-            vjps = []
-            for one_grad_func in grad_func:
-                one_vjp = \
-                    lambda ans, *args, **kwargs: lambda g: g * one_grad_func(
-                        *args, **kwargs)
-                vjps.append(one_vjp)
-            vjps = tuple(vjps)
+            # vjps = []
+            # for one_grad_func in grad_func:
+            #     one_vjp = \
+            #         lambda ans, *args, **kwargs: lambda g: g * one_grad_func(
+            #             *args, **kwargs)
+            #     vjps.append(one_vjp)
+            # vjps = tuple(vjps)
 
             defvjp(
                 wrapped_function, 
-                *vjps)
+                lambda ans, *args, **kwargs: lambda g: g * grad_func[0](*args, **kwargs),
+                lambda ans, *args, **kwargs: lambda g: g * grad_func[1](*args, **kwargs))
 
         return wrapped_function
     return decorator
@@ -62,8 +63,6 @@ def jacobian(f):
 def value_and_grad(objective, to_numpy=False):
     """Wrap autograd value_and_grad function."""
     n_args = 2
-
-
 
     def aux_value_and_grad(x, y):
         def objective_rev(aux_y, aux_x):
