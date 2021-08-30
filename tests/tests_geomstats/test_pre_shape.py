@@ -695,7 +695,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
                 self.hor_x, self.hor_y, self.base_point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_and_torch_only
     def test_parallel_transport(self):
         space = self.space
         metric = self.shape_metric
