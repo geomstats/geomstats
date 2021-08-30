@@ -1083,48 +1083,18 @@ class TestBackends(geomstats.tests.TestCase):
         def grad_y(x, y):
             return 2 * (y - x)
 
-        # def func(x, y):
-        #     return gs.sum((x - y) ** 2)
-
-        # arg_x = gs.array([[1., 3.], [2., 3.]])
-        # arg_y = gs.array([[2., 5.], [0., 4.]])
-
-        # wrapped_function = func #primitive(func)
-
-
-
-        # defvjp(
-        #     wrapped_function, 
-        #     lambda ans, *args: lambda g: g * grad_x(*args),
-        #     lambda ans, *args: lambda g: g * grad_y(*args))
-
-        # print(wrapped_function)
-        # print(wrapped_function.__dict__)
-
-
         @gs.autodiff.custom_gradient(grad_x, grad_y)
         def func(x, y):
             return gs.sum((x - y) ** 2)
 
         arg_x = gs.array([[1., 3.], [2., 3.]])
-        arg_y = gs.array([[2., 5.], [0., 4.]])
-
-        # result_val = func(arg_x, arg_y)
-        # result_grad = multigrad_dict(func)
-        # print(result_grad)
-        # print(result_grad.__dict__)
-        # print("^multigrad  here")
-        # result_grad_vals = result_grad(arg_x, arg_y)
-        # print(result_grad_vals)
-        
+        arg_y = gs.array([[2., 5.], [0., 4.]])     
 
         result_val, result_grad  = gs.autodiff.value_and_grad(func)(
             arg_x, arg_y)
 
-        #print(res)
-        print("^Result of value and grad")
         self.assertTrue(isinstance(result_grad, tuple))
-        result_grad_x, result_grad_y = result_grad #_vals["x"], result_grad_vals["y"]
+        result_grad_x, result_grad_y = result_grad
 
         expected_val = func(arg_x, arg_y)
         expected_grad_x = grad_x(arg_x, arg_y)
