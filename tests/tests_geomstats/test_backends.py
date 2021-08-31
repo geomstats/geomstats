@@ -4,12 +4,6 @@ The functions are tested in order to match numpy's results and API.
 In exceptional cases, numpy's results or API may not be followed.
 """
 
-from autograd import elementwise_grad as _elementwise_grad
-from autograd import jacobian as _jacobian
-from autograd import value_and_grad as _value_and_grad
-from autograd import multigrad_dict
-from autograd.extend import defvjp, primitive
-
 import warnings
 
 import numpy as _np
@@ -1148,7 +1142,6 @@ class TestBackends(geomstats.tests.TestCase):
         result_val, result_grad  = gs.autodiff.value_and_grad(func)(
             arg_x, arg_y)
 
-        print("result_grad", result_grad)
         self.assertTrue(isinstance(result_grad, tuple))
         result_grad_x, result_grad_y = result_grad
 
