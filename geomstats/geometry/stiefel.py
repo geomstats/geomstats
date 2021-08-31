@@ -12,7 +12,6 @@ from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-import numpy as np
 
 EPSILON = 1e-6
 
@@ -530,12 +529,12 @@ class StiefelCanonicalMetric(RiemannianMetric):
 		subspace_angle : array-like, shape=[...,]
 			Subspace angle between two points.
 		"""
-        temp = np.dot(point_a.T, point_b)
-        U, S, V = np.linalg.svd(temp)
-        S = np.round(np.array(S), 4)
-        thetas = np.arccos(S)
+        temp = gs.dot(point_a.T, point_b)
+        U, S, V = gs.linalg.svd(temp)
+        S = gs.round(gs.array(S), 4)
+        thetas = gs.arccos(S)
         
-        subspace_angle = np.sqrt(np.sum(np.square(thetas)))
+        subspace_angle = gs.sqrt(gs.sum(gs.square(thetas)))
         return subspace_angle
 
 
@@ -552,9 +551,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
 		proj_fnorm : array-like, shape=[...,]
 			F-Norm distance between two points.
 		"""
-        # use 1.41421356237 as a substitute for np.sqrt(2) to optimize computations
-        proj_fnorm = 1.41421356237 * np.linalg.norm(
-                    np.dot(point_a, point_a.T) - np.dot(point_b, point_b.T), 'fro')
+        # use 1.41421356237 as a substitute for gs.sqrt(2) to optimize computations
+        proj_fnorm = 1.41421356237 * gs.linalg.norm(
+                    gs.dot(point_a, point_a.T) - gs.dot(point_b, point_b.T), 'fro')
         
         return proj_fnorm
 
@@ -571,8 +570,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
 		proj_2norm : array-like, shape=[...,]
 			2-Norm distance between two points.
 		"""
-        proj_2norm = np.linalg.norm(
-                    np.dot(point_a, point_a.T) - np.dot(point_b, point_b.T), 2)
+        proj_2norm = gs.linalg.norm(
+                    gs.dot(point_a, point_a.T) - gs.dot(point_b, point_b.T), 2)
         
         return proj_2norm
 
@@ -589,7 +588,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 		f_study_dist : array-like, shape=[...,]
 			Fubini-Study distance between two points.
 		"""
-        f_study_dist = np.arccos(np.round(np.linalg.det(np.dot(point_a.T, point_b))))
+        f_study_dist = gs.arccos(gs.round(gs.linalg.det(gs.dot(point_a.T, point_b))))
         
         return f_study_dist
 
@@ -606,8 +605,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
 		chordal_dist_fnorm : array-like, shape=[...,]
 			Chordal distance between two points.
 		"""
-        chordal_dist_fnorm = np.sqrt(self.p - np.round(
-                                np.square(np.linalg.norm(np.dot(point_a.T, point_b), 'fro')), 4))
+        chordal_dist_fnorm = gs.sqrt(self.p - gs.round(
+                                gs.square(gs.linalg.norm(gs.dot(point_a.T, point_b), 'fro')), 4))
         
         return chordal_dist_fnorm
     
@@ -624,7 +623,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 		chordal_dist_2norm : array-like, shape=[...,]
 			Chordal 2-Norm distance between two points.
 		"""
-        chordal_dist_2norm = np.sqrt(self.p - np.round(
-                                np.square(np.linalg.norm(np.dot(point_a.T, point_b), 2)), 4))
+        chordal_dist_2norm = gs.sqrt(self.p - gs.round(
+                                gs.square(gs.linalg.norm(gs.dot(point_a.T, point_b), 2)), 4))
         
         return chordal_dist_2norm
