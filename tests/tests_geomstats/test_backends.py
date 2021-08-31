@@ -1073,6 +1073,7 @@ class TestBackends(geomstats.tests.TestCase):
         expected = gs.cumprod(vec)[-1]
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_custom_grad_one_var(self):
 
         def grad_x(x):
@@ -1295,7 +1296,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
         
-    @geomstats.tests.autograd_tf_and_torch_only
+    @geomstats.tests.autograd_and_tf_only
     def test_custom_grad_mock_squared_dist(self):
 
         def squared_dist_grad_a(point_a, point_b, metric):
@@ -1325,7 +1326,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @geomstats.tests.autograd_and_tf_only
     def test_custom_grad_in_action(self):
         space = SpecialEuclidean(n=2)
         const_metric = space.left_canonical_metric
@@ -1345,6 +1346,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_custom_grad_chain_rule_one_var(self):
 
         def fun1_grad(x):
@@ -1373,7 +1375,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad)
         self.assertAllClose(result_grad, expected_grad2)
 
-
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_custom_grad_chain_rule_one_var_madeup_grad(self):
 
         def fun1_grad(x):
@@ -1402,6 +1404,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad_explicit)
         self.assertAllClose(result_grad, expected_grad_chain_rule)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_custom_grad_chain_rule_one_vector_var(self):
 
         def fun1_grad(x):
@@ -1430,7 +1433,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad_explicit)
         self.assertAllClose(result_grad, expected_grad_chain_rule)
 
-
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_custom_grad_chain_rule_one_vector_var_madeup_grad(self):
 
         def fun1_grad(x):

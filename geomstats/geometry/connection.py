@@ -2,7 +2,6 @@
 
 from abc import ABC
 
-import scipy.optimize as opt
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
@@ -145,8 +144,9 @@ class Connection(ABC):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point.
         """
-        max_shape = point.shape if len(point.shape) > len(base_point.shape) else \
-            base_point.shape
+        max_shape = point.shape 
+        if len(point.shape) <= len(base_point.shape):
+            max_shape = base_point.shape
 
         def objective(velocity):
             """Define the objective function."""
@@ -156,7 +156,8 @@ class Connection(ABC):
             delta = self.exp(velocity, base_point, n_steps, step) - point
             return gs.sum(delta ** 2)
 
-        objective_with_grad = gs.autodiff.value_and_grad(objective, to_numpy=True)
+        objective_with_grad = gs.autodiff.value_and_grad(
+            objective, to_numpy=True)
 
         tangent_vec = gs.flatten(gs.random.rand(*max_shape))
 
