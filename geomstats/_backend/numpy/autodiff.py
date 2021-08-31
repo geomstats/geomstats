@@ -6,6 +6,15 @@ The following functions return error messages.
 
 
 def detach(x):
+    """Returns a new tensor detached from the current graph.
+
+    This is a placeholder in order to have consistent backend APIs.
+
+    Parameters
+    ----------
+    x : array-like
+        Tensor to detach.
+    """
     return x
 
 
@@ -28,7 +37,7 @@ def jacobian(func):
 
 
 def custom_gradient(*grad_funcs):
-    """Decorate a function to define its custom gradient.
+    """Decorate a function to define its custom gradient(s).
 
     This is a placeholder in order to have consistent backend APIs.
     """

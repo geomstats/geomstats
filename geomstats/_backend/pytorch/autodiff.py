@@ -4,20 +4,25 @@ from torch.autograd.functional import jacobian as torch_jac
 
 
 def detach(x):
+    """Returns a new tensor detached from the current graph.
+
+    Parameters
+    ----------
+    x : array-like
+        Tensor to detach.
+    """
     return x.detach()
 
 
 def custom_gradient(*grad_func):
-    """Decorate a function to define its custom gradient.
+    """Decorate a function to define its custom gradient(s).
 
     Parameters
     ----------
-    *grad_func : callables
+    *grad_funcs : callables
         Custom gradient functions.
     """
-
     def decorator(func):
-
         class func_with_grad(torch.autograd.Function):
             @staticmethod
             def forward(ctx, *args):

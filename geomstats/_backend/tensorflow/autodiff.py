@@ -6,15 +6,24 @@ tfm = tfp.math
 
 
 def detach(x):
+    """Returns a new tensor detached from the current graph.
+
+    Parameters
+    ----------
+    x : array-like
+        Tensor to detach.
+    """
     tf.stop_gradient(x)
     return x
 
 
 def custom_gradient(*grad_funcs):
-    """[Decorator to define a custom gradient to a function]
+    """Decorate a function to define its custom gradient(s).
 
-    Args:
-        grad_func ([callable]): The custom gradient function
+    Parameters
+    ----------
+    *grad_funcs : callables
+        Custom gradient functions.
     """
     def wrapper(func):
         def func_with_grad(*args, **kwargs):
