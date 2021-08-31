@@ -42,13 +42,16 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
 def squared_dist_grad_point_a(point_a, point_b, metric):
     return 2 * metric.log(point_b, point_a)
 
+
 def squared_dist_grad_point_b(point_a, point_b, metric):
     return 2 * metric.log(point_a, point_b)
+
 
 @gs.autodiff.custom_gradient(
     squared_dist_grad_point_a, squared_dist_grad_point_b)
 def _squared_dist(point_a, point_b, metric):
     return metric.private_squared_dist(point_a, point_b)
+
 
 def homogeneous_representation(
         rotation, translation, output_shape, constant=1.):
@@ -1001,7 +1004,8 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         """
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
 
-    def exp(self, tangent_vec, base_point=None, n_steps=10, step='rk4', **kwargs):
+    def exp(self, tangent_vec, base_point=None, n_steps=10,
+            step='rk4', **kwargs):
         """Exponential map associated to the cannonical metric.
 
         Exponential map at `base_point` of `tangent_vec`. The geodesics of this

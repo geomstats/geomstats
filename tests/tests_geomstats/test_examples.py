@@ -6,8 +6,8 @@ import sys
 import warnings
 
 import examples.empirical_frechet_mean_uncertainty_sn as empirical_frechet_mean_uncertainty_sn  # NOQA
+import examples.geodesic_regression_hypersphere as geodesic_regression_hypersphere  # NOQA
 import examples.gradient_descent_s2 as gradient_descent_s2
-import examples.geodesic_regression_hypersphere as geodesic_regression_hypersphere
 import examples.kalman_filter as kalman_filter
 import examples.learning_graph_structured_data_h2 as learning_gsd_h2
 import examples.loss_and_gradient_se3 as loss_and_gradient_se3
@@ -63,7 +63,6 @@ class TestExamples(geomstats.tests.TestCase):
     def test_empirical_frechet_mean_uncertainty_sn():
         empirical_frechet_mean_uncertainty_sn.main()
 
-    
     @staticmethod
     @geomstats.tests.autograd_tf_and_torch_only
     def test_geodesic_regression_hypersphere():

@@ -144,7 +144,7 @@ class Connection(ABC):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point.
         """
-        max_shape = point.shape 
+        max_shape = point.shape
         if len(point.shape) <= len(base_point.shape):
             max_shape = base_point.shape
 
