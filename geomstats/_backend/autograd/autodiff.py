@@ -16,37 +16,37 @@ def elementwise_grad(f):
     return _elementwise_grad(f)
 
 
-def custom_gradient(*grad_func):
+def custom_gradient(*grad_funcs):
     """Decorate a function to define its custom gradient.
 
     Parameters
     ----------
-    *grad_func : callables
+    *grad_funcs : callables
         Custom gradient functions.
     """
-    def decorator(function):
-        wrapped_function = primitive(function)
-        if len(grad_func) == 1:
+    def decorator(func):
+        wrapped_function = primitive(func)
+        if len(grad_funcs) == 1:
             defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs:
-                    lambda g: g * grad_func[0](*args, **kwargs))
-        elif len(grad_func) == 2:
+                    lambda g: g * grad_funcs[0](*args, **kwargs))
+        elif len(grad_funcs) == 2:
             defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs:
-                    lambda g: g * grad_func[0](*args, **kwargs),
+                    lambda g: g * grad_funcs[0](*args, **kwargs),
                 lambda ans, *args, **kwargs:
-                    lambda g: g * grad_func[1](*args, **kwargs))
-        elif len(grad_func) == 3:
+                    lambda g: g * grad_funcs[1](*args, **kwargs))
+        elif len(grad_funcs) == 3:
             defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs:
-                lambda g: g * grad_func[0](*args, **kwargs),
+                lambda g: g * grad_funcs[0](*args, **kwargs),
                 lambda ans, *args, **kwargs:
-                lambda g: g * grad_func[1](*args, **kwargs),
+                lambda g: g * grad_funcs[1](*args, **kwargs),
                 lambda ans, *args, **kwargs:
-                lambda g: g * grad_func[2](*args, **kwargs))
+                lambda g: g * grad_funcs[2](*args, **kwargs))
         else:
             raise NotImplementedError(
                 "custom_gradient is not yet implemented "
@@ -57,9 +57,9 @@ def custom_gradient(*grad_func):
     return decorator
 
 
-def jacobian(f):
+def jacobian(func):
     """Wrap autograd jacobian function."""
-    return _jacobian(f)
+    return _jacobian(func)
 
 
 def value_and_grad(func, to_numpy=False):

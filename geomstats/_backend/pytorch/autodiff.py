@@ -7,7 +7,7 @@ def detach(x):
     return x.detach()
 
 
-def custom_gradient(*args):
+def custom_gradient(*grad_func):
     """Decorate a function to define its custom gradient.
 
     Parameters
@@ -29,7 +29,7 @@ def custom_gradient(*args):
                 inputs = ctx.saved_tensors
 
                 grads = tuple()
-                for custom_grad in args:
+                for custom_grad in grad_func:
                     grads = (*grads, grad_output * custom_grad(*inputs))
 
                 if len(grads) == 1:
@@ -44,9 +44,9 @@ def custom_gradient(*args):
     return decorator
 
 
-def jacobian(f):
+def jacobian(func):
     """Return a function that returns the jacobian of a function."""
-    return lambda x: torch_jac(f, x)
+    return lambda x: torch_jac(func, x)
 
 
 def value_and_grad(func, to_numpy=False):

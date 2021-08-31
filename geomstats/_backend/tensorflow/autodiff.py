@@ -61,16 +61,16 @@ def value_and_grad(func, to_numpy=False):
         Function that takes the argument of the objective function as input
         and returns both value and grad at the input.
     """
-    def func_with_grad(*arg_x):
+    def func_with_grad(*args):
         """Return the value of the function and its grad at the inputs."""
-        if not isinstance(arg_x, tuple):
+        if not isinstance(args, tuple):
             raise ValueError(
                 "The inputs parameters are expected to form a tuple.")
 
-        if isinstance(arg_x[0], np.ndarray):
-            arg_x = (tf.Variable(one_arg_x) for one_arg_x in arg_x)
+        if isinstance(args[0], np.ndarray):
+            args = (tf.Variable(one_arg) for one_arg in args)
 
-        value, grad = tfm.value_and_gradient(func, *arg_x)
+        value, grad = tfm.value_and_gradient(func, *args)
         if to_numpy:
             return value.numpy(), grad.numpy()
         return value, grad
@@ -78,14 +78,14 @@ def value_and_grad(func, to_numpy=False):
     return func_with_grad
 
 
-def jacobian(f):
-    """Return a function that returns the jacobian of a function f."""
+def jacobian(func):
+    """Return a function that returns the jacobian of a function func."""
     def jac(x):
-        """Return the jacobian of f at x."""
+        """Return the jacobian of func at x."""
         if isinstance(x, np.ndarray):
             x = tf.Variable(x)
         with tf.GradientTape() as g:
             g.watch(x)
-            y = f(x)
+            y = func(x)
         return g.jacobian(y, x)
     return jac
