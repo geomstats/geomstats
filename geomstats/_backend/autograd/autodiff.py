@@ -39,9 +39,15 @@ def custom_gradient(*grad_func):
                 wrapped_function, 
                 lambda ans, *args, **kwargs: lambda g: g * grad_func[0](*args, **kwargs),
                 lambda ans, *args, **kwargs: lambda g: g * grad_func[1](*args, **kwargs))
+        elif len(grad_func) == 3:
+            defvjp(
+                wrapped_function, 
+                lambda ans, *args, **kwargs: lambda g: g * grad_func[0](*args, **kwargs),
+                lambda ans, *args, **kwargs: lambda g: g * grad_func[1](*args, **kwargs),
+                lambda ans, *args, **kwargs: lambda g: g * grad_func[2](*args, **kwargs))
         else:
             raise NotImplementedError(
-                "custom_gradient is not yet implemented for more than 2 gradients."
+                "custom_gradient is not yet implemented for more than 3 gradients."
             )
 
         return wrapped_function

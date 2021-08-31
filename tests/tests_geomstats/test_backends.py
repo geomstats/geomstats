@@ -1161,7 +1161,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad_x, expected_grad_x)
 
 
-    @geomstats.tests.tf_only
+    @geomstats.tests.autograd_and_tf_only
     def test_custom_grad_dummy_two_vars_composed(self):
 
         def grad_x(x, y):
@@ -1180,12 +1180,13 @@ class TestBackends(geomstats.tests.TestCase):
         def func_2(x):
             return gs.exp(-.5 * func(x, arg_y))
 
-        result = gs.autodiff.value_and_grad(func_2)(arg_x)
-        val = func_2(arg_x)
-        expected = (val, (arg_y - arg_x) * val)
-        self.assertAllClose(result, expected)
+        result_value, result_grad = gs.autodiff.value_and_grad(func_2)(arg_x)
+        expected_value = func_2(arg_x)
+        expected_grad = (arg_y - arg_x) * expected_value
+        self.assertAllClose(result_value, expected_value)
+        self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.tf_only
+    @geomstats.tests.autograd_and_tf_only
     def test_custom_grad_dummy_two_vars_composed_madeup_grad(self):
 
         def grad_x(x, y):
@@ -1204,12 +1205,15 @@ class TestBackends(geomstats.tests.TestCase):
         def func_2(x):
             return gs.exp(-.5 * func(x, arg_y))
 
-        result = gs.autodiff.value_and_grad(func_2)(arg_x)
-        val = func_2(arg_x)
-        expected = (val, 3 * (arg_y - arg_x) * val)
-        self.assertAllClose(result, expected)
+        result_value, result_grad = gs.autodiff.value_and_grad(func_2)(arg_x)
 
-    @geomstats.tests.tf_only
+        expected_value = func_2(arg_x)
+        expected_grad = 3 * (arg_y - arg_x) * expected_value
+
+        self.assertAllClose(result_value, expected_value)
+        self.assertAllClose(result_grad, expected_grad)
+
+    @geomstats.tests.autograd_and_tf_only
     def test_custom_grad_unused_var(self):
 
         def grad_dummy(dummy, x, y):
@@ -1239,7 +1243,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.tf_only
+    @geomstats.tests.autograd_and_tf_only
     def test_custom_grad_unused_var_madeup_grad(self):
 
         def grad_dummy(dummy, x, y):
@@ -1269,7 +1273,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.tf_only
+    @geomstats.tests.autograd_and_tf_only
     def test_custom_grad_unused_var_chain_rule(self):
 
         def grad_dummy(dummy, x, y):
