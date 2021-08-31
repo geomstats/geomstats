@@ -1325,7 +1325,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_and_tf_only
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_custom_grad_in_action(self):
         space = SpecialEuclidean(n=2)
         const_metric = space.left_canonical_metric

@@ -21,20 +21,16 @@ def custom_gradient(*args):
         class function_with_grad(torch.autograd.Function):
             @staticmethod
             def forward(ctx, *args):
-                print('whare are the args now')
-                print(args)
                 ctx.save_for_backward(*args)
-                #ctx.z = z  # z is not a tensor
                 return function(*args)
 
             @staticmethod
             def backward(ctx, grad_output):
                 inputs = ctx.saved_tensors
 
-                grads = []
+                grads = tuple()
                 for custom_grad in args:
-                    grads.append(grad_output * custom_grad(*inputs))
-                grads = tuple(grads)
+                    grads = (*grads,grad_output * custom_grad(*inputs))
 
                 if len(grads) == 1:
                     return grads[0]
@@ -42,10 +38,7 @@ def custom_gradient(*args):
 
         def wrapper(*args, **kwargs):
             new_inputs = args + tuple(kwargs.values())
-            print("\n\n\n\nnew inputs in wrapper")
-            print(len(new_inputs))
-            out = function_with_grad.apply(*new_inputs)
-            return out
+            return function_with_grad.apply(*new_inputs)
 
         return wrapper
     return decorator
@@ -73,15 +66,15 @@ def value_and_grad(func, to_numpy=False):
         and returns both value and grad at the input.
     '"""
     def objective_with_grad(*args, **kwargs):
-        new_args = []
+        new_args = tuple()
         for one_arg in args:
             if isinstance(one_arg, float):
                 one_arg = torch.from_numpy(np.array(one_arg))
             if isinstance(one_arg, np.ndarray):
                 one_arg = torch.from_numpy(one_arg)
             one_arg = one_arg.clone().requires_grad_(True)
-            new_args.append(one_arg)
-        args = tuple(new_args)
+            new_args = (*new_args, one_arg)
+        args = new_args
 
         value = func(*args, **kwargs)
         if value.ndim > 0:
@@ -89,10 +82,13 @@ def value_and_grad(func, to_numpy=False):
         else:
             value.backward(retain_graph=True)
 
-        all_grads = []
+        all_grads = tuple()
         for one_arg in args:
-            all_grads.append(torch.autograd.grad(value, one_arg, retain_graph=True)[0])
+            all_grads = (
+                *all_grads,
+                torch.autograd.grad(value, one_arg, retain_graph=True)[0])
+
         if len(args) == 1:
             return value, all_grads[0]
-        return value, tuple(all_grads)
+        return value, all_grads
     return objective_with_grad
