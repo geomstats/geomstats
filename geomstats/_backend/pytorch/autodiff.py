@@ -30,7 +30,7 @@ def custom_gradient(*args):
 
                 grads = tuple()
                 for custom_grad in args:
-                    grads = (*grads,grad_output * custom_grad(*inputs))
+                    grads = (*grads, grad_output * custom_grad(*inputs))
 
                 if len(grads) == 1:
                     return grads[0]
@@ -78,7 +78,8 @@ def value_and_grad(func, to_numpy=False):
 
         value = func(*args, **kwargs)
         if value.ndim > 0:
-            value.backward(gradient=torch.ones_like(one_arg), retain_graph=True)
+            value.backward(
+                gradient=torch.ones_like(one_arg), retain_graph=True)
         else:
             value.backward(retain_graph=True)
 

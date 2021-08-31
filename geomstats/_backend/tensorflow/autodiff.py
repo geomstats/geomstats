@@ -4,6 +4,7 @@ import tensorflow_probability as tfp
 
 tfm = tfp.math
 
+
 def detach(x):
     tf.stop_gradient(x)
     return x
@@ -24,9 +25,12 @@ def custom_gradient(*grad_funcs):
                     upstream = tf.expand_dims(upstream, axis=1)
                 grad_vals = []
                 for grad_fun in grad_funcs:
-                    grad_func_val = tf.convert_to_tensor(grad_fun(*args, **kwargs))
+                    grad_func_val = tf.convert_to_tensor(
+                        grad_fun(*args, **kwargs))
                     grad_vals.append(
-                    tf.squeeze(tf.einsum("...,...->...", upstream, grad_func_val))
+                        tf.squeeze(
+                            tf.einsum(
+                                "...,...->...", upstream, grad_func_val))
                     )
                 return tuple(grad_vals)
 
