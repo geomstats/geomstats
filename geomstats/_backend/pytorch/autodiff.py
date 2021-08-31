@@ -65,36 +65,26 @@ def value_and_grad(func, to_numpy=False):
         Function that takes the argument of the objective function as input
         and returns both value and grad at the input.
     '"""
-    def objective_with_grad(*arg_x):
-        if len(arg_x) == 1:
-            arg_x = arg_x[0]
-            if isinstance(arg_x, np.ndarray):
-                arg_x = torch.from_numpy(arg_x)
-            arg_x = arg_x.clone().detach().requires_grad_(True)
-            value = func(arg_x)
-            if value.ndim > 0:
-                value.backward(gradient=torch.ones_like(arg_x))
-            else:
-                value.backward()
-            return value, torch.autograd.grad(func(arg_x), arg_x)[0]
-        else:
-            new_arg_x = []
-            for one_arg in arg_x:
-                if isinstance(one_arg, float):
-                    one_arg = torch.from_numpy(np.array(one_arg))
-                if isinstance(one_arg, np.ndarray):
-                    one_arg = torch.from_numpy(one_arg)
-                one_arg = one_arg.clone().detach().requires_grad_(True)
-                new_arg_x.append(one_arg)
-            arg_x = tuple(new_arg_x)
+    def objective_with_grad(*args):
+        new_args = []
+        for one_arg in args:
+            if isinstance(one_arg, float):
+                one_arg = torch.from_numpy(np.array(one_arg))
+            if isinstance(one_arg, np.ndarray):
+                one_arg = torch.from_numpy(one_arg)
+            one_arg = one_arg.clone().detach().requires_grad_(True)
+            new_args.append(one_arg)
+        args = tuple(new_args)
 
-            value = func(*arg_x)
-            if value.ndim > 0:
-                value.backward(gradient=torch.ones_like(one_arg))
-            else:
-                value.backward()
-            all_grads = []
-            for one_arg in arg_x:
-                all_grads.append(torch.autograd.grad(func(*arg_x), one_arg)[0])
-            return value, tuple(all_grads)
+        value = func(*args)
+        if value.ndim > 0:
+            value.backward(gradient=torch.ones_like(one_arg))
+        else:
+            value.backward()
+        all_grads = []
+        for one_arg in args:
+            all_grads.append(torch.autograd.grad(func(*args), one_arg)[0])
+        if len(args) == 1:
+            return value, all_grads[0]
+        return value, tuple(all_grads)
     return objective_with_grad
