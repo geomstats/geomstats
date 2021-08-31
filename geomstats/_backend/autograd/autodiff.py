@@ -1,9 +1,5 @@
 """Wrapper around autograd functions to be consistent with backends."""
 
-import funcsigs
-from autograd import multigrad_dict
-from autograd import numpy as np
-
 
 from autograd import elementwise_grad as _elementwise_grad
 from autograd import jacobian as _jacobian
