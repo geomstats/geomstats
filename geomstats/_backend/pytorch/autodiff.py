@@ -21,17 +21,17 @@ def custom_gradient(*args):
         class function_with_grad(torch.autograd.Function):
             @staticmethod
             def forward(ctx, *args):
-
+                print('whare are the args now')
+                print(args)
                 ctx.save_for_backward(*args)
+                #ctx.z = z  # z is not a tensor
                 return function(*args)
 
             @staticmethod
             def backward(ctx, grad_output):
-
                 inputs = ctx.saved_tensors
 
                 grads = []
-
                 for custom_grad in args:
                     grads.append(grad_output * custom_grad(*inputs))
                 grads = tuple(grads)
@@ -40,8 +40,11 @@ def custom_gradient(*args):
                     return grads[0]
                 return grads
 
-        def wrapper(*args):
-            out = function_with_grad.apply(*args)
+        def wrapper(*args, **kwargs):
+            new_inputs = args + tuple(kwargs.values())
+            print("\n\n\n\nnew inputs in wrapper")
+            print(len(new_inputs))
+            out = function_with_grad.apply(*new_inputs)
             return out
 
         return wrapper
@@ -69,7 +72,7 @@ def value_and_grad(func, to_numpy=False):
         Function that takes the argument of the objective function as input
         and returns both value and grad at the input.
     '"""
-    def objective_with_grad(*args):
+    def objective_with_grad(*args, **kwargs):
         new_args = []
         for one_arg in args:
             if isinstance(one_arg, float):
@@ -80,7 +83,7 @@ def value_and_grad(func, to_numpy=False):
             new_args.append(one_arg)
         args = tuple(new_args)
 
-        value = func(*args)
+        value = func(*args, **kwargs)
         if value.ndim > 0:
             value.backward(gradient=torch.ones_like(one_arg), retain_graph=True)
         else:
