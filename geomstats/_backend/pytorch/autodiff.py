@@ -4,7 +4,7 @@ from torch.autograd.functional import jacobian as torch_jac
 
 
 def detach(x):
-    """Returns a new tensor detached from the current graph.
+    """Return a new tensor detached from the current graph.
 
     Parameters
     ----------

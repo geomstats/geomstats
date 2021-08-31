@@ -6,7 +6,7 @@ The following functions return error messages.
 
 
 def detach(x):
-    """Returns a new tensor detached from the current graph.
+    """Return a new tensor detached from the current graph.
 
     This is a placeholder in order to have consistent backend APIs.
 

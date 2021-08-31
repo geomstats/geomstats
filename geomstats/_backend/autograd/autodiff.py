@@ -8,7 +8,7 @@ from autograd.extend import defvjp, primitive
 
 
 def detach(x):
-    """Returns a new tensor detached from the current graph.
+    """Return a new tensor detached from the current graph.
 
     This is a placeholder in order to have consistent backend APIs.
 
