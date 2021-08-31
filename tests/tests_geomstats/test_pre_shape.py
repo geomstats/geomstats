@@ -341,7 +341,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(result)
 
         expected = self.space.horizontal_projection(tangent_vec, base_point)
-        self.assertAllClose(expected, log, rtol=2e-5)
+        self.assertAllClose(expected, log, rtol=1e-4)
 
     def test_dist_extreme_case(self):
         point = self.space.projection(gs.eye(self.k_landmarks, self.m_ambient))
@@ -695,6 +695,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
                 self.hor_x, self.hor_y, self.base_point)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_autograd_and_torch_only
     def test_parallel_transport(self):
         space = self.space
         metric = self.shape_metric
