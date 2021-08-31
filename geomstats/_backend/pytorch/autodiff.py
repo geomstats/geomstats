@@ -24,6 +24,7 @@ def custom_gradient(*grad_func):
     """
     def decorator(func):
         class func_with_grad(torch.autograd.Function):
+            """Wrapper for a function with custom grad."""
             @staticmethod
             def forward(ctx, *args):
                 ctx.save_for_backward(*args)
@@ -55,7 +56,7 @@ def jacobian(func):
 
 
 def value_and_grad(func, to_numpy=False):
-    """'Return a function that returns both value and gradient.
+    """Return a function that returns both value and gradient.
 
     Suitable for use in scipy.optimize
 
