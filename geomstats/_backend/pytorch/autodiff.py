@@ -66,6 +66,8 @@ def value_and_grad(func, to_numpy=False):
         and returns both value and grad at the input.
     '"""
     def objective_with_grad(arg_x):
+        # if len(arg_x) == 1:
+        #arg_x = arg_x[0]
         if isinstance(arg_x, np.ndarray):
             arg_x = torch.from_numpy(arg_x)
         arg_x = arg_x.clone().detach().requires_grad_(True)
@@ -75,4 +77,17 @@ def value_and_grad(func, to_numpy=False):
         else:
             value.backward()
         return value, torch.autograd.grad(func(arg_x), arg_x)[0]
+        # else:
+        #     all_grads = []
+        #     for one_arg in arg_x:
+        #         if isinstance(one_arg, np.ndarray):
+        #             one_arg = torch.from_numpy(one_arg)
+        #         one_arg = one_arg.clone().detach().requires_grad_(True)
+        #         value = func(one_arg)
+        #         if value.ndim > 0:
+        #             value.backward(gradient=torch.ones_like(one_arg))
+        #         else:
+        #             value.backward()
+        #         all_grads.append(torch.autograd.grad(func(one_arg), one_arg)[0])
+        #     return value, tuple(all_grads)
     return objective_with_grad

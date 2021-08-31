@@ -1073,7 +1073,6 @@ class TestBackends(geomstats.tests.TestCase):
         expected = gs.cumprod(vec)[-1]
         self.assertAllClose(result, expected)
 
-
     def test_custom_grad_one_var(self):
 
         def grad_x(x):
