@@ -104,20 +104,20 @@ def value_and_grad(func, to_numpy=False):
             new_args.append(one_arg)
         args = tuple(new_args)
 
-        x, y = args
-        value = func(x, y)
+        #x, y = args
+        value = func(*args)
         # print()
         # print(type(value))
         # print(value)
-        # if value.ndim > 0:
-        #     # TODO(nina): this might not work with several args
-        #     value.backward(gradient=torch.ones_like(one_arg))
-        # else:
-        #value.backward()
+        if value.ndim > 0:
+            value.backward(gradient=torch.ones_like(one_arg), retain_graph=True)
+        else:
+            value.backward(retain_graph=True)
 
         all_grads = []
-        all_grads.append(torch.autograd.grad(value, x, retain_graph=True)[0])
-        all_grads.append(torch.autograd.grad(value, y)[0])
+        for one_arg in args:
+            all_grads.append(torch.autograd.grad(value, one_arg, retain_graph=True)[0])
+        #all_grads.append(torch.autograd.grad(value, y)[0])
         #all_grads.append(torch.autograd.grad(value, y, allow_unused=True)[0])
         if len(args) == 1:
             return value, all_grads[0]
