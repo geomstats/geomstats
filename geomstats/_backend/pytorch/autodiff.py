@@ -16,13 +16,13 @@ def custom_gradient(*grad_func):
         Custom gradient functions.
     """
 
-    def decorator(function):
+    def decorator(func):
 
-        class function_with_grad(torch.autograd.Function):
+        class func_with_grad(torch.autograd.Function):
             @staticmethod
             def forward(ctx, *args):
                 ctx.save_for_backward(*args)
-                return function(*args)
+                return func(*args)
 
             @staticmethod
             def backward(ctx, grad_output):
@@ -38,7 +38,7 @@ def custom_gradient(*grad_func):
 
         def wrapper(*args, **kwargs):
             new_inputs = args + tuple(kwargs.values())
-            return function_with_grad.apply(*new_inputs)
+            return func_with_grad.apply(*new_inputs)
 
         return wrapper
     return decorator
