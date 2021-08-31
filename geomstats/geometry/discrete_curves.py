@@ -633,6 +633,8 @@ class SRVMetric(RiemannianMetric):
         space_deriv : array-like, shape=[...,n_points, ambient_dim]
         """
         n_points = curve.shape[-2]
+        if n_points < 2:
+            raise ValueError('The curve needs to have at least 2 points.')
 
         vec_1 = gs.array([-1.] + [0.] * (n_points - 2) + [1.])
         vec_2 = gs.array([1. / 2] * (n_points - 2) + [1.])
