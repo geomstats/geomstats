@@ -634,16 +634,9 @@ class SRVMetric(RiemannianMetric):
         """
         n_points = curve.shape[-2]
 
-        vec_1 = gs.squeeze(gs.hstack((
-            gs.array([[-1.]]),
-            gs.zeros((1, n_points - 2)),
-            gs.array([[1.]]))))
-        vec_2 = gs.squeeze(gs.hstack((
-            1 / 2 * gs.ones((1, n_points - 2)),
-            gs.array([[1.]]))))
-        vec_3 = gs.squeeze(gs.hstack((
-            gs.array([[1.]]),
-            1 / 2 * gs.ones((1, n_points - 2)))))
+        vec_1 = gs.array([-1.] + [0.] * (n_points - 2) + [1.])
+        vec_2 = gs.array([1. / 2] * (n_points - 2) + [1.])
+        vec_3 = gs.array([1.] + [1. / 2] * (n_points - 2))
 
         mat_1 = from_vector_to_diagonal_matrix(vec_1)
         mat_2 = from_vector_to_diagonal_matrix(vec_2)
