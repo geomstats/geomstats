@@ -20,9 +20,15 @@ def detach(x):
     return x
 
 
-def elementwise_grad(f):
-    """Wrap autograd elementwise_grad function."""
-    return _elementwise_grad(f)
+def elementwise_grad(func):
+    """Wrap autograd elementwise_grad function.
+
+    Parameters
+    ----------
+    func : callable
+        Function for which the element-wise grad is computed.
+    """
+    return _elementwise_grad(func)
 
 
 def custom_gradient(*grad_funcs):
