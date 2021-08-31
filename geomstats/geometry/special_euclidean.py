@@ -39,18 +39,18 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
                         - 1. / 362880.]
 
 
-def squared_dist_grad_point_a(point_a, point_b, metric):
+def _squared_dist_grad_point_a(point_a, point_b, metric):
     return 2 * metric.log(point_b, point_a)
 
 
-def squared_dist_grad_point_b(point_a, point_b, metric):
+def _squared_dist_grad_point_b(point_a, point_b, metric):
     return 2 * metric.log(point_a, point_b)
 
 
 @gs.autodiff.custom_gradient(
-    squared_dist_grad_point_a, squared_dist_grad_point_b)
+    _squared_dist_grad_point_a, _squared_dist_grad_point_b)
 def _squared_dist(point_a, point_b, metric):
-    return metric.private_squared_dist(point_a, point_b)
+    return metric._private_squared_dist(point_a, point_b)
 
 
 def homogeneous_representation(
@@ -1123,11 +1123,24 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         return homogeneous_representation(
             transported_rot, translation, max_shape, 0.)
 
-    def private_squared_dist(self, point_a, point_b):
+    def _private_squared_dist(self, point_a, point_b):
         dist = super().squared_dist(point_a, point_b)
         return dist
 
     def squared_dist(self, point_a, point_b):
+        """Squared geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+        Returns
+        -------
+        sq_dist : array-like, shape=[...,]
+            Squared distance.
+        """
         dist = _squared_dist(point_a, point_b, metric=self)
         return dist
 
