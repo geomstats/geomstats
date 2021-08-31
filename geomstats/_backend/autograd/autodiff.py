@@ -62,20 +62,20 @@ def jacobian(f):
     return _jacobian(f)
 
 
-def value_and_grad(objective, to_numpy=False):
+def value_and_grad(func, to_numpy=False):
     """Wrap autograd value_and_grad function."""
 
     def aux_value_and_grad(*args):
         n_args = len(args)
-        value = objective(*args)
+        value = func(*args)
 
         all_grads = []
         for i in range(n_args):
-            def objective_of_i(*args):
+            def func_of_ith(*args):
                 reorg_args = args[1:i + 1] + (args[0],) + args[i + 1:]
-                return objective(*reorg_args)
+                return func(*reorg_args)
             new_args = (args[i],) + args[:i] + args[i + 1:]
-            _, grad_i = _value_and_grad(objective_of_i)(*new_args)
+            _, grad_i = _value_and_grad(func_of_ith)(*new_args)
             all_grads.append(grad_i)
 
         if n_args == 1:

@@ -56,16 +56,16 @@ def value_and_grad(func, to_numpy=False):
 
     Parameters
     ----------
-    objective : callable
+    func : callable
         Function to compute the gradient. It must be real-valued.
 
     Returns
     -------
-    objective_with_grad : callable
-        Function that takes the argument of the objective function as input
+    func_with_grad : callable
+        Function that takes the argument of the func function as input
         and returns both value and grad at the input.
     '"""
-    def objective_with_grad(*args, **kwargs):
+    def func_with_grad(*args, **kwargs):
         new_args = tuple()
         for one_arg in args:
             if isinstance(one_arg, float):
@@ -92,4 +92,4 @@ def value_and_grad(func, to_numpy=False):
         if len(args) == 1:
             return value, all_grads[0]
         return value, all_grads
-    return objective_with_grad
+    return func_with_grad
