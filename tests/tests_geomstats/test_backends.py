@@ -895,9 +895,8 @@ class TestBackends(geomstats.tests.TestCase):
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_value_and_grad_two_vector_vars(self):
-        
         def func(x, y):
-            return gs.sum((x-y)**2)
+            return gs.sum((x - y) ** 2)
 
         arg_x, arg_y = 1., 2.
         val, grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
@@ -1092,7 +1091,6 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-
     @geomstats.tests.autograd_tf_and_torch_only
     def test_custom_grad_two_vars(self):
 
@@ -1107,9 +1105,9 @@ class TestBackends(geomstats.tests.TestCase):
             return gs.sum((x - y) ** 2)
 
         arg_x = gs.array([[1., 3.], [2., 3.]])
-        arg_y = gs.array([[2., 5.], [0., 4.]])     
+        arg_y = gs.array([[2., 5.], [0., 4.]])
 
-        result_val, result_grad  = gs.autodiff.value_and_grad(func)(
+        result_val, result_grad = gs.autodiff.value_and_grad(func)(
             arg_x, arg_y)
 
         self.assertTrue(isinstance(result_grad, tuple))
@@ -1137,9 +1135,9 @@ class TestBackends(geomstats.tests.TestCase):
             return gs.sum((x - y) ** 2)
 
         arg_x = gs.array([[1., 3.], [2., 3.]])
-        arg_y = gs.array([[2., 5.], [0., 4.]])     
+        arg_y = gs.array([[2., 5.], [0., 4.]])
 
-        result_val, result_grad  = gs.autodiff.value_and_grad(func)(
+        result_val, result_grad = gs.autodiff.value_and_grad(func)(
             arg_x, arg_y)
 
         self.assertTrue(isinstance(result_grad, tuple))
@@ -1152,7 +1150,6 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_val, expected_val)
         self.assertAllClose(result_grad_y, expected_grad_y)
         self.assertAllClose(result_grad_x, expected_grad_x)
-
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_custom_grad_dummy_two_vars_composed(self):
@@ -1211,7 +1208,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         def grad_dummy(dummy, x, y):
             return dummy
-        
+
         def grad_x(dummy, x, y):
             return 2 * dummy * (x - y)
 
@@ -1229,10 +1226,11 @@ class TestBackends(geomstats.tests.TestCase):
             return func(const_dummy, x, const_y)
 
         arg_x = gs.array([[1., 3.], [2., 3.]])
-        result_value, result_grad = gs.autodiff.value_and_grad(func_of_x)(arg_x)
-        expected_value= func_of_x(arg_x)
-        expected_grad  = grad_x(const_dummy, arg_x, const_y)
-        
+        result_value, result_grad = gs.autodiff.value_and_grad(
+            func_of_x)(arg_x)
+        expected_value = func_of_x(arg_x)
+        expected_grad = grad_x(const_dummy, arg_x, const_y)
+
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
@@ -1241,7 +1239,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         def grad_dummy(dummy, x, y):
             return dummy
-        
+
         def grad_x(dummy, x, y):
             return 6 * dummy * (x - y)
 
@@ -1259,10 +1257,11 @@ class TestBackends(geomstats.tests.TestCase):
             return func(const_dummy, x, const_y)
 
         arg_x = gs.array([[1., 3.], [2., 3.]])
-        result_value, result_grad = gs.autodiff.value_and_grad(func_of_x)(arg_x)
-        expected_value= func_of_x(arg_x)
-        expected_grad  = grad_x(const_dummy, arg_x, const_y)
-        
+        result_value, result_grad = gs.autodiff.value_and_grad(
+            func_of_x)(arg_x)
+        expected_value = func_of_x(arg_x)
+        expected_grad = grad_x(const_dummy, arg_x, const_y)
+
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
@@ -1271,7 +1270,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         def grad_dummy(dummy, x, y):
             return dummy
-        
+
         def grad_x(dummy, x, y):
             return 6 * dummy * (x - y)
 
@@ -1289,13 +1288,15 @@ class TestBackends(geomstats.tests.TestCase):
             return gs.exp(-.5 * func(const_dummy, x, const_y))
 
         arg_x = gs.array([[1., 3.], [2., 3.]])
-        result_value, result_grad = gs.autodiff.value_and_grad(func_2)(arg_x)
+        result_value, result_grad = gs.autodiff.value_and_grad(
+            func_2)(arg_x)
         expected_value = func_2(arg_x)
-        expected_grad = - .5 * grad_x(const_dummy, arg_x, const_y) * func_2(arg_x)
+        expected_grad = - .5 * grad_x(
+            const_dummy, arg_x, const_y) * func_2(arg_x)
 
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
-        
+
     @geomstats.tests.autograd_and_tf_only
     def test_custom_grad_mock_squared_dist(self):
 
