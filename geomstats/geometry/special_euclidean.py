@@ -1136,6 +1136,7 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
             Point.
         point_b : array-like, shape=[..., dim]
             Point.
+
         Returns
         -------
         sq_dist : array-like, shape=[...,]
