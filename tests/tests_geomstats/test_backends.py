@@ -1092,7 +1092,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad)
 
 
-    @geomstats.tests.autograd_and_tf_only
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_custom_grad_two_vars(self):
 
         def grad_x(x, y):
