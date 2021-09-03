@@ -1,3 +1,5 @@
+"""Automatic differentiation in PyTorch."""
+
 import numpy as np
 import torch
 from torch.autograd.functional import jacobian as torch_jac

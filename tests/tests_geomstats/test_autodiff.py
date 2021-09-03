@@ -1,5 +1,4 @@
-"""Unit tests for automatic differentiation in different backends.
-"""
+"""Unit tests for automatic differentiation in different backends."""
 
 import warnings
 
