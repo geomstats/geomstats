@@ -1,5 +1,4 @@
-"""Unit tests for automatic differentiation in different backends.
-"""
+"""Unit tests for automatic differentiation in different backends."""
 
 import warnings
 
@@ -260,7 +259,7 @@ class TestAutodiff(geomstats.tests.TestCase):
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_custom_gradient_chain_rule_one_vector_var(self):
-
+        """Assign made-up gradient to test custom_gradient."""
         def fun1_grad(x):
             return 6 * x
 
