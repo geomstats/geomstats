@@ -25,7 +25,7 @@ def custom_gradient(*grad_func):
     def decorator(func):
         class func_with_grad(torch.autograd.Function):
             """Wrapper for a function with custom grad."""
-            
+
             @staticmethod
             def forward(ctx, *args):
                 ctx.save_for_backward(*args)
