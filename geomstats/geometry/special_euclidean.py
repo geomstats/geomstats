@@ -1073,7 +1073,7 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
                     no. 4 (August 1998): 576–89.
                     https://doi.org/10.1109/70.704225.
         """
-        max_shape = point.shape if len(point.shape) == 3 else base_point.shape
+        max_shape = point.shape if point.ndim == 3 else base_point.shape
         rotation_bp = base_point[..., :self.n, :self.n]
         rotation_p = point[..., :self.n, :self.n]
         rotation_log = GeneralLinear.log(rotation_p, rotation_bp)

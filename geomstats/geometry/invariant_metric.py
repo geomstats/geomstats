@@ -518,7 +518,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         return translation_map(value_at_id)
 
     def exp(self, tangent_vec, base_point=None, n_steps=10, step='rk4',
-            point_type=None, **kwargs):
+            **kwargs):
         r"""Compute Riemannian exponential of tan. vector wrt to base point.
 
         If :math: `\gamma` is a geodesic, then it satisfies the

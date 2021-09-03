@@ -25,6 +25,7 @@ def custom_gradient(*grad_func):
     def decorator(func):
         class func_with_grad(torch.autograd.Function):
             """Wrapper for a function with custom grad."""
+            
             @staticmethod
             def forward(ctx, *args):
                 ctx.save_for_backward(*args)
@@ -34,7 +35,7 @@ def custom_gradient(*grad_func):
             def backward(ctx, grad_output):
                 inputs = ctx.saved_tensors
 
-                grads = tuple()
+                grads = ()
                 for custom_grad in grad_func:
                     grads = (*grads, grad_output * custom_grad(*inputs))
 
@@ -70,9 +71,9 @@ def value_and_grad(func, to_numpy=False):
     func_with_grad : callable
         Function that takes the argument of the func function as input
         and returns both value and grad at the input.
-    '"""
+    """
     def func_with_grad(*args, **kwargs):
-        new_args = tuple()
+        new_args = ()
         for one_arg in args:
             if isinstance(one_arg, float):
                 one_arg = torch.from_numpy(np.array(one_arg))
@@ -89,7 +90,7 @@ def value_and_grad(func, to_numpy=False):
         else:
             value.backward(retain_graph=True)
 
-        all_grads = tuple()
+        all_grads = ()
         for one_arg in args:
             all_grads = (
                 *all_grads,
