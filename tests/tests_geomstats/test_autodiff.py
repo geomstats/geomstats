@@ -4,7 +4,6 @@
 import warnings
 
 import numpy as _np
-import torch
 
 import geomstats.backend as gs
 import geomstats.tests
@@ -66,7 +65,7 @@ class TestAutodiff(geomstats.tests.TestCase):
     @geomstats.tests.autograd_tf_and_torch_only
     def test_value_and_grad_two_vectors_vars(self):
         def func(x, y):
-                return gs.sum((x - y) ** 2)
+            return gs.sum((x - y) ** 2)
 
         arg_x = gs.array([1., 2.])
         arg_y = gs.array([2., 3.])
@@ -80,7 +79,7 @@ class TestAutodiff(geomstats.tests.TestCase):
     @geomstats.tests.autograd_tf_and_torch_only
     def test_value_and_grad_two_matrix_vars(self):
         def func(x, y):
-                return gs.sum((x - y) ** 2)
+            return gs.sum((x - y) ** 2)
 
         arg_x = gs.array([[1., 3.], [2., 3.]])
         arg_y = gs.array([[2., 5.], [0., 4.]])
@@ -287,38 +286,6 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad_explicit)
         self.assertAllClose(result_grad, expected_grad_chain_rule)
-
-    @geomstats.tests.autograd_tf_and_torch_only
-    def test_custom_gradient_composed_with_dummy_two_matrix_vars(self):
-
-        def grad_dummy(dummy, x, y):
-            return dummy
-
-        def grad_x(dummy, x, y):
-            return 6 * dummy * (x - y)
-
-        def grad_y(dummy, x, y):
-            return 6 * dummy * (y - x)
-
-        @gs.autodiff.custom_gradient(grad_dummy, grad_x, grad_y)
-        def func(dummy, x, y):
-            return dummy * gs.sum((x - y) ** 2)
-
-        const_y = gs.array([[2., 5.], [0., 4.]])
-        const_dummy = gs.array(4.)
-
-        def func_2(x):
-            return gs.exp(-.5 * func(const_dummy, x, const_y))
-
-        arg_x = gs.array([[1., 3.], [2., 3.]])
-        result_value, result_grad = gs.autodiff.value_and_grad(
-            func_2)(arg_x)
-        expected_value = func_2(arg_x)
-        expected_grad = - .5 * grad_x(
-            const_dummy, arg_x, const_y) * func_2(arg_x)
-
-        self.assertAllClose(result_value, expected_value)
-        self.assertAllClose(result_grad, expected_grad)
 
     @geomstats.tests.autograd_and_tf_only
     def test_custom_gradient_squared_dist(self):

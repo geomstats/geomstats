@@ -13,7 +13,6 @@ import torch
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.spd_matrices import SPDMatrices
-from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
