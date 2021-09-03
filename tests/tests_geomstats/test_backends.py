@@ -881,6 +881,30 @@ class TestBackends(geomstats.tests.TestCase):
         for res, exp in zip(result, expected):
             self.assertAllClose(res, exp)
 
+    @geomstats.tests.autograd_and_torch_only
+    def test_expm_backward(self):
+        mat = gs.array([[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]])
+        mat = gs.cast(mat, gs.float64)
+
+        def loss(p):
+            return gs.sum((gs.linalg.expm(p) - gs.eye(3)) ** 2)
+
+        value_and_grad = gs.autodiff.value_and_grad(loss)
+        result = value_and_grad(mat)
+
+        def loss_torch(p):
+            return torch.sum((torch.matrix_exp(p) - torch.eye(3)) ** 2)
+
+        torch_mat = torch.tensor(
+            [[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]], dtype=torch.float64,
+            requires_grad=True)
+        value = loss_torch(torch_mat)
+        value.backward()
+        grad = torch_mat.grad
+
+        self.assertAllClose(result[0], value.detach())
+        self.assertAllClose(result[1], grad)
+
     def test_svd(self):
         gs_point = gs.reshape(gs.arange(12), (4, 3))
         gs_point = gs.cast(gs_point, gs.float64)
