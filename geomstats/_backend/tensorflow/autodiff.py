@@ -28,7 +28,7 @@ def custom_gradient(*grad_funcs):
     def wrapper(func):
         def func_with_grad(*args, **kwargs):
             def grad(upstream, **vars):
-                variables = vars.get('variables', None)
+                variables = vars.get('variables', None)  # NOQA
                 if upstream.ndim < 1:
                     upstream = tf.expand_dims(upstream, axis=0)
                 if upstream.ndim < 2:
