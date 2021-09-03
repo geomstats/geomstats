@@ -13,6 +13,7 @@ N_REPETITIONS = 20
 N_MAX_ITERATIONS = 50000
 N_STEPS = 10
 
+
 def _squared_dist_grad_point_a(point_a, point_b, metric):
     return -2 * metric.log(point_b, point_a)
 
