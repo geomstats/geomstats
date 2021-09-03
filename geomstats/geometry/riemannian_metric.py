@@ -13,6 +13,21 @@ N_REPETITIONS = 20
 N_MAX_ITERATIONS = 50000
 N_STEPS = 10
 
+def _squared_dist_grad_point_a(point_a, point_b, metric):
+    return -2 * metric.log(point_b, point_a)
+
+
+def _squared_dist_grad_point_b(point_a, point_b, metric):
+    return -2 * metric.log(point_a, point_b)
+
+
+@gs.autodiff.custom_gradient(
+    _squared_dist_grad_point_a, _squared_dist_grad_point_b)
+def _squared_dist(point_a, point_b, metric, **kwargs):
+    log = metric.log(point=point_b, base_point=point_a, **kwargs)
+    sq_dist = metric.squared_norm(vector=log, base_point=point_a)
+    return sq_dist
+
 
 class RiemannianMetric(Connection, ABC):
     """Class for Riemannian and pseudo-Riemannian metrics.
@@ -216,9 +231,8 @@ class RiemannianMetric(Connection, ABC):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        log = self.log(point=point_b, base_point=point_a, **kwargs)
-
-        sq_dist = self.squared_norm(vector=log, base_point=point_a)
+        sq_dist = _squared_dist(
+            point_a, point_b, metric=self, **kwargs)
         return sq_dist
 
     def dist(self, point_a, point_b, **kwargs):

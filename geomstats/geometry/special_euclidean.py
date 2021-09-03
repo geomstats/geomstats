@@ -39,20 +39,6 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
                         - 1. / 362880.]
 
 
-def _squared_dist_grad_point_a(point_a, point_b, metric):
-    return -2 * metric.log(point_b, point_a)
-
-
-def _squared_dist_grad_point_b(point_a, point_b, metric):
-    return -2 * metric.log(point_a, point_b)
-
-
-@gs.autodiff.custom_gradient(
-    _squared_dist_grad_point_a, _squared_dist_grad_point_b)
-def _squared_dist(point_a, point_b, metric):
-    return metric._private_squared_dist(point_a, point_b)
-
-
 def homogeneous_representation(
         rotation, translation, output_shape, constant=1.):
     r"""Embed rotation, translation couples into n+1 square matrices.
@@ -1123,10 +1109,6 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         return homogeneous_representation(
             transported_rot, translation, max_shape, 0.)
 
-    def _private_squared_dist(self, point_a, point_b):
-        dist = super().squared_dist(point_a, point_b)
-        return dist
-
     def squared_dist(self, point_a, point_b):
         """Squared geodesic distance between two points.
 
@@ -1142,7 +1124,7 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        dist = _squared_dist(point_a, point_b, metric=self)
+        dist = super().squared_dist(point_a, point_b)
         return dist
 
 
