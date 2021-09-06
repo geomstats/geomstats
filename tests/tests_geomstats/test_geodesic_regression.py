@@ -110,7 +110,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         self.assertAllClose(loss.shape, ())
         self.assertTrue(gs.isclose(loss, 0.))
 
-
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_value_and_grad_loss_hypersphere(self):
         gr = GeodesicRegression(
             self.sphere, metric=self.sphere.metric, center_data=False, algorithm='extrinsic',
@@ -158,6 +158,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             gs.all(gs.isclose(loss_grad, gs.zeros(expected_grad_shape))))
         self.assertTrue(gs.all(~gs.isnan(loss_grad)))
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_loss_minimization_extrinsic_hypersphere(self):
         """Minimize loss from noiseless data."""
         gr = GeodesicRegression(
@@ -200,6 +201,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         self.assertAllClose(transported_coef_hat, self.coef_sphere_true, atol=0.6)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_fit_extrinsic_hypersphere(self):
         gr = GeodesicRegression(
             self.sphere, metric=self.sphere.metric, center_data=False, algorithm='extrinsic',
@@ -224,6 +226,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         self.assertAllClose(transported_coef_hat, self.coef_sphere_true, atol=0.6)
     
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_fit_riemannian_hypersphere(self):
         gr = GeodesicRegression(
             self.sphere, metric=self.sphere.metric, center_data=False, algorithm='riemannian',
