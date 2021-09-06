@@ -592,7 +592,7 @@ def vstack(x):
     for one_x in x:
         if one_x.ndim < 2:
             new_x.append(tf.expand_dims(one_x, axis=0))
-        else: 
+        else:
             new_x.append(one_x)
     return tf.concat(new_x, axis=0)
 
