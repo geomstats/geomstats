@@ -32,21 +32,21 @@ class GeodesicRegression(BaseEstimator):
         self.learning_rate = learning_rate
         self.tol = tol
 
-    def _model(self, x, tangent_vec, base_point):
-        times = x[:, None] if self.metric.default_point_type == 'vector' else\
-            x[:, None, None]
-        return self.metric.exp(times * tangent_vec[None], base_point)
+    def _model(self, X, tangent_vec, base_point):
+        X = X[:, None] if self.metric.default_point_type == 'vector' else\
+            X[:, None, None]
+        return self.metric.exp(X * tangent_vec[None], base_point)
 
-    def _loss(self, x, y, parameter, shape, weights=None):
-        p, v = gs.split(parameter, 2)
-        p = gs.reshape(p, shape)
-        v = gs.reshape(v, shape)
-        p = gs.cast(p, dtype=y.dtype)
-        v = gs.cast(v, dtype=y.dtype)
-        base_point = self.space.projection(p)
-        tangent_vec = self.space.to_tangent(v, base_point)
+    def _loss(self, X, y, param, shape, weights=None):
+        intercept, coef = gs.split(param, 2)
+        intercept = gs.reshape(intercept, shape)
+        coef = gs.reshape(coef, shape)
+        intercept = gs.cast(intercept, dtype=y.dtype)
+        coef = gs.cast(coef, dtype=y.dtype)
+        base_point = self.space.projection(intercept)
+        tangent_vec = self.space.to_tangent(coef, base_point)
         distances = self.metric.squared_dist(
-            self._model(x, tangent_vec, base_point), y)
+            self._model(X, tangent_vec, base_point), y)
         if weights is None:
             weights = 1.
         return 1. / 2. * gs.sum(weights * distances)
@@ -108,14 +108,14 @@ class GeodesicRegression(BaseEstimator):
             options={'disp': self.verbose, 'maxiter': self.max_iter},
             tol=self.tol)
 
-        intercept_hat, beta_hat = gs.split(gs.array(res.x), 2)
+        intercept_hat, coef_hat = gs.split(gs.array(res.x), 2)
         intercept_hat = gs.reshape(intercept_hat, shape)
         intercept_hat = gs.cast(intercept_hat, dtype=y.dtype)
-        beta_hat = gs.reshape(beta_hat, shape)
-        beta_hat = gs.cast(beta_hat, dtype=y.dtype)
+        coef_hat = gs.reshape(coef_hat, shape)
+        coef_hat = gs.cast(coef_hat, dtype=y.dtype)
 
         self.intercept_ = self.space.projection(intercept_hat)
-        self.coef_ = self.space.to_tangent(beta_hat, self.intercept_)
+        self.coef_ = self.space.to_tangent(coef_hat, self.intercept_)
 
         if compute_training_score:
             variance = gs.sum(self.metric.squared_dist(y, self.intercept_))
@@ -140,10 +140,10 @@ class GeodesicRegression(BaseEstimator):
 
         lr = self.learning_rate
         intercept_hat = intercept_hat_new = y[0]
-        beta_hat = beta_hat_new = self.space.to_tangent(
+        coef_hat = coef_hat_new = self.space.to_tangent(
             gs.random.normal(size=shape), intercept_hat)
         param = gs.vstack(
-            [gs.flatten(intercept_hat), gs.flatten(beta_hat)])
+            [gs.flatten(intercept_hat), gs.flatten(coef_hat)])
         current_loss = math.inf
         current_iter = 0
         for i in range(self.max_iter):
@@ -159,39 +159,39 @@ class GeodesicRegression(BaseEstimator):
             else:
                 if not current_iter % 5:
                     lr *= 2
-                beta_hat = beta_hat_new
+                coef_hat = coef_hat_new
                 intercept_hat = intercept_hat_new
                 current_iter += 1
             if abs(loss - current_loss) < self.tol:
                 break
 
-            grad_p, grad_v = gs.split(grad, 2)
-            riemannian_grad_p = self.space.to_tangent(
-                gs.reshape(grad_p, shape), intercept_hat)
-            riemannian_grad_v = self.space.to_tangent(
-                gs.reshape(grad_v, shape), intercept_hat)
+            grad_intercept, grad_coef = gs.split(grad, 2)
+            riem_grad_intercept = self.space.to_tangent(
+                gs.reshape(grad_intercept, shape), intercept_hat)
+            riem_grad_coef = self.space.to_tangent(
+                gs.reshape(grad_coef, shape), intercept_hat)
 
             intercept_hat_new = self.metric.exp(
-                - lr * riemannian_grad_p, intercept_hat)
-            beta_hat_new = vector_transport(
-                beta_hat - lr * riemannian_grad_v,
-                - lr * riemannian_grad_p, 
+                - lr * riem_grad_intercept, intercept_hat)
+            coef_hat_new = vector_transport(
+                coef_hat - lr * riem_grad_coef,
+                - lr * riem_grad_intercept, 
                 intercept_hat, 
                 intercept_hat_new)
             # Hack alert
-            beta_hat_new = self.space.to_tangent(
-                beta_hat_new, intercept_hat_new)
-            print("\n\n in riem, is beta hat new in the right space")
-            print(self.space.is_tangent(beta_hat_new, intercept_hat_new))
-            print(beta_hat_new)
+            coef_hat_new = self.space.to_tangent(
+                coef_hat_new, intercept_hat_new)
+            print("\n\n in riem, is coef hat new in the right space")
+            print(self.space.is_tangent(coef_hat_new, intercept_hat_new))
+            print(coef_hat_new)
 
             param = gs.vstack(
-                [gs.flatten(intercept_hat_new), gs.flatten(beta_hat_new)])
+                [gs.flatten(intercept_hat_new), gs.flatten(coef_hat_new)])
 
             current_loss = loss
 
         self.intercept_ = self.space.projection(intercept_hat)
-        self.coef_ = self.space.to_tangent(beta_hat, self.intercept_)
+        self.coef_ = self.space.to_tangent(coef_hat, self.intercept_)
         print("\n\n is it tanget now?")
         print(self.space.is_tangent(self.coef_, self.intercept_ ))
         print(self.coef_)
