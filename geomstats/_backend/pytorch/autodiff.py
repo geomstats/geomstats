@@ -24,6 +24,7 @@ def custom_gradient(*grad_func):
     *grad_funcs : callables
         Custom gradient functions.
     """
+
     def decorator(func):
         class func_with_grad(torch.autograd.Function):
             """Wrapper for a function with custom grad."""
@@ -50,6 +51,7 @@ def custom_gradient(*grad_func):
             return func_with_grad.apply(*new_inputs)
 
         return wrapper
+
     return decorator
 
 
@@ -74,6 +76,7 @@ def value_and_grad(func, to_numpy=False):
         Function that takes the argument of the func function as input
         and returns both value and grad at the input.
     """
+
     def func_with_grad(*args, **kwargs):
         new_args = ()
         for one_arg in args:
@@ -87,8 +90,7 @@ def value_and_grad(func, to_numpy=False):
 
         value = func(*args, **kwargs)
         if value.ndim > 0:
-            value.backward(
-                gradient=torch.ones_like(one_arg), retain_graph=True)
+            value.backward(gradient=torch.ones_like(one_arg), retain_graph=True)
         else:
             value.backward(retain_graph=True)
 
@@ -96,9 +98,11 @@ def value_and_grad(func, to_numpy=False):
         for one_arg in args:
             all_grads = (
                 *all_grads,
-                torch.autograd.grad(value, one_arg, retain_graph=True)[0])
+                torch.autograd.grad(value, one_arg, retain_graph=True)[0],
+            )
 
         if len(args) == 1:
             return value, all_grads[0]
         return value, all_grads
+
     return func_with_grad
