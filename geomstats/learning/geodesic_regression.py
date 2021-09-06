@@ -12,21 +12,48 @@ from geomstats.learning.frechet_mean import FrechetMean
 
 
 class GeodesicRegression(BaseEstimator):
+    r"""Geodesic Regression.
+
+    Parameters
+    ----------
+    space : Manifold
+        Manifold.
+    metric : RiemannianMetric
+        Riemannian metric.
+    center_X : bool
+        Subtract mean to X as a preprocessing.
+    method : str, {\'extrinsic\', \'riemannian\'}
+        Gradient descent method.
+        Optional, default: extrinsic.
+    max_iter : int
+        Maximum number of iterations for gradient descent.
+        Optional, default: 100.
+    learning_rate : float
+        Initial learning rate for gradient descent.
+        Optional, default: 0.1
+    tol : float
+        Tolerance for loss minimization.
+        Optional, default: 1e-5
+    verbose : bool
+        Verbose option.
+        Optional, default: False.
+    """
+
     def __init__(
-            self, space, metric=None, center_data=True, algorithm='extrinsic',
-            max_iter=100, verbose=False, learning_rate=.1, tol=1e-5):
+            self, space, metric=None, center_X=True, method='extrinsic',
+            max_iter=100, learning_rate=.1, tol=1e-5, verbose=False):
         if metric is None:
             metric = space.metric
         self.metric = metric
         self.space = space
         self.intercept_ = None
         self.coef_ = None
-        self.center_data = center_data
+        self.center_X = center_X
         self.mean_ = None
         self.training_score_ = None
         geomstats.errors.check_parameter_accepted_values(
-            algorithm, 'algorithm', ['extrinsic', 'riemannian'])
-        self.algorithm = algorithm
+            method, 'method', ['extrinsic', 'riemannian'])
+        self.method = method
         self.max_iter = max_iter
         self.verbose = verbose
         self.learning_rate = learning_rate
@@ -52,21 +79,46 @@ class GeodesicRegression(BaseEstimator):
         return 1. / 2. * gs.sum(weights * distances)
 
     def fit(self, X, y, weights=None, compute_training_score=False):
+        """Estimate the parameters of the geodesic regression.
+
+        Estimate the intercept and the coefficient defining the
+        geodesic regression model.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape=[...,}]
+            Training input samples.
+        y : array-like, shape=[..., dim]
+            Training target values.
+        weights : array-like, shape=[...,]
+            Weights associated to the points.
+            Optional, default: None.
+        compute_traning_score : bool
+            Whether to compute R^2.
+            Optional, default: False.
+
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
         times = gs.copy(X)
-        if self.center_data:
+        if self.center_X:
             self.mean_ = gs.mean(X)
             times -= self.mean_
 
-        if self.algorithm == 'extrinsic':
-            return self._fit_extrinsic(times, y, weights, compute_training_score)
-        if self.algorithm == 'riemannian':
-            return self._fit_riemannian(times, y, weights, compute_training_score)
+        if self.method == 'extrinsic':
+            return self._fit_extrinsic(
+                times, y, weights, compute_training_score)
+        if self.method == 'riemannian':
+            return self._fit_riemannian(
+                times, y, weights, compute_training_score)
 
     def _fit_extrinsic(self, X, y, weights=None, compute_training_score=False):
         shape = (
             y.shape[-1:] if self.space.default_point_type == 'vector' else
             y.shape[-2:])
-        
+
         # vector = gs.array([
         #     [ 0.50198963,  0.59494365,  0.5332258 ],
         #     [-2.18947023,  1.1374106 ,  0.5482675 ],
@@ -76,7 +128,7 @@ class GeodesicRegression(BaseEstimator):
         #     [-1.13142537, -1.51064679, -0.05944102],
         #     [ 1.32931231, -0.60150817,  0.65693497]])
         initial_guess = gs.flatten(gs.stack([
-            gs.random.normal(size=shape), 
+            gs.random.normal(size=shape),
             gs.random.normal(size=shape)
         ]))
         # initial_guess = gs.flatten(gs.stack([
@@ -155,8 +207,8 @@ class GeodesicRegression(BaseEstimator):
                 - lr * riem_grad_intercept, intercept_hat)
             coef_hat_new = vector_transport(
                 coef_hat - lr * riem_grad_coef,
-                - lr * riem_grad_intercept, 
-                intercept_hat, 
+                - lr * riem_grad_intercept,
+                intercept_hat,
                 intercept_hat_new)
 
             param = gs.vstack(
@@ -177,9 +229,21 @@ class GeodesicRegression(BaseEstimator):
         return self
 
     def predict(self, X, y=None):
+        """Predict the manifold value for each input.
+
+        Parameters
+        ----------
+        X : array-like, shape=[...,
+            Input data.
+
+        Returns
+        -------
+        self : array-like, shape=[...,]
+            Array of predicted cluster indices for each sample.
+        """
         times = gs.copy(X)
 
-        if self.center_data:
+        if self.center_X:
             times = times - self.mean_
 
         if self.coef_ is None:
@@ -188,6 +252,25 @@ class GeodesicRegression(BaseEstimator):
         return self._model(times, self.coef_, self.intercept_)
 
     def score(self, X, y, weights=None):
+        """Compute training score.
+
+        Compute the training score defined as R^2.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape=[...,}]
+            Training input samples.
+        y : array-like, shape=[..., dim]
+            Training target values.
+        weights : array-like, shape=[...,]
+            Weights associated to the points.
+            Optional, default: None.
+
+        Returns
+        -------
+        _ : float
+            Training score.
+        """
         y_pred = self.predict(X)
         if weights is None:
             weights = 1.
