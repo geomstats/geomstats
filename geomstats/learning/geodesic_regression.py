@@ -85,23 +85,7 @@ class GeodesicRegression(BaseEstimator):
             lambda param: self._loss(X, y, param, shape, weights),
             to_numpy=True)
 
-        print("\n\nJust before minimize")
-        print("time/data:")
-        print(type(X))
-        print(X.shape)
-        print(X)
-        print("target")
-        print(type(y))
-        print(y.shape)
-        print(y)
-        print(self.space.belongs(y))
-
-        print("\n\n Objective with grad")
         val, grad = objective_with_grad(initial_guess)
-        print(val)
-        print(type(grad))
-        print(grad.shape)
-        print(grad)
 
         res = minimize(
             objective_with_grad, initial_guess, method='CG', jac=True,
@@ -147,13 +131,9 @@ class GeodesicRegression(BaseEstimator):
         current_loss = math.inf
         current_iter = 0
         for i in range(self.max_iter):
-            print("param", param)
             loss, grad = objective_with_grad(param)
             if gs.any(gs.isnan(grad)):
                 break
-            print("loss")
-            print(loss)
-            print("grad", grad)
             if loss > current_loss and i > 0:
                 lr /= 2
             else:
@@ -181,9 +161,6 @@ class GeodesicRegression(BaseEstimator):
             # Hack alert
             coef_hat_new = self.space.to_tangent(
                 coef_hat_new, intercept_hat_new)
-            print("\n\n in riem, is coef hat new in the right space")
-            print(self.space.is_tangent(coef_hat_new, intercept_hat_new))
-            print(coef_hat_new)
 
             param = gs.vstack(
                 [gs.flatten(intercept_hat_new), gs.flatten(coef_hat_new)])
@@ -192,10 +169,6 @@ class GeodesicRegression(BaseEstimator):
 
         self.intercept_ = self.space.projection(intercept_hat)
         self.coef_ = self.space.to_tangent(coef_hat, self.intercept_)
-        print("\n\n is it tanget now?")
-        print(self.space.is_tangent(self.coef_, self.intercept_ ))
-        print(self.coef_)
-
 
         if self.verbose:
             logging.info(f'Number of iteration: {current_iter},'

@@ -39,17 +39,6 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             self.sphere.to_tangent(
                 gs.random.normal(size=self.shape_sphere), 
                 self.y_sphere[0])])
-        print("\n\n\nWOOOO")
-        print(self.param_sphere_true.shape)
-        print(self.param_sphere_guess.shape)
-
-        print("\n\n\n dtypes")
-        print(
-            self.X_sphere.dtype,
-            self.y_sphere.dtype, 
-            self.param_sphere_guess.dtype,
-            self.param_sphere_true)
-        print("\n\n\n\n")
 
         # Set up for special euclidean
         self.se2 = SpecialEuclidean(n=2)
@@ -294,8 +283,6 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         self.assertAllClose(intercept_hat.shape, self.shape_se2)
         self.assertAllClose(coef_hat.shape, self.shape_se2)
-        # print("TRAINING SCORE SE@ EXTR")
-        # print(training_score)
         self.assertTrue(gs.isclose(training_score, 1.))
         self.assertAllClose(intercept_hat, self.intercept_se2_true)
         self.assertAllClose(coef_hat, self.coef_se2_true)
