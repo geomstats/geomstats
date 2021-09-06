@@ -86,12 +86,48 @@ class GeodesicRegression(BaseEstimator):
         self.learning_rate = learning_rate
         self.tol = tol
 
-    def _model(self, X, tangent_vec, base_point):
+    def _model(self, X, coef, intercept):
+        """Compute the generative model of the geodesic regression.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape=[...,}]
+            Training input samples.
+        coef : array-like, shape=[..., dim]
+            Coefficient of the geodesic regression.
+        intercept : array-like, shape=[..., dim]
+            Intercept of the geodesic regression.
+
+        Returns
+        -------
+        _ : array-like, shape=[..., dim]
+            Value on the manifold output by the generative model.
+        """
         X = X[:, None] if self.metric.default_point_type == 'vector' else\
             X[:, None, None]
-        return self.metric.exp(X * tangent_vec[None], base_point)
+        return self.metric.exp(X * coef[None], intercept)
 
     def _loss(self, X, y, param, shape, weights=None):
+        """Compute the loss associated to the geodesic regression.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape=[...,}]
+            Training input samples.
+        y : array-like, shape=[..., dim]
+            Training target values.
+        param : array-like, shape=[2, dim]
+            Parameters intercept and coef of the geodesic regression,
+            vertically stacked.
+        weights : array-like, shape=[...,]
+            Weights associated to the points.
+            Optional, default: None.
+
+        Returns
+        -------
+        _ : float
+            Loss.
+        """
         intercept, coef = gs.split(param, 2)
         intercept = gs.reshape(intercept, shape)
         coef = gs.reshape(coef, shape)
@@ -120,7 +156,7 @@ class GeodesicRegression(BaseEstimator):
         weights : array-like, shape=[...,]
             Weights associated to the points.
             Optional, default: None.
-        compute_traning_score : bool
+        compute_training_score : bool
             Whether to compute R^2.
             Optional, default: False.
 
@@ -142,29 +178,41 @@ class GeodesicRegression(BaseEstimator):
                 times, y, weights, compute_training_score)
 
     def _fit_extrinsic(self, X, y, weights=None, compute_training_score=False):
+        """Estimate the parameters using the extrinsic gradient descent.
+
+        Estimate the intercept and the coefficient defining the
+        geodesic regression model, using the extrinsic gradient.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape=[...,}]
+            Training input samples.
+        y : array-like, shape=[..., dim]
+            Training target values.
+        weights : array-like, shape=[...,]
+            Weights associated to the points.
+            Optional, default: None.
+        compute_training_score : bool
+            Whether to compute R^2.
+            Optional, default: False.
+
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
         shape = (
             y.shape[-1:] if self.space.default_point_type == 'vector' else
             y.shape[-2:])
 
-        # vector = gs.array([
-        #     [ 0.50198963,  0.59494365,  0.5332258 ],
-        #     [-2.18947023,  1.1374106 ,  0.5482675 ],
-        #     [ 0.91499351,  0.78945069,  0.87057936]])
-        # vector2 = gs.array([
-        #     [ 0.88005482,  1.20483007, -0.87634215],
-        #     [-1.13142537, -1.51064679, -0.05944102],
-        #     [ 1.32931231, -0.60150817,  0.65693497]])
         initial_guess = gs.flatten(gs.stack([
             gs.random.normal(size=shape),
             gs.random.normal(size=shape)
         ]))
-        # initial_guess = gs.flatten(gs.stack([
-        #     vector, vector2]))
+
         objective_with_grad = gs.autodiff.value_and_grad(
             lambda param: self._loss(X, y, param, shape, weights),
             to_numpy=True)
-
-        val, grad = objective_with_grad(initial_guess)
 
         res = minimize(
             objective_with_grad, initial_guess, method='CG', jac=True,
@@ -188,6 +236,29 @@ class GeodesicRegression(BaseEstimator):
 
     def _fit_riemannian(
             self, X, y, weights=None, compute_training_score=False):
+        """Estimate the parameters using a Riemannian gradient descent.
+
+        Estimate the intercept and the coefficient defining the
+        geodesic regression model, using the Riemannian gradient.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape=[...,}]
+            Training input samples.
+        y : array-like, shape=[..., dim]
+            Training target values.
+        weights : array-like, shape=[...,]
+            Weights associated to the points.
+            Optional, default: None.
+        compute_training_score : bool
+            Whether to compute R^2.
+            Optional, default: False.
+
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
         shape = (
             y.shape[-1:] if self.space.default_point_type == 'vector' else
             y.shape[-2:])
