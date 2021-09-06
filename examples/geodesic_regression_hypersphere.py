@@ -7,7 +7,7 @@ where:
 - :math:`\beta_0` is called the intercept,
 - :math:`\beta_1` is called the coefficient,
 - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
-- :math:`X` is called the input, :math:`Y` is called the target.
+- :math:`X` is called the input, :math:`Y` is called the y.
 """
 
 import matplotlib.pyplot as plt
@@ -36,38 +36,38 @@ def main():
     - :math:`\beta_0` is called the intercept,
     - :math:`\beta_1` is called the coefficient,
     - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
-    - :math:`X` is called the input, :math:`Y` is called the target.
+    - :math:`X` is the input, :math:`Y` is the target.
     """
     # Generate noise-free data
     n_samples = 50
-    input_data = gs.random.rand(n_samples)
-    input_data -= gs.mean(input_data)
+    X = gs.random.rand(n_samples)
+    X -= gs.mean(X)
 
     intercept = SPACE.random_uniform()
     coef = SPACE.to_tangent(
         5. * gs.random.rand(EMBEDDING_DIM), base_point=intercept)
-    target = METRIC.exp(
-        input_data[:, None] * coef, base_point=intercept)
+    y = METRIC.exp(
+        X[:, None] * coef, base_point=intercept)
 
     # Generate normal noise
     normal_noise = gs.random.normal(size=(n_samples, EMBEDDING_DIM))
-    noise = SPACE.to_tangent(normal_noise, base_point=target) / gs.pi / 2
+    noise = SPACE.to_tangent(normal_noise, base_point=y) / gs.pi / 2
 
-    rss = gs.sum(METRIC.squared_norm(noise, base_point=target)) / n_samples
+    rss = gs.sum(METRIC.squared_norm(noise, base_point=y)) / n_samples
 
     # Add noise
-    target = METRIC.exp(noise, target)
+    y = METRIC.exp(noise, y)
 
     # True noise level and R2
     estimator = FrechetMean(METRIC)
-    estimator.fit(target)
-    variance_ = variance(target, estimator.estimate_, metric=METRIC)
+    estimator.fit(y)
+    variance_ = variance(y, estimator.estimate_, metric=METRIC)
     r2 = 1 - rss / variance_
 
     # Fit Geodesic Regression
     gr = GeodesicRegression(
         SPACE, center_data=False, algorithm='extrinsic', verbose=True)
-    gr.fit(input_data, target, compute_training_score=True)
+    gr.fit(X, y, compute_training_score=True)
     intercept_hat, coef_hat = gr.intercept_, gr.coef_
 
     # Measure Mean Squared Error
@@ -92,7 +92,7 @@ def main():
     print(f'True R^2: {r2:.2f}')
 
     # Plot
-    fitted_data = gr.predict(input_data)
+    fitted_data = gr.predict(X)
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111, projection='3d')
     sphere_visu = visualization.Sphere(n_meridians=30)
@@ -109,7 +109,7 @@ def main():
     sphere_visu.draw_points(
         ax, gs.array([intercept_hat]), marker=marker, c='r', s=size)
     sphere_visu.draw_points(
-        ax, target, marker=marker, c='b', s=size)
+        ax, y, marker=marker, c='b', s=size)
     sphere_visu.draw_points(
         ax, fitted_data, marker=marker, c='g', s=size)
 

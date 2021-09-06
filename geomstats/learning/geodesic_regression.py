@@ -1,4 +1,18 @@
-"""Geodesic Regression."""
+r"""Geodesic Regression.
+
+The generative model of the data is:
+    :math:`Z = Exp_{\beta_0}(\beta_1.X)` and :math:`Y = Exp_Z(\epsilon)`
+    where:
+    - :math:`Exp` denotes the Riemannian exponential,
+    - :math:`\beta_0` is called the intercept,
+    - :math:`\beta_1` is called the coefficient,
+    - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
+    - :math:`X` is the input, :math:`Y` is the target.
+
+The geodesic regression method:
+- estimates :math:`\beta_0, \beta_1`,
+- predicts :math:`\hat{y}` from input :math:`X`.
+"""
 
 import logging
 import math
@@ -13,6 +27,19 @@ from geomstats.learning.frechet_mean import FrechetMean
 
 class GeodesicRegression(BaseEstimator):
     r"""Geodesic Regression.
+
+    The generative model of the data is:
+        :math:`Z = Exp_{\beta_0}(\beta_1.X)` and :math:`Y = Exp_Z(\epsilon)`
+        where:
+        - :math:`Exp` denotes the Riemannian exponential,
+        - :math:`\beta_0` is called the intercept,
+        - :math:`\beta_1` is called the coefficient,
+        - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
+        - :math:`X` is the input, :math:`Y` is the target.
+
+    The geodesic regression method:
+    - estimates :math:`\beta_0, \beta_1`,
+    - predicts :math:`\hat{y}` from input :math:`X`.
 
     Parameters
     ----------
