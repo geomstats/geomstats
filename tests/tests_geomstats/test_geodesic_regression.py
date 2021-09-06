@@ -39,6 +39,9 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             self.sphere.to_tangent(
                 gs.random.normal(size=self.shape_sphere), 
                 self.target_sphere[0])])
+        print("\n\n\nWOOOO")
+        print(self.parameter_sphere_true.shape)
+        print(self.parameter_sphere_guess.shape)
 
         print("\n\n\n dtypes")
         print(
@@ -123,6 +126,8 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         objective_with_grad = gs.autodiff.value_and_grad(loss_of_param)
         loss_value, loss_grad = objective_with_grad(
             self.parameter_sphere_guess)
+        print("\n\nshape of input")
+        print(self.parameter_sphere_guess.shape)
 
         expected_grad_shape = (self.dim_sphere + 1) * 2,
         self.assertAllClose(loss_value.shape, ())
