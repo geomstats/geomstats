@@ -1,78 +1,104 @@
+"""Automatic differentiation in PyTorch."""
+
 import numpy as np
 import torch
 from torch.autograd.functional import jacobian as torch_jac
 
 
 def detach(x):
-    return x.detach()
-
-
-def custom_gradient(*args):
-    """Decorate a function to define its custom gradient.
+    """Return a new tensor detached from the current graph.
 
     Parameters
     ----------
-    *grad_func : callables
+    x : array-like
+        Tensor to detach.
+    """
+    return x.detach()
+
+
+def custom_gradient(*grad_func):
+    """Decorate a function to define its custom gradient(s).
+
+    Parameters
+    ----------
+    *grad_funcs : callables
         Custom gradient functions.
     """
+    def decorator(func):
+        class func_with_grad(torch.autograd.Function):
+            """Wrapper for a function with custom grad."""
 
-    def decorator(function):
-
-        class function_with_grad(torch.autograd.Function):
             @staticmethod
             def forward(ctx, *args):
                 ctx.save_for_backward(*args)
-                return function(*args)
+                return func(*args)
 
             @staticmethod
-            def backward(ctx, *grad_output):
-
+            def backward(ctx, grad_output):
                 inputs = ctx.saved_tensors
 
-                grads = tuple()
+                grads = ()
+                for custom_grad in grad_func:
+                    grads = (*grads, grad_output * custom_grad(*inputs))
 
-                for custom_grad, g in zip(args, grad_output):
-                    grads = (*grads, custom_grad(*inputs) * g.clone())
-
+                if len(grads) == 1:
+                    return grads[0]
                 return grads
 
-        def wrapper(*args):
-            out = function_with_grad.apply(*args)
-            return out
+        def wrapper(*args, **kwargs):
+            new_inputs = args + tuple(kwargs.values())
+            return func_with_grad.apply(*new_inputs)
 
         return wrapper
     return decorator
 
 
-def jacobian(f):
+def jacobian(func):
     """Return a function that returns the jacobian of a function."""
-    return lambda x: torch_jac(f, x)
+    return lambda x: torch_jac(func, x)
 
 
-def value_and_grad(func):
-    """'Return a function that returns both value and gradient.
+def value_and_grad(func, to_numpy=False):
+    """Return a function that returns both value and gradient.
 
     Suitable for use in scipy.optimize
 
     Parameters
     ----------
-    objective : callable
+    func : callable
         Function to compute the gradient. It must be real-valued.
 
     Returns
     -------
-    objective_with_grad : callable
-        Function that takes the argument of the objective function as input
+    func_with_grad : callable
+        Function that takes the argument of the func function as input
         and returns both value and grad at the input.
-    '"""
-    def objective_with_grad(arg_x):
-        if isinstance(arg_x, np.ndarray):
-            arg_x = torch.from_numpy(arg_x)
-        arg_x = arg_x.clone().detach().requires_grad_(True)
-        value = func(arg_x)
+    """
+    def func_with_grad(*args, **kwargs):
+        new_args = ()
+        for one_arg in args:
+            if isinstance(one_arg, float):
+                one_arg = torch.from_numpy(np.array(one_arg))
+            if isinstance(one_arg, np.ndarray):
+                one_arg = torch.from_numpy(one_arg)
+            one_arg = one_arg.clone().requires_grad_(True)
+            new_args = (*new_args, one_arg)
+        args = new_args
+
+        value = func(*args, **kwargs)
         if value.ndim > 0:
-            value.backward(gradient=torch.ones_like(arg_x))
+            value.backward(
+                gradient=torch.ones_like(one_arg), retain_graph=True)
         else:
-            value.backward()
-        return value, torch.autograd.grad(func(arg_x), arg_x)[0]
-    return objective_with_grad
+            value.backward(retain_graph=True)
+
+        all_grads = ()
+        for one_arg in args:
+            all_grads = (
+                *all_grads,
+                torch.autograd.grad(value, one_arg, retain_graph=True)[0])
+
+        if len(args) == 1:
+            return value, all_grads[0]
+        return value, all_grads
+    return func_with_grad

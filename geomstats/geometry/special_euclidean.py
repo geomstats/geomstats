@@ -38,17 +38,85 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
                         + 1. / 5040., 0.,
                         - 1. / 362880.]
 
-# TODO(nina): are these the right gradients?
-def squared_dist_grad_point_a(point_a, point_b, metric):
-    return 2 * metric.log(point_a, point_b)
 
-def squared_dist_grad_point_b(point_a, point_b, metric):
-    return 2 * metric.log(point_b, point_a)
+def _squared_dist_grad_point_a(point_a, point_b, metric):
+    """Compute gradient of squared_dist wrt point_a.
+
+    Compute the Riemannian gradient of the squared geodesic
+    distance with respect to the first point point_a.
+
+    Parameters
+    ----------
+    point_a : array-like, shape=[..., dim]
+        Point.
+    point_b : array-like, shape=[..., dim]
+        Point.
+    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+        Metric defining the distance.
+
+    Returns
+    -------
+    _ : array-like, shape=[..., dim]
+        Riemannian gradient, in the form of a tangent
+        vector at base point : point_a.
+    """
+    return -2 * metric.log(point_b, point_a)
+
+
+def _squared_dist_grad_point_b(point_a, point_b, metric):
+    """Compute gradient of squared_dist wrt point_b.
+
+    Compute the Riemannian gradient of the squared geodesic
+    distance with respect to the second point point_b.
+
+    Parameters
+    ----------
+    point_a : array-like, shape=[..., dim]
+        Point.
+    point_b : array-like, shape=[..., dim]
+        Point.
+    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+        Metric defining the distance.
+
+    Returns
+    -------
+    _ : array-like, shape=[..., dim]
+        Riemannian gradient, in the form of a tangent
+        vector at base point : point_b.
+    """
+    return -2 * metric.log(point_a, point_b)
+
 
 @gs.autodiff.custom_gradient(
-    squared_dist_grad_point_a, squared_dist_grad_point_b)
+    _squared_dist_grad_point_a, _squared_dist_grad_point_b)
 def _squared_dist(point_a, point_b, metric):
-    return metric.private_squared_dist(point_a, point_b)
+    """Compute geodesic distance between two points.
+
+    Compute the squared geodesic distance between point_a
+    and point_b, as defined by the metric.
+
+    This is an auxiliary private function that:
+    - is called by the method `squared_dist` of the class
+    SpecialEuclideanMatrixCannonicalLeftMetric,
+    - has been created to support the implementation
+    of custom_gradient in tensorflow backend.
+
+    Parameters
+    ----------
+    point_a : array-like, shape=[..., dim]
+        Point.
+    point_b : array-like, shape=[..., dim]
+        Point.
+    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+        Metric defining the distance.
+
+    Returns
+    -------
+    _ : array-like, shape=[...,]
+        Geodesic distance between point_a and point_b.
+    """
+    return metric._private_squared_dist(point_a, point_b)
+
 
 def homogeneous_representation(
         rotation, translation, output_shape, constant=1.):
@@ -1001,7 +1069,8 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         """
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
 
-    def exp(self, tangent_vec, base_point=None, n_steps=10, step='rk4', **kwargs):
+    def exp(self, tangent_vec, base_point=None, n_steps=10,
+            step='rk4', **kwargs):
         """Exponential map associated to the cannonical metric.
 
         Exponential map at `base_point` of `tangent_vec`. The geodesics of this
@@ -1069,7 +1138,7 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
                     no. 4 (August 1998): 576–89.
                     https://doi.org/10.1109/70.704225.
         """
-        max_shape = point.shape if len(point.shape) == 3 else base_point.shape
+        max_shape = point.shape if point.ndim == 3 else base_point.shape
         rotation_bp = base_point[..., :self.n, :self.n]
         rotation_p = point[..., :self.n, :self.n]
         rotation_log = GeneralLinear.log(rotation_p, rotation_bp)
@@ -1119,11 +1188,25 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         return homogeneous_representation(
             transported_rot, translation, max_shape, 0.)
 
-    def private_squared_dist(self, point_a, point_b):
+    def _private_squared_dist(self, point_a, point_b):
         dist = super().squared_dist(point_a, point_b)
         return dist
 
     def squared_dist(self, point_a, point_b):
+        """Squared geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[...,]
+            Squared distance.
+        """
         dist = _squared_dist(point_a, point_b, metric=self)
         return dist
 

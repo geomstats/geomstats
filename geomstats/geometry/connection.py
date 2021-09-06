@@ -2,7 +2,6 @@
 
 from abc import ABC
 
-import scipy.optimize as opt
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
@@ -145,8 +144,9 @@ class Connection(ABC):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point.
         """
-        max_shape = point.shape if len(point.shape) > len(base_point.shape) else \
-            base_point.shape
+        max_shape = point.shape
+        if len(point.shape) <= len(base_point.shape):
+            max_shape = base_point.shape
 
         def objective(velocity):
             """Define the objective function."""
@@ -156,7 +156,8 @@ class Connection(ABC):
             delta = self.exp(velocity, base_point, n_steps, step) - point
             return gs.sum(delta ** 2)
 
-        objective_with_grad = gs.autodiff.value_and_grad(objective, to_numpy=True)
+        objective_with_grad = gs.autodiff.value_and_grad(
+            objective, to_numpy=True)
 
         tangent_vec = gs.flatten(gs.random.rand(*max_shape))
 
@@ -407,25 +408,26 @@ class Connection(ABC):
             base_point):
         r"""Compute the curvature.
 
-        For three tangent vectors at a base point :math:`X,Y,Z`,
-        the curvature is defined by
-        :math:`R(X, Y)Z = \nabla_{[X,Y]}Z
+        For three vectors fields :math:`X|_P = tangent_vec_a,
+        Y|_P = tangent_vec_b, Z|_P = tangent_vec_c` with tangent vector
+        specified in argument at the base point :math:`P`,
+        the curvature is defined by :math:`R(X,Y)Z = \nabla_{[X,Y]}Z
         - \nabla_X\nabla_Y Z + \nabla_Y\nabla_X Z`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., {dim, [n, n]}]
+        tangent_vec_a : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., {dim, [n, n]}]
+        tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at `base_point`.
-        tangent_vec_c : array-like, shape=[..., {dim, [n, n]}]
+        tangent_vec_c : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at `base_point`.
-        base_point :  array-like, shape=[..., {dim, [n, n]}]
+        base_point :  array-like, shape=[..., {dim, [n, m]}]
             Point on the group. Optional, default is the identity.
 
         Returns
         -------
-        curvature : array-like, shape=[..., {dim, [n, n]}]
+        curvature : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at `base_point`.
         """
         raise NotImplementedError('The curvature is not implemented.')
@@ -434,26 +436,83 @@ class Connection(ABC):
             self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the directional curvature (tidal force operator).
 
-        For two tangent vectors at a base point :math:`X,Y`, the directional
-        curvature, better known in relativity as the tidal force operator,
-        is defined by :math:`R_X(Y) = R(X,Y)X`.
+        For two vectors fields :math:`X|_P = tangent_vec_a`, and :math:
+        `Y|_P = tangent_vec_b` with tangent vector specified in argument at
+        the base point :math:`P`, the directional curvature, better known
+        in relativity as the tidal force operator, is defined by
+        :math:`R_Y(X) = R(Y,X)Y`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., {dim, [n, n]}]
+        tangent_vec_a : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., {dim, [n, n]}]
+        tangent_vec_b : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        base_point :  array-like, shape=[..., {dim, [n, n]}]
+        base_point :  array-like, shape=[..., dim]
+            Base-point on the manifold.
+
+        Returns
+        -------
+        directional_curvature : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        """
+        return self.curvature(tangent_vec_b, tangent_vec_a, tangent_vec_b,
+                              base_point)
+
+    def curvature_derivative(
+            self, tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d,
+            base_point=None):
+        r"""Compute the covariant derivative of the curvature.
+
+        For four vectors fields :math:`H|_P = tangent_vec_a, X|_P =
+        tangent_vec_b, Y|_P = tangent_vec_c, Z|_P = tangent_vec_d` with
+        tangent vector value specified in argument at the base point `P`,
+        the covariant derivative of the curvature
+        :math:`(\nabla_H R)(X, Y) Z |_P` is computed at the base point P.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., {dim, [n, m]}]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., {dim, [n, m]}]
+            Tangent vector at `base_point`.
+        tangent_vec_d : array-like, shape=[..., {dim, [n, m]}]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., {dim, [n, m]}]
             Point on the group. Optional, default is the identity.
 
         Returns
         -------
-        directional_curvature : array-like, shape=[..., {dim, [n, n]}]
-            Tangent vector at `base_point`.
+        curvature_derivative : array-like, shape=[..., dim]
+            Tangent vector at base-point.
         """
-        return self.curvature(tangent_vec_a, tangent_vec_b, tangent_vec_a,
-                              base_point)
+        raise NotImplementedError('The curvature is not implemented.')
+
+    def directional_curvature_derivative(
+            self, tangent_vec_a, tangent_vec_b, base_point=None):
+        r"""Compute the covariant derivative of the directional curvature.
+
+        For two vectors fields :math:`X|_P = tangent_vec_a, Y|_P =
+        tangent_vec_b` with tangent vector value specified in argument at the
+        base point `P`, the covariant derivative (in the direction 'X')
+        :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
+        directional curvature (in the direction `Y`)
+        :math:`R_Y(X) = R(Y, X) Y`  is a quadratic tensor in 'X' and 'Y' that
+        plays an important role in the computation of the moments of the
+        empirical Fréchet mean.
+
+        References
+        ----------
+        .. [Pennec] Pennec, xavier. Curvature effects on the empirical mean in
+        Riemannian and affine Manifolds: a non-asymptotic high concentration
+        expansion in the small-sample regime. Preprint. June 2019.
+        https://arxiv.org/abs/1906.07418
+        """
+        return self.curvature_derivative(
+            tangent_vec_a, tangent_vec_b, tangent_vec_a, tangent_vec_b,
+            base_point)
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None):
@@ -549,17 +608,17 @@ class Connection(ABC):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., {dim, [n, n]}]
+        tangent_vec_a : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[..., {dim, [n, n]}]
+        tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at base point, along which the parallel transport
             is computed.
-        base_point : array-like, shape=[..., {dim, [n, n]}]
+        base_point : array-like, shape=[..., {dim, [n, m]}]
             Point on the manifold.
 
         Returns
         -------
-        transported_tangent_vec: array-like, shape=[..., {dim, [n, n]}]
+        transported_tangent_vec: array-like, shape=[..., {dim, [n, m]}]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         raise NotImplementedError(
