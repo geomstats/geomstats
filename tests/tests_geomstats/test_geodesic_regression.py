@@ -129,7 +129,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         print("\n\nshape of input")
         print(self.parameter_sphere_guess.shape)
 
-        expected_grad_shape = (self.dim_sphere + 1) * 2,
+        expected_grad_shape = (2, self.dim_sphere + 1)
         self.assertAllClose(loss_value.shape, ())
         self.assertAllClose(loss_grad.shape, expected_grad_shape)
 
@@ -144,7 +144,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         loss_value, loss_grad = objective_with_grad(
             self.parameter_sphere_guess)
 
-        expected_grad_shape = (self.dim_sphere + 1) * 2,
+        expected_grad_shape = (2, self.dim_sphere + 1)
         self.assertAllClose(loss_value.shape, ())
         self.assertAllClose(loss_grad.shape, expected_grad_shape)
 
