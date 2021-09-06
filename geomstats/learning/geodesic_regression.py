@@ -158,9 +158,6 @@ class GeodesicRegression(BaseEstimator):
                 - lr * riem_grad_intercept, 
                 intercept_hat, 
                 intercept_hat_new)
-            # Hack alert
-            coef_hat_new = self.space.to_tangent(
-                coef_hat_new, intercept_hat_new)
 
             param = gs.vstack(
                 [gs.flatten(intercept_hat_new), gs.flatten(coef_hat_new)])
