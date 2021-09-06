@@ -212,7 +212,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         self.assertAllClose(intercept_hat.shape, self.shape_sphere)
         self.assertAllClose(coef_hat.shape, self.shape_sphere)
         self.assertAllClose(training_score, 1., atol=500 * gs.atol)
-        self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=1e-6)
+        self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=5e-3)
 
         tangent_vec_of_transport = self.sphere.metric.log(
             self.intercept_sphere_true, base_point=intercept_hat)
@@ -237,7 +237,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         self.assertAllClose(coef_hat.shape, self.shape_sphere)
 
         self.assertAllClose(training_score, 1., atol=0.1)
-        self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=1e-5)
+        self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=5e-3)
 
         tangent_vec_of_transport = self.sphere.metric.log(
             self.intercept_sphere_true, base_point=intercept_hat)
