@@ -86,7 +86,7 @@ class RiemannianMetric(Connection, ABC):
         mat : array-like, shape=[..., dim, dim]
             Derivative of inverse of inner-product matrix.
         """
-        metric_derivative = gs.autograd.jacobian(self.metric_matrix)
+        metric_derivative = gs.autodiff.jacobian(self.metric_matrix)
         return metric_derivative(base_point)
 
     def christoffels(self, base_point):

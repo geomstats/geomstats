@@ -720,6 +720,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         vector = gs.random.rand(2, len(basis))
         tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
         identity = self.matrix_so3.identity
+
         exp = metric.exp(
             tangent_vec, identity, n_steps=100, step='rk4')
         result = metric.log(

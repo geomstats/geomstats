@@ -61,7 +61,7 @@ from tensorflow import (  # NOQA
 )
 
 
-from . import autograd # NOQA
+from . import autodiff # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 from ..constants import tf_atol, tf_rtol

@@ -364,7 +364,7 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
             (self.dim, self.dim, self.dim, self.dim),
             result.shape)
 
-        expected = gs.autograd.jacobian(
+        expected = gs.autodiff.jacobian(
             self.metric.christoffels)(base_point)
         self.assertAllClose(expected, result)
 

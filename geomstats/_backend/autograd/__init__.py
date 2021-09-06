@@ -2,7 +2,6 @@
 
 import math
 
-import autograd # NOQA
 import autograd.numpy as np
 from autograd.numpy import (  # NOQA
     abs,
@@ -101,8 +100,7 @@ from autograd.numpy import (  # NOQA
 from autograd.scipy.special import erf, polygamma # NOQA
 from scipy.sparse import coo_matrix
 
-# Note: this import overwrites the initial import of autograd
-from . import autograd # NOQA
+from . import autodiff # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA
