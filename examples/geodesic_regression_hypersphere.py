@@ -66,7 +66,7 @@ def main():
 
     # Fit Geodesic Regression
     gr = GeodesicRegression(
-        SPACE, center_data=False, algorithm='extrinsic', verbose=True)
+        SPACE, center_X=False, method='extrinsic', verbose=True)
     gr.fit(X, y, compute_training_score=True)
     intercept_hat, coef_hat = gr.intercept_, gr.coef_
 
