@@ -136,8 +136,7 @@ class GeodesicRegression(BaseEstimator):
                 return self.space.to_tangent(tan_a, point)
 
         objective_with_grad = gs.autodiff.value_and_grad(
-            lambda params: self._loss(X, y, params, shape, weights),
-            to_numpy=True)
+            lambda params: self._loss(X, y, params, shape, weights))
 
         lr = self.learning_rate
         intercept_hat = intercept_hat_new = y[0]
