@@ -67,20 +67,20 @@ class GeodesicRegression(BaseEstimator):
             y.shape[-1:] if self.space.default_point_type == 'vector' else
             y.shape[-2:])
         
-        vector = gs.array([
-            [ 0.50198963,  0.59494365,  0.5332258 ],
-            [-2.18947023,  1.1374106 ,  0.5482675 ],
-            [ 0.91499351,  0.78945069,  0.87057936]])
-        vector2 = gs.array([
-            [ 0.88005482,  1.20483007, -0.87634215],
-            [-1.13142537, -1.51064679, -0.05944102],
-            [ 1.32931231, -0.60150817,  0.65693497]])
-        # initial_guess = gs.flatten(gs.stack([
-        #     gs.random.normal(size=shape), 
-        #     gs.random.normal(size=shape)
-        # ]))
+        # vector = gs.array([
+        #     [ 0.50198963,  0.59494365,  0.5332258 ],
+        #     [-2.18947023,  1.1374106 ,  0.5482675 ],
+        #     [ 0.91499351,  0.78945069,  0.87057936]])
+        # vector2 = gs.array([
+        #     [ 0.88005482,  1.20483007, -0.87634215],
+        #     [-1.13142537, -1.51064679, -0.05944102],
+        #     [ 1.32931231, -0.60150817,  0.65693497]])
         initial_guess = gs.flatten(gs.stack([
-            vector, vector2]))
+            gs.random.normal(size=shape), 
+            gs.random.normal(size=shape)
+        ]))
+        # initial_guess = gs.flatten(gs.stack([
+        #     vector, vector2]))
         objective_with_grad = gs.autodiff.value_and_grad(
             lambda param: self._loss(X, y, param, shape, weights),
             to_numpy=True)
@@ -148,7 +148,13 @@ class GeodesicRegression(BaseEstimator):
         current_loss = math.inf
         current_iter = 0
         for i in range(self.max_iter):
+            print("param", param)
             loss, grad = objective_with_grad(param)
+            if gs.any(gs.isnan(grad)):
+                break
+            print("loss")
+            print(loss)
+            print("grad", grad)
             if loss > current_loss and i > 0:
                 lr /= 2
             else:

@@ -40,6 +40,14 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
                 gs.random.normal(size=self.shape_sphere), 
                 self.target_sphere[0])])
 
+        print("\n\n\n dtypes")
+        print(
+            self.times_sphere.dtype,
+            self.target_sphere.dtype, 
+            self.parameter_sphere_guess.dtype,
+            self.parameter_sphere_true)
+        print("\n\n\n\n")
+
         # Set up for special euclidean
         self.se2 = SpecialEuclidean(n=2)
         self.metric_se2 = self.se2.left_canonical_metric
@@ -158,16 +166,29 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         res = minimize(
             objective_with_grad, gs.flatten(self.parameter_sphere_guess), method='CG', jac=True,
             options={'disp': True, 'maxiter': 50})
-        print(res)
         self.assertAllClose(
             gs.array(res.x).shape, ((self.dim_sphere + 1) * 2,))
-        self.assertTrue(gs.isclose(res.fun, 0.))
+        self.assertTrue(gs.isclose(res.fun, 0., atol=100 * gs.atol))
 
-        intercept_hat, coef_hat = gs.split(gs.array(res.x), 2)
+        # Cast required because minimization happens in scipy in float64
+        param_hat = gs.cast(
+                gs.array(res.x), 
+                self.parameter_sphere_true.dtype)
+
+        intercept_hat, coef_hat = gs.split(param_hat, 2)
         intercept_hat = self.sphere.projection(intercept_hat)
         coef_hat = self.sphere.to_tangent(coef_hat, intercept_hat)
         self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=1e-3)
-        # self.assertAllClose(coef_hat, self.coef_sphere_true, atol=1e-3)
+
+        tangent_vec_of_transport = self.sphere.metric.log(
+            self.intercept_sphere_true, base_point=intercept_hat)
+
+        transported_coef_hat = self.sphere.metric.parallel_transport(
+            tangent_vec_a=coef_hat,
+            tangent_vec_b=tangent_vec_of_transport,
+            base_point=intercept_hat)
+
+        self.assertAllClose(transported_coef_hat, self.coef_sphere_true, atol=2*1e-1)
 
     def test_fit_extrinsic_hypersphere(self):
         gr = GeodesicRegression(
@@ -180,9 +201,18 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         intercept_hat, coef_hat = gr.intercept_, gr.coef_
         self.assertAllClose(intercept_hat.shape, self.shape_sphere)
         self.assertAllClose(coef_hat.shape, self.shape_sphere)
-        self.assertTrue(gs.isclose(training_score, 1.))
-        self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=1e-3)
-        # self.assertAllClose(coef_hat, self.coef_sphere_true)
+        self.assertAllClose(training_score, 1., atol=500 * gs.atol)
+        self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=5e3 * gs.atol)
+
+        tangent_vec_of_transport = self.sphere.metric.log(
+            self.intercept_sphere_true, base_point=intercept_hat)
+
+        transported_coef_hat = self.sphere.metric.parallel_transport(
+            tangent_vec_a=coef_hat,
+            tangent_vec_b=tangent_vec_of_transport,
+            base_point=intercept_hat)
+
+        self.assertAllClose(transported_coef_hat, self.coef_sphere_true, atol=2*1e-1)
     
     def test_fit_riemannian_hypersphere(self):
         gr = GeodesicRegression(
@@ -196,10 +226,18 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         self.assertAllClose(intercept_hat.shape, self.shape_sphere)
         self.assertAllClose(coef_hat.shape, self.shape_sphere)
 
-        self.assertTrue(gs.isclose(training_score, 1., atol=1e-3))
+        self.assertAllClose(training_score, 1., atol=5e3 * gs.atol)
+        self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=5e3 * gs.atol)
 
-        self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=1e-3)
-        # self.assertAllClose(coef_hat, self.coef_sphere_true)
+        tangent_vec_of_transport = self.sphere.metric.log(
+            self.intercept_sphere_true, base_point=intercept_hat)
+
+        transported_coef_hat = self.sphere.metric.parallel_transport(
+            tangent_vec_a=coef_hat,
+            tangent_vec_b=tangent_vec_of_transport,
+            base_point=intercept_hat)
+
+        self.assertAllClose(transported_coef_hat, self.coef_sphere_true, atol=2*1e-1)
 
     def test_loss_minimization_extrinsic_se2(self):
         gr = GeodesicRegression(
