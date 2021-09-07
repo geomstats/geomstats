@@ -79,3 +79,31 @@ def qr(*args, **kwargs):
     tensor_q = torch.from_numpy(matrix_q)
     tensor_r = torch.from_numpy(matrix_r)
     return tensor_q, tensor_r
+
+
+
+def _is_single_matrix_pd(mat):
+    """ Check if a two dimensional square matrix is 
+    positive definite
+    """
+    try:
+        ch = torch.linalg.cholesky(m)
+        return True
+    except np.linalg.LinAlgErro as e:
+        if e.args[0] == 'Matrix is not positive definite':
+            return False
+        else:
+            raise e
+
+def is_pd(mat):
+    """Check if matrix is positive definite matrix
+    (doesn't check if its symmetric)
+    """
+    if mat.ndim == 2 and mat.shape[0] == mat.shape[1]:
+        return _is_single_matrix_pd(mat)
+    elif mat.ndim == 2 and mat.shape[0] != mat.shape[1]:
+        return False
+    elif mat.ndim == 3 and mat.shape[1] == mat.shape[2]:
+        return [_is_single_matrix_pd(m) for m in mat]
+    elif mat.ndim == 3 and mat.shape[1] != mat.shape[2]:
+        return [False] * mat.shape[0]

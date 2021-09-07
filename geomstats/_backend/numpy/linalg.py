@@ -75,3 +75,30 @@ def qr(*args, **kwargs):
     return np.vectorize(np.linalg.qr,
                         signature='(n,m)->(n,k),(k,m)',
                         excluded=['mode'])(*args, **kwargs)
+
+
+def _is_single_matrix_pd(mat):
+    """ Check if a two dimensional square matrix is 
+    positive definite
+    """
+    try:
+        ch = np.linalg.cholesky(mat)
+        return True
+    except np.linalg.LinAlgError as e:
+        if e.args[0] == 'Matrix is not positive definite':
+            return False
+        else:
+            raise e
+
+def is_pd(mat):
+    """Check if matrix is positive definite matrix
+    (doesn't check if its symmetric)
+    """
+    if mat.ndim == 2 and mat.shape[0] == mat.shape[1]:
+        return _is_single_matrix_pd(mat)
+    elif mat.ndim == 2 and mat.shape[0] != mat.shape[1]:
+        return False
+    elif mat.ndim == 3 and mat.shape[1] == mat.shape[2]:
+        return [_is_single_matrix_pd(m) for m in mat]
+    elif mat.ndim == 3 and mat.shape[1] != mat.shape[2]:
+        return [False] * mat.shape[0]

@@ -66,3 +66,31 @@ def solve_sylvester(a, b, q):
 
 def qr(x, mode='reduced'):
     return tf.linalg.qr(x, full_matrices=(mode == 'complete'))
+
+
+
+def _is_single_matrix_pd(mat):
+    """ Check if a two dimensional square matrix is 
+    positive definite
+    """
+    try:
+        ch = tf.linalg.cholesky(m)
+        return True
+    except tf.errors.InvalidArgumentError as e:
+        if "Cholesky decomposition was not successful" in e.meesage:
+            return False
+        else:
+            raise e
+
+def is_pd(mat):
+    """Check if matrix is positive definite matrix
+    (doesn't check if its symmetric)
+    """
+    if mat.ndim == 2 and mat.shape[0] == mat.shape[1]:
+        return _is_single_matrix_pd(mat)
+    elif mat.ndim == 2 and mat.shape[0] != mat.shape[1]:
+        return False
+    elif mat.ndim == 3 and mat.shape[1] == mat.shape[2]:
+        return [_is_single_matrix_pd(m) for m in mat]
+    elif mat.ndim == 3 and mat.shape[1] != mat.shape[2]:
+        return [False] * mat.shape[0]
