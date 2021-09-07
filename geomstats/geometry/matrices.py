@@ -205,10 +205,57 @@ class Matrices(VectorSpace):
         """
         is_square = cls.is_square(mat)
         if not is_square:
-            is_vectorized= (gs.ndim(gs.array(mat)) == 3)
+            is_vectorized = (gs.ndim(gs.array(mat)) == 3)
             return gs.array([False] * len(mat) ) if is_vectorized else False
         return cls.equal(mat, gs.triu(mat), atol)
     
+
+    @classmethod
+    def is_strictly_lower_triangular(cls, mat, atol = gs.atol):
+        """Check if a matrix is strictly lower triangular
+        
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix
+        atol : float
+            Absolute tolerance.
+            Optional, default : backend atol.
+
+        Returns
+        -------
+        is_strictly_tril : array-like, shape=[...,]
+            Boolean evaluating if the matrix is strictly lower triangular
+        """
+        is_square = cls.is_square(mat)
+        if not is_square:
+            is_vectorized = (gs.ndim(gs.array(mat)) == 3)
+            return gs.array([False] * len(mat)) if is_vectorized else False
+        return cls.equal(mat, gs.tril(mat, k=-1), atol)
+
+
+    @classmethod
+    def is_strictly_upper_triangular(cls, mat, atol = gs.atol):
+        """Check if a matrix is strictly upper triangular
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix
+        atol : float
+            Absolute tolerance
+            Optional, defualt : backend atol
+
+        Returns
+        ------
+        is_strictly_triu : array-like, shape=[...,]
+            Boolean evaluting if the matirx is strictly upper triangular 
+        """
+        is_square = cls.is_square(mat)
+        if not is_square:
+            is_vectorized = (gs.ndim(gs.array(mat)) == 3)
+            return gs.array([False] * len(mat)) if is_vectorized else False
+        return cls.equal(mat, gs.triu(mat, k=1))
     
     @classmethod
     def is_symmetric(cls, mat, atol=gs.atol):
@@ -271,7 +318,7 @@ class Matrices(VectorSpace):
             Lower  triangular matrix 
         """
         return gs.tril(mat)
-        
+
     @classmethod
     def to_upper_triangular(cls, mat):
         """Make a matrix upper triangular, by zeroing out lower elements

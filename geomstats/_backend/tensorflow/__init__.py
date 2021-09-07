@@ -759,7 +759,7 @@ def tril(mat, k=0):
     return tf.matrix_set_diag(mat, zero_diag)
 
 
-    
+# (sait) use tf.experimental.triu once it becomes stable    
 def triu(mat, k=0):
     if k != 0 and k!=1:
         raise NotImplementedError("Only k=0 and k=1 supported so far")
