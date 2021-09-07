@@ -333,6 +333,39 @@ class Matrices(VectorSpace):
         triu : array-like, shape=[..., n, n]
         """
         return gs.triu(mat)
+    
+    @classmethod
+    def to_strictly_lower_triangular(cls, mat):
+        """Make a matrix strictly lower triangular, by zeroing out 
+        upper+diag elements
+
+        Parameters
+        ----------
+        mat : array-like, shape = [..., n, n]
+            Matrix
+
+        Returns
+        -------
+        tril : array-like, shape=[..., n, n]
+            Lower  triangular matrix 
+        """
+        return gs.tril(mat, k=-1)
+
+    @classmethod
+    def to_strictly_upper_triangular(cls, mat):
+        """Make a matrix stritcly upper triangular, by zeroing out 
+        lower+diag elements
+
+        Parameters
+        ---------
+        mat : array-like, shape=[..., n, n]
+            Matrix
+        
+        Returns
+        -------
+        triu : array-like, shape=[..., n, n]
+        """
+        return gs.triu(mat, k=1)
 
     @classmethod
     def to_symmetric(cls, mat):
