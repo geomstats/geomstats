@@ -9,8 +9,9 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
+from geomstats.geometry.lie_group import MatrixLieGroup
 
-class Cholesky(OpenSet):
+class Cholesky(MatrixLieGroup, OpenSet):
     """Class for the manifold of lower triangular matrices with positive diagonal elements.
 
     Parameters
