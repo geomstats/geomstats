@@ -478,6 +478,12 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
     #     Check that the time derivative of the geodesic is
     #     horizontal at all time.
     #     """
-    #     horizontal_geod = self.quotient_srv_metric_r3.\
+    #     horizontal_geod_fun = self.quotient_srv_metric_r3.\
     #         horizontal_geodesic(self.curve_a, self.curve_b)
-    #     vertical_norm =
+    #     n_times = 20
+    #     times = gs.linspace(0., 1., n_times)
+    #     horizontal_geod = horizontal_geod_fun(times)
+    #     velocity_vec = n_times * (
+    #         horizontal_geod[1:] - horizontal_geod[:-1])
+    #     _, _, vertical_norm = self.quotient_srv_metric_r3.\
+    #         split_horizontal_vertical(velocity_vec[
