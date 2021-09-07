@@ -120,6 +120,7 @@ BACKEND_ATTRIBUTES = {
         'triu_to_vec',
         'vec_to_tril',
         'vec_to_triu',
+        'vec_to_diag',
         'vectorize',
         'vstack',
         'where',

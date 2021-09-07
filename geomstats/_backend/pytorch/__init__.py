@@ -779,6 +779,20 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
     return stack(list(map(pyfunc, x)))
 
 
+
+def vec_to_triu(vec, k=0):
+    """
+    """
+
+def vec_to_tril(vec, k=0):
+    """
+    """
+
+def vec_to_diag(vec):
+    """ convert vector to diagonal matrix 
+    """
+    np.diag(vec)
+
 def tril_to_vec(x, k=0):
     n = x.shape[-1]
     rows, cols = tril_indices(n, k=k)

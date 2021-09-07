@@ -164,6 +164,31 @@ class Matrices(VectorSpace):
         return m == n
 
     @classmethod
+    def is_diagonal(cls, mat, atol=gs.atol):
+        """Check if a matrix is square and diagonal.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_diagonal : array-like, shape=[...,]
+            Boolean evaluating if the matrix is square and diagonal.
+        """
+        is_square = cls.is_square(mat)
+        if not gs.all(is_square):
+            return False
+        diagonal_mat = from_vector_to_diagonal_matrix(cls.diagonal(mat))
+        is_diagonal = gs.all(
+            gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
+        return is_diagonal
+
+    @classmethod
     def is_lower_triangular(cls, mat, atol = gs.atol):
         """Check if a matrix is lower triangular
         
@@ -400,30 +425,7 @@ class Matrices(VectorSpace):
         """
         return 1 / 2 * (mat - cls.transpose(mat))
 
-    @classmethod
-    def is_diagonal(cls, mat, atol=gs.atol):
-        """Check if a matrix is square and diagonal.
-
-        Parameters
-        ----------
-        mat : array-like, shape=[..., n, n]
-            Matrix.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_diagonal : array-like, shape=[...,]
-            Boolean evaluating if the matrix is square and diagonal.
-        """
-        is_square = cls.is_square(mat)
-        if not gs.all(is_square):
-            return False
-        diagonal_mat = from_vector_to_diagonal_matrix(cls.diagonal(mat))
-        is_diagonal = gs.all(
-            gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
-        return is_diagonal
+  
 
     def random_point(self, n_samples=1, bound=1.):
         """Sample from a uniform distribution in a cube.

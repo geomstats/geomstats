@@ -17,7 +17,7 @@ det = torch.det
 
 
 def cholesky(a):
-    return torch.cholesky(a, upper=False)
+    return torch.linalg.cholesky(a, upper=False)
 
 
 def sqrtm(x):

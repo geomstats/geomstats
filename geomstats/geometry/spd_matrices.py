@@ -382,6 +382,23 @@ class SPDMatrices(OpenSet):
     from_vector = SymmetricMatrices.__dict__['from_vector']
     to_vector = SymmetricMatrices.__dict__['to_vector']
 
+    @classmethod
+    def cholesky_factor(cls, mat):
+        """
+        Compute the cholesky_factor for a symmetric positive definite matrix
+
+        Parameters
+        ----------
+        mat : array_like, shape=[..., n, n]
+            Symmetric matrix.
+
+        Returns
+        -------
+        log : array_like, shape=[..., n, n]
+            Matrix logarithm of mat.
+        """
+
+        return gs.linalg.cholesky(mat)
 
 class SPDMetricAffine(RiemannianMetric):
     """Class for the affine-invariant metric on the SPD manifold."""

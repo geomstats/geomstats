@@ -70,7 +70,7 @@ class LowerTriangularMatrices(VectorSpace):
         mat : array-like, shape=[..., n, n]
             Lower triangular matrix.
         """
-        return gs.vec_to_triu(vec)
+        return gs.vec_to_tril(vec)
 
     @staticmethod    
     def to_vector(mat):
@@ -105,7 +105,7 @@ class LowerTriangularMatrices(VectorSpace):
         return Matrices.to_lower_triangular(point)
 
     def random_point(self, n_samples=1, bound=1.):
-        """Sample a symmetric matrix with a uniform distribution in a box.
+        """Sample a lower triangular matrix with a uniform distribution in a box.
 
         Parameters
         ----------
