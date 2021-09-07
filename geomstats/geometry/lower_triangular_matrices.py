@@ -53,6 +53,42 @@ class LowerTriangularMatrices(VectorSpace):
             return gs.logical_and(belongs, is_lower_triangular)
         return belongs
 
+    @staticmethod
+    def from_vector(vec):
+        """Convert a vector into a lower triangular matrices.
+
+        Parameters
+        ----------
+        vec : array-like, shape=[..., n(n+1)/2]
+            Vector.
+        dtype : dtype, {gs.float32, gs.float64}
+            Data type object to use for the output.
+            Optional. Default: gs.float32.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., n, n]
+            Lower triangular matrix.
+        """
+        return gs.vec_to_triu(vec)
+
+    @staticmethod    
+    def to_vector(mat):
+        """Convert a lower triangular matrix into a vector
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        vec : array-like, shape=[..., n(n+1)/2]
+            Vector.
+        """
+        return gs.tril_to_vec(mat)
+
+
     def projection(self, point):
         """Make a matrix symmetric, by averaging with its transpose.
 
