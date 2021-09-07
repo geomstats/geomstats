@@ -748,11 +748,27 @@ def cumprod(a, axis=None):
     return tf.math.cumprod(a, axis=axis)
 
 
-def tril(m, k=0):
-    if k != 0:
-        raise NotImplementedError("Only k=0 supported so far")
-    return tf.linalg.band_part(m, -1, 0)
+# (sait) there is tf.experimental.tril (we can use it once it moves to stable) 
+def tril(mat, k=0):
+    if k != 0 and k!=-1:
+        raise NotImplementedError("Only k=0 and k=-1 supported so far")
+    tril = tf.linalg.band_part(mat, -1, 0)
+    if k == 0:
+        return tril  
+    zero_diag = tf.broadcast_to(tf.constant[0.0], mat.shape[:-1])
+    return tf.matrix_set_diag(mat, zero_diag)
 
+
+    
+def triu(mat, k=0):
+    if k != 0 and k!=1:
+        raise NotImplementedError("Only k=0 and k=1 supported so far")
+    tril = tf.linalg.band_part(mat, 0, -1)
+    if k == 0:
+        return tril  
+    zero_diag = tf.broadcast_to(tf.constant[0.0], mat.shape[:-1])
+    return tf.matrix_set_diag(mat, zero_diag)
+    
 
 def diag_indices(*args, **kwargs):
     return tuple(map(tf.convert_to_tensor, _np.diag_indices(*args, **kwargs)))
@@ -872,3 +888,15 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     triu_tril_mat = triu_mat + tril_mat
     mat = tf.linalg.set_diag(triu_tril_mat, diag)
     return mat
+
+def _ravel_multi_index(multi_index, shape):
+    strides = tf.math.cumpord(shape, exclusive= True, reverse = True)
+    return tf.reduce_sum(multi_index * tf.expand_dims(strides, 1) , axis=0)
+
+def ravel_tril_indices(n, k=0, m=None):
+    if m is None:
+        size = (n, n)
+    else :
+        size = (n, m)
+    idxs = tril_indices(n,k,m)
+    return _ravel_multi_index(idxs, size)

@@ -61,7 +61,6 @@ from torch import (  # NOQA
     std,
     tan,
     tanh,
-    tril,
     uint8,
     vstack,
     zeros,
@@ -506,6 +505,12 @@ def diag_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
 
 
+def tril(mat, k=0):
+    return torch.tril(mat, diagonal=k)
+
+def triu(mat, k=0):
+    return torch.triu(mat, diagonal=k)
+
 def tril_indices(n, k=0, m=None):
     if m is None:
         m = n
@@ -804,3 +809,12 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
     return mat
+
+def ravel_tril_indices(n, k=0, m=None):
+    if m is None:
+        size = (n, n)
+    else :
+        size = (n, m)
+    idxs = _np.tril_indices(n, k, m)
+    return torch.from_numpy(_np.ravel_multi_index(idxs, size))
+

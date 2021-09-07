@@ -164,6 +164,53 @@ class Matrices(VectorSpace):
         return m == n
 
     @classmethod
+    def is_lower_triangular(cls, mat, atol = gs.atol):
+        """Check if a matrix is lower triangular
+        
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix
+        atol : float
+            Absolute tolerance.
+            Optional, default : backend atol.
+
+        Returns
+        -------
+        is_tril : array-like, shape=[...,]
+            Boolean evaluating if the matrix is lower triangular
+        """
+        is_square = cls.is_square(mat)
+        if not is_square:
+            is_vectorized = (gs.ndim(gs.array(mat)) == 3)
+            return gs.array([False] * len(mat)) if is_vectorized else False
+        return cls.equal(mat, gs.tril(mat), atol)
+    
+    @classmethod
+    def is_upper_triangular(cls, mat, atol = gs.atol):
+        """Check if a matrix is upper triangular
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix
+        atol : float
+            Absolute tolerance
+            Optional, default : backend atol
+
+        Returns
+        -------
+        is_triu : array-like, shape=[...,]
+            Boolean evaluating if the matrix is upper triangular
+        """
+        is_square = cls.is_square(mat)
+        if not is_square:
+            is_vectorized= (gs.ndim(gs.array(mat)) == 3)
+            return gs.array([False] * len(mat) ) if is_vectorized else False
+        return cls.equal(mat, gs.triu(mat), atol)
+    
+    
+    @classmethod
     def is_symmetric(cls, mat, atol=gs.atol):
         """Check if a matrix is symmetric.
 
@@ -208,6 +255,37 @@ class Matrices(VectorSpace):
             is_vectorized = (gs.ndim(gs.array(mat)) == 3)
             return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, - cls.transpose(mat), atol)
+
+    @classmethod
+    def to_lower_triangular(cls, mat):
+        """Make a matrix lower triangular, by zeroing out upper elements
+
+        Parameters
+        ----------
+        mat : array-like, shape = [..., n, n]
+            Matrix
+
+        Returns
+        -------
+        tril : array-like, shape=[..., n, n]
+            Lower  triangular matrix 
+        """
+        return gs.tril(mat)
+        
+    @classmethod
+    def to_upper_triangular(cls, mat):
+        """Make a matrix upper triangular, by zeroing out lower elements
+
+        Parameters
+        ---------
+        mat : array-like, shape=[..., n, n]
+            Matrix
+        
+        Returns
+        -------
+        triu : array-like, shape=[..., n, n]
+        """
+        return gs.triu(mat)
 
     @classmethod
     def to_symmetric(cls, mat):

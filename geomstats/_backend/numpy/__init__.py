@@ -87,6 +87,8 @@ from numpy import (  # NOQA
     tile,
     trace,
     transpose,
+    tril,
+    triu,
     triu_indices,
     tril_indices,
     searchsorted,
@@ -408,3 +410,12 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
     return mat
+
+def ravel_tril_indices(n, k =0, m=None):
+    "compute raveled lower triangular indices"
+    if m is None:
+        size = (n, n)
+    else :
+        size = (n, m)
+    idxs = np.tril_indices(n, k, m)
+    return np.ravel_multi_index(idxs, size)
