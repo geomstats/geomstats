@@ -3,7 +3,6 @@
 import math
 
 import geomstats.backend as gs
-import geomstats.vectorization
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
@@ -23,7 +22,7 @@ class Cholesky(OpenSet):
     def __init__(self, n, **kwargs):
         super(Cholesky, self).__init__(
             dim=int(n * (n + 1) / 2),
-            metric=(n),
+            metric=(CholeskyMetric),
             ambient_space=LowerTriangularMatrices(n), **kwargs)
         self.n = n
 
@@ -174,5 +173,64 @@ class CholeskyMetric(RiemannianMetric):
         strictly_lower_inner_product = self.strictly_lower_inner_product(
             tangent_vec_a, tangent_vec_b, base_point)
         return diag_inner_product + strictly_lower_inner_product
+
+    
+    def exp(self, tangent_vec, base_point, **kwargs):
+        """Compute the Cholesky exponential map.
+
+        Compute the Riemannian exponential at point base_point
+        of tangent vector tangent_vec wrt the Cholesky metric.
+        This gives a lower triangular matrix with positive elements.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., n, n]
+            Riemannian exponential.
+        """
+        sl_base_point = Matrices.to_strictly_lower_triangular(base_point)
+        sl_tangent_vec = Matrices.to_strictly_lower_triangular(tangent_vec)
+        diag_base_point = Matrices.to_diagonal(base_point)
+        diag_tangent_vec = Matrices.to_diagonal(tangent_vec)
+
+        sl_exp = 
+        diag_exp =
+        exp = sl_exp + diag_exp
+        return exp
+
+    def log(self, point, base_point, **kwargs):
+        """Compute the Cholesky logarithm map.
+
+        Compute the Riemannian logarithm at point base_point,
+        of point wrt the Cholesky metric.
+        This gives a tangent vector at point base_point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        log : array-like, shape=[..., n, n]
+            Riemannian logarithm.
+        """
+        sl_base_point = Matrices.to_strictly_lower_triangular(base_point)
+        sl_tangent_vec = Matrices.to_strictly_lower_triangular(tangent_vec)
+        diag_base_point = Matrices.to_diagonal(base_point)
+        diag_tangent_vec = Matrices.to_diagonal(tangent_vec)
+
+        sl_log = 
+        diag_log =
+        log = sl_log + diag_log
+        return log
 
      
