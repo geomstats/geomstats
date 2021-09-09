@@ -71,15 +71,62 @@ class Cholesky(OpenSet):
         projection = diag + strictly_lower_triangular
         return projection
 
-    def gram_matrix(self, point):
+    def gram(self, point):
         """Compute gram matrix of rows  
 
         Gram_matrix is mapping from point to point.point^{T}. 
         This is diffeomorphism between cholesky space and spd manifold
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Matrix to project.
+
+        Returns
+        -------
+        projected: array-like, shape=[..., n, n]
+            SPD matrix.
         """
 
     @classmethod
-    def differential_gram(cls, point):
+    def differential_gram(cls, tanget_vec, point):
+        """Compute gram matrix of rows  
+
+        Gram_matrix is mapping from point to point.point^{T}. 
+        This is diffeomorphism between cholesky space and spd manifold
+
+        Parameters
+        ----------
+        tangent_vec : array_like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array_like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        differential_exp : array-like, shape=[..., n, n]
+            Differential of the matrix exponential.
+        """
+
+    @classmethod
+    def inverse_differential_gram(cls, tanget_vec, point):
+        """Compute gram matrix of rows  
+
+        Gram_matrix is mapping from point to point.point^{T}. 
+        This is diffeomorphism between cholesky space and spd manifold
+
+        Parameters
+        ----------
+        tangent_vec : array_like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array_like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        inverse_differential_exp : array-like, shape=[..., n, n]
+            Inverse of the differential of the matrix exponential.
+        """
 
 
 
