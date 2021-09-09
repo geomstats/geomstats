@@ -96,8 +96,7 @@ def from_vector_to_diagonal_matrix(vector, num_diag=0):
     identity = gs.eye(num_columns)
     identity = gs.cast(identity, vector.dtype)
     diagonals = gs.einsum('...i,ij->...ij', vector, identity)
-    vector = gs.to_ndarray(vector, to_ndim=3)
-    num_lines = gs.shape(vector)[-2]
+    num_lines = 1 if gs.ndim(vector) == 1 else gs.shape(vector)[-2]
     if num_diag > 0:
         left_zeros = gs.zeros((num_lines, num_columns, num_diag))
         lower_zeros = gs.zeros((num_lines, num_diag, num_columns + num_diag))
