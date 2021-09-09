@@ -71,9 +71,16 @@ class Cholesky(OpenSet):
         projection = diag + strictly_lower_triangular
         return projection
 
-    def to_spd(self, point):
-        """convert a element in cholesky space to  
+    def gram_matrix(self, point):
+        """Compute gram matrix of rows  
+
+        Gram_matrix is mapping from point to point.point^{T}. 
+        This is diffeomorphism between cholesky space and spd manifold
         """
+
+    @classmethod
+    def differential_gram(cls, point):
+
 
 
 class CholeskyMetric(RiemannianMetric):
