@@ -92,11 +92,12 @@ def from_vector_to_diagonal_matrix(vector, num_diag=0):
         3-dimensional array where the `i`-th n-by-n array `diagonals[i, :, :]`
         is a diagonal matrix containing the `i`-th row of `vector`.
     """
-    num_lines = gs.shape(vector)[-2]
     num_columns = gs.shape(vector)[-1]
     identity = gs.eye(num_columns)
     identity = gs.cast(identity, vector.dtype)
     diagonals = gs.einsum('...i,ij->...ij', vector, identity)
+    vector = gs.to_ndarray(vector, to_ndim=3)
+    num_lines = gs.shape(vector)[-2]
     if num_diag > 0:
         left_zeros = gs.zeros((num_lines, num_columns, num_diag))
         lower_zeros = gs.zeros((num_lines, num_diag, num_columns + num_diag))
@@ -108,7 +109,7 @@ def from_vector_to_diagonal_matrix(vector, num_diag=0):
         upper_zeros = gs.zeros((num_lines, num_diag, num_columns + num_diag))
         diagonals = gs.concatenate((diagonals, right_zeros), axis=2)
         diagonals = gs.concatenate((upper_zeros, diagonals), axis=1)
-    return diagonals
+    return gs.squeeze(diagonals)
 
 
 def taylor_exp_even_func(
