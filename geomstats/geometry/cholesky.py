@@ -80,16 +80,17 @@ class Cholesky(OpenSet):
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
-            Matrix to project.
+            element in cholesky space
 
         Returns
         -------
         projected: array-like, shape=[..., n, n]
             SPD matrix.
         """
+        return gs.einsum("...ij,...kj->...ik", point, point)
 
     @classmethod
-    def differential_gram(cls, tanget_vec, point):
+    def differential_gram(cls, tanget_vec, base_point):
         """Compute gram matrix of rows  
 
         Gram_matrix is mapping from point to point.point^{T}. 
@@ -104,12 +105,15 @@ class Cholesky(OpenSet):
 
         Returns
         -------
-        differential_exp : array-like, shape=[..., n, n]
+        differential_gram : array-like, shape=[..., n, n]
             Differential of the matrix exponential.
         """
+        mat1 = gs.einsum("...ij,...kj->...ik", tanget_vec, base_point)
+        mat2 = gs.einsum("...ij,...kj->...ik", base_point, tanget_vec)
+        return mat1+mat2
 
     @classmethod
-    def inverse_differential_gram(cls, tanget_vec, point):
+    def inverse_differential_gram(cls, tanget_vec, base_point):
         """Compute gram matrix of rows  
 
         Gram_matrix is mapping from point to point.point^{T}. 
@@ -124,10 +128,18 @@ class Cholesky(OpenSet):
 
         Returns
         -------
-        inverse_differential_exp : array-like, shape=[..., n, n]
-            Inverse of the differential of the matrix exponential.
+        inverse_differential_gram : array-like, shape=[..., n, n]
+            Inverse of the differential of gram.
         """
-
+        inv_base_point = gs.linalg.inv(base_point) 
+        inv_tranpose_base_point = Matrices.transpose(inv_base_point)
+        aux1 = gs.einsum("...ij,...jk,...kl->...il",
+         inv_base_point, tanget_vec, inv_tranpose_base_point )
+        aux2 = Matrices.to_strictly_lower_triangular(aux1)
+        aux3 = 0.5 * Matrices.to_diagonal(aux1) 
+        aux4 = aux2+aux3
+        inverse_differential_gram = Matrices.mul(base_point, aux4)
+        return inverse_differential_gram
 
 
 class CholeskyMetric(RiemannianMetric):
