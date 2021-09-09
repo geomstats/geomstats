@@ -51,6 +51,12 @@ class TestAlgebraUtils(geomstats.tests.TestCase):
         self.assertAllClose(result[0], end_point)
 
     def test_from_vector_to_diagonal_matrix(self):
+        vec = gs.array([1., 2., 3.])
+        mat_diag = utils.from_vector_to_diagonal_matrix(vec, -1)
+        result = mat_diag.shape
+        expected = (4, 4)
+        self.assertAllClose(result, expected)
+
         vec = gs.array([[1., 2., 3.], [4., 5., 6.]])
         mat_diag = utils.from_vector_to_diagonal_matrix(vec, 0)
         expected = gs.array([
