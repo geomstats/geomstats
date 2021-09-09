@@ -71,6 +71,10 @@ class Cholesky(OpenSet):
         projection = diag + strictly_lower_triangular
         return projection
 
+    def to_spd(self, point):
+        """convert a element in cholesky space to  
+        """
+
 
 class CholeskyMetric(RiemannianMetric):
     """Class for the cholesky metric on the cholesky space."""
@@ -224,13 +228,31 @@ class CholeskyMetric(RiemannianMetric):
             Riemannian logarithm.
         """
         sl_base_point = Matrices.to_strictly_lower_triangular(base_point)
-        sl_tangent_vec = Matrices.to_strictly_lower_triangular(tangent_vec)
+        sl_point = Matrices.to_strictly_lower_triangular(point)
         diag_base_point = Matrices.to_diagonal(base_point)
-        diag_tangent_vec = Matrices.to_diagonal(tangent_vec)
+        diag_point = Matrices.to_diagonal(point)
 
         sl_log = 
         diag_log =
         log = sl_log + diag_log
         return log
 
+    def squared_dist(self, point_a, point_b, **kwargs):
+        """Compute the Bures-Wasserstein squared distance.
+
+        Compute the Riemannian squared distance between point_a and point_b.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., n, n]
+            Point.
+        point_b : array-like, shape=[..., n, n]
+            Point.
+
+        Returns
+        -------
+        squared_dist : array-like, shape=[...]
+            Riemannian squared distance.
+        """
+        
      

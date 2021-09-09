@@ -90,7 +90,7 @@ class LowerTriangularMatrices(VectorSpace):
 
 
     def projection(self, point):
-        """Make a matrix symmetric, by averaging with its transpose.
+        """Make a square matrix lower triangular 
 
         Parameters
         ----------
@@ -103,6 +103,7 @@ class LowerTriangularMatrices(VectorSpace):
             Symmetric matrix.
         """
         return Matrices.to_lower_triangular(point)
+
 
     def random_point(self, n_samples=1, bound=1.):
         """Sample a lower triangular matrix with a uniform distribution in a box.

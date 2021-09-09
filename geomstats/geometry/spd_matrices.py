@@ -400,6 +400,33 @@ class SPDMatrices(OpenSet):
 
         return gs.linalg.cholesky(mat)
 
+
+    @classmethod
+    def differential_cholesky_factor(cls, tangent_vec, base_point):
+        """Compute the differential of the cholesky factor map.
+
+        Computes the differential of the cholesky factor on SPD
+        matrices at base_point applied to tangent_vec.
+
+        Parameters
+        ----------
+        tangent_vec : array_like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array_like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        differential_cf : array-like, shape=[..., n, n]
+            Differential of the cholesky factor.
+        """
+        cf = cls.cholesky_factor(base_point)
+        inv_cf = gs.linalg.inv(cf)
+        inv_cf_transpose = inv_cf.
+        differential_cf = 
+        return differential_cf 
+
+
 class SPDMetricAffine(RiemannianMetric):
     """Class for the affine-invariant metric on the SPD manifold."""
 
