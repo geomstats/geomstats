@@ -49,3 +49,27 @@ class TestAlgebraUtils(geomstats.tests.TestCase):
         points = gs.concatenate([north_pole[None, :], points])
         result = utils.rotate_points(points, end_point)
         self.assertAllClose(result[0], end_point)
+
+    def test_from_vector_to_diagonal_matrix(self):
+        vec = gs.array([[1., 2., 3.], [4., 5., 6.]])
+        mat_diag = utils.from_vector_to_diagonal_matrix(vec, 0)
+        expected = gs.array([
+            [[1., 0., 0.], [0., 2., 0.], [0., 0., 3.]],
+            [[4., 0., 0.], [0., 5., 0.], [0., 0., 6.]]])
+        self.assertAllClose(mat_diag, expected)
+
+        mat_plus = utils.from_vector_to_diagonal_matrix(vec, 1)
+        expected = gs.array([
+            [[0., 1., 0., 0.], [0., 0., 2., 0.],
+             [0., 0., 0., 3.], [0., 0., 0., 0.]],
+            [[0., 4., 0., 0.], [0., 0., 5., 0.],
+             [0., 0., 0., 6.], [0., 0., 0., 0.]]])
+        self.assertAllClose(mat_plus, expected)
+
+        mat_minus = utils.from_vector_to_diagonal_matrix(vec, - 1)
+        expected = gs.array([
+            [[0., 0., 0., 0.], [1., 0., 0., 0.],
+             [0., 2., 0., 0.], [0., 0., 3., 0.]],
+            [[0., 0., 0., 0.], [4., 0., 0., 0.],
+             [0., 5., 0., 0.], [0., 0., 6., 0.]]])
+        self.assertAllClose(mat_minus, expected)
