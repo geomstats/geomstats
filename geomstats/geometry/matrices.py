@@ -329,6 +329,22 @@ class Matrices(VectorSpace):
         return cls.equal(mat, - cls.transpose(mat), atol)
 
     @classmethod
+    def to_diagonal(cls, mat):
+        """ Make a matrix diagonal, by zeroing out non diagonal elements
+
+        Parameters
+        ----------
+        mat : array-like, shape = [..., n, n]
+            Matrix
+        
+        Returns
+        -------
+        diag : array-like, shape=[..., n, n]
+        """
+        return cls.to_strictly_upper_triangular(
+            cls.to_strictly_lower_triangular(mat))
+
+    @classmethod
     def to_lower_triangular(cls, mat):
         """Make a matrix lower triangular, by zeroing out upper elements
 
@@ -468,7 +484,8 @@ class Matrices(VectorSpace):
             Result of the congruent action.
         """
         return cls.mul(mat_2, mat_1, cls.transpose(mat_2))
-
+    
+ 
     @staticmethod
     def frobenius_product(mat_1, mat_2):
         """Compute Frobenius inner-product of two matrices.
