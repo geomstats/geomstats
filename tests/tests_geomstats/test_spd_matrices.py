@@ -459,8 +459,6 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
         point_1 = self.space.random_point(n_samples=1)
         point_2 = self.space.random_point(n_samples=1)
-        point_1 = gs.cast(point_1, gs.float64)
-        point_2 = gs.cast(point_2, gs.float64)
 
         metric = self.metric_affine
 
@@ -470,7 +468,6 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
         point_2 = self.space.random_point(n_samples=n_samples)
-        point_2 = gs.cast(point_2, gs.float64)
 
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
@@ -478,8 +475,6 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
         point_1 = self.space.random_point(n_samples=n_samples)
         point_2 = self.space.random_point(n_samples=1)
-        point_1 = gs.cast(point_1, gs.float64)
-        point_2 = gs.cast(point_2, gs.float64)
 
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
@@ -531,10 +526,6 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         tan_a = self.space.random_tangent_vec(n_samples, point)
         tan_b = self.space.random_tangent_vec(n_samples, point)
 
-        point = gs.cast(point, gs.float64)
-        tan_a = gs.cast(tan_a, gs.float64)
-        tan_b = gs.cast(tan_b, gs.float64)
-
         metric = self.metric_affine
         expected = metric.norm(tan_a, point)
         end_point = metric.exp(tan_b, point)
@@ -567,9 +558,6 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         point_b = gs.array([[9., 0., 0.],
                             [0., 5., 0.],
                             [0., 0., 1.]])
-
-        point_a = gs.cast(point_a, gs.float64)
-        point_b = gs.cast(point_b, gs.float64)
 
         metric = self.metric_bureswasserstein
         result = metric.squared_dist(point_a, point_b)

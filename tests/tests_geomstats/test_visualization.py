@@ -172,4 +172,4 @@ class TestVisualization(geomstats.tests.TestCase):
         points = SpecialEuclidean(n=2, point_type='vector').random_point(4)
         visu = visualization.SpecialEuclidean2(points, point_type='vector')
         ax = visu.set_ax()
-        visu.draw(ax)
+        visu.draw_points(ax)

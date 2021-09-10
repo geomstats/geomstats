@@ -353,6 +353,63 @@ class Matrices(VectorSpace):
         return gs.einsum(
             '...ij,...ji->...', mat_1, mat_2)
 
+    def flatten(self, mat):
+        """Return a flattened form of the matrix.
+
+        Flatten a matrix (compatible with vectorization on data axis 0).
+        The reverse operation is reshape. These operations are often called
+        matrix vectorization / matricization in mathematics
+        (https://en.wikipedia.org/wiki/Tensor_reshaping).
+        The names flatten / reshape were chosen to avoid  confusion with
+        vectorization on data axis 0.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., m, n]
+            Matrix.
+
+        Returns
+        -------
+        vec : array-like, shape=[..., m * n]
+            Flatten copy of mat.
+        """
+        is_data_vectorized = (gs.ndim(gs.array(mat)) == 3)
+        shape = (mat.shape[0], self.m * self.n) if is_data_vectorized \
+            else (self.m * self.n,)
+        return gs.reshape(mat, shape)
+
+    def reshape(self, vec):
+        """Return a matricized form of the vector.
+
+        Matricize a vector (compatible with vectorization on data axis 0).
+        The reverse operation is matrices.flatten. These operations are often
+        called matrix vectorization / matricization in mathematics
+        (https://en.wikipedia.org/wiki/Tensor_reshaping).
+        The names flatten / reshape were chosen to avoid  confusion with
+        vectorization on data axis 0.
+
+        Parameters
+        ----------
+        vec : array-like, shape=[..., m * n]
+            Vector.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., m, n]
+            Matricized copy of vec.
+        """
+        is_data_vectorized_on_axis_0 = (gs.ndim(gs.array(vec)) == 2)
+        if is_data_vectorized_on_axis_0:
+            vector_size = vec.shape[1]
+            shape = (vec.shape[0], self.m, self.n)
+        else:
+            vector_size = vec.shape[0]
+            shape = (self.m, self.n,)
+
+        if vector_size != self.m * self.n:
+            raise ValueError('Incompatible vector and matrix sizes')
+        return gs.reshape(vec, shape)
+
 
 class MatricesMetric(EuclideanMetric):
     """Euclidean metric on matrices given by Frobenius inner-product.

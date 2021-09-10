@@ -73,12 +73,18 @@ arctanh_card_close_0 = {
     'coefficients': ARCTANH_CARD_TAYLOR_COEFFS}
 
 
-def from_vector_to_diagonal_matrix(vector):
+def from_vector_to_diagonal_matrix(vector, num_diag=0):
     """Create diagonal matrices from rows of a matrix.
 
     Parameters
     ----------
     vector : array-like, shape=[m, n]
+    num_diag : int
+        number of diagonal in result matrix. If 0, the result matrix is a
+        diagonal matrix; if positive, the result matrix has an upper-right
+        non-zero diagonal; if negative, the result matrix has a lower-left
+        non-zero diagonal.
+        Optional, Default: 0.
 
     Returns
     -------
@@ -90,7 +96,20 @@ def from_vector_to_diagonal_matrix(vector):
     identity = gs.eye(num_columns)
     identity = gs.cast(identity, vector.dtype)
     diagonals = gs.einsum('...i,ij->...ij', vector, identity)
-    return diagonals
+    diagonals = gs.to_ndarray(diagonals, to_ndim=3)
+    num_lines = diagonals.shape[0]
+    if num_diag > 0:
+        left_zeros = gs.zeros((num_lines, num_columns, num_diag))
+        lower_zeros = gs.zeros((num_lines, num_diag, num_columns + num_diag))
+        diagonals = gs.concatenate((left_zeros, diagonals), axis=2)
+        diagonals = gs.concatenate((diagonals, lower_zeros), axis=1)
+    elif num_diag < 0:
+        num_diag = gs.abs(num_diag)
+        right_zeros = gs.zeros((num_lines, num_columns, num_diag))
+        upper_zeros = gs.zeros((num_lines, num_diag, num_columns + num_diag))
+        diagonals = gs.concatenate((diagonals, right_zeros), axis=2)
+        diagonals = gs.concatenate((upper_zeros, diagonals), axis=1)
+    return gs.squeeze(diagonals) if gs.ndim(vector) == 1 else diagonals
 
 
 def taylor_exp_even_func(

@@ -369,9 +369,9 @@ class _Hypersphere(EmbeddedManifold):
                 \exp \Big \left(- \frac{\lambda}{2} \mathtm{arccos}^2(x^T\mu)
                 \Big \right)
 
-        where :math: `\mu` is the mean and :math: `\lambda` is the isotropic
+        where :math:`\mu` is the mean and :math:`\lambda` is the isotropic
         precision. For the anisotropic case,
-        :math: `\log_{\mu}(x)^T \Lambda \log_{\mu}(x)` is used instead.
+        :math:`\log_{\mu}(x)^T \Lambda \log_{\mu}(x)` is used instead.
 
         A rejection algorithm is used to sample from this distribution [Hau18]_
 
@@ -530,7 +530,7 @@ class HypersphereMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -613,7 +613,7 @@ class HypersphereMetric(RiemannianMetric):
 
         return dist
 
-    def squared_dist(self, point_a, point_b):
+    def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.
 
         Parameters
@@ -630,11 +630,11 @@ class HypersphereMetric(RiemannianMetric):
         return self.dist(point_a, point_b) ** 2
 
     @staticmethod
-    def parallel_transport(tangent_vec_a, tangent_vec_b, base_point):
+    def parallel_transport(tangent_vec_a, tangent_vec_b, base_point, **kwargs):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
+        along the geodesic defined by :math:`t \mapsto exp_(base_point)(t*
         tangent_vec_b)`.
 
         Parameters
@@ -707,13 +707,13 @@ class HypersphereMetric(RiemannianMetric):
             base_point):
         r"""Compute the curvature.
 
-        For three tangent vectors at a base point :math: `x,y,z`,
+        For three tangent vectors at a base point :math:`x,y,z`,
         the curvature is defined by
-        :math: `R(x, y)z = \nabla_{[x,y]}z
-        - \nabla_z\nabla_y z + \nabla_y\nabla_x z`, where :math: `\nabla`
+        :math:`R(x, y)z = \nabla_{[x,y]}z
+        - \nabla_z\nabla_y z + \nabla_y\nabla_x z`, where :math:`\nabla`
         is the Levi-Civita connection. In the case of the hypersphere,
         we have the closed formula
-        :math: `R(x,y)z = \langle x, z \rangle y - \langle y,z \rangle x`.
+        :math:`R(x,y)z = \langle x, z \rangle y - \langle y,z \rangle x`.
 
         Parameters
         ----------
@@ -724,7 +724,7 @@ class HypersphereMetric(RiemannianMetric):
         tangent_vec_c : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
         base_point :  array-like, shape=[..., dim]
-            Point on the group. Optional, default is the identity.
+            Point on the hypersphere.
 
         Returns
         -------
@@ -826,8 +826,40 @@ class HypersphereMetric(RiemannianMetric):
         def func(var):
             return gs.sum(self.normalization_factor(var))
 
-        _, grad = gs.autograd.value_and_grad(func)(variances)
+        _, grad = gs.autodiff.value_and_grad(func)(variances)
         return _, grad
+
+    def curvature_derivative(
+            self, tangent_vec_a, tangent_vec_b=None, tangent_vec_c=None,
+            tangent_vec_d=None, base_point=None):
+        r"""Compute the covariant derivative of the curvature.
+
+        The derivative of the curvature vanishes since the hypersphere is a
+        constant curvature space.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at `base_point` along which the curvature is
+            derived.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Unused tangent vector at `base_point` (since curvature derivative
+            vanishes).
+        tangent_vec_c : array-like, shape=[..., dim]
+            Unused tangent vector at `base_point` (since curvature derivative
+            vanishes).
+        tangent_vec_d : array-like, shape=[..., dim]
+            Unused tangent vector at `base_point` (since curvature derivative
+            vanishes).
+        base_point : array-like, shape=[..., dim]
+            Unused point on the hypersphere.
+
+        Returns
+        -------
+        curvature_derivative : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
+        return gs.zeros_like(tangent_vec_a)
 
 
 class Hypersphere(_Hypersphere):

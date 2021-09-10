@@ -859,38 +859,6 @@ class TestBackends(geomstats.tests.TestCase):
         with self.assertRaises((ValueError, RuntimeError)):
             gs.broadcast_arrays(gs.array([1, 2]), gs.array([3, 4, 5]))
 
-    @geomstats.tests.np_only
-    def test_value_and_grad_np_backend(self):
-        n = 10
-        vector = gs.ones(n)
-
-        self.assertRaises(
-            RuntimeError,
-            lambda: gs.autograd.value_and_grad(
-                lambda v: gs.sum(v ** 2))(vector))
-
-    @geomstats.tests.autograd_tf_and_torch_only
-    def test_value_and_grad(self):
-        n = 10
-        vector = gs.ones(n)
-        result_loss, result_grad = gs.autograd.value_and_grad(
-            lambda v: gs.sum(v ** 2))(vector)
-        expected_loss = n
-        expected_grad = 2 * vector
-        self.assertAllClose(result_loss, expected_loss)
-        self.assertAllClose(result_grad, expected_grad)
-
-    @geomstats.tests.autograd_tf_and_torch_only
-    def test_value_and_grad_numpy_input(self):
-        n = 10
-        vector = _np.ones(n)
-        result_loss, result_grad = gs.autograd.value_and_grad(
-            lambda v: gs.sum(v ** 2))(vector)
-        expected_loss = n
-        expected_grad = 2 * vector
-        self.assertAllClose(result_loss, expected_loss)
-        self.assertAllClose(result_grad, expected_grad)
-
     def test_choice(self):
         x = gs.array([0.1, 0.2, 0.3, 0.4, 0.5])
         a = 4
@@ -911,6 +879,30 @@ class TestBackends(geomstats.tests.TestCase):
         expected = _np.split(x, 2)
         for res, exp in zip(result, expected):
             self.assertAllClose(res, exp)
+
+    @geomstats.tests.autograd_and_torch_only
+    def test_expm_backward(self):
+        mat = gs.array([[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]])
+        mat = gs.cast(mat, gs.float64)
+
+        def loss(p):
+            return gs.sum((gs.linalg.expm(p) - gs.eye(3)) ** 2)
+
+        value_and_grad = gs.autodiff.value_and_grad(loss)
+        result = value_and_grad(mat)
+
+        def loss_torch(p):
+            return torch.sum((torch.matrix_exp(p) - torch.eye(3)) ** 2)
+
+        torch_mat = torch.tensor(
+            [[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]], dtype=torch.float64,
+            requires_grad=True)
+        value = loss_torch(torch_mat)
+        value.backward()
+        grad = torch_mat.grad
+
+        self.assertAllClose(result[0], value.detach())
+        self.assertAllClose(result[1], grad)
 
     def test_svd(self):
         gs_point = gs.reshape(gs.arange(12), (4, 3))
@@ -990,30 +982,6 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.linalg.cholesky(mat)
         expected = _np.linalg.cholesky(mat)
         self.assertAllClose(result, expected)
-
-    @geomstats.tests.autograd_and_torch_only
-    def test_expm_backward(self):
-        mat = gs.array([[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]])
-        mat = gs.cast(mat, gs.float64)
-
-        def loss(p):
-            return gs.sum((gs.linalg.expm(p) - gs.eye(3)) ** 2)
-
-        value_and_grad = gs.autograd.value_and_grad(loss)
-        result = value_and_grad(mat)
-
-        def loss_torch(p):
-            return torch.sum((torch.matrix_exp(p) - torch.eye(3)) ** 2)
-
-        torch_mat = torch.tensor(
-            [[0, 1, .5], [-1, 0, 0.2], [-.5, -.2, 0]], dtype=torch.float64,
-            requires_grad=True)
-        value = loss_torch(torch_mat)
-        value.backward()
-        grad = torch_mat.grad
-
-        self.assertAllClose(result[0], value.detach())
-        self.assertAllClose(result[1], grad)
 
     def test_mat_from_diag_triu_tril(self):
 
