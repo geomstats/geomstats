@@ -19,7 +19,6 @@ from tensorflow import (  # NOQA
     concat,
     cos,
     cosh,
-    divide,
     equal,
     exp,
     expand_dims,
@@ -876,3 +875,8 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     triu_tril_mat = triu_mat + tril_mat
     mat = tf.linalg.set_diag(triu_tril_mat, diag)
     return mat
+
+def divide(a,b, ignore_div_zero = False):
+    if ignore_div_zero is False:
+        return tf.math.divide(a, b)
+    return tf.math.divide_no_nan(a, b)

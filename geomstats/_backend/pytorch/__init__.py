@@ -20,7 +20,6 @@ from torch import (  # NOQA
     cos,
     cosh,
     cross,
-    divide,
     empty_like,
     eq,
     erf,
@@ -808,3 +807,10 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
     return mat
+
+
+def divide(a,b, ignore_div_zero = False):
+    if ignore_div_zero is False:
+        return torch.divide(a, b)
+    quo = torch.divide(a, b)
+    return torch.nan_to_num(quo, nan=0.0, posinf=0.0, neginf=0.0)
