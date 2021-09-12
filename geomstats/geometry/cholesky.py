@@ -10,7 +10,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.geometry.lie_group import MatrixLieGroup
 
-class Cholesky(OpenSet):
+class CholeskySpace(OpenSet):
     """Class for the manifold of lower triangular matrices with positive diagonal elements.
 
     Parameters
@@ -20,7 +20,7 @@ class Cholesky(OpenSet):
     """
 
     def __init__(self, n, **kwargs):
-        super(Cholesky, self).__init__(
+        super(CholeskySpace, self).__init__(
             dim=int(n * (n + 1) / 2),
             metric=(CholeskyMetric),
             ambient_space=LowerTriangularMatrices(n), **kwargs)

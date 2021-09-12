@@ -7,18 +7,14 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.matrices import MatricesMetric
-from geomstats.geometry.spd_matrices import (
-    SPDMatrices,
-    SPDMetricAffine,
-    SPDMetricBuresWasserstein,
-    SPDMetricEuclidean,
-    SPDMetricLogEuclidean
+from geomstats.geometry.cholesky import (
+    CholeskySpace,
+    CholeskyMetric
 )
 
 
-class TestSPDMatrices(geomstats.tests.TestCase):
-    """Test of SPDMatrices methods."""
+class TestCholesky(geomstats.tests.TestCase):
+    """Test of Cholesky methods."""
 
     def setUp(self):
         """Set up the test."""
@@ -27,40 +23,55 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         gs.random.seed(1234)
 
         self.n = 3
-        self.space = SPDMatrices(n=self.n)
-        self.metric_affine = SPDMetricAffine(n=self.n)
-        self.metric_bureswasserstein = SPDMetricBuresWasserstein(n=self.n)
-        self.metric_euclidean = SPDMetricEuclidean(n=self.n)
-        self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
+        self.space = CholeskySpace(n=self.n)
+        self.metric_cholesky = CholeskyMetric(n=self.n)
         self.n_samples = 4
 
     def test_belongs(self):
         """Test of belongs method."""
         mats = gs.array(
-            [[3., -1.], [-1., 3.]])
-        result = SPDMatrices(2).belongs(mats)
+            [[1., 0.], [-1., 3.]])
+        result = CholeskySpace(2).belongs(mats)
         expected = True
         self.assertAllClose(result, expected)
 
         mats = gs.array(
-            [[-1., -1.], [-1., 3.]])
-        result = SPDMatrices(2).belongs(mats)
+            [[1., -1.], [-1., 3.]])
+        result = CholeskySpace(2).belongs(mats)
+        expected = False
+        self.assertAllClose(result, expected)
+
+        mats = gs.array(
+            [[-1., 0.], [-1., 3.]])
+        result = CholeskySpace(2).belongs(mats)
         expected = False
         self.assertAllClose(result, expected)
 
         mats = gs.eye(3)
-        result = SPDMatrices(2).belongs(mats)
+        result = CholeskySpace(2).belongs(mats)
         expected = False
         self.assertAllClose(result, expected)
 
     def test_belongs_vectorization(self):
         """Test of belongs method."""
-        mats = gs.array([
+        mats_2dim = gs.array([
             [[1., 0], [0, 1.]],
             [[1., 2.], [2., 1.]],
-            [[1., 0.], [1., 1.]]])
-        result = SPDMatrices(2).belongs(mats)
-        expected = gs.array([True, False, False])
+            [[-1., 0.], [1., 1.]],
+            [[0., 0.], [1., 1.]]])
+
+        mats_3dim = gs.array([
+            [[1., 0., 1.0], [0., 1., 0.0], [0., 0., 1.0 ]],
+            [[0., 0., 0.0], [2., 1., 0.0], [0., 0., 1.0 ]],
+            [[1., 0., 0.0], [2., 1., 0.0], [0., 0., 1.0 ]],
+            [[-1., 0., 0.0], [2., 1., 0.0], [0., 0., 1.0 ]]])
+
+        result = CholeskySpace(2).belongs(mats_2dim)
+        expected = gs.array([True, False, False, False])
+        self.assertAllClose(result, expected)
+
+        result = CholeskySpace(3).belongs(mats_3dim)
+        expected = gs.array([False, False, True, False])
         self.assertAllClose(result, expected)
 
     def test_random_point_and_belongs(self):
