@@ -430,17 +430,17 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = 0.
         self.assertAllClose(result, expected, atol=1e-4)
 
-        # tangent_vecs = self.n_discretized_curves * (
-        #     geod[1:] - geod[:-1])
-        # _, _, result = self.quotient_srv_metric_r3.\
-        #     split_horizontal_vertical(tangent_vecs, geod[:-1])
-        # expected = []
-        # for i in range(self.n_discretized_curves):
-        #     _, _, res = self.quotient_srv_metric_r3.\
-        #         split_horizontal_vertical(tangent_vecs[i], geod[i])
-        #     expected.append(res)
-        # expected = gs.stack(expected)
-        # self.assertAllClose(result, expected)
+        tangent_vecs = self.n_discretized_curves * (
+            geod[1:] - geod[:-1])
+        _, _, result = self.quotient_srv_metric_r3.\
+            split_horizontal_vertical(tangent_vecs, geod[:-1])
+        expected = []
+        for i in range(self.n_discretized_curves - 1):
+            _, _, res = self.quotient_srv_metric_r3.\
+                split_horizontal_vertical(tangent_vecs[i], geod[i])
+            expected.append(res)
+        expected = gs.stack(expected)
+        self.assertAllClose(result, expected)
 
     def test_space_derivative(self):
         """Test space derivative.
@@ -472,18 +472,26 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
 
-    # def test_horizontal_geodesic(self):
-    #     """Test horizontal geodesic.
+    def test_horizontal_geodesic(self):
+        """Test horizontal geodesic.
 
-    #     Check that the time derivative of the geodesic is
-    #     horizontal at all time.
-    #     """
-    #     horizontal_geod_fun = self.quotient_srv_metric_r3.\
-    #         horizontal_geodesic(self.curve_a, self.curve_b)
-    #     n_times = 20
-    #     times = gs.linspace(0., 1., n_times)
-    #     horizontal_geod = horizontal_geod_fun(times)
-    #     velocity_vec = n_times * (
-    #         horizontal_geod[1:] - horizontal_geod[:-1])
-    #     _, _, vertical_norm = self.quotient_srv_metric_r3.\
-    #         split_horizontal_vertical(velocity_vec[
+        Check that the time derivative of the geodesic is
+        horizontal at all time.
+        """
+        curve_b = gs.transpose(gs.stack((
+            gs.zeros(self.n_sampling_points),
+            gs.zeros(self.n_sampling_points),
+            gs.linspace(1., 0.5, self.n_sampling_points)
+        )))
+        horizontal_geod_fun = self.quotient_srv_metric_r3.\
+            horizontal_geodesic(self.curve_a, curve_b)
+        n_times = 20
+        times = gs.linspace(0., 1., n_times)
+        horizontal_geod = horizontal_geod_fun(times)
+        velocity_vec = n_times * (
+            horizontal_geod[1:] - horizontal_geod[:-1])
+        _, _, vertical_norms = self.quotient_srv_metric_r3.\
+            split_horizontal_vertical(velocity_vec, horizontal_geod[:-1])
+        result = gs.sum(vertical_norms**2, axis=1)**(1 / 2)
+        expected = gs.zeros(n_times - 1)
+        self.assertAllClose(result, expected, atol=1e-3)
