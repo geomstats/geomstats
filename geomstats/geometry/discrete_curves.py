@@ -2,7 +2,6 @@
 
 import math
 
-# import numpy as np
 from scipy.interpolate import CubicSpline
 
 import geomstats.backend as gs
@@ -333,6 +332,20 @@ class SRVMetric(RiemannianMetric):
 
     def aux_differential_square_root_velocity(self, tangent_vec, curve):
         """Compute differential of the square root velocity transform.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector to curve, i.e. infinitesimal vector field
+            along curve.
+        curve : array-like, shape=[..., n_sampling_points, ambiend_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        d_srv_vec : array-like, shape=[..., ambient_dim,]
+            Differential of the square root velocity transform at curve
+            evaluated at tangent_vec.
         """
         if not isinstance(self.ambient_metric, EuclideanMetric):
             raise AssertionError('The differential of the square root '
@@ -340,17 +353,20 @@ class SRVMetric(RiemannianMetric):
                                  'discrete curves embedded in a Euclidean '
                                  'space.')
         n_sampling_points = curve.shape[-2]
-        d_vec = n_sampling_points * (tangent_vec[1:, :] - tangent_vec[:-1, :])
-        velocity_vec = n_sampling_points * (curve[1:, :] - curve[:-1, :])
+        d_vec = n_sampling_points * (
+            tangent_vec[..., 1:, :] - tangent_vec[..., :-1, :])
+        velocity_vec = n_sampling_points * (
+            curve[..., 1:, :] - curve[..., :-1, :])
         velocity_norm = self.ambient_metric.norm(velocity_vec)
         unit_velocity_vec = gs.einsum(
-            'ij,i->ij', velocity_vec, 1 / velocity_norm)
+            '...ij,...i->...ij', velocity_vec, 1 / velocity_norm)
+        inner_prod = self.pointwise_inner_product(
+            d_vec, unit_velocity_vec, curve[..., :-1, :])
         d_vec_tangential = gs.einsum(
-            'ij,i->ij', unit_velocity_vec,
-            self.ambient_metric.inner_product(d_vec, unit_velocity_vec))
+            '...ij,...i->...ij', unit_velocity_vec, inner_prod)
         d_srv_vec = d_vec - 1 / 2 * d_vec_tangential
         d_srv_vec = gs.einsum(
-            'ij,i->ij', d_srv_vec, 1 / velocity_norm**(1 / 2))
+            '...ij,...i->...ij', d_srv_vec, 1 / velocity_norm**(1 / 2))
 
         return d_srv_vec
 
@@ -364,14 +380,11 @@ class SRVMetric(RiemannianMetric):
             raise AssertionError('The square root velocity inner product '
                                  'is only implemented for discrete curves '
                                  'embedded in a Euclidean space.')
-        # n_sampling_points = curve.shape[-2]
         d_srv_vec_a = self.aux_differential_square_root_velocity(
             tangent_vec_a, curve)
         d_srv_vec_b = self.aux_differential_square_root_velocity(
             tangent_vec_b, curve)
         inner_prod = self.srv_inner_product(d_srv_vec_a, d_srv_vec_b)
-        # self.l2_metric(n_sampling_points - 1).inner_product(
-        # d_srv_vec_a, d_srv_vec_b) / n_sampling_points
 
         return inner_prod
 
