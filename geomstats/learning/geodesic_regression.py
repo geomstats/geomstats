@@ -4,8 +4,10 @@ The generative model of the data is:
     :math:`Z = Exp_{\beta_0}(\beta_1.X)` and :math:`Y = Exp_Z(\epsilon)`
     where:
     - :math:`Exp` denotes the Riemannian exponential,
-    - :math:`\beta_0` is called the intercept,
-    - :math:`\beta_1` is called the coefficient,
+    - :math:`\beta_0` is called the intercept, 
+    and is a point on the manifold,
+    - :math:`\beta_1` is called the coefficient, 
+    and is a tangent vector to the manifold at :math:`\beta_0`,
     - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
     - :math:`X` is the input, :math:`Y` is the target.
 
@@ -33,7 +35,9 @@ class GeodesicRegression(BaseEstimator):
         where:
         - :math:`Exp` denotes the Riemannian exponential,
         - :math:`\beta_0` is called the intercept,
+        and is a point on the manifold,
         - :math:`\beta_1` is called the coefficient,
+        and is a tangent vector to the manifold at :math:`\beta_0`,
         - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
         - :math:`X` is the input, :math:`Y` is the target.
 
@@ -103,9 +107,9 @@ class GeodesicRegression(BaseEstimator):
         _ : array-like, shape=[..., dim]
             Value on the manifold output by the generative model.
         """
-        X = X[:, None] if self.metric.default_point_type == 'vector' else\
+        X_copy = X[:, None] if self.metric.default_point_type == 'vector' else\
             X[:, None, None]
-        return self.metric.exp(X * coef[None], intercept)
+        return self.metric.exp(X_copy * coef[None], intercept)
 
     def _loss(self, X, y, param, shape, weights=None):
         """Compute the loss associated to the geodesic regression.
@@ -345,7 +349,7 @@ class GeodesicRegression(BaseEstimator):
             times = times - self.mean_
 
         if self.coef_ is None:
-            raise RuntimeError('Fit method must be called before transform')
+            raise RuntimeError('Fit method must be called before predict.')
 
         return self._model(times, self.coef_, self.intercept_)
 
