@@ -4,9 +4,9 @@ The generative model of the data is:
     :math:`Z = Exp_{\beta_0}(\beta_1.X)` and :math:`Y = Exp_Z(\epsilon)`
     where:
     - :math:`Exp` denotes the Riemannian exponential,
-    - :math:`\beta_0` is called the intercept, 
+    - :math:`\beta_0` is called the intercept,
     and is a point on the manifold,
-    - :math:`\beta_1` is called the coefficient, 
+    - :math:`\beta_1` is called the coefficient,
     and is a tangent vector to the manifold at :math:`\beta_0`,
     - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
     - :math:`X` is the input, :math:`Y` is the target.
