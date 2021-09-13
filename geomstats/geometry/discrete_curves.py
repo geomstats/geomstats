@@ -364,13 +364,14 @@ class SRVMetric(RiemannianMetric):
             raise AssertionError('The square root velocity inner product '
                                  'is only implemented for discrete curves '
                                  'embedded in a Euclidean space.')
-        n_sampling_points = curve.shape[-2]
+        # n_sampling_points = curve.shape[-2]
         d_srv_vec_a = self.aux_differential_square_root_velocity(
             tangent_vec_a, curve)
         d_srv_vec_b = self.aux_differential_square_root_velocity(
             tangent_vec_b, curve)
-        inner_prod = self.l2_metric(n_sampling_points - 1).inner_product(
-            d_srv_vec_a, d_srv_vec_b) / n_sampling_points
+        inner_prod = self.srv_inner_product(d_srv_vec_a, d_srv_vec_b)
+        # self.l2_metric(n_sampling_points - 1).inner_product(
+        # d_srv_vec_a, d_srv_vec_b) / n_sampling_points
 
         return inner_prod
 
@@ -393,7 +394,7 @@ class SRVMetric(RiemannianMetric):
         n_sampling_points = srv_1.shape[-2]
 
         l2_inner_prod = self.l2_metric(n_sampling_points).inner_product
-        inner_prod = l2_inner_prod(srv_1, srv_2) / (n_sampling_points)
+        inner_prod = l2_inner_prod(srv_1, srv_2) / (n_sampling_points + 1)
 
         return inner_prod
 

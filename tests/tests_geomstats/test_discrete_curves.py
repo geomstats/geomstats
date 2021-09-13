@@ -1,7 +1,7 @@
 """Unit tests for parameterized manifolds."""
 
 import geomstats.backend as gs
-# import geomstats.datasets.utils as data_utils
+import geomstats.datasets.utils as data_utils
 import geomstats.tests
 from geomstats.geometry.discrete_curves import ClosedDiscreteCurves
 from geomstats.geometry.discrete_curves import DiscreteCurves
@@ -292,25 +292,25 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
             tangent_vec, point)
         self.assertTrue(gs.all(result))
 
-    # @geomstats.tests.np_autograd_and_torch_only
-    # def test_projection_closed_curves(self):
-    #     """Test that projecting the projection returns the projection
+    @geomstats.tests.np_autograd_and_torch_only
+    def test_projection_closed_curves(self):
+        """Test that projecting the projection returns the projection
 
-    #     and that the projection is a closed curve."""
-    #     planar_closed_curves = self.space_closed_curves_in_euclidean_2d
+        and that the projection is a closed curve."""
+        planar_closed_curves = self.space_closed_curves_in_euclidean_2d
 
-    #     cells, _, _ = data_utils.load_cells()
-    #     curves = [cell[:-10] for cell in cells[:5]]
+        cells, _, _ = data_utils.load_cells()
+        curves = [cell[:-10] for cell in cells[:5]]
 
-    #     for curve in curves:
-    #         proj = planar_closed_curves.project(curve)
-    #         expected = proj
-    #         result = planar_closed_curves.project(proj)
-    #         self.assertAllClose(result, expected)
+        for curve in curves:
+            proj = planar_closed_curves.project(curve)
+            expected = proj
+            result = planar_closed_curves.project(proj)
+            self.assertAllClose(result, expected)
 
-    #         result = proj[-1, :]
-    #         expected = proj[0, :]
-    #         self.assertAllClose(result, expected)
+            result = proj[-1, :]
+            expected = proj[0, :]
+            self.assertAllClose(result, expected)
 
     def test_srv_inner_product(self):
         """Test that srv_inner_product works as expected
@@ -326,7 +326,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         result = self.srv_metric_r3.srv_inner_product(srvs_ab, srvs_bc)
         products = srvs_ab * srvs_bc
         expected = [gs.sum(product) for product in products]
-        expected = gs.array(expected) / srvs_ab.shape[-2]
+        expected = gs.array(expected) / (srvs_ab.shape[-2] + 1)
         self.assertAllClose(result, expected)
 
         result = result.shape
@@ -344,7 +344,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         result = self.srv_metric_r3.srv_norm(srvs_ab)
         products = srvs_ab * srvs_ab
         sums = [gs.sum(product) for product in products]
-        squared_norm = gs.array(sums) / srvs_ab.shape[-2]
+        squared_norm = gs.array(sums) / (srvs_ab.shape[-2] + 1)
         expected = gs.sqrt(squared_norm)
         self.assertAllClose(result, expected)
 
