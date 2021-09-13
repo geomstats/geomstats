@@ -331,7 +331,7 @@ class SRVMetric(RiemannianMetric):
 
         return curve
 
-    def d_square_root_velocity(self, tangent_vec, curve):
+    def aux_differential_square_root_velocity(self, tangent_vec, curve):
         """Compute differential of the square root velocity transform.
         """
         if not isinstance(self.ambient_metric, EuclideanMetric):
@@ -365,8 +365,10 @@ class SRVMetric(RiemannianMetric):
                                  'is only implemented for discrete curves '
                                  'embedded in a Euclidean space.')
         n_sampling_points = curve.shape[-2]
-        d_srv_vec_a = self.d_square_root_velocity(tangent_vec_a, curve)
-        d_srv_vec_b = self.d_square_root_velocity(tangent_vec_b, curve)
+        d_srv_vec_a = self.aux_differential_square_root_velocity(
+            tangent_vec_a, curve)
+        d_srv_vec_b = self.aux_differential_square_root_velocity(
+            tangent_vec_b, curve)
         inner_prod = self.l2_metric(n_sampling_points - 1).inner_product(
             d_srv_vec_a, d_srv_vec_b) / n_sampling_points
 

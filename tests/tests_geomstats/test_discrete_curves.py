@@ -353,7 +353,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
-    def test_d_square_root_velocity(self):
+    def test_aux_differntial_square_root_velocity(self):
         """Test differential of square root velocity transform.
 
         Check that its value at (curve, tangent_vec) coincides
@@ -367,7 +367,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curve_a = self.curve_fun_a(sampling_times)
         tangent_vec = gs.transpose(gs.tile(
             gs.linspace(1., 2., n_sampling_points), (dim, 1)))
-        result = self.srv_metric_r3.d_square_root_velocity(
+        result = self.srv_metric_r3.aux_differential_square_root_velocity(
             tangent_vec, curve_a)
 
         n_curves = 2000
