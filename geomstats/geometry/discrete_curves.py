@@ -2,7 +2,7 @@
 
 import math
 
-import numpy as np
+# import numpy as np
 from scipy.interpolate import CubicSpline
 
 import geomstats.backend as gs
@@ -1004,8 +1004,8 @@ class QuotientSRVMetric(SRVMetric):
             from_vector_to_diagonal_matrix(vec_a[..., :-1], 1) +
             from_vector_to_diagonal_matrix(vec_b, 0) +
             from_vector_to_diagonal_matrix(vec_c[..., 1:], -1))
-        vertical_norm = gs.to_ndarray(gs.from_numpy(
-            np.linalg.solve(linear_system, vec_d)), to_ndim=2)
+        vertical_norm = gs.to_ndarray(
+            gs.linalg.solve(linear_system, vec_d), to_ndim=2)
         n_curves = vertical_norm.shape[0]
         vertical_norm = gs.squeeze(gs.hstack(
             (gs.zeros((n_curves, 1)), vertical_norm, gs.zeros((n_curves, 1)))))

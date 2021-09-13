@@ -10,6 +10,7 @@ from numpy.linalg import (  # NOQA
     eigvalsh,
     inv,
     norm,
+    solve,
     svd
 )
 
