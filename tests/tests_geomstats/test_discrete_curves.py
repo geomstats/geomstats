@@ -428,6 +428,25 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = gs.sum(integrand) / self.n_sampling_points
         self.assertAllClose(result, expected)
 
+    def test_inner_product_vectorization(self):
+        """Test inner product of SRVMetric.
+
+        Check vectorization.
+        """
+        dim = 3
+        curves = gs.stack((self.curve_a, self.curve_b))
+        tangent_vecs_1 = gs.random.rand(2, self.n_sampling_points, dim)
+        tangent_vecs_2 = gs.random.rand(2, self.n_sampling_points, dim)
+        result = self.srv_metric_r3.inner_product(
+            tangent_vecs_1, tangent_vecs_2, curves)
+
+        res_a = self.srv_metric_r3.inner_product(
+            tangent_vecs_1[0], tangent_vecs_2[0], self.curve_a)
+        res_b = self.srv_metric_r3.inner_product(
+            tangent_vecs_1[1], tangent_vecs_2[1], self.curve_b)
+        expected = gs.stack((res_a, res_b))
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.np_autograd_and_torch_only
     def test_split_horizontal_vertical(self):
         """Test split horizontal vertical.

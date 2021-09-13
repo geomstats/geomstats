@@ -375,6 +375,22 @@ class SRVMetric(RiemannianMetric):
 
         The SRV metric is used, and is computed as pullback of the
         L2 metric by the square root velocity transform.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector to curve, i.e. infinitesimal vector field
+            along curve.
+        tangent_vec_b : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector to curve, i.e. infinitesimal vector field
+        curve : array-like, shape=[..., n_sampling_points, ambiend_dim]
+            Discrete curve.
+
+        Return
+        ------
+        inner_prod : array_like, shape=[...]
+            Square root velocity inner product between tangent_vec_a and
+            tangent_vec_b.
         """
         if not isinstance(self.ambient_metric, EuclideanMetric):
             raise AssertionError('The square root velocity inner product '
