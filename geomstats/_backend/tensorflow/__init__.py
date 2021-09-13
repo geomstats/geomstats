@@ -588,7 +588,13 @@ def hstack(x):
 
 
 def vstack(x):
-    return tf.concat(x, axis=0)
+    new_x = []
+    for one_x in x:
+        if one_x.ndim < 2:
+            new_x.append(tf.expand_dims(one_x, axis=0))
+        else:
+            new_x.append(one_x)
+    return tf.concat(new_x, axis=0)
 
 
 def cast(x, dtype):
