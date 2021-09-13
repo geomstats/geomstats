@@ -18,7 +18,6 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import FrechetMean, variance
 from geomstats.learning.geodesic_regression import GeodesicRegression
 
-
 DIM = 2
 SPACE = Hypersphere(dim=DIM)
 EMBEDDING_DIM = SPACE.embedding_space.dim
@@ -44,10 +43,8 @@ def main():
     X -= gs.mean(X)
 
     intercept = SPACE.random_uniform()
-    coef = SPACE.to_tangent(
-        5. * gs.random.rand(EMBEDDING_DIM), base_point=intercept)
-    y = METRIC.exp(
-        X[:, None] * coef, base_point=intercept)
+    coef = SPACE.to_tangent(5.0 * gs.random.rand(EMBEDDING_DIM), base_point=intercept)
+    y = METRIC.exp(X[:, None] * coef, base_point=intercept)
 
     # Generate normal noise
     normal_noise = gs.random.normal(size=(n_samples, EMBEDDING_DIM))
@@ -65,8 +62,7 @@ def main():
     r2 = 1 - rss / variance_
 
     # Fit Geodesic Regression
-    gr = GeodesicRegression(
-        SPACE, center_X=False, method='extrinsic', verbose=True)
+    gr = GeodesicRegression(SPACE, center_X=False, method="extrinsic", verbose=True)
     gr.fit(X, y, compute_training_score=True)
     intercept_hat, coef_hat = gr.intercept_, gr.coef_
 
@@ -74,55 +70,53 @@ def main():
     mse_intercept = METRIC.squared_dist(intercept_hat, intercept)
 
     tangent_vec_to_transport = coef_hat
-    tangent_vec_of_transport = METRIC.log(
-        intercept, base_point=intercept_hat)
+    tangent_vec_of_transport = METRIC.log(intercept, base_point=intercept_hat)
     transported_coef_hat = METRIC.parallel_transport(
         tangent_vec_a=tangent_vec_to_transport,
         tangent_vec_b=tangent_vec_of_transport,
-        base_point=intercept_hat)
-    mse_coef = METRIC.squared_norm(
-        transported_coef_hat - coef, base_point=intercept)
+        base_point=intercept_hat,
+    )
+    mse_coef = METRIC.squared_norm(transported_coef_hat - coef, base_point=intercept)
 
     # Measure goodness of fit
     r2_hat = gr.training_score_
 
-    print(f'MSE on the intercept: {mse_intercept:.2e}')
-    print(f'MSE on the coef, i.e. initial velocity: {mse_coef:.2e}')
-    print(f'Determination coefficient: R^2={r2_hat:.2f}')
-    print(f'True R^2: {r2:.2f}')
+    print(f"MSE on the intercept: {mse_intercept:.2e}")
+    print(f"MSE on the coef, i.e. initial velocity: {mse_coef:.2e}")
+    print(f"Determination coefficient: R^2={r2_hat:.2f}")
+    print(f"True R^2: {r2:.2f}")
 
     # Plot
     fitted_data = gr.predict(X)
     fig = plt.figure(figsize=(8, 8))
-    ax = fig.add_subplot(111, projection='3d')
+    ax = fig.add_subplot(111, projection="3d")
     sphere_visu = visualization.Sphere(n_meridians=30)
     ax = sphere_visu.set_ax(ax=ax)
 
-    path = METRIC.geodesic(
-        initial_point=intercept_hat, initial_tangent_vec=coef_hat)
+    path = METRIC.geodesic(initial_point=intercept_hat, initial_tangent_vec=coef_hat)
     regressed_geodesic = path(
-        gs.linspace(0., 1., 100) * gs.pi * 2 / METRIC.norm(coef))
+        gs.linspace(0.0, 1.0, 100) * gs.pi * 2 / METRIC.norm(coef)
+    )
     regressed_geodesic = gs.to_numpy(gs.autodiff.detach(regressed_geodesic))
 
     size = 10
-    marker = 'o'
-    sphere_visu.draw_points(
-        ax, gs.array([intercept_hat]), marker=marker, c='r', s=size)
-    sphere_visu.draw_points(
-        ax, y, marker=marker, c='b', s=size)
-    sphere_visu.draw_points(
-        ax, fitted_data, marker=marker, c='g', s=size)
+    marker = "o"
+    sphere_visu.draw_points(ax, gs.array([intercept_hat]), marker=marker, c="r", s=size)
+    sphere_visu.draw_points(ax, y, marker=marker, c="b", s=size)
+    sphere_visu.draw_points(ax, fitted_data, marker=marker, c="g", s=size)
 
     ax.plot(
         regressed_geodesic[:, 0],
         regressed_geodesic[:, 1],
-        regressed_geodesic[:, 2], c='gray')
+        regressed_geodesic[:, 2],
+        c="gray",
+    )
     sphere_visu.draw(ax, linewidth=1)
     ax.grid(False)
-    plt.axis('off')
+    plt.axis("off")
 
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

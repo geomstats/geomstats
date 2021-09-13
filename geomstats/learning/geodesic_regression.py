@@ -71,8 +71,16 @@ class GeodesicRegression(BaseEstimator):
     """
 
     def __init__(
-            self, space, metric=None, center_X=True, method='extrinsic',
-            max_iter=100, learning_rate=.1, tol=1e-5, verbose=False):
+        self,
+        space,
+        metric=None,
+        center_X=True,
+        method="extrinsic",
+        max_iter=100,
+        learning_rate=0.1,
+        tol=1e-5,
+        verbose=False,
+    ):
         if metric is None:
             metric = space.metric
         self.metric = metric
@@ -83,7 +91,8 @@ class GeodesicRegression(BaseEstimator):
         self.mean_ = None
         self.training_score_ = None
         geomstats.errors.check_parameter_accepted_values(
-            method, 'method', ['extrinsic', 'riemannian'])
+            method, "method", ["extrinsic", "riemannian"]
+        )
         self.method = method
         self.max_iter = max_iter
         self.verbose = verbose
@@ -107,8 +116,11 @@ class GeodesicRegression(BaseEstimator):
         _ : array-like, shape=[..., dim]
             Value on the manifold output by the generative model.
         """
-        X_copy = X[:, None] if self.metric.default_point_type == 'vector' else\
-            X[:, None, None]
+        X_copy = (
+            X[:, None]
+            if self.metric.default_point_type == "vector"
+            else X[:, None, None]
+        )
         return self.metric.exp(X_copy * coef[None], intercept)
 
     def _loss(self, X, y, param, shape, weights=None):
@@ -139,11 +151,10 @@ class GeodesicRegression(BaseEstimator):
         coef = gs.cast(coef, dtype=y.dtype)
         base_point = self.space.projection(intercept)
         tangent_vec = self.space.to_tangent(coef, base_point)
-        distances = self.metric.squared_dist(
-            self._model(X, tangent_vec, base_point), y)
+        distances = self.metric.squared_dist(self._model(X, tangent_vec, base_point), y)
         if weights is None:
-            weights = 1.
-        return 1. / 2. * gs.sum(weights * distances)
+            weights = 1.0
+        return 1.0 / 2.0 * gs.sum(weights * distances)
 
     def fit(self, X, y, weights=None, compute_training_score=False):
         """Estimate the parameters of the geodesic regression.
@@ -174,12 +185,10 @@ class GeodesicRegression(BaseEstimator):
             self.mean_ = gs.mean(X)
             times -= self.mean_
 
-        if self.method == 'extrinsic':
-            return self._fit_extrinsic(
-                times, y, weights, compute_training_score)
-        if self.method == 'riemannian':
-            return self._fit_riemannian(
-                times, y, weights, compute_training_score)
+        if self.method == "extrinsic":
+            return self._fit_extrinsic(times, y, weights, compute_training_score)
+        if self.method == "riemannian":
+            return self._fit_riemannian(times, y, weights, compute_training_score)
 
     def _fit_extrinsic(self, X, y, weights=None, compute_training_score=False):
         """Estimate the parameters using the extrinsic gradient descent.
@@ -206,22 +215,25 @@ class GeodesicRegression(BaseEstimator):
             Returns self.
         """
         shape = (
-            y.shape[-1:] if self.space.default_point_type == 'vector' else
-            y.shape[-2:])
+            y.shape[-1:] if self.space.default_point_type == "vector" else y.shape[-2:]
+        )
 
-        initial_guess = gs.flatten(gs.stack([
-            gs.random.normal(size=shape),
-            gs.random.normal(size=shape)
-        ]))
+        initial_guess = gs.flatten(
+            gs.stack([gs.random.normal(size=shape), gs.random.normal(size=shape)])
+        )
 
         objective_with_grad = gs.autodiff.value_and_grad(
-            lambda param: self._loss(X, y, param, shape, weights),
-            to_numpy=True)
+            lambda param: self._loss(X, y, param, shape, weights), to_numpy=True
+        )
 
         res = minimize(
-            objective_with_grad, initial_guess, method='CG', jac=True,
-            options={'disp': self.verbose, 'maxiter': self.max_iter},
-            tol=self.tol)
+            objective_with_grad,
+            initial_guess,
+            method="CG",
+            jac=True,
+            options={"disp": self.verbose, "maxiter": self.max_iter},
+            tol=self.tol,
+        )
 
         intercept_hat, coef_hat = gs.split(gs.array(res.x), 2)
         intercept_hat = gs.reshape(intercept_hat, shape)
@@ -238,8 +250,7 @@ class GeodesicRegression(BaseEstimator):
 
         return self
 
-    def _fit_riemannian(
-            self, X, y, weights=None, compute_training_score=False):
+    def _fit_riemannian(self, X, y, weights=None, compute_training_score=False):
         """Estimate the parameters using a Riemannian gradient descent.
 
         Estimate the intercept and the coefficient defining the
@@ -264,24 +275,28 @@ class GeodesicRegression(BaseEstimator):
             Returns self.
         """
         shape = (
-            y.shape[-1:] if self.space.default_point_type == 'vector' else
-            y.shape[-2:])
-        if hasattr(self.metric, 'parallel_transport'):
+            y.shape[-1:] if self.space.default_point_type == "vector" else y.shape[-2:]
+        )
+        if hasattr(self.metric, "parallel_transport"):
+
             def vector_transport(tan_a, tan_b, base_point, _):
                 return self.metric.parallel_transport(tan_a, tan_b, base_point)
+
         else:
+
             def vector_transport(tan_a, _, __, point):
                 return self.space.to_tangent(tan_a, point)
 
         objective_with_grad = gs.autodiff.value_and_grad(
-            lambda params: self._loss(X, y, params, shape, weights))
+            lambda params: self._loss(X, y, params, shape, weights)
+        )
 
         lr = self.learning_rate
         intercept_hat = intercept_hat_new = y[0]
         coef_hat = coef_hat_new = self.space.to_tangent(
-            gs.random.normal(size=shape), intercept_hat)
-        param = gs.vstack(
-            [gs.flatten(intercept_hat), gs.flatten(coef_hat)])
+            gs.random.normal(size=shape), intercept_hat
+        )
+        param = gs.vstack([gs.flatten(intercept_hat), gs.flatten(coef_hat)])
         current_loss = math.inf
         current_iter = 0
         for i in range(self.max_iter):
@@ -301,20 +316,23 @@ class GeodesicRegression(BaseEstimator):
 
             grad_intercept, grad_coef = gs.split(grad, 2)
             riem_grad_intercept = self.space.to_tangent(
-                gs.reshape(grad_intercept, shape), intercept_hat)
+                gs.reshape(grad_intercept, shape), intercept_hat
+            )
             riem_grad_coef = self.space.to_tangent(
-                gs.reshape(grad_coef, shape), intercept_hat)
+                gs.reshape(grad_coef, shape), intercept_hat
+            )
 
             intercept_hat_new = self.metric.exp(
-                - lr * riem_grad_intercept, intercept_hat)
+                -lr * riem_grad_intercept, intercept_hat
+            )
             coef_hat_new = vector_transport(
                 coef_hat - lr * riem_grad_coef,
-                - lr * riem_grad_intercept,
+                -lr * riem_grad_intercept,
                 intercept_hat,
-                intercept_hat_new)
+                intercept_hat_new,
+            )
 
-            param = gs.vstack(
-                [gs.flatten(intercept_hat_new), gs.flatten(coef_hat_new)])
+            param = gs.vstack([gs.flatten(intercept_hat_new), gs.flatten(coef_hat_new)])
 
             current_loss = loss
 
@@ -322,8 +340,10 @@ class GeodesicRegression(BaseEstimator):
         self.coef_ = self.space.to_tangent(coef_hat, self.intercept_)
 
         if self.verbose:
-            logging.info(f'Number of iteration: {current_iter},'
-                         f' loss at termination: {current_loss}')
+            logging.info(
+                f"Number of iteration: {current_iter},"
+                f" loss at termination: {current_loss}"
+            )
         if compute_training_score:
             variance = gs.sum(self.metric.squared_dist(y, self.intercept_))
             self.training_score_ = 1 - 2 * current_loss / variance
@@ -349,7 +369,7 @@ class GeodesicRegression(BaseEstimator):
             times = times - self.mean_
 
         if self.coef_ is None:
-            raise RuntimeError('Fit method must be called before predict.')
+            raise RuntimeError("Fit method must be called before predict.")
 
         return self._model(times, self.coef_, self.intercept_)
 
@@ -375,11 +395,10 @@ class GeodesicRegression(BaseEstimator):
         """
         y_pred = self.predict(X)
         if weights is None:
-            weights = 1.
+            weights = 1.0
 
         mean = FrechetMean(self.metric).fit(y).estimate_
         numerator = gs.sum(weights * self.metric.squared_dist(y, y_pred))
-        denominator = gs.sum(weights * self.metric.squared_dist(
-            y, mean))
+        denominator = gs.sum(weights * self.metric.squared_dist(y, mean))
 
-        return 1 - numerator / denominator if denominator != 0 else 0.
+        return 1 - numerator / denominator if denominator != 0 else 0.0
