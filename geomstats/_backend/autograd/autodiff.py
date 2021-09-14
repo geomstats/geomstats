@@ -1,6 +1,6 @@
 """Wrapper around autograd functions to be consistent with backends."""
 
-
+import autograd.numpy as anp
 from autograd import elementwise_grad as _elementwise_grad
 from autograd import jacobian as _jacobian
 from autograd import value_and_grad as _value_and_grad
@@ -50,7 +50,7 @@ def custom_gradient(*grad_funcs):
             defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs:
-                    lambda g: g * grad_funcs[0](*args, **kwargs),
+                    lambda g: anp.einsum("...k,...->...", g, grad_funcs[0](*args, **kwargs)),
                 lambda ans, *args, **kwargs:
                     lambda g: g * grad_funcs[1](*args, **kwargs))
         elif len(grad_funcs) == 3:

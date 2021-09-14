@@ -178,6 +178,55 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         )
         self.assertTrue(gs.all(~gs.isnan(loss_grad)))
 
+    @geomstats.tests.autograd_and_tf_only
+    def test_value_and_grad_loss_se2(self):
+
+        gr = GeodesicRegression(
+            self.se2,
+            metric=self.metric_se2,
+            center_X=False,
+            method='extrinsic',
+            verbose=True,
+            max_iter=50,
+            learning_rate=0.1,
+        )
+
+        def loss_of_param(param):
+            return gr._loss(self.X_se2, self.y_se2, param, self.shape_se2)
+
+        objective_with_grad = gs.autodiff.value_and_grad(loss_of_param)
+        loss_value, loss_grad = objective_with_grad(self.param_se2_true)
+        expected_grad_shape = (2, self.shape_se2[0] * self.shape_se2[1],)
+
+        self.assertTrue(gs.isclose(loss_value, 0.0))
+
+        loss_value, loss_grad = objective_with_grad(self.param_se2_guess)
+
+        self.assertAllClose(loss_value.shape, ())
+        self.assertAllClose(loss_grad.shape, expected_grad_shape)
+
+        self.assertFalse(gs.isclose(loss_value, 0.0))
+        self.assertFalse(
+            gs.all(gs.isclose(loss_grad, gs.zeros(expected_grad_shape)))
+        )
+        self.assertTrue(gs.all(~gs.isnan(loss_grad)))
+
+        objective_with_grad = gs.autodiff.value_and_grad(
+            loss_of_param, to_numpy=True
+        )
+        loss_value, loss_grad = objective_with_grad(self.param_se2_guess)
+        expected_grad_shape = (2, self.shape_se2[0] * self.shape_se2[1],)
+        self.assertAllClose(loss_value.shape, ())
+        self.assertAllClose(loss_grad.shape, expected_grad_shape)
+
+        self.assertFalse(gs.isclose(loss_value, 0.0))
+        self.assertFalse(gs.isnan(loss_value))
+        self.assertFalse(
+            gs.all(gs.isclose(loss_grad, gs.zeros(expected_grad_shape)))
+        )
+        self.assertTrue(gs.all(~gs.isnan(loss_grad)))
+
+
     @geomstats.tests.autograd_tf_and_torch_only
     def test_loss_minimization_extrinsic_hypersphere(self):
         """Minimize loss from noiseless data."""
