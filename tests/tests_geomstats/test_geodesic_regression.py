@@ -51,17 +51,12 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         self.shape_se2 = (3, 3)
         X = gs.random.rand(self.n_samples)
-        # X = gs.linspace(0.0, 1.0, self.n_samples)
         self.X_se2 = X - gs.mean(X)
 
-        self.intercept_se2_true = self.se2.identity  # self.se2.random_point()
-        vector = gs.array([[1.0, 4.0, 3.0], [-1.0, 2.0, -3], [0.0, -1.0, 1.0]])
+        self.intercept_se2_true = self.se2.random_point()
         self.coef_se2_true = self.se2.to_tangent(
-            vector, self.intercept_se2_true
-        )
-        # self.coef_se2_true = self.se2.to_tangent(
-        #     5. * gs.random.rand(*self.shape_se2),
-        #     self.intercept_se2_true)
+            5. * gs.random.rand(*self.shape_se2),
+            self.intercept_se2_true)
 
         self.y_se2 = self.metric_se2.exp(
             self.X_se2[:, None, None] * self.coef_se2_true[None],
