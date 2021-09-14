@@ -50,7 +50,10 @@ def custom_gradient(*grad_funcs):
             defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs:
-                    lambda g: anp.einsum("...k,...->...", g, grad_funcs[0](*args, **kwargs)),
+                    lambda g: anp.einsum(
+                        "...k,...->...",
+                        g,
+                        grad_funcs[0](*args, **kwargs)),
                 lambda ans, *args, **kwargs:
                     lambda g: g * grad_funcs[1](*args, **kwargs))
         elif len(grad_funcs) == 3:

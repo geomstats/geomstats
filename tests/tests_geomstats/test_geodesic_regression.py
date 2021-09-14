@@ -226,7 +226,6 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         )
         self.assertTrue(gs.all(~gs.isnan(loss_grad)))
 
-
     @geomstats.tests.autograd_tf_and_torch_only
     def test_loss_minimization_extrinsic_hypersphere(self):
         """Minimize loss from noiseless data."""
