@@ -553,7 +553,7 @@ class SRVMetric(RiemannianMetric):
                  initial_curve,
                  end_curve=None,
                  initial_tangent_vec=None):
-        """Compute geodesic from initial curve and end curve end curve.
+        """Compute geodesic from initial curve to end curve.
 
         Geodesic specified either by an initial curve and an end curve,
         either by an initial curve and an initial tangent vector.
@@ -601,6 +601,13 @@ class SRVMetric(RiemannianMetric):
                                             to_ndim=curve_ndim + 1)
 
         def path(t):
+            """Generate parametrized function for geodesic.
+
+            Parameters
+            ----------
+            t: array-like, shape=[n_points,]
+                Times at which to compute points of the geodesic.
+            """
             t = gs.cast(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
@@ -650,17 +657,18 @@ class SRVMetric(RiemannianMetric):
 
         return dist
 
-    def space_derivative(self, curve):
+    @staticmethod
+    def space_derivative(curve):
         """Compute space derivative of curve using centered differences.
 
         Parameters
         ----------
-        curve : array-like, shape=[..., n_points, ambient_dim]
+        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
             Discrete curve.
 
         Returns
         -------
-        space_deriv : array-like, shape=[...,n_points, ambient_dim]
+        space_deriv : array-like, shape=[...,n_sampling_points, ambient_dim]
         """
         n_points = curve.shape[-2]
         if n_points < 2:
@@ -1090,7 +1098,7 @@ class QuotientSRVMetric(SRVMetric):
 
         def construct_reparametrization(vertical_norm,
                                         space_deriv_norm):
-            """Construct path of reparametrizations.
+            r"""Construct path of reparametrizations.
 
             Construct path of reparametrizations phi(t, u) that transforms
             a path of curves c(t, u) into a horizontal path of curves, i.e.
@@ -1139,7 +1147,7 @@ class QuotientSRVMetric(SRVMetric):
 
         def invert_reparametrization(repar, path_of_curves, repar_inverse_end,
                                      counter):
-            """Invert path of reparametrizations.
+            r"""Invert path of reparametrizations.
 
             Given a path of curves c(t, u) and a path of reparametrizations
             phi(t, u), compute:
@@ -1204,7 +1212,7 @@ class QuotientSRVMetric(SRVMetric):
             gap = 1.
             counter = 0
 
-            while(gap > threshold):
+            while gap > threshold:
                 srv_geod_fun = self.geodesic(
                     initial_curve=initial_curve, end_curve=current_end_curve)
                 geod = srv_geod_fun(t)
@@ -1214,7 +1222,7 @@ class QuotientSRVMetric(SRVMetric):
                 _, _, vertical_norm = self.split_horizontal_vertical(
                     time_deriv, geod[:-1])
 
-                space_deriv = self.space_derivative(geod)
+                space_deriv = QuotientSRVMetric.space_derivative(geod)
                 space_deriv_norm = self.ambient_metric.norm(space_deriv)
 
                 repar = construct_reparametrization(
