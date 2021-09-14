@@ -36,9 +36,6 @@ def custom_gradient(*grad_funcs):
                 for grad_fun in grad_funcs:
                     grad_func_val = tf.convert_to_tensor(
                         grad_fun(*args, **kwargs))
-                    print("some shapes")
-                    print(upstream.shape)
-                    print(grad_func_val.shape)
                     grad_vals.append(
                         tf.squeeze(
                             tf.einsum(

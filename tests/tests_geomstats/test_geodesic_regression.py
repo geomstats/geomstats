@@ -285,6 +285,62 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             transported_coef_hat, self.coef_sphere_true, atol=0.6
         )
 
+    @geomstats.tests.autograd_and_tf_only
+    def test_loss_minimization_extrinsic_se2(self):
+        gr = GeodesicRegression(
+            self.se2,
+            metric=self.metric_se2,
+            center_X=False,
+            method='extrinsic',
+            verbose=True,
+            max_iter=50,
+            learning_rate=0.1,
+        )
+
+        def loss_of_param(param):
+            return gr._loss(self.X_se2, self.y_se2, param, self.shape_se2)
+
+        objective_with_grad = gs.autodiff.value_and_grad(
+            loss_of_param, to_numpy=True
+        )
+
+        res = minimize(
+            objective_with_grad,
+            gs.flatten(self.param_se2_guess),
+            method='CG',
+            jac=True,
+            options={'disp': True, 'maxiter': 50},
+        )
+        self.assertAllClose(gs.array(res.x).shape, (18,))
+
+        self.assertTrue(gs.isclose(res.fun, 0.0))
+
+        # Cast required because minimization happens in scipy in float64
+        param_hat = gs.cast(gs.array(res.x), self.param_se2_true.dtype)
+
+        intercept_hat, coef_hat = gs.split(param_hat, 2)
+        intercept_hat = gs.reshape(intercept_hat, self.shape_se2)
+        coef_hat = gs.reshape(coef_hat, self.shape_se2)
+
+        intercept_hat = self.se2.projection(intercept_hat)
+        coef_hat = self.se2.to_tangent(coef_hat, intercept_hat)
+        self.assertAllClose(intercept_hat, self.intercept_se2_true, atol=1e-4)
+
+        tangent_vec_of_transport = self.se2.metric.log(
+            self.intercept_se2_true, base_point=intercept_hat
+        )
+
+        transported_coef_hat = self.se2.metric.parallel_transport(
+            tangent_vec_a=coef_hat,
+            tangent_vec_b=tangent_vec_of_transport,
+            base_point=intercept_hat,
+        )
+
+        self.assertAllClose(
+            transported_coef_hat, self.coef_se2_true, atol=0.6
+        )
+
+
     @geomstats.tests.autograd_tf_and_torch_only
     def test_fit_extrinsic_hypersphere(self):
         gr = GeodesicRegression(
