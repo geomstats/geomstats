@@ -5,6 +5,7 @@ from scipy.optimize import minimize
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.learning.geodesic_regression import GeodesicRegression
 
 
@@ -43,7 +44,49 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             ]
         )
 
+        # Set up for special euclidean
+        self.se2 = SpecialEuclidean(n=2)
+        self.metric_se2 = self.se2.left_canonical_metric
+        self.metric_se2.default_point_type = 'matrix'
+
+        self.shape_se2 = (3, 3)
+        X = gs.random.rand(self.n_samples)
+        # X = gs.linspace(0.0, 1.0, self.n_samples)
+        self.X_se2 = X - gs.mean(X)
+
+        self.intercept_se2_true = self.se2.identity  # self.se2.random_point()
+        vector = gs.array([[1.0, 4.0, 3.0], [-1.0, 2.0, -3], [0.0, -1.0, 1.0]])
+        self.coef_se2_true = self.se2.to_tangent(
+            vector, self.intercept_se2_true
+        )
+        # self.coef_se2_true = self.se2.to_tangent(
+        #     5. * gs.random.rand(*self.shape_se2),
+        #     self.intercept_se2_true)
+
+        self.y_se2 = self.metric_se2.exp(
+            self.X_se2[:, None, None] * self.coef_se2_true[None],
+            self.intercept_se2_true,
+        )
+
+        self.param_se2_true = gs.vstack(
+            [
+                gs.flatten(self.intercept_se2_true),
+                gs.flatten(self.coef_se2_true),
+            ]
+        )
+        self.param_se2_guess = gs.vstack(
+            [
+                gs.flatten(self.y_se2[0]),
+                gs.flatten(
+                    self.se2.to_tangent(
+                        gs.random.normal(size=self.shape_se2), self.y_se2[0]
+                    )
+                ),
+            ]
+        )
+
     def test_loss_hypersphere(self):
+        """Test that the loss is 0 at the true parameters."""
         gr = GeodesicRegression(
             self.sphere,
             metric=self.sphere.metric,
@@ -58,6 +101,27 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             self.y_sphere,
             self.param_sphere_true,
             self.shape_sphere,
+        )
+        self.assertAllClose(loss.shape, ())
+        self.assertTrue(gs.isclose(loss, 0.0))
+
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_loss_se2(self):
+        """Test that the loss is 0 at the true parameters."""
+        gr = GeodesicRegression(
+            self.se2,
+            metric=self.metric_se2,
+            center_X=False,
+            method='extrinsic',
+            verbose=True,
+            max_iter=50,
+            learning_rate=0.1,
+        )
+        loss = gr._loss(
+            self.X_se2,
+            self.y_se2,
+            self.param_se2_true,
+            self.shape_se2
         )
         self.assertAllClose(loss.shape, ())
         self.assertTrue(gs.isclose(loss, 0.0))
@@ -230,7 +294,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         self.assertAllClose(training_score, 1.0, atol=0.1)
         self.assertAllClose(
-            intercept_hat, self.intercept_sphere_true, atol=5e-3
+            intercept_hat, self.intercept_sphere_true, atol=1e-2
         )
 
         tangent_vec_of_transport = self.sphere.metric.log(
