@@ -72,7 +72,8 @@ class GeodesicRegression(BaseEstimator):
 
     def __init__(
             self, space, metric=None, center_X=True, method='extrinsic',
-            max_iter=100, learning_rate=.1, tol=1e-5, verbose=False):
+            max_iter=100, learning_rate=.1, tol=1e-5, verbose=False,
+            initialization='random'):
         if metric is None:
             metric = space.metric
         self.metric = metric
@@ -89,6 +90,7 @@ class GeodesicRegression(BaseEstimator):
         self.verbose = verbose
         self.learning_rate = learning_rate
         self.tol = tol
+        self.initialization = initialization
 
     def _model(self, X, coef, intercept):
         """Compute the generative model of the geodesic regression.
@@ -137,7 +139,10 @@ class GeodesicRegression(BaseEstimator):
         coef = gs.reshape(coef, shape)
         intercept = gs.cast(intercept, dtype=y.dtype)
         coef = gs.cast(coef, dtype=y.dtype)
-        base_point = self.space.projection(intercept)
+        if self.method == 'extrinsic':
+            base_point = self.space.projection(intercept)
+        else:
+            base_point = intercept
         tangent_vec = self.space.to_tangent(coef, base_point)
         distances = self.metric.squared_dist(
             self._model(X, tangent_vec, base_point), y)
@@ -209,10 +214,11 @@ class GeodesicRegression(BaseEstimator):
             y.shape[-1:] if self.space.default_point_type == 'vector' else
             y.shape[-2:])
 
-        initial_guess = gs.flatten(gs.stack([
-            gs.random.normal(size=shape),
-            gs.random.normal(size=shape)
-        ]))
+        intercept_init, coef_init = self.initialize_intercept(y, shape)
+        intercept_hat = self.space.projection(intercept_init)
+        coef_hat = self.space.to_tangent(coef_init, intercept_hat)
+        initial_guess = gs.vstack(
+            [gs.flatten(intercept_hat), gs.flatten(coef_hat)])
 
         objective_with_grad = gs.autodiff.value_and_grad(
             lambda param: self._loss(X, y, param, shape, weights),
@@ -237,6 +243,26 @@ class GeodesicRegression(BaseEstimator):
             self.training_score_ = 1 - 2 * res.fun / variance
 
         return self
+
+    def initialize_intercept(self, y, shape):
+        init = self.initialization
+        if isinstance(init, str):
+            if init == 'random':
+                return gs.random.normal(size=(2, ) + shape)
+            if init == 'frechet':
+                mean = FrechetMean(
+                    self.metric, verbose=self.verbose).fit(y).estimate_
+                return mean, gs.zeros(shape)
+            if init == 'data':
+                return y[gs.random.randint(len(y))],  gs.random.normal(
+                    size=shape)
+            if init == 'warm_start':
+                if self.intercept_ is not None:
+                    return self.intercept_, self.coef_
+                return gs.random.normal(size=(2, ) + shape)
+            raise ValueError('The initialization string must be one of '
+                             'random, frechet, data or warm_start')
+        return init
 
     def _fit_riemannian(
             self, X, y, weights=None, compute_training_score=False):
@@ -277,18 +303,24 @@ class GeodesicRegression(BaseEstimator):
             lambda params: self._loss(X, y, params, shape, weights))
 
         lr = self.learning_rate
-        intercept_hat = intercept_hat_new = y[0]
+        intercept_init, coef_init = self.initialize_intercept(y, shape)
+        intercept_hat = intercept_hat_new = self.space.projection(
+            intercept_init)
         coef_hat = coef_hat_new = self.space.to_tangent(
-            gs.random.normal(size=shape), intercept_hat)
+            coef_init, intercept_hat)
         param = gs.vstack(
             [gs.flatten(intercept_hat), gs.flatten(coef_hat)])
-        current_loss = math.inf
-        current_iter = 0
+        current_loss = [math.inf]
+        current_grad = gs.zeros_like(param)
+        current_iter = i = 0
         for i in range(self.max_iter):
             loss, grad = objective_with_grad(param)
             if gs.any(gs.isnan(grad)):
-                break
-            if loss > current_loss and i > 0:
+                logging.warning(
+                    f'NaN encountered in gradient at iter {current_iter}')
+                lr /= 2
+                grad = current_grad
+            elif loss >= current_loss[-1] and i > 0:
                 lr /= 2
             else:
                 if not current_iter % 5:
@@ -296,7 +328,10 @@ class GeodesicRegression(BaseEstimator):
                 coef_hat = coef_hat_new
                 intercept_hat = intercept_hat_new
                 current_iter += 1
-            if abs(loss - current_loss) < self.tol:
+            if abs(loss - current_loss[-1]) < self.tol:
+                if self.verbose:
+                    logging.info(
+                        f'Tolerance threshold reached at iter {current_iter}')
                 break
 
             grad_intercept, grad_coef = gs.split(grad, 2)
@@ -316,17 +351,19 @@ class GeodesicRegression(BaseEstimator):
             param = gs.vstack(
                 [gs.flatten(intercept_hat_new), gs.flatten(coef_hat_new)])
 
-            current_loss = loss
+            current_loss.append(loss)
+            current_grad = grad
 
         self.intercept_ = self.space.projection(intercept_hat)
         self.coef_ = self.space.to_tangent(coef_hat, self.intercept_)
 
         if self.verbose:
-            logging.info(f'Number of iteration: {current_iter},'
+            logging.info(f'Number of gradient evaluations: {i}, '
+                         f'Number of gradient iterations: {current_iter}'
                          f' loss at termination: {current_loss}')
         if compute_training_score:
             variance = gs.sum(self.metric.squared_dist(y, self.intercept_))
-            self.training_score_ = 1 - 2 * current_loss / variance
+            self.training_score_ = 1 - 2 * current_loss[-1] / variance
 
         return self
 
@@ -377,7 +414,7 @@ class GeodesicRegression(BaseEstimator):
         if weights is None:
             weights = 1.
 
-        mean = FrechetMean(self.metric).fit(y).estimate_
+        mean = FrechetMean(self.metric, verbose=self.verbose).fit(y).estimate_
         numerator = gs.sum(weights * self.metric.squared_dist(y, y_pred))
         denominator = gs.sum(weights * self.metric.squared_dist(
             y, mean))

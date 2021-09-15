@@ -326,8 +326,8 @@ class TestAutodiff(geomstats.tests.TestCase):
             return const_metric.squared_dist(x, const_point_b)
 
         arg_point_a = space.random_point()
-        result_value, result_grad = gs.autodiff.value_and_grad(
-            func)(arg_point_a)
+        func_with_grad = gs.autodiff.value_and_grad(func)
+        result_value, result_grad = func_with_grad(arg_point_a)
         expected_value = const_metric.squared_dist(
             arg_point_a, const_point_b)
         expected_grad = -2 * const_metric.log(
@@ -335,3 +335,7 @@ class TestAutodiff(geomstats.tests.TestCase):
 
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
+
+        loss, grad = func_with_grad(const_point_b)
+        self.assertAllClose(loss, 0.)
+        self.assertAllClose(grad, 0.)
