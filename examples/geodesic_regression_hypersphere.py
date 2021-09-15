@@ -64,7 +64,7 @@ def main():
     variance_ = variance(y, estimator.estimate_, metric=METRIC)
     r2 = 1 - rss / variance_
 
-    # Fit Geodesic Regression
+    # Fit geodesic regression
     gr = GeodesicRegression(
         SPACE, center_X=False, method='extrinsic', verbose=True)
     gr.fit(X, y, compute_training_score=True)
