@@ -337,6 +337,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             verbose=True,
             max_iter=50,
             learning_rate=0.1,
+            initialization='random'
         )
 
         gr.fit(self.X_sphere, self.y_sphere, compute_training_score=True)
@@ -374,6 +375,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             verbose=True,
             max_iter=50,
             learning_rate=0.1,
+            initialization='warm_start',
         )
 
         gr.fit(self.X_se2, self.y_se2, compute_training_score=True)

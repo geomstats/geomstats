@@ -99,14 +99,14 @@ class GeodesicRegression(BaseEstimator):
         ----------
         X : {array-like, sparse matrix}, shape=[...,}]
             Training input samples.
-        coef : array-like, shape=[..., dim]
+        coef : array-like, shape=[..., {dim, [n,n]}]
             Coefficient of the geodesic regression.
-        intercept : array-like, shape=[..., dim]
+        intercept : array-like, shape=[..., {dim, [n,n]}]
             Intercept of the geodesic regression.
 
         Returns
         -------
-        _ : array-like, shape=[..., dim]
+        _ : array-like, shape=[..., {dim, [n,n]}]
             Value on the manifold output by the generative model.
         """
         X_copy = X[:, None] if self.metric.default_point_type == 'vector' else\
@@ -120,9 +120,9 @@ class GeodesicRegression(BaseEstimator):
         ----------
         X : {array-like, sparse matrix}, shape=[...,}]
             Training input samples.
-        y : array-like, shape=[..., dim]
+        y : array-like, shape=[..., {dim, [n,n]}]
             Training target values.
-        param : array-like, shape=[2, dim]
+        param : array-like, shape=[2, {dim, [n,n]}]
             Parameters intercept and coef of the geodesic regression,
             vertically stacked.
         weights : array-like, shape=[...,]
@@ -160,7 +160,7 @@ class GeodesicRegression(BaseEstimator):
         ----------
         X : {array-like, sparse matrix}, shape=[...,}]
             Training input samples.
-        y : array-like, shape=[..., dim]
+        y : array-like, shape=[..., {dim, [n,n]}]
             Training target values.
         weights : array-like, shape=[...,]
             Weights associated to the points.
@@ -196,7 +196,7 @@ class GeodesicRegression(BaseEstimator):
         ----------
         X : {array-like, sparse matrix}, shape=[...,}]
             Training input samples.
-        y : array-like, shape=[..., dim]
+        y : array-like, shape=[..., {dim, [n,n]}]
             Training target values.
         weights : array-like, shape=[...,]
             Weights associated to the points.
@@ -214,7 +214,7 @@ class GeodesicRegression(BaseEstimator):
             y.shape[-1:] if self.space.default_point_type == 'vector' else
             y.shape[-2:])
 
-        intercept_init, coef_init = self.initialize_intercept(y, shape)
+        intercept_init, coef_init = self.initialize_parameters(y)
         intercept_hat = self.space.projection(intercept_init)
         coef_hat = self.space.to_tangent(coef_init, intercept_hat)
         initial_guess = gs.vstack(
@@ -244,8 +244,35 @@ class GeodesicRegression(BaseEstimator):
 
         return self
 
-    def initialize_intercept(self, y, shape):
+    def initialize_parameters(self, y):
+        """Set initial values for the parameters of the model.
+
+        Set initial parameters for the optimization, depending on the value
+        of the attribute `initialization`. The options are:
+            - `random` : pick random numbers from a normal distribution,
+            then project them to the manifold and the tangent space.
+            - `frechet` : compute the Frechet mean of the target points
+            - `data` : pick a random sample from the target points and a
+            tangent vector with random coefficients.
+            - `warm_start`: pick previous values of the parameters if the
+            model was fitted before, otherwise behaves as `random`.
+
+        Parameters
+        ----------
+        y: array-like, shape=[n_samples, {dim, [n,n]}]
+            The target data, used for the option `data` and 'frechet'.
+
+        Returns
+        -------
+        intercept : array-like, shape=[{dim, [n,n]}]
+            Initial value for the intercept.
+        coef : array-like, shape=[{dim, [n,n]}]
+            Initial value for the coefficient.
+        """
         init = self.initialization
+        shape = (
+            y.shape[-1:] if self.space.default_point_type == 'vector' else
+            y.shape[-2:])
         if isinstance(init, str):
             if init == 'random':
                 return gs.random.normal(size=(2, ) + shape)
@@ -254,7 +281,7 @@ class GeodesicRegression(BaseEstimator):
                     self.metric, verbose=self.verbose).fit(y).estimate_
                 return mean, gs.zeros(shape)
             if init == 'data':
-                return gs.random.choice(y, 1)[0],  gs.random.normal(
+                return gs.random.choice(y, 1)[0], gs.random.normal(
                     size=shape)
             if init == 'warm_start':
                 if self.intercept_ is not None:
@@ -275,7 +302,7 @@ class GeodesicRegression(BaseEstimator):
         ----------
         X : {array-like, sparse matrix}, shape=[...,}]
             Training input samples.
-        y : array-like, shape=[..., dim]
+        y : array-like, shape=[..., {dim, [n,n]}]
             Training target values.
         weights : array-like, shape=[...,]
             Weights associated to the points.
@@ -303,7 +330,7 @@ class GeodesicRegression(BaseEstimator):
             lambda params: self._loss(X, y, params, shape, weights))
 
         lr = self.learning_rate
-        intercept_init, coef_init = self.initialize_intercept(y, shape)
+        intercept_init, coef_init = self.initialize_parameters(y)
         intercept_hat = intercept_hat_new = self.space.projection(
             intercept_init)
         coef_hat = coef_hat_new = self.space.to_tangent(
@@ -399,7 +426,7 @@ class GeodesicRegression(BaseEstimator):
         ----------
         X : {array-like, sparse matrix}, shape=[...,}]
             Training input samples.
-        y : array-like, shape=[..., dim]
+        y : array-like, shape=[..., {dim, [n,n]}]
             Training target values.
         weights : array-like, shape=[...,]
             Weights associated to the points.

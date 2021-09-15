@@ -69,11 +69,11 @@ def custom_gradient(*grad_funcs):
             defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs:
-                    lambda g: g * grad_funcs[0](*args, **kwargs),
+                    wrapped_grad_func(0, ans, *args, **kwargs),
                 lambda ans, *args, **kwargs:
-                    lambda g: g * grad_funcs[1](*args, **kwargs),
+                    wrapped_grad_func(1, ans, *args, **kwargs),
                 lambda ans, *args, **kwargs:
-                    lambda g: g * grad_funcs[2](*args, **kwargs))
+                    wrapped_grad_func(2, ans, *args, **kwargs))
         else:
             raise NotImplementedError(
                 "custom_gradient is not yet implemented "
