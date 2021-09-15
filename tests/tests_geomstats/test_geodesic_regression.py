@@ -443,6 +443,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
     @geomstats.tests.autograd_and_tf_only
     def test_fit_riemannian_se2(self):
+        init = (self.y_se2[0], gs.zeros_like(self.y_se2[0]))
         gr = GeodesicRegression(
             self.se2,
             metric=self.metric_se2,
@@ -451,7 +452,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             verbose=True,
             max_iter=50,
             learning_rate=0.1,
-            initialization='data'
+            initialization=init
         )
 
         gr.fit(self.X_se2, self.y_se2, compute_training_score=True)
