@@ -1,7 +1,7 @@
 """Numpy based random backend."""
 
 from numpy.random import (  # NOQA
-    choice,
+    default_rng,
     normal,
     multivariate_normal,
     rand,
@@ -9,3 +9,7 @@ from numpy.random import (  # NOQA
     seed,
     uniform
 )
+
+
+def choice(*args, **kwargs):
+    return default_rng().choice(*args, **kwargs)

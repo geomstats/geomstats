@@ -68,12 +68,21 @@ class GeodesicRegression(BaseEstimator):
     verbose : bool
         Verbose option.
         Optional, default: False.
+    initialization : str or array-like,
+        {'random', 'data', 'frechet', warm_start'}
+        Initial values of the parameters for the optimization,
+        or initialization method.
+        Optional, default: 'random'
+    regularization : float
+        Weight on the constraint for the intercept to lie on the manifold in
+        the extrinsic optimization scheme. An L^2 constraint is applied.
+        Optional, default: 1.
     """
 
     def __init__(
             self, space, metric=None, center_X=True, method='extrinsic',
             max_iter=100, learning_rate=.1, tol=1e-5, verbose=False,
-            initialization='random'):
+            initialization='random', regularization=1.):
         if metric is None:
             metric = space.metric
         self.metric = metric
@@ -91,6 +100,7 @@ class GeodesicRegression(BaseEstimator):
         self.learning_rate = learning_rate
         self.tol = tol
         self.initialization = initialization
+        self.regularization = regularization
 
     def _model(self, X, coef, intercept):
         """Compute the generative model of the geodesic regression.
@@ -141,14 +151,17 @@ class GeodesicRegression(BaseEstimator):
         coef = gs.cast(coef, dtype=y.dtype)
         if self.method == 'extrinsic':
             base_point = self.space.projection(intercept)
+            penalty = self.regularization * gs.sum(
+                (base_point - intercept) ** 2)
         else:
             base_point = intercept
+            penalty = 0
         tangent_vec = self.space.to_tangent(coef, base_point)
         distances = self.metric.squared_dist(
             self._model(X, tangent_vec, base_point), y)
         if weights is None:
             weights = 1.
-        return 1. / 2. * gs.sum(weights * distances)
+        return 1. / 2. * gs.sum(weights * distances) + penalty
 
     def fit(self, X, y, weights=None, compute_training_score=False):
         """Estimate the parameters of the geodesic regression.
@@ -387,7 +400,7 @@ class GeodesicRegression(BaseEstimator):
         if self.verbose:
             logging.info(f'Number of gradient evaluations: {i}, '
                          f'Number of gradient iterations: {current_iter}'
-                         f' loss at termination: {current_loss}')
+                         f' loss at termination: {current_loss[-1]}')
         if compute_training_score:
             variance = gs.sum(self.metric.squared_dist(y, self.intercept_))
             self.training_score_ = 1 - 2 * current_loss[-1] / variance

@@ -131,6 +131,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             verbose=True,
             max_iter=50,
             learning_rate=0.1,
+            regularization=0,
         )
 
         def loss_of_param(param):
@@ -224,7 +225,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
     @geomstats.tests.autograd_tf_and_torch_only
     def test_loss_minimization_extrinsic_hypersphere(self):
         """Minimize loss from noiseless data."""
-        gr = GeodesicRegression(self.sphere)
+        gr = GeodesicRegression(self.sphere, regularization=0)
 
         def loss_of_param(param):
             return gr._loss(
@@ -337,7 +338,8 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             verbose=True,
             max_iter=50,
             learning_rate=0.1,
-            initialization='random'
+            initialization='random',
+            regularization=0.9,
         )
 
         gr.fit(self.X_sphere, self.y_sphere, compute_training_score=True)
@@ -346,7 +348,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         intercept_hat, coef_hat = gr.intercept_, gr.coef_
         self.assertAllClose(intercept_hat.shape, self.shape_sphere)
         self.assertAllClose(coef_hat.shape, self.shape_sphere)
-        self.assertAllClose(training_score, 1.0, atol=100 * gs.atol)
+        self.assertAllClose(training_score, 1.0, atol=500 * gs.atol)
         self.assertAllClose(
             intercept_hat, self.intercept_sphere_true, atol=1e-3
         )
