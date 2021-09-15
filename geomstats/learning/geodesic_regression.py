@@ -254,7 +254,7 @@ class GeodesicRegression(BaseEstimator):
                     self.metric, verbose=self.verbose).fit(y).estimate_
                 return mean, gs.zeros(shape)
             if init == 'data':
-                return y[gs.random.randint(len(y))],  gs.random.normal(
+                return gs.random.choice(y, 1)[0],  gs.random.normal(
                     size=shape)
             if init == 'warm_start':
                 if self.intercept_ is not None:

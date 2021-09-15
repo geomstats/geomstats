@@ -345,9 +345,9 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         intercept_hat, coef_hat = gr.intercept_, gr.coef_
         self.assertAllClose(intercept_hat.shape, self.shape_sphere)
         self.assertAllClose(coef_hat.shape, self.shape_sphere)
-        self.assertAllClose(training_score, 1.0, atol=500 * gs.atol)
+        self.assertAllClose(training_score, 1.0, atol=100 * gs.atol)
         self.assertAllClose(
-            intercept_hat, self.intercept_sphere_true, atol=5e-3
+            intercept_hat, self.intercept_sphere_true, atol=1e-3
         )
 
         tangent_vec_of_transport = self.sphere.metric.log(
@@ -435,4 +435,40 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         self.assertAllClose(
             transported_coef_hat, self.coef_sphere_true, atol=0.6
+        )
+
+    @geomstats.tests.autograd_and_tf_only
+    def test_fit_riemannian_se2(self):
+        gr = GeodesicRegression(
+            self.se2,
+            metric=self.metric_se2,
+            center_X=False,
+            method='riemannian',
+            verbose=True,
+            max_iter=50,
+            learning_rate=0.1,
+            initialization='data'
+        )
+
+        gr.fit(self.X_se2, self.y_se2, compute_training_score=True)
+        intercept_hat, coef_hat = gr.intercept_, gr.coef_
+        training_score = gr.training_score_
+
+        self.assertAllClose(intercept_hat.shape, self.shape_se2)
+        self.assertAllClose(coef_hat.shape, self.shape_se2)
+        self.assertTrue(gs.isclose(training_score, 1.0))
+        self.assertAllClose(intercept_hat, self.intercept_se2_true, atol=1e-4)
+
+        tangent_vec_of_transport = self.se2.metric.log(
+            self.intercept_se2_true, base_point=intercept_hat
+        )
+
+        transported_coef_hat = self.se2.metric.parallel_transport(
+            tangent_vec_a=coef_hat,
+            tangent_vec_b=tangent_vec_of_transport,
+            base_point=intercept_hat,
+        )
+
+        self.assertAllClose(
+            transported_coef_hat, self.coef_se2_true, atol=0.6
         )

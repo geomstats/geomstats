@@ -30,17 +30,18 @@ def custom_gradient(*grad_funcs):
     def wrapper(func):
         def func_with_grad(*args, **kwargs):
             def grad(upstream):
-                if upstream.ndim < 1:
-                    upstream = tf.expand_dims(upstream, axis=0)
                 grad_vals = []
                 for grad_fun in grad_funcs:
-                    grad_func_val = tf.convert_to_tensor(
-                        grad_fun(*args, **kwargs))
-                    grad_vals.append(
-                        tf.squeeze(
-                            tf.einsum(
-                                "...k,...->...", upstream, grad_func_val))
-                    )
+                    grads = tf.convert_to_tensor(grad_fun(*args, **kwargs))
+                    if isinstance(grads, float):
+                        grad_val = upstream * grads
+                    elif grads.ndim == 2:
+                        grad_val = upstream[..., None] * grads
+                    elif grads.ndim == 3:
+                        grad_val = upstream[..., None, None] * grads
+                    else:
+                        grad_val = upstream * grads
+                    grad_vals.append(grad_val)
                 return tuple(grad_vals)
 
             return func(*args, **kwargs), grad

@@ -338,4 +338,4 @@ class TestAutodiff(geomstats.tests.TestCase):
 
         loss, grad = func_with_grad(const_point_b)
         self.assertAllClose(loss, 0.)
-        self.assertAllClose(grad, 0.)
+        self.assertAllClose(grad, gs.zeros_like(grad))
