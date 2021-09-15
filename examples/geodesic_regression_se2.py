@@ -23,6 +23,7 @@ METRIC = SPACE.left_canonical_metric
 METRIC.default_point_type = 'matrix'
 gs.random.seed(0)
 
+
 def main():
     r"""Compute and visualize a geodesic regression on the SE(2).
 
@@ -81,6 +82,7 @@ def main():
     print(f'MSE on the intercept: {mse_intercept:.2e}')
     print(f'MSE on the initial velocity beta: {mse_beta:.2e}')
     print(f'Determination coefficient: R^2={r2_hat:.2f}')
+    print(f'True R^2: {r2:.2f}')
 
     # Plot
     fitted_data = gr.predict(X)
@@ -94,12 +96,12 @@ def main():
     regressed_geodesic = path(
         gs.linspace(min(X), max(X), 100))
 
-    i = 10
     sphere_visu.draw_points(ax, y, marker='o', c='black')
     sphere_visu.draw_points(ax, fitted_data, marker='o', c='gray')
     sphere_visu.draw_points(
         ax, gs.array([intercept]), marker='x', c='r')
-    sphere_visu.draw_points(ax, gs.array([intercept_hat]), marker='o', c='green')
+    sphere_visu.draw_points(
+        ax, gs.array([intercept_hat]), marker='o', c='green')
 
     ax.plot(
         regressed_geodesic[:, 0, 2],
