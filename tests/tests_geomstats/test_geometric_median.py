@@ -30,6 +30,7 @@ class TestGeometricMedianEstimation(geomstats.tests.TestCase):
         wa_estimator.fit(X)
         gm_expected = gs.array([[ROOT2, 0.], [0., ROOT2]])
         gm_result = wa_estimator.estimate_
+        self.assertAllClose(gm_expected, gm_result )
 
     def test_median_belongs_to_SPD_manifold(self):
         """Test the fit method on SPD manifold"""
@@ -40,8 +41,7 @@ class TestGeometricMedianEstimation(geomstats.tests.TestCase):
         SPDmanifold = SPDMatrices(n)
         X = SPDmanifold.random_point(n_samples)
         gm = wa_estimator.fit(X).estimate_
-        gm_belongs = SPDmanifold.belongs(gm)
+        
+        gm_result = SPDmanifold.belongs(gm)
         gm_expected = True
-        self.assertAllClose(gm_expected, gm_result )
-
-    
+        self.assertAllClose(gm_expected, gm_result)
