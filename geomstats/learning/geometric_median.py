@@ -102,7 +102,7 @@ class WeiszfeldAlgorithm:
         for iter in range(1,self.max_iter+1):
             current_median = self.single_iteration(
                 current_median, X, weights, self.lr)
-            if self.verbose is not None and (iter+1)%self.print_every == 0:
+            if self.print_every is not None and (iter+1)%self.print_every == 0:
                print("iteration: {} curr_median: {}".format(iter, current_median))  
         self.estimate_ = current_median
 
