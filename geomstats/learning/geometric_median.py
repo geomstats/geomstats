@@ -1,6 +1,5 @@
 """Geometric Median Estimation"""
 
-from functools import update_wrapper
 import geomstats.backend as gs
 
 class WeiszfeldAlgorithm:
@@ -66,11 +65,16 @@ class WeiszfeldAlgorithm:
         updated_median: array-like, shape={representation shape}
             updated median after single iteration 
         """
+
         dists = self.metric.dist(current_median, X)
-        logs = self.metric.log(current_median, X)
-        mul = gs.divide(self.weights/dists, ignore_div_zero=True)
-        v_k = gs.sum(mul * logs) / gs.sum(mul)
-        updated_median = self.metric.exp(lr * v_k)
+        sum = gs.sum(dists)
+        if sum==0.0:
+          return current_median
+       
+        logs = self.metric.log(X, current_median)
+        mul = gs.divide(weights, dists)
+        v_k = gs.sum(mul[:, None, None] * logs, axis=0) / gs.sum(mul) 
+        updated_median = self.metric.exp(lr * v_k, current_median)
         return updated_median
 
     def fit(self, X, weights=None):
@@ -95,11 +99,11 @@ class WeiszfeldAlgorithm:
         current_median = X[0] if self.init is None else self.init
         if weights is None:
             weights = gs.ones((n_points,))/n_points 
-        for iter in self.max_iter:
+        for iter in range(1,self.max_iter+1):
             current_median = self.single_iteration(
-                current_median, X, self.lr, weights)
+                current_median, X, weights, self.lr)
             if self.verbose is not None and (iter+1)%self.print_every == 0:
-               print("new median", current_median)   
+               print("iteration: {} curr_median: {}".format(iter, current_median))  
         self.estimate_ = current_median
 
         return self

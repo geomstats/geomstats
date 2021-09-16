@@ -413,4 +413,4 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
 def divide(a, b, ignore_div_zero = False):
     if ignore_div_zero is False:
         return np.divide(a,b)
-    np.divide(a, b, out=np.zeros_like(a), where=b!=0)
+    return np.divide(a, b, out=np.zeros_like(a), where=b!=0)

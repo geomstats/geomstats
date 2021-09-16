@@ -9,7 +9,7 @@ from geomstats.learning.geometric_median import WeiszfeldAlgorithm
 
 
 
-class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
+class TestGeometricMedianEstimation(geomstats.tests.TestCase):
     """Test of Geometric Meidan Estimators"""
 
     def test_fit(self):
@@ -18,7 +18,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
         wa_estimator = WeiszfeldAlgorithm(SPDMetricAffine(n=2))
 
         X = gs.array([[1, 0], [0, 1]],
-                     [[1, 0], [0, 1]])
+                     [[1, 0], [0, 1]]])
         
         wa_estimator.fit(X)
         gm_expected = gs.array([[1, 0], [0, 1]])
