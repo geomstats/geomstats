@@ -98,7 +98,12 @@ def value_and_grad(func, to_numpy=False):
                 *all_grads,
                 torch.autograd.grad(value, one_arg, retain_graph=True)[0])
 
+        if to_numpy:
+            value = detach(value).numpy()
+            all_grads = [detach(one_grad).numpy() for one_grad in all_grads]
+
         if len(args) == 1:
             return value, all_grads[0]
         return value, all_grads
+
     return func_with_grad

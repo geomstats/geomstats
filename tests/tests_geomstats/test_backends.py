@@ -188,8 +188,18 @@ class TestBackends(geomstats.tests.TestCase):
     @geomstats.tests.tf_only
     def test_vstack(self):
         import tensorflow as tf
+
+        tensor_1 = tf.convert_to_tensor([1., 2., 3.])
+        tensor_2 = tf.convert_to_tensor([7., 8., 9.])
+
+        result = gs.vstack([tensor_1, tensor_2])
+        expected = tf.convert_to_tensor([
+            [1., 2., 3.],
+            [7., 8., 9.]])
+        self.assertAllClose(result, expected)
+
         tensor_1 = tf.convert_to_tensor([[1., 2., 3.], [4., 5., 6.]])
-        tensor_2 = tf.convert_to_tensor([[7., 8., 9.]])
+        tensor_2 = tf.convert_to_tensor([7., 8., 9.])
 
         result = gs.vstack([tensor_1, tensor_2])
         expected = tf.convert_to_tensor([

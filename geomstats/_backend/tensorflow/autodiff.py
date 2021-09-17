@@ -32,8 +32,6 @@ def custom_gradient(*grad_funcs):
             def grad(upstream):
                 if upstream.ndim < 1:
                     upstream = tf.expand_dims(upstream, axis=0)
-                if upstream.ndim < 2:
-                    upstream = tf.expand_dims(upstream, axis=1)
                 grad_vals = []
                 for grad_fun in grad_funcs:
                     grad_func_val = tf.convert_to_tensor(
