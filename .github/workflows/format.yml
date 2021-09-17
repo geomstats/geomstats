@@ -1,0 +1,20 @@
+name: auto-format
+on: push
+jobs:
+    format:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v1
+            - name: black
+              uses: lgeiger/black-action@master
+              with:
+                  args: .
+      - name: Apply black formatting
+        if: "${{ failure() }}"
+        run: |
+          black .
+      - name: Commit black formatting results
+        if: "${{ failure() }}"
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: ":art: Format Python code with psf/black push"
