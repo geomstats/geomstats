@@ -50,6 +50,7 @@ from tensorflow import (  # NOQA
     sign,
     sin,
     sinh,
+    sort,
     sqrt,
     squeeze,
     stack,
