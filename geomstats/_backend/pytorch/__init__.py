@@ -57,6 +57,7 @@ from torch import (  # NOQA
     sign,
     sin,
     sinh,
+    sort,
     stack,
     std,
     tan,
