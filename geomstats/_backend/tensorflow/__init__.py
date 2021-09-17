@@ -6,16 +6,15 @@ from itertools import product
 
 import numpy as _np
 import tensorflow as tf
-from tensorflow import (  # NOQA
-    abs,
-    acos as arccos,
-    acosh as arccosh,
-    argmax,
-    argmin,
-    asin as arcsin,
-    atan2 as arctan2,
-    broadcast_to,
-    clip_by_value as clip,
+from tensorflow import abs
+from tensorflow import acos as arccos  # NOQA
+from tensorflow import acosh as arccosh
+from tensorflow import argmax, argmin
+from tensorflow import asin as arcsin
+from tensorflow import atan2 as arctan2
+from tensorflow import broadcast_to
+from tensorflow import clip_by_value as clip
+from tensorflow import (
     concat,
     cos,
     cosh,
@@ -39,11 +38,13 @@ from tensorflow import (  # NOQA
     meshgrid,
     ones,
     ones_like,
-    range as arange,
-    reduce_max as amax,
-    reduce_mean as mean,
-    reduce_min as amin,
-    reduce_prod as prod,
+)
+from tensorflow import range as arange
+from tensorflow import reduce_max as amax
+from tensorflow import reduce_mean as mean
+from tensorflow import reduce_min as amin
+from tensorflow import reduce_prod as prod
+from tensorflow import (
     reshape,
     searchsorted,
     shape,
@@ -58,21 +59,15 @@ from tensorflow import (  # NOQA
     tanh,
     uint8,
     zeros,
-    zeros_like
+    zeros_like,
 )
 
-
-from . import autodiff # NOQA
+from ..constants import tf_atol, tf_rtol
+from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-from ..constants import tf_atol, tf_rtol
 
-
-DTYPES = {
-    int32: 0,
-    int64: 1,
-    float32: 2,
-    float64: 3}
+DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3}
 
 
 arctanh = tf.math.atanh
@@ -138,13 +133,13 @@ def trace(x, axis1=0, axis2=1):
     min_axis = min(axis1, axis2)
     max_axis = max(axis1, axis2)
     if min_axis == 1 and max_axis == 2:
-        return tf.einsum('...ii', x)
+        return tf.einsum("...ii", x)
     if min_axis == -2 and max_axis == -1:
-        return tf.einsum('...ii', x)
+        return tf.einsum("...ii", x)
     if min_axis == 0 and max_axis == 1:
-        return tf.einsum('ii...', x)
+        return tf.einsum("ii...", x)
     if min_axis == 0 and max_axis == 2:
-        return tf.einsum('i...i', x)
+        return tf.einsum("i...i", x)
     raise NotImplementedError()
 
 
@@ -165,7 +160,7 @@ def to_ndarray(x, to_ndim, axis=0):
 
 def empty(shape, dtype=float64):
     if not isinstance(dtype, tf.DType):
-        raise ValueError('dtype must be one of Tensorflow\'s types')
+        raise ValueError("dtype must be one of Tensorflow's types")
     np_dtype = dtype.as_numpy_dtype
     return tf.convert_to_tensor(_np.empty(shape, dtype=np_dtype))
 
@@ -179,10 +174,10 @@ def empty_like(prototype, dtype=None):
 
 def flip(m, axis=None):
     if not isinstance(m, tf.Tensor):
-        raise ValueError('m must be a Tensorflow tensor')
+        raise ValueError("m must be a Tensorflow tensor")
     if axis is None:
         axis = range(m.ndim)
-    elif not hasattr(axis, '__iter__'):
+    elif not hasattr(axis, "__iter__"):
         axis = (axis,)
     return tf.reverse(m, axis=axis)
 
@@ -243,13 +238,13 @@ def _mask_from_indices(indices, mask_shape, dtype=float32):
 
     for i_index, index in enumerate(indices):
         if not isinstance(index, tuple):
-            if hasattr(index, '__iter__'):
+            if hasattr(index, "__iter__"):
                 indices[i_index] = tuple(index)
             else:
                 indices[i_index] = (index,)
     for index in indices:
         if len(index) != len(mask_shape):
-            raise ValueError('Indices must have the same size as shape')
+            raise ValueError("Indices must have the same size as shape")
 
     for index in indices:
         np_mask[index] = 1
@@ -280,7 +275,8 @@ def _duplicate_array(x, n_samples, axis=0):
 
 
 def _vectorized_mask_from_indices(
-        n_samples=1, indices=None, mask_shape=None, axis=0, dtype=float32):
+    n_samples=1, indices=None, mask_shape=None, axis=0, dtype=float32
+):
     """Create a vectorized binary mask.
 
     Parameters
@@ -304,7 +300,7 @@ def _vectorized_mask_from_indices(
     return _duplicate_array(mask, n_samples, axis=axis)
 
 
-def _assignment_single_value(x, value, indices, mode='replace', axis=0):
+def _assignment_single_value(x, value, indices, mode="replace", axis=0):
     """Assign a value at given indices of an array.
 
     Parameters
@@ -337,25 +333,26 @@ def _assignment_single_value(x, value, indices, mode='replace', axis=0):
         indices = [indices]
 
     if isinstance(indices[0], tuple):
-        use_vectorization = (len(indices[0]) < ndim(x))
+        use_vectorization = len(indices[0]) < ndim(x)
     elif tf.is_tensor(indices[0]) and ndim(indices[0]) >= 1:
-        use_vectorization = (len(indices[0]) < ndim(x))
+        use_vectorization = len(indices[0]) < ndim(x)
     else:
         use_vectorization = ndim(x) > 1
 
     if use_vectorization:
         full_shape = shape(x).numpy()
         n_samples = full_shape[axis]
-        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
+        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1 :])
         mask = _vectorized_mask_from_indices(
-            n_samples, indices, tile_shape, axis, x.dtype)
+            n_samples, indices, tile_shape, axis, x.dtype
+        )
     else:
         mask = _mask_from_indices(indices, shape(x), x.dtype)
-    if mode == 'replace':
+    if mode == "replace":
         return x + -x * mask + value * mask
-    if mode == 'sum':
+    if mode == "sum":
         return x + value * mask
-    raise ValueError('mode must be one of \'replace\' or \'sum\'')
+    raise ValueError("mode must be one of 'replace' or 'sum'")
 
 
 def _assignment(x, values, indices, mode, axis):
@@ -364,8 +361,7 @@ def _assignment(x, values, indices, mode, axis):
             indices_tensor = tf.where(indices)
             indices = [tuple(ind) for ind in indices_tensor]
         else:
-            indices_from_booleans = [
-                index for index, val in enumerate(indices) if val]
+            indices_from_booleans = [index for index, val in enumerate(indices) if val]
             indices_along_dims = [range(dim) for dim in shape(x)]
             indices_along_dims[axis] = indices_from_booleans
             indices = list(product(*indices_along_dims))
@@ -378,13 +374,15 @@ def _assignment(x, values, indices, mode, axis):
         single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
     if single_index:
         if len(values) > 1:
-            indices = [tuple(list(indices[:axis]) + [i] + list(indices[axis:]))
-                       for i in range(x.shape[axis])]
+            indices = [
+                tuple(list(indices[:axis]) + [i] + list(indices[axis:]))
+                for i in range(x.shape[axis])
+            ]
         else:
             indices = [indices]
 
     if len(values) != len(indices):
-        raise ValueError('Either one value or as many values as indices')
+        raise ValueError("Either one value or as many values as indices")
 
     for i_index, index in enumerate(indices):
         x = _assignment_single_value(x, values[i_index], index, mode, axis)
@@ -431,7 +429,7 @@ def assignment(x, values, indices, axis=0):
     if ndim(x) == 2, assignment(x, [1, 2], [(0, 1), (2, 3)]) <=>
                         x[((0, 2), (1, 3))] = [1, 2]
     """
-    return _assignment(x, values, indices, 'replace', axis)
+    return _assignment(x, values, indices, "replace", axis)
 
 
 def assignment_by_sum(x, values, indices, axis=0):
@@ -474,7 +472,7 @@ def assignment_by_sum(x, values, indices, axis=0):
     if ndim(x) == 2, assignment_by_sum(x, [1, 2], [(0, 1), (2, 3)]) <=>
                         x[((0, 2), (1, 3))] += [1, 2]
     """
-    return _assignment(x, values, indices, 'sum', axis)
+    return _assignment(x, values, indices, "sum", axis)
 
 
 def array_from_sparse(indices, data, target_shape):
@@ -496,8 +494,9 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return tf.sparse.to_dense(tf.sparse.reorder(
-        tf.SparseTensor(indices, data, target_shape)))
+    return tf.sparse.to_dense(
+        tf.sparse.reorder(tf.SparseTensor(indices, data, target_shape))
+    )
 
 
 def get_slice(x, indices):
@@ -525,7 +524,7 @@ def get_slice(x, indices):
     >>> get_slice(a, ((0, 2), (8, 9)))
     <tf.Tensor: id=41, shape=(2,), dtype=int32, numpy=array([ 8, 29])>
     """
-    if hasattr(indices, 'shape'):
+    if hasattr(indices, "shape"):
         if indices.shape.rank == 0:
             return x[indices]
 
@@ -577,7 +576,7 @@ def matmul(a, b):
 
 
 def outer(x, y):
-    return tf.einsum('i,j->ij', x, y)
+    return tf.einsum("i,j->ij", x, y)
 
 
 def copy(x):
@@ -622,15 +621,17 @@ def broadcast_arrays(x, y, **kwargs):
     for index in range(max_rank):
         dimensions = [s[index] for s in shapes]
         repeats = Counter(dimensions)
-        if len(repeats) > 2 or (len(repeats) == 2 and
-                                1 not in list(repeats.keys())):
-            raise ValueError('operands could not be '
-                             'broadcast together with shapes', shapes)
+        if len(repeats) > 2 or (len(repeats) == 2 and 1 not in list(repeats.keys())):
+            raise ValueError(
+                "operands could not be " "broadcast together with shapes", shapes
+            )
         broadcast_shape.append(max(repeats.keys()))
 
     for axis, dimension in enumerate(broadcast_shape):
-        tensors = [tf.concat([t] * dimension, axis=axis)
-                   if t.get_shape()[axis] == 1 else t for t in tensors]
+        tensors = [
+            tf.concat([t] * dimension, axis=axis) if t.get_shape()[axis] == 1 else t
+            for t in tensors
+        ]
 
     return tensors
 
@@ -647,9 +648,7 @@ def isclose(x, y, rtol=rtol, atol=atol):
     x, y = convert_to_wider_dtype([x, y])
     dtype = x.dtype
 
-    rhs = (
-        tf.constant(atol, dtype=dtype)
-        + tf.constant(rtol, dtype=dtype) * tf.abs(y))
+    rhs = tf.constant(atol, dtype=dtype) + tf.constant(rtol, dtype=dtype) * tf.abs(y)
     return tf.less_equal(tf.abs(tf.subtract(x, y)), rhs)
 
 
@@ -677,19 +676,20 @@ def einsum(equation, *inputs, **kwargs):
 
     input_tensors_list = convert_to_wider_dtype(input_tensors_list)
 
-    einsum_list = einsum_str.split('->')
+    einsum_list = einsum_str.split("->")
     input_str = einsum_list[0]
     output_str = einsum_list[1]
 
-    input_str_list = input_str.split(',')
+    input_str_list = input_str.split(",")
 
-    is_ellipsis = [input_str[:3] == '...' for input_str in input_str_list]
+    is_ellipsis = [input_str[:3] == "..." for input_str in input_str_list]
     all_ellipsis = bool(_np.prod(is_ellipsis))
 
     if all_ellipsis:
         if len(input_str_list) > 2:
             raise NotImplementedError(
-                'Ellipsis support not implemented for >2 input tensors')
+                "Ellipsis support not implemented for >2 input tensors"
+            )
         ndims = [len(input_str[3:]) for input_str in input_str_list]
 
         tensor_a = input_tensors_list[0]
@@ -705,32 +705,34 @@ def einsum(equation, *inputs, **kwargs):
         if n_tensor_a != n_tensor_b:
             if n_tensor_a == 1:
                 tensor_a = squeeze(tensor_a, axis=0)
-                input_prefix_list = ['', 'r']
-                output_prefix = 'r'
+                input_prefix_list = ["", "r"]
+                output_prefix = "r"
             elif n_tensor_b == 1:
                 tensor_b = squeeze(tensor_b, axis=0)
-                input_prefix_list = ['r', '']
-                output_prefix = 'r'
+                input_prefix_list = ["r", ""]
+                output_prefix = "r"
             else:
-                raise ValueError('Shape mismatch for einsum.')
+                raise ValueError("Shape mismatch for einsum.")
         else:
-            input_prefix_list = ['r', 'r']
-            output_prefix = 'r'
+            input_prefix_list = ["r", "r"]
+            output_prefix = "r"
 
         input_str_list = [
-            input_str.replace('...', prefix) for input_str, prefix in zip(
-                input_str_list, input_prefix_list)]
-        output_str = output_str.replace('...', output_prefix)
+            input_str.replace("...", prefix)
+            for input_str, prefix in zip(input_str_list, input_prefix_list)
+        ]
+        output_str = output_str.replace("...", output_prefix)
 
-        input_str = input_str_list[0] + ',' + input_str_list[1]
-        einsum_str = input_str + '->' + output_str
+        input_str = input_str_list[0] + "," + input_str_list[1]
+        einsum_str = input_str + "->" + output_str
 
         result = tf.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
 
         cond = (
             n_tensor_a == n_tensor_b == 1
             and initial_ndim_a != tensor_a.ndim
-            and initial_ndim_b != tensor_b.ndim)
+            and initial_ndim_b != tensor_b.ndim
+        )
 
         if cond:
             result = squeeze(result, axis=0)
@@ -774,8 +776,7 @@ def tril_indices(*args, **kwargs):
 
 
 def triu_indices(*args, **kwargs):
-    return tuple(
-        map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
+    return tuple(map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
 
 
 def where(condition, x=None, y=None):
@@ -823,7 +824,7 @@ def vec_to_triu(vec):
         k is (1 + sqrt(1 + 8 * n)) / 2
     """
     n = vec.shape[-1]
-    triu_shape = vec.shape + (n, )
+    triu_shape = vec.shape + (n,)
     _ones = tf.ones(triu_shape)
     vec = tf.reshape(vec, [-1])
     mask_a = tf.linalg.band_part(_ones, 0, -1)
@@ -849,7 +850,7 @@ def vec_to_tril(vec):
         k is (1 + sqrt(1 + 8 * n)) / 2
     """
     n = vec.shape[-1]
-    tril_shape = vec.shape + (n, )
+    tril_shape = vec.shape + (n,)
     _ones = tf.ones(tril_shape)
     vec = tf.reshape(vec, [-1])
     mask_a = tf.linalg.band_part(_ones, -1, 0)
