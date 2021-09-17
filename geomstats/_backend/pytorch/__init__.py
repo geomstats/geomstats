@@ -809,6 +809,7 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat[..., k, j] = tri_low
     return mat
 
+
 def sort(X, axis=-1):
     sorted, _ = torch.sort(X, axis=axis)
     return sorted
