@@ -2,10 +2,9 @@
 
 import math
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.poincare_ball import PoincareBall

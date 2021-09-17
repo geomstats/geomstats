@@ -3,14 +3,16 @@
 import math
 import warnings
 
-import tests.helper as helper
 from scipy.stats import dirichlet
 
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from geomstats.information_geometry.dirichlet import DirichletDistributions
-from geomstats.information_geometry.dirichlet import DirichletMetric
+from geomstats.information_geometry.dirichlet import (
+    DirichletDistributions,
+    DirichletMetric,
+)
 
 
 class TestDirichletDistributions(geomstats.tests.TestCase):

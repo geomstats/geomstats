@@ -6,7 +6,6 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.integrator import integrate
 
-
 EPSILON = 1e-6
 
 

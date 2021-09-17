@@ -3,6 +3,7 @@ import logging
 
 import matplotlib
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
@@ -12,7 +13,6 @@ from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 SE3_GROUP = SpecialEuclidean(n=3, point_type="vector")
 SE2_GROUP = SpecialEuclidean(n=2, point_type="matrix")
@@ -815,13 +815,16 @@ class KendallDisk:
             [[1.0, 0.0], [-0.5, gs.sqrt(3.0) / 2.0], [-0.5, -gs.sqrt(3.0) / 2.0]]
         ) / gs.sqrt(3.0)
 
-        self.centre = gs.array(
-            [
-                [1.0, 0.0, 0.0],
-                [-0.5, gs.sqrt(3.0) / 2.0, 0.0],
-                [-0.5, -gs.sqrt(3.0) / 2.0, 0.0],
-            ]
-        ) / gs.sqrt(3.0)
+        self.centre = (
+            gs.array(
+                [
+                    [1.0, 0.0, 0.0],
+                    [-0.5, gs.sqrt(3.0) / 2.0, 0.0],
+                    [-0.5, -gs.sqrt(3.0) / 2.0, 0.0],
+                ]
+            )
+            / gs.sqrt(3.0)
+        )
 
         self.ua = gs.array(
             [[-1.0, 0.0], [0.5, gs.sqrt(3.0) / 2.0], [0.5, -gs.sqrt(3.0) / 2.0]]

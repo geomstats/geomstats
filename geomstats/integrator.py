@@ -13,7 +13,6 @@ equation.
 
 from geomstats.errors import check_parameter_accepted_values
 
-
 STEP_FUNCTIONS = {"euler": "euler_step", "rk4": "rk4_step", "rk2": "rk2_step"}
 
 

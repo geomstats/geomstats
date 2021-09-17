@@ -5,8 +5,7 @@ from math import log
 
 from scipy.special import gammaln
 from sklearn.decomposition._base import _BasePCA
-from sklearn.utils.extmath import stable_cumsum
-from sklearn.utils.extmath import svd_flip
+from sklearn.utils.extmath import stable_cumsum, svd_flip
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices

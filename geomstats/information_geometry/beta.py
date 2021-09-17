@@ -4,8 +4,10 @@ from scipy.stats import beta
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.information_geometry.dirichlet import DirichletDistributions
-from geomstats.information_geometry.dirichlet import DirichletMetric
+from geomstats.information_geometry.dirichlet import (
+    DirichletDistributions,
+    DirichletMetric,
+)
 
 EPSILON = 1e-6
 
