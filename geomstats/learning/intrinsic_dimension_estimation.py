@@ -1,10 +1,10 @@
-"""Intrinsic Dimension Estimation"""
+"""Intrinsic Dimension Estimation."""
 
 import geomstats.backend as gs
 
 
 class LevinaBickelEstimator:
-    r"""Levina Bickel Estimator for intrinsic dimension estimation
+    r"""Levina Bickel Estimator for intrinsic dimension estimation.
 
     Levian Bickel Estimator calculates intrinsic dimension of
     manifolds embedded in euclidean space through maximum likelihood
@@ -34,7 +34,7 @@ class LevinaBickelEstimator:
     >>> from sklearn import  datasets
     >>> import geomstats.backend as gs
     >>> import geomstats.learning.intrinsic_dimension_estimation as ide
-    >>> from ede import LevinaBickelEstimator
+    >>> from ide import LevinaBickelEstimator
     >>> X, _ = datasets.make_swiss_roll(n_samples=1500)
     >>> X = gs.array(X)
     >>> lbe = LevinaBickelEstimator()
@@ -72,14 +72,14 @@ class LevinaBickelEstimator:
         return self
 
     def T(self, j, x):
-        """Return jth nearest neighbor to x in data X
+        """Return jth nearest neighbor to x in data X.
 
         Parameters
         ---------
         j : int
             j th nearest neighbor
-        x : int
-            index of the point x in the data X
+        x : int, ranges from 0 to N-1
+            index of the point in the data 
 
         Returns
         -------
@@ -88,7 +88,7 @@ class LevinaBickelEstimator:
         return gs.exp(self.log_sorted_dist[x - 1, j - 1])
 
     def predict(self):
-        """Predict intrinsic dimension"""
+        """Predict intrinsic dimension."""
         int_dim_for_each_k = []
         for k in range(self.min_neighbors, self.max_neighbors + 1):
             t1 = self.log_sorted_dist[:, k - 1]
