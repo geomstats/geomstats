@@ -72,7 +72,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, EmbeddedManifold):
             Rotation matrix.
         """
         aux_mat = self.submersion(point)
-        aux_mat = Matrices.mul(Matrices.transpose(point), point)
+        # aux_mat = Matrices.mul(Matrices.transpose(point), point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, - 1 / 2)
         rotation_mat = Matrices.mul(point, inv_sqrt_mat)
         det = gs.linalg.det(rotation_mat)

@@ -28,16 +28,6 @@ PI8 = PI * PI7
 
 ATOL = 1e-5
 
-TAYLOR_COEFFS_1_AT_0 = [+ 1. / 2., 0.,
-                        - 1. / 24., 0.,
-                        + 1. / 720., 0.,
-                        - 1. / 40320.]
-
-TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
-                        - 1. / 120., 0.,
-                        + 1. / 5040., 0.,
-                        - 1. / 362880.]
-
 
 def _squared_dist_grad_point_a(point_a, point_b, metric):
     """Compute gradient of squared_dist wrt point_a.
@@ -1192,7 +1182,7 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         dist = super().squared_dist(point_a, point_b)
         return dist
 
-    def squared_dist(self, point_a, point_b):
+    def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.
 
         Parameters
