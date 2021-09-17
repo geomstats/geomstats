@@ -11,11 +11,11 @@ from geomstats.information_geometry.normal import NormalDistributions
 
 
 class TestNormalDistributions(geomstats.tests.TestCase):
-    """Class defining the normal distributions tests.
-    """
+    """Class defining the normal distributions tests."""
+
     def setUp(self):
         """Define the parameters of the tests."""
-        warnings.simplefilter('ignore', category=UserWarning)
+        warnings.simplefilter("ignore", category=UserWarning)
         self.normal = NormalDistributions()
         self.metric = FisherRaoMetric()
         self.n_samples = 10
@@ -70,7 +70,7 @@ class TestNormalDistributions(geomstats.tests.TestCase):
         """
         point = self.normal.random_point(n_samples=2)
         pdf = self.normal.point_to_pdf(point)
-        x = gs.linspace(0., 1., 10)
+        x = gs.linspace(0.0, 1.0, 10)
         result = pdf(x)
         pdf1 = norm.pdf(x, loc=point[0, 0], scale=point[0, 1])
         pdf2 = norm.pdf(x, loc=point[1, 0], scale=point[1, 1])

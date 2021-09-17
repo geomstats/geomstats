@@ -7,7 +7,7 @@ from autograd.numpy.random import (  # NOQA
     rand,
     randint,
     seed,
-    uniform
+    uniform,
 )
 
 

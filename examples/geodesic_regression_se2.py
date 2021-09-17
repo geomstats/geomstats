@@ -20,7 +20,7 @@ from geomstats.learning.geodesic_regression import GeodesicRegression
 
 SPACE = SpecialEuclidean(2)
 METRIC = SPACE.left_canonical_metric
-METRIC.default_point_type = 'matrix'
+METRIC.default_point_type = "matrix"
 gs.random.seed(0)
 
 
@@ -38,11 +38,11 @@ def main():
     """
     # Generate noise-free data
     n_samples = 20
-    X = gs.random.normal(size=(n_samples, ))
+    X = gs.random.normal(size=(n_samples,))
     X -= gs.mean(X)
 
     intercept = SPACE.random_point()
-    coef = SPACE.to_tangent(5. * gs.random.rand(3, 3), intercept)
+    coef = SPACE.to_tangent(5.0 * gs.random.rand(3, 3), intercept)
     y = METRIC.exp(X[:, None, None] * coef[None], intercept)
 
     # Generate normal noise in the Lie algebra
@@ -63,8 +63,15 @@ def main():
 
     # Fit geodesic regression
     gr = GeodesicRegression(
-        SPACE, metric=METRIC, center_X=False, method='riemannian',
-        verbose=True, max_iter=100, learning_rate=.1, initialization='frechet')
+        SPACE,
+        metric=METRIC,
+        center_X=False,
+        method="riemannian",
+        verbose=True,
+        max_iter=100,
+        learning_rate=0.1,
+        initialization="frechet",
+    )
     gr.fit(X, y, compute_training_score=True)
 
     intercept_hat, beta_hat = gr.intercept_, gr.coef_
@@ -73,16 +80,19 @@ def main():
     mse_intercept = METRIC.squared_dist(intercept_hat, intercept)
     mse_beta = METRIC.squared_norm(
         METRIC.parallel_transport(
-            beta_hat, METRIC.log(intercept_hat, intercept), intercept_hat)
-        - coef, intercept)
+            beta_hat, METRIC.log(intercept_hat, intercept), intercept_hat
+        )
+        - coef,
+        intercept,
+    )
 
     # Measure goodness of fit
     r2_hat = gr.training_score_
 
-    print(f'MSE on the intercept: {mse_intercept:.2e}')
-    print(f'MSE on the initial velocity beta: {mse_beta:.2e}')
-    print(f'Determination coefficient: R^2={r2_hat:.2f}')
-    print(f'True R^2: {r2:.2f}')
+    print(f"MSE on the intercept: {mse_intercept:.2e}")
+    print(f"MSE on the initial velocity beta: {mse_beta:.2e}")
+    print(f"Determination coefficient: R^2={r2_hat:.2f}")
+    print(f"True R^2: {r2:.2f}")
 
     # Plot
     fitted_data = gr.predict(X)
@@ -91,23 +101,17 @@ def main():
     sphere_visu = visualization.SpecialEuclidean2()
     ax = sphere_visu.set_ax(ax=ax)
 
-    path = METRIC.geodesic(
-        initial_point=intercept_hat, initial_tangent_vec=beta_hat)
-    regressed_geodesic = path(
-        gs.linspace(min(X), max(X), 100))
+    path = METRIC.geodesic(initial_point=intercept_hat, initial_tangent_vec=beta_hat)
+    regressed_geodesic = path(gs.linspace(min(X), max(X), 100))
 
-    sphere_visu.draw_points(ax, y, marker='o', c='black')
-    sphere_visu.draw_points(ax, fitted_data, marker='o', c='gray')
-    sphere_visu.draw_points(
-        ax, gs.array([intercept]), marker='x', c='r')
-    sphere_visu.draw_points(
-        ax, gs.array([intercept_hat]), marker='o', c='green')
+    sphere_visu.draw_points(ax, y, marker="o", c="black")
+    sphere_visu.draw_points(ax, fitted_data, marker="o", c="gray")
+    sphere_visu.draw_points(ax, gs.array([intercept]), marker="x", c="r")
+    sphere_visu.draw_points(ax, gs.array([intercept_hat]), marker="o", c="green")
 
-    ax.plot(
-        regressed_geodesic[:, 0, 2],
-        regressed_geodesic[:, 1, 2], c='gray')
+    ax.plot(regressed_geodesic[:, 0, 2], regressed_geodesic[:, 1, 2], c="gray")
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

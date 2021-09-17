@@ -19,7 +19,7 @@ class NormalDistributions(PoincareHalfSpace):
         self.metric = FisherRaoMetric()
 
     @staticmethod
-    def random_point(n_samples=1, bound=1.):
+    def random_point(n_samples=1, bound=1.0):
         """Sample parameters of normal distributions.
 
         The uniform distribution on [-bound/2, bound/2]x[0, bound] is used.
@@ -67,8 +67,7 @@ class NormalDistributions(PoincareHalfSpace):
         point = gs.to_ndarray(point, to_ndim=2)
         samples = []
         for loc, scale in point:
-            samples.append(gs.array(
-                norm.rvs(loc, scale, size=n_samples)))
+            samples.append(gs.array(norm.rvs(loc, scale, size=n_samples)))
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
     def point_to_pdf(self, point):
@@ -104,11 +103,13 @@ class NormalDistributions(PoincareHalfSpace):
             x = gs.to_ndarray(x, to_ndim=1)
 
             pdf_at_x = [
-                gs.array(norm.pdf(x, loc=mean, scale=std)) for mean, std
-                in zip(means, stds)]
+                gs.array(norm.pdf(x, loc=mean, scale=std))
+                for mean, std in zip(means, stds)
+            ]
             pdf_at_x = gs.stack(pdf_at_x, axis=-1)
 
             return pdf_at_x
+
         return pdf
 
 

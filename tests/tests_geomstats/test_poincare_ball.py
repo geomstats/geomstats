@@ -30,22 +30,18 @@ class TestPoincareBall(geomstats.tests.TestCase):
         distance_a_b = self.metric.dist(point_a, point_b)
         squared_distance = self.metric.squared_dist(point_a, point_b)
 
-        self.assertAllClose(distance_a_b**2, squared_distance)
+        self.assertAllClose(distance_a_b ** 2, squared_distance)
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_coordinates(self):
         point_a = gs.array([-0.3, 0.7])
         point_b = gs.array([0.2, 0.5])
 
-        point_a_h =\
-            self.manifold.to_coordinates(point_a, 'extrinsic')
-        point_b_h =\
-            self.manifold.to_coordinates(point_b, 'extrinsic')
+        point_a_h = self.manifold.to_coordinates(point_a, "extrinsic")
+        point_b_h = self.manifold.to_coordinates(point_b, "extrinsic")
 
-        dist_in_ball =\
-            self.metric.dist(point_a, point_b)
-        dist_in_hype =\
-            self.hyperboloid_metric.dist(point_a_h, point_b_h)
+        dist_in_ball = self.metric.dist(point_a, point_b)
+        dist_in_hype = self.hyperboloid_metric.dist(point_a_h, point_b_h)
 
         self.assertAllClose(dist_in_ball, dist_in_hype)
 
@@ -54,8 +50,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
         point_a = gs.array([0.5, 0.5])
         point_b = gs.array([0.5, -0.5])
 
-        dist_a_b =\
-            self.manifold.metric.dist(point_a, point_b)
+        dist_a_b = self.manifold.metric.dist(point_a, point_b)
 
         result = dist_a_b
         expected = 2.887270927429199
@@ -66,13 +61,12 @@ class TestPoincareBall(geomstats.tests.TestCase):
         point_a = gs.array([0.2, 0.5])
         point_b = gs.array([[0.3, -0.5], [0.2, 0.2]])
 
-        dist_a_b =\
-            self.manifold.metric.dist(point_a, point_b)
+        dist_a_b = self.manifold.metric.dist(point_a, point_b)
 
         result_vect = dist_a_b
-        result =\
-            [self.manifold.metric.dist(point_a, point_b[i])
-             for i in range(len(point_b))]
+        result = [
+            self.manifold.metric.dist(point_a, point_b[i]) for i in range(len(point_b))
+        ]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
@@ -83,24 +77,22 @@ class TestPoincareBall(geomstats.tests.TestCase):
         point_c = gs.array([[0.2, 0.3], [0.5, 0.5], [-0.4, 0.1]])
         point_d = gs.array([0.1, 0.2, 0.3])
 
-        dist_a_b =\
-            self.manifold.metric.dist_broadcast(point_a, point_b)
+        dist_a_b = self.manifold.metric.dist_broadcast(point_a, point_b)
 
-        dist_b_c = gs.flatten(
-            self.manifold.metric.dist_broadcast(point_b, point_c))
+        dist_b_c = gs.flatten(self.manifold.metric.dist_broadcast(point_b, point_c))
 
-        result_vect = gs.concatenate(
-            (dist_a_b, dist_b_c), axis=0)
+        result_vect = gs.concatenate((dist_a_b, dist_b_c), axis=0)
 
-        result_a_b =\
-            [self.manifold.metric.dist_broadcast(point_a[i], point_b[i])
-             for i in range(len(point_b))]
+        result_a_b = [
+            self.manifold.metric.dist_broadcast(point_a[i], point_b[i])
+            for i in range(len(point_b))
+        ]
 
-        result_b_c = \
-            [self.manifold.metric.dist_broadcast(point_b[i], point_c[j])
-             for i in range(len(point_b))
-             for j in range(len(point_c))
-             ]
+        result_b_c = [
+            self.manifold.metric.dist_broadcast(point_b[i], point_c[j])
+            for i in range(len(point_b))
+            for j in range(len(point_c))
+        ]
         result = result_a_b + result_b_c
         result = gs.stack(result, axis=0)
 
@@ -114,9 +106,13 @@ class TestPoincareBall(geomstats.tests.TestCase):
 
         result = self.manifold.metric.dist_pairwise(point)
 
-        expected = gs.array([[0., 0.65821943, 1.34682524],
-                             [0.65821943, 0., 0.71497076],
-                             [1.34682524, 0.71497076, 0.]])
+        expected = gs.array(
+            [
+                [0.0, 0.65821943, 1.34682524],
+                [0.65821943, 0.0, 0.71497076],
+                [1.34682524, 0.71497076, 0.0],
+            ]
+        )
 
         self.assertAllClose(result, expected, rtol=1e-3)
 
@@ -124,23 +120,23 @@ class TestPoincareBall(geomstats.tests.TestCase):
         point_a = gs.array([0.5, 0.5])
         point_b = gs.array([[0.5, -0.3], [0.3, 0.4]])
 
-        dist_a_b = \
-            self.manifold.metric.mobius_add(point_a, point_b)
+        dist_a_b = self.manifold.metric.mobius_add(point_a, point_b)
 
         result_vect = dist_a_b
-        result =\
-            [self.manifold.metric.mobius_add(point_a, point_b[i])
-             for i in range(len(point_b))]
+        result = [
+            self.manifold.metric.mobius_add(point_a, point_b[i])
+            for i in range(len(point_b))
+        ]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-        dist_a_b = \
-            self.manifold.metric.mobius_add(point_b, point_a)
+        dist_a_b = self.manifold.metric.mobius_add(point_b, point_a)
 
         result_vect = dist_a_b
-        result =\
-            [self.manifold.metric.mobius_add(point_b[i], point_a)
-             for i in range(len(point_b))]
+        result = [
+            self.manifold.metric.mobius_add(point_b[i], point_a)
+            for i in range(len(point_b))
+        ]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
@@ -148,23 +144,21 @@ class TestPoincareBall(geomstats.tests.TestCase):
         point_a = gs.array([0.5, 0.5])
         point_b = gs.array([[0.5, -0.5], [0.4, 0.4]])
 
-        dist_a_b =\
-            self.manifold.metric.log(point_a, point_b)
+        dist_a_b = self.manifold.metric.log(point_a, point_b)
 
         result_vect = dist_a_b
-        result =\
-            [self.manifold.metric.log(point_a, point_b[i])
-             for i in range(len(point_b))]
+        result = [
+            self.manifold.metric.log(point_a, point_b[i]) for i in range(len(point_b))
+        ]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-        dist_a_b =\
-            self.manifold.metric.log(point_b, point_a)
+        dist_a_b = self.manifold.metric.log(point_b, point_a)
 
         result_vect = dist_a_b
-        result =\
-            [self.manifold.metric.log(point_b[i], point_a)
-             for i in range(len(point_b))]
+        result = [
+            self.manifold.metric.log(point_b[i], point_a) for i in range(len(point_b))
+        ]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
@@ -172,23 +166,21 @@ class TestPoincareBall(geomstats.tests.TestCase):
         point_a = gs.array([0.5, 0.5])
         point_b = gs.array([[0.0, 0.0], [0.5, -0.5], [0.4, 0.4]])
 
-        dist_a_b =\
-            self.manifold.metric.exp(point_a, point_b)
+        dist_a_b = self.manifold.metric.exp(point_a, point_b)
 
         result_vect = dist_a_b
-        result =\
-            [self.manifold.metric.exp(point_a, point_b[i])
-             for i in range(len(point_b))]
+        result = [
+            self.manifold.metric.exp(point_a, point_b[i]) for i in range(len(point_b))
+        ]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-        dist_a_b =\
-            self.manifold.metric.exp(point_b, point_a)
+        dist_a_b = self.manifold.metric.exp(point_b, point_a)
 
         result_vect = dist_a_b
-        result =\
-            [self.manifold.metric.exp(point_b[i], point_a)
-             for i in range(len(point_b))]
+        result = [
+            self.manifold.metric.exp(point_b[i], point_a) for i in range(len(point_b))
+        ]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
@@ -200,7 +192,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
         result = self.manifold.metric.log(point, base_point)
         expected = gs.array([-0.01733576, 0.21958634])
 
-        self.manifold.metric.coords_type = 'extrinsic'
+        self.manifold.metric.coords_type = "extrinsic"
         self.assertAllClose(result, expected)
 
     def test_belong_true_poincare(self):
@@ -216,7 +208,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
     def test_projection(self):
         point = gs.array([1.2, 0.5])
         projected_point = self.manifold.projection(point)
-        self.assertTrue(gs.sum(projected_point * projected_point) < 1.)
+        self.assertTrue(gs.sum(projected_point * projected_point) < 1.0)
 
     def test_exp_poincare(self):
 
@@ -226,7 +218,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
         tangent_vec = self.manifold.metric.log(point, base_point)
         result = self.manifold.metric.exp(tangent_vec, base_point)
 
-        self.manifold.metric.coords_type = 'extrinsic'
+        self.manifold.metric.coords_type = "extrinsic"
         self.assertAllClose(result, point)
 
     def test_ball_retraction(self):
@@ -238,10 +230,10 @@ class TestPoincareBall(geomstats.tests.TestCase):
         ball_metric.retraction(tangent_vec, x)
 
     def test_ball_geodesic(self):
-        path_function =\
-            self.manifold.metric.geodesic(gs.array([0.1, 0.1]),
-                                          gs.array([0.2, 0.2]))
-        steps = gs.array(gs.linspace(-1000., 1000., 10000))
+        path_function = self.manifold.metric.geodesic(
+            gs.array([0.1, 0.1]), gs.array([0.2, 0.2])
+        )
+        steps = gs.array(gs.linspace(-1000.0, 1000.0, 10000))
         path_function(steps)
 
     def test_mobius_out_of_the_ball(self):

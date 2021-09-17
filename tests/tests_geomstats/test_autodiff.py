@@ -11,7 +11,7 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 class TestAutodiff(geomstats.tests.TestCase):
     def setUp(self):
-        warnings.simplefilter('ignore', category=ImportWarning)
+        warnings.simplefilter("ignore", category=ImportWarning)
         self.n_samples = 2
 
     @geomstats.tests.np_only
@@ -21,15 +21,16 @@ class TestAutodiff(geomstats.tests.TestCase):
 
         self.assertRaises(
             RuntimeError,
-            lambda: gs.autodiff.value_and_grad(
-                lambda v: gs.sum(v ** 2))(vector))
+            lambda: gs.autodiff.value_and_grad(lambda v: gs.sum(v ** 2))(vector),
+        )
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_value_and_grad_one_vector_var(self):
         n = 10
         vector = gs.ones(n)
-        result_loss, result_grad = gs.autodiff.value_and_grad(
-            lambda v: gs.sum(v ** 2))(vector)
+        result_loss, result_grad = gs.autodiff.value_and_grad(lambda v: gs.sum(v ** 2))(
+            vector
+        )
         expected_loss = n
         expected_grad = 2 * vector
 
@@ -40,8 +41,9 @@ class TestAutodiff(geomstats.tests.TestCase):
     def test_value_and_grad_one_vector_var_np_input(self):
         n = 10
         vector = _np.ones(n)
-        result_loss, result_grad = gs.autodiff.value_and_grad(
-            lambda v: gs.sum(v ** 2))(vector)
+        result_loss, result_grad = gs.autodiff.value_and_grad(lambda v: gs.sum(v ** 2))(
+            vector
+        )
         expected_loss = n
         expected_grad = 2 * vector
         self.assertAllClose(result_loss, expected_loss)
@@ -52,40 +54,40 @@ class TestAutodiff(geomstats.tests.TestCase):
         def func(x, y):
             return gs.sum((x - y) ** 2)
 
-        arg_x = 1.
-        arg_y = 2.
+        arg_x = 1.0
+        arg_y = 2.0
         val, grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
 
-        self.assertAllClose(val, 1.)
+        self.assertAllClose(val, 1.0)
         self.assertTrue(isinstance(grad, tuple))
         self.assertAllClose(grad[0], -2)
-        self.assertAllClose(grad[1], 2.)
+        self.assertAllClose(grad[1], 2.0)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_value_and_grad_two_vectors_vars(self):
         def func(x, y):
             return gs.sum((x - y) ** 2)
 
-        arg_x = gs.array([1., 2.])
-        arg_y = gs.array([2., 3.])
+        arg_x = gs.array([1.0, 2.0])
+        arg_y = gs.array([2.0, 3.0])
         val, grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
 
-        self.assertAllClose(val, 2.)
+        self.assertAllClose(val, 2.0)
         self.assertTrue(isinstance(grad, tuple))
-        self.assertAllClose(grad[0], gs.array([-2., -2.]))
-        self.assertAllClose(grad[1], gs.array([2., 2.]))
+        self.assertAllClose(grad[0], gs.array([-2.0, -2.0]))
+        self.assertAllClose(grad[1], gs.array([2.0, 2.0]))
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_value_and_grad_two_matrix_vars(self):
         def func(x, y):
             return gs.sum((x - y) ** 2)
 
-        arg_x = gs.array([[1., 3.], [2., 3.]])
-        arg_y = gs.array([[2., 5.], [0., 4.]])
+        arg_x = gs.array([[1.0, 3.0], [2.0, 3.0]])
+        arg_y = gs.array([[2.0, 5.0], [0.0, 4.0]])
         val, grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
-        self.assertAllClose(val, 10.)
-        self.assertAllClose(grad[0], gs.array([[-2., -4.], [4., -2.]]))
-        self.assertAllClose(grad[1], gs.array([[2., 4.], [-4., 2.]]))
+        self.assertAllClose(val, 10.0)
+        self.assertAllClose(grad[0], gs.array([[-2.0, -4.0], [4.0, -2.0]]))
+        self.assertAllClose(grad[1], gs.array([[2.0, 4.0], [-4.0, 2.0]]))
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_custom_gradient_one_vector_var(self):
@@ -98,11 +100,11 @@ class TestAutodiff(geomstats.tests.TestCase):
         def func(x):
             return gs.sum(x ** 2)
 
-        arg_x = gs.array([1., 3.])
+        arg_x = gs.array([1.0, 3.0])
         result_value, result_grad = gs.autodiff.value_and_grad(func)(arg_x)
 
-        expected_value = 10.
-        expected_grad = gs.array([6., 18.])
+        expected_value = 10.0
+        expected_grad = gs.array([6.0, 18.0])
 
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
@@ -121,11 +123,10 @@ class TestAutodiff(geomstats.tests.TestCase):
         def func(x, y):
             return gs.sum((x - y) ** 2)
 
-        arg_x = gs.array([1., 3.])
-        arg_y = gs.array([2., 5.])
+        arg_x = gs.array([1.0, 3.0])
+        arg_y = gs.array([2.0, 5.0])
 
-        result_val, result_grad = gs.autodiff.value_and_grad(func)(
-            arg_x, arg_y)
+        result_val, result_grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
 
         self.assertTrue(isinstance(result_grad, tuple))
         result_grad_x, result_grad_y = result_grad
@@ -152,11 +153,10 @@ class TestAutodiff(geomstats.tests.TestCase):
         def func(x, y):
             return gs.sum((x - y) ** 2)
 
-        arg_x = gs.array([[1., 3.], [2., 3.]])
-        arg_y = gs.array([[2., 5.], [0., 4.]])
+        arg_x = gs.array([[1.0, 3.0], [2.0, 3.0]])
+        arg_y = gs.array([[2.0, 5.0], [0.0, 4.0]])
 
-        result_val, result_grad = gs.autodiff.value_and_grad(func)(
-            arg_x, arg_y)
+        result_val, result_grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
 
         self.assertTrue(isinstance(result_grad, tuple))
         result_grad_x, result_grad_y = result_grad
@@ -183,11 +183,11 @@ class TestAutodiff(geomstats.tests.TestCase):
         def func(x, y):
             return gs.sum((x - y) ** 2)
 
-        arg_x = gs.array([[1., 3.], [2., 3.]])
-        const_y = gs.array([[2., 5.], [0., 4.]])
+        arg_x = gs.array([[1.0, 3.0], [2.0, 3.0]])
+        const_y = gs.array([[2.0, 5.0], [0.0, 4.0]])
 
         def func_2(x):
-            return gs.exp(-.5 * func(x, const_y))
+            return gs.exp(-0.5 * func(x, const_y))
 
         result_value, result_grad = gs.autodiff.value_and_grad(func_2)(arg_x)
         expected_value = func_2(arg_x)
@@ -212,15 +212,14 @@ class TestAutodiff(geomstats.tests.TestCase):
         def func(dummy, x, y):
             return dummy * gs.sum((x - y) ** 2)
 
-        const_y = gs.array([[2., 5.], [0., 4.]])
-        const_dummy = gs.array(4.)
+        const_y = gs.array([[2.0, 5.0], [0.0, 4.0]])
+        const_dummy = gs.array(4.0)
 
         def func_of_x(x):
             return func(const_dummy, x, const_y)
 
-        arg_x = gs.array([[1., 3.], [2., 3.]])
-        result_value, result_grad = gs.autodiff.value_and_grad(
-            func_of_x)(arg_x)
+        arg_x = gs.array([[1.0, 3.0], [2.0, 3.0]])
+        result_value, result_grad = gs.autodiff.value_and_grad(func_of_x)(arg_x)
         expected_value = func_of_x(arg_x)
         expected_grad = grad_x(const_dummy, arg_x, const_y)
 
@@ -232,7 +231,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         """Assign made-up gradient to test custom_gradient."""
 
         def fun1_grad(x):
-            return 3.
+            return 3.0
 
         @gs.autodiff.custom_gradient(fun1_grad)
         def fun1(x):
@@ -245,11 +244,11 @@ class TestAutodiff(geomstats.tests.TestCase):
         def fun2_grad(x):
             return 2 * x
 
-        arg = gs.array(10.)
+        arg = gs.array(10.0)
 
         result_value, result_grad = gs.autodiff.value_and_grad(fun2)(arg)
         expected_value = fun2(arg)
-        expected_grad_explicit = 60.
+        expected_grad_explicit = 60.0
 
         expected_grad_chain_rule = fun2_grad(fun1(arg)) * fun1_grad(arg)
 
@@ -259,7 +258,6 @@ class TestAutodiff(geomstats.tests.TestCase):
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_custom_gradient_chain_rule_one_vector_var(self):
-
         def fun1_grad(x):
             return 6 * x
 
@@ -274,7 +272,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         def fun2_grad(x):
             return 3 * x ** 2
 
-        arg = gs.array([1., 2.])
+        arg = gs.array([1.0, 2.0])
 
         result_value, result_grad = gs.autodiff.value_and_grad(fun2)(arg)
 
@@ -288,15 +286,13 @@ class TestAutodiff(geomstats.tests.TestCase):
 
     @geomstats.tests.autograd_and_tf_only
     def test_custom_gradient_squared_dist(self):
-
         def squared_dist_grad_a(point_a, point_b, metric):
             return -2 * metric.log(point_b, point_a)
 
         def squared_dist_grad_b(point_a, point_b, metric):
             return -2 * metric.log(point_a, point_b)
 
-        @gs.autodiff.custom_gradient(
-            squared_dist_grad_a, squared_dist_grad_b)
+        @gs.autodiff.custom_gradient(squared_dist_grad_a, squared_dist_grad_b)
         def squared_dist(point_a, point_b, metric):
             dist = metric.squared_dist(point_a, point_b)
             return dist
@@ -311,8 +307,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         arg_point_a = space.random_point()
         expected_value = func(arg_point_a)
         expected_grad = -2 * const_metric.log(const_point_b, arg_point_a)
-        result_value, result_grad = gs.autodiff.value_and_grad(
-            func)(arg_point_a)
+        result_value, result_grad = gs.autodiff.value_and_grad(func)(arg_point_a)
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
@@ -328,14 +323,12 @@ class TestAutodiff(geomstats.tests.TestCase):
         arg_point_a = space.random_point()
         func_with_grad = gs.autodiff.value_and_grad(func)
         result_value, result_grad = func_with_grad(arg_point_a)
-        expected_value = const_metric.squared_dist(
-            arg_point_a, const_point_b)
-        expected_grad = -2 * const_metric.log(
-            const_point_b, arg_point_a)
+        expected_value = const_metric.squared_dist(arg_point_a, const_point_b)
+        expected_grad = -2 * const_metric.log(const_point_b, arg_point_a)
 
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
         loss, grad = func_with_grad(const_point_b)
-        self.assertAllClose(loss, 0.)
+        self.assertAllClose(loss, 0.0)
         self.assertAllClose(grad, gs.zeros_like(grad))

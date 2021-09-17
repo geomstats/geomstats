@@ -46,9 +46,11 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         super(PreShapeSpace, self).__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
             embedding_space=embedding_manifold,
-            submersion=embedding_metric.squared_norm, value=1.,
+            submersion=embedding_metric.squared_norm,
+            value=1.0,
             tangent_submersion=embedding_metric.inner_product,
-            ambient_metric=PreShapeMetric(k_landmarks, m_ambient))
+            ambient_metric=PreShapeMetric(k_landmarks, m_ambient),
+        )
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
         self.ambient_metric = PreShapeMetric(k_landmarks, m_ambient)
@@ -68,12 +70,11 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         """
         centered_point = self.center(point)
         frob_norm = self.ambient_metric.norm(centered_point)
-        projected_point = gs.einsum(
-            '...,...ij->...ij', 1. / frob_norm, centered_point)
+        projected_point = gs.einsum("...,...ij->...ij", 1.0 / frob_norm, centered_point)
 
         return projected_point
 
-    def random_point(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample in the pre-shape space from the uniform distribution.
 
         Parameters
@@ -105,8 +106,9 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         samples : array-like, shape=[..., k_landmarks, m_ambient]
             Points sampled on the pre-shape space.
         """
-        samples = Hypersphere(
-            self.m_ambient * self.k_landmarks - 1).random_uniform(n_samples)
+        samples = Hypersphere(self.m_ambient * self.k_landmarks - 1).random_uniform(
+            n_samples
+        )
         samples = gs.reshape(samples, (-1, self.k_landmarks, self.m_ambient))
         if n_samples == 1:
             samples = samples[0]
@@ -130,7 +132,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             Boolean evaluating if point is centered.
         """
         mean = gs.mean(point, axis=-2)
-        return gs.all(gs.isclose(mean, 0., atol=atol), axis=-1)
+        return gs.all(gs.isclose(mean, 0.0, atol=atol), axis=-1)
 
     @staticmethod
     def center(point):
@@ -170,18 +172,16 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
             at the base point.
         """
         if not gs.all(self.is_centered(base_point)):
-            raise ValueError('The base_point does not belong to the pre-shape'
-                             ' space')
+            raise ValueError("The base_point does not belong to the pre-shape" " space")
         vector = self.center(vector)
         sq_norm = Matrices.frobenius_product(base_point, base_point)
         inner_prod = self.ambient_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
-        tangent_vec = vector - gs.einsum('...,...ij->...ij', coef, base_point)
+        tangent_vec = vector - gs.einsum("...,...ij->...ij", coef, base_point)
 
         return tangent_vec
 
-    def vertical_projection(
-            self, tangent_vec, base_point, return_skew=False):
+    def vertical_projection(self, tangent_vec, base_point, return_skew=False):
         r"""Project to vertical subspace.
 
         Compute the vertical component of a tangent vector :math:`w` at a
@@ -214,7 +214,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         right_term = alignment - Matrices.transpose(alignment)
         skew = gs.linalg.solve_sylvester(left_term, left_term, right_term)
 
-        vertical = - gs.matmul(base_point, skew)
+        vertical = -gs.matmul(base_point, skew)
         return (vertical, skew) if return_skew else vertical
 
     def is_horizontal(self, tangent_vec, base_point, atol=gs.atol):
@@ -263,20 +263,20 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         left, singular_values, right = gs.linalg.svd(mat)
         det = gs.linalg.det(mat)
         conditioning = (
-            (singular_values[..., -2]
-             + gs.sign(det) * singular_values[..., -1]) /
-            singular_values[..., 0])
+            singular_values[..., -2] + gs.sign(det) * singular_values[..., -1]
+        ) / singular_values[..., 0]
         if gs.any(conditioning < gs.atol):
-            logging.warning(f'Singularity close, ill-conditioned matrix '
-                            f'encountered: '
-                            f'{conditioning[conditioning < 1e-10]}')
-        if gs.any(gs.isclose(conditioning, 0.)):
+            logging.warning(
+                f"Singularity close, ill-conditioned matrix "
+                f"encountered: "
+                f"{conditioning[conditioning < 1e-10]}"
+            )
+        if gs.any(gs.isclose(conditioning, 0.0)):
             logging.warning("Alignment matrix is not unique.")
         flipped = flip_determinant(Matrices.transpose(right), det)
         return Matrices.mul(point, left, Matrices.transpose(flipped))
 
-    def integrability_tensor_old(
-            self, tangent_vec_a, tangent_vec_b, base_point):
+    def integrability_tensor_old(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the fundamental tensor A of the submersion (old).
 
         The fundamental tensor A is defined for tangent vectors of the total
@@ -311,7 +311,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         # Only the horizontal part of a counts
         horizontal_a = self.horizontal_projection(tangent_vec_a, base_point)
         vertical_b, skew = self.vertical_projection(
-            tangent_vec_b, base_point, return_skew=True)
+            tangent_vec_b, base_point, return_skew=True
+        )
         horizontal_b = tangent_vec_b - vertical_b
 
         # For the horizontal part of b
@@ -320,7 +321,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         alignment = gs.matmul(Matrices.transpose(horizontal_a), horizontal_b)
         right_term = alignment - Matrices.transpose(alignment)
         skew_hor = gs.linalg.solve_sylvester(sigma, sigma, right_term)
-        vertical = - gs.matmul(base_point, skew_hor)
+        vertical = -gs.matmul(base_point, skew_hor)
 
         # For the vertical part of b
         vert_part = -gs.matmul(horizontal_a, skew)
@@ -375,7 +376,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         def sylv_p(mat_b):
             """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
-                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
+                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b)
+            )
 
         e_top_hor_x = gs.matmul(Matrices.transpose(tangent_vec_e), hor_x)
         sylv_e_top_hor_x = sylv_p(e_top_hor_x)
@@ -383,14 +385,21 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         p_top_e = gs.matmul(p_top, tangent_vec_e)
         sylv_p_top_e = sylv_p(p_top_e)
 
-        result = gs.matmul(base_point, sylv_e_top_hor_x) \
-            + gs.matmul(hor_x, sylv_p_top_e)
+        result = gs.matmul(base_point, sylv_e_top_hor_x) + gs.matmul(
+            hor_x, sylv_p_top_e
+        )
 
         return result
 
     def integrability_tensor_derivative(
-            self, horizontal_vec_x, horizontal_vec_y, nabla_x_y,
-            tangent_vec_e, nabla_x_e, base_point):
+        self,
+        horizontal_vec_x,
+        horizontal_vec_y,
+        nabla_x_y,
+        tangent_vec_e,
+        nabla_x_e,
+        base_point,
+    ):
         r"""Compute the covariant derivative of the integrability tensor A.
 
         The horizontal covariant derivative :math:`\nabla_X (A_Y E)` is
@@ -435,23 +444,25 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         in Kendall shape spaces. Unpublished.
         """
         if not gs.all(self.belongs(base_point)):
-            raise ValueError('The base_point does not belong to the pre-shape'
-                             ' space')
+            raise ValueError("The base_point does not belong to the pre-shape" " space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
-            raise ValueError('Tangent vector x is not horizontal')
+            raise ValueError("Tangent vector x is not horizontal")
         if not gs.all(self.is_horizontal(horizontal_vec_y, base_point)):
-            raise ValueError('Tangent vector y is not horizontal')
+            raise ValueError("Tangent vector y is not horizontal")
         if not gs.all(self.is_tangent(nabla_x_y, base_point)):
-            raise ValueError('Vector nabla_x_y is not tangent')
+            raise ValueError("Vector nabla_x_y is not tangent")
         a_x_y = self.integrability_tensor(
-            horizontal_vec_x, horizontal_vec_y, base_point)
+            horizontal_vec_x, horizontal_vec_y, base_point
+        )
         if not gs.all(self.is_horizontal(nabla_x_y - a_x_y, base_point)):
-            raise ValueError('Tangent vector nabla_x_y is not the gradient '
-                             'of a horizontal distrinbution')
+            raise ValueError(
+                "Tangent vector nabla_x_y is not the gradient "
+                "of a horizontal distrinbution"
+            )
         if not gs.all(self.is_tangent(tangent_vec_e, base_point)):
-            raise ValueError('Tangent vector e is not tangent')
+            raise ValueError("Tangent vector e is not tangent")
         if not gs.all(self.is_tangent(nabla_x_e, base_point)):
-            raise ValueError('Vector nabla_x_e is not tangent')
+            raise ValueError("Vector nabla_x_e is not tangent")
 
         p_top = Matrices.transpose(base_point)
         p_top_p = gs.matmul(p_top, base_point)
@@ -462,37 +473,43 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         def sylv_p(mat_b):
             """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
-                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
+                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b)
+            )
 
         omega_ep = sylv_p(gs.matmul(p_top, tangent_vec_e))
         omega_ye = sylv_p(gs.matmul(e_top, horizontal_vec_y))
         tangent_vec_b = gs.matmul(horizontal_vec_x, omega_ye)
-        tangent_vec_e_sym = \
-            tangent_vec_e - 2. * gs.matmul(base_point, omega_ep)
+        tangent_vec_e_sym = tangent_vec_e - 2.0 * gs.matmul(base_point, omega_ep)
 
-        a_y_e = gs.matmul(base_point, omega_ye) \
-            + gs.matmul(horizontal_vec_y, omega_ep)
+        a_y_e = gs.matmul(base_point, omega_ye) + gs.matmul(horizontal_vec_y, omega_ep)
 
-        tmp_tangent_vec_p = gs.matmul(e_top, nabla_x_y) \
-            - gs.matmul(y_top, nabla_x_e) \
-            - 2. * gs.matmul(p_top, tangent_vec_b)
+        tmp_tangent_vec_p = (
+            gs.matmul(e_top, nabla_x_y)
+            - gs.matmul(y_top, nabla_x_e)
+            - 2.0 * gs.matmul(p_top, tangent_vec_b)
+        )
 
-        tmp_tangent_vec_y = gs.matmul(p_top, nabla_x_e) \
-            + gs.matmul(x_top, tangent_vec_e_sym)
+        tmp_tangent_vec_y = gs.matmul(p_top, nabla_x_e) + gs.matmul(
+            x_top, tangent_vec_e_sym
+        )
 
         scal_x_a_y_e = self.ambient_metric.inner_product(
-            horizontal_vec_x, a_y_e, base_point)
+            horizontal_vec_x, a_y_e, base_point
+        )
 
-        nabla_x_a_y_e = gs.matmul(base_point, sylv_p(tmp_tangent_vec_p)) \
-            + gs.matmul(horizontal_vec_y, sylv_p(tmp_tangent_vec_y)) \
-            + gs.matmul(nabla_x_y, omega_ep) + tangent_vec_b \
-            + gs.einsum('...,...ij->...ij', scal_x_a_y_e, base_point)
+        nabla_x_a_y_e = (
+            gs.matmul(base_point, sylv_p(tmp_tangent_vec_p))
+            + gs.matmul(horizontal_vec_y, sylv_p(tmp_tangent_vec_y))
+            + gs.matmul(nabla_x_y, omega_ep)
+            + tangent_vec_b
+            + gs.einsum("...,...ij->...ij", scal_x_a_y_e, base_point)
+        )
 
         return nabla_x_a_y_e, a_y_e
 
     def integrability_tensor_derivative_parallel(
-            self, horizontal_vec_x, horizontal_vec_y, horizontal_vec_z,
-            base_point):
+        self, horizontal_vec_x, horizontal_vec_y, horizontal_vec_z, base_point
+    ):
         r"""Compute derivative of the integrability tensor A (special case).
 
         The horizontal covariant derivative :math:`\nabla_X (A_Y Z)` of the
@@ -533,14 +550,13 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         """
         # Vectors X and Y have to be horizontal.
         if not gs.all(self.is_centered(base_point)):
-            raise ValueError('The base_point does not belong to the pre-shape'
-                             ' space')
+            raise ValueError("The base_point does not belong to the pre-shape" " space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
-            raise ValueError('Tangent vector x is not horizontal')
+            raise ValueError("Tangent vector x is not horizontal")
         if not gs.all(self.is_horizontal(horizontal_vec_y, base_point)):
-            raise ValueError('Tangent vector y is not horizontal')
+            raise ValueError("Tangent vector y is not horizontal")
         if not gs.all(self.is_horizontal(horizontal_vec_z, base_point)):
-            raise ValueError('Tangent vector z is not horizontal')
+            raise ValueError("Tangent vector z is not horizontal")
 
         p_top = Matrices.transpose(base_point)
         p_top_p = gs.matmul(p_top, base_point)
@@ -548,7 +564,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         def sylv_p(mat_b):
             """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
-                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
+                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b)
+            )
 
         z_top = Matrices.transpose(horizontal_vec_z)
         y_top = Matrices.transpose(horizontal_vec_y)
@@ -561,7 +578,7 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         omega_xz_y = gs.matmul(horizontal_vec_y, omega_xz)
         omega_xy_z = gs.matmul(horizontal_vec_z, omega_xy)
 
-        tangent_vec_f = 2. * omega_yz_x + omega_xz_y - omega_xy_z
+        tangent_vec_f = 2.0 * omega_yz_x + omega_xz_y - omega_xy_z
         omega_fp = sylv_p(gs.matmul(p_top, tangent_vec_f))
         omega_fp_p = gs.matmul(base_point, omega_fp)
 
@@ -570,7 +587,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         return nabla_x_a_y_z, a_y_z
 
     def iterated_integrability_tensor_derivative_parallel(
-            self, horizontal_vec_x, horizontal_vec_y, base_point):
+        self, horizontal_vec_x, horizontal_vec_y, base_point
+    ):
         r"""Compute iterated derivatives of the integrability tensor A.
 
         The iterated horizontal covariant derivative
@@ -623,12 +641,11 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         in Kendall shape spaces. Unpublished.
         """
         if not gs.all(self.is_centered(base_point)):
-            raise ValueError('The base_point does not belong to the pre-shape'
-                             ' space')
+            raise ValueError("The base_point does not belong to the pre-shape" " space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
-            raise ValueError('Tangent vector x is not horizontal')
+            raise ValueError("Tangent vector x is not horizontal")
         if not gs.all(self.is_horizontal(horizontal_vec_y, base_point)):
-            raise ValueError('Tangent vector y is not horizontal')
+            raise ValueError("Tangent vector y is not horizontal")
 
         p_top = Matrices.transpose(base_point)
         p_top_p = gs.matmul(p_top, base_point)
@@ -636,7 +653,8 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         def sylv_p(mat_b):
             """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
-                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b))
+                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b)
+            )
 
         y_top = Matrices.transpose(horizontal_vec_y)
         x_top = Matrices.transpose(horizontal_vec_x)
@@ -655,25 +673,30 @@ class PreShapeSpace(EmbeddedManifold, FiberBundle):
         omega_yv = sylv_p(y_v_top)
         omega_yv_p = gs.matmul(base_point, omega_yv)
 
-        nabla_x_v = 3. * omega_xv_p + omega_xy_x
+        nabla_x_v = 3.0 * omega_xv_p + omega_xy_x
         a_y_a_x_y = omega_yv_p + omega_xy_y
         tmp_mat = gs.matmul(x_top, a_y_a_x_y)
-        a_x_a_y_a_x_y = - gs.matmul(base_point, sylv_p(tmp_mat))
+        a_x_a_y_a_x_y = -gs.matmul(base_point, sylv_p(tmp_mat))
 
         omega_xv_y = gs.matmul(horizontal_vec_y, omega_xv)
         omega_yv_x = gs.matmul(horizontal_vec_x, omega_yv)
         omega_xy_v = gs.matmul(vertical_vec_v, omega_xy)
         norms = Matrices.frobenius_product(vertical_vec_v, vertical_vec_v)
-        sq_norm_v_p = gs.einsum('...,...ij->...ij', norms, base_point)
+        sq_norm_v_p = gs.einsum("...,...ij->...ij", norms, base_point)
 
-        tmp_mat = gs.matmul(p_top, 3. * omega_xv_y + 2. * omega_yv_x) + \
-            gs.matmul(y_top, omega_xy_x)
+        tmp_mat = gs.matmul(p_top, 3.0 * omega_xv_y + 2.0 * omega_yv_x) + gs.matmul(
+            y_top, omega_xy_x
+        )
 
-        nabla_x_a_y_v = 3. * omega_xv_y + omega_yv_x + omega_xy_v \
-            - gs.matmul(base_point, sylv_p(tmp_mat)) + sq_norm_v_p
+        nabla_x_a_y_v = (
+            3.0 * omega_xv_y
+            + omega_yv_x
+            + omega_xy_v
+            - gs.matmul(base_point, sylv_p(tmp_mat))
+            + sq_norm_v_p
+        )
 
-        return nabla_x_a_y_v, a_x_a_y_a_x_y, nabla_x_v, a_y_a_x_y, \
-            vertical_vec_v
+        return nabla_x_a_y_v, a_x_a_y_a_x_y, nabla_x_v, a_y_a_x_y, vertical_vec_v
 
 
 class PreShapeMetric(RiemannianMetric):
@@ -689,8 +712,8 @@ class PreShapeMetric(RiemannianMetric):
 
     def __init__(self, k_landmarks, m_ambient):
         super(PreShapeMetric, self).__init__(
-            dim=m_ambient * (k_landmarks - 1) - 1,
-            default_point_type='matrix')
+            dim=m_ambient * (k_landmarks - 1) - 1, default_point_type="matrix"
+        )
 
         self.embedding_metric = MatricesMetric(k_landmarks, m_ambient)
         self.sphere_metric = Hypersphere(m_ambient * k_landmarks - 1).metric
@@ -716,7 +739,8 @@ class PreShapeMetric(RiemannianMetric):
             Inner-product of the two tangent vectors.
         """
         inner_prod = self.embedding_metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
+            tangent_vec_a, tangent_vec_b, base_point
+        )
 
         return inner_prod
 
@@ -762,14 +786,11 @@ class PreShapeMetric(RiemannianMetric):
         flat_log = self.sphere_metric.log(flat_pt, flat_bp)
         try:
             log = gs.reshape(flat_log, base_point.shape)
-        except (RuntimeError,
-                check_tf_error(ValueError, 'InvalidArgumentError')):
+        except (RuntimeError, check_tf_error(ValueError, "InvalidArgumentError")):
             log = gs.reshape(flat_log, point.shape)
         return log
 
-    def curvature(
-            self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
-            base_point):
+    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
         r"""Compute the curvature.
 
         For three tangent vectors at a base point :math:`x,y,z`,
@@ -805,14 +826,18 @@ class PreShapeMetric(RiemannianMetric):
         flat_b = gs.reshape(tangent_vec_b, flat_shape)
         flat_c = gs.reshape(tangent_vec_c, flat_shape)
         flat_bp = gs.reshape(base_point, flat_shape)
-        curvature = self.sphere_metric.curvature(
-            flat_a, flat_b, flat_c, flat_bp)
+        curvature = self.sphere_metric.curvature(flat_a, flat_b, flat_c, flat_bp)
         curvature = gs.reshape(curvature, max_shape)
         return curvature
 
     def curvature_derivative(
-            self, tangent_vec_a, tangent_vec_b=None, tangent_vec_c=None,
-            tangent_vec_d=None, base_point=None):
+        self,
+        tangent_vec_a,
+        tangent_vec_b=None,
+        tangent_vec_c=None,
+        tangent_vec_d=None,
+        base_point=None,
+    ):
         r"""Compute the covariant derivative of the curvature.
 
         For four vectors fields :math:`H|_P = tangent_vec_a, X|_P =
@@ -866,17 +891,16 @@ class PreShapeMetric(RiemannianMetric):
             of tangent_vec at the base point.
         """
         max_shape = (
-            tangent_vec_a.shape if tangent_vec_a.ndim == 3
-            else tangent_vec_b.shape)
+            tangent_vec_a.shape if tangent_vec_a.ndim == 3 else tangent_vec_b.shape
+        )
 
         flat_bp = gs.reshape(base_point, (-1, self.sphere_metric.dim + 1))
-        flat_tan_a = gs.reshape(
-            tangent_vec_a, (-1, self.sphere_metric.dim + 1))
-        flat_tan_b = gs.reshape(
-            tangent_vec_b, (-1, self.sphere_metric.dim + 1))
+        flat_tan_a = gs.reshape(tangent_vec_a, (-1, self.sphere_metric.dim + 1))
+        flat_tan_b = gs.reshape(tangent_vec_b, (-1, self.sphere_metric.dim + 1))
 
         flat_transport = self.sphere_metric.parallel_transport(
-            flat_tan_a, flat_tan_b, flat_bp)
+            flat_tan_a, flat_tan_b, flat_bp
+        )
         return gs.reshape(flat_transport, max_shape)
 
 
@@ -897,11 +921,12 @@ class KendallShapeMetric(QuotientMetric):
     def __init__(self, k_landmarks, m_ambient):
         bundle = PreShapeSpace(k_landmarks, m_ambient)
         super(KendallShapeMetric, self).__init__(
-            fiber_bundle=bundle,
-            dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2))
+            fiber_bundle=bundle, dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2)
+        )
 
     def directional_curvature_derivative(
-            self, tangent_vec_a, tangent_vec_b, base_point=None):
+        self, tangent_vec_a, tangent_vec_b, base_point=None
+    ):
         r"""Compute the covariant derivative of the directional curvature.
 
         For two vectors fields :math:`X|_P = tangent_vec_a, Y|_P =
@@ -939,17 +964,25 @@ class KendallShapeMetric(QuotientMetric):
             Tangent vector at base point.
         """
         horizontal_x = self.fiber_bundle.horizontal_projection(
-            tangent_vec_a, base_point)
+            tangent_vec_a, base_point
+        )
         horizontal_y = self.fiber_bundle.horizontal_projection(
-            tangent_vec_b, base_point)
-        nabla_x_a_y_a_x_y, a_x_a_y_a_x_y, _, _, _ = self.fiber_bundle.\
-            iterated_integrability_tensor_derivative_parallel(
-                horizontal_x, horizontal_y, base_point)
-        return 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
+            tangent_vec_b, base_point
+        )
+        (
+            nabla_x_a_y_a_x_y,
+            a_x_a_y_a_x_y,
+            _,
+            _,
+            _,
+        ) = self.fiber_bundle.iterated_integrability_tensor_derivative_parallel(
+            horizontal_x, horizontal_y, base_point
+        )
+        return 3.0 * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
 
     def parallel_transport(
-            self, tangent_vec_a, tangent_vec_b, base_point, n_steps=100,
-            step='rk4'):
+        self, tangent_vec_a, tangent_vec_b, base_point, n_steps=100, step="rk4"
+    ):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Approximation of the solution of the parallel transport of a tangent
@@ -991,22 +1024,25 @@ class KendallShapeMetric(QuotientMetric):
         Integration module: geomstats.integrator
         """
         horizontal_a = self.fiber_bundle.horizontal_projection(
-            tangent_vec_a, base_point)
+            tangent_vec_a, base_point
+        )
         horizontal_b = self.fiber_bundle.horizontal_projection(
-            tangent_vec_b, base_point)
+            tangent_vec_b, base_point
+        )
 
         def force(state, time):
             gamma_t = self.ambient_metric.exp(time * horizontal_b, base_point)
             speed = self.ambient_metric.parallel_transport(
-                horizontal_b, time * horizontal_b, base_point)
+                horizontal_b, time * horizontal_b, base_point
+            )
             coef = self.inner_product(speed, state, gamma_t)
-            normal = gs.einsum('...,...ij->...ij', coef, gamma_t)
+            normal = gs.einsum("...,...ij->...ij", coef, gamma_t)
 
             align = gs.matmul(Matrices.transpose(speed), state)
             right = align - Matrices.transpose(align)
             left = gs.matmul(Matrices.transpose(gamma_t), gamma_t)
             skew_ = gs.linalg.solve_sylvester(left, left, right)
-            vertical_ = - gs.matmul(gamma_t, skew_)
+            vertical_ = -gs.matmul(gamma_t, skew_)
             return vertical_ - normal
 
         flow = integrate(force, horizontal_a, n_steps=n_steps, step=step)
