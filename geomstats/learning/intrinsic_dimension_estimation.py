@@ -4,7 +4,7 @@ import geomstats.backend as gs
 
 
 class LevinaBickelEstimator:
-    """Levina Bickel Estimator for intrinsic dimension estimation
+    r"""Levina Bickel Estimator for intrinsic dimension estimation
 
     Levian Bickel Estimator calculates intrinsic dimension of
     manifolds embedded in euclidean space through maximum likelihood
@@ -50,6 +50,7 @@ class LevinaBickelEstimator:
     def __init__(self, min_neighbors=5, max_neighbors=20):
         self.min_neighbors = min_neighbors
         self.max_neighbors = max_neighbors
+        self.log_sorted_dist = None
 
     def fit(self, X):
         """Calculate distance matrix
@@ -88,9 +89,8 @@ class LevinaBickelEstimator:
 
     def predict(self):
         """Predict intrinsic dimension"""
-        num = self.log_sorted_dist[:, self.min_neighbors - 1: self.max_neighbors]
         int_dim_for_each_k = []
-        for k in range(self.min_neighbors, self.max_neighbors+1):
+        for k in range(self.min_neighbors, self.max_neighbors + 1):
             t1 = self.log_sorted_dist[:, k - 1]
             t2 = gs.mean(self.log_sorted_dist[:, :k - 1], axis=1)
             int_dim_k = gs.mean(1.0 / (t1 - t2))
