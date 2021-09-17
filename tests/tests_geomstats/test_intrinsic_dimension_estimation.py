@@ -16,7 +16,7 @@ class TestIntrinsicDimensionEstimator(geomstats.tests.TestCase):
         X = gs.random.rand(500, 3)
         dist_mat = lbe.fit(X).log_sorted_dist
         result = (dist_mat.shape[0], dist_mat.shape[1])
-        expected = (500, 500)
+        expected = (500, 499)
         self.assertAllClose(result, expected)
 
     def test_predict(self):
