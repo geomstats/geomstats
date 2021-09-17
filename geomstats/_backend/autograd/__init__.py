@@ -76,6 +76,7 @@ from autograd.numpy import (  # NOQA
     sign,
     sin,
     sinh,
+    sort,
     split,
     sqrt,
     squeeze,
