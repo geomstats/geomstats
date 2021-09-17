@@ -39,6 +39,7 @@ def custom_gradient(*grad_funcs):
     *grad_funcs : callables
         Custom gradient functions.
     """
+
     def decorator(func):
         wrapped_function = primitive(func)
 
@@ -55,32 +56,29 @@ def custom_gradient(*grad_funcs):
         if len(grad_funcs) == 1:
             defvjp(
                 wrapped_function,
-                lambda ans, *args, **kwargs:
-                    wrapped_grad_func(0, ans, *args, **kwargs))
+                lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
+            )
         elif len(grad_funcs) == 2:
 
             defvjp(
                 wrapped_function,
-                lambda ans, *args, **kwargs:
-                    wrapped_grad_func(0, ans, *args, **kwargs),
-                lambda ans, *args, **kwargs:
-                    wrapped_grad_func(1, ans, *args, **kwargs))
+                lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
+                lambda ans, *args, **kwargs: wrapped_grad_func(1, ans, *args, **kwargs),
+            )
         elif len(grad_funcs) == 3:
             defvjp(
                 wrapped_function,
-                lambda ans, *args, **kwargs:
-                    wrapped_grad_func(0, ans, *args, **kwargs),
-                lambda ans, *args, **kwargs:
-                    wrapped_grad_func(1, ans, *args, **kwargs),
-                lambda ans, *args, **kwargs:
-                    wrapped_grad_func(2, ans, *args, **kwargs))
+                lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
+                lambda ans, *args, **kwargs: wrapped_grad_func(1, ans, *args, **kwargs),
+                lambda ans, *args, **kwargs: wrapped_grad_func(2, ans, *args, **kwargs),
+            )
         else:
             raise NotImplementedError(
-                "custom_gradient is not yet implemented "
-                "for more than 3 gradients."
+                "custom_gradient is not yet implemented " "for more than 3 gradients."
             )
 
         return wrapped_function
+
     return decorator
 
 
@@ -98,10 +96,12 @@ def value_and_grad(func, to_numpy=False):
 
         all_grads = []
         for i in range(n_args):
+
             def func_of_ith(*args):
-                reorg_args = args[1:i + 1] + (args[0],) + args[i + 1:]
+                reorg_args = args[1 : i + 1] + (args[0],) + args[i + 1 :]
                 return func(*reorg_args)
-            new_args = (args[i],) + args[:i] + args[i + 1:]
+
+            new_args = (args[i],) + args[:i] + args[i + 1 :]
             _, grad_i = _value_and_grad(func_of_ith)(*new_args)
             all_grads.append(grad_i)
 
