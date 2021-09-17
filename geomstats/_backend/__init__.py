@@ -102,6 +102,7 @@ BACKEND_ATTRIBUTES = {
         'split',
         'sqrt',
         'squeeze',
+        'sort',
         'stack',
         'std',
         'sum',
