@@ -79,7 +79,7 @@ class LevinaBickelEstimator:
         j : int
             j th nearest neighbor
         x : int, ranges from 0 to N-1
-            index of the point in the data 
+            index of the point in the data
 
         Returns
         -------
