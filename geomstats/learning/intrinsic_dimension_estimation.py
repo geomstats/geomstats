@@ -64,7 +64,7 @@ class LevinaBickelEstimator:
         self : object
             Returns self.
         """
-        pairwise_sub = gs.expand_dims(X, axis 0) - gs.expand_dims(X, axis=1)
+        pairwise_sub = gs.expand_dims(X, axis=0) - gs.expand_dims(X, axis=1)
         pairwise_dist = gs.linalg.norm(pairwise_sub, axis=-1)
         sorted_dist = gs.sort(pairwise_dist, axis=-1)[:, 1:]
         self.log_sorted_dist = gs.log(sorted_dist)
@@ -84,17 +84,17 @@ class LevinaBickelEstimator:
         -------
         X : array like, shape=[N, dim]
         """
-        return gs.exp(self.log_sorted_dist[x-1, j-1])
+        return gs.exp(self.log_sorted_dist[x - 1, j - 1])
 
     def predict(self):
         """Predict intrinsic dimension"""
-        num = self.log_sorted_dist[:, self.min_neighbors-1: self.max_neighbors]
+        num = self.log_sorted_dist[:, self.min_neighbors - 1: self.max_neighbors]
         int_dim_for_each_k = []
         for k in range(self.min_neighbors, self.max_neighbors+1):
-            t1 = self.log_sorted_dist[:, k-1]
-            t2 = gs.mean(self.log_sorted_dist[:, :k-1], axis=1)
-            int_dim_k = gs.mean(1.0/(t1-t2))
+            t1 = self.log_sorted_dist[:, k - 1]
+            t2 = gs.mean(self.log_sorted_dist[:, :k - 1], axis=1)
+            int_dim_k = gs.mean(1.0 / (t1 - t2))
             int_dim_for_each_k.append(int_dim_k)
 
-        intrinsic_dim = sum(int_dim_for_each_k)/len(int_dim_for_each_k)
+        intrinsic_dim = sum(int_dim_for_each_k) / len(int_dim_for_each_k)
         return intrinsic_dim
