@@ -25,7 +25,7 @@ class FullRankMatrices(OpenSet):
         if 'dim' not in kwargs.keys():
             kwargs['dim'] = m * n
         super(FullRankMatrices, self).__init__(
-            ambient_space=Matrices(m, n), ambient, **kwargs)
+            ambient_space=Matrices(m, n),ambient **kwargs)
         # ANNA CHECK FOR THE RANK
         self.rank=k
 
