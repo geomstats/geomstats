@@ -2,7 +2,17 @@
 
 import numpy as np
 import scipy.linalg
-from numpy.linalg import cholesky, det, eig, eigh, eigvalsh, inv, norm, solve, svd  # NOQA
+from numpy.linalg import (
+    cholesky,
+    det,
+    eig,
+    eigh,
+    eigvalsh,
+    inv,
+    norm,
+    solve,
+    svd,
+)  # NOQA
 
 from .common import to_ndarray
 

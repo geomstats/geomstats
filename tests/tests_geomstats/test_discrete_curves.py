@@ -1,6 +1,7 @@
 """Unit tests for parameterized manifolds."""
 
 import geomstats.backend as gs
+
 # import geomstats.datasets.utils as data_utils
 import geomstats.tests
 from geomstats.geometry.discrete_curves import ClosedDiscreteCurves
@@ -58,7 +59,6 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         self.quotient_srv_metric_r3 = (
             self.space_curves_in_euclidean_3d.quotient_square_root_velocity_metric
         )
-
 
     def test_belongs(self):
         result = self.space_curves_in_sphere_2d.belongs(self.curve_a)
@@ -354,19 +354,19 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         """
         dim = 3
         n_sampling_points = 2000
-        sampling_times = gs.linspace(0., 1., n_sampling_points)
+        sampling_times = gs.linspace(0.0, 1.0, n_sampling_points)
         curve_a = self.curve_fun_a(sampling_times)
-        tangent_vec = gs.transpose(gs.tile(
-            gs.linspace(1., 2., n_sampling_points), (dim, 1)))
+        tangent_vec = gs.transpose(
+            gs.tile(gs.linspace(1.0, 2.0, n_sampling_points), (dim, 1))
+        )
         result = self.srv_metric_r3.aux_differential_square_root_velocity(
-            tangent_vec, curve_a)
+            tangent_vec, curve_a
+        )
 
         n_curves = 2000
-        times = gs.linspace(0., 1., n_curves)
-        path_of_curves = curve_a + \
-            gs.einsum('i,jk->ijk', times, tangent_vec)
-        srv_path = self.srv_metric_r3.square_root_velocity(
-            path_of_curves)
+        times = gs.linspace(0.0, 1.0, n_curves)
+        path_of_curves = curve_a + gs.einsum("i,jk->ijk", times, tangent_vec)
+        srv_path = self.srv_metric_r3.square_root_velocity(path_of_curves)
         expected = n_curves * (srv_path[1] - srv_path[0])
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
 
@@ -379,12 +379,15 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curves = gs.stack((self.curve_a, self.curve_b))
         tangent_vecs = gs.random.rand(2, self.n_sampling_points, dim)
         result = self.srv_metric_r3.aux_differential_square_root_velocity(
-            tangent_vecs, curves)
+            tangent_vecs, curves
+        )
 
         res_a = self.srv_metric_r3.aux_differential_square_root_velocity(
-            tangent_vecs[0], self.curve_a)
+            tangent_vecs[0], self.curve_a
+        )
         res_b = self.srv_metric_r3.aux_differential_square_root_velocity(
-            tangent_vecs[1], self.curve_b)
+            tangent_vecs[1], self.curve_b
+        )
         expected = gs.stack((res_a, res_b))
         self.assertAllClose(result, expected)
 
@@ -397,25 +400,29 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         tangent_vec_a = gs.random.rand(self.n_sampling_points, 3)
         tangent_vec_b = gs.random.rand(self.n_sampling_points, 3)
         result = self.srv_metric_r3.inner_product(
-            tangent_vec_a, tangent_vec_b, self.curve_a)
+            tangent_vec_a, tangent_vec_b, self.curve_a
+        )
 
         r3 = Euclidean(3)
         d_vec_a = self.n_sampling_points * (
-            tangent_vec_a[1:, :] - tangent_vec_a[:-1, :])
+            tangent_vec_a[1:, :] - tangent_vec_a[:-1, :]
+        )
         d_vec_b = self.n_sampling_points * (
-            tangent_vec_b[1:, :] - tangent_vec_b[:-1, :])
+            tangent_vec_b[1:, :] - tangent_vec_b[:-1, :]
+        )
         velocity_vec = self.n_sampling_points * (
-            self.curve_a[1:, :] - self.curve_a[:-1, :])
+            self.curve_a[1:, :] - self.curve_a[:-1, :]
+        )
         velocity_norm = r3.metric.norm(velocity_vec)
-        unit_velocity_vec = gs.einsum(
-            'ij,i->ij', velocity_vec, 1 / velocity_norm)
+        unit_velocity_vec = gs.einsum("ij,i->ij", velocity_vec, 1 / velocity_norm)
         a_param = 1
         b_param = 1 / 2
         integrand = (
-            a_param ** 2 * gs.sum(d_vec_a * d_vec_b, axis=1) -
-            (a_param ** 2 - b_param ** 2) *
-            gs.sum(d_vec_a * unit_velocity_vec, axis=1) *
-            gs.sum(d_vec_b * unit_velocity_vec, axis=1)) / velocity_norm
+            a_param ** 2 * gs.sum(d_vec_a * d_vec_b, axis=1)
+            - (a_param ** 2 - b_param ** 2)
+            * gs.sum(d_vec_a * unit_velocity_vec, axis=1)
+            * gs.sum(d_vec_b * unit_velocity_vec, axis=1)
+        ) / velocity_norm
         expected = gs.sum(integrand) / self.n_sampling_points
         self.assertAllClose(result, expected)
 
@@ -429,12 +436,15 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         tangent_vecs_1 = gs.random.rand(2, self.n_sampling_points, dim)
         tangent_vecs_2 = gs.random.rand(2, self.n_sampling_points, dim)
         result = self.srv_metric_r3.inner_product(
-            tangent_vecs_1, tangent_vecs_2, curves)
+            tangent_vecs_1, tangent_vecs_2, curves
+        )
 
         res_a = self.srv_metric_r3.inner_product(
-            tangent_vecs_1[0], tangent_vecs_2[0], self.curve_a)
+            tangent_vecs_1[0], tangent_vecs_2[0], self.curve_a
+        )
         res_b = self.srv_metric_r3.inner_product(
-            tangent_vecs_1[1], tangent_vecs_2[1], self.curve_b)
+            tangent_vecs_1[1], tangent_vecs_2[1], self.curve_b
+        )
         expected = gs.stack((res_a, res_b))
         self.assertAllClose(result, expected)
 
@@ -447,26 +457,32 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         product, and check vectorization.
         """
         geod = self.srv_metric_r3.geodesic(
-            initial_curve=self.curve_a, end_curve=self.curve_b)
+            initial_curve=self.curve_a, end_curve=self.curve_b
+        )
         geod = geod(self.times)
-        tangent_vec = self.n_discretized_curves * (
-            geod[1, :, :] - geod[0, :, :])
-        tangent_vec_hor, tangent_vec_ver, _ = \
-            self.quotient_srv_metric_r3.split_horizontal_vertical(
-                tangent_vec, self.curve_a)
+        tangent_vec = self.n_discretized_curves * (geod[1, :, :] - geod[0, :, :])
+        (
+            tangent_vec_hor,
+            tangent_vec_ver,
+            _,
+        ) = self.quotient_srv_metric_r3.split_horizontal_vertical(
+            tangent_vec, self.curve_a
+        )
         result = self.srv_metric_r3.inner_product(
-            tangent_vec_hor, tangent_vec_ver, self.curve_a)
-        expected = 0.
+            tangent_vec_hor, tangent_vec_ver, self.curve_a
+        )
+        expected = 0.0
         self.assertAllClose(result, expected, atol=1e-4)
 
-        tangent_vecs = self.n_discretized_curves * (
-            geod[1:] - geod[:-1])
-        _, _, result = self.quotient_srv_metric_r3.\
-            split_horizontal_vertical(tangent_vecs, geod[:-1])
+        tangent_vecs = self.n_discretized_curves * (geod[1:] - geod[:-1])
+        _, _, result = self.quotient_srv_metric_r3.split_horizontal_vertical(
+            tangent_vecs, geod[:-1]
+        )
         expected = []
         for i in range(self.n_discretized_curves - 1):
-            _, _, res = self.quotient_srv_metric_r3.\
-                split_horizontal_vertical(tangent_vecs[i], geod[i])
+            _, _, res = self.quotient_srv_metric_r3.split_horizontal_vertical(
+                tangent_vecs[i], geod[i]
+            )
             expected.append(res)
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
@@ -484,20 +500,24 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         d_curve_1 = (curve[1] - curve[0]) / delta
         d_curve_2 = (curve[2] - curve[0]) / (2 * delta)
         d_curve_3 = (curve[2] - curve[1]) / delta
-        expected = gs.squeeze(gs.vstack((
-            gs.to_ndarray(d_curve_1, 2),
-            gs.to_ndarray(d_curve_2, 2),
-            gs.to_ndarray(d_curve_3, 2))))
+        expected = gs.squeeze(
+            gs.vstack(
+                (
+                    gs.to_ndarray(d_curve_1, 2),
+                    gs.to_ndarray(d_curve_2, 2),
+                    gs.to_ndarray(d_curve_3, 2),
+                )
+            )
+        )
         self.assertAllClose(result, expected)
 
         path_of_curves = gs.random.rand(
-            self.n_discretized_curves, self.n_sampling_points, dim)
-        result = self.srv_metric_r3.space_derivative(
-            path_of_curves)
+            self.n_discretized_curves, self.n_sampling_points, dim
+        )
+        result = self.srv_metric_r3.space_derivative(path_of_curves)
         expected = []
         for i in range(self.n_discretized_curves):
-            expected.append(self.srv_metric_r3.space_derivative(
-                path_of_curves[i]))
+            expected.append(self.srv_metric_r3.space_derivative(path_of_curves[i]))
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
 
@@ -508,20 +528,25 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         Check that the time derivative of the geodesic is
         horizontal at all time.
         """
-        curve_b = gs.transpose(gs.stack((
-            gs.zeros(self.n_sampling_points),
-            gs.zeros(self.n_sampling_points),
-            gs.linspace(1., 0.5, self.n_sampling_points)
-        )))
-        horizontal_geod_fun = self.quotient_srv_metric_r3.\
-            horizontal_geodesic(self.curve_a, curve_b)
+        curve_b = gs.transpose(
+            gs.stack(
+                (
+                    gs.zeros(self.n_sampling_points),
+                    gs.zeros(self.n_sampling_points),
+                    gs.linspace(1.0, 0.5, self.n_sampling_points),
+                )
+            )
+        )
+        horizontal_geod_fun = self.quotient_srv_metric_r3.horizontal_geodesic(
+            self.curve_a, curve_b
+        )
         n_times = 20
-        times = gs.linspace(0., 1., n_times)
+        times = gs.linspace(0.0, 1.0, n_times)
         horizontal_geod = horizontal_geod_fun(times)
-        velocity_vec = n_times * (
-            horizontal_geod[1:] - horizontal_geod[:-1])
-        _, _, vertical_norms = self.quotient_srv_metric_r3.\
-            split_horizontal_vertical(velocity_vec, horizontal_geod[:-1])
-        result = gs.sum(vertical_norms**2, axis=1)**(1 / 2)
+        velocity_vec = n_times * (horizontal_geod[1:] - horizontal_geod[:-1])
+        _, _, vertical_norms = self.quotient_srv_metric_r3.split_horizontal_vertical(
+            velocity_vec, horizontal_geod[:-1]
+        )
+        result = gs.sum(vertical_norms ** 2, axis=1) ** (1 / 2)
         expected = gs.zeros(n_times - 1)
         self.assertAllClose(result, expected, atol=1e-3)
