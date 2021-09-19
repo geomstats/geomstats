@@ -6,6 +6,8 @@ import sys
 import warnings
 
 import examples.empirical_frechet_mean_uncertainty_sn as empirical_frechet_mean_uncertainty_sn  # NOQA
+import examples.geodesic_regression_hypersphere as geodesic_regression_hypersphere  # NOQA
+import examples.geodesic_regression_se2 as geodesic_regression_se2
 import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.kalman_filter as kalman_filter
 import examples.learning_graph_structured_data_h2 as learning_gsd_h2
@@ -14,13 +16,13 @@ import examples.loss_and_gradient_so3 as loss_and_gradient_so3
 import examples.plot_bch_so3 as plot_bch_so3
 import examples.plot_expectation_maximization_ball as plot_em_manifolds
 import examples.plot_geodesics_h2 as plot_geodesics_h2
-import examples.plot_geodesics_poincare_polydisk as plot_geodesics_poincare_polydisk # NOQA
+import examples.plot_geodesics_poincare_polydisk as plot_geodesics_poincare_polydisk  # NOQA
 import examples.plot_geodesics_s2 as plot_geodesics_s2
 import examples.plot_geodesics_se2 as plot_geodesics_se2
 import examples.plot_geodesics_se3 as plot_geodesics_se3
 import examples.plot_geodesics_so3 as plot_geodesics_so3
 import examples.plot_grid_h2 as plot_grid_h2
-import examples.plot_kernel_density_estimation_classifier_s2 as plot_kernel_density_estimation_classifier_s2 # NOQA
+import examples.plot_kernel_density_estimation_classifier_s2 as plot_kernel_density_estimation_classifier_s2  # NOQA
 import examples.plot_kmeans_manifolds as plot_kmeans_manifolds
 import examples.plot_kmedoids_manifolds as plot_kmedoids_manifolds
 import examples.plot_knn_s2 as plot_knn_s2
@@ -39,28 +41,38 @@ import matplotlib.pyplot as plt
 import geomstats.backend as gs
 import geomstats.tests
 
-matplotlib.use('Agg')  # NOQA
+matplotlib.use("Agg")  # NOQA
 
 
 class TestExamples(geomstats.tests.TestCase):
     @classmethod
     def setUpClass(cls):
-        sys.stdout = open(os.devnull, 'w')
+        sys.stdout = open(os.devnull, "w")
 
     @staticmethod
     def setUp():
         gs.random.seed(1234)
         logger = logging.getLogger()
         logger.disabled = True
-        warnings.simplefilter('ignore', category=ImportWarning)
-        warnings.simplefilter('ignore', category=UserWarning)
-        plt.rcParams.update({'figure.max_open_warning': 0})
+        warnings.simplefilter("ignore", category=ImportWarning)
+        warnings.simplefilter("ignore", category=UserWarning)
+        plt.rcParams.update({"figure.max_open_warning": 0})
         plt.figure()
 
     @staticmethod
     @geomstats.tests.np_and_autograd_only
     def test_empirical_frechet_mean_uncertainty_sn():
         empirical_frechet_mean_uncertainty_sn.main()
+
+    @staticmethod
+    @geomstats.tests.autograd_tf_and_torch_only
+    def test_geodesic_regression_hypersphere():
+        geodesic_regression_hypersphere.main()
+
+    @staticmethod
+    @geomstats.tests.autograd_and_tf_only
+    def test_geodesic_regression_se2():
+        geodesic_regression_se2.main()
 
     @staticmethod
     @geomstats.tests.np_and_autograd_only

@@ -27,22 +27,22 @@ def custom_gradient(*grad_funcs):
     *grad_funcs : callables
         Custom gradient functions.
     """
+
     def wrapper(func):
         def func_with_grad(*args, **kwargs):
             def grad(upstream):
-                if upstream.ndim < 1:
-                    upstream = tf.expand_dims(upstream, axis=0)
-                if upstream.ndim < 2:
-                    upstream = tf.expand_dims(upstream, axis=1)
                 grad_vals = []
                 for grad_fun in grad_funcs:
-                    grad_func_val = tf.convert_to_tensor(
-                        grad_fun(*args, **kwargs))
-                    grad_vals.append(
-                        tf.squeeze(
-                            tf.einsum(
-                                "...,...->...", upstream, grad_func_val))
-                    )
+                    grads = tf.convert_to_tensor(grad_fun(*args, **kwargs))
+                    if isinstance(grads, float):
+                        grad_val = upstream * grads
+                    elif grads.ndim == 2:
+                        grad_val = upstream[..., None] * grads
+                    elif grads.ndim == 3:
+                        grad_val = upstream[..., None, None] * grads
+                    else:
+                        grad_val = upstream * grads
+                    grad_vals.append(grad_val)
                 return tuple(grad_vals)
 
             return func(*args, **kwargs), grad
@@ -72,11 +72,11 @@ def value_and_grad(func, to_numpy=False):
         Function that takes the argument of the objective function as input
         and returns both value and grad at the input.
     """
+
     def func_with_grad(*args):
         """Return the value of the function and its grad at the inputs."""
         if not isinstance(args, tuple):
-            raise ValueError(
-                "The inputs parameters are expected to form a tuple.")
+            raise ValueError("The inputs parameters are expected to form a tuple.")
 
         if isinstance(args[0], np.ndarray):
             args = (tf.Variable(one_arg) for one_arg in args)
@@ -91,6 +91,7 @@ def value_and_grad(func, to_numpy=False):
 
 def jacobian(func):
     """Return a function that returns the jacobian of a function func."""
+
     def jac(x):
         """Return the jacobian of func at x."""
         if isinstance(x, np.ndarray):
@@ -99,4 +100,5 @@ def jacobian(func):
             g.watch(x)
             y = func(x)
         return g.jacobian(y, x)
+
     return jac
