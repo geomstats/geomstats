@@ -12,6 +12,7 @@ from autograd.numpy.linalg import (  # NOQA
     eigvalsh,
     inv,
     norm,
+    matrix_rank,
     svd
 )
 

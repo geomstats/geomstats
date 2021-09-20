@@ -132,6 +132,7 @@ BACKEND_ATTRIBUTES = {
         'expm',
         'inv',
         'logm',
+        'matrix_rank',
         'norm',
         'qr',
         'solve_sylvester',

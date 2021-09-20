@@ -9,9 +9,9 @@ from numpy.linalg import (  # NOQA
     eigh,
     eigvalsh,
     inv,
+    matrix_rank,
     norm,
-    svd
-)
+    svd)
 
 from .common import to_ndarray
 
