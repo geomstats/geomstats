@@ -55,10 +55,6 @@ def norm(x, ord=None, axis=None):
 def matrix_rank(A,hermitian=False,**_unused_kwargs):
     return torch.linalg.matrix_rank(A,hermitian)
 
-def matrix_rank(A, hermitian=False, **_unused_kwargs):
-    return torch.linalg.matrix_rank(A, hermitian)
-
-
 def solve_sylvester(a, b, q):
     if a.shape == b.shape:
         if torch.all(a == b) and torch.all(

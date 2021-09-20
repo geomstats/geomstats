@@ -39,10 +39,6 @@ def logm(x):
 def matrix_rank(A,**_unused_kwargs):
     return tf.rank(A)
 
-def matrix_rank(A, **_unused_kwargs):
-    return tf.rank(A)
-
-
 def svd(x, full_matrices=True, compute_uv=True, **kwargs):
     is_vectorized = x.ndim == 3
     axis = (0, 2, 1) if is_vectorized else (1, 0)
