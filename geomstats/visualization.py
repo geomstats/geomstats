@@ -815,13 +815,16 @@ class KendallDisk:
             [[1.0, 0.0], [-0.5, gs.sqrt(3.0) / 2.0], [-0.5, -gs.sqrt(3.0) / 2.0]]
         ) / gs.sqrt(3.0)
 
-        self.centre = gs.array(
-            [
-                [1.0, 0.0, 0.0],
-                [-0.5, gs.sqrt(3.0) / 2.0, 0.0],
-                [-0.5, -gs.sqrt(3.0) / 2.0, 0.0],
-            ]
-        ) / gs.sqrt(3.0)
+        self.centre = (
+            gs.array(
+                [
+                    [1.0, 0.0, 0.0],
+                    [-0.5, gs.sqrt(3.0) / 2.0, 0.0],
+                    [-0.5, -gs.sqrt(3.0) / 2.0, 0.0],
+                ]
+            )
+            / gs.sqrt(3.0)
+        )
 
         self.ua = gs.array(
             [[-1.0, 0.0], [0.5, gs.sqrt(3.0) / 2.0], [0.5, -gs.sqrt(3.0) / 2.0]]

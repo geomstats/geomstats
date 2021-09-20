@@ -2,8 +2,10 @@
 
 import math
 
+from scipy.interpolate import CubicSpline
 
 import geomstats.backend as gs
+from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.landmarks import L2Metric
@@ -45,6 +47,9 @@ class DiscreteCurves(Manifold):
         self.ambient_manifold = ambient_manifold
         self.l2_metric = lambda n: L2Metric(self.ambient_manifold, n_landmarks=n)
         self.square_root_velocity_metric = SRVMetric(self.ambient_manifold)
+        self.quotient_square_root_velocity_metric = QuotientSRVMetric(
+            self.ambient_manifold
+        )
 
     def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to the manifold.
@@ -327,6 +332,82 @@ class SRVMetric(RiemannianMetric):
 
         return curve
 
+    def aux_differential_square_root_velocity(self, tangent_vec, curve):
+        """Compute differential of the square root velocity transform.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector to curve, i.e. infinitesimal vector field
+            along curve.
+        curve : array-like, shape=[..., n_sampling_points, ambiend_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        d_srv_vec : array-like, shape=[..., ambient_dim,]
+            Differential of the square root velocity transform at curve
+            evaluated at tangent_vec.
+        """
+        if not isinstance(self.ambient_metric, EuclideanMetric):
+            raise AssertionError(
+                "The differential of the square root "
+                "velocity function is only implemented for "
+                "discrete curves embedded in a Euclidean "
+                "space."
+            )
+        n_sampling_points = curve.shape[-2]
+        d_vec = n_sampling_points * (tangent_vec[..., 1:, :] - tangent_vec[..., :-1, :])
+        velocity_vec = n_sampling_points * (curve[..., 1:, :] - curve[..., :-1, :])
+        velocity_norm = self.ambient_metric.norm(velocity_vec)
+        unit_velocity_vec = gs.einsum(
+            "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
+        )
+        inner_prod = self.pointwise_inner_product(
+            d_vec, unit_velocity_vec, curve[..., :-1, :]
+        )
+        d_vec_tangential = gs.einsum("...ij,...i->...ij", unit_velocity_vec, inner_prod)
+        d_srv_vec = d_vec - 1 / 2 * d_vec_tangential
+        d_srv_vec = gs.einsum(
+            "...ij,...i->...ij", d_srv_vec, 1 / velocity_norm ** (1 / 2)
+        )
+
+        return d_srv_vec
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, curve):
+        """Compute inner product between two tangent vectors.
+
+        The SRV metric is used, and is computed as pullback of the
+        L2 metric by the square root velocity transform.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector to curve, i.e. infinitesimal vector field
+            along curve.
+        tangent_vec_b : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector to curve, i.e. infinitesimal vector field
+        curve : array-like, shape=[..., n_sampling_points, ambiend_dim]
+            Discrete curve.
+
+        Return
+        ------
+        inner_prod : array_like, shape=[...]
+            Square root velocity inner product between tangent_vec_a and
+            tangent_vec_b.
+        """
+        if not isinstance(self.ambient_metric, EuclideanMetric):
+            raise AssertionError(
+                "The square root velocity inner product "
+                "is only implemented for discrete curves "
+                "embedded in a Euclidean space."
+            )
+        d_srv_vec_a = self.aux_differential_square_root_velocity(tangent_vec_a, curve)
+        d_srv_vec_b = self.aux_differential_square_root_velocity(tangent_vec_b, curve)
+        inner_prod = self.srv_inner_product(d_srv_vec_a, d_srv_vec_b)
+
+        return inner_prod
+
     def srv_inner_product(self, srv_1, srv_2):
         """
         Compute the L² inner_product between two srv representations.
@@ -346,7 +427,7 @@ class SRVMetric(RiemannianMetric):
         n_sampling_points = srv_1.shape[-2]
 
         l2_inner_prod = self.l2_metric(n_sampling_points).inner_product
-        inner_prod = l2_inner_prod(srv_1, srv_2) / (n_sampling_points)
+        inner_prod = l2_inner_prod(srv_1, srv_2) / (n_sampling_points + 1)
 
         return inner_prod
 
@@ -486,7 +567,7 @@ class SRVMetric(RiemannianMetric):
         return log
 
     def geodesic(self, initial_curve, end_curve=None, initial_tangent_vec=None):
-        """Compute geodesic from initial curve and end curve end curve.
+        """Compute geodesic from initial curve to end curve.
 
         Geodesic specified either by an initial curve and an end curve,
         either by an initial curve and an initial tangent vector.
@@ -536,7 +617,14 @@ class SRVMetric(RiemannianMetric):
         initial_tangent_vec = gs.array(initial_tangent_vec)
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=curve_ndim + 1)
 
-        def curve_on_geodesic(t):
+        def path(t):
+            """Generate parametrized function for geodesic.
+
+            Parameters
+            ----------
+            t: array-like, shape=[n_points,]
+                Times at which to compute points of the geodesic.
+            """
             t = gs.cast(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
@@ -552,7 +640,7 @@ class SRVMetric(RiemannianMetric):
                 curve_at_time_t.append(self.exp(tan_vec, new_initial_curve))
             return gs.stack(curve_at_time_t)
 
-        return curve_on_geodesic
+        return path
 
     def dist(self, point_a, point_b, **kwargs):
         """Geodesic distance between two curves.
@@ -585,6 +673,36 @@ class SRVMetric(RiemannianMetric):
         dist = gs.sqrt(dist_starting_points ** 2 + dist_srvs ** 2)
 
         return dist
+
+    @staticmethod
+    def space_derivative(curve):
+        """Compute space derivative of curve using centered differences.
+
+        Parameters
+        ----------
+        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        space_deriv : array-like, shape=[...,n_sampling_points, ambient_dim]
+        """
+        n_points = curve.shape[-2]
+        if n_points < 2:
+            raise ValueError("The curve needs to have at least 2 points.")
+
+        vec_1 = gs.array([-1.0] + [0.0] * (n_points - 2) + [1.0])
+        vec_2 = gs.array([1.0 / 2] * (n_points - 2) + [1.0])
+        vec_3 = gs.array([1.0] + [1.0 / 2] * (n_points - 2))
+
+        mat_1 = from_vector_to_diagonal_matrix(vec_1, 0)
+        mat_2 = from_vector_to_diagonal_matrix(vec_2, -1)
+        mat_3 = from_vector_to_diagonal_matrix(vec_3, 1)
+        mat_space_deriv = mat_1 - mat_2 + mat_3
+
+        space_deriv = n_points * gs.matmul(mat_space_deriv, curve)
+
+        return space_deriv
 
 
 class ClosedDiscreteCurves(Manifold):
@@ -850,3 +968,305 @@ class ClosedSRVMetric(SRVMetric):
             nb_iter += 1
 
         return proj
+
+
+class QuotientSRVMetric(SRVMetric):
+    """Metric on shape space induced by the SRV metric.
+
+    The space of parameterized curves is the total space of a principal
+    bundle where the group action is given by reparameterization and the
+    base space is the shape space. This is the class for the quotient metric
+    induced on the shape space by the SRV metric.
+
+    Each tangent vector to the space of parameterized curves can be
+    split into a vertical part (tangent to the fibers of the principal
+    bundle) and a horizontal part (orthogonal to the vertical part with
+    respect to the SRV metric). The geodesics for the quotient metric on the
+    shape space are the projections of the horizontal geodesics in the total
+    space of parameterized curves. They can be computed using an algorithm
+    that iteratively finds the best correspondence between two fibers of the
+    principal bundle, see Reference below.
+
+    References
+    ----------
+    .. [LAB2017] A. Le Brigant, M. Arnaudon and F. Barbaresco,
+    "Optimal matching between curves in a manifold,"
+    in International Conference on Geometric Science of Information,
+    pp. 57-65, Springer, Cham, 2017.
+    """
+
+    def __init__(self, ambient_manifold):
+        super(QuotientSRVMetric, self).__init__(ambient_manifold)
+
+    def split_horizontal_vertical(self, tangent_vec, curve):
+        """Split tangent vector into horizontal and vertical parts.
+
+        Parameters
+        ----------
+        tangent_vec : array-like,
+            shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector to decompose into horizontal and vertical parts.
+        curve : array-like,
+            shape=[..., n_sampling_points, ambient_dim]
+            Base point of tangent_vec in the manifold of curves.
+
+        Returns
+        -------
+        tangent_vec_hor : array-like,
+            shape=[..., n_sampling_points, ambient_dim]
+            Horizontal part of tangent_vec.
+        tangent_vec_ver : array-like,
+            shape=[..., n_sampling_points, ambient_dim]
+            Vertical part of tangent_vec.
+        vertical_norm: array-like, shape=[..., n_points]
+            Pointwise norm of the vertical part of tangent_vec.
+        """
+        ambient_dim = curve.shape[-1]
+        a_param = 1
+        b_param = 1 / 2
+        quotient = a_param / b_param
+
+        position = curve[..., 1:-1, :]
+        d_pos = (curve[..., 2:, :] - curve[..., :-2, :]) / 2
+        d_vec = (tangent_vec[..., 2:, :] - tangent_vec[..., :-2, :]) / 2
+        d2_pos = curve[..., 2:, :] - 2 * curve[..., 1:-1, :] + curve[..., :-2, :]
+        d2_vec = (
+            tangent_vec[..., 2:, :]
+            - 2 * tangent_vec[..., 1:-1, :]
+            + tangent_vec[..., :-2, :]
+        )
+
+        vec_a = self.pointwise_norm(
+            d_pos, position
+        ) ** 2 - 1 / 2 * self.pointwise_inner_product(d2_pos, d_pos, position)
+        vec_b = -2 * self.pointwise_norm(d_pos, position) ** 2 - quotient ** 2 * (
+            self.pointwise_norm(d2_pos, position) ** 2
+            - self.pointwise_inner_product(d2_pos, d_pos, position) ** 2
+            / self.pointwise_norm(d_pos, position) ** 2
+        )
+        vec_c = self.pointwise_norm(
+            d_pos, position
+        ) ** 2 + 1 / 2 * self.pointwise_inner_product(d2_pos, d_pos, position)
+        vec_d = self.pointwise_norm(d_pos, position) * (
+            self.pointwise_inner_product(d2_vec, d_pos, position)
+            - (quotient ** 2 - 1)
+            * self.pointwise_inner_product(d_vec, d2_pos, position)
+            + (quotient ** 2 - 2)
+            * self.pointwise_inner_product(d2_pos, d_pos, position)
+            * self.pointwise_inner_product(d_vec, d_pos, position)
+            / self.pointwise_norm(d_pos, position) ** 2
+        )
+
+        linear_system = (
+            from_vector_to_diagonal_matrix(vec_a[..., :-1], 1)
+            + from_vector_to_diagonal_matrix(vec_b, 0)
+            + from_vector_to_diagonal_matrix(vec_c[..., 1:], -1)
+        )
+        vertical_norm = gs.to_ndarray(gs.linalg.solve(linear_system, vec_d), to_ndim=2)
+        n_curves = vertical_norm.shape[0]
+        vertical_norm = gs.squeeze(
+            gs.hstack((gs.zeros((n_curves, 1)), vertical_norm, gs.zeros((n_curves, 1))))
+        )
+
+        unit_speed = gs.einsum(
+            "...ij,...i->...ij", d_pos, 1 / self.pointwise_norm(d_pos, position)
+        )
+        tangent_vec_ver = gs.einsum(
+            "...ij,...i->...ij", unit_speed, vertical_norm[..., 1:-1]
+        )
+        tangent_vec_ver = gs.concatenate(
+            (
+                gs.zeros((n_curves, 1, ambient_dim)),
+                gs.to_ndarray(tangent_vec_ver, to_ndim=3),
+                gs.zeros((n_curves, 1, ambient_dim)),
+            ),
+            axis=1,
+        )
+        tangent_vec_ver = gs.squeeze(tangent_vec_ver)
+        tangent_vec_hor = tangent_vec - tangent_vec_ver
+
+        return tangent_vec_hor, tangent_vec_ver, vertical_norm
+
+    def horizontal_geodesic(self, initial_curve, end_curve, threshold=1e-3):
+        """Compute horizontal geodesic between two curves.
+
+        The horizontal geodesic is computed by an interative procedure where
+        the initial curve stays fixed and the sampling points are moved on the
+        end curve to obtain its optimal parametrization with respect to the
+        initial curve. This optimal matching algorithm sets current_end_curve
+        to be the end curve and iterates three steps:
+        1) compute the geodesic between the initial curve and current_end_curve
+        2) compute the path of reparametrizations that transforms this geodesic
+        into a horizontal path of curves
+        3) invert this path of reparametrizations to find the horizontal path
+        and update current_end_curve to be its end point.
+        The algorithm stops when the new current_end_curve is sufficiently
+        close to the former current_end_curve.
+
+        Parameters
+        ----------
+        initial_curve : array-like, shape=[n_sampling_points, ambient_dim]
+            Initial discrete curve.
+        end_curve : array-like, shape=[n_sampling_points, ambient_dim]
+            End discrete curve.
+        threshold: float
+
+        Returns
+        -------
+        horizontal_path : callable
+            Time parametrized horizontal geodesic.
+        """
+        n_points = initial_curve.shape[0]
+        t_space = gs.linspace(0.0, 1.0, n_points)
+        spline_end_curve = CubicSpline(t_space, end_curve, axis=0)
+
+        def construct_reparametrization(vertical_norm, space_deriv_norm):
+            r"""Construct path of reparametrizations.
+
+            Construct path of reparametrizations phi(t, u) that transforms
+            a path of curves c(t, u) into a horizontal path of curves, i.e.
+            :math: `d/dt c(t, phi(t, u))` is a horizontal vector.
+
+            Parameters
+            ----------
+            vertical_norm: array-like, shape=[n_times, n_sampling_points]
+                Pointwise norm of the vertical part of the time derivative of
+                the path of curves.
+            space_deriv_norm: array-like, shape=[n_times, n_sampling_points]
+                Pointwise norm of the space derivative of the path of curves.
+
+            Returns
+            -------
+            repar: array-like, shape=[n_times, n_sampling_points]
+                Path of parametrizations, such that the path of curves
+                composed with the path of parametrizations is a horizontal
+                path.
+            """
+            n_times = gs.shape(vertical_norm)[0] + 1
+            repar = gs.to_ndarray(gs.linspace(0.0, 1.0, n_points), 2)
+            for i in range(n_times - 1):
+                repar_i = [gs.array(0.0)]
+                n_times = gs.cast(gs.array(n_times), gs.float32)
+                for j in range(1, n_points - 1):
+                    d_repar_plus = repar[-1, j + 1] - repar[-1, j]
+                    d_repar_minus = repar[-1, j] - repar[-1, j - 1]
+                    if vertical_norm[i, j] > 0:
+                        repar_space_deriv = n_points * d_repar_plus
+                    else:
+                        repar_space_deriv = n_points * d_repar_minus
+                    repar_time_deriv = (
+                        repar_space_deriv * vertical_norm[i, j] / space_deriv_norm[i, j]
+                    )
+                    repar_i.append(repar[-1, j] + repar_time_deriv / n_times)
+                repar_i.append(gs.array(1.0))
+                repar_i = gs.to_ndarray(gs.stack(repar_i), to_ndim=2)
+                repar = gs.concatenate((repar, repar_i), axis=0)
+
+                test_repar = gs.sum(repar[-1, 2:] - repar[-1, 1:-1] < 0)
+                if gs.any(test_repar):
+                    print(
+                        "Warning: phi(t) is non increasing for at least "
+                        "one time t. Solution may be inaccurate."
+                    )
+
+            return repar
+
+        def invert_reparametrization(repar, path_of_curves, repar_inverse_end, counter):
+            r"""Invert path of reparametrizations.
+
+            Given a path of curves c(t, u) and a path of reparametrizations
+            phi(t, u), compute:
+            :math: `c(t, phi_inv(t, u))` where `phi_inv(t, .) = phi(t, .)^{-1}`
+            The computation for the last time t=1 is done differently, using
+            the spline function associated to the end curve and the composition
+            of the inverse reparametrizations contained in rep_inverse_end:
+            :math: `spline_end_curve ° phi_inv(1, .) ° ... ° phi_inv(0, .)`.
+
+            Parameters
+            ----------
+            repar: array-like, shape=[n_times, n_sampling_points]
+                Path of reparametrizations.
+            path_of_curves: array-like,
+                shape=[n_times, n_sampling_points, ambient_dim]
+                Path of curves.
+            repar_inverse_end: list
+                List of the inverses of the reparametrizations applied to
+                the end curve during the optimal matching algorithm.
+            counter: int
+                Counter associated to the steps of the optimal matching
+                algorithm.
+
+            Returns
+            -------
+            reparametrized_path: array-like,
+                shape=[n_times, n_sampling_points, ambient_dim]
+                Path of curves composed with the inverse of the path of
+                reparametrizations.
+            """
+            n_times = repar.shape[0]
+            initial_curve = path_of_curves[0]
+            reparametrized_path = []
+            reparametrized_path.append(initial_curve)
+            for i in range(1, n_times - 1):
+                spline = CubicSpline(t_space, path_of_curves[i], axis=0)
+                repar_inverse = CubicSpline(repar[i], t_space)
+                curve_repar = gs.from_numpy(spline(repar_inverse(t_space)))
+                curve_repar = gs.cast(curve_repar, gs.float32)
+                reparametrized_path.append(curve_repar)
+
+            repar_inverse_end.append(CubicSpline(repar[-1, :], t_space))
+            arg = t_space
+            for i in range(counter + 1):
+                arg = repar_inverse_end[-1 - i](arg)
+            end_curve_repar = gs.from_numpy(spline_end_curve(arg))
+            end_curve_repar = gs.cast(end_curve_repar, gs.float32)
+            reparametrized_path.append(end_curve_repar)
+            return gs.stack(reparametrized_path)
+
+        def horizontal_path(t):
+            """Generate parametrized function for horizontal geodesic.
+
+            Parameters
+            ----------
+            t: array-like, shape=[n_points,]
+                Times at which to compute points of the horizontal geodesic.
+            """
+            n_times = len(t)
+            current_end_curve = gs.copy(end_curve)
+            repar_inverse_end = []
+            gap = 1.0
+            counter = 0
+
+            while gap > threshold:
+                srv_geod_fun = self.geodesic(
+                    initial_curve=initial_curve, end_curve=current_end_curve
+                )
+                geod = srv_geod_fun(t)
+
+                time_deriv = n_times * (geod[1:] - geod[:-1])
+                vertical_norm = gs.zeros((n_times - 1, n_points))
+                _, _, vertical_norm = self.split_horizontal_vertical(
+                    time_deriv, geod[:-1]
+                )
+
+                space_deriv = QuotientSRVMetric.space_derivative(geod)
+                space_deriv_norm = self.ambient_metric.norm(space_deriv)
+
+                repar = construct_reparametrization(vertical_norm, space_deriv_norm)
+
+                horizontal_path = invert_reparametrization(
+                    repar, geod, repar_inverse_end, counter
+                )
+
+                new_end_curve = horizontal_path[-1]
+                gap = (
+                    gs.sum(
+                        gs.linalg.norm(new_end_curve - current_end_curve, axis=-1) ** 2
+                    )
+                ) ** (1 / 2)
+                current_end_curve = gs.copy(new_end_curve)
+
+                counter += 1
+            return horizontal_path
+
+        return horizontal_path

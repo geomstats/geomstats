@@ -14,6 +14,7 @@ expm = torch.matrix_exp
 logm = _raise_not_implemented_error
 inv = torch.inverse
 det = torch.det
+solve = torch.linalg.solve
 
 
 def cholesky(a):

@@ -10,6 +10,7 @@ expm = tf.linalg.expm
 inv = tf.linalg.inv
 sqrtm = tf.linalg.sqrtm
 diagonal = tf.linalg.diag_part
+solve = tf.linalg.solve
 
 
 def norm(x, dtype=tf.float32, **kwargs):
