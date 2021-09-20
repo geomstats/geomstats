@@ -4,8 +4,7 @@ import geomstats.backend as gs
 
 # import geomstats.datasets.utils as data_utils
 import geomstats.tests
-from geomstats.geometry.discrete_curves import ClosedDiscreteCurves
-from geomstats.geometry.discrete_curves import DiscreteCurves
+from geomstats.geometry.discrete_curves import ClosedDiscreteCurves, DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 
