@@ -97,7 +97,13 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
     def test_projection_and_belongs(self):
         point = Matrices.transpose(
-            gs.array([[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 1.0], [0.0, 0.0, 1.0, 1.0]])
+            gs.array(
+                [
+                    [1.0, 0.0, 0.0, 1.0],
+                    [0.0, 1.0, 0.0, 1.0],
+                    [0.0, 0.0, 1.0, 1.0],
+                ]
+            )
         )
         proj = self.space.projection(point)
         result = self.space.belongs(proj)
@@ -618,7 +624,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             self.base_point,
         )
 
-        nabla_x_a_y_a_x_y, a_y_a_x_y = self.space.integrability_tensor_derivative(
+        (nabla_x_a_y_a_x_y, a_y_a_x_y,) = self.space.integrability_tensor_derivative(
             self.hor_x, self.hor_y, a_x_y, a_x_y, nabla_x_v, self.base_point
         )
 

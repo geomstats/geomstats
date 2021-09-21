@@ -234,7 +234,11 @@ complies with the following rules. The **bolded** ones are especially important:
 
 5. **Make sure that your PR follows Python international style guidelines**,
    `PEP8 <https://www.python.org/dev/peps/pep-0008>`_, which you should read.
-   The `flake8` package automatically checks for style violations when you
+   You can automatically format your code by running `black` via
+   
+   `black .`
+   
+   Then, the `flake8` package automatically checks for style violations when you
    submit your PR. We recommend installing flake8 with its plugins on your
    machine by running
 
@@ -464,7 +468,7 @@ Docstring Examples
 ^^^^^^^^^^^^^^^^^^
 Here's a generic docstring template::
 
-   def my_method(self, my_param_1, my_param_2='vector'):
+   def my_method(self, my_param_1, my_param_2="vector"):
       """Write a one-line summary for the method.
 
       Write a description of the method, including "big O"
@@ -474,9 +478,9 @@ Here's a generic docstring template::
       ----------
       my_param_1 : array-like, shape=[..., dim]
          Write a short description of parameter my_param_1.
-      my_param_2 : str, {'vector', 'matrix'}
+      my_param_2 : str, {"vector", "matrix"}
          Write a short description of parameter my_param_2.
-         Optional, default: 'vector'.
+         Optional, default: "vector".
 
       Returns
       -------
@@ -534,7 +538,7 @@ In general, have the following in mind:
       ``array-like, shape=[dimension[:axis], n, dimension[axis:]]``
 
    4. For strings with multiple options, use brackets:
-      ``input: str, {'log', 'squared', 'multinomial'}``
+      ``input: str, {"log", "squared", "multinomial"}``
 
    5. 1D or 2D data can be a subset of
       ``{array-like, ndarray, sparse matrix, dataframe}``. Note that
@@ -611,7 +615,7 @@ guidelines:
    to check if you are using the original module's method or if you have
    overwritten it.
 
-9. Use single quotes ' and not double quotes " for strings.
+9. Use double quotes " and not single quotes ' for strings.
 
 10. If you need several lines for a function call, use the syntax
 ::

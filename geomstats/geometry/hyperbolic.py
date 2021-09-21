@@ -32,13 +32,15 @@ class Hyperbolic(_Hyperbolic, Manifold):
         Optional, default: 1.
     """
 
-    def __new__(cls, *args, default_coords_type='extrinsic', **kwargs):
+    def __new__(cls, *args, default_coords_type="extrinsic", **kwargs):
         """Instantiate class that corresponds to the default_coords_type."""
         errors.check_parameter_accepted_values(
-            default_coords_type, 'default_coords_type',
-            ['extrinsic', 'ball', 'half-space'])
-        if default_coords_type == 'extrinsic':
+            default_coords_type,
+            "default_coords_type",
+            ["extrinsic", "ball", "half-space"],
+        )
+        if default_coords_type == "extrinsic":
             return Hyperboloid(*args, **kwargs)
-        if default_coords_type == 'ball':
+        if default_coords_type == "ball":
             return PoincareBall(*args, **kwargs)
         return PoincareHalfSpace(*args, **kwargs)
