@@ -78,8 +78,7 @@ def _is_single_matrix_pd(mat):
     except tf.errors.InvalidArgumentError as e:
         if "Cholesky decomposition was not successful" in e.message:
             return False
-        else:
-            raise e
+        raise e
 
 
 def is_pd(mat):
