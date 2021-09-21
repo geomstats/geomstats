@@ -969,7 +969,7 @@ class TestBackends(geomstats.tests.TestCase):
         n_samples = 10
         spdManifold = SPDMatrices(n)
         spd = spdManifold.random_point(n_samples)
-        not_spd = -1*spd
+        not_spd = -1 * spd
         mixed = gs.vstack((spd, not_spd))
 
         spd_expected = [True] * n_samples
