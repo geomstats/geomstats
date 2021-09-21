@@ -98,6 +98,6 @@ def is_pd(mat):
     elif mat.ndim == 2 and mat.shape[0] != mat.shape[1]:
         return False
     elif mat.ndim == 3 and mat.shape[1] == mat.shape[2]:
-        return torch.BoolTensor([_is_single_matrix_pd(m) for m in mat])
+        return torch.tensor([_is_single_matrix_pd(m) for m in mat])
     elif mat.ndim == 3 and mat.shape[1] != mat.shape[2]:
-        return torch.BoolTensor([False] * mat.shape[0])
+        return torch.tensor([False] * mat.shape[0])
