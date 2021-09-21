@@ -567,6 +567,6 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
                 )
             )
         )
-        result = self.quotient_srv_metric_r3.quotient_dist(curve_a_resampled, curve_b)
-        expected = self.quotient_srv_metric_r3.quotient_dist(self.curve_a, curve_b)
+        result = self.quotient_srv_metric_r3.dist(curve_a_resampled, curve_b)
+        expected = self.quotient_srv_metric_r3.dist(self.curve_a, curve_b)
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
