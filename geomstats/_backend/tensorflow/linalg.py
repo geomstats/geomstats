@@ -83,7 +83,7 @@ def _is_single_matrix_pd(mat):
 
 def is_pd(mat):
     """Check if matrix is positive definite matrix
-    (doesn't check if its symmetric)
+    (doesn't check if it's symmetric)
     """
     if mat.ndim == 2 and mat.shape[0] == mat.shape[1]:
         return tf.convert_to_tensor(_is_single_matrix_pd(mat))
