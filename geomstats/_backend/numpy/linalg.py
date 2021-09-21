@@ -82,8 +82,7 @@ def _is_single_matrix_pd(mat):
     except np.linalg.LinAlgError as e:
         if e.args[0] == "Matrix is not positive definite":
             return False
-        else:
-            raise e
+        raise e
 
 
 def is_pd(mat):
@@ -91,7 +90,7 @@ def is_pd(mat):
     (doesn't check if its symmetric)
     """
     if mat.ndim == 2 and mat.shape[0] == mat.shape[1]:
-        return np.asrray(_is_single_matrix_pd(mat))
+        return np.asarray(_is_single_matrix_pd(mat))
     if mat.ndim == 2 and mat.shape[0] != mat.shape[1]:
         return np.asarray(False)
     if mat.ndim == 3 and mat.shape[1] == mat.shape[2]:

@@ -956,9 +956,9 @@ class TestBackends(geomstats.tests.TestCase):
         not_pd_1_result = gs.linalg.is_pd(not_pd_1)
         not_pd_2_result = gs.linalg.is_pd(not_pd_2)
 
-        pd_expected = gs.array([True])
-        not_pd_1_expected = gs.array([False])
-        not_pd_2_expected = gs.array([False])
+        pd_expected = gs.array(True)
+        not_pd_1_expected = gs.array(False)
+        not_pd_2_expected = gs.array(False)
 
         self.assertAllClose(pd_expected, pd_result)
         self.assertAllClose(not_pd_1_expected, not_pd_1_result)
