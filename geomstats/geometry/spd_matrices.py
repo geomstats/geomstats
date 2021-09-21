@@ -50,7 +50,7 @@ class SPDMatrices(OpenSet):
             mat = -1 * mat
         eigvalues = gs.linalg.eigvalsh(mat)
         is_positive = gs.all(eigvalues > 0, axis=-1)
-        #is_pd = gs.linalg.is_pd(mat)
+        # is_pd = gs.linalg.is_pd(mat)
         print("@@@@@@@@@@@@@@@@@")
         print("---", is_symmetric)
         print("---", is_positive)
