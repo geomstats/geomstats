@@ -105,7 +105,7 @@ def _is_single_matrix_pd(mat):
         if e.args[0] == "Matrix is not positive definite":
             return False
         raise e
-            
+
 
 def is_pd(mat):
     """Check if matrix is positive definite matrix
