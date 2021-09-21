@@ -95,5 +95,4 @@ def is_pd(mat):
         return np.asarray(False)
     if mat.ndim == 3 and mat.shape[1] == mat.shape[2]:
         return np.asarray([_is_single_matrix_pd(m) for m in mat])
-    if mat.ndim == 3 and mat.shape[1] != mat.shape[2]:
-        return np.asarray([False] * mat.shape[0])
+    return np.asarray([False] * mat.shape[0])

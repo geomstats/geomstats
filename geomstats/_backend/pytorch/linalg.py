@@ -99,5 +99,4 @@ def is_pd(mat):
         return torch.tensor(False)
     if mat.ndim == 3 and mat.shape[1] == mat.shape[2]:
         return torch.tensor([_is_single_matrix_pd(m) for m in mat])
-    if mat.ndim == 3 and mat.shape[1] != mat.shape[2]:
-        return torch.tensor([False] * mat.shape[0])
+    return torch.tensor([False] * mat.shape[0])

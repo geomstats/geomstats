@@ -92,5 +92,4 @@ def is_pd(mat):
         return tf.convert_to_tensor(False)
     if mat.ndim == 3 and mat.shape[1] == mat.shape[2]:
         return tf.convert_to_tensor([_is_single_matrix_pd(m) for m in mat])
-    if mat.ndim == 3 and mat.shape[1] != mat.shape[2]:
-        return tf.convert_to_tensor([False] * mat.shape[0])
+    return tf.convert_to_tensor([False] * mat.shape[0])
