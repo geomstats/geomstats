@@ -77,19 +77,19 @@ def qr(*args, **kwargs):
     return tensor_q, tensor_r
 
 
-
 def _is_single_matrix_pd(mat):
-    """ Check if a two dimensional square matrix is 
+    """Check if a two dimensional square matrix is
     positive definite
     """
     try:
         ch = torch.linalg.cholesky(m)
         return True
     except np.linalg.LinAlgErro as e:
-        if e.args[0] == 'Matrix is not positive definite':
+        if e.args[0] == "Matrix is not positive definite":
             return False
         else:
             raise e
+
 
 def is_pd(mat):
     """Check if matrix is positive definite matrix

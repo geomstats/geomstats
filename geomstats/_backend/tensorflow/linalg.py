@@ -64,13 +64,12 @@ def solve_sylvester(a, b, q):
     )
 
 
-def qr(x, mode='reduced'):
-    return tf.linalg.qr(x, full_matrices=(mode == 'complete'))
-
+def qr(x, mode="reduced"):
+    return tf.linalg.qr(x, full_matrices=(mode == "complete"))
 
 
 def _is_single_matrix_pd(mat):
-    """ Check if a two dimensional square matrix is 
+    """Check if a two dimensional square matrix is
     positive definite
     """
     try:
@@ -81,6 +80,7 @@ def _is_single_matrix_pd(mat):
             return False
         else:
             raise e
+
 
 def is_pd(mat):
     """Check if matrix is positive definite matrix
@@ -94,4 +94,3 @@ def is_pd(mat):
         return [_is_single_matrix_pd(m) for m in mat]
     elif mat.ndim == 3 and mat.shape[1] != mat.shape[2]:
         return [False] * mat.shape[0]
-

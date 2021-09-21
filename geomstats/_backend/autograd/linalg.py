@@ -89,23 +89,24 @@ def sqrtm(x):
 
 
 def qr(*args, **kwargs):
-    return np.vectorize(np.linalg.qr,
-                        signature='(n,m)->(n,k),(k,m)',
-                        excluded=['mode'])(*args, **kwargs)
+    return np.vectorize(
+        np.linalg.qr, signature="(n,m)->(n,k),(k,m)", excluded=["mode"]
+    )(*args, **kwargs)
 
 
 def _is_single_matrix_pd(mat):
-    """ Check if a two dimensional square matrix is 
+    """Check if a two dimensional square matrix is
     positive definite
     """
     try:
         ch = np.linalg.cholesky(mat)
         return True
     except np.linalg.LinAlgError as e:
-        if e.args[0] == 'Matrix is not positive definite':
+        if e.args[0] == "Matrix is not positive definite":
             return False
         else:
             raise e
+
 
 def is_pd(mat):
     """Check if matrix is positive definite matrix
