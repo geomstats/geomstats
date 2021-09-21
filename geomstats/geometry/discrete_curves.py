@@ -1299,11 +1299,13 @@ class QuotientSRVMetric(SRVMetric):
             Quotient distance between the two curves.
         """
         horizontal_path = self.horizontal_geodesic(
-            initial_curve=point_a, end_curve=point_b, threshold=threshold)
-        times = gs.linspace(0., 1., n_times)
+            initial_curve=point_a, end_curve=point_b, threshold=threshold
+        )
+        times = gs.linspace(0.0, 1.0, n_times)
         horizontal_geod = horizontal_path(times)
         horizontal_geod_velocity = n_times * (
-            horizontal_geod[:-1] - horizontal_geod[1:])
+            horizontal_geod[:-1] - horizontal_geod[1:]
+        )
         velocity_norms = self.norm(horizontal_geod_velocity, horizontal_geod[:-1])
         quotient_dist = gs.sum(velocity_norms) / n_times
         return quotient_dist
