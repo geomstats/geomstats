@@ -952,9 +952,9 @@ class TestBackends(geomstats.tests.TestCase):
         not_pd_1 = -1 * gs.eye(3)
         not_pd_2 = gs.ones((3, 3))
 
-        pd_result = gs.is_pd(pd)
-        not_pd_1_result = gs.is_pd(not_pd_1)
-        not_pd_2_result = gs.is_pd(not_pd_2)
+        pd_result = gs.linalg.is_pd(pd)
+        not_pd_1_result = gs.linalg.is_pd(not_pd_1)
+        not_pd_2_result = gs.linalg.is_pd(not_pd_2)
 
         pd_expected = True
         not_pd_1_expected = False
@@ -976,9 +976,9 @@ class TestBackends(geomstats.tests.TestCase):
         not_spd_expected = [False] * n_samples
         mixed_expected = spd_expected + not_spd_expected
 
-        spd_result = gs.is_pd(spd)
-        not_spd_result = gs.is_pd(not_spd)
-        mixed_result = gs.is_pd(mixed)
+        spd_result = gs.linalg.is_pd(spd)
+        not_spd_result = gs.linalg.is_pd(not_spd)
+        mixed_result = gs.linalg.is_pd(mixed)
 
         self.assertAllClose(spd_expected, spd_result)
         self.assertAllClose(not_spd_expected, not_spd_result)
