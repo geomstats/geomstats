@@ -73,7 +73,7 @@ def _is_single_matrix_pd(mat):
     positive definite
     """
     try:
-        ch = tf.linalg.cholesky(mat)
+        tf.linalg.cholesky(mat)
         return True
     except tf.errors.InvalidArgumentError as e:
         if "Cholesky decomposition was not successful" in e.message:
@@ -88,9 +88,9 @@ def is_pd(mat):
     """
     if mat.ndim == 2 and mat.shape[0] == mat.shape[1]:
         return _is_single_matrix_pd(mat)
-    elif mat.ndim == 2 and mat.shape[0] != mat.shape[1]:
+    if mat.ndim == 2 and mat.shape[0] != mat.shape[1]:
         return False
-    elif mat.ndim == 3 and mat.shape[1] == mat.shape[2]:
-        return [_is_single_matrix_pd(m) for m in mat]
-    elif mat.ndim == 3 and mat.shape[1] != mat.shape[2]:
-        return [False] * mat.shape[0]
+    if mat.ndim == 3 and mat.shape[1] == mat.shape[2]:
+        return tf.convert_to_tensor([_is_single_matrix_pd(m) for m in mat])
+    if mat.ndim == 3 and mat.shape[1] != mat.shape[2]:
+        return tf.convert_to_tensor([False] * mat.shape[0])

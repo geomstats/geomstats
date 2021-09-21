@@ -99,7 +99,7 @@ def _is_single_matrix_pd(mat):
     positive definite
     """
     try:
-        ch = np.linalg.cholesky(mat)
+        np.linalg.cholesky(mat)
         return True
     except np.linalg.LinAlgError as e:
         if e.args[0] == "Matrix is not positive definite":
