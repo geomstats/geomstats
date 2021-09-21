@@ -73,10 +73,10 @@ def _is_single_matrix_pd(mat):
     positive definite
     """
     try:
-        ch = tf.linalg.cholesky(m)
+        ch = tf.linalg.cholesky(mat)
         return True
     except tf.errors.InvalidArgumentError as e:
-        if "Cholesky decomposition was not successful" in e.meesage:
+        if "Cholesky decomposition was not successful" in e.message:
             return False
         else:
             raise e
