@@ -1274,16 +1274,20 @@ class QuotientSRVMetric(SRVMetric):
 
         return horizontal_path
 
-    def quotient_dist(self, point_a, point_b, n_times=20, threshold=1e-3):
-        """Compute quotient distance between two curves.
+    def dist(self, curve_a, curve_b, n_times=20, threshold=1e-3):
+        """Compute quotient SRV distance between two curves.
 
-        This is the length of the horizontal geodesic.
+        This is the distance induced by the Square Root Velocity Metric
+        on the space of unparametrized curves, i.e. the space of parametrized
+        curves quotiented by the group of reparametrizations. In the discrete case,
+        reparametrization corresponds to resampling. This distance is computed as
+        the length of the horizontal geodesic linking the two curves.
 
         Parameters
         ----------
-        initial_curve : array-like, shape=[n_sampling_points, ambient_dim]
+        curve_a : array-like, shape=[n_sampling_points, ambient_dim]
             Initial discrete curve.
-        end_curve : array-like, shape=[n_sampling_points, ambient_dim]
+        curve_b : array-like, shape=[n_sampling_points, ambient_dim]
             End discrete curve.
         n_times: int
             Number of times used to discretize the horizontal geodesic.
@@ -1299,7 +1303,7 @@ class QuotientSRVMetric(SRVMetric):
             Quotient distance between the two curves.
         """
         horizontal_path = self.horizontal_geodesic(
-            initial_curve=point_a, end_curve=point_b, threshold=threshold
+            initial_curve=curve_a, end_curve=curve_b, threshold=threshold
         )
         times = gs.linspace(0.0, 1.0, n_times)
         horizontal_geod = horizontal_path(times)
