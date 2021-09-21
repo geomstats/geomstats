@@ -557,7 +557,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         Check that the quotient distance is the same as the distance
         between the end points of the horizontal geodesic.
         """
-        curve_a_resampled = self.curve_fun_a(self.sampling_times**2)
+        curve_a_resampled = self.curve_fun_a(self.sampling_times ** 2)
         curve_b = gs.transpose(
             gs.stack(
                 (
@@ -567,8 +567,6 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
                 )
             )
         )
-        result = self.quotient_srv_metric_r3.quotient_dist(
-            curve_a_resampled, curve_b)
-        expected = self.quotient_srv_metric_r3.quotient_dist(
-            self.curve_a, curve_b)
+        result = self.quotient_srv_metric_r3.quotient_dist(curve_a_resampled, curve_b)
+        expected = self.quotient_srv_metric_r3.quotient_dist(self.curve_a, curve_b)
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
