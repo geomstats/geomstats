@@ -94,9 +94,9 @@ def is_pd(mat):
     (doesn't check if its symmetric)
     """
     if mat.ndim == 2 and mat.shape[0] == mat.shape[1]:
-        return _is_single_matrix_pd(mat)
+        return torch.tensor(_is_single_matrix_pd(mat))
     elif mat.ndim == 2 and mat.shape[0] != mat.shape[1]:
-        return False
+        return torch.tensor(False)
     elif mat.ndim == 3 and mat.shape[1] == mat.shape[2]:
         return torch.tensor([_is_single_matrix_pd(m) for m in mat])
     elif mat.ndim == 3 and mat.shape[1] != mat.shape[2]:
