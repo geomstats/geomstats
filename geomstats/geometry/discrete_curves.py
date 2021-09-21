@@ -1110,6 +1110,9 @@ class QuotientSRVMetric(SRVMetric):
         end_curve : array-like, shape=[n_sampling_points, ambient_dim]
             End discrete curve.
         threshold: float
+            When the difference between the new end curve and the current end
+            curve becomes lower than this threshold, the algorithm stops.
+            Optional, default: 1e-3.
 
         Returns
         -------
@@ -1270,3 +1273,37 @@ class QuotientSRVMetric(SRVMetric):
             return horizontal_path
 
         return horizontal_path
+
+    def quotient_dist(self, point_a, point_b, n_times=20, threshold=1e-3):
+        """Compute quotient distance between two curves.
+
+        This is the length of the horizontal geodesic.
+
+        Parameters
+        ----------
+        initial_curve : array-like, shape=[n_sampling_points, ambient_dim]
+            Initial discrete curve.
+        end_curve : array-like, shape=[n_sampling_points, ambient_dim]
+            End discrete curve.
+        n_times: int
+            Number of times used to discretize the horizontal geodesic.
+            Optional, default: 20.
+        threshold: float
+            Stop criterion used in the algorithm to compute the horizontal
+            geodesic.
+            Optional, default: 1e-3.
+
+        Returns
+        -------
+        quotient_dist : float
+            Quotient distance between the two curves.
+        """
+        horizontal_path = self.horizontal_geodesic(
+            initial_curve=point_a, end_curve=point_b, threshold=threshold)
+        times = gs.linspace(0., 1., n_times)
+        horizontal_geod = horizontal_path(times)
+        horizontal_geod_velocity = n_times * (
+            horizontal_geod[:-1] - horizontal_geod[1:])
+        velocity_norms = self.norm(horizontal_geod_velocity, horizontal_geod[:-1])
+        quotient_dist = gs.sum(velocity_norms) / n_times
+        return quotient_dist

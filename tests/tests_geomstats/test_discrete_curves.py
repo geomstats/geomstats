@@ -1,9 +1,8 @@
 """Unit tests for parameterized manifolds."""
 
 import geomstats.backend as gs
-
-# import geomstats.datasets.utils as data_utils
 import geomstats.tests
+# import geomstats.datasets.utils as data_utils
 from geomstats.geometry.discrete_curves import ClosedDiscreteCurves
 from geomstats.geometry.discrete_curves import DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
@@ -33,10 +32,10 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         self.curve_fun_a = curve_fun_a
 
         self.n_sampling_points = 10
-        sampling_times = gs.linspace(0.0, 1.0, self.n_sampling_points)
-        self.curve_a = curve_fun_a(sampling_times)
-        self.curve_b = curve_fun_b(sampling_times)
-        self.curve_c = curve_fun_c(sampling_times)
+        self.sampling_times = gs.linspace(0.0, 1.0, self.n_sampling_points)
+        self.curve_a = curve_fun_a(self.sampling_times)
+        self.curve_b = curve_fun_b(self.sampling_times)
+        self.curve_c = curve_fun_c(self.sampling_times)
 
         self.space_closed_curves_in_euclidean_2d = ClosedDiscreteCurves(
             ambient_manifold=r2
@@ -550,3 +549,26 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         result = gs.sum(vertical_norms ** 2, axis=1) ** (1 / 2)
         expected = gs.zeros(n_times - 1)
         self.assertAllClose(result, expected, atol=1e-3)
+
+    @geomstats.tests.np_autograd_and_torch_only
+    def test_quotient_dist(self):
+        """Test quotient distance.
+
+        Check that the quotient distance is the same as the distance
+        between the end points of the horizontal geodesic.
+        """
+        curve_a_resampled = self.curve_fun_a(self.sampling_times**2)
+        curve_b = gs.transpose(
+            gs.stack(
+                (
+                    gs.zeros(self.n_sampling_points),
+                    gs.zeros(self.n_sampling_points),
+                    gs.linspace(1.0, 0.5, self.n_sampling_points),
+                )
+            )
+        )
+        result = self.quotient_srv_metric_r3.quotient_dist(
+            curve_a_resampled, curve_b)
+        expected = self.quotient_srv_metric_r3.quotient_dist(
+            self.curve_a, curve_b)
+        self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
