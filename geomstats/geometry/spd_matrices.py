@@ -46,12 +46,16 @@ class SPDMatrices(OpenSet):
             Boolean denoting if mat is an SPD matrix.
         """
         is_symmetric = self.ambient_space.belongs(mat, atol)
-        is_pd = gs.linalg.is_pd(mat)
+        if mat.ndim == 2:
+            mat = -1 * mat
+        eigvalues = gs.linalg.eigvalsh(mat)
+        is_positive = gs.all(eigvalues > 0, axis=-1)
+        #is_pd = gs.linalg.is_pd(mat)
         print("@@@@@@@@@@@@@@@@@")
         print("---", is_symmetric)
-        print("---", is_pd)
+        print("---", is_positive)
         print("@@@@@@@@@@@@@@@@@")
-        belongs = gs.logical_and(is_symmetric, is_pd)
+        belongs = gs.logical_and(is_symmetric, is_positive)
         return belongs
 
     def projection(self, point):
