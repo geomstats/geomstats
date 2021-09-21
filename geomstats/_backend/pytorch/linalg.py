@@ -77,7 +77,7 @@ def qr(*args, **kwargs):
     return tensor_q, tensor_r
 
 
-# (TODO) (sait) torch.linalg.cholesky_ex for even faster way   
+# (TODO) (sait) torch.linalg.cholesky_ex for even faster way
 def _is_single_matrix_pd(mat):
     """Check if a two dimensional square matrix is
     positive definite
@@ -87,6 +87,7 @@ def _is_single_matrix_pd(mat):
         return True
     except RuntimeError as e:
         return False
+
 
 def is_pd(mat):
     """Check if matrix is positive definite matrix
