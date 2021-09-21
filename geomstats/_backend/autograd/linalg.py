@@ -104,9 +104,8 @@ def _is_single_matrix_pd(mat):
     except np.linalg.LinAlgError as e:
         if e.args[0] == "Matrix is not positive definite":
             return False
-        else:
-            raise e
-
+        raise e
+            
 
 def is_pd(mat):
     """Check if matrix is positive definite matrix
