@@ -47,6 +47,10 @@ class SPDMatrices(OpenSet):
         """
         is_symmetric = self.ambient_space.belongs(mat, atol)
         is_pd = gs.linalg.is_pd(mat)
+        print("@@@@@@@@@@@@@@@@@")
+        print("---", is_symmetric)
+        print("---", is_pd)
+        print("@@@@@@@@@@@@@@@@@")
         belongs = gs.logical_and(is_symmetric, is_pd)
         return belongs
 
