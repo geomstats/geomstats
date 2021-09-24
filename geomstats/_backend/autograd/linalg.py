@@ -12,9 +12,13 @@ from autograd.numpy.linalg import (  # NOQA
     eigvalsh,
     inv,
     norm,
-    matrix_rank,
-    svd,
+<<<<<<< HEAD
     solve,
+    svd,
+=======
+    matrix_rank,
+    svd
+>>>>>>> c600b8e4 (added function to compute the rank in gs, added the test file for full)
 )
 
 from .common import to_ndarray

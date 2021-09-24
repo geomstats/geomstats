@@ -36,6 +36,8 @@ def logm(x):
     tf_logm = tf.cast(tf_logm, original_type)
     return tf_logm
 
+def matrix_rank(A,**_unused_kwargs):
+    return tf.rank(A)
 
 def matrix_rank(A, **_unused_kwargs):
     return tf.rank(A)

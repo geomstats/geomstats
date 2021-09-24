@@ -19,7 +19,6 @@ det = torch.det
 def cholesky(a):
     return torch.cholesky(a, upper=False)
 
-
 def sqrtm(x):
     np_sqrtm = np.vectorize(
         scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
@@ -53,6 +52,8 @@ def norm(x, ord=None, axis=None):
         return torch.linalg.norm(x, ord=ord)
     return torch.linalg.norm(x, ord=ord, dim=axis)
 
+def matrix_rank(A,hermitian=False,**_unused_kwargs):
+    return torch.linalg.matrix_rank(A,hermitian)
 
 def matrix_rank(A, hermitian=False, **_unused_kwargs):
     return torch.linalg.matrix_rank(A, hermitian)

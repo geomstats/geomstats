@@ -123,6 +123,7 @@ BACKEND_ATTRIBUTES = {
         "zeros",
         "zeros_like",
     ],
+<<<<<<< HEAD
     "autodiff": ["custom_gradient", "detach", "jacobian", "value_and_grad"],
     "linalg": [
         "cholesky",
@@ -139,7 +140,24 @@ BACKEND_ATTRIBUTES = {
         "solve_sylvester",
         "sqrtm",
         "svd",
-        "matrix_rank",
+=======
+    'autograd': ['jacobian', 'value_and_grad'],
+    'linalg': [
+        'cholesky',
+        'det',
+        'eig',
+        'eigh',
+        'eigvalsh',
+        'expm',
+        'inv',
+        'logm',
+        'matrix_rank',
+        'norm',
+        'qr',
+        'solve_sylvester',
+        'sqrtm',
+        'svd'
+>>>>>>> c600b8e4 (added function to compute the rank in gs, added the test file for full)
     ],
     "random": [
         "choice",
