@@ -9,10 +9,15 @@ from numpy.linalg import (
     eigh,
     eigvalsh,
     inv,
+    matrix_rank,
     norm,
+<<<<<<< HEAD
     solve,
     svd,
 )  # NOQA
+=======
+    svd)
+>>>>>>> c600b8e4 (added function to compute the rank in gs, added the test file for full)
 
 from .common import to_ndarray
 
