@@ -304,7 +304,7 @@ class CholeskyMetric(RiemannianMetric):
         return log
 
     def squared_dist(self, point_a, point_b, **kwargs):
-        """Compute the Bures-Wasserstein squared distance.
+        """Compute the Cholesky Metric squared distance.
 
         Compute the Riemannian squared distance between point_a and point_b.
 
@@ -320,5 +320,17 @@ class CholeskyMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
         """
+        log_diag_a = gs.log(Matrices.diagonal(point_a))
+        log_diag_b = gs.log(Matrices.diagonal(point_b))
+        diag_diff = log_diag_a - log_diag_b
+        squared_dist_diag = gs.sum((diag_diff) ** 2)
+
+        sl_a = Matrices.to_strictly_lower_triangular(point_a)
+        sl_b = Matrices.to_strictly_lower_triangular(point_b)
+        sl_diff = sl_a - sl_b
+        squared_dist_sl = Matrices.frobenius_product(sl_diff  , sl_diff)
+        return squared_dist_sl + squared_dist_diag
+
+
         
      
