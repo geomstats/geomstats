@@ -17,10 +17,8 @@ Geomstats
    * - **Community**
      - |contributions|\  |Slack|\  |Twitter|\
 
-**NEWS**: Interested in pushing forward the fields of computational
-differential geometry and topology? The `ICLR 2021 challenge of geometry
-and topology <https://gt-rl.github.io/challenge>`__ is open for
-submissions. Deadline: May 2nd, 2021. $3500 in prizes.
+**NEWS**: The white paper summarizing the findings from our `ICLR 2021 challenge of computational 
+differential geometry and topology <https://gt-rl.github.io/challenge>`__ is out. `Read it here <https://arxiv.org/abs/2108.09810>`__.
 
 Geomstats is an open-source Python package for computations and
 statistics on manifolds. The package is organized into two main modules:
