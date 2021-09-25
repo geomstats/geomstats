@@ -19,16 +19,19 @@ class LowerTriangularMatrices(VectorSpace):
 
     def __init__(self, n, **kwargs):
         super(LowerTriangularMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2), shape=(n, n),
-            metric=MatricesMetric(n, n), default_point_type='matrix')
+            dim=int(n * (n + 1) / 2),
+            shape=(n, n),
+            metric=MatricesMetric(n, n),
+            default_point_type="matrix",
+        )
         self.n = n
 
     def get_basis(self):
         """Compute the basis of the vector space of lower triangular"""
-        
+
         tril_idxs = gs.ravel_tril_indices(self.n)
-        vector_bases = gs.one_hot(tril_idxs, self.n*self.n)
-        return vector_bases.reshape(-1,self.n,self.n)
+        vector_bases = gs.one_hot(tril_idxs, self.n * self.n)
+        return vector_bases.reshape(-1, self.n, self.n)
 
     basis = property(get_basis)
 
@@ -72,7 +75,7 @@ class LowerTriangularMatrices(VectorSpace):
         """
         return gs.vec_to_tril(vec)
 
-    @staticmethod    
+    @staticmethod
     def to_vector(mat):
         """Convert a lower triangular matrix into a vector
 
@@ -88,9 +91,8 @@ class LowerTriangularMatrices(VectorSpace):
         """
         return gs.tril_to_vec(mat)
 
-
     def projection(self, point):
-        """Make a square matrix lower triangular 
+        """Make a square matrix lower triangular
 
         Parameters
         ----------
@@ -104,8 +106,7 @@ class LowerTriangularMatrices(VectorSpace):
         """
         return Matrices.to_lower_triangular(point)
 
-
-    def random_point(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample a lower triangular matrix with a uniform distribution in a box.
 
         Parameters
