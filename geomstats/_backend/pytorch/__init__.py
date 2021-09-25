@@ -507,8 +507,10 @@ def diag_indices(*args, **kwargs):
 def tril(mat, k=0):
     return torch.tril(mat, diagonal=k)
 
+
 def triu(mat, k=0):
     return torch.triu(mat, diagonal=k)
+
 
 def tril_indices(n, k=0, m=None):
     if m is None:
@@ -776,19 +778,18 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
     return stack(list(map(pyfunc, x)))
 
 
-
 def vec_to_triu(vec, k=0):
-    """
-    """
+    """ """
+
 
 def vec_to_tril(vec, k=0):
-    """
-    """
+    """ """
+
 
 def vec_to_diag(vec):
-    """ convert vector to diagonal matrix 
-    """
+    """convert vector to diagonal matrix"""
     np.diag(vec)
+
 
 def tril_to_vec(x, k=0):
     n = x.shape[-1]
@@ -827,11 +828,11 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat[..., k, j] = tri_low
     return mat
 
+
 def ravel_tril_indices(n, k=0, m=None):
     if m is None:
         size = (n, n)
-    else :
+    else:
         size = (n, m)
     idxs = _np.tril_indices(n, k, m)
     return torch.from_numpy(_np.ravel_multi_index(idxs, size))
-

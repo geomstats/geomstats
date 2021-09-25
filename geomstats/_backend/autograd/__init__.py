@@ -380,35 +380,32 @@ def array_from_sparse(indices, data, target_shape):
     return array(coo_matrix((data, list(zip(*indices))), target_shape).todense())
 
 
-
-
 def tril_to_vec(x, k=0):
-    """
-    """
+    """ """
     n = x.shape[-1]
     rows, cols = tril_indices(n, k=k)
     return x[..., rows, cols]
 
 
 def triu_to_vec(x, k=0):
-    """
-    """
+    """ """
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
 
+
 def vec_to_triu(vec, k=0):
-    """
-    """
+    """ """
+
 
 def vec_to_tril(vec, k=0):
-    """
-    """
+    """ """
+
 
 def vec_to_diag(vec):
-    """ convert vector to diagonal matrix 
-    """
+    """convert vector to diagonal matrix"""
     np.diag(vec)
+
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     """Build matrix from given components.
@@ -436,11 +433,11 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     return mat
 
 
-def ravel_tril_indices(n, k =0, m=None):
+def ravel_tril_indices(n, k=0, m=None):
     "compute raveled lower triangular indices"
     if m is None:
         size = (n, n)
-    else :
+    else:
         size = (n, m)
     idxs = np.tril_indices(n, k, m)
     return np.ravel_multi_index(idxs, size)

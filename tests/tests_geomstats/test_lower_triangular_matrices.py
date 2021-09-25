@@ -15,7 +15,7 @@ class TestLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def setUp(self):
         """Set up the test."""
-        warnings.simplefilter('ignore', category=ImportWarning)
+        warnings.simplefilter("ignore", category=ImportWarning)
 
         gs.random.seed(1234)
 
@@ -24,20 +24,17 @@ class TestLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def test_belongs(self):
         """Test of belongs method."""
-        mats = gs.array(
-            [[1., 0.], [-1., 3.]])
+        mats = gs.array([[1.0, 0.0], [-1.0, 3.0]])
         result = LowerTriangularMatrices(2).belongs(mats)
         expected = True
         self.assertAllClose(result, expected)
 
-        mats = gs.array(
-            [[1., -1.], [-1., 3.]])
+        mats = gs.array([[1.0, -1.0], [-1.0, 3.0]])
         result = LowerTriangularMatrices(2).belongs(mats)
         expected = False
         self.assertAllClose(result, expected)
 
-        mats = gs.array(
-            [[-1., 0.], [0., -3.]])
+        mats = gs.array([[-1.0, 0.0], [0.0, -3.0]])
         result = LowerTriangularMatrices(2).belongs(mats)
         expected = True
         self.assertAllClose(result, expected)
@@ -49,17 +46,23 @@ class TestLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def test_belongs_vectorization(self):
         """Test of belongs method."""
-        mats_2dim = gs.array([
-            [[1., 0], [0, 1.]],
-            [[1., 2.], [2., 1.]],
-            [[-1., 0.], [1., 1.]],
-            [[0., 0.], [1., 1.]]])
+        mats_2dim = gs.array(
+            [
+                [[1.0, 0], [0, 1.0]],
+                [[1.0, 2.0], [2.0, 1.0]],
+                [[-1.0, 0.0], [1.0, 1.0]],
+                [[0.0, 0.0], [1.0, 1.0]],
+            ]
+        )
 
-        mats_3dim = gs.array([
-            [[1., 0., 1.0], [0., 1., 0.0], [0., 0., 1.0 ]],
-            [[0., 0., 0.0], [2., 1., 0.0], [0., 0., 1.0 ]],
-            [[1., 0., 0.0], [2., 1., 0.0], [0., 0., 1.0 ]],
-            [[-1., 0., 0.0], [2., 1., 0.0], [0., 0., 1.0 ]]])
+        mats_3dim = gs.array(
+            [
+                [[1.0, 0.0, 1.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                [[0.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                [[1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                [[-1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+            ]
+        )
 
         result = LowerTriangularMatrices(2).belongs(mats_2dim)
         expected = gs.array([True, False, True, True])
@@ -85,23 +88,19 @@ class TestLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def test_to_vec_and_from_vec(self):
         """Test for matrix to vector and vector to matrix conversions."""
-        chol_mat_1 = gs.array([[1., 0., 0.],
-                              [0.6, 7., 0.0],
-                              [-3., 0., 8.]])
+        chol_mat_1 = gs.array([[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]])
         vector_1 = self.space.to_vector(chol_mat_1)
         result_1 = self.space.from_vector(vector_1)
         expected_1 = chol_mat_1
         self.assertTrue(gs.allclose(result_1, expected_1))
 
-        chol_mat_1 = gs.array([[1., 0., 1.0],
-                              [0.6, 7., 0.0],
-                              [-3., 0., 8.]])
+        chol_mat_1 = gs.array([[1.0, 0.0, 1.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]])
         vector_1 = self.space.to_vector(chol_mat_1)
         result_1 = self.space.from_vector(vector_1)
         expected_1 = chol_mat_1
         self.assertTrue(gs.allclose(result_1, expected_1))
 
-        vector_2 = gs.array([1., 2., 3., 4., 5., 6.])
+        vector_2 = gs.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
         chol_mat_2 = self.space.from_vector(vector_2)
         result_2 = self.space.to_vector(chol_mat_2)
         expected_2 = vector_2

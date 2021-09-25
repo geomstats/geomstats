@@ -184,14 +184,13 @@ class Matrices(VectorSpace):
         if not gs.all(is_square):
             return False
         diagonal_mat = from_vector_to_diagonal_matrix(cls.diagonal(mat))
-        is_diagonal = gs.all(
-            gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
+        is_diagonal = gs.all(gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
         return is_diagonal
 
     @classmethod
-    def is_lower_triangular(cls, mat, atol = gs.atol):
+    def is_lower_triangular(cls, mat, atol=gs.atol):
         """Check if a matrix is lower triangular
-        
+
         Parameters
         ----------
         mat : array-like, shape=[..., n, n]
@@ -207,12 +206,12 @@ class Matrices(VectorSpace):
         """
         is_square = cls.is_square(mat)
         if not is_square:
-            is_vectorized = (gs.ndim(gs.array(mat)) == 3)
+            is_vectorized = gs.ndim(gs.array(mat)) == 3
             return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.tril(mat), atol)
-    
+
     @classmethod
-    def is_upper_triangular(cls, mat, atol = gs.atol):
+    def is_upper_triangular(cls, mat, atol=gs.atol):
         """Check if a matrix is upper triangular
 
         Parameters
@@ -230,15 +229,14 @@ class Matrices(VectorSpace):
         """
         is_square = cls.is_square(mat)
         if not is_square:
-            is_vectorized = (gs.ndim(gs.array(mat)) == 3)
-            return gs.array([False] * len(mat) ) if is_vectorized else False
+            is_vectorized = gs.ndim(gs.array(mat)) == 3
+            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.triu(mat), atol)
-    
 
     @classmethod
-    def is_strictly_lower_triangular(cls, mat, atol = gs.atol):
+    def is_strictly_lower_triangular(cls, mat, atol=gs.atol):
         """Check if a matrix is strictly lower triangular
-        
+
         Parameters
         ----------
         mat : array-like, shape=[..., n, n]
@@ -254,13 +252,12 @@ class Matrices(VectorSpace):
         """
         is_square = cls.is_square(mat)
         if not is_square:
-            is_vectorized = (gs.ndim(gs.array(mat)) == 3)
+            is_vectorized = gs.ndim(gs.array(mat)) == 3
             return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.tril(mat, k=-1), atol)
 
-
     @classmethod
-    def is_strictly_upper_triangular(cls, mat, atol = gs.atol):
+    def is_strictly_upper_triangular(cls, mat, atol=gs.atol):
         """Check if a matrix is strictly upper triangular
 
         Parameters
@@ -274,14 +271,14 @@ class Matrices(VectorSpace):
         Returns
         ------
         is_strictly_triu : array-like, shape=[...,]
-            Boolean evaluting if the matirx is strictly upper triangular 
+            Boolean evaluting if the matirx is strictly upper triangular
         """
         is_square = cls.is_square(mat)
         if not is_square:
-            is_vectorized = (gs.ndim(gs.array(mat)) == 3)
+            is_vectorized = gs.ndim(gs.array(mat)) == 3
             return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.triu(mat, k=1))
-    
+
     @classmethod
     def is_symmetric(cls, mat, atol=gs.atol):
         """Check if a matrix is symmetric.
@@ -330,19 +327,18 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_diagonal(cls, mat):
-        """ Make a matrix diagonal, by zeroing out non diagonal elements
+        """Make a matrix diagonal, by zeroing out non diagonal elements
 
         Parameters
         ----------
         mat : array-like, shape = [..., n, n]
             Matrix
-        
+
         Returns
         -------
         diag : array-like, shape=[..., n, n]
         """
-        return cls.to_strictly_upper_triangular(
-            cls.to_strictly_lower_triangular(mat))
+        return cls.to_strictly_upper_triangular(cls.to_strictly_lower_triangular(mat))
 
     @classmethod
     def to_lower_triangular(cls, mat):
@@ -356,7 +352,7 @@ class Matrices(VectorSpace):
         Returns
         -------
         tril : array-like, shape=[..., n, n]
-            Lower  triangular matrix 
+            Lower  triangular matrix
         """
         return gs.tril(mat)
 
@@ -368,16 +364,16 @@ class Matrices(VectorSpace):
         ---------
         mat : array-like, shape=[..., n, n]
             Matrix
-        
+
         Returns
         -------
         triu : array-like, shape=[..., n, n]
         """
         return gs.triu(mat)
-    
+
     @classmethod
     def to_strictly_lower_triangular(cls, mat):
-        """Make a matrix strictly lower triangular, by zeroing out 
+        """Make a matrix strictly lower triangular, by zeroing out
         upper+diag elements
 
         Parameters
@@ -388,20 +384,20 @@ class Matrices(VectorSpace):
         Returns
         -------
         tril : array-like, shape=[..., n, n]
-            Lower  triangular matrix 
+            Lower  triangular matrix
         """
         return gs.tril(mat, k=-1)
 
     @classmethod
     def to_strictly_upper_triangular(cls, mat):
-        """Make a matrix stritcly upper triangular, by zeroing out 
+        """Make a matrix stritcly upper triangular, by zeroing out
         lower+diag elements
 
         Parameters
         ---------
         mat : array-like, shape=[..., n, n]
             Matrix
-        
+
         Returns
         -------
         triu : array-like, shape=[..., n, n]
@@ -441,7 +437,6 @@ class Matrices(VectorSpace):
         """
         return 1 / 2 * (mat - cls.transpose(mat))
 
-  
     @classmethod
     def is_diagonal(cls, mat, atol=gs.atol):
         """Check if a matrix is square and diagonal.
@@ -507,8 +502,7 @@ class Matrices(VectorSpace):
             Result of the congruent action.
         """
         return cls.mul(mat_2, mat_1, cls.transpose(mat_2))
-    
- 
+
     @staticmethod
     def frobenius_product(mat_1, mat_2):
         """Compute Frobenius inner-product of two matrices.
