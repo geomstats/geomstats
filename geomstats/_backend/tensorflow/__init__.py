@@ -841,6 +841,11 @@ def tile(x, multiples):
     return tf.tile(x_reshape, multiples)
 
 
+def vec_to_diag(vec):
+    """convert vec to diagonal matrix"""
+    return tf.linalg.diag(vec)
+
+
 def vec_to_triu(vec):
     """Take vec and forms strictly upper traingular matrix.
 
