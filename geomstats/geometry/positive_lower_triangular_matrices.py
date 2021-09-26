@@ -8,7 +8,6 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
-from geomstats.geometry.lie_group import MatrixLieGroup
 
 
 class PositiveLowerTriangularMatrices(OpenSet):
@@ -30,7 +29,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
     def __init__(self, n, **kwargs):
         super(PositiveLowerTriangularMatrices, self).__init__(
             dim=int(n * (n + 1) / 2),
-            metric=(CholeskyMetric),
+            metric=(CholeskyMetric(n)),
             ambient_space=LowerTriangularMatrices(n),
             **kwargs
         )
@@ -330,7 +329,7 @@ class CholeskyMetric(RiemannianMetric):
 
         Returns
         -------
-        squared_dist : array-like, shape=[...]
+        _ : array-like, shape=[...]
             Riemannian squared distance.
         """
         log_diag_a = gs.log(Matrices.diagonal(point_a))

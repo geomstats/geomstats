@@ -86,40 +86,23 @@ class TestLowerTriangularMatrices(geomstats.tests.TestCase):
         expected = gs.array([True] * 4)
         self.assertAllClose(result, expected)
 
-    def test_to_vec_and_from_vec(self):
-        """Test for matrix to vector and vector to matrix conversions."""
-        chol_mat_1 = gs.array([[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]])
-        vector_1 = self.space.to_vector(chol_mat_1)
-        result_1 = self.space.from_vector(vector_1)
-        expected_1 = chol_mat_1
-        self.assertTrue(gs.allclose(result_1, expected_1))
-
-        chol_mat_1 = gs.array([[1.0, 0.0, 1.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]])
-        vector_1 = self.space.to_vector(chol_mat_1)
-        result_1 = self.space.from_vector(vector_1)
-        expected_1 = chol_mat_1
-        self.assertTrue(gs.allclose(result_1, expected_1))
-
-        vector_2 = gs.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
-        chol_mat_2 = self.space.from_vector(vector_2)
-        result_2 = self.space.to_vector(chol_mat_2)
-        expected_2 = vector_2
-
-        self.assertTrue(gs.allclose(result_2, expected_2))
-
-    def test_to_vec_and_from_vec_vectorization(self):
-        """Test of vectorization."""
-        n_samples = self.n_samples
-        vector = gs.random.rand(n_samples, 6)
-        chol_mat = self.space.from_vector(vector)
+    def test_to_vec(self):
+        """Test for matrix to vector"""
+        chol_mat = gs.array([[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]])
         result = self.space.to_vector(chol_mat)
-        expected = vector
-
+        expected = gs.array([1.0, 0.6, 7.0, -3.0, 0.0, 8.0])
         self.assertTrue(gs.allclose(result, expected))
 
-        chol_mat = self.space.random_point(n_samples)
-        vector = self.space.to_vector(chol_mat)
-        result = self.space.from_vector(vector)
-        expected = chol_mat
-
+    def test_to_vec(self):
+        """Test of to vector function with vectorization."""
+        chol_mat = gs.array(
+            [
+                [[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]],
+                [[2.0, 0.0, 0.0], [2.6, 7.0, 0.0], [-3.0, 0.0, 28.0]],
+            ]
+        )
+        result = self.space.to_vector(chol_mat)
+        expected = gs.array(
+            [[1.0, 0.6, 7.0, -3.0, 0.0, 8.0], [2.0, 2.6, 7.0, -3.0, 0.0, 28.0]]
+        )
         self.assertTrue(gs.allclose(result, expected))
