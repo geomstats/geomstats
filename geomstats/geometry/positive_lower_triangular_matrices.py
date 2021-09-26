@@ -35,6 +35,27 @@ class PositiveLowerTriangularMatrices(OpenSet):
         )
         self.n = n
 
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample from the manifold.
+        
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Side of hypercube support of the uniform distribution.
+            Optional, default: 1.0
+            
+        Returns
+        -------
+        point : array-like, shape=[..., n, n]
+           Sample.
+        """
+        sample = super(PositiveLowerTriangularMatrices, self).random_point(n_samples, bound)
+        return self.projection(sample)
+        
+        
     def belongs(self, mat, atol=gs.atol):
         """Check if a matrix is lower triangular matrix with
         positive diagonal elements
@@ -74,7 +95,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         projected: array-like, shape=[..., n, n]
             SPD matrix.
         """
-        vec_diag = gs.exp(gs.diagonal(point, axis1=-2, axis2=-1))
+        vec_diag = gs.abs(gs.diagonal(point, axis1=-2, axis2=-1))
         diag = gs.vec_to_diag(vec_diag)
         strictly_lower_triangular = Matrices.to_lower_triangular(point)
         projection = diag + strictly_lower_triangular
