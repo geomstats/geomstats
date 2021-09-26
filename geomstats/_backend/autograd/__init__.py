@@ -395,15 +395,15 @@ def triu_to_vec(x, k=0):
 
 
 def vec_to_triu(vec, k=0):
-    """Convert vec to triangular matrix. 
-    
+    """Convert vec to triangular matrix.
+
     Currently autodiff is not supported
     """
 
 
 def vec_to_tril(vec, k=0):
     """Convert vec to triangular matrix.
-    
+
     Currently autodiff is not supported
     """
 
