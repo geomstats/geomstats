@@ -7,7 +7,7 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.cholesky import CholeskySpace, CholeskyMetric
+from geomstats.geometry.positive_lower_triangular_matrices import PositiveLowerTriangularMatrices, CholeskyMetric
 
 
 class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
@@ -20,29 +20,29 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         gs.random.seed(1234)
 
         self.n = 3
-        self.space = CholeskySpace(n=self.n)
+        self.space = PositiveLowerTriangularMatrices(n=self.n)
         self.metric_cholesky = CholeskyMetric(n=self.n)
         self.n_samples = 4
 
     def test_belongs(self):
         """Test of belongs method."""
         mats = gs.array([[1.0, 0.0], [-1.0, 3.0]])
-        result = CholeskySpace(2).belongs(mats)
+        result = PositiveLowerTriangularMatrices(2).belongs(mats)
         expected = True
         self.assertAllClose(result, expected)
 
         mats = gs.array([[1.0, -1.0], [-1.0, 3.0]])
-        result = CholeskySpace(2).belongs(mats)
+        result = PositiveLowerTriangularMatrices(2).belongs(mats)
         expected = False
         self.assertAllClose(result, expected)
 
         mats = gs.array([[-1.0, 0.0], [-1.0, 3.0]])
-        result = CholeskySpace(2).belongs(mats)
+        result = PositiveLowerTriangularMatrices(2).belongs(mats)
         expected = False
         self.assertAllClose(result, expected)
 
         mats = gs.eye(3)
-        result = CholeskySpace(2).belongs(mats)
+        result = PositiveLowerTriangularMatrices(2).belongs(mats)
         expected = False
         self.assertAllClose(result, expected)
 
@@ -66,11 +66,11 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
             ]
         )
 
-        result = CholeskySpace(2).belongs(mats_2dim)
+        result = PositiveLowerTriangularMatrices(2).belongs(mats_2dim)
         expected = gs.array([True, False, False, False])
         self.assertAllClose(result, expected)
 
-        result = CholeskySpace(3).belongs(mats_3dim)
+        result = PositiveLowerTriangularMatrices(3).belongs(mats_3dim)
         expected = gs.array([False, False, True, False])
         self.assertAllClose(result, expected)
 
