@@ -75,7 +75,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
             Boolean denoting if mat is an SPD matrix.
         """
         is_lower_triangular = self.ambient_space.belongs(mat, atol)
-        diagonal = gs.diagonal(mat)
+        diagonal = Matrices.diagonal(mat)
         is_positive = gs.all(diagonal > 0, axis=-1)
         belongs = gs.logical_and(is_lower_triangular, is_positive)
         return belongs
@@ -96,7 +96,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         projected: array-like, shape=[..., n, n]
             SPD matrix.
         """
-        vec_diag = gs.abs(gs.diagonal(point, axis1=-2, axis2=-1))
+        vec_diag = gs.abs(Matrices.diagonal(point))
         diag = gs.vec_to_diag(vec_diag)
         strictly_lower_triangular = Matrices.to_lower_triangular(point)
         projection = diag + strictly_lower_triangular
