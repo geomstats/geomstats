@@ -57,25 +57,6 @@ class LowerTriangularMatrices(VectorSpace):
         return belongs
 
     @staticmethod
-    def from_vector(vec):
-        """Convert a vector into a lower triangular matrices.
-
-        Parameters
-        ----------
-        vec : array-like, shape=[..., n(n+1)/2]
-            Vector.
-        dtype : dtype, {gs.float32, gs.float64}
-            Data type object to use for the output.
-            Optional. Default: gs.float32.
-
-        Returns
-        -------
-        mat : array-like, shape=[..., n, n]
-            Lower triangular matrix.
-        """
-        return gs.vec_to_tril(vec)
-
-    @staticmethod
     def to_vector(mat):
         """Convert a lower triangular matrix into a vector
 
