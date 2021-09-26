@@ -53,7 +53,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
             Boolean denoting if mat is an SPD matrix.
         """
         is_lower_triangular = self.ambient_space.belongs(mat, atol)
-        diagonal = gs.diag(mat)
+        diagonal = gs.diagonal(mat)
         is_positive = gs.all(diagonal > 0, axis=-1)
         belongs = gs.logical_and(is_lower_triangular, is_positive)
         return belongs
