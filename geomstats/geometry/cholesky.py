@@ -331,4 +331,6 @@ class CholeskyMetric(RiemannianMetric):
         sl_b = Matrices.to_strictly_lower_triangular(point_b)
         sl_diff = sl_a - sl_b
         squared_dist_sl = Matrices.frobenius_product(sl_diff  , sl_diff)
-        return squared_dist_sl + squared_dist_diag
+
+        squared_dist = squared_dist_sl + squared_dist_diag
+        return squared_dist
