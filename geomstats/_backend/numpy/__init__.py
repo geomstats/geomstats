@@ -388,6 +388,7 @@ def vec_to_diag(vec):
     d = vec.shape[-1]
     return np.squeeze(vec[..., None, :] * np.eye(d)[None, :, :])
 
+
 def tril_to_vec(x, k=0):
     n = x.shape[-1]
     rows, cols = tril_indices(n, k=k)
