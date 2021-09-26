@@ -11,7 +11,7 @@ from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.geometry.lie_group import MatrixLieGroup
 
 
-class PositiveLowerTriangular(OpenSet):
+class PositiveLowerTriangularMatrices(OpenSet):
     """Class for the manifold of lower triangular matrices with positive diagonal elements.
 
     Parameters
@@ -28,7 +28,7 @@ class PositiveLowerTriangular(OpenSet):
     """
 
     def __init__(self, n, **kwargs):
-        super(PositiveLowerTriangular, self).__init__(
+        super(PositiveLowerTriangularMatrices, self).__init__(
             dim=int(n * (n + 1) / 2),
             metric=(CholeskyMetric),
             ambient_space=LowerTriangularMatrices(n),

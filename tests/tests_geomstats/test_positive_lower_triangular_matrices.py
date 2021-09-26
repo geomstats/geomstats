@@ -1,4 +1,4 @@
-"""Unit tests for the manifold of symmetric positive definite matrices."""
+"""Unit tests for the manifold of lower triangular matrices with positive diagonal elmeents"""
 
 import math
 import warnings
@@ -10,7 +10,7 @@ import geomstats.tests
 from geomstats.geometry.cholesky import CholeskySpace, CholeskyMetric
 
 
-class TestCholesky(geomstats.tests.TestCase):
+class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
     """Test of Cholesky methods."""
 
     def setUp(self):
