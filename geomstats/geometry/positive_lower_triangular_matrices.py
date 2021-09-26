@@ -11,17 +11,24 @@ from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.geometry.lie_group import MatrixLieGroup
 
 
-class CholeskySpace(OpenSet):
+class PositiveLowerTriangular(OpenSet):
     """Class for the manifold of lower triangular matrices with positive diagonal elements.
 
     Parameters
     ----------
     n : int
         Integer representing the shape of the matrices: n x n.
+
+    References
+        ----------
+        .. [TP2019] . "Riemannian Geometry of Symmetric
+        Positive Definite Matrices Via Cholesky Decomposition"
+        SIAM journal on Matrix Analysis and Applications , 2019.
+         https://arxiv.org/abs/1908.09326
     """
 
     def __init__(self, n, **kwargs):
-        super(CholeskySpace, self).__init__(
+        super(PositiveLowerTriangular, self).__init__(
             dim=int(n * (n + 1) / 2),
             metric=(CholeskyMetric),
             ambient_space=LowerTriangularMatrices(n),
@@ -120,7 +127,8 @@ class CholeskySpace(OpenSet):
         """Compute gram matrix of rows
 
         Gram_matrix is mapping from point to point.point^{T}.
-        This is diffeomorphism between cholesky space and spd manifold
+        This is diffeomorphism between PositiveLowerTriangular manifold
+        and SPD manifold
 
         Parameters
         ----------
@@ -144,8 +152,7 @@ class CholeskySpace(OpenSet):
         )
         aux2 = Matrices.to_strictly_lower_triangular(aux1)
         aux3 = 0.5 * Matrices.to_diagonal(aux1)
-        aux4 = aux2 + aux3
-        inverse_differential_gram = Matrices.mul(base_point, aux4)
+        inverse_differential_gram = Matrices.mul(base_point, aux2 + aux3)
         return inverse_differential_gram
 
 
@@ -215,7 +222,6 @@ class CholeskyMetric(RiemannianMetric):
         ip_sl : array-like, shape=[...]
             Inner-product.
         """
-
         sl_tagnet_vec_a = gs.tril_to_vec(tangent_vec_a)
         sl_tagnet_vec_b = gs.tril_to_vec(tangent_vec_b)
         ip_sl = gs.einsum("...i, ...i-> ....", sl_tagnet_vec_a, sl_tagnet_vec_b)
@@ -335,12 +341,5 @@ class CholeskyMetric(RiemannianMetric):
         sl_a = Matrices.to_strictly_lower_triangular(point_a)
         sl_b = Matrices.to_strictly_lower_triangular(point_b)
         sl_diff = sl_a - sl_b
-<<<<<<< HEAD
-        squared_dist_sl = Matrices.frobenius_product(sl_diff  , sl_diff)
-
-        squared_dist = squared_dist_sl + squared_dist_diag
-        return squared_dist
-=======
         squared_dist_sl = Matrices.frobenius_product(sl_diff, sl_diff)
         return squared_dist_sl + squared_dist_diag
->>>>>>> 4a4243a01a86886f983dba5c236627b30490b0bc

@@ -395,16 +395,23 @@ def triu_to_vec(x, k=0):
 
 
 def vec_to_triu(vec, k=0):
-    """ """
+    """Convert vec to triangular matrix. 
+    
+    Currently autodiff is not supported
+    """
 
 
 def vec_to_tril(vec, k=0):
-    """ """
+    """Convert vec to triangular matrix.
+    
+    Currently autodiff is not supported
+    """
 
 
 def vec_to_diag(vec):
-    """convert vector to diagonal matrix"""
-    np.diag(vec)
+    """Convert vector to diagonal matrix."""
+    d = vec.shape[-1]
+    return np.squeeze(vec[:, None, :] * np.eye(d)[None, :, :])
 
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):

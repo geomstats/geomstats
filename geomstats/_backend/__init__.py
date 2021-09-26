@@ -120,8 +120,6 @@ BACKEND_ATTRIBUTES = {
         "triu_indices",
         "tril_to_vec",
         "triu_to_vec",
-        "vec_to_tril",
-        "vec_to_triu",
         "vec_to_diag",
         "vectorize",
         "vstack",
