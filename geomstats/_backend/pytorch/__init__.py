@@ -778,14 +778,6 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
     return stack(list(map(pyfunc, x)))
 
 
-def vec_to_triu(vec, k=0):
-    """ """
-
-
-def vec_to_tril(vec, k=0):
-    """ """
-
-
 def vec_to_diag(vec):
     """convert vector to diagonal matrix"""
     np.diag(vec)
