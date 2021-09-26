@@ -7,7 +7,10 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.positive_lower_triangular_matrices import PositiveLowerTriangularMatrices, CholeskyMetric
+from geomstats.geometry.positive_lower_triangular_matrices import (
+    PositiveLowerTriangularMatrices,
+    CholeskyMetric,
+)
 
 
 class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
