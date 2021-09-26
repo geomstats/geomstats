@@ -266,11 +266,12 @@ class CholeskyMetric(RiemannianMetric):
         """
         sl_base_point = Matrices.to_strictly_lower_triangular(base_point)
         sl_tangent_vec = Matrices.to_strictly_lower_triangular(tangent_vec)
-        diag_base_point = Matrices.to_diagonal(base_point)
-        diag_tangent_vec = Matrices.to_diagonal(tangent_vec)
+        diag_base_point = Matrices.diagonal(base_point)
+        diag_tangent_vec = Matrices.diagonal(tangent_vec)
+        diag_product_expm = gs.exp(gs.divide(diag_tangent_vec, diag_base_point))
 
-        sl_exp = 
-        diag_exp =
+        sl_exp = sl_base_point + sl_tangent_vec
+        diag_exp = gs.vec_to_diag( diag_base_point * diag_product_expm ) 
         exp = sl_exp + diag_exp
         return exp
 
@@ -295,11 +296,12 @@ class CholeskyMetric(RiemannianMetric):
         """
         sl_base_point = Matrices.to_strictly_lower_triangular(base_point)
         sl_point = Matrices.to_strictly_lower_triangular(point)
-        diag_base_point = Matrices.to_diagonal(base_point)
-        diag_point = Matrices.to_diagonal(point)
+        diag_base_point = Matrices.diagonal(base_point)
+        diag_point = Matrices.diagonal(point)
+        diag_product_logm = gs.log(gs.divide(diag_point, diag_base_point))
 
-        sl_log = 
-        diag_log =
+        sl_log = sl_point - sl_base_point
+        diag_log = gs.vec_to_diag( diag_base_point * diag_product_logm)
         log = sl_log + diag_log
         return log
 
@@ -330,7 +332,3 @@ class CholeskyMetric(RiemannianMetric):
         sl_diff = sl_a - sl_b
         squared_dist_sl = Matrices.frobenius_product(sl_diff  , sl_diff)
         return squared_dist_sl + squared_dist_diag
-
-
-        
-     
