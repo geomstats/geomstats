@@ -159,6 +159,15 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         self.assertAllClose(belongs_expected, belongs_result)
         self.assertAllClose(reconstructed_expected, reconstructed_result)
 
+    def test_cholesky_factor_differential(self):
+        """Test differential of cholesky factor map"""
+
+        pass
+
+    def test_cholesky_factor_differential_vectorization(self):
+        """Test differential of cholesky factor map for batch of inputs"""
+        pass
+
     def test_differential_power(self):
         """Test of differential_power method."""
         base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]])

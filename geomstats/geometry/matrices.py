@@ -461,6 +461,25 @@ class Matrices(VectorSpace):
         is_diagonal = gs.all(gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
         return is_diagonal
 
+    @classmethod
+    def to_lower_triangular_diagonal_scaled(cls, mat, K=2.0):
+        """Make a matrix lower triangular, by zeroing out upper elements
+        and also diagonal is divided by factor K
+
+        Parameters
+        ----------
+        mat : array-like, shape = [..., n, n]
+            Matrix
+
+        Returns
+        -------
+        tril : array-like, shape=[..., n, n]
+            Lower  triangular matrix
+        """
+        slt = cls.to_strictly_lower_triangular(mat)
+        diag = cls.to_diagonal(mat) / K
+        return slt + diag
+
     def random_point(self, n_samples=1, bound=1.0):
         """Sample from a uniform distribution in a cube.
 

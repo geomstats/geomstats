@@ -451,8 +451,11 @@ class SPDMatrices(OpenSet):
         """
         cf = cls.cholesky_factor(base_point)
         inv_cf = gs.linalg.inv(cf)
-        # inv_cf_transpose = inv_cf.
-        differential_cf = None
+        inv_tranpose_cf = Matrices.transpose(inv_cf)
+        differential_aux = Matrices.mul(inv_cf, tangent_vec, inv_tranpose_cf)
+        differential_cf = gs.matmul(
+            cf, Matrices.to_lower_triangular_diagonal_scaled(differential_aux)
+        )
         return differential_cf
 
 
