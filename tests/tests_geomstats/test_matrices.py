@@ -227,3 +227,53 @@ class TestMatrices(geomstats.tests.TestCase):
         result = Matrices.diagonal(mat)
         expected = gs.ones((2, 3))
         self.assertAllClose(result, expected)
+
+    def test_to_lower_triangular(self):
+        mat = gs.array([[1., 2.], [3., 4.]])
+        result = Matrices.to_lower_triangular(mat)
+        expected = gs.array([[1., 0.], [3., 4.]])
+
+        batch_mat = gs.array([[[1., 2.], [3., 4.]], [[5., 6.], [7., 8.]]])
+        result = Matrices.to_lower_triangular(batch_mat)
+        expected = gs.array([[[1., 0.], [3., 4.]], [[5., 0.], [7., 8.]]])
+        self.assertAllClose(result, expected)
+
+    def test_to_strictly_lower_triangular(self):
+        mat = gs.array([[1., 2.], [3., 4.]])
+        result = Matrices.to_lower_triangular(mat)
+        expected = gs.array([[0., 0.], [3., 0.]])
+
+        batch_mat = gs.array([[[1., 2.], [3., 4.]], [[5., 6.], [7., 8.]]])
+        result = Matrices.to_lower_triangular(batch_mat)
+        expected = gs.array([[[0., 0.], [3., 0.]], [[0., 0.], [7., 0.]]])
+        self.assertAllClose(result, expected)
+
+    def test_to_upper_triangular(self):
+        mat = gs.array([[1., 2.], [3., 4.]])
+        result = Matrices.to_lower_triangular(mat)
+        expected = gs.array([[1., 2.], [0., 4.]])
+
+        batch_mat = gs.array([[[1., 2.], [3., 4.]], [[5., 6.], [7., 8.]]])
+        result = Matrices.to_lower_triangular(batch_mat)
+        expected = gs.array([[[1., 2.], [0., 4.]], [[5., 6.], [0., 8.]]])
+        self.assertAllClose(result, expected)
+
+    def test_to_strictly_upper_triangular(self):
+        mat = gs.array([[1., 2.], [3., 4.]])
+        result = Matrices.to_lower_triangular(mat)
+        expected = gs.array([[1., 2.], [0., 4.]])
+
+        batch_mat = gs.array([[[1., 2.], [3., 4.]], [[5., 6.], [7., 8.]]])
+        result = Matrices.to_lower_triangular(batch_mat)
+        expected = gs.array([[[0., 2.], [0., 0.]], [[0., 6.], [0., 0.]]])
+        self.assertAllClose(result, expected)
+
+    def test_to_lower_triagular_diagonal_scaled(self):
+        mat = gs.array([[2., 2.], [3., 4.]])
+        result = Matrices.to_lower_triangular_diagonal_scaled(mat)
+        expected = gs.array([[1., 0.], [3., 2.]])
+
+        batch_mat = gs.array([[[2., 2.], [3., 4.]], [[6., 6.], [7., 8.]]])
+        result = Matrices.to_lower_triangular(batch_mat)
+        expected = gs.array([[[1., 0], [3., 4.]], [[3., 0.], [7., 4.]]])
+        self.assertAllClose(result, expected)

@@ -420,12 +420,12 @@ class SPDMatrices(OpenSet):
         Parameters
         ----------
         mat : array_like, shape=[..., n, n]
-            Symmetric matrix.
+            spd matrix.
 
         Returns
         -------
-        log : array_like, shape=[..., n, n]
-            Matrix logarithm of mat.
+        cf : array_like, shape=[..., n, n]
+            lower triangular matrix with positive diagonal elements.
         """
 
         return gs.linalg.cholesky(mat)
@@ -434,20 +434,21 @@ class SPDMatrices(OpenSet):
     def differential_cholesky_factor(cls, tangent_vec, base_point):
         """Compute the differential of the cholesky factor map.
 
-        Computes the differential of the cholesky factor on SPD
-        matrices at base_point applied to tangent_vec.
-
         Parameters
         ----------
         tangent_vec : array_like, shape=[..., n, n]
             Tangent vector at base point.
+            symmetric matrix.
+
         base_point : array_like, shape=[..., n, n]
             Base point.
+            spd matrix.
 
         Returns
         -------
         differential_cf : array-like, shape=[..., n, n]
-            Differential of the cholesky factor.
+            Differential of cholesky factor map
+            lower triangular matrix.
         """
         cf = cls.cholesky_factor(base_point)
         inv_cf = gs.linalg.inv(cf)

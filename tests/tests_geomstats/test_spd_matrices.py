@@ -166,7 +166,6 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
     def test_cholesky_factor_differential_vectorization(self):
         """Test differential of cholesky factor map for batch of inputs"""
-        pass
 
     def test_differential_power(self):
         """Test of differential_power method."""
