@@ -1,6 +1,6 @@
 """Module exposing the full rank euclidean matrices"""
 
-import geomstats.backend as gs
+import geomstats._backend as gs
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.matrices import MatricesMetric
