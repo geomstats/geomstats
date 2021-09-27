@@ -2,17 +2,13 @@
 
 import math
 
-import geomstats.backend as gs
+import geomstats._backend as gs
 import geomstats.vectorization
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-
-# change np usage
-import numpy as np
-
 
 class PSDMatricesRankK(Manifold):
     """Class for the manifold of symmetric positive definite (PSD) matrices.
@@ -206,253 +202,8 @@ class PSDMatricesRankK(Manifold):
             )
 
 
-class SPDMetricAffine(RiemannianMetric):
-    """Class for the affine-invariant metric on the SPD manifold."""
-
-    def __init__(self, n, power_affine=1):
-        """Build the affine-invariant metric.
-
-        Parameters
-        ----------
-        n : int
-            Integer representing the shape of the matrices: n x n.
-        power_affine : int
-            Power transformation of the classical SPD metric.
-            Optional, default: 1.
-
-        References
-        ----------
-        .. [TP2019] Thanwerdas, Pennec. "Is affine-invariance well defined on
-          SPD matrices? A principled continuum of metrics" Proc. of GSI, 2019.
-          https://arxiv.org/abs/1906.01349
-        """
-        dim = int(n * (n + 1) / 2)
-        super(SPDMetricAffine, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
-        )
-        self.n = n
-        self.power_affine = power_affine
-
-    @staticmethod
-    def _aux_inner_product(tangent_vec_a, tangent_vec_b, inv_base_point):
-        """Compute the inner-product (auxiliary).
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
-        tangent_vec_b : array-like, shape=[..., n, n]
-        inv_base_point : array-like, shape=[..., n, n]
-
-        Returns
-        -------
-        inner_product : array-like, shape=[...]
-        """
-        aux_a = Matrices.mul(inv_base_point, tangent_vec_a)
-        aux_b = Matrices.mul(inv_base_point, tangent_vec_b)
-
-        # Use product instead of matrix product and trace to save time
-        inner_product = Matrices.trace_product(aux_a, aux_b)
-
-        return inner_product
-
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the affine-invariant inner-product.
-
-        Compute the inner-product of tangent_vec_a and tangent_vec_b
-        at point base_point using the affine invariant Riemannian metric.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        inner_product : array-like, shape=[..., n, n]
-            Inner-product.
-        """
-        power_affine = self.power_affine
-        spd_space = SPDMatrices
-
-        if power_affine == 1:
-            inv_base_point = GeneralLinear.inverse(base_point)
-            inner_product = self._aux_inner_product(
-                tangent_vec_a, tangent_vec_b, inv_base_point
-            )
-        else:
-            modified_tangent_vec_a = spd_space.differential_power(
-                power_affine, tangent_vec_a, base_point
-            )
-            modified_tangent_vec_b = spd_space.differential_power(
-                power_affine, tangent_vec_b, base_point
-            )
-            power_inv_base_point = SymmetricMatrices.powerm(base_point, -power_affine)
-            inner_product = self._aux_inner_product(
-                modified_tangent_vec_a, modified_tangent_vec_b, power_inv_base_point
-            )
-
-            inner_product = inner_product / (power_affine ** 2)
-
-        return inner_product
-
-    @staticmethod
-    def _aux_exp(tangent_vec, sqrt_base_point, inv_sqrt_base_point):
-        """Compute the exponential map (auxiliary function).
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-        sqrt_base_point : array-like, shape=[..., n, n]
-        inv_sqrt_base_point : array-like, shape=[..., n, n]
-
-        Returns
-        -------
-        exp : array-like, shape=[..., n, n]
-        """
-        tangent_vec_at_id = Matrices.mul(
-            inv_sqrt_base_point, tangent_vec, inv_sqrt_base_point
-        )
-
-        tangent_vec_at_id = Matrices.to_symmetric(tangent_vec_at_id)
-        exp_from_id = SymmetricMatrices.expm(tangent_vec_at_id)
-
-        exp = Matrices.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
-        return exp
-
-    def exp(self, tangent_vec, base_point, **kwargs):
-        """Compute the affine-invariant exponential map.
-
-        Compute the Riemannian exponential at point base_point
-        of tangent vector tangent_vec wrt the metric defined in inner_product.
-        This gives a symmetric positive definite matrix.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        exp : array-like, shape=[..., n, n]
-            Riemannian exponential.
-        """
-        power_affine = self.power_affine
-
-        if power_affine == 1:
-            powers = SymmetricMatrices.powerm(base_point, [1.0 / 2, -1.0 / 2])
-            exp = self._aux_exp(tangent_vec, powers[0], powers[1])
-        else:
-            modified_tangent_vec = SPDMatrices.differential_power(
-                power_affine, tangent_vec, base_point
-            )
-            power_sqrt_base_point = SymmetricMatrices.powerm(
-                base_point, power_affine / 2
-            )
-            power_inv_sqrt_base_point = GeneralLinear.inverse(power_sqrt_base_point)
-            exp = self._aux_exp(
-                modified_tangent_vec, power_sqrt_base_point, power_inv_sqrt_base_point
-            )
-            exp = SymmetricMatrices.powerm(exp, 1 / power_affine)
-
-        return exp
-
-    @staticmethod
-    def _aux_log(point, sqrt_base_point, inv_sqrt_base_point):
-        """Compute the log (auxiliary function).
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-        sqrt_base_point : array-like, shape=[..., n, n]
-        inv_sqrt_base_point : array-like, shape=[.., n, n]
-
-        Returns
-        -------
-        log : array-like, shape=[..., n, n]
-        """
-        point_near_id = Matrices.mul(inv_sqrt_base_point, point, inv_sqrt_base_point)
-        point_near_id = Matrices.to_symmetric(point_near_id)
-
-        log_at_id = SPDMatrices.logm(point_near_id)
-        log = Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
-        return log
-
-    def log(self, point, base_point, **kwargs):
-        """Compute the affine-invariant logarithm map.
-
-        Compute the Riemannian logarithm at point base_point,
-        of point wrt the metric defined in inner_product.
-        This gives a tangent vector at point base_point.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        log : array-like, shape=[..., n, n]
-            Riemannian logarithm of point at base_point.
-        """
-        power_affine = self.power_affine
-
-        if power_affine == 1:
-            powers = SymmetricMatrices.powerm(base_point, [1.0 / 2, -1.0 / 2])
-            log = self._aux_log(point, powers[0], powers[1])
-        else:
-            power_point = SymmetricMatrices.powerm(point, power_affine)
-            powers = SymmetricMatrices.powerm(
-                base_point, [power_affine / 2, -power_affine / 2]
-            )
-            log = self._aux_log(power_point, powers[0], powers[1])
-            log = SPDMatrices.inverse_differential_power(power_affine, log, base_point)
-        return log
-
-    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
-        r"""Parallel transport of a tangent vector.
-
-        Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by exp_(base_point)(tangent_vec_b).
-        Denoting `tangent_vec_a` by `S`, `base_point` by `A`, let
-        `B = Exp_A(tangent_vec_b)` and :math: `E = (BA^{- 1})^({ 1 / 2})`.
-        Then the
-        parallel transport to `B`is:
-
-        ..math::
-                        S' = ESE^T
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., dim + 1]
-            Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[..., dim + 1]
-            Tangent vector at base point, initial speed of the geodesic along
-            which the parallel transport is computed.
-        base_point : array-like, shape=[..., dim + 1]
-            Point on the manifold of SPD matrices.
-
-        Returns
-        -------
-        transported_tangent_vec: array-like, shape=[..., dim + 1]
-            Transported tangent vector at exp_(base_point)(tangent_vec_b).
-        """
-        end_point = self.exp(tangent_vec_b, base_point)
-        inverse_base_point = GeneralLinear.inverse(base_point)
-        congruence_mat = Matrices.mul(end_point, inverse_base_point)
-        congruence_mat = gs.linalg.sqrtm(congruence_mat)
-        return Matrices.congruent(tangent_vec_a, congruence_mat)
-
-
-class SPDMetricBuresWasserstein(RiemannianMetric):
-    """Class for the Bures-Wasserstein metric on the SPD manifold.
+class PSDMetricBuresWasserstein(RiemannianMetric):
+    """Class for the Bures-Wasserstein metric on the PSD manifold.
 
     Parameters
     ----------
@@ -471,7 +222,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricBuresWasserstein, self).__init__(
+        super(PSDMetricBuresWasserstein, self).__init__(
             dim=dim, signature=(dim, 0), default_point_type="matrix"
         )
         self.n = n
@@ -592,7 +343,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         return trace_a + trace_b - 2 * trace_prod
 
 
-class SPDMetricEuclidean(RiemannianMetric):
+class PSDMetricEuclidean(RiemannianMetric):
     """Class for the Euclidean metric on the SPD manifold."""
 
     def __init__(self, n, power_euclidean=1):
@@ -677,7 +428,7 @@ class SPDMetricEuclidean(RiemannianMetric):
         return domain
 
 
-class SPDMetricLogEuclidean(RiemannianMetric):
+class PSDMetricLogEuclidean(RiemannianMetric):
     """Class for the Log-Euclidean metric on the SPD manifold.
 
     Parameters
