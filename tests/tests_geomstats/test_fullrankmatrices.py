@@ -1,4 +1,4 @@
-"""Unit tests for the vector space of symmetric matrices."""
+"""Unit tests for full rank matrices."""
 
 import warnings
 import tests.helper as helper
