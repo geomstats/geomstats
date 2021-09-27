@@ -11,7 +11,7 @@ from numpy.linalg import (
     inv,
     norm,
     svd,
-    matrix_rank
+    matrix_rank,
 )  # NOQA
 
 from .common import to_ndarray
