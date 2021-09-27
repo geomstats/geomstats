@@ -35,7 +35,6 @@ class TestPSDMatricesRankK(geomstats.tests.TestCase):
         expected = False
         self.assertAllClose(result, expected)
 
-
     def test_projection_and_belongs(self):
         shape = (2, self.n, self.n)
         result = helper.test_projection_and_belongs(self.space, shape)
