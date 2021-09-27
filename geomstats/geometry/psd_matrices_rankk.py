@@ -10,6 +10,7 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
+
 class PSDMatricesRankK(Manifold):
     """Class for the manifold of symmetric positive definite (PSD) matrices.
 
