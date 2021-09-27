@@ -16,6 +16,8 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
+EULER = gs.exp(1.0)
+
 
 class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
     """Test of Cholesky methods."""
@@ -97,16 +99,6 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def test_gram(self):
         """Test gram method for single point"""
-        point = self.space.random_point()
-        gram = self.space.gram(point)
-
-        gram_result = gram
-        gram_expected = gs.matmul(point, Matrices.transpose(point))
-        self.assertAllClose(gram_expected, gram_result)
-
-        belongs_result = SPDMatrices(self.n).belongs(gram)
-        belongs_expected = True
-        self.assertAllClose(belongs_expected, belongs_result)
 
     def test_gram_vectorization(self):
         """Test gram method for batch of points"""
@@ -123,20 +115,6 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def test_differential_gram(self):
         """Test differential of gram"""
-        base_point = self.space.random_point()
-        tangent_vec = self.space.ambient_space.random_point()
-
-        diff1 = gs.matmul(base_point, Matrices.transpose(tangent_vec))
-        diff2 = gs.matmul(tangent_vec, Matrices.transpose(base_point))
-        diff = diff1 + diff2
-
-        belongs_result = SymmetricMatrices(self.n).belongs(diff)
-        belongs_expected = True
-        self.assertAllClose(belongs_expected, belongs_result)
-
-        diff_expected = diff
-        diff_result = self.space.differential_gram(tangent_vec, base_point)
-        self.assertAllClose(diff_expected, diff_result)
 
     def test_differential_gram_vectorization(self):
         """Test differential of gram"""
@@ -181,4 +159,22 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def test_squared_dist(self):
         """Test squared dist function"""
-        pass
+        K = gs.array([[EULER, 0.0], [2.0, EULER ** 3]])
+        L = gs.array([[EULER ** 3, 0.0], [4.0, EULER ** 4]])
+
+        squared_dist_result = self.metric_cholesky.squared_dist(K, L)
+        squared_dist_expected = 4 + 5
+
+        batch_K = gs.array(
+            [[[EULER, 0.0], [2.0, EULER ** 3]], [[EULER, 0.0], [4.0, EULER ** 3]]]
+        )
+        batch_L = gs.array(
+            [
+                [[EULER ** 3, 0.0], [4.0, EULER ** 4]],
+                [[EULER ** 3, 0.0], [7.0, EULER ** 4]],
+            ]
+        )
+        batch_squared_dist_result = self.metric_cholesky.squared_dist(batch_K, batch_L)
+        batch_squared_dist_expected = gs.array([4 + 5, 9 + 5])
+        self.assertAllClose(squared_dist_expected, squared_dist_result)
+        self.assertAllClose(batch_squared_dist_expected, batch_squared_dist_result)
