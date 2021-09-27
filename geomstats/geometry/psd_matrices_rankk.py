@@ -1,4 +1,4 @@
-"""The manifold of Positive Semi Definite matrices of rank k"""
+"""The manifold of Positive Semi Definite matrices of rank k."""
 
 import math
 
