@@ -64,7 +64,7 @@ class PSDMatricesRankK(Manifold):
         """
         is_symmetric = self.sym.belongs(mat, atol)
         eigvalues = gs.linalg.eigvalsh(mat)
-        is_semipositive = gs.all(eigvalues > -gs.atol, axis=-1)
+        is_semipositive = gs.all(eigvalues > - atol, axis=-1)
         is_rankk = gs.linalg.matrix_rank(mat) == self.rank
         belongs = gs.logical_and(
             gs.logical_and(is_symmetric, is_semipositive), is_rankk
