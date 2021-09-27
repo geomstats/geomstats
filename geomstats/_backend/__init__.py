@@ -139,7 +139,7 @@ BACKEND_ATTRIBUTES = {
         "solve_sylvester",
         "sqrtm",
         "svd",
-        "matrix_rank"
+        "matrix_rank",
     ],
     "random": [
         "choice",
