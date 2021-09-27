@@ -159,7 +159,6 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         """Test inverse differential of gram"""
         pass
 
-    
     def test_diag_inner_product(self):
         """Test inner product on diag part"""
         pass
@@ -175,6 +174,7 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
     def test_exp_metric(self):
         """Test exp map"""
         pass
+
     def test_log_metric(self):
         """Test log map"""
         pass
