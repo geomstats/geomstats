@@ -4,7 +4,7 @@ import warnings
 
 import tests.helper as helper
 
-import geomstats.backend as gs
+import geomstats._backend as gs
 import geomstats.tests
 from geomstats.geometry.psd_matrices_rankk import PSDMatricesRankK
 
@@ -18,8 +18,8 @@ class TestPSDMatricesRankK(geomstats.tests.TestCase):
 
         gs.random.seed(1234)
 
-        self.n = 5
-        self.k = 3
+        self.n = 3
+        self.k = 2
         self.space = PSDMatricesRankK(self.n, self.k)
 
     def test_belongs(self):
