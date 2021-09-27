@@ -12,6 +12,7 @@ from numpy.linalg import (
     norm,
     svd,
     matrix_rank,
+    solve,
 )  # NOQA
 
 from .common import to_ndarray
