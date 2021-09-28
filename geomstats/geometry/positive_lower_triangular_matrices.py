@@ -145,23 +145,21 @@ class PositiveLowerTriangularMatrices(OpenSet):
 
     @classmethod
     def inverse_differential_gram(cls, tanget_vec, base_point):
-        """Compute gram matrix of rows
-
-        Gram_matrix is mapping from point to point.point^{T}.
-        This is diffeomorphism between PositiveLowerTriangular manifold
-        and SPD manifold
+        """Compute inverse differential of gram map
 
         Parameters
         ----------
         tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector at base point.
+            tanget vector at gram(base_point)
+            Symmetric Matrix
         base_point : array_like, shape=[..., n, n]
             Base point.
 
         Returns
         -------
         inverse_differential_gram : array-like, shape=[..., n, n]
-            Inverse of the differential of gram.
+            Inverse differential of gram.
+            Lower triangular matrix
         """
         inv_base_point = gs.linalg.inv(base_point)
         inv_transpose_base_point = Matrices.transpose(inv_base_point)
