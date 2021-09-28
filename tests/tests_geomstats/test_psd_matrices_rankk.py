@@ -25,7 +25,13 @@ class TestPSDMatricesRankK(geomstats.tests.TestCase):
     def test_belongs(self):
         """Test of belongs method."""
         psd_n_k = self.space
-        mat_psd_n_k = gs.array([[ 0.27053942, -0.34773248,  0.2672531 ],[-0.34773248,  0.77543347,  0.09687998],[ 0.2672531 ,  0.09687998,  0.85442487]])
+        mat_psd_n_k = gs.array(
+            [
+                [0.27053942, -0.34773248, 0.2672531],
+                [-0.34773248, 0.77543347, 0.09687998],
+                [0.2672531, 0.09687998, 0.85442487],
+            ]
+        )
         mat_not_psd_n_k = gs.array([[1.0, 0.0, 3.0], [2.0, 4.0, 6.0], [3.0, 6.0, 9.0]])
         result = psd_n_k.belongs(mat_psd_n_k)
         expected = True
