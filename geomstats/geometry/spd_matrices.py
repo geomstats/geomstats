@@ -427,7 +427,6 @@ class SPDMatrices(OpenSet):
         cf : array_like, shape=[..., n, n]
             lower triangular matrix with positive diagonal elements.
         """
-
         return gs.linalg.cholesky(mat)
 
     @classmethod

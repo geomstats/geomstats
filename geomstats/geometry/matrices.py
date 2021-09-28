@@ -438,30 +438,6 @@ class Matrices(VectorSpace):
         return 1 / 2 * (mat - cls.transpose(mat))
 
     @classmethod
-    def is_diagonal(cls, mat, atol=gs.atol):
-        """Check if a matrix is square and diagonal.
-
-        Parameters
-        ----------
-        mat : array-like, shape=[..., n, n]
-            Matrix.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_diagonal : array-like, shape=[...,]
-            Boolean evaluating if the matrix is square and diagonal.
-        """
-        is_square = cls.is_square(mat)
-        if not gs.all(is_square):
-            return False
-        diagonal_mat = from_vector_to_diagonal_matrix(cls.diagonal(mat))
-        is_diagonal = gs.all(gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
-        return is_diagonal
-
-    @classmethod
     def to_lower_triangular_diagonal_scaled(cls, mat, K=2.0):
         """Make a matrix lower triangular, by zeroing out upper elements
         and also diagonal is divided by factor K

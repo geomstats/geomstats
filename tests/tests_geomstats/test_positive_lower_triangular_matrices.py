@@ -1,10 +1,6 @@
-"""Unit tests for the manifold of lower triangular matrices with positive diagonal elmeents"""
+"""Unit tests for Positive lower  triangular matrices"""
 
-from geomstats.geometry.poincare_ball import SQRT_2
-from geomstats.geometry import matrices
-from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from geomstats.geometry.matrices import Matrices
+
 import math
 import warnings
 
@@ -16,10 +12,13 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
     CholeskyMetric,
 )
+
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 EULER = gs.exp(1.0)
+SQRT_2 = math.sqrt(2)
 
 
 class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):

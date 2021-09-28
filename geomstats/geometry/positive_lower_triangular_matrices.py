@@ -11,7 +11,8 @@ from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 
 
 class PositiveLowerTriangularMatrices(OpenSet):
-    """Class for the manifold of lower triangular matrices with positive diagonal elements.
+    """Class for the manifold of lower triangular matrices
+    with positive diagonal elements.
 
     Parameters
     ----------
@@ -102,7 +103,8 @@ class PositiveLowerTriangularMatrices(OpenSet):
         projection = diag + strictly_lower_triangular
         return projection
 
-    def gram(self, point):
+    @staticmethod
+    def gram(point):
         """Compute gram matrix of rows
 
         Gram_matrix is mapping from point to point.point^{T}.
@@ -120,8 +122,8 @@ class PositiveLowerTriangularMatrices(OpenSet):
         """
         return gs.einsum("...ij,...kj->...ik", point, point)
 
-    @classmethod
-    def differential_gram(cls, tanget_vec, base_point):
+    @staticmethod
+    def differential_gram(tanget_vec, base_point):
         """Compute gram matrix of rows
 
         Gram_matrix is mapping from point to point.point^{T}.
@@ -143,8 +145,8 @@ class PositiveLowerTriangularMatrices(OpenSet):
         mat2 = gs.einsum("...ij,...kj->...ik", base_point, tanget_vec)
         return mat1 + mat2
 
-    @classmethod
-    def inverse_differential_gram(cls, tanget_vec, base_point):
+    @staticmethod
+    def inverse_differential_gram(tanget_vec, base_point):
         """Compute inverse differential of gram map
 
         Parameters
@@ -212,11 +214,11 @@ class CholeskyMetric(RiemannianMetric):
         ip_diagonal : array-like, shape=[...]
             Inner-product.
         """
-
         inv_sqrt_diagonal = gs.power(gs.diagonal(base_point), -2)
         tangent_vec_a_diagonal = gs.diagonal(tangent_vec_a)
         tangent_vec_b_diagonal = gs.diagonal(tangent_vec_b)
         prod = tangent_vec_a_diagonal * tangent_vec_b_diagonal * inv_sqrt_diagonal
+        print("testing", prod.shape)
         ip_diagonal = gs.sum(prod, axis=-1)
         return ip_diagonal
 

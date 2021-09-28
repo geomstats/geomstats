@@ -764,7 +764,7 @@ def cumprod(a, axis=None):
 
 # (sait) there is tf.experimental.tril (we can use it once it moves to stable)
 def tril(mat, k=0):
-    if k != 0 and k != -1:
+    if k not in (0, -1):
         raise NotImplementedError("Only k=0 and k=-1 supported so far")
     tril = tf.linalg.band_part(mat, -1, 0)
     if k == 0:
@@ -775,7 +775,7 @@ def tril(mat, k=0):
 
 # (sait) use tf.experimental.triu once it becomes stable
 def triu(mat, k=0):
-    if k != 0 and k != 1:
+    if k not in (0, 1):
         raise NotImplementedError("Only k=0 and k=1 supported so far")
     tril = tf.linalg.band_part(mat, 0, -1)
     if k == 0:

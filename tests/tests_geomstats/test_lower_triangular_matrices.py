@@ -93,7 +93,7 @@ class TestLowerTriangularMatrices(geomstats.tests.TestCase):
         expected = gs.array([1.0, 0.6, 7.0, -3.0, 0.0, 8.0])
         self.assertTrue(gs.allclose(result, expected))
 
-    def test_to_vec(self):
+    def test_to_vec_vectorization(self):
         """Test of to vector function with vectorization."""
         chol_mat = gs.array(
             [

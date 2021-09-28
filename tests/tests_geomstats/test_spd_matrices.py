@@ -1,12 +1,10 @@
 """Unit tests for the manifold of symmetric positive definite matrices."""
 
-from geomstats.geometry.poincare_ball import SQRT_2
 import math
 import warnings
 
 import tests.helper as helper
 
-import math
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import MatricesMetric
@@ -143,7 +141,6 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
     def test_cholesky_factor_vectorization(self):
         """Test cholesky factor method for batch of inputs"""
-
         spd_mats = self.space.random_point(self.n_samples)
         cholesky_factors = self.space.cholesky_factor(spd_mats)
 
@@ -161,7 +158,6 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
     def test_cholesky_factor_differential(self):
         """Test differential of cholesky factor map"""
-
         pass
 
     def test_cholesky_factor_differential_vectorization(self):

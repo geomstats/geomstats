@@ -28,7 +28,6 @@ class LowerTriangularMatrices(VectorSpace):
 
     def get_basis(self):
         """Compute the basis of the vector space of lower triangular"""
-
         tril_idxs = gs.ravel_tril_indices(self.n)
         vector_bases = gs.one_hot(tril_idxs, self.n * self.n)
         return vector_bases.reshape(-1, self.n, self.n)
