@@ -4,7 +4,7 @@ import warnings
 
 import tests.helper as helper
 
-import geomstats._backend as gs
+import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.psd_matrices_rankk import PSDMatricesRankK
 
@@ -25,7 +25,7 @@ class TestPSDMatricesRankK(geomstats.tests.TestCase):
     def test_belongs(self):
         """Test of belongs method."""
         psd_n_k = self.space
-        mat_psd_n_k = gs.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]])
+        mat_psd_n_k = gs.array([[ 0.27053942, -0.34773248,  0.2672531 ],[-0.34773248,  0.77543347,  0.09687998],[ 0.2672531 ,  0.09687998,  0.85442487]])
         mat_not_psd_n_k = gs.array([[1.0, 0.0, 3.0], [2.0, 4.0, 6.0], [3.0, 6.0, 9.0]])
         result = psd_n_k.belongs(mat_psd_n_k)
         expected = True
