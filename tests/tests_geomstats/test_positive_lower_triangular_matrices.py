@@ -215,7 +215,7 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def test_exp(self):
         """Test exp map"""
-        L = gs.array([[1.0, 0.0], [2.0, 3.0]])
+        L = gs.array([[1.0, 0.0], [2.0, 2.0]])
         X = gs.array([[-1.0, 0.0], [2.0, 3.0]])
         exp_expected = gs.array([[1 / EULER, 0.0], [4.0, 2 * gs.exp(1.5)]])
         exp_result = self.metric_cholesky.exp(X, L)
