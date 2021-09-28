@@ -151,7 +151,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         belongs_expected = True
         belongs_result = gs.all(pltm.belongs(cholesky_factors))
 
-        reconstructed_result = gs.multiply(
+        reconstructed_result = gs.matmul(
             cholesky_factors, Matrices.transpose(cholesky_factors)
         )
         reconstructed_expected = spd_mats

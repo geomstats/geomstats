@@ -161,7 +161,7 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         """Test inner product on diag part"""
         X = gs.array([[1.0, 0.0], [-2.0, -1.0]])
         Y = gs.array([[2.0, 0.0], [-3.0, -1.0]])
-        dip_result = self.metric_cholesky.diag_inner_product(X, Y)
+        dip_result = self.metric_cholesky.strictly_lower_inner_product(X, Y)
         dip_expected = 6
         self.assertAllClose(dip_expected, dip_result)
 
