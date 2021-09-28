@@ -235,9 +235,9 @@ class CholeskyMetric(RiemannianMetric):
         ip_sl : array-like, shape=[...]
             Inner-product.
         """
-        sl_tagnet_vec_a = gs.tril_to_vec(tangent_vec_a)
-        sl_tagnet_vec_b = gs.tril_to_vec(tangent_vec_b)
-        ip_sl = gs.einsum("...i, ...i-> ....", sl_tagnet_vec_a, sl_tagnet_vec_b)
+        sl_tagnet_vec_a = gs.tril_to_vec(tangent_vec_a, k=-1)
+        sl_tagnet_vec_b = gs.tril_to_vec(tangent_vec_b, k=-1)
+        ip_sl = gs.einsum("...i,...i->....", sl_tagnet_vec_a, sl_tagnet_vec_b)
         return ip_sl
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -349,7 +349,7 @@ class CholeskyMetric(RiemannianMetric):
         log_diag_a = gs.log(Matrices.diagonal(point_a))
         log_diag_b = gs.log(Matrices.diagonal(point_b))
         diag_diff = log_diag_a - log_diag_b
-        squared_dist_diag = gs.sum((diag_diff) ** 2)
+        squared_dist_diag = gs.sum((diag_diff) ** 2, axis=-1)
 
         sl_a = Matrices.to_strictly_lower_triangular(point_a)
         sl_b = Matrices.to_strictly_lower_triangular(point_b)

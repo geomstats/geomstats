@@ -154,14 +154,14 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         self.assertAllClose(inv_diff_gram_expected, inv_diff_gram_result)
 
     def test_inv_differential_gram_belongs(self):
-        """Test inverse differential of gram belongs """
+        """Test inverse differential of gram belongs"""
         L = self.space.random_point(5)
         W = SymmetricMatrices(2).random_point(5)
         inv_diff_gram_result = self.space.inverse_differential_gram(W, L)
         belongs_result = gs.all(self.space.ambient_space.belongs(inv_diff_gram_result))
         belongs_expected = True
         self.assertAllClose(belongs_result, belongs_expected)
-     
+
     def test_diag_inner_product(self):
         """Test inner product on diag part"""
         X = gs.array([[1.0, 0.0], [-2.0, -1.0]])

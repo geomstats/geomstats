@@ -272,6 +272,7 @@ class TestMatrices(geomstats.tests.TestCase):
         mat = gs.array([[2.0, 2.0], [3.0, 4.0]])
         result = Matrices.to_lower_triangular_diagonal_scaled(mat)
         expected = gs.array([[1.0, 0.0], [3.0, 2.0]])
+        self.assertAllClose(result, expected)
 
         batch_mat = gs.array([[[2.0, 2.0], [3.0, 4.0]], [[6.0, 6.0], [7.0, 8.0]]])
         result = Matrices.to_lower_triangular_diagonal_scaled(batch_mat)
