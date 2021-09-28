@@ -781,7 +781,7 @@ def triu(mat, k=0):
     if k == 0:
         return triu
     zero_diag = tf.zeros(mat.shape[:-1])
-    return tf.linalg.set_diag(tril, zero_diag)
+    return tf.linalg.set_diag(triu, zero_diag)
 
 
 def diag_indices(*args, **kwargs):
