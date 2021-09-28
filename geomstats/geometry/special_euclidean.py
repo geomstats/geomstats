@@ -9,8 +9,7 @@ import geomstats.vectorization
 from geomstats.geometry.base import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import GeneralLinear, Matrices
-from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
-from geomstats.geometry.invariant_metric import InvariantMetric
+from geomstats.geometry.invariant_metric import InvariantMetric, _InvariantMetricMatrix
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices

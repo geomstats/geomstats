@@ -6,8 +6,7 @@ from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
 from geomstats.learning._template import TransformerMixin
-from geomstats.learning.frechet_mean import FrechetMean
-from geomstats.learning.frechet_mean import variance
+from geomstats.learning.frechet_mean import FrechetMean, variance
 from geomstats.learning.kmeans import RiemannianKMeans
 
 EM_CONV_RATE = 1e-4

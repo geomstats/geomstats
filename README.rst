@@ -5,7 +5,7 @@ Geomstats
    :header-rows: 0
 
    * - **Code**
-     - |PyPI version|\ |Downloads|\  |Zenodo|\ 
+     - |PyPI version|\ |Downloads|\  |Zenodo|\
    * - **Continuous Integration**
      - |Build Status|\ |python|\
    * - **Code coverage (numpy)**
@@ -17,7 +17,7 @@ Geomstats
    * - **Community**
      - |contributions|\  |Slack|\  |Twitter|\
 
-**NEWS**: The white paper summarizing the findings from our `ICLR 2021 challenge of computational 
+**NEWS**: The white paper summarizing the findings from our `ICLR 2021 challenge of computational
 differential geometry and topology <https://gt-rl.github.io/challenge>`__ is out. `Read it here <https://arxiv.org/abs/2108.09810>`__.
 
 Geomstats is an open-source Python package for computations and
@@ -99,10 +99,10 @@ To add the `requirements.txt` into a conda environment, you can use the
 
 ::
 
-   conda env create --file environment.yml 
+   conda env create --file environment.yml
 
 Note that this only installs the minimum requirements. To add the optional,
-development, continuous integration and documentation requirements, 
+development, continuous integration and documentation requirements,
 refer to the files `*-requirements.txt`.
 
 Choose the backend

@@ -3,7 +3,6 @@
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
-
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.datasets.prepare_graph_data import HyperbolicEmbedding
