@@ -148,7 +148,7 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         """Test inverse differential of gram"""
         L = gs.array([[1.0, 0.0], [2.0, 2.0]])
         W = gs.array([[1.0, 2.0], [2.0, 5.0]])
-        inv_diff_gram_expected = gs.array([[0.0, 0.0], [1.0, 0.25]])
+        inv_diff_gram_expected = gs.array([[0.5, 0.0], [1.0, 0.25]])
         inv_diff_gram_result = self.space.inverse_differential_gram(W, L)
         self.assertAllClose(inv_diff_gram_expected, inv_diff_gram_result)
 

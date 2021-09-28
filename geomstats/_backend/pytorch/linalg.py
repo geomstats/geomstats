@@ -18,7 +18,7 @@ solve = torch.linalg.solve
 
 
 def cholesky(a):
-    return torch.linalg.cholesky(a, upper=False)
+    return torch.linalg.cholesky(a)
 
 
 def sqrtm(x):
