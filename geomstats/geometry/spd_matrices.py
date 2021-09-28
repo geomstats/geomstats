@@ -9,6 +9,9 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from geomstats.geometry.positive_lower_triangular_matrices import (
+    PositiveLowerTriangularMatrices,
+)
 
 
 class SPDMatrices(OpenSet):
@@ -450,11 +453,8 @@ class SPDMatrices(OpenSet):
             lower triangular matrix.
         """
         cf = cls.cholesky_factor(base_point)
-        inv_cf = gs.linalg.inv(cf)
-        inv_tranpose_cf = Matrices.transpose(inv_cf)
-        differential_aux = Matrices.mul(inv_cf, tangent_vec, inv_tranpose_cf)
-        differential_cf = gs.matmul(
-            cf, Matrices.to_lower_triangular_diagonal_scaled(differential_aux)
+        differential_cf = PositiveLowerTriangularMatrices.inverse_differential_gram(
+            tangent_vec, cf
         )
         return differential_cf
 

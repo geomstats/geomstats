@@ -1,5 +1,6 @@
 """Unit tests for the manifold of symmetric positive definite matrices."""
 
+
 import math
 import warnings
 
@@ -19,6 +20,7 @@ from geomstats.geometry.spd_matrices import (
 from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
+from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.geometry.matrices import Matrices
 
 SQRT_2 = math.sqrt(2)
@@ -158,10 +160,28 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
     def test_cholesky_factor_differential(self):
         """Test differential of cholesky factor map"""
-        pass
+        P = gs.array([[4.0, 2.0], [2.0, 5.0]])
+        W = gs.array([[1.0, 1.0], [1.0, 1.0]])
+        diff_chol_expected = gs.array([[1 / 4, 0.0], [3 / 8, 1 / 16]])
+        diff_chol_result = self.space.differential_cholesky_factor(W, P)
+        self.assertAllClose(diff_chol_expected, diff_chol_result)
 
-    def test_cholesky_factor_differential_vectorization(self):
+    def test_cholesky_factor_differential_belongs(self):
         """Test differential of cholesky factor map for batch of inputs"""
+        n_samples = 5
+        P = self.space.random_point(n_samples)
+        W = self.space.ambient_space.random_point(n_samples)
+        diff_chol_fact_result = self.space.differential_cholesky_factor(W, P)
+        belongs_expected = True
+        belongs_result = gs.all(
+            LowerTriangularMatrices(self.n).belongs(diff_chol_fact_result)
+        )
+
+        shape_expected = n_samples
+        shape_result = diff_chol_fact_result.shape[0]
+
+        self.assertAllClose(shape_expected, shape_result)
+        self.assertAllClose(belongs_expected, belongs_result)
 
     def test_differential_power(self):
         """Test of differential_power method."""
