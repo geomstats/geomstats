@@ -1,5 +1,6 @@
 """Unit tests for the manifold of lower triangular matrices with positive diagonal elmeents"""
 
+from geomstats.geometry.poincare_ball import SQRT_2
 from geomstats.geometry import matrices
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -152,21 +153,20 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         inv_diff_gram_result = self.space.inverse_differential_gram(W, L)
         self.assertAllClose(inv_diff_gram_expected, inv_diff_gram_result)
 
-    def test_inv_differential_gram(self):
-        """Test inverse differential of gram"""
+    def test_inv_differential_gram_belongs(self):
+        """Test inverse differential of gram belongs """
         L = self.space.random_point(5)
         W = SymmetricMatrices(2).random_point(5)
-        inv_diff_gram_expected = 
-        inv_diff_gram_expected = gs.array([[0.0, 0.0], [1.0, 0.25]])
         inv_diff_gram_result = self.space.inverse_differential_gram(W, L)
-        self.assertAllClose(inv_diff_gram_expected, inv_diff_gram_result)
-        
-
+        belongs_result = gs.all(self.space.ambient_space.belongs(inv_diff_gram_result))
+        belongs_expected = True
+        self.assertAllClose(belongs_result, belongs_expected)
+     
     def test_diag_inner_product(self):
         """Test inner product on diag part"""
         X = gs.array([[1.0, 0.0], [-2.0, -1.0]])
         Y = gs.array([[2.0, 0.0], [-3.0, -1.0]])
-        L = gs.array([[4.0, 0.0], [-3.0, 1.0]])
+        L = gs.array([[SQRT_2, 0.0], [-3.0, 1.0]])
         dip_result = self.metric_cholesky.diag_inner_product(X, Y, L)
         dip_expected = 2
         self.assertAllClose(dip_expected, dip_result)
@@ -183,7 +183,7 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         """Test inner product"""
         X = gs.array([[1.0, 0.0], [-2.0, -1.0]])
         Y = gs.array([[2.0, 0.0], [-3.0, -1.0]])
-        L = gs.array([[4.0, 0.0], [-3.0, 1.0]])
+        L = gs.array([[SQRT_2, 0.0], [-3.0, 1.0]])
         ip_result = self.metric_cholesky.inner_product(X, Y, L)
         ip_expected = 2 + 6
         self.assertAllClose(ip_expected, ip_result)
@@ -231,7 +231,7 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
 
         exp_expected = (
             Matrices.to_strictly_lower_triangular(L)
-            + Matrices.to_strictly_lower_triangular(K)
+            + Matrices.to_strictly_lower_triangular(X)
             + gs.matmul(D_L, SPDMatrices(2).expm(gs.matmul(D_X, inv_D_L)))
         )
         exp_result = self.metric_cholesky.exp(X, L)
