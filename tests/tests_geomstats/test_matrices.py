@@ -228,6 +228,16 @@ class TestMatrices(geomstats.tests.TestCase):
         expected = gs.ones((2, 3))
         self.assertAllClose(result, expected)
 
+    def test_to_diagonal(self):
+        mat = gs.array([[1.0, 2.0], [3.0, 4.0]])
+        result = Matrices.to_diagonal(mat)
+        expected = gs.array([[1.0, 0.0], [0.0, 4.0]])
+
+        batch_mat = gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+        result = Matrices.to_diagonal(batch_mat)
+        expected = gs.array([[[1.0, 0.0], [0.0, 4.0]], [[5.0, 0.0], [0.0, 8.0]]])
+        self.assertAllClose(result, expected)
+
     def test_to_lower_triangular(self):
         mat = gs.array([[1.0, 2.0], [3.0, 4.0]])
         result = Matrices.to_lower_triangular(mat)

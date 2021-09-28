@@ -338,7 +338,7 @@ class Matrices(VectorSpace):
         -------
         diag : array-like, shape=[..., n, n]
         """
-        return cls.to_strictly_upper_triangular(cls.to_strictly_lower_triangular(mat))
+        return cls.to_upper_triangular(cls.to_lower_triangular(mat))
 
     @classmethod
     def to_lower_triangular(cls, mat):
