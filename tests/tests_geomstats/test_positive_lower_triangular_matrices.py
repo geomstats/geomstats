@@ -1,5 +1,7 @@
 """Unit tests for the manifold of lower triangular matrices with positive diagonal elmeents"""
 
+from geomstats.geometry import matrices
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.geometry.matrices import Matrices
 import math
@@ -36,22 +38,22 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
     def test_belongs(self):
         """Test of belongs method."""
         mats = gs.array([[1.0, 0.0], [-1.0, 3.0]])
-        result = PositiveLowerTriangularMatrices(2).belongs(mats)
+        result = self.space.belongs(mats)
         expected = True
         self.assertAllClose(result, expected)
 
         mats = gs.array([[1.0, -1.0], [-1.0, 3.0]])
-        result = PositiveLowerTriangularMatrices(2).belongs(mats)
+        result = self.space.belongs(mats)
         expected = False
         self.assertAllClose(result, expected)
 
         mats = gs.array([[-1.0, 0.0], [-1.0, 3.0]])
-        result = PositiveLowerTriangularMatrices(2).belongs(mats)
+        result = self.space.belongs(mats)
         expected = False
         self.assertAllClose(result, expected)
 
         mats = gs.eye(3)
-        result = PositiveLowerTriangularMatrices(2).belongs(mats)
+        result = self.space.belongs(mats)
         expected = False
         self.assertAllClose(result, expected)
 
@@ -97,8 +99,12 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         expected = gs.array([True] * 4)
         self.assertAllClose(result, expected)
 
-    # def test_gram(self):
-    #     """Test gram method for single point"""
+    def test_gram(self):
+        """Test gram method for single point"""
+        L = gs.array([[1.0, 0.0], [2.0, 1.0]])
+        gram_expected = gs.array([[1.0, 2.0], [2.0, 5.0]])
+        gram_result = self.space.gram(L)
+        self.assertAllClose(gram_expected, gram_result)
 
     def test_gram_vectorization(self):
         """Test gram method for batch of points"""
@@ -113,8 +119,13 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         belongs_expected = True
         self.assertAllClose(belongs_expected, belongs_result)
 
-    # def test_differential_gram(self):
-    #     """Test differential of gram"""
+    def test_differential_gram(self):
+        """Test differential of gram for single point"""
+        L = gs.array([[1.0, 0.0], [2.0, 1.0]])
+        X = gs.array([[-1.0, 0.0], [2.0, -1.0]])
+        diff_gram_result = self.space.differential_gram(X, L)
+        diff_gram_expected = gs.array([[-2.0, 0.0], [0.0, 6.0]])
+        self.assertAllClose(diff_gram_expected, diff_gram_result)
 
     def test_differential_gram_vectorization(self):
         """Test differential of gram"""
@@ -190,15 +201,30 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def test_exp(self):
         """Test exp map"""
-        pass
+        L = gs.array([[1.0, 0.0], [2.0, 3.0]])
+        X = gs.array([[-1.0, 0.0], [2.0, 3.0]])
+        exp_expected = gs.array([[1 / EULER, 0.0], [4.0, 2 * gs.exp(1.5)]])
+        exp_result = self.metric_cholesky.exp(X, L)
+        self.assertAllClose(exp_expected, exp_result)
 
-    def test_exp_belongs(self):
+    def test_exp_vectorization(self):
         """Test exp map vectorization"""
         L = self.space.random_point(5)
         X = self.space.ambient_space.random_point(5)
+        D_L = Matrices.to_diagonal(L)
+        D_X = Matrices.to_diagonal(X)
+        inv_D_L = gs.linalg.inv(D_L)
+
+        exp_expected = (
+            Matrices.to_strictly_lower_triangular(L)
+            + Matrices.to_strictly_lower_triangular(K)
+            + gs.matmul(D_L, SPDMatrices(2).expm(gs.matmul(D_X, inv_D_L)))
+        )
         exp_result = self.metric_cholesky.exp(X, L)
         belongs_result = gs.all(self.space.belongs(exp_result))
         belongs_expected = True
+
+        self.assertAllClose(exp_expected, exp_result)
         self.assertAllClose(belongs_expected, belongs_result)
 
     def test_log(self):
@@ -211,11 +237,19 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         )
         self.assertAllClose(log_expected, log_result)
 
-    def test_log_belongs(self):
+    def test_log_vectorization(self):
         """Test log map"""
         K = self.space.random_point(5)
         L = self.space.random_point(5)
+        D_K = Matrices.to_diagonal(K)
+        D_L = Matrices.to_diagonal(L)
+        inv_D_L = gs.linalg.inv(D_L)
         log_result = self.metric_cholesky.log(K, L)
+        log_expected = (
+            Matrices.to_strictly_lower_triangular(K)
+            - Matrices.to_strictly_lower_triangular(L)
+            + gs.matmul(D_L, SPDMatrices(2).logm(gs.matmul(inv_D_L, D_K)))
+        )
         belongs_result = gs.all(self.space.ambient_space.belongs(log_result))
         belongs_expected = True
         self.assertAllClose(belongs_expected, belongs_result)
