@@ -383,7 +383,7 @@ def array_from_sparse(indices, data, target_shape):
 
 
 def vec_to_diag(vec):
-    """convert vector to diagonal matrix"""
+    """Convert vector to diagonal matrix"""
     d = vec.shape[-1]
     return np.squeeze(vec[..., None, :] * np.eye(d)[None, :, :])
 
@@ -427,7 +427,6 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
 
 
 def ravel_tril_indices(n, k=0, m=None):
-    """compute raveled lower triangular indices"""
     if m is None:
         size = (n, n)
     else:

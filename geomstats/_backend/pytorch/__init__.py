@@ -779,7 +779,7 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
 
 
 def vec_to_diag(vec):
-    """convert vector to diagonal matrix"""
+    """Convert vector to diagonal matrix"""
     d = vec.shape[-1]
     return torch.squeeze(vec[..., None, :] * torch.eye(d)[None, :, :])
 

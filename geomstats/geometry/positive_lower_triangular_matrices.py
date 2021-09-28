@@ -197,7 +197,8 @@ class CholeskyMetric(RiemannianMetric):
         )
         self.n = n
 
-    def diag_inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+    @staticmethod
+    def diag_inner_product(tangent_vec_a, tangent_vec_b, base_point):
         """Compute the inner product using only diagonal elements.
 
         Parameters
@@ -222,7 +223,8 @@ class CholeskyMetric(RiemannianMetric):
         ip_diagonal = gs.sum(prod, axis=-1)
         return ip_diagonal
 
-    def strictly_lower_inner_product(self, tangent_vec_a, tangent_vec_b):
+    @staticmethod
+    def strictly_lower_inner_product(tangent_vec_a, tangent_vec_b):
         """Compute the inner product using only strictly lower triangular elements.
 
         Parameters
@@ -242,7 +244,8 @@ class CholeskyMetric(RiemannianMetric):
         ip_sl = gs.einsum("...i,...i->...", sl_tagnet_vec_a, sl_tagnet_vec_b)
         return ip_sl
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+    @classmethod
+    def inner_product(cls, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the inner product using only strictly lower triangular elements.
 
 
@@ -263,10 +266,10 @@ class CholeskyMetric(RiemannianMetric):
         inner_product : array-like, shape=[...]
             Inner-product.
         """
-        diag_inner_product = self.diag_inner_product(
+        diag_inner_product = cls.diag_inner_product(
             tangent_vec_a, tangent_vec_b, base_point
         )
-        strictly_lower_inner_product = self.strictly_lower_inner_product(
+        strictly_lower_inner_product = cls.strictly_lower_inner_product(
             tangent_vec_a, tangent_vec_b
         )
         return diag_inner_product + strictly_lower_inner_product

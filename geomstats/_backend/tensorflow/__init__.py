@@ -842,7 +842,7 @@ def tile(x, multiples):
 
 
 def vec_to_diag(vec):
-    """convert vec to diagonal matrix"""
+    """Convert vec to diagonal matrix"""
     return tf.linalg.diag(vec)
 
 
