@@ -146,7 +146,21 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def test_inv_differential_gram(self):
         """Test inverse differential of gram"""
-        pass
+        L = gs.array([[1.0, 0.0], [2.0, 2.0]])
+        W = gs.array([[1.0, 2.0], [2.0, 5.0]])
+        inv_diff_gram_expected = gs.array([[0.0, 0.0], [1.0, 0.25]])
+        inv_diff_gram_result = self.space.inverse_differential_gram(W, L)
+        self.assertAllClose(inv_diff_gram_expected, inv_diff_gram_result)
+
+    def test_inv_differential_gram(self):
+        """Test inverse differential of gram"""
+        L = self.space.random_point(5)
+        W = SymmetricMatrices(2).random_point(5)
+        inv_diff_gram_expected = 
+        inv_diff_gram_expected = gs.array([[0.0, 0.0], [1.0, 0.25]])
+        inv_diff_gram_result = self.space.inverse_differential_gram(W, L)
+        self.assertAllClose(inv_diff_gram_expected, inv_diff_gram_result)
+        
 
     def test_diag_inner_product(self):
         """Test inner product on diag part"""

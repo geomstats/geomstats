@@ -164,16 +164,11 @@ class PositiveLowerTriangularMatrices(OpenSet):
             Inverse of the differential of gram.
         """
         inv_base_point = gs.linalg.inv(base_point)
-        inv_tranpose_base_point = Matrices.transpose(inv_base_point)
-        aux1 = gs.einsum(
-            "...ij,...jk,...kl->...il",
-            inv_base_point,
-            tanget_vec,
-            inv_tranpose_base_point,
+        inv_transpose_base_point = Matrices.transpose(inv_base_point)
+        aux = Matrices.to_lower_triangular_diagonal_scaled(
+            Matrices.mul(inv_base_point, tanget_vec, inv_transpose_base_point)
         )
-        aux2 = Matrices.to_strictly_lower_triangular(aux1)
-        aux3 = 0.5 * Matrices.to_diagonal(aux1)
-        inverse_differential_gram = Matrices.mul(base_point, aux2 + aux3)
+        inverse_differential_gram = Matrices.mul(base_point, aux)
         return inverse_differential_gram
 
 
@@ -224,7 +219,7 @@ class CholeskyMetric(RiemannianMetric):
         tangent_vec_a_diagonal = gs.diagonal(tangent_vec_a)
         tangent_vec_b_diagonal = gs.diagonal(tangent_vec_b)
         prod = tangent_vec_a_diagonal * tangent_vec_b_diagonal * inv_sqrt_diagonal
-        ip_diagonal = gs.sum(prod, axis = -1)
+        ip_diagonal = gs.sum(prod, axis=-1)
         return ip_diagonal
 
     def strictly_lower_inner_product(self, tangent_vec_a, tangent_vec_b):
