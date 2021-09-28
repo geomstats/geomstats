@@ -28,7 +28,7 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
 
         gs.random.seed(1234)
 
-        self.n = 3
+        self.n = 2
         self.space = PositiveLowerTriangularMatrices(n=self.n)
         self.metric_cholesky = CholeskyMetric(n=self.n)
         self.n_samples = 5
@@ -75,7 +75,7 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
             ]
         )
 
-        result = PositiveLowerTriangularMatrices(2).belongs(mats_2dim)
+        result = self.space.belongs(mats_2dim)
         expected = gs.array([True, False, False, False])
         self.assertAllClose(result, expected)
 
@@ -97,8 +97,8 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         expected = gs.array([True] * 4)
         self.assertAllClose(result, expected)
 
-    def test_gram(self):
-        """Test gram method for single point"""
+    # def test_gram(self):
+    #     """Test gram method for single point"""
 
     def test_gram_vectorization(self):
         """Test gram method for batch of points"""
@@ -113,8 +113,8 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         belongs_expected = True
         self.assertAllClose(belongs_expected, belongs_result)
 
-    def test_differential_gram(self):
-        """Test differential of gram"""
+    # def test_differential_gram(self):
+    #     """Test differential of gram"""
 
     def test_differential_gram_vectorization(self):
         """Test differential of gram"""
@@ -139,23 +139,86 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def test_diag_inner_product(self):
         """Test inner product on diag part"""
-        pass
+        X = gs.array([[1.0, 0.0], [-2.0, -1.0]])
+        Y = gs.array([[2.0, 0.0], [-3.0, -1.0]])
+        L = gs.array([[4.0, 0.0], [-3.0, 1.0]])
+        dip_result = self.metric_cholesky.diag_inner_product(X, Y, L)
+        dip_expected = 5
+        self.assertAllClose(dip_expected, dip_result)
 
     def test_strictly_lower_inner_product(self):
         """Test inner product on diag part"""
-        pass
+        X = gs.array([[1.0, 0.0], [-2.0, -1.0]])
+        Y = gs.array([[2.0, 0.0], [-3.0, -1.0]])
+        dip_result = self.metric_cholesky.diag_inner_product(X, Y)
+        dip_expected = 6
+        self.assertAllClose(dip_expected, dip_result)
 
     def test_inner_product(self):
         """Test inner product"""
-        pass
+        X = gs.array([[1.0, 0.0], [-2.0, -1.0]])
+        Y = gs.array([[2.0, 0.0], [-3.0, -1.0]])
+        L = gs.array([[4.0, 0.0], [-3.0, 1.0]])
+        ip_result = self.metric_cholesky.inner_product(X, Y, L)
+        ip_expected = 5 + 6
+        self.assertAllClose(ip_expected, ip_result)
 
-    def test_exp_metric(self):
+    def test_inner_product_vectorization(self):
+        """Test inner product"""
+        n_samples = 5
+        X = self.space.ambient_space.random_point(n_samples)
+        Y = self.space.ambient_space.random_point(n_samples)
+        L = self.space.random_point(n_samples)
+        inv_D_L = gs.linalg.inv(Matrices.to_diagonal(L))
+        D_X = Matrices.to_diagonal(X)
+        D_Y = Matrices.to_diagonal(Y)
+        ip_result = self.metric_cholesky.inner_product(X, Y, L)
+        ip_expected = (
+            Matrices.frobenius_product(
+                Matrices.to_strictly_lower_triangular(X),
+                Matrices.to_strictly_lower_triangular(Y),
+            )
+            + Matrices.frobenius_product(
+                gs.matmul(inv_D_L, D_X), gs.matmul(inv_D_L, D_Y)
+            )
+        )
+        ip_shape_result = ip_result.shape[0]
+        ip_shape_expected = n_samples
+
+        self.assertAllClose(ip_expected, ip_result)
+        self.assertAllClose(ip_shape_expected, ip_shape_result)
+
+    def test_exp(self):
         """Test exp map"""
         pass
 
-    def test_log_metric(self):
+    def test_exp_belongs(self):
+        """Test exp map vectorization"""
+        L = self.space.random_point(5)
+        X = self.space.ambient_space.random_point(5)
+        exp_result = self.metric_cholesky.exp(X, L)
+        belongs_result = gs.all(self.space.belongs(exp_result))
+        belongs_expected = True
+        self.assertAllClose(belongs_expected, belongs_result)
+
+    def test_log(self):
         """Test log map"""
-        pass
+        K = gs.array([[EULER, 0.0], [2.0, EULER ** 3]])
+        L = gs.array([[EULER ** 3, 0.0], [4.0, EULER ** 4]])
+        log_result = self.metric_cholesky.log(K, L)
+        log_expected = gs.array([[0.0, 0.0], [-2.0, 0.0]]) + gs.array(
+            [[-2.0 * EULER ** 3, 0.0], [0.0, -1 * EULER ** 4]]
+        )
+        self.assertAllClose(log_expected, log_result)
+
+    def test_log_belongs(self):
+        """Test log map"""
+        K = self.space.random_point(5)
+        L = self.space.random_point(5)
+        log_result = self.metric_cholesky.log(K, L)
+        belongs_result = gs.all(self.space.ambient_space.belongs(log_result))
+        belongs_expected = True
+        self.assertAllClose(belongs_expected, belongs_result)
 
     def test_squared_dist(self):
         """Test squared dist function"""

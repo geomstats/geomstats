@@ -226,7 +226,7 @@ class CholeskyMetric(RiemannianMetric):
         )
         return ip_diagonal
 
-    def strictly_lower_inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+    def strictly_lower_inner_product(self, tangent_vec_a, tangent_vec_b):
         """Compute the inner product using only strictly lower triangular elements.
 
         Parameters
@@ -235,8 +235,6 @@ class CholeskyMetric(RiemannianMetric):
             Tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector at base point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
 
         Returns
         -------
@@ -273,7 +271,7 @@ class CholeskyMetric(RiemannianMetric):
             tangent_vec_a, tangent_vec_b, base_point
         )
         strictly_lower_inner_product = self.strictly_lower_inner_product(
-            tangent_vec_a, tangent_vec_b, base_point
+            tangent_vec_a, tangent_vec_b
         )
         return diag_inner_product + strictly_lower_inner_product
 
