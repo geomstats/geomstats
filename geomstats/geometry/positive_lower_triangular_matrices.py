@@ -219,6 +219,9 @@ class CholeskyMetric(RiemannianMetric):
         tangent_vec_a_diagonal = gs.diagonal(tangent_vec_a)
         tangent_vec_b_diagonal = gs.diagonal(tangent_vec_b)
         prod = tangent_vec_a_diagonal * tangent_vec_b_diagonal * inv_sqrt_diagonal
+        print("testing", inv_sqrt_diagonal.shape)
+        print("testing", tangent_vec_a_diagonal.shape)
+        print("testing", tangent_vec_b_diagonal.shape)
         print("testing", prod.shape)
         ip_diagonal = gs.sum(prod, axis=-1)
         return ip_diagonal
