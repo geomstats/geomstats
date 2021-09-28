@@ -2,7 +2,7 @@
 
 import math
 
-import geomstats._backend as gs
+import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.general_linear import GeneralLinear
