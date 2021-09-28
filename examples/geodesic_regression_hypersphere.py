@@ -18,7 +18,6 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import FrechetMean, variance
 from geomstats.learning.geodesic_regression import GeodesicRegression
 
-
 DIM = 2
 SPACE = Hypersphere(dim=DIM)
 EMBEDDING_DIM = SPACE.embedding_space.dim

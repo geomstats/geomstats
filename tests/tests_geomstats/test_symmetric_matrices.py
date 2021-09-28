@@ -3,10 +3,9 @@
 import math
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 

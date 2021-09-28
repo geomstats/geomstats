@@ -2,8 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry import hypersphere
-from geomstats.geometry import spd_matrices
+from geomstats.geometry import hypersphere, spd_matrices
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.kmeans import RiemannianKMeans
 

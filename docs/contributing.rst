@@ -167,7 +167,7 @@ modifying code and submitting a PR:
    mailing list hi@geomstats.ai for more visibility.
 
 It is often helpful to keep your local feature branch synchronized with the
-latest changes of the main geomstats repository. If there are only a few new 
+latest changes of the main geomstats repository. If there are only a few new
 commits in the master branch, use::
 
     $ git fetch upstream
@@ -235,9 +235,9 @@ complies with the following rules. The **bolded** ones are especially important:
 5. **Make sure that your PR follows Python international style guidelines**,
    `PEP8 <https://www.python.org/dev/peps/pep-0008>`_, which you should read.
    You can automatically format your code by running `black` via
-   
+
    `black .`
-   
+
    Then, the `flake8` package automatically checks for style violations when you
    submit your PR. We recommend installing flake8 with its plugins on your
    machine by running
