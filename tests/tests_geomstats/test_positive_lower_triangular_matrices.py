@@ -154,7 +154,7 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         Y = gs.array([[2.0, 0.0], [-3.0, -1.0]])
         L = gs.array([[4.0, 0.0], [-3.0, 1.0]])
         dip_result = self.metric_cholesky.diag_inner_product(X, Y, L)
-        dip_expected = 5
+        dip_expected = 2
         self.assertAllClose(dip_expected, dip_result)
 
     def test_strictly_lower_inner_product(self):
@@ -171,7 +171,7 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         Y = gs.array([[2.0, 0.0], [-3.0, -1.0]])
         L = gs.array([[4.0, 0.0], [-3.0, 1.0]])
         ip_result = self.metric_cholesky.inner_product(X, Y, L)
-        ip_expected = 5 + 6
+        ip_expected = 2 + 6
         self.assertAllClose(ip_expected, ip_result)
 
     def test_inner_product_vectorization(self):
@@ -252,6 +252,7 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         )
         belongs_result = gs.all(self.space.ambient_space.belongs(log_result))
         belongs_expected = True
+        self.assertAllClose(log_expected, log_result)
         self.assertAllClose(belongs_expected, belongs_result)
 
     def test_squared_dist(self):

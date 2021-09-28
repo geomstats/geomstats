@@ -221,9 +221,10 @@ class CholeskyMetric(RiemannianMetric):
         """
 
         inv_sqrt_diagonal = gs.power(gs.diagonal(base_point), -2)
-        ip_diagonal = gs.einsum(
-            "...ii,...ii ,...i->...", tangent_vec_a, tangent_vec_b, inv_sqrt_diagonal
-        )
+        tangent_vec_a_diagonal = gs.diagonal(tangent_vec_a)
+        tangent_vec_b_diagonal = gs.diagonal(tangent_vec_b)
+        prod = tangent_vec_a_diagonal * tangent_vec_b_diagonal * inv_sqrt_diagonal
+        ip_diagonal = gs.sum(prod, axis = -1)
         return ip_diagonal
 
     def strictly_lower_inner_product(self, tangent_vec_a, tangent_vec_b):
