@@ -1,6 +1,5 @@
-"""Module exposing the full rank euclidean matrices"""
+"""Module exposing the rank k euclidean matrices"""
 
-# cambia il rank con un rank k generico! credo sia giusto cosi
 import numpy as np
 
 
@@ -11,7 +10,7 @@ from geomstats.geometry.matrices import Matrices
 
 
 class FullRankMatrices(OpenSet):
-    """Class for the matrices with euclidean entries and full rank.
+    """Class for the matrices with euclidean entries and given rank k.
 
     Parameters
     ----------
@@ -19,6 +18,8 @@ class FullRankMatrices(OpenSet):
         Integer representing the shape of the matrices: m x n
     m : int
         Integer representing the shape of the matrices: m x n
+    k : int
+        Integer representing the rank of the matrices
     """
 
     def __init__(self, m, n,k, **kwargs):
@@ -26,7 +27,6 @@ class FullRankMatrices(OpenSet):
             kwargs['dim'] = m * n
         super(FullRankMatrices, self).__init__(
             ambient_space=Matrices(m, n), ambient, **kwargs)
-        # ANNA CHECK FOR THE RANK
         self.rank=k
 
     def belongs(self, point):
@@ -44,14 +44,10 @@ class FullRankMatrices(OpenSet):
         """
         has_right_size = self.ambient_space.belongs(point)
         if gs.all(has_right_size):
-            #ANNA which is the right way to add numpy.matrix_rank to the backend functions
-            rank = np.linalg.matrix_rank(point)
+            rank = gs.linalg.matrix_rank(point)
             return True if rank==self.rank else False
         return has_right_size
 
-    # ANNA following general linear structure, I don't see any check in the dimension of the
-    # input point, is it ok?
-    # ANNA: is it the space of matrices of rank k dense in the space of matrices?
     def projection(self, point):
         r"""Project a matrix to the set of full rank matrices
 
@@ -71,13 +67,11 @@ class FullRankMatrices(OpenSet):
             Projected point.
         """
 
-        # ANNA I substitute self.identity with np.identity with gs.eye
         belongs = self.belongs(point)
         regularization = gs.einsum(
             '...,ij->...ij', gs.where(~belongs, gs.atol, 0.),
             gs.eye(self.ambient_space.shape[0], self.ambient_space.shape[1]))
         projected = point + regularization
-        # ANNA now it gives a mistake if there dimension of the input mat is not the embedding space dimension
         return projected
 
     def random_point(self, n_samples=1, bound=1., n_iter=100):
