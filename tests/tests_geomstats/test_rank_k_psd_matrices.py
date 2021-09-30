@@ -6,7 +6,7 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.psd_matrices_rankk import PSDMatricesRankK
+from geomstats.geometry.rank_k_psd_matrices import PSDMatrices
 
 
 class TestPSDMatricesRankK(geomstats.tests.TestCase):
@@ -20,7 +20,7 @@ class TestPSDMatricesRankK(geomstats.tests.TestCase):
 
         self.n = 3
         self.k = 2
-        self.space = PSDMatricesRankK(self.n, self.k)
+        self.space = PSDMatrices(self.n, self.k)
 
     def test_belongs(self):
         """Test of belongs method."""
