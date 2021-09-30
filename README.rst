@@ -85,14 +85,8 @@ requirements via ``git`` as follows:
     git clone https://github.com/geomstats/geomstats.git
     pip3 install -r requirements.txt
 
-This method installs the latest GitHub version of geomstats. Developers
-should install this version, together with the development requirements
-and the optional requirements to enable ``tensorflow`` and ``pytorch``
-backends:
+This method installs the latest GitHub version of geomstats. 
 
-::
-
-    pip3 install -r dev-requirements.txt -r opt-requirements.txt
 
 To add the `requirements.txt` into a conda environment, you can use the
 `enviroment.yml` file as follows:
@@ -104,6 +98,25 @@ To add the `requirements.txt` into a conda environment, you can use the
 Note that this only installs the minimum requirements. To add the optional,
 development, continuous integration and documentation requirements,
 refer to the files `*-requirements.txt`.
+
+Install geomstats : Developers
+------------------------------
+
+Developers should git clone the master branch of this repository, together with the development requirements
+and the optional requirements to enable ``tensorflow`` and ``pytorch``
+backends:
+
+::
+
+    pip3 install -r dev-requirements.txt -r opt-requirements.txt
+
+Additionally, we recommend installing our pre-commit hook, to ensure that your code
+follows our Python style guidelines:
+
+::
+
+    pre-commit install
+    
 
 Choose the backend
 ------------------
