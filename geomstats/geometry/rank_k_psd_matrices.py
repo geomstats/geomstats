@@ -6,8 +6,13 @@ import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricBuresWasserstein, SPDMetricAffine, SPDMetricEuclidean, \
-    SPDMetricLogEuclidean
+from geomstats.geometry.spd_matrices import (
+    SPDMatrices,
+    SPDMetricBuresWasserstein,
+    SPDMetricAffine,
+    SPDMetricEuclidean,
+    SPDMetricLogEuclidean,
+)
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
@@ -23,13 +28,13 @@ class RankKPSDMatrices(Manifold):
     """
 
     def __init__(
-            self,
-            n,
-            k,
-            metric=None,
-            default_point_type="matrix",
-            default_coords_type="intrinsic",
-            **kwargs
+        self,
+        n,
+        k,
+        metric=None,
+        default_point_type="matrix",
+        default_coords_type="intrinsic",
+        **kwargs
     ):
         super(Manifold, self).__init__(**kwargs)
         self.n = n
@@ -86,7 +91,7 @@ class RankKPSDMatrices(Manifold):
         sym = Matrices(self.n, self.n).to_symmetric(point)
         eigvals, eigvecs = gs.linalg.eigh(sym)
         regularized = gs.where(eigvals < 0, 0, eigvals)
-        regularized[0: (self.n - self.rank)] = [0] * (self.n - self.rank)
+        regularized[0 : (self.n - self.rank)] = [0] * (self.n - self.rank)
         reconstruction = gs.einsum("...ij,...j->...ij", eigvecs, regularized)
         return Matrices.mul(reconstruction, Matrices.transpose(eigvecs))
         # ANNA - how can we handle this case?
@@ -149,16 +154,16 @@ class RankKPSDMatrices(Manifold):
         ][0]
         # check if symmetric
         r, delta, rt = gs.linalg.svd(base_point)
-        rort = r[:, self.n - self.rank: self.n]
-        rort_t = rt[self.n - self.rank: self.n, :]
+        rort = r[:, self.n - self.rank : self.n]
+        rort_t = rt[self.n - self.rank : self.n, :]
         check = gs.matmul(
             gs.matmul(gs.matmul(rort, rort_t), vector_sym), gs.matmul(rort, rort_t)
         )
         if (
-                gs.logical_and(
-                    gs.less_equal(check, -gs.atol), gs.greater(check, gs.atol)
-                ).sum()
-                == 0
+            gs.logical_and(
+                gs.less_equal(check, -gs.atol), gs.greater(check, gs.atol)
+            ).sum()
+            == 0
         ):
             return True
         else:
@@ -187,14 +192,14 @@ class RankKPSDMatrices(Manifold):
                 vector if self.sym.belongs(vector) else self.sym.projection(vector)
             ][0]
             r, delta, rt = gs.linalg.svd(base_point)
-            rort = r[:, self.n - self.rank: self.n]
-            rort_t = rt[self.n - self.rank: self.n, :]
+            rort = r[:, self.n - self.rank : self.n]
+            rort_t = rt[self.n - self.rank : self.n, :]
             return (
-                    gs.matmul(
-                        gs.matmul(gs.matmul(rort, rort_t), vector_sym),
-                        gs.matmul(rort, rort_t),
-                    )
-                    + vector_sym
+                gs.matmul(
+                    gs.matmul(gs.matmul(rort, rort_t), vector_sym),
+                    gs.matmul(rort, rort_t),
+                )
+                + vector_sym
             )
 
 
@@ -209,19 +214,26 @@ PSDMetricAffine = SPDMetricAffine
 
 class PSDMatrices(RankKPSDMatrices, SPDMatrices):
     r"""Class for the psd matrices. The class is recirecting to the correct embedding manifold.
-        The stratum PSD rank k if the matrix is not full rank
-        The top stratum SPD if the matrix is full rank
-        The whole stratified space of PSD if no rank is specified
+    The stratum PSD rank k if the matrix is not full rank
+    The top stratum SPD if the matrix is full rank
+    The whole stratified space of PSD if no rank is specified
 
-        Parameters
-        ----------
-        n : int
-            Integer representing the shapes of the matrices : n x n.
-        k : int
-            Integer representing the shapes of the matrices : n x n.
-        """
+    Parameters
+    ----------
+    n : int
+        Integer representing the shapes of the matrices : n x n.
+    k : int
+        Integer representing the shapes of the matrices : n x n.
+    """
 
-    def __new__(cls, n, k=None, metric=None, default_point_type="matrix", default_coords_type="intrinsic", ):
+    def __new__(
+        cls,
+        n,
+        k=None,
+        metric=None,
+        default_point_type="matrix",
+        default_coords_type="intrinsic",
+    ):
         if k == None:
             raise NotImplementedError(
                 "PSD matrices of all ranks is not ready implemented"
