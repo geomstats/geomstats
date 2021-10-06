@@ -43,7 +43,7 @@ algorithms for data on manifolds.
 -  The documentation of ``geomstats`` can be found on the `documentation
    website <https://geomstats.github.io/>`__.
 -  To follow the scientific literature on geometric statistics, follow
-   our twitter-bot `@geomstats-papers <https://twitter.com/geomstats>`__!
+   our twitter-bot `@geomstats <https://twitter.com/geomstats>`__!
 
 If you find ``geomstats`` useful, please kindly cite our
 `paper <https://jmlr.org/papers/v21/19-027.html>`__:
