@@ -42,6 +42,7 @@ algorithms for data on manifolds.
    directories.
 -  The documentation of ``geomstats`` can be found on the `documentation
    website <https://geomstats.github.io/>`__.
+- Interested in information geometry? Go to our `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_ module.
 -  To follow the scientific literature on geometric statistics, follow
    our twitter-bot `@geomstats <https://twitter.com/geomstats>`__!
 
