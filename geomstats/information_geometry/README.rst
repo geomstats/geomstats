@@ -8,4 +8,4 @@ To see some examples, see the
    `information geometry notebook <https://github.com/geomstats/geomstats/blob/master/notebooks/06_information_geometry.ipynb>`__
    .
 
-To contribute, feel free to contact us at alice.le-brigant@univ-paris1.fr.
+To contribute, contact us at alice.le-brigant@univ-paris1.fr.
