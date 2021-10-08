@@ -456,7 +456,7 @@ class Hyperbolic(Manifold):
         return Hyperbolic.change_coordinates_system(
             point, from_coords_type, self.coords_type)
 
-    def random_uniform(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.):
         """Sample over the hyperbolic space using uniform distribution.
 
         Sample over the hyperbolic space. The sampling is performed

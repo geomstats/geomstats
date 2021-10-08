@@ -26,8 +26,8 @@ class TestEuclidean(geomstats.tests.TestCase):
             [8., -1.],
             [-3., 6.]])
 
-    def test_random_uniform_and_belongs(self):
-        point = self.space.random_uniform()
+    def test_random_point_and_belongs(self):
+        point = self.space.random_point()
         result = self.space.belongs(point)
         expected = True
 
@@ -201,8 +201,8 @@ class TestEuclidean(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    def test_random_uniform(self):
-        result = self.space.random_uniform()
+    def test_random_point(self):
+        result = self.space.random_point()
 
         self.assertAllClose(gs.shape(result), (self.dimension,))
 

@@ -57,7 +57,7 @@ class DirichletDistributions(EmbeddedManifold):
             belongs, gs.all(gs.greater(point, 0.), axis=-1))
         return belongs
 
-    def random_uniform(self, n_samples=1, bound=5.):
+    def random_point(self, n_samples=1, bound=5.):
         """Sample parameters of Dirichlet distributions.
 
         The uniform distribution on [0, bound]^dim is used.

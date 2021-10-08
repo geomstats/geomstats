@@ -35,7 +35,7 @@ class TestVisualization(geomstats.tests.TestCase):
         visualization.plot(points, space='SO3_GROUP')
 
     def test_plot_points_se3(self):
-        points = self.SE3_GROUP.random_uniform(self.n_samples)
+        points = self.SE3_GROUP.random_point(self.n_samples)
         visualization.plot(points, space='SE3_GROUP')
 
     @geomstats.tests.np_and_pytorch_only
@@ -48,30 +48,30 @@ class TestVisualization(geomstats.tests.TestCase):
         visualization.plot(points, space='S2')
 
     def test_plot_points_h2_poincare_disk(self):
-        points = self.H2.random_uniform(self.n_samples)
+        points = self.H2.random_point(self.n_samples)
         visualization.plot(points, space='H2_poincare_disk')
 
     def test_plot_points_h2_poincare_half_plane_ext(self):
-        points = self.H2.random_uniform(self.n_samples)
+        points = self.H2.random_point(self.n_samples)
         visualization.plot(points, space='H2_poincare_half_plane',
                            point_type='extrinsic')
 
     def test_plot_points_h2_poincare_half_plane_none(self):
-        points = self.H2_half_plane.random_uniform(self.n_samples)
+        points = self.H2_half_plane.random_point(self.n_samples)
         visualization.plot(points, space='H2_poincare_half_plane')
 
     def test_plot_points_h2_poincare_half_plane_hs(self):
-        points = self.H2_half_plane.random_uniform(self.n_samples)
+        points = self.H2_half_plane.random_point(self.n_samples)
         visualization.plot(points, space='H2_poincare_half_plane',
                            point_type='half_space')
 
     def test_plot_points_h2_klein_disk(self):
-        points = self.H2.random_uniform(self.n_samples)
+        points = self.H2.random_point(self.n_samples)
         visualization.plot(points, space='H2_klein_disk')
 
     @staticmethod
     def test_plot_points_se2():
-        points = SpecialEuclidean(n=2, point_type='vector').random_uniform(4)
+        points = SpecialEuclidean(n=2, point_type='vector').random_point(4)
         visu = visualization.SpecialEuclidean2(points, point_type='vector')
         ax = visu.set_ax()
         visu.draw(ax)

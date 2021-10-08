@@ -784,3 +784,16 @@ class TestHypersphere(geomstats.tests.TestCase):
             one_tan_vec_a, one_tan_vec_b, base_point)
         result = is_isometry(one_tan_vec_a, transported, end_point)
         self.assertTrue(result)
+
+    def test_sectional_curvature(self):
+        n_samples = 4
+        sphere = self.space
+        base_point = sphere.random_uniform(n_samples)
+        tan_vec_a = sphere.to_tangent(
+            gs.random.rand(n_samples, sphere.dim + 1), base_point)
+        tan_vec_b = sphere.to_tangent(
+            gs.random.rand(n_samples, sphere.dim + 1), base_point)
+        result = sphere.metric.sectional_curvature(
+            tan_vec_a, tan_vec_b, base_point)
+        expected = gs.ones(result.shape)
+        self.assertAllClose(result, expected)

@@ -24,7 +24,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         Test that the random uniform method samples
         on the beta distribution space.
         """
-        point = self.beta.random_uniform()
+        point = self.beta.random_point()
         result = self.beta.belongs(point)
         expected = True
         self.assertAllClose(expected, result)
@@ -36,7 +36,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         on the beta distribution space.
         """
         n_samples = self.n_samples
-        point = self.beta.random_uniform(n_samples)
+        point = self.beta.random_point(n_samples)
         result = self.beta.belongs(point)
         expected = gs.array([True] * n_samples)
         self.assertAllClose(expected, result)
@@ -46,7 +46,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
 
         Test that the random uniform method samples points of the right shape
         """
-        point = self.beta.random_uniform(self.n_samples)
+        point = self.beta.random_point(self.n_samples)
         self.assertAllClose(gs.shape(point), (self.n_samples, self.dim))
 
     def test_sample(self):
@@ -57,7 +57,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         """
         n_samples = self.n_samples
         tol = (n_samples * 10) ** (- 0.5)
-        point = self.beta.random_uniform(n_samples)
+        point = self.beta.random_point(n_samples)
         samples = self.beta.sample(point, n_samples * 10)
         result = gs.mean(samples, axis=1)
         expected = point[:, 0] / gs.sum(point, axis=1)
@@ -70,7 +70,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         parameters of beta distribution.
         """
         n_samples = self.n_samples
-        point = self.beta.random_uniform(n_samples)
+        point = self.beta.random_point(n_samples)
         samples = self.beta.sample(point, n_samples * 10)
         fits = self.beta.maximum_likelihood_fit(samples)
         expected = self.beta.belongs(fits)
@@ -87,8 +87,8 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         """
         gs.random.seed(123)
         n_samples = self.n_samples
-        points = self.beta.random_uniform(n_samples)
-        vectors = self.beta.random_uniform(n_samples)
+        points = self.beta.random_point(n_samples)
+        vectors = self.beta.random_point(n_samples)
         initial_vectors = gs.array([[vec_x, vec_x] for vec_x in vectors[:, 0]])
         points = gs.array([[param_a, param_a] for param_a in points[:, 0]])
         result_points = self.metric.exp(initial_vectors, points)
@@ -107,8 +107,8 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         """
         n_samples = self.n_samples
         gs.random.seed(123)
-        base_point = self.beta.random_uniform(n_samples=n_samples, bound=5)
-        point = self.beta.random_uniform(n_samples=n_samples, bound=5)
+        base_point = self.beta.random_point(n_samples=n_samples, bound=5)
+        point = self.beta.random_point(n_samples=n_samples, bound=5)
         log = self.metric.log(point, base_point, n_steps=500)
         expected = point
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
@@ -120,7 +120,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
 
         Test the case with one initial point and several tangent vectors.
         """
-        point = self.beta.random_uniform()
+        point = self.beta.random_point()
         tangent_vec = gs.array([1., 2.])
         n_tangent_vecs = 10
         t = gs.linspace(0., 1., n_tangent_vecs)
@@ -138,8 +138,8 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         Test the case with several base points and one end point.
         """
         n_points = 10
-        base_points = self.beta.random_uniform(n_samples=n_points)
-        point = self.beta.random_uniform()
+        base_points = self.beta.random_point(n_samples=n_points)
+        point = self.beta.random_point()
         tangent_vecs = self.metric.log(
             base_point=base_points, point=point)
         result = tangent_vecs.shape
@@ -152,7 +152,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
 
         Check vectorization of Christoffel symbols.
         """
-        points = self.beta.random_uniform(self.n_samples)
+        points = self.beta.random_point(self.n_samples)
         christoffel = self.metric.christoffels(points)
         result = christoffel.shape
         expected = gs.array(
@@ -171,7 +171,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
 
         Check vectorization of the computation of the pdf.
         """
-        point = self.beta.random_uniform(n_samples=2)
+        point = self.beta.random_point(n_samples=2)
         pdf = self.beta.point_to_pdf(point)
         x = gs.linspace(0., 1., 10)
         result = pdf(x)
