@@ -17,8 +17,11 @@ Geomstats
    * - **Community**
      - |contributions|\  |Slack|\  |Twitter|\
 
-**NEWS**: The white paper summarizing the findings from our `ICLR 2021 challenge of computational
-differential geometry and topology <https://gt-rl.github.io/challenge>`__ is out. `Read it here <https://arxiv.org/abs/2108.09810>`__.
+**NEWS**:
+
+- The white paper summarizing the findings from our `ICLR 2021 challenge of computational differential geometry and topology <https://gt-rl.github.io/challenge>`__ is out. `Read it here <https://arxiv.org/abs/2108.09810>`__.
+
+- Check out our new  `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_ module.
 
 Geomstats is an open-source Python package for computations and
 statistics on manifolds. The package is organized into two main modules:
