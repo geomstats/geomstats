@@ -1,4 +1,4 @@
-import autograd.numpy as np
+import numpy as np
 
 
 def to_ndarray(x, to_ndim, axis=0):
@@ -8,6 +8,5 @@ def to_ndarray(x, to_ndim, axis=0):
 
     if x.ndim != 0:
         if x.ndim < to_ndim:
-            raise ValueError(
-                'The ndim was not adapted properly.')
+            raise ValueError("The ndim was not adapted properly.")
     return x

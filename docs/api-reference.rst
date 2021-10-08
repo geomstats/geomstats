@@ -23,5 +23,6 @@ The module `backend` implements the operations needed to use Geomstats seemlessl
 
    geometry
    learning
+   datasets
    backend
    visualization

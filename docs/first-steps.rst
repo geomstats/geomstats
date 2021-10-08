@@ -78,7 +78,7 @@ space of 3D rotations.
     from geomstats.geometry.special_orthogonal import SpecialOrthogonal
     from geomstats.learning.pca import TangentPCA
 
-    so3 = SpecialOrthogonal(n=3, point_type='vector')
+    so3 = SpecialOrthogonal(n=3, point_type="vector")
     metric = so3.bi_invariant_metric
 
     data = so3.random_uniform(n_samples=10)
