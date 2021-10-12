@@ -482,8 +482,9 @@ class IncrementalFrechetMean(BaseEstimator):
     .. math::
      \text{Initialization}: m_{1} := X_{1}
 
-     \text{Update}:  \text{Let } $\gamma_k$ \text{ be geodesic joining } m_{k-1}\text{ and }
-     X_{k} \text{ then } m_{k} := \gamma(1/k) \,\, \forall  2 \leq k \leq N
+     \text{Update}:  \text{Let } $\gamma_k$ \text{ be geodesic joining }
+      m_{k-1}\text{ and } X_{k} \text{ then }
+      m_{k} := \gamma(1/k) \,\, \forall  2 \leq k \leq N
 
     Asymptotic convergence to population frechet mean is guranteed for
     simply connected, complete and non-positively curved Riemannian manifolds.
@@ -493,8 +494,9 @@ class IncrementalFrechetMean(BaseEstimator):
     .. math::
      \max_{q \in M} \sum_{i=1}^{N} d(q, X_{i})^2
 
-    where d is the riemannian metric. Also, Estimator is not permutation invariant , i.e.,
-    the estimate might depend on the order in which incremental updates are performed.
+    where d is the riemannian metric. Also, Estimator is not permutation
+    invariant , i.e.,the estimate might depend on the order in which
+    incremental updates are performed.
 
     Parameters
     ----------
