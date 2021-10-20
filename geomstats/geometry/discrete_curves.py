@@ -989,12 +989,10 @@ class ElasticMetric(RiemannianMetric):
     """
 
     def __init__(self, a, b):
-        super(ElasticMetric, self).__init__(dim=math.inf,
-                                            signature=(math.inf, 0, 0))
+        super(ElasticMetric, self).__init__(dim=math.inf, signature=(math.inf, 0, 0))
         self.ambient_manifold = R2
         self.ambient_metric = self.ambient_manifold.metric
-        self.l2_metric = lambda n: L2Metric(
-            self.ambient_manifold, n_landmarks=n)
+        self.l2_metric = lambda n: L2Metric(self.ambient_manifold, n_landmarks=n)
         self.a = a
         self.b = b
 
@@ -1105,16 +1103,16 @@ class ElasticMetric(RiemannianMetric):
 
         for i in range(n_sampling_points):
             x = curve_x[-1]
-            x += norms[i]**2 * gs.cos(2 * self.b / self.a * args[i])
+            x += norms[i] ** 2 * gs.cos(2 * self.b / self.a * args[i])
             curve_x.append(x)
             y = curve_y[-1]
-            y += norms[i]**2 * gs.sin(2 * self.b / self.a * args[i])
+            y += norms[i] ** 2 * gs.sin(2 * self.b / self.a * args[i])
             curve_y.append(y)
 
         curve_x = gs.array(curve_x)
         curve_y = gs.array(curve_y)
         curve = gs.vstack((curve_x, curve_y)).T
-        curve = 1 / (4 * self.b**2) * curve + starting_point
+        curve = 1 / (4 * self.b ** 2) * curve + starting_point
 
         return curve
 
@@ -1166,7 +1164,7 @@ class ElasticMetric(RiemannianMetric):
         l2_dist = self.l2_metric(n_sampling_points).dist
 
         if rescaled:
-            cosine = l2_prod(f_1, f_2) / (4 * self.b**2)
+            cosine = l2_prod(f_1, f_2) / (4 * self.b ** 2)
             distance = 2 * self.b * gs.arccos(gs.clip(cosine, -1, 1))
         else:
             distance = l2_dist(f_1, f_2)
@@ -1202,8 +1200,7 @@ class ElasticCurves(Manifold):
     def __init__(self, a, b):
         super(ElasticCurves, self).__init__(dim=math.inf)
         self.ambient_manifold = R2
-        self.l2_metric = lambda n: L2Metric(
-            self.ambient_manifold, n_landmarks=n)
+        self.l2_metric = lambda n: L2Metric(self.ambient_manifold, n_landmarks=n)
         self.elastic_metric = ElasticMetric(a, b)
 
     def belongs(self, point, atol=gs.atol):
@@ -1225,9 +1222,7 @@ class ElasticCurves(Manifold):
             Boolean evaluating if point belongs to the space of discrete
             curves.
         """
-        raise NotImplementedError(
-            'The belongs method is not implemented.'
-        )
+        raise NotImplementedError("The belongs method is not implemented.")
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at a curve.
@@ -1250,9 +1245,7 @@ class ElasticCurves(Manifold):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        raise NotImplementedError(
-            'The is_tangent method is not implemented.'
-        )
+        raise NotImplementedError("The is_tangent method is not implemented.")
 
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
@@ -1274,11 +1267,9 @@ class ElasticCurves(Manifold):
         tangent_vec : array-like, shape=[..., n_sampling_points, ambient_dim]
             Tangent vector at base point.
         """
-        raise NotImplementedError(
-            'The to_tangent method is not implemented.'
-        )
+        raise NotImplementedError("The to_tangent method is not implemented.")
 
-    def random_point(self, n_samples=1, bound=1., n_sampling_points=10):
+    def random_point(self, n_samples=1, bound=1.0, n_sampling_points=10):
         """Sample random curves.
 
         If the ambient manifold is compact, a uniform distribution is used.
@@ -1301,9 +1292,7 @@ class ElasticCurves(Manifold):
         samples : array-like, shape=[..., n_sampling_points, {dim, [n, n]}]
             Points sampled on the hypersphere.
         """
-        raise NotImplementedError(
-            'The random_point method is not implemented.'
-        )
+        raise NotImplementedError("The random_point method is not implemented.")
 
 
 class QuotientSRVMetric(SRVMetric):

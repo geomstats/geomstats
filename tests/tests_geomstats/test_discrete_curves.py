@@ -4,7 +4,11 @@ import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
 
-from geomstats.geometry.discrete_curves import ClosedDiscreteCurves, DiscreteCurves, ElasticCurves
+from geomstats.geometry.discrete_curves import (
+    ClosedDiscreteCurves,
+    DiscreteCurves,
+    ElasticCurves,
+)
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 
@@ -371,7 +375,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         dist = metric.dist(curve_1, curve_2)
 
         result = dist.shape
-        expected = (1)
+        expected = 1
         self.assertAllClose(result, expected)
 
         result = dist > 0
