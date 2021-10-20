@@ -1034,7 +1034,8 @@ class ElasticMetric(RiemannianMetric):
 
         return norms, args
 
-    def polar_to_cartesian(self, norms, args):
+    @staticmethod
+    def polar_to_cartesian(norms, args):
         """Compute the cartesian coordinates of a curve from polar ones.
 
         Parameters
