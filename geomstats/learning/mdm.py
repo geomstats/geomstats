@@ -18,11 +18,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
         Optional, default: \'matrix\'.
     """
 
-    def __init__(
-            self,
-            riemannian_metric,
-            n_classes,
-            point_type='matrix'):
+    def __init__(self, riemannian_metric, n_classes, point_type="matrix"):
         self.riemannian_metric = riemannian_metric
         self.n_classes = n_classes
         self.point_type = point_type
@@ -43,8 +39,8 @@ class RiemannianMinimumDistanceToMeanClassifier:
             Training labels, where n_classes is the number of classes.
         """
         mean_estimator = FrechetMean(
-            metric=self.riemannian_metric,
-            point_type=self.point_type)
+            metric=self.riemannian_metric, point_type=self.point_type
+        )
         frechet_means = []
         for c in range(self.n_classes):
             data_class = self.split_data_in_classes(X, y, c)
@@ -73,7 +69,8 @@ class RiemannianMinimumDistanceToMeanClassifier:
         _labels = []
         for i in range(n_samples):
             label = self.riemannian_metric.closest_neighbor_index(
-                X[i], self.mean_estimates_)
+                X[i], self.mean_estimates_
+            )
             _labels.append(label)
         y = gs.one_hot(_labels, self.n_classes)
         return y

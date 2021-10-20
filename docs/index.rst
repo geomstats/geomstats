@@ -70,4 +70,3 @@ To contribute to `geomstats` visit the page :ref:`contributing`.
    notebooks/usecase_graph_embedding_and_clustering_in_hyperbolic_space
    notebooks/usecase_optic_nerve_heads_analysis_in_kendall_shape_space
    notebooks/usecase_hand_poses_analysis_in_kendall_shape_space
-   

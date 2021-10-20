@@ -2,8 +2,10 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.full_rank_correlation_matrices import \
-    CorrelationMatricesBundle, FullRankCorrelationAffineQuotientMetric
+from geomstats.geometry.full_rank_correlation_matrices import (
+    CorrelationMatricesBundle,
+    FullRankCorrelationAffineQuotientMetric,
+)
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import SymmetricMatrices
@@ -49,8 +51,7 @@ class TestFullRankCorrelationMatrices(geomstats.tests.TestCase):
         vec = SymmetricMatrices(self.n).random_point(2)
         tangent_vec = self.bundle.to_tangent(vec, mat)
         vertical = self.bundle.vertical_projection(tangent_vec, mat)
-        result = self.bundle.tangent_riemannian_submersion(
-            vertical, mat)
+        result = self.bundle.tangent_riemannian_submersion(vertical, mat)
 
         expected = gs.zeros_like(vec)
         self.assertAllClose(result, expected)
@@ -63,7 +64,8 @@ class TestFullRankCorrelationMatrices(geomstats.tests.TestCase):
         product_1 = Matrices.mul(horizontal_vec, inverse)
         product_2 = Matrices.mul(inverse, horizontal_vec)
         is_horizontal = self.base.is_tangent(
-            product_1 + product_2, mat, atol=gs.atol * 10)
+            product_1 + product_2, mat, atol=gs.atol * 10
+        )
         self.assertTrue(is_horizontal)
 
     def test_horizontal_lift_and_tangent_riemannian_submersion(self):
@@ -90,10 +92,10 @@ class TestFullRankCorrelationMatrices(geomstats.tests.TestCase):
         self.assertTrue(result)
 
     def test_inner_product(self):
-
         def inner_prod(tangent_vec_a, tangent_vec_b, base_point):
             affine_part = self.bundle.ambient_metric.inner_product(
-                tangent_vec_a, tangent_vec_b, base_point)
+                tangent_vec_a, tangent_vec_b, base_point
+            )
             n = tangent_vec_b.shape[-1]
 
             inverse_base_point = GeneralLinear.inverse(base_point)
@@ -101,10 +103,12 @@ class TestFullRankCorrelationMatrices(geomstats.tests.TestCase):
             inverse_operator = GeneralLinear.inverse(operator)
 
             diagonal_a = gs.einsum(
-                '...ij,...ji->...i', inverse_base_point, tangent_vec_a)
+                "...ij,...ji->...i", inverse_base_point, tangent_vec_a
+            )
             diagonal_b = gs.einsum(
-                '...ij,...ji->...i', inverse_base_point, tangent_vec_b)
-            aux = gs.einsum('...i,...j->...ij', diagonal_a, diagonal_b)
+                "...ij,...ji->...i", inverse_base_point, tangent_vec_b
+            )
+            aux = gs.einsum("...i,...j->...ij", diagonal_a, diagonal_b)
             other_part = 2 * Matrices.frobenius_product(aux, inverse_operator)
             return affine_part - other_part
 
@@ -112,9 +116,9 @@ class TestFullRankCorrelationMatrices(geomstats.tests.TestCase):
         vecs = self.bundle.random_point(2)
         tangent_vecs = self.base.to_tangent(vecs, mat)
         result = self.quotient_metric.inner_product(
-            tangent_vecs[0], tangent_vecs[1], base_point=mat)
-        expected = inner_prod(
-            tangent_vecs[0], tangent_vecs[1], base_point=mat)
+            tangent_vecs[0], tangent_vecs[1], base_point=mat
+        )
+        expected = inner_prod(tangent_vecs[0], tangent_vecs[1], base_point=mat)
         self.assertAllClose(result, expected)
 
     def test_exp_and_belongs(self):
@@ -126,15 +130,15 @@ class TestFullRankCorrelationMatrices(geomstats.tests.TestCase):
         result = self.base.belongs(exp)
         self.assertTrue(result)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_align(self):
         point = self.bundle.random_point(2)
-        aligned = self.bundle.align(
-            point[0], point[1], tol=1e-10)
+        aligned = self.bundle.align(point[0], point[1], tol=1e-10)
         log = self.bundle.ambient_metric.log(aligned, point[1])
-        result = self.bundle.is_horizontal(
-            log, point[1], atol=gs.atol * 100)
+        result = self.bundle.is_horizontal(log, point[1], atol=gs.atol * 100)
         self.assertTrue(result)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_exp_and_log(self):
         mats = self.bundle.random_point(2)
         points = self.bundle.riemannian_submersion(mats)
