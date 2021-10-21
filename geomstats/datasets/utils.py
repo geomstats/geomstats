@@ -343,7 +343,7 @@ def load_cells():
         for point in cell:
             coords = [int(coord) for coord in point.split()]
             curve.append(coords)
-        cells[i] = gs.array(curve)
+        cells[i] = gs.cast(gs.array(curve), gs.float32)
     with open(CELL_LINES_PATH) as cell_lines_file:
         cell_lines = cell_lines_file.read().split("\n")
     with open(CELL_TREATMENTS_PATH) as treatments_file:

@@ -3,7 +3,6 @@
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
-
 from geomstats.geometry.discrete_curves import (
     ClosedDiscreteCurves,
     DiscreteCurves,
@@ -385,12 +384,13 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         """Test that going back to cartesian works."""
         cells, _, _ = data_utils.load_cells()
         curve = cells[0]
+
         metric = self.elastic_metric
         norms, args = metric.cartesian_to_polar(curve)
 
         result = metric.polar_to_cartesian(norms, args)
         expected = curve
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, rtol=10000 * gs.rtol)
 
     @geomstats.tests.np_and_autograd_only
     def test_aux_differential_square_root_velocity(self):

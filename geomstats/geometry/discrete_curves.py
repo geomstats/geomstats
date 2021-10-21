@@ -1052,7 +1052,7 @@ class ElasticMetric(RiemannianMetric):
         """
         curve_x = gs.cos(args)
         curve_y = gs.sin(args)
-        unit_curve = gs.vstack((curve_x, curve_y)).T
+        unit_curve = gs.transpose(gs.vstack((curve_x, curve_y)))
         curve = norms[:, None] * unit_curve
 
         return curve
