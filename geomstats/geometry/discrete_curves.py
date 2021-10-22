@@ -1112,7 +1112,7 @@ class ElasticMetric(RiemannianMetric):
 
         curve_x = gs.array(curve_x)
         curve_y = gs.array(curve_y)
-        curve = gs.vstack((curve_x, curve_y)).T
+        curve = gs.transpose(gs.vstack((curve_x, curve_y)))
         curve = 1 / (4 * self.b ** 2) * curve + starting_point
 
         return curve
