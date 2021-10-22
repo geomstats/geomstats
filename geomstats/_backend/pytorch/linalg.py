@@ -10,6 +10,7 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 
 eig = _raise_not_implemented_error
+eigvalsh = torch.linalg.eigvalsh
 expm = torch.matrix_exp
 logm = _raise_not_implemented_error
 inv = torch.inverse
@@ -18,7 +19,7 @@ solve = torch.linalg.solve
 
 
 def cholesky(a):
-    return torch.cholesky(a, upper=False)
+    return torch.linalg.cholesky(a, upper=False)
 
 
 def sqrtm(x):
@@ -26,15 +27,11 @@ def sqrtm(x):
     return torch.as_tensor(np_sqrtm, dtype=x.dtype)
 
 
-def eigvalsh(a, **kwargs):
+def eigh(*args, **kwargs):
     upper = False
     if "UPLO" in kwargs:
         upper = kwargs["UPLO"] == "U"
-    return torch.symeig(a, eigenvectors=False, upper=upper)[0]
-
-
-def eigh(*args, **kwargs):
-    eigvals, eigvecs = torch.symeig(*args, eigenvectors=True, **kwargs)
+    eigvals, eigvecs = torch.linalg.eigh(*args, UPLO="U" if upper else "L")
     return eigvals, eigvecs
 
 
