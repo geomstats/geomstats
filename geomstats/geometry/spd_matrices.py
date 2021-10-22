@@ -123,8 +123,10 @@ class SPDMatrices(OpenSet):
 
         sqrt_base_point = gs.linalg.sqrtm(base_point)
 
-        tangent_vec_at_id = 2 * gs.random.rand(*size) - 1
-        tangent_vec_at_id += Matrices.transpose(tangent_vec_at_id)
+        tangent_vec_at_id_aux = 2 * gs.random.rand(*size) - 1
+        tangent_vec_at_id = tangent_vec_at_id_aux + Matrices.transpose(
+            tangent_vec_at_id_aux
+        )
 
         tangent_vec = Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
