@@ -6,16 +6,15 @@ from itertools import product
 
 import numpy as _np
 import tensorflow as tf
-from tensorflow import (  # NOQA
-    abs,
-    acos as arccos,
-    acosh as arccosh,
-    argmax,
-    argmin,
-    asin as arcsin,
-    atan2 as arctan2,
-    broadcast_to,
-    clip_by_value as clip,
+from tensorflow import abs
+from tensorflow import acos as arccos  # NOQA
+from tensorflow import acosh as arccosh
+from tensorflow import argmax, argmin
+from tensorflow import asin as arcsin
+from tensorflow import atan2 as arctan2
+from tensorflow import broadcast_to
+from tensorflow import clip_by_value as clip
+from tensorflow import (
     concat,
     cos,
     cosh,
@@ -39,11 +38,13 @@ from tensorflow import (  # NOQA
     meshgrid,
     ones,
     ones_like,
-    range as arange,
-    reduce_max as amax,
-    reduce_mean as mean,
-    reduce_min as amin,
-    reduce_prod as prod,
+)
+from tensorflow import range as arange
+from tensorflow import reduce_max as amax
+from tensorflow import reduce_mean as mean
+from tensorflow import reduce_min as amin
+from tensorflow import reduce_prod as prod
+from tensorflow import (
     reshape,
     searchsorted,
     shape,
@@ -61,12 +62,10 @@ from tensorflow import (  # NOQA
     zeros_like,
 )
 
-
+from ..constants import tf_atol, tf_rtol
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-from ..constants import tf_atol, tf_rtol
-
 
 DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3}
 

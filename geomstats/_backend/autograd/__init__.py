@@ -3,7 +3,7 @@
 import math
 
 import autograd.numpy as np
-from autograd.numpy import (  # NOQA
+from autograd.numpy import (
     abs,
     all,
     allclose,
@@ -33,7 +33,9 @@ from autograd.numpy import (  # NOQA
     diagonal,
     divide,
     dot,
-    dtype as ndtype,
+)
+from autograd.numpy import dtype as ndtype  # NOQA
+from autograd.numpy import (
     einsum,
     empty,
     empty_like,
@@ -48,9 +50,9 @@ from autograd.numpy import (  # NOQA
     greater,
     hsplit,
     hstack,
+    imag,
     int32,
     int64,
-    imag,
     isclose,
     isnan,
     less,
@@ -72,6 +74,7 @@ from autograd.numpy import (  # NOQA
     real,
     repeat,
     reshape,
+    searchsorted,
     shape,
     sign,
     sin,
@@ -88,10 +91,9 @@ from autograd.numpy import (  # NOQA
     tile,
     trace,
     transpose,
-    triu_indices,
-    tril_indices,
-    searchsorted,
     tril,
+    tril_indices,
+    triu_indices,
     uint8,
     vstack,
     where,
@@ -101,11 +103,11 @@ from autograd.numpy import (  # NOQA
 from autograd.scipy.special import erf, polygamma  # NOQA
 from scipy.sparse import coo_matrix
 
+from ..constants import np_atol, np_rtol
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA
-from ..constants import np_atol, np_rtol
 
 DTYPES = {
     ndtype("int32"): 0,

@@ -16,7 +16,6 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
-
 MODULE_PATH = os.path.dirname(__file__)
 DATA_PATH = os.path.join(MODULE_PATH, "data")
 CITIES_PATH = os.path.join(DATA_PATH, "cities", "cities.json")

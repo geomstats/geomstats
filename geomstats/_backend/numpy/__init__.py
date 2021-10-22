@@ -3,7 +3,7 @@
 import math
 
 import numpy as np
-from numpy import (  # NOQA
+from numpy import (
     abs,
     all,
     allclose,
@@ -33,7 +33,9 @@ from numpy import (  # NOQA
     diagonal,
     divide,
     dot,
-    dtype as ndtype,
+)
+from numpy import dtype as ndtype  # NOQA
+from numpy import (
     einsum,
     empty,
     empty_like,
@@ -48,9 +50,9 @@ from numpy import (  # NOQA
     greater,
     hsplit,
     hstack,
+    imag,
     int32,
     int64,
-    imag,
     isclose,
     isnan,
     less,
@@ -72,6 +74,7 @@ from numpy import (  # NOQA
     real,
     repeat,
     reshape,
+    searchsorted,
     shape,
     sign,
     sin,
@@ -88,26 +91,23 @@ from numpy import (  # NOQA
     tile,
     trace,
     transpose,
-    triu_indices,
-    tril_indices,
-    searchsorted,
     tril,
+    tril_indices,
+    triu_indices,
     uint8,
     vstack,
     where,
     zeros,
     zeros_like,
 )
-
-
 from scipy.sparse import coo_matrix  # NOQA
 from scipy.special import erf, polygamma  # NOQA
 
+from ..constants import np_atol, np_rtol
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA
-from ..constants import np_atol, np_rtol
 
 DTYPES = {
     ndtype("int32"): 0,

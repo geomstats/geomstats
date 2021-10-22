@@ -7,7 +7,6 @@ import geomstats.geometry.lie_group as lie_group
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
-
 SE3 = SpecialEuclidean(n=3, point_type="vector")
 SO3 = SpecialOrthogonal(n=3, point_type="vector")
 

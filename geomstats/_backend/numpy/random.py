@@ -2,8 +2,8 @@
 
 from numpy.random import (  # NOQA
     default_rng,
-    normal,
     multivariate_normal,
+    normal,
     rand,
     randint,
     seed,

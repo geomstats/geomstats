@@ -1,7 +1,6 @@
 """Statistical Manifold of categorical distributions with the Fisher metric."""
 
-from scipy.stats import dirichlet
-from scipy.stats import multinomial
+from scipy.stats import dirichlet, multinomial
 
 import geomstats.backend as gs
 import geomstats.errors

@@ -4,9 +4,11 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.matrices import Matrices
-from geomstats.learning.kalman_filter import KalmanFilter
-from geomstats.learning.kalman_filter import Localization
-from geomstats.learning.kalman_filter import LocalizationLinear
+from geomstats.learning.kalman_filter import (
+    KalmanFilter,
+    Localization,
+    LocalizationLinear,
+)
 
 
 class TestKalmanFilter(geomstats.tests.TestCase):

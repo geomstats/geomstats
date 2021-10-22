@@ -11,7 +11,6 @@ import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
-
 SPACE = Hypersphere(2)
 METRIC = SPACE.metric
 ROTATIONS = SpecialOrthogonal(3, "vector")

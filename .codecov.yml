@@ -34,6 +34,6 @@ coverage:
 
 # Files to ignore
 ignore:
-  - "geomstats/datasets/data" 
+  - "geomstats/datasets/data"
   - "examples/data"
   - "examples/imgs"
