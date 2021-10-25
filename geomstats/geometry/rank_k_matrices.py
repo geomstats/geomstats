@@ -24,10 +24,9 @@ class RankKMatrices(OpenSet):
     """
 
     def __init__(self, m, n, k, **kwargs):
-        if 'dim' not in kwargs.keys():
-            kwargs['dim'] = m * n
-        super(RankKMatrices, self).__init__(
-            ambient_space=Matrices(m, n), **kwargs)
+        if "dim" not in kwargs.keys():
+            kwargs["dim"] = m * n
+        super(RankKMatrices, self).__init__(ambient_space=Matrices(m, n), **kwargs)
         self.rank = k
 
     def belongs(self, point):
@@ -70,13 +69,16 @@ class RankKMatrices(OpenSet):
         """
         belongs = self.belongs(point)
         regularization = gs.einsum(
-            '...,ij->...ij', gs.where(~belongs, gs.atol, 0.),
-            gs.eye(self.ambient_space.shape[0], self.ambient_space.shape[1]))
+            "...,ij->...ij",
+            gs.where(~belongs, gs.atol, 0.0),
+            gs.eye(self.ambient_space.shape[0], self.ambient_space.shape[1]),
+        )
         projected = point + regularization
         return projected
+
     # ANNA This can be improved by changing the rank to the sampled matrix instead of sampling
     # the one with a given rank
-    def random_point(self, n_samples=1, bound=1., n_iter=100):
+    def random_point(self, n_samples=1, bound=1.0, n_iter=100):
         """Sample in R_*^m*n with rank k from the uniform distribution
 
         Parameters
@@ -100,7 +102,7 @@ class RankKMatrices(OpenSet):
         n = self.ambient_space.shape[1]
         sample = []
         n_accepted, iteration = 0, 0
-        criterion_func = lambda x: x==self.rank
+        criterion_func = lambda x: x == self.rank
         while n_accepted < n_samples and iteration < n_iter:
             raw_samples = gs.random.normal(size=(n_samples - n_accepted, m, n))
             ranks = gs.linalg.matrix_rank(raw_samples)
