@@ -1,15 +1,11 @@
 """Module exposing the rank k euclidean matrices"""
 
-import numpy as np
-
-
-import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import Manifold
 from geomstats.geometry.matrices import Matrices
 
 
-class RankKMatrices(OpenSet):
+class RankKMatrices(Manifold):
     """Class for the matrices with euclidean entries and rank k
 
     Parameters
@@ -22,15 +18,26 @@ class RankKMatrices(OpenSet):
         Integer representing the rank of the matrices
 
     """
-
-    def __init__(self, m, n, k, **kwargs):
-        if "dim" not in kwargs.keys():
-            kwargs["dim"] = m * n
-        super(RankKMatrices, self).__init__(ambient_space=Matrices(m, n), **kwargs)
+    def __init__(
+                self,
+                m,
+                n,
+                k,
+                metric=None,
+                default_point_type="matrix",
+                default_coords_type="intrinsic",
+                **kwargs):
+        super(Manifold, self).__init__(**kwargs)
+        self.dim=m*n
+        self.shape=[m,n]
+        self.default_point_type = default_point_type
+        self.default_coords_type = default_coords_type
+        self.metric = metric
         self.rank = k
+        self.mat = Matrices(self.shape[0], self.shape[1])
 
-    def belongs(self, point):
-        """Check if the matrix belongs to R_*^m*n, i.e. is full rank
+    def belongs(self, point, atol = gs.atol):
+        """Check if the matrix belongs to R_k^m*n
 
         Parameters
         ----------
@@ -42,19 +49,19 @@ class RankKMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if point is in R_*^m*n
         """
-        has_right_size = self.ambient_space.belongs(point)
+        has_right_size = self.mat.belongs(point)
         if gs.all(has_right_size):
             rank = gs.linalg.matrix_rank(point)
-            return True if rank == self.rank else False
-        return has_right_size
+            if (rank == self.rank).all():
+                    return True
+        return False
 
-    # ANNA: is it the space of matrices of rank k dense in the space of matrices?
     def projection(self, point):
-        r"""Project a matrix to the set of full rank matrices
+        r"""Project a matrix to the set of rank k matrices
 
-        As the space of rank k matrices is dense in the space of matrices,
-        this is not a projection per se, but a regularization if the matrix input X
-        is not already full rank: `math:`X + \epsilon [I_rank, 0]` is returned
+        This is not a projection per se, but a regularization if the matrix input X
+        is not already rank k, the eigenvalues and eigenvector decomposition
+        is performed, then the : `math:`X + \epsilon [I_rank, 0]` is returned
         where :math:`\epsilon=gs.atol`
 
         Parameters
@@ -68,48 +75,38 @@ class RankKMatrices(OpenSet):
             Projected point.
         """
         belongs = self.belongs(point)
-        regularization = gs.einsum(
-            "...,ij->...ij",
-            gs.where(~belongs, gs.atol, 0.0),
-            gs.eye(self.ambient_space.shape[0], self.ambient_space.shape[1]),
-        )
-        projected = point + regularization
-        return projected
+        if not belongs:
+            u, s, vh = gs.linalg.svd(point, full_matrices=False)
+            s[self.rank: min(self.shape)] = 0
+            smat = s*gs.eye(min(self.shape))
+            return gs.dot(u, gs.dot(smat, vh))
+        else:
+            return point
 
-    # ANNA This can be improved by changing the rank to the sampled matrix instead of sampling
-    # the one with a given rank
-    def random_point(self, n_samples=1, bound=1.0, n_iter=100):
-        """Sample in R_*^m*n with rank k from the uniform distribution
+
+    def random_point(self, n_samples=1):
+        """Sample in R_k^m*n from the uniform distribution
 
         Parameters
         ----------
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        bound: float
-            Bound of the interval in which to sample each matrix entry.
-            Optional, default: 1.
-        n_iter : int
-            Maximum number of trials to sample a matrix with full rank
-            Optional, default: 100.
 
         Returns
         -------
         samples : array-like, shape=[..., n, n]
-            Point sampled on R_*^m*n with rank k
+            Point sampled on R_k^m*n
         """
-        m = self.ambient_space.shape[0]
-        n = self.ambient_space.shape[1]
-        sample = []
-        n_accepted, iteration = 0, 0
-        criterion_func = lambda x: x == self.rank
-        while n_accepted < n_samples and iteration < n_iter:
-            raw_samples = gs.random.normal(size=(n_samples - n_accepted, m, n))
-            ranks = gs.linalg.matrix_rank(raw_samples)
-            selected = criterion_func(ranks)
-            sample.append(raw_samples[selected])
-            n_accepted += gs.sum(selected)
-            iteration += 1
+        raw_samples = gs.random.normal(size=(n_samples, self.shape[0], self.shape[1]))
+        sample = [self.projection(i) for i in raw_samples]
         if n_samples == 1:
-            return sample[0][0]
-        return gs.concatenate(sample)
+            return sample[0]
+        else:
+            return sample
+
+
+    def is_tangent( a = 0 ):
+        return 0
+    def to_tangent( a = 0 ):
+        return 0
