@@ -1,6 +1,5 @@
-"""Module exposing the full rank euclidean matrices"""
+"""Module exposing the rank k euclidean matrices"""
 
-# cambia il rank con un rank k generico! credo sia giusto cosi
 import numpy as np
 
 
@@ -10,8 +9,8 @@ from geomstats.geometry.base import OpenSet
 from geomstats.geometry.matrices import Matrices
 
 
-class FullRankMatrices(OpenSet):
-    """Class for the matrices with euclidean entries and full rank.
+class RankKMatrices(OpenSet):
+    """Class for the matrices with euclidean entries and rank k
 
     Parameters
     ----------
@@ -19,14 +18,16 @@ class FullRankMatrices(OpenSet):
         Integer representing the shape of the matrices: m x n
     m : int
         Integer representing the shape of the matrices: m x n
+    k : int
+        Integer representing the rank of the matrices
+
     """
 
-    def __init__(self, m, n,k, **kwargs):
+    def __init__(self, m, n, k, **kwargs):
         if 'dim' not in kwargs.keys():
             kwargs['dim'] = m * n
         super(FullRankMatrices, self).__init__(
             ambient_space=Matrices(m, n), ambient, **kwargs)
-        # ANNA CHECK FOR THE RANK
         self.rank=k
 
     def belongs(self, point):
