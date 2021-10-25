@@ -18,25 +18,27 @@ class RankKMatrices(Manifold):
         Integer representing the rank of the matrices
 
     """
+
     def __init__(
-                self,
-                m,
-                n,
-                k,
-                metric=None,
-                default_point_type="matrix",
-                default_coords_type="intrinsic",
-                **kwargs):
+        self,
+        m,
+        n,
+        k,
+        metric=None,
+        default_point_type="matrix",
+        default_coords_type="intrinsic",
+        **kwargs
+    ):
         super(Manifold, self).__init__(**kwargs)
-        self.dim=m*n
-        self.shape=[m,n]
+        self.dim = m * n
+        self.shape = [m, n]
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
         self.metric = metric
         self.rank = k
         self.mat = Matrices(self.shape[0], self.shape[1])
 
-    def belongs(self, point, atol = gs.atol):
+    def belongs(self, point, atol=gs.atol):
         """Check if the matrix belongs to R_k^m*n
 
         Parameters
@@ -53,7 +55,7 @@ class RankKMatrices(Manifold):
         if gs.all(has_right_size):
             rank = gs.linalg.matrix_rank(point)
             if (rank == self.rank).all():
-                    return True
+                return True
         return False
 
     def projection(self, point):
@@ -77,12 +79,11 @@ class RankKMatrices(Manifold):
         belongs = self.belongs(point)
         if not belongs:
             u, s, vh = gs.linalg.svd(point, full_matrices=False)
-            s[self.rank: min(self.shape)] = 0
-            smat = s*gs.eye(min(self.shape))
+            s[self.rank : min(self.shape)] = 0
+            smat = s * gs.eye(min(self.shape))
             return gs.dot(u, gs.dot(smat, vh))
         else:
             return point
-
 
     def random_point(self, n_samples=1):
         """Sample in R_k^m*n from the uniform distribution
@@ -105,8 +106,8 @@ class RankKMatrices(Manifold):
         else:
             return sample
 
-
-    def is_tangent( a = 0 ):
+    def is_tangent(a=0):
         return 0
-    def to_tangent( a = 0 ):
+
+    def to_tangent(a=0):
         return 0
