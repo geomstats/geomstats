@@ -25,7 +25,7 @@ class FullRankMatrices(OpenSet):
         )
         self.rank = min(m, n)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         r"""Check if the matrix belongs to R_*^m*n, i.e. is full rank.
 
         Parameters
@@ -40,8 +40,9 @@ class FullRankMatrices(OpenSet):
         has_right_size = self.ambient_space.belongs(point)
         if gs.all(has_right_size):
             rank = gs.linalg.matrix_rank(point)
-            return True if rank == self.rank else False
-        return has_right_size
+            if (rank == self.rank).all():
+                return True
+        return False
 
     def projection(self, point):
         """Project a matrix to the set of full rank matrices.
