@@ -42,7 +42,7 @@ class TestFullRankMatrices(geomstats.tests.TestCase):
     def test_projection_and_belongs(self):
         """Test of projection method."""
         shape = (2, self.m, self.n)
-        result = helper.test_projection_and_belongs(self.space, shape, atol=gs.atol)
+        result = helper.test_projection_and_belongs(self.space, shape)
         for res in result:
             self.assertTrue(res)
 
