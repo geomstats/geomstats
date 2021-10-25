@@ -18,22 +18,21 @@ class TestRankMatrices(geomstats.tests.TestCase):
 
         self.m = 4
         self.n = 3
-        self.rank= 2
+        self.rank = 2
         self.space = RankKMatrices(m=self.m, n=self.n, k=self.rank)
 
     def test_belongs(self):
         """Test of belongs method."""
         fr = self.space
         mat_full_r = gs.array(
-            [[-0.01159978, 0.11877343, 1.60720463],
-             [-0.04523795, -0.24663408, -0.28083758],
-             [-1.01415994, -0.16618452, -0.26646112],
-             [2.16092311, 0.62531989, 0.16770327]]
+            [
+                [-0.01159978, 0.11877343, 1.60720463],
+                [-0.04523795, -0.24663408, -0.28083758],
+                [-1.01415994, -0.16618452, -0.26646112],
+                [2.16092311, 0.62531989, 0.16770327],
+            ]
         )
-        mat_rank_correct = gs.array([[1, 2, 3],
-             [2, 4, 6],
-             [6, 12, 18],
-             [7, 3, 1]])
+        mat_rank_correct = gs.array([[1, 2, 3], [2, 4, 6], [6, 12, 18], [7, 3, 1]])
         result = fr.belongs(mat_full_r)
         expected = False
         self.assertAllClose(result, expected)
