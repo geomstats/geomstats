@@ -5,6 +5,7 @@ import scipy.linalg
 import torch
 from . import logm
 
+
 def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
