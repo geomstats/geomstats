@@ -78,8 +78,8 @@ DTYPES = {
     float64: 3,
     complex32: 4,
     complex64: 5,
-    complex128: 6
-  }
+    complex128: 6,
+}
 
 
 atol = pytorch_atol
@@ -119,9 +119,11 @@ tan = _box_scalar(tan)
 def comb(n, k):
     return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
 
+
 def matmul(x, y, *, out=None):
-  x, y = convert_to_wider_dtype([x, y])
-  return torch.matmul(x, y, out=out)
+    x, y = convert_to_wider_dtype([x, y])
+    return torch.matmul(x, y, out=out)
+
 
 def to_numpy(x):
     return x.numpy()
