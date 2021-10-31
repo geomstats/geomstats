@@ -1,3 +1,8 @@
+"""
+Pytorch Differentiable Matrix Logarithm
+Implementation based on:
+https://github.com/pytorch/pytorch/issues/9983#issuecomment-891777620
+"""
 import torch
 from ..numpy import linalg as nplinalg
 
