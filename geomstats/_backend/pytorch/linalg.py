@@ -3,14 +3,44 @@
 import numpy as np
 import scipy.linalg
 import torch
-from . import logm
+from .. import numpy as gsnp
 
 
 def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 
-logm = logm.logm
+def _adjoint(tensor, grad, function):
+    vectorized = tensor.ndim == 3
+    axes = (0, 2, 1) if vectorized else (1, 0)
+    tensor_H = tensor.permute(axes).conj().to(grad.dtype)
+    n = tensor.size(-1)
+    bshape = tensor.shape[:-2] + (2 * n, 2 * n)
+    backward_tensor = torch.zeros(*bshape, dtype=grad.dtype, device=grad.device)
+    backward_tensor[..., :n, :n] = tensor_H
+    backward_tensor[..., n:, n:] = tensor_H
+    backward_tensor[..., :n, n:] = grad
+    return function(backward_tensor).to(tensor.dtype)[..., :n, n:]
+
+
+def _logm_geomstats(x):
+    return torch.from_numpy(gsnp.linalg.logm(x.cpu())).to(x.device)
+
+
+class Logm(torch.autograd.Function):
+    # Implementation based on:
+    # https://github.com/pytorch/pytorch/issues/9983#issuecomment-891777620
+    @staticmethod
+    def forward(ctx, tensor):
+        ctx.save_for_backward(tensor)
+        return _logm_geomstats(tensor)
+
+    @staticmethod
+    def backward(ctx, grad):
+        (tensor,) = ctx.saved_tensors
+        return _adjoint(tensor, grad, _logm_geomstats)
+
+
 eig = torch.linalg.eig
 eigvalsh = torch.linalg.eigvalsh
 expm = torch.matrix_exp
@@ -18,6 +48,7 @@ inv = torch.inverse
 det = torch.det
 solve = torch.linalg.solve
 qr = torch.linalg.qr
+logm = Logm.apply
 
 
 def cholesky(a):
