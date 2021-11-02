@@ -3,7 +3,7 @@
 import numpy as np
 import scipy.linalg
 import torch
-from .. import numpy as gsnp
+from ..numpy import linalg as gsnplinalg
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -24,7 +24,7 @@ def _adjoint(tensor, grad, function):
 
 
 def _logm_geomstats(x):
-    return torch.from_numpy(gsnp.linalg.logm(x.cpu())).to(x.device)
+    return torch.from_numpy(gsnplinalg.logm(x.cpu())).to(x.device)
 
 
 class Logm(torch.autograd.Function):
