@@ -28,8 +28,11 @@ def _logm_geomstats(x):
 
 
 class Logm(torch.autograd.Function):
-    # Implementation based on:
-    # https://github.com/pytorch/pytorch/issues/9983#issuecomment-891777620
+    """
+    Torch autograd function for matrix logarithm.
+    Implementation based on:
+    https://github.com/pytorch/pytorch/issues/9983#issuecomment-891777620
+    """
     @staticmethod
     def forward(ctx, tensor):
         ctx.save_for_backward(tensor)
