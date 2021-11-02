@@ -75,9 +75,8 @@ DTYPES = {
     int64: 1,
     float32: 2,
     float64: 3,
-    complex32: 4,
-    complex64: 5,
-    complex128: 6,
+    complex64: 4,
+    complex128: 5,
 }
 
 

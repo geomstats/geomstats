@@ -114,6 +114,8 @@ DTYPES = {
     ndtype("int64"): 1,
     ndtype("float32"): 2,
     ndtype("float64"): 3,
+    ndtype("complex64"): 4,
+    ndtype("complex128"): 5,
 }
 
 
