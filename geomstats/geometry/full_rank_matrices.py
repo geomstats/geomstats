@@ -1,4 +1,4 @@
-"""Module exposing the full rank euclidean matrices"""
+"""Module exposing the full rank Euclidean matrices `math:`R_*^{m\times n}`"""
 
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
@@ -7,13 +7,13 @@ from geomstats.geometry.matrices import MatricesMetric
 
 
 class FullRankMatrices(OpenSet):
-    """Class for the matrices with euclidean entries and full rank.
+    r"""Class for `math:`R_*^{m\times n}` matrices of dimension m x n and full rank.
 
     Parameters
     ----------
-    n : int
-        Integer representing the shape of the matrices: m x n
     m : int
+        Integer representing the shape of the matrices: m x n
+    n : int
         Integer representing the shape of the matrices: m x n
     """
 
@@ -26,7 +26,7 @@ class FullRankMatrices(OpenSet):
         self.rank = min(m, n)
 
     def belongs(self, point, atol=gs.atol):
-        r"""Check if the matrix belongs to R_*^m*n, i.e. is full rank.
+        r"""Check if the matrix belongs to `math:`R_*^{m\times n}`.
 
         Parameters
         ----------
@@ -35,7 +35,7 @@ class FullRankMatrices(OpenSet):
 
         Returns
         -------
-        belongs : Boolean denoting if point is in R_*^m*n
+        belongs : Boolean denoting if point is in `math:`R_*^{m\times n}`
         """
         has_right_size = self.ambient_space.belongs(point)
         has_right_rank = gs.where(
@@ -45,7 +45,7 @@ class FullRankMatrices(OpenSet):
         return belongs
 
     def projection(self, point):
-        """Project a matrix to the set of full rank matrices.
+        r"""Project a matrix to the set of full rank matrices.
 
         As the space of full rank matrices is dense in the space of matrices,
         this is not a projection per se, but a regularization if the matrix input X
@@ -72,7 +72,7 @@ class FullRankMatrices(OpenSet):
         return projected
 
     def random_point(self, n_samples=1, bound=1.0, n_iter=100):
-        """Sample in R_*^m*n from the uniform distribution.
+        r"""Sample in `math:`R_*^{m\times n}` from a normal distribution.
 
         Parameters
         ----------
@@ -89,17 +89,16 @@ class FullRankMatrices(OpenSet):
         Returns
         -------
         samples : array-like, shape=[..., m, n]
-            Point sampled on R_*^m*n
+            Point sampled on `math:`R_*^{m\times n}`
         """
         m = self.ambient_space.shape[0]
         n = self.ambient_space.shape[1]
         sample = []
         n_accepted, iteration = 0, 0
-        criterion_func = lambda x: x == self.rank
         while n_accepted < n_samples and iteration < n_iter:
             raw_samples = gs.random.normal(size=(n_samples - n_accepted, m, n))
             ranks = gs.linalg.matrix_rank(raw_samples)
-            selected = criterion_func(ranks)
+            selected = ranks == self.rank
             sample.append(raw_samples[selected])
             n_accepted += gs.sum(selected)
             iteration += 1
