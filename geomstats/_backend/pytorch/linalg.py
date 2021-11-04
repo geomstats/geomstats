@@ -10,7 +10,6 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 
 eig = _raise_not_implemented_error
-eigvalsh = torch.linalg.eigvalsh
 expm = torch.matrix_exp
 logm = _raise_not_implemented_error
 inv = torch.inverse
@@ -19,7 +18,7 @@ solve = torch.linalg.solve
 
 
 def cholesky(a):
-    return torch.linalg.cholesky(a, upper=False)
+    return torch.cholesky(a, upper=False)
 
 
 def sqrtm(x):
@@ -27,11 +26,15 @@ def sqrtm(x):
     return torch.as_tensor(np_sqrtm, dtype=x.dtype)
 
 
-def eigh(*args, **kwargs):
+def eigvalsh(a, **kwargs):
     upper = False
     if "UPLO" in kwargs:
         upper = kwargs["UPLO"] == "U"
-    eigvals, eigvecs = torch.linalg.eigh(*args, UPLO="U" if upper else "L")
+    return torch.symeig(a, eigenvectors=False, upper=upper)[0]
+
+
+def eigh(*args, **kwargs):
+    eigvals, eigvecs = torch.symeig(*args, eigenvectors=True, **kwargs)
     return eigvals, eigvecs
 
 
@@ -48,6 +51,10 @@ def norm(x, ord=None, axis=None):
     if axis is None:
         return torch.linalg.norm(x, ord=ord)
     return torch.linalg.norm(x, ord=ord, dim=axis)
+
+
+def matrix_rank(a, hermitian=False,**_unused_kwargs):
+    return torch.linalg.matrix_rank(a, hermitian)
 
 
 def solve_sylvester(a, b, q):
