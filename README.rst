@@ -19,6 +19,8 @@ Geomstats
 
 **NEWS**:
 
+- Geomstats is recruiting an engineer for a start early 2022! If interested, details can be found `here  <https://gstats.inria.fr/files/2021/10/Research_engineer_gs-1.pdf>`_.
+
 - The white paper summarizing the findings from our `ICLR 2021 challenge of computational differential geometry and topology <https://gt-rl.github.io/challenge>`__ is out. `Read it here <https://arxiv.org/abs/2108.09810>`__.
 
 - Check out our new  `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_ module.
