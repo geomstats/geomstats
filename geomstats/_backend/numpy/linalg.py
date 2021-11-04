@@ -2,7 +2,7 @@
 
 import numpy as np
 import scipy.linalg
-from numpy.linalg import (  # NOQA
+from numpy.linalg import (
     cholesky,
     det,
     eig,
@@ -10,9 +10,10 @@ from numpy.linalg import (  # NOQA
     eigvalsh,
     inv,
     norm,
-    solve,
     svd,
-)
+    matrix_rank,
+    solve,
+)  # NOQA
 
 from .common import to_ndarray
 
