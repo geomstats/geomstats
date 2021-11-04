@@ -38,7 +38,9 @@ class FullRankMatrices(OpenSet):
         belongs : Boolean denoting if point is in R_*^m*n
         """
         has_right_size = self.ambient_space.belongs(point)
-        has_right_rank = gs.where(gs.linalg.matrix_rank(point) == self.rank, True, False)
+        has_right_rank = gs.where(
+            gs.linalg.matrix_rank(point) == self.rank, True, False
+        )
         belongs = gs.logical_and(has_right_rank, has_right_size)
         return belongs
 
