@@ -14,7 +14,6 @@ from autograd.numpy.linalg import (  # NOQA
     norm,
     solve,
     svd,
-    solve,
     matrix_rank,
 )
 
