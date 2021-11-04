@@ -48,6 +48,6 @@ class TestFullRankMatrices(geomstats.tests.TestCase):
 
     def test_random_and_belongs(self):
         """Test of random point sampling method."""
-        mat = self.space.random_point()
+        mat = self.space.random_point(5)
         result = self.space.belongs(mat)
-        self.assertTrue(result)
+        self.assertTrue(gs.all(result))
