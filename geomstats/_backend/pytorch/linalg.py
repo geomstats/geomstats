@@ -53,7 +53,7 @@ def norm(x, ord=None, axis=None):
     return torch.linalg.norm(x, ord=ord, dim=axis)
 
 
-def matrix_rank(a, hermitian=False,**_unused_kwargs):
+def matrix_rank(a, hermitian=False, **_unused_kwargs):
     return torch.linalg.matrix_rank(a, hermitian)
 
 
