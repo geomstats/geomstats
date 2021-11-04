@@ -1,4 +1,4 @@
-"""Module exposing the full rank Euclidean matrices `math:`R_*^{m\times n}`"""
+r"""Module exposing the full rank Euclidean matrices `math:`R_*^{m\times n}`"""
 
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
