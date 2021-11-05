@@ -30,7 +30,7 @@ class TestFullRankMatrices(geomstats.tests.TestCase):
                 [-1.13933855, -0.64971248],
             ]
         )
-        mat_not_fr = gs.array([[1.0, 2.0], [2.0, 4.0], [6.0, 12.0]])
+        mat_not_fr = gs.array([[1.0, -1.0], [1.0, -1.0], [0.0, 0.0]])
         result = fr.belongs(mat_fr)
         self.assertTrue(result)
         result = fr.belongs(mat_not_fr)
