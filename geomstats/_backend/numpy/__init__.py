@@ -95,6 +95,7 @@ from numpy import (
     tril_indices,
     triu_indices,
     uint8,
+    unique,
     vstack,
     where,
     zeros,
