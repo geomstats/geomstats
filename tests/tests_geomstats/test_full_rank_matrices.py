@@ -32,12 +32,9 @@ class TestFullRankMatrices(geomstats.tests.TestCase):
         )
         mat_not_fr = gs.array([[1.0, 2.0], [2.0, 4.0], [6.0, 12.0]])
         result = fr.belongs(mat_fr)
-        expected = True
-        self.assertTrue(result, expected)
-
+        self.assertTrue(result)
         result = fr.belongs(mat_not_fr)
-        expected = False
-        self.assertTrue(result, expected)
+        self.assertFalse(result)
 
     def test_projection_and_belongs(self):
         """Test of projection method."""
