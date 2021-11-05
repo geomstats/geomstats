@@ -41,9 +41,9 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
             SPDMetricAffine(n=2), n_classes, point_type="matrix"
         )
 
-        bary_a = gs.array([[EULER, 0], [0, 1]])
-        bary_b = gs.array([[EULER ** 4, 0], [0, 1]])
-        train_data = gs.concatenate([[bary_a], [bary_b]])
+        bary_a = gs.array([[EULER, 0], [0, 1]])[None, ...]
+        bary_b = gs.array([[EULER ** 4, 0], [0, 1]])[None, ...]
+        train_data = gs.concatenate([bary_a, bary_b])
         train_labels = gs.array([17, 42])
         MDMEstimator.fit(train_data, train_labels)
 
@@ -60,9 +60,9 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
             SPDMetricAffine(n=2), n_classes, point_type="matrix"
         )
 
-        bary_a = gs.array([[EULER, 0], [0, 1]])
-        bary_b = gs.array([[EULER ** 4, 0], [0, 1]])
-        train_data = gs.concatenate([[bary_a], [bary_b]])
+        bary_a = gs.array([[EULER, 0], [0, 1]])[None, ...]
+        bary_b = gs.array([[EULER ** 4, 0], [0, 1]])[None, ...]
+        train_data = gs.concatenate([bary_a, bary_b])
         train_labels = gs.array([-1, 1])
         MDMEstimator.fit(train_data, train_labels)
 
