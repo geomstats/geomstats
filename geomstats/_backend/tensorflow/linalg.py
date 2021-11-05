@@ -39,7 +39,7 @@ def logm(x):
 
 
 def matrix_rank(a, **_unused_kwargs):
-    return tf.rank(a)
+    return tf.linalg.matrix_rank(a)
 
 
 def svd(x, full_matrices=True, compute_uv=True, **kwargs):
