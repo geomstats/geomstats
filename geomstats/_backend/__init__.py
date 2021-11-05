@@ -117,6 +117,7 @@ BACKEND_ATTRIBUTES = {
         "tril_indices",
         "triu_indices",
         "triu_to_vec",
+        "unique",
         "vectorize",
         "vstack",
         "where",

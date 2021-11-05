@@ -58,6 +58,7 @@ from tensorflow import (
     tan,
     tanh,
     uint8,
+    unique,
     zeros,
     zeros_like,
 )

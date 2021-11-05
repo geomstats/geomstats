@@ -58,6 +58,7 @@ from torch import (
     tanh,
     tril,
     uint8,
+    unique,
     vstack,
     zeros,
     zeros_like,
