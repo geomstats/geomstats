@@ -41,7 +41,7 @@ class FullRankMatrices(OpenSet):
         has_right_rank = gs.where(
             gs.linalg.matrix_rank(point) == self.rank, True, False
         )
-        belongs = gs.logical_and(has_right_rank, has_right_size)
+        belongs = gs.logical_and(gs.array(has_right_size), has_right_rank)
         return belongs
 
     def projection(self, point):
