@@ -16,7 +16,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
     Parameters
     ----------
     riemannian_metric : RiemannianMetric
-        Riemannian metric to be Used.
+        Riemannian metric to be used.
     n_classes: int
         Number of classes.
     point_type : str, {\'vector\', \'matrix\'}
@@ -26,9 +26,9 @@ class RiemannianMinimumDistanceToMeanClassifier:
     Attributes
     ----------
     mean_estimates_ : list
-        Centroids.
+        If fit, centroids computed on training set.
     classes_ : list
-        Classes.
+        If fit, classes of training set.
 
     References
     ----------
@@ -42,6 +42,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
         self.n_classes = n_classes
         self.point_type = point_type
         self.mean_estimates_ = None
+        self.classes_ = None
 
     def fit(self, X, y):
         """Compute Frechet mean of each class.
@@ -68,8 +69,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
         self.mean_estimates_ = gs.array(frechet_means)
 
     def predict(self, X):
-        """
-        Compute closest neighbor according to riemannian_metric.
+        """Compute closest neighbor according to riemannian_metric.
 
         Parameters
         ----------
