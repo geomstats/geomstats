@@ -75,7 +75,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
         ----------
         X : array-like, shape=[n_samples, dim]
                               if point_type='vector'
-                              shape=[n_samples, n , n]
+                              shape=[n_samples, n, n]
                               if point_type='matrix'
             Test data, where n_samples is the number of samples
             and n_features is the number of features.
@@ -102,7 +102,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
         ----------
         X : array-like, shape=[n_samples, dim]
                               if point_type='vector'
-                              shape=[n_samples, n , n]
+                              shape=[n_samples, n, n]
                               if point_type='matrix'
             Test data, where n_samples is the number of samples
             and n_features is the number of features.
