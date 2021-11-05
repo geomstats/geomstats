@@ -24,7 +24,7 @@ def _adjoint(tensor, grad, function):
 
 
 def _logm_geomstats(x):
-    return torch.from_numpy(gsnplinalg.logm(x.cpu())).to(x.device)
+    return torch.from_numpy(gsnplinalg.logm(x.detach().cpu())).to(x.device)
 
 
 class Logm(torch.autograd.Function):
