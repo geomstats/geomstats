@@ -115,6 +115,7 @@ def _default_gradient_descent(
 
     while iteration < max_iter:
         logs = metric.log(point=points, base_point=mean)
+        weights, logs = gs.convert_to_wider_dtype([weights, logs])
 
         var = gs.sum(metric.squared_norm(logs, mean) * weights) / gs.sum(weights)
 
@@ -125,7 +126,7 @@ def _default_gradient_descent(
         sq_dist = metric.squared_norm(tangent_mean, mean)
         sq_dists_between_iterates.append(sq_dist)
 
-        var_is_0 = gs.isclose(var, 0.0)
+        var_is_0 = gs.isclose(var, gs.array(0.0, dtype=var.dtype))
         sq_dist_is_small = gs.less_equal(sq_dist, epsilon * metric.dim)
         condition = ~gs.logical_or(var_is_0, sq_dist_is_small)
         if not (condition or iteration == 0):
