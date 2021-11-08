@@ -58,7 +58,6 @@ from tensorflow import (
     tan,
     tanh,
     uint8,
-    unique,
     zeros,
     zeros_like,
 )
@@ -778,6 +777,10 @@ def tril_indices(*args, **kwargs):
 
 def triu_indices(*args, **kwargs):
     return tuple(map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
+
+
+def unique(x):
+    return tf.unique(x).y
 
 
 def where(condition, x=None, y=None):
