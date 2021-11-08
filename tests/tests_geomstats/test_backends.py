@@ -946,3 +946,9 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.prod(vec)
         expected = gs.cumprod(vec)[-1]
         self.assertAllClose(result, expected)
+
+    def test_unique(self):
+        vec = gs.array([0, -1, 1, 1, 0, -1])
+        result = gs.unique(vec)
+        expected = gs.array([-1, 0, 1])
+        self.assertAllClose(result, expected)
