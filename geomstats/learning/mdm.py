@@ -64,7 +64,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
         )
         frechet_means = []
         for c in self.classes_:
-            X_c = X[gs.where(y == c)]
+            X_c = X[gs.where(y == c)[0]]
             frechet_means.append(mean_estimator.fit(X_c).estimate_)
         self.mean_estimates_ = gs.array(frechet_means)
 
