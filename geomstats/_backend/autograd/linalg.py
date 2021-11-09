@@ -11,10 +11,10 @@ from autograd.numpy.linalg import (  # NOQA
     eigh,
     eigvalsh,
     inv,
+    matrix_rank,
     norm,
     solve,
     svd,
-    matrix_rank,
 )
 
 from .common import to_ndarray
