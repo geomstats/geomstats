@@ -885,6 +885,47 @@ class SPDMetricEuclidean(RiemannianMetric):
 
         return domain
 
+    def exp(self, tangent_vec, base_point, **kwargs):
+        """Compute the Euclidean exponential map.
+
+        Compute the Euclidean exponential at point base_point
+        of tangent vector tangent_vec.
+        This gives a symmetric positive definite matrix.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., n, n]
+            Euclidean exponential.
+        """
+        return tangent_vec + base_point
+
+    def log(self, point, base_point, **kwargs):
+        """Compute the Euclidean logarithm map.
+
+        Compute the Euclidean logarithm at point base_point, of point.
+        This gives a tangent vector at point base_point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        log : array-like, shape=[..., n, n]
+            Euclidean logarithm.
+        """
+        return point - base_point
+
 
 class SPDMetricLogEuclidean(RiemannianMetric):
     """Class for the Log-Euclidean metric on the SPD manifold.

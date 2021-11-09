@@ -293,6 +293,18 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    def test_log_and_exp_euclidean(self):
+        """Test of SPDMetricEuclidean.log and exp methods."""
+        base_point = gs.array([[5.0, 0.0, 0.0], [0.0, 7.0, 2.0], [0.0, 2.0, 8.0]])
+        point = gs.array([[9.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 1.0]])
+
+        metric = self.metric_euclidean
+        log = metric.log(point=point, base_point=base_point)
+        result = metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+
+        self.assertAllClose(result, expected)
+
     def test_exp_and_belongs(self):
         """Test of SPDMetricAffine.exp with power=1 and belongs methods."""
         n_samples = self.n_samples
