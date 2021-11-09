@@ -15,8 +15,9 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
 class RankKPSDMatrices(Manifold):
-    r"""Class for the manifold of symmetric positive definite (PSD)
-    matrices of rank k: PSD(n,k).
+    r"""Class for PSD(n,k).
+
+    The manifold of symmetric positive definite (PSD) matrices of rank k.
 
     Parameters
     ----------
@@ -25,25 +26,19 @@ class RankKPSDMatrices(Manifold):
     k: int
         Integer representing the rank of the matrix (k<n).
     """
-
     def __init__(
         self,
         n,
         k,
         **kwargs
     ):
-        super(RankKPSDMatrices, self).__init__(**kwargs)
+        super(RankKPSDMatrices, self).__init__(**kwargs, dim=int(k * n - k * (k + 1) / 2))
         self.n = n
-        self.dim = int(k * n - k * (k + 1) / 2)
-        self.default_point_type = default_point_type
-        self.default_coords_type = default_coords_type
-        self.metric = metric
         self.rank = k
         self.sym = SymmetricMatrices(self.n)
 
     def belongs(self, mat, atol=gs.atol):
-        r"""Check if a matrix is symmetric with k positive eigenvalues
-        and with n-k zero eigenvalues.
+        r"""Check if the matrix belongs to the space.
 
         Parameters
         ----------
@@ -58,7 +53,6 @@ class RankKPSDMatrices(Manifold):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an SPD matrix.
         """
-
         is_symmetric = self.sym.belongs(mat, atol)
         eigvalues = gs.linalg.eigvalsh(mat)
         is_semipositive = gs.all(eigvalues > -atol, axis=-1)
@@ -70,6 +64,7 @@ class RankKPSDMatrices(Manifold):
 
     def projection(self, point):
         r"""Project a matrix to the space of PSD matrices of rank k.
+
         First the symmetric part of point is computed,
         then the matrix is multiplied by the I_\epsilon matrix.
 
@@ -83,7 +78,6 @@ class RankKPSDMatrices(Manifold):
         projected: array-like, shape=[..., n, n]
             PSD matrix rank k.
         """
-
         sym = self.sym.projection(point)
         u, s, vh = gs.linalg.svd(sym, full_matrices=False)
         s[..., self.rank: self.n] = 0
@@ -91,9 +85,7 @@ class RankKPSDMatrices(Manifold):
         return gs.matmul(u, (s + i)[..., None] * vh)
 
     def random_point(self, n_samples=1, bound=1.0):
-        r"""Sample in PSD(n,k) from the log-uniform distribution
-        of SPD matrices and then projecting onto the space with
-        the projection function.
+        r"""Sample in PSD(n,k) from the log-uniform distribution.
 
         Parameters
         ----------
@@ -116,8 +108,7 @@ class RankKPSDMatrices(Manifold):
         return self.projection(spd_mat)
 
     def is_tangent(self, vector, base_point):
-        r"""Check if the vector belongs to the tangent space
-        at the input point.
+        r"""Check if the vector belongs to the tangent space.
 
         Parameters
         ----------
@@ -133,7 +124,6 @@ class RankKPSDMatrices(Manifold):
             Boolean denoting if vector belongs to tangent space
             at base_point.
         """
-
         vector_sym = Matrices(self.n, self.n).to_symmetric(vector)
 
         _, r = gs.linalg.eigh(base_point)
@@ -151,8 +141,7 @@ class RankKPSDMatrices(Manifold):
         return result
 
     def to_tangent(self, vector, base_point):
-        r"""Project the input vector to the tangent space of PSD(n,k)
-        at base_point.
+        r"""Project to the tangent space of PSD(n,k) at base_point.
 
         Parameters
         ----------
@@ -167,9 +156,8 @@ class RankKPSDMatrices(Manifold):
         tangent : array-like, shape=[...,n,n]
             Projection of the tangent vector at base_point.
         """
-
         vector_sym = Matrices(self.n, self.n).to_symmetric(vector)
-        delta, r = gs.linalg.eigh(base_point)
+        _, r = gs.linalg.eigh(base_point)
         r_ort = r[..., :, self.n - self.rank: self.n]
         r_ort_t = Matrices.transpose(r_ort)
 
@@ -188,12 +176,13 @@ PSDMetricAffine = SPDMetricAffine
 
 
 class PSDMatrices(RankKPSDMatrices, SPDMatrices):
-    r"""Class for the psd matrices. The class is redirecting to
-    the correct embedding manifold.
+    r"""Class for the psd matrices.
 
-    The stratum PSD rank k if the matrix is not full rank
-    The top stratum SPD if the matrix is full rank
-    The whole stratified space of PSD if no rank is specified
+    The class is redirecting to the correct embedding manifold.
+
+    The stratum PSD rank k if the matrix is not full rank.
+    The top stratum SPD if the matrix is full rank.
+    The whole stratified space of PSD if no rank is specified.
 
     Parameters
     ----------
@@ -202,7 +191,6 @@ class PSDMatrices(RankKPSDMatrices, SPDMatrices):
     k : int
         Integer representing the shapes of the matrices : n x n.
     """
-
     def __new__(
         cls,
         n,
@@ -211,5 +199,5 @@ class PSDMatrices(RankKPSDMatrices, SPDMatrices):
     ):
         if n > k:
             return RankKPSDMatrices(n, k, **kwargs)
-        elif n == k:
+        else:
             return SPDMatrices(n, **kwargs)
