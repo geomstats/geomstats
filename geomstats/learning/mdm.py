@@ -86,13 +86,13 @@ class RiemannianMinimumDistanceToMeanClassifier:
             Predicted labels.
         """
         n_samples = X.shape[0]
-        y = gs.zeros(n_samples)
+        y = []
         for i in range(n_samples):
             index = self.riemannian_metric.closest_neighbor_index(
                 X[i], self.mean_estimates_
             )
-            y[i] = self.classes_[index]
-        return y
+            y.append(self.classes_[index])
+        return gs.array(y)
 
     def score(self, X, y, weights=None):
         """Compute score on the given test data and labels.
