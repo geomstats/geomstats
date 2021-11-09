@@ -6,19 +6,30 @@ from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 
 
-class SpecialLinearMatrices(MatrixLieGroup):
+class SpecialLinear(MatrixLieGroup):
+    """Class for the Special Linear group SL(n).
+
+    This is the space of invertible matrices of size n and unit determinant.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
+    """
     
     def __init__(self, n):
-        super(SpecialLinearMatrices, self).__init__(
+        super(SpecialLinear, self).__init__(
             dim=int((n * (n - 1)) / 2),
             n=n,
-            lie_algebra=SpecialLinearMatrices(n=n),
+            lie_algebra=SpecialLinearLieAlgebra(n=n),
         )
 
         self.metric = InvariantMetric(self)
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the group.
+
+        Check the size and the value of the determinant.
 
         Parameters
         ----------
@@ -37,6 +48,9 @@ class SpecialLinearMatrices(MatrixLieGroup):
 
     def projection(self, point):
         """Project a point in embedding space to the group.
+
+        This can be done by scaling the entire matrix by its determinant to
+        the power 1/n.
 
         Parameters
         ----------
@@ -76,16 +90,28 @@ class SpecialLinearMatrices(MatrixLieGroup):
         pass
 
 
-class SpecialLinearMatrixLieAlgebra(MatrixLieAlgebra):
+class SpecialLinearLieAlgebra(MatrixLieAlgebra):
+    """Class for the Lie algebra sl(n) of the Special Linear group.
+
+    This is the space of matrices of size n with vanishing trace.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
+    """
 
     def __init__(self, n):
-        super(SpecialLinearMatrixLieAlgebra, self).__init__(
+        super(SpecialLinearLieAlgebra, self).__init__(
             dim=int((n * (n - 1)) / 2),
             n=n,
         )
 
     def basis_representation(self, matrix_representation):
         """Compute the coefficients of matrices in the given basis.
+
+        Assume the basis is the one described in this answer on StackOverflow:
+        https://math.stackexchange.com/a/1949395/920836
 
         Parameters
         ----------
@@ -120,6 +146,8 @@ class SpecialLinearMatrixLieAlgebra(MatrixLieAlgebra):
 
     def projection(self, point):
         """Project a point to the Lie algebra.
+
+        This can be done by removing the trace in the first entry of the matrix.
 
         Parameters
         ----------
