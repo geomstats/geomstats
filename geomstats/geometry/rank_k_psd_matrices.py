@@ -15,7 +15,6 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
 class RankKPSDMatrices(Manifold):
-
     r"""Class for PSD(n,k).
 
     The manifold of symmetric positive definite (PSD) matrices of rank k.
@@ -178,11 +177,9 @@ PSDMetricAffine = SPDMetricAffine
 
 
 class PSDMatrices(RankKPSDMatrices, SPDMatrices):
-
     r"""Class for the psd matrices.
 
     The class is redirecting to the correct embedding manifold.
-
     The stratum PSD rank k if the matrix is not full rank.
     The top stratum SPD if the matrix is full rank.
     The whole stratified space of PSD if no rank is specified.
@@ -204,5 +201,4 @@ class PSDMatrices(RankKPSDMatrices, SPDMatrices):
             return RankKPSDMatrices(n, k, **kwargs)
         if n == k:
             return SPDMatrices(n, **kwargs)
-        else:
-            raise NotImplementedError('The PSD matrices is not implemented yet')
+        raise NotImplementedError('The PSD matrices is not implemented yet')
