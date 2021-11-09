@@ -137,7 +137,7 @@ class VectorSpace(Manifold, abc.ABC):
         if n_samples != 1:
             size = (n_samples,) + self.shape
         point = bound * (gs.random.rand(*size) - 0.5) * 2
-        return point
+        return self.projection(point)
 
 
 class EmbeddedManifold(Manifold, abc.ABC):
