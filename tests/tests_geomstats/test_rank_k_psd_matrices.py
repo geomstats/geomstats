@@ -45,10 +45,10 @@ class TestPSDMatricesRankK(geomstats.tests.TestCase):
 
     def test_projection_and_belongs(self):
         r"""Test the projection and the belongs methods."""
-        shape = (2, self.n, self.n)
-        result = helper.test_projection_and_belongs(self.space, shape)
-        for res in result:
-            self.assertTrue(res)
+        points = self.sym.random_point(3)
+        proj_points = self.space.projection(points)
+        result = self.space.belongs(proj_points)
+        self.assertTrue(gs.all(result))
 
     def test_random_and_belongs(self):
         r"""Test the random and the belongs methods."""
