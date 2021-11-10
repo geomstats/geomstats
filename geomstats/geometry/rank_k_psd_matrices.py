@@ -79,11 +79,15 @@ class RankKPSDMatrices(Manifold):
         projected: array-like, shape=[..., n, n]
             PSD matrix rank k.
         """
-        sym = self.sym.projection(point)
-        u, s, vh = gs.linalg.svd(sym, full_matrices=False)
-        s[..., self.rank: self.n] = 0
-        i = [gs.atol] * self.rank + [0] * (self.n - self.rank)
-        return gs.matmul(u, (s + i)[..., None] * vh)
+
+        sym = Matrices.to_symmetric(point)
+        _, s, v = gs.linalg.svd(sym)
+        h = gs.matmul(Matrices.transpose(v), s[..., None] * v)
+        sym_proj = (sym + h) / 2
+        u, d, vh = gs.linalg.svd(sym_proj)
+        d[..., self.rank: self.n] = 0
+        i = gs.array([gs.atol] * self.rank + [0] * (self.n - self.rank))
+        return gs.matmul(u, (d + i)[..., None] * vh)
 
     def random_point(self, n_samples=1, bound=1.0):
         r"""Sample in PSD(n,k) from the log-uniform distribution.
