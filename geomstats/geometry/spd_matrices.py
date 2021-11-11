@@ -904,7 +904,13 @@ class SPDMetricEuclidean(RiemannianMetric):
         exp : array-like, shape=[..., n, n]
             Euclidean exponential.
         """
-        return tangent_vec + base_point
+        power_euclidean = self.power_euclidean
+
+        if power_euclidean == 1:
+            exp = tangent_vec + base_point
+        else:
+            exp = 1  # TODO
+        return exp
 
     def log(self, point, base_point, **kwargs):
         """Compute the Euclidean logarithm map.
@@ -924,7 +930,13 @@ class SPDMetricEuclidean(RiemannianMetric):
         log : array-like, shape=[..., n, n]
             Euclidean logarithm.
         """
-        return point - base_point
+        power_euclidean = self.power_euclidean
+
+        if power_euclidean == 1:
+            log = point - base_point
+        else:
+            log = 1  # TODO
+        return log
 
 
 class SPDMetricLogEuclidean(RiemannianMetric):
