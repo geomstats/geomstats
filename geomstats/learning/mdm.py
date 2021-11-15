@@ -1,5 +1,6 @@
 """The MDM classifier on manifolds."""
 
+from scipy.special import softmax
 from sklearn.metrics import accuracy_score
 import geomstats.backend as gs
 from geomstats.learning.frechet_mean import FrechetMean
@@ -17,7 +18,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
     ----------
     riemannian_metric : RiemannianMetric
         Riemannian metric to be used.
-    n_classes: int
+    n_classes : int
         Number of classes.
     point_type : str, {\'vector\', \'matrix\'}
         Point type.
@@ -93,6 +94,31 @@ class RiemannianMinimumDistanceToMeanClassifier:
             )
             y.append(self.classes_[index])
         return gs.array(y)
+
+    def predict_proba(self, X):
+        """Compute probabilities to belong to classes according to
+        riemannian_metric.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_samples, dim]
+                              if point_type='vector'
+                              shape=[n_samples, n, n]
+                              if point_type='matrix'
+            Test data, where n_samples is the number of samples
+            and n_features is the number of features.
+
+        Returns
+        -------
+        probas : array-like, shape=[n_samples, n_classes]
+            Probability of the sample for each class in the model.
+        """
+        n_samples = X.shape[0]
+        probas = []
+        for i in range(n_samples):
+            dists = self.riemannian_metric.dist(X[i], self.mean_estimates_)
+            probas.append(softmax(-dists ** 2))
+        return gs.array(probas)
 
     def score(self, X, y, weights=None):
         """Compute score on the given test data and labels.
