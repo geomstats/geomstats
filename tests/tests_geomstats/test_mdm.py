@@ -50,7 +50,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
 
     def test_predict_proba(self):
         """Test the predict_proba method."""
-        X_train_a = gs.array([[1, 0], [0, 1]])[None, ...]
+        X_train_a = gs.array([[1., 0], [0, 1]])[None, ...]
         X_train_b = gs.array([[EULER ** 10, 0], [0, 1]])[None, ...]
         X_train = gs.concatenate([X_train_a, X_train_b])
         y_train = gs.array([1, 2])
