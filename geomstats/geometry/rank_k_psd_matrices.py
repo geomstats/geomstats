@@ -18,7 +18,6 @@ class RankKPSDMatrices(Manifold):
     r"""Class for PSD(n,k).
 
     The manifold of symmetric positive definite (PSD) matrices of rank k.
-
     Parameters
     ----------
     n : int
@@ -85,15 +84,12 @@ class RankKPSDMatrices(Manifold):
         h = gs.matmul(Matrices.transpose(v), s[..., None] * v)
         sym_proj = (sym + h) / 2
         eigvals, eigvecs = gs.linalg.eigh(sym_proj)
-        #eigvals[..., 0: (self.n - self.rank)] = 0
-        i = gs.array([0] * (self.n - self.rank) + [2*gs.atol] * self.rank)
-        regularized = gs.assignment(eigvals, 0, gs.arange((self.n - self.rank)), axis=0) + i
+        i = gs.array([0] * (self.n - self.rank) + [2 * gs.atol] * self.rank)
+        regularized = gs.assignment(eigvals, 0, gs.arange((self.n - self.rank)),
+                                    axis=0) + i
         reconstruction = gs.einsum("...ij,...j->...ij", eigvecs, regularized)
+
         return Matrices.mul(reconstruction, Matrices.transpose(eigvecs))
-        #u, d, vh = gs.linalg.svd(sym_proj)
-        #d[..., self.rank: self.n] = 0
-        #i = gs.array([4*gs.atol] * self.rank + [0] * (self.n - self.rank))
-        #return gs.matmul(u, (d + i)[..., None] * vh)
 
     def random_point(self, n_samples=1, bound=1.0):
         r"""Sample in PSD(n,k) from the log-uniform distribution.
@@ -146,10 +142,7 @@ class RankKPSDMatrices(Manifold):
         )
 
         result = gs.where(gs.sum(gs.isclose(candidates, 0.0, gs.atol),
-            axis=(-2, -1)) < self.n*self.n, False, True)
-        #result = gs.where(gs.sum(gs.logical_and(
-        #    gs.less_equal(-gs.array(gs.atol), candidates), gs.greater(gs.array(gs.atol), candidates)),
-        #    axis=(-2, -1)) < self.n*self.n, False, True)
+                                 axis=(-2, -1)) < (self.n * self.n), False, True)
 
         return result
 
