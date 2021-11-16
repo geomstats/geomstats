@@ -116,8 +116,10 @@ class RiemannianMinimumDistanceToMeanClassifier:
         n_samples = X.shape[0]
         probas = []
         for i in range(n_samples):
-            dists = self.riemannian_metric.dist(X[i], self.mean_estimates_)
-            probas.append(softmax(-dists ** 2))
+            dist2 = self.riemannian_metric.squared_dist(
+                X[i], self.mean_estimates_
+            )
+            probas.append(softmax(-dist2))
         return gs.array(probas)
 
     def score(self, X, y, weights=None):

@@ -55,7 +55,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
         X_train = gs.concatenate([X_train_a, X_train_b])
         y_train = gs.array([1, 2])
 
-        X_test = gs.array([[[EULER, 0], [0, 1]], [[EULER ** 5, 0], [0, 1]]])
+        X_test = gs.array([[[1., 0], [0, 1]], [[EULER ** 5, 0], [0, 1]]])
         proba_expected = gs.array([[1.0, 0.0], [0.5, 0.5]])
 
         MDMEstimator = RiemannianMinimumDistanceToMeanClassifier(
