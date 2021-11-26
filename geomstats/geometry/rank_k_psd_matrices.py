@@ -18,6 +18,7 @@ class RankKPSDMatrices(Manifold):
     r"""Class for PSD(n,k).
 
     The manifold of symmetric positive definite (PSD) matrices of rank k.
+
     Parameters
     ----------
     n : int
@@ -65,8 +66,9 @@ class RankKPSDMatrices(Manifold):
     def projection(self, point):
         r"""Project a matrix to the space of PSD matrices of rank k.
 
-        First the symmetric part of point is computed,
-        then the matrix is multiplied by the I_\epsilon matrix.
+        First the symmetric part of point is computed. The method developed by Higham (1988)
+        is applied to turn the matrix into a PSD matrix. To impose the rank equal k
+        the matrix is multiplied by the :math`I_\epsilon` matrix.
 
         Parameters
         ----------
@@ -77,6 +79,11 @@ class RankKPSDMatrices(Manifold):
         -------
         projected: array-like, shape=[..., n, n]
             PSD matrix rank k.
+
+        Reference
+        ---------
+        Higham NJ. Computing a nearest symmetric positive semidefinite matrix.
+        Linear Algebra and its Applications. 1988; 103(C): 103-118.
         """
 
         sym = Matrices.to_symmetric(point)
@@ -136,14 +143,9 @@ class RankKPSDMatrices(Manifold):
         _, r = gs.linalg.eigh(base_point)
         r_ort = r[..., :, self.n - self.rank: self.n]
         r_ort_t = Matrices.transpose(r_ort)
-
-        candidates = gs.matmul(
-            gs.matmul(gs.matmul(r_ort, r_ort_t), vector_sym), gs.matmul(r_ort, r_ort_t)
-        )
-
-        result = gs.where(gs.sum(gs.isclose(candidates, 0.0, gs.atol),
-                                 axis=(-2, -1)) < (self.n * self.n), False, True)
-
+        rr = gs.matmul(r_ort, r_ort_t)
+        candidates = Matrices.mul(rr, vector_sym, rr)
+        result = gs.all(gs.isclose(candidates, 0., gs.atol), axis=(-2, -1))
         return result
 
     def to_tangent(self, vector, base_point):
@@ -166,11 +168,8 @@ class RankKPSDMatrices(Manifold):
         _, r = gs.linalg.eigh(base_point)
         r_ort = r[..., :, self.n - self.rank: self.n]
         r_ort_t = Matrices.transpose(r_ort)
-
-        return (vector_sym - gs.matmul(
-                gs.matmul(gs.matmul(r_ort, r_ort_t), vector_sym),
-                gs.matmul(r_ort, r_ort_t)))
-
+        rr = gs.matmul(r_ort, r_ort_t)
+        return (vector_sym - Matrices.mul(rr, vector_sym, rr))
 
 PSDMetricBuresWasserstein = SPDMetricBuresWasserstein
 
