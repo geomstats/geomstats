@@ -34,12 +34,10 @@ class TestPSDMatricesRankK(geomstats.tests.TestCase):
         )
         mat_psd_n_k = gs.array([[1.0, 1.0, 0], [1.0, 4.0, 0], [0, 0, 0]])
         result = psd_n_k.belongs(mat_not_psd_n_k)
-        expected = False
-        self.assertFalse(result, expected)
+        self.assertFalse(result)
 
         result = psd_n_k.belongs(mat_psd_n_k)
-        expected = True
-        self.assertTrue(result, expected)
+        self.assertTrue(result)
 
     def test_projection_and_belongs(self):
         r"""Test the projection and the belongs methods."""
