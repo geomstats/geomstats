@@ -3,11 +3,8 @@
 import numpy as np
 import scipy.linalg
 import torch
+
 from ..numpy import linalg as gsnplinalg
-
-
-def _raise_not_implemented_error(*args, **kwargs):
-    raise NotImplementedError
 
 
 def _adjoint(tensor, grad, function):
@@ -33,6 +30,7 @@ class Logm(torch.autograd.Function):
     Implementation based on:
     https://github.com/pytorch/pytorch/issues/9983#issuecomment-891777620
     """
+
     @staticmethod
     def forward(ctx, tensor):
         ctx.save_for_backward(tensor)
@@ -45,7 +43,6 @@ class Logm(torch.autograd.Function):
 
 
 eig = torch.linalg.eig
-eigvalsh = torch.linalg.eigvalsh
 expm = torch.matrix_exp
 inv = torch.inverse
 det = torch.det
@@ -61,13 +58,6 @@ def cholesky(a):
 def sqrtm(x):
     np_sqrtm = np.vectorize(scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
     return torch.as_tensor(np_sqrtm, dtype=x.dtype)
-
-
-def eigvalsh(a, **kwargs):
-    upper = False
-    if "UPLO" in kwargs:
-        upper = kwargs["UPLO"] == "U"
-    return torch.symeig(a, eigenvectors=False, upper=upper)[0]
 
 
 def eigh(*args, **kwargs):
