@@ -909,7 +909,12 @@ class SPDMetricEuclidean(RiemannianMetric):
         if power_euclidean == 1:
             exp = tangent_vec + base_point
         else:
-            exp = 1  # TODO
+            exp = SymmetricMatrices.powerm(
+                SymmetricMatrices.powerm(base_point, power_euclidean)
+                + SPDMatrices.differential_power(
+                    power_euclidean, tangent_vec, base_point),
+                1 / power_euclidean
+            )
         return exp
 
     def log(self, point, base_point, **kwargs):
@@ -935,7 +940,13 @@ class SPDMetricEuclidean(RiemannianMetric):
         if power_euclidean == 1:
             log = point - base_point
         else:
-            log = 1  # TODO
+            log = SPDMatrices.inverse_differential_power(
+                power_euclidean,
+                SymmetricMatrices.powerm(point, power_euclidean)
+                - SymmetricMatrices.powerm(base_point, power_euclidean),
+                base_point
+            )
+
         return log
 
 
