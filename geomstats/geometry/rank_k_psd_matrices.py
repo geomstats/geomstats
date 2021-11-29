@@ -66,9 +66,10 @@ class RankKPSDMatrices(Manifold):
     def projection(self, point):
         r"""Project a matrix to the space of PSD matrices of rank k.
 
-        First the symmetric part of point is computed. The method developed by Higham (1988)
-        is applied to turn the matrix into a PSD matrix. To impose the rank equal k
-        the matrix is multiplied by the :math`I_\epsilon` matrix.
+        First the symmetric part of point is computed. The method developed
+        by Higham (1988) is applied to turn the matrix into a PSD matrix.
+        To impose the rank equal k the matrix is multiplied by
+        the :math`I_\epsilon` matrix.
 
         Parameters
         ----------
@@ -85,7 +86,6 @@ class RankKPSDMatrices(Manifold):
         Higham NJ. Computing a nearest symmetric positive semidefinite matrix.
         Linear Algebra and its Applications. 1988; 103(C): 103-118.
         """
-
         sym = Matrices.to_symmetric(point)
         _, s, v = gs.linalg.svd(sym)
         h = gs.matmul(Matrices.transpose(v), s[..., None] * v)
@@ -169,7 +169,8 @@ class RankKPSDMatrices(Manifold):
         r_ort = r[..., :, self.n - self.rank: self.n]
         r_ort_t = Matrices.transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
-        return (vector_sym - Matrices.mul(rr, vector_sym, rr))
+        return vector_sym - Matrices.mul(rr, vector_sym, rr)
+
 
 PSDMetricBuresWasserstein = SPDMetricBuresWasserstein
 
