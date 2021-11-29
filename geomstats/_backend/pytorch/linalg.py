@@ -7,23 +7,6 @@ import torch
 from ..numpy import linalg as gsnplinalg
 
 
-def _adjoint(tensor, grad, function):
-    vectorized = tensor.ndim == 3
-    axes = (0, 2, 1) if vectorized else (1, 0)
-    tensor_H = tensor.permute(axes).conj().to(grad.dtype)
-    n = tensor.size(-1)
-    bshape = tensor.shape[:-2] + (2 * n, 2 * n)
-    backward_tensor = torch.zeros(*bshape, dtype=grad.dtype, device=grad.device)
-    backward_tensor[..., :n, :n] = tensor_H
-    backward_tensor[..., n:, n:] = tensor_H
-    backward_tensor[..., :n, n:] = grad
-    return function(backward_tensor).to(tensor.dtype)[..., :n, n:]
-
-
-def _logm_geomstats(x):
-    return torch.from_numpy(gsnplinalg.logm(x.detach().cpu())).to(x.device)
-
-
 class Logm(torch.autograd.Function):
     """
     Torch autograd function for matrix logarithm.
@@ -32,17 +15,35 @@ class Logm(torch.autograd.Function):
     """
 
     @staticmethod
+    def _logm(x):
+        np_logm = gsnplinalg.logm(x.detach().cpu())
+        torch_logm = torch.from_numpy(np_logm).to(x.device)
+        return torch_logm
+
+    @staticmethod
     def forward(ctx, tensor):
         ctx.save_for_backward(tensor)
-        return _logm_geomstats(tensor)
+        return Logm._logm(tensor)
 
     @staticmethod
     def backward(ctx, grad):
         (tensor,) = ctx.saved_tensors
-        return _adjoint(tensor, grad, _logm_geomstats)
+
+        vectorized = tensor.ndim == 3
+        axes = (0, 2, 1) if vectorized else (1, 0)
+        tensor_H = tensor.permute(axes).conj().to(grad.dtype)
+        n = tensor.size(-1)
+        bshape = tensor.shape[:-2] + (2 * n, 2 * n)
+        backward_tensor = torch.zeros(*bshape, dtype=grad.dtype, device=grad.device)
+        backward_tensor[..., :n, :n] = tensor_H
+        backward_tensor[..., n:, n:] = tensor_H
+        backward_tensor[..., :n, n:] = grad
+
+        return Logm._logm(backward_tensor).to(tensor.dtype)[..., :n, n:]
 
 
 eig = torch.linalg.eig
+eigvalsh = torch.linalg.eigvalsh
 expm = torch.matrix_exp
 inv = torch.inverse
 det = torch.det
