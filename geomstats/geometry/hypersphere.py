@@ -207,7 +207,7 @@ class _Hypersphere(EmbeddedManifold):
         theta = base_point_spherical[..., 0]
         phi = base_point_spherical[..., 1]
 
-        theta_safe = gs.where(gs.abs(theta < gs.atol), gs.atol, theta)
+        theta_safe = gs.where(gs.abs(theta) < gs.atol, gs.atol, theta)
         zeros = gs.zeros_like(theta)
         jac_close_0 = gs.array(
             [
@@ -231,7 +231,7 @@ class _Hypersphere(EmbeddedManifold):
         jac_close_0 = gs.transpose(jac_close_0, axes)
         theta_criterion = gs.einsum(
             '...,...ij->...ij', theta, gs.ones_like(jac))
-        jac = gs.where(gs.abs(theta_criterion < gs.atol), jac_close_0, jac)
+        jac = gs.where(gs.abs(theta_criterion) < gs.atol, jac_close_0, jac)
 
         tangent_vec_spherical = gs.einsum(
             "...ij,...j->...i", jac, tangent_vec
