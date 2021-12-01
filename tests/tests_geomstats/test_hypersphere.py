@@ -856,3 +856,19 @@ class TestHypersphere(geomstats.tests.TestCase):
         estimator.fit(sample)
         estimate = estimator.estimate_
         self.assertAllClose(estimate, mean, atol=1e-2)
+
+    def test_raises(self):
+        space = self.space
+        point = space.random_uniform()
+        self.assertRaises(
+            NotImplementedError,
+            lambda: space.extrinsic_to_spherical(point))
+
+        self.assertRaises(
+            NotImplementedError,
+            lambda: space.tangent_extrinsic_to_spherical(point, point))
+
+        sphere = Hypersphere(2)
+        self.assertRaises(
+            ValueError,
+            lambda: sphere.tangent_extrinsic_to_spherical(point))
