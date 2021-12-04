@@ -847,7 +847,7 @@ def vec_to_diag(vec):
 
 
 def vec_to_triu(vec):
-    """Take vec and forms strictly upper traingular matrix.
+    """Take vec and forms strictly upper triangular matrix.
 
     Parameters
     ---------

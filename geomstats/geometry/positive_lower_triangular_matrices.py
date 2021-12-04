@@ -9,7 +9,8 @@ from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 
 class PositiveLowerTriangularMatrices(OpenSet):
     """Class for the manifold of lower triangular matrices
-    with positive diagonal elements.
+    with positive diagonal elements. This is also called
+    cholesky space.
 
     Parameters
     ----------
@@ -70,7 +71,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Boolean denoting if mat is an SPD matrix.
+            Boolean denoting if mat belongs to cholesky space.
         """
         is_lower_triangular = self.ambient_space.belongs(mat, atol)
         diagonal = Matrices.diagonal(mat)
@@ -120,7 +121,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         return gs.einsum("...ij,...kj->...ik", point, point)
 
     @staticmethod
-    def differential_gram(tanget_vec, base_point):
+    def differential_gram(tangent_vec, base_point):
         """Compute gram matrix of rows
 
         Gram_matrix is mapping from point to point.point^{T}.
@@ -138,12 +139,12 @@ class PositiveLowerTriangularMatrices(OpenSet):
         differential_gram : array-like, shape=[..., n, n]
             Differential of the matrix exponential.
         """
-        mat1 = gs.einsum("...ij,...kj->...ik", tanget_vec, base_point)
-        mat2 = gs.einsum("...ij,...kj->...ik", base_point, tanget_vec)
+        mat1 = gs.einsum("...ij,...kj->...ik", tangent_vec, base_point)
+        mat2 = gs.einsum("...ij,...kj->...ik", base_point, tangent_vec)
         return mat1 + mat2
 
     @staticmethod
-    def inverse_differential_gram(tanget_vec, base_point):
+    def inverse_differential_gram(tangent_vec, base_point):
         """Compute inverse differential of gram map
 
         Parameters
@@ -163,30 +164,32 @@ class PositiveLowerTriangularMatrices(OpenSet):
         inv_base_point = gs.linalg.inv(base_point)
         inv_transpose_base_point = Matrices.transpose(inv_base_point)
         aux = Matrices.to_lower_triangular_diagonal_scaled(
-            Matrices.mul(inv_base_point, tanget_vec, inv_transpose_base_point)
+            Matrices.mul(inv_base_point, tangent_vec, inv_transpose_base_point)
         )
         inverse_differential_gram = Matrices.mul(base_point, aux)
         return inverse_differential_gram
 
 
 class CholeskyMetric(RiemannianMetric):
-    """Class for the cholesky metric on the cholesky space."""
-
-    def __init__(self, n):
-        """Build the CholeskyMetric
-
-        Parameters
-        ----------
-        n : int
-            Integer representing the shape of the matrices: n x n.
+    """Class for the cholesky metric on the cholesky space.
 
 
-        References
-        ----------
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
+
+
+    References
+    ----------
         .. [TP2019] . "Riemannian Geometry of Symmetric
         Positive Definite Matrices Via Cholesky Decomposition"
         SIAM journal on Matrix Analysis and Applications , 2019.
-         https://arxiv.org/abs/1908.09326
+        https://arxiv.org/abs/1908.09326
+    """
+
+    def __init__(self, n):
+        """
         """
         dim = int(n * (n + 1) / 2)
         super(CholeskyMetric, self).__init__(

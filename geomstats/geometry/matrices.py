@@ -189,12 +189,12 @@ class Matrices(VectorSpace):
 
     @classmethod
     def is_lower_triangular(cls, mat, atol=gs.atol):
-        """Check if a matrix is lower triangular
+        """Check if a matrix is lower triangular.
 
         Parameters
         ----------
         mat : array-like, shape=[..., n, n]
-            Matrix
+            Matrix.
         atol : float
             Absolute tolerance.
             Optional, default : backend atol.
@@ -212,15 +212,15 @@ class Matrices(VectorSpace):
 
     @classmethod
     def is_upper_triangular(cls, mat, atol=gs.atol):
-        """Check if a matrix is upper triangular
+        """Check if a matrix is upper triangular.
 
         Parameters
         ----------
         mat : array-like, shape=[..., n, n]
-            Matrix
+            Matrix.
         atol : float
-            Absolute tolerance
-            Optional, default : backend atol
+            Absolute tolerance.
+            Optional, default : backend atol.
 
         Returns
         -------
@@ -235,12 +235,12 @@ class Matrices(VectorSpace):
 
     @classmethod
     def is_strictly_lower_triangular(cls, mat, atol=gs.atol):
-        """Check if a matrix is strictly lower triangular
+        """Check if a matrix is strictly lower triangular.
 
         Parameters
         ----------
         mat : array-like, shape=[..., n, n]
-            Matrix
+            Matrix.
         atol : float
             Absolute tolerance.
             Optional, default : backend atol.
@@ -258,20 +258,20 @@ class Matrices(VectorSpace):
 
     @classmethod
     def is_strictly_upper_triangular(cls, mat, atol=gs.atol):
-        """Check if a matrix is strictly upper triangular
+        """Check if a matrix is strictly upper triangular.
 
         Parameters
         ----------
         mat : array-like, shape=[..., n, n]
-            Matrix
+            Matrix.
         atol : float
-            Absolute tolerance
-            Optional, defualt : backend atol
+            Absolute tolerance.
+            Optional, default : backend atol.
 
         Returns
         ------
         is_strictly_triu : array-like, shape=[...,]
-            Boolean evaluting if the matirx is strictly upper triangular
+            Boolean evaluating if the matrix is strictly upper triangular
         """
         is_square = cls.is_square(mat)
         if not is_square:
@@ -327,12 +327,12 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_diagonal(cls, mat):
-        """Make a matrix diagonal, by zeroing out non diagonal elements
+        """Make a matrix diagonal, by zeroing out non diagonal elements.
 
         Parameters
         ----------
         mat : array-like, shape = [..., n, n]
-            Matrix
+            Matrix.
 
         Returns
         -------
@@ -342,28 +342,28 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_lower_triangular(cls, mat):
-        """Make a matrix lower triangular, by zeroing out upper elements
+        """Make a matrix lower triangular, by zeroing out upper elements.
 
         Parameters
         ----------
         mat : array-like, shape = [..., n, n]
-            Matrix
+            Matrix.
 
         Returns
         -------
         tril : array-like, shape=[..., n, n]
-            Lower  triangular matrix
+            Lower  triangular matrix.
         """
         return gs.tril(mat)
 
     @classmethod
     def to_upper_triangular(cls, mat):
-        """Make a matrix upper triangular, by zeroing out lower elements
+        """Make a matrix upper triangular, by zeroing out lower elements.
 
         Parameters
         ---------
         mat : array-like, shape=[..., n, n]
-            Matrix
+            Matrix.
 
         Returns
         -------
@@ -374,29 +374,29 @@ class Matrices(VectorSpace):
     @classmethod
     def to_strictly_lower_triangular(cls, mat):
         """Make a matrix strictly lower triangular, by zeroing out
-        upper+diag elements
+        upper+diag elements.
 
         Parameters
         ----------
         mat : array-like, shape = [..., n, n]
-            Matrix
+            Matrix.
 
         Returns
         -------
         tril : array-like, shape=[..., n, n]
-            Lower  triangular matrix
+            Lower  triangular matrix.
         """
         return gs.tril(mat, k=-1)
 
     @classmethod
     def to_strictly_upper_triangular(cls, mat):
         """Make a matrix stritcly upper triangular, by zeroing out
-        lower+diag elements
+        lower+diag elements.
 
         Parameters
         ---------
         mat : array-like, shape=[..., n, n]
-            Matrix
+            Matrix.
 
         Returns
         -------
@@ -440,17 +440,17 @@ class Matrices(VectorSpace):
     @classmethod
     def to_lower_triangular_diagonal_scaled(cls, mat, K=2.0):
         """Make a matrix lower triangular, by zeroing out upper elements
-        and also diagonal is divided by factor K
+        and also diagonal is divided by factor K.
 
         Parameters
         ----------
         mat : array-like, shape = [..., n, n]
-            Matrix
+            Matrix.
 
         Returns
         -------
         tril : array-like, shape=[..., n, n]
-            Lower  triangular matrix
+            Lower  triangular matrix.
         """
         slt = cls.to_strictly_lower_triangular(mat)
         diag = cls.to_diagonal(mat) / K

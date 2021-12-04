@@ -1,9 +1,6 @@
 """The vector space of lower triangular matrices."""
 
-import logging
-
 import geomstats.backend as gs
-from geomstats import algebra_utils
 from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
@@ -27,7 +24,7 @@ class LowerTriangularMatrices(VectorSpace):
         self.n = n
 
     def get_basis(self):
-        """Compute the basis of the vector space of lower triangular"""
+        """Compute the basis of the vector space of lower triangular."""
         tril_idxs = gs.ravel_tril_indices(self.n)
         vector_bases = gs.one_hot(tril_idxs, self.n * self.n)
         return vector_bases.reshape(-1, self.n, self.n)
@@ -57,7 +54,7 @@ class LowerTriangularMatrices(VectorSpace):
 
     @staticmethod
     def to_vector(mat):
-        """Convert a lower triangular matrix into a vector
+        """Convert a lower triangular matrix into a vector.
 
         Parameters
         ----------
@@ -72,7 +69,7 @@ class LowerTriangularMatrices(VectorSpace):
         return gs.tril_to_vec(mat)
 
     def projection(self, point):
-        """Make a square matrix lower triangular
+        """Make a square matrix lower triangular.
 
         Parameters
         ----------
@@ -96,7 +93,7 @@ class LowerTriangularMatrices(VectorSpace):
             Optional, default: 1.
         bound : float
             Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0
+            Optional, default: 1.0.
 
         Returns
         -------

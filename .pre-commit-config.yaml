@@ -13,11 +13,3 @@ repos:
         args:
           - --branch=master
       - id: trailing-whitespace
-  - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.7.9
-    hooks:
-    - id: flake8
-      additional_dependencies:
-        - flake8-docstrings
-        - flake8-import-order
-      exclude: examples/.*ipynb$
