@@ -6,8 +6,7 @@ from scipy.stats import norm
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.information_geometry.normal import FisherRaoMetric
-from geomstats.information_geometry.normal import NormalDistributions
+from geomstats.information_geometry.normal import FisherRaoMetric, NormalDistributions
 
 
 class TestNormalDistributions(geomstats.tests.TestCase):

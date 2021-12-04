@@ -1,10 +1,9 @@
 """Unit tests for vectorization functions."""
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
 import geomstats.vectorization
+import tests.helper as helper
 
 
 class TestVectorization(geomstats.tests.TestCase):

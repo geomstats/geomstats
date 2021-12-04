@@ -1,7 +1,6 @@
 """Module exposing Baker-Campbell-Hausdorff approximation coefficents."""
 import geomstats.backend as gs
 
-
 BCH_COEFFICIENTS = gs.array(
     [
         (1, 1, 0, 1, 1),

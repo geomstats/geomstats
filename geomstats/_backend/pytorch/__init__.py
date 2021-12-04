@@ -5,18 +5,16 @@ from functools import wraps
 
 import numpy as _np
 import torch
-from torch import (  # NOQA
-    arange,
-    argmin,
-    arccos,
-    arccosh,
-    arcsin,
-    arctanh,
-    atan2 as arctan2,
-    bool as t_bool,
-    broadcast_tensors as broadcast_arrays,
+from torch import arange, arccos, arccosh, arcsin, arctanh, argmin
+from torch import atan2 as arctan2  # NOQA
+from torch import bool as t_bool
+from torch import broadcast_tensors as broadcast_arrays
+from torch import (
     ceil,
     clip,
+    complex32,
+    complex64,
+    complex128,
     cos,
     cosh,
     cross,
@@ -30,29 +28,17 @@ from torch import (  # NOQA
     float32,
     float64,
     floor,
-    fmod as mod,
-    outer,
-    greater,
-    hstack,
-    imag,
-    int32,
-    int64,
-    isnan,
-    log,
-    logical_or,
-    less,
-    matmul,
-    max as amax,
-    mean,
-    meshgrid,
-    min as amin,
-    nonzero,
-    ones,
-    ones_like,
-    polygamma,
-    pow as power,
-    real,
-    repeat_interleave as repeat,
+)
+from torch import fmod as mod
+from torch import greater, hstack, imag, int32, int64, isnan, less, log, logical_or
+from torch import max as amax
+from torch import mean, meshgrid
+from torch import min as amin
+from torch import nonzero, ones, ones_like, outer, polygamma
+from torch import pow as power
+from torch import real
+from torch import repeat_interleave as repeat
+from torch import (
     reshape,
     sign,
     sin,
@@ -63,17 +49,25 @@ from torch import (  # NOQA
     tan,
     tanh,
     uint8,
+    unique,
     vstack,
     zeros,
     zeros_like,
 )
 
+from ..constants import pytorch_atol, pytorch_rtol
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-from ..constants import pytorch_atol, pytorch_rtol
 
-DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3}
+DTYPES = {
+    int32: 0,
+    int64: 1,
+    float32: 2,
+    float64: 3,
+    complex64: 4,
+    complex128: 5,
+}
 
 
 atol = pytorch_atol
@@ -112,6 +106,11 @@ tan = _box_scalar(tan)
 
 def comb(n, k):
     return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
+
+
+def matmul(x, y, *, out=None):
+    x, y = convert_to_wider_dtype([x, y])
+    return torch.matmul(x, y, out=out)
 
 
 def to_numpy(x):

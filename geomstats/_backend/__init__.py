@@ -121,6 +121,7 @@ BACKEND_ATTRIBUTES = {
         "tril_to_vec",
         "triu_to_vec",
         "vec_to_diag",
+        "unique",
         "vectorize",
         "vstack",
         "where",
@@ -143,6 +144,7 @@ BACKEND_ATTRIBUTES = {
         "solve_sylvester",
         "sqrtm",
         "svd",
+        "matrix_rank",
     ],
     "random": [
         "choice",

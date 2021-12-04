@@ -4,8 +4,10 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.information_geometry.categorical import CategoricalDistributions
-from geomstats.information_geometry.categorical import CategoricalMetric
+from geomstats.information_geometry.categorical import (
+    CategoricalDistributions,
+    CategoricalMetric,
+)
 
 
 class TestCategoricalDistributions(geomstats.tests.TestCase):

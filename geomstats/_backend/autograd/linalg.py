@@ -2,6 +2,7 @@
 
 import autograd.numpy as np
 import autograd.scipy.linalg as asp
+import functools
 import scipy.linalg
 from autograd.extend import defvjp, primitive
 from autograd.numpy.linalg import (  # NOQA
@@ -14,6 +15,7 @@ from autograd.numpy.linalg import (  # NOQA
     norm,
     solve,
     svd,
+    matrix_rank,
 )
 
 from .common import to_ndarray
@@ -29,7 +31,7 @@ def expm(x):
     return np.vectorize(asp.expm, signature="(n,m)->(n,m)")(x)
 
 
-def _expm_vjp(_ans, x):
+def _adjoint(_ans, x, fn):
     vectorized = x.ndim == 3
     axes = (0, 2, 1) if vectorized else (1, 0)
 
@@ -40,14 +42,16 @@ def _expm_vjp(_ans, x):
         mat[..., :n, :n] = x.transpose(axes)
         mat[..., n:, n:] = x.transpose(axes)
         mat[..., :n, n:] = g
-        return expm(mat)[..., :n, n:]
+        return fn(mat)[..., :n, n:]
 
     return vjp
 
 
+_expm_vjp = functools.partial(_adjoint, fn=expm)
 defvjp(expm, _expm_vjp)
 
 
+@primitive
 def logm(x):
     ndim = x.ndim
     new_x = to_ndarray(x, to_ndim=3)
@@ -67,6 +71,10 @@ def logm(x):
     if ndim == 2:
         return result[0]
     return result
+
+
+_logm_vjp = functools.partial(_adjoint, fn=logm)
+defvjp(logm, _logm_vjp)
 
 
 def solve_sylvester(a, b, q):

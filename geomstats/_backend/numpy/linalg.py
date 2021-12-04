@@ -10,8 +10,9 @@ from numpy.linalg import (
     eigvalsh,
     inv,
     norm,
-    solve,
     svd,
+    matrix_rank,
+    solve,
 )  # NOQA
 
 from .common import to_ndarray

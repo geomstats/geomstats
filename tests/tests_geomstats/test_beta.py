@@ -6,8 +6,7 @@ from scipy.stats import beta
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.information_geometry.beta import BetaDistributions
-from geomstats.information_geometry.beta import BetaMetric
+from geomstats.information_geometry.beta import BetaDistributions, BetaMetric
 
 
 class TestBetaDistributions(geomstats.tests.TestCase):

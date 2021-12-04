@@ -3,8 +3,11 @@
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
-from geomstats.geometry.discrete_curves import ClosedDiscreteCurves
-from geomstats.geometry.discrete_curves import DiscreteCurves
+from geomstats.geometry.discrete_curves import (
+    ClosedDiscreteCurves,
+    DiscreteCurves,
+    ElasticCurves,
+)
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 
@@ -40,6 +43,11 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         self.space_closed_curves_in_euclidean_2d = ClosedDiscreteCurves(
             ambient_manifold=r2
         )
+
+        self.a = 1
+        self.b = 1
+        self.space_elastic_curves = ElasticCurves(self.a, self.b)
+        self.elastic_metric = self.space_elastic_curves.elastic_metric
 
         self.n_discretized_curves = 5
         self.times = gs.linspace(0.0, 1.0, self.n_discretized_curves)
@@ -282,7 +290,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         result = self.space_curves_in_sphere_2d.is_tangent(tangent_vec, point)
         self.assertTrue(gs.all(result))
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @geomstats.tests.np_and_autograd_only
     def test_projection_closed_curves(self):
         """Test that projecting the projection returns the projection
 
@@ -300,7 +308,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
             result = proj[-1, :]
             expected = proj[0, :]
-            self.assertAllClose(result, expected)
+            self.assertAllClose(result, expected, rtol=10 * gs.rtol)
 
     def test_srv_inner_product(self):
         """Test that srv_inner_product works as expected
@@ -341,6 +349,49 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         result = result.shape
         expected = [srvs_ab.shape[0]]
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_f_transform_and_inverse(self):
+        """Test that the inverse is right."""
+        cells, _, _ = data_utils.load_cells()
+        curve = cells[0]
+        metric = self.elastic_metric
+        f = metric.f_transform(curve)
+        f_inverse = metric.f_transform_inverse(f, curve[0])
+
+        result = f.shape
+        expected = (curve.shape[0] - 1, 2)
+        self.assertAllClose(result, expected)
+
+        result = f_inverse
+        expected = curve
+        self.assertAllClose(result, expected)
+
+    def test_elastic_dist(self):
+        """Test shape and positivity."""
+        cells, _, _ = data_utils.load_cells()
+        curve_1, curve_2 = cells[0][:10], cells[1][:10]
+        metric = self.elastic_metric
+        dist = metric.dist(curve_1, curve_2)
+
+        result = dist.shape
+        expected = (1,)
+        self.assertAllClose(result, expected)
+
+        result = dist > 0
+        self.assertTrue(result)
+
+    def test_cartesian_to_polar_and_inverse(self):
+        """Test that going back to cartesian works."""
+        cells, _, _ = data_utils.load_cells()
+        curve = cells[0]
+
+        metric = self.elastic_metric
+        norms, args = metric.cartesian_to_polar(curve)
+
+        result = metric.polar_to_cartesian(norms, args)
+        expected = curve
+        self.assertAllClose(result, expected, rtol=10000 * gs.rtol)
 
     @geomstats.tests.np_and_autograd_only
     def test_aux_differential_square_root_velocity(self):
