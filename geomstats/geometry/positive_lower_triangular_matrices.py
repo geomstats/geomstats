@@ -189,8 +189,7 @@ class CholeskyMetric(RiemannianMetric):
     """
 
     def __init__(self, n):
-        """
-        """
+        """ """
         dim = int(n * (n + 1) / 2)
         super(CholeskyMetric, self).__init__(
             dim=dim, signature=(dim, 0), default_point_type="matrix"
