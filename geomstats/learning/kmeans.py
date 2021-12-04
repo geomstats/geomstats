@@ -21,7 +21,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         Number of clusters (k value of the k-means).
         Optional, default: 8.
     metric : object of class RiemannianMetric
-        The geomstats Riemmanian metric associate to the space used.
+        The geomstats Riemannian metric associate to the space used.
     init : str
         How to initialize centroids at the beginning of the algorithm. The
         choice 'random' will select training points as initial centroids
