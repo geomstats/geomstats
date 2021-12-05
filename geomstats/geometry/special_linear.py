@@ -4,6 +4,7 @@ import geomstats.backend as gs
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
+from geomstats.geometry.general_linear import GeneralLinear
 
 
 class SpecialLinear(MatrixLieGroup):
@@ -16,7 +17,7 @@ class SpecialLinear(MatrixLieGroup):
     n : int
         Integer representing the shape of the matrices: n x n.
     """
-    
+
     def __init__(self, n):
         super(SpecialLinear, self).__init__(
             dim=int((n * (n - 1)) / 2),
@@ -25,6 +26,8 @@ class SpecialLinear(MatrixLieGroup):
         )
 
         self.metric = InvariantMetric(self)
+        # ???: not sure it is in the right place
+        self.ambient_space = GeneralLinear(n)
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the group.
@@ -44,7 +47,13 @@ class SpecialLinear(MatrixLieGroup):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the manifold.
         """
-        pass
+        has_right_shape = self.ambient_space.belongs(point)
+
+        if gs.all(has_right_shape):
+            # ???: det can be negative?
+            return gs.isclose(gs.abs(gs.linalg.det(point)), 1.0, atol=atol)
+
+        return has_right_shape
 
     def projection(self, point):
         """Project a point in embedding space to the group.
@@ -62,7 +71,10 @@ class SpecialLinear(MatrixLieGroup):
         projected : array-like, shape=[..., n, n]
             Projected point.
         """
-        pass
+        scale_coeff = gs.power(gs.abs(gs.linalg.det(point)),
+                               1.0 / self.n)
+
+        return gs.divide(point, gs.reshape(scale_coeff, (-1, 1, 1)))
 
     def random_point(self, n_samples=1, bound=1.0, n_iter=100):
         """Sample in the group.
@@ -87,7 +99,9 @@ class SpecialLinear(MatrixLieGroup):
         point : array-like, shape=[..., dim]
            Sample.
         """
-        pass
+        sample = self.ambient_space.random_point(n_samples=n_samples,
+                                                 bound=bound, n_iter=n_iter)
+        return self.projection(sample)
 
 
 class SpecialLinearLieAlgebra(MatrixLieAlgebra):
