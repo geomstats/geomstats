@@ -73,8 +73,8 @@ class SpecialLinear(MatrixLieGroup):
         """
         scale_coeff = gs.power(gs.abs(gs.linalg.det(point)),
                                1.0 / self.n)
-
-        return gs.divide(point, gs.reshape(scale_coeff, (-1, 1, 1)))
+        aux_shape = [1] if len(gs.shape(point)) == 2 else [1, 1]
+        return gs.divide(point, gs.reshape(scale_coeff, (-1, *aux_shape)))
 
     def random_point(self, n_samples=1, bound=1.0, n_iter=100):
         """Sample in the group.
