@@ -26,8 +26,6 @@ class SpecialLinear(MatrixLieGroup):
         )
 
         self.metric = InvariantMetric(self)
-        # ???: not sure it is in the right place
-        self.ambient_space = GeneralLinear(n)
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the group.
@@ -47,7 +45,7 @@ class SpecialLinear(MatrixLieGroup):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the manifold.
         """
-        has_right_shape = self.ambient_space.belongs(point)
+        has_right_shape = self.lie_algebra.ambient_space.belongs(point)
 
         if gs.all(has_right_shape):
             # ???: det can be negative?
@@ -99,8 +97,8 @@ class SpecialLinear(MatrixLieGroup):
         point : array-like, shape=[..., dim]
            Sample.
         """
-        sample = self.ambient_space.random_point(n_samples=n_samples,
-                                                 bound=bound, n_iter=n_iter)
+        sample = self.lie_algebra.ambient_space.random_point(
+            n_samples=n_samples, bound=bound, n_iter=n_iter)
         return self.projection(sample)
 
 
@@ -120,6 +118,8 @@ class SpecialLinearLieAlgebra(MatrixLieAlgebra):
             dim=int((n * (n - 1)) / 2),
             n=n,
         )
+        # ???: not sure it is in the right place
+        self.ambient_space = GeneralLinear(n)
 
     def basis_representation(self, matrix_representation):
         """Compute the coefficients of matrices in the given basis.
