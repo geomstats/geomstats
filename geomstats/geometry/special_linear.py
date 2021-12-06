@@ -115,11 +115,26 @@ class SpecialLinearLieAlgebra(MatrixLieAlgebra):
 
     def __init__(self, n):
         super(SpecialLinearLieAlgebra, self).__init__(
-            dim=int((n * (n - 1)) / 2),
+            dim=n**2 - 1,
             n=n,
         )
         # ???: not sure it is in the right place
         self.ambient_space = GeneralLinear(n)
+
+        # create basis
+        rows, cols = gs.triu_indices(self.n, k=1)
+        diag_rows, diag_cols = gs.diag_indices(self.n)
+
+        dims = gs.arange(0, self.dim)
+        n_non_diag_half = (self.dim - n + 1) // 2
+
+        self.basis = gs.zeros((self.dim, n, n))
+
+        self.basis[dims[:n_non_diag_half], rows, cols] = 1.
+        self.basis[dims[n_non_diag_half:-n + 1], cols, rows] = 1.
+
+        self.basis[dims[-n + 1:], 0, 0] = -1
+        self.basis[dims[-n + 1:], diag_rows[1:], diag_cols[1:]] = 1
 
     def basis_representation(self, matrix_representation):
         """Compute the coefficients of matrices in the given basis.
@@ -137,7 +152,18 @@ class SpecialLinearLieAlgebra(MatrixLieAlgebra):
         basis_representation : array-like, shape=[..., dim]
             Coefficients in the basis.
         """
-        pass
+        rows, cols = gs.triu_indices(self.n, k=1)
+        diag_rows, diag_cols = gs.diag_indices(self.n)
+
+        vec = gs.concatenate(
+            [
+                matrix_representation[..., rows, cols],
+                matrix_representation[..., cols, rows],
+                matrix_representation[..., diag_rows[1:], diag_cols[1:]],
+            ], axis=-1
+        )
+
+        return vec
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the Lie algebra.
@@ -156,7 +182,12 @@ class SpecialLinearLieAlgebra(MatrixLieAlgebra):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
-        pass
+        has_right_shape = self.ambient_space.belongs(point)
+        if gs.all(has_right_shape):
+            return gs.isclose(gs.trace(point, axis1=-2, axis2=-1),
+                              0.0, atol=atol)
+
+        return has_right_shape
 
     def projection(self, point):
         """Project a point to the Lie algebra.
@@ -173,4 +204,8 @@ class SpecialLinearLieAlgebra(MatrixLieAlgebra):
         point: array-like, shape=[..., n, n]
             Projected point.
         """
-        pass
+        projected_point = gs.copy(point)
+        projected_point[..., 0, 0] = projected_point[..., 0, 0] - gs.trace(
+            point, axis1=-2, axis2=-1)
+
+        return projected_point
