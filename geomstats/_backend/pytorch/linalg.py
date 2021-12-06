@@ -43,6 +43,7 @@ class Logm(torch.autograd.Function):
 
 
 eig = torch.linalg.eig
+eigh = torch.linalg.eigh
 eigvalsh = torch.linalg.eigvalsh
 expm = torch.matrix_exp
 inv = torch.inverse
@@ -59,11 +60,6 @@ def cholesky(a):
 def sqrtm(x):
     np_sqrtm = np.vectorize(scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
     return torch.as_tensor(np_sqrtm, dtype=x.dtype)
-
-
-def eigh(*args, **kwargs):
-    eigvals, eigvecs = torch.symeig(*args, eigenvectors=True, **kwargs)
-    return eigvals, eigvecs
 
 
 def svd(x, full_matrices=True, compute_uv=True):
