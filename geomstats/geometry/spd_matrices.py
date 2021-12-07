@@ -675,15 +675,17 @@ class SPDMetricAffine(RiemannianMetric):
             log = SPDMatrices.inverse_differential_power(power_affine, log, base_point)
         return log
 
-    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+    def parallel_transport(
+            self, tangent_vec_a, tangent_vec_b, base_point, end_point=None):
         r"""Parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by exp_(base_point)(tangent_vec_b).
-        Denoting `tangent_vec_a` by `S`, `base_point` by `A`, let
-        `B = Exp_A(tangent_vec_b)` and :math: `E = (BA^{- 1})^({ 1 / 2})`.
-        Then the
-        parallel transport to `B`is:
+        along the geodesic between two points `base_point` and `end_point`
+        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        t*tangent_vec_b)`.
+        Denoting `tangent_vec_a` by `S`, `base_point` by `A`, and `end_point`
+        by `B` or `B = Exp_A(tangent_vec_b)` and :math: `E = (BA^{- 1})^({ 1
+        / 2})`. Then the parallel transport to `B` is:
 
         ..math::
                         S' = ESE^T
@@ -696,14 +698,18 @@ class SPDMetricAffine(RiemannianMetric):
             Tangent vector at base point, initial speed of the geodesic along
             which the parallel transport is computed.
         base_point : array-like, shape=[..., dim + 1]
-            Point on the manifold of SPD matrices.
+            Point on the manifold of SPD matrices. Point to transport from
+        end_point : array-like, shape=[..., {dim, [n, m]}]
+            Point on the manifold of SPD matrices. Point to transport to.
+            Optional, default: None
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., dim + 1]
             Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
-        end_point = self.exp(tangent_vec_b, base_point)
+        if end_point is None:
+            end_point = self.exp(tangent_vec_b, base_point)
         inverse_base_point = GeneralLinear.inverse(base_point)
         congruence_mat = Matrices.mul(end_point, inverse_base_point)
         congruence_mat = gs.linalg.sqrtm(congruence_mat)
