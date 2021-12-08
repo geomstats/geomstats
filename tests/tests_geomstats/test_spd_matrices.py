@@ -1330,3 +1330,60 @@ class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer
         metric = SPDMetricLogEuclidean(n)
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
+
+    def test_log_exp_composition(self, n, point, base_point):
+        metric = SPDMetricLogEuclidean(n)
+        log = metric.log(gs.array(point), base_point=gs.array(base_point))
+        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
+        self.assertAllClose(result, point, atol=gs.atol * 1000)
+
+    def test_squared_dist_is_symmetric(self, n, point_a, point_b):
+        metric = SPDMetricLogEuclidean(n)
+        sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
+        sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
+        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
+
+    def test_parallel_transport_bw(self):
+        space = self.space
+        metric = self.metric_bureswasserstein
+        shape = (2, space.n, space.n)
+
+        result = helper.test_parallel_transport(space, metric, shape)
+        for res in result:
+            self.assertTrue(res)
+
+    @geomstats.tests.np_autograd_and_torch_only
+    def test_parallel_transport_bw_(self):
+        space = self.space
+        metric = self.metric_bureswasserstein
+        shape = (2, space.n, space.n)
+
+        point = space.random_point(2)
+        end_point = space.random_point(2)
+        tan_b = gs.random.rand(*shape)
+        tan_b = space.to_tangent(tan_b, point)
+
+        # use a vector orthonormal to tan_b
+        tan_a = gs.random.rand(*shape)
+        tan_a = space.to_tangent(tan_a, point)
+
+        # orthonormalize and move to base_point
+        tan_a -= gs.einsum(
+            "...,...ij->...ij",
+            metric.inner_product(tan_a, tan_b, point)
+            / metric.squared_norm(tan_b, point),
+            tan_b,
+        )
+        tan_b = gs.einsum("...ij,...->...ij", tan_b, 1.0 / metric.norm(tan_b, point))
+        tan_a = gs.einsum("...ij,...->...ij", tan_a, 1.0 / metric.norm(tan_a, point))
+
+        transported = metric.parallel_transport(
+            tan_a, tan_b, point, end_point=end_point, n_steps=15, step="rk4"
+        )
+        # end_point = metric.exp(tan_b, point)
+        result = metric.norm(transported, end_point)
+        expected = metric.norm(tan_a, point)
+        self.assertAllClose(result, expected)
+
+        is_tangent = space.is_tangent(transported, end_point)
+        self.assertTrue(gs.all(is_tangent))
