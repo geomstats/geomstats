@@ -2,43 +2,32 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.lie_group import LieGroup
-
+from geomstats.geometry.euclidean import Euclidean
 
 class heisenbergVectors(LieGroup):
     r"""Class for the 3D Heisenberg group in vector representation.
 
-    The 3D Heisenberg group represented as R^3. It is a Carnot group. It can be
-    equipped with a natural sub-Riemannian structure, making it a fundamental
-    example in sub-Riemannian geometry.
+    The 3D Heisenberg group represented as R^3. It is a step-2 Carnot Lie
+    group. It can be equipped with a natural sub-Riemannian structure, making
+    it a fundamental example in sub-Riemannian geometry.
 
-    Parameters: none
+    Parameters
+    ----------
+    No parameters
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Heisenberg_group
+
+
     """
 
     def __init__(self, **kwargs):
-        super(heisenbergVectors, self).__init__(dim=int(3),
-                                                default_point_type='vector')
-
-    def belongs(self, point):
-        """Evaluate if a point belongs to MyManifold.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point to evaluate.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the Heisenberg
-            group (in this case R^3).
-        """
-        # Perform operations to check if point belongs
-        # to the manifold, for example:
-        belongs = point.shape[-1] == self.dim
-        return belongs
-
+        super(heisenbergVectors, self).__init__(
+            dim=int(3), default_point_type='vector')
+        
     def get_identity(self, point_type='vector'):
-        """Get the identity of the group.
+        """Get the identity of the 3D Heisenberg group.
 
         Parameters
         ----------
@@ -51,10 +40,31 @@ class heisenbergVectors(LieGroup):
         """
         return gs.zeros(self.dim)
 
-    def compose(self, point_a, point_b):
-        """Perform function composition corresponding to the Lie group.
+    identity = property(get_identity)
 
-        Multiply the elements `point_a` and `point_b`.
+    def belongs(self, point):
+        """Evaluate if a point belongs to the 3D Heisenberg group.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point to evaluate.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the Heisenberg
+            group (in this representation this is just R^3).
+        """
+        point_dim = point.shape[-1]
+        belongs = point_dim == self.dim
+        if gs.ndim(point) == 2:
+            belongs = gs.tile([belongs], (point.shape[0],))
+
+        return belongs
+
+    def compose(self, point_a, point_b):
+        """Compute the group product of elements `point_a` and `point_b`.
 
         Parameters
         ----------
@@ -88,6 +98,59 @@ class heisenbergVectors(LieGroup):
         """
         return -point
 
+    def jacobian_translation(
+            self, point, left_or_right='left'):
+        """Compute the Jacobian of left/right translation by a point.
+
+        Compute the Jacobian matrix of the left translation by the point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., {dim, [n, n]]
+            Point.
+        left_or_right : str, {'left', 'right'}
+            Indicate whether to calculate the differential of left or right
+            translations.
+            Optional, default: 'left'.
+
+        Returns
+        -------
+        jacobian : array-like, shape=[..., dim, dim]
+            Jacobian of the left/right translation by point.
+        """
+        if left_or_right == 'left':
+            return(gs.array([[1, 0, 0],
+                             [0, 1, 0],
+                             [-point[1] / 2, point[0] / 2, 1]]))
+        else:
+            return(gs.array([[1, 0, 0],
+                             [0, 1, 0],
+                             [point[1] / 2, -point[0] / 2, 1]]))
+
+    def random_point(self, n_samples=1, bound=1.):
+        """Sample in the Euclidean space R^3 with a uniform distribution in a box.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Side of hypercube support of the uniform distribution.
+            Optional, default: 1.0
+
+        Returns
+        -------
+        point : array-like, shape=[..., dim]
+           Sample.
+        """
+        size = (self.dim,)
+        if n_samples != 1:
+            size = (n_samples, self.dim)
+        point = bound * (gs.random.rand(*size) - 0.5) * 2
+
+        return point
+
     def exp_from_identity(self, tangent_vec):
         """Compute the group exponential of the tangent vector at the identity.
 
@@ -118,19 +181,23 @@ class heisenbergVectors(LieGroup):
         """
         return point
 
-    def upperTriangular_matrix_from_vector(self, vec):
-        """Get the upper triangular matrix corresponding to the vector.
+    def upperTriangular_matrix_from_vector(self, point):
+        """Compute the upper triangular matrix corresponding to the vector.
+
+        The 3D Heisenberg group can also be represented as 3x3 upper triangular
+        matrices. This function computes this representation of the vector
+        'point'.
 
         Parameters
         ----------
-        vec : array-like, shape=[..., dim]
-            Vector.
+        point : array-like, shape=[..., dim]
+            Point in the vector-represention.
 
         Returns
         -------
-        skew_mat : array-like, shape=[..., n, n]
-            Skew-symmetric matrix.
+        upper_triangular_mat : array-like, shape=[..., n, n]
+            Upper triangular matrix.
         """
-        return gs.array([[1, vec[0], vec[2] + 1 / 2 * vec[0] * vec[1]],
-                         [0, 1, vec[1]],
+        return gs.array([[1, point[0], point[2] + 1 / 2 * point[0] * point[1]],
+                         [0, 1, point[1]],
                          [0, 0, 1]])
