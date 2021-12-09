@@ -1,0 +1,13 @@
+name: geomstats-3.8
+channels:
+  - conda-forge
+dependencies:
+  - matplotlib>=3.3.4
+  - numpy>=1.18.1
+  - pandas
+  - pip
+  - python=3.8
+  - scikit-learn>=0.22.1
+  - scipy>=1.4.1
+  - pip:
+    - autograd>=1.3
