@@ -19,14 +19,14 @@ class _LogNormalSPD:
         if metric is None:
             manifold.metric = SPDMetricLogEuclidean(n)
         else:
-            if (
-                not isinstance(metric, SPDMetricLogEuclidean) and
-                not isinstance(metric, SPDMetricAffine)
+            if not isinstance(metric, SPDMetricLogEuclidean) and not isinstance(
+                metric, SPDMetricAffine
             ):
                 raise ValueError(
                     "Invalid Metric, "
                     "Should be of type SPDMetricLogEuclidean"
-                    "or SPDMetricAffine")
+                    "or SPDMetricAffine"
+                )
 
         self.manifold = manifold
         self.mean = mean
@@ -35,12 +35,12 @@ class _LogNormalSPD:
     def samples_sym(self, mean_vec, cov, n_samples):
         """Generate symmetric matrices."""
         n = self.mean.shape[-1]
-        samples_euclidean = gs.random.multivariate_normal(
-            mean_vec, cov, (n_samples,))
+        samples_euclidean = gs.random.multivariate_normal(mean_vec, cov, (n_samples,))
         diag = samples_euclidean[:, :n]
         off_diag = samples_euclidean[:, n:] / gs.sqrt(2.0)
         samples_sym = gs.mat_from_diag_triu_tril(
-            diag=diag, tri_upp=off_diag, tri_low=off_diag)
+            diag=diag, tri_upp=off_diag, tri_low=off_diag
+        )
         return samples_sym
 
     def sample(self, n_samples):
@@ -48,13 +48,17 @@ class _LogNormalSPD:
         if isinstance(self.manifold.metric, SPDMetricLogEuclidean):
             sym_matrix = self.manifold.logm(self.mean)
             mean_euclidean = gs.hstack(
-                (gs.diagonal(sym_matrix)[None, :],
-                 gs.sqrt(2.0) * gs.triu_to_vec(sym_matrix, k=1)[None, :]))[0]
+                (
+                    gs.diagonal(sym_matrix)[None, :],
+                    gs.sqrt(2.0) * gs.triu_to_vec(sym_matrix, k=1)[None, :],
+                )
+            )[0]
             _samples = self.samples_sym(mean_euclidean, self.cov, n_samples)
 
         else:
             samples_sym = self.samples_sym(
-                gs.zeros(self.manifold.dim), self.cov, n_samples)
+                gs.zeros(self.manifold.dim), self.cov, n_samples
+            )
             mean_half = self.manifold.powerm(self.mean, 0.5)
             _samples = Matrices.mul(mean_half, samples_sym, mean_half)
 
@@ -73,7 +77,8 @@ class _LogNormalEuclidean:
             if type(metric) not in (EuclideanMetric, MatricesMetric):
                 raise ValueError(
                     "Invalid Metric, "
-                    "Should be of type EuclideanMetric or MatricesMetric")
+                    "Should be of type EuclideanMetric or MatricesMetric"
+                )
 
         self.manifold = manifold
         self.mean = mean
@@ -81,8 +86,7 @@ class _LogNormalEuclidean:
 
     def sample(self, n_samples):
         """Generate samples for Euclidean Manifold"""
-        _samples = gs.random.multivariate_normal(
-            self.mean, self.cov, (n_samples,))
+        _samples = gs.random.multivariate_normal(self.mean, self.cov, (n_samples,))
         return gs.exp(_samples)
 
 
@@ -144,29 +148,27 @@ class LogNormal:
     "Geometric Averages of Symmetric Positive Definite Matrices.",
     International Statistical Review 84.3 (2016): 456-486.
     """
+
     def __init__(self, manifold, mean, cov=None):
 
-        if (
-            not isinstance(manifold, SPDMatrices) and
-            not isinstance(manifold, Euclidean)
+        if not isinstance(manifold, SPDMatrices) and not isinstance(
+            manifold, Euclidean
         ):
             raise ValueError(
-                "Invalid Manifold object, "
-                "Should be of type SPDMatrices or Euclidean")
+                "Invalid Manifold object, " "Should be of type SPDMatrices or Euclidean"
+            )
 
         if not manifold.belongs(mean):
             raise ValueError(
-                "Invalid Value in mean, doesn't belong to ",
-                type(manifold).__name__)
+                "Invalid Value in mean, doesn't belong to ", type(manifold).__name__
+            )
 
         if cov is not None:
             valid_cov_shape = (manifold.dim, manifold.dim)
-            if (
-                cov.ndim != 2 or
-                (cov.shape[0], cov.shape[1]) != valid_cov_shape
-            ):
-                raise ValueError("Invalid Shape, "
-                                 "cov should have shape", valid_cov_shape)
+            if cov.ndim != 2 or (cov.shape[0], cov.shape[1]) != valid_cov_shape:
+                raise ValueError(
+                    "Invalid Shape, " "cov should have shape", valid_cov_shape
+                )
 
         else:
             cov = gs.eye(self.manifold.dim)

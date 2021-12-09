@@ -6,13 +6,15 @@ from scipy.stats import beta
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.beta_distributions import BetaDistributions
-from geomstats.geometry.beta_distributions import BetaMetric
+from geomstats.information_geometry.beta import BetaDistributions, BetaMetric
 
 
 class TestBetaDistributions(geomstats.tests.TestCase):
+    """Class defining the beta distributions tests."""
+
     def setUp(self):
-        warnings.simplefilter('ignore', category=UserWarning)
+        """Define the parameters of the tests."""
+        warnings.simplefilter("ignore", category=UserWarning)
         self.beta = BetaDistributions()
         self.metric = BetaMetric()
         self.n_samples = 10
@@ -56,7 +58,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         with the specified parameters, using the law of large numbers
         """
         n_samples = self.n_samples
-        tol = (n_samples * 10) ** (- 0.5)
+        tol = (n_samples * 10) ** (-0.5)
         point = self.beta.random_point(n_samples)
         samples = self.beta.sample(point, n_samples * 10)
         result = gs.mean(samples, axis=1)
@@ -77,7 +79,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         result = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp(self):
         """Test Exp.
 
@@ -96,7 +98,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         expected = gs.array([True] * n_samples)
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_log_and_exp(self):
         """Test Log and Exp.
 
@@ -114,24 +116,23 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         self.assertAllClose(result, expected, rtol=1e-2)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_exp_vectorization(self):
         """Test vectorization of Exp.
 
         Test the case with one initial point and several tangent vectors.
         """
         point = self.beta.random_point()
-        tangent_vec = gs.array([1., 2.])
+        tangent_vec = gs.array([1.0, 2.0])
         n_tangent_vecs = 10
-        t = gs.linspace(0., 1., n_tangent_vecs)
-        tangent_vecs = gs.einsum('i,...k->...ik', t, tangent_vec)
-        end_points = self.metric.exp(
-            tangent_vec=tangent_vecs, base_point=point)
+        t = gs.linspace(0.0, 1.0, n_tangent_vecs)
+        tangent_vecs = gs.einsum("i,...k->...ik", t, tangent_vec)
+        end_points = self.metric.exp(tangent_vec=tangent_vecs, base_point=point)
         result = end_points.shape
         expected = (n_tangent_vecs, 2)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_autograd_only
     def test_log_vectorization(self):
         """Test vectorization of Log.
 
@@ -140,13 +141,12 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         n_points = 10
         base_points = self.beta.random_point(n_samples=n_points)
         point = self.beta.random_point()
-        tangent_vecs = self.metric.log(
-            base_point=base_points, point=point)
+        tangent_vecs = self.metric.log(base_point=base_points, point=point)
         result = tangent_vecs.shape
         expected = (n_points, 2)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_christoffels_vectorization(self):
         """Test Christoffel synbols.
 
@@ -155,14 +155,17 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         points = self.beta.random_point(self.n_samples)
         christoffel = self.metric.christoffels(points)
         result = christoffel.shape
-        expected = gs.array(
-            [self.n_samples, self.dim, self.dim, self.dim])
+        expected = gs.array([self.n_samples, self.dim, self.dim, self.dim])
         self.assertAllClose(result, expected)
 
     def test_metric_matrix(self):
-        point = gs.array([1., 1.])
+        """Test metric matrix.
+
+        Check the value of the metric matrix for a particular
+        point in the space of beta distributions."""
+        point = gs.array([1.0, 1.0])
         result = self.beta.metric.metric_matrix(point)
-        expected = gs.array([[1., -0.644934066], [-0.644934066, 1.]])
+        expected = gs.array([[1.0, -0.644934066], [-0.644934066, 1.0]])
         self.assertAllClose(result, expected)
         self.assertRaises(ValueError, self.beta.metric.metric_matrix)
 
@@ -173,7 +176,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         """
         point = self.beta.random_point(n_samples=2)
         pdf = self.beta.point_to_pdf(point)
-        x = gs.linspace(0., 1., 10)
+        x = gs.linspace(0.0, 1.0, 10)
         result = pdf(x)
         pdf1 = beta.pdf(x, a=point[0, 0], b=point[0, 1])
         pdf2 = beta.pdf(x, a=point[1, 0], b=point[1, 1])

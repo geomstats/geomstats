@@ -1,9 +1,8 @@
 """Unit tests for special orthogonal group SO(n)."""
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
@@ -22,13 +21,15 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
 
     def test_belongs(self):
         theta = gs.pi / 3
-        point_1 = gs.array([[gs.cos(theta), - gs.sin(theta)],
-                            [gs.sin(theta), gs.cos(theta)]])
+        point_1 = gs.array(
+            [[gs.cos(theta), -gs.sin(theta)], [gs.sin(theta), gs.cos(theta)]]
+        )
         result = self.group.belongs(point_1)
         self.assertTrue(result)
 
-        point_2 = gs.array([[gs.cos(theta), gs.sin(theta)],
-                            [gs.sin(theta), gs.cos(theta)]])
+        point_2 = gs.array(
+            [[gs.cos(theta), gs.sin(theta)], [gs.sin(theta), gs.cos(theta)]]
+        )
         result = self.group.belongs(point_2)
         self.assertFalse(result)
 
@@ -67,13 +68,11 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
 
     def test_is_in_lie_algebra(self):
         theta = gs.pi / 3
-        vec_1 = gs.array([[0., - theta],
-                         [theta, 0.]])
+        vec_1 = gs.array([[0.0, -theta], [theta, 0.0]])
         result = self.group.is_tangent(vec_1)
         self.assertTrue(result)
 
-        vec_2 = gs.array([[0., - theta],
-                         [theta, 1.]])
+        vec_2 = gs.array([[0.0, -theta], [theta, 1.0]])
         result = self.group.is_tangent(vec_2)
         self.assertFalse(result)
 
@@ -84,15 +83,13 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
 
     def test_is_tangent(self):
         point = self.group.random_uniform()
-        theta = 1.
-        vec_1 = gs.array([[0., - theta],
-                         [theta, 0.]])
+        theta = 1.0
+        vec_1 = gs.array([[0.0, -theta], [theta, 0.0]])
         vec_1 = self.group.compose(point, vec_1)
         result = self.group.is_tangent(vec_1, point)
         self.assertTrue(result)
 
-        vec_2 = gs.array([[0., - theta],
-                         [theta, 1.]])
+        vec_2 = gs.array([[0.0, -theta], [theta, 1.0]])
         vec_2 = self.group.compose(point, vec_2)
         result = self.group.is_tangent(vec_2, point)
         self.assertFalse(result)
@@ -104,9 +101,8 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_to_tangent(self):
-        theta = 1.
-        vec_1 = gs.array([[0., - theta],
-                         [theta, 0.]])
+        theta = 1.0
+        vec_1 = gs.array([[0.0, -theta], [theta, 0.0]])
         result = self.group.to_tangent(vec_1)
         expected = vec_1
         self.assertAllClose(result, expected)
@@ -121,8 +117,7 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
     def test_projection_and_belongs(self):
         gs.random.seed(4)
         shape = (self.n_samples, self.n, self.n)
-        result = helper.test_projection_and_belongs(
-            self.group, shape, gs.atol * 100)
+        result = helper.test_projection_and_belongs(self.group, shape, gs.atol * 100)
         for res in result:
             self.assertTrue(res)
 
@@ -145,14 +140,13 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         group = self.group
         point = group.random_point()
         tangent_vec = self.group.lie_algebra.basis[0]
-        expected = group.bi_invariant_metric.norm(
-            tangent_vec)
+        expected = group.bi_invariant_metric.norm(tangent_vec)
 
         translated = group.tangent_translation_map(point)(tangent_vec)
         result = group.bi_invariant_metric.norm(translated)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_distance_broadcast(self):
         group = self.group
         point = group.random_point(5)

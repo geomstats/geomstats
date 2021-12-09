@@ -98,7 +98,7 @@ Contributing: Code Workflow
 Contributing: Adding a new geometry or manifold
 -----------------------------------------------
 
-  Get used to the code design of geomstats' classes by having a look at the `template manifold <https://github.com/geomstats/geomstats/tree/master/geomstats/geometry/_my_manifold.py>`__ and `template unit-tests <https://github.com/geomstats/geomstats/tree/master/tests/test__my_manifold.py>`__ implementations.
+  Get used to the code design of geomstats' classes by having a look at the `template manifold <https://github.com/geomstats/geomstats/tree/master/geomstats/geometry/_my_manifold.py>`__ and `template unit-tests <https://github.com/geomstats/geomstats/blob/master/tests/tests_geomstats/test__my_manifold.py>`__ implementations.
 
 Contributing: GitHub Workflow
 =============================
@@ -167,7 +167,7 @@ modifying code and submitting a PR:
    mailing list hi@geomstats.ai for more visibility.
 
 It is often helpful to keep your local feature branch synchronized with the
-latest changes of the main geomstats repository. If there are only a few new 
+latest changes of the main geomstats repository. If there are only a few new
 commits in the master branch, use::
 
     $ git fetch upstream
@@ -219,14 +219,14 @@ complies with the following rules. The **bolded** ones are especially important:
 
 4. **Make sure your code passes all unit tests**. First,
    run the tests related to your changes. For example, if you changed
-   something in `geomstats/spd_matrices_space.py`:
+   something in `geomstats/spd_matrices_space.py`::
 
-   `nose2 --verbose tests.test_spd_matrices_space`
+        $ nose2 --verbose tests.test_spd_matrices_space
 
    and then run the tests of the whole codebase to check that your feature is
-   not breaking any of them:
+   not breaking any of them::
 
-   `nose2`
+        $ nose2
 
    This way, further modifications on the code base are granted
    to be consistent with the desired behavior. Merging your PR should not break
@@ -234,15 +234,19 @@ complies with the following rules. The **bolded** ones are especially important:
 
 5. **Make sure that your PR follows Python international style guidelines**,
    `PEP8 <https://www.python.org/dev/peps/pep-0008>`_, which you should read.
-   The `flake8` package automatically checks for style violations when you
+   You can automatically format your code by running `black` via::
+
+        $ black .
+
+   Then, the `flake8` package automatically checks for style violations when you
    submit your PR. We recommend installing flake8 with its plugins on your
-   machine by running
+   machine by running::
 
-   `pip3 install -r dev-requirements.txt`
+    $ pip3 install -r dev-requirements.txt
 
-   Then you can run
+   Then you can run::
 
-   `flake8 geomstats tests examples`
+    $ flake8 geomstats tests examples
 
    To prevent adding commits which fail to adhere to the PEP8 guidelines, we
    include a `pre-commit <https://pre-commit.com/>` config, which immediately
@@ -464,7 +468,7 @@ Docstring Examples
 ^^^^^^^^^^^^^^^^^^
 Here's a generic docstring template::
 
-   def my_method(self, my_param_1, my_param_2='vector'):
+   def my_method(self, my_param_1, my_param_2="vector"):
       """Write a one-line summary for the method.
 
       Write a description of the method, including "big O"
@@ -474,9 +478,9 @@ Here's a generic docstring template::
       ----------
       my_param_1 : array-like, shape=[..., dim]
          Write a short description of parameter my_param_1.
-      my_param_2 : str, {'vector', 'matrix'}
+      my_param_2 : str, {"vector", "matrix"}
          Write a short description of parameter my_param_2.
-         Optional, default: 'vector'.
+         Optional, default: "vector".
 
       Returns
       -------
@@ -534,7 +538,7 @@ In general, have the following in mind:
       ``array-like, shape=[dimension[:axis], n, dimension[axis:]]``
 
    4. For strings with multiple options, use brackets:
-      ``input: str, {'log', 'squared', 'multinomial'}``
+      ``input: str, {"log", "squared", "multinomial"}``
 
    5. 1D or 2D data can be a subset of
       ``{array-like, ndarray, sparse matrix, dataframe}``. Note that
@@ -611,7 +615,7 @@ guidelines:
    to check if you are using the original module's method or if you have
    overwritten it.
 
-9. Use single quotes ' and not double quotes " for strings.
+9. Use double quotes " and not single quotes ' for strings.
 
 10. If you need several lines for a function call, use the syntax
 ::

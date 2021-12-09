@@ -4,8 +4,10 @@ from scipy.stats import beta
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.dirichlet_distributions import DirichletDistributions
-from geomstats.geometry.dirichlet_distributions import DirichletMetric
+from geomstats.information_geometry.dirichlet import (
+    DirichletDistributions,
+    DirichletMetric,
+)
 
 EPSILON = 1e-6
 
@@ -25,8 +27,7 @@ class BetaDistributions(DirichletDistributions):
     """
 
     def __init__(self):
-        super(BetaDistributions, self).__init__(
-            dim=2)
+        super(BetaDistributions, self).__init__(dim=2)
         self.metric = BetaMetric()
 
     def sample(self, point, n_samples=1):
@@ -52,8 +53,7 @@ class BetaDistributions(DirichletDistributions):
         point = gs.to_ndarray(point, to_ndim=2)
         samples = []
         for param_a, param_b in point:
-            samples.append(gs.array(
-                beta.rvs(param_a, param_b, size=n_samples)))
+            samples.append(gs.array(beta.rvs(param_a, param_b, size=n_samples)))
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
     def point_to_pdf(self, point):
@@ -89,11 +89,12 @@ class BetaDistributions(DirichletDistributions):
             x = gs.to_ndarray(x, to_ndim=1)
 
             pdf_at_x = [
-                gs.array(beta.pdf(x, a=a, b=b)) for a, b
-                in zip(a_params, b_params)]
+                gs.array(beta.pdf(x, a=a, b=b)) for a, b in zip(a_params, b_params)
+            ]
             pdf_at_x = gs.stack(pdf_at_x, axis=-1)
 
             return pdf_at_x
+
         return pdf
 
     @staticmethod
@@ -123,8 +124,9 @@ class BetaDistributions(DirichletDistributions):
             Estimate of parameter obtained by maximum likelihood.
         """
         data = gs.cast(data, gs.float32)
-        data = gs.to_ndarray(
-            gs.where(data == 1., 1. - EPSILON, data), to_ndim=2)
+        data = gs.where(data == 1.0, 1.0 - EPSILON, data)
+        data = gs.where(data == 0.0, EPSILON, data)
+        data = gs.to_ndarray(data, to_ndim=2)
         parameters = []
         for sample in data:
             param_a, param_b, _, _ = beta.fit(sample, floc=loc, fscale=scale)
@@ -154,7 +156,7 @@ class BetaMetric(DirichletMetric):
         metric_det : array-like, shape=[...,]
             Determinant of the metric.
         """
-        metric_det = gs.polygamma(1, param_a) * gs.polygamma(1, param_b) - \
-            gs.polygamma(1, param_a + param_b) * (gs.polygamma(1, param_a) +
-                                                  gs.polygamma(1, param_b))
+        metric_det = gs.polygamma(1, param_a) * gs.polygamma(1, param_b) - gs.polygamma(
+            1, param_a + param_b
+        ) * (gs.polygamma(1, param_a) + gs.polygamma(1, param_b))
         return metric_det
