@@ -8,7 +8,7 @@ class heisenbergVectors(LieGroup):
     r"""Class for the 3D Heisenberg group in vector representation.
 
     The 3D Heisenberg group represented as R^3. It is a step-2 Carnot Lie
-    group. It can be equipped with a natural sub-Riemannian structure, making
+    group. It can be equipped with a natural sub-Riemannian structure, and it is
     it a fundamental example in sub-Riemannian geometry.
 
     Parameters
@@ -18,7 +18,6 @@ class heisenbergVectors(LieGroup):
     Reference
     ---------
     https://en.wikipedia.org/wiki/Heisenberg_group
-
 
     """
 

@@ -1,41 +1,48 @@
-# Import the tests module
+"""Unit tests for the 3D heisenberg group in vector representation."""
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.heisenberg import heisenbergVectors
 
-from geomstats.geometry.heisenberg import heisenberg
 
+class TestHeisenbergVectors(geomstats.tests.TestCase):
 
-class TestMyManifold(geomstats.tests.TestCase):
-    # Use the setUp method to define variables that stay constant
-    # during all tests. For example, here we test the
-    # 4-dimensional manifold of the class MyManifold.
     def setUp(self):
-        self.dimension = 4
-        self.another_parameter = 3
-        self.manifold = MyManifold(
-            dim=self.dimension, another_parameter=3)
+        self.dimension = 3
+        self.group = heisenbergVectors()
 
-    # Each method:
-    # - needs to start with `test_`
-    # - represents a unit-test, i.e. tests one and only one method
-    #  or attribute of the class MyManifold.
-
-    # The method test_dimension tests the `dim` attribute.
     def test_dimension(self):
-        result = self.manifold.dim
+        result = self.group.dim
         expected = self.dimension
-        # Each test ends with the following syntax, comparing
-        # the result with the expected result, using self.assertAllClose
         self.assertAllClose(result, expected)
 
-    # The method test_belongs tests the `belongs` method.
     def test_belongs(self):
-        # Arrays are defined using geomstats backend through the prefix `gs.`.
-        # This allows the code to be tested simultaneously in numpy,
-        # pytorch and tensorflow. `gs.` is the equivalent of numpy's `np.` and
-        # most of numpy's functions are available with `gs.`.
-        point = gs.array([1., 2., 3.])
-        result = self.manifold.belongs(point)
+        point = gs.array([1., 2., 3., 4])
+        result = self.group.belongs(point)
         expected = False
-        self.assertAllClose(result, expected) 
+
+        self.assertAllClose(result, expected)
+
+    def test_belongs_vectorization(self):
+        point = gs.array([
+            [1., 2., 3., 1.], [4., 5., 6., 1.]])
+        result = self.group.belongs(point)
+        expected = gs.array([False, False])
+
+        self.assertAllClose(result, expected)
+
+    def test_is_tangent(self):
+        vector = gs.array([1., 2., 3., 4.])
+        result = self.group.is_tangent(vector)
+        expected = False
+
+        self.assertAllClose(result, expected)
+
+    def test_random_point_belongs(self):
+        n_samples = 2
+        bound = 1
+        points = self.group.random_point(n_samples=n_samples, bound=bound)
+        result = self.group.belongs(points)
+        expected = gs.array([True, True])
+
+        self.assertAllClose(result, expected)
