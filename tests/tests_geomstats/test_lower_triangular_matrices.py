@@ -106,3 +106,15 @@ class TestLowerTriangularMatrices(geomstats.tests.TestCase):
             [[1.0, 0.6, 7.0, -3.0, 0.0, 8.0], [2.0, 2.6, 7.0, -3.0, 0.0, 28.0]]
         )
         self.assertTrue(gs.allclose(result, expected))
+
+    def test_get_basis(self):
+        """Test of get basis function"""
+
+        space2 = LowerTriangularMatrices(2)
+        result = space2.get_basis(2)
+        expected = gs.array([[[1., 0. ], [0., 0.]], [[0., 0. ], [1., 0.]], [[0., 0. ], [0., 1.]] ])
+        self.assertTrue(gs.allClose(result, expected))
+
+        space10 = LowerTriangularMatrices(10)
+        result = space10.get_basis(10)
+        self.assertAllClose(gs.shape(result), (55, 10, 10))

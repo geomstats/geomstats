@@ -102,3 +102,4 @@ class LowerTriangularMatrices(VectorSpace):
         """
         sample = super(LowerTriangularMatrices, self).random_point(n_samples, bound)
         return Matrices.to_lower_triangular(sample)
+
