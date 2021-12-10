@@ -927,7 +927,7 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
 
 
 def _ravel_multi_index(multi_index, shape):
-    strides = tf.math.cumpord(shape, exclusive=True, reverse=True)
+    strides = tf.cumpord(shape, exclusive=True, reverse=True)
     return tf.reduce_sum(multi_index * tf.expand_dims(strides, 1), axis=0)
 
 
