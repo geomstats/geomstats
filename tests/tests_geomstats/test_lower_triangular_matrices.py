@@ -108,7 +108,6 @@ class TestLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def test_get_basis(self):
         """Test of get basis function"""
-
         space2 = LowerTriangularMatrices(2)
         result = space2.get_basis()
         expected = gs.array(
@@ -126,7 +125,6 @@ class TestLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def test_projection(self):
         """Test of projection function"""
-
         point1 = gs.array([[2.0, 1.0], [1.0, 2.0]])
         point2 = gs.array([[1.0, 0.0], [0.0, 1.0]])
 
