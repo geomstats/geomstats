@@ -3,10 +3,9 @@
 import math
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 
 
@@ -111,10 +110,16 @@ class TestLowerTriangularMatrices(geomstats.tests.TestCase):
         """Test of get basis function"""
 
         space2 = LowerTriangularMatrices(2)
-        result = space2.get_basis(2)
-        expected = gs.array([[[1., 0. ], [0., 0.]], [[0., 0. ], [1., 0.]], [[0., 0. ], [0., 1.]] ])
+        result = space2.get_basis()
+        expected = gs.array(
+            [
+                [[1.0, 0.0], [0.0, 0.0]],
+                [[0.0, 0.0], [1.0, 0.0]],
+                [[0.0, 0.0], [0.0, 1.0]],
+            ]
+        )
         self.assertTrue(gs.allClose(result, expected))
 
         space10 = LowerTriangularMatrices(10)
-        result = space10.get_basis(10)
+        result = space10.get_basis()
         self.assertAllClose(gs.shape(result), (55, 10, 10))
