@@ -42,6 +42,7 @@ class Logm(torch.autograd.Function):
         return Logm._logm(backward_tensor).to(tensor.dtype)[..., :n, n:]
 
 
+cholesky = torch.linalg.choleksy
 eig = torch.linalg.eig
 eigvalsh = torch.linalg.eigvalsh
 expm = torch.matrix_exp
@@ -50,10 +51,6 @@ det = torch.det
 solve = torch.linalg.solve
 qr = torch.linalg.qr
 logm = Logm.apply
-
-
-def cholesky(a):
-    return torch.linalg.cholesky(a)
 
 
 def sqrtm(x):
