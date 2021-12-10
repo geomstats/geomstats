@@ -118,8 +118,23 @@ class TestLowerTriangularMatrices(geomstats.tests.TestCase):
                 [[0.0, 0.0], [0.0, 1.0]],
             ]
         )
-        self.assertTrue(gs.allClose(result, expected))
+        self.assertAllClose(result, expected)
 
         space10 = LowerTriangularMatrices(10)
         result = space10.get_basis()
         self.assertAllClose(gs.shape(result), (55, 10, 10))
+
+    def test_projection(self):
+        """Test of projection function"""
+
+        point1 = gs.array([[2.0, 1.0], [1.0, 2.0]])
+        point2 = gs.array([[1.0, 0.0], [0.0, 1.0]])
+
+        space2 = LowerTriangularMatrices(2)
+        result = space2.projection(point1)
+        expected = gs.array([[2.0, 0.0], [1.0, 2.0]])
+        self.assertAllClose(result, expected)
+
+        result = space2.projection(point2)
+        expected = point2
+        self.assertAllClose(result, expected)
