@@ -4,9 +4,9 @@ This class abstracts the backend type.
 """
 
 import os
-import unittest
 
 import numpy as np
+import pytest
 
 import geomstats.backend as gs
 
@@ -125,7 +125,7 @@ _TestBaseClass = unittest.TestCase
 if tf_backend():
     import tensorflow as tf
 
-    _TestBaseClass = tf.test.TestCase
+    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 if pytorch_backend():
     import torch
@@ -146,7 +146,7 @@ def pytorch_error_msg(a, b, rtol, atol):
 class TestCase(_TestBaseClass):
     def assertAllClose(self, a, b, rtol=gs.rtol, atol=gs.atol):
         if tf_backend():
-            return super().assertAllClose(a, b, rtol=rtol, atol=atol)
+            return tf.test.TestCase().assertAllClose(a, b, rtol=rtol, atol=atol)
         if np_backend() or autograd_backend():
             return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
 
@@ -158,16 +158,9 @@ class TestCase(_TestBaseClass):
     def assertAllCloseToNp(self, a, np_a, rtol=gs.rtol, atol=gs.atol):
         are_same_shape = np.all(a.shape == np_a.shape)
         are_same = np.allclose(a, np_a, rtol=rtol, atol=atol)
-        if tf_backend():
-            return super().assertTrue(are_same_shape and are_same)
-        return super().assertTrue(are_same_shape and are_same)
+        assert are_same and are_same_shape == True
 
     def assertShapeEqual(self, a, b):
         if tf_backend():
-            return super().assertShapeEqual(a, b)
-        return super().assertEqual(a.shape, b.shape)
-
-    @classmethod
-    def setUpClass(cls):
-        if tf_backend():
-            os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+            return tf.test.TestCase().assertShapeEqual(a, b)
+        assert a.shape == b.shape
