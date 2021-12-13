@@ -30,7 +30,6 @@ S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
 METRIC_S33 = KendallShapeMetric(k_landmarks=3, m_ambient=3)
 
 AX_SCALE = 1.2
-EPSILON = 1e-6
 
 IMPLEMENTED = [
     "SO3_GROUP",
@@ -529,9 +528,10 @@ class Ellipses:
     can be conveniently represented by ellipses.
 
     We write :math: `S = O D O^T` with :math: `O` an orthogonal matrix (rotation)
-    and :math: `D` a diagonal matrix. The positive eigenvalues and elements of
-    :math: `D` determine the major and minor axes of the ellipse and :math: `O`
-    the orientation of the 2D ellipse on the 2D plane.
+    and :math: `D` a diagonal matrix. The positive eigenvalues, i.e. the elements of
+    :math: `D`, are the inverse of the length of the major and minor axes of the ellipse .
+    The rotation matrix :math: `O` determines the orientation of the 2D ellipse in
+    the 2D plane.
 
     Parameters
     ----------
@@ -599,7 +599,7 @@ class Ellipses:
             y coordinates of the sampling points on the discretized ellipse.
         """
         eigvalues, eigvectors = gs.linalg.eigh(point)
-        eigvalues = eigvalues + EPSILON
+        eigvalues = gs.where(eigvalues < gs.atol, gs.atol, eigvalues)
 
         [eigvalue1, eigvalue2] = eigvalues
 
