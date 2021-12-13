@@ -178,6 +178,9 @@ class TestVisualization(geomstats.tests.TestCase):
         visu.draw_points(ax)
 
     def test_plot_points_spd2(self):
+        one_point = self.spd.random_point()
+        visualization.plot(one_point, space="SPD2")
+
         points = self.spd.random_point(4)
         visualization.plot(points, space="SPD2")
 
