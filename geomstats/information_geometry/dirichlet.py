@@ -1,9 +1,5 @@
 """Statistical Manifold of Dirichlet distributions with the Fisher metric."""
 
-import logging
-import math
-import multiprocessing
-
 from scipy.integrate import odeint, solve_bvp
 from scipy.stats import dirichlet
 
@@ -641,33 +637,12 @@ class DirichletMetric(RiemannianMetric):
                 def bc(y0, y1, ip=ip, ep=ep):
                     return boundary_cond(y0, y1, ip, ep)
 
-                def process_function(return_dict, ip=ip, ep=ep):
-                    solution = solve_bvp(
-                        bvp, bc, t_int, initialize(ip, ep), fun_jac=fun_jac
-                    )
-                    solution_at_t = solution.sol(t)
-                    geodesic = solution_at_t[: self.dim, :]
-                    geod.append(gs.squeeze(gs.transpose(geodesic)))
-                    return_dict[0] = geod
-
-                manager = multiprocessing.Manager()
-                return_dict = manager.dict()
-                process = multiprocessing.Process(
-                    target=process_function, args=(return_dict,)
+                solution = solve_bvp(
+                    bvp, bc, t_int, initialize(ip, ep), fun_jac=fun_jac
                 )
-                process.start()
-
-                process.join(max_time)
-                if process.is_alive():
-                    process.terminate()
-                    logging.info(
-                        "Maximum time of {} seconds reached. "
-                        "Process terminated. "
-                        "Result is inaccurate.".format(max_time)
-                    )
-                    geod.append(math.nan * gs.zeros((n_steps, self.dim)))
-                else:
-                    geod = return_dict[0]
+                solution_at_t = solution.sol(t)
+                geodesic = solution_at_t[: self.dim, :]
+                geod.append(gs.squeeze(gs.transpose(geodesic)))
 
             return geod[0] if len(initial_point) == 1 else gs.stack(geod)
 
