@@ -1,8 +1,9 @@
 """Implementation of the 3D Heisenberg group."""
 
 import geomstats.backend as gs
-from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.lie_group import LieGroup
+
 
 class heisenbergVectors(LieGroup):
     r"""Class for the 3D Heisenberg group in vector representation.
@@ -23,8 +24,9 @@ class heisenbergVectors(LieGroup):
 
     def __init__(self, **kwargs):
         super(heisenbergVectors, self).__init__(
-            dim=int(3), default_point_type='vector')
-        
+            dim=int(3), default_point_type='vector',
+            lie_algebra=Euclidean(3))
+
     def get_identity(self, point_type='vector'):
         """Get the identity of the 3D Heisenberg group.
 
