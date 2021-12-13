@@ -561,7 +561,7 @@ class Ellipsis2D:
         plt.setp(ax, xlabel="X", ylabel="Y")
         return ax
 
-    def draw_points(self, ax, points=None, **plot_kwargs):
+    def draw_points(self, points=None, ax=None, **plot_kwargs):
         """Draw the ellipsis.
 
         Parameters
@@ -575,6 +575,10 @@ class Ellipsis2D:
         plot_kwargs : dict
             Dictionnary of arguments related to plotting.
         """
+        if ax is None:
+            ax = self.set_ax()
+        if points.ndim == 2:
+            points = [points]
         for point in points:
             x_coords, y_coords = self.compute_coordinates(point)
             ax.plot(x_coords, y_coords, **plot_kwargs)
@@ -601,7 +605,7 @@ class Ellipsis2D:
 
         rot_sin = eigvectors[1, 0]
         rot_cos = eigvectors[0, 0]
-        thetas = gs.linspace(0, 2 * gs.pi, self.n_sampling_points)
+        thetas = gs.linspace(0, 2 * gs.pi, self.n_sampling_points + 1)
 
         x_coords = eigvalue1 * gs.cos(thetas) * rot_cos
         x_coords -= rot_sin * eigvalue2 * gs.sin(thetas)
@@ -1284,7 +1288,6 @@ def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
 
     elif space == "SPD2":
         ellipses = Ellipsis2D()
-        ax = ellipses.set_ax()
-        ellipses.draw_points(ax=ax, points=points)
+        ellipses.draw_points(points=points)
 
     return ax
