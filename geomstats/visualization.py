@@ -522,7 +522,7 @@ class SpecialEuclidean2:
         ax.scatter(translation[:, 0], translation[:, 1], s=16, **kwargs)
 
 
-class Ellipsis2D:
+class Ellipses:
     """Class used to plot points on the manifold SPD(2).
 
     Elements S of the manifold of 2D Symmetric Positive Definite matrices
@@ -531,12 +531,12 @@ class Ellipsis2D:
     We write :math: `S = O D O^T` with :math: `O` an orthogonal matrix (rotation)
     and :math: `D` a diagonal matrix. The positive eigenvalues and elements of
     :math: `D` determine the major and minor axes of the ellipse and :math: `O`
-    the orientation of the 2D ellipsis on the 2D plane.
+    the orientation of the 2D ellipse on the 2D plane.
 
     Parameters
     ----------
     n_sampling_points : int
-        Number of points to sample on the discretized Ellipsis.
+        Number of points to sample on the discretized ellipses.
     """
 
     def __init__(self, n_sampling_points=100):
@@ -562,7 +562,7 @@ class Ellipsis2D:
         return ax
 
     def draw_points(self, points=None, ax=None, **plot_kwargs):
-        """Draw the ellipsis.
+        """Draw the ellipses.
 
         Parameters
         ----------
@@ -584,7 +584,7 @@ class Ellipsis2D:
             ax.plot(x_coords, y_coords, **plot_kwargs)
 
     def compute_coordinates(self, point):
-        """Compute the ellipsis coordinates of a 2D SPD matrix.
+        """Compute the ellipse coordinates of a 2D SPD matrix.
 
         Parameters
         ----------
@@ -594,9 +594,9 @@ class Ellipsis2D:
         Returns
         -------
         x_coords : array-like, shape=[n_sampling_points,]
-            x_coords coordinates of the sampling points on the discretized ellipsis.
+            x_coords coordinates of the sampling points on the discretized ellipse.
         Y: array-like, shape = [n_sampling_points,]
-            y coordinates of the sampling points on the discretized ellipsis.
+            y coordinates of the sampling points on the discretized ellipse.
         """
         eigvalues, eigvectors = gs.linalg.eigh(point)
         eigvalues = eigvalues + EPSILON
@@ -605,7 +605,7 @@ class Ellipsis2D:
 
         rot_sin = eigvectors[1, 0]
         rot_cos = eigvectors[0, 0]
-        thetas = gs.linspace(0, 2 * gs.pi, self.n_sampling_points + 1)
+        thetas = gs.linspace(0.0, 2 * gs.pi, self.n_sampling_points + 1)
 
         x_coords = eigvalue1 * gs.cos(thetas) * rot_cos
         x_coords -= rot_sin * eigvalue2 * gs.sin(thetas)
@@ -1287,7 +1287,7 @@ def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
         ax = disk.ax
 
     elif space == "SPD2":
-        ellipses = Ellipsis2D()
+        ellipses = Ellipses()
         ellipses.draw_points(points=points)
 
     return ax
