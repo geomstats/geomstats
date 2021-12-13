@@ -1,7 +1,7 @@
 """The manifold of full-rank correlation matrices."""
 
 import geomstats.backend as gs
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
@@ -9,7 +9,7 @@ from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
 
 
-class FullRankCorrelationMatrices(EmbeddedManifold):
+class FullRankCorrelationMatrices(LevelSet):
     """Class for the manifold of full-rank correlation matrices.
 
     Parameters
