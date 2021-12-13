@@ -247,10 +247,10 @@ class Sphere:
 
             phi = ((i + 1) % n_points) * increment
 
-            x_coords = gs.cos(phi) * r
+            x = gs.cos(phi) * r
             z = gs.sin(phi) * r
 
-            x_vals.append(x_coords)
+            x_vals.append(x)
             y_vals.append(y)
             z_vals.append(z)
 
@@ -263,7 +263,7 @@ class Sphere:
     def plot_heatmap(self, ax, scalar_function, n_points=16000, alpha=0.2, cmap="jet"):
         """Plot a heatmap defined by a loss on the sphere."""
         points = self.fibonnaci_points(n_points)
-        intensity = gs.array([scalar_function(x_coords) for x_coords in points.T])
+        intensity = gs.array([scalar_function(x) for x in points.T])
         ax.scatter(
             points[0, :],
             points[1, :],
