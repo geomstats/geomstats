@@ -378,7 +378,7 @@ def _circle_mean(points):
 
 
 def _circle_variances(mean, var, n_samples, points):
-    means = (mean + gs.linspace(0, 2 * gs.pi, n_samples, endpoint=False)) % (2 * gs.pi)
+    means = (mean + gs.linspace(0, 2 * gs.pi, n_samples + 1)[:-1]) % (2 * gs.pi)
     means = gs.where(means >= gs.pi, means - 2 * gs.pi, means)
     parts = [sum(points) / n_samples if means[0] < 0 else 0]
     m_plus = means >= 0
