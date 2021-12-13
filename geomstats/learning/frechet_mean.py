@@ -366,11 +366,13 @@ def _circle_mean(points):
                  https://arxiv.org/abs/1108.2141
     """
     if points.ndim > 1:
-        raise Hypersphere.extrinsic_to_angle(points)
-    sample_size = points.size
-    mean0 = gs.mean(points)
-    var0 = gs.var(points)
-    sorted_points = gs.sort(points)
+        points_ = Hypersphere.extrinsic_to_angle(points)
+    else:
+        points_ = gs.copy(points)
+    sample_size = points_.size
+    mean0 = gs.mean(points_)
+    var0 = gs.sum((points_ - mean0) ** 2)
+    sorted_points = gs.sort(points_)
     means = _circle_variances(mean0, var0, sample_size, sorted_points)
     return means[gs.argmin(means[:, 1]), 0]
 
@@ -480,8 +482,8 @@ class FrechetMean(BaseEstimator):
             or "MinkowskiMetric" in metric_str
         )
 
-        if metric_str == "HypersphereMetric" and self.metric.dim == 1:
-            mean = Hypersphere.extrinsic_to_angle(_circle_mean(X))
+        if "HypersphereMetric" in metric_str and self.metric.dim == 1:
+            mean = Hypersphere.angle_to_extrinsic(_circle_mean(X))
 
         error.check_parameter_accepted_values(
             self.method, "method", ["default", "adaptive", "batch"]
