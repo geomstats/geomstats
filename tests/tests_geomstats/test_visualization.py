@@ -11,6 +11,7 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 from geomstats.geometry.pre_shape import PreShapeSpace
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import (
     SpecialOrthogonal,
@@ -35,6 +36,7 @@ class TestVisualization(geomstats.tests.TestCase):
         self.M33 = Matrices(m=3, n=3)
         self.S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
         self.KD = visualization.KendallDisk()
+        self.spd = SPDMatrices(n=2)
 
         plt.figure()
 
@@ -175,3 +177,7 @@ class TestVisualization(geomstats.tests.TestCase):
         visu = visualization.SpecialEuclidean2(points, point_type="vector")
         ax = visu.set_ax()
         visu.draw_points(ax)
+
+    def test_plot_points_spd2(self):
+        points = self.spd.random_point(4)
+        visualization.plot(points, space="SPD2")

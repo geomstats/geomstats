@@ -30,6 +30,7 @@ S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
 METRIC_S33 = KendallShapeMetric(k_landmarks=3, m_ambient=3)
 
 AX_SCALE = 1.2
+EPSILON = 1e-6
 
 IMPLEMENTED = [
     "SO3_GROUP",
@@ -45,6 +46,7 @@ IMPLEMENTED = [
     "M32",
     "S33",
     "M33",
+    "SPD2",
 ]
 
 
@@ -245,10 +247,10 @@ class Sphere:
 
             phi = ((i + 1) % n_points) * increment
 
-            x = gs.cos(phi) * r
+            x_coords = gs.cos(phi) * r
             z = gs.sin(phi) * r
 
-            x_vals.append(x)
+            x_vals.append(x_coords)
             y_vals.append(y)
             z_vals.append(z)
 
@@ -261,12 +263,12 @@ class Sphere:
     def plot_heatmap(self, ax, scalar_function, n_points=16000, alpha=0.2, cmap="jet"):
         """Plot a heatmap defined by a loss on the sphere."""
         points = self.fibonnaci_points(n_points)
-        intensity = gs.array([scalar_function(x) for x in points.T])
+        intensity = gs.array([scalar_function(x_coords) for x_coords in points.T])
         ax.scatter(
             points[0, :],
             points[1, :],
             points[2, :],
-            c=intensity,
+            rot_cos=intensity,
             alpha=alpha,
             marker=".",
             cmap=plt.get_cmap(cmap),
@@ -520,6 +522,71 @@ class SpecialEuclidean2:
         ax.scatter(translation[:, 0], translation[:, 1], s=16, **kwargs)
 
 
+class Ellipsis2D:
+    """Class used to plot points on the manifold SPD(2).
+
+    Elements S of the manifold of 2D Symmetric Positive Definite matrices
+    can be conveniently represented by ellipses.
+
+    We write :math: `S = O D O^T` with :math: `O` an orthogonal matrix (rotation)
+    and :math: `D` a diagonal matrix. The positive eigenvalues and elements of
+    :math: `D` determine the major and minor axes of the ellipse and :math: `O`
+    the orientation of the 2D ellipsis on the 2D plane.
+
+    Parameters
+    ----------
+    n_sampling_points : int
+        Number of points to sample on the discretized Ellipsis.
+    """
+
+    def __init__(self, n_sampling_points=100):
+        self.n_sampling_points = n_sampling_points
+
+    @staticmethod
+    def set_ax(ax=None):
+        if ax is None:
+            ax = plt.subplot()
+        plt.setp(ax, xlabel="X", ylabel="Y")
+        return ax
+
+    def draw_points(self, ax, points=None, **plot_kwargs):
+        """Draw the ellipsis."""
+        for point in points:
+            x_coords, y_coords = self.compute_coordinates(point)
+            ax.plot(x_coords, y_coords, **plot_kwargs)
+
+    def compute_coordinates(self, point):
+        """Compute the ellipsis coordinates of a 2D SPD matrix.
+
+        Parameters
+        ----------
+        point : array-like, shape=[2, 2]
+            SPD matrix.
+
+        Returns
+        -------
+        x_coords : array-like, shape=[n_sampling_points,]
+            x_coords coordinates of the sampling points on the discretized ellipsis.
+        Y: array-like, shape = [n_sampling_points,]
+            y coordinates of the sampling points on the discretized ellipsis.
+        """
+        eigvalues, eigvectors = gs.linalg.eigh(point)
+        eigvalues = eigvalues + EPSILON
+
+        print(eigvalues)
+        [eigvalue1, eigvalue2] = eigvalues
+
+        rot_sin = eigvectors[1, 0]
+        rot_cos = eigvectors[0, 0]
+        thetas = gs.linspace(0, 2 * gs.pi, self.n_sampling_points)
+
+        x_coords = eigvalue1 * gs.cos(thetas) * rot_cos
+        x_coords -= rot_sin * eigvalue2 * gs.sin(thetas)
+        y_coords = eigvalue1 * gs.cos(thetas) * rot_sin
+        y_coords += rot_cos * eigvalue2 * gs.sin(thetas)
+        return x_coords, y_coords
+
+
 class KendallSphere:
     """Class used to plot points in Kendall shape space of 2D triangles.
 
@@ -708,14 +775,16 @@ class KendallSphere:
         )
         triangle3d = self.rotation(theta, phi) @ gs.transpose(triangle3d)
 
-        x = list(triangle3d[0]) + [triangle3d[0, 0]]
+        x_coords = list(triangle3d[0]) + [triangle3d[0, 0]]
         y = list(triangle3d[1]) + [triangle3d[1, 0]]
         z = list(triangle3d[2]) + [triangle3d[2, 0]]
 
-        self.ax.plot3D(x, y, z, "grey", zorder=1)
+        self.ax.plot3D(x_coords, y, z, "grey", zorder=1)
         c = ["red", "green", "blue"]
         for i in range(3):
-            self.ax.scatter(x[i], y[i], z[i], color=c[i], s=10, alpha=1, zorder=1)
+            self.ax.scatter(
+                x_coords[i], y[i], z[i], color=c[i], s=10, alpha=1, zorder=1
+            )
 
     @staticmethod
     def rotation(theta, phi):
@@ -942,15 +1011,15 @@ class KendallDisk:
         triangle = gs.cos(r) * self.pole + gs.sin(r) * u_theta
         triangle = scale * triangle
 
-        x = list(r * gs.cos(theta) + triangle[:, 0])
-        x = x + [x[0]]
+        x_coords = list(r * gs.cos(theta) + triangle[:, 0])
+        x_coords = x_coords + [x_coords[0]]
         y = list(r * gs.sin(theta) + triangle[:, 1])
         y = y + [y[0]]
 
-        self.ax.plot(x, y, "grey", zorder=1)
+        self.ax.plot(x_coords, y, "grey", zorder=1)
         c = ["red", "green", "blue"]
         for i in range(3):
-            self.ax.scatter(x[i], y[i], color=c[i], s=10, alpha=1, zorder=1)
+            self.ax.scatter(x_coords[i], y[i], color=c[i], s=10, alpha=1, zorder=1)
 
     def draw_points(self, alpha=1, zorder=0, **kwargs):
         """Draw points on the Kendall disk."""
@@ -1007,8 +1076,7 @@ class KendallDisk:
 def convert_to_trihedron(point, space=None):
     """Transform a rigid point into a trihedron.
 
-    Transform a rigid point
-    into a trihedron s.t.:
+    Transform a rigid point into a trihedron such that:
     - the trihedron's base point is the translation of the origin
     of R^3 by the translation part of point,
     - the trihedron's orientation is the rotation of the canonical basis
@@ -1067,7 +1135,7 @@ def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
         Points to be plotted.
     space: str, optional, {'SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
         'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk',
-        'poincare_polydisk', 'S32', 'M32', 'S33', 'M33'}
+        'poincare_polydisk', 'S32', 'M32', 'S33', 'M33', 'SPD2'}
     point_type: str, optional, {'extrinsic', 'ball', 'half-space', 'pre-shape'}
     """
     if space not in IMPLEMENTED:
@@ -1192,5 +1260,10 @@ def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
         disk.draw()
         disk.draw_points()
         ax = disk.ax
+
+    elif space == "SPD2":
+        ellipses = Ellipsis2D()
+        ax = ellipses.set_ax()
+        ellipses.draw_points(ax=ax, points=points)
 
     return ax
