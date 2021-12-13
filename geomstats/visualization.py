@@ -798,16 +798,14 @@ class KendallSphere:
         )
         triangle3d = self.rotation(theta, phi) @ gs.transpose(triangle3d)
 
-        x_coords = list(triangle3d[0]) + [triangle3d[0, 0]]
+        x = list(triangle3d[0]) + [triangle3d[0, 0]]
         y = list(triangle3d[1]) + [triangle3d[1, 0]]
         z = list(triangle3d[2]) + [triangle3d[2, 0]]
 
-        self.ax.plot3D(x_coords, y, z, "grey", zorder=1)
+        self.ax.plot3D(x, y, z, "grey", zorder=1)
         c = ["red", "green", "blue"]
         for i in range(3):
-            self.ax.scatter(
-                x_coords[i], y[i], z[i], color=c[i], s=10, alpha=1, zorder=1
-            )
+            self.ax.scatter(x[i], y[i], z[i], color=c[i], s=10, alpha=1, zorder=1)
 
     @staticmethod
     def rotation(theta, phi):
@@ -1034,15 +1032,15 @@ class KendallDisk:
         triangle = gs.cos(r) * self.pole + gs.sin(r) * u_theta
         triangle = scale * triangle
 
-        x_coords = list(r * gs.cos(theta) + triangle[:, 0])
-        x_coords = x_coords + [x_coords[0]]
+        x = list(r * gs.cos(theta) + triangle[:, 0])
+        x = x + [x[0]]
         y = list(r * gs.sin(theta) + triangle[:, 1])
         y = y + [y[0]]
 
-        self.ax.plot(x_coords, y, "grey", zorder=1)
+        self.ax.plot(x, y, "grey", zorder=1)
         c = ["red", "green", "blue"]
         for i in range(3):
-            self.ax.scatter(x_coords[i], y[i], color=c[i], s=10, alpha=1, zorder=1)
+            self.ax.scatter(x[i], y[i], color=c[i], s=10, alpha=1, zorder=1)
 
     def draw_points(self, alpha=1, zorder=0, **kwargs):
         """Draw points on the Kendall disk."""
