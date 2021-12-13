@@ -299,10 +299,10 @@ class PoincareBallMetric(RiemannianMetric):
         if base_point is None:
             base_point = gs.zeros((1, self.dim))
 
-        lambda_base = (2 / (1 - gs.sum(base_point * base_point, axis=-1, keepdims=True))) ** 2
+        lambda_base = (2 / (1 - gs.sum(base_point * base_point, axis=-1))) ** 2
         identity = gs.eye(self.dim, self.dim)
 
-        return gs.einsum("...i,...jk->ijk", lambda_base, identity)
+        return gs.einsum("...,jk->...jk", lambda_base, identity)
 
     def normalization_factor(self, variances):
         """Return normalization factor of the Gaussian distribution.
