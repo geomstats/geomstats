@@ -177,7 +177,17 @@ class _Hypersphere(EmbeddedManifold):
         return tangent_vec_extrinsic
 
     def adding_a_function_without_doc(self, a):
-        return f"lets see {a}"
+        """Very long docstring
+
+        Very long docstring
+        Very long docstring
+        Very long docstring
+        Very long docstring
+        Very long docstring
+        Very long docstring
+        Very long docstring
+        Very long docstring
+        """
 
     def extrinsic_to_spherical(self, point_extrinsic):
         """Convert point from extrinsic to spherical coordinates.

@@ -83,9 +83,6 @@ class Manifold(abc.ABC):
             Boolean denoting if vector is a tangent vector at the base point.
         """
 
-    def adding_a_function_without_doc():
-        return "lets see"
-
     @abc.abstractmethod
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
