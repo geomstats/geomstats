@@ -201,6 +201,14 @@ See our
 `contributing <https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst>`__
 guidelines!
 
+Interested? Contact us and join the next hackathons. Previous Geomstats events include:
+- January 2020: hackathon at Inria Sophia-Antipolis, Nice, France
+- April 2020: remote online hackathon
+- March - April 2021: hackathon, hybrid at Inria Sophia-Antipolis / remotely with contributors from around the world
+- July 2021: hackathon at the Geometric Science of Information (GSI) conference, Paris, France
+- August 2021: International Coding Challenge at the International Conference on Learning Representations (ICLR), remotely
+- December 2021: Fixit hackathon at the Sorbonne Center for Artificial Intelligence, Paris, France.
+
 Acknowledgements
 ----------------
 
