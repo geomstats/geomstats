@@ -369,7 +369,7 @@ def _circle_mean(points):
         points_ = Hypersphere.extrinsic_to_angle(points)
     else:
         points_ = gs.copy(points)
-    sample_size = points_.size
+    sample_size = points_.shape[0]
     mean0 = gs.mean(points_)
     var0 = gs.sum((points_ - mean0) ** 2)
     sorted_points = gs.sort(points_)
@@ -417,7 +417,7 @@ class FrechetMean(BaseEstimator):
     point_type : str, {\'vector\', \'matrix\'}
         Point type.
         Optional, default: None.
-    method : str, {\'default\', \'adaptive\', \'batch\', \'circle\'}
+    method : str, {\'default\', \'adaptive\', \'batch\'}
         Gradient descent method.
         The `adaptive` method uses a Levenberg-Marquardt style adaptation of
         the learning rate. The `batch` method is similar to the default

@@ -26,10 +26,10 @@ class _Hypersphere(EmbeddedManifold):
     By default, points are parameterized by their extrinsic
     (n+1)-coordinates. For dimensions 1 and 2, this can be changed with the
     `default_coords_type` parameter. For dimensions 1 (the circle),
-    the intrinsic coordinates corresponds angles in radians, with 0. mapping
+    the intrinsic coordinates correspond angles in radians, with 0. mapping
     to point [1., 0.]. For dimension 2, the intrinsic coordinates are the
-    spherical coordinates from the north pole, i.e. that angles [0.,
-    0.] correspond to point [0., 0., 1.].
+    spherical coordinates from the north pole, i.e. where angles [0., 0.]
+    correspond to point [0., 0., 1.].
 
     Parameters
     ----------
@@ -342,7 +342,7 @@ class _Hypersphere(EmbeddedManifold):
 
         Convert from the intrinsic coordinates in the hypersphere,
         to the extrinsic coordinates in Euclidean space.
-        For dimensions 1 (the circle), the intrinsic coordinates corresponds
+        For dimensions 1 (the circle), the intrinsic coordinates correspond
         angles in radians, with 0. mapping to point [1., 0.]. For dimension
         2, the intrinsic coordinates are the spherical coordinates from the
         north pole, i.e. that angles [0., 0.] correspond to point [0., 0., 1.].
@@ -1078,9 +1078,9 @@ class Hypersphere(_Hypersphere):
     By default, points are parameterized by their extrinsic
     (n+1)-coordinates. For dimensions 1 and 2, this can be changed with the
     `default_coords_type` parameter. For dimensions 1 (the circle),
-    the intrinsic coordinates corresponds angles in radians, with 0. mapping
+    the intrinsic coordinates correspond angles in radians, with 0. mapping
     to point [1., 0.]. For dimension 2, the intrinsic coordinates are the
-    spherical coordinates from the north pole, i.e. that angles [0.,
+    spherical coordinates from the north pole, i.e. where angles [0.,
     0.] correspond to point [0., 0., 1.].
 
     Parameters
