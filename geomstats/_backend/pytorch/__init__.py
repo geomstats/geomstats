@@ -24,6 +24,9 @@ from torch import (
     flatten,
     float32,
     float64,
+    complex32,
+    complex64,
+    complex128,
     floor,
 )
 from torch import fmod as mod
@@ -37,7 +40,6 @@ from torch import (
     less,
     log,
     logical_or,
-    matmul,
 )
 from torch import max as amax
 from torch import mean, meshgrid
@@ -69,7 +71,14 @@ from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
-DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3}
+DTYPES = {
+    int32: 0,
+    int64: 1,
+    float32: 2,
+    float64: 3,
+    complex64: 4,
+    complex128: 5,
+}
 
 
 atol = pytorch_atol
@@ -108,6 +117,11 @@ tan = _box_scalar(tan)
 
 def comb(n, k):
     return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
+
+
+def matmul(x, y, *, out=None):
+    x, y = convert_to_wider_dtype([x, y])
+    return torch.matmul(x, y, out=out)
 
 
 def to_numpy(x):

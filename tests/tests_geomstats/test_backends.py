@@ -77,7 +77,6 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllCloseToNp(gs_result, np_result)
 
-    @geomstats.tests.np_autograd_and_tf_only
     def test_logm(self):
         point = gs.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])
         result = gs.linalg.logm(point)
@@ -90,7 +89,6 @@ class TestBackends(geomstats.tests.TestCase):
         scipy_result = scipy.linalg.logm(np_point)
         self.assertAllCloseToNp(result, scipy_result)
 
-    @geomstats.tests.np_autograd_and_tf_only
     def test_expm_and_logm(self):
         point = gs.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])
         result = gs.linalg.expm(gs.linalg.logm(point))
@@ -130,7 +128,6 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_tf_only
     def test_logm_vectorization_diagonal(self):
         # Note: scipy.linalg.expm is not vectorized
         point = gs.array(
@@ -155,7 +152,6 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_tf_only
     def test_expm_and_logm_vectorization_random_rotation(self):
         point = self.so3_group.random_uniform(self.n_samples)
 
@@ -164,7 +160,6 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_tf_only
     def test_expm_and_logm_vectorization(self):
         point = gs.array(
             [

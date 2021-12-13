@@ -885,6 +885,70 @@ class SPDMetricEuclidean(RiemannianMetric):
 
         return domain
 
+    def exp(self, tangent_vec, base_point, **kwargs):
+        """Compute the Euclidean exponential map.
+
+        Compute the Euclidean exponential at point base_point
+        of tangent vector tangent_vec.
+        This gives a symmetric positive definite matrix.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., n, n]
+            Euclidean exponential.
+        """
+        power_euclidean = self.power_euclidean
+
+        if power_euclidean == 1:
+            exp = tangent_vec + base_point
+        else:
+            exp = SymmetricMatrices.powerm(
+                SymmetricMatrices.powerm(base_point, power_euclidean)
+                + SPDMatrices.differential_power(
+                    power_euclidean, tangent_vec, base_point),
+                1 / power_euclidean
+            )
+        return exp
+
+    def log(self, point, base_point, **kwargs):
+        """Compute the Euclidean logarithm map.
+
+        Compute the Euclidean logarithm at point base_point, of point.
+        This gives a tangent vector at point base_point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        log : array-like, shape=[..., n, n]
+            Euclidean logarithm.
+        """
+        power_euclidean = self.power_euclidean
+
+        if power_euclidean == 1:
+            log = point - base_point
+        else:
+            log = SPDMatrices.inverse_differential_power(
+                power_euclidean,
+                SymmetricMatrices.powerm(point, power_euclidean)
+                - SymmetricMatrices.powerm(base_point, power_euclidean),
+                base_point
+            )
+
+        return log
+
 
 class SPDMetricLogEuclidean(RiemannianMetric):
     """Class for the Log-Euclidean metric on the SPD manifold.

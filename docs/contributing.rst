@@ -219,14 +219,14 @@ complies with the following rules. The **bolded** ones are especially important:
 
 4. **Make sure your code passes all unit tests**. First,
    run the tests related to your changes. For example, if you changed
-   something in `geomstats/spd_matrices_space.py`:
+   something in `geomstats/spd_matrices_space.py`::
 
-   `nose2 --verbose tests.test_spd_matrices_space`
+        $ nose2 --verbose tests.test_spd_matrices_space
 
    and then run the tests of the whole codebase to check that your feature is
-   not breaking any of them:
+   not breaking any of them::
 
-   `nose2`
+        $ nose2
 
    This way, further modifications on the code base are granted
    to be consistent with the desired behavior. Merging your PR should not break
@@ -234,19 +234,19 @@ complies with the following rules. The **bolded** ones are especially important:
 
 5. **Make sure that your PR follows Python international style guidelines**,
    `PEP8 <https://www.python.org/dev/peps/pep-0008>`_, which you should read.
-   You can automatically format your code by running `black` via
+   You can automatically format your code by running `black` via::
 
-   `black .`
+        $ black .
 
    Then, the `flake8` package automatically checks for style violations when you
    submit your PR. We recommend installing flake8 with its plugins on your
-   machine by running
+   machine by running::
 
-   `pip3 install -r dev-requirements.txt`
+    $ pip3 install -r dev-requirements.txt
 
-   Then you can run
+   Then you can run::
 
-   `flake8 geomstats tests examples`
+    $ flake8 geomstats tests examples
 
    To prevent adding commits which fail to adhere to the PEP8 guidelines, we
    include a `pre-commit <https://pre-commit.com/>` config, which immediately

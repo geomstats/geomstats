@@ -91,6 +91,8 @@ class _Hypersphere(EmbeddedManifold):
 
         Convert from the spherical coordinates in the hypersphere
         to the extrinsic coordinates in Euclidean space.
+        Spherical coordinates are defined from the north pole, i.e. that
+        angles [0., 0.] correspond to point [0., 0., 1.].
         Only implemented in dimension 2.
 
         Parameters
@@ -155,6 +157,7 @@ class _Hypersphere(EmbeddedManifold):
         axes = (2, 0, 1) if base_point_spherical.ndim == 2 else (0, 1)
         theta = base_point_spherical[..., 0]
         phi = base_point_spherical[..., 1]
+        phi = gs.where(theta == 0., 0., phi)
 
         zeros = gs.zeros_like(theta)
 
@@ -172,6 +175,115 @@ class _Hypersphere(EmbeddedManifold):
         )
 
         return tangent_vec_extrinsic
+
+    def extrinsic_to_spherical(self, point_extrinsic):
+        """Convert point from extrinsic to spherical coordinates.
+
+        Convert from the extrinsic coordinates, i.e. embedded in Euclidean
+        space of dim 3 to spherical coordinates in the hypersphere.
+        Spherical coordinates are defined from the north pole, i.e.
+        angles [0., 0.] correspond to point [0., 0., 1.].
+        Only implemented in dimension 2.
+
+        Parameters
+        ----------
+        point_extrinsic : array-like, shape=[..., dim]
+            Point on the sphere, in extrinsic coordinates.
+
+        Returns
+        -------
+        point_spherical : array_like, shape=[..., dim + 1]
+            Point on the sphere, in spherical coordinates relative to the
+            north pole.
+        """
+        if self.dim != 2:
+            raise NotImplementedError(
+                "The conversion from to extrinsic coordinates "
+                "spherical coordinates is implemented"
+                " only in dimension 2."
+            )
+
+        theta = gs.arccos(point_extrinsic[..., -1])
+        x = point_extrinsic[..., 0]
+        y = point_extrinsic[..., 1]
+        phi = gs.arctan2(y, x)
+        phi = gs.where(phi < 0, phi + 2 * gs.pi, phi)
+        return gs.stack([theta, phi], axis=-1)
+
+    def tangent_extrinsic_to_spherical(
+            self, tangent_vec, base_point=None, base_point_spherical=None):
+        """Convert tangent vector from extrinsic to spherical coordinates.
+
+        Convert a tangent vector from the extrinsic coordinates in Euclidean
+        space to the spherical coordinates in the hypersphere for.
+        Spherical coordinates are considered from the north pole [0., 0.,
+        1.]. This method is only implemented in dimension 2.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector to the sphere, in spherical coordinates.
+        base_point : array-like, shape=[..., dim]
+            Point on the sphere. Unused if `base_point_spherical` is given.
+            Optional, default : None.
+        base_point_spherical : array-like, shape=[..., dim]
+            Point on the sphere, in spherical coordinates. Either
+            `base_point` or `base_point_spherical` must be given.
+            Optional, default : None.
+
+        Returns
+        -------
+        tangent_vec_spherical : array-like, shape=[..., dim + 1]
+            Tangent vector to the sphere, at base point,
+            in spherical coordinates relative to the north pole [0., 0., 1.].
+        """
+        if self.dim != 2:
+            raise NotImplementedError(
+                "The conversion from to extrinsic coordinates "
+                "spherical coordinates is implemented"
+                " only in dimension 2."
+            )
+        if base_point is None and base_point_spherical is None:
+            raise ValueError('A base point must be given, either in '
+                             'extrinsic or in spherical coordinates.')
+        if base_point_spherical is None and base_point is not None:
+            base_point_spherical = self.extrinsic_to_spherical(base_point)
+
+        axes = (2, 0, 1) if base_point_spherical.ndim == 2 else (0, 1)
+        theta = base_point_spherical[..., 0]
+        phi = base_point_spherical[..., 1]
+
+        theta_safe = gs.where(gs.abs(theta) < gs.atol, gs.atol, theta)
+        zeros = gs.zeros_like(theta)
+        jac_close_0 = gs.array(
+            [
+                [gs.ones_like(theta), zeros, zeros],
+                [zeros, gs.ones_like(theta), zeros]
+            ]
+        )
+
+        jac = gs.array(
+            [
+                [gs.cos(theta) * gs.cos(phi),
+                 gs.cos(theta) * gs.sin(phi),
+                 -gs.sin(theta)],
+                [-gs.sin(phi) / gs.sin(theta_safe),
+                 gs.cos(phi) / gs.sin(theta_safe),
+                 zeros]
+            ]
+        )
+
+        jac = gs.transpose(jac, axes)
+        jac_close_0 = gs.transpose(jac_close_0, axes)
+        theta_criterion = gs.einsum(
+            '...,...ij->...ij', theta, gs.ones_like(jac))
+        jac = gs.where(gs.abs(theta_criterion) < gs.atol, jac_close_0, jac)
+
+        tangent_vec_spherical = gs.einsum(
+            "...ij,...j->...i", jac, tangent_vec
+        )
+
+        return tangent_vec_spherical
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert point from intrinsic to extrinsic coordinates.

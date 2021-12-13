@@ -15,6 +15,8 @@ from tensorflow import atan2 as arctan2
 from tensorflow import broadcast_to
 from tensorflow import clip_by_value as clip
 from tensorflow import (
+    complex64,
+    complex128,
     concat,
     cos,
     cosh,
@@ -67,7 +69,7 @@ from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
-DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3}
+DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3, complex64: 4, complex128: 5}
 
 
 arctanh = tf.math.atanh
