@@ -46,7 +46,7 @@ class TestMyManifold(geomstats.tests.TestCase):
     as in the examples below.
     """
 
-    def setUp(self):
+    def setup_method(self):
         """setUp method.
 
         Use the setUp method to define variables that remain constant

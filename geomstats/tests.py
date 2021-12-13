@@ -109,6 +109,9 @@ class TestCase:
             msg=pytorch_error_msg(a, b, rtol, atol),
         )
 
+    def assertTrue(self, condition, msg=None):
+        assert condition, msg
+
     def assertAllCloseToNp(self, a, np_a, rtol=gs.rtol, atol=gs.atol):
         are_same_shape = np.all(a.shape == np_a.shape)
         are_same = np.allclose(a, np_a, rtol=rtol, atol=atol)
