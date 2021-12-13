@@ -6,6 +6,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.learning.knn import KNearestNeighborsClassifier
 
 
+@geomstats.tests.np_and_autograd_only
 class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
     """Class defining the KNN tests."""
 
@@ -17,7 +18,6 @@ class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
         self.space = Euclidean(dim=self.dimension)
         self.distance = self.space.metric.dist
 
-    @geomstats.tests.np_and_autograd_only
     def test_predict(self):
         """Test the 'predict' class method."""
         training_dataset = gs.array([[0], [1], [2], [3]])
@@ -31,7 +31,6 @@ class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
         expected = gs.array([0])
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_autograd_only
     def test_predict_proba(self):
         """Test the 'predict_proba' class method."""
         training_dataset = gs.array([[0], [1], [2], [3]])
