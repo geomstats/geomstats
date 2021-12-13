@@ -3,6 +3,7 @@
 import warnings
 
 import numpy as _np
+import pytest
 
 import geomstats.backend as gs
 import geomstats.tests
@@ -18,11 +19,8 @@ class TestAutodiff(geomstats.tests.TestCase):
     def test_value_and_grad_np_backend(self):
         n = 10
         vector = gs.ones(n)
-
-        self.assertRaises(
-            RuntimeError,
-            lambda: gs.autodiff.value_and_grad(lambda v: gs.sum(v ** 2))(vector),
-        )
+        with pytest.raises(RuntimeError):
+            gs.autodiff.value_and_grad(lambda v: gs.sum(v ** 2))(vector)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_value_and_grad_one_vector_var(self):
