@@ -9,7 +9,7 @@ from geomstats.learning.kmedoids import RiemannianKMedoids
 class TestRiemannianKMedoids(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_hypersphere_kmedoids_fit(self):
         gs.random.seed(55)
 
@@ -23,7 +23,7 @@ class TestRiemannianKMedoids(geomstats.tests.TestCase):
 
         self.assertTrue(manifold.belongs(center))
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_hypersphere_kmedoids_predict(self):
         gs.random.seed(1234)
         dim = 2
@@ -38,6 +38,6 @@ class TestRiemannianKMedoids(geomstats.tests.TestCase):
         result = kmedoids.predict(data)
 
         expected = gs.array(
-            [int(metric.closest_neighbor_index(x_i, centroids))
-             for x_i in data])
+            [int(metric.closest_neighbor_index(x_i, centroids)) for x_i in data]
+        )
         self.assertAllClose(expected, result)
