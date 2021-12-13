@@ -8,6 +8,7 @@ from sklearn.base import BaseEstimator
 import geomstats.backend as gs
 import geomstats.errors as error
 import geomstats.vectorization
+from geomstats.geometry.hypersphere import Hypersphere
 
 EPSILON = 1e-4
 
@@ -364,6 +365,8 @@ def _circle_mean(points):
                  Statistical Mathematics 67 (1), 177–193.
                  https://arxiv.org/abs/1108.2141
     """
+    if points.ndim > 1:
+        raise Hypersphere.extrinsic_to_angle(points)
     sample_size = points.size
     mean0 = gs.mean(points)
     var0 = gs.var(points)
@@ -476,6 +479,9 @@ class FrechetMean(BaseEstimator):
             or "MatricesMetric" in metric_str
             or "MinkowskiMetric" in metric_str
         )
+
+        if metric_str == "HypersphereMetric" and self.metric.dim == 1:
+            mean = Hypersphere.extrinsic_to_angle(_circle_mean(X))
 
         error.check_parameter_accepted_values(
             self.method, "method", ["default", "adaptive", "batch"]
