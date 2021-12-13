@@ -181,7 +181,7 @@ class TestVisualization(geomstats.tests.TestCase):
         points = self.spd.random_point(4)
         visualization.plot(points, space="SPD2")
 
-    def test_plot_points_spd2(self):
+    def test_compute_coordinates_spd2(self):
         point = gs.eye(2)
         ellipsis = visualization.Ellipsis2D(n_sampling_points=4)
         x, y = ellipsis.compute_coordinates(point)
