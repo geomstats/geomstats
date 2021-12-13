@@ -431,7 +431,7 @@ class HyperboloidMetric(HyperbolicMetric):
             Tangent vector at base point, along which the parallel transport
             is computed.
         base_point : array-like, shape=[..., dim + 1]
-            Point on the hypersphere.
+            Point on the hyperboloid.
 
         Returns
         -------
