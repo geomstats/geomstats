@@ -92,7 +92,6 @@ class heisenbergVectors(LieGroup):
         point : array-like, shape=[..., 3]
             Point.
 
-
         Returns
         -------
         inv_point : array-like, shape=[..., 3]
