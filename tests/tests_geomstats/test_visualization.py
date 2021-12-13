@@ -22,7 +22,7 @@ matplotlib.use("Agg")  # NOQA
 
 
 class TestVisualization(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.n_samples = 10
         self.SO3_GROUP = SpecialOrthogonal(n=3, point_type="vector")
         self.SE3_GROUP = SpecialEuclidean(n=3, point_type="vector")

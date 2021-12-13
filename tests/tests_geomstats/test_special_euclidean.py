@@ -12,7 +12,7 @@ from geomstats.geometry.special_euclidean import (
 
 
 class TestSpecialEuclidean(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(12)
         self.n = 2
         self.group = SpecialEuclidean(n=self.n)
