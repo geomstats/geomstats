@@ -10,7 +10,7 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 
 class TestAutodiff(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
         self.n_samples = 2
 

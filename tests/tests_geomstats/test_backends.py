@@ -17,7 +17,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestBackends(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
 
         self.so3_group = SpecialOrthogonal(n=3)

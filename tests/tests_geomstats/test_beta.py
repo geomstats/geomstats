@@ -12,7 +12,7 @@ from geomstats.information_geometry.beta import BetaDistributions, BetaMetric
 class TestBetaDistributions(geomstats.tests.TestCase):
     """Class defining the beta distributions tests."""
 
-    def setUp(self):
+    def setup_method(self):
         """Define the parameters of the tests."""
         warnings.simplefilter("ignore", category=UserWarning)
         self.beta = BetaDistributions()
