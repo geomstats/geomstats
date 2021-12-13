@@ -544,13 +544,37 @@ class Ellipsis2D:
 
     @staticmethod
     def set_ax(ax=None):
+        """Set the axis for the Figure.
+
+        Parameters
+        ----------
+        ax : Axis
+            Axis of the figure.
+
+        Returns
+        -------
+        ax : Axis
+            Axis of the figure.
+        """
         if ax is None:
             ax = plt.subplot()
         plt.setp(ax, xlabel="X", ylabel="Y")
         return ax
 
     def draw_points(self, ax, points=None, **plot_kwargs):
-        """Draw the ellipsis."""
+        """Draw the ellipsis.
+
+        Parameters
+        ----------
+        ax : Axis
+            Axis of the figure.
+        points : array-like, shape=[..., 2, 2]
+            Points on the SPD manifold of 2D symmetric
+            positive definite matrices.
+            Optional, default: None.
+        plot_kwargs : dict
+            Dictionnary of arguments related to plotting.
+        """
         for point in points:
             x_coords, y_coords = self.compute_coordinates(point)
             ax.plot(x_coords, y_coords, **plot_kwargs)
@@ -573,7 +597,6 @@ class Ellipsis2D:
         eigvalues, eigvectors = gs.linalg.eigh(point)
         eigvalues = eigvalues + EPSILON
 
-        print(eigvalues)
         [eigvalue1, eigvalue2] = eigvalues
 
         rot_sin = eigvectors[1, 0]
