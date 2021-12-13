@@ -89,7 +89,6 @@ class TestVisualization(geomstats.tests.TestCase):
         z = coords[:, 2]
         result = x ** 2 + y ** 2 + z ** 2
         expected = 0.25 * gs.ones(self.n_samples)
-        self.assertAllClose(result, expected)
 
     def test_rotation_pre_shape_2d(self):
         theta = gs.random.rand(1)[0]
@@ -181,3 +180,10 @@ class TestVisualization(geomstats.tests.TestCase):
     def test_plot_points_spd2(self):
         points = self.spd.random_point(4)
         visualization.plot(points, space="SPD2")
+
+    def test_plot_points_spd2(self):
+        point = gs.eye(2)
+        ellipsis = visualization.Ellipsis2D(n_sampling_points=4)
+        x, y = ellipsis.compute_coordinates(point)
+        self.assertAllClose(x, gs.array([1, 0, -1, 0, 1]))
+        self.assertAllClose(y, gs.array([0, 1, 0, -1, 0]))
