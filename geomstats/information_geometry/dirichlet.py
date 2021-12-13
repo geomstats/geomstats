@@ -11,7 +11,6 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 N_STEPS = 100
-MAX_TIME = 300
 
 
 class DirichletDistributions(OpenSet):
@@ -484,7 +483,6 @@ class DirichletMetric(RiemannianMetric):
         end_point,
         n_steps=N_STEPS,
         jacobian=False,
-        max_time=MAX_TIME,
     ):
         """Solve geodesic boundary problem.
 
@@ -502,10 +500,6 @@ class DirichletMetric(RiemannianMetric):
             If True, the explicit value of the jacobian is used to solve
             the geodesic boundary value problem.
             Optional, default: False.
-        max_time : float.
-            Maximum time in which the boundary value problem should be
-            solved, in seconds. If it takes longer, the process is terminated.
-            Optional, default: 300 seconds i.e. 5 minutes.
 
         Returns
         -------
@@ -649,7 +643,7 @@ class DirichletMetric(RiemannianMetric):
         return path
 
     def log(
-        self, point, base_point, n_steps=N_STEPS, jacobian=False, max_time=MAX_TIME
+        self, point, base_point, n_steps=N_STEPS, jacobian=False
     ):
         """Compute the logarithm map.
 
@@ -670,10 +664,6 @@ class DirichletMetric(RiemannianMetric):
             If True, the explicit value of the jacobian is used to solve
             the geodesic boundary value problem.
             Optional, default: False.
-        max_time : float.
-            Maximum time in which the boundary value problem should be
-            solved, in seconds. If it takes longer, the process is terminated.
-            Optional, default: 300 seconds i.e. 5 minutes.
 
         Returns
         -------
@@ -685,8 +675,7 @@ class DirichletMetric(RiemannianMetric):
         geodesic = self._geodesic_bvp(
             initial_point=base_point,
             end_point=point,
-            jacobian=jacobian,
-            max_time=max_time,
+            jacobian=jacobian
         )
         geodesic_at_t = geodesic(t)
         log = n_steps * (geodesic_at_t[..., 1, :] - geodesic_at_t[..., 0, :])
@@ -700,7 +689,6 @@ class DirichletMetric(RiemannianMetric):
         initial_tangent_vec=None,
         n_steps=N_STEPS,
         jacobian=False,
-        max_time=MAX_TIME,
     ):
         """Generate parameterized function for the geodesic curve.
 
@@ -723,10 +711,6 @@ class DirichletMetric(RiemannianMetric):
             If True, the explicit value of the jacobian is used to solve
             the geodesic boundary value problem.
             Optional, default: False.
-        max_time : float.
-            Maximum time in which the boundary value problem should be
-            solved, in seconds. If it takes longer, the process is terminated.
-            Optional, default: 300 seconds i.e. 5 minutes.
 
         Returns
         -------
@@ -747,7 +731,7 @@ class DirichletMetric(RiemannianMetric):
                     "Cannot specify both an end point " "and an initial tangent vector."
                 )
             path = self._geodesic_bvp(
-                initial_point, end_point, n_steps, jacobian=jacobian, max_time=max_time
+                initial_point, end_point, n_steps, jacobian=jacobian
             )
 
         if initial_tangent_vec is not None:
