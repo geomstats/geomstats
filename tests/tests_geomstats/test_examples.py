@@ -14,8 +14,6 @@ import examples.geodesic_regression_se2 as geodesic_regression_se2
 import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.kalman_filter as kalman_filter
 import examples.learning_graph_structured_data_h2 as learning_gsd_h2
-import examples.loss_and_gradient_se3 as loss_and_gradient_se3
-import examples.loss_and_gradient_so3 as loss_and_gradient_so3
 import examples.plot_bch_so3 as plot_bch_so3
 import examples.plot_expectation_maximization_ball as plot_em_manifolds
 import examples.plot_geodesics_h2 as plot_geodesics_h2
@@ -78,14 +76,6 @@ class TestExamples(geomstats.tests.TestCase):
     @geomstats.tests.np_and_autograd_only
     def test_gradient_descent_s2():
         gradient_descent_s2.main(max_iter=64, output_file=None)
-
-    @staticmethod
-    def test_loss_and_gradient_so3():
-        loss_and_gradient_so3.main()
-
-    @staticmethod
-    def test_loss_and_gradient_se3():
-        loss_and_gradient_se3.main()
 
     @staticmethod
     def test_kalman_filter():
