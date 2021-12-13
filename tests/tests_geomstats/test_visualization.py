@@ -89,6 +89,7 @@ class TestVisualization(geomstats.tests.TestCase):
         z = coords[:, 2]
         result = x ** 2 + y ** 2 + z ** 2
         expected = 0.25 * gs.ones(self.n_samples)
+        self.assertAllClose(result, expected)
 
     def test_rotation_pre_shape_2d(self):
         theta = gs.random.rand(1)[0]
