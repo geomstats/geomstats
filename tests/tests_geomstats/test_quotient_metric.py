@@ -46,7 +46,7 @@ class BuresWassersteinBundle(GeneralLinear, FiberBundle):
 
 
 class TestQuotientMetric(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(0)
         n = 3
         self.bundle = BuresWassersteinBundle(n)

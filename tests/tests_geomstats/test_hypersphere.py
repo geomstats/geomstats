@@ -15,7 +15,7 @@ ONLINE_KMEANS_TOL = 2e-2
 
 
 class TestHypersphere(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
 
         self.dimension = 4
@@ -708,8 +708,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         dim = 2
         n_samples = 5
         sphere = Hypersphere(dim)
-        points = gs.random.rand(
-            n_samples, 2) * gs.pi * gs.array([1., 2.])[None, :]
+        points = gs.random.rand(n_samples, 2) * gs.pi * gs.array([1.0, 2.0])[None, :]
         extrinsic = sphere.spherical_to_extrinsic(points)
         result = sphere.extrinsic_to_spherical(extrinsic)
         self.assertAllClose(result, points)
@@ -757,7 +756,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
         result = sphere.tangent_extrinsic_to_spherical(
-            tangent_vecs[0], base_point=gs.array([1., 0., 0.])
+            tangent_vecs[0], base_point=gs.array([1.0, 0.0, 0.0])
         )
         self.assertAllClose(result, expected[0])
 
@@ -765,23 +764,24 @@ class TestHypersphere(geomstats.tests.TestCase):
         dim = 2
         n_samples = 5
         sphere = Hypersphere(dim)
-        points = gs.random.rand(
-            n_samples, 2) * gs.pi * gs.array([1., 2.])[None, :]
+        points = gs.random.rand(n_samples, 2) * gs.pi * gs.array([1.0, 2.0])[None, :]
         tangent_spherical = gs.random.rand(n_samples, 2)
         tangent_extrinsic = sphere.tangent_spherical_to_extrinsic(
-            tangent_spherical, points)
+            tangent_spherical, points
+        )
         result = sphere.tangent_extrinsic_to_spherical(
-            tangent_extrinsic, base_point_spherical=points)
+            tangent_extrinsic, base_point_spherical=points
+        )
         self.assertAllClose(result, tangent_spherical)
 
         points_extrinsic = sphere.random_uniform(n_samples)
         vector = gs.random.rand(n_samples, dim + 1)
         tangent_extrinsic = sphere.to_tangent(vector, points_extrinsic)
         tangent_spherical = sphere.tangent_extrinsic_to_spherical(
-            tangent_extrinsic, base_point=points_extrinsic)
+            tangent_extrinsic, base_point=points_extrinsic
+        )
         spherical = sphere.extrinsic_to_spherical(points_extrinsic)
-        result = sphere.tangent_spherical_to_extrinsic(
-            tangent_spherical, spherical)
+        result = sphere.tangent_spherical_to_extrinsic(tangent_spherical, spherical)
         self.assertAllClose(result, tangent_extrinsic)
 
     def test_christoffels_vectorization(self):
@@ -861,14 +861,15 @@ class TestHypersphere(geomstats.tests.TestCase):
         space = self.space
         point = space.random_uniform()
         self.assertRaises(
-            NotImplementedError,
-            lambda: space.extrinsic_to_spherical(point))
+            NotImplementedError, lambda: space.extrinsic_to_spherical(point)
+        )
 
         self.assertRaises(
             NotImplementedError,
-            lambda: space.tangent_extrinsic_to_spherical(point, point))
+            lambda: space.tangent_extrinsic_to_spherical(point, point),
+        )
 
         sphere = Hypersphere(2)
         self.assertRaises(
-            ValueError,
-            lambda: sphere.tangent_extrinsic_to_spherical(point))
+            ValueError, lambda: sphere.tangent_extrinsic_to_spherical(point)
+        )

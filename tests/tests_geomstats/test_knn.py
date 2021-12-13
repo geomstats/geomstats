@@ -9,7 +9,7 @@ from geomstats.learning.knn import KNearestNeighborsClassifier
 class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
     """Class defining the KNN tests."""
 
-    def setUp(self):
+    def setup_method(self):
         """Define the parameters to test."""
         gs.random.seed(1234)
         self.n_neighbors = 3

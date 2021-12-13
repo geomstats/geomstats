@@ -9,7 +9,7 @@ from geomstats.geometry.pullback_metric import PullbackMetric
 
 
 class TestPullbackMetric(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=UserWarning)
         gs.random.seed(0)
         self.dim = 2

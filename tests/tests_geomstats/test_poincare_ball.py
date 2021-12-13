@@ -16,7 +16,7 @@ from geomstats.geometry.poincare_ball import PoincareBall
 
 
 class TestPoincareBall(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.manifold = PoincareBall(2)
         self.metric = self.manifold.metric
 

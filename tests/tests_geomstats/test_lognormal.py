@@ -15,7 +15,7 @@ from geomstats.geometry.spd_matrices import (
 class TestLogNormal(geomstats.tests.TestCase):
     """Class defining the LogNormal tests."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up  the test"""
         self.n = 3
         self.spd_cov_n = (self.n * (self.n + 1)) // 2

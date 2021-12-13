@@ -9,8 +9,7 @@ from geomstats.datasets.utils import load_emg
 class TestPrepareEmgData(geomstats.tests.TestCase):
     """Class for testing the covariance creation from time series."""
 
-    @geomstats.tests.np_and_autograd_only
-    def setUp(self):
+    def setup_method(self):
         """Set up function."""
         self.n_steps = 100
         self.n_elec = 8

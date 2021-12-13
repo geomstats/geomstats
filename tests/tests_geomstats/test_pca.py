@@ -12,7 +12,7 @@ from geomstats.learning.pca import TangentPCA
 class TestTangentPCA(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
-    def setUp(self):
+    def setup_method(self):
         self.so3 = SpecialOrthogonal(n=3, point_type="vector")
         self.spd = SPDMatrices(3)
         self.spd_metric = SPDMetricAffine(3)
