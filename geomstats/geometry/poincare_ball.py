@@ -118,10 +118,7 @@ class PoincareBallMetric(RiemannianMetric):
         super(PoincareBallMetric, self).__init__(dim=dim, signature=(dim, 0))
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
-        self.scale = scale()
-
-        # inner classes instance
-        self.Gaussian = _InnerGaussian(self)
+        self.scale = scale
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
@@ -228,7 +225,6 @@ class PoincareBallMetric(RiemannianMetric):
         )
         return ball_manifold.projection(result)
 
-    @geomstats.vectorization.decorator(["else", "vector", "vector"])
     def dist(self, point_a, point_b):
         """Compute the geodesic distance between two points.
 
@@ -254,7 +250,7 @@ class PoincareBallMetric(RiemannianMetric):
         dist *= self.scale
         return dist
 
-    @geomstats.vectorization.decorator(["else", "vector", "vector"])
+
     def retraction(self, tangent_vec, base_point):
         """Poincaré ball model retraction.
 
@@ -287,7 +283,6 @@ class PoincareBallMetric(RiemannianMetric):
 
         return base_point - gs.einsum("...i,...j->...j", retraction_factor, tangent_vec)
 
-    @geomstats.vectorization.decorator(["else", "vector"])
     def metric_matrix(self, base_point=None):
         """Compute the inner product matrix.
 
@@ -305,10 +300,10 @@ class PoincareBallMetric(RiemannianMetric):
         if base_point is None:
             base_point = gs.zeros((1, self.dim))
 
-        lambda_base = (2 / (1 - gs.sum(base_point * base_point, axis=-1))) ** 2
+        lambda_base = (2 / (1 - gs.sum(base_point * base_point, axis=-1, keepdims=True))) ** 2
         identity = gs.eye(self.dim, self.dim)
 
-        return gs.einsum("i,jk->ijk", lambda_base, identity)
+        return gs.einsum("...i,...jk->ijk", lambda_base, identity)
 
     def normalization_factor(self, variances):
         """Return normalization factor of the Gaussian distribution.
