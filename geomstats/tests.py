@@ -43,28 +43,28 @@ tf_only = pytest.mark.skipif(
 )
 
 np_and_tf_only = pytest.mark.skipif(
-    not np_backend() and not tf_backend(),
+    not (np_backend() or tf_backend()),
     reason="Test for numpy and tensorflow backends only.",
 )
 np_and_torch_only = pytest.mark.skipif(
-    not np_backend() and not pytorch_backend(),
+    not (np_backend() or pytorch_backend()),
     reason="Test for numpy and pytorch backends only.",
 )
 np_and_autograd_only = pytest.mark.skipif(
-    not np_backend() and not autograd_backend(),
+    not (np_backend() or autograd_backend()),
     reason="Test for numpy and autograd backends only.",
 )
 autograd_and_torch_only = pytest.mark.skipif(
-    not autograd_backend() and not pytorch_backend(),
+    not (autograd_backend() or pytorch_backend()),
     reason="Test for numpy and autograd backends only.",
 )
 autograd_and_tf_only = pytest.mark.skipif(
-    not autograd_backend() and not tf_backend(),
+    not (autograd_backend() or tf_backend()),
     reason="Test for numpy and autograd backends only.",
 )
 
 np_autograd_and_tf_only = pytest.mark.skipif(
-    not (np_backend() or autograd_backend() or pytorch_backend()),
+    not (np_backend() or autograd_backend() or tf_backend()),
     reason="Test for numpy, autograd and tensorflow backends only.",
 )
 np_autograd_and_torch_only = pytest.mark.skipif(
