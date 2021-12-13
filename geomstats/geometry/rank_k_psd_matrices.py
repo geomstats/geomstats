@@ -66,11 +66,10 @@ class RankKPSDMatrices(Manifold):
     def projection(self, point):
         r"""Project a matrix to the space of PSD matrices of rank k.
 
-        The nearest symmetric positive semidefinite matrix in the
-        Frobenius norm to an arbitrary real matrix A is shown to be (B + H)/2,
-        where H is the symmetric polar factor of B=(A + A')/2.
-        As [Higham1988] is turning the matrix into a PSD, the rank
-        is then forced to be k.
+        First the symmetric part of point is computed. The method developed
+        by Higham (1988) is applied to turn the matrix into a PSD matrix.
+        To impose the rank equal k the matrix is multiplied by
+        the :math`I_\epsilon` matrix.
 
         Parameters
         ----------
@@ -82,12 +81,10 @@ class RankKPSDMatrices(Manifold):
         projected: array-like, shape=[..., n, n]
             PSD matrix rank k.
 
-        References
-        ----------
-        [Higham1988]_    Highamm, N. J.
-                        “Computing a nearest symmetric positive semidefinite matrix.”
-                        Linear Algebra and Its Applications 103 (May 1, 1988):
-                        103-118. https://doi.org/10.1016/0024-3795(88)90223-6
+        Reference
+        ---------
+        Higham NJ. Computing a nearest symmetric positive semidefinite matrix.
+        Linear Algebra and its Applications. 1988; 103(C): 103-118.
         """
         sym = Matrices.to_symmetric(point)
         _, s, v = gs.linalg.svd(sym)
