@@ -31,97 +31,51 @@ def tf_backend():
     return os.environ["GEOMSTATS_BACKEND"] == "tensorflow"
 
 
-def autograd_only(test_item):
-    """Decorate to filter tests for autograd only."""
-    if autograd_backend():
-        return test_item
-    return unittest.skip("Test for autograd backend only.")(test_item)
+autograd_only = pytest.mark.skipif(
+    not autograd_backend, reason="Test for autograd backend only."
+)
+np_only = pytest.mark.skipif(not np_backend, reason="Test for numpy backend only.")
+torch_only = pytest.mark.skipif(
+    not pytorch_backend, reason="Test for pytorch backends only."
+)
+tf_only = pytest.mark.skipif(
+    not tf_backend, reason="Test for tensorflow backends only."
+)
+
+np_and_tf_only = pytest.mark.skipif(
+    not np_backend() and not tf_backend(),
+    reason="Test for numpy and tensorflow backends only.",
+)
+np_and_torch_only = pytest.mark.skipif(
+    not np_backend() and not pytorch_backend(),
+    reason="Test for numpy and pytorch backends only.",
+)
+np_and_autograd_only = pytest.mark.skipif(
+    not np_backend() and not autograd_backend(),
+    reason="Test for numpy and autograd backends only.",
+)
+autograd_and_torch_only = pytest.mark.skipif(
+    not autograd_backend() and not pytorch_backend(),
+    reason="Test for numpy and autograd backends only.",
+)
+autograd_and_tf_only = pytest.mark.skipif(
+    not autograd_backend() and not tf_backend(),
+    reason="Test for numpy and autograd backends only.",
+)
+
+np_autograd_and_tf_only = pytest.mark.skipif(
+    not (np_backend() or autograd_backend() or pytorch_backend()),
+    reason="Test for numpy, autograd and tensorflow backends only.",
+)
+np_autograd_and_torch_only = pytest.mark.skipif(
+    not (np_backend() or autograd_backend() or pytorch_backend()),
+    reason="Test for numpy, autograd and pytorch backends only.",
+)
+autograd_tf_and_torch_only = pytest.mark.skipif(
+    np_backend(), reason="Test for backends with automatic differentiation only"
+)
 
 
-def np_only(test_item):
-    """Decorate to filter tests for numpy only."""
-    if np_backend():
-        return test_item
-    return unittest.skip("Test for numpy backend only.")(test_item)
-
-
-def np_and_tf_only(test_item):
-    """Decorate to filter tests for numpy and tensorflow only."""
-    if np_backend() or tf_backend():
-        return test_item
-    return unittest.skip("Test for numpy and tensorflow backends only.")(test_item)
-
-
-def np_and_torch_only(test_item):
-    """Decorate to filter tests for numpy and pytorch only."""
-    if np_backend() or pytorch_backend():
-        return test_item
-    return unittest.skip("Test for numpy and pytorch backends only.")(test_item)
-
-
-def np_and_autograd_only(test_item):
-    """Decorate to filter tests for numpy and autograd only."""
-    if np_backend() or autograd_backend():
-        return test_item
-    return unittest.skip("Test for numpy and autograd backends only.")(test_item)
-
-
-def autograd_and_torch_only(test_item):
-    """Decorate to filter tests for autograd and torch only."""
-    if autograd_backend() or pytorch_backend():
-        return test_item
-    return unittest.skip("Test for autograd and torch backends only.")(test_item)
-
-
-def torch_only(test_item):
-    """Decorate to filter tests for pytorch only."""
-    if pytorch_backend():
-        return test_item
-    return unittest.skip("Test for pytorch backend only.")(test_item)
-
-
-def tf_only(test_item):
-    """Decorate to filter tests for tensorflow only."""
-    if tf_backend():
-        return test_item
-    return unittest.skip("Test for tensorflow backend only.")(test_item)
-
-
-def np_autograd_and_tf_only(test_item):
-    """Decorate to filter tests for numpy, autograd and tf only."""
-    if np_backend() or autograd_backend() or tf_backend():
-        return test_item
-    return unittest.skip("Test for numpy, autograd and tensorflow backends only.")(
-        test_item
-    )
-
-
-def autograd_and_tf_only(test_item):
-    """Decorate to filter tests for autograd and tensorflow only."""
-    if autograd_backend() or tf_backend():
-        return test_item
-    return unittest.skip("Test for autograd and tensorflow backends only.")(test_item)
-
-
-def np_autograd_and_torch_only(test_item):
-    """Decorate to filter tests for numpy, autograd and torch only."""
-    if np_backend() or autograd_backend() or pytorch_backend():
-        return test_item
-    return unittest.skip("Test for numpy, autograd and pytorch backends only.")(
-        test_item
-    )
-
-
-def autograd_tf_and_torch_only(test_item):
-    """Decorate to filter tests for backends with autodiff only."""
-    if np_backend():
-        return unittest.skip("Test for backends with automatic differentiation only.")(
-            test_item
-        )
-    return test_item
-
-
-_TestBaseClass = unittest.TestCase
 if tf_backend():
     import tensorflow as tf
 
@@ -143,7 +97,7 @@ def pytorch_error_msg(a, b, rtol, atol):
     return msg
 
 
-class TestCase(_TestBaseClass):
+class TestCase:
     def assertAllClose(self, a, b, rtol=gs.rtol, atol=gs.atol):
         if tf_backend():
             return tf.test.TestCase().assertAllClose(a, b, rtol=rtol, atol=atol)
