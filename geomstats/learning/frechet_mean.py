@@ -359,10 +359,10 @@ def _circle_mean(points):
 
     Reference
     ---------
-    Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
-    Uniqueness, locus and asymptotics", Annals of the Institute of Statistical
-    Mathematics 67 (1), 177–193.
-    https://arxiv.org/abs/1108.2141
+    ..[HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
+                 Uniqueness, locus and asymptotics", Annals of the Institute of
+                 Statistical Mathematics 67 (1), 177–193.
+                 https://arxiv.org/abs/1108.2141
     """
     sample_size = points.size
     mean0 = gs.mean(points)
@@ -372,27 +372,31 @@ def _circle_mean(points):
     return means[gs.argmin(means[:, 1]), 0]
 
 
-def _circle_variances(mean0, var0, sample_size, points):
-    n = sample_size
-    means = (mean0 + gs.linspace(0, 2 * gs.pi, n, endpoint=False)) % (2 * gs.pi)
-    means[means >= gs.pi] -= 2 * gs.pi
-    parts = [(sum(points) / n) if means[0] < 0 else 0]
+def _circle_variances(mean, var, n_samples, points):
+    means = (mean + gs.linspace(0, 2 * gs.pi, n_samples, endpoint=False)) % (2 * gs.pi)
+    means = gs.where(means >= gs.pi, means - 2 * gs.pi, means)
+    parts = [sum(points) / n_samples if means[0] < 0 else 0]
     m_plus = means >= 0
     left_sums = gs.cumsum(points)
     right_sums = left_sums[-1] - left_sums
-    i = gs.array(range(n))
+    i = gs.arange(n_samples)
     j = i[1:]
-    parts2 = right_sums[:-1] / (n - j)
-    parts2[m_plus[1:]] = (left_sums[:-1] / j)[m_plus[1:]]
+    parts2 = right_sums[:-1] / (n_samples - j)
+    first_term = parts2[:1]
+    parts2 = gs.where(m_plus[1:], left_sums[:-1] / j, parts2)
+    parts2 = gs.concatenate([first_term, parts2[1:]])
     parts = gs.hstack([parts, parts2])
-    # Formula (6) from Hotz, Huckemann
-    plus_vec = (4 * gs.pi * i / n) * (gs.pi + parts - mean0) - (2 * gs.pi * i / n) ** 2
-    minus_vec = (4 * gs.pi * (n - i) / n) * (gs.pi - parts + mean0) - (
-        2 * gs.pi * (n - i) / n
+
+    # Formula (6) from [HH15]_
+    plus_vec = (4 * gs.pi * i / n_samples) * (gs.pi + parts - mean) - (
+        2 * gs.pi * i / n_samples
     ) ** 2
-    minus_vec[m_plus] = plus_vec[m_plus]
-    means = gs.vstack([means, var0 + minus_vec]).T
-    return gs.array(means)
+    minus_vec = (4 * gs.pi * (n_samples - i) / n_samples) * (gs.pi - parts + mean) - (
+        2 * gs.pi * (n_samples - i) / n_samples
+    ) ** 2
+    minus_vec = gs.where(m_plus, plus_vec, minus_vec)
+    means = gs.transpose(gs.vstack([means, var + minus_vec]))
+    return means
 
 
 class FrechetMean(BaseEstimator):
