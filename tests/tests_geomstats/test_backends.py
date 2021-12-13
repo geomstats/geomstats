@@ -7,6 +7,7 @@ In exceptional cases, numpy's results or API may not be followed.
 import warnings
 
 import numpy as _np
+import pytest
 import scipy.linalg
 import torch
 
@@ -483,9 +484,8 @@ class TestBackends(geomstats.tests.TestCase):
 
     def test_assignment(self):
         gs_array_1 = gs.ones(3)
-        self.assertRaises(
-            ValueError, gs.assignment, gs_array_1, [0.1, 2.0, 1.0], [0, 1]
-        )
+        with pytest.raises(ValueError):
+            gs.assignment, gs_array_1, [0.1, 2.0, 1.0], [0, 1]
 
         np_array_1 = _np.ones(3)
         gs_array_1 = gs.ones_like(gs.array(np_array_1))
@@ -537,9 +537,8 @@ class TestBackends(geomstats.tests.TestCase):
 
     def test_assignment_by_sum(self):
         gs_array_1 = gs.ones(3)
-        self.assertRaises(
-            ValueError, gs.assignment_by_sum, gs_array_1, [0.1, 2.0, 1.0], [0, 1]
-        )
+        with pytest.raises(ValueError):
+            gs.assignment_by_sum, gs_array_1, [0.1, 2.0, 1.0], [0, 1]
 
         np_array_1 = _np.ones(3)
         gs_array_1 = gs.ones_like(gs.array(np_array_1))
@@ -775,7 +774,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result[0], result_verdict[0])
         self.assertAllClose(result[1], result_verdict[1])
 
-        with self.assertRaises((ValueError, RuntimeError)):
+        with pytest.raises((ValueError, RuntimeError)):
             gs.broadcast_arrays(gs.array([1, 2]), gs.array([3, 4, 5]))
 
     def test_choice(self):
@@ -790,7 +789,7 @@ class TestBackends(geomstats.tests.TestCase):
             result_bool = False
 
         self.assertTrue(result_bool)
-        self.assertEqual(len(result), a)
+        assert len(result) == a
 
     def test_split(self):
         x = gs.array([0.1, 0.2, 0.3, 0.4])

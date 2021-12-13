@@ -2,6 +2,8 @@
 
 import warnings
 
+import pytest
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.connection import Connection
@@ -101,9 +103,9 @@ class TestConnection(geomstats.tests.TestCase):
         tan_vec_b = self.hypersphere.to_tangent(
             gs.random.rand(n_samples, 3), base_point
         )
-        self.assertRaises(
-            ValueError,
-            lambda: self.hypersphere.metric.ladder_parallel_transport(
+
+        with pytest.raises(ValueError):
+            self.hypersphere.metric.ladder_parallel_transport(
                 tan_vec_a,
                 tan_vec_b,
                 base_point,
@@ -112,7 +114,6 @@ class TestConnection(geomstats.tests.TestCase):
                 n_rungs=1,
                 alpha=0.5,
             ),
-        )
 
     def test_exp_connection_metric(self):
         point = gs.array([gs.pi / 2, 0])
@@ -225,14 +226,12 @@ class TestConnection(geomstats.tests.TestCase):
         vector = gs.random.rand(2, 4, 4)
         initial_tangent_vec = space.to_tangent(vector=vector, base_point=initial_point)
         end_point = space.random_uniform(2)
-        self.assertRaises(
-            RuntimeError,
-            lambda: space.bi_invariant_metric.geodesic(
+        with pytest.raises(RuntimeError):
+            space.bi_invariant_metric.geodesic(
                 initial_point=initial_point,
                 initial_tangent_vec=initial_tangent_vec,
                 end_point=end_point,
-            ),
-        )
+            )
 
     def test_geodesic_vectorization(self):
         space = Hypersphere(2)
