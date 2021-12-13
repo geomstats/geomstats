@@ -250,7 +250,6 @@ class PoincareBallMetric(RiemannianMetric):
         dist *= self.scale
         return dist
 
-
     def retraction(self, tangent_vec, base_point):
         """Poincaré ball model retraction.
 
