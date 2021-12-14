@@ -485,7 +485,7 @@ class TestBackends(geomstats.tests.TestCase):
     def test_assignment(self):
         gs_array_1 = gs.ones(3)
         with pytest.raises(ValueError):
-            gs.assignment, gs_array_1, [0.1, 2.0, 1.0], [0, 1]
+            gs.assignment(gs_array_1, [0.1, 2.0, 1.0], [0, 1])
 
         np_array_1 = _np.ones(3)
         gs_array_1 = gs.ones_like(gs.array(np_array_1))
@@ -538,7 +538,7 @@ class TestBackends(geomstats.tests.TestCase):
     def test_assignment_by_sum(self):
         gs_array_1 = gs.ones(3)
         with pytest.raises(ValueError):
-            gs.assignment_by_sum, gs_array_1, [0.1, 2.0, 1.0], [0, 1]
+            gs.assignment_by_sum(gs_array_1, [0.1, 2.0, 1.0], [0, 1])
 
         np_array_1 = _np.ones(3)
         gs_array_1 = gs.ones_like(gs.array(np_array_1))
