@@ -6,7 +6,7 @@ from geomstats.geometry.lie_group import LieGroup
 
 
 class HeisenbergVectors(LieGroup):
-    r"""Class for the 3D Heisenberg group in vector representation.
+    r"""Class for the 3D Heisenberg group in the vector representation.
 
     The 3D Heisenberg group represented as R^3. It is a step-2 Carnot Lie
     group. It can be equipped with a natural sub-Riemannian structure, and it is
@@ -79,6 +79,10 @@ class HeisenbergVectors(LieGroup):
         composed : array-like, shape=[..., 3]
             Product of point_a and point_b along the first dimension.
         """
+        
+        point_a = gs.float64(point_a)
+        point_b = gs.float64(point_b)
+                
         point_ab = point_a + point_b
 
         point_ab_additional_term = 1 / 2 * (point_a[..., 0] *
@@ -105,9 +109,7 @@ class HeisenbergVectors(LieGroup):
 
     def jacobian_translation(
             self, point, left_or_right='left'):
-        """Compute the Jacobian of left/right translation by a point.
-
-        Compute the Jacobian matrix of the left translation by the point.
+        """Compute the Jacobian matrix of left/right translation by a point.
 
         Parameters
         ----------
@@ -187,7 +189,7 @@ class HeisenbergVectors(LieGroup):
 
     @staticmethod
     def upperTriangular_matrix_from_vector(point):
-        """Compute the upper triangular matrix corresponding to the vector.
+        """Compute the upper triangular matrix representation of the vector.
 
         The 3D Heisenberg group can also be represented as 3x3 upper triangular
         matrices. This function computes this representation of the vector
