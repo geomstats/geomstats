@@ -100,11 +100,11 @@ def pytorch_error_msg(a, b, rtol, atol):
 class TestCase:
     def assertAllClose(self, a, b, rtol=gs.rtol, atol=gs.atol):
         if tf_backend():
-            tf.test.TestCase().assertAllClose(a, b, rtol=rtol, atol=atol)
+            return tf.test.TestCase().assertAllClose(a, b, rtol=rtol, atol=atol)
         if np_backend() or autograd_backend():
-            np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
+            return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
 
-        self.assertTrue(
+        return self.assertTrue(
             gs.allclose(a, b, rtol=rtol, atol=atol),
             msg=pytorch_error_msg(a, b, rtol, atol),
         )
@@ -125,5 +125,5 @@ class TestCase:
 
     def assertShapeEqual(self, a, b):
         if tf_backend():
-            tf.test.TestCase().assertShapeEqual(a, b)
+            return tf.test.TestCase().assertShapeEqual(a, b)
         assert a.shape == b.shape
