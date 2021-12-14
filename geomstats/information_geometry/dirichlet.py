@@ -1,6 +1,8 @@
 """Statistical Manifold of Dirichlet distributions with the Fisher metric."""
 
-from scipy.integrate import odeint, solve_bvp
+import logging
+
+from scipy.integrate import solve_bvp
 from scipy.stats import dirichlet
 
 import geomstats.backend as gs
@@ -9,6 +11,7 @@ from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.integrator import integrate
 
 N_STEPS = 100
 
@@ -361,7 +364,8 @@ class DirichletMetric(RiemannianMetric):
             else gs.transpose(jac, [4, 3, 1, 0, 2])
         )
 
-    def _geodesic_ivp(self, initial_point, initial_tangent_vec, n_steps=N_STEPS):
+    def _geodesic_ivp(self, initial_point, initial_tangent_vec,
+                      method="scipy", n_steps_min=N_STEPS):
         """Solve geodesic initial value problem.
 
         Compute the parameterized function for the geodesic starting at
@@ -376,6 +380,12 @@ class DirichletMetric(RiemannianMetric):
         initial_tangent_vec : array-like, shape=[..., dim]
             Tangent vector at initial point.
 
+        method:
+
+        n_steps_min: int.
+            Minimal number of steps used to integrate up to the end time.
+            Optional, default N_STEPS.
+
         Returns
         -------
         path : function
@@ -389,7 +399,8 @@ class DirichletMetric(RiemannianMetric):
         n_initial_tangent_vecs = initial_tangent_vec.shape[0]
         if n_initial_points > n_initial_tangent_vecs:
             raise ValueError(
-                "There cannot be more initial points than " "initial tangent vectors."
+                "There cannot be more initial points than "
+                "initial tangent vectors."
             )
         if n_initial_tangent_vecs > n_initial_points:
             if n_initial_points > 1:
@@ -399,14 +410,6 @@ class DirichletMetric(RiemannianMetric):
                     "initial points."
                 )
             initial_point = gs.tile(initial_point, (n_initial_tangent_vecs, 1))
-
-        def ivp(state, _):
-            """Reformat the initial value problem geodesic ODE."""
-            position, velocity = state[: self.dim], state[self.dim :]
-            state = gs.stack([position, velocity])
-            vel, acc = self.geodesic_equation(state, _)
-            eq = (vel, acc)
-            return gs.hstack(eq)
 
         def path(t):
             """Generate parameterized function for geodesic curve.
@@ -422,31 +425,91 @@ class DirichletMetric(RiemannianMetric):
                 Values of the geodesic at times t.
             """
             t = gs.to_ndarray(t, to_ndim=1)
+            end_time = t[-1]
             n_times = len(t)
             geod = []
+            nonlocal method
 
-            if n_times < n_steps:
-                t_int = gs.linspace(0, 1, n_steps + 1)
-                tangent_vecs = gs.einsum("i,...k->...ik", t, initial_tangent_vec)
-                for point, vec in zip(initial_point, tangent_vecs):
-                    point = gs.tile(point, (n_times, 1))
-                    exp = []
-                    for pt, vc in zip(point, vec):
-                        initial_state = gs.hstack([pt, vc])
-                        solution = odeint(ivp, initial_state, t_int, ())
-                        exp.append(solution[-1, : self.dim])
-                    exp = exp[0] if n_times == 1 else gs.stack(exp)
-                    geod.append(exp)
+            if n_times == 1:
+                # print('one time')
+                n_steps = n_steps_min
+                indices = -1
             else:
-                t_int = t
-                for point, vec in zip(initial_point, initial_tangent_vec):
-                    initial_state = gs.hstack([point, vec])
-                    solution = odeint(ivp, initial_state, t_int, ())
-                    geod.append(solution[:, : self.dim])
+                t_has_zero = (t[0] == 0)
+                t_with_zero = t if t_has_zero else gs.hstack(([0.], t))
+                time_diff = t_with_zero[1:] - t_with_zero[:-1]
+                t_is_regular = (gs.abs(time_diff - time_diff[0]) < 1e-5).all()
 
-            return geod[0] if len(initial_point) == 1 else gs.stack(geod)
+                if t_is_regular:
+                    # print('several regular times')
+                    # n_steps_0 = gs.floor(1 / time_diff[0])
+                    n_added_steps = gs.ceil((n_steps_min - 1) / (n_times - 1))
+                    n_steps = int((n_times - 1) * n_added_steps + 1)
+                    indices = gs.linspace(0, n_steps - 1, n_times).astype('int')
+                    if not t_has_zero:
+                        indices = indices[1:]
+                else:
+                    # print('several irregular times')
+                    logging.warning("scipy method is used for non regular times")
+                    method = "scipy"
+                    n_steps = n_steps_min
+                    indices = gs.arange(n_steps)
 
+            for point, vec in zip(initial_point, initial_tangent_vec):
+                initial_state = (point, vec)
+                solution = integrate(
+                    function=self.geodesic_equation,
+                    initial_state=initial_state,
+                    end_time=end_time,
+                    n_steps=n_steps,
+                    method=method
+                )
+                # geod += [solution[i][0] for i in range(len(solution))]
+                # geod.append(solution[:, : self.dim])
+                geod.append(solution[:, 0, :])
+
+            geodesic = geod[0] if len(initial_point) == 1 else gs.stack(geod)
+
+            return geodesic[..., indices, :]
         return path
+
+###########################
+#             if n_times < n_steps:
+#                 # t_int = gs.linspace(0, 1, n_steps + 1)
+#                 tangent_vecs = gs.einsum("i,...k->...ik", t, initial_tangent_vec)
+#                 for point, vec in zip(initial_point, tangent_vecs):
+#                     point = gs.tile(point, (n_times, 1))
+#                     exp = []
+#                     for pt, vc in zip(point, vec):
+#                         initial_state = (pt, vc)
+#                         solution = integrate(
+#                             function=self.geodesic_equation,
+#                             initial_state=initial_state,
+#                             n_steps=n_steps,
+#                             method="scipy"
+#                         )
+#                         exp.append(solution[-1][0])
+#                         # exp.append(solution[-1, : self.dim])
+#                     exp = exp[0] if n_times == 1 else gs.stack(exp)
+#                     geod.append(exp)
+#             else:
+#                 # t_int = t
+#                 for point, vec in zip(initial_point, initial_tangent_vec):
+#                     initial_state = (point, vec)  # gs.hstack([point, vec])
+#                     # initial_state = gs.hstack(initial_point)
+#                     # solution = odeint(ivp, initial_state, t_int, ())
+#                     solution = integrate(
+#                         function=self.geodesic_equation,
+#                         initial_state=initial_state,
+#                         n_steps=n_steps,
+#                         method="scipy"
+#                     )
+#
+#                     geod.append(solution[:, : self.dim])
+#
+#             return geod[0] if len(initial_point) == 1 else gs.stack(geod)
+#
+#         return path
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
         """Compute the exponential map.
@@ -472,7 +535,7 @@ class DirichletMetric(RiemannianMetric):
             initial velocity tangent_vec and stopping at time 1.
         """
         stop_time = 1.0
-        geodesic = self._geodesic_ivp(base_point, tangent_vec, n_steps)
+        geodesic = self._geodesic_ivp(base_point, tangent_vec, n_steps_min=n_steps)
         exp = geodesic(stop_time)
 
         return exp
@@ -735,6 +798,8 @@ class DirichletMetric(RiemannianMetric):
             )
 
         if initial_tangent_vec is not None:
-            path = self._geodesic_ivp(initial_point, initial_tangent_vec, n_steps)
+            path = self._geodesic_ivp(
+                initial_point, initial_tangent_vec, n_steps_min=n_steps
+            )
 
         return path

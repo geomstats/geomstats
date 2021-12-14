@@ -43,8 +43,8 @@ class TestIntegrator(geomstats.tests.TestCase):
             _, velocity = state
             return gs.stack([velocity, gs.zeros_like(velocity)])
 
-        for step in ["euler", "rk2", "rk4"]:
-            flow = integrator.integrate(function, initial_state, step=step)
+        for method in ["euler", "rk2", "rk4", "scipy"]:
+            flow = integrator.integrate(function, initial_state, method=method)
             result = flow[-1][0]
             expected = initial_state[0] + initial_state[1]
 

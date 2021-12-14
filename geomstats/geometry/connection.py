@@ -1,6 +1,7 @@
 """Affine connections."""
 
 from abc import ABC
+import logging
 
 from scipy.optimize import minimize
 
@@ -77,12 +78,115 @@ class Connection(ABC):
         equation = -gs.einsum("...kj,...j->...k", equation, velocity)
         return gs.stack([velocity, equation])
 
+    def _geodesic_ivp(self, initial_point, initial_tangent_vec,
+                      method="scipy", n_steps_min=N_STEPS):
+        """Solve geodesic initial value problem.
+
+        Compute the parameterized function for the geodesic starting at
+        initial_point with initial velocity given by initial_tangent_vec.
+        This is acheived by integrating the geodesic equation.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Initial point.
+
+        initial_tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at initial point.
+
+        method:
+
+        n_steps_min: int.
+            Minimal number of steps used to integrate up to the end time.
+            Optional, default N_STEPS.
+
+        Returns
+        -------
+        path : function
+            Parameterized function for the geodesic curve starting at
+            initial_point with velocity initial_tangent_vec.
+        """
+        initial_point = gs.to_ndarray(initial_point, to_ndim=2)
+        initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=2)
+
+        n_initial_points = initial_point.shape[0]
+        n_initial_tangent_vecs = initial_tangent_vec.shape[0]
+        if n_initial_points > n_initial_tangent_vecs:
+            raise ValueError(
+                "There cannot be more initial points than "
+                "initial tangent vectors."
+            )
+        if n_initial_tangent_vecs > n_initial_points:
+            if n_initial_points > 1:
+                raise ValueError(
+                    "For several initial tangent vectors, "
+                    "specify either one or the same number of "
+                    "initial points."
+                )
+            initial_point = gs.tile(initial_point, (n_initial_tangent_vecs, 1))
+
+        def path(t):
+            """Generate parameterized function for geodesic curve.
+
+            Parameters
+            ----------
+            t : array-like, shape=[n_times,]
+                Times at which to compute points of the geodesics.
+
+            Returns
+            -------
+            geodesic : array-like, shape=[..., n_times, dim]
+                Values of the geodesic at times t.
+            """
+            t = gs.to_ndarray(t, to_ndim=1)
+            end_time = t[-1]
+            n_times = len(t)
+            geod = []
+            nonlocal method
+
+            if n_times == 1:
+                n_steps = n_steps_min
+                indices = -1
+            else:
+                t_has_zero = (t[0] == 0)
+                t_with_zero = t if t_has_zero else gs.hstack(([0.], t))
+                time_diff = t_with_zero[1:] - t_with_zero[:-1]
+                t_is_regular = (gs.abs(time_diff - time_diff[0]) < 1e-5).all()
+
+                if t_is_regular:
+                    n_added_steps = gs.ceil((n_steps_min - 1) / (n_times - 1))
+                    n_steps = int((n_times - 1) * n_added_steps + 1)
+                    indices = gs.linspace(0, n_steps - 1, n_times).astype('int')
+                    if not t_has_zero:
+                        indices = indices[1:]
+                else:
+                    logging.warning("scipy method is used for non regular times")
+                    method = "scipy"
+                    n_steps = n_steps_min
+                    indices = gs.arange(n_steps)
+
+            for point, vec in zip(initial_point, initial_tangent_vec):
+                initial_state = (point, vec)
+                solution = integrate(
+                    function=self.geodesic_equation,
+                    initial_state=initial_state,
+                    end_time=end_time,
+                    n_steps=n_steps,
+                    method=method
+                )
+                geod.append(solution[:, 0, :])
+
+            geodesic = geod[0] if len(initial_point) == 1 else gs.stack(geod)
+
+            return geodesic[..., indices, :]
+        return path
+
     def exp(
         self,
         tangent_vec,
         base_point,
         n_steps=N_STEPS,
-        step="euler",
+        method="euler",
         point_type=None,
         **kwargs
     ):
@@ -101,7 +205,7 @@ class Connection(ABC):
         n_steps : int
             Number of discrete time steps to take in the integration.
             Optional, default: N_STEPS.
-        step : str, {'euler', 'rk4'}
+        method : str, {'euler', 'rk4'}
             The numerical scheme to use for integration.
             Optional, default: 'euler'.
         point_type : str, {'vector', 'matrix'}
@@ -113,12 +217,16 @@ class Connection(ABC):
         exp : array-like, shape=[..., dim]
             Point on the manifold.
         """
-        initial_state = gs.stack([base_point, tangent_vec])
-        flow = integrate(
-            self.geodesic_equation, initial_state, n_steps=n_steps, step=step
-        )
+        # initial_state = gs.stack([base_point, tangent_vec])
+        # flow = integrate(
+        #     self.geodesic_equation, initial_state, n_steps=n_steps, step=step
+        # )
 
-        exp = flow[-1][0]
+        # exp = flow[-1][0]
+        geodesic = self._geodesic_ivp(
+            base_point, tangent_vec, method=method, n_steps_min=n_steps
+        )
+        exp = geodesic(1.)
         return exp
 
     def log(

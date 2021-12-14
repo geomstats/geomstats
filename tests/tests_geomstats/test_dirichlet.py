@@ -12,7 +12,7 @@ from geomstats.information_geometry.dirichlet import (
     DirichletDistributions,
     DirichletMetric,
 )
-
+# flake8: noqa
 
 class TestDirichletDistributions(geomstats.tests.TestCase):
     """Class defining the Dirichlet distributions tests."""
