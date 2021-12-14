@@ -1,4 +1,4 @@
-"""Manifold embedded in another manifold."""
+"""Abstract classes for manifolds."""
 
 import abc
 
@@ -19,11 +19,12 @@ class VectorSpace(Manifold, abc.ABC):
         Optional, default: 'vector'.
     """
 
-    def __init__(self, shape, default_point_type='vector', **kwargs):
-        if 'dim' not in kwargs.keys():
-            kwargs['dim'] = int(gs.prod(gs.array(shape)))
+    def __init__(self, shape, default_point_type="vector", **kwargs):
+        if "dim" not in kwargs.keys():
+            kwargs["dim"] = int(gs.prod(gs.array(shape)))
         super(VectorSpace, self).__init__(
-            default_point_type=default_point_type, **kwargs)
+            default_point_type=default_point_type, **kwargs
+        )
         self.shape = shape
 
     def belongs(self, point, atol=gs.atol):
@@ -43,7 +44,7 @@ class VectorSpace(Manifold, abc.ABC):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
-        if self.default_point_type == 'vector':
+        if self.default_point_type == "vector":
             point_shape = point.shape[-1:]
             minimal_ndim = 1
         else:
@@ -115,7 +116,7 @@ class VectorSpace(Manifold, abc.ABC):
         """
         return vector
 
-    def random_point(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample in the vector space with a uniform distribution in a box.
 
         Parameters
@@ -134,13 +135,13 @@ class VectorSpace(Manifold, abc.ABC):
         """
         size = self.shape
         if n_samples != 1:
-            size = (n_samples, ) + self.shape
+            size = (n_samples,) + self.shape
         point = bound * (gs.random.rand(*size) - 0.5) * 2
         return point
 
 
-class EmbeddedManifold(Manifold, abc.ABC):
-    """Class for manifolds embedded in a vector space.
+class LevelSet(Manifold, abc.ABC):
+    """Class for manifolds embedded in a vector space by a submersion.
 
     Parameters
     ----------
@@ -154,13 +155,21 @@ class EmbeddedManifold(Manifold, abc.ABC):
     """
 
     def __init__(
-            self, dim, embedding_space, submersion, value,
-            tangent_submersion,
-            default_coords_type='intrinsic', **kwargs):
-        super(EmbeddedManifold, self).__init__(
+        self,
+        dim,
+        embedding_space,
+        submersion,
+        value,
+        tangent_submersion,
+        default_coords_type="intrinsic",
+        **kwargs
+    ):
+        super(LevelSet, self).__init__(
             dim=dim,
             default_point_type=embedding_space.default_point_type,
-            default_coords_type=default_coords_type, **kwargs)
+            default_coords_type=default_coords_type,
+            **kwargs
+        )
         self.embedding_space = embedding_space
         self.embedding_metric = embedding_space.metric
         self.submersion = submersion
@@ -216,7 +225,7 @@ class EmbeddedManifold(Manifold, abc.ABC):
         """
         belongs = self.embedding_space.is_tangent(vector, base_point, atol)
         tangent_sub_applied = self.tangent_submersion(vector, base_point)
-        constraint = gs.isclose(tangent_sub_applied, 0., atol=atol)
+        constraint = gs.isclose(tangent_sub_applied, 0.0, atol=atol)
         value = self.value
         if value.ndim == 2:
             constraint = gs.all(constraint, axis=(-2, -1))
@@ -237,8 +246,7 @@ class EmbeddedManifold(Manifold, abc.ABC):
         point_extrinsic : array-like, shape=[..., dim_embedding]
             Point in the embedded manifold in extrinsic coordinates.
         """
-        raise NotImplementedError(
-            'intrinsic_to_extrinsic_coords is not implemented.')
+        raise NotImplementedError("intrinsic_to_extrinsic_coords is not implemented.")
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """Convert from extrinsic to intrinsic coordinates.
@@ -254,8 +262,7 @@ class EmbeddedManifold(Manifold, abc.ABC):
         point_intrinsic : array-lie, shape=[..., dim]
             Point in the embedded manifold in intrinsic coordinates.
         """
-        raise NotImplementedError(
-            'extrinsic_to_intrinsic_coords is not implemented.')
+        raise NotImplementedError("extrinsic_to_intrinsic_coords is not implemented.")
 
     @abc.abstractmethod
     def projection(self, point):
@@ -306,8 +313,8 @@ class OpenSet(Manifold, abc.ABC):
     """
 
     def __init__(self, dim, ambient_space, **kwargs):
-        if 'default_point_type' not in kwargs:
-            kwargs['default_point_type'] = ambient_space.default_point_type
+        if "default_point_type" not in kwargs:
+            kwargs["default_point_type"] = ambient_space.default_point_type
         super().__init__(dim=dim, **kwargs)
         self.ambient_space = ambient_space
 
@@ -348,7 +355,7 @@ class OpenSet(Manifold, abc.ABC):
         """
         return self.ambient_space.projection(vector)
 
-    def random_point(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
 
         If the manifold is compact, a uniform distribution is used.

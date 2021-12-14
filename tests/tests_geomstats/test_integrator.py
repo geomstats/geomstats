@@ -18,12 +18,11 @@ class TestIntegrator(geomstats.tests.TestCase):
 
     @staticmethod
     def function_linear(_state, _time):
-        return 2.
+        return 2.0
 
     def _test_step(self, step):
         state = self.intercept
-        result = step(
-            self.function_linear, state, 0., self.dt)
+        result = step(self.function_linear, state, 0.0, self.dt)
         expected = state + 2 * self.dt
 
         self.assertAllClose(result, expected)
@@ -44,7 +43,7 @@ class TestIntegrator(geomstats.tests.TestCase):
             _, velocity = state
             return gs.stack([velocity, gs.zeros_like(velocity)])
 
-        for step in ['euler', 'rk2', 'rk4']:
+        for step in ["euler", "rk2", "rk4"]:
             flow = integrator.integrate(function, initial_state, step=step)
             result = flow[-1][0]
             expected = initial_state[0] + initial_state[1]

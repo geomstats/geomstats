@@ -1,7 +1,7 @@
 """The manifold of full-rank correlation matrices."""
 
 import geomstats.backend as gs
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
@@ -9,7 +9,7 @@ from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
 
 
-class FullRankCorrelationMatrices(EmbeddedManifold):
+class FullRankCorrelationMatrices(LevelSet):
     """Class for the manifold of full-rank correlation matrices.
 
     Parameters
@@ -20,9 +20,12 @@ class FullRankCorrelationMatrices(EmbeddedManifold):
 
     def __init__(self, n):
         super(FullRankCorrelationMatrices, self).__init__(
-            dim=int(n * (n - 1) / 2), embedding_space=SPDMatrices(n=n),
-            submersion=Matrices.diagonal, value=gs.ones(n),
-            tangent_submersion=lambda v, x: Matrices.diagonal(v))
+            dim=int(n * (n - 1) / 2),
+            embedding_space=SPDMatrices(n=n),
+            submersion=Matrices.diagonal,
+            value=gs.ones(n),
+            tangent_submersion=lambda v, x: Matrices.diagonal(v),
+        )
         self.n = n
 
     @staticmethod
@@ -46,7 +49,7 @@ class FullRankCorrelationMatrices(EmbeddedManifold):
             Symmetric matrix obtained by the action of `diagonal_vec` on
             `point`.
         """
-        aux = gs.einsum('...i,...j->...ij', diagonal_vec, diagonal_vec)
+        aux = gs.einsum("...i,...j->...ij", diagonal_vec, diagonal_vec)
         return point * aux
 
     @classmethod
@@ -68,7 +71,7 @@ class FullRankCorrelationMatrices(EmbeddedManifold):
             Correlation matrix obtained by dividing all elements by the
             diagonal entries.
         """
-        diag_vec = Matrices.diagonal(point) ** (-.5)
+        diag_vec = Matrices.diagonal(point) ** (-0.5)
         return cls.diag_action(diag_vec, point)
 
     def random_point(self, n_samples=1, bound=1.0):
@@ -141,9 +144,12 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
 
     def __init__(self, n):
         super(CorrelationMatricesBundle, self).__init__(
-            n=n, base=FullRankCorrelationMatrices(n),
-            ambient_metric=SPDMetricAffine(n), group_dim=n,
-            group_action=FullRankCorrelationMatrices.diag_action)
+            n=n,
+            base=FullRankCorrelationMatrices(n),
+            ambient_metric=SPDMetricAffine(n),
+            group_dim=n,
+            group_action=FullRankCorrelationMatrices.diag_action,
+        )
 
     @staticmethod
     def riemannian_submersion(point):
@@ -159,8 +165,8 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         cor : array_like, shape=[..., n, n]
             Full rank correlation matrix.
         """
-        diagonal = Matrices.diagonal(point) ** (-.5)
-        aux = gs.einsum('...i,...j->...ij', diagonal, diagonal)
+        diagonal = Matrices.diagonal(point) ** (-0.5)
+        aux = gs.einsum("...i,...j->...ij", diagonal, diagonal)
         return point * aux
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
@@ -182,9 +188,8 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
 
         diagonal = diagonal_tv / diagonal_bp
         aux = base_point * (diagonal[..., None, :] + diagonal[..., :, None])
-        mat = tangent_vec - .5 * aux
-        return FullRankCorrelationMatrices.diag_action(
-            diagonal_bp ** (-.5), mat)
+        mat = tangent_vec - 0.5 * aux
+        return FullRankCorrelationMatrices.diag_action(diagonal_bp ** (-0.5), mat)
 
     def vertical_projection(self, tangent_vec, base_point, **kwargs):
         """Compute the vertical projection wrt the affine-invariant metric.
@@ -205,9 +210,8 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         inverse_base_point = GeneralLinear.inverse(base_point)
         operator = gs.eye(n) + base_point * inverse_base_point
         inverse_operator = GeneralLinear.inverse(operator)
-        vector = gs.einsum(
-            '...ij,...ji->...i', inverse_base_point, tangent_vec)
-        diagonal = gs.einsum('...ij,...j->...i', inverse_operator, vector)
+        vector = gs.einsum("...ij,...ji->...i", inverse_base_point, tangent_vec)
+        diagonal = gs.einsum("...ij,...j->...i", inverse_operator, vector)
         return base_point * (diagonal[..., None, :] + diagonal[..., :, None])
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
@@ -230,8 +234,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         if fiber_point is None and base_point is not None:
             return self.horizontal_projection(tangent_vec, base_point)
         diagonal_point = Matrices.diagonal(fiber_point) ** 0.5
-        lift = FullRankCorrelationMatrices.diag_action(
-            diagonal_point, tangent_vec)
+        lift = FullRankCorrelationMatrices.diag_action(diagonal_point, tangent_vec)
         hor_lift = self.horizontal_projection(lift, base_point=fiber_point)
         return hor_lift
 
@@ -251,4 +254,5 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
 
     def __init__(self, n):
         super(FullRankCorrelationAffineQuotientMetric, self).__init__(
-            fiber_bundle=CorrelationMatricesBundle(n=n))
+            fiber_bundle=CorrelationMatricesBundle(n=n)
+        )

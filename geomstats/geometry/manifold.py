@@ -27,17 +27,23 @@ class Manifold(abc.ABC):
     """
 
     def __init__(
-            self, dim, metric=None, default_point_type='vector',
-            default_coords_type='intrinsic', **kwargs):
+        self,
+        dim,
+        metric=None,
+        default_point_type="vector",
+        default_coords_type="intrinsic",
+        **kwargs
+    ):
         super(Manifold, self).__init__(**kwargs)
-        geomstats.errors.check_integer(dim, 'dim')
+        geomstats.errors.check_integer(dim, "dim")
         geomstats.errors.check_parameter_accepted_values(
-            default_point_type, 'default_point_type', ['vector', 'matrix'])
+            default_point_type, "default_point_type", ["vector", "matrix"]
+        )
 
         self.dim = dim
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
-        self._metric = metric
+        self.metric = metric
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
@@ -95,7 +101,7 @@ class Manifold(abc.ABC):
         """
 
     @abc.abstractmethod
-    def random_point(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
 
         If the manifold is compact, a uniform distribution is used.
@@ -137,9 +143,10 @@ class Manifold(abc.ABC):
         return self._metric
 
     @metric.setter
-    def metric(self, value):
-        if not isinstance(value, RiemannianMetric):
-            raise ValueError('The argument must be a RiemannianMetric object')
-        if value.dim != self.dim:
-            value.dim = self.dim
-        self._metric = value
+    def metric(self, metric):
+        if metric is not None:
+            if not isinstance(metric, RiemannianMetric):
+                raise ValueError("The argument must be a RiemannianMetric object")
+            if metric.dim != self.dim:
+                metric.dim = self.dim
+        self._metric = metric
