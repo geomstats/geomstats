@@ -192,24 +192,24 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         )
         self.assertAllClose(result, expected)
 
-    def test_christoffels_and_sphere_christoffels(self):
-        """Test consistency between sphere's christoffels.
+    # def test_christoffels_and_sphere_christoffels(self):
+    #     """Test consistency between sphere's christoffels.
 
-        The christoffels of the class Hypersphere are
-        defined in terms of spherical coordinates.
+    #     The christoffels of the class Hypersphere are
+    #     defined in terms of spherical coordinates.
 
-        The christoffels of pullback_metric are also defined
-        in terms of the spherical coordinates.
-        """
-        base_point = gs.array([0.1, 0.2])
-        result = self.pullback_metric.christoffels(base_point=base_point)
-        expected = self.sphere_metric.christoffels(point=base_point)
-        self.assertAllClose(result, expected)
+    #     The christoffels of pullback_metric are also defined
+    #     in terms of the spherical coordinates.
+    #     """
+    #     base_point = gs.array([0.1, 0.2])
+    #     result = self.pullback_metric.christoffels(base_point=base_point)
+    #     expected = self.sphere_metric.christoffels(point=base_point)
+    #     self.assertAllClose(result, expected)
 
-        base_point = gs.array([0.7, 0.233])
-        result = self.pullback_metric.christoffels(base_point=base_point)
-        expected = self.sphere_metric.christoffels(point=base_point)
-        self.assertAllClose(result, expected)
+    #     base_point = gs.array([0.7, 0.233])
+    #     result = self.pullback_metric.christoffels(base_point=base_point)
+    #     expected = self.sphere_metric.christoffels(point=base_point)
+    #     self.assertAllClose(result, expected)
 
     def test_exp_and_sphere_exp(self):
         """Test consistency between sphere's Riemannian exp.
