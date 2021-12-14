@@ -170,7 +170,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
         with pytest.raises(ValueError):
-            self.beta.metric.metric_matrix
+            self.beta.metric.metric_matrix()
 
     def test_point_to_pdf(self):
         """Test point_to_pdf.
