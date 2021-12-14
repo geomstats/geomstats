@@ -1,5 +1,7 @@
 """Unit tests for the LogNormal Sampler."""
 
+import pytest
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.distributions.lognormal import LogNormal
