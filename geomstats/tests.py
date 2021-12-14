@@ -34,7 +34,7 @@ def tf_backend():
 autograd_only = pytest.mark.skipif(
     not autograd_backend(), reason="Test for autograd backend only."
 )
-np_only = pytest.mark.skipif(not np_backend, reason="Test for numpy backend only.")
+np_only = pytest.mark.skipif(not np_backend(), reason="Test for numpy backend only.")
 torch_only = pytest.mark.skipif(
     not pytorch_backend(), reason="Test for pytorch backends only."
 )
