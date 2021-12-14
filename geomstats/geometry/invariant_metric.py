@@ -542,7 +542,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         return translation_map(value_at_id)
 
-    def exp_closed_form(self, tangent_vec, base_point=None, n_steps=10, step="rk4",
+    def exp_closed_form(self, tangent_vec, base_point=None, n_steps=10, method="rk4",
                         **kwargs):
         r"""Compute Riemannian exponential of tan. vector wrt to base point.
 
@@ -572,7 +572,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         n_steps : int,
             Number of integration steps.
             Optional, default : 15.
-        step : str, {'euler', 'rk2', 'rk4'}
+        method : str, {'euler', 'rk2', 'rk4'}
             Scheme to use in the integration.
             Optional, default : 'rk4'.
 
@@ -620,7 +620,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
             base_point = gs.stack([base_point] * len(tangent_vec))
             base_point = gs.reshape(base_point, tangent_vec.shape)
         initial_state = gs.stack([base_point, group.to_tangent(left_angular_vel)])
-        flow = integrate(lie_acceleration, initial_state, n_steps=n_steps, step=step)
+        flow = integrate(lie_acceleration, initial_state, n_steps=n_steps,
+                         method=method)
         return flow[-1][0]
 
     def log(
@@ -628,7 +629,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         point,
         base_point,
         n_steps=15,
-        step="rk4",
+        method="rk4",
         verbose=False,
         max_iter=25,
         tol=1e-10,
@@ -656,7 +657,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
             Number of integration steps to compute the exponential in the
             loss.
             Optional, default : 15.
-        step : str, {'euler', 'rk2', 'rk4'}
+        method : str, {'euler', 'rk2', 'rk4'}
             Scheme to use in the integration procedure of the exponential in
             the loss.
             Optional, default : 'rk4'.
@@ -687,7 +688,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                 point,
                 base_point,
                 n_steps=n_steps,
-                step=step,
+                method=method,
                 verbose=verbose,
                 max_iter=max_iter,
                 tol=tol,
@@ -701,7 +702,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         tangent_vec_b,
         base_point,
         n_steps=10,
-        step="rk4",
+        method="rk4",
         return_endpoint=False,
     ):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
@@ -723,7 +724,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         n_steps : int
             Number of integration steps to take.
             Optional, default : 10.
-        step : str, {'euler', 'rk2', 'rk4'}
+        method : str, {'euler', 'rk2', 'rk4'}
             Scheme to use for the approximation of the solution of the ODE
             Optional, default : rk4
         return_endpoint : bool
@@ -775,7 +776,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
             base_point = gs.stack([base_point] * n_sample)
 
         initial_state = gs.stack([base_point, left_angular_vel_b, left_angular_vel_a])
-        flow = integrate(acceleration, initial_state, n_steps=n_steps, step=step)
+        flow = integrate(acceleration, initial_state, n_steps=n_steps, method=method)
         gamma, _, zeta_t = flow[-1]
         transported = group.tangent_translation_map(
             gamma, left_or_right=self.left_or_right, inverse=False
