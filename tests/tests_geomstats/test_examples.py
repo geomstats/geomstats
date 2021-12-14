@@ -44,7 +44,7 @@ matplotlib.use("Agg")  # NOQA
 
 class TestExamples(geomstats.tests.TestCase):
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         sys.stdout = open(os.devnull, "w")
 
     @staticmethod

@@ -32,14 +32,14 @@ def tf_backend():
 
 
 autograd_only = pytest.mark.skipif(
-    not autograd_backend, reason="Test for autograd backend only."
+    not autograd_backend(), reason="Test for autograd backend only."
 )
 np_only = pytest.mark.skipif(not np_backend, reason="Test for numpy backend only.")
 torch_only = pytest.mark.skipif(
-    not pytorch_backend, reason="Test for pytorch backends only."
+    not pytorch_backend(), reason="Test for pytorch backends only."
 )
 tf_only = pytest.mark.skipif(
-    not tf_backend, reason="Test for tensorflow backends only."
+    not tf_backend(), reason="Test for tensorflow backends only."
 )
 
 np_and_tf_only = pytest.mark.skipif(
@@ -56,11 +56,11 @@ np_and_autograd_only = pytest.mark.skipif(
 )
 autograd_and_torch_only = pytest.mark.skipif(
     not (autograd_backend() or pytorch_backend()),
-    reason="Test for numpy and autograd backends only.",
+    reason="Test for autograd and torch backends only.",
 )
 autograd_and_tf_only = pytest.mark.skipif(
     not (autograd_backend() or tf_backend()),
-    reason="Test for numpy and autograd backends only.",
+    reason="Test for autograd and tf backends only.",
 )
 
 np_autograd_and_tf_only = pytest.mark.skipif(
@@ -72,7 +72,7 @@ np_autograd_and_torch_only = pytest.mark.skipif(
     reason="Test for numpy, autograd and pytorch backends only.",
 )
 autograd_tf_and_torch_only = pytest.mark.skipif(
-    np_backend(), reason="Test for backends with automatic differentiation only"
+    np_backend(), reason="Test for backends with automatic differentiation only."
 )
 
 
@@ -121,7 +121,7 @@ class TestCase:
     def assertAllCloseToNp(self, a, np_a, rtol=gs.rtol, atol=gs.atol):
         are_same_shape = np.all(a.shape == np_a.shape)
         are_same = np.allclose(a, np_a, rtol=rtol, atol=atol)
-        assert are_same and are_same_shape == True
+        assert are_same and are_same_shape
 
     def assertShapeEqual(self, a, b):
         if tf_backend():

@@ -789,7 +789,7 @@ class TestBackends(geomstats.tests.TestCase):
             result_bool = False
 
         self.assertTrue(result_bool)
-        assert len(result) == a
+        self.assertEqual(len(result), a)
 
     def test_split(self):
         x = gs.array([0.1, 0.2, 0.3, 0.4])
