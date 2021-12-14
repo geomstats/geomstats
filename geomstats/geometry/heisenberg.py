@@ -71,7 +71,7 @@ class HeisenbergVectors(LieGroup):
         ----------
         point_a : array-like, shape=[..., 3]
             Left factor in the product.
-        point_b : array-like, shape=[..., 3]
+        point_b : array-like, shape=[, 3]
             Right factor in the product.
 
         Returns
