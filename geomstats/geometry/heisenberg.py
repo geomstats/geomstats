@@ -5,7 +5,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.lie_group import LieGroup
 
 
-class heisenbergVectors(LieGroup):
+class HeisenbergVectors(LieGroup):
     r"""Class for the 3D Heisenberg group in vector representation.
 
     The 3D Heisenberg group represented as R^3. It is a step-2 Carnot Lie
@@ -23,7 +23,7 @@ class heisenbergVectors(LieGroup):
     """
 
     def __init__(self, **kwargs):
-        super(heisenbergVectors, self).__init__(
+        super(HeisenbergVectors, self).__init__(
             dim=int(3), default_point_type='vector',
             lie_algebra=Euclidean(3))
 
@@ -37,7 +37,7 @@ class heisenbergVectors(LieGroup):
 
         Returns
         -------
-        get_identity : array-like, shape=[1,]
+        get_identity : array-like, shape=[3,]
         """
         return gs.zeros(self.dim)
 
@@ -48,14 +48,14 @@ class heisenbergVectors(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., 3]
             Point to evaluate.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the Heisenberg
-            group (in this representation this is just R^3).
+            group (i.e. R^3 in this representation).
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
@@ -69,20 +69,24 @@ class heisenbergVectors(LieGroup):
 
         Parameters
         ----------
-        point_a : array-like, shape=[..., {dim, [n, n]}]
+        point_a : array-like, shape=[..., 3]
             Left factor in the product.
-        point_b : array-like, shape=[..., {dim, [n, n]}]
+        point_b : array-like, shape=[..., 3]
             Right factor in the product.
 
         Returns
         -------
-        composed : array-like, shape=[..., {dim, [n, n]}]
+        composed : array-like, shape=[..., 3]
             Product of point_a and point_b along the first dimension.
         """
-        return (point_a + point_b +
-                1 / 2 * gs.array([0, 0, point_a[0] *
-                                  point_b[1] - point_a[1] *
-                                  point_b[0]]))
+        point_ab = point_a + point_b
+
+        point_ab_additional_term = 1 / 2 * (point_a[..., 0] *
+                                            point_b[1] - point_a[..., 1] *
+                                            point_b[0])
+
+        point_ab[..., 2] = point_ab[..., 2] + point_ab_additional_term
+        return point_ab
 
     def inverse(self, point):
         """Compute the group inverse of point.
@@ -107,7 +111,7 @@ class heisenbergVectors(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[..., {dim, [n, n]]
+        point : array-like, shape=[..., 3]
             Point.
         left_or_right : str, {'left', 'right'}
             Indicate whether to calculate the differential of left or right
@@ -116,17 +120,16 @@ class heisenbergVectors(LieGroup):
 
         Returns
         -------
-        jacobian : array-like, shape=[..., dim, dim]
+        jacobian : array-like, shape=[..., 3, 3]
             Jacobian of the left/right translation by point.
         """
         if left_or_right == 'left':
             return(gs.array([[1, 0, 0],
                              [0, 1, 0],
                              [-point[1] / 2, point[0] / 2, 1]]))
-        else:
-            return(gs.array([[1, 0, 0],
-                             [0, 1, 0],
-                             [point[1] / 2, -point[0] / 2, 1]]))
+        return(gs.array([[1, 0, 0],
+                         [0, 1, 0],
+                         [point[1] / 2, -point[0] / 2, 1]]))
 
     def random_point(self, n_samples=1, bound=1.):
         """Sample in the Euclidean space R^3 with a uniform distribution in a box.
@@ -142,7 +145,7 @@ class heisenbergVectors(LieGroup):
 
         Returns
         -------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., 3]
            Sample.
         """
         size = (self.dim,)
@@ -157,12 +160,12 @@ class heisenbergVectors(LieGroup):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., dimension]
+        tangent_vec : array-like, shape=[..., 3]
             Tangent vector at base point.
 
         Returns
         -------
-        point : array-like, shape=[..., dimension]
+        point : array-like, shape=[..., 3]
             Point.
         """
         return tangent_vec
@@ -172,17 +175,18 @@ class heisenbergVectors(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dimension]
+        point : array-like, shape=[..., 3]
             Point.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dimension]
+        tangent_vec : array-like, shape=[..., 3]
             Group logarithm.
         """
         return point
 
-    def upperTriangular_matrix_from_vector(self, point):
+    @staticmethod
+    def upperTriangular_matrix_from_vector(point):
         """Compute the upper triangular matrix corresponding to the vector.
 
         The 3D Heisenberg group can also be represented as 3x3 upper triangular
@@ -191,12 +195,12 @@ class heisenbergVectors(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., 3]
             Point in the vector-represention.
 
         Returns
         -------
-        upper_triangular_mat : array-like, shape=[..., n, n]
+        upper_triangular_mat : array-like, shape=[..., 3, 3]
             Upper triangular matrix.
         """
         return gs.array([[1, point[0], point[2] + 1 / 2 * point[0] * point[1]],
