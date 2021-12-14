@@ -11,7 +11,7 @@ from geomstats.geometry.product_manifold import ProductManifold
 
 
 class TestProductManifold(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
 
         self.space_matrix = ProductManifold(

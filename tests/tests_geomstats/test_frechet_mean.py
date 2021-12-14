@@ -18,7 +18,7 @@ from geomstats.learning.frechet_mean import FrechetMean, variance
 class TestFrechetMean(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(123)
         self.sphere = Hypersphere(dim=4)
         self.hyperbolic = Hyperboloid(dim=3)

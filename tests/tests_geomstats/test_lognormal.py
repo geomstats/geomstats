@@ -1,5 +1,7 @@
 """Unit tests for the LogNormal Sampler."""
 
+import pytest
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.distributions.lognormal import LogNormal
@@ -15,7 +17,7 @@ from geomstats.geometry.spd_matrices import (
 class TestLogNormal(geomstats.tests.TestCase):
     """Class defining the LogNormal tests."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up  the test"""
         self.n = 3
         self.spd_cov_n = (self.n * (self.n + 1)) // 2
@@ -88,13 +90,13 @@ class TestLogNormal(geomstats.tests.TestCase):
         invalid_cov = gs.eye(self.n + 1)
         invalid_manifold = Hypersphere(dim=2)
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             LogNormal(invalid_manifold, eu_mean)
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             LogNormal(self.euclidean, invalid_eu_mean)
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             LogNormal(self.spd, invalid_spd_mean)
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             LogNormal(self.euclidean, eu_mean, invalid_cov)
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             LogNormal(self.spd, spd_mean, invalid_cov)

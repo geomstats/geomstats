@@ -8,7 +8,7 @@ from geomstats.geometry.matrices import Matrices
 
 
 class TestIntegrator(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.dimension = 4
         self.dt = 0.1
         self.euclidean = Euclidean(self.dimension)

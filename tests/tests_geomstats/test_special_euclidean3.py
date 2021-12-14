@@ -22,7 +22,7 @@ ATOL = 1e-5
 
 
 class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
         gs.random.seed(1234)
 

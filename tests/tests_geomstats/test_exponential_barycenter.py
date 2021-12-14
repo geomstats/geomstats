@@ -12,7 +12,7 @@ from geomstats.learning.frechet_mean import FrechetMean
 
 
 class TestExponentialBarycenter(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         logger = logging.getLogger()
         logger.disabled = True
         self.se_mat = SpecialEuclidean(n=3)

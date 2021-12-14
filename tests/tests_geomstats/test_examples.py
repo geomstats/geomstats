@@ -44,11 +44,11 @@ matplotlib.use("Agg")  # NOQA
 
 class TestExamples(geomstats.tests.TestCase):
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         sys.stdout = open(os.devnull, "w")
 
     @staticmethod
-    def setUp():
+    def setup_method():
         gs.random.seed(1234)
         logger = logging.getLogger()
         logger.disabled = True
