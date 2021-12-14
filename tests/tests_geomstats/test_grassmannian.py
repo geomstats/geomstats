@@ -1,34 +1,17 @@
 """Unit tests for the Grassmannian."""
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.grassmannian import Grassmannian
-from geomstats.geometry.grassmannian import GrassmannianCanonicalMetric
+import tests.helper as helper
+from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
 from geomstats.geometry.matrices import Matrices
 
-p_xy = gs.array([
-    [1., 0., 0.],
-    [0., 1., 0.],
-    [0., 0., 0.]])
-p_yz = gs.array([
-    [0., 0., 0.],
-    [0., 1., 0.],
-    [0., 0., 1.]])
-p_xz = gs.array([
-    [1., 0., 0.],
-    [0., 0., 0.],
-    [0., 0., 1.]])
+p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
+p_yz = gs.array([[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+p_xz = gs.array([[1.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
 
-r_y = gs.array([
-    [0., 0., 1.],
-    [0., 0., 0.],
-    [-1., 0., 0.]])
-r_z = gs.array([
-    [0., -1., 0.],
-    [1., 0., 0.],
-    [0., 0., 0.]])
+r_y = gs.array([[0.0, 0.0, 1.0], [0.0, 0.0, 0.0], [-1.0, 0.0, 0.0]])
+r_z = gs.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
 pi_2 = gs.pi / 2
 pi_4 = gs.pi / 4
 
@@ -44,27 +27,23 @@ class TestGrassmannian(geomstats.tests.TestCase):
 
     def test_exp_np(self):
         vec = Matrices.bracket(pi_2 * r_y, gs.array([p_xy, p_yz]))
-        result = self.metric.exp(
-            vec, gs.array([p_xy, p_yz]))
+        result = self.metric.exp(vec, gs.array([p_xy, p_yz]))
         expected = gs.array([p_yz, p_xy])
         self.assertAllClose(result, expected)
 
-        vec = Matrices.bracket(
-            pi_2 * gs.array([r_y, r_z]), gs.array([p_xy, p_yz]))
-        result = self.metric.exp(
-            vec, gs.array([p_xy, p_yz]))
+        vec = Matrices.bracket(pi_2 * gs.array([r_y, r_z]), gs.array([p_xy, p_yz]))
+        result = self.metric.exp(vec, gs.array([p_xy, p_yz]))
         expected = gs.array([p_yz, p_xz])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_log(self):
         expected = Matrices.bracket(pi_4 * r_y, p_xy)
-        result = self.metric.log(
-            self.metric.exp(expected, p_xy), p_xy)
+        result = self.metric.log(self.metric.exp(expected, p_xy), p_xy)
         self.assertTrue(self.space.is_tangent(result, p_xy))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_log_vectorized(self):
         tangent_vecs = pi_4 * gs.array([r_y, r_z])
         base_points = gs.array([p_xy, p_xz])

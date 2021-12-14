@@ -5,20 +5,25 @@ Geomstats
    :header-rows: 0
 
    * - **Code**
-     - |PyPI version|\ |Zenodo|\
+     - |PyPI version|\ |Downloads|\  |Zenodo|\
    * - **Continuous Integration**
      - |Build Status|\ |python|\
-   * - **Code coverage (numpy, tensorflow, pytorch)**
-     - |Coverage Status np|\ |Coverage Status tf|\ |Coverage Status torch|
+   * - **Code coverage (numpy)**
+     - |Coverage Status np|\
+   * - **Code coverage (autograd, tensorflow, pytorch)**
+     - |Coverage Status autograd|\ |Coverage Status tf|\ |Coverage Status torch|
    * - **Documentation**
-     - |doc|\ |binder|\ |tutorial|\
+     - |doc|\  |binder|\ |tutorial|\
    * - **Community**
-     - |contributions|\ |Slack|\ |Twitter|\
+     - |contributions|\  |Slack|\  |Twitter|\
 
-**NEWS**: Interested in pushing forward the fields of computational
-differential geometry and topology? The `ICLR 2021 challenge of geometry
-and topology <https://gt-rl.github.io/challenge>`__ is open for
-submissions. Deadline: May 2nd, 2021. $3500 in prizes.
+**NEWS**:
+
+- Geomstats is recruiting an engineer for a start early 2022! If interested, details can be found `here  <https://gstats.inria.fr/files/2021/10/Research_engineer_gs-1.pdf>`_.
+
+- The white paper summarizing the findings from our `ICLR 2021 challenge of computational differential geometry and topology <https://gt-rl.github.io/challenge>`__ is out. `Read it here <https://arxiv.org/abs/2108.09810>`__.
+
+- Check out our new  `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_ module.
 
 Geomstats is an open-source Python package for computations and
 statistics on manifolds. The package is organized into two main modules:
@@ -42,8 +47,9 @@ algorithms for data on manifolds.
    directories.
 -  The documentation of ``geomstats`` can be found on the `documentation
    website <https://geomstats.github.io/>`__.
+- Interested in information geometry? Go to our `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_ module.
 -  To follow the scientific literature on geometric statistics, follow
-   our twitter-bot `@geomstats-papers <https://twitter.com/geomstats>`__!
+   our twitter-bot `@geomstats <https://twitter.com/geomstats>`__!
 
 If you find ``geomstats`` useful, please kindly cite our
 `paper <https://jmlr.org/papers/v21/19-027.html>`__:
@@ -85,8 +91,24 @@ requirements via ``git`` as follows:
     git clone https://github.com/geomstats/geomstats.git
     pip3 install -r requirements.txt
 
-This method installs the latest GitHub version of geomstats. Developers
-should install this version, together with the development requirements
+This method installs the latest GitHub version of geomstats. 
+
+
+To add the `requirements.txt` into a conda environment, you can use the
+`enviroment.yml` file as follows:
+
+::
+
+   conda env create --file environment.yml
+
+Note that this only installs the minimum requirements. To add the optional,
+development, continuous integration and documentation requirements,
+refer to the files `*-requirements.txt`.
+
+Install geomstats : Developers
+------------------------------
+
+Developers should git clone the master branch of this repository, together with the development requirements
 and the optional requirements to enable ``tensorflow`` and ``pytorch``
 backends:
 
@@ -94,10 +116,18 @@ backends:
 
     pip3 install -r dev-requirements.txt -r opt-requirements.txt
 
+Additionally, we recommend installing our pre-commit hook, to ensure that your code
+follows our Python style guidelines:
+
+::
+
+    pre-commit install
+    
+
 Choose the backend
 ------------------
 
-Geomstats can run seemlessly with ``numpy``, ``tensorflow`` or
+Geomstats can run seamlessly with ``numpy``, ``tensorflow`` or
 ``pytorch``. Note that ``pytorch`` and ``tensorflow`` requirements are
 optional, as geomstats can be used with ``numpy`` only. By default, the
 ``numpy`` backend is used. The visualizations are only available with
@@ -144,7 +174,7 @@ Analysis on simulated ``data`` on the space of 3D rotations.
     from geomstats.geometry.special_orthogonal import SpecialOrthogonal
     from geomstats.learning.pca import TangentPCA
 
-    so3 = SpecialOrthogonal(n=3, point_type='vector')
+    so3 = SpecialOrthogonal(n=3, point_type="vector")
     metric = so3.bi_invariant_metric
 
     data = so3.random_uniform(n_samples=10)
@@ -171,6 +201,15 @@ See our
 `contributing <https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst>`__
 guidelines!
 
+Interested? Contact us and join the next hackathons. Previous Geomstats events include:
+
+-  January 2020: hackathon at Inria Sophia-Antipolis, Nice, France
+-  April 2020: remote online hackathon
+-  March - April 2021: hackathon, hybrid at Inria Sophia-Antipolis / remotely with contributors from around the world
+-  July 2021: hackathon at the Geometric Science of Information (GSI) conference, Paris, France
+-  August 2021: International Coding Challenge at the International Conference on Learning Representations (ICLR), remotely
+-  December 2021: Fixit hackathon at the Sorbonne Center for Artificial Intelligence, Paris, France.
+
 Acknowledgements
 ----------------
 
@@ -181,15 +220,17 @@ This work is supported by:
 -  the French society for applied and industrial mathematics (`SMAI <http://smai.emath.fr/>`__),
 -  the National Science Foundation (grant NSF DMS RTG 1501767).
 
-.. |Twitter| image:: https://img.shields.io/twitter/follow/geomstats?label=Follow%20%40geomstats-papers%20%20%20%20&style=social
+.. |Twitter| image:: https://img.shields.io/twitter/follow/geomstats?label=Follow%20%40geomstats%20%20%20%20&style=social
    :target: https://twitter.com/geomstats
 .. |PyPI version| image:: https://badge.fury.io/py/geomstats.svg
    :target: https://badge.fury.io/py/geomstats
-.. |Build Status| image:: https://travis-ci.org/geomstats/geomstats.svg?branch=master
-   :target: https://travis-ci.org/geomstats/geomstats
+.. |Build Status| image:: https://github.com/geomstats/geomstats/actions/workflows/build.yml/badge.svg
+   :target: https://github.com/geomstats/geomstats/actions/workflows/build.yml
 .. |Slack| image:: https://img.shields.io/badge/Slack-Join-yellow
    :target: https://geomstats.slack.com/
 .. |Coverage Status np| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy
+   :target: https://codecov.io/gh/geomstats/geomstats
+.. |Coverage Status autograd| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=autograd
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Coverage Status tf| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow
    :target: https://codecov.io/gh/geomstats/geomstats
@@ -197,7 +238,9 @@ This work is supported by:
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Zenodo| image:: https://zenodo.org/badge/108200238.svg
    :target: https://zenodo.org/badge/latestdoi/108200238
-.. |python| image:: https://img.shields.io/badge/python-3.6+-blue?logo=python
+.. |Downloads| image:: https://static.pepy.tech/personalized-badge/geomstats?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads
+   :target: https://pepy.tech/project/geomstats
+.. |python| image:: https://img.shields.io/badge/python-3.7+-blue?logo=python
    :target: https://www.python.org/
 .. |tutorial| image:: https://img.shields.io/youtube/views/Ju-Wsd84uG0?label=watch&style=social
    :target: https://www.youtube.com/watch?v=Ju-Wsd84uG0

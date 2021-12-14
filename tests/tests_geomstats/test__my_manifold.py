@@ -23,13 +23,14 @@ In command line, select the backend of interest with:
  and repeat the steps from the previous paragraph.
 
 When you submit a PR, the tests are run with the three backends, except if you
-add a decorator such as `@geomstats.tests.np_only` or
-`@geomstats.tests.np_and_tf_only` etc.
+add a decorator such as `@geomstats.tests.np_and_autograd_only` or
+`@geomstats.tests.np_autograd_and_tf_only` etc.
 """
 
 # Import the tests module
 import geomstats.backend as gs
 import geomstats.tests
+
 # Import the manifold to be tested
 from geomstats.geometry._my_manifold import MyManifold
 
@@ -44,6 +45,7 @@ class TestMyManifold(geomstats.tests.TestCase):
     - ends with the line: `self.assertAllClose(result, expected)`,
     as in the examples below.
     """
+
     def setUp(self):
         """setUp method.
 
@@ -53,8 +55,7 @@ class TestMyManifold(geomstats.tests.TestCase):
         """
         self.dimension = 4
         self.another_parameter = 3
-        self.manifold = MyManifold(
-            dim=self.dimension, another_parameter=3)
+        self.manifold = MyManifold(dim=self.dimension, another_parameter=3)
 
     def test_dimension(self):
         """Test dimension.
@@ -79,7 +80,7 @@ class TestMyManifold(geomstats.tests.TestCase):
         pytorch and tensorflow. `gs.` is the equivalent of numpy's `np.` and
         most of numpy's functions are available with `gs.`.
         """
-        point = gs.array([1., 2., 3.])
+        point = gs.array([1.0, 2.0, 3.0])
         result = self.manifold.belongs(point)
         expected = False
         self.assertAllClose(result, expected)
@@ -90,8 +91,7 @@ class TestMyManifold(geomstats.tests.TestCase):
         All functions and methods should work with several input points,
         or vectors.
         """
-        point = gs.array([
-            [1., 2., 3.], [4., 5., 6.]])
+        point = gs.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
         result = self.manifold.belongs(point)
         expected = gs.array([False, False])
         self.assertAllClose(result, expected)
@@ -107,7 +107,7 @@ class TestMyManifold(geomstats.tests.TestCase):
         pytorch and tensorflow. `gs.` is the equivalent of numpy's `np.` and
         most of numpy's functions are available with `gs.`.
         """
-        vector = gs.array([1., 2., 3., 4.])
+        vector = gs.array([1.0, 2.0, 3.0, 4.0])
         result = self.manifold.is_tangent(vector)
         expected = True
         self.assertAllClose(result, expected)
@@ -118,8 +118,7 @@ class TestMyManifold(geomstats.tests.TestCase):
         All functions and methods should work with several input points,
         or vectors.
         """
-        vector = gs.array([
-            [1., 2., 3., 4.], [5., 6., 7., 8.]])
+        vector = gs.array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]])
         result = self.manifold.is_tangent(vector)
         expected = gs.array([True, True])
         self.assertAllClose(result, expected)
