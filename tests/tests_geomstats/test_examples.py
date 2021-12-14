@@ -187,6 +187,6 @@ class TestExamples(geomstats.tests.TestCase):
         plot_geodesics_se2.main()
 
     @staticmethod
-    @geomstats.tests.autograd_and_tf_only
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_geodesic_regression_grassmannian():
         geodesic_regression_grassmannian.main()
