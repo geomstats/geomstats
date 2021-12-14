@@ -1,6 +1,5 @@
 """Wrapper around autograd functions to be consistent with backends."""
 
-import autograd.numpy as anp
 from autograd import jacobian as _jacobian
 from autograd import value_and_grad as _value_and_grad
 from autograd.extend import defvjp, primitive
