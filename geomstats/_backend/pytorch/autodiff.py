@@ -12,22 +12,46 @@ def detach(x):
     ----------
     x : array-like
         Tensor to detach.
+
+    Returns
+    -------
+    x : array-like
+        Detached tensor.
     """
     return x.detach()
 
 
-def custom_gradient(*grad_func):
-    """Decorate a function to define its custom gradient(s).
+def custom_gradient(*grad_funcs):
+    """Create a decorator that allows a function to define its custom gradient(s).
 
     Parameters
     ----------
     *grad_funcs : callables
         Custom gradient functions.
+
+    Returns
+    -------
+    decorator : callable
+        This decorator, used on any function func, associates the
+        input grad_funcs as the gradients of func.
     """
 
     def decorator(func):
+        """Decorate a function to define its custome gradient(s).
+
+        Parameters
+        ----------
+        func : callable
+            Function whose gradients will be assigned by grad_funcs.
+
+        Returns
+        -------
+        wrapped_function : callable
+            Function func with gradients specified by grad_funcs.
+        """
+
         class func_with_grad(torch.autograd.Function):
-            """Wrapper for a function with custom grad."""
+            """Wrapper class for a function with custom grad."""
 
             @staticmethod
             def forward(ctx, *args):
@@ -39,18 +63,18 @@ def custom_gradient(*grad_func):
                 inputs = ctx.saved_tensors
 
                 grads = ()
-                for custom_grad in grad_func:
+                for custom_grad in grad_funcs:
                     grads = (*grads, grad_output * custom_grad(*inputs))
 
                 if len(grads) == 1:
                     return grads[0]
                 return grads
 
-        def wrapper(*args, **kwargs):
+        def wrapped_function(*args, **kwargs):
             new_inputs = args + tuple(kwargs.values())
             return func_with_grad.apply(*new_inputs)
 
-        return wrapper
+        return wrapped_function
 
     return decorator
 
@@ -80,17 +104,35 @@ def value_and_grad(func, to_numpy=False):
     Parameters
     ----------
     func : callable
-        Function whose values and gradients' values are computed.
-        It must be real-valued.
+        Function whose value and gradient values
+        will be computed.
+    to_numpy : bool
+        Unused. Here for API consistency.
 
     Returns
     -------
     func_with_grad : callable
-        Function that takes the argument of the func function as input
-        and returns both value and grad at the input.
+        Function that returns func's value and
+        func's gradients' values at its inputs args.
     """
 
     def func_with_grad(*args, **kwargs):
+        """Return func's value and func's gradients' values at args.
+
+        Parameters
+        ----------
+        args : list
+            Argument to function func and its gradients.
+        kwargs : dict
+            Keyword arguments to function func and its gradients.
+
+        Returns
+        -------
+        value : any
+            Value of func at input arguments args.
+        all_grads : list or any
+            Values of func's gradients at input arguments args.
+        """
         new_args = ()
         for one_arg in args:
             if isinstance(one_arg, float):

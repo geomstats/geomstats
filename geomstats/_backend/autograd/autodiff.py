@@ -16,31 +16,43 @@ def detach(x):
     ----------
     x : array-like
         Tensor to detach.
+
+    Returns
+    -------
+    x : array-like
+        Tensor.
     """
     return x
 
 
-def elementwise_grad(func):
-    """Wrap autograd elementwise_grad function.
-
-    Parameters
-    ----------
-    func : callable
-        Function for which the element-wise grad is computed.
-    """
-    return _elementwise_grad(func)
-
-
 def custom_gradient(*grad_funcs):
-    """Decorate a function to define its custom gradient(s).
+    """Create a decorator that allows a function to define its custom gradient(s).
 
     Parameters
     ----------
     *grad_funcs : callables
         Custom gradient functions.
+
+    Returns
+    -------
+    decorator : callable
+        This decorator, used on any function func, associates the
+        input grad_funcs as the gradients of func.
     """
 
     def decorator(func):
+        """Decorate a function to define its custome gradient(s).
+
+        Parameters
+        ----------
+        func : callable
+            Function whose gradients will be assigned by grad_funcs.
+
+        Returns
+        -------
+        wrapped_function : callable
+            Function func with gradients specified by grad_funcs.
+        """
         wrapped_function = primitive(func)
 
         def wrapped_grad_func(i, ans, *args, **kwargs):
@@ -59,7 +71,6 @@ def custom_gradient(*grad_funcs):
                 lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
             )
         elif len(grad_funcs) == 2:
-
             defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
@@ -105,14 +116,20 @@ def value_and_grad(func, to_numpy=False):
     Parameters
     ----------
     func : callable
-        Function whose value and gradient value
+        Function whose value and gradient values
         will be computed.
     to_numpy : bool
         Unused. Here for API consistency.
+
+    Returns
+    -------
+    func_with_grad : callable
+        Function that returns func's value and
+        func's gradients' values at its inputs args.
     """
 
-    def aux_value_and_grad(*args):
-        """Return func's value and gradients' values at args.
+    def func_with_grad(*args):
+        """Return func's value and func's gradients' values at args.
 
         Parameters
         ----------
@@ -121,9 +138,10 @@ def value_and_grad(func, to_numpy=False):
 
         Returns
         -------
-        _ : tuple
-            Value of func at input arguments args and values of
-            func's gradients at input arguments args.
+        value : any
+            Value of func at input arguments args.
+        _ : tuple or any
+            Values of func's gradients at input arguments args.
         """
         n_args = len(args)
         value = func(*args)
@@ -143,4 +161,4 @@ def value_and_grad(func, to_numpy=False):
             return value, all_grads[0]
         return value, tuple(all_grads)
 
-    return aux_value_and_grad
+    return func_with_grad
