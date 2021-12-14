@@ -1,5 +1,7 @@
 """Unit tests for Tangent PCA."""
 
+import pytest
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
@@ -29,7 +31,8 @@ class TestTangentPCA(geomstats.tests.TestCase):
         tpca = TangentPCA(self.metric, n_components=self.n_components)
         tpca.fit(X)
         X_diff_size = gs.ones((self.n_samples, gs.shape(X)[1] + 1))
-        self.assertRaises(ValueError, tpca.transform, X_diff_size)
+        with pytest.raises(ValueError):
+            tpca.transform(X_diff_size)
 
     def test_tangent_pca(self):
         X = self.X

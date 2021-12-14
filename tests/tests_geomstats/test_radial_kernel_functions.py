@@ -1,5 +1,7 @@
 """Unit tests for the radial kernel functions."""
 
+import pytest
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
@@ -35,16 +37,15 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
     def test_check_distance(self):
         """Test the function checking the distance parameter."""
         distance = gs.array([[1 / 2], [-2]], dtype=float)
-        self.assertRaises(ValueError, lambda: uniform_radial_kernel(distance=distance))
+        with pytest.raises(ValueError):
+            uniform_radial_kernel(distance=distance)
 
     def test_check_bandwidth(self):
         """Test the function checking the bandwidth parameter."""
         distance = gs.array([[1 / 2], [2]], dtype=float)
         bandwidth = 0
-        self.assertRaises(
-            ValueError,
-            lambda: uniform_radial_kernel(distance=distance, bandwidth=bandwidth),
-        )
+        with pytest.raises(ValueError):
+            uniform_radial_kernel(distance=distance, bandwidth=bandwidth)
 
     def test_uniform_radial_kernel(self):
         """Test the uniform radial kernel."""

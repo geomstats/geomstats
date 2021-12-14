@@ -88,13 +88,13 @@ class TestLogNormal(geomstats.tests.TestCase):
         invalid_cov = gs.eye(self.n + 1)
         invalid_manifold = Hypersphere(dim=2)
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             LogNormal(invalid_manifold, eu_mean)
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             LogNormal(self.euclidean, invalid_eu_mean)
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             LogNormal(self.spd, invalid_spd_mean)
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             LogNormal(self.euclidean, eu_mean, invalid_cov)
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             LogNormal(self.spd, spd_mean, invalid_cov)

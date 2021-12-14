@@ -1,5 +1,6 @@
 """Unit tests for the Hypersphere."""
 
+import pytest
 import scipy.special
 
 import geomstats.backend as gs
@@ -860,16 +861,13 @@ class TestHypersphere(geomstats.tests.TestCase):
     def test_raises(self):
         space = self.space
         point = space.random_uniform()
-        self.assertRaises(
-            NotImplementedError, lambda: space.extrinsic_to_spherical(point)
-        )
+        with pytest.raises(NotImplementedError):
+            space.extrinsic_to_spherical(point)
 
-        self.assertRaises(
-            NotImplementedError,
-            lambda: space.tangent_extrinsic_to_spherical(point, point),
-        )
+        with pytest.raises(NotImplementedError):
+            space.tangent_extrinsic_to_spherical(point, point)
 
         sphere = Hypersphere(2)
-        self.assertRaises(
-            ValueError, lambda: sphere.tangent_extrinsic_to_spherical(point)
-        )
+
+        with pytest.raises(ValueError):
+            sphere.tangent_extrinsic_to_spherical(point)
