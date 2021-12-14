@@ -79,10 +79,9 @@ class HeisenbergVectors(LieGroup):
         composed : array-like, shape=[..., 3]
             Product of point_a and point_b along the first dimension.
         """
-        
         point_a = gs.float64(point_a)
         point_b = gs.float64(point_b)
-                
+
         point_ab = point_a + point_b
 
         point_ab_additional_term = 1 / 2 * (point_a[..., 0] *
