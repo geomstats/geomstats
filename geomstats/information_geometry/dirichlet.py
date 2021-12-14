@@ -431,7 +431,6 @@ class DirichletMetric(RiemannianMetric):
             nonlocal method
 
             if n_times == 1:
-                # print('one time')
                 n_steps = n_steps_min
                 indices = -1
             else:
@@ -441,15 +440,12 @@ class DirichletMetric(RiemannianMetric):
                 t_is_regular = (gs.abs(time_diff - time_diff[0]) < 1e-5).all()
 
                 if t_is_regular:
-                    # print('several regular times')
-                    # n_steps_0 = gs.floor(1 / time_diff[0])
                     n_added_steps = gs.ceil((n_steps_min - 1) / (n_times - 1))
                     n_steps = int((n_times - 1) * n_added_steps + 1)
                     indices = gs.linspace(0, n_steps - 1, n_times).astype('int')
                     if not t_has_zero:
                         indices = indices[1:]
                 else:
-                    # print('several irregular times')
                     logging.warning("scipy method is used for non regular times")
                     method = "scipy"
                     n_steps = n_steps_min
@@ -464,8 +460,6 @@ class DirichletMetric(RiemannianMetric):
                     n_steps=n_steps,
                     method=method
                 )
-                # geod += [solution[i][0] for i in range(len(solution))]
-                # geod.append(solution[:, : self.dim])
                 geod.append(solution[:, 0, :])
 
             geodesic = geod[0] if len(initial_point) == 1 else gs.stack(geod)

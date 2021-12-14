@@ -148,8 +148,7 @@ class Connection(ABC):
                 n_steps = n_steps_min
                 indices = -1
             else:
-                t_has_zero = (t[0] == 0)
-                t_with_zero = t if t_has_zero else gs.hstack(([0.], t))
+                t_with_zero = t if t[0] == 0 else gs.hstack(([0.], t))
                 time_diff = t_with_zero[1:] - t_with_zero[:-1]
                 t_is_regular = (gs.abs(time_diff - time_diff[0]) < 1e-5).all()
 
@@ -157,7 +156,7 @@ class Connection(ABC):
                     n_added_steps = gs.ceil((n_steps_min - 1) / (n_times - 1))
                     n_steps = int((n_times - 1) * n_added_steps + 1)
                     indices = gs.linspace(0, n_steps - 1, n_times).astype('int')
-                    if not t_has_zero:
+                    if t[0] != 0:
                         indices = indices[1:]
                 else:
                     logging.warning("scipy method is used for non regular times")
