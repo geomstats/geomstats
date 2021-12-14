@@ -378,19 +378,18 @@ def _circle_mean(points):
 
 
 def _circle_variances(mean, var, n_samples, points):
-    means = (mean + gs.linspace(0, 2 * gs.pi, n_samples + 1)[:-1]) % (2 * gs.pi)
+    means = (mean + gs.linspace(0., 2 * gs.pi, n_samples + 1)[:-1]) % (2 * gs.pi)
     means = gs.where(means >= gs.pi, means - 2 * gs.pi, means)
-    parts = [sum(points) / n_samples if means[0] < 0 else 0]
+    parts = gs.array([sum(points) / n_samples if means[0] < 0 else 0])
     m_plus = means >= 0
     left_sums = gs.cumsum(points)
     right_sums = left_sums[-1] - left_sums
-    i = gs.arange(n_samples)
+    i = gs.arange(n_samples, dtype=right_sums.dtype)
     j = i[1:]
     parts2 = right_sums[:-1] / (n_samples - j)
     first_term = parts2[:1]
     parts2 = gs.where(m_plus[1:], left_sums[:-1] / j, parts2)
-    parts2 = gs.concatenate([first_term, parts2[1:]])
-    parts = gs.hstack([parts, parts2])
+    parts = gs.concatenate([parts, first_term, parts2[1:]])
 
     # Formula (6) from [HH15]_
     plus_vec = (4 * gs.pi * i / n_samples) * (gs.pi + parts - mean) - (
