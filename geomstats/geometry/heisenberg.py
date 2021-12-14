@@ -71,7 +71,7 @@ class HeisenbergVectors(LieGroup):
         ----------
         point_a : array-like, shape=[..., 3]
             Left factor in the product.
-        point_b : array-like, shape=[, 3]
+        point_b : array-like, shape=[..., 3]
             Right factor in the product.
 
         Returns
@@ -85,10 +85,11 @@ class HeisenbergVectors(LieGroup):
         point_ab = point_a + point_b
 
         point_ab_additional_term = 1 / 2 * (point_a[..., 0] *
-                                            point_b[1] - point_a[..., 1] *
-                                            point_b[0])
+                                            point_b[..., 1] - point_a[..., 1] *
+                                            point_b[..., 0])
 
         point_ab[..., 2] = point_ab[..., 2] + point_ab_additional_term
+
         return point_ab
 
     def inverse(self, point):
@@ -124,13 +125,22 @@ class HeisenbergVectors(LieGroup):
         jacobian : array-like, shape=[..., 3, 3]
             Jacobian of the left/right translation by point.
         """
+        n_points = gs.ndim(point)
+
+        if n_points == 1:
+            output = gs.reshape(gs.zeros(3 * 3), (3, 3))
+        else:
+            output = gs.reshape(gs.zeros(n_points * 3 * 3), (n_points, 3, 3))
+
+        output[..., 0, 0], output[..., 1, 1], output[..., 2, 2] = 1, 1, 1
+
         if left_or_right == 'left':
-            return(gs.array([[1, 0, 0],
-                             [0, 1, 0],
-                             [-point[1] / 2, point[0] / 2, 1]]))
-        return(gs.array([[1, 0, 0],
-                         [0, 1, 0],
-                         [point[1] / 2, -point[0] / 2, 1]]))
+            output[..., 2, 0], output[..., 2, 1] = -point[..., 1] / 2, point[..., 0] / 2
+            return output
+
+        output[..., 2, 0], output[..., 2, 1] = point[..., 1] / 2, -point[..., 0] / 2
+
+        return output
 
     def random_point(self, n_samples=1, bound=1.):
         """Sample in the Euclidean space R^3 with a uniform distribution in a box.
@@ -204,6 +214,17 @@ class HeisenbergVectors(LieGroup):
         upper_triangular_mat : array-like, shape=[..., 3, 3]
             Upper triangular matrix.
         """
-        return gs.array([[1, point[0], point[2] + 1 / 2 * point[0] * point[1]],
-                         [0, 1, point[1]],
-                         [0, 0, 1]])
+        n_points = gs.ndim(point)
+
+        if n_points == 1:
+            output = gs.reshape(gs.zeros(3 * 3), (3, 3))
+        else:
+            output = gs.reshape(gs.zeros(n_points * 3 * 3), (n_points, 3, 3))
+
+        output[..., 0, 0], output[..., 1, 1], output[..., 2, 2] = 1, 1, 1
+
+        output[..., 0, 1], output[..., 1, 2] = point[..., 0], point[..., 1]
+
+        output[..., 0, 2] = point[..., 2] + 1 / 2 * point[..., 0] * point[..., 1]
+
+        return output
