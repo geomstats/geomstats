@@ -17,7 +17,7 @@ ESTIMATORS = (TemplateClassifier, TemplateEstimator, TemplateTransformer)
 class TestEstimators(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
-    def setsetup_method(self):
+    def setup_method(self):
         self.data = load_iris(return_X_y=True)
 
     @geomstats.tests.np_and_autograd_only
