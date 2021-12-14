@@ -56,19 +56,32 @@ def custom_gradient(*grad_func):
 
 
 def jacobian(func):
-    """Return a function that returns the jacobian of a function."""
-    return lambda x: torch_jac(func, x)
-
-
-def value_and_grad(func, to_numpy=False):
-    """Return a function that returns both value and gradient.
-
-    Suitable for use in scipy.optimize
+    """Return a function that returns the jacobian of func.
 
     Parameters
     ----------
     func : callable
-        Function to compute the gradient. It must be real-valued.
+        Function whose Jacobian is computed.
+
+    Returns
+    -------
+    _ : callable
+        Function taking x as input and returning
+        the jacobian of func at x.
+    """
+    return lambda x: torch_jac(func, x)
+
+
+def value_and_grad(func, to_numpy=False):
+    """Return a function that returns func's value and gradients' values.
+
+    Suitable for use in scipy.optimize.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose values and gradients' values are computed.
+        It must be real-valued.
 
     Returns
     -------

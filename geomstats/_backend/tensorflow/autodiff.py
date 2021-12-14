@@ -90,10 +90,32 @@ def value_and_grad(func, to_numpy=False):
 
 
 def jacobian(func):
-    """Return a function that returns the jacobian of a function func."""
+    """Return a function that returns the jacobian of func.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose Jacobian is computed.
+
+    Returns
+    -------
+    jac : callable
+        Function taking x as input and returning
+        the jacobian of func at x.
+    """
 
     def jac(x):
-        """Return the jacobian of func at x."""
+        """Return the jacobian of func at x.
+
+        Parameters
+        ----------
+        x : array-like
+            Input to function func or its jacobian.
+        Returns
+        -------
+        _ : array-like
+            Value of the jacobian of func at x.
+        """
         if isinstance(x, np.ndarray):
             x = tf.Variable(x)
         with tf.GradientTape() as g:

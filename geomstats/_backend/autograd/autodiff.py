@@ -83,14 +83,48 @@ def custom_gradient(*grad_funcs):
 
 
 def jacobian(func):
-    """Wrap autograd jacobian function."""
+    """Wrap autograd's jacobian function.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose Jacobian is computed.
+
+    Returns
+    -------
+    _ : callable
+        Function taking x as input and returning
+        the jacobian of func at x.
+    """
     return _jacobian(func)
 
 
 def value_and_grad(func, to_numpy=False):
-    """Wrap autograd value_and_grad function."""
+    """Wrap autograd value_and_grad function.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose value and gradient value
+        will be computed.
+    to_numpy : bool
+        Unused. Here for API consistency.
+    """
 
     def aux_value_and_grad(*args):
+        """Return func's value and gradients' values at args.
+
+        Parameters
+        ----------
+        args : list
+            Argument to function func and its gradients.
+
+        Returns
+        -------
+        _ : tuple
+            Value of func at input arguments args and values of
+            func's gradients at input arguments args.
+        """
         n_args = len(args)
         value = func(*args)
 
