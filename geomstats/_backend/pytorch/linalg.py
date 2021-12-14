@@ -89,7 +89,7 @@ def solve_sylvester(a, b, q):
                 tilde_q = eigvecs.transpose(-2, -1) @ q @ eigvecs
                 tilde_x = tilde_q / (eigvals[..., :, None] + eigvals[..., None, :])
                 return eigvecs @ tilde_x @ eigvecs.transpose(-2, -1)
-            if a.shape[0] >= 2. and eigvals[0] > - 1e-6 and eigvals[1] >= 1e-6 and \
+            if len(eigvals) >= 2. and eigvals[0] > - 1e-6 and eigvals[1] >= 1e-6 and \
                     torch.all(torch.abs(q + q.transpose(-2, -1)) < 1e-6):
                 tilde_q = eigvecs.transpose(-2, -1) @ q @ eigvecs
                 tilde_x = tilde_q / (eigvals[..., :, None] + eigvals[..., None, :]
