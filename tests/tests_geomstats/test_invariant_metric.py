@@ -766,7 +766,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
         expected = group.left_canonical_metric.parallel_transport(tan_a, tan_b, point)
         result, end_point_result = metric.parallel_transport(
-            tan_a, tan_b, point, n_steps=20, step="rk4", return_endpoint=True
+            tan_a, tan_b, point, n_steps=20, method="rk4", return_endpoint=True
         )
         expected_end_point = metric.exp(tan_b, point, n_steps=20)
 
