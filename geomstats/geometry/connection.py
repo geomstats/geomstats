@@ -183,7 +183,7 @@ class Connection(ABC):
     def exp(
         self,
         tangent_vec,
-        base_point,
+        base_point=None,
         n_steps=N_STEPS,
         method="euler",
         point_type=None,
