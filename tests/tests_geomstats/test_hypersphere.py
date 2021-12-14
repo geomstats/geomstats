@@ -62,16 +62,17 @@ class TestHypersphere(geomstats.tests.TestCase):
         extrinsic_to_intrinsic_coords
         gives the identity.
         """
-        point_int = gs.array([0.1, 0.0, 0.0, 0.1])
-        point_ext = self.space.intrinsic_to_extrinsic_coords(point_int)
-        result = self.space.extrinsic_to_intrinsic_coords(point_ext)
+        space = Hypersphere(dim=2)
+        point_int = gs.array([0.1, 0.0])
+        point_ext = space.intrinsic_to_extrinsic_coords(point_int)
+        result = space.extrinsic_to_intrinsic_coords(point_ext)
         expected = point_int
 
         self.assertAllClose(result, expected)
 
-        point_ext = 1.0 / (gs.sqrt(6.0)) * gs.array([1.0, 0.0, 0.0, 1.0, 2.0])
-        point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
-        result = self.space.intrinsic_to_extrinsic_coords(point_int)
+        point_ext = 1.0 / (gs.sqrt(2.0)) * gs.array([1.0, 0.0, 1.0])
+        point_int = space.extrinsic_to_intrinsic_coords(point_ext)
+        result = space.intrinsic_to_extrinsic_coords(point_int)
         expected = point_ext
 
         self.assertAllClose(result, expected)
@@ -84,24 +85,24 @@ class TestHypersphere(geomstats.tests.TestCase):
         extrinsic_to_intrinsic_coords
         gives the identity.
         """
+        space = Hypersphere(dim=2)
         point_int = gs.array(
             [
-                [0.1, 0.0, 0.0, 0.1],
-                [0.1, 0.1, 0.1, 0.4],
-                [0.1, 0.3, 0.0, 0.1],
-                [-0.1, 0.1, -0.4, 0.1],
-                [0.0, 0.0, 0.1, 0.1],
-                [0.1, 0.1, 0.1, 0.1],
+                [0.1, 0.1],
+                [0.1, 0.4],
+                [0.1, 0.3],
+                [0.0, 0.0],
+                [0.1, 0.5],
             ]
         )
-        point_ext = self.space.intrinsic_to_extrinsic_coords(point_int)
-        result = self.space.extrinsic_to_intrinsic_coords(point_ext)
+        point_ext = space.intrinsic_to_extrinsic_coords(point_int)
+        result = space.extrinsic_to_intrinsic_coords(point_ext)
         expected = point_int
 
         self.assertAllClose(result, expected)
 
-        point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
-        result = self.space.intrinsic_to_extrinsic_coords(point_int)
+        point_int = space.extrinsic_to_intrinsic_coords(point_ext)
+        result = space.intrinsic_to_extrinsic_coords(point_int)
         expected = point_ext
 
         self.assertAllClose(result, expected)
@@ -871,3 +872,40 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         with pytest.raises(ValueError):
             sphere.tangent_extrinsic_to_spherical(point)
+
+    def test_angle_to_extrinsic(self):
+        space = Hypersphere(1)
+        point = gs.pi / 4
+        result = space.angle_to_extrinsic(point)
+        expected = gs.array([1.0, 1.0]) / gs.sqrt(2.0)
+        self.assertAllClose(result, expected)
+
+        point = gs.array([1.0 / 3, 0.0]) * gs.pi
+        result = space.angle_to_extrinsic(point)
+        expected = gs.array([[1.0 / 2, gs.sqrt(3.0) / 2], [1.0, 0.0]])
+        self.assertAllClose(result, expected)
+
+    def test_extrinsic_to_angle(self):
+        space = Hypersphere(1)
+        point = gs.array([1.0, 1.0]) / gs.sqrt(2.0)
+        result = space.extrinsic_to_angle(point)
+        expected = gs.pi / 4
+        self.assertAllClose(result, expected)
+
+        point = gs.array([[1.0 / 2, gs.sqrt(3.0) / 2], [1.0, 0.0]])
+        result = space.extrinsic_to_angle(point)
+        expected = gs.array([1.0 / 3, 0.0]) * gs.pi
+        self.assertAllClose(result, expected)
+
+    def test_extrinsic_to_angle_inverse(self):
+        space = Hypersphere(1)
+        point = space.random_uniform()
+        angle = space.extrinsic_to_angle(point)
+        result = space.angle_to_extrinsic(angle)
+        self.assertAllClose(result, point)
+
+        space = Hypersphere(1, default_coords_type="intrinsic")
+        angle = space.random_uniform()
+        extrinsic = space.angle_to_extrinsic(angle)
+        result = space.extrinsic_to_angle(extrinsic)
+        self.assertAllClose(result, angle)
