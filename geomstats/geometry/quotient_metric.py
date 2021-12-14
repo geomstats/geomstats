@@ -84,7 +84,7 @@ class QuotientMetric(RiemannianMetric):
             horizontal_a, horizontal_b, fiber_point
         )
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp_closed_form(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters

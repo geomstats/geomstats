@@ -532,7 +532,7 @@ class SPDMetricAffine(RiemannianMetric):
         exp = Matrices.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
         return exp
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp_closed_form(self, tangent_vec, base_point, **kwargs):
         """Compute the affine-invariant exponential map.
 
         Compute the Riemannian exponential at point base_point

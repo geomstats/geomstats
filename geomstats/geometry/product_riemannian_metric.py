@@ -197,7 +197,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         ]
         return sum(inner_products)
 
-    def exp(self, tangent_vec, base_point=None, point_type=None):
+    def exp_closed_form(self, tangent_vec, base_point=None, point_type=None):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters

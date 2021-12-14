@@ -158,7 +158,6 @@ def integrate(function, initial_state, end_time=1.0, n_steps=10, method="euler")
         t_int = gs.linspace(0., end_time, n_steps + 1)
         states = odeint(ivp, initial_state, t_int)
         states = states.reshape(n_steps + 1, 2, dim)
-        # states = [states[i].reshape(2, dim) for i in range(n_steps + 1)]
     else:
         dt = end_time / n_steps
         states = [initial_state]

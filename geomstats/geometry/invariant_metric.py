@@ -542,7 +542,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         return translation_map(value_at_id)
 
-    def exp(self, tangent_vec, base_point=None, n_steps=10, step="rk4", **kwargs):
+    def exp_closed_form(self, tangent_vec, base_point=None, n_steps=10, step="rk4",
+                        **kwargs):
         r"""Compute Riemannian exponential of tan. vector wrt to base point.
 
         If :math: `\gamma` is a geodesic, then it satisfies the
@@ -944,7 +945,7 @@ class _InvariantMetricVector(RiemannianMetric):
         exp = self.group.regularize(exp)
         return exp
 
-    def exp(self, tangent_vec, base_point=None, **kwargs):
+    def exp_closed_form(self, tangent_vec, base_point=None, **kwargs):
         """Compute Riemannian exponential of tan. vector wrt to base point.
 
         Parameters
@@ -1184,7 +1185,7 @@ class BiInvariantMetric(_InvariantMetricVector):
             raise ValueError("The bi-invariant metric is only implemented for SO(n)")
         self.default_point_type = group.default_point_type
 
-    def exp(self, tangent_vec, base_point=None, **kwargs):
+    def exp_closed_form(self, tangent_vec, base_point=None, **kwargs):
         """Compute Riemannian exponential of tangent vector from the identity.
 
         For a bi-invariant metric, this corresponds to the group exponential.

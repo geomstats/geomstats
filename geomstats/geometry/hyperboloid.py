@@ -324,7 +324,7 @@ class HyperboloidMetric(HyperbolicMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
-    def exp(self, tangent_vec, base_point):
+    def exp_closed_form(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters

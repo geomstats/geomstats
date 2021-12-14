@@ -449,7 +449,7 @@ class SRVMetric(RiemannianMetric):
 
         return norm
 
-    def exp(self, tangent_vec, base_point):
+    def exp_closed_form(self, tangent_vec, base_point):
         """Compute Riemannian exponential of tangent vector wrt to base curve.
 
         Parameters

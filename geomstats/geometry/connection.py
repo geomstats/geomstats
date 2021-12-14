@@ -216,16 +216,13 @@ class Connection(ABC):
         exp : array-like, shape=[..., dim]
             Point on the manifold.
         """
-        # initial_state = gs.stack([base_point, tangent_vec])
-        # flow = integrate(
-        #     self.geodesic_equation, initial_state, n_steps=n_steps, step=step
-        # )
-
-        # exp = flow[-1][0]
-        geodesic = self._geodesic_ivp(
-            base_point, tangent_vec, method=method, n_steps_min=n_steps
-        )
-        exp = geodesic(1.)
+        if hasattr(self, 'exp_closed_form'):
+            exp = self.exp_closed_form(tangent_vec, base_point, **kwargs)
+        else:
+            geodesic = self._geodesic_ivp(
+                base_point, tangent_vec, method=method, n_steps_min=n_steps
+            )
+            exp = geodesic(1.)
         return exp
 
     def log(

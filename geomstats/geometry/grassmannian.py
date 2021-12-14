@@ -239,7 +239,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         self.p = p
         self.embedding_metric = EuclideanMetric(n * p)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp_closed_form(self, tangent_vec, base_point, **kwargs):
         """Exponentiate the invariant vector field v from base point p.
 
         Parameters

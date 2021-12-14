@@ -129,7 +129,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         inner_prod = inner_prod / base_point[..., -1] ** 2
         return inner_prod
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp_closed_form(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential.
 
         Parameters
