@@ -192,5 +192,6 @@ class TestVisualization(geomstats.tests.TestCase):
         self.assertAllClose(x, gs.array([1, 0, -1, 0, 1]))
         self.assertAllClose(y, gs.array([0, 1, 0, -1, 0]))
 
-    def teardown_method(self):
+    @staticmethod
+    def teardown_method():
         plt.close()

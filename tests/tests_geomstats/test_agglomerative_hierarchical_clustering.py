@@ -13,7 +13,7 @@ from geomstats.learning.agglomerative_hierarchical_clustering import (
 class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):
     """Class defining the Agglomerative Hierarchical Clustering tests."""
 
-    def setUp(self):
+    def setup_method(self):
         """Define the parameters to test."""
         gs.random.seed(1234)
 
