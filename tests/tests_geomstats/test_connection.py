@@ -121,7 +121,7 @@ class TestConnection(geomstats.tests.TestCase):
         vector_ext = self.hypersphere.tangent_spherical_to_extrinsic(vector, point)
         self.connection.christoffels = self.hypersphere.metric.christoffels
         expected = self.hypersphere.metric.exp(vector_ext, point_ext)
-        result_spherical = self.connection.exp(vector, point, n_steps=50, step="rk4")
+        result_spherical = self.connection.exp(vector, point, n_steps=50, method="rk4")
         result = self.hypersphere.spherical_to_extrinsic(result_spherical)
 
         self.assertAllClose(result, expected)
@@ -133,7 +133,7 @@ class TestConnection(geomstats.tests.TestCase):
         vector_ext = self.hypersphere.tangent_spherical_to_extrinsic(vector, point)
         self.connection.christoffels = self.hypersphere.metric.christoffels
         expected = self.hypersphere.metric.exp(vector_ext, point_ext)
-        result_spherical = self.connection.exp(vector, point, n_steps=50, step="rk4")
+        result_spherical = self.connection.exp(vector, point, n_steps=50, method="rk4")
         result = self.hypersphere.spherical_to_extrinsic(result_spherical)
 
         self.assertAllClose(result, expected)
