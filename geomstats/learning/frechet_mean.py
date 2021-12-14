@@ -378,7 +378,27 @@ def _circle_mean(points):
 
 
 def _circle_variances(mean, var, n_samples, points):
-    means = (mean + gs.linspace(0., 2 * gs.pi, n_samples + 1)[:-1]) % (2 * gs.pi)
+    """Compute the minimizer of the variance functional.
+
+    Parameters
+    ----------
+    mean : float
+        Mean angle.
+    var : float
+        Variance of the angles.
+    n_samples : int
+        Number of samples.
+    points : array-like, shape=[n,]
+        Data set of ordered angles.
+
+    References
+    ---------
+    ..[HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
+                 Uniqueness, locus and asymptotics", Annals of the Institute of
+                 Statistical Mathematics 67 (1), 177–193.
+                 https://arxiv.org/abs/1108.2141
+    """
+    means = (mean + gs.linspace(0.0, 2 * gs.pi, n_samples + 1)[:-1]) % (2 * gs.pi)
     means = gs.where(means >= gs.pi, means - 2 * gs.pi, means)
     parts = gs.array([sum(points) / n_samples if means[0] < 0 else 0])
     m_plus = means >= 0
