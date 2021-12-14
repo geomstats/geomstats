@@ -20,7 +20,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         n = 10
         vector = gs.ones(n)
         with pytest.raises(RuntimeError):
-            gs.autodiff.value_and_grad(lambda v: gs.sum(v ** 2))(vector)()
+            gs.autodiff.value_and_grad(lambda v: gs.sum(v ** 2))(vector)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_value_and_grad_one_vector_var(self):
