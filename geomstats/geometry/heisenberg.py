@@ -3,7 +3,7 @@
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.lie_group import LieGroup
-
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 class HeisenbergVectors(LieGroup):
     r"""Class for the 3D Heisenberg group in the vector representation.
@@ -79,16 +79,14 @@ class HeisenbergVectors(LieGroup):
         composed : array-like, shape=[..., 3]
             Product of point_a and point_b along the first dimension.
         """
-        point_a = gs.float64(point_a)
-        point_b = gs.float64(point_b)
-
         point_ab = point_a + point_b
+        point_ab_additional_term = gs.array(1 / 2 * (point_a[..., 0] *
+                                                     point_b[..., 1] - point_a[..., 1] *
+                                                     point_b[..., 0]))
 
-        point_ab_additional_term = 1 / 2 * (point_a[..., 0] *
-                                            point_b[..., 1] - point_a[..., 1] *
-                                            point_b[..., 0])
-
-        point_ab[..., 2] = point_ab[..., 2] + point_ab_additional_term
+        point_ab = point_ab + gs.concatenate([gs.zeros_like(point_ab[..., :2]),
+                                              point_ab_additional_term[..., None]],
+                                             axis=-1)
 
         return point_ab
 
@@ -111,6 +109,10 @@ class HeisenbergVectors(LieGroup):
             self, point, left_or_right='left'):
         """Compute the Jacobian matrix of left/right translation by a point.
 
+        This calculates the differential of the left translation L_(point) evaluated at 'point'.
+        Note that it only depends on the point we are left-translating by, not on the point
+        where the differential is evaluated.
+
         Parameters
         ----------
         point : array-like, shape=[..., 3]
@@ -125,23 +127,16 @@ class HeisenbergVectors(LieGroup):
         jacobian : array-like, shape=[..., 3, 3]
             Jacobian of the left/right translation by point.
         """
-        n_points = gs.ndim(point)
-
-        if n_points == 1:
-            output = gs.reshape(gs.zeros(3 * 3), (3, 3))
-        else:
-            output = gs.reshape(gs.zeros(n_points * 3 * 3), (n_points, 3, 3))
-
-        output[..., 0, 0], output[..., 1, 1], output[..., 2, 2] = 1, 1, 1
+        E31 = gs.array_from_sparse([(2, 0)], [1.], (3, 3))
+        E32 = gs.array_from_sparse([(2, 1)], [1.], (3, 3))
 
         if left_or_right == 'left':
-            output[..., 2, 0], output[..., 2, 1] = -point[..., 1] / 2, point[..., 0] / 2
-            return output
+            return (gs.eye(3) + gs.einsum('..., ij -> ...ij', -point[..., 1] / 2, E31) +
+                    gs.einsum('..., ij -> ...ij', point[..., 0] / 2, E32))
 
-        output[..., 2, 0], output[..., 2, 1] = point[..., 1] / 2, -point[..., 0] / 2
-
-        return output
-
+        return (gs.eye(3) + gs.einsum('..., ij -> ...ij', point[..., 1] / 2, E31) +
+                gs.einsum('..., ij -> ...ij', -point[..., 0] / 2, E32))
+  
     def random_point(self, n_samples=1, bound=1.):
         """Sample in the Euclidean space R^3 with a uniform distribution in a box.
 
@@ -228,3 +223,32 @@ class HeisenbergVectors(LieGroup):
         output[..., 0, 2] = point[..., 2] + 1 / 2 * point[..., 0] * point[..., 1]
 
         return output
+
+    @staticmethod
+    def upperTriangular_matrix_from_vectorTMP(point):
+        """Compute the upper triangular matrix representation of the vector.
+
+        The 3D Heisenberg group can also be represented as 3x3 upper triangular
+        matrices. This function computes this representation of the vector
+        'point'.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 3]
+            Point in the vector-represention.
+
+        Returns
+        -------
+        upper_triangular_mat : array-like, shape=[..., 3, 3]
+            Upper triangular matrix.
+        """
+
+        n_points = gs.ndim(point)
+
+        element_02 = point[..., 2] + 1 / 2 * point[..., 0] * point[..., 1]
+
+        modified_point = gs.stack((gs.ones(n_points), point[..., 0],
+                                   element_02, gs.ones(n_points),
+                                   point[..., 1], gs.ones(n_points)), axis=1)
+
+        return SymmetricMatrices.from_vector(modified_point)
