@@ -335,3 +335,119 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         mul = Matrices.mul
         rot = Matrices.bracket(base_point, -tangent_vec_b)
         return mul(expm(rot), tangent_vec_a, expm(-rot))
+
+    def subspace_angle(self, point_a, point_b ):
+        """Gives the Subspace Angle distance between two points.
+		Parameters
+		----------
+		point_a : array-like, shape=[..., dim]
+			Point.
+		point_b : array-like, shape=[..., dim]
+			Point.
+
+		Returns
+		-------
+		subspace_angle : array-like, shape=[...,]
+			Subspace angle between two points.
+		"""
+        temp = gs.dot(point_a.T, point_b)
+        U, S, V = gs.linalg.svd(temp)
+        S = gs.round(gs.array(S), 4)
+        S = gs.sort(S)[::-1][0:self.p]
+
+        thetas = gs.arccos(S)
+        
+        subspace_angle = gs.sqrt(gs.sum(gs.square(thetas)))
+        return subspace_angle
+
+
+    def projection_fnorm(self, point_a, point_b):
+        """Gives the projection F-Norm distance between two points.
+		Parameters
+		----------
+		point_a : array-like, shape=[..., dim]
+			Point.
+		point_b : array-like, shape=[..., dim]
+			Point.
+		Returns
+		-------
+		proj_fnorm : array-like, shape=[...,]
+			F-Norm distance between two points.
+		"""
+        # use 1.41421356237 as a substitute for gs.sqrt(2) to optimize computations
+        proj_fnorm = 1.41421356237 * gs.linalg.norm(
+                    gs.dot(point_a, point_a.T) - gs.dot(point_b, point_b.T), 'fro')
+        
+        return proj_fnorm
+
+    def projection_2norm(self, point_a, point_b):
+        """Gives the projection 2-Norm distance between two points.
+		Parameters
+		----------
+		point_a : array-like, shape=[..., dim]
+			Point.
+		point_b : array-like, shape=[..., dim]
+			Point.
+		Returns
+		-------
+		proj_2norm : array-like, shape=[...,]
+			2-Norm distance between two points.
+		"""
+        proj_2norm = gs.linalg.norm(
+                    gs.dot(point_a, point_a.T) - gs.dot(point_b, point_b.T), 2)
+        
+        return proj_2norm
+
+    def fubini_study(self, point_a, point_b):
+        """Gives the Fubini-Study distance between two points.
+		Parameters
+		----------
+		point_a : array-like, shape=[..., dim]
+			Point.
+		point_b : array-like, shape=[..., dim]
+			Point.
+		Returns
+		-------
+		f_study_dist : array-like, shape=[...,]
+			Fubini-Study distance between two points.
+		"""
+        f_study_dist = gs.arccos(gs.round(gs.linalg.det(gs.dot(point_a.T, point_b))))
+        
+        return f_study_dist
+
+    def chordal_distance_fnorm(self, point_a, point_b):
+        """Gives the Chordal distance between two points.
+		Parameters
+		----------
+		point_a : array-like, shape=[..., dim]
+			Point.
+		point_b : array-like, shape=[..., dim]
+			Point.
+		Returns
+		-------
+		chordal_dist_fnorm : array-like, shape=[...,]
+			Chordal distance between two points.
+		"""
+        chordal_dist_fnorm = gs.sqrt(self.p - gs.round(
+                                gs.square(gs.linalg.norm(gs.dot(point_a.T, point_b), 'fro')), 4))
+        
+        return chordal_dist_fnorm
+    
+    def chordal_distance_2norm(self, point_a, point_b):
+        """Gievs the chordal 2-Norm distance between two points.
+		Parameters
+		----------
+		point_a : array-like, shape=[..., dim]
+			Point.
+		point_b : array-like, shape=[..., dim]
+			Point.
+		Returns
+		-------
+		chordal_dist_2norm : array-like, shape=[...,]
+			Chordal 2-Norm distance between two points.
+		"""
+        chordal_dist_2norm = gs.sqrt(self.p - gs.round(
+                                gs.square(gs.linalg.norm(gs.dot(point_a.T, point_b), 2)), 4))
+        
+        return chordal_dist_2norm
+

@@ -295,3 +295,52 @@ class TestStiefel(geomstats.tests.TestCase):
         result = helper.test_projection_and_belongs(self.space, shape)
         for res in result:
             self.assertTrue(res)
+
+
+    def test_subspace_angle_metric_stiefel(self):
+            point_a = self.point_a
+            point_b = self.point_b
+            
+            expected = 1234 #subspace angle of point a and b
+            result = self.metric.subspace_angle(point_a, point_b)
+            self.assertEqual(result, expected)
+
+    def test_projection_fnorm_metric_stiefel(self):
+            point_a = self.point_a
+            point_b = self.point_b
+            
+            expected = 1234 #projection fnorm from point a to point b
+            result = self.metric.projection_fnorm(point_a, point_b)
+            self.assertEqual(result, expected)
+    
+    def test_projection_2norm_metric_stiefel(self):
+            point_a = self.point_a
+            point_b = self.point_b
+            
+            expected = 1234 #projection 2norm from point a to point b
+            result = self.metric.projection_2norm(point_a, point_b)
+            self.assertEqual(result, expected)
+
+    def test_fubini_study_metric_stiefel(self):
+            point_a = self.point_a
+            point_b = self.point_b
+            
+            expected = 1234 #fubini study distance from point a to point b
+            result = self.metric.fubini_study(point_a, point_b)
+            self.assertEqual(result, expected)
+
+    def test_chordal_distance_fnorm_metric_stiefel(self):
+            point_a = self.point_a
+            point_b = self.point_b
+            
+            expected = 1234 #chordal distance fnorm from point a to point b
+            result = self.metric.chordal_distance_fnorm(point_a, point_b)
+            self.assertEqual(result, expected)
+
+    def test_chordal_distance_2norm_metric_stiefel(self):
+            point_a = self.point_a
+            point_b = self.point_b
+            
+            expected = 1234 #chordal distance 2norm point a to point b
+            result = self.metric.chordal_distance_2norm(point_a, point_b)
+            self.assertEqual(result, expected)
