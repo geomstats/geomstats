@@ -234,7 +234,11 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         """
         sq_rot_mat1 = gs.matmul(rotation_mat1, rotation_mat1)
         sq_rot_mat2 = gs.matmul(rotation_mat2, rotation_mat2)
-        return gs.all(gs.isclose(sq_rot_mat1, sq_rot_mat2))
+        are_different = ~gs.all(gs.isclose(rotation_mat1, rotation_mat2), axis=(-1, -2))
+
+        return are_different & gs.all(
+            gs.isclose(sq_rot_mat1, sq_rot_mat2), axis=(-1, -2)
+        )
 
     def log(self, point, base_point=None):
         r"""
@@ -262,7 +266,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
 
             g = \exp(\log(g, h), h)
         """
-        if self.are_antipodals(point, base_point):
+        if gs.any(self.are_antipodals(point, base_point)):
             raise ValueError(
                 f"The Group Logarithm is not well-defined for"
                 " antipodal rotation matrices: {point} and"

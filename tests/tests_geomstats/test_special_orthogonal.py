@@ -164,7 +164,6 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         rotation_mat1 = gs.eye(3)
         rotation_mat2 = gs.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
         result = self.so3.are_antipodals(rotation_mat1, rotation_mat2)
-        print(result)
 
         self.assertTrue(result)
 
@@ -174,8 +173,21 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         rotation_mat2 = self.so3.matrix_from_rotation_vector(rotvec2)
 
         result = self.so3.are_antipodals(rotation_mat1, rotation_mat2)
-        print(result)
         self.assertTrue(gs.all(result))
+
+        rotation_mat1 = self.so3.random_uniform()
+        rotation_mat2 = rotation_mat1
+        result = self.so3.are_antipodals(rotation_mat1, rotation_mat2)
+        self.assertFalse(gs.all(result))
+
+    def test_are_antipodals_vectorizatino(self):
+        rotation_mat1 = gs.eye(3)
+        rotation_mat2 = gs.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
+        rotation_mats1 = gs.array([rotation_mat1, rotation_mat2])
+        rotation_mats2 = gs.array([rotation_mat2, rotation_mat2])
+        result = self.so3.are_antipodals(rotation_mats1, rotation_mats2)
+        expected = gs.array([True, False])
+        self.assertAllClose(result, expected)
 
     def test_log_antipodals(self):
         rotation_mat1 = gs.eye(3)
