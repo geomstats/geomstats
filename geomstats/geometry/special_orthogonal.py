@@ -215,7 +215,8 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         )
         return so_vector.matrix_from_rotation_vector(rot_vec)
 
-    def are_antipodals(self, rotation_mat1, rotation_mat2):
+    @staticmethod
+    def are_antipodals(rotation_mat1, rotation_mat2):
         """Determine if two rotation matrices are antipodals.
 
         Parameters
@@ -268,9 +269,9 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         """
         if gs.any(self.are_antipodals(point, base_point)):
             raise ValueError(
-                f"The Group Logarithm is not well-defined for"
-                " antipodal rotation matrices: {point} and"
-                "{base_point}."
+                "The Group Logarithm is not well-defined for"
+                f" antipodal rotation matrices: {point} and"
+                f"{base_point}."
             )
         return super().log(point, base_point)
 
