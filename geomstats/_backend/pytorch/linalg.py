@@ -4,17 +4,53 @@ import numpy as np
 import scipy.linalg
 import torch
 
-
-def _raise_not_implemented_error(*args, **kwargs):
-    raise NotImplementedError
+from ..numpy import linalg as gsnplinalg
 
 
-eig = _raise_not_implemented_error
+class Logm(torch.autograd.Function):
+    """
+    Torch autograd function for matrix logarithm.
+    Implementation based on:
+    https://github.com/pytorch/pytorch/issues/9983#issuecomment-891777620
+    """
+
+    @staticmethod
+    def _logm(x):
+        np_logm = gsnplinalg.logm(x.detach().cpu())
+        torch_logm = torch.from_numpy(np_logm).to(x.device)
+        return torch_logm
+
+    @staticmethod
+    def forward(ctx, tensor):
+        ctx.save_for_backward(tensor)
+        return Logm._logm(tensor)
+
+    @staticmethod
+    def backward(ctx, grad):
+        (tensor,) = ctx.saved_tensors
+
+        vectorized = tensor.ndim == 3
+        axes = (0, 2, 1) if vectorized else (1, 0)
+        tensor_H = tensor.permute(axes).conj().to(grad.dtype)
+        n = tensor.size(-1)
+        bshape = tensor.shape[:-2] + (2 * n, 2 * n)
+        backward_tensor = torch.zeros(*bshape, dtype=grad.dtype, device=grad.device)
+        backward_tensor[..., :n, :n] = tensor_H
+        backward_tensor[..., n:, n:] = tensor_H
+        backward_tensor[..., :n, n:] = grad
+
+        return Logm._logm(backward_tensor).to(tensor.dtype)[..., :n, n:]
+
+
+eig = torch.linalg.eig
+eigh = torch.linalg.eigh
+eigvalsh = torch.linalg.eigvalsh
 expm = torch.matrix_exp
-logm = _raise_not_implemented_error
 inv = torch.inverse
 det = torch.det
 solve = torch.linalg.solve
+qr = torch.linalg.qr
+logm = Logm.apply
 
 
 def cholesky(a):
@@ -24,18 +60,6 @@ def cholesky(a):
 def sqrtm(x):
     np_sqrtm = np.vectorize(scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
     return torch.as_tensor(np_sqrtm, dtype=x.dtype)
-
-
-def eigvalsh(a, **kwargs):
-    upper = False
-    if "UPLO" in kwargs:
-        upper = kwargs["UPLO"] == "U"
-    return torch.symeig(a, eigenvectors=False, upper=upper)[0]
-
-
-def eigh(*args, **kwargs):
-    eigvals, eigvecs = torch.symeig(*args, eigenvectors=True, **kwargs)
-    return eigvals, eigvecs
 
 
 def svd(x, full_matrices=True, compute_uv=True):
@@ -51,6 +75,10 @@ def norm(x, ord=None, axis=None):
     if axis is None:
         return torch.linalg.norm(x, ord=ord)
     return torch.linalg.norm(x, ord=ord, dim=axis)
+
+
+def matrix_rank(a, hermitian=False, **_unused_kwargs):
+    return torch.linalg.matrix_rank(a, hermitian)
 
 
 def solve_sylvester(a, b, q):
@@ -78,25 +106,12 @@ def qr(*args, **kwargs):
 
 
 # (TODO) (sait) torch.linalg.cholesky_ex for even faster way
-def _is_single_matrix_pd(mat):
-    """Check if a two dimensional square matrix is
-    positive definite
-    """
+def is_single_matrix_pd(mat):
+
+    if mat.dim[0] != mat.dim[1]:
+        return False
     try:
         torch.linalg.cholesky(mat)
         return True
     except RuntimeError as _e:
         return False
-
-
-def is_pd(mat):
-    """Check if matrix is positive definite matrix
-    (doesn't check if its symmetric)
-    """
-    if mat.ndim == 2 and mat.shape[0] == mat.shape[1]:
-        return torch.tensor(_is_single_matrix_pd(mat))
-    if mat.ndim == 2 and mat.shape[0] != mat.shape[1]:
-        return torch.tensor(False)
-    if mat.ndim == 3 and mat.shape[1] == mat.shape[2]:
-        return torch.tensor([_is_single_matrix_pd(m) for m in mat])
-    return torch.tensor([False] * mat.shape[0])

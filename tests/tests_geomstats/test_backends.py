@@ -7,6 +7,7 @@ In exceptional cases, numpy's results or API may not be followed.
 import warnings
 
 import numpy as _np
+import pytest
 import scipy.linalg
 import torch
 
@@ -17,7 +18,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestBackends(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
 
         self.so3_group = SpecialOrthogonal(n=3)
@@ -77,7 +78,6 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllCloseToNp(gs_result, np_result)
 
-    @geomstats.tests.np_autograd_and_tf_only
     def test_logm(self):
         point = gs.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])
         result = gs.linalg.logm(point)
@@ -90,7 +90,6 @@ class TestBackends(geomstats.tests.TestCase):
         scipy_result = scipy.linalg.logm(np_point)
         self.assertAllCloseToNp(result, scipy_result)
 
-    @geomstats.tests.np_autograd_and_tf_only
     def test_expm_and_logm(self):
         point = gs.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])
         result = gs.linalg.expm(gs.linalg.logm(point))
@@ -130,7 +129,6 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_tf_only
     def test_logm_vectorization_diagonal(self):
         # Note: scipy.linalg.expm is not vectorized
         point = gs.array(
@@ -155,7 +153,6 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_tf_only
     def test_expm_and_logm_vectorization_random_rotation(self):
         point = self.so3_group.random_uniform(self.n_samples)
 
@@ -164,7 +161,6 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_tf_only
     def test_expm_and_logm_vectorization(self):
         point = gs.array(
             [
@@ -488,9 +484,8 @@ class TestBackends(geomstats.tests.TestCase):
 
     def test_assignment(self):
         gs_array_1 = gs.ones(3)
-        self.assertRaises(
-            ValueError, gs.assignment, gs_array_1, [0.1, 2.0, 1.0], [0, 1]
-        )
+        with pytest.raises(ValueError):
+            gs.assignment(gs_array_1, [0.1, 2.0, 1.0], [0, 1])
 
         np_array_1 = _np.ones(3)
         gs_array_1 = gs.ones_like(gs.array(np_array_1))
@@ -542,9 +537,8 @@ class TestBackends(geomstats.tests.TestCase):
 
     def test_assignment_by_sum(self):
         gs_array_1 = gs.ones(3)
-        self.assertRaises(
-            ValueError, gs.assignment_by_sum, gs_array_1, [0.1, 2.0, 1.0], [0, 1]
-        )
+        with pytest.raises(ValueError):
+            gs.assignment_by_sum(gs_array_1, [0.1, 2.0, 1.0], [0, 1])
 
         np_array_1 = _np.ones(3)
         gs_array_1 = gs.ones_like(gs.array(np_array_1))
@@ -780,7 +774,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result[0], result_verdict[0])
         self.assertAllClose(result[1], result_verdict[1])
 
-        with self.assertRaises((ValueError, RuntimeError)):
+        with pytest.raises((ValueError, RuntimeError)):
             gs.broadcast_arrays(gs.array([1, 2]), gs.array([3, 4, 5]))
 
     def test_choice(self):
@@ -983,3 +977,9 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(spd_expected, spd_result)
         self.assertAllClose(not_spd_expected, not_spd_result)
         self.assertAllClose(mixed_expected, mixed_result)
+
+    def test_unique(self):
+        vec = gs.array([-1, 0, 1, 1, 0, -1])
+        result = gs.unique(vec)
+        expected = gs.array([-1, 0, 1])
+        self.assertAllClose(result, expected)

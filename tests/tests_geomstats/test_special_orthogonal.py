@@ -1,14 +1,13 @@
 """Unit tests for special orthogonal group SO(n)."""
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestSpecialOrthogonal(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.n = 2
         self.group = SpecialOrthogonal(n=self.n)
         self.n_samples = 4

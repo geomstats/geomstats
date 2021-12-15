@@ -7,7 +7,7 @@ import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -16,7 +16,7 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 EPSILON = 1e-6
 
 
-class Stiefel(EmbeddedManifold):
+class Stiefel(LevelSet):
     """Class for Stiefel manifolds St(n,p).
 
     A set of all orthonormal p-frames in n-dimensional space,

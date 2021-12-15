@@ -8,10 +8,9 @@ module.
 
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
@@ -20,7 +19,7 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 
 class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
         gs.random.seed(1234)
 

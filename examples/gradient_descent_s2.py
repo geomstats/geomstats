@@ -21,7 +21,6 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere

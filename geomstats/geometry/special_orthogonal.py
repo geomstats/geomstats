@@ -4,14 +4,13 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-
 
 ATOL = 1e-5
 
@@ -26,7 +25,7 @@ TAYLOR_COEFFS_1_AT_PI = [
 ]
 
 
-class _SpecialOrthogonalMatrices(MatrixLieGroup, EmbeddedManifold):
+class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
     """Class for special orthogonal groups in matrix representation.
 
     Parameters

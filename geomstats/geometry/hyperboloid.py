@@ -9,13 +9,12 @@ import math
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
-from geomstats.geometry._hyperbolic import _Hyperbolic, HyperbolicMetric
-from geomstats.geometry.base import EmbeddedManifold
-from geomstats.geometry.minkowski import Minkowski
-from geomstats.geometry.minkowski import MinkowskiMetric
+from geomstats.geometry._hyperbolic import HyperbolicMetric, _Hyperbolic
+from geomstats.geometry.base import LevelSet
+from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
 
 
-class Hyperboloid(_Hyperbolic, EmbeddedManifold):
+class Hyperboloid(_Hyperbolic, LevelSet):
     """Class for the n-dimensional hyperboloid space.
 
     Class for the n-dimensional hyperboloid space as embedded in (
@@ -432,7 +431,7 @@ class HyperboloidMetric(HyperbolicMetric):
             Tangent vector at base point, along which the parallel transport
             is computed.
         base_point : array-like, shape=[..., dim + 1]
-            Point on the hypersphere.
+            Point on the hyperboloid.
 
         Returns
         -------

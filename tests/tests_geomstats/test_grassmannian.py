@@ -1,11 +1,9 @@
 """Unit tests for the Grassmannian."""
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.grassmannian import Grassmannian
-from geomstats.geometry.grassmannian import GrassmannianCanonicalMetric
+import tests.helper as helper
+from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
 from geomstats.geometry.matrices import Matrices
 
 p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
@@ -19,7 +17,7 @@ pi_4 = gs.pi / 4
 
 
 class TestGrassmannian(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
 
         self.n = 3

@@ -1,9 +1,8 @@
 """Unit tests for ProductManifold."""
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
@@ -12,7 +11,7 @@ from geomstats.geometry.product_manifold import ProductManifold
 
 
 class TestProductManifold(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
 
         self.space_matrix = ProductManifold(

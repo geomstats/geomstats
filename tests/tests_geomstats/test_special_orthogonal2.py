@@ -2,16 +2,15 @@
 
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats import algebra_utils
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestSpecialOrthogonal2(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
         warnings.simplefilter("ignore", category=UserWarning)
 

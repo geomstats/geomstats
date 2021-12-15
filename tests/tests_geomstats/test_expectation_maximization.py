@@ -5,9 +5,9 @@ import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.learning.expectation_maximization import (
+    RiemannianEM,
     find_normalization_factor,
     find_variance_from_index,
-    RiemannianEM,
 )
 from geomstats.learning.frechet_mean import FrechetMean
 
@@ -20,7 +20,7 @@ ZETA_STEP = 0.001
 class TestEM(geomstats.tests.TestCase):
     """Class for testing Expectation Maximization."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set manifold, data and EM parameters."""
         self.n_samples = 5
         self.dim = 2

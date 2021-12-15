@@ -35,7 +35,7 @@ References
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
@@ -79,7 +79,7 @@ def submersion(point, k):
     return gs.concatenate([row_1, row_2], axis=-2)
 
 
-class Grassmannian(EmbeddedManifold):
+class Grassmannian(LevelSet):
     """Class for Grassmann manifolds Gr(n, k).
 
     Parameters

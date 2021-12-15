@@ -6,14 +6,13 @@ from scipy.stats import norm
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.information_geometry.normal import FisherRaoMetric
-from geomstats.information_geometry.normal import NormalDistributions
+from geomstats.information_geometry.normal import FisherRaoMetric, NormalDistributions
 
 
 class TestNormalDistributions(geomstats.tests.TestCase):
     """Class defining the normal distributions tests."""
 
-    def setUp(self):
+    def setup_method(self):
         """Define the parameters of the tests."""
         warnings.simplefilter("ignore", category=UserWarning)
         self.normal = NormalDistributions()

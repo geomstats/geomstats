@@ -2,16 +2,15 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry import hypersphere
-from geomstats.geometry import spd_matrices
+from geomstats.geometry import hypersphere, spd_matrices
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.kmeans import RiemannianKMeans
 
 
+@geomstats.tests.np_and_autograd_only
 class TestRiemannianKMeans(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
-    @geomstats.tests.np_autograd_and_torch_only
     def test_hypersphere_kmeans_fit(self):
         gs.random.seed(55)
 
@@ -31,7 +30,6 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         expected = 0.0
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_autograd_only
     def test_spd_kmeans_fit(self):
         gs.random.seed(0)
         dim = 3
@@ -49,7 +47,6 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         expected = mean.estimate_
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_torch_only
     def test_hypersphere_kmeans_predict(self):
         gs.random.seed(1234)
         dim = 2

@@ -2,17 +2,16 @@
 
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.general_linear import GeneralLinear
 
 RTOL = 1e-5
 
 
 class TestGeneralLinear(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
         self.n = 3
         self.n_samples = 2

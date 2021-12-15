@@ -2,19 +2,17 @@
 
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-
 
 EPSILON = 1e-5
 
 
 class TestSpecialOrthogonal3(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
         warnings.simplefilter("ignore", category=UserWarning)
 

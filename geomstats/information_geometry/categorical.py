@@ -1,18 +1,17 @@
 """Statistical Manifold of categorical distributions with the Fisher metric."""
 
-from scipy.stats import dirichlet
-from scipy.stats import multinomial
+from scipy.stats import dirichlet, multinomial
 
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import HypersphereMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class CategoricalDistributions(EmbeddedManifold):
+class CategoricalDistributions(LevelSet):
     r"""Class for the manifold of categorical distributions.
 
     This is the set of $n+1$-tuples of positive reals that sum up to one,

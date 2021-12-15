@@ -1,9 +1,10 @@
 """Unit tests for special euclidean group in matrix representation."""
 
-import tests.helper as helper
+import pytest
 
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_euclidean import (
     SpecialEuclidean,
@@ -13,7 +14,7 @@ from geomstats.geometry.special_euclidean import (
 
 
 class TestSpecialEuclidean(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(12)
         self.n = 2
         self.group = SpecialEuclidean(n=self.n)
@@ -230,14 +231,12 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
 
     def test_left_metric_wrong_group(self):
         group = self.group.rotations
-        self.assertRaises(
-            ValueError, lambda: SpecialEuclideanMatrixCannonicalLeftMetric(group)
-        )
+        with pytest.raises(ValueError):
+            SpecialEuclideanMatrixCannonicalLeftMetric(group)
 
         group = SpecialEuclidean(3, point_type="vector")
-        self.assertRaises(
-            ValueError, lambda: SpecialEuclideanMatrixCannonicalLeftMetric(group)
-        )
+        with pytest.raises(ValueError):
+            SpecialEuclideanMatrixCannonicalLeftMetric(group)
 
     def test_exp_and_belongs(self):
         exp = self.group.left_canonical_metric.exp(self.tangent_vec, self.point)

@@ -8,6 +8,7 @@ from sklearn.base import BaseEstimator
 import geomstats.backend as gs
 import geomstats.errors as error
 import geomstats.vectorization
+from geomstats.geometry.hypersphere import Hypersphere
 
 EPSILON = 1e-4
 
@@ -348,6 +349,80 @@ def _adaptive_gradient_descent(
     return current_mean
 
 
+def _circle_mean(points):
+    """Determine the mean on a circle.
+
+    Data are expected in radians in the range [-pi, pi). The mean is returned
+    in the same range. If the mean is unique, this algorithm is guaranteed to
+    find it. It is not vulnerable to local minima of the Frechet function. If
+    the mean is not unique, the algorithm only returns one of the means. Which
+    mean is returned depends on numerical rounding errors.
+
+    Reference
+    ---------
+    ..[HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
+                 Uniqueness, locus and asymptotics", Annals of the Institute of
+                 Statistical Mathematics 67 (1), 177–193.
+                 https://arxiv.org/abs/1108.2141
+    """
+    if points.ndim > 1:
+        points_ = Hypersphere.extrinsic_to_angle(points)
+    else:
+        points_ = gs.copy(points)
+    sample_size = points_.shape[0]
+    mean0 = gs.mean(points_)
+    var0 = gs.sum((points_ - mean0) ** 2)
+    sorted_points = gs.sort(points_)
+    means = _circle_variances(mean0, var0, sample_size, sorted_points)
+    return means[gs.argmin(means[:, 1]), 0]
+
+
+def _circle_variances(mean, var, n_samples, points):
+    """Compute the minimizer of the variance functional.
+
+    Parameters
+    ----------
+    mean : float
+        Mean angle.
+    var : float
+        Variance of the angles.
+    n_samples : int
+        Number of samples.
+    points : array-like, shape=[n,]
+        Data set of ordered angles.
+
+    References
+    ---------
+    ..[HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
+                 Uniqueness, locus and asymptotics", Annals of the Institute of
+                 Statistical Mathematics 67 (1), 177–193.
+                 https://arxiv.org/abs/1108.2141
+    """
+    means = (mean + gs.linspace(0.0, 2 * gs.pi, n_samples + 1)[:-1]) % (2 * gs.pi)
+    means = gs.where(means >= gs.pi, means - 2 * gs.pi, means)
+    parts = gs.array([sum(points) / n_samples if means[0] < 0 else 0])
+    m_plus = means >= 0
+    left_sums = gs.cumsum(points)
+    right_sums = left_sums[-1] - left_sums
+    i = gs.arange(n_samples, dtype=right_sums.dtype)
+    j = i[1:]
+    parts2 = right_sums[:-1] / (n_samples - j)
+    first_term = parts2[:1]
+    parts2 = gs.where(m_plus[1:], left_sums[:-1] / j, parts2)
+    parts = gs.concatenate([parts, first_term, parts2[1:]])
+
+    # Formula (6) from [HH15]_
+    plus_vec = (4 * gs.pi * i / n_samples) * (gs.pi + parts - mean) - (
+        2 * gs.pi * i / n_samples
+    ) ** 2
+    minus_vec = (4 * gs.pi * (n_samples - i) / n_samples) * (gs.pi - parts + mean) - (
+        2 * gs.pi * (n_samples - i) / n_samples
+    ) ** 2
+    minus_vec = gs.where(m_plus, plus_vec, minus_vec)
+    means = gs.transpose(gs.vstack([means, var + minus_vec]))
+    return means
+
+
 class FrechetMean(BaseEstimator):
     r"""Empirical Frechet mean.
 
@@ -425,6 +500,9 @@ class FrechetMean(BaseEstimator):
             or "MatricesMetric" in metric_str
             or "MinkowskiMetric" in metric_str
         )
+
+        if "HypersphereMetric" in metric_str and self.metric.dim == 1:
+            mean = Hypersphere.angle_to_extrinsic(_circle_mean(X))
 
         error.check_parameter_accepted_values(
             self.method, "method", ["default", "adaptive", "batch"]

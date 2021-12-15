@@ -2,10 +2,11 @@
 
 import math
 
-import tests.helper as helper
+import pytest
 
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.poincare_ball import PoincareBall
@@ -18,7 +19,7 @@ RTOL = 1e-6
 
 
 class TestHyperbolic(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
         self.dimension = 3
         self.space = Hyperboloid(dim=self.dimension)
@@ -42,10 +43,11 @@ class TestHyperbolic(geomstats.tests.TestCase):
 
     def test_regularize_zero_norm(self):
         point = gs.array([-1.0, 1.0, 0.0, 0.0])
-        self.assertRaises(ValueError, lambda: self.space.regularize(point))
-        self.assertRaises(
-            NameError, lambda: self.space.extrinsic_to_intrinsic_coords(point)
-        )
+        with pytest.raises(ValueError):
+            self.space.regularize(point)
+
+        with pytest.raises(NameError):
+            self.space.extrinsic_to_intrinsic_coords(point)
 
     def test_random_uniform_and_belongs(self):
         point = self.space.random_point()

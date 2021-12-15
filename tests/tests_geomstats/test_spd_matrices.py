@@ -3,10 +3,9 @@
 import math
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
@@ -20,7 +19,7 @@ from geomstats.geometry.spd_matrices import (
 class TestSPDMatrices(geomstats.tests.TestCase):
     """Test of SPDMatrices methods."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up the test."""
         warnings.simplefilter("ignore", category=ImportWarning)
 
@@ -288,6 +287,30 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         point = gs.array([[9.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 1.0]])
 
         metric = self.metric_logeuclidean
+        log = metric.log(point=point, base_point=base_point)
+        result = metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+
+        self.assertAllClose(result, expected)
+
+    def test_log_and_exp_euclidean_p1(self):
+        """Test of SPDMetricEuclidean.log and exp methods for power_euclidean=1."""
+        base_point = gs.array([[5.0, 0.0, 0.0], [0.0, 7.0, 2.0], [0.0, 2.0, 8.0]])
+        point = gs.array([[9.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 1.0]])
+
+        metric = SPDMetricEuclidean(3, power_euclidean=1)
+        log = metric.log(point=point, base_point=base_point)
+        result = metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+
+        self.assertAllClose(result, expected)
+
+    def test_log_and_exp_euclidean_p05(self):
+        """Test of SPDMetricEuclidean.log and exp methods for power_euclidean=0.5."""
+        base_point = gs.array([[5.0, 0.0, 0.0], [0.0, 7.0, 2.0], [0.0, 2.0, 8.0]])
+        point = gs.array([[9.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 1.0]])
+
+        metric = SPDMetricEuclidean(3, power_euclidean=0.5)
         log = metric.log(point=point, base_point=base_point)
         result = metric.exp(tangent_vec=log, base_point=base_point)
         expected = point

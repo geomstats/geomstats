@@ -1,10 +1,11 @@
 """Unit tests for the Hypersphere."""
 
+import pytest
 import scipy.special
-import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 from geomstats.learning.frechet_mean import FrechetMean
@@ -15,7 +16,7 @@ ONLINE_KMEANS_TOL = 2e-2
 
 
 class TestHypersphere(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
 
         self.dimension = 4
@@ -61,16 +62,17 @@ class TestHypersphere(geomstats.tests.TestCase):
         extrinsic_to_intrinsic_coords
         gives the identity.
         """
-        point_int = gs.array([0.1, 0.0, 0.0, 0.1])
-        point_ext = self.space.intrinsic_to_extrinsic_coords(point_int)
-        result = self.space.extrinsic_to_intrinsic_coords(point_ext)
+        space = Hypersphere(dim=2)
+        point_int = gs.array([0.1, 0.0])
+        point_ext = space.intrinsic_to_extrinsic_coords(point_int)
+        result = space.extrinsic_to_intrinsic_coords(point_ext)
         expected = point_int
 
         self.assertAllClose(result, expected)
 
-        point_ext = 1.0 / (gs.sqrt(6.0)) * gs.array([1.0, 0.0, 0.0, 1.0, 2.0])
-        point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
-        result = self.space.intrinsic_to_extrinsic_coords(point_int)
+        point_ext = 1.0 / (gs.sqrt(2.0)) * gs.array([1.0, 0.0, 1.0])
+        point_int = space.extrinsic_to_intrinsic_coords(point_ext)
+        result = space.intrinsic_to_extrinsic_coords(point_int)
         expected = point_ext
 
         self.assertAllClose(result, expected)
@@ -83,24 +85,24 @@ class TestHypersphere(geomstats.tests.TestCase):
         extrinsic_to_intrinsic_coords
         gives the identity.
         """
+        space = Hypersphere(dim=2)
         point_int = gs.array(
             [
-                [0.1, 0.0, 0.0, 0.1],
-                [0.1, 0.1, 0.1, 0.4],
-                [0.1, 0.3, 0.0, 0.1],
-                [-0.1, 0.1, -0.4, 0.1],
-                [0.0, 0.0, 0.1, 0.1],
-                [0.1, 0.1, 0.1, 0.1],
+                [0.1, 0.1],
+                [0.1, 0.4],
+                [0.1, 0.3],
+                [0.0, 0.0],
+                [0.1, 0.5],
             ]
         )
-        point_ext = self.space.intrinsic_to_extrinsic_coords(point_int)
-        result = self.space.extrinsic_to_intrinsic_coords(point_ext)
+        point_ext = space.intrinsic_to_extrinsic_coords(point_int)
+        result = space.extrinsic_to_intrinsic_coords(point_ext)
         expected = point_int
 
         self.assertAllClose(result, expected)
 
-        point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
-        result = self.space.intrinsic_to_extrinsic_coords(point_int)
+        point_int = space.extrinsic_to_intrinsic_coords(point_ext)
+        result = space.intrinsic_to_extrinsic_coords(point_int)
         expected = point_ext
 
         self.assertAllClose(result, expected)
@@ -665,6 +667,19 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = gs.array([1.0, 0.0, 0.0])
         self.assertAllClose(result, expected)
 
+    def test_extrinsic_to_spherical(self):
+        """
+        Check vectorization of conversion from spherical
+        to extrinsic coordinates on the 2-sphere.
+        """
+        dim = 2
+        sphere = Hypersphere(dim)
+
+        points_extrinsic = gs.array([1.0, 0.0, 0.0])
+        result = sphere.extrinsic_to_spherical(points_extrinsic)
+        expected = gs.array([gs.pi / 2, 0])
+        self.assertAllClose(result, expected)
+
     def test_spherical_to_extrinsic_vectorization(self):
         dim = 2
         sphere = Hypersphere(dim)
@@ -677,6 +692,33 @@ class TestHypersphere(geomstats.tests.TestCase):
             ]
         )
         self.assertAllClose(result, expected)
+
+    def test_extrinsic_to_spherical_vectorization(self):
+        dim = 2
+        sphere = Hypersphere(dim)
+        expected = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
+        point_extrinsic = gs.array(
+            [
+                [1.0, 0.0, 0.0],
+                [gs.sqrt(2.0) / 4.0, gs.sqrt(2.0) / 4.0, gs.sqrt(3.0) / 2.0],
+            ]
+        )
+        result = sphere.extrinsic_to_spherical(point_extrinsic)
+        self.assertAllClose(result, expected)
+
+    def test_spherical_to_extrinsic_and_inverse(self):
+        dim = 2
+        n_samples = 5
+        sphere = Hypersphere(dim)
+        points = gs.random.rand(n_samples, 2) * gs.pi * gs.array([1.0, 2.0])[None, :]
+        extrinsic = sphere.spherical_to_extrinsic(points)
+        result = sphere.extrinsic_to_spherical(extrinsic)
+        self.assertAllClose(result, points)
+
+        points_extrinsic = sphere.random_uniform(n_samples)
+        spherical = sphere.extrinsic_to_spherical(points_extrinsic)
+        result = sphere.spherical_to_extrinsic(spherical)
+        self.assertAllClose(result, points_extrinsic)
 
     def test_tangent_spherical_to_extrinsic(self):
         """
@@ -698,6 +740,51 @@ class TestHypersphere(geomstats.tests.TestCase):
             tangent_vecs_spherical[0], base_points_spherical[0]
         )
         self.assertAllClose(result, expected[0])
+
+    def test_tangent_extrinsic_to_spherical(self):
+        """
+        Check vectorization of conversion from spherical
+        to extrinsic coordinates for tangent vectors to the
+        2-sphere.
+        """
+        dim = 2
+        sphere = Hypersphere(dim)
+        base_points_spherical = gs.array([[gs.pi / 2, 0], [gs.pi / 2, 0]])
+        expected = gs.array([[0.25, 0.5], [0.3, 0.2]])
+        tangent_vecs = gs.array([[0, 0.5, -0.25], [0, 0.2, -0.3]])
+        result = sphere.tangent_extrinsic_to_spherical(
+            tangent_vecs, base_point_spherical=base_points_spherical
+        )
+        self.assertAllClose(result, expected)
+
+        result = sphere.tangent_extrinsic_to_spherical(
+            tangent_vecs[0], base_point=gs.array([1.0, 0.0, 0.0])
+        )
+        self.assertAllClose(result, expected[0])
+
+    def test_tangent_spherical_and_extrinsic_inverse(self):
+        dim = 2
+        n_samples = 5
+        sphere = Hypersphere(dim)
+        points = gs.random.rand(n_samples, 2) * gs.pi * gs.array([1.0, 2.0])[None, :]
+        tangent_spherical = gs.random.rand(n_samples, 2)
+        tangent_extrinsic = sphere.tangent_spherical_to_extrinsic(
+            tangent_spherical, points
+        )
+        result = sphere.tangent_extrinsic_to_spherical(
+            tangent_extrinsic, base_point_spherical=points
+        )
+        self.assertAllClose(result, tangent_spherical)
+
+        points_extrinsic = sphere.random_uniform(n_samples)
+        vector = gs.random.rand(n_samples, dim + 1)
+        tangent_extrinsic = sphere.to_tangent(vector, points_extrinsic)
+        tangent_spherical = sphere.tangent_extrinsic_to_spherical(
+            tangent_extrinsic, base_point=points_extrinsic
+        )
+        spherical = sphere.extrinsic_to_spherical(points_extrinsic)
+        result = sphere.tangent_spherical_to_extrinsic(tangent_spherical, spherical)
+        self.assertAllClose(result, tangent_extrinsic)
 
     def test_christoffels_vectorization(self):
         """
@@ -771,3 +858,54 @@ class TestHypersphere(geomstats.tests.TestCase):
         estimator.fit(sample)
         estimate = estimator.estimate_
         self.assertAllClose(estimate, mean, atol=1e-2)
+
+    def test_raises(self):
+        space = self.space
+        point = space.random_uniform()
+        with pytest.raises(NotImplementedError):
+            space.extrinsic_to_spherical(point)
+
+        with pytest.raises(NotImplementedError):
+            space.tangent_extrinsic_to_spherical(point, point)
+
+        sphere = Hypersphere(2)
+
+        with pytest.raises(ValueError):
+            sphere.tangent_extrinsic_to_spherical(point)
+
+    def test_angle_to_extrinsic(self):
+        space = Hypersphere(1)
+        point = gs.pi / 4
+        result = space.angle_to_extrinsic(point)
+        expected = gs.array([1.0, 1.0]) / gs.sqrt(2.0)
+        self.assertAllClose(result, expected)
+
+        point = gs.array([1.0 / 3, 0.0]) * gs.pi
+        result = space.angle_to_extrinsic(point)
+        expected = gs.array([[1.0 / 2, gs.sqrt(3.0) / 2], [1.0, 0.0]])
+        self.assertAllClose(result, expected)
+
+    def test_extrinsic_to_angle(self):
+        space = Hypersphere(1)
+        point = gs.array([1.0, 1.0]) / gs.sqrt(2.0)
+        result = space.extrinsic_to_angle(point)
+        expected = gs.pi / 4
+        self.assertAllClose(result, expected)
+
+        point = gs.array([[1.0 / 2, gs.sqrt(3.0) / 2], [1.0, 0.0]])
+        result = space.extrinsic_to_angle(point)
+        expected = gs.array([1.0 / 3, 0.0]) * gs.pi
+        self.assertAllClose(result, expected)
+
+    def test_extrinsic_to_angle_inverse(self):
+        space = Hypersphere(1)
+        point = space.random_uniform()
+        angle = space.extrinsic_to_angle(point)
+        result = space.angle_to_extrinsic(angle)
+        self.assertAllClose(result, point)
+
+        space = Hypersphere(1, default_coords_type="intrinsic")
+        angle = space.random_uniform()
+        extrinsic = space.angle_to_extrinsic(angle)
+        result = space.extrinsic_to_angle(extrinsic)
+        self.assertAllClose(result, angle)

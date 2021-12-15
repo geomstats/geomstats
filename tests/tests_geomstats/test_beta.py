@@ -2,18 +2,18 @@
 
 import warnings
 
+import pytest
 from scipy.stats import beta
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.information_geometry.beta import BetaDistributions
-from geomstats.information_geometry.beta import BetaMetric
+from geomstats.information_geometry.beta import BetaDistributions, BetaMetric
 
 
 class TestBetaDistributions(geomstats.tests.TestCase):
     """Class defining the beta distributions tests."""
 
-    def setUp(self):
+    def setup_method(self):
         """Define the parameters of the tests."""
         warnings.simplefilter("ignore", category=UserWarning)
         self.beta = BetaDistributions()
@@ -168,7 +168,9 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         result = self.beta.metric.metric_matrix(point)
         expected = gs.array([[1.0, -0.644934066], [-0.644934066, 1.0]])
         self.assertAllClose(result, expected)
-        self.assertRaises(ValueError, self.beta.metric.metric_matrix)
+
+        with pytest.raises(ValueError):
+            self.beta.metric.metric_matrix()
 
     def test_point_to_pdf(self):
         """Test point_to_pdf.

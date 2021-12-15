@@ -3,17 +3,16 @@
 import math
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
 class TestSymmetricMatrices(geomstats.tests.TestCase):
     """Test of SymmetricMatrices methods."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up the test."""
         warnings.simplefilter("ignore", category=ImportWarning)
 

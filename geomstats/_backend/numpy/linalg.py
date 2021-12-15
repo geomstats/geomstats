@@ -2,17 +2,18 @@
 
 import numpy as np
 import scipy.linalg
-from numpy.linalg import (
+from numpy.linalg import (  # NOQA
     cholesky,
     det,
     eig,
     eigh,
     eigvalsh,
     inv,
+    matrix_rank,
     norm,
     solve,
     svd,
-)  # NOQA
+)
 
 from .common import to_ndarray
 

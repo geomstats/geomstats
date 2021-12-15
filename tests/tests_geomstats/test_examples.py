@@ -5,14 +5,15 @@ import os
 import sys
 import warnings
 
+import matplotlib
+import matplotlib.pyplot as plt
+
 import examples.empirical_frechet_mean_uncertainty_sn as empirical_frechet_mean_uncertainty_sn  # NOQA
 import examples.geodesic_regression_hypersphere as geodesic_regression_hypersphere  # NOQA
 import examples.geodesic_regression_se2 as geodesic_regression_se2
 import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.kalman_filter as kalman_filter
 import examples.learning_graph_structured_data_h2 as learning_gsd_h2
-import examples.loss_and_gradient_se3 as loss_and_gradient_se3
-import examples.loss_and_gradient_so3 as loss_and_gradient_so3
 import examples.plot_bch_so3 as plot_bch_so3
 import examples.plot_expectation_maximization_ball as plot_em_manifolds
 import examples.plot_geodesics_h2 as plot_geodesics_h2
@@ -35,9 +36,6 @@ import examples.plot_square_h2_poincare_half_plane as plot_square_h2_poincare_ha
 import examples.tangent_pca_h2 as tangent_pca_h2
 import examples.tangent_pca_s2 as tangent_pca_s2
 import examples.tangent_pca_so3 as tangent_pca_so3
-import matplotlib
-import matplotlib.pyplot as plt
-
 import geomstats.backend as gs
 import geomstats.tests
 
@@ -46,11 +44,11 @@ matplotlib.use("Agg")  # NOQA
 
 class TestExamples(geomstats.tests.TestCase):
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         sys.stdout = open(os.devnull, "w")
 
     @staticmethod
-    def setUp():
+    def setup_method():
         gs.random.seed(1234)
         logger = logging.getLogger()
         logger.disabled = True
@@ -78,14 +76,6 @@ class TestExamples(geomstats.tests.TestCase):
     @geomstats.tests.np_and_autograd_only
     def test_gradient_descent_s2():
         gradient_descent_s2.main(max_iter=64, output_file=None)
-
-    @staticmethod
-    def test_loss_and_gradient_so3():
-        loss_and_gradient_so3.main()
-
-    @staticmethod
-    def test_loss_and_gradient_se3():
-        loss_and_gradient_se3.main()
 
     @staticmethod
     def test_kalman_filter():

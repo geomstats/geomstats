@@ -6,11 +6,10 @@ i.e. the Lie group of rigid transformations in n dimensions.
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import GeneralLinear, Matrices
-from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
-from geomstats.geometry.invariant_metric import InvariantMetric
+from geomstats.geometry.invariant_metric import InvariantMetric, _InvariantMetricMatrix
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
@@ -193,7 +192,7 @@ def tangent_submersion(vector, point):
     return homogeneous_representation(submersed_rot, vec, point.shape, constant=scalar)
 
 
-class _SpecialEuclideanMatrices(MatrixLieGroup, EmbeddedManifold):
+class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
     """Class for special Euclidean group.
 
     Parameters
