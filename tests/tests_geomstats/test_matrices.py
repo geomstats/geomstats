@@ -214,10 +214,6 @@ class TestMatrices(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_is_spd(self):
-        pd_but_not_symmetric = gs.array([[1.0, 1.0], [-1.0, 1.0]])
-        result = self.space.is_spd(pd_but_not_symmetric)
-        expected = False
-        self.assertAllClose(result, expected)
 
         symmetric_but_not_pd = gs.array([[1.0, 1.0], [1.0, 1.0]])
         result = self.space.is_spd(symmetric_but_not_pd)

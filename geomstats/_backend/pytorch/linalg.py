@@ -96,15 +96,6 @@ def solve_sylvester(a, b, q):
     return torch.from_numpy(solution)
 
 
-def qr(*args, **kwargs):
-    matrix_q, matrix_r = np.vectorize(
-        np.linalg.qr, signature="(n,m)->(n,k),(k,m)", excluded=["mode"]
-    )(*args, **kwargs)
-    tensor_q = torch.from_numpy(matrix_q)
-    tensor_r = torch.from_numpy(matrix_r)
-    return tensor_q, tensor_r
-
-
 # (TODO) (sait) torch.linalg.cholesky_ex for even faster way
 def is_single_matrix_pd(mat):
 

@@ -203,7 +203,6 @@ class Matrices(VectorSpace):
         is_pd : array-like, shape=[...,]
             Boolean evaluating if the matrix is positive definite.
         """
-
         if mat.ndim == 2:
             return gs.array(gs.linalg.is_single_matrix_pd(mat))
         return gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
@@ -225,7 +224,6 @@ class Matrices(VectorSpace):
         is_pd : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric positive definite.
         """
-
         is_spd = gs.logical_and(cls.is_symmetric(mat, atol), cls.is_pd(mat))
         return is_spd
 
