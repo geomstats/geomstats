@@ -941,14 +941,14 @@ class TestBackends(geomstats.tests.TestCase):
         expected = gs.cumprod(vec)[-1]
         self.assertAllClose(result, expected)
 
-    def test_is_pd(self):
+    def test_is_singel_matrix_pd(self):
         pd = gs.eye(3)
         not_pd_1 = -1 * gs.eye(3)
         not_pd_2 = gs.ones((3, 3))
 
-        pd_result = gs.linalg.is_pd(pd)
-        not_pd_1_result = gs.linalg.is_pd(not_pd_1)
-        not_pd_2_result = gs.linalg.is_pd(not_pd_2)
+        pd_result = gs.linalg.is_single_matrix_pd(pd)
+        not_pd_1_result = gs.linalg.is_single_matrix_pd(not_pd_1)
+        not_pd_2_result = gs.linalg.is_single_matrix_pd(not_pd_2)
 
         pd_expected = gs.array(True)
         not_pd_1_expected = gs.array(False)
@@ -957,26 +957,6 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(pd_expected, pd_result)
         self.assertAllClose(not_pd_1_expected, not_pd_1_result)
         self.assertAllClose(not_pd_2_expected, not_pd_2_result)
-
-    def test_is_pd_for_batch(self):
-        n = 4
-        n_samples = 10
-        spdManifold = SPDMatrices(n)
-        spd = spdManifold.random_point(n_samples)
-        not_spd = -1 * spd
-        mixed = gs.vstack((spd, not_spd))
-
-        spd_expected = [True] * n_samples
-        not_spd_expected = [False] * n_samples
-        mixed_expected = spd_expected + not_spd_expected
-
-        spd_result = gs.linalg.is_pd(spd)
-        not_spd_result = gs.linalg.is_pd(not_spd)
-        mixed_result = gs.linalg.is_pd(mixed)
-
-        self.assertAllClose(spd_expected, spd_result)
-        self.assertAllClose(not_spd_expected, not_spd_result)
-        self.assertAllClose(mixed_expected, mixed_result)
 
     def test_unique(self):
         vec = gs.array([-1, 0, 1, 1, 0, -1])
