@@ -154,7 +154,7 @@ def _squared_dist(point_a, point_b, metric):
     _ : array-like, shape=[...,]
         Geodesic distance between point_a and point_b.
     """
-    return metric._private_squared_dist(point_a, point_b)
+    return metric.private_squared_dist(point_a, point_b)
 
 
 class Grassmannian(LevelSet):
@@ -414,7 +414,30 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         rot = Matrices.bracket(base_point, -tangent_vec_b)
         return mul(expm(rot), tangent_vec_a, expm(-rot))
 
-    def _private_squared_dist(self, point_a, point_b):
+    def private_squared_dist(self, point_a, point_b):
+        """Compute geodesic distance between two points.
+
+        Compute the squared geodesic distance between point_a
+        and point_b, as defined by the metric.
+
+        This is an auxiliary private function that:
+        - is called by the method `squared_dist` of the class
+        GrassmannianCanonicalMetric,
+        - has been created to support the implementation
+        of custom_gradient in tensorflow backend.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        _ : array-like, shape=[...,]
+            Geodesic distance between point_a and point_b.
+        """
         dist = super().squared_dist(point_a, point_b)
         return dist
 
