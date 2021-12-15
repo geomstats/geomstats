@@ -79,8 +79,8 @@ def is_single_matrix_pd(mat):
     if mat.shape[0] != mat.shape[1]:
         return False
     try:
-        tf.linalg.cholesky(mat)
-        return True
+        cf = tf.linalg.cholesky(mat)
+        return tf.math.reduce_any(tf.math.is_nan(cf))
     except tf.errors.InvalidArgumentError as e:
         if "Cholesky decomposition was not successful" in e.message:
             return False
