@@ -1,4 +1,8 @@
-"""Unit tests for special orthogonal group SO(3)."""
+"""Unit tests for special orthogonal group SO(3).
+
+These tests are done in the rotation vector representation,
+i.e. the axis-angle representation of the 3D rotation matrices.
+"""
 
 import warnings
 
