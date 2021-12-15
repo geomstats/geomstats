@@ -20,7 +20,7 @@ ZETA_STEP = 0.001
 class TestEM(geomstats.tests.TestCase):
     """Class for testing Expectation Maximization."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set manifold, data and EM parameters."""
         self.n_samples = 5
         self.dim = 2

@@ -17,7 +17,7 @@ pi_4 = gs.pi / 4
 
 
 class TestGrassmannian(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
 
         self.n = 3

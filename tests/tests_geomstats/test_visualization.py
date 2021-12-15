@@ -22,7 +22,7 @@ matplotlib.use("Agg")  # NOQA
 
 
 class TestVisualization(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.n_samples = 10
         self.SO3_GROUP = SpecialOrthogonal(n=3, point_type="vector")
         self.SE3_GROUP = SpecialEuclidean(n=3, point_type="vector")
@@ -191,3 +191,7 @@ class TestVisualization(geomstats.tests.TestCase):
         x, y = ellipsis.compute_coordinates(point)
         self.assertAllClose(x, gs.array([1, 0, -1, 0, 1]))
         self.assertAllClose(y, gs.array([0, 1, 0, -1, 0]))
+
+    @staticmethod
+    def teardown_method():
+        plt.close()

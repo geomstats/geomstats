@@ -18,7 +18,7 @@ from geomstats.learning.frechet_mean import FrechetMean, variance
 class TestFrechetMean(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(123)
         self.sphere = Hypersphere(dim=4)
         self.hyperbolic = Hyperboloid(dim=3)
@@ -454,3 +454,18 @@ class TestFrechetMean(geomstats.tests.TestCase):
         mean.fit(point)
         result = space.belongs(mean.estimate_)
         self.assertTrue(result)
+
+    def test_circle_mean(self):
+        space = Hypersphere(1)
+        points = space.random_uniform(10)
+        mean_circle = FrechetMean(space.metric)
+        mean_circle.fit(points)
+        estimate_circle = mean_circle.estimate_
+
+        # set a wrong dimension so that the extrinsic coordinates are used
+        metric = space.metric
+        metric.dim = 2
+        mean_extrinsic = FrechetMean(metric)
+        mean_extrinsic.fit(points)
+        estimate_extrinsic = mean_extrinsic.estimate_
+        self.assertAllClose(estimate_circle, estimate_extrinsic)

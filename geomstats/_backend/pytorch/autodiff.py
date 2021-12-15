@@ -105,11 +105,11 @@ def value_and_grad(func, to_numpy=False):
     ----------
     func : callable
         Function whose value and gradient values
-        will be computed.
+        will be computed. It must be real-valued.
     to_numpy : bool
         Determines if the outputs value and grad will be cast
         to numpy arrays. Set to "True" when using scipy.optimize.
-        Default: False.
+        Optional, default: False.
 
     Returns
     -------

@@ -53,7 +53,6 @@ from torch import (
     sign,
     sin,
     sinh,
-    sort,
     stack,
     std,
     tan,
@@ -810,3 +809,8 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
     return mat
+
+
+def sort(a, axis=- 1):
+    sorted_a, _ = torch.sort(a, dim=axis)
+    return sorted_a

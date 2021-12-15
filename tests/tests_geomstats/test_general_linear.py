@@ -11,7 +11,7 @@ RTOL = 1e-5
 
 
 class TestGeneralLinear(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
         self.n = 3
         self.n_samples = 2
