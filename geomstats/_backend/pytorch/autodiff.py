@@ -56,7 +56,7 @@ def custom_gradient(*grad_func):
 
 
 def jacobian(func):
-    """Return a function that returns the jacobian of a function."""
+    """Return function that returns the jacobian of a function."""
     return lambda x: torch_jac(func, x)
 
 
