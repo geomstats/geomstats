@@ -45,7 +45,10 @@ class SPDMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an SPD matrix.
         """
-        return Matrices.is_spd(mat, atol)
+        is_sym = self.ambient_space.belongs(mat, atol)
+        is_pd = Matrices.is_pd(mat)
+        belongs = gs.logical_and(is_sym, is_pd)
+        return belongs
 
     def projection(self, point):
         """Project a matrix to the space of SPD matrices.
