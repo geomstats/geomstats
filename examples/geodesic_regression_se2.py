@@ -20,7 +20,6 @@ from geomstats.learning.geodesic_regression import GeodesicRegression
 
 SPACE = SpecialEuclidean(2)
 METRIC = SPACE.left_canonical_metric
-METRIC.default_point_type = "matrix"
 gs.random.seed(0)
 
 
