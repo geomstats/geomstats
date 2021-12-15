@@ -72,10 +72,12 @@ def qr(x, mode="reduced"):
     return tf.linalg.qr(x, full_matrices=(mode == "complete"))
 
 
-def _is_single_matrix_pd(mat):
+def is_single_matrix_pd(mat):
     """Check if a two dimensional square matrix is
     positive definite
     """
+    if mat.dim[0] != mat.dim[1]:
+        return False
     try:
         tf.linalg.cholesky(mat)
         return True
@@ -83,16 +85,3 @@ def _is_single_matrix_pd(mat):
         if "Cholesky decomposition was not successful" in e.message:
             return False
         raise e
-
-
-def is_pd(mat):
-    """Check if matrix is positive definite matrix
-    (doesn't check if it's symmetric)
-    """
-    if mat.ndim == 2 and mat.shape[0] == mat.shape[1]:
-        return tf.convert_to_tensor(_is_single_matrix_pd(mat))
-    if mat.ndim == 2 and mat.shape[0] != mat.shape[1]:
-        return tf.convert_to_tensor(False)
-    if mat.ndim == 3 and mat.shape[1] == mat.shape[2]:
-        return tf.convert_to_tensor([_is_single_matrix_pd(m) for m in mat])
-    return tf.convert_to_tensor([False] * mat.shape[0])
