@@ -204,10 +204,9 @@ class Matrices(VectorSpace):
             Boolean evaluating if the matrix is positive definite.
         """
 
-        is_pd = gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
         if mat.ndim == 2:
-            return is_pd[0]
-        return is_pd
+            return gs.linalg.is_single_matrix_pd(mat)
+        return gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
 
     @classmethod
     def is_spd(cls, mat, atol=gs.atol):
