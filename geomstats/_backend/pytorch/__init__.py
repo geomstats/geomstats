@@ -58,6 +58,7 @@ from torch import (
     tan,
     tanh,
     tril,
+    triu,
     uint8,
     unique,
     vstack,
