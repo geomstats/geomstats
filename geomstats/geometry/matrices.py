@@ -205,7 +205,7 @@ class Matrices(VectorSpace):
         """
 
         if mat.ndim == 2:
-            return gs.linalg.is_single_matrix_pd(mat)
+            return gs.array(gs.linalg.is_single_matrix_pd(mat))
         return gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
 
     @classmethod
