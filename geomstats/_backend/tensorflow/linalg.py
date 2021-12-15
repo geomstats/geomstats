@@ -74,7 +74,7 @@ def qr(x, mode="reduced"):
 
 def is_single_matrix_pd(mat):
     """Check if a two dimensional square matrix is
-    positive definite
+    positive definite.
     """
     if mat.shape[0] != mat.shape[1]:
         return False

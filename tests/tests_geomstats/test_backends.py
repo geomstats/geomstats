@@ -941,7 +941,7 @@ class TestBackends(geomstats.tests.TestCase):
         expected = gs.cumprod(vec)[-1]
         self.assertAllClose(result, expected)
 
-    def test_is_singel_matrix_pd(self):
+    def test_is_single_matrix_pd(self):
         pd = gs.eye(3)
         not_pd_1 = -1 * gs.eye(3)
         not_pd_2 = gs.ones((3, 3))

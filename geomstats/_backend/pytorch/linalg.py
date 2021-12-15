@@ -98,7 +98,9 @@ def solve_sylvester(a, b, q):
 
 # (TODO) (sait) torch.linalg.cholesky_ex for even faster way
 def is_single_matrix_pd(mat):
-
+    """Check if a two dimensional square matrix is
+    positive definite.
+    """
     if mat.shape[0] != mat.shape[1]:
         return False
     try:

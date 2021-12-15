@@ -221,7 +221,7 @@ class Matrices(VectorSpace):
 
         Returns
         -------
-        is_pd : array-like, shape=[...,]
+        is_spd : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric positive definite.
         """
         is_spd = gs.logical_and(cls.is_symmetric(mat, atol), cls.is_pd(mat))
