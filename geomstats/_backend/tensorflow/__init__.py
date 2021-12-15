@@ -775,12 +775,6 @@ def triu(m, k=0):
     return tf.linalg.band_part(m, 0, -1)
 
 
-def triu(m, k=0):
-    if k != 0:
-        raise NotImplementedError("Only k=0 supported so far")
-    return tf.linalg.band_part(m, 0, -1)
-
-
 def diag_indices(*args, **kwargs):
     return tuple(map(tf.convert_to_tensor, _np.diag_indices(*args, **kwargs)))
 
