@@ -114,6 +114,7 @@ BACKEND_ATTRIBUTES = {
         "trace",
         "transpose",
         "tril",
+        "triu",
         "tril_indices",
         "triu_indices",
         "triu_to_vec",
