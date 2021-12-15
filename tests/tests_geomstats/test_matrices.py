@@ -3,6 +3,7 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.spd_matrices import SPDMatrices
 
 
 class TestMatrices(geomstats.tests.TestCase):
@@ -200,6 +201,43 @@ class TestMatrices(geomstats.tests.TestCase):
         base_point = gs.reshape(gs.arange(6), (2, 3))
         result = self.space.is_diagonal(base_point)
         self.assertTrue(~result)
+
+    def test_is_pd(self):
+        symmetric_but_not_pd = gs.array([[1.0, 1.0], [1.0, 1.0]])
+        result = self.space.is_pd(symmetric_but_not_pd)
+        expected = False
+        self.assertAllClose(result, expected)
+
+        pd = gs.array([[2.0, 6.0], [6.0, 20]])
+        result = self.space.is_pd(pd)
+        expected = True
+        self.assertAllClose(result, expected)
+
+    def test_is_spd(self):
+
+        symmetric_but_not_pd = gs.array([[1.0, 1.0], [1.0, 1.0]])
+        result = self.space.is_spd(symmetric_but_not_pd)
+        expected = False
+        self.assertAllClose(result, expected)
+
+        n = 4
+        n_samples = 10
+        spdManifold = SPDMatrices(n)
+        spd = spdManifold.random_point(n_samples)
+        not_spd = -1 * spd
+        mixed = gs.vstack((spd, not_spd))
+
+        spd_expected = [True] * n_samples
+        not_spd_expected = [False] * n_samples
+        mixed_expected = spd_expected + not_spd_expected
+
+        spd_result = Matrices.is_spd(spd)
+        not_spd_result = Matrices.is_spd(not_spd)
+        mixed_result = Matrices.is_spd(mixed)
+
+        self.assertAllClose(spd_expected, spd_result)
+        self.assertAllClose(not_spd_expected, not_spd_result)
+        self.assertAllClose(mixed_expected, mixed_result)
 
     def test_norm(self):
         for n_samples in [1, 2]:

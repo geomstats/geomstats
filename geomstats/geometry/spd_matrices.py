@@ -45,10 +45,9 @@ class SPDMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an SPD matrix.
         """
-        is_symmetric = self.ambient_space.belongs(mat, atol)
-        eigvalues = gs.linalg.eigvalsh(mat)
-        is_positive = gs.all(eigvalues > 0, axis=-1)
-        belongs = gs.logical_and(is_symmetric, is_positive)
+        is_sym = self.ambient_space.belongs(mat, atol)
+        is_pd = Matrices.is_pd(mat)
+        belongs = gs.logical_and(is_sym, is_pd)
         return belongs
 
     def projection(self, point):
@@ -912,8 +911,9 @@ class SPDMetricEuclidean(RiemannianMetric):
             exp = SymmetricMatrices.powerm(
                 SymmetricMatrices.powerm(base_point, power_euclidean)
                 + SPDMatrices.differential_power(
-                    power_euclidean, tangent_vec, base_point),
-                1 / power_euclidean
+                    power_euclidean, tangent_vec, base_point
+                ),
+                1 / power_euclidean,
             )
         return exp
 
@@ -944,7 +944,7 @@ class SPDMetricEuclidean(RiemannianMetric):
                 power_euclidean,
                 SymmetricMatrices.powerm(point, power_euclidean)
                 - SymmetricMatrices.powerm(base_point, power_euclidean),
-                base_point
+                base_point,
             )
 
         return log
