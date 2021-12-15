@@ -108,7 +108,7 @@ def qr(*args, **kwargs):
 # (TODO) (sait) torch.linalg.cholesky_ex for even faster way
 def is_single_matrix_pd(mat):
 
-    if mat.dim[0] != mat.dim[1]:
+    if mat.shape[0] != mat.shape[1]:
         return False
     try:
         torch.linalg.cholesky(mat)

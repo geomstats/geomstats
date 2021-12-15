@@ -107,7 +107,7 @@ def is_single_matrix_pd(mat):
     """Check if a two dimensional square matrix is
     positive definite
     """
-    if mat.dim[0] != mat.dim[1]:
+    if mat.shape[0] != mat.shape[1]:
         return False
     try:
         np.linalg.cholesky(mat)
