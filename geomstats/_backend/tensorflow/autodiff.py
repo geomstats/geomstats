@@ -79,7 +79,7 @@ def custom_gradient(*grad_funcs):
 def value_and_grad(func, to_numpy=False):
     """Return a function that returns both value and gradient.
 
-    Suitable for use in scipy.optimize
+    Suitable for use in scipy.optimize with to_numpy=True.
 
     Parameters
     ----------

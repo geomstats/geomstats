@@ -99,7 +99,7 @@ def jacobian(func):
 def value_and_grad(func, to_numpy=False):
     """Return a function that returns func's value and gradients' values.
 
-    Suitable for use in scipy.optimize.
+    Suitable for use in scipy.optimize with to_numpy=True.
 
     Parameters
     ----------
@@ -107,7 +107,9 @@ def value_and_grad(func, to_numpy=False):
         Function whose value and gradient values
         will be computed.
     to_numpy : bool
-        Unused. Here for API consistency.
+        Determines if the outputs value and grad will be cast
+        to numpy arrays. Set to "True" when using scipy.optimize.
+        Default: False.
 
     Returns
     -------
