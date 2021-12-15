@@ -240,7 +240,7 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
 
         rot_mats = group_mat.matrix_from_rotation_vector(rot_vecs)
 
-        self.assertAllClose(gs.shape(rot_mats), (n_samples, self.group.n, self.group.n))
+        self.assertAllClose(gs.shape(rot_mats), (n_samples, group_mat.n, group_mat.n))
 
     def test_rotation_vector_from_matrix(self):
         group = SpecialOrthogonal(n=3)
@@ -269,8 +269,8 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         group = SpecialOrthogonal(n=3)
         groupvec = SpecialOrthogonal(n=3, point_type="vector")
         point = groupvec.random_point()
-        rot_mat = self.group.matrix_from_rotation_vector(point)
-        result = self.group.rotation_vector_from_matrix(rot_mat)
+        rot_mat = group.matrix_from_rotation_vector(point)
+        result = group.rotation_vector_from_matrix(rot_mat)
 
         expected = self.group.regularize(point)
 
