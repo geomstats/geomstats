@@ -91,9 +91,9 @@ class SinfSpaceMetric(RiemannianMetric):
 class SinfSpace(VectorSpace):
     """Class for space of L2 functions with norm 1.
 
-    Real valued square interable functions defined on a unit interval are Hilbert spaces with a Riemannian inner product
-    This class represents such manifolds.
-    The L2Space (Lp in general) is a Banach Space that is a complete normed Vector space
+    Inputs:
+    -------
+    domain_samples : grid points on the domain (array of shape (n_samples, ))
 
     Ref :
     Functional and Shape Data Analysis
