@@ -6,6 +6,7 @@ import numpy as _np
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.grassmannian import Grassmannian
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 
@@ -32,6 +33,38 @@ class TestAutodiff(geomstats.tests.TestCase):
             vector
         )
         expected_loss = n
+        expected_grad = 2 * vector
+
+        self.assertAllClose(result_loss, expected_loss)
+        self.assertAllClose(result_grad, expected_grad)
+
+    @geomstats.tests.autograd_and_tf_only
+    def test_value_and_grad_dist(self):
+        space = SpecialEuclidean(3)
+        metric = space.metric
+        point = space.random_point()
+        id = space.identity
+        result_loss, result_grad = gs.autodiff.value_and_grad(
+            lambda v: metric.squared_dist(v, id)
+        )(point)
+
+        expected_loss = metric.squared_dist(point, id)
+        expected_grad = -2 * metric.log(id, point)
+
+        self.assertAllClose(result_loss, expected_loss)
+        self.assertAllClose(result_grad, expected_grad)
+
+    @geomstats.tests.autograd_tf_and_torch_only
+    def test_value_and_grad_dist_grassmann(self):
+        space = Grassmannian(3, 2)
+        metric = space.metric
+        point = space.random_point()
+        vector = space.to_tangent(space.random_point(), point)
+        result_loss, result_grad = gs.autodiff.value_and_grad(
+            lambda v: metric.squared_norm(v, point)
+        )(vector)
+
+        expected_loss = metric.squared_norm(vector, point)
         expected_grad = 2 * vector
 
         self.assertAllClose(result_loss, expected_loss)

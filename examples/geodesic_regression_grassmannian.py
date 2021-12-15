@@ -42,6 +42,7 @@ def main():
         tangent_vec=gs.einsum("...,jk->...jk", data, beta), base_point=intercept
     )
 
+    # Fit geodesic regression
     gr = GeodesicRegression(
         SPACE,
         metric=METRIC,

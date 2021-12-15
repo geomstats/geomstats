@@ -406,7 +406,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
                     “A Grassmann Manifold Handbook: Basic Geometry and
                     Computational Aspects.”
                     ArXiv:2011.13699 [Cs, Math], November 27, 2020.
-                    http://arxiv.org/abs/2011.13699.
+                    https://arxiv.org/abs/2011.13699.
 
         """
         expm = gs.linalg.expm

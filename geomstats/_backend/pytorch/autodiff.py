@@ -69,6 +69,9 @@ def value_and_grad(func, to_numpy=False):
     ----------
     func : callable
         Function to compute the gradient. It must be real-valued.
+    to_numpy : bool
+        Whether to return the np.ndarray or the torch.Tensor.
+        Optional, default : False.
 
     Returns
     -------
