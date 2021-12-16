@@ -19,7 +19,7 @@ from geomstats.geometry.spd_matrices import (
 class TestSPDMatrices(geomstats.tests.TestCase):
     """Test of SPDMatrices methods."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up the test."""
         warnings.simplefilter("ignore", category=ImportWarning)
 

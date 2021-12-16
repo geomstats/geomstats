@@ -14,7 +14,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestInvariantMetric(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         logger = logging.getLogger()
         logger.disabled = True
         warnings.simplefilter("ignore", category=ImportWarning)

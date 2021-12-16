@@ -17,7 +17,7 @@ from geomstats.information_geometry.dirichlet import (
 class TestDirichletDistributions(geomstats.tests.TestCase):
     """Class defining the Dirichlet distributions tests."""
 
-    def setUp(self):
+    def setup_method(self):
         """Define the parameters of the tests."""
         gs.random.seed(0)
         warnings.simplefilter("ignore", category=UserWarning)

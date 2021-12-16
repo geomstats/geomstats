@@ -2,7 +2,7 @@
 
 import numpy as np
 import scipy.linalg
-from numpy.linalg import (
+from numpy.linalg import (  # NOQA
     cholesky,
     det,
     eig,
@@ -11,9 +11,9 @@ from numpy.linalg import (
     inv,
     matrix_rank,
     norm,
-    svd,
     solve,
-)  # NOQA
+    svd,
+)
 
 from .common import to_ndarray
 
@@ -71,3 +71,18 @@ def qr(*args, **kwargs):
     return np.vectorize(
         np.linalg.qr, signature="(n,m)->(n,k),(k,m)", excluded=["mode"]
     )(*args, **kwargs)
+
+
+def is_single_matrix_pd(mat):
+    """Check if a two dimensional square matrix is
+    positive definite.
+    """
+    if mat.shape[0] != mat.shape[1]:
+        return False
+    try:
+        np.linalg.cholesky(mat)
+        return True
+    except np.linalg.LinAlgError as e:
+        if e.args[0] == "Matrix is not positive definite":
+            return False
+        raise e
