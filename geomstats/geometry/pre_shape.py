@@ -981,7 +981,7 @@ class KendallShapeMetric(QuotientMetric):
         return 3.0 * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
 
     def parallel_transport(
-        self, tangent_vec_a, tangent_vec_b, base_point, n_steps=100, step="rk4"
+        self, tangent_vec_a, tangent_vec_b, base_point, n_steps=100, method="rk4"
     ):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
@@ -1002,7 +1002,7 @@ class KendallShapeMetric(QuotientMetric):
             Number of steps to use to approximate the solution of the
             ordinary differential equation.
             Optional, default: 100
-        step : str, {'euler', 'rk2', 'rk4'}
+        method : str, {'euler', 'rk2', 'rk4'}
             Scheme to use in the integration scheme.
             Optional, default: 'rk4'.
 
@@ -1045,5 +1045,5 @@ class KendallShapeMetric(QuotientMetric):
             vertical_ = -gs.matmul(gamma_t, skew_)
             return vertical_ - normal
 
-        flow = integrate(force, horizontal_a, n_steps=n_steps, step=step)
+        flow = integrate(force, horizontal_a, n_steps=n_steps, method=method)
         return flow[-1]
