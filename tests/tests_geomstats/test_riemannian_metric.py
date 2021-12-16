@@ -55,7 +55,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
         result = self.euc_metric.inner_coproduct(
             cotangent_vec_a, cotangent_vec_b, base_point
         )
-        expected = gs.sqrt(5.0)
+        expected = 5.0
 
         self.assertAllClose(result, expected)
 
@@ -66,7 +66,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
         result = self.euc_metric.inner_coproduct(
             cotangent_vec_a, cotangent_vec_b, base_point
         )
-        expected = 1.0 / gs.sqrt(7)
+        expected = 7.0
 
         self.assertAllClose(result, expected)
 
