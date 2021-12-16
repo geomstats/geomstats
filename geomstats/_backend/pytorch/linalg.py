@@ -42,7 +42,7 @@ class Logm(torch.autograd.Function):
         return Logm._logm(backward_tensor).to(tensor.dtype)[..., :n, n:]
 
 
-cholesky = torch.linalg.choleksy
+cholesky = torch.linalg.cholesky
 eig = torch.linalg.eig
 eigh = torch.linalg.eigh
 eigvalsh = torch.linalg.eigvalsh
