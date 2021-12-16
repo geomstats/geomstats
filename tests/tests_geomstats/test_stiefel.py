@@ -93,7 +93,6 @@ class TestStiefel(geomstats.tests.TestCase):
         det_point = gs.linalg.det(point)
         if gs.all(det_base * det_point > 0.):
             point[:, 1] *= -1.0
-        # Stiefel(n=3, p=3).metric.log(point, base_point)
 
         with pytest.raises(ValueError):
             Stiefel(n=3, p=3).metric.log(point, base_point)
