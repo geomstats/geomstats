@@ -10,7 +10,7 @@ from geomstats.geometry.minkowski import Minkowski
 
 
 class TestMinkowski(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
 
         self.time_like_dim = 0

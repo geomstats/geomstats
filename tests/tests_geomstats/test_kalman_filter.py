@@ -14,7 +14,7 @@ from geomstats.learning.kalman_filter import (
 class TestKalmanFilter(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(123)
         self.linear_model = LocalizationLinear()
         self.nonlinear_model = Localization()

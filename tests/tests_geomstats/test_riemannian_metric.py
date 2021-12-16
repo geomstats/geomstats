@@ -10,7 +10,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class TestRiemannianMetric(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=UserWarning)
         gs.random.seed(0)
         self.dim = 2

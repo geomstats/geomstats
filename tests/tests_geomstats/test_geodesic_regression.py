@@ -12,7 +12,7 @@ from geomstats.learning.geodesic_regression import GeodesicRegression
 class TestGeodesicRegression(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
         self.n_samples = 20
 

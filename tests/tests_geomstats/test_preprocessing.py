@@ -14,7 +14,7 @@ from geomstats.learning.preprocessing import ToTangentSpace
 class TestToTangentSpace(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(123)
         self.sphere = Hypersphere(dim=4)
         self.hyperbolic = Hyperboloid(dim=3)

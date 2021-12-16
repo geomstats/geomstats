@@ -6,7 +6,7 @@ from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 
 
 class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.n_seq = [2, 3, 4, 5, 6, 7, 8, 9, 10]
         self.skew = {n: SkewSymmetricMatrices(n=n) for n in self.n_seq}
 
