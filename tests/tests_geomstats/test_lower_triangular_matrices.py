@@ -1,4 +1,4 @@
-"""Unit tests for the vector space of symmetric matrices."""
+"""Unit tests for the vector space of lower triangular matrices."""
 
 import math
 import warnings

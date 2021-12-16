@@ -372,7 +372,7 @@ class Matrices(VectorSpace):
 
         Parameters
         ----------
-        mat : array-like, shape = [..., n, n]
+        mat : array-like, shape=[..., n, n]
             Matrix.
 
         Returns
@@ -387,7 +387,7 @@ class Matrices(VectorSpace):
 
         Parameters
         ----------
-        mat : array-like, shape = [..., n, n]
+        mat : array-like, shape=[..., n, n]
             Matrix.
 
         Returns
@@ -419,7 +419,7 @@ class Matrices(VectorSpace):
 
         Parameters
         ----------
-        mat : array-like, shape = [..., n, n]
+        mat : array-like, shape=[..., n, n]
             Matrix.
 
         Returns
@@ -485,7 +485,7 @@ class Matrices(VectorSpace):
 
         Parameters
         ----------
-        mat : array-like, shape = [..., n, n]
+        mat : array-like, shape=[..., n, n]
             Matrix.
 
         Returns
