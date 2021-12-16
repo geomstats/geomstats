@@ -37,7 +37,7 @@ class HeisenbergVectors(LieGroup):
 
         Returns
         -------
-        get_identity : array-like, shape=[3,]
+        _ : array-like, shape=[3,]
         """
         return gs.zeros(self.dim)
 
@@ -76,7 +76,7 @@ class HeisenbergVectors(LieGroup):
 
         Returns
         -------
-        composed : array-like, shape=[..., 3]
+        point_ab : array-like, shape=[..., 3]
             Product of point_a and point_b along the first dimension.
         """
         point_ab = point_a + point_b
@@ -100,7 +100,7 @@ class HeisenbergVectors(LieGroup):
 
         Returns
         -------
-        inv_point : array-like, shape=[..., 3]
+        _ : array-like, shape=[..., 3]
             Inverse.
         """
         return -point
@@ -124,18 +124,18 @@ class HeisenbergVectors(LieGroup):
 
         Returns
         -------
-        jacobian : array-like, shape=[..., 3, 3]
+        _ : array-like, shape=[..., 3, 3]
             Jacobian of the left/right translation by point.
         """
-        E31 = gs.array_from_sparse([(2, 0)], [1.], (3, 3))
-        E32 = gs.array_from_sparse([(2, 1)], [1.], (3, 3))
+        e31 = gs.array_from_sparse([(2, 0)], [1.], (3, 3))
+        e32 = gs.array_from_sparse([(2, 1)], [1.], (3, 3))
 
         if left_or_right == 'left':
-            return (gs.eye(3) + gs.einsum('..., ij -> ...ij', -point[..., 1] / 2, E31) +
-                    gs.einsum('..., ij -> ...ij', point[..., 0] / 2, E32))
+            return (gs.eye(3) + gs.einsum('..., ij -> ...ij', -point[..., 1] / 2, e31) +
+                    gs.einsum('..., ij -> ...ij', point[..., 0] / 2, e32))
 
-        return (gs.eye(3) + gs.einsum('..., ij -> ...ij', point[..., 1] / 2, E31) +
-                gs.einsum('..., ij -> ...ij', -point[..., 0] / 2, E32))
+        return (gs.eye(3) + gs.einsum('..., ij -> ...ij', point[..., 1] / 2, e31) +
+                gs.einsum('..., ij -> ...ij', -point[..., 0] / 2, e32))
 
     def random_point(self, n_samples=1, bound=1.):
         """Sample in the Euclidean space R^3 with a uniform distribution in a box.
@@ -171,7 +171,7 @@ class HeisenbergVectors(LieGroup):
 
         Returns
         -------
-        point : array-like, shape=[..., 3]
+        _ : array-like, shape=[..., 3]
             Point.
         """
         return tangent_vec
@@ -186,13 +186,13 @@ class HeisenbergVectors(LieGroup):
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., 3]
+        _ : array-like, shape=[..., 3]
             Group logarithm.
         """
         return point
 
     @staticmethod
-    def upperTriangular_matrix_from_vector(point):
+    def upper_triangular_matrix_from_vector(point):
         """Compute the upper triangular matrix representation of the vector.
 
         The 3D Heisenberg group can also be represented as 3x3 upper triangular

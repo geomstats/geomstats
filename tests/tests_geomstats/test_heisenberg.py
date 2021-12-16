@@ -2,13 +2,13 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.heisenberg import heisenbergVectors
+from geomstats.geometry.heisenberg import HeisenbergVectors
 
 
 class TestHeisenbergVectors(geomstats.tests.TestCase):
     def setUp(self):
         self.dimension = 3
-        self.group = heisenbergVectors()
+        self.group = HeisenbergVectors()
 
     def test_dimension(self):
         result = self.group.dim
@@ -31,9 +31,17 @@ class TestHeisenbergVectors(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_is_tangent(self):
-        vector = gs.array([1., 2., 3., 4.])
+        vector = gs.array([1., 2., 3., 4.], [1., 2., 3., 4.])
         result = self.group.is_tangent(vector)
-        expected = False
+        expected = gs.array([False, False])
+
+        self.assertAllClose(result, expected)
+
+    def test_jacobian_translation(self):
+        vector = gs.array([[1., -10., 0.2], [-2., 100., 0.5]])
+        result = self.group.jacobian_translation(vector)
+        expected = gs.array([[[1., 0., 0.], [0., 1., 0.], [5., 0.5, 1.]],
+                             [[1., 0., 0.], [0., 1., 0.], [-50., -1., 1.]]])
 
         self.assertAllClose(result, expected)
 
