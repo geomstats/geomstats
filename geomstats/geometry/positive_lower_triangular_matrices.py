@@ -95,7 +95,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         projected: array-like, shape=[..., n, n]
             SPD matrix.
         """
-        vec_diag = gs.abs(Matrices.diagonal(point) - 0.00001) + 0.0001
+        vec_diag = gs.abs(Matrices.diagonal(point) - 0.1) + 0.1
         diag = gs.vec_to_diag(vec_diag)
         strictly_lower_triangular = Matrices.to_lower_triangular(point)
         projection = diag + strictly_lower_triangular
