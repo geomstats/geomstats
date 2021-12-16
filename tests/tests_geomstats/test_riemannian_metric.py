@@ -63,7 +63,7 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
         cotangent_vec_a = self.sphere.to_tangent(gs.array([1.0, 2.0, 0.0]), base_point)
         cotangent_vec_b = self.sphere.to_tangent(gs.array([1.0, 3.0, 0.0]), base_point)
 
-        result = self.euc_metric.inner_coproduct(
+        result = self.sphere_metric.inner_coproduct(
             cotangent_vec_a, cotangent_vec_b, base_point
         )
         expected = 7.0
