@@ -217,13 +217,11 @@ class Connection(ABC):
             Point on the manifold.
         """
         if hasattr(self, 'exp_closed_form'):
-            exp = self.exp_closed_form(tangent_vec, base_point, **kwargs)
-        else:
-            geodesic = self._geodesic_ivp(
-                base_point, tangent_vec, method=method, n_steps_min=n_steps
-            )
-            exp = geodesic(1.)
-        return exp
+            return self.exp_closed_form(tangent_vec, base_point, **kwargs)
+        geodesic = self._geodesic_ivp(
+            base_point, tangent_vec, method=method, n_steps_min=n_steps
+        )
+        return geodesic(1.)
 
     def log(
         self,

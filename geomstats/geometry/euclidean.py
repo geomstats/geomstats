@@ -140,7 +140,7 @@ class EuclideanMetric(RiemannianMetric):
         """
         return gs.linalg.norm(vector, axis=-1)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp_closed_form(self, tangent_vec, base_point, **kwargs):
         """Compute exp map of a base point in tangent vector direction.
 
         The Riemannian exponential is vector addition in the Euclidean space.
