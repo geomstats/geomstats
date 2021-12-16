@@ -1,10 +1,10 @@
-"""The manifold of lower triangular matrices with positive diagonal elements"""
+"""The manifold of lower triangular matrices with positive diagonal elements."""
 
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
+from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 
 
 class PositiveLowerTriangularMatrices(OpenSet):
@@ -58,7 +58,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
 
     def belongs(self, mat, atol=gs.atol):
         """Check if a matrix is lower triangular matrix with
-        positive diagonal elements
+        positive diagonal elements.
 
         Parameters
         ----------
@@ -80,10 +80,10 @@ class PositiveLowerTriangularMatrices(OpenSet):
         return belongs
 
     def projection(self, point):
-        """Project a matrix to the cholesksy space.
+        """Project a matrix to the Cholesksy space.
 
         First it is projected to space lower triangular matrices
-        and then diagonal elements are exponentiated to make it positive
+        and then diagonal elements are exponentiated to make it positive.
 
         Parameters
         ----------
@@ -95,7 +95,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         projected: array-like, shape=[..., n, n]
             SPD matrix.
         """
-        vec_diag = gs.abs(Matrices.diagonal(point) - 0.1) + 0.1
+        vec_diag = gs.abs(Matrices.diagonal(point) - 0.00001) + 0.0001
         diag = gs.vec_to_diag(vec_diag)
         strictly_lower_triangular = Matrices.to_lower_triangular(point)
         projection = diag + strictly_lower_triangular
@@ -106,12 +106,12 @@ class PositiveLowerTriangularMatrices(OpenSet):
         """Compute gram matrix of rows
 
         Gram_matrix is mapping from point to point.point^{T}.
-        This is diffeomorphism between cholesky space and spd manifold
+        This is diffeomorphism between cholesky space and spd manifold.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
-            element in cholesky space
+            element in cholesky space.
 
         Returns
         -------
@@ -122,10 +122,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
 
     @staticmethod
     def differential_gram(tangent_vec, base_point):
-        """Compute gram matrix of rows
-
-        Gram_matrix is mapping from point to point.point^{T}.
-        This is diffeomorphism between cholesky space and spd manifold
+        """Compute differential of gram.
 
         Parameters
         ----------
@@ -137,7 +134,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         Returns
         -------
         differential_gram : array-like, shape=[..., n, n]
-            Differential of the matrix exponential.
+            Differential of the gram.
         """
         mat1 = gs.einsum("...ij,...kj->...ik", tangent_vec, base_point)
         mat2 = gs.einsum("...ij,...kj->...ik", base_point, tangent_vec)
@@ -145,7 +142,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
 
     @staticmethod
     def inverse_differential_gram(tangent_vec, base_point):
-        """Compute inverse differential of gram map
+        """Compute inverse differential of gram map.
 
         Parameters
         ----------
@@ -159,7 +156,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         -------
         inverse_differential_gram : array-like, shape=[..., n, n]
             Inverse differential of gram.
-            Lower triangular matrix
+            Lower triangular matrix.
         """
         inv_base_point = gs.linalg.inv(base_point)
         inv_transpose_base_point = Matrices.transpose(inv_base_point)
@@ -244,8 +241,7 @@ class CholeskyMetric(RiemannianMetric):
 
     @classmethod
     def inner_product(cls, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the inner product using only strictly lower triangular elements.
-
+        """Compute the inner product.
 
         Compute the inner-product of tangent_vec_a and tangent_vec_b
         at point base_point using the cholesky Riemannian metric.

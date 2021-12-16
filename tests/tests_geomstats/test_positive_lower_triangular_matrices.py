@@ -1,19 +1,17 @@
-"""Unit tests for Positive lower  triangular matrices"""
+"""Unit tests for Positive lower triangular matrices"""
 
 
 import math
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.positive_lower_triangular_matrices import (
-    PositiveLowerTriangularMatrices,
-    CholeskyMetric,
-)
-
+import tests.helper as helper
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.positive_lower_triangular_matrices import (
+    CholeskyMetric,
+    PositiveLowerTriangularMatrices,
+)
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
