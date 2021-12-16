@@ -12,7 +12,7 @@ from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 class TestLowerTriangularMatrices(geomstats.tests.TestCase):
     """Test of LowerTriangularMatrices methods."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up the test."""
         warnings.simplefilter("ignore", category=ImportWarning)
 
