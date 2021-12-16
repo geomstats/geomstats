@@ -220,28 +220,17 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def test_exp_vectorization(self):
         """Test exp map vectorization"""
-        L = self.space.random_point(1)
-        print("L", L)
-        X = self.space.ambient_space.random_point(1)
-        print("X", X)
+        L = self.space.random_point(5)
+        X = self.space.ambient_space.random_point(5)
         D_L = Matrices.to_diagonal(L)
-        print("D_L", D_L)
         D_X = Matrices.to_diagonal(X)
-        print("D_X", D_X)
         inv_D_L = gs.linalg.inv(D_L)
-        print("inv_D_L", inv_D_L)
-        print("SL", Matrices.to_strictly_lower_triangular(L))
-        print("SX", Matrices.to_strictly_lower_triangular(X))
-        print("prod", gs.matmul(D_X, inv_D_L))
-        print("expm", SPDMatrices(2).expm(gs.matmul(D_X, inv_D_L)))
         exp_expected = (
             Matrices.to_strictly_lower_triangular(L)
             + Matrices.to_strictly_lower_triangular(X)
             + gs.matmul(D_L, SPDMatrices(2).expm(gs.matmul(D_X, inv_D_L)))
         )
         exp_result = self.metric_cholesky.exp(X, L)
-        print("exp_expected", exp_expected)
-        print("exp_result", exp_result)
         belongs_result = gs.all(self.space.belongs(exp_result))
         belongs_expected = True
 
