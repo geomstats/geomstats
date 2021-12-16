@@ -4,6 +4,8 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.sub_riemannian_metric import SubRiemannianMetric
+
 
 class TestSubRiemannianMetric(geomstats.tests.TestCase):
     def setUp(self):
@@ -11,5 +13,5 @@ class TestSubRiemannianMetric(geomstats.tests.TestCase):
         self.dim = 3
         self.dist_dim = 2
 
-        new_sub_riemannian_metric = SubRiemannianMetric(dim=3, dist_dim=2)
-y
+        new_sub_riemannian_metric = SubRiemannianMetric(dim=self.dim,
+                                                        dist_dim=self.dist_dim)
