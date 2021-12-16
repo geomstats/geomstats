@@ -10,7 +10,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestSpecialOrthogonal2(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
         warnings.simplefilter("ignore", category=UserWarning)
 

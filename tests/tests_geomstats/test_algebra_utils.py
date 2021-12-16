@@ -7,7 +7,7 @@ from geomstats.geometry.hypersphere import Hypersphere
 
 
 class TestAlgebraUtils(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.functions = [
             utils.cos_close_0,
             utils.sinc_close_0,

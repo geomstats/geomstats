@@ -6,6 +6,7 @@ import joblib
 import geomstats.backend as gs
 import geomstats.geometry as geometry
 from geomstats.geometry.connection import Connection
+from geomstats.integrator import integrate
 
 EPSILON = 1e-4
 N_CENTERS = 10
@@ -16,6 +17,8 @@ N_STEPS = 10
 
 class RiemannianMetric(Connection, ABC):
     """Class for Riemannian and pseudo-Riemannian metrics.
+
+    The associated Levi-Civita connection on the tangent bundle.
 
     Parameters
     ----------

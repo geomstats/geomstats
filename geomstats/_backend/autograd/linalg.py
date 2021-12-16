@@ -1,8 +1,9 @@
 """Autograd based linear algebra backend."""
 
+import functools
+
 import autograd.numpy as np
 import autograd.scipy.linalg as asp
-import functools
 import scipy.linalg
 from autograd.extend import defvjp, primitive
 from autograd.numpy.linalg import (  # NOQA
@@ -12,10 +13,10 @@ from autograd.numpy.linalg import (  # NOQA
     eigh,
     eigvalsh,
     inv,
+    matrix_rank,
     norm,
     solve,
     svd,
-    matrix_rank,
 )
 
 from .common import to_ndarray
@@ -100,3 +101,18 @@ def qr(*args, **kwargs):
     return np.vectorize(
         np.linalg.qr, signature="(n,m)->(n,k),(k,m)", excluded=["mode"]
     )(*args, **kwargs)
+
+
+def is_single_matrix_pd(mat):
+    """Check if a two dimensional square matrix is
+    positive definite.
+    """
+    if mat.shape[0] != mat.shape[1]:
+        return False
+    try:
+        np.linalg.cholesky(mat)
+        return True
+    except np.linalg.LinAlgError as e:
+        if e.args[0] == "Matrix is not positive definite":
+            return False
+        raise e

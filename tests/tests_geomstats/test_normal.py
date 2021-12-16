@@ -12,7 +12,7 @@ from geomstats.information_geometry.normal import FisherRaoMetric, NormalDistrib
 class TestNormalDistributions(geomstats.tests.TestCase):
     """Class defining the normal distributions tests."""
 
-    def setUp(self):
+    def setup_method(self):
         """Define the parameters of the tests."""
         warnings.simplefilter("ignore", category=UserWarning)
         self.normal = NormalDistributions()

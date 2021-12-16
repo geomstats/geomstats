@@ -43,7 +43,6 @@ from torch import (
     sign,
     sin,
     sinh,
-    sort,
     stack,
     std,
     tan,
@@ -822,3 +821,8 @@ def ravel_tril_indices(n, k=0, m=None):
         size = (n, m)
     idxs = _np.tril_indices(n, k, m)
     return torch.from_numpy(_np.ravel_multi_index(idxs, size))
+
+
+def sort(a, axis=-1):
+    sorted_a, _ = torch.sort(a, dim=axis)
+    return sorted_a

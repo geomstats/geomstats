@@ -137,6 +137,7 @@ BACKEND_ATTRIBUTES = {
         "eigvalsh",
         "expm",
         "inv",
+        "is_single_matrix_pd",
         "logm",
         "norm",
         "qr",

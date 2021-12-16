@@ -303,6 +303,47 @@ class Matrices(VectorSpace):
         return cls.equal(mat, cls.transpose(mat), atol)
 
     @classmethod
+    def is_pd(cls, mat):
+        """Check if a matrix is positive definite.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_pd : array-like, shape=[...,]
+            Boolean evaluating if the matrix is positive definite.
+        """
+        if mat.ndim == 2:
+            return gs.array(gs.linalg.is_single_matrix_pd(mat))
+        return gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
+
+    @classmethod
+    def is_spd(cls, mat, atol=gs.atol):
+        """Check if a matrix is symmetric positive definite.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_spd : array-like, shape=[...,]
+            Boolean evaluating if the matrix is symmetric positive definite.
+        """
+        is_spd = gs.logical_and(cls.is_symmetric(mat, atol), cls.is_pd(mat))
+        return is_spd
+
+    @classmethod
     def is_skew_symmetric(cls, mat, atol=gs.atol):
         """Check if a matrix is skew symmetric.
 

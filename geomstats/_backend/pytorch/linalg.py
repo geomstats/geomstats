@@ -44,6 +44,7 @@ class Logm(torch.autograd.Function):
 
 cholesky = torch.linalg.choleksy
 eig = torch.linalg.eig
+eigh = torch.linalg.eigh
 eigvalsh = torch.linalg.eigvalsh
 expm = torch.matrix_exp
 inv = torch.inverse
@@ -56,11 +57,6 @@ logm = Logm.apply
 def sqrtm(x):
     np_sqrtm = np.vectorize(scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
     return torch.as_tensor(np_sqrtm, dtype=x.dtype)
-
-
-def eigh(*args, **kwargs):
-    eigvals, eigvecs = torch.symeig(*args, eigenvectors=True, **kwargs)
-    return eigvals, eigvecs
 
 
 def svd(x, full_matrices=True, compute_uv=True):
@@ -95,3 +91,17 @@ def solve_sylvester(a, b, q):
         scipy.linalg.solve_sylvester, signature="(m,m),(n,n),(m,n)->(m,n)"
     )(a, b, q)
     return torch.from_numpy(solution)
+
+
+# (TODO) (sait) torch.linalg.cholesky_ex for even faster way
+def is_single_matrix_pd(mat):
+    """Check if a two dimensional square matrix is
+    positive definite.
+    """
+    if mat.shape[0] != mat.shape[1]:
+        return False
+    try:
+        torch.linalg.cholesky(mat)
+        return True
+    except RuntimeError as _e:
+        return False
