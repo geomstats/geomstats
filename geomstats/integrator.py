@@ -136,10 +136,10 @@ def integrate(function, initial_state, end_time=1.0, n_steps=10, method="euler")
 
     Returns
     -------
-    final_state : tuple
-        sequences of solutions every end_time / n_steps. The shape of each
-        element of the sequence is the same as the vectors passed in
-        initial_state.
+    states : array-like, shape=[n_steps + 1, 2, dim]
+        contains solutions every end_time / n_steps.
+        states[:, 0, :] gives the positions.
+        states[:, 1, :] gives the velocities.
     """
     check_parameter_accepted_values(method, "method", METHODS)
 
