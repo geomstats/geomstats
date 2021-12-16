@@ -89,6 +89,13 @@ def solve_sylvester(a, b, q):
                 tilde_q = eigvecs.transpose(-2, -1) @ q @ eigvecs
                 tilde_x = tilde_q / (eigvals[..., :, None] + eigvals[..., None, :])
                 return eigvecs @ tilde_x @ eigvecs.transpose(-2, -1)
+            if a.shape[-1] >= 2. and torch.all(eigvals[..., 0] > - 1e-6) \
+                    and torch.all(eigvals[..., 1] >= 1e-6) \
+                    and torch.all(torch.abs(q + q.transpose(-2, -1)) < 1e-6):
+                tilde_q = eigvecs.transpose(-2, -1) @ q @ eigvecs
+                tilde_x = tilde_q / (eigvals[..., :, None] + eigvals[..., None, :]
+                                     + torch.eye(a.shape[-1]))
+                return eigvecs @ tilde_x @ eigvecs.transpose(-2, -1)
 
     solution = np.vectorize(
         scipy.linalg.solve_sylvester, signature="(m,m),(n,n),(m,n)->(m,n)"
