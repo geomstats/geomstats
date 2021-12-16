@@ -385,6 +385,12 @@ def array_from_sparse(indices, data, target_shape):
     return array(coo_matrix((data, list(zip(*indices))), target_shape).todense())
 
 
+def vec_to_diag(vec):
+    """Convert vector to diagonal matrix."""
+    d = vec.shape[-1]
+    return np.squeeze(vec[..., None, :] * np.eye(d)[None, :, :])
+
+
 def tril_to_vec(x, k=0):
     n = x.shape[-1]
     rows, cols = tril_indices(n, k=k)
