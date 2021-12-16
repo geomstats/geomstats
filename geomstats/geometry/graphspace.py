@@ -26,8 +26,7 @@ class _GraphSpace:
     References
     ----------
     ..[Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-              “Graph Space: Geodesic Principal Components for a Population of
-              Network-valued Data.”
+              “Graph Space: Geodesic Principal Components for aPopulation of Network-valued Data.”
               Mox report 14, 2020.
               https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
     """
@@ -75,26 +74,22 @@ class _GraphSpace:
         """
         return self.adjmat.random_point(n_samples=n_samples, bound=bound)
 
-    def permute(self, graph_to_permute, permutation):
+    def permute(self, mat, permutation):
         r"""Permutation action applied to graph observation.
 
         Parameters
         ----------
-        graph_to_permute : array-like, shape=[..., n, n]
-            Second graph to align to the first graph.
-        permutation : array-like, shape=[...,n]
-                node permutation indexes of the graph to permute.
+        mat : int
+            Number of samples.
+            Optional, default: 1.
 
         Returns
         -------
-        permuted_graph : array-like, shape=[...,n,n]
-                graph with nodes permuted according to permutation.
+        samples : array-like, shape=[..., n, n]
+            Points permuted.
         """
-        if len(graph_to_permute.shape) == 3:
-            return gs.array([graph_to_permute[i][:, p][p, :]
-                             for i, p in enumerate(permutation)])
-        else:
-            return graph_to_permute[:, permutation][permutation, :]
+        return gs.array([mat[i][:, p][p, :]
+                         for i, p in enumerate(permutation)])
 
 
 class GraphSpaceMetric:
@@ -147,7 +142,7 @@ class GraphSpaceMetric:
         if matcher == 'ID':
             perm = self.id(base_graph, graph_to_permute)
         return self.total_space_metric.dist(base_graph,
-                                            self.space.permute(graph_to_permute=graph_to_permute,
+                                            self.space.permute(mat=graph_to_permute,
                                                                permutation=perm))
 
     @staticmethod
@@ -164,7 +159,7 @@ class GraphSpaceMetric:
             Returns
             -------
             permutation : array-like, shape=[...,n]
-                node permutation indexes of the graph to permute.
+                node permutation indexes of the second graph.
 
             References
             ----------
