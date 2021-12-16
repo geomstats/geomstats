@@ -379,7 +379,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         if p == n:
             det_point = gs.linalg.det(point)
             det_base_point = gs.linalg.det(base_point)
-            if not gs.all(det_point*det_base_point > 0):
+            if not gs.all(det_point * det_base_point > 0.):
                 raise ValueError("Points from different sheets in log")
 
         transpose_base_point = Matrices.transpose(base_point)
