@@ -14,14 +14,14 @@ class _GraphSpace:
     The space is a quotient space obtained by applying the permutation
     action of nodes to the space of adjecency matrices.
 
-    Points are represented by :math:`n \times n` adjecency matrices.
+    Points are represented by :math:`nodes \times nodes` adjecency matrices.
 
     Parameters
     ----------
-    n : int
+    nodes : int
         Number of graph nodes
     p : int
-        Dimension of euclidean parameter associated to a graph.
+        Dimension of euclidean parameter or label associated to a graph.
 
     References
     ----------
@@ -51,8 +51,8 @@ class _GraphSpace:
 
         Returns
         -------
-        belongs : array-like, shape=[...,]
-            Boolean denoting if mat is belongs to the space.
+        belongs : array-like, shape=[...,n]
+            Boolean denoting if graph belongs to the space.
         """
         return self.adjmat.belongs(graph, atol=atol)
 
@@ -80,17 +80,22 @@ class _GraphSpace:
 
         Parameters
         ----------
-        graph_to_permute : int
-            Number of samples.
-            Optional, default: 1.
-        permutation
+        graph_to_permute : array-like, shape=[..., n, n]
+            input graphs to be permuted
+        permutation: array-like, shape=[..., n]
+            node permutations
 
         Returns
         -------
-        samples : array-like, shape=[..., n, n]
-            Points permuted.
+        graphs_permuted : array-like, shape=[..., n, n]
+            Graphs permuted.
         """
-        return gs.array([mat[i][:, p][p, :] for i, p in enumerate(permutation)])
+        if len(graph_to_permute.shape) == 3:
+            return gs.array(
+                [graph_to_permute[i][:, p][p, :] for i, p in enumerate(permutation)]
+            )
+        else:
+            return graph_to_permute[:, permutation][permutation, :]
 
 
 class GraphSpaceMetric:
@@ -98,18 +103,18 @@ class GraphSpaceMetric:
 
     Parameters
     ----------
-    n : int
+    nodes : int
         Number of nodes
     """
 
-    def __init__(self, n):
-        self.total_space_metric = MatricesMetric(n, n)
-        self.nodes = n
-        self.space = _GraphSpace(n)
+    def __init__(self, nodes):
+        self.total_space_metric = MatricesMetric(nodes, nodes)
+        self.nodes = nodes
+        self.space = _GraphSpace(nodes)
 
     def dist(self, base_graph, graph_to_permute, matcher="ID"):
         """Compute the distance between two equivalence classes of
-        adjecency matrices [Calissano2020].
+        adjecency matrices [Jain2009].
 
         Parameters
         ----------
@@ -124,26 +129,21 @@ class GraphSpaceMetric:
         Returns
         -------
         distance : array-like, shape=[...,]
-            distance between the two equivalence classes.
+            distance between equivalence classes.
 
         References
         ----------
-        ..[Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-                  “Graph Space: Geodesic Principal Components for a
-                  Population of Network-valued Data.”
-                  Mox report 14, 2020.
-                  https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
-        ..[Volgstain2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ, Kratzer SG,
-                Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
-                “Fast approximate quadratic programming for graph matching.“
-                PLoS One. 2015 Apr 17;10(4):e0121002. doi: 10.1371/journal.pone.0121002.
+        ..[Jain2009]  Jain, B., Obermayer, K.
+                  "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
+                  https://www.jmlr.org/papers/v10/jain09a.html.
         """
         if matcher == "FAQ":
-            perm = self.faq(base_graph, graph_to_permute)
+            perm = self.faq_matching(base_graph, graph_to_permute)
         if matcher == "ID":
-            perm = self.id(base_graph, graph_to_permute)
+            perm = self.id_matching(base_graph, graph_to_permute)
         return self.total_space_metric.dist(
-            base_graph, self.space.permute(mat=graph_to_permute, permutation=perm)
+            base_graph,
+            self.space.permute(graph_to_permute=graph_to_permute, permutation=perm),
         )
 
     @staticmethod
@@ -227,28 +227,22 @@ class GraphSpaceMetric:
 
 
 class GraphSpace(_GraphSpace):
-    """Class for the n-dimensional hypersphere.
+    """Class for Graph Space.
 
-    Class for the n-dimensional hypersphere embedded in the
-    (n+1)-dimensional Euclidean space.
-
-    By default, points are parameterized by their extrinsic
-    (n+1)-coordinates. For dimensions 1 and 2, this can be changed with the
-    `default_coords_type` parameter. For dimensions 1 (the circle),
-    the intrinsic coordinates correspond angles in radians, with 0. mapping
-    to point [1., 0.]. For dimension 2, the intrinsic coordinates are the
-    spherical coordinates from the north pole, i.e. where angles [0.,
-    0.] correspond to point [0., 0., 1.].
+    Graphs are represented as adjecency matrices. The total space
+    is an Euclidean space. The group action is the permutation
+    node action applied to the total spacem to analyse set of
+    node unlabelled graphs
 
     Parameters
     ----------
-    dim : int
-        Dimension of the hypersphere.
+    nodes : int
+        Number of nodes.
 
-    default_coords_type : str, {'extrinsic', 'intrinsic'}
-        Type of representation for dimensions 1 and 2.
+    p : int
+        Dimension of the graph label or regressor.
     """
 
-    def __init__(self, n, p=None):
-        super(GraphSpace, self).__init__(n, p)
-        self.metric = GraphSpaceMetric(n)
+    def __init__(self, nodes, p=None):
+        super(GraphSpace, self).__init__(nodes, p)
+        self.metric = GraphSpaceMetric(nodes)
