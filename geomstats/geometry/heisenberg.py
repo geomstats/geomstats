@@ -24,10 +24,10 @@ class HeisenbergVectors(LieGroup):
 
     def __init__(self, **kwargs):
         super(HeisenbergVectors, self).__init__(
-            dim=3, default_point_type='vector',
-            lie_algebra=Euclidean(3))
+            dim=3, default_point_type="vector", lie_algebra=Euclidean(3)
+        )
 
-    def get_identity(self, point_type='vector'):
+    def get_identity(self, point_type="vector"):
         """Get the identity of the 3D Heisenberg group.
 
         Parameters
@@ -80,13 +80,16 @@ class HeisenbergVectors(LieGroup):
             Product of point_a and point_b along the first dimension.
         """
         point_ab = point_a + point_b
-        point_ab_additional_term = gs.array(1 / 2 * (point_a[..., 0] *
-                                                     point_b[..., 1] - point_a[..., 1] *
-                                                     point_b[..., 0]))
+        point_ab_additional_term = gs.array(
+            1
+            / 2
+            * (point_a[..., 0] * point_b[..., 1] - point_a[..., 1] * point_b[..., 0])
+        )
 
-        point_ab = point_ab + gs.concatenate([gs.zeros_like(point_ab[..., :2]),
-                                              point_ab_additional_term[..., None]],
-                                             axis=-1)
+        point_ab = point_ab + gs.concatenate(
+            [gs.zeros_like(point_ab[..., :2]), point_ab_additional_term[..., None]],
+            axis=-1,
+        )
 
         return point_ab
 
@@ -105,8 +108,7 @@ class HeisenbergVectors(LieGroup):
         """
         return -point
 
-    def jacobian_translation(
-            self, point, left_or_right='left'):
+    def jacobian_translation(self, point, left_or_right="left"):
         """Compute the Jacobian matrix of left/right translation by a point.
 
         This calculates the differential of the left translation L_(point)
@@ -127,17 +129,23 @@ class HeisenbergVectors(LieGroup):
         _ : array-like, shape=[..., 3, 3]
             Jacobian of the left/right translation by point.
         """
-        e31 = gs.array_from_sparse([(2, 0)], [1.], (3, 3))
-        e32 = gs.array_from_sparse([(2, 1)], [1.], (3, 3))
+        e31 = gs.array_from_sparse([(2, 0)], [1.0], (3, 3))
+        e32 = gs.array_from_sparse([(2, 1)], [1.0], (3, 3))
 
-        if left_or_right == 'left':
-            return (gs.eye(3) + gs.einsum('..., ij -> ...ij', -point[..., 1] / 2, e31) +
-                    gs.einsum('..., ij -> ...ij', point[..., 0] / 2, e32))
+        if left_or_right == "left":
+            return (
+                gs.eye(3)
+                + gs.einsum("..., ij -> ...ij", -point[..., 1] / 2, e31)
+                + gs.einsum("..., ij -> ...ij", point[..., 0] / 2, e32)
+            )
 
-        return (gs.eye(3) + gs.einsum('..., ij -> ...ij', point[..., 1] / 2, e31) +
-                gs.einsum('..., ij -> ...ij', -point[..., 0] / 2, e32))
+        return (
+            gs.eye(3)
+            + gs.einsum("..., ij -> ...ij", point[..., 1] / 2, e31)
+            + gs.einsum("..., ij -> ...ij", -point[..., 0] / 2, e32)
+        )
 
-    def random_point(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample in the Euclidean space R^3 with a uniform distribution in a box.
 
         Parameters
@@ -214,12 +222,20 @@ class HeisenbergVectors(LieGroup):
         element_02 = point[..., 2] + 1 / 2 * point[..., 0] * point[..., 1]
 
         if n_points == 1:
-            modified_point = gs.array([1, point[..., 0],
-                                       element_02, 1,
-                                       point[..., 1], 1])
+            modified_point = gs.array(
+                [1, point[..., 0], element_02, 1, point[..., 1], 1]
+            )
         else:
-            modified_point = gs.stack((gs.ones(n_points), point[..., 0],
-                                       element_02, gs.ones(n_points),
-                                       point[..., 1], gs.ones(n_points)), axis=1)
+            modified_point = gs.stack(
+                (
+                    gs.ones(n_points),
+                    point[..., 0],
+                    element_02,
+                    gs.ones(n_points),
+                    point[..., 1],
+                    gs.ones(n_points),
+                ),
+                axis=1,
+            )
 
         return gs.triu(SymmetricMatrices.from_vector(modified_point))
