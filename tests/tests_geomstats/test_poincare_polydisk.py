@@ -10,7 +10,7 @@ from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 class TestPoincarePolydisk(geomstats.tests.TestCase):
     """Class defining the Poincare polydisk tests."""
 
-    def setUp(self):
+    def setup_method(self):
         """Define the elements to test."""
         gs.random.seed(1234)
         self.n_disks = 5

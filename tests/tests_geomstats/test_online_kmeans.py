@@ -7,8 +7,9 @@ from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.online_kmeans import OnlineKMeans
 
 
+@geomstats.tests.np_and_autograd_only
 class TestOnlineKmeans(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
 
         self.dimension = 2
@@ -16,7 +17,6 @@ class TestOnlineKmeans(geomstats.tests.TestCase):
         self.metric = self.space.metric
         self.data = self.space.random_von_mises_fisher(kappa=100, n_samples=50)
 
-    @geomstats.tests.np_and_autograd_only
     def test_fit(self):
         X = self.data
         clustering = OnlineKMeans(metric=self.metric, n_clusters=1, n_repetitions=10)
@@ -30,7 +30,6 @@ class TestOnlineKmeans(geomstats.tests.TestCase):
         expected = 0.0
         self.assertAllClose(expected, result, atol=1e-3)
 
-    @geomstats.tests.np_and_autograd_only
     def test_predict(self):
         X = self.data
         clustering = OnlineKMeans(metric=self.metric, n_clusters=3, n_repetitions=1)

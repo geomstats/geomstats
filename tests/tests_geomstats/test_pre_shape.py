@@ -7,7 +7,7 @@ from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
 
 
 class TestPreShapeSpace(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
 
         self.k_landmarks = 4

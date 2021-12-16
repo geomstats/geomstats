@@ -92,6 +92,7 @@ from numpy import (
     trace,
     transpose,
     tril,
+    triu,
     tril_indices,
     triu_indices,
     uint8,

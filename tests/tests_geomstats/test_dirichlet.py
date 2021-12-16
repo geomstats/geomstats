@@ -1,6 +1,5 @@
 """Unit tests for the Dirichlet manifold."""
 
-import math
 import warnings
 
 from scipy.stats import dirichlet
@@ -18,7 +17,7 @@ from geomstats.information_geometry.dirichlet import (
 class TestDirichletDistributions(geomstats.tests.TestCase):
     """Class defining the Dirichlet distributions tests."""
 
-    def setUp(self):
+    def setup_method(self):
         """Define the parameters of the tests."""
         gs.random.seed(0)
         warnings.simplefilter("ignore", category=UserWarning)
@@ -378,17 +377,6 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         point_b = self.dirichlet.random_point()
         result = self.dirichlet.metric.dist(point_a, point_b, jacobian=True)
         expected = self.dirichlet.metric.dist(point_a, point_b)
-        self.assertAllClose(expected, result)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_geodesic_bvp_timer(self):
-        """Check timer for geodesic bvp."""
-        max_time = 1e-4
-        gs.random.seed(123)
-        point_a = self.dirichlet.random_point()
-        point_b = self.dirichlet.random_point()
-        result = self.dirichlet.metric.dist(point_a, point_b, max_time=max_time)
-        expected = math.nan
         self.assertAllClose(expected, result)
 
     def test_projection_and_belongs(self):
