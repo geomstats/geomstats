@@ -232,6 +232,7 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
         print("inv_D_L", inv_D_L)
         print("SL", Matrices.to_strictly_lower_triangular(L))
         print("SX", Matrices.to_strictly_lower_triangular(X))
+        print("prod", gs.matmul(D_X, inv_D_L))
         print("expm", SPDMatrices(2).expm(gs.matmul(D_X, inv_D_L)))
         exp_expected = (
             Matrices.to_strictly_lower_triangular(L)
