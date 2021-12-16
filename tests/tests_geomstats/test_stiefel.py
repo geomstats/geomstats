@@ -1,6 +1,7 @@
 """Unit tests for Stiefel manifolds."""
 
 import warnings
+import pytest
 
 import geomstats.backend as gs
 import geomstats.tests
@@ -80,6 +81,13 @@ class TestStiefel(geomstats.tests.TestCase):
         result = self.space.random_uniform()
 
         self.assertAllClose(gs.shape(result), (self.n, self.p))
+
+    def test_log_two_sheets_error(self):
+        p=n=3
+        with pytest.raises(ValueError):
+            stiefel.log(pas la emme sheet)
+
+
 
     @geomstats.tests.np_and_autograd_only
     def test_log_and_exp(self):
