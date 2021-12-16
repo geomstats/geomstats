@@ -86,7 +86,15 @@ def linear_mean(points, weights=None, point_type="vector"):
 
 
 def _default_gradient_descent(
-    points, metric, weights, max_iter, point_type, epsilon, initial_step_size, verbose
+    points,
+    metric,
+    weights,
+    max_iter,
+    point_type,
+    epsilon,
+    initial_step_size,
+    verbose,
+    init_point=None,
 ):
     """Perform default gradient descent."""
     if point_type == "vector":
@@ -100,7 +108,7 @@ def _default_gradient_descent(
     if weights is None:
         weights = gs.ones((n_points,))
 
-    mean = points[0]
+    mean = points[0] if init_point is None else init_point
 
     if n_points == 1:
         return mean
@@ -166,6 +174,7 @@ def _batch_gradient_descent(
     epsilon=5e-3,
     point_type="vector",
     verbose=False,
+    init_point=None,
 ):
     """Perform batch gradient descent."""
     if point_type == "vector":
@@ -194,7 +203,7 @@ def _batch_gradient_descent(
         weights = gs.ones((n_points, n_batch))
 
     flat_shape = (n_batch * n_points,) + shape[-ndim:]
-    estimates = points[0]
+    estimates = points[0] if init_point is None else init_point
     points_flattened = gs.reshape(points, (n_points * n_batch,) + shape[-ndim:])
     convergence = math.inf
     iteration = 0
@@ -263,8 +272,10 @@ def _adaptive_gradient_descent(
         Weights associated to the points.
     max_iter : int, optional
         Maximum number of iterations for the gradient descent.
-    init_point : array-like, shape=[n_init, dimension], optional
+    init_point : array-like, shape=[{dim, [n, n]}]
         Initial point.
+        Optional, default : None. In this case the first sample of the input data is
+        used.
     epsilon : float, optional
         Tolerance for stopping the gradient descent.
 
@@ -446,6 +457,10 @@ class FrechetMean(BaseEstimator):
     verbose : bool
         Verbose option.
         Optional, default: False.
+    init_point : array-like, shape=[{dim, [n, n]}]
+        Initial point.
+        Optional, default : None. In this case the first sample of the input data is
+        used.
     """
 
     def __init__(
@@ -455,6 +470,7 @@ class FrechetMean(BaseEstimator):
         epsilon=EPSILON,
         point_type=None,
         method="default",
+        init_point=None,
         lr=1.0,
         verbose=False,
     ):
@@ -466,6 +482,7 @@ class FrechetMean(BaseEstimator):
         self.method = method
         self.lr = lr
         self.verbose = verbose
+        self.init_point = init_point
         self.estimate_ = None
 
         if point_type is None:
@@ -521,6 +538,7 @@ class FrechetMean(BaseEstimator):
                 point_type=self.point_type,
                 epsilon=self.epsilon,
                 verbose=self.verbose,
+                init_point=self.init_point,
             )
         elif self.method == "adaptive":
             mean = _adaptive_gradient_descent(
@@ -532,6 +550,7 @@ class FrechetMean(BaseEstimator):
                 epsilon=self.epsilon,
                 verbose=self.verbose,
                 initial_tau=self.lr,
+                init_point=self.init_point,
             )
         elif self.method == "batch":
             mean = _batch_gradient_descent(
@@ -543,6 +562,7 @@ class FrechetMean(BaseEstimator):
                 max_iter=self.max_iter,
                 point_type=self.point_type,
                 verbose=self.verbose,
+                init_point=self.init_point,
             )
 
         self.estimate_ = mean
