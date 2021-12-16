@@ -8,7 +8,7 @@ from geomstats.geometry.sub_riemannian_metric import SubRiemannianMetric
 
 
 class TestSubRiemannianMetric(geomstats.tests.TestCase):
-    def set_method(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=UserWarning)
 
         new_sub_riemannian_metric = SubRiemannianMetric(dim=self.dim,
