@@ -49,7 +49,7 @@ def euler_step(force, state, time, dt):
     return new_state
 
 
-def symplectic_euler_step(state, force, dt):
+def symplectic_euler_step(force, state, time, dt):
     """Compute one step of the symplectic euler approximation.
 
     Parameters
@@ -72,7 +72,7 @@ def symplectic_euler_step(state, force, dt):
     raise NotImplementedError
 
 
-def leapfrog_step(state, force, dt):
+def leapfrog_step(force, state, time, dt):
     """Compute one step of the leapfrog approximation.
 
     Parameters
@@ -95,7 +95,7 @@ def leapfrog_step(state, force, dt):
     raise NotImplementedError
 
 
-def rk2_step(state, force, dt):
+def rk2_step(force, state, time, dt):
     """Compute one step of the rk2 approximation.
 
     Parameters

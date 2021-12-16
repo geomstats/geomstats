@@ -3,7 +3,6 @@
 import geomstats.backend as gs
 from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
-from geomstats.geometry.riemannian_metric import RiemannianCometric
 
 
 class Landmarks(ProductManifold):
