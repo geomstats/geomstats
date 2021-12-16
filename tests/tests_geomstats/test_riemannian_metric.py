@@ -70,6 +70,26 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    def test_hamiltonian_euc_metric(self):
+        position = gs.array([1.0, 2.0])
+        momentum = gs.array([1.0, 2.0])
+        state = position, momentum
+        result = self.euc_metric.hamiltonian(state)
+
+        expected = 2.5
+
+        self.assertAllClose(result, expected)
+
+    def test_hamiltonian_sphere_metric(self):
+        position = gs.array([0.0, 0.0, 1.0])
+        momentum = gs.array([1.0, 2.0, 1.0])
+        state = position, momentum
+        result = self.sphere_metric.hamiltonian(state)
+
+        expected = 3.0
+
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.autograd_and_torch_only
     def test_metric_derivative_euc_metric(self):
         base_point = self.euc.random_point()
