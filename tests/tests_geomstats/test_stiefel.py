@@ -15,7 +15,7 @@ point1 = gs.array([[1.0, 0.0], [0.0, 1.0], [0.0, 0.0]])
 
 
 class TestStiefel(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         """
         Tangent vectors constructed following:
         http://noodle.med.yale.edu/hdtag/notes/steifel_notes.pdf

@@ -1,7 +1,5 @@
 """Wrapper around autograd functions to be consistent with backends."""
 
-import autograd.numpy as anp
-from autograd import elementwise_grad as _elementwise_grad
 from autograd import jacobian as _jacobian
 from autograd import value_and_grad as _value_and_grad
 from autograd.extend import defvjp, primitive
@@ -16,31 +14,43 @@ def detach(x):
     ----------
     x : array-like
         Tensor to detach.
+
+    Returns
+    -------
+    x : array-like
+        Tensor.
     """
     return x
 
 
-def elementwise_grad(func):
-    """Wrap autograd elementwise_grad function.
-
-    Parameters
-    ----------
-    func : callable
-        Function for which the element-wise grad is computed.
-    """
-    return _elementwise_grad(func)
-
-
 def custom_gradient(*grad_funcs):
-    """Decorate a function to define its custom gradient(s).
+    """Create a decorator that allows a function to define its custom gradient(s).
 
     Parameters
     ----------
     *grad_funcs : callables
         Custom gradient functions.
+
+    Returns
+    -------
+    decorator : callable
+        This decorator, used on any function func, associates the
+        input grad_funcs as the gradients of func.
     """
 
     def decorator(func):
+        """Decorate a function to define its custome gradient(s).
+
+        Parameters
+        ----------
+        func : callable
+            Function whose gradients will be assigned by grad_funcs.
+
+        Returns
+        -------
+        wrapped_function : callable
+            Function func with gradients specified by grad_funcs.
+        """
         wrapped_function = primitive(func)
 
         def wrapped_grad_func(i, ans, *args, **kwargs):
@@ -59,7 +69,6 @@ def custom_gradient(*grad_funcs):
                 lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
             )
         elif len(grad_funcs) == 2:
-
             defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
@@ -83,14 +92,55 @@ def custom_gradient(*grad_funcs):
 
 
 def jacobian(func):
-    """Wrap autograd jacobian function."""
+    """Wrap autograd's jacobian function.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose Jacobian is computed.
+
+    Returns
+    -------
+    _ : callable
+        Function taking x as input and returning
+        the jacobian of func at x.
+    """
     return _jacobian(func)
 
 
 def value_and_grad(func, to_numpy=False):
-    """Wrap autograd value_and_grad function."""
+    """Wrap autograd value_and_grad function.
 
-    def aux_value_and_grad(*args):
+    Parameters
+    ----------
+    func : callable
+        Function whose value and gradient values
+        will be computed.
+    to_numpy : bool
+        Unused. Here for API consistency.
+
+    Returns
+    -------
+    func_with_grad : callable
+        Function that returns func's value and
+        func's gradients' values at its inputs args.
+    """
+
+    def func_with_grad(*args):
+        """Return func's value and func's gradients' values at args.
+
+        Parameters
+        ----------
+        args : list
+            Argument to function func and its gradients.
+
+        Returns
+        -------
+        value : any
+            Value of func at input arguments args.
+        _ : tuple or any
+            Values of func's gradients at input arguments args.
+        """
         n_args = len(args)
         value = func(*args)
 
@@ -109,4 +159,4 @@ def value_and_grad(func, to_numpy=False):
             return value, all_grads[0]
         return value, tuple(all_grads)
 
-    return aux_value_and_grad
+    return func_with_grad

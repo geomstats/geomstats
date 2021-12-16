@@ -70,3 +70,18 @@ def solve_sylvester(a, b, q):
 
 def qr(x, mode="reduced"):
     return tf.linalg.qr(x, full_matrices=(mode == "complete"))
+
+
+def is_single_matrix_pd(mat):
+    """Check if a two dimensional square matrix is
+    positive definite.
+    """
+    if mat.shape[0] != mat.shape[1]:
+        return False
+    try:
+        cf = tf.linalg.cholesky(mat)
+        return ~tf.math.reduce_any(tf.math.is_nan(cf)).numpy()
+    except tf.errors.InvalidArgumentError as e:
+        if "Cholesky decomposition was not successful" in e.message:
+            return False
+        raise e
