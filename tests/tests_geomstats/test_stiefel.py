@@ -1,11 +1,12 @@
 """Unit tests for Stiefel manifolds."""
 
 import warnings
+
 import pytest
+import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-import tests.helper as helper
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stiefel import Stiefel
