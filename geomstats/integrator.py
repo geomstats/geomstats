@@ -13,7 +13,13 @@ equation.
 
 from geomstats.errors import check_parameter_accepted_values
 
-STEP_FUNCTIONS = {"euler": "euler_step", "rk4": "rk4_step", "rk2": "rk2_step"}
+STEP_FUNCTIONS = {
+    "euler": "euler_step",
+    "symp_euler": "symplectic_euler_step",
+    "leapfrog": "leapfrog_step",
+    "rk4": "rk4_step",
+    "rk2": "rk2_step",
+}
 
 
 def euler_step(force, state, time, dt):
@@ -43,7 +49,53 @@ def euler_step(force, state, time, dt):
     return new_state
 
 
-def rk2_step(force, state, time, dt):
+def symplectic_euler_step(state, force, dt):
+    """Compute one step of the symplectic euler approximation.
+
+    Parameters
+    ----------
+    state : array-like, shape=[2, dim]
+        State at time t, corresponds to position and velocity variables at
+        time t.
+    force : callable
+        Vector field that is being integrated.
+    dt : float
+        Time-step in the integration.
+
+    Returns
+    -------
+    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+        First variable at time t + dt.
+    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+        Second variable at time t + dt.
+    """
+    raise NotImplementedError
+
+
+def leapfrog_step(state, force, dt):
+    """Compute one step of the leapfrog approximation.
+
+    Parameters
+    ----------
+    state : array-like, shape=[2, dim]
+        State at time t, corresponds to position and velocity variables at
+        time t.
+    force : callable
+        Vector field that is being integrated.
+    dt : float
+        Time-step in the integration.
+
+    Returns
+    -------
+    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+        First variable at time t + dt.
+    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+        Second variable at time t + dt.
+    """
+    raise NotImplementedError
+
+
+def rk2_step(state, force, dt):
     """Compute one step of the rk2 approximation.
 
     Parameters

@@ -162,3 +162,30 @@ class TestLandmarks(geomstats.tests.TestCase):
         expected = gs.stack(expected, axis=1)
 
         self.assertAllClose(result, expected)
+
+    def test_kernel_matrix(self):
+        self.assertRaises(NotImplementedError)
+
+    def test_sharp_map(self):
+        self.assertRaises(NotImplementedError)
+
+    def test_flat_map(self):
+        self.assertRaises(NotImplementedError)
+
+    def test_cometric_inner_product(self):
+        self.assertRaises(NotImplementedError)
+
+    def test_inner_product(self):
+        self.assertRaises(NotImplementedError)
+
+    def test_hamiltonian(self):
+        self.assertRaises(NotImplementedError)
+
+    def test_geodesic_equation(self):
+        self.assertRaises(NotImplementedError)
+
+    def test_exp(self):
+        self.assertRaises(NotImplementedError)
+
+    def test_log(self):
+        self.assertRaises(NotImplementedError)
