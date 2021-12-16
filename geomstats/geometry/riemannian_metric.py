@@ -58,8 +58,11 @@ class RiemannianMetric(Connection, ABC):
             "The computation of the metric matrix" " is not implemented."
         )
 
-    def metric_inverse_matrix(self, base_point=None):
-        """Inner product matrix at the tangent space at a base point.
+    def cometric_matrix(self, base_point=None):
+        """Inner co-product matrix at the cotangent space at a base point.
+
+        This represents the cometric matrix, i.e. the inverse of the
+        metric matrix.
 
         Parameters
         ----------
@@ -114,7 +117,7 @@ class RiemannianMetric(Connection, ABC):
         christoffels: array-like, shape=[..., dim, dim, dim]
             Christoffel symbols.
         """
-        cometric_mat_at_point = self.metric_inverse_matrix(base_point)
+        cometric_mat_at_point = self.cometric_matrix(base_point)
         metric_derivative_at_point = self.inner_product_derivative_matrix(base_point)
         term_1 = gs.einsum(
             "...lk,...jli->...kij", cometric_mat_at_point, metric_derivative_at_point
@@ -151,6 +154,31 @@ class RiemannianMetric(Connection, ABC):
         aux = gs.einsum("...j,...jk->...k", tangent_vec_a, inner_prod_mat)
         inner_prod = gs.einsum("...k,...k->...", aux, tangent_vec_b)
         return inner_prod
+
+    def inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point):
+        """Compute inner coproduct between two cotangent vectors at base point.
+
+        This is the inner product associated to the cometric matrix.
+
+        Parameters
+        ----------
+        cotangent_vec_a : array-like, shape=[..., dim]
+            Cotangent vector at `base_point`.
+        cotangent_vet_b : array-like, shape=[..., dim]
+            Cotangent vector at `base_point`.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        inner_coproduct : float
+            Inner coproduct between the two cotangent vectors.
+        """
+        vector_2 = gs.einsum(
+            "...ij,...j->...i", self.cometric_matrix(base_point), cotangent_vec_b
+        )
+        inner_coproduct = gs.einsum("...i,...i->...", cotangent_vec_a, vector_2)
+        return inner_coproduct
 
     def squared_norm(self, vector, base_point=None):
         """Compute the square of the norm of a vector.
