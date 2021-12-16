@@ -42,8 +42,31 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
     def test_cometric_matrix(self):
         base_point = self.euc.random_point()
 
-        result = self.euc_metric.metric_inverse_matrix(base_point)
+        result = self.euc_metric.cometric_matrix(base_point)
         expected = gs.eye(self.dim)
+
+        self.assertAllClose(result, expected)
+
+    def test_inner_coproduct(self):
+        base_point = self.euc.random_point()
+        cotangent_vec_a = gs.array([1.0, 2.0])
+        cotangent_vec_b = gs.array([1.0, 2.0])
+
+        result = self.euc_metric.inner_coproduct(
+            cotangent_vec_a, cotangent_vec_b, base_point
+        )
+        expected = gs.sqrt(5.0)
+
+        self.assertAllClose(result, expected)
+
+        base_point = gs.array([0.0, 0.0, 1.0])
+        cotangent_vec_a = self.sphere.to_tangent(gs.array([1.0, 2.0, 0.0]), base_point)
+        cotangent_vec_b = self.sphere.to_tangent(gs.array([1.0, 3.0, 0.0]), base_point)
+
+        result = self.euc_metric.inner_coproduct(
+            cotangent_vec_a, cotangent_vec_b, base_point
+        )
+        expected = 1.0 / gs.sqrt(7)
 
         self.assertAllClose(result, expected)
 
