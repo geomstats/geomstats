@@ -1048,8 +1048,8 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         """
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
 
-    def exp_closed_form(self, tangent_vec, base_point=None, n_steps=10, method="rk4",
-                        **kwargs):
+    def exp(self, tangent_vec, base_point=None, n_steps=10, method="rk4",
+            **kwargs):
         """Exponential map associated to the cannonical metric.
 
         Exponential map at `base_point` of `tangent_vec`. The geodesics of this
