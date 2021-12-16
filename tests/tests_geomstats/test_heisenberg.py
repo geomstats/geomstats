@@ -6,7 +6,7 @@ from geomstats.geometry.heisenberg import HeisenbergVectors
 
 
 class TestHeisenbergVectors(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.dimension = 3
         self.group = HeisenbergVectors()
 

@@ -24,7 +24,7 @@ class HeisenbergVectors(LieGroup):
 
     def __init__(self, **kwargs):
         super(HeisenbergVectors, self).__init__(
-            dim=int(3), default_point_type='vector',
+            dim=3, default_point_type='vector',
             lie_algebra=Euclidean(3))
 
     def get_identity(self, point_type='vector'):
