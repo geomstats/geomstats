@@ -221,10 +221,15 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
     def test_exp_vectorization(self):
         """Test exp map vectorization"""
         L = self.space.random_point(5)
+        print("L", L)
         X = self.space.ambient_space.random_point(5)
+        print("X", X)
         D_L = Matrices.to_diagonal(L)
+        print("D_L", D_L)
         D_X = Matrices.to_diagonal(X)
+        print("D_L", D_X)
         inv_D_L = gs.linalg.inv(D_L)
+        print("D_L", D_X)
 
         exp_expected = (
             Matrices.to_strictly_lower_triangular(L)
