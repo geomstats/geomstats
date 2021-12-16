@@ -313,3 +313,42 @@ class ProductManifold(Manifold):
 
         is_tangent = gs.all(is_tangent, axis=-1)
         return is_tangent
+
+
+class NFoldManifold(Manifold):
+    """Class for an n-fold product manifold M^n.
+
+    Define a manifold as the product manifold of n copies of a given base manifold M.
+
+    Parameters
+    ----------
+    base_manifold : Manifold
+        Base manifold.
+    n_copies : int
+        Number of replication of the base manifold.
+    """
+
+    def __init__(
+        self,
+        base_manifold,
+        n_copies,
+        metric=None,
+        default_point_type="vector",
+        default_coords_type="intrinsic",
+        **kwargs
+    ):
+        dim = n_copies * base_manifold.dim
+        super(NFoldManifold, self).__init__(dim=dim)
+        self.base_manifold = base_manifold
+
+    def belongs(self, point, atol=gs.atol):
+        pass
+
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        pass
+
+    def to_tangent(self, vector, base_point):
+        pass
+
+    def random_point(self, n_samples=1, bound=1.0):
+        pass
