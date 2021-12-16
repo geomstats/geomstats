@@ -16,32 +16,35 @@ class TestHeisenbergVectors(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_belongs(self):
-        point = gs.array([1., 2., 3., 4])
+        point = gs.array([1.0, 2.0, 3.0, 4])
         result = self.group.belongs(point)
         expected = False
 
         self.assertAllClose(result, expected)
 
     def test_belongs_vectorization(self):
-        point = gs.array([
-            [1., 2., 3., 1.], [4., 5., 6., 1.]])
+        point = gs.array([[1.0, 2.0, 3.0, 1.0], [4.0, 5.0, 6.0, 1.0]])
         result = self.group.belongs(point)
         expected = gs.array([False, False])
 
         self.assertAllClose(result, expected)
 
     def test_is_tangent(self):
-        vector = gs.array([1., 2., 3., 4.], [1., 2., 3., 4.])
+        vector = gs.array([[1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]])
         result = self.group.is_tangent(vector)
         expected = gs.array([False, False])
 
         self.assertAllClose(result, expected)
 
     def test_jacobian_translation(self):
-        vector = gs.array([[1., -10., 0.2], [-2., 100., 0.5]])
+        vector = gs.array([[1.0, -10.0, 0.2], [-2.0, 100.0, 0.5]])
         result = self.group.jacobian_translation(vector)
-        expected = gs.array([[[1., 0., 0.], [0., 1., 0.], [5., 0.5, 1.]],
-                             [[1., 0., 0.], [0., 1., 0.], [-50., -1., 1.]]])
+        expected = gs.array(
+            [
+                [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [5.0, 0.5, 1.0]],
+                [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [-50.0, -1.0, 1.0]],
+            ]
+        )
 
         self.assertAllClose(result, expected)
 
