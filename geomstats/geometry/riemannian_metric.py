@@ -180,6 +180,28 @@ class RiemannianMetric(Connection, ABC):
         inner_coproduct = gs.einsum("...i,...i->...", cotangent_vec_a, vector_2)
         return inner_coproduct
 
+    def hamiltonian(self, state):
+        r"""Compute the hamiltonian energy associated to the cometric.
+
+        The Hamiltonian at state :math: `(q, p)` is defined by
+        .. math:
+                H(q, p) = \frac{1}{2} <p, p>_q
+        where :math: `<\cdot, \cdot>_q` is the cometric at :math: `q`.
+
+        Parameters
+        ----------
+        state : tuple of arrays
+            Position and momentum variables. The position is a point on the
+            manifold, while the momentum is cotangent vector.
+
+        Returns
+        -------
+        energy : float
+            Hamiltonian energy at `state`.
+        """
+        position, momentum = state
+        return 1.0 / 2 * self.inner_coproduct(momentum, momentum, position)
+
     def squared_norm(self, vector, base_point=None):
         """Compute the square of the norm of a vector.
 
