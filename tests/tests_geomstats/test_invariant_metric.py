@@ -673,11 +673,11 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         vector = gs.random.rand(2, len(basis))
         tangent_vec = gs.einsum("...j,jkl->...kl", vector, basis)
         identity = self.matrix_so3.identity
-        result = metric.exp(tangent_vec, identity, n_steps=100, step="rk4")
+        result = metric.exp(tangent_vec, identity, n_steps=100, method="rk4")
         expected = group.exp(tangent_vec, identity)
         self.assertAllClose(expected, result, atol=1e-5)
 
-        result = metric.exp(tangent_vec, identity, n_steps=100, step="rk2")
+        result = metric.exp(tangent_vec, identity, n_steps=100, method="rk2")
         self.assertAllClose(expected, result, atol=1e-5)
 
     @geomstats.tests.autograd_tf_and_torch_only
@@ -690,8 +690,8 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         tangent_vec = gs.einsum("...j,jkl->...kl", vector, basis)
         identity = self.matrix_so3.identity
 
-        exp = metric.exp(tangent_vec, identity, n_steps=100, step="rk4")
-        result = metric.log(exp, identity, n_steps=15, step="rk4", verbose=False)
+        exp = metric.exp(tangent_vec, identity, n_steps=100, method="rk4")
+        result = metric.log(exp, identity, n_steps=15, method="rk4", verbose=False)
         self.assertAllClose(tangent_vec, result, atol=1e-5)
 
     def test_integrated_se3_exp_at_id(self):
@@ -704,11 +704,11 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         vector = gs.random.rand(len(basis))
         tangent_vec = gs.einsum("...j,jkl->...kl", vector, basis)
         identity = self.matrix_se3.identity
-        result = metric.exp(tangent_vec, identity, n_steps=100, step="rk4")
+        result = metric.exp(tangent_vec, identity, n_steps=100, method="rk4")
         expected = canonical_metric.exp(tangent_vec, identity)
         self.assertAllClose(expected, result, atol=1e-5)
 
-        result = metric.exp(tangent_vec, identity, n_steps=100, step="rk2")
+        result = metric.exp(tangent_vec, identity, n_steps=100, method="rk2")
         self.assertAllClose(expected, result, atol=1e-5)
 
     def test_integrated_se3_exp(self):
@@ -722,11 +722,11 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         vector = gs.random.rand(len(basis))
         tangent_vec = gs.einsum("...j,jkl->...kl", vector, basis)
         tangent_vec = group.tangent_translation_map(point)(tangent_vec)
-        result = metric.exp(tangent_vec, point, n_steps=100, step="rk4")
+        result = metric.exp(tangent_vec, point, n_steps=100, method="rk4")
         expected = canonical_metric.exp(tangent_vec, point)
         self.assertAllClose(expected, result)
 
-        result = metric.exp(tangent_vec, point, n_steps=100, step="rk2")
+        result = metric.exp(tangent_vec, point, n_steps=100, method="rk2")
         self.assertAllClose(expected, result, atol=4e-5)
 
     @geomstats.tests.autograd_tf_and_torch_only
