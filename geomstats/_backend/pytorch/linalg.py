@@ -2,6 +2,7 @@
 
 import numpy as np
 import scipy.linalg
+import scipy.optimize
 import torch
 
 from ..numpy import linalg as gsnplinalg
@@ -79,6 +80,10 @@ def norm(x, ord=None, axis=None):
 
 def matrix_rank(a, hermitian=False, **_unused_kwargs):
     return torch.linalg.matrix_rank(a, hermitian)
+
+
+def quadratic_assignment(a, b, options):
+    return list(scipy.optimize.quadratic_assignment(a, b, options=options).col_ind)
 
 
 def solve_sylvester(a, b, q):

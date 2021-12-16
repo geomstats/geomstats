@@ -1,7 +1,6 @@
 """Graph Space."""
 
 import numpy as np
-from scipy.optimize import quadratic_assignment
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices, MatricesMetric
@@ -172,22 +171,21 @@ class GraphSpaceMetric:
         l_base = len(base_graph.shape)
         l_obj = len(graph_to_permute.shape)
         if l_base == l_obj == 3:
-            return gs.array(
-                [
-                    quadratic_assignment(x, y, options={"maximize": True})["col_ind"]
-                    for x, y in zip(base_graph, graph_to_permute)
-                ]
-            )
+            return [
+                gs.linalg.quadratic_assignment(x, y, options={"maximize": True})
+                for x, y in zip(base_graph, graph_to_permute)
+            ]
         elif l_base == l_obj == 2:
-            return quadratic_assignment(
+            return gs.linalg.quadratic_assignment(
                 base_graph, graph_to_permute, options={"maximize": True}
-            )["col_ind"]
+            )
         elif l_base < l_obj:
-            return quadratic_assignment(
-                np.stack([base_graph] * graph_to_permute.shape[0]),
-                graph_to_permute,
-                options={"maximize": True},
-            )["col_ind"]
+            return [
+                gs.linalg.quadratic_assignment(x, y, options={"maximize": True})
+                for x, y in zip(
+                    np.stack([base_graph] * graph_to_permute.shape[0]), graph_to_permute
+                )
+            ]
         else:
             raise ValueError(
                 "The method can align a set of graphs to one graphs,"
@@ -212,11 +210,9 @@ class GraphSpaceMetric:
         l_base = len(base_graph.shape)
         l_obj = len(graph_to_permute.shape)
         if l_base == l_obj == 3 or l_base < l_obj:
-            return gs.repeat(
-                [gs.arange(self.nodes)], repeats=len(graph_to_permute), axis=0
-            )
+            return [list(range(self.nodes))] * len(graph_to_permute)
         elif l_base == l_obj == 2:
-            return gs.arange(self.nodes)
+            return list(gs.arange(self.nodes))
         else:
             raise (
                 ValueError(
