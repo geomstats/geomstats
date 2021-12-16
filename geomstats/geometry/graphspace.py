@@ -26,7 +26,8 @@ class _GraphSpace:
     References
     ----------
     ..[Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-              “Graph Space: Geodesic Principal Components for aPopulation of Network-valued Data.”
+              “Graph Space: Geodesic Principal Components for aPopulation of
+              Network-valued Data.”
               Mox report 14, 2020.
               https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
     """
@@ -36,13 +37,13 @@ class _GraphSpace:
         self.p = p
         self.adjmat = Matrices(self.nodes, self.nodes)
 
-    def belongs(self, mat, atol=gs.atol):
+    def belongs(self, graph, atol=gs.atol):
         r"""Check if the matrix is an adjecency matrix associated to the
         graph with n nodes.
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n, n]
+        graph : array-like, shape=[..., n, n]
             Matrix to be checked.
         atol : float
             Tolerance.
@@ -53,7 +54,7 @@ class _GraphSpace:
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is belongs to the space.
         """
-        return self.adjmat.belongs(mat, atol=atol)
+        return self.adjmat.belongs(graph, atol=atol)
 
     def random_point(self, n_samples=1, bound=1.0):
         r"""Sample in Graph Space.
@@ -69,19 +70,20 @@ class _GraphSpace:
 
         Returns
         -------
-        samples : array-like, shape=[..., n, n]
+        graph_samples : array-like, shape=[..., n, n]
             Points sampled in GraphSpace(n).
         """
         return self.adjmat.random_point(n_samples=n_samples, bound=bound)
 
-    def permute(self, mat, permutation):
+    def permute(self, graph_to_permute, permutation):
         r"""Permutation action applied to graph observation.
 
         Parameters
         ----------
-        mat : int
+        graph_to_permute : int
             Number of samples.
             Optional, default: 1.
+        permutation
 
         Returns
         -------
@@ -146,7 +148,7 @@ class GraphSpaceMetric:
                                                                permutation=perm))
 
     @staticmethod
-    def faq(base_graph, graph_to_permute):
+    def faq_matching(base_graph, graph_to_permute):
         """Fast Quadratic Assignment for graph matching.
 
             Parameters
@@ -183,10 +185,10 @@ class GraphSpaceMetric:
                                         graph_to_permute,
                                         options={'maximize': True})['col_ind']
         else:
-            raise (ValueError('The method can align a set of graphs to one graphs,'
-                              'but the single graphs should be passed as base_graph'))
+            raise ValueError('The method can align a set of graphs to one graphs,'
+                              'but the single graphs should be passed as base_graph')
 
-    def id(self, base_graph, graph_to_permute):
+    def id_matching(self, base_graph, graph_to_permute):
         """Identity matching.
 
         Parameters
