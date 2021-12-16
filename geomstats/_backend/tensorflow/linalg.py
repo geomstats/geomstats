@@ -1,5 +1,6 @@
 """Tensorflow based linear algebra backend."""
 
+import scipy.optimize
 import tensorflow as tf
 
 # "Forward-import" primitives. Due to the way the 'linalg' module is exported
@@ -66,6 +67,10 @@ def solve_sylvester(a, b, q):
         "solve_sylvester is not implemented in tensorflow if a != b or a not"
         " Symmetric Semi Definite"
     )
+
+
+def quadratic_assignment(a, b, options):
+    return list(scipy.optimize.quadratic_assignment(a, b, options=options).col_ind)
 
 
 def qr(x, mode="reduced"):
