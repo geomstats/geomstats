@@ -85,7 +85,7 @@ class TestStiefel(geomstats.tests.TestCase):
     def test_log_two_sheets_error(self):
         p=n=3
         with pytest.raises(ValueError):
-            stiefel.log(pas la emme sheet)
+            stiefel.log("pas la emme sheet")
 
 
 
