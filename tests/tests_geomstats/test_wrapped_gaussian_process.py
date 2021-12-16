@@ -58,7 +58,7 @@ wgp = WrappedGaussianProcess(space=SPACE, metric=METRIC, prior=prior, kernel=ker
 wgp.fit(X_train, y_train)
 f_pred = wgp.predict(Xs)
 
-fig = plt.figure(figsize=(8, 8))
+fig =  plt.figure(figsize=(8, 8))
 ax = visualization.plot(y_train, space='S2', color='black', alpha=0.7, label='Train data points')
 ax.plot(f_pred[:, 0], f_pred[:, 1], f_pred[:, 2], color='blue', alpha=.7, label='f prediction')
 ax.set_box_aspect([1, 1, 1])
