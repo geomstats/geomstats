@@ -5,8 +5,9 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
+
 class HeisenbergVectors(LieGroup):
-    r"""Class for the 3D Heisenberg group in the vector representation.
+    """Class for the 3D Heisenberg group in the vector representation.
 
     The 3D Heisenberg group represented as R^3. It is a step-2 Carnot Lie
     group. It can be equipped with a natural sub-Riemannian structure, and it is
@@ -19,7 +20,6 @@ class HeisenbergVectors(LieGroup):
     Reference
     ---------
     https://en.wikipedia.org/wiki/Heisenberg_group
-
     """
 
     def __init__(self, **kwargs):
@@ -109,9 +109,9 @@ class HeisenbergVectors(LieGroup):
             self, point, left_or_right='left'):
         """Compute the Jacobian matrix of left/right translation by a point.
 
-        This calculates the differential of the left translation L_(point) evaluated at 'point'.
-        Note that it only depends on the point we are left-translating by, not on the point
-        where the differential is evaluated.
+        This calculates the differential of the left translation L_(point)
+        evaluated at 'point'. Note that it only depends on the point we are
+        left-translating by, not on the point where the differential is evaluated.
 
         Parameters
         ----------
@@ -136,7 +136,7 @@ class HeisenbergVectors(LieGroup):
 
         return (gs.eye(3) + gs.einsum('..., ij -> ...ij', point[..., 1] / 2, E31) +
                 gs.einsum('..., ij -> ...ij', -point[..., 0] / 2, E32))
-  
+
     def random_point(self, n_samples=1, bound=1.):
         """Sample in the Euclidean space R^3 with a uniform distribution in a box.
 
@@ -211,44 +211,15 @@ class HeisenbergVectors(LieGroup):
         """
         n_points = gs.ndim(point)
 
-        if n_points == 1:
-            output = gs.reshape(gs.zeros(3 * 3), (3, 3))
-        else:
-            output = gs.reshape(gs.zeros(n_points * 3 * 3), (n_points, 3, 3))
-
-        output[..., 0, 0], output[..., 1, 1], output[..., 2, 2] = 1, 1, 1
-
-        output[..., 0, 1], output[..., 1, 2] = point[..., 0], point[..., 1]
-
-        output[..., 0, 2] = point[..., 2] + 1 / 2 * point[..., 0] * point[..., 1]
-
-        return output
-
-    @staticmethod
-    def upperTriangular_matrix_from_vectorTMP(point):
-        """Compute the upper triangular matrix representation of the vector.
-
-        The 3D Heisenberg group can also be represented as 3x3 upper triangular
-        matrices. This function computes this representation of the vector
-        'point'.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., 3]
-            Point in the vector-represention.
-
-        Returns
-        -------
-        upper_triangular_mat : array-like, shape=[..., 3, 3]
-            Upper triangular matrix.
-        """
-
-        n_points = gs.ndim(point)
-
         element_02 = point[..., 2] + 1 / 2 * point[..., 0] * point[..., 1]
 
-        modified_point = gs.stack((gs.ones(n_points), point[..., 0],
-                                   element_02, gs.ones(n_points),
-                                   point[..., 1], gs.ones(n_points)), axis=1)
+        if n_points == 1:
+            modified_point = gs.array([1, point[..., 0],
+                                       element_02, 1,
+                                       point[..., 1], 1])
+        else:
+            modified_point = gs.stack((gs.ones(n_points), point[..., 0],
+                                       element_02, gs.ones(n_points),
+                                       point[..., 1], gs.ones(n_points)), axis=1)
 
-        return SymmetricMatrices.from_vector(modified_point)
+        return gs.triu(SymmetricMatrices.from_vector(modified_point))
