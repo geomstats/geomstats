@@ -903,7 +903,7 @@ class TestBackends(geomstats.tests.TestCase):
     def test_triu(self):
         mat = gs.array([[2.0, 1.0, 1.0], [1.0, -1.5, 2.0], [-1.0, 10.0, 2.0]])
         result = gs.triu(mat)
-        expected = gs.array([[2.0, 1.0, 1.0], [0., -1.5, 2.0], [0., 0., 2.0]])
+        expected = gs.array([[2.0, 1.0, 1.0], [0.0, -1.5, 2.0], [0.0, 0.0, 2.0]])
         self.assertAllClose(result, expected)
 
     def test_mat_from_diag_triu_tril(self):
