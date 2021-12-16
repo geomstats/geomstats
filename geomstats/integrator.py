@@ -194,6 +194,10 @@ def integrate(function, initial_state, end_time=1.0, n_steps=10, method="euler")
         states[:, 0, :] gives the positions.
         states[:, 1, :] gives the velocities.
     """
+    print(method)
+    print(n_steps)
+    print(end_time)
+    print(initial_state)
     check_parameter_accepted_values(method, "method", METHODS)
 
     if method == "scipy":
@@ -217,6 +221,7 @@ def integrate(function, initial_state, end_time=1.0, n_steps=10, method="euler")
         current_state = initial_state
 
         step_function = globals()[METHODS[method]]
+        print(step_function)
 
         for i in range(n_steps):
             current_state = step_function(
