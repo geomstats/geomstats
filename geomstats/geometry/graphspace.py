@@ -1,10 +1,10 @@
 """Graph Space."""
 
-import geomstats.backend as gs
 import numpy as np
-
-from geomstats.geometry.matrices import Matrices, MatricesMetric
 from scipy.optimize import quadratic_assignment
+
+import geomstats.backend as gs
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
 class _GraphSpace:
@@ -90,8 +90,7 @@ class _GraphSpace:
         samples : array-like, shape=[..., n, n]
             Points permuted.
         """
-        return gs.array([mat[i][:, p][p, :]
-                         for i, p in enumerate(permutation)])
+        return gs.array([mat[i][:, p][p, :] for i, p in enumerate(permutation)])
 
 
 class GraphSpaceMetric:
@@ -108,7 +107,7 @@ class GraphSpaceMetric:
         self.nodes = n
         self.space = _GraphSpace(n)
 
-    def dist(self, base_graph, graph_to_permute, matcher = 'ID'):
+    def dist(self, base_graph, graph_to_permute, matcher="ID"):
         """Compute the distance between two equivalence classes of
         adjecency matrices [Calissano2020].
 
@@ -139,54 +138,61 @@ class GraphSpaceMetric:
                 “Fast approximate quadratic programming for graph matching.“
                 PLoS One. 2015 Apr 17;10(4):e0121002. doi: 10.1371/journal.pone.0121002.
         """
-        if matcher == 'FAQ':
+        if matcher == "FAQ":
             perm = self.faq(base_graph, graph_to_permute)
-        if matcher == 'ID':
+        if matcher == "ID":
             perm = self.id(base_graph, graph_to_permute)
-        return self.total_space_metric.dist(base_graph,
-                                            self.space.permute(mat=graph_to_permute,
-                                                               permutation=perm))
+        return self.total_space_metric.dist(
+            base_graph, self.space.permute(mat=graph_to_permute, permutation=perm)
+        )
 
     @staticmethod
     def faq_matching(base_graph, graph_to_permute):
         """Fast Quadratic Assignment for graph matching.
 
-            Parameters
-            ----------
-            base_graph : array-like, shape=[..., n, n]
-            First graph.
-            graph_to_permute : array-like, shape=[..., n, n]
-            Second graph to align.
+        Parameters
+        ----------
+        base_graph : array-like, shape=[..., n, n]
+        First graph.
+        graph_to_permute : array-like, shape=[..., n, n]
+        Second graph to align.
 
-            Returns
-            -------
-            permutation : array-like, shape=[...,n]
-                node permutation indexes of the second graph.
+        Returns
+        -------
+        permutation : array-like, shape=[...,n]
+            node permutation indexes of the second graph.
 
-            References
-            ----------
-            ..[Volgstain2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
-                    Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
-                    “Fast approximate quadratic programming for graph matching.“
-                    PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
-            """
+        References
+        ----------
+        ..[Volgstain2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
+                Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
+                “Fast approximate quadratic programming for graph matching.“
+                PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
+        """
         l_base = len(base_graph.shape)
         l_obj = len(graph_to_permute.shape)
         if l_base == l_obj == 3:
-            return gs.array([quadratic_assignment(x, y,
-                                                  options={'maximize': True})['col_ind']
-                             for x, y in zip(base_graph, graph_to_permute)])
+            return gs.array(
+                [
+                    quadratic_assignment(x, y, options={"maximize": True})["col_ind"]
+                    for x, y in zip(base_graph, graph_to_permute)
+                ]
+            )
         elif l_base == l_obj == 2:
-            return quadratic_assignment(base_graph, graph_to_permute,
-                                        options={'maximize': True})['col_ind']
+            return quadratic_assignment(
+                base_graph, graph_to_permute, options={"maximize": True}
+            )["col_ind"]
         elif l_base < l_obj:
-            return quadratic_assignment(np.stack([base_graph] *
-                                                 graph_to_permute.shape[0]),
-                                        graph_to_permute,
-                                        options={'maximize': True})['col_ind']
+            return quadratic_assignment(
+                np.stack([base_graph] * graph_to_permute.shape[0]),
+                graph_to_permute,
+                options={"maximize": True},
+            )["col_ind"]
         else:
-            raise ValueError('The method can align a set of graphs to one graphs,'
-                              'but the single graphs should be passed as base_graph')
+            raise ValueError(
+                "The method can align a set of graphs to one graphs,"
+                "but the single graphs should be passed as base_graph"
+            )
 
     def id_matching(self, base_graph, graph_to_permute):
         """Identity matching.
@@ -206,13 +212,19 @@ class GraphSpaceMetric:
         l_base = len(base_graph.shape)
         l_obj = len(graph_to_permute.shape)
         if l_base == l_obj == 3 or l_base < l_obj:
-            return gs.repeat([gs.arange(self.nodes)],
-                             repeats=len(graph_to_permute), axis=0)
+            return gs.repeat(
+                [gs.arange(self.nodes)], repeats=len(graph_to_permute), axis=0
+            )
         elif l_base == l_obj == 2:
             return gs.arange(self.nodes)
         else:
-            raise (ValueError('The method can align a set of graphs to one graphs,'
-                              'but the single graphs should be passed as base_graph'))
+            raise (
+                ValueError(
+                    "The method can align a set of graphs to one graphs,"
+                    "but the single graphs should be passed as base_graph"
+                )
+            )
+
 
 class GraphSpace(_GraphSpace):
     """Class for the n-dimensional hypersphere.
