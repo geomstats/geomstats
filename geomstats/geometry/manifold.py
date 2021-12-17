@@ -20,6 +20,9 @@ class Manifold(abc.ABC):
     ----------
     dim : int
         Dimension of the manifold.
+    shape : tuple of int
+        Shape of one element of the manifold.
+        Optional, default : None.
     default_point_type : str, {\'vector\', \'matrix\'}
         Point type.
         Optional, default: 'vector'.

@@ -59,7 +59,7 @@ class ProductManifold(Manifold):
             dim=sum(self.dims),
             metric=metric,
             default_point_type=default_point_type,
-            **kwargs
+            **kwargs,
         )
         self.manifolds = manifolds
         self.n_jobs = n_jobs
@@ -334,13 +334,18 @@ class NFoldManifold(Manifold):
         base_manifold,
         n_copies,
         metric=None,
-        default_point_type="vector",
+        default_point_type="matrix",
         default_coords_type="intrinsic",
         **kwargs
     ):
         geomstats.errors.check_integer(n_copies, "n_copies")
         dim = n_copies * base_manifold.dim
-        super(NFoldManifold, self).__init__(dim=dim)
+        super(NFoldManifold, self).__init__(
+            dim=dim,
+            default_point_type=default_point_type,
+            default_coords_type=default_coords_type,
+            **kwargs,
+        )
         self.base_manifold = base_manifold
         self.base_shape = base_manifold.shape
         self.shape = (n_copies,) + base_manifold.shape
@@ -451,6 +456,20 @@ class NFoldManifold(Manifold):
 
 
 class NFoldMetric(RiemannianMetric):
+    """Class for an n-fold product manifold M^n.
+
+    Define a manifold as the product manifold of n copies of a given base manifold M.
+
+    Parameters
+    ----------
+    base_metric : RiemannianMetric
+        Base metric.
+    n_copies : int
+        Number of replication of the base metric.
+    base_shape : tuple of int
+        Shape of one element of the underlying base manifold
+    """
+
     def __init__(self, base_metric, n_copies, base_shape):
         geomstats.errors.check_integer(n_copies, "n_copies")
         dim = n_copies * base_metric.dim
