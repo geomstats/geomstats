@@ -6,7 +6,7 @@ import geomstats.tests
 from geomstats.geometry.discrete_curves import (
     ClosedDiscreteCurves,
     DiscreteCurves,
-    ElasticCurves,
+    ElasticMetric,
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
@@ -46,8 +46,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         self.a = 1
         self.b = 1
-        self.space_elastic_curves = ElasticCurves(self.a, self.b)
-        self.elastic_metric = self.space_elastic_curves.elastic_metric
+        self.elastic_metric = ElasticMetric(self.a, self.b)
 
         self.n_discretized_curves = 5
         self.times = gs.linspace(0.0, 1.0, self.n_discretized_curves)
@@ -355,11 +354,12 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         when a=1, b=1/2."""
         r2 = Euclidean(dim=2)
-        elastic_curves_r2 = ElasticCurves(a=1., b=0.5)
+        elastic_metric = ElasticMetric(a=1., b=0.5)
         curves_r2 = DiscreteCurves(ambient_manifold=r2)
-        curve_a_projected = self.curve_a[:, [0, 2]]
+        curve_a_projected = gs.stack(
+            (self.curve_a[:, 0], self.curve_a[:, 2]), axis=-1)
 
-        result = elastic_curves_r2.elastic_metric.f_transform(curve_a_projected)
+        result = elastic_metric.f_transform(curve_a_projected)
         expected = gs.squeeze(
             curves_r2.square_root_velocity_metric.square_root_velocity(
                 curve_a_projected))
