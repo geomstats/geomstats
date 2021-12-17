@@ -13,6 +13,7 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.matrices import Matrices
+
 from ._bch_coefficients import BCH_COEFFICIENTS
 
 
@@ -30,8 +31,8 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
 
     def __init__(self, dim, n, **kwargs):
         super(MatrixLieAlgebra, self).__init__(shape=(n, n), **kwargs)
-        geomstats.errors.check_integer(dim, 'dim')
-        geomstats.errors.check_integer(n, 'n')
+        geomstats.errors.check_integer(dim, "dim")
+        geomstats.errors.check_integer(n, "n")
         self.dim = dim
         self.basis = None
         self.n = n
@@ -70,7 +71,8 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
             raise NotImplementedError("BCH is not implemented for order > 15.")
 
         number_of_hom_degree = gs.array(
-            [2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630, 1161, 2182])
+            [2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630, 1161, 2182]
+        )
         n_terms = gs.sum(number_of_hom_degree[:order])
 
         el = [matrix_a, matrix_b]
@@ -81,9 +83,9 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
             i_pp = BCH_COEFFICIENTS[i, 2] - 1
 
             el.append(self.bracket(el[i_p], el[i_pp]))
-            result += (float(BCH_COEFFICIENTS[i, 3]) /
-                       float(BCH_COEFFICIENTS[i, 4]) *
-                       el[i])
+            result += (
+                float(BCH_COEFFICIENTS[i, 3]) / float(BCH_COEFFICIENTS[i, 4]) * el[i]
+            )
         return result
 
     @abc.abstractmethod

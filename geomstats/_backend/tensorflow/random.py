@@ -2,6 +2,7 @@
 
 import tensorflow as tf
 import tensorflow_probability as tfp
+
 tfd = tfp.distributions
 
 
@@ -23,9 +24,8 @@ def randint(low, high=None, size=None):
         maxval = low - 1
         minval = 0
     return tf.random.uniform(
-        shape=size,
-        minval=minval,
-        maxval=maxval, dtype=tf.int32, seed=None, name=None)
+        shape=size, minval=minval, maxval=maxval, dtype=tf.int32, seed=None, name=None
+    )
 
 
 def rand(*args):
@@ -51,4 +51,5 @@ def multivariate_normal(mean, cov, size=None):
         size = ()
     return tfd.Sample(
         tfd.MultivariateNormalFullCovariance(loc=mean, covariance_matrix=cov),
-        sample_shape=size).sample()
+        sample_shape=size,
+    ).sample()

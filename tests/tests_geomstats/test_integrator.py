@@ -1,5 +1,7 @@
 """Test for the integrators."""
 
+import pytest
+
 import geomstats.backend as gs
 import geomstats.integrator as integrator
 import geomstats.tests
@@ -8,7 +10,7 @@ from geomstats.geometry.matrices import Matrices
 
 
 class TestIntegrator(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.dimension = 4
         self.dt = 0.1
         self.euclidean = Euclidean(self.dimension)
@@ -18,15 +20,22 @@ class TestIntegrator(geomstats.tests.TestCase):
 
     @staticmethod
     def function_linear(_state, _time):
-        return 2.
+        return 2.0
 
     def _test_step(self, step):
         state = self.intercept
-        result = step(
-            self.function_linear, state, 0., self.dt)
+        result = step(self.function_linear, state, 0.0, self.dt)
         expected = state + 2 * self.dt
 
         self.assertAllClose(result, expected)
+
+    def test_symplectic_euler_step(self):
+        with pytest.raises(NotImplementedError):
+            self._test_step(integrator.symplectic_euler_step)
+
+    def test_leapfrog_step(self):
+        with pytest.raises(NotImplementedError):
+            self._test_step(integrator.leapfrog_step)
 
     def test_euler_step(self):
         self._test_step(integrator.euler_step)
@@ -44,7 +53,7 @@ class TestIntegrator(geomstats.tests.TestCase):
             _, velocity = state
             return gs.stack([velocity, gs.zeros_like(velocity)])
 
-        for step in ['euler', 'rk2', 'rk4']:
+        for step in ["euler", "rk2", "rk4"]:
             flow = integrator.integrate(function, initial_state, step=step)
             result = flow[-1][0]
             expected = initial_state[0] + initial_state[1]

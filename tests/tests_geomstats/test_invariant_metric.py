@@ -3,10 +3,9 @@
 import logging
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
@@ -15,57 +14,56 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestInvariantMetric(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         logger = logging.getLogger()
         logger.disabled = True
-        warnings.simplefilter('ignore', category=ImportWarning)
+        warnings.simplefilter("ignore", category=ImportWarning)
 
         gs.random.seed(1234)
 
         n = 3
-        group = SpecialEuclidean(n=n, point_type='vector')
+        group = SpecialEuclidean(n=n, point_type="vector")
         matrix_se3 = SpecialEuclidean(n=n)
         matrix_so3 = SpecialOrthogonal(n=n)
-        vector_so3 = SpecialOrthogonal(n=n, point_type='vector')
+        vector_so3 = SpecialOrthogonal(n=n, point_type="vector")
 
         # Diagonal left and right invariant metrics
         diag_mat_at_identity = gs.eye(group.dim)
 
         left_diag_metric = InvariantMetric(
-            group=group,
-            metric_mat_at_identity=None,
-            left_or_right='left')
+            group=group, metric_mat_at_identity=None, left_or_right="left"
+        )
         right_diag_metric = InvariantMetric(
             group=group,
             metric_mat_at_identity=diag_mat_at_identity,
-            left_or_right='right')
+            left_or_right="right",
+        )
 
         sym_mat_at_identity = gs.eye(group.dim)
 
         left_metric = InvariantMetric(
             group=group,
             metric_mat_at_identity=sym_mat_at_identity,
-            left_or_right='left')
+            left_or_right="left",
+        )
 
         right_metric = InvariantMetric(
             group=group,
             metric_mat_at_identity=sym_mat_at_identity,
-            left_or_right='right')
+            left_or_right="right",
+        )
 
         matrix_left_metric = InvariantMetric(group=matrix_so3)
 
-        matrix_right_metric = InvariantMetric(group=matrix_so3,
-                                              left_or_right='right')
+        matrix_right_metric = InvariantMetric(group=matrix_so3, left_or_right="right")
 
         # General case for the point
-        point_1 = gs.array([-0.2, 0.9, 0.5, 5., 5., 5.])
-        point_2 = gs.array([0., 2., -0.1, 30., 400., 2.])
-        point_1_matrix = vector_so3.matrix_from_rotation_vector(
-            point_1[..., :3])
-        point_2_matrix = vector_so3.matrix_from_rotation_vector(
-            point_2[..., :3])
+        point_1 = gs.array([-0.2, 0.9, 0.5, 5.0, 5.0, 5.0])
+        point_2 = gs.array([0.0, 2.0, -0.1, 30.0, 400.0, 2.0])
+        point_1_matrix = vector_so3.matrix_from_rotation_vector(point_1[..., :3])
+        point_2_matrix = vector_so3.matrix_from_rotation_vector(point_2[..., :3])
         # Edge case for the point, angle < epsilon,
-        point_small = gs.array([-1e-7, 0., -7 * 1e-8, 6., 5., 9.])
+        point_small = gs.array([-1e-7, 0.0, -7 * 1e-8, 6.0, 5.0, 9.0])
 
         self.group = group
         self.matrix_so3 = matrix_so3
@@ -121,82 +119,77 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     @geomstats.tests.np_autograd_and_torch_only
     def test_inner_product_at_identity(self):
         lie_algebra = SkewSymmetricMatrices(3)
-        tangent_vec_a = lie_algebra.matrix_representation(
-            gs.array([1., 0, 2.]))
-        tangent_vec_b = lie_algebra.matrix_representation(
-            gs.array([1., 0, 0.5]))
+        tangent_vec_a = lie_algebra.matrix_representation(gs.array([1.0, 0, 2.0]))
+        tangent_vec_b = lie_algebra.matrix_representation(gs.array([1.0, 0, 0.5]))
         result = self.matrix_left_metric.inner_product_at_identity(
-            tangent_vec_a, tangent_vec_b)
-        expected = 4.
+            tangent_vec_a, tangent_vec_b
+        )
+        expected = 4.0
         self.assertAllClose(result, expected)
 
         tangent_vec_a = lie_algebra.matrix_representation(
-            gs.array([[1., 0, 2.], [0, 3., 5.]]))
+            gs.array([[1.0, 0, 2.0], [0, 3.0, 5.0]])
+        )
         result = self.matrix_left_metric.inner_product_at_identity(
-            tangent_vec_a, tangent_vec_b)
-        expected = gs.array([4., 5.])
+            tangent_vec_a, tangent_vec_b
+        )
+        expected = gs.array([4.0, 5.0])
         self.assertAllClose(result, expected)
 
     def test_inner_product_left(self):
         lie_algebra = SkewSymmetricMatrices(3)
-        tangent_vec_a = lie_algebra.matrix_representation(
-            gs.array([1., 0, 2.]))
-        tangent_vec_a = self.matrix_so3.compose(
-            self.point_1_matrix, tangent_vec_a)
-        tangent_vec_b = lie_algebra.matrix_representation(
-            gs.array([1., 0, 0.5]))
-        tangent_vec_b = self.matrix_so3.compose(
-            self.point_1_matrix, tangent_vec_b)
+        tangent_vec_a = lie_algebra.matrix_representation(gs.array([1.0, 0, 2.0]))
+        tangent_vec_a = self.matrix_so3.compose(self.point_1_matrix, tangent_vec_a)
+        tangent_vec_b = lie_algebra.matrix_representation(gs.array([1.0, 0, 0.5]))
+        tangent_vec_b = self.matrix_so3.compose(self.point_1_matrix, tangent_vec_b)
         result = self.matrix_left_metric.inner_product(
-            tangent_vec_a, tangent_vec_b, self.point_1_matrix)
-        expected = 4.
+            tangent_vec_a, tangent_vec_b, self.point_1_matrix
+        )
+        expected = 4.0
         self.assertAllClose(result, expected)
 
         tangent_vec_a = lie_algebra.matrix_representation(
-            gs.array([[1., 0, 2.], [0, 3., 5.]]))
-        tangent_vec_a = self.matrix_so3.compose(
-            self.point_1_matrix, tangent_vec_a)
+            gs.array([[1.0, 0, 2.0], [0, 3.0, 5.0]])
+        )
+        tangent_vec_a = self.matrix_so3.compose(self.point_1_matrix, tangent_vec_a)
         result = self.matrix_left_metric.inner_product(
-            tangent_vec_a, tangent_vec_b, self.point_1_matrix)
-        expected = gs.array([4., 5.])
+            tangent_vec_a, tangent_vec_b, self.point_1_matrix
+        )
+        expected = gs.array([4.0, 5.0])
         self.assertAllClose(result, expected)
 
     def test_inner_product_right(self):
         lie_algebra = SkewSymmetricMatrices(3)
-        tangent_vec_a = lie_algebra.matrix_representation(
-            gs.array([1., 0, 2.]))
-        tangent_vec_a = self.matrix_so3.compose(
-            tangent_vec_a, self.point_1_matrix)
-        tangent_vec_b = lie_algebra.matrix_representation(
-            gs.array([1., 0, 0.5]))
-        tangent_vec_b = self.matrix_so3.compose(
-            tangent_vec_b, self.point_1_matrix)
+        tangent_vec_a = lie_algebra.matrix_representation(gs.array([1.0, 0, 2.0]))
+        tangent_vec_a = self.matrix_so3.compose(tangent_vec_a, self.point_1_matrix)
+        tangent_vec_b = lie_algebra.matrix_representation(gs.array([1.0, 0, 0.5]))
+        tangent_vec_b = self.matrix_so3.compose(tangent_vec_b, self.point_1_matrix)
         result = self.matrix_right_metric.inner_product(
-            tangent_vec_a, tangent_vec_b, self.point_1_matrix)
-        expected = 4.
+            tangent_vec_a, tangent_vec_b, self.point_1_matrix
+        )
+        expected = 4.0
         self.assertAllClose(result, expected)
 
         tangent_vec_a = lie_algebra.matrix_representation(
-            gs.array([[1., 0, 2.], [0, 3., 5.]]))
-        tangent_vec_a = self.matrix_so3.compose(
-            tangent_vec_a, self.point_1_matrix)
+            gs.array([[1.0, 0, 2.0], [0, 3.0, 5.0]])
+        )
+        tangent_vec_a = self.matrix_so3.compose(tangent_vec_a, self.point_1_matrix)
         result = self.matrix_right_metric.inner_product(
-            tangent_vec_a, tangent_vec_b, self.point_1_matrix)
-        expected = gs.array([4., 5.])
+            tangent_vec_a, tangent_vec_b, self.point_1_matrix
+        )
+        expected = gs.array([4.0, 5.0])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_left_exp_and_exp_from_identity_left_diag_metrics(self):
-        left_exp_from_id = self.left_diag_metric.left_exp_from_identity(
-            self.point_1)
+        left_exp_from_id = self.left_diag_metric.left_exp_from_identity(self.point_1)
         exp_from_id = self.left_diag_metric.exp_from_identity(self.point_1)
 
         self.assertAllClose(left_exp_from_id, exp_from_id)
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_left_log_and_log_from_identity_left_diag_metrics(self):
-        left_log_from_id = self.left_diag_metric.left_log_from_identity(
-            self.point_1)
+        left_log_from_id = self.left_diag_metric.left_log_from_identity(self.point_1)
         log_from_id = self.left_diag_metric.log_from_identity(self.point_1)
 
         self.assertAllClose(left_log_from_id, log_from_id)
@@ -211,14 +204,14 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         # - exp then log
         # For left diagonal metric: point_1 and point_small
         result = helper.left_exp_then_log_from_identity(
-            metric=self.left_diag_metric,
-            tangent_vec=self.point_1)
+            metric=self.left_diag_metric, tangent_vec=self.point_1
+        )
         expected = self.point_1
         self.assertAllClose(result, expected)
 
         result = helper.left_exp_then_log_from_identity(
-            metric=self.left_diag_metric,
-            tangent_vec=self.point_small)
+            metric=self.left_diag_metric, tangent_vec=self.point_small
+        )
         expected = self.point_small
         self.assertAllClose(result, expected)
 
@@ -226,14 +219,14 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
         # For left diagonal metric: point_1 and point_small
         result = helper.left_log_then_exp_from_identity(
-            metric=self.left_diag_metric,
-            point=self.point_1)
+            metric=self.left_diag_metric, point=self.point_1
+        )
         expected = self.point_1
         self.assertAllClose(result, expected)
 
         result = helper.left_log_then_exp_from_identity(
-            metric=self.left_diag_metric,
-            point=self.point_small)
+            metric=self.left_diag_metric, point=self.point_small
+        )
         expected = self.point_small
         self.assertAllClose(result, expected)
 
@@ -247,34 +240,32 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         # - exp then log
         # For left metric: point_1 and point_small
         result = helper.left_exp_then_log_from_identity(
-            metric=self.left_metric,
-            tangent_vec=self.point_1)
+            metric=self.left_metric, tangent_vec=self.point_1
+        )
         expected = self.point_1
         self.assertAllClose(result, expected)
 
-        result = helper.exp_then_log(
-            metric=self.left_metric,
-            tangent_vec=self.point_1)
+        result = helper.exp_then_log(metric=self.left_metric, tangent_vec=self.point_1)
         expected = self.point_1
         self.assertAllClose(result, expected)
 
         result = helper.left_exp_then_log_from_identity(
-            metric=self.left_metric,
-            tangent_vec=self.point_small)
+            metric=self.left_metric, tangent_vec=self.point_small
+        )
         expected = self.point_small
         self.assertAllClose(result, expected)
 
         # - log then exp
         # For left metric: point_1 and point_small
         result = helper.left_log_then_exp_from_identity(
-            metric=self.left_metric,
-            point=self.point_1)
+            metric=self.left_metric, point=self.point_1
+        )
         expected = self.point_1
         self.assertAllClose(result, expected)
 
         result = helper.left_log_then_exp_from_identity(
-            metric=self.left_metric,
-            point=self.point_small)
+            metric=self.left_metric, point=self.point_small
+        )
         expected = self.point_small
         self.assertAllClose(result, expected)
 
@@ -288,28 +279,28 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         # - exp then log
         # For left diagonal metric, point and point_small
         result = helper.exp_then_log_from_identity(
-            metric=self.left_diag_metric,
-            tangent_vec=self.point_1)
+            metric=self.left_diag_metric, tangent_vec=self.point_1
+        )
         expected = self.point_1
         self.assertAllClose(result, expected)
 
         result = helper.exp_then_log_from_identity(
-            metric=self.left_diag_metric,
-            tangent_vec=self.point_small)
+            metric=self.left_diag_metric, tangent_vec=self.point_small
+        )
         expected = self.point_small
         self.assertAllClose(result, expected)
 
         # - log then exp
         # For left diagonal metric, point and point_small
         result = helper.log_then_exp_from_identity(
-            metric=self.left_diag_metric,
-            point=self.point_1)
+            metric=self.left_diag_metric, point=self.point_1
+        )
         expected = self.point_1
         self.assertAllClose(result, expected)
 
         result = helper.log_then_exp_from_identity(
-            metric=self.left_diag_metric,
-            point=self.point_small)
+            metric=self.left_diag_metric, point=self.point_small
+        )
         expected = self.point_small
         self.assertAllClose(result, expected)
 
@@ -323,28 +314,28 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         # - exp then log
         # For left metric, point and point_small
         result = helper.exp_then_log_from_identity(
-            metric=self.left_metric,
-            tangent_vec=self.point_1)
+            metric=self.left_metric, tangent_vec=self.point_1
+        )
         expected = self.point_1
         self.assertAllClose(result, expected)
 
         result = helper.exp_then_log_from_identity(
-            metric=self.left_metric,
-            tangent_vec=self.point_small)
+            metric=self.left_metric, tangent_vec=self.point_small
+        )
         expected = self.point_small
         self.assertAllClose(result, expected)
 
         # - log then exp
         # For left metric, point and point_small
         result = helper.log_then_exp_from_identity(
-            metric=self.left_metric,
-            point=self.point_1)
+            metric=self.left_metric, point=self.point_1
+        )
         expected = self.point_1
         self.assertAllClose(result, expected)
 
         result = helper.log_then_exp_from_identity(
-            metric=self.left_metric,
-            point=self.point_small)
+            metric=self.left_metric, point=self.point_small
+        )
         expected = self.point_small
         self.assertAllClose(result, expected)
 
@@ -358,28 +349,28 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         # - exp then log
         # For right diagonal metric, point and point_small
         result = helper.exp_then_log_from_identity(
-            metric=self.right_diag_metric,
-            tangent_vec=self.point_1)
+            metric=self.right_diag_metric, tangent_vec=self.point_1
+        )
         expected = self.point_1
         self.assertAllClose(result, expected)
 
         result = helper.exp_then_log_from_identity(
-            metric=self.right_diag_metric,
-            tangent_vec=self.point_small)
+            metric=self.right_diag_metric, tangent_vec=self.point_small
+        )
         expected = self.point_small
         self.assertAllClose(result, expected)
 
         # - log then exp
         # For right diagonal metric, point and point_small
         result = helper.log_then_exp_from_identity(
-            metric=self.right_diag_metric,
-            point=self.point_1)
+            metric=self.right_diag_metric, point=self.point_1
+        )
         expected = self.point_1
         self.assertAllClose(result, expected)
 
         result = helper.log_then_exp_from_identity(
-            metric=self.right_diag_metric,
-            point=self.point_small)
+            metric=self.right_diag_metric, point=self.point_small
+        )
         expected = self.point_small
         self.assertAllClose(result, expected)
 
@@ -391,25 +382,21 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         Expect their composition to give the identity function.
         """
         # For right metric, point and point_small
-        result = helper.exp_then_log_from_identity(
-            self.right_metric, self.point_1)
+        result = helper.exp_then_log_from_identity(self.right_metric, self.point_1)
         expected = self.point_1
         self.assertAllClose(result, expected)
 
-        result = helper.exp_then_log_from_identity(
-            self.right_metric, self.point_small)
+        result = helper.exp_then_log_from_identity(self.right_metric, self.point_small)
         expected = self.point_small
         # self.assertAllClose(result, expected)
 
         # - log then exp
         # For right metric, point and point_small
-        result = helper.log_then_exp_from_identity(
-            self.right_metric, self.point_1)
+        result = helper.log_then_exp_from_identity(self.right_metric, self.point_1)
         expected = self.point_1
         self.assertAllClose(result, expected)
 
-        result = helper.log_then_exp_from_identity(
-            self.right_metric, self.point_small)
+        result = helper.log_then_exp_from_identity(self.right_metric, self.point_small)
         expected = self.point_small
         self.assertAllClose(result, expected)
 
@@ -423,15 +410,15 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         # General case for the reference point
         base_point = self.point_2
         # General point
-        result = helper.log_then_exp(
-            self.left_diag_metric, self.point_1, base_point)
+        result = helper.log_then_exp(self.left_diag_metric, self.point_1, base_point)
         expected = self.group.regularize(self.point_1)
         result = self.group.regularize(result)
         self.assertAllClose(result, expected, atol=1e-4)
 
         # Edge case, small angle
         result = helper.log_then_exp(
-            self.left_diag_metric, self.point_small, base_point)
+            self.left_diag_metric, self.point_small, base_point
+        )
         expected = self.group.regularize(self.point_small)
         result = self.group.regularize(result)
         self.assertAllClose(result, expected)
@@ -447,13 +434,11 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         base_point = self.point_2
 
         # For left metric: point and point_small
-        result = helper.log_then_exp(
-            self.left_metric, self.point_1, base_point)
+        result = helper.log_then_exp(self.left_metric, self.point_1, base_point)
         expected = self.point_1
         self.assertAllClose(result, expected, atol=1e-4)
 
-        result = helper.log_then_exp(
-            self.left_metric, self.point_small, base_point)
+        result = helper.log_then_exp(self.left_metric, self.point_small, base_point)
         expected = self.point_small
         self.assertAllClose(result, expected)
 
@@ -467,13 +452,13 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         # General case for the reference point
         base_point = self.point_2
         # For right diagonal metric: point and point_small
-        result = helper.log_then_exp(
-            self.right_diag_metric, self.point_1, base_point)
+        result = helper.log_then_exp(self.right_diag_metric, self.point_1, base_point)
         expected = self.group.regularize(self.point_1)
         self.assertAllClose(result, expected, atol=1e-4)
 
         result = helper.log_then_exp(
-            self.right_diag_metric, self.point_small, base_point)
+            self.right_diag_metric, self.point_small, base_point
+        )
         expected = self.group.regularize(self.point_small)
         self.assertAllClose(result, expected)
 
@@ -487,68 +472,56 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         # General case for the reference point
         base_point = self.point_2
         # For right metric: point and point_small
-        result = helper.log_then_exp(
-            self.right_metric, self.point_1, base_point)
+        result = helper.log_then_exp(self.right_metric, self.point_1, base_point)
         expected = self.point_1
         self.assertAllClose(result, expected, atol=1e-4)
 
-        result = helper.log_then_exp(
-            self.right_metric, self.point_small, base_point)
+        result = helper.log_then_exp(self.right_metric, self.point_small, base_point)
         expected = self.point_small
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_squared_dist_left_diag_metrics(self):
-        sq_dist_1_2 = self.left_diag_metric.squared_dist(self.point_1,
-                                                         self.point_2)
-        sq_dist_2_1 = self.left_diag_metric.squared_dist(self.point_2,
-                                                         self.point_1)
+        sq_dist_1_2 = self.left_diag_metric.squared_dist(self.point_1, self.point_2)
+        sq_dist_2_1 = self.left_diag_metric.squared_dist(self.point_2, self.point_1)
         self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_squared_dist_left_metrics(self):
-        sq_dist_1_2 = self.left_metric.squared_dist(self.point_1,
-                                                    self.point_2)
-        sq_dist_2_1 = self.left_metric.squared_dist(self.point_2,
-                                                    self.point_1)
+        sq_dist_1_2 = self.left_metric.squared_dist(self.point_1, self.point_2)
+        sq_dist_2_1 = self.left_metric.squared_dist(self.point_2, self.point_1)
         self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_squared_dist_and_squared_norm_left_diag_metrics(self):
-        result = self.left_diag_metric.squared_dist(self.point_1,
-                                                    self.point_2)
-        log = self.left_diag_metric.log(base_point=self.point_1,
-                                        point=self.point_2)
+        result = self.left_diag_metric.squared_dist(self.point_1, self.point_2)
+        log = self.left_diag_metric.log(base_point=self.point_1, point=self.point_2)
         expected = self.left_diag_metric.squared_norm(
-            vector=log,
-            base_point=self.point_1)
+            vector=log, base_point=self.point_1
+        )
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_squared_dist_and_squared_norm_left_metrics(self):
         result = self.left_metric.squared_dist(self.point_1, self.point_2)
         log = self.left_metric.log(base_point=self.point_1, point=self.point_2)
-        expected = self.left_metric.squared_norm(
-            vector=log, base_point=self.point_1)
+        expected = self.left_metric.squared_norm(vector=log, base_point=self.point_1)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_squared_dist_and_squared_norm_right_diag_metrics(self):
-        result = self.right_diag_metric.squared_dist(self.point_1,
-                                                     self.point_2)
-        log = self.right_diag_metric.log(base_point=self.point_1,
-                                         point=self.point_2)
+        result = self.right_diag_metric.squared_dist(self.point_1, self.point_2)
+        log = self.right_diag_metric.log(base_point=self.point_1, point=self.point_2)
         expected = self.right_diag_metric.squared_norm(
-            vector=log, base_point=self.point_1)
+            vector=log, base_point=self.point_1
+        )
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_squared_dist_and_squared_norm_right_metrics(self):
         result = self.right_metric.squared_dist(self.point_1, self.point_2)
-        log = self.right_metric.log(
-            base_point=self.point_1, point=self.point_2)
-        expected = self.right_metric.squared_norm(
-            vector=log, base_point=self.point_1)
+        log = self.right_metric.log(base_point=self.point_1, point=self.point_2)
+        expected = self.right_metric.squared_norm(vector=log, base_point=self.point_1)
         self.assertAllClose(result, expected)
 
     def test_structure_constant(self):
@@ -557,7 +530,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         basis = metric.normal_basis(group.lie_algebra.basis)
         x, y, z = basis
         result = metric.structure_constant(x, y, z)
-        expected = 2. ** .5 / 2.
+        expected = 2.0 ** 0.5 / 2.0
         self.assertAllClose(result, expected)
 
         result = -metric.structure_constant(y, x, z)
@@ -576,7 +549,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
         result = metric.structure_constant(x, x, z)
-        expected = 0.
+        expected = 0.0
         self.assertAllClose(result, expected)
 
     def test_dual_adjoint(self):
@@ -587,7 +560,8 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             for y in basis:
                 for z in basis:
                     result = metric.inner_product_at_identity(
-                        metric.dual_adjoint(x, y), z)
+                        metric.dual_adjoint(x, y), z
+                    )
                     expected = metric.structure_constant(x, z, y)
                     self.assertAllClose(result, expected)
 
@@ -596,7 +570,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         metric = InvariantMetric(group=group)
         x, y, z = metric.normal_basis(group.lie_algebra.basis)
         result = metric.connection(x, y)
-        expected = 1. / 2 ** .5 / 2. * z
+        expected = 1.0 / 2 ** 0.5 / 2.0 * z
         self.assertAllClose(result, expected)
 
         point = group.random_uniform()
@@ -613,7 +587,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         x, y, z = metric.normal_basis(group.lie_algebra.basis)
 
         result = metric.sectional_curvature(x, y)
-        expected = 1. / 8
+        expected = 1.0 / 8
         self.assertAllClose(result, expected)
 
         point = group.random_uniform()
@@ -629,7 +603,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         self.assertAllClose(result, gs.array([expected] * 2))
 
         result = metric.sectional_curvature(y, y)
-        expected = 0.
+        expected = 0.0
         self.assertAllClose(result, expected)
 
     def test_curvature(self):
@@ -638,7 +612,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         x, y, z = metric.normal_basis(group.lie_algebra.basis)
 
         result = metric.curvature_at_identity(x, y, x)
-        expected = 1. / 8 * y
+        expected = 1.0 / 8 * y
         self.assertAllClose(result, expected)
 
         tan_a = gs.stack([x, x])
@@ -668,9 +642,8 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             for i, y in enumerate(basis):
                 for z in basis[i:]:
                     for t in basis:
-                        nabla_r = metric.curvature_derivative_at_identity(
-                            x, y, z, t)
-                        if not gs.all(gs.isclose(nabla_r, 0.)):
+                        nabla_r = metric.curvature_derivative_at_identity(x, y, z, t)
+                        if not gs.all(gs.isclose(nabla_r, 0.0)):
                             print(nabla_r)
                             result = False
         self.assertTrue(result)
@@ -679,8 +652,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         group = self.matrix_so3
         metric = InvariantMetric(group=group)
         x, y, z = metric.normal_basis(group.lie_algebra.basis)
-        result = metric.curvature_derivative(
-            x, y, z, x)
+        result = metric.curvature_derivative(x, y, z, x)
         expected = gs.zeros_like(x)
         self.assertAllClose(result, expected)
 
@@ -689,8 +661,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         tan_a = translation_map(x)
         tan_b = translation_map(y)
         tan_c = translation_map(z)
-        result = metric.curvature_derivative(
-            tan_a, tan_b, tan_c, tan_a, point)
+        result = metric.curvature_derivative(tan_a, tan_b, tan_c, tan_a, point)
         expected = gs.zeros_like(x)
         self.assertAllClose(result, expected)
 
@@ -700,15 +671,13 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         basis = metric.normal_basis(group.lie_algebra.basis)
 
         vector = gs.random.rand(2, len(basis))
-        tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
+        tangent_vec = gs.einsum("...j,jkl->...kl", vector, basis)
         identity = self.matrix_so3.identity
-        result = metric.exp(
-            tangent_vec, identity, n_steps=100, step='rk4')
+        result = metric.exp(tangent_vec, identity, n_steps=100, step="rk4")
         expected = group.exp(tangent_vec, identity)
         self.assertAllClose(expected, result, atol=1e-5)
 
-        result = metric.exp(
-            tangent_vec, identity, n_steps=100, step='rk2')
+        result = metric.exp(tangent_vec, identity, n_steps=100, step="rk2")
         self.assertAllClose(expected, result, atol=1e-5)
 
     @geomstats.tests.autograd_tf_and_torch_only
@@ -718,14 +687,11 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         basis = group.lie_algebra.basis
 
         vector = gs.random.rand(2, len(basis))
-        tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
+        tangent_vec = gs.einsum("...j,jkl->...kl", vector, basis)
         identity = self.matrix_so3.identity
 
-        exp = metric.exp(
-            tangent_vec, identity, n_steps=100, step='rk4')
-        result = metric.log(
-            exp, identity,
-            n_steps=15, step='rk4', verbose=False)
+        exp = metric.exp(tangent_vec, identity, n_steps=100, step="rk4")
+        result = metric.log(exp, identity, n_steps=15, step="rk4", verbose=False)
         self.assertAllClose(tangent_vec, result, atol=1e-5)
 
     def test_integrated_se3_exp_at_id(self):
@@ -736,15 +702,13 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         basis = metric.normal_basis(lie_algebra.basis)
 
         vector = gs.random.rand(len(basis))
-        tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
+        tangent_vec = gs.einsum("...j,jkl->...kl", vector, basis)
         identity = self.matrix_se3.identity
-        result = metric.exp(
-            tangent_vec, identity, n_steps=100, step='rk4')
+        result = metric.exp(tangent_vec, identity, n_steps=100, step="rk4")
         expected = canonical_metric.exp(tangent_vec, identity)
         self.assertAllClose(expected, result, atol=1e-5)
 
-        result = metric.exp(
-            tangent_vec, identity, n_steps=100, step='rk2')
+        result = metric.exp(tangent_vec, identity, n_steps=100, step="rk2")
         self.assertAllClose(expected, result, atol=1e-5)
 
     def test_integrated_se3_exp(self):
@@ -756,15 +720,13 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         point = group.random_point()
 
         vector = gs.random.rand(len(basis))
-        tangent_vec = gs.einsum('...j,jkl->...kl', vector, basis)
+        tangent_vec = gs.einsum("...j,jkl->...kl", vector, basis)
         tangent_vec = group.tangent_translation_map(point)(tangent_vec)
-        result = metric.exp(
-            tangent_vec, point, n_steps=100, step='rk4')
+        result = metric.exp(tangent_vec, point, n_steps=100, step="rk4")
         expected = canonical_metric.exp(tangent_vec, point)
         self.assertAllClose(expected, result)
 
-        result = metric.exp(
-            tangent_vec, point, n_steps=100, step='rk2')
+        result = metric.exp(tangent_vec, point, n_steps=100, step="rk2")
         self.assertAllClose(expected, result, atol=4e-5)
 
     @geomstats.tests.autograd_tf_and_torch_only
@@ -794,18 +756,18 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         tan_a = Matrices(n + 1, n + 1).random_point(n_samples)
         tan_a = group.to_tangent(tan_a)
         coef = metric.inner_product(tan_a, tan_b) / metric.squared_norm(tan_b)
-        tan_a -= gs.einsum('...,...ij->...ij', coef, tan_b)
+        tan_a -= gs.einsum("...,...ij->...ij", coef, tan_b)
         tan_b = gs.einsum(
-            '...ij,...->...ij', tan_b,
-            1. / metric.norm(tan_b, base_point=point))
+            "...ij,...->...ij", tan_b, 1.0 / metric.norm(tan_b, base_point=point)
+        )
         tan_a = gs.einsum(
-            '...ij,...->...ij', tan_a,
-            1. / metric.norm(tan_a, base_point=point))
+            "...ij,...->...ij", tan_a, 1.0 / metric.norm(tan_a, base_point=point)
+        )
 
-        expected = group.left_canonical_metric.parallel_transport(
-            tan_a, tan_b, point)
+        expected = group.left_canonical_metric.parallel_transport(tan_a, tan_b, point)
         result, end_point_result = metric.parallel_transport(
-            tan_a, tan_b, point, n_steps=20, step='rk4', return_endpoint=True)
+            tan_a, tan_b, point, n_steps=20, step="rk4", return_endpoint=True
+        )
         expected_end_point = metric.exp(tan_b, point, n_steps=20)
 
         self.assertAllClose(end_point_result, expected_end_point)

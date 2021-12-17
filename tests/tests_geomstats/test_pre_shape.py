@@ -7,7 +7,7 @@ from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
 
 
 class TestPreShapeSpace(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
 
         self.k_landmarks = 4
@@ -15,28 +15,18 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.space = PreShapeSpace(self.k_landmarks, self.m_ambient)
         self.matrices = self.space.embedding_space
         self.n_samples = 10
-        self.shape_metric = KendallShapeMetric(
-            self.k_landmarks, self.m_ambient
-        )
+        self.shape_metric = KendallShapeMetric(self.k_landmarks, self.m_ambient)
 
         self.base_point = self.space.random_point()
         vector = gs.random.rand(11, self.k_landmarks, self.m_ambient)
         tg_vec_0 = self.space.to_tangent(vector[0], self.base_point)
-        self.hor_x = self.space.horizontal_projection(
-            tg_vec_0, self.base_point
-        )
+        self.hor_x = self.space.horizontal_projection(tg_vec_0, self.base_point)
         tg_vec_1 = self.space.to_tangent(vector[1], self.base_point)
-        self.hor_y = self.space.horizontal_projection(
-            tg_vec_1, self.base_point
-        )
+        self.hor_y = self.space.horizontal_projection(tg_vec_1, self.base_point)
         tg_vec_2 = self.space.to_tangent(vector[2], self.base_point)
-        self.hor_z = self.space.horizontal_projection(
-            tg_vec_2, self.base_point
-        )
+        self.hor_z = self.space.horizontal_projection(tg_vec_2, self.base_point)
         tg_vec_3 = self.space.to_tangent(vector[3], self.base_point)
-        self.hor_h = self.space.horizontal_projection(
-            tg_vec_3, self.base_point
-        )
+        self.hor_h = self.space.horizontal_projection(tg_vec_3, self.base_point)
         tg_vec_4 = self.space.to_tangent(vector[4], self.base_point)
         self.ver_v = self.space.vertical_projection(tg_vec_4, self.base_point)
         tg_vec_5 = self.space.to_tangent(vector[5], self.base_point)
@@ -53,25 +43,15 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         hor_dh = self.space.horizontal_projection(tg_vec_10, self.base_point)
 
         # generate valid derivatives of horizontal / vertical vector fields.
-        a_x_y = self.space.integrability_tensor(
-            self.hor_x, self.hor_y, self.base_point
-        )
+        a_x_y = self.space.integrability_tensor(self.hor_x, self.hor_y, self.base_point)
         self.nabla_x_y = hor_dy + a_x_y
-        a_x_z = self.space.integrability_tensor(
-            self.hor_x, self.hor_z, self.base_point
-        )
+        a_x_z = self.space.integrability_tensor(self.hor_x, self.hor_z, self.base_point)
         self.nabla_x_z = hor_dz + a_x_z
-        a_x_v = self.space.integrability_tensor(
-            self.hor_x, self.ver_v, self.base_point
-        )
+        a_x_v = self.space.integrability_tensor(self.hor_x, self.ver_v, self.base_point)
         self.nabla_x_v = ver_dv + a_x_v
-        a_x_w = self.space.integrability_tensor(
-            self.hor_x, self.ver_w, self.base_point
-        )
+        a_x_w = self.space.integrability_tensor(self.hor_x, self.ver_w, self.base_point)
         self.nabla_x_w = ver_dw + a_x_w
-        a_x_h = self.space.integrability_tensor(
-            self.hor_x, self.hor_h, self.base_point
-        )
+        a_x_h = self.space.integrability_tensor(self.hor_x, self.hor_h, self.base_point)
         self.nabla_x_h = hor_dh + a_x_h
 
     def test_belongs(self):
@@ -79,9 +59,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = self.space.belongs(point)
         self.assertFalse(result)
 
-        point = gs.random.rand(
-            self.n_samples, self.m_ambient - 1, self.k_landmarks
-        )
+        point = gs.random.rand(self.n_samples, self.m_ambient - 1, self.k_landmarks)
         result = self.space.belongs(point)
         self.assertFalse(gs.all(result))
 
@@ -185,9 +163,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_vertical_projection_vectorization(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient
-        )
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_point(self.n_samples)
         tan = self.space.to_tangent(vector, point)
         vertical = self.space.vertical_projection(tan, point)
@@ -212,9 +188,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_horizontal_projection_vectorized(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient
-        )
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_point(self.n_samples)
         tan = self.space.to_tangent(vector, point)
         horizontal = self.space.horizontal_projection(tan, point)
@@ -259,9 +233,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
     def test_inner_product_shape(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient
-        )
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_point()
         tan = self.space.to_tangent(vector, point)
         inner = self.space.ambient_metric.inner_product(tan, tan, point)
@@ -280,9 +252,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
     def test_exp_and_belongs_vectorization(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient
-        )
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_point(self.n_samples)
         tan = self.space.to_tangent(vector, point)
         exp = self.space.ambient_metric.exp(tan, point)
@@ -334,9 +304,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertAllClose(exp, expected)
 
     def test_kendall_inner_product_shape(self):
-        vector = gs.random.rand(
-            self.n_samples, self.k_landmarks, self.m_ambient
-        )
+        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
         point = self.space.random_point()
         tan = self.space.to_tangent(vector, point)
         inner = self.shape_metric.inner_product(tan, tan, point)
@@ -445,9 +413,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         vector = gs.random.rand(2, self.k_landmarks, self.m_ambient)
         tangent_vec_a = space.to_tangent(vector[0], base_point)
         tangent_vec_b = space.to_tangent(vector[1], base_point)
-        result_ab = space.integrability_tensor(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
+        result_ab = space.integrability_tensor(tangent_vec_a, tangent_vec_b, base_point)
 
         result = space.ambient_metric.inner_product(
             tangent_vec_b, result_ab, base_point
@@ -457,21 +423,15 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         horizontal_b = space.horizontal_projection(tangent_vec_b, base_point)
         horizontal_a = space.horizontal_projection(tangent_vec_a, base_point)
-        result = space.integrability_tensor(
-            horizontal_a, horizontal_b, base_point
-        )
-        expected = -space.integrability_tensor(
-            horizontal_b, horizontal_a, base_point
-        )
+        result = space.integrability_tensor(horizontal_a, horizontal_b, base_point)
+        expected = -space.integrability_tensor(horizontal_b, horizontal_a, base_point)
         self.assertAllClose(result, expected)
 
         is_vertical = space.is_vertical(result, base_point)
         self.assertTrue(is_vertical)
 
         vertical_b = tangent_vec_b - horizontal_b
-        result = space.integrability_tensor(
-            horizontal_a, vertical_b, base_point
-        )
+        result = space.integrability_tensor(horizontal_a, vertical_b, base_point)
         is_horizontal = space.is_horizontal(result, base_point)
         self.assertTrue(is_horizontal)
 
@@ -486,9 +446,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = space.integrability_tensor_old(
             tangent_vec_x, tangent_vec_e, base_point
         )
-        expected = space.integrability_tensor(
-            tangent_vec_x, tangent_vec_e, base_point
-        )
+        expected = space.integrability_tensor(tangent_vec_x, tangent_vec_e, base_point)
         self.assertAllClose(result, expected)
 
     def test_kendall_sectional_curvature(self):
@@ -524,9 +482,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         )
         condition = ~gs.isclose(denominator, 0.0)
         kappa = numerator[condition] / denominator[condition]
-        kappa_direct = metric.sectional_curvature(hor_a, hor_b, base_point)[
-            condition
-        ]
+        kappa_direct = metric.sectional_curvature(hor_a, hor_b, base_point)[condition]
         self.assertAllClose(kappa, kappa_direct)
         result = kappa > 1.0 - 1e-12
         self.assertTrue(gs.all(result))
@@ -637,12 +593,8 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             self.hor_x, self.hor_y, self.hor_z, self.base_point
         )
 
-        a_x_y = self.space.integrability_tensor(
-            self.hor_x, self.hor_y, self.base_point
-        )
-        a_x_z = self.space.integrability_tensor(
-            self.hor_x, self.hor_z, self.base_point
-        )
+        a_x_y = self.space.integrability_tensor(self.hor_x, self.hor_y, self.base_point)
+        a_x_z = self.space.integrability_tensor(self.hor_x, self.hor_z, self.base_point)
 
         nabla_x_a_y_z, a_y_z = self.space.integrability_tensor_derivative(
             self.hor_x, self.hor_y, a_x_y, self.hor_z, a_x_z, self.base_point
@@ -662,9 +614,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         integrability tensor derivatives with proper derivatives.
         Intermediate computations returned are also verified.
         """
-        a_x_y = self.space.integrability_tensor(
-            self.hor_x, self.hor_y, self.base_point
-        )
+        a_x_y = self.space.integrability_tensor(self.hor_x, self.hor_y, self.base_point)
         nabla_x_v, a_x_y = self.space.integrability_tensor_derivative(
             self.hor_x,
             self.hor_x,
@@ -674,10 +624,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             self.base_point,
         )
 
-        (
-            nabla_x_a_y_a_x_y,
-            a_y_a_x_y,
-        ) = self.space.integrability_tensor_derivative(
+        (nabla_x_a_y_a_x_y, a_y_a_x_y,) = self.space.integrability_tensor_derivative(
             self.hor_x, self.hor_y, a_x_y, a_x_y, nabla_x_v, self.base_point
         )
 
@@ -754,9 +701,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         # Method from the QuotientMetric class
         result_quotient_metric = super(
             KendallShapeMetric, metric
-        ).directional_curvature_derivative(
-            self.hor_x, self.hor_y, self.base_point
-        )
+        ).directional_curvature_derivative(self.hor_x, self.hor_y, self.base_point)
         self.assertAllClose(result_quotient_metric, expected)
 
         # Method from the Connection class
@@ -764,9 +709,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
 
         result_connection = super(
             QuotientMetric, metric
-        ).directional_curvature_derivative(
-            self.hor_x, self.hor_y, self.base_point
-        )
+        ).directional_curvature_derivative(self.hor_x, self.hor_y, self.base_point)
         self.assertAllClose(result_connection, expected)
 
     def test_directional_curvature_derivative_is_quadratic(self):
@@ -808,12 +751,8 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             / metric.squared_norm(tan_b, point),
             tan_b,
         )
-        tan_b = gs.einsum(
-            "...ij,...->...ij", tan_b, 1.0 / metric.norm(tan_b, point)
-        )
-        tan_a = gs.einsum(
-            "...ij,...->...ij", tan_a, 1.0 / metric.norm(tan_a, point)
-        )
+        tan_b = gs.einsum("...ij,...->...ij", tan_b, 1.0 / metric.norm(tan_b, point))
+        tan_a = gs.einsum("...ij,...->...ij", tan_a, 1.0 / metric.norm(tan_a, point))
 
         transported = metric.parallel_transport(
             tan_a, tan_b, point, n_steps=150, step="rk4"

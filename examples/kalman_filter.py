@@ -33,7 +33,10 @@ import numpy as np
 import geomstats.backend as gs
 from geomstats import algebra_utils
 from geomstats.learning.kalman_filter import (
-    KalmanFilter, Localization, LocalizationLinear)
+    KalmanFilter,
+    Localization,
+    LocalizationLinear,
+)
 
 
 def create_data(kalman, true_init, true_inputs, obs_freq):
@@ -63,25 +66,34 @@ def create_data(kalman, true_init, true_inputs, obs_freq):
     for incr in true_inputs:
         true_traj.append(kalman.model.propagate(true_traj[-1], incr))
     true_obs = [
-        kalman.model.observation_model(pose)
-        for pose in true_traj[obs_freq::obs_freq]]
+        kalman.model.observation_model(pose) for pose in true_traj[obs_freq::obs_freq]
+    ]
 
     obs_dtype = true_obs[0].dtype
-    observations = gs.stack([
-        gs.array(
-            np.random.multivariate_normal(obs, kalman.measurement_noise),
-            dtype=obs_dtype)
-        for obs in true_obs])
+    observations = gs.stack(
+        [
+            gs.array(
+                np.random.multivariate_normal(obs, kalman.measurement_noise),
+                dtype=obs_dtype,
+            )
+            for obs in true_obs
+        ]
+    )
 
     input_dtype = true_inputs[0].dtype
     inputs = [
-        gs.concatenate([
-            incr[:1],
-            gs.array(
-                np.random.multivariate_normal(
-                    incr[1:], kalman.process_noise), dtype=input_dtype)],
-            axis=0)
-        for incr in true_inputs]
+        gs.concatenate(
+            [
+                incr[:1],
+                gs.array(
+                    np.random.multivariate_normal(incr[1:], kalman.process_noise),
+                    dtype=input_dtype,
+                ),
+            ],
+            axis=0,
+        )
+        for incr in true_inputs
+    ]
     inputs = [gs.cast(incr, input_dtype) for incr in inputs]
 
     return gs.array(true_traj), inputs, observations
@@ -140,50 +152,63 @@ def main():
     n_traj = 1000
     obs_freq = 50
     dt = 0.1
-    init_cov = gs.array([10., 1.])
+    init_cov = gs.array([10.0, 1.0])
     init_cov = algebra_utils.from_vector_to_diagonal_matrix(init_cov)
     prop_cov = 0.001 * gs.eye(model.dim_noise)
     obs_cov = 10 * gs.eye(model.dim_obs)
     initial_covs = (init_cov, prop_cov, obs_cov)
     kalman.initialize_covariances(*initial_covs)
 
-    true_state = gs.array([0., 0.])
+    true_state = gs.array([0.0, 0.0])
     true_acc = gs.random.uniform(-1, 1, (n_traj, 1))
     dt_vectorized = dt * gs.ones((n_traj, 1))
     true_inputs = gs.hstack((dt_vectorized, true_acc))
 
     true_traj, inputs, observations = create_data(
-        kalman, true_state, true_inputs, obs_freq)
+        kalman, true_state, true_inputs, obs_freq
+    )
 
     initial_state = np.random.multivariate_normal(true_state, init_cov)
     estimate, uncertainty = estimation(
-        kalman, initial_state, inputs, observations, obs_freq)
+        kalman, initial_state, inputs, observations, obs_freq
+    )
 
     plt.figure()
-    plt.plot(true_traj[:, 0], label='Ground Truth')
-    plt.plot(estimate[:, 0], label='Kalman')
-    plt.plot(estimate[:, 0] + uncertainty[:, 0], color='k', linestyle=':')
+    plt.plot(true_traj[:, 0], label="Ground Truth")
+    plt.plot(estimate[:, 0], label="Kalman")
+    plt.plot(estimate[:, 0] + uncertainty[:, 0], color="k", linestyle=":")
     plt.plot(
-        estimate[:, 0] - uncertainty[:, 0], color='k', linestyle=':',
-        label='3_sigma envelope')
-    plt.plot(range(obs_freq, n_traj + 1, obs_freq), observations,
-             marker='*', linestyle='', label='Observation')
+        estimate[:, 0] - uncertainty[:, 0],
+        color="k",
+        linestyle=":",
+        label="3_sigma envelope",
+    )
+    plt.plot(
+        range(obs_freq, n_traj + 1, obs_freq),
+        observations,
+        marker="*",
+        linestyle="",
+        label="Observation",
+    )
     plt.legend()
-    plt.title('1D Localization - Position')
+    plt.title("1D Localization - Position")
 
     plt.figure()
-    plt.plot(true_traj[:, 1], label='Ground Truth')
-    plt.plot(estimate[:, 1], label='Kalman')
-    plt.plot(estimate[:, 1] + uncertainty[:, 1], color='k', linestyle=':')
+    plt.plot(true_traj[:, 1], label="Ground Truth")
+    plt.plot(estimate[:, 1], label="Kalman")
+    plt.plot(estimate[:, 1] + uncertainty[:, 1], color="k", linestyle=":")
     plt.plot(
-        estimate[:, 1] - uncertainty[:, 1], color='k', linestyle=':',
-        label='3_sigma envelope')
+        estimate[:, 1] - uncertainty[:, 1],
+        color="k",
+        linestyle=":",
+        label="3_sigma envelope",
+    )
     plt.legend()
-    plt.title('1D Localization - Speed')
+    plt.title("1D Localization - Speed")
 
     model = Localization()
     kalman = KalmanFilter(model)
-    init_cov = gs.array([1., 10., 10.])
+    init_cov = gs.array([1.0, 10.0, 10.0])
     init_cov = algebra_utils.from_vector_to_diagonal_matrix(init_cov)
     prop_cov = 0.001 * gs.eye(model.dim_noise)
     obs_cov = 0.1 * gs.eye(model.dim_obs)
@@ -191,28 +216,28 @@ def main():
     kalman.initialize_covariances(*initial_covs)
 
     true_state = gs.zeros(model.dim)
-    true_inputs = [gs.array([dt, .5, 0., 0.05]) for _ in range(n_traj)]
+    true_inputs = [gs.array([dt, 0.5, 0.0, 0.05]) for _ in range(n_traj)]
 
     true_traj, inputs, observations = create_data(
-        kalman, true_state, true_inputs, obs_freq)
+        kalman, true_state, true_inputs, obs_freq
+    )
 
-    initial_state = gs.array(
-        np.random.multivariate_normal(true_state, init_cov))
+    initial_state = gs.array(np.random.multivariate_normal(true_state, init_cov))
     initial_state = gs.cast(initial_state, true_state.dtype)
     estimate, uncertainty = estimation(
-        kalman, initial_state, inputs, observations, obs_freq)
+        kalman, initial_state, inputs, observations, obs_freq
+    )
 
     plt.figure()
-    plt.plot(true_traj[:, 1], true_traj[:, 2], label='Ground Truth')
-    plt.plot(estimate[:, 1], estimate[:, 2], label='Kalman')
-    plt.scatter(observations[:, 0], observations[:, 1], s=2, c='k',
-                label='Observation')
+    plt.plot(true_traj[:, 1], true_traj[:, 2], label="Ground Truth")
+    plt.plot(estimate[:, 1], estimate[:, 2], label="Kalman")
+    plt.scatter(observations[:, 0], observations[:, 1], s=2, c="k", label="Observation")
     plt.legend()
-    plt.axis('equal')
-    plt.title('2D Localization')
+    plt.axis("equal")
+    plt.title("2D Localization")
 
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

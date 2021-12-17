@@ -9,12 +9,12 @@ from geomstats.datasets.utils import load_karate_graph
 class TestPrepareGraphData(geomstats.tests.TestCase):
     """Class for testing embedding."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up function."""
         gs.random.seed(1234)
         dim = 2
         max_epochs = 3
-        lr = .05
+        lr = 0.05
         n_negative = 2
         context_size = 1
         self.karate_graph = load_karate_graph()
@@ -24,7 +24,8 @@ class TestPrepareGraphData(geomstats.tests.TestCase):
             max_epochs=max_epochs,
             lr=lr,
             n_context=context_size,
-            n_negative=n_negative)
+            n_negative=n_negative,
+        )
 
     def test_log_sigmoid(self):
         """Test log_sigmoid."""
@@ -49,7 +50,8 @@ class TestPrepareGraphData(geomstats.tests.TestCase):
         point_negative = gs.array([-0.4, -0.4])
 
         loss_value, loss_grad = self.embedding.loss(
-            point, point_context, point_negative)
+            point, point_context, point_negative
+        )
 
         expected_loss = 1.00322045
         expected_grad = gs.array([-0.16565083, -0.16565083])
@@ -60,5 +62,4 @@ class TestPrepareGraphData(geomstats.tests.TestCase):
     def test_embed(self):
         """Test embedding function."""
         embeddings = self.embedding.embed(self.karate_graph)
-        self.assertTrue(
-            gs.all(self.embedding.manifold.belongs(embeddings)))
+        self.assertTrue(gs.all(self.embedding.manifold.belongs(embeddings)))

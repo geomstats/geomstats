@@ -35,7 +35,7 @@ References
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
@@ -71,15 +71,93 @@ def submersion(point, k):
     d = flipped_point[..., k:, k:]
     a = flipped_point[..., :k, :k] - gs.eye(k)
     first = d - Matrices.mul(
-        b, GeneralLinear.inverse(a + gs.eye(k)), Matrices.transpose(b))
+        b, GeneralLinear.inverse(a + gs.eye(k)), Matrices.transpose(b)
+    )
     second = a + Matrices.mul(a, a) + Matrices.mul(Matrices.transpose(b), b)
     row_1 = gs.concatenate([first, gs.zeros_like(b)], axis=-1)
-    row_2 = gs.concatenate([
-        Matrices.transpose(gs.zeros_like(b)), second], axis=-1)
+    row_2 = gs.concatenate([Matrices.transpose(gs.zeros_like(b)), second], axis=-1)
     return gs.concatenate([row_1, row_2], axis=-2)
 
 
-class Grassmannian(EmbeddedManifold):
+def _squared_dist_grad_point_a(point_a, point_b, metric):
+    """Compute gradient of squared_dist wrt point_a.
+
+    Compute the Riemannian gradient of the squared geodesic
+    distance with respect to the first point point_a.
+
+    Parameters
+    ----------
+    point_a : array-like, shape=[..., dim]
+        Point.
+    point_b : array-like, shape=[..., dim]
+        Point.
+    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+        Metric defining the distance.
+
+    Returns
+    -------
+    _ : array-like, shape=[..., dim]
+        Riemannian gradient, in the form of a tangent
+        vector at base point : point_a.
+    """
+    return -2 * metric.log(point_b, point_a)
+
+
+def _squared_dist_grad_point_b(point_a, point_b, metric):
+    """Compute gradient of squared_dist wrt point_b.
+
+    Compute the Riemannian gradient of the squared geodesic
+    distance with respect to the second point point_b.
+
+    Parameters
+    ----------
+    point_a : array-like, shape=[..., dim]
+        Point.
+    point_b : array-like, shape=[..., dim]
+        Point.
+    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+        Metric defining the distance.
+
+    Returns
+    -------
+    _ : array-like, shape=[..., dim]
+        Riemannian gradient, in the form of a tangent
+        vector at base point : point_b.
+    """
+    return -2 * metric.log(point_a, point_b)
+
+
+@gs.autodiff.custom_gradient(_squared_dist_grad_point_a, _squared_dist_grad_point_b)
+def _squared_dist(point_a, point_b, metric):
+    """Compute geodesic distance between two points.
+
+    Compute the squared geodesic distance between point_a
+    and point_b, as defined by the metric.
+
+    This is an auxiliary private function that:
+    - is called by the method `squared_dist` of the class
+    SpecialEuclideanMatrixCannonicalLeftMetric,
+    - has been created to support the implementation
+    of custom_gradient in tensorflow backend.
+
+    Parameters
+    ----------
+    point_a : array-like, shape=[..., dim]
+        Point.
+    point_b : array-like, shape=[..., dim]
+        Point.
+    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+        Metric defining the distance.
+
+    Returns
+    -------
+    _ : array-like, shape=[...,]
+        Geodesic distance between point_a and point_b.
+    """
+    return metric.private_squared_dist(point_a, point_b)
+
+
+class Grassmannian(LevelSet):
     """Class for Grassmann manifolds Gr(n, k).
 
     Parameters
@@ -91,22 +169,27 @@ class Grassmannian(EmbeddedManifold):
     """
 
     def __init__(self, n, k):
-        geomstats.errors.check_integer(k, 'k')
-        geomstats.errors.check_integer(n, 'n')
+        geomstats.errors.check_integer(k, "k")
+        geomstats.errors.check_integer(n, "n")
         if k > n:
             raise ValueError(
-                'k <= n is required: k-dimensional subspaces in n dimensions.')
+                "k <= n is required: k-dimensional subspaces in n dimensions."
+            )
 
         self.n = n
         self.k = k
 
         dim = int(k * (n - k))
         super(Grassmannian, self).__init__(
-            dim=dim, embedding_space=SymmetricMatrices(n),
-            submersion=lambda x: submersion(x, k), value=gs.zeros((n, n)),
-            tangent_submersion=lambda v, x: 2 * Matrices.to_symmetric(
-                Matrices.mul(x, v)) - v,
-            metric=GrassmannianCanonicalMetric(n, k))
+            dim=dim,
+            embedding_space=SymmetricMatrices(n),
+            submersion=lambda x: submersion(x, k),
+            value=gs.zeros((n, n)),
+            tangent_submersion=lambda v, x: 2
+            * Matrices.to_symmetric(Matrices.mul(x, v))
+            - v,
+            metric=GrassmannianCanonicalMetric(n, k),
+        )
 
     def random_uniform(self, n_samples=1):
         """Sample random points from a uniform distribution.
@@ -134,12 +217,11 @@ class Grassmannian(EmbeddedManifold):
         points = gs.random.normal(size=(n_samples, self.n, self.k))
         full_rank = Matrices.mul(Matrices.transpose(points), points)
         projector = Matrices.mul(
-            points,
-            GeneralLinear.inverse(full_rank),
-            Matrices.transpose(points))
+            points, GeneralLinear.inverse(full_rank), Matrices.transpose(points)
+        )
         return projector[0] if n_samples == 1 else projector
 
-    def random_point(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample random points from a uniform distribution.
 
         Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
@@ -202,8 +284,8 @@ class Grassmannian(EmbeddedManifold):
         """
         mat = Matrices.to_symmetric(point)
         _, eigvecs = gs.linalg.eigh(mat)
-        diagonal = gs.array([0.] * (self.n - self.k) + [1.] * self.k)
-        p_d = gs.einsum('...ij,...j->...ij', eigvecs, diagonal)
+        diagonal = gs.array([0.0] * (self.n - self.k) + [1.0] * self.k)
+        p_d = gs.einsum("...ij,...j->...ij", eigvecs, diagonal)
         return Matrices.mul(p_d, Matrices.transpose(eigvecs))
 
 
@@ -221,14 +303,15 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
     """
 
     def __init__(self, n, p):
-        geomstats.errors.check_integer(p, 'p')
-        geomstats.errors.check_integer(n, 'n')
+        geomstats.errors.check_integer(p, "p")
+        geomstats.errors.check_integer(n, "n")
         if p > n:
-            raise ValueError('p <= n is required.')
+            raise ValueError("p <= n is required.")
 
         dim = int(p * (n - p))
         super(GrassmannianCanonicalMetric, self).__init__(
-            m=n, n=n, dim=dim, signature=(dim, 0, 0))
+            m=n, n=n, dim=dim, signature=(dim, 0, 0)
+        )
 
         self.n = n
         self.p = p
@@ -289,8 +372,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         """
         GLn = GeneralLinear(self.n)
         id_n = GLn.identity
-        id_n, point, base_point = gs.convert_to_wider_dtype([
-            id_n, point, base_point])
+        id_n, point, base_point = gs.convert_to_wider_dtype([id_n, point, base_point])
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
         rot = GLn.compose(sym2, sym1)
@@ -324,10 +406,55 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
                     “A Grassmann Manifold Handbook: Basic Geometry and
                     Computational Aspects.”
                     ArXiv:2011.13699 [Cs, Math], November 27, 2020.
-                    http://arxiv.org/abs/2011.13699.
+                    https://arxiv.org/abs/2011.13699.
 
         """
         expm = gs.linalg.expm
         mul = Matrices.mul
         rot = Matrices.bracket(base_point, -tangent_vec_b)
         return mul(expm(rot), tangent_vec_a, expm(-rot))
+
+    def private_squared_dist(self, point_a, point_b):
+        """Compute geodesic distance between two points.
+
+        Compute the squared geodesic distance between point_a
+        and point_b, as defined by the metric.
+
+        This is an auxiliary private function that:
+        - is called by the method `squared_dist` of the class
+        GrassmannianCanonicalMetric,
+        - has been created to support the implementation
+        of custom_gradient in tensorflow backend.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        _ : array-like, shape=[...,]
+            Geodesic distance between point_a and point_b.
+        """
+        dist = super().squared_dist(point_a, point_b)
+        return dist
+
+    def squared_dist(self, point_a, point_b, **kwargs):
+        """Squared geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[...,]
+            Squared distance.
+        """
+        dist = _squared_dist(point_a, point_b, metric=self)
+        return dist

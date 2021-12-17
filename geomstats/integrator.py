@@ -13,10 +13,13 @@ equation.
 
 from geomstats.errors import check_parameter_accepted_values
 
-
-STEP_FUNCTIONS = {'euler': 'euler_step',
-                  'rk4': 'rk4_step',
-                  'rk2': 'rk2_step'}
+STEP_FUNCTIONS = {
+    "euler": "euler_step",
+    "symp_euler": "symplectic_euler_step",
+    "leapfrog": "leapfrog_step",
+    "rk4": "rk4_step",
+    "rk2": "rk2_step",
+}
 
 
 def euler_step(force, state, time, dt):
@@ -44,6 +47,52 @@ def euler_step(force, state, time, dt):
     derivatives = force(state, time)
     new_state = state + derivatives * dt
     return new_state
+
+
+def symplectic_euler_step(force, state, time, dt):
+    """Compute one step of the symplectic euler approximation.
+
+    Parameters
+    ----------
+    state : array-like, shape=[2, dim]
+        State at time t, corresponds to position and velocity variables at
+        time t.
+    force : callable
+        Vector field that is being integrated.
+    dt : float
+        Time-step in the integration.
+
+    Returns
+    -------
+    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+        First variable at time t + dt.
+    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+        Second variable at time t + dt.
+    """
+    raise NotImplementedError
+
+
+def leapfrog_step(force, state, time, dt):
+    """Compute one step of the leapfrog approximation.
+
+    Parameters
+    ----------
+    state : array-like, shape=[2, dim]
+        State at time t, corresponds to position and velocity variables at
+        time t.
+    force : callable
+        Vector field that is being integrated.
+    dt : float
+        Time-step in the integration.
+
+    Returns
+    -------
+    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+        First variable at time t + dt.
+    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+        Second variable at time t + dt.
+    """
+    raise NotImplementedError
 
 
 def rk2_step(force, state, time, dt):
@@ -106,15 +155,13 @@ def rk4_step(force, state, time, dt):
     """
     k1 = force(state, time)
     k2 = force(state + dt / 2 * k1, time + dt / 2)
-    k3 = force(
-        state + dt / 2 * k2, time + dt / 2)
+    k3 = force(state + dt / 2 * k2, time + dt / 2)
     k4 = force(state + dt * k3, time + dt)
     new_state = state + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
     return new_state
 
 
-def integrate(
-        function, initial_state, end_time=1.0, n_steps=10, step='euler'):
+def integrate(function, initial_state, end_time=1.0, n_steps=10, step="euler"):
     """Compute the flow under the vector field using symplectic euler.
 
     Integration function to compute flows of vector fields
@@ -143,7 +190,7 @@ def integrate(
         element of the sequence is the same as the vectors passed in
         initial_state.
     """
-    check_parameter_accepted_values(step, 'step', STEP_FUNCTIONS)
+    check_parameter_accepted_values(step, "step", STEP_FUNCTIONS)
 
     dt = end_time / n_steps
     states = [initial_state]
@@ -153,6 +200,7 @@ def integrate(
 
     for i in range(n_steps):
         current_state = step_function(
-            state=current_state, force=function, time=i * dt, dt=dt)
+            state=current_state, force=function, time=i * dt, dt=dt
+        )
         states.append(current_state)
     return states

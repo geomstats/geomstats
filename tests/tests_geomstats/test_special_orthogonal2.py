@@ -2,22 +2,21 @@
 
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats import algebra_utils
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestSpecialOrthogonal2(geomstats.tests.TestCase):
-    def setUp(self):
-        warnings.simplefilter('ignore', category=ImportWarning)
-        warnings.simplefilter('ignore', category=UserWarning)
+    def setup_method(self):
+        warnings.simplefilter("ignore", category=ImportWarning)
+        warnings.simplefilter("ignore", category=UserWarning)
 
         gs.random.seed(1234)
 
-        self.group = SpecialOrthogonal(n=2, point_type='vector')
+        self.group = SpecialOrthogonal(n=2, point_type="vector")
 
         # -- Set attributes
         self.n_samples = 4
@@ -81,7 +80,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
     def test_regularize(self):
         angle = 2 * gs.pi + 1
         result = self.group.regularize(gs.array([angle]))
-        expected = gs.array([1.])
+        expected = gs.array([1.0])
         self.assertAllClose(result, expected)
 
     def test_regularize_vectorization(self):
@@ -93,8 +92,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
 
     def test_matrix_from_rotation_vector(self):
         angle = gs.pi / 3
-        expected = gs.array([[1. / 2, -gs.sqrt(3.) / 2],
-                             [gs.sqrt(3.) / 2, 1. / 2]])
+        expected = gs.array([[1.0 / 2, -gs.sqrt(3.0) / 2], [gs.sqrt(3.0) / 2, 1.0 / 2]])
         result = self.group.matrix_from_rotation_vector(gs.array([angle]))
         self.assertAllClose(result, expected)
 
@@ -104,15 +102,15 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
 
         rot_mats = self.group.matrix_from_rotation_vector(rot_vecs)
 
-        self.assertAllClose(
-            gs.shape(rot_mats), (n_samples, self.group.n, self.group.n))
+        self.assertAllClose(gs.shape(rot_mats), (n_samples, self.group.n, self.group.n))
 
     def test_rotation_vector_from_matrix(self):
-        angle = .12
-        rot_mat = gs.array([[gs.cos(angle), -gs.sin(angle)],
-                            [gs.sin(angle), gs.cos(angle)]])
+        angle = 0.12
+        rot_mat = gs.array(
+            [[gs.cos(angle), -gs.sin(angle)], [gs.sin(angle), gs.cos(angle)]]
+        )
         result = self.group.rotation_vector_from_matrix(rot_mat)
-        expected = gs.array([.12])
+        expected = gs.array([0.12])
 
         self.assertAllClose(result, expected)
 
@@ -135,11 +133,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_rotation_vector_and_rotation_matrix_vectorization(self):
-        rot_vecs = gs.array([
-            [2.],
-            [1.3],
-            [0.8],
-            [0.03]])
+        rot_vecs = gs.array([[2.0], [1.3], [0.8], [0.03]])
 
         rot_mats = self.group.matrix_from_rotation_vector(rot_vecs)
         result = self.group.rotation_vector_from_matrix(rot_mats)
@@ -149,10 +143,10 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_compose(self):
-        point_a = gs.array([.12])
-        point_b = gs.array([-.15])
+        point_a = gs.array([0.12])
+        point_b = gs.array([-0.15])
         result = self.group.compose(point_a, point_b)
-        expected = self.group.regularize(gs.array([-.03]))
+        expected = self.group.regularize(gs.array([-0.03]))
         self.assertAllClose(result, expected)
 
     def test_compose_and_inverse(self):
@@ -168,7 +162,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_compose_vectorization(self):
-        point_type = 'vector'
+        point_type = "vector"
         self.group.default_point_type = point_type
 
         n_samples = self.n_samples
@@ -177,24 +171,20 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         one_point = self.group.random_uniform(n_samples=1)
 
         result = self.group.compose(one_point, n_points_a)
-        self.assertAllClose(
-            gs.shape(result), (n_samples, self.group.dim))
+        self.assertAllClose(gs.shape(result), (n_samples, self.group.dim))
 
         result = self.group.compose(n_points_a, one_point)
-        self.assertAllClose(
-            gs.shape(result), (n_samples, self.group.dim))
+        self.assertAllClose(gs.shape(result), (n_samples, self.group.dim))
 
         result = self.group.compose(n_points_a, n_points_b)
-        self.assertAllClose(
-            gs.shape(result), (n_samples, self.group.dim))
+        self.assertAllClose(gs.shape(result), (n_samples, self.group.dim))
 
     def test_inverse_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         result = self.group.inverse(points)
 
-        self.assertAllClose(
-            gs.shape(result), (n_samples, self.group.dim))
+        self.assertAllClose(gs.shape(result), (n_samples, self.group.dim))
 
     def test_group_exp(self):
         """
@@ -205,8 +195,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         rot_vec = gs.array([2 * gs.pi / 5])
 
         expected = gs.array([3 * gs.pi / 5])
-        result = self.group.exp(base_point=rot_vec_base_point,
-                                tangent_vec=rot_vec)
+        result = self.group.exp(base_point=rot_vec_base_point, tangent_vec=rot_vec)
         self.assertAllClose(result, expected)
 
     def test_group_exp_vectorization(self):
@@ -219,18 +208,15 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
 
         # Test with the 1 base point, and n tangent vecs
         result = self.group.exp(n_tangent_vec, one_base_point)
-        self.assertAllClose(
-            gs.shape(result), (n_samples, self.group.dim))
+        self.assertAllClose(gs.shape(result), (n_samples, self.group.dim))
 
         # Test with the several base point, and one tangent vec
         result = self.group.exp(one_tangent_vec, n_base_point)
-        self.assertAllClose(
-            gs.shape(result), (n_samples, self.group.dim))
+        self.assertAllClose(gs.shape(result), (n_samples, self.group.dim))
 
         # Test with the same number n of base point and n tangent vec
         result = self.group.exp(n_tangent_vec, n_base_point)
-        self.assertAllClose(
-            gs.shape(result), (n_samples, self.group.dim))
+        self.assertAllClose(gs.shape(result), (n_samples, self.group.dim))
 
     def test_group_log(self):
         """
@@ -254,18 +240,15 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
 
         # Test with the 1 base point, and several different points
         result = self.group.log(n_point, one_base_point)
-        self.assertAllClose(
-            gs.shape(result), (n_samples, self.group.dim))
+        self.assertAllClose(gs.shape(result), (n_samples, self.group.dim))
 
         # Test with the several base point, and 1 point
         result = self.group.log(one_point, n_base_point)
-        self.assertAllClose(
-            gs.shape(result), (n_samples, self.group.dim))
+        self.assertAllClose(gs.shape(result), (n_samples, self.group.dim))
 
         # Test with the same number n of base point and point
         result = self.group.log(n_point, n_base_point)
-        self.assertAllClose(
-            gs.shape(result), (n_samples, self.group.dim))
+        self.assertAllClose(gs.shape(result), (n_samples, self.group.dim))
 
     def test_group_exp_then_log_from_identity(self):
         """
@@ -275,7 +258,8 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         """
         tangent_vec = gs.array([0.12])
         result = helper.group_exp_then_log_from_identity(
-            group=self.group, tangent_vec=tangent_vec)
+            group=self.group, tangent_vec=tangent_vec
+        )
         expected = self.group.regularize(tangent_vec)
         self.assertAllClose(result, expected)
 
@@ -286,8 +270,7 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         Expect their composition to give the identity function.
         """
         point = gs.array([0.12])
-        result = helper.group_log_then_exp_from_identity(
-            group=self.group, point=point)
+        result = helper.group_log_then_exp_from_identity(group=self.group, point=point)
         expected = self.group.regularize(point)
         self.assertAllClose(result, expected)
 
@@ -298,16 +281,15 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
 
         """
         base_point = gs.array([0.12])
-        tangent_vec = gs.array([.35])
+        tangent_vec = gs.array([0.35])
 
         result = helper.group_exp_then_log(
-            group=self.group,
-            tangent_vec=tangent_vec,
-            base_point=base_point)
+            group=self.group, tangent_vec=tangent_vec, base_point=base_point
+        )
 
         expected = self.group.regularize_tangent_vec(
-            tangent_vec=tangent_vec,
-            base_point=base_point)
+            tangent_vec=tangent_vec, base_point=base_point
+        )
 
         self.assertAllClose(result, expected)
 
@@ -317,12 +299,11 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         log and exp gives identity.
         """
         base_point = gs.array([0.12])
-        point = gs.array([.35])
+        point = gs.array([0.35])
 
         result = helper.group_log_then_exp(
-            group=self.group,
-            point=point,
-            base_point=base_point)
+            group=self.group, point=point, base_point=base_point
+        )
 
         expected = self.group.regularize(point)
 

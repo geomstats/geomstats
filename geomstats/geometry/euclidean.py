@@ -19,8 +19,8 @@ class Euclidean(VectorSpace):
 
     def __init__(self, dim):
         super(Euclidean, self).__init__(
-            shape=(dim, ), default_point_type='vector',
-            metric=EuclideanMetric(dim))
+            shape=(dim,), default_point_type="vector", metric=EuclideanMetric(dim)
+        )
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.
@@ -56,7 +56,7 @@ class Euclidean(VectorSpace):
             Group exponential.
         """
         if not self.belongs(tangent_vec):
-            raise ValueError('The update must be of the same dimension')
+            raise ValueError("The update must be of the same dimension")
         return tangent_vec + base_point
 
 
@@ -74,10 +74,10 @@ class EuclideanMetric(RiemannianMetric):
         Dimension of the Euclidean space.
     """
 
-    def __init__(self, dim, default_point_type='vector'):
+    def __init__(self, dim, default_point_type="vector"):
         super(EuclideanMetric, self).__init__(
-            dim=dim, signature=(dim, 0),
-            default_point_type=default_point_type)
+            dim=dim, signature=(dim, 0), default_point_type=default_point_type
+        )
 
     def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix, independent of the base point.
@@ -114,7 +114,7 @@ class EuclideanMetric(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        return gs.einsum('...i,...i->...', tangent_vec_a, tangent_vec_b)
+        return gs.einsum("...i,...i->...", tangent_vec_a, tangent_vec_b)
 
     def norm(self, vector, base_point=None):
         """Compute norm of a vector.
