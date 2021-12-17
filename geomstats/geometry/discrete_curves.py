@@ -463,11 +463,11 @@ class SRVMetric(RiemannianMetric):
             )
         d_srv_vec_a = self.aux_differential_srv_transform(tangent_vec_a, curve)
         d_srv_vec_b = self.aux_differential_srv_transform(tangent_vec_b, curve)
-        inner_prod = self._srv_inner_product(d_srv_vec_a, d_srv_vec_b)
+        inner_prod = self._l2_inner_product_between_srv(d_srv_vec_a, d_srv_vec_b)
 
         return inner_prod
 
-    def _srv_inner_product(self, srv_1, srv_2):
+    def _l2_inner_product_between_srv(self, srv_1, srv_2):
         """
         Compute the L² inner_product between two srv representations.
 
@@ -490,7 +490,7 @@ class SRVMetric(RiemannianMetric):
 
         return inner_prod
 
-    def _srv_norm(self, srv):
+    def _l2_norm_of_srv(self, srv):
         """
         Compute the L² norm of a srv representation of a curve.
 
@@ -504,7 +504,7 @@ class SRVMetric(RiemannianMetric):
         norm : array-like, shape=[...]
             L² norm of the srv representation.
         """
-        squared_norm = self._srv_inner_product(srv, srv)
+        squared_norm = self._l2_inner_product_between_srv(srv, srv)
         norm = gs.sqrt(squared_norm)
 
         return norm
@@ -937,8 +937,8 @@ class ClosedSRVMetric(SRVMetric):
             )
 
         dim = self.ambient_metric.dim
-        srv_inner_prod = self._srv_inner_product
-        srv_norm = self._srv_norm
+        srv_inner_prod = self._l2_inner_product_between_srv
+        srv_norm = self._l2_norm_of_srv
         inner_prod = self.ambient_metric.inner_product
 
         def g_criterion(srv, srv_norms):
