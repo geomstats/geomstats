@@ -158,7 +158,7 @@ class SubRiemannianMetric(abc.ABC):
         position, momentum = state
         return 1.0 / 2 * self.inner_coproduct(momentum, momentum, position)
 
-    def symp_grad(self, hamiltonian):
+    def symp_grad(self):
         r"""Compute the symplectic gradient of the Hamiltonian.
 
         Parameters
@@ -180,7 +180,7 @@ class SubRiemannianMetric(abc.ABC):
 
         return vector
 
-    def symp_euler(self, hamiltonian, step_size):
+    def symp_euler(self, step_size):
         r"""Compute a function which calculates a step of symplectic euler integration.
 
         Parameters
@@ -230,7 +230,7 @@ class SubRiemannianMetric(abc.ABC):
 
         return flow
 
-    def symp_flow(self, hamiltonian, end_time=1.0, n_steps=20):
+    def symp_flow(self, end_time=1.0, n_steps=20):
         r"""Compute the symplectic flow of the hamiltonian.
 
         Parameters
@@ -245,13 +245,14 @@ class SubRiemannianMetric(abc.ABC):
         Returns
         -------
         _ : array-like, shape[,n_steps]
-            Given a state, 'symp_flow' returns a sequence with n_steps iterations of func.
+            Given a state, 'symp_flow' returns a sequence with
+            n_steps iterations of func.
         """
         step = self.symp_euler
         step_size = end_time / n_steps
         return self.iterate(step(self.hamiltonian, step_size), n_steps)
 
-    def exp(self, cotangent_vec, base_point, n_steps=20, point_type=None, **kwargs):
+    def exp(self, cotangent_vec, base_point, n_steps=20, **kwargs):
         """Exponential map associated to the cometric. I
 
         Exponential map at base_point of cotangent_vec computed by integration
