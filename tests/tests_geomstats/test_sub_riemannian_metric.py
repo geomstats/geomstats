@@ -63,6 +63,7 @@ class TestSubRiemannianMetric(geomstats.tests.TestCase):
         expected = gs.array([[1.02, 1.03, 1.04], [2.0, 3.0, 4.0]])
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_iterate(self):
         test_state = gs.array([[1.0, 1.0, 1.0], [2.0, 3.0, 4.0]])
         n_steps = 20
