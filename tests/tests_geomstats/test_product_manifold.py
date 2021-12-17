@@ -210,7 +210,9 @@ class TestNFoldManifold(geomstats.tests.TestCase):
             self.assertTrue(res)
 
     def test_projection_and_belongs(self):
-        result = helper.test_projection_and_belongs(self.product, shape=(5, 2, 3, 3))
+        result = helper.test_projection_and_belongs(
+            self.product, shape=(3, 2, 3, 3), atol=1e-4
+        )
         for res in result:
             self.assertTrue(res)
 
