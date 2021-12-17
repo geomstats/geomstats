@@ -253,9 +253,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
             initial_curve=self.curve_a, end_curve=self.curve_b
         )
         geod = geod(self.times)
-
         srv = self.srv_metric_r3.square_root_velocity_transform(geod)
-
         srv_derivative = self.n_discretized_curves * (srv[1:, :] - srv[:-1, :])
         l2_metric = self.space_curves_in_euclidean_3d.l2_metric(
             self.n_sampling_points - 1
@@ -469,13 +467,13 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         )
 
         r3 = Euclidean(3)
-        d_vec_a = self.n_sampling_points * (
+        d_vec_a = (self.n_sampling_points - 1) * (
             tangent_vec_a[1:, :] - tangent_vec_a[:-1, :]
         )
-        d_vec_b = self.n_sampling_points * (
+        d_vec_b = (self.n_sampling_points - 1) * (
             tangent_vec_b[1:, :] - tangent_vec_b[:-1, :]
         )
-        velocity_vec = self.n_sampling_points * (
+        velocity_vec = (self.n_sampling_points - 1) * (
             self.curve_a[1:, :] - self.curve_a[:-1, :]
         )
         velocity_norm = r3.metric.norm(velocity_vec)
@@ -490,6 +488,15 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         ) / velocity_norm
         expected = gs.sum(integrand) / self.n_sampling_points
         self.assertAllClose(result, expected)
+
+#    def test_inner_product_and_dist(self):
+#        r3 = Euclidean(dim=3)
+#        log = self.srv_metric_r3.log(point=self.curve_b, base_point=self.curve_a)
+#        norm = self.srv_metric_r3.norm(vector=log, base_point=self.curve_a)
+#        dist_0 = r3.metric.dist(self.curve_a[0], self.curve_b[0])
+#        result = gs.sqrt(norm**2 + dist_0**2)
+#        expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)[0]
+#        self.assertAllClose(result, expected)
 
     def test_inner_product_vectorization(self):
         """Test inner product of SRVMetric.

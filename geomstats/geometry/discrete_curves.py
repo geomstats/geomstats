@@ -364,8 +364,8 @@ class SRVMetric(RiemannianMetric):
                 "space."
             )
         n_sampling_points = curve.shape[-2]
-        d_vec = n_sampling_points * (tangent_vec[..., 1:, :] - tangent_vec[..., :-1, :])
-        velocity_vec = n_sampling_points * (curve[..., 1:, :] - curve[..., :-1, :])
+        d_vec = (n_sampling_points - 1) * (tangent_vec[..., 1:, :] - tangent_vec[..., :-1, :])
+        velocity_vec = (n_sampling_points - 1) * (curve[..., 1:, :] - curve[..., :-1, :])
         velocity_norm = self.ambient_metric.norm(velocity_vec)
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
@@ -484,28 +484,11 @@ class SRVMetric(RiemannianMetric):
 
         base_curve_srv = self.square_root_velocity_transform(base_point)
 
-        tangent_vec_derivative = (n_sampling_points - 1) * (
-            tangent_vec[:, 1:, :] - tangent_vec[:, :-1, :]
+        d_srv_tangent_vec = self.aux_differential_square_root_velocity(
+            tangent_vec=tangent_vec, curve=base_point
         )
-        base_curve_velocity = (n_sampling_points - 1) * (
-            base_point[:, 1:, :] - base_point[:, :-1, :]
-        )
-        base_curve_velocity_norm = self._pointwise_norms(
-            base_curve_velocity, base_point[:, :-1, :]
-        )
-
-        inner_prod = self._pointwise_inner_products(
-            tangent_vec_derivative, base_curve_velocity, base_point[:, :-1, :]
-        )
-        coef_1 = 1 / gs.sqrt(base_curve_velocity_norm)
-        coef_2 = -1 / (2 * base_curve_velocity_norm ** (5 / 2)) * inner_prod
-
-        term_1 = gs.einsum("ij,ijk->ijk", coef_1, tangent_vec_derivative)
-        term_2 = gs.einsum("ij,ijk->ijk", coef_2, base_curve_velocity)
-        srv_initial_derivative = term_1 + term_2
-
         end_curve_srv = self.l2_metric(n_sampling_points - 1).exp(
-            tangent_vec=srv_initial_derivative, base_point=base_curve_srv
+            tangent_vec=d_srv_tangent_vec, base_point=base_curve_srv
         )
         end_curve_starting_point = self.ambient_metric.exp(
             tangent_vec=tangent_vec[:, 0, :], base_point=base_point[:, 0, :]
