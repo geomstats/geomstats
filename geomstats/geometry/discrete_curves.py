@@ -185,7 +185,7 @@ class SRVMetric(RiemannianMetric):
     vol. 33, no. 7, pp. 1415-1428, July 2011.
     """
 
-    def __init__(self, ambient_manifold, metric=None):
+    def __init__(self, ambient_manifold, metric=None, translation_invariant=True):
         super(SRVMetric, self).__init__(dim=math.inf, signature=(math.inf, 0, 0))
         if metric is None:
             if hasattr(ambient_manifold, "metric"):
@@ -200,8 +200,9 @@ class SRVMetric(RiemannianMetric):
         else:
             self.ambient_metric = metric
         self.l2_metric = lambda n: L2Metric(ambient_manifold, n_landmarks=n)
+        self.translation_invariant = translation_invariant
 
-    def _pointwise_inner_product(self, tangent_vec_a, tangent_vec_b, base_curve):
+    def _pointwise_inner_products(self, tangent_vec_a, tangent_vec_b, base_curve):
         """Compute the pointwise inner products of a pair of tangent vectors.
 
         Compute the inner-products between the components of two tangent vectors
@@ -236,7 +237,7 @@ class SRVMetric(RiemannianMetric):
 
         return inner_prod
 
-    def _pointwise_norm(self, tangent_vec, base_curve):
+    def _pointwise_norms(self, tangent_vec, base_curve):
         """Compute the pointwise norms of a tangent vector.
 
         Compute the norms of the components of a tangent vector at the different
@@ -254,7 +255,7 @@ class SRVMetric(RiemannianMetric):
         norm : array-like, shape=[..., n_sampling_points]
             Point-wise norms.
         """
-        sq_norm = self._pointwise_inner_product(
+        sq_norm = self._pointwise_inner_products(
             tangent_vec_a=tangent_vec, tangent_vec_b=tangent_vec, base_curve=base_curve
         )
         return gs.sqrt(sq_norm)
@@ -369,7 +370,7 @@ class SRVMetric(RiemannianMetric):
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
-        inner_prod = self._pointwise_inner_product(
+        inner_prod = self._pointwise_inner_products(
             d_vec, unit_velocity_vec, curve[..., :-1, :]
         )
         d_vec_tangential = gs.einsum("...ij,...i->...ij", unit_velocity_vec, inner_prod)
@@ -489,11 +490,11 @@ class SRVMetric(RiemannianMetric):
         base_curve_velocity = (n_sampling_points - 1) * (
             base_point[:, 1:, :] - base_point[:, :-1, :]
         )
-        base_curve_velocity_norm = self._pointwise_norm(
+        base_curve_velocity_norm = self._pointwise_norms(
             base_curve_velocity, base_point[:, :-1, :]
         )
 
-        inner_prod = self._pointwise_inner_product(
+        inner_prod = self._pointwise_inner_products(
             tangent_vec_derivative, base_curve_velocity, base_point[:, :-1, :]
         )
         coef_1 = 1 / gs.sqrt(base_curve_velocity_norm)
@@ -546,11 +547,11 @@ class SRVMetric(RiemannianMetric):
         base_curve_velocity = (n_sampling_points - 1) * (
             base_point[:, 1:, :] - base_point[:, :-1, :]
         )
-        base_curve_velocity_norm = self._pointwise_norm(
+        base_curve_velocity_norm = self._pointwise_norms(
             base_curve_velocity, base_point[:, :-1, :]
         )
 
-        inner_prod = self._pointwise_inner_product(
+        inner_prod = self._pointwise_inner_products(
             curve_srv - base_curve_srv, base_curve_velocity, base_point[:, :-1, :]
         )
         coef_1 = gs.sqrt(base_curve_velocity_norm)
@@ -1248,25 +1249,25 @@ class QuotientSRVMetric(SRVMetric):
             + tangent_vec[..., :-2, :]
         )
 
-        vec_a = self._pointwise_norm(
+        vec_a = self._pointwise_norms(
             d_pos, position
-        ) ** 2 - 1 / 2 * self._pointwise_inner_product(d2_pos, d_pos, position)
-        vec_b = -2 * self._pointwise_norm(d_pos, position) ** 2 - quotient ** 2 * (
-            self._pointwise_norm(d2_pos, position) ** 2
-            - self._pointwise_inner_product(d2_pos, d_pos, position) ** 2
-            / self._pointwise_norm(d_pos, position) ** 2
+        ) ** 2 - 1 / 2 * self._pointwise_inner_products(d2_pos, d_pos, position)
+        vec_b = -2 * self._pointwise_norms(d_pos, position) ** 2 - quotient ** 2 * (
+                self._pointwise_norms(d2_pos, position) ** 2
+                - self._pointwise_inner_products(d2_pos, d_pos, position) ** 2
+                / self._pointwise_norms(d_pos, position) ** 2
         )
-        vec_c = self._pointwise_norm(
+        vec_c = self._pointwise_norms(
             d_pos, position
-        ) ** 2 + 1 / 2 * self._pointwise_inner_product(d2_pos, d_pos, position)
-        vec_d = self._pointwise_norm(d_pos, position) * (
-            self._pointwise_inner_product(d2_vec, d_pos, position)
-            - (quotient ** 2 - 1)
-            * self._pointwise_inner_product(d_vec, d2_pos, position)
-            + (quotient ** 2 - 2)
-            * self._pointwise_inner_product(d2_pos, d_pos, position)
-            * self._pointwise_inner_product(d_vec, d_pos, position)
-            / self._pointwise_norm(d_pos, position) ** 2
+        ) ** 2 + 1 / 2 * self._pointwise_inner_products(d2_pos, d_pos, position)
+        vec_d = self._pointwise_norms(d_pos, position) * (
+                self._pointwise_inner_products(d2_vec, d_pos, position)
+                - (quotient ** 2 - 1)
+                * self._pointwise_inner_products(d_vec, d2_pos, position)
+                + (quotient ** 2 - 2)
+                * self._pointwise_inner_products(d2_pos, d_pos, position)
+                * self._pointwise_inner_products(d_vec, d_pos, position)
+                / self._pointwise_norms(d_pos, position) ** 2
         )
 
         linear_system = (
@@ -1281,7 +1282,7 @@ class QuotientSRVMetric(SRVMetric):
         )
 
         unit_speed = gs.einsum(
-            "...ij,...i->...ij", d_pos, 1 / self._pointwise_norm(d_pos, position)
+            "...ij,...i->...ij", d_pos, 1 / self._pointwise_norms(d_pos, position)
         )
         tangent_vec_ver = gs.einsum(
             "...ij,...i->...ij", unit_speed, vertical_norm[..., 1:-1]

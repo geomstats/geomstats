@@ -159,20 +159,20 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = gs.stack(expected, axis=1)
         self.assertAllClose(result, expected)
 
-    def test_srv_metric_pointwise_inner_product(self):
+    def test_srv_metric_pointwise_inner_products(self):
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
         curves_ab = curves_ab(self.times)
         curves_bc = curves_bc(self.times)
 
         tangent_vecs = self.l2_metric_s2.log(point=curves_bc, base_point=curves_ab)
-        result = self.srv_metric_r3._pointwise_inner_product(
+        result = self.srv_metric_r3._pointwise_inner_products(
             tangent_vec_a=tangent_vecs, tangent_vec_b=tangent_vecs, base_curve=curves_ab
         )
         expected_shape = (self.n_discretized_curves, self.n_sampling_points)
         self.assertAllClose(gs.shape(result), expected_shape)
 
-        result = self.srv_metric_r3._pointwise_inner_product(
+        result = self.srv_metric_r3._pointwise_inner_products(
             tangent_vec_a=tangent_vecs[0],
             tangent_vec_b=tangent_vecs[0],
             base_curve=curves_ab[0],
