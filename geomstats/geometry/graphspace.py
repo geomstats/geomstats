@@ -1,8 +1,5 @@
 """Graph Space."""
 
-import numpy as np
-from scipy.sparse import coo_matrix
-
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
@@ -12,9 +9,9 @@ class _GraphSpace:
 
     Graph Space to analyse populations of labelled and unlabelled graphs.
     The space is a quotient space obtained by applying the permutation
-    action of nodes to the space of adjecency matrices.
+    action of nodes to the space of adjacency matrices.
 
-    Points are represented by :math:`nodes \times nodes` adjecency matrices.
+    Points are represented by :math:`nodes \times nodes` adjacency matrices.
 
     Parameters
     ----------
@@ -32,13 +29,13 @@ class _GraphSpace:
               https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
     """
 
-    def __init__(self, n, p=None):
-        self.nodes = n
+    def __init__(self, nodes, p=None):
+        self.nodes = nodes
         self.p = p
         self.adjmat = Matrices(self.nodes, self.nodes)
 
     def belongs(self, graph, atol=gs.atol):
-        r"""Check if the matrix is an adjecency matrix associated to the
+        r"""Check if the matrix is an adjacency matrix associated to the
         graph with n nodes.
 
         Parameters
@@ -113,7 +110,6 @@ class _GraphSpace:
                         gs.transpose(permutation_matrix),
                     )
                 )
-                del permutation_matrix
         return result[0] if single_graph else gs.array(result)
 
 
@@ -133,7 +129,7 @@ class GraphSpaceMetric:
 
     def dist(self, base_graph, graph_to_permute, matcher="ID"):
         """Compute the distance between two equivalence classes of
-        adjecency matrices [Jain2009].
+        adjacency matrices [Jain2009].
 
         Parameters
         ----------
@@ -143,7 +139,7 @@ class GraphSpaceMetric:
             Second graph to align to the first graph.
         matcher : selecting which matcher to use
             'FAQ': [Volgstain2015] Fast Quadratic Assignment
-            only compatible with Frobenius metric.
+            note: use Frobenius metric in background.
 
         Returns
         -------
@@ -195,22 +191,21 @@ class GraphSpaceMetric:
                 gs.linalg.quadratic_assignment(x, y, options={"maximize": True})
                 for x, y in zip(base_graph, graph_to_permute)
             ]
-        elif l_base == l_obj == 2:
+        if l_base == l_obj == 2:
             return gs.linalg.quadratic_assignment(
                 base_graph, graph_to_permute, options={"maximize": True}
             )
-        elif l_base < l_obj:
+        if l_base < l_obj:
             return [
                 gs.linalg.quadratic_assignment(x, y, options={"maximize": True})
                 for x, y in zip(
                     gs.stack([base_graph] * graph_to_permute.shape[0]), graph_to_permute
                 )
             ]
-        else:
-            raise ValueError(
-                "The method can align a set of graphs to one graphs,"
-                "but the single graphs should be passed as base_graph"
-            )
+        raise ValueError(
+            "The method can align a set of graphs to one graphs,"
+            "but the single graphs should be passed as base_graph"
+        )
 
     def id_matching(self, base_graph, graph_to_permute):
         """Identity matching.
@@ -245,9 +240,9 @@ class GraphSpaceMetric:
 class GraphSpace(_GraphSpace):
     """Class for Graph Space.
 
-    Graphs are represented as adjecency matrices. The total space
+    Graphs are represented as adjacency matrices. The total space
     is an Euclidean space. The group action is the permutation
-    node action applied to the total spacem to analyse set of
+    node action applied to the total space to analyse set of
     node unlabelled graphs
 
     Parameters
