@@ -103,7 +103,7 @@ def _squared_dist(point_a, point_b, metric):
     _ : array-like, shape=[...,]
         Geodesic distance between point_a and point_b.
     """
-    return metric._private_squared_dist(point_a, point_b)
+    return metric.private_squared_dist(point_a, point_b)
 
 
 def homogeneous_representation(rotation, translation, output_shape, constant=1.0):
@@ -1166,7 +1166,30 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
             max_shape = tangent_vec_b.shape
         return homogeneous_representation(transported_rot, translation, max_shape, 0.0)
 
-    def _private_squared_dist(self, point_a, point_b):
+    def private_squared_dist(self, point_a, point_b):
+        """Compute geodesic distance between two points.
+
+        Compute the squared geodesic distance between point_a
+        and point_b, as defined by the metric.
+
+        This is an auxiliary private function that:
+        - is called by the method `squared_dist` of the class
+        SpecialEuclideanMatrixCannonicalLeftMetric,
+        - has been created to support the implementation
+        of custom_gradient in tensorflow backend.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        _ : array-like, shape=[...,]
+            Geodesic distance between point_a and point_b.
+        """
         dist = super().squared_dist(point_a, point_b)
         return dist
 

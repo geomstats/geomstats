@@ -15,7 +15,7 @@ from geomstats.learning.radial_kernel_functions import triangular_radial_kernel
 class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
     """Class defining the Kernel Density Estimation Classifier tests."""
 
-    def setUp(self):
+    def setup_method(self):
         """Define the parameters to test."""
         gs.random.seed(1234)
         self.dim = 2

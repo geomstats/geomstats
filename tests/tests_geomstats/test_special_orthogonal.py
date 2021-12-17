@@ -9,7 +9,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestSpecialOrthogonal(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.n = 2
         self.group = SpecialOrthogonal(n=self.n)
         self.so3 = SpecialOrthogonal(n=3)

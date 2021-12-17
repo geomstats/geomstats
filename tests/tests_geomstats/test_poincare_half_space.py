@@ -8,7 +8,7 @@ from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 
 
 class TestPoincareHalfSpace(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.manifold = PoincareHalfSpace(2)
         self.metric = self.manifold.metric
 
