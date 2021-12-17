@@ -172,8 +172,9 @@ class SubRiemannianMetric(abc.ABC):
             The symplectic gradient of the Hamiltonian.
         """
 
-        def vector(x):
-            _, grad = gs.autodiff.value_and_grad(self.hamiltonian)(x)
+        def vector(state):
+            """Return symplectic gradient of Hamiltonian at state."""
+            _, grad = gs.autodiff.value_and_grad(self.hamiltonian)(state)
             h_q = grad[0]
             h_p = grad[1]
             return gs.array([h_p, -h_q])
@@ -188,15 +189,16 @@ class SubRiemannianMetric(abc.ABC):
         hamiltonian : callable
             The hamiltonian function from the tangent bundle to the reals.
         step_size : float
-            Step size of the symplectic euler step
+            Step size of the symplectic euler step.
 
         Returns
         -------
         step : callable
-            Given a state, 'step' returns the next symplectic euler step
+            Given a state, 'step' returns the next symplectic euler step.
         """
 
         def step(state):
+            """Return the next symplectic euler step from state."""
             position, momentum = state
             dq, _ = self.symp_grad()(state)
             y = gs.array([position + dq, momentum])
@@ -223,6 +225,7 @@ class SubRiemannianMetric(abc.ABC):
         """
 
         def flow(x):
+            """Return n_steps iterations of func from x."""
             xs = [x]
             for i in range(n_steps):
                 xs.append(func(xs[i]))
