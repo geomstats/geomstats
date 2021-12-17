@@ -166,13 +166,13 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curves_bc = curves_bc(self.times)
 
         tangent_vecs = self.l2_metric_s2.log(point=curves_bc, base_point=curves_ab)
-        result = self.srv_metric_r3.pointwise_inner_product(
+        result = self.srv_metric_r3._pointwise_inner_product(
             tangent_vec_a=tangent_vecs, tangent_vec_b=tangent_vecs, base_curve=curves_ab
         )
         expected_shape = (self.n_discretized_curves, self.n_sampling_points)
         self.assertAllClose(gs.shape(result), expected_shape)
 
-        result = self.srv_metric_r3.pointwise_inner_product(
+        result = self.srv_metric_r3._pointwise_inner_product(
             tangent_vec_a=tangent_vecs[0],
             tangent_vec_b=tangent_vecs[0],
             base_curve=curves_ab[0],
@@ -180,8 +180,8 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected_shape = (self.n_sampling_points,)
         self.assertAllClose(gs.shape(result), expected_shape)
 
-    def test_square_root_velocity_and_inverse(self):
-        """Test of square_root_velocity and its inverse.
+    def test_square_root_velocity_transform_and_inverse(self):
+        """Test of SRVT and its inverse.
 
         N.B: Here curves_ab are seen as curves in R3 and not S2.
         """
@@ -189,9 +189,9 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curves_ab = curves_ab(self.times)
 
         curves = curves_ab
-        srv_curves = self.srv_metric_r3.square_root_velocity(curves)
+        srv_curves = self.srv_metric_r3.square_root_velocity_transform(curves)
         starting_points = curves[:, 0, :]
-        result = self.srv_metric_r3.square_root_velocity_inverse(
+        result = self.srv_metric_r3.square_root_velocity_transform_inverse(
             srv_curves, starting_points
         )
         expected = curves
@@ -225,8 +225,8 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         )
         result = geod(self.times)
 
-        srv_a = self.srv_metric_r3.square_root_velocity(self.curve_a)
-        srv_b = self.srv_metric_r3.square_root_velocity(self.curve_b)
+        srv_a = self.srv_metric_r3.square_root_velocity_transform(self.curve_a)
+        srv_b = self.srv_metric_r3.square_root_velocity_transform(self.curve_b)
         l2_metric = self.space_curves_in_euclidean_3d.l2_metric(
             self.n_sampling_points - 1
         )
@@ -238,7 +238,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         )
         starting_points = starting_points(self.times)
 
-        expected = self.srv_metric_r3.square_root_velocity_inverse(
+        expected = self.srv_metric_r3.square_root_velocity_transform_inverse(
             geod_srv, starting_points
         )
 
@@ -254,7 +254,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         )
         geod = geod(self.times)
 
-        srv = self.srv_metric_r3.square_root_velocity(geod)
+        srv = self.srv_metric_r3.square_root_velocity_transform(geod)
 
         srv_derivative = self.n_discretized_curves * (srv[1:, :] - srv[:-1, :])
         l2_metric = self.space_curves_in_euclidean_3d.l2_metric(
@@ -317,10 +317,10 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
         curves_ab = curves_ab(self.times)
         curves_bc = curves_bc(self.times)
-        srvs_ab = self.srv_metric_r3.square_root_velocity(curves_ab)
-        srvs_bc = self.srv_metric_r3.square_root_velocity(curves_bc)
+        srvs_ab = self.srv_metric_r3.square_root_velocity_transform(curves_ab)
+        srvs_bc = self.srv_metric_r3.square_root_velocity_transform(curves_bc)
 
-        result = self.srv_metric_r3.srv_inner_product(srvs_ab, srvs_bc)
+        result = self.srv_metric_r3._srv_inner_product(srvs_ab, srvs_bc)
         products = srvs_ab * srvs_bc
         expected = [gs.sum(product) for product in products]
         expected = gs.array(expected) / (srvs_ab.shape[-2] + 1)
@@ -336,9 +336,9 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         and that the resulting shape is right."""
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_ab = curves_ab(self.times)
-        srvs_ab = self.srv_metric_r3.square_root_velocity(curves_ab)
+        srvs_ab = self.srv_metric_r3.square_root_velocity_transform(curves_ab)
 
-        result = self.srv_metric_r3.srv_norm(srvs_ab)
+        result = self.srv_metric_r3._srv_norm(srvs_ab)
         products = srvs_ab * srvs_ab
         sums = [gs.sum(product) for product in products]
         squared_norm = gs.array(sums) / (srvs_ab.shape[-2] + 1)
@@ -361,7 +361,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         result = elastic_metric.f_transform(curve_a_projected)
         expected = gs.squeeze(
-            curves_r2.square_root_velocity_metric.square_root_velocity(
+            curves_r2.square_root_velocity_metric.square_root_velocity_transform(
                 curve_a_projected))
         self.assertAllClose(result, expected)
 
@@ -431,7 +431,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         n_curves = 2000
         times = gs.linspace(0.0, 1.0, n_curves)
         path_of_curves = curve_a + gs.einsum("i,jk->ijk", times, tangent_vec)
-        srv_path = self.srv_metric_r3.square_root_velocity(path_of_curves)
+        srv_path = self.srv_metric_r3.square_root_velocity_transform(path_of_curves)
         expected = n_curves * (srv_path[1] - srv_path[0])
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
 
