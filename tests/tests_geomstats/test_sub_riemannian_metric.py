@@ -47,9 +47,7 @@ class TestSubRiemannianMetric(geomstats.tests.TestCase):
     @geomstats.tests.autograd_tf_and_torch_only
     def test_symp_grad(self):
         test_state = gs.array([[1.0, 1.0, 1.0], [2.0, 3.0, 4.0]])
-        result = self.example_metric.symp_grad(self.example_metric.hamiltonian)(
-            test_state
-        )
+        result = self.example_metric.symp_grad()(test_state)
         expected = gs.array([[2.0, 3.0, 4.0], [-0.0, -0.0, -0.0]])
         self.assertAllClose(result, expected)
 
@@ -57,9 +55,7 @@ class TestSubRiemannianMetric(geomstats.tests.TestCase):
     def test_symp_euler(self):
         test_state = gs.array([[1.0, 1.0, 1.0], [2.0, 3.0, 4.0]])
         step_size = 0.01
-        result = self.example_metric.symp_euler(
-            self.example_metric.hamiltonian, step_size
-        )(test_state)
+        result = self.example_metric.symp_euler(step_size)(test_state)
         expected = gs.array([[1.02, 1.03, 1.04], [2.0, 3.0, 4.0]])
         self.assertAllClose(result, expected)
 
@@ -71,9 +67,7 @@ class TestSubRiemannianMetric(geomstats.tests.TestCase):
 
         step = self.example_metric.symp_euler
 
-        result = self.example_metric.iterate(
-            step(self.example_metric.hamiltonian, step_size), n_steps
-        )(test_state)[-10]
+        result = self.example_metric.iterate(step_size, n_steps)(test_state)[-10]
         expected = gs.array([[1.22, 1.33, 1.44], [2.0, 3.0, 4.0]])
         self.assertAllClose(result, expected)
 
@@ -85,9 +79,7 @@ class TestSubRiemannianMetric(geomstats.tests.TestCase):
 
         step = self.example_metric.symp_euler
 
-        result = self.example_metric.symp_flow(
-            self.example_metric.hamiltonian, end_time, n_steps
-        )(test_state)[-10]
+        result = self.example_metric.symp_flow(end_time, n_steps)(test_state)[-10]
         expected = gs.array([[2.1, 2.65, 3.2], [2.0, 3.0, 4.0]])
         self.assertAllClose(result, expected)
 
