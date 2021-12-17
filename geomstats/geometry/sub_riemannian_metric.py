@@ -2,9 +2,10 @@
 
 import abc
 
+from autograd.scipy.integrate import odeint
+
 import geomstats.backend as gs
 import geomstats.geometry as geometry
-from autograd.scipy.integrate import odeint
 
 
 class SubRiemannianMetric(abc.ABC):
@@ -66,9 +67,7 @@ class SubRiemannianMetric(abc.ABC):
         _ : array-like, shape=[..., dim, dist_dim]
             Frame field matrix.
         """
-        raise NotImplementedError(
-            "The frame field is not implemented."
-        )
+        raise NotImplementedError("The frame field is not implemented.")
 
     def cometric_sub_matrix(self, basepoint):
         """Cometric  sub matrix of dimension dist_dim x dist_dim.
@@ -172,6 +171,7 @@ class SubRiemannianMetric(abc.ABC):
         vector : array-like, shape=[, 2*dim]
             The symplectic gradient of the Hamiltonian.
         """
+
         def vector(x):
             _, grad = gs.autodiff.value_and_grad(self.hamiltonian)(x)
             h_q = grad[0]
@@ -195,6 +195,7 @@ class SubRiemannianMetric(abc.ABC):
         step : callable
             Given a state, 'step' returns the next symplectic euler step
         """
+
         def step(state):
             position, momentum = state
             dq, _ = self.symp_grad(self.hamiltonian)(state)
@@ -203,7 +204,6 @@ class SubRiemannianMetric(abc.ABC):
             return gs.array([position + step_size * dq, momentum + step_size * dp])
 
         return step
-
 
     @staticmethod
     def iterate(func, n_steps):
@@ -221,6 +221,7 @@ class SubRiemannianMetric(abc.ABC):
         flow : callable
             Given a state, 'flow' returns a sequence with n_steps iterations of func.
         """
+
         def flow(x):
             xs = [x]
             for i in range(n_steps):
@@ -246,18 +247,11 @@ class SubRiemannianMetric(abc.ABC):
         _ : array-like, shape[,n_steps]
             Given a state, 'symp_flow' returns a sequence with n_steps iterations of func.
         """
-            step = self.symp_euler
-            step_size = end_time / n_steps
-            return self.iterate(step(self.hamiltonian, step_size), n_steps)
-    
-    def exp(
-        self,
-        cotangent_vec,
-        base_point,
-        n_steps=20,
-        point_type=None,
-        **kwargs
-    ):
+        step = self.symp_euler
+        step_size = end_time / n_steps
+        return self.iterate(step(self.hamiltonian, step_size), n_steps)
+
+    def exp(self, cotangent_vec, base_point, n_steps=20, point_type=None, **kwargs):
         """Exponential map associated to the cometric. I
 
         Exponential map at base_point of cotangent_vec computed by integration
