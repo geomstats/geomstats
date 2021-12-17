@@ -180,7 +180,7 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         result = self.so3.are_antipodals(rotation_mat1, rotation_mat2)
         self.assertFalse(gs.all(result))
 
-    def test_are_antipodals_vectorizatino(self):
+    def test_are_antipodals_vectorization(self):
         rotation_mat1 = gs.eye(3)
         rotation_mat2 = gs.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
         rotation_mats1 = gs.array([rotation_mat1, rotation_mat2])
