@@ -235,10 +235,10 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         """
         sq_rot_mat1 = gs.matmul(rotation_mat1, rotation_mat1)
         sq_rot_mat2 = gs.matmul(rotation_mat2, rotation_mat2)
-        are_different = ~gs.all(gs.isclose(rotation_mat1, rotation_mat2), axis=(-1, -2))
+        are_different = ~gs.all(gs.isclose(rotation_mat1, rotation_mat2), axis=(-2, -1))
 
         return are_different & gs.all(
-            gs.isclose(sq_rot_mat1, sq_rot_mat2), axis=(-1, -2)
+            gs.isclose(sq_rot_mat1, sq_rot_mat2), axis=(-2, -1)
         )
 
     def log(self, point, base_point=None):
