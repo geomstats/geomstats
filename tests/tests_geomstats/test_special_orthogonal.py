@@ -167,8 +167,8 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
 
         self.assertTrue(result)
 
-        rotvec1 = (2 * gs.pi / (3 * gs.sqrt(3))) * gs.array([1, 1, 1])
-        rotvec2 = (-gs.pi / (3 * gs.sqrt(3))) * gs.array([1, 1, 1])
+        rotvec1 = (2.0 * gs.pi / (3.0 * gs.sqrt(3.0))) * gs.array([1.0, 1.0, 1.0])
+        rotvec2 = (-gs.pi / (3.0 * gs.sqrt(3.0))) * gs.array([1.0, 1.0, 1.0])
         rotation_mat1 = self.so3.matrix_from_rotation_vector(rotvec1)
         rotation_mat2 = self.so3.matrix_from_rotation_vector(rotvec2)
 
