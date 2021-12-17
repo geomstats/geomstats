@@ -226,7 +226,7 @@ class GraphSpaceMetric:
         l_obj = len(graph_to_permute.shape)
         if l_base == l_obj == 3 or l_base < l_obj:
             return [list(range(self.nodes))] * len(graph_to_permute)
-        elif l_base == l_obj == 2:
+        if l_base == l_obj == 2:
             return list(range(self.nodes))
         else:
             raise (
