@@ -774,7 +774,7 @@ def tril(mat, k=0):
     return tf.linalg.set_diag(tril, zero_diag)
 
 
-# (sait) use tf.experimental.triu once it becomes stable
+# TODO(sait) use tf.experimental.triu once it becomes stable.
 def triu(mat, k=0):
     if k not in (0, 1):
         raise NotImplementedError("Only k=0 and k=1 supported so far")

@@ -75,7 +75,7 @@ class LowerTriangularMatrices(VectorSpace):
         return gs.tril_to_vec(mat)
 
     def projection(self, point):
-        """Make a square matrix lower triangular.
+        """Make a square matrix lower triangular by zeroing out other elements.
 
         Parameters
         ----------

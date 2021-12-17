@@ -119,9 +119,9 @@ class TestPositiveLowerTriangularMatrices(geomstats.tests.TestCase):
 
     def test_differential_gram(self):
         """Test differential of gram for single point"""
-        L = gs.array([[1.0, 0.0], [2.0, 1.0]])
-        X = gs.array([[-1.0, 0.0], [2.0, -1.0]])
-        diff_gram_result = self.space.differential_gram(X, L)
+        ell = gs.array([[1.0, 0.0], [2.0, 1.0]])
+        ex = gs.array([[-1.0, 0.0], [2.0, -1.0]])
+        diff_gram_result = self.space.differential_gram(ex, ell)
         diff_gram_expected = gs.array([[-2.0, 0.0], [0.0, 6.0]])
         self.assertAllClose(diff_gram_expected, diff_gram_result)
 

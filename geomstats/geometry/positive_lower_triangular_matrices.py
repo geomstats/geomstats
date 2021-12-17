@@ -103,7 +103,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
 
     @staticmethod
     def gram(point):
-        """Compute gram matrix of rows
+        """Compute gram matrix of rows.
 
         Gram_matrix is mapping from point to point.point^{T}.
         This is diffeomorphism between cholesky space and spd manifold.

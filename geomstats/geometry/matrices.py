@@ -225,7 +225,7 @@ class Matrices(VectorSpace):
         Returns
         -------
         is_triu : array-like, shape=[...,]
-            Boolean evaluating if the matrix is upper triangular
+            Boolean evaluating if the matrix is upper triangular.
         """
         is_square = cls.is_square(mat)
         if not is_square:
