@@ -46,7 +46,7 @@ class SubRiemannianMetric(abc.ABC):
             Inner-product matrix.
         """
         raise NotImplementedError(
-            "The computation of the metric matrix" " is not implemented."
+            "The computation of the metric matrix is not implemented."
         )
 
     def frame(self, point):
@@ -67,7 +67,7 @@ class SubRiemannianMetric(abc.ABC):
             Frame field matrix.
         """
         raise NotImplementedError(
-            "The frame field" " is not implemented."
+            "The frame field is not implemented."
         )
 
     def cometric_sub_matrix(self, basepoint):
@@ -90,7 +90,7 @@ class SubRiemannianMetric(abc.ABC):
             Cometric submatrix.
         """
         raise NotImplementedError(
-            "The computation of the cometric submatrix" " is not implemented."
+            "The computation of the cometric submatrix is not implemented."
         )
 
     @abc.abstractmethod
@@ -148,7 +148,7 @@ class SubRiemannianMetric(abc.ABC):
         Parameters
         ----------
         state : tuple of arrays
-            Position and momentum variables. The position is a point on the
+            Position and momentum variables. Position is a point on the
             manifold, while the momentum is cotangent vector.
 
         Returns
@@ -160,6 +160,18 @@ class SubRiemannianMetric(abc.ABC):
         return 1.0 / 2 * self.inner_coproduct(momentum, momentum, position)
 
     def symp_grad(self, hamiltonian):
+        r"""Compute the symplectic gradient of the Hamiltonian.
+
+        Parameters
+        ----------
+        hamiltonian : callable
+            The hamiltonian function from the tangent bundle to the reals.
+
+        Returns
+        -------
+        vector : array-like, shape=[, 2*dim]
+            The symplectic gradient of the Hamiltonian.
+        """
         def vector(x):
             _, grad = gs.autodiff.value_and_grad(self.hamiltonian)(x)
             h_q = grad[0]
@@ -169,6 +181,20 @@ class SubRiemannianMetric(abc.ABC):
         return vector
 
     def symp_euler(self, hamiltonian, step_size):
+        r"""Compute a function which calculates a step of symplectic euler integration.
+
+        Parameters
+        ----------
+        hamiltonian : callable
+            The hamiltonian function from the tangent bundle to the reals.
+        step_size : float
+            Step size of the symplectic euler step
+
+        Returns
+        -------
+        step : callable
+            Given a state, 'step' returns the next symplectic euler step
+        """
         def step(state):
             position, momentum = state
             dq, _ = self.symp_grad(self.hamiltonian)(state)
@@ -181,6 +207,20 @@ class SubRiemannianMetric(abc.ABC):
 
     @staticmethod
     def iterate(func, n_steps):
+        r"""Constructs a function which iterates another function n_steps times.
+
+        Parameters
+        ----------
+        func : callable
+            A function which calculates the next step of a sequence to be calculated.
+        n_steps : int
+            The number of times to iterate func.
+
+        Returns
+        -------
+        flow : callable
+            Given a state, 'flow' returns a sequence with n_steps iterations of func.
+        """
         def flow(x):
             xs = [x]
             for i in range(n_steps):
@@ -190,6 +230,22 @@ class SubRiemannianMetric(abc.ABC):
         return flow
 
     def symp_flow(self, hamiltonian, end_time=1.0, n_steps=20):
+        r"""Compute the symplectic flow of the hamiltonian.
+
+        Parameters
+        ----------
+        hamiltonian : callable
+            The hamiltonian function from the tangent bundle to the reals.
+        end_time : float
+            The last time point until which to calculate the flow.
+        n_steps : int
+            Number of integration steps.
+
+        Returns
+        -------
+        _ : array-like, shape[,n_steps]
+            Given a state, 'symp_flow' returns a sequence with n_steps iterations of func.
+        """
             step = self.symp_euler
             step_size = end_time / n_steps
             return self.iterate(step(self.hamiltonian, step_size), n_steps)
@@ -202,24 +258,22 @@ class SubRiemannianMetric(abc.ABC):
         point_type=None,
         **kwargs
     ):
-        """Exponential map associated to the affine connection.
+        """Exponential map associated to the cometric. I
 
-        Exponential map at base_point of tangent_vec computed by integration
-        of the geodesic equation (initial value problem), using the
-        christoffel symbols.
+        Exponential map at base_point of cotangent_vec computed by integration
+        of the Hamiltonian equation (initial value problem), using the cometric.
+        In the Riemannian case this yields the exponential associated to the
+        Levi-Civita connection of the metric (the inverse of the cometric).
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., dim]
+        cotangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
         n_steps : int
             Number of discrete time steps to take in the integration.
             Optional, default: N_STEPS.
-        step : str, {'euler', 'rk4'}
-            The numerical scheme to use for integration.
-            Optional, default: 'euler'.
         point_type : str, {'vector', 'matrix'}
             Type of representation used for points.
             Optional, default: None.
@@ -233,14 +287,4 @@ class SubRiemannianMetric(abc.ABC):
 
         flow = self.symp_flow(self.hamiltonian, n_steps=n_steps)
 
-        exp = flow(initial_state)[-1][0]
-        return exp
-
-    
-
-    
-
-
-
-
-    
+        return flow(initial_state)[-1][0]
