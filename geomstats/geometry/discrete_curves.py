@@ -1072,7 +1072,8 @@ class ElasticMetric(RiemannianMetric):
         f : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
             F_transform of the curve..
         """
-        velocity = curve[1:] - curve[:-1]
+        n_sampling_points = curve.shape[-2]
+        velocity = (n_sampling_points - 1) * (curve[1:] - curve[:-1])
         speeds, args = self.cartesian_to_polar(velocity)
 
         f_args = args * self.a / (2 * self.b)
@@ -1112,7 +1113,7 @@ class ElasticMetric(RiemannianMetric):
 
         curve_x = gs.array(curve_x)
         curve_y = gs.array(curve_y)
-        curve = gs.transpose(gs.vstack((curve_x, curve_y)))
+        curve = gs.transpose(gs.vstack((curve_x, curve_y))) / n_sampling_points
         curve = 1 / (4 * self.b ** 2) * curve + starting_point
 
         return curve

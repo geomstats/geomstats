@@ -350,6 +350,21 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = [srvs_ab.shape[0]]
         self.assertAllClose(result, expected)
 
+    def test_f_transform(self):
+        """Test that the f transform coincides with the SRVF
+
+        when a=1, b=1/2."""
+        r2 = Euclidean(dim=2)
+        elastic_curves_r2 = ElasticCurves(a=1., b=0.5)
+        curves_r2 = DiscreteCurves(ambient_manifold=r2)
+        curve_a_projected = self.curve_a[:, [0, 2]]
+
+        result = elastic_curves_r2.elastic_metric.f_transform(curve_a_projected)
+        expected = gs.squeeze(
+            curves_r2.square_root_velocity_metric.square_root_velocity(
+                curve_a_projected))
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.np_autograd_and_tf_only
     def test_f_transform_and_inverse(self):
         """Test that the inverse is right."""
