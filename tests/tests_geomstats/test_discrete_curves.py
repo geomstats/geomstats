@@ -426,6 +426,28 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = n_curves * (srv_path[1] - srv_path[0])
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
 
+    @geomstats.tests.np_and_autograd_only
+    def test_aux_differential_srv_transform_inverse(self):
+        """Test inverse of differential of square root velocity transform.
+
+        Check that it is the inverse of aux_differential_srv_transform.
+        """
+        dim = 3
+        # n_sampling_points = 2000
+        # sampling_times = gs.linspace(0.0, 1.0, n_sampling_points)
+        # curve_a = self.curve_fun_a(sampling_times)
+        tangent_vec = gs.transpose(
+            gs.tile(gs.linspace(0.0, 1.0, self.n_sampling_points), (dim, 1))
+        )
+        d_srv = self.srv_metric_r3.aux_differential_srv_transform(
+            tangent_vec, self.curve_a
+        )
+        result = self.srv_metric_r3.aux_differential_srv_transform_inverse(
+            d_srv, self.curve_a
+        )
+        expected = tangent_vec
+        self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
+
     def test_aux_differential_srv_transform_vectorization(self):
         """Test differential of square root velocity transform.
 

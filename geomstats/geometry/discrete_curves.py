@@ -385,6 +385,54 @@ class SRVMetric(RiemannianMetric):
 
         return d_srv_vec
 
+    def aux_differential_srv_transform_inverse(self, tangent_vec, curve):
+        """Compute inverse of differential of the square root velocity transform.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
+            Tangent vector to srv.
+        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        vec : array-like, shape=[..., ambient_dim]
+            Inverse of the differential of the square root velocity transform at
+            curve evaluated at tangent_vec.
+        """
+        if not isinstance(self.ambient_metric, EuclideanMetric):
+            raise AssertionError(
+                "The differential of the square root "
+                "velocity function is only implemented for "
+                "discrete curves embedded in a Euclidean "
+                "space."
+            )
+        curve = gs.to_ndarray(curve, to_ndim=3)
+        n_curves, n_sampling_points, ambient_dim = curve.shape
+        n_sampling_points = curve.shape[-2]
+        velocity_vec = (n_sampling_points - 1) * (
+            curve[..., 1:, :] - curve[..., :-1, :]
+        )
+        velocity_norm = self.ambient_metric.norm(velocity_vec)
+        unit_velocity_vec = gs.einsum(
+            "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
+        )
+        inner_prod = self._pointwise_inner_products(
+            tangent_vec, unit_velocity_vec, curve[..., :-1, :]
+        )
+        tangent_vec_tangential = gs.einsum(
+            "...ij,...i->...ij", unit_velocity_vec, inner_prod
+        )
+        d_vec = tangent_vec + tangent_vec_tangential
+        d_vec = gs.einsum("...ij,...i->...ij", d_vec, velocity_norm ** (1 / 2))
+        increment = d_vec / (n_sampling_points - 1)
+        initial_value = gs.zeros((n_curves, 1, ambient_dim))
+        vec = gs.concatenate((initial_value, increment), -2)
+        vec = gs.cumsum(vec, -2)
+
+        return gs.squeeze(vec)
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, curve):
         """Compute inner product between two tangent vectors.
 
@@ -524,39 +572,20 @@ class SRVMetric(RiemannianMetric):
             )
         point = gs.to_ndarray(point, to_ndim=3)
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_curves, n_sampling_points, n_coords = point.shape
 
         curve_srv = self.srv_transform(point)
         base_curve_srv = self.srv_transform(base_point)
-
-        base_curve_velocity = (n_sampling_points - 1) * (
-            base_point[:, 1:, :] - base_point[:, :-1, :]
+        log = self.aux_differential_srv_transform_inverse(
+            curve_srv - base_curve_srv, base_point
         )
-        base_curve_velocity_norm = self._pointwise_norms(
-            base_curve_velocity, base_point[:, :-1, :]
-        )
-
-        inner_prod = self._pointwise_inner_products(
-            curve_srv - base_curve_srv, base_curve_velocity, base_point[:, :-1, :]
-        )
-        coef_1 = gs.sqrt(base_curve_velocity_norm)
-        coef_2 = 1 / base_curve_velocity_norm ** (3 / 2) * inner_prod
-
-        term_1 = gs.einsum("ij,ijk->ijk", coef_1, curve_srv - base_curve_srv)
-        term_2 = gs.einsum("ij,ijk->ijk", coef_2, base_curve_velocity)
-        log_derivative = term_1 + term_2
+        log = gs.to_ndarray(log, to_ndim=3)
 
         log_starting_points = self.ambient_metric.log(
             point=point[:, 0, :], base_point=base_point[:, 0, :]
         )
         log_starting_points = gs.to_ndarray(log_starting_points, to_ndim=3, axis=1)
-
-        log_cumsum = gs.hstack(
-            [gs.zeros((n_curves, 1, n_coords)), gs.cumsum(log_derivative, -2)]
-        )
-        log = log_starting_points + 1 / (n_sampling_points - 1) * log_cumsum
-
-        return log
+        log += log_starting_points
+        return gs.squeeze(log)
 
     def geodesic(self, initial_curve, end_curve=None, initial_tangent_vec=None):
         """Compute geodesic from initial curve to end curve.
