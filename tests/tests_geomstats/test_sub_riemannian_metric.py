@@ -67,7 +67,7 @@ class TestSubRiemannianMetric(geomstats.tests.TestCase):
 
         step = self.example_metric.symp_euler
 
-        result = self.example_metric.iterate(step_size, n_steps)(test_state)[-10]
+        result = self.example_metric.iterate(step(step_size), n_steps)(test_state)[-10]
         expected = gs.array([[1.22, 1.33, 1.44], [2.0, 3.0, 4.0]])
         self.assertAllClose(result, expected)
 
