@@ -3,6 +3,8 @@
 import math
 import warnings
 
+import pytest
+
 import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
@@ -72,6 +74,21 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
 
         result = sym_n.powerm(expected, power)
         result = gs.matmul(result, gs.transpose(result, (0, 2, 1)))
+        self.assertAllClose(result, expected)
+
+    @pytest.mark.parametrize(
+        "dim, vec, result",
+        [
+            (
+                3,
+                [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+                [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+            )
+        ],
+    )
+    def test_from_vector(self, dim, vec, expected):
+        """Test from vector"""
+        result = SymmetricMatrices(dim).from_vector(gs.array(vec))
         self.assertAllClose(result, expected)
 
     def test_vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
