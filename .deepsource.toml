@@ -5,6 +5,14 @@ test_patterns = [
   "test_*.py"
 ]
 
+dependency_file_paths = [
+  "ci-requirements.txt",
+  "dev-requirements.txt",
+  "doc-requirements.txt",
+  "opt-requirements.txt"
+  "requirements.txt",
+]
+
 [[analyzers]]
 name = "python"
 enabled = true
