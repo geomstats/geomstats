@@ -8,8 +8,11 @@ class _GraphSpace:
     r"""Class for the Graph Space.
 
     Graph Space to analyse populations of labelled and unlabelled graphs.
-    The space is a quotient space obtained by applying the permutation
-    action of nodes to the space of adjacency matrices.
+    The space focuses on graphs with scalar euclidean attributes on nodes and edges,
+    with a finite number of nodes and both directed and undirected edges.
+    For undirected graphs, use symmeric adjacency matrices. The space is a quotient
+    space obtained by applying the permutation action of nodes to the space
+    of adjacency matrices.
 
     Points are represented by :math:`nodes \times nodes` adjacency matrices.
 
@@ -23,7 +26,7 @@ class _GraphSpace:
     References
     ----------
     ..[Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-              “Graph Space: Geodesic Principal Components for aPopulation of
+              “Graph Space: Geodesic Principal Components for a Population of
               Network-valued Data.”
               Mox report 14, 2020.
               https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
@@ -78,9 +81,10 @@ class _GraphSpace:
         Parameters
         ----------
         graph_to_permute : array-like, shape=[..., n, n]
-            input graphs to be permuted
+            Input graphs to be permuted.
         permutation: array-like, shape=[..., n]
-            node permutations
+            Node permutations where in position i we have the value j meaning
+            the node i should be permuted with node j.
 
         Returns
         -------
@@ -129,7 +133,7 @@ class GraphSpaceMetric:
 
     def dist(self, base_graph, graph_to_permute, matcher="ID"):
         """Compute the distance between two equivalence classes of
-        adjacency matrices [Jain2009].
+        adjacency matrices [Jain2009]_.
 
         Parameters
         ----------
@@ -138,7 +142,7 @@ class GraphSpaceMetric:
         graph_to_permute : array-like, shape=[..., n, n]
             Second graph to align to the first graph.
         matcher : selecting which matcher to use
-            'FAQ': [Volgstain2015] Fast Quadratic Assignment
+            'FAQ': [Vogelstein2015]_ Fast Quadratic Assignment
             note: use Frobenius metric in background.
 
         Returns
@@ -151,6 +155,10 @@ class GraphSpaceMetric:
         ..[Jain2009]  Jain, B., Obermayer, K.
                   "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
                   https://www.jmlr.org/papers/v10/jain09a.html.
+        ..[Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
+                Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
+                “Fast approximate quadratic programming for graph matching.“
+                PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
         """
         if matcher == "FAQ":
             perm = self.faq_matching(base_graph, graph_to_permute)
@@ -179,7 +187,7 @@ class GraphSpaceMetric:
 
         References
         ----------
-        ..[Volgstain2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
+        ..[Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
                 Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
                 “Fast approximate quadratic programming for graph matching.“
                 PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
