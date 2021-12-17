@@ -41,7 +41,7 @@ class TestSubRiemannianMetric(geomstats.tests.TestCase):
         state = gs.array([base_point, cotangent_vec])
 
         result = self.example_metric.hamiltonian(state)
-        expected = gs.array([1.5])
+        expected = 1.5
         self.assertAllClose(result, expected)
 
     @geomstats.tests.autograd_tf_and_torch_only
