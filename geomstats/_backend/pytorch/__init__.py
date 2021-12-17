@@ -12,6 +12,9 @@ from torch import broadcast_tensors as broadcast_arrays
 from torch import (
     ceil,
     clip,
+    complex32,
+    complex64,
+    complex128,
     cos,
     cosh,
     cross,
@@ -24,23 +27,10 @@ from torch import (
     flatten,
     float32,
     float64,
-    complex32,
-    complex64,
-    complex128,
     floor,
 )
 from torch import fmod as mod
-from torch import (
-    greater,
-    hstack,
-    imag,
-    int32,
-    int64,
-    isnan,
-    less,
-    log,
-    logical_or,
-)
+from torch import greater, hstack, imag, int32, int64, isnan, less, log, logical_or
 from torch import max as amax
 from torch import mean, meshgrid
 from torch import min as amin
@@ -812,6 +802,6 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     return mat
 
 
-def sort(a, axis=- 1):
-    sorted_a, _ = torch.sort(a, dim=axis)
-    return sorted_a
+def sort(X, axis=-1):
+    sorted, _ = torch.sort(X, axis=axis)
+    return sorted
