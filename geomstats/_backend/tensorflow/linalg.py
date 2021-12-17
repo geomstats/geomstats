@@ -62,9 +62,26 @@ def solve_sylvester(a, b, q):
                 tilde_q = tf.transpose(eigvecs, perm=axes) @ q @ eigvecs
                 tilde_x = tilde_q / (eigvals[..., :, None] + eigvals[..., None, :])
                 return eigvecs @ tilde_x @ tf.transpose(eigvecs, perm=axes)
+
+            conditions = (
+                a.shape[-1] >= 2
+                and tf.reduce_all(eigvals[..., 0] >= -1e-8)
+                and tf.reduce_all(eigvals[..., 1] >= 1e-8)
+                and tf.reduce_all(tf.abs(q + tf.transpose(q, perm=axes)) < 1e-8)
+            )
+
+            if conditions:
+                tilde_q = tf.transpose(eigvecs, perm=axes) @ q @ eigvecs
+                safe_denominator = (
+                    eigvals[..., :, None] + eigvals[..., None, :] + tf.eye(a.shape[-1])
+                )
+                tilde_x = tilde_q / safe_denominator
+                return eigvecs @ tilde_x @ tf.transpose(eigvecs, perm=axes)
+
     raise RuntimeError(
-        "solve_sylvester is not implemented in tensorflow if a != b or a not"
-        " Symmetric Semi Definite"
+        "solve_sylvester is only implemented if a = b, a symmetric and either a is "
+        "positive definite or q is skew-symmetric and a is positive "
+        "semi-definite with the first two eigen values positive"
     )
 
 
