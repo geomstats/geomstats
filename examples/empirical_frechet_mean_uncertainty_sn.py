@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.frechet_mean import _adaptive_gradient_descent
+from geomstats.learning.frechet_mean import FrechetMean
 
 
 def empirical_frechet_var_bubble(n_samples, theta, dim, n_expectation=1000):
@@ -63,10 +63,11 @@ def empirical_frechet_var_bubble(n_samples, theta, dim, n_expectation=1000):
         rest_col = gs.sin(theta) * directions
         data = gs.concatenate([rest_col, last_col], axis=-1)
 
-        # TODO (nina): Use FrechetMean here
-        current_mean = _adaptive_gradient_descent(
-            data, metric=sphere.metric, max_iter=32, init_point=north_pole
+        estimator = FrechetMean(
+            sphere.metric, method="adaptive", max_iter=32, init_point=north_pole
         )
+        estimator.fit(data)
+        current_mean = estimator.estimate_
         var.append(sphere.metric.squared_dist(north_pole, current_mean))
     return gs.mean(var), 2 * gs.std(var) / gs.sqrt(n_expectation)
 
