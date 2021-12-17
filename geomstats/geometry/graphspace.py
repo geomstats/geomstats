@@ -1,6 +1,7 @@
 """Graph Space."""
 
 import numpy as np
+from scipy.sparse import coo_matrix
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices, MatricesMetric
@@ -89,12 +90,31 @@ class _GraphSpace:
         graphs_permuted : array-like, shape=[..., n, n]
             Graphs permuted.
         """
-        if len(graph_to_permute.shape) == 3:
-            return gs.array(
-                [graph_to_permute[i][:, p][p, :] for i, p in enumerate(permutation)]
-            )
-        else:
-            return graph_to_permute[:, permutation][permutation, :]
+        nodes = self.nodes
+        single_graph = len(graph_to_permute.shape) < 3
+        if single_graph:
+            graph_to_permute = [graph_to_permute]
+            permutation = [permutation]
+        result = []
+        for i, p in enumerate(permutation):
+            if gs.all(gs.array(nodes) == gs.array(p)):
+                result.append(graph_to_permute[i])
+            else:
+                gtype = graph_to_permute[i].dtype
+                permutation_matrix = gs.array_from_sparse(
+                    data=gs.ones(nodes, dtype=gtype),
+                    indices=list(zip(list(range(nodes)), p)),
+                    target_shape=(nodes, nodes),
+                )
+                result.append(
+                    self.adjmat.mul(
+                        permutation_matrix,
+                        graph_to_permute[i],
+                        gs.transpose(permutation_matrix),
+                    )
+                )
+                del permutation_matrix
+        return result[0] if single_graph else gs.array(result)
 
 
 class GraphSpaceMetric:
@@ -183,7 +203,7 @@ class GraphSpaceMetric:
             return [
                 gs.linalg.quadratic_assignment(x, y, options={"maximize": True})
                 for x, y in zip(
-                    np.stack([base_graph] * graph_to_permute.shape[0]), graph_to_permute
+                    gs.stack([base_graph] * graph_to_permute.shape[0]), graph_to_permute
                 )
             ]
         else:
@@ -212,7 +232,7 @@ class GraphSpaceMetric:
         if l_base == l_obj == 3 or l_base < l_obj:
             return [list(range(self.nodes))] * len(graph_to_permute)
         elif l_base == l_obj == 2:
-            return list(gs.arange(self.nodes))
+            return list(range(self.nodes))
         else:
             raise (
                 ValueError(
