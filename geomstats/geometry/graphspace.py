@@ -228,13 +228,12 @@ class GraphSpaceMetric:
             return [list(range(self.nodes))] * len(graph_to_permute)
         if l_base == l_obj == 2:
             return list(range(self.nodes))
-        else:
-            raise (
-                ValueError(
-                    "The method can align a set of graphs to one graphs,"
-                    "but the single graphs should be passed as base_graph"
-                )
+        raise (
+            ValueError(
+                "The method can align a set of graphs to one graphs,"
+                "but the single graphs should be passed as base_graph"
             )
+        )
 
 
 class GraphSpace(_GraphSpace):
