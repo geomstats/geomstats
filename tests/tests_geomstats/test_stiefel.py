@@ -85,14 +85,15 @@ class TestStiefel(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (self.n, self.p))
 
-    def test_log_two_sheets_error(self):
+    @staticmethod
+    def test_log_two_sheets_error():
         stiefel = Stiefel(n=3, p=3)
         base_point = stiefel.random_point()
         det_base = gs.linalg.det(base_point)
         point = stiefel.random_point()
         det_point = gs.linalg.det(point)
         if gs.all(det_base * det_point > 0.):
-            point = -point
+            point *= -1.0
 
         with pytest.raises(ValueError):
             stiefel.metric.log(point, base_point)
