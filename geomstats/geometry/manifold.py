@@ -31,6 +31,7 @@ class Manifold(abc.ABC):
     def __init__(
         self,
         dim,
+        shape=None,
         metric=None,
         default_point_type="vector",
         default_coords_type="intrinsic",
@@ -43,6 +44,7 @@ class Manifold(abc.ABC):
         )
 
         self.dim = dim
+        self.shape = shape
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
         self.metric = metric

@@ -26,7 +26,7 @@ class VectorSpace(Manifold, abc.ABC):
         if "dim" not in kwargs.keys():
             kwargs["dim"] = int(gs.prod(gs.array(shape)))
         super(VectorSpace, self).__init__(
-            default_point_type=default_point_type, **kwargs
+            shape=shape, default_point_type=default_point_type, **kwargs
         )
         self.shape = shape
 
@@ -167,6 +167,8 @@ class LevelSet(Manifold, abc.ABC):
         default_coords_type="intrinsic",
         **kwargs
     ):
+        if "shape" not in kwargs:
+            kwargs["shape"] = embedding_space.shape
         super(LevelSet, self).__init__(
             dim=dim,
             default_point_type=embedding_space.default_point_type,
@@ -318,6 +320,8 @@ class OpenSet(Manifold, abc.ABC):
     def __init__(self, dim, ambient_space, **kwargs):
         if "default_point_type" not in kwargs:
             kwargs["default_point_type"] = ambient_space.default_point_type
+        if "shape" not in kwargs:
+            kwargs["shape"] = ambient_space.shape
         super().__init__(dim=dim, **kwargs)
         self.ambient_space = ambient_space
 
