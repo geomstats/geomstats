@@ -202,10 +202,10 @@ class SRVMetric(RiemannianMetric):
         self.l2_metric = lambda n: L2Metric(ambient_manifold, n_landmarks=n)
 
     def pointwise_inner_product(self, tangent_vec_a, tangent_vec_b, base_curve):
-        """Compute the pointwise inner product of pair of tangent vectors.
+        """Compute the pointwise inner products of pair of tangent vectors.
 
-        Compute the point-wise inner-product between two tangent vectors
-        at a base curve.
+        Compute the inner-products between the components of two tangent vectors
+        at the different sampling point of a base curve.
 
         Parameters
         ----------
@@ -237,7 +237,10 @@ class SRVMetric(RiemannianMetric):
         return inner_prod
 
     def pointwise_norm(self, tangent_vec, base_curve):
-        """Compute the point-wise norm of a tangent vector at a base curve.
+        """Compute the pointwise norms of a tangent vector.
+
+        Compute the norms of the components of a tangent vector at the different
+        sampling points of a base curve.
 
         Parameters
         ----------
