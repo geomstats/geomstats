@@ -19,9 +19,7 @@ class TestGraphSpace(geomstats.tests.TestCase):
 
     def test_belongs(self):
         """Test of belongs method."""
-        mats = gs.array(
-            [gs.array([[3.0, -1.0], [-1.0, 3.0]]), gs.array([[4.0, -6.0], [-1.0, 3.0]])]
-        )
+        mats = gs.array([[[3.0, -1.0], [-1.0, 3.0]], [[4.0, -6.0], [-1.0, 3.0]]])
         result = self.space.belongs(mats)
         self.assertTrue(gs.all(result))
 
@@ -41,16 +39,16 @@ class TestGraphSpace(geomstats.tests.TestCase):
 
     def test_permute(self):
         """Test of permuting method."""
-        graph_to_permute = gs.array([[0, 1], [2, 3]])
+        graph_to_permute = gs.array([[0.0, 1.0], [2.0, 3.0]])
         permutation = [1, 0]
-        expected = gs.array([[3, 2], [1, 0]])
+        expected = gs.array([[3.0, 2.0], [1.0, 0.0]])
         permuted = self.space.permute(graph_to_permute, permutation)
         self.assertTrue(gs.all(expected == permuted))
 
     def test_matchers(self):
         """Test of random_point and belongs methods."""
-        set1 = gs.array([[[0, 1], [2, 3]], [[1, 0], [0, 1]]])
-        set2 = gs.array([[[3, 2], [1, 0]], [[1, 0], [0, 1]]])
+        set1 = gs.array([[[0.0, 1.0], [2.0, 3.0]], [[1.0, 0.0], [0.0, 1.0]]])
+        set2 = gs.array([[[3.0, 2.0], [1.0, 0.0]], [[1.0, 0.0], [0.0, 1.0]]])
         d1 = self.metric.dist(set1, set2, matcher="FAQ")
         d2 = self.metric.dist(set1, set2, matcher="ID")
         self.assertTrue(d1[0] < d2[0])
