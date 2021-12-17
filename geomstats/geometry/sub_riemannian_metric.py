@@ -198,9 +198,9 @@ class SubRiemannianMetric(abc.ABC):
 
         def step(state):
             position, momentum = state
-            dq, _ = self.symp_grad(self.hamiltonian)(state)
+            dq, _ = self.symp_grad()(state)
             y = gs.array([position + dq, momentum])
-            _, dp = self.symp_grad(self.hamiltonian)(y)
+            _, dp = self.symp_grad()(y)
             return gs.array([position + step_size * dq, momentum + step_size * dp])
 
         return step
@@ -250,7 +250,7 @@ class SubRiemannianMetric(abc.ABC):
         """
         step = self.symp_euler
         step_size = end_time / n_steps
-        return self.iterate(step(self.hamiltonian, step_size), n_steps)
+        return self.iterate(step(step_size), n_steps)
 
     def exp(self, cotangent_vec, base_point, n_steps=20, **kwargs):
         """Exponential map associated to the cometric. I
@@ -280,6 +280,6 @@ class SubRiemannianMetric(abc.ABC):
         """
         initial_state = gs.stack([base_point, cotangent_vec])
 
-        flow = self.symp_flow(self.hamiltonian, n_steps=n_steps)
+        flow = self.symp_flow(n_steps=n_steps)
 
         return flow(initial_state)[-1][0]
