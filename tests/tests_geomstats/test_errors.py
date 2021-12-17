@@ -5,7 +5,7 @@ import pytest
 import geomstats.backend as gs
 import geomstats.errors
 import geomstats.tests
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry import Euclidean
 from geomstats.geometry.spd_matrices import SPDMatrices
 
 

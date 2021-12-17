@@ -1,7 +1,7 @@
 """LogNormal Distribution"""
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
+from geomstats.geometry import Euclidean, EuclideanMetric
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,

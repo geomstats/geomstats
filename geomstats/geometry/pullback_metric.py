@@ -5,7 +5,7 @@ import itertools
 import joblib
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 

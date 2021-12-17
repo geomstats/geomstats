@@ -6,8 +6,7 @@ from scipy.stats import dirichlet
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.base import OpenSet
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry import Euclidean, OpenSet
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 N_STEPS = 100
@@ -642,9 +641,7 @@ class DirichletMetric(RiemannianMetric):
 
         return path
 
-    def log(
-        self, point, base_point, n_steps=N_STEPS, jacobian=False
-    ):
+    def log(self, point, base_point, n_steps=N_STEPS, jacobian=False):
         """Compute the logarithm map.
 
         Compute logarithm map associated to the Fisher information metric by
@@ -673,9 +670,7 @@ class DirichletMetric(RiemannianMetric):
         """
         t = gs.linspace(0.0, 1.0, n_steps)
         geodesic = self._geodesic_bvp(
-            initial_point=base_point,
-            end_point=point,
-            jacobian=jacobian
+            initial_point=base_point, end_point=point, jacobian=jacobian
         )
         geodesic_at_t = geodesic(t)
         log = n_steps * (geodesic_at_t[..., 1, :] - geodesic_at_t[..., 0, :])

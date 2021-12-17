@@ -4,7 +4,7 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
+from geomstats.geometry import Euclidean, EuclideanMetric
 from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 

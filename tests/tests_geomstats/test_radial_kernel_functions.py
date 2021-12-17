@@ -4,7 +4,7 @@ import pytest
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry import Euclidean
 from geomstats.learning.radial_kernel_functions import (
     biweight_radial_kernel,
     bump_radial_kernel,

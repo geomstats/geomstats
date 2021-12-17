@@ -9,8 +9,8 @@ import math
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
+from geomstats.geometry import LevelSet
 from geomstats.geometry._hyperbolic import HyperbolicMetric, _Hyperbolic
-from geomstats.geometry.base import LevelSet
 from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
 
 

@@ -2,7 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry import Euclidean
 from geomstats.learning.knn import KNearestNeighborsClassifier
 
 

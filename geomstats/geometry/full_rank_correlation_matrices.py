@@ -1,7 +1,7 @@
 """The manifold of full-rank correlation matrices."""
 
 import geomstats.backend as gs
-from geomstats.geometry.base import LevelSet
+from geomstats.geometry import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices

@@ -7,8 +7,7 @@ import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.base import LevelSet
-from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry import EuclideanMetric, LevelSet
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -379,7 +378,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         if p == n:
             det_point = gs.linalg.det(point)
             det_base_point = gs.linalg.det(base_point)
-            if not gs.all(det_point * det_base_point > 0.):
+            if not gs.all(det_point * det_base_point > 0.0):
                 raise ValueError("Points from different sheets in log")
 
         transpose_base_point = Matrices.transpose(base_point)

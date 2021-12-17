@@ -5,7 +5,7 @@ import logging
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.base import VectorSpace
+from geomstats.geometry import VectorSpace
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 

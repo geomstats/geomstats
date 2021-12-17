@@ -1,7 +1,7 @@
 """Kalman filter on Lie groups, with two local test system models."""
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry import Euclidean
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 

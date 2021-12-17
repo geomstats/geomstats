@@ -6,8 +6,8 @@ import pytest
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry import EuclideanMetric
 from geomstats.geometry.connection import Connection
-from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 

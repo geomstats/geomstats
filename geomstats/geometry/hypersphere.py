@@ -12,8 +12,7 @@ from scipy.stats import beta
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-from geomstats.geometry.base import LevelSet
-from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
+from geomstats.geometry import Euclidean, EuclideanMetric, LevelSet
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 

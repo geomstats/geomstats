@@ -1,7 +1,7 @@
 """Euclidean space."""
 
 import geomstats.backend as gs
-from geomstats.geometry.base import VectorSpace
+from geomstats.geometry import VectorSpace
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 

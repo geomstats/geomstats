@@ -5,7 +5,7 @@ import logging
 from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry import Euclidean
 from geomstats.learning.frechet_mean import linear_mean
 
 EPSILON = 1e-6

@@ -5,8 +5,7 @@ from scipy.stats import dirichlet, multinomial
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.base import LevelSet
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry import Euclidean, LevelSet
 from geomstats.geometry.hypersphere import HypersphereMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 

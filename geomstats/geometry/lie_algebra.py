@@ -11,7 +11,7 @@ import abc
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.base import VectorSpace
+from geomstats.geometry import VectorSpace
 from geomstats.geometry.matrices import Matrices
 
 from ._bch_coefficients import BCH_COEFFICIENTS

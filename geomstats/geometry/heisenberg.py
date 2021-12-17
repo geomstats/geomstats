@@ -1,7 +1,7 @@
 """Implementation of the 3D Heisenberg group."""
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry import Euclidean
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 

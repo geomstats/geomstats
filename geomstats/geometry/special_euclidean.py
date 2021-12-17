@@ -6,8 +6,7 @@ i.e. the Lie group of rigid transformations in n dimensions.
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
-from geomstats.geometry.base import LevelSet
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry import Euclidean, LevelSet
 from geomstats.geometry.general_linear import GeneralLinear, Matrices
 from geomstats.geometry.invariant_metric import InvariantMetric, _InvariantMetricMatrix
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra

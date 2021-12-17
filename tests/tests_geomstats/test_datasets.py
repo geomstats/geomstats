@@ -3,8 +3,8 @@
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
+from geomstats.geometry import Euclidean
 from geomstats.geometry.discrete_curves import R2, DiscreteCurves
-from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import Landmarks
 from geomstats.geometry.spd_matrices import SPDMatrices

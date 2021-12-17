@@ -1,9 +1,8 @@
 r"""Module exposing the full rank Euclidean matrices `math:`R_*^{m\times n}`"""
 
 import geomstats.backend as gs
-from geomstats.geometry.base import OpenSet
-from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.matrices import MatricesMetric
+from geomstats.geometry import OpenSet
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
 class FullRankMatrices(OpenSet):

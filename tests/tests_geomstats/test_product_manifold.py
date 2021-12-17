@@ -3,7 +3,7 @@
 import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.minkowski import Minkowski

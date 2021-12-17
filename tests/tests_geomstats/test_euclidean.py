@@ -2,7 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry import Euclidean
 
 
 class TestEuclidean(geomstats.tests.TestCase):

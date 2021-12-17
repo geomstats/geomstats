@@ -12,8 +12,8 @@ References
 """
 
 import geomstats.backend as gs
+from geomstats.geometry import OpenSet
 from geomstats.geometry._hyperbolic import _Hyperbolic
-from geomstats.geometry.base import OpenSet
 from geomstats.geometry.hyperboloid import Hyperboloid, HyperboloidMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.product_manifold import ProductManifold

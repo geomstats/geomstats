@@ -35,8 +35,7 @@ References
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.base import LevelSet
-from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry import EuclideanMetric, LevelSet
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
