@@ -77,7 +77,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @pytest.mark.parametrize(
-        "dim, vec, result",
+        "dim, vec, expected",
         [
             (
                 3,
