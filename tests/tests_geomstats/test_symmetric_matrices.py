@@ -124,21 +124,24 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         result = SymmetricMatrices(n).to_vector(gs.array(mat))
         self.assertAllClose(result, gs.array(expected))
 
-    def test_vector_and_symmetric_matrix_vectorization(self):
-        """Test of vectorization."""
-        n_samples = 5
-        vector = gs.random.rand(n_samples, 6)
-        sym_mat = self.space.from_vector(vector)
-        result = self.space.to_vector(sym_mat)
-        expected = vector
+    @pytest.mark.parametrize(
+        "n,  num_points",
+        [
+            (1, 1),
+            (2, 10),
+            (10, 100),
+        ],
+    )
+    def test_to_vector_and_from_vector(self, n, num_points):
+        """Testing to_vector and from_vector in chained way"""
+        space = SymmetricMatrices(n)
+        vector = gs.random.rand(num_points, space.dim)
+        result = space.to_vector(space.from_vector(vector))
+        self.assertTrue(gs.allclose(result, vector))
 
-        self.assertTrue(gs.allclose(result, expected))
-
-        vector = self.space.to_vector(sym_mat)
-        result = self.space.from_vector(vector)
-        expected = sym_mat
-
-        self.assertTrue(gs.allclose(result, expected))
+        mat = space.random_point(num_points)
+        result = space.from_vector(space.to_vector(mat))
+        self.assertTrue(gs.allclose(result, mat))
 
     def test_projection_and_belongs(self):
         shape = (2, self.n, self.n)
