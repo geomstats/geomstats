@@ -85,17 +85,17 @@ class TestStiefel(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (self.n, self.p))
 
-    @geomstats.tests.np_only
     def test_log_two_sheets_error(self):
-        base_point = Stiefel(n=3, p=3).random_point()
+        stiefel = Stiefel(n=3, p=3)
+        base_point = stiefel.random_point()
         det_base = gs.linalg.det(base_point)
-        point = Stiefel(n=3, p=3).random_point()
+        point = stiefel.random_point()
         det_point = gs.linalg.det(point)
         if gs.all(det_base * det_point > 0.):
-            point[:, 1] *= -1.0
+            point = -point
 
         with pytest.raises(ValueError):
-            Stiefel(n=3, p=3).metric.log(point, base_point)
+            stiefel.metric.log(point, base_point)
 
     @geomstats.tests.np_and_autograd_only
     def test_log_and_exp(self):
