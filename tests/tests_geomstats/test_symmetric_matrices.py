@@ -83,13 +83,21 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
                 3,
                 [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
                 [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
-            )
+            ),
+            (
+                3,
+                [[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], [7.0, 8.0, 9.0, 10.0, 11.0, 12.0]],
+                [
+                    [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                    [[7.0, 8.0, 9.0], [8.0, 10.0, 11.0], [9.0, 11.0, 12.0]],
+                ],
+            ),
         ],
     )
     def test_from_vector(self, dim, vec, expected):
         """Test from vector"""
         result = SymmetricMatrices(dim).from_vector(gs.array(vec))
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, gs.array(expected))
 
     def test_vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
         """Test for matrix to vector and vector to matrix conversions."""
