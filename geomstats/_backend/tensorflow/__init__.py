@@ -763,16 +763,26 @@ def cumprod(a, axis=None):
     return tf.math.cumprod(a, axis=axis)
 
 
-def tril(m, k=0):
-    if k != 0:
-        raise NotImplementedError("Only k=0 supported so far")
-    return tf.linalg.band_part(m, -1, 0)
+# (sait) there is tf.experimental.tril (we can use it once it moves to stable)
+def tril(mat, k=0):
+    if k not in (0, -1):
+        raise NotImplementedError("Only k=0 and k=-1 supported so far")
+    tril = tf.linalg.band_part(mat, -1, 0)
+    if k == 0:
+        return tril
+    zero_diag = tf.zeros(mat.shape[:-1])
+    return tf.linalg.set_diag(tril, zero_diag)
 
 
-def triu(m, k=0):
-    if k != 0:
-        raise NotImplementedError("Only k=0 supported so far")
-    return tf.linalg.band_part(m, 0, -1)
+# TODO(sait) use tf.experimental.triu once it becomes stable.
+def triu(mat, k=0):
+    if k not in (0, 1):
+        raise NotImplementedError("Only k=0 and k=1 supported so far")
+    triu = tf.linalg.band_part(mat, 0, -1)
+    if k == 0:
+        return triu
+    zero_diag = tf.zeros(mat.shape[:-1])
+    return tf.linalg.set_diag(triu, zero_diag)
 
 
 def diag_indices(*args, **kwargs):
@@ -802,6 +812,19 @@ def where(condition, x=None, y=None):
     return tf.where(condition, x, y)
 
 
+def tril_to_vec(x, k=0):
+    n = x.shape[-1]
+    axis = 1 if x.ndim == 3 else 0
+    mask = tf.ones((n, n))
+    mask_a = tf.linalg.band_part(mask, -1, 0)
+    if k < 0:
+        mask_b = tf.linalg.band_part(mask, -k - 1, 0)
+    else:
+        mask_b = tf.zeros_like(mask_a)
+    mask = tf.cast(mask_a - mask_b, dtype=tf.bool)
+    return tf.boolean_mask(x, mask, axis=axis)
+
+
 def triu_to_vec(x, k=0):
     n = x.shape[-1]
     axis = 1 if x.ndim == 3 else 0
@@ -823,8 +846,13 @@ def tile(x, multiples):
     return tf.tile(x_reshape, multiples)
 
 
+def vec_to_diag(vec):
+    """Convert vec to diagonal matrix"""
+    return tf.linalg.diag(vec)
+
+
 def vec_to_triu(vec):
-    """Take vec and forms strictly upper traingular matrix.
+    """Take vec and forms strictly upper triangular matrix.
 
     Parameters
     ---------
@@ -896,3 +924,17 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     triu_tril_mat = triu_mat + tril_mat
     mat = tf.linalg.set_diag(triu_tril_mat, diag)
     return mat
+
+
+def _ravel_multi_index(multi_index, shape):
+    strides = tf.math.cumprod(shape, exclusive=True, reverse=True)
+    return tf.reduce_sum(multi_index * tf.expand_dims(strides, 1), axis=0)
+
+
+def ravel_tril_indices(n, k=0, m=None):
+    if m is None:
+        size = (n, n)
+    else:
+        size = (n, m)
+    idxs = tril_indices(n, k, m)
+    return _ravel_multi_index(idxs, size)

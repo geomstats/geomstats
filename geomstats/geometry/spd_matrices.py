@@ -7,6 +7,9 @@ import geomstats.vectorization
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.positive_lower_triangular_matrices import (
+    PositiveLowerTriangularMatrices,
+)
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -412,6 +415,49 @@ class SPDMatrices(OpenSet):
     powerm = SymmetricMatrices.powerm
     from_vector = SymmetricMatrices.__dict__["from_vector"]
     to_vector = SymmetricMatrices.__dict__["to_vector"]
+
+    @classmethod
+    def cholesky_factor(cls, mat):
+        """
+        Compute the cholesky_factor for a symmetric positive definite matrix
+
+        Parameters
+        ----------
+        mat : array_like, shape=[..., n, n]
+            spd matrix.
+
+        Returns
+        -------
+        cf : array_like, shape=[..., n, n]
+            lower triangular matrix with positive diagonal elements.
+        """
+        return gs.linalg.cholesky(mat)
+
+    @classmethod
+    def differential_cholesky_factor(cls, tangent_vec, base_point):
+        """Compute the differential of the cholesky factor map.
+
+        Parameters
+        ----------
+        tangent_vec : array_like, shape=[..., n, n]
+            Tangent vector at base point.
+            symmetric matrix.
+
+        base_point : array_like, shape=[..., n, n]
+            Base point.
+            spd matrix.
+
+        Returns
+        -------
+        differential_cf : array-like, shape=[..., n, n]
+            Differential of cholesky factor map
+            lower triangular matrix.
+        """
+        cf = cls.cholesky_factor(base_point)
+        differential_cf = PositiveLowerTriangularMatrices.inverse_differential_gram(
+            tangent_vec, cf
+        )
+        return differential_cf
 
 
 class SPDMetricAffine(RiemannianMetric):

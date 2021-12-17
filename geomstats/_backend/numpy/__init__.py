@@ -92,8 +92,8 @@ from numpy import (
     trace,
     transpose,
     tril,
-    triu,
     tril_indices,
+    triu,
     triu_indices,
     uint8,
     unique,
@@ -385,6 +385,18 @@ def array_from_sparse(indices, data, target_shape):
     return array(coo_matrix((data, list(zip(*indices))), target_shape).todense())
 
 
+def vec_to_diag(vec):
+    """Convert vector to diagonal matrix."""
+    d = vec.shape[-1]
+    return np.squeeze(vec[..., None, :] * np.eye(d)[None, :, :])
+
+
+def tril_to_vec(x, k=0):
+    n = x.shape[-1]
+    rows, cols = tril_indices(n, k=k)
+    return x[..., rows, cols]
+
+
 def triu_to_vec(x, k=0):
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
@@ -415,3 +427,12 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
     return mat
+
+
+def ravel_tril_indices(n, k=0, m=None):
+    if m is None:
+        size = (n, n)
+    else:
+        size = (n, m)
+    idxs = np.tril_indices(n, k, m)
+    return np.ravel_multi_index(idxs, size)

@@ -265,3 +265,64 @@ class TestMatrices(geomstats.tests.TestCase):
         result = Matrices.diagonal(mat)
         expected = gs.ones((2, 3))
         self.assertAllClose(result, expected)
+
+    def test_to_diagonal(self):
+        mat = gs.array([[1.0, 2.0], [3.0, 4.0]])
+        result = Matrices.to_diagonal(mat)
+        expected = gs.array([[1.0, 0.0], [0.0, 4.0]])
+
+        batch_mat = gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+        result = Matrices.to_diagonal(batch_mat)
+        expected = gs.array([[[1.0, 0.0], [0.0, 4.0]], [[5.0, 0.0], [0.0, 8.0]]])
+        self.assertAllClose(result, expected)
+
+    def test_to_lower_triangular(self):
+        mat = gs.array([[1.0, 2.0], [3.0, 4.0]])
+        result = Matrices.to_lower_triangular(mat)
+        expected = gs.array([[1.0, 0.0], [3.0, 4.0]])
+
+        batch_mat = gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+        result = Matrices.to_lower_triangular(batch_mat)
+        expected = gs.array([[[1.0, 0.0], [3.0, 4.0]], [[5.0, 0.0], [7.0, 8.0]]])
+        self.assertAllClose(result, expected)
+
+    def test_to_strictly_lower_triangular(self):
+        mat = gs.array([[1.0, 2.0], [3.0, 4.0]])
+        result = Matrices.to_strictly_lower_triangular(mat)
+        expected = gs.array([[0.0, 0.0], [3.0, 0.0]])
+
+        batch_mat = gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+        result = Matrices.to_strictly_lower_triangular(batch_mat)
+        expected = gs.array([[[0.0, 0.0], [3.0, 0.0]], [[0.0, 0.0], [7.0, 0.0]]])
+        self.assertAllClose(result, expected)
+
+    def test_to_upper_triangular(self):
+        mat = gs.array([[1.0, 2.0], [3.0, 4.0]])
+        result = Matrices.to_upper_triangular(mat)
+        expected = gs.array([[1.0, 2.0], [0.0, 4.0]])
+
+        batch_mat = gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+        result = Matrices.to_upper_triangular(batch_mat)
+        expected = gs.array([[[1.0, 2.0], [0.0, 4.0]], [[5.0, 6.0], [0.0, 8.0]]])
+        self.assertAllClose(result, expected)
+
+    def test_to_strictly_upper_triangular(self):
+        mat = gs.array([[1.0, 2.0], [3.0, 4.0]])
+        result = Matrices.to_strictly_upper_triangular(mat)
+        expected = gs.array([[1.0, 2.0], [0.0, 4.0]])
+
+        batch_mat = gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+        result = Matrices.to_strictly_upper_triangular(batch_mat)
+        expected = gs.array([[[0.0, 2.0], [0.0, 0.0]], [[0.0, 6.0], [0.0, 0.0]]])
+        self.assertAllClose(result, expected)
+
+    def test_to_lower_triagular_diagonal_scaled(self):
+        mat = gs.array([[2.0, 2.0], [3.0, 4.0]])
+        result = Matrices.to_lower_triangular_diagonal_scaled(mat)
+        expected = gs.array([[1.0, 0.0], [3.0, 2.0]])
+        self.assertAllClose(result, expected)
+
+        batch_mat = gs.array([[[2.0, 2.0], [3.0, 4.0]], [[6.0, 6.0], [7.0, 8.0]]])
+        result = Matrices.to_lower_triangular_diagonal_scaled(batch_mat)
+        expected = gs.array([[[1.0, 0], [3.0, 2.0]], [[3.0, 0.0], [7.0, 4.0]]])
+        self.assertAllClose(result, expected)
