@@ -5,17 +5,17 @@ test_patterns = [
   "test_*.py"
 ]
 
+
+[[analyzers]]
+name = "python"
+enabled = true
 dependency_file_paths = [
   "ci-requirements.txt",
   "dev-requirements.txt",
   "doc-requirements.txt",
   "opt-requirements.txt"
-  "requirements.txt",
+  "requirements.txt"
 ]
-
-[[analyzers]]
-name = "python"
-enabled = true
 
   [analyzers.meta]
   runtime_version = "3.x.x"
