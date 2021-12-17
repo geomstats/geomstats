@@ -100,21 +100,29 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         result = SymmetricMatrices(dim).from_vector(gs.array(vec))
         self.assertAllClose(result, gs.array(expected))
 
-    def test_vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
-        """Test for matrix to vector and vector to matrix conversions."""
-        sym_mat_1 = gs.array([[1.0, 0.6, -3.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]])
-        vector_1 = self.space.to_vector(sym_mat_1)
-        result_1 = self.space.from_vector(vector_1)
-        expected_1 = sym_mat_1
-
-        self.assertTrue(gs.allclose(result_1, expected_1))
-
-        vector_2 = gs.array([1, 2, 3, 4, 5, 6])
-        sym_mat_2 = self.space.from_vector(vector_2)
-        result_2 = self.space.to_vector(sym_mat_2)
-        expected_2 = vector_2
-
-        self.assertTrue(gs.allclose(result_2, expected_2))
+    @pytest.mark.parametrize(
+        "dim, mat, expected",
+        [
+            (1, [[1.0]], [1.0]),
+            (
+                3,
+                [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+            ),
+            (
+                3,
+                [
+                    [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                    [[7.0, 8.0, 9.0], [8.0, 10.0, 11.0], [9.0, 11.0, 12.0]],
+                ],
+                [[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], [7.0, 8.0, 9.0, 10.0, 11.0, 12.0]],
+            ),
+        ],
+    )
+    def test_to_vector(self, dim, mat, expected):
+        """Test to vector."""
+        result = SymmetricMatrices(dim).to_vector(gs.array(mat))
+        self.assertAllClose(result, gs.array(expected))
 
     def test_vector_and_symmetric_matrix_vectorization(self):
         """Test of vectorization."""
@@ -131,12 +139,6 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         expected = sym_mat
 
         self.assertTrue(gs.allclose(result, expected))
-
-    def test_symmetric_matrix_from_vector(self):
-        vector_2 = gs.array([1, 2, 3, 4, 5, 6])
-        result = self.space.from_vector(vector_2)
-        expected = gs.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]])
-        self.assertAllClose(result, expected)
 
     def test_projection_and_belongs(self):
         shape = (2, self.n, self.n)
