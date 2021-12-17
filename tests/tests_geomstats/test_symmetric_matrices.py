@@ -77,7 +77,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @pytest.mark.parametrize(
-        "dim, vec, expected",
+        "n, vec, expected",
         [
             (1, [1.0], [[1.0]]),
             (
@@ -95,13 +95,13 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
             ),
         ],
     )
-    def test_from_vector(self, dim, vec, expected):
+    def test_from_vector(self, n, vec, expected):
         """Test from vector"""
-        result = SymmetricMatrices(dim).from_vector(gs.array(vec))
+        result = SymmetricMatrices(n).from_vector(gs.array(vec))
         self.assertAllClose(result, gs.array(expected))
 
     @pytest.mark.parametrize(
-        "dim, mat, expected",
+        "n, mat, expected",
         [
             (1, [[1.0]], [1.0]),
             (
@@ -119,9 +119,9 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
             ),
         ],
     )
-    def test_to_vector(self, dim, mat, expected):
+    def test_to_vector(self, n, mat, expected):
         """Test to vector."""
-        result = SymmetricMatrices(dim).to_vector(gs.array(mat))
+        result = SymmetricMatrices(n).to_vector(gs.array(mat))
         self.assertAllClose(result, gs.array(expected))
 
     def test_vector_and_symmetric_matrix_vectorization(self):
@@ -146,13 +146,27 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         for res in result:
             self.assertTrue(res)
 
-    def test_random_and_belongs(self):
-        mat = self.space.random_point()
-        result = self.space.belongs(mat)
-        self.assertTrue(result)
+    @pytest.mark.parametrize(
+        "n, num_points, shape",
+        [
+            (1, 1, (1, 1, 1)),
+            (1, 10, (10, 1, 1))(2, 1, (1, 2, 2)),
+            (100, 100, (100, 100, 100)),
+        ],
+    )
+    def test_random_point(self, n, num_points, shape):
+        space = SymmetricMatrices(n)
+        points = space.random_point(num_points)
+        self.assertAllClose(shape, points.shape)
+        self.assertTrue(space.belongs(points))
 
-    def test_dim(self):
-        result = self.space.dim
-        n = self.space.n
-        expected = int(n * (n + 1) / 2)
-        self.assertAllClose(result, expected)
+    @pytest.mark.parametrize(
+        "n, expected_dim",
+        [
+            (1, 1),
+            (2, 3),
+            (5, 15),
+        ],
+    )
+    def test_dim(self, n, expected_dim):
+        self.assertAllClose(SymmetricMatrices(n).dim, expected_dim)
