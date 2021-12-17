@@ -92,7 +92,7 @@ def _default_gradient_descent(
     max_iter,
     point_type,
     epsilon,
-    initial_step_size,
+    init_step_size,
     verbose,
     init_point=None,
 ):
@@ -120,7 +120,7 @@ def _default_gradient_descent(
     var = 0.0
 
     norm_old = gs.linalg.norm(points)
-    step = initial_step_size
+    step = init_step_size
 
     while iteration < max_iter:
         logs = metric.log(point=points, base_point=mean)
@@ -444,6 +444,9 @@ class FrechetMean(BaseEstimator):
     max_iter : int
         Maximum number of iterations for gradient descent.
         Optional, default: 32.
+    epsilon : float
+        Tolerance for stopping the gradient descent.
+        Optional, default : 1e-4
     point_type : str, {\'vector\', \'matrix\'}
         Point type.
         Optional, default: None.
@@ -454,13 +457,15 @@ class FrechetMean(BaseEstimator):
         method but for batches of equal length of samples. In this case,
         samples must be of shape [n_samples, n_batch, {dim, [n,n]}].
         Optional, default: \'default\'.
-    verbose : bool
-        Verbose option.
-        Optional, default: False.
     init_point : array-like, shape=[{dim, [n, n]}]
         Initial point.
         Optional, default : None. In this case the first sample of the input data is
         used.
+    lr : float
+        Initial step size or learning rate.
+    verbose : bool
+        Verbose option.
+        Optional, default: False.
     """
 
     def __init__(
@@ -534,7 +539,7 @@ class FrechetMean(BaseEstimator):
                 weights=weights,
                 metric=self.metric,
                 max_iter=self.max_iter,
-                initial_step_size=self.lr,
+                init_step_size=self.lr,
                 point_type=self.point_type,
                 epsilon=self.epsilon,
                 verbose=self.verbose,
