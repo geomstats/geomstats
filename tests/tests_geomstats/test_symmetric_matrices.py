@@ -150,7 +150,8 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         "n, num_points, shape",
         [
             (1, 1, (1, 1, 1)),
-            (1, 10, (10, 1, 1))(2, 1, (1, 2, 2)),
+            (1, 10, (10, 1, 1)),
+            (2, 1, (1, 2, 2)),
             (100, 100, (100, 100, 100)),
         ],
     )
