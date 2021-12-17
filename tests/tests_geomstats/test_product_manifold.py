@@ -7,7 +7,8 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.minkowski import Minkowski
-from geomstats.geometry.product_manifold import ProductManifold
+from geomstats.geometry.product_manifold import NFoldManifold, ProductManifold
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestProductManifold(geomstats.tests.TestCase):
@@ -180,3 +181,61 @@ class TestProductManifold(geomstats.tests.TestCase):
         result = helper.test_to_tangent_is_tangent(space, atol=gs.atol)
         for res in result:
             self.assertTrue(res)
+
+
+class TestNFoldManifold(geomstats.tests.TestCase):
+    def setup_method(self):
+        power = 2
+        base = SpecialOrthogonal(3)
+        self.product = NFoldManifold(base, power)
+
+    def test_random_and_belongs(self):
+        points = self.product.random_point()
+        result = self.product.belongs(points)
+        self.assertTrue(result)
+
+        points = self.product.random_point(5)
+        result = self.product.belongs(points)
+        self.assertTrue(gs.all(result))
+
+        not_a_point = gs.stack([gs.eye(3) + 1.0, gs.eye(3)])
+        points = gs.concatenate([points, not_a_point[None]])
+        result = self.product.belongs(points)
+        expected = gs.array([True] * 5 + [False])
+        self.assertAllClose(result, expected)
+
+    def test_to_tangent_is_tangent(self):
+        result = helper.test_to_tangent_is_tangent(self.product)
+        for res in result:
+            self.assertTrue(res)
+
+    def test_projection_and_belongs(self):
+        result = helper.test_projection_and_belongs(self.product, shape=(5, 2, 3, 3))
+        for res in result:
+            self.assertTrue(res)
+
+    def test_inner_product_shape(self):
+        space = self.product
+        n_samples = 2
+        point = gs.stack([gs.eye(3)] * n_samples)
+        tangent_vec = space.to_tangent(gs.zeros((n_samples, 3, 3)), point)
+        result = space.metric.inner_product(tangent_vec, tangent_vec, point)
+        expected = gs.zeros(n_samples)
+        self.assertAllClose(result, expected)
+
+    def test_exp(self):
+        space = self.product
+        n_samples = 2
+        point = gs.stack([gs.eye(3)] * n_samples)
+        tangent_vec = space.to_tangent(gs.zeros((n_samples, 3, 3)), point)
+        result = space.metric.exp(tangent_vec, point)
+        expected = point
+        self.assertAllClose(result, expected)
+
+    def test_log(self):
+        space = self.product
+        n_samples = 2
+        point = gs.stack([gs.eye(3)] * n_samples)
+        result = space.metric.log(point, point)
+        expected = gs.zeros((n_samples, 3, 3))
+        self.assertAllClose(result, expected)

@@ -9,6 +9,7 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class ProductManifold(Manifold):
@@ -337,18 +338,220 @@ class NFoldManifold(Manifold):
         default_coords_type="intrinsic",
         **kwargs
     ):
+        geomstats.errors.check_integer(n_copies, "n_copies")
         dim = n_copies * base_manifold.dim
         super(NFoldManifold, self).__init__(dim=dim)
         self.base_manifold = base_manifold
+        self.base_shape = base_manifold.shape
+        self.shape = (n_copies,) + base_manifold.shape
+        self.n_copies = n_copies
+        if metric is None:
+            self.metric = NFoldMetric(base_manifold.metric, n_copies, self.base_shape)
 
     def belongs(self, point, atol=gs.atol):
-        pass
+        """Test if a point belongs to the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n_copies, base_shape]
+            Point.
+        atol : float,
+            Tolerance.
+
+        Returns
+        -------
+        belongs : array-like, shape=[..., n_copies, base_shape]
+            Boolean evaluating if the point belongs to the manifold.
+        """
+        point_ = gs.reshape(point, (-1,) + self.base_shape)
+        each_belongs = self.base_manifold.belongs(point_)
+        reshaped = gs.reshape(each_belongs, (-1, self.n_copies))
+        return gs.all(reshaped, axis=1)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
-        pass
+        """Check whether the vector is tangent at base_point.
+
+        The tangent space of the product manifold is the direct sum of
+        tangent spaces.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n_copies, base_shape]
+            Vector.
+        base_point : array-like, shape=[..., n_copies, base_shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        point_ = gs.reshape(base_point, (-1,) + self.base_shape)
+        vector_ = gs.reshape(vector, (-1,) + self.base_shape)
+        each_tangent = self.base_manifold.is_tangent(vector_, point_)
+        reshaped = gs.reshape(each_tangent, (-1, self.n_copies))
+        return gs.all(reshaped, axis=1)
 
     def to_tangent(self, vector, base_point):
-        pass
+        """Project a vector to a tangent space of the manifold.
+
+        The tangent space of the product manifold is the direct sum of
+        tangent spaces.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n_copies, base_shape]
+            Vector.
+        base_point : array-like, shape=[..., n_copies, base_shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n_copies, base_shape]
+            Tangent vector at base point.
+        """
+        point_ = gs.reshape(base_point, (-1,) + self.base_shape)
+        vector_ = gs.reshape(vector, (-1,) + self.base_shape)
+        each_tangent = self.base_manifold.to_tangent(vector_, point_)
+        reshaped = gs.reshape(each_tangent, (-1, self.n_copies) + self.base_shape)
+        return gs.squeeze(reshaped)
 
     def random_point(self, n_samples=1, bound=1.0):
-        pass
+        """Sample in the product space from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int, optional
+            Number of samples.
+        bound : float
+            Bound of the interval in which to sample for non compact manifolds.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n_copies, base_shape]
+            Points sampled on the product manifold.
+        """
+        sample = self.base_manifold.random_point(n_samples * self.n_copies, bound)
+        reshaped = gs.reshape(sample, (n_samples, self.n_copies) + self.base_shape)
+        return gs.squeeze(reshaped)
+
+    def projection(self, point):
+        if hasattr(self.base_manifold, "projection"):
+            point_ = gs.reshape(point, (-1,) + self.base_shape)
+            projected = self.base_manifold.projection(point_)
+            reshaped = gs.reshape(projected, (-1, self.n_copies) + self.base_shape)
+            return gs.squeeze(reshaped)
+        raise NotImplementedError(
+            "The base manifold does not implement a projection " "method."
+        )
+
+
+class NFoldMetric(RiemannianMetric):
+    def __init__(self, base_metric, n_copies, base_shape):
+        geomstats.errors.check_integer(n_copies, "n_copies")
+        dim = n_copies * base_metric.dim
+        super(NFoldMetric, self).__init__(dim=dim)
+        self.base_shape = base_shape
+        self.base_metric = base_metric
+        self.n_copies = n_copies
+
+    def metric_matrix(self, base_point=None):
+        """Compute the matrix of the inner-product.
+
+        Matrix of the inner-product defined by the Riemmanian metric
+        at point base_point of the manifold.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n_copies, base_shape]
+            Point on the manifold at which to compute the inner-product matrix.
+            Optional, default: None.
+
+        Returns
+        -------
+        matrix : array-like, shape=[..., n_copies, dim, dim]
+            Matrix of the inner-product at the base point.
+        """
+        point_ = gs.reshape(base_point, (-1,) + self.base_shape)
+        matrices = self.base_metric.metric_matrix(point_)
+        dim = self.base_metric.dim
+        reshaped = gs.reshape(matrices, (-1, self.n_copies, dim, dim))
+        return gs.squeeze(reshaped)
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+        """Compute the inner-product of two tangent vectors at a base point.
+
+        Inner product defined by the Riemannian metric at point `base_point`
+        between tangent vectors `tangent_vec_a` and `tangent_vec_b`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n_copies, base_shape]
+            First tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., n_copies, base_shape]
+            Second tangent vector at base point.
+        base_point : array-like, shape=[..., n_copies, base_shape]
+            Point on the manifold.
+            Optional, default: None.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...,]
+            Inner-product of the two tangent vectors.
+        """
+        point_ = gs.reshape(base_point, (-1,) + self.base_shape)
+        vector_a = gs.reshape(tangent_vec_a, (-1,) + self.base_shape)
+        vector_b = gs.reshape(tangent_vec_b, (-1,) + self.base_shape)
+        inner_each = self.base_metric.inner_product(vector_a, vector_b, point_)
+        reshaped = gs.reshape(inner_each, (-1, self.n_copies))
+        return gs.squeeze(gs.sum(reshaped, axis=-1))
+
+    def exp(self, tangent_vec, base_point, **kwargs):
+        """Compute the Riemannian exponential of a tangent vector.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n_copies, base_shape]
+            Tangent vector at a base point.
+        base_point : array-like, shape=[..., n_copies, base_shape]
+            Point on the manifold.
+            Optional, default: None.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., n_copies, base_shape]
+            Point on the manifold equal to the Riemannian exponential
+            of tangent_vec at the base point.
+        """
+        point_ = gs.reshape(base_point, (-1,) + self.base_shape)
+        vector_ = gs.reshape(tangent_vec, (-1,) + self.base_shape)
+        each_exp = self.base_metric.exp(vector_, point_)
+        reshaped = gs.reshape(each_exp, (-1, self.n_copies) + self.base_shape)
+        return gs.squeeze(reshaped)
+
+    def log(self, point, base_point, **kwargs):
+        """Compute the Riemannian logarithm of a point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n_copies, base_shape]
+            Point on the manifold.
+        base_point : array-like, shape=[..., n_copies, base_shape]
+            Point on the manifold.
+            Optional, default: None.
+
+        Returns
+        -------
+        log : array-like, shape=[..., n_copies, base_shape]
+            Tangent vector at the base point equal to the Riemannian logarithm
+            of point at the base point.
+        """
+        base_point_ = gs.reshape(base_point, (-1,) + self.base_shape)
+        point_ = gs.reshape(point, (-1,) + self.base_shape)
+        each_log = self.base_metric.log(point_, base_point_)
+        reshaped = gs.reshape(each_log, (-1, self.n_copies) + self.base_shape)
+        return gs.squeeze(reshaped)
