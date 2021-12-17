@@ -267,6 +267,8 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
 
             g = \exp(\log(g, h), h)
         """
+        if base_point is None:
+            base_point = self.identity
         if gs.any(self.are_antipodals(point, base_point)):
             raise ValueError(
                 "The Group Logarithm is not well-defined for"
