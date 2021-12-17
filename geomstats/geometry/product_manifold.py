@@ -369,7 +369,7 @@ class NFoldManifold(Manifold):
             Boolean evaluating if the point belongs to the manifold.
         """
         point_ = gs.reshape(point, (-1,) + self.base_shape)
-        each_belongs = self.base_manifold.belongs(point_)
+        each_belongs = self.base_manifold.belongs(point_, atol=atol)
         reshaped = gs.reshape(each_belongs, (-1, self.n_copies))
         return gs.all(reshaped, axis=1)
 
