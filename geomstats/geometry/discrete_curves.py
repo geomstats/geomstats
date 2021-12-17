@@ -260,7 +260,7 @@ class SRVMetric(RiemannianMetric):
         )
         return gs.sqrt(sq_norm)
 
-    def square_root_velocity_transform(self, curve):
+    def srv_transform(self, curve):
         """Square Root Velocity Transform (SRVT).
 
         Compute the square root velocity representation of a curve. The
@@ -297,7 +297,7 @@ class SRVMetric(RiemannianMetric):
 
         return srv
 
-    def square_root_velocity_transform_inverse(self, srv, starting_point):
+    def srv_transform_inverse(self, srv, starting_point):
         """Inverse of the Square Root Velocity Transform (SRVT).
 
         Retrieve a curve from its square root velocity representation and
@@ -339,7 +339,7 @@ class SRVMetric(RiemannianMetric):
 
         return curve
 
-    def aux_differential_square_root_velocity(self, tangent_vec, curve):
+    def aux_differential_srv_transform(self, tangent_vec, curve):
         """Compute differential of the square root velocity transform.
 
         Parameters
@@ -364,8 +364,12 @@ class SRVMetric(RiemannianMetric):
                 "space."
             )
         n_sampling_points = curve.shape[-2]
-        d_vec = (n_sampling_points - 1) * (tangent_vec[..., 1:, :] - tangent_vec[..., :-1, :])
-        velocity_vec = (n_sampling_points - 1) * (curve[..., 1:, :] - curve[..., :-1, :])
+        d_vec = (n_sampling_points - 1) * (
+            tangent_vec[..., 1:, :] - tangent_vec[..., :-1, :]
+        )
+        velocity_vec = (n_sampling_points - 1) * (
+            curve[..., 1:, :] - curve[..., :-1, :]
+        )
         velocity_norm = self.ambient_metric.norm(velocity_vec)
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
@@ -409,8 +413,8 @@ class SRVMetric(RiemannianMetric):
                 "is only implemented for discrete curves "
                 "embedded in a Euclidean space."
             )
-        d_srv_vec_a = self.aux_differential_square_root_velocity(tangent_vec_a, curve)
-        d_srv_vec_b = self.aux_differential_square_root_velocity(tangent_vec_b, curve)
+        d_srv_vec_a = self.aux_differential_srv_transform(tangent_vec_a, curve)
+        d_srv_vec_b = self.aux_differential_srv_transform(tangent_vec_b, curve)
         inner_prod = self._srv_inner_product(d_srv_vec_a, d_srv_vec_b)
 
         return inner_prod
@@ -482,9 +486,9 @@ class SRVMetric(RiemannianMetric):
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_sampling_points = base_point.shape[1]
 
-        base_curve_srv = self.square_root_velocity_transform(base_point)
+        base_curve_srv = self.srv_transform(base_point)
 
-        d_srv_tangent_vec = self.aux_differential_square_root_velocity(
+        d_srv_tangent_vec = self.aux_differential_srv_transform(
             tangent_vec=tangent_vec, curve=base_point
         )
         end_curve_srv = self.l2_metric(n_sampling_points - 1).exp(
@@ -493,9 +497,7 @@ class SRVMetric(RiemannianMetric):
         end_curve_starting_point = self.ambient_metric.exp(
             tangent_vec=tangent_vec[:, 0, :], base_point=base_point[:, 0, :]
         )
-        end_curve = self.square_root_velocity_transform_inverse(
-            end_curve_srv, end_curve_starting_point
-        )
+        end_curve = self.srv_transform_inverse(end_curve_srv, end_curve_starting_point)
 
         return end_curve
 
@@ -524,8 +526,8 @@ class SRVMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_curves, n_sampling_points, n_coords = point.shape
 
-        curve_srv = self.square_root_velocity_transform(point)
-        base_curve_srv = self.square_root_velocity_transform(base_point)
+        curve_srv = self.srv_transform(point)
+        base_curve_srv = self.srv_transform(base_point)
 
         base_curve_velocity = (n_sampling_points - 1) * (
             base_point[:, 1:, :] - base_point[:, :-1, :]
@@ -655,8 +657,8 @@ class SRVMetric(RiemannianMetric):
         if point_a.shape != point_b.shape:
             raise ValueError("The curves need to have the same shapes.")
 
-        srv_a = self.square_root_velocity_transform(point_a)
-        srv_b = self.square_root_velocity_transform(point_b)
+        srv_a = self.srv_transform(point_a)
+        srv_b = self.srv_transform(point_b)
         n_sampling_points = srv_a.shape[-2]
         dist_starting_points = self.ambient_metric.dist(point_a[0, :], point_b[0, :])
         dist_srvs = self.l2_metric(n_sampling_points).dist(srv_a, srv_b)
@@ -844,11 +846,9 @@ class ClosedDiscreteCurves(Manifold):
             )
 
         srv_metric = self.square_root_velocity_metric
-        srv = srv_metric.square_root_velocity_transform(curve)[0]
+        srv = srv_metric.srv_transform(curve)[0]
         srv_proj = srv_metric.project_srv(srv, atol=atol, max_iter=max_iter)
-        proj = srv_metric.square_root_velocity_transform_inverse(
-            srv_proj, gs.array([curve[0]])
-        )
+        proj = srv_metric.srv_transform_inverse(srv_proj, gs.array([curve[0]]))
         return proj
 
 
@@ -1236,21 +1236,21 @@ class QuotientSRVMetric(SRVMetric):
             d_pos, position
         ) ** 2 - 1 / 2 * self._pointwise_inner_products(d2_pos, d_pos, position)
         vec_b = -2 * self._pointwise_norms(d_pos, position) ** 2 - quotient ** 2 * (
-                self._pointwise_norms(d2_pos, position) ** 2
-                - self._pointwise_inner_products(d2_pos, d_pos, position) ** 2
-                / self._pointwise_norms(d_pos, position) ** 2
+            self._pointwise_norms(d2_pos, position) ** 2
+            - self._pointwise_inner_products(d2_pos, d_pos, position) ** 2
+            / self._pointwise_norms(d_pos, position) ** 2
         )
         vec_c = self._pointwise_norms(
             d_pos, position
         ) ** 2 + 1 / 2 * self._pointwise_inner_products(d2_pos, d_pos, position)
         vec_d = self._pointwise_norms(d_pos, position) * (
-                self._pointwise_inner_products(d2_vec, d_pos, position)
-                - (quotient ** 2 - 1)
-                * self._pointwise_inner_products(d_vec, d2_pos, position)
-                + (quotient ** 2 - 2)
-                * self._pointwise_inner_products(d2_pos, d_pos, position)
-                * self._pointwise_inner_products(d_vec, d_pos, position)
-                / self._pointwise_norms(d_pos, position) ** 2
+            self._pointwise_inner_products(d2_vec, d_pos, position)
+            - (quotient ** 2 - 1)
+            * self._pointwise_inner_products(d_vec, d2_pos, position)
+            + (quotient ** 2 - 2)
+            * self._pointwise_inner_products(d2_pos, d_pos, position)
+            * self._pointwise_inner_products(d_vec, d_pos, position)
+            / self._pointwise_norms(d_pos, position) ** 2
         )
 
         linear_system = (
