@@ -866,6 +866,17 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, skew)
 
+    def test_sylvester_solve_psd(self):
+        psd = gs.array([[1.0, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.0]])
+
+        mat = gs.random.rand(3, 3)
+        skew = mat - gs.transpose(mat)
+        solution = gs.linalg.solve_sylvester(psd, psd, skew)
+        result = gs.matmul(psd, solution)
+        result += gs.matmul(solution, psd)
+
+        self.assertAllClose(result, skew)
+
     @geomstats.tests.np_autograd_and_torch_only
     def test_general_sylvester_solve(self):
         a = gs.array([[-3.0, -2.0, 0.0], [-1.0, -1.0, 3.0], [3.0, -5.0, -1.0]])
@@ -903,7 +914,7 @@ class TestBackends(geomstats.tests.TestCase):
     def test_triu(self):
         mat = gs.array([[2.0, 1.0, 1.0], [1.0, -1.5, 2.0], [-1.0, 10.0, 2.0]])
         result = gs.triu(mat)
-        expected = gs.array([[2.0, 1.0, 1.0], [0., -1.5, 2.0], [0., 0., 2.0]])
+        expected = gs.array([[2.0, 1.0, 1.0], [0.0, -1.5, 2.0], [0.0, 0.0, 2.0]])
         self.assertAllClose(result, expected)
 
     def test_mat_from_diag_triu_tril(self):
