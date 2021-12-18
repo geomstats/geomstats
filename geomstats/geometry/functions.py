@@ -6,8 +6,6 @@ import pdb
 import numpy as np
 
 import geomstats.backend as gs
-from geomstats.geometry.base import VectorSpace
-from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
