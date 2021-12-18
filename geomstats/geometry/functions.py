@@ -12,53 +12,10 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class L2SpaceMetric(RiemannianMetric):
-    """A Riemannian metric on the L2 space"""
-
-    def __init__(self, domain_samples):
-        self.domain = domain_samples
-        self.x = (self.domain - min(self.domain)) / (
-            max(self.domain) - min(self.domain)
-        )
-        self.dim = len(self.domain)
-        super().__init__(dim=self.dim)
-
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner-product of two tangent vectors at a base point."""
-        inner_prod = np.trapz(tangent_vec_a * tangent_vec_b, x=self.x)
-        return inner_prod
-
-    def exp(self, tangent_vec, base_point, **kwargs):
-        """Compute the Riemannian exponential."""
-
-        return base_point + tangent_vec
-
-    def log(self, point, base_point, **kwargs):
-        """Compute Riemannian logarithm of a point wrt a base point."""
-        return point - base_point
-
-
-class L2Space(VectorSpace):
-    """Class for space of L2 functions.
-
-    Real valued square interable functions defined on a unit interval are Hilbert spaces with a Riemannian inner product
-    This class represents such manifolds.
-    The L2Space (Lp in general) is a Banach Space that is a complete normed Vector space
-
-    Ref :
-    Srivastava, Anuj, and Eric P. Klassen. Functional and shape data analysis. Vol. 1. New York: Springer, 2016.
-    """
-
-    def __init__(self, domain_samples):
-        self.domain = domain_samples
-        self.dim = len(self.domain)
-        super().__init__(shape=(self.dim,), metric=L2SpaceMetric(self.domain))
-
-
 class SinfSpaceMetric(RiemannianMetric):
     """A Riemannian metric on the S_{\inf} space
 
-    Inputs:
+    Parameters:
     -------
     domain_samples : grid points on the domain (array of shape (n_samples, ))
     """
@@ -68,31 +25,101 @@ class SinfSpaceMetric(RiemannianMetric):
         self.x = (self.domain - min(self.domain)) / (
             max(self.domain) - min(self.domain)
         )
-        self.dim = len(self.domain)
-        super().__init__(dim=self.dim)
+        self.n_evals = len(self.domain)
+        super().__init__(dim=self.n_evals)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner-product of two tangent vectors at a base point."""
+        """Inner product between two tangent vectors at a base point.
+        Parameters
+        ----------
+        tangent_vec_a: array-like, shape=[..., n_evals]
+            Tangent vector at base point.
+        tangent_vec_b: array-like, shape=[..., n_evals]
+            Tangent vector at base point.
+        base_point: array-like, shape=[..., n_evals]
+            Base point.
+            Optional, default: None.
+        Returns
+        -------
+        inner_product : array-like, shape=[...,]
+            Inner-product.
+        """
 
-        inner_prod = np.trapz(
-            tangent_vec_a * tangent_vec_b, x=self.x.reshape(1, -1), axis=1
+        def f(v1, v2):
+
+            return np.trapz(v1 * v2, x=self.x)
+
+        inner_prod = gs.vectorize(
+            (tangent_vec_a, tangent_vec_b),
+            f,
+            dtype=gs.float32,
+            multiple_args=True,
+            signature="(i),(i)->()",
         )
 
         return inner_prod
 
     def exp(self, tangent_vec, base_point, **kwargs):
-        """Compute the Riemannian exponential."""
-        norm_v = self.norm(tangent_vec)
-        t1 = np.cos(norm_v) * base_point
-        t2 = (np.sin(norm_v) / norm_v) * base_point
+        """Compute the Riemannian exponential of a tangent vector.
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n_evals]
+            Tangent vector at a base point.
+        base_point : array-like, shape=[..., n_evals]
+            Point on the hypersphere.
+        Returns
+        -------
+        exp : array-like, shape=[..., n_evals]
+            Point on the hypersphere equal to the Riemannian exponential
+            of tangent_vec at the base point.
+        """
 
-        return t1 + t2
+        def f(v, p):
+            norm_v = self.norm(v)
+            t1 = np.cos(norm_v) * p
+            t2 = (np.sin(norm_v) / norm_v) * p
+
+            return t1 + t2
+
+        out = gs.vectorize(
+            (tangent_vec, base_point),
+            f,
+            dtype=gs.float32,
+            multiple_args=True,
+            signature="(i),(i)->(i)",
+        )
+
+        return out
 
     def log(self, point, base_point, **kwargs):
-        """Compute Riemannian logarithm of a point wrt a base point."""
-        theta = np.arccos(self.inner_product(point, base_point, base_point))
+        """Compute the Riemannian logarithm of a point.
+        Parameters
+        ----------
+        point : array-like, shape=[..., n_evals]
+            Point on the hypersphere.
+        base_point : array-like, shape=[..., n_evals]
+            Point on the hypersphere.
+        Returns
+        -------
+        log : array-like, shape=[..., n_evals]
+            Tangent vector at the base point equal to the Riemannian logarithm
+            of point at the base point.
+        """
 
-        return (point - base_point * np.cos(theta)) * (theta / np.sin(theta))
+        def f(p0, p1):
+            theta = np.arccos(self.inner_product(p1, p0, p0))
+
+            return (p1 - p0 * np.cos(theta)) * (theta / np.sin(theta))
+
+        out = gs.vectorize(
+            (base_point, point),
+            f,
+            dtype=gs.float32,
+            multiple_args=True,
+            signature="(i),(i)->(i)",
+        )
+
+        return out
 
 
 class SinfSpace(Manifold):
