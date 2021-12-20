@@ -10,6 +10,7 @@ from geomstats.geometry.discrete_curves import (
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 
 
 class TestDiscreteCurves(geomstats.tests.TestCase):
@@ -166,13 +167,13 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curves_bc = curves_bc(self.times)
 
         tangent_vecs = self.l2_metric_s2.log(point=curves_bc, base_point=curves_ab)
-        result = self.srv_metric_r3._pointwise_inner_products(
+        result = self.srv_metric_r3.l2_curves_metric.pointwise_inner_products(
             tangent_vec_a=tangent_vecs, tangent_vec_b=tangent_vecs, base_curve=curves_ab
         )
         expected_shape = (self.n_discretized_curves, self.n_sampling_points)
         self.assertAllClose(gs.shape(result), expected_shape)
 
-        result = self.srv_metric_r3._pointwise_inner_products(
+        result = self.srv_metric_r3.l2_curves_metric.pointwise_inner_products(
             tangent_vec_a=tangent_vecs[0],
             tangent_vec_b=tangent_vecs[0],
             base_curve=curves_ab[0],
@@ -433,9 +434,6 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         Check that it is the inverse of aux_differential_srv_transform.
         """
         dim = 3
-        # n_sampling_points = 2000
-        # sampling_times = gs.linspace(0.0, 1.0, n_sampling_points)
-        # curve_a = self.curve_fun_a(sampling_times)
         tangent_vec = gs.transpose(
             gs.tile(gs.linspace(0.0, 1.0, self.n_sampling_points), (dim, 1))
         )
@@ -509,6 +507,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
     #     dist_0 = r3.metric.dist(self.curve_a[0], self.curve_b[0])
     #     result = gs.sqrt(norm**2 + dist_0**2)
     #     expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)[0]
+    #     expected /= (self.n_sampling_points - 2)
     #     self.assertAllClose(result, expected)
 
     def test_inner_product_vectorization(self):

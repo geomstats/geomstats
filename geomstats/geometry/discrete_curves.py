@@ -163,6 +163,137 @@ class DiscreteCurves(Manifold):
         return sample[0] if n_samples == 1 else sample
 
 
+class L2CurvesMetric(RiemannianMetric):
+    """L2 metric on the space regularly sampled discrete curves
+
+    defined on the unit interval. The inner product between two tangent vectors
+    is given by the integral of the ambient space inner product, approximated by
+    a left Riemann sum.
+    """
+
+    def __init__(self, ambient_manifold, metric=None):
+        super(L2CurvesMetric, self).__init__(dim=math.inf, signature=(math.inf, 0, 0))
+        if metric is None:
+            if hasattr(ambient_manifold, "metric"):
+                self.ambient_metric = ambient_manifold.metric
+            else:
+                raise ValueError(
+                    "Instantiating an object of class "
+                    "DiscreteCurves requires either a metric"
+                    " or an ambient manifold"
+                    " equipped with a metric."
+                )
+        else:
+            self.ambient_metric = metric
+        self.l2_metric = lambda n: L2Metric(ambient_manifold, n_landmarks=n)
+
+    def riemann_sum(self, func):
+        """Compute the left Riemann sum approximation of the integral of a function
+
+        on the unit interval, given by sample points at regularly spaced times
+        t_k = k / n_sampling_points for k = 0, ..., n_sampling_points.
+
+        Parameters
+        ----------
+        func : array-like, shape=[..., n_sampling_points]
+            Sample points of a function at regularly spaced times.
+
+        Returns
+        -------
+        riemann_sum : array-like, shape=[..., ]
+            Left Riemann sum.
+        """
+        func = gs.to_ndarray(func, to_ndim=2)
+        n_sampling_points = func.shape[-1]
+        dt = 1 / n_sampling_points
+        riemann_sum = dt * gs.sum(func[:, :-1], axis=-1)
+        return gs.squeeze(riemann_sum)
+
+    def pointwise_inner_products(self, tangent_vec_a, tangent_vec_b, base_curve):
+        """Compute the pointwise inner products of a pair of tangent vectors.
+
+        Compute the inner-products between the components of two tangent vectors
+        at the different sampling point of a base curve.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector to discrete curve.
+        tangent_vec_b : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector to discrete curve.
+        base_curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Point representing a discrete curve.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[..., n_sampling_points]
+            Point-wise inner-product.
+        """
+
+        def inner_prod_aux(vec_a, vec_b, curve):
+            inner_prod = self.ambient_metric.inner_product(vec_a, vec_b, curve)
+            return gs.squeeze(inner_prod)
+
+        inner_prod = gs.vectorize(
+            (tangent_vec_a, tangent_vec_b, base_curve),
+            inner_prod_aux,
+            dtype=gs.float32,
+            multiple_args=True,
+            signature="(i,j),(i,j),(i,j)->(i)",
+        )
+
+        return inner_prod
+
+    def pointwise_norms(self, tangent_vec, base_curve):
+        """Compute the pointwise norms of a tangent vector.
+
+        Compute the norms of the components of a tangent vector at the different
+        sampling points of a base curve.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector to discrete curve.
+        base_curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Point representing a discrete curve.
+
+        Returns
+        -------
+        norm : array-like, shape=[..., n_sampling_points]
+            Point-wise norms.
+        """
+        sq_norm = self.pointwise_inner_products(
+            tangent_vec_a=tangent_vec, tangent_vec_b=tangent_vec, base_curve=base_curve
+        )
+        return gs.sqrt(sq_norm)
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+        """Compute L2 inner product between two tangent vectors.
+
+        The inner product is the integral of the ambient space inner product,
+        approximated by a left Riemann sum.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector to curve, i.e. infinitesimal vector field
+            along curve.
+        tangent_vec_b : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector to curve, i.e. infinitesimal vector field
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Return
+        ------
+        inner_prod : array_like, shape=[...]
+            L2 inner product between tangent_vec_a and tangent_vec_b.
+        """
+        inner_products = self.pointwise_inner_products(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
+        return self.riemann_sum(inner_products)
+
+
 class SRVMetric(RiemannianMetric):
     """Elastic metric defined using the Square Root Velocity Function.
 
@@ -199,66 +330,9 @@ class SRVMetric(RiemannianMetric):
                 )
         else:
             self.ambient_metric = metric
+        self.l2_curves_metric = L2CurvesMetric(ambient_manifold, metric)
         self.l2_metric = lambda n: L2Metric(ambient_manifold, n_landmarks=n)
         self.translation_invariant = translation_invariant
-
-    def _pointwise_inner_products(self, tangent_vec_a, tangent_vec_b, base_curve):
-        """Compute the pointwise inner products of a pair of tangent vectors.
-
-        Compute the inner-products between the components of two tangent vectors
-        at the different sampling point of a base curve.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Tangent vector to discrete curve.
-        tangent_vec_b : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Tangent vector to discrete curve.
-        base_curve : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Point representing a discrete curve.
-
-        Returns
-        -------
-        inner_prod : array-like, shape=[..., n_sampling_points]
-            Point-wise inner-product.
-        """
-
-        def inner_prod_aux(vec_a, vec_b, curve):
-            inner_prod = self.ambient_metric.inner_product(vec_a, vec_b, curve)
-            return gs.squeeze(inner_prod)
-
-        inner_prod = gs.vectorize(
-            (tangent_vec_a, tangent_vec_b, base_curve),
-            inner_prod_aux,
-            dtype=gs.float32,
-            multiple_args=True,
-            signature="(i,j),(i,j),(i,j)->(i)",
-        )
-
-        return inner_prod
-
-    def _pointwise_norms(self, tangent_vec, base_curve):
-        """Compute the pointwise norms of a tangent vector.
-
-        Compute the norms of the components of a tangent vector at the different
-        sampling points of a base curve.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Tangent vector to discrete curve.
-        base_curve : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Point representing a discrete curve.
-
-        Returns
-        -------
-        norm : array-like, shape=[..., n_sampling_points]
-            Point-wise norms.
-        """
-        sq_norm = self._pointwise_inner_products(
-            tangent_vec_a=tangent_vec, tangent_vec_b=tangent_vec, base_curve=base_curve
-        )
-        return gs.sqrt(sq_norm)
 
     def srv_transform(self, curve):
         """Square Root Velocity Transform (SRVT).
@@ -374,7 +448,7 @@ class SRVMetric(RiemannianMetric):
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
-        inner_prod = self._pointwise_inner_products(
+        inner_prod = self.l2_curves_metric.pointwise_inner_products(
             d_vec, unit_velocity_vec, curve[..., :-1, :]
         )
         d_vec_tangential = gs.einsum("...ij,...i->...ij", unit_velocity_vec, inner_prod)
@@ -418,7 +492,7 @@ class SRVMetric(RiemannianMetric):
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
-        inner_prod = self._pointwise_inner_products(
+        inner_prod = self.l2_curves_metric.pointwise_inner_products(
             tangent_vec, unit_velocity_vec, curve[..., :-1, :]
         )
         tangent_vec_tangential = gs.einsum(
@@ -1261,25 +1335,32 @@ class QuotientSRVMetric(SRVMetric):
             + tangent_vec[..., :-2, :]
         )
 
-        vec_a = self._pointwise_norms(
+        vec_a = self.l2_curves_metric.pointwise_norms(
             d_pos, position
-        ) ** 2 - 1 / 2 * self._pointwise_inner_products(d2_pos, d_pos, position)
-        vec_b = -2 * self._pointwise_norms(d_pos, position) ** 2 - quotient ** 2 * (
-            self._pointwise_norms(d2_pos, position) ** 2
-            - self._pointwise_inner_products(d2_pos, d_pos, position) ** 2
-            / self._pointwise_norms(d_pos, position) ** 2
+        ) ** 2 - 1 / 2 * self.l2_curves_metric.pointwise_inner_products(
+            d2_pos, d_pos, position
         )
-        vec_c = self._pointwise_norms(
+        vec_b = -2 * self.l2_curves_metric.pointwise_norms(
             d_pos, position
-        ) ** 2 + 1 / 2 * self._pointwise_inner_products(d2_pos, d_pos, position)
-        vec_d = self._pointwise_norms(d_pos, position) * (
-            self._pointwise_inner_products(d2_vec, d_pos, position)
+        ) ** 2 - quotient ** 2 * (
+            self.l2_curves_metric.pointwise_norms(d2_pos, position) ** 2
+            - self.l2_curves_metric.pointwise_inner_products(d2_pos, d_pos, position)
+            ** 2
+            / self.l2_curves_metric.pointwise_norms(d_pos, position) ** 2
+        )
+        vec_c = self.l2_curves_metric.pointwise_norms(
+            d_pos, position
+        ) ** 2 + 1 / 2 * self.l2_curves_metric.pointwise_inner_products(
+            d2_pos, d_pos, position
+        )
+        vec_d = self.l2_curves_metric.pointwise_norms(d_pos, position) * (
+            self.l2_curves_metric.pointwise_inner_products(d2_vec, d_pos, position)
             - (quotient ** 2 - 1)
-            * self._pointwise_inner_products(d_vec, d2_pos, position)
+            * self.l2_curves_metric.pointwise_inner_products(d_vec, d2_pos, position)
             + (quotient ** 2 - 2)
-            * self._pointwise_inner_products(d2_pos, d_pos, position)
-            * self._pointwise_inner_products(d_vec, d_pos, position)
-            / self._pointwise_norms(d_pos, position) ** 2
+            * self.l2_curves_metric.pointwise_inner_products(d2_pos, d_pos, position)
+            * self.l2_curves_metric.pointwise_inner_products(d_vec, d_pos, position)
+            / self.l2_curves_metric.pointwise_norms(d_pos, position) ** 2
         )
 
         linear_system = (
@@ -1294,7 +1375,9 @@ class QuotientSRVMetric(SRVMetric):
         )
 
         unit_speed = gs.einsum(
-            "...ij,...i->...ij", d_pos, 1 / self._pointwise_norms(d_pos, position)
+            "...ij,...i->...ij",
+            d_pos,
+            1 / self.l2_curves_metric.pointwise_norms(d_pos, position),
         )
         tangent_vec_ver = gs.einsum(
             "...ij,...i->...ij", unit_speed, vertical_norm[..., 1:-1]
