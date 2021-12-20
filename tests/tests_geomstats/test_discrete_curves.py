@@ -252,13 +252,10 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         geod = geod(self.times)
         srv = self.srv_metric_r3.srv_transform(geod)
         srv_derivative = self.n_discretized_curves * (srv[1:, :] - srv[:-1, :])
-        l2_metric = self.space_curves_in_euclidean_3d.l2_metric(
-            self.n_sampling_points - 1
-        )
-        norms = l2_metric.norm(srv_derivative, geod[:-1, :-1, :])
+        norms = self.srv_metric_r3.l2_curves_metric.norm(srv_derivative)
         result = gs.sum(norms, 0) / self.n_discretized_curves
 
-        expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)[0]
+        expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs(self):
@@ -465,7 +462,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = gs.stack((res_a, res_b))
         self.assertAllClose(result, expected)
 
-    def test_inner_product(self):
+    def test_srv_inner_product(self):
         """Test inner product of SRVMetric.
 
         Check that the pullback metric gives an elastic metric
@@ -500,17 +497,14 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = gs.sum(integrand) / self.n_sampling_points
         self.assertAllClose(result, expected)
 
-    # def test_inner_product_and_dist(self):
-    #     r3 = Euclidean(dim=3)
-    #     log = self.srv_metric_r3.log(point=self.curve_b, base_point=self.curve_a)
-    #     norm = self.srv_metric_r3.norm(vector=log, base_point=self.curve_a)
-    #     dist_0 = r3.metric.dist(self.curve_a[0], self.curve_b[0])
-    #     result = gs.sqrt(norm**2 + dist_0**2)
-    #     expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)[0]
-    #     expected /= (self.n_sampling_points - 2)
-    #     self.assertAllClose(result, expected)
+    def test_srv_inner_product_and_dist(self):
+        """Test that norm of log and dist coincide."""
+        log = self.srv_metric_r3.log(point=self.curve_b, base_point=self.curve_a)
+        result = self.srv_metric_r3.norm(vector=log, base_point=self.curve_a)
+        expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)
+        self.assertAllClose(result, expected)
 
-    def test_inner_product_vectorization(self):
+    def test_srv_inner_product_vectorization(self):
         """Test inner product of SRVMetric.
 
         Check vectorization.

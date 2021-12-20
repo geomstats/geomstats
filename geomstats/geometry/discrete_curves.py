@@ -187,7 +187,7 @@ class L2CurvesMetric(RiemannianMetric):
             self.ambient_metric = metric
         self.l2_metric = lambda n: L2Metric(ambient_manifold, n_landmarks=n)
 
-    def riemann_sum(self, func):
+    def riemann_sum(self, func, missing_last_point=True):
         """Compute the left Riemann sum approximation of the integral of a function
 
         on the unit interval, given by sample points at regularly spaced times
@@ -197,6 +197,9 @@ class L2CurvesMetric(RiemannianMetric):
         ----------
         func : array-like, shape=[..., n_sampling_points]
             Sample points of a function at regularly spaced times.
+        missing_last_point : boolean.
+            Is true when the last value at to time 1 is missing.
+            Optional, default True.
 
         Returns
         -------
@@ -204,9 +207,10 @@ class L2CurvesMetric(RiemannianMetric):
             Left Riemann sum.
         """
         func = gs.to_ndarray(func, to_ndim=2)
-        n_sampling_points = func.shape[-1]
+        n_sampling_points = func.shape[-1] + 1 if missing_last_point else func.shape[-1]
         dt = 1 / n_sampling_points
-        riemann_sum = dt * gs.sum(func[:, :-1], axis=-1)
+        values_to_sum = func if missing_last_point else func[:, :-1]
+        riemann_sum = dt * gs.sum(values_to_sum, axis=-1)
         return gs.squeeze(riemann_sum)
 
     def pointwise_inner_products(self, tangent_vec_a, tangent_vec_b, base_curve=None):
@@ -223,6 +227,7 @@ class L2CurvesMetric(RiemannianMetric):
             Tangent vector to discrete curve.
         base_curve : array-like, shape=[..., n_sampling_points, ambient_dim]
             Point representing a discrete curve.
+            Optional, default None.
 
         Returns
         -------
@@ -273,7 +278,9 @@ class L2CurvesMetric(RiemannianMetric):
         )
         return gs.sqrt(sq_norm)
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+    def inner_product(
+        self, tangent_vec_a, tangent_vec_b, base_point=None, missing_last_point=True
+    ):
         """Compute L2 inner product between two tangent vectors.
 
         The inner product is the integral of the ambient space inner product,
@@ -282,12 +289,16 @@ class L2CurvesMetric(RiemannianMetric):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Tangent vector to curve, i.e. infinitesimal vector field
-            along curve.
+            Tangent vector to a curve, i.e. infinitesimal vector field
+            along a curve.
         tangent_vec_b : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Tangent vector to curve, i.e. infinitesimal vector field
+            Tangent vector to a curve, i.e. infinitesimal vector field
+            along a curve.
         base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Discrete curve.
+            Discrete curve defined on the unit interval [0, 1].
+        missing_last_point : boolean.
+            Is true when the values of the tangent vectors at time 1 are missing.
+            Optional, default True.
 
         Return
         ------
@@ -297,7 +308,7 @@ class L2CurvesMetric(RiemannianMetric):
         inner_products = self.pointwise_inner_products(
             tangent_vec_a, tangent_vec_b, base_point
         )
-        return self.riemann_sum(inner_products)
+        return self.riemann_sum(inner_products, missing_last_point)
 
 
 class SRVMetric(RiemannianMetric):
@@ -566,14 +577,7 @@ class SRVMetric(RiemannianMetric):
         inner_prod : array-like, shape=[...]
             L² inner product between the two srv representations.
         """
-        srv_1 = gs.to_ndarray(srv_1, to_ndim=3)
-        srv_2 = gs.to_ndarray(srv_2, to_ndim=3)
-        n_curves, n_sampling_points, n_coords = srv_1.shape
-        srv_1 = gs.concatenate((srv_1, gs.zeros((n_curves, 1, n_coords))), axis=1)
-        srv_2 = gs.concatenate((srv_2, gs.zeros((n_curves, 1, n_coords))), axis=1)
-        inner_prod = self.l2_curves_metric.inner_product(srv_1, srv_2)
-
-        return gs.squeeze(inner_prod)
+        return self.l2_curves_metric.inner_product(srv_1, srv_2)
 
     def _l2_norm_of_srv(self, srv):
         """
@@ -775,7 +779,7 @@ class SRVMetric(RiemannianMetric):
         srv_b = self.srv_transform(point_b)
         n_sampling_points = srv_a.shape[-2]
         dist_starting_points = self.ambient_metric.dist(point_a[0, :], point_b[0, :])
-        dist_srvs = self.l2_metric(n_sampling_points).dist(srv_a, srv_b)
+        dist_srvs = self._l2_norm_of_srv(srv_a - srv_b)
         dist = gs.sqrt(dist_starting_points ** 2 + dist_srvs ** 2)
 
         return dist
