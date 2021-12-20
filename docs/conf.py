@@ -1,7 +1,11 @@
 """Sphinx configuration file."""
 
+import os
+import sys
+
 import geomstats
 
+sys.path.insert(0, os.path.abspath(".."))
 project = "Geomstats"
 copyright = "2019-2020, Geomstats, Inc."
 author = "Geomstats Team"
