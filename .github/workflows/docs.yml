@@ -37,10 +37,4 @@ jobs:
           docs-folder : "docs/"
           pre-build-command: "apt-get update -y && apt-get -y install pandoc"
           build-command : "sphinx-build -b html -D version=latest -D release=latest docs docs/_build"
-      - name: Commit documentation changes
-        run:  |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add .
-          git commit -m "Update documentation" -a || true
 
