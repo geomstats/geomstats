@@ -8,6 +8,8 @@ import abc
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 
+POINT_TYPES = {1: "vector", 2: "matrix"}
+
 
 class VectorSpace(Manifold, abc.ABC):
     """Abstract class for vector spaces.
@@ -22,12 +24,10 @@ class VectorSpace(Manifold, abc.ABC):
         Optional, default: 'vector'.
     """
 
-    def __init__(self, shape, default_point_type="vector", **kwargs):
+    def __init__(self, shape, **kwargs):
         if "dim" not in kwargs.keys():
             kwargs["dim"] = int(gs.prod(gs.array(shape)))
-        super(VectorSpace, self).__init__(
-            shape=shape, default_point_type=default_point_type, **kwargs
-        )
+        super(VectorSpace, self).__init__(shape=shape, **kwargs)
         self.shape = shape
 
     def belongs(self, point, atol=gs.atol):
@@ -47,13 +47,8 @@ class VectorSpace(Manifold, abc.ABC):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
-        if self.default_point_type == "vector":
-            point_shape = point.shape[-1:]
-            minimal_ndim = 1
-        else:
-            point_shape = point.shape[-2:]
-            minimal_ndim = 2
-        belongs = point_shape == self.shape
+        minimal_ndim = len(self.shape)
+        belongs = point.shape[-minimal_ndim:] == self.shape
         if point.ndim == minimal_ndim:
             return belongs
         return gs.tile(gs.array([belongs]), [point.shape[0]])
