@@ -369,7 +369,7 @@ class SRVMetric(RiemannianMetric):
         mask = ~((index + 1) % n_sampling_points == 0)
         srv = gs.reshape(srv[mask], srv_shape)
 
-        return srv
+        return gs.squeeze(srv)
 
     def srv_transform_inverse(self, srv, starting_point):
         """Inverse of the Square Root Velocity Transform (SRVT).
@@ -547,10 +547,10 @@ class SRVMetric(RiemannianMetric):
 
         Parameters
         ----------
-        srv_1 : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Srv representation.
-        srv_2 : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Srv representation.
+        srv_1 : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
+            Srv representation of a discrete curve with n_sampling_points.
+        srv_2 : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
+            Srv representation of a discrete curve with n_sampling_points.
 
         Return
         ------
@@ -949,7 +949,7 @@ class ClosedDiscreteCurves(Manifold):
             )
 
         srv_metric = self.square_root_velocity_metric
-        srv = srv_metric.srv_transform(curve)[0]
+        srv = srv_metric.srv_transform(curve)
         srv_proj = srv_metric.project_srv(srv, atol=atol, max_iter=max_iter)
         proj = srv_metric.srv_transform_inverse(srv_proj, gs.array([curve[0]]))
         return proj
