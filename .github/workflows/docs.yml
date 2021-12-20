@@ -1,14 +1,8 @@
 on:
   push:
     branches: [master,github-actions-test]
-    paths:
-    - 'docs/**'
-    - './github/workflows/'
   pull_request:
     branches: [master]
-    paths:
-    - 'docs/**'
-    - './github/workflows/'
 
 
 jobs:
