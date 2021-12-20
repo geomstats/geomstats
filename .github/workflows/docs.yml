@@ -37,7 +37,8 @@ jobs:
           done
           pip install -e .
 
-      - name: building docs [sphinx]
-        run: |
-          sphinx-build -b html -D version=latest -D release=latest docs docs/_build
+      - uses: ammaraskar/sphinx-action@master
+        with:
+          docs-folder : "docs/"
+          build-command : "sphinx-build -b html -D version=latest -D release=latest docs docs/_build"
 
