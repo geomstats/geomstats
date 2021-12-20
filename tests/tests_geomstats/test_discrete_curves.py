@@ -312,7 +312,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         srvs_ab = self.srv_metric_r3.srv_transform(curves_ab)
         srvs_bc = self.srv_metric_r3.srv_transform(curves_bc)
 
-        result = self.srv_metric_r3._l2_inner_product_between_srv(srvs_ab, srvs_bc)
+        result = self.srv_metric_r3.l2_curves_metric.inner_product(srvs_ab, srvs_bc)
         products = srvs_ab * srvs_bc
         expected = [gs.sum(product) for product in products]
         expected = gs.array(expected) / (srvs_ab.shape[-2] + 1)
@@ -330,7 +330,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curves_ab = curves_ab(self.times)
         srvs_ab = self.srv_metric_r3.srv_transform(curves_ab)
 
-        result = self.srv_metric_r3._l2_norm_of_srv(srvs_ab)
+        result = self.srv_metric_r3.l2_curves_metric.norm(srvs_ab)
         products = srvs_ab * srvs_ab
         sums = [gs.sum(product) for product in products]
         squared_norm = gs.array(sums) / (srvs_ab.shape[-2] + 1)

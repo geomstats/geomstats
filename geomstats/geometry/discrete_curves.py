@@ -557,46 +557,9 @@ class SRVMetric(RiemannianMetric):
             )
         d_srv_vec_a = self.aux_differential_srv_transform(tangent_vec_a, curve)
         d_srv_vec_b = self.aux_differential_srv_transform(tangent_vec_b, curve)
-        inner_prod = self._l2_inner_product_between_srv(d_srv_vec_a, d_srv_vec_b)
+        inner_prod = self.l2_curves_metric.inner_product(d_srv_vec_a, d_srv_vec_b)
 
         return inner_prod
-
-    def _l2_inner_product_between_srv(self, srv_1, srv_2):
-        """
-        Compute the L² inner_product between two srv representations.
-
-        Parameters
-        ----------
-        srv_1 : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
-            Srv representation of a discrete curve with n_sampling_points.
-        srv_2 : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
-            Srv representation of a discrete curve with n_sampling_points.
-
-        Return
-        ------
-        inner_prod : array-like, shape=[...]
-            L² inner product between the two srv representations.
-        """
-        return self.l2_curves_metric.inner_product(srv_1, srv_2)
-
-    def _l2_norm_of_srv(self, srv):
-        """
-        Compute the L² norm of a srv representation of a curve.
-
-        Parameters
-        ----------
-        srv : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Srv representation of a curve
-
-        Return
-        ------
-        norm : array-like, shape=[...]
-            L² norm of the srv representation.
-        """
-        squared_norm = self._l2_inner_product_between_srv(srv, srv)
-        norm = gs.sqrt(squared_norm)
-
-        return norm
 
     def exp(self, tangent_vec, base_point):
         """Compute Riemannian exponential of tangent vector wrt to base curve.
@@ -779,7 +742,8 @@ class SRVMetric(RiemannianMetric):
         srv_b = self.srv_transform(point_b)
         n_sampling_points = srv_a.shape[-2]
         dist_starting_points = self.ambient_metric.dist(point_a[0, :], point_b[0, :])
-        dist_srvs = self._l2_norm_of_srv(srv_a - srv_b)
+        dist_srvs = self.l2_curves_metric.norm(srv_b - srv_a)
+        # dist_srvs = self._l2_norm_of_srv(srv_a - srv_b)
         dist = gs.sqrt(dist_starting_points ** 2 + dist_srvs ** 2)
 
         return dist
@@ -1026,8 +990,10 @@ class ClosedSRVMetric(SRVMetric):
             )
 
         dim = self.ambient_metric.dim
-        srv_inner_prod = self._l2_inner_product_between_srv
-        srv_norm = self._l2_norm_of_srv
+        srv_inner_prod = self.l2_curves_metric.inner_product
+        srv_norm = self.l2_curves_metric.norm
+        # srv_inner_prod = self._l2_inner_product_between_srv
+        # srv_norm = self._l2_norm_of_srv
         inner_prod = self.ambient_metric.inner_product
 
         def g_criterion(srv, srv_norms):
