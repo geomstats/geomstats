@@ -1,3 +1,5 @@
+name: "Docs check and Deployment"
+
 on:
   push:
     branches: [master,github-actions-test]
