@@ -209,7 +209,7 @@ class L2CurvesMetric(RiemannianMetric):
         riemann_sum = dt * gs.sum(func[:, :-1], axis=-1)
         return gs.squeeze(riemann_sum)
 
-    def pointwise_inner_products(self, tangent_vec_a, tangent_vec_b, base_curve):
+    def pointwise_inner_products(self, tangent_vec_a, tangent_vec_b, base_curve=None):
         """Compute the pointwise inner products of a pair of tangent vectors.
 
         Compute the inner-products between the components of two tangent vectors
@@ -230,11 +230,19 @@ class L2CurvesMetric(RiemannianMetric):
             Point-wise inner-product.
         """
 
-        def inner_prod_aux(vec_a, vec_b, curve):
+        def inner_prod_aux(vec_a, vec_b, curve=None):
             inner_prod = self.ambient_metric.inner_product(vec_a, vec_b, curve)
             return gs.squeeze(inner_prod)
 
-        inner_prod = gs.vectorize(
+        if base_curve is None:
+            return gs.vectorize(
+                (tangent_vec_a, tangent_vec_b),
+                inner_prod_aux,
+                dtype=gs.float32,
+                multiple_args=True,
+                signature="(i,j),(i,j)->(i)",
+            )
+        return gs.vectorize(
             (tangent_vec_a, tangent_vec_b, base_curve),
             inner_prod_aux,
             dtype=gs.float32,
@@ -242,9 +250,7 @@ class L2CurvesMetric(RiemannianMetric):
             signature="(i,j),(i,j),(i,j)->(i)",
         )
 
-        return inner_prod
-
-    def pointwise_norms(self, tangent_vec, base_curve):
+    def pointwise_norms(self, tangent_vec, base_curve=None):
         """Compute the pointwise norms of a tangent vector.
 
         Compute the norms of the components of a tangent vector at the different
@@ -267,7 +273,7 @@ class L2CurvesMetric(RiemannianMetric):
         )
         return gs.sqrt(sq_norm)
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute L2 inner product between two tangent vectors.
 
         The inner product is the integral of the ambient space inner product,
@@ -557,12 +563,14 @@ class SRVMetric(RiemannianMetric):
         inner_prod : array-like, shape=[...]
             L² inner product between the two srv representations.
         """
-        n_sampling_points = srv_1.shape[-2]
+        srv_1 = gs.to_ndarray(srv_1, to_ndim=3)
+        srv_2 = gs.to_ndarray(srv_2, to_ndim=3)
+        n_curves, n_sampling_points, n_coords = srv_1.shape
+        srv_1 = gs.concatenate((srv_1, gs.zeros((n_curves, 1, n_coords))), axis=1)
+        srv_2 = gs.concatenate((srv_2, gs.zeros((n_curves, 1, n_coords))), axis=1)
+        inner_prod = self.l2_curves_metric.inner_product(srv_1, srv_2)
 
-        l2_inner_prod = self.l2_metric(n_sampling_points).inner_product
-        inner_prod = l2_inner_prod(srv_1, srv_2) / (n_sampling_points + 1)
-
-        return inner_prod
+        return gs.squeeze(inner_prod)
 
     def _l2_norm_of_srv(self, srv):
         """
