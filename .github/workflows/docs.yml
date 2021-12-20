@@ -23,12 +23,6 @@ jobs:
         with:
           python-version: ${{matrix.python-version}}
 
-      - name: install pandoc [apt-get] (not installing with pip)
-        if: ${{matrix.os == 'ubuntu-latest'}}
-        run: |
-          sudo apt-get update
-          sudo apt-get -y install pandoc
-
       - name: install dependencies [pip]
         run:  |
           pip install --upgrade pip setuptools wheel
@@ -40,5 +34,6 @@ jobs:
       - uses: ammaraskar/sphinx-action@master
         with:
           docs-folder : "docs/"
+          pre-build-command: "apt-get update -y && apt-get -y install pandoc"
           build-command : "sphinx-build -b html -D version=latest -D release=latest docs docs/_build"
 
