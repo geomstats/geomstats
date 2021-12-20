@@ -740,10 +740,8 @@ class SRVMetric(RiemannianMetric):
 
         srv_a = self.srv_transform(point_a)
         srv_b = self.srv_transform(point_b)
-        n_sampling_points = srv_a.shape[-2]
         dist_starting_points = self.ambient_metric.dist(point_a[0, :], point_b[0, :])
         dist_srvs = self.l2_curves_metric.norm(srv_b - srv_a)
-        # dist_srvs = self._l2_norm_of_srv(srv_a - srv_b)
         dist = gs.sqrt(dist_starting_points ** 2 + dist_srvs ** 2)
 
         return dist
@@ -992,8 +990,6 @@ class ClosedSRVMetric(SRVMetric):
         dim = self.ambient_metric.dim
         srv_inner_prod = self.l2_curves_metric.inner_product
         srv_norm = self.l2_curves_metric.norm
-        # srv_inner_prod = self._l2_inner_product_between_srv
-        # srv_norm = self._l2_norm_of_srv
         inner_prod = self.ambient_metric.inner_product
 
         def g_criterion(srv, srv_norms):
