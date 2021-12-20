@@ -359,6 +359,7 @@ class SRVMetric(RiemannianMetric):
         srv : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
             Square-root velocity representation of a discrete curve.
         """
+        curve_ndim = gs.ndim(curve)
         curve = gs.to_ndarray(curve, to_ndim=3)
         n_curves, n_sampling_points, n_coords = curve.shape
         srv_shape = (n_curves, n_sampling_points - 1, n_coords)
@@ -375,7 +376,7 @@ class SRVMetric(RiemannianMetric):
         mask = ~((index + 1) % n_sampling_points == 0)
         srv = gs.reshape(srv[mask], srv_shape)
 
-        if n_curves > 1:
+        if curve_ndim == 2:
             return gs.squeeze(srv)
         return srv
 
