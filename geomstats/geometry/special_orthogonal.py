@@ -418,7 +418,9 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialOrthogonal2Vectors, self).__init__(n=2, epsilon=epsilon, shape=())
+        super(_SpecialOrthogonal2Vectors, self).__init__(
+            n=2, epsilon=epsilon, shape=(2,)
+        )
 
     def regularize(self, point):
         """Regularize a point to be in accordance with convention.

@@ -32,7 +32,9 @@ class RankKPSDMatrices(Manifold):
 
     def __init__(self, n, k, **kwargs):
         super(RankKPSDMatrices, self).__init__(
-            **kwargs, dim=int(k * n - k * (k + 1) / 2)
+            **kwargs,
+            dim=int(k * n - k * (k + 1) / 2),
+            shape=(n, n),
         )
         self.n = n
         self.rank = k
