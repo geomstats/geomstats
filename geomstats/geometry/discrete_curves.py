@@ -375,7 +375,9 @@ class SRVMetric(RiemannianMetric):
         mask = ~((index + 1) % n_sampling_points == 0)
         srv = gs.reshape(srv[mask], srv_shape)
 
-        return gs.squeeze(srv)
+        if n_curves > 1:
+            return gs.squeeze(srv)
+        return srv
 
     def srv_transform_inverse(self, srv, starting_point):
         """Inverse of the Square Root Velocity Transform (SRVT).
