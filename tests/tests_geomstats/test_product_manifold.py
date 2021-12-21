@@ -187,7 +187,15 @@ class TestNFoldManifold(geomstats.tests.TestCase):
     def setup_method(self):
         power = 2
         base = SpecialOrthogonal(3)
-        self.product = NFoldManifold(base, power)
+        space = NFoldManifold(base, power)
+        self.product = space
+        n_samples = 4
+        point = gs.stack([gs.eye(3)] * space.n_copies * n_samples)
+        point = gs.reshape(point, (n_samples, *space.shape))
+        tangent_vec = space.to_tangent(gs.zeros((n_samples, *space.shape)), point)
+        self.point = point
+        self.tangent_vec = tangent_vec
+        self.n_samples = n_samples
 
     def test_random_and_belongs(self):
         points = self.product.random_point()
@@ -218,10 +226,9 @@ class TestNFoldManifold(geomstats.tests.TestCase):
 
     def test_inner_product_shape(self):
         space = self.product
-        n_samples = 4
-        point = gs.stack([gs.eye(3)] * space.n_copies * n_samples)
-        point = gs.reshape(point, (n_samples, *space.shape))
-        tangent_vec = space.to_tangent(gs.zeros((n_samples, *space.shape)), point)
+        n_samples = self.n_samples
+        point = self.point
+        tangent_vec = self.tangent_vec
         result = space.metric.inner_product(tangent_vec, tangent_vec, point)
         expected = gs.zeros(n_samples)
         self.assertAllClose(result, expected)
@@ -238,10 +245,8 @@ class TestNFoldManifold(geomstats.tests.TestCase):
 
     def test_exp(self):
         space = self.product
-        n_samples = 4
-        point = gs.stack([gs.eye(3)] * space.n_copies * n_samples)
-        point = gs.reshape(point, (n_samples, *space.shape))
-        tangent_vec = space.to_tangent(gs.zeros((n_samples, *space.shape)), point)
+        point = self.point
+        tangent_vec = self.tangent_vec
         result = space.metric.exp(tangent_vec, point)
         expected = point
         self.assertAllClose(result, expected)
@@ -256,9 +261,7 @@ class TestNFoldManifold(geomstats.tests.TestCase):
 
     def test_log(self):
         space = self.product
-        n_samples = 4
-        point = gs.stack([gs.eye(3)] * space.n_copies * n_samples)
-        point = gs.reshape(point, (n_samples, *space.shape))
+        point = self.point
         result = space.metric.log(point, point)
         expected = gs.zeros_like(point)
         self.assertAllClose(result, expected)
