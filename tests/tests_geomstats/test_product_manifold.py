@@ -185,7 +185,7 @@ class TestProductManifold(geomstats.tests.TestCase):
 
 class TestNFoldManifold(geomstats.tests.TestCase):
     def setup_method(self):
-        gs.random.seed(1234)
+        gs.random.seed(123)
         power = 2
         base = SpecialOrthogonal(3)
         space = NFoldManifold(base, power)
