@@ -387,7 +387,7 @@ class NFoldManifold(Manifold):
         point_ = gs.reshape(point, (-1, *self.base_shape))
         each_belongs = self.base_manifold.belongs(point_, atol=atol)
         reshaped = gs.reshape(each_belongs, (-1, self.n_copies))
-        return gs.all(reshaped, axis=1)
+        return gs.squeeze(gs.all(reshaped, axis=1))
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.

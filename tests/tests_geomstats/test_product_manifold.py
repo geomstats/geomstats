@@ -233,14 +233,16 @@ class TestNFoldManifold(geomstats.tests.TestCase):
         expected = gs.zeros(n_samples)
         self.assertAllClose(result, expected)
 
-        tangent_vec = space.to_tangent(gs.zeros((n_samples, *space.shape)), point[0])
+        point = point[0]
         result = space.metric.inner_product(tangent_vec, tangent_vec, point)
         expected = gs.zeros(n_samples)
         self.assertAllClose(result, expected)
 
-        tangent_vec = space.to_tangent(gs.zeros(space.shape), point[0])
-        result = space.metric.inner_product(tangent_vec, tangent_vec, point)
+        result = space.metric.inner_product(tangent_vec[0], tangent_vec, point)
+        self.assertAllClose(result, expected)
+
         expected = 0.0
+        result = space.metric.inner_product(tangent_vec[0], tangent_vec[0], point)
         self.assertAllClose(result, expected)
 
     def test_exp(self):
