@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies [pip]
         run:  |
           pip install --upgrade pip setuptools wheel
-          for req in ci-requirements.txt dev-requirements.txt doc-requirements.txt opt-requirements.txt requirements.txt; do
+          for req in doc-requirements.txt opt-requirements.txt requirements.txt; do
             pip install -q -r $req
           done
           pip install -e .
@@ -44,4 +44,4 @@ jobs:
           repository-name : geomstats/geomstats.github.io
           branch: master
           folder: docs/_build
-          token : ${{ secrets.GITHUB_PAGES_TOKEN  }}
+          token : ${{ secrets.DOCUMENTATION_KEY  }}
