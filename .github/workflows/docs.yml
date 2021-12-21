@@ -34,7 +34,6 @@ jobs:
       - name: Generate Docs [Sphinx]
         uses: ammaraskar/sphinx-action@master
         with:
-          with:
           docs-folder: "docs/"
           pre-build-command : apt-get update -y && apt-get -y install pandoc
           build-command: "sphinx-build  -b html -D version=latest -D release=latest . _build"
