@@ -15,7 +15,7 @@ from tests.conftest import generate_tests
 
 def dim_data():
 
-    random_n = random.randint(1, 1000)
+    random_n = random.randint(1, 1000, 500)
     smoke_data = [(1, 1), (2, 3), (5, 15)]
     rt_data = [(n, (n * (n + 1)) // 2) for n in random_n]
     return generate_tests(smoke_data, rt_data)
