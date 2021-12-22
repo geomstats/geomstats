@@ -14,11 +14,30 @@ from tests.conftest import generate_tests
 
 
 def dim_data():
-
     random_n = random.sample(range(1, 1000), 500)
     smoke_data = [(1, 1), (2, 3), (5, 15)]
     rt_data = [(n, (n * (n + 1)) // 2) for n in random_n]
     return generate_tests(smoke_data, rt_data)
+
+
+def to_vector_data():
+    smoke_data = [
+        (1, [[1.0]], [1.0]),
+        (
+            3,
+            [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+        ),
+        (
+            3,
+            [
+                [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                [[7.0, 8.0, 9.0], [8.0, 10.0, 11.0], [9.0, 11.0, 12.0]],
+            ],
+            [[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], [7.0, 8.0, 9.0, 10.0, 11.0, 12.0]],
+        ),
+    ]
+    return generate_tests(smoke_data)
 
 
 class TestSymmetricMatrices(geomstats.tests.TestCase):
@@ -129,11 +148,6 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
             ),
         ],
     )
-    def test_to_vector(self, n, mat, expected):
-        """Test to vector."""
-        result = SymmetricMatrices(n).to_vector(gs.array(mat))
-        self.assertAllClose(result, gs.array(expected))
-
     @pytest.mark.parametrize(
         "n,  num_points",
         [
@@ -158,6 +172,12 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         result = helper.test_projection_and_belongs(self.space, shape)
         for res in result:
             self.assertTrue(res)
+
+    @pytest.mark.parametrize("n, mat, expected", to_vector_data())
+    def test_to_vector(self, n, mat, expected):
+        """Test to vector."""
+        result = SymmetricMatrices(n).to_vector(gs.array(mat))
+        self.assertAllClose(result, gs.array(expected))
 
     @pytest.mark.parametrize("n, expected_dim", dim_data())
     def test_dim(self, n, expected_dim):
