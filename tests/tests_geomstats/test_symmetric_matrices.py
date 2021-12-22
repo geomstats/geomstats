@@ -125,30 +125,6 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         result = gs.matmul(result, gs.transpose(result, (0, 2, 1)))
         self.assertAllClose(result, expected)
 
-    def test_from_vector(self, n, vec, expected):
-        """Test from vector"""
-        result = SymmetricMatrices(n).from_vector(gs.array(vec))
-        self.assertAllClose(result, gs.array(expected))
-
-    @pytest.mark.parametrize(
-        "n,  num_points",
-        [
-            (1, 1),
-            (2, 10),
-            (10, 100),
-        ],
-    )
-    def test_to_vector_and_from_vector(self, n, num_points):
-        """Testing to_vector and from_vector in chained way"""
-        space = SymmetricMatrices(n)
-        vector = gs.random.rand(num_points, space.dim)
-        result = space.to_vector(space.from_vector(vector))
-        self.assertTrue(gs.allclose(result, vector))
-
-        mat = space.random_point(num_points)
-        result = space.from_vector(space.to_vector(mat))
-        self.assertTrue(gs.allclose(result, mat))
-
     def test_projection_and_belongs(self):
         shape = (2, self.n, self.n)
         result = helper.test_projection_and_belongs(self.space, shape)
