@@ -10,21 +10,15 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-
-smoke = pytest.mark.smoke
-rt = pytest.mark.rt
+from tests.conftest import generate_tests
 
 
 def dim_data():
 
-    smoke_data = [
-        pytest.param(1, 1, marks=smoke),
-        pytest.param(2, 3, marks=smoke),
-        pytest.param(5, 15, marks=smoke),
-    ]
     random_n = random.randint(1, 1000)
-    rt_data = [pytest.param(n, (n * (n + 1)) // 2, marks=rt) for n in random_n]
-    return smoke_data + rt_data
+    smoke_data = [(1, 1), (2, 3), (5, 15)]
+    rt_data = [(n, (n * (n + 1)) // 2) for n in random_n]
+    return generate_tests(smoke_data, rt_data)
 
 
 class TestSymmetricMatrices(geomstats.tests.TestCase):
@@ -164,21 +158,6 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         result = helper.test_projection_and_belongs(self.space, shape)
         for res in result:
             self.assertTrue(res)
-
-    @pytest.mark.parametrize(
-        "n, num_points, shape",
-        [
-            (1, 1, (1, 1, 1)),
-            (1, 10, (10, 1, 1)),
-            (2, 1, (1, 2, 2)),
-            (100, 100, (100, 100, 100)),
-        ],
-    )
-    def test_random_point(self, n, num_points, shape):
-        space = SymmetricMatrices(n)
-        points = space.random_point(num_points)
-        self.assertAllClose(shape, points.shape)
-        self.assertTrue(space.belongs(points))
 
     @pytest.mark.parametrize("n, expected_dim", dim_data())
     def test_dim(self, n, expected_dim):
