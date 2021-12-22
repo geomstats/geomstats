@@ -275,3 +275,11 @@ class TestNFoldManifold(geomstats.tests.TestCase):
         result = space.metric.log(point[0], point[0])
         expected = expected[0]
         self.assertAllClose(result, expected)
+
+    def test_shape(self):
+        result = self.product.shape
+        expected = (2, 3, 3)
+        self.assertAllClose(result, expected)
+
+        result = self.product.shape
+        self.assertAllClose(result, expected)
