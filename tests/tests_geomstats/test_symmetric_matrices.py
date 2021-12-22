@@ -40,6 +40,26 @@ def to_vector_data():
     return generate_tests(smoke_data)
 
 
+def from_vector_data():
+    smoke_data = [
+        (1, [1.0], [[1.0]]),
+        (
+            3,
+            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+            [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+        ),
+        (
+            3,
+            [[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], [7.0, 8.0, 9.0, 10.0, 11.0, 12.0]],
+            [
+                [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                [[7.0, 8.0, 9.0], [8.0, 10.0, 11.0], [9.0, 11.0, 12.0]],
+            ],
+        ),
+    ]
+    return generate_tests(smoke_data)
+
+
 class TestSymmetricMatrices(geomstats.tests.TestCase):
     """Test of SymmetricMatrices methods."""
 
@@ -105,49 +125,11 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         result = gs.matmul(result, gs.transpose(result, (0, 2, 1)))
         self.assertAllClose(result, expected)
 
-    @pytest.mark.parametrize(
-        "n, vec, expected",
-        [
-            (1, [1.0], [[1.0]]),
-            (
-                3,
-                [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-                [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
-            ),
-            (
-                3,
-                [[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], [7.0, 8.0, 9.0, 10.0, 11.0, 12.0]],
-                [
-                    [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
-                    [[7.0, 8.0, 9.0], [8.0, 10.0, 11.0], [9.0, 11.0, 12.0]],
-                ],
-            ),
-        ],
-    )
     def test_from_vector(self, n, vec, expected):
         """Test from vector"""
         result = SymmetricMatrices(n).from_vector(gs.array(vec))
         self.assertAllClose(result, gs.array(expected))
 
-    @pytest.mark.parametrize(
-        "n, mat, expected",
-        [
-            (1, [[1.0]], [1.0]),
-            (
-                3,
-                [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
-                [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-            ),
-            (
-                3,
-                [
-                    [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
-                    [[7.0, 8.0, 9.0], [8.0, 10.0, 11.0], [9.0, 11.0, 12.0]],
-                ],
-                [[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], [7.0, 8.0, 9.0, 10.0, 11.0, 12.0]],
-            ),
-        ],
-    )
     @pytest.mark.parametrize(
         "n,  num_points",
         [
@@ -172,6 +154,12 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         result = helper.test_projection_and_belongs(self.space, shape)
         for res in result:
             self.assertTrue(res)
+
+    @pytest.mark.parametrize("n, vec, expected", from_vector_data())
+    def test_from_vector(self, n, vec, expected):
+        """Test from vector"""
+        result = SymmetricMatrices(n).from_vector(gs.array(vec))
+        self.assertAllClose(result, gs.array(expected))
 
     @pytest.mark.parametrize("n, mat, expected", to_vector_data())
     def test_to_vector(self, n, mat, expected):
