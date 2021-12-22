@@ -12,7 +12,7 @@ import geomstats.errors
 from geomstats.integrator import integrate
 
 N_STEPS = 10
-POINT_TYPES = {1: "vector", 2: "matrix"}
+POINT_TYPES = {1: "vector", 2: "matrix", 3: "matrix"}
 
 
 class Connection(ABC):

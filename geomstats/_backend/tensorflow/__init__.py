@@ -872,8 +872,7 @@ def vec_to_triu(vec):
     non_zero = tf.not_equal(mask, tf.constant(0.0))
     indices = tf.where(non_zero)
     sparse = tf.SparseTensor(indices, values=vec, dense_shape=triu_shape)
-    triu = tf.sparse.to_dense(sparse)
-    return triu
+    return tf.sparse.to_dense(sparse)
 
 
 def vec_to_tril(vec):
@@ -898,8 +897,7 @@ def vec_to_tril(vec):
     non_zero = tf.not_equal(mask, tf.constant(0.0))
     indices = tf.where(non_zero)
     sparse = tf.SparseTensor(indices, values=vec, dense_shape=tril_shape)
-    tril = tf.sparse.to_dense(sparse)
-    return tril
+    return tf.sparse.to_dense(sparse)
 
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):

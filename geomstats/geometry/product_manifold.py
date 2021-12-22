@@ -323,7 +323,7 @@ class ProductManifold(Manifold):
 
 
 class NFoldManifold(Manifold):
-    """Class for an n-fold product manifold M^n.
+    r"""Class for an n-fold product manifold :math:`M^n`.
 
     Define a manifold as the product manifold of n copies of a given base manifold M.
 
@@ -486,7 +486,7 @@ class NFoldManifold(Manifold):
 
 
 class NFoldMetric(RiemannianMetric):
-    """Class for an n-fold product manifold M^n.
+    r"""Class for an n-fold product manifold :math:`M^n`.
 
     Define a manifold as the product manifold of n copies of a given base manifold M.
 
@@ -501,8 +501,9 @@ class NFoldMetric(RiemannianMetric):
     def __init__(self, base_metric, n_copies):
         geomstats.errors.check_integer(n_copies, "n_copies")
         dim = n_copies * base_metric.dim
-        super(NFoldMetric, self).__init__(dim=dim)
-        self.base_shape = base_metric.shape
+        base_shape = base_metric.shape
+        super(NFoldMetric, self).__init__(dim=dim, shape=(n_copies, *base_shape))
+        self.base_shape = base_shape
         self.base_metric = base_metric
         self.n_copies = n_copies
 
