@@ -60,6 +60,19 @@ def from_vector_data():
     return generate_tests(smoke_data)
 
 
+def projection_data():
+    smoke_data = [(1, 1), (2, 1), (1, 10), (10, 10)]
+    return generate_tests(smoke_data)
+
+
+def powerm_data():
+    smoke_data = [
+        ([[1.0, 2.0], [2.0, 3.0]], 1, [[1.0, 2.0], [2.0, 3.0]]),
+        ([[1.0, 2.0], [2.0, 3.0]], 1, [[1.0, 2.0], [2.0, 3.0]]),
+    ]
+    return generate_tests(smoke_data)
+
+
 class TestSymmetricMatrices(geomstats.tests.TestCase):
     """Test of SymmetricMatrices methods."""
 
@@ -112,28 +125,23 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
         self.assertAllClose(four_dim_result, four_dim_expected)
 
-    def test_powerm(self):
-        """Test of powerm method."""
-        sym_n = SymmetricMatrices(self.n)
-        expected = gs.array(
-            [[[1, 1.0 / 4.0, 0.0], [1.0 / 4, 2.0, 0.0], [0.0, 0.0, 1.0]]]
+    @pytest.mark.parametrize("mat, power, expected", powerm_data())
+    def test_powerm(self, mat, power, expected):
+        """Test powerm method."""
+        result = SymmetricMatrices.powerm(gs.array(mat), power)
+        self.assertAllClose(result, gs.array(expected))
+
+    @pytest.mark.parametrize("n, num_points", projection_data())
+    def test_projection(self, n, num_points):
+        "Test projection"
+        result = gs.all(
+            helper.test_projection_and_belongs(self.space, (num_points, n, n))
         )
-
-        power = gs.array(1.0 / 2.0)
-
-        result = sym_n.powerm(expected, power)
-        result = gs.matmul(result, gs.transpose(result, (0, 2, 1)))
-        self.assertAllClose(result, expected)
-
-    def test_projection_and_belongs(self):
-        shape = (2, self.n, self.n)
-        result = helper.test_projection_and_belongs(self.space, shape)
-        for res in result:
-            self.assertTrue(res)
+        self.assertTrue(result)
 
     @pytest.mark.parametrize("n, vec, expected", from_vector_data())
     def test_from_vector(self, n, vec, expected):
-        """Test from vector"""
+        """Test from vector."""
         result = SymmetricMatrices(n).from_vector(gs.array(vec))
         self.assertAllClose(result, gs.array(expected))
 
@@ -145,4 +153,5 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
 
     @pytest.mark.parametrize("n, expected_dim", dim_data())
     def test_dim(self, n, expected_dim):
+        """Test dim."""
         self.assertAllClose(SymmetricMatrices(n).dim, expected_dim)
