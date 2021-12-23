@@ -73,6 +73,16 @@ def powerm_data():
     return generate_tests(smoke_data)
 
 
+def belongs_data():
+    smoke_data = [
+        (2, [[1.0, 2.0], [2.0, 1.0]], [True]),
+        (2, [[1.0, 1.0], [2.0, 1.0]], [False]),
+        (3, [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]], [True]),
+        (2, [[[1.0, 0.0], [0.0, 1.0]], [[1.0, -1.0], [0.0, 1.0]]], [True, False]),
+    ]
+    return generate_tests(smoke_data)
+
+
 class TestSymmetricMatrices(geomstats.tests.TestCase):
     """Test of SymmetricMatrices methods."""
 
@@ -85,7 +95,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
     @pytest.mark.parametrize("n, expected", basis_data())
     def test_basis(self, n, expected):
         """Test of belongs method."""
-        self.assertAllClose(SymmetricMatrices(n), gs.array(expected))
+        self.assertAllClose(SymmetricMatrices(n).get_basis(), gs.array(expected))
 
     @pytest.mark.parametrize("mat, expected", expm_data())
     def test_expm(self, mat, expected):
