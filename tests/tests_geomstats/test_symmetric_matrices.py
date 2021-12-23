@@ -67,8 +67,8 @@ def projection_data():
 
 def powerm_data():
     smoke_data = [
-        ([[1.0, 2.0], [2.0, 3.0]], 1, [[1.0, 2.0], [2.0, 3.0]]),
-        ([[1.0, 2.0], [2.0, 3.0]], 1, [[1.0, 2.0], [2.0, 3.0]]),
+        ([[1.0, 2.0], [2.0, 3.0]], 1.0, [[1.0, 2.0], [2.0, 3.0]]),
+        ([[1.0, 2.0], [2.0, 3.0]], 2.0, [[5.0, 8.0], [8.0, 13.0]]),
     ]
     return generate_tests(smoke_data)
 
@@ -76,54 +76,22 @@ def powerm_data():
 class TestSymmetricMatrices(geomstats.tests.TestCase):
     """Test of SymmetricMatrices methods."""
 
-    def setup_method(self):
-        """Set up the test."""
-        warnings.simplefilter("ignore", category=ImportWarning)
-
-        gs.random.seed(1234)
-
-        self.n = 3
-        self.space = SymmetricMatrices(self.n)
-
-    def test_belongs(self):
+    @pytest.mark.parametrize("n, mat, expected", belongs_data())
+    def test_belongs(self, n, mat, expected):
         """Test of belongs method."""
-        sym_n = self.space
-        mat_sym = gs.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]])
-        mat_not_sym = gs.array([[1.0, 0.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]])
-        result = sym_n.belongs(mat_sym)
-        expected = True
+        result = SymmetricMatrices(n).belongs(gs.array(mat))
         self.assertAllClose(result, expected)
 
-        result = sym_n.belongs(mat_not_sym)
-        expected = False
-        self.assertAllClose(result, expected)
-
-    def test_basis(self):
+    @pytest.mark.parametrize("n, expected", basis_data())
+    def test_basis(self, n, expected):
         """Test of belongs method."""
-        sym_n = SymmetricMatrices(2)
-        mat_sym_1 = gs.array([[1.0, 0.0], [0, 0]])
-        mat_sym_2 = gs.array([[0, 1.0], [1.0, 0]])
-        mat_sym_3 = gs.array([[0, 0.0], [0, 1.0]])
-        expected = gs.stack([mat_sym_1, mat_sym_2, mat_sym_3])
-        result = sym_n.basis
-        self.assertAllClose(result, expected)
+        self.assertAllClose(SymmetricMatrices(n), gs.array(expected))
 
-    def test_expm(self):
+    @pytest.mark.parametrize("mat, expected", expm_data())
+    def test_expm(self, mat, expected):
         """Test of expm method."""
-        sym_n = SymmetricMatrices(self.n)
-        v = gs.array([[0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
-        result = sym_n.expm(v)
-        c = math.cosh(1)
-        s = math.sinh(1)
-        e = math.exp(1)
-        expected = gs.array([[c, s, 0.0], [s, c, 0.0], [0.0, 0.0, e]])
-
-        four_dim_v = gs.broadcast_to(v, (2, 2) + v.shape)
-        four_dim_expected = gs.broadcast_to(expected, (2, 2) + expected.shape)
-        four_dim_result = sym_n.expm(four_dim_v)
-
-        self.assertAllClose(result, expected)
-        self.assertAllClose(four_dim_result, four_dim_expected)
+        result = SymmetricMatrices.expm(gs.array(mat))
+        self.assertAllClose(result, gs.array(expected))
 
     @pytest.mark.parametrize("mat, power, expected", powerm_data())
     def test_powerm(self, mat, power, expected):
@@ -134,9 +102,9 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
     @pytest.mark.parametrize("n, num_points", projection_data())
     def test_projection(self, n, num_points):
         "Test projection"
-        result = gs.all(
-            helper.test_projection_and_belongs(self.space, (num_points, n, n))
-        )
+        space = SymmetricMatrices(n)
+        shape = (num_points, n, n)
+        result = gs.all(helper.test_projection_and_belongs(space, shape))
         self.assertTrue(result)
 
     @pytest.mark.parametrize("n, vec, expected", from_vector_data())
