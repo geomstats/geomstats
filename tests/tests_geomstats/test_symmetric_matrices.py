@@ -83,6 +83,19 @@ def belongs_data():
     return generate_tests(smoke_data)
 
 
+def basis_data():
+    smoke_data = [
+        (1, [[1.0]]),
+        (2, [[[1.0, 0.0], [0, 0]], [[0, 1.0], [1.0, 0]], [[0, 0.0], [0, 1.0]]]),
+    ]
+    return generate_tests(smoke_data)
+
+
+def expm_data():
+    smoke_data = [([[0.0, 0.0], [0.0, 0.0]], [[1.0, 0.0], [0.0, 1.0]])]
+    return generate_tests(smoke_data)
+
+
 class TestSymmetricMatrices(geomstats.tests.TestCase):
     """Test of SymmetricMatrices methods."""
 
