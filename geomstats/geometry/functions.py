@@ -1,7 +1,6 @@
 """Module for function spaces as geometric objects"""
 
 import math
-import pdb
 
 import numpy as np
 
@@ -11,7 +10,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class SinfSpaceMetric(RiemannianMetric):
-    """A Riemannian metric on the S_{\inf} space
+    r"""A Riemannian metric on the S_{\inf} space
 
     Parameters:
     -------
@@ -44,7 +43,6 @@ class SinfSpaceMetric(RiemannianMetric):
         """
 
         def f(v1, v2):
-
             return np.trapz(v1 * v2, x=self.x)
 
         inner_prod = gs.vectorize(
@@ -76,7 +74,6 @@ class SinfSpaceMetric(RiemannianMetric):
             norm_v = self.norm(v)
             t1 = np.cos(norm_v) * p
             t2 = (np.sin(norm_v) / norm_v) * p
-
             return t1 + t2
 
         out = gs.vectorize(
@@ -106,7 +103,6 @@ class SinfSpaceMetric(RiemannianMetric):
 
         def f(p0, p1):
             theta = np.arccos(self.inner_product(p1, p0, p0))
-
             return (p1 - p0 * np.cos(theta)) * (theta / np.sin(theta))
 
         out = gs.vectorize(
@@ -122,14 +118,18 @@ class SinfSpaceMetric(RiemannianMetric):
 
 class SinfSpace(Manifold):
     """Class for space of L2 functions with norm 1.
-    The tangent space is given by functions that have zero inner-product with the base point
+    The tangent space is given by functions that have
+    zero inner-product with the base point
 
     Inputs:
     -------
     domain_samples : grid points on the domain (array of shape (n_samples, ))
 
     Ref :
-    Srivastava, Anuj, and Eric P. Klassen. Functional and shape data analysis. Vol. 1. New York: Springer, 2016.
+    -----
+    .. [Sea2011] Srivastava, Anuj, and Eric P. Klassen.
+    Functional and shape data analysis.
+    Vol. 1. New York: Springer, 2016.
     """
 
     def __init__(self, domain_samples):
@@ -147,7 +147,6 @@ class SinfSpace(Manifold):
         projected_point : array-like, shape=[..., dim]
             Point projected to the hypersphere.
         """
-
         norm_p = self.metric.norm(point)
         return point / norm_p
 

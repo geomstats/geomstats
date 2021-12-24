@@ -16,13 +16,13 @@ class TestFunctionsSinf(geomstats.tests.TestCase):
         self.f = gs.sin(domain)
         self.f_sinf = self.f / np.trapz(self.f, domain)
         self.manifold = SinfSpace(domain)
-        self.funcs = lambda a: np.sin(a * domain).reshape(1, num_samples)
+        self.funcs = lambda a: np.sin(a * domain).reshape(1, 10)
 
     def test_manifold(self):
         result = self.manifold.belongs(self.f_sinf)
         self.assertTrue(result)
 
-        proj_f = self.manifold.projection(f)
+        proj_f = self.manifold.projection(self.f)
         result = self.manifold.belongs(proj_f)
         self.assertTrue(result)
 
@@ -33,17 +33,17 @@ class TestFunctionsSinf(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(result), ())
 
         proj_points = gs.array(
-            [manifold.projection(self.funcs(a)) for a in gs.linspace(1, 5, num=10)]
+            [self.manifold.projection(self.funcs(a)) for a in gs.linspace(1, 5, num=10)]
         ).squeeze()
-        result = manifold.metric.inner_product(proj_points, point_b)
+        result = self.manifold.metric.inner_product(proj_points, point_b)
         self.assertAllClose(gs.shape(result), (len(proj_points),))
 
-        tangent_vec = manifold.metric.log(point_b, point_a)
+        tangent_vec = self.manifold.metric.log(point_b, point_a)
         self.assertTrue(self.manifold.is_tangent(tangent_vec))
-        point_b_exp = manifold.metric.exp(tangent_vec, point_a)
+        point_b_exp = self.manifold.metric.exp(tangent_vec, point_a)
         self.assertTrue(self.manifold.belongs(point_b_exp))
 
-        tangent_vecs = manifold.metric.log(proj_points, point_a)
+        tangent_vecs = self.manifold.metric.log(proj_points, point_a)
         self.assertTrue(gs.all(self.manifold.is_tangent(tangent_vecs)))
-        proj_points_exp = manifold.metric.exp(tangent_vecs, point_a)
+        proj_points_exp = self.manifold.metric.exp(tangent_vecs, point_a)
         self.assertTrue(self.manifold.belongs(proj_points_exp))
