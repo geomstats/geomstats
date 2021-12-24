@@ -13,6 +13,36 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from tests.conftest import generate_tests
 
 
+def belongs_data():
+    smoke_data = [
+        (2, [[1.0, 2.0], [2.0, 1.0]], [True]),
+        (2, [[1.0, 1.0], [2.0, 1.0]], [False]),
+        (3, [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]], [True]),
+        (2, [[[1.0, 0.0], [0.0, 1.0]], [[1.0, -1.0], [0.0, 1.0]]], [True, False]),
+    ]
+    return generate_tests(smoke_data)
+
+def basis_data():
+    smoke_data = [
+        dict(n=1, basis=[[1.0]]),
+        dict(n=2, basis=[[[1.0, 0.0], [0, 0]], [[0, 1.0], [1.0, 0]], [[0, 0.0], [0, 1.0]]]),
+    ]
+    return generate_tests(smoke_data)
+
+
+
+def expm_data():
+    smoke_data = [dict(mat=[[0.0, 0.0], [0.0, 0.0]], expected=[[1.0, 0.0], [0.0, 1.0]])]
+    return generate_tests(smoke_data)
+
+def powerm_data():
+    smoke_data = [
+        ([[1.0, 2.0], [2.0, 3.0]], 1.0, [[1.0, 2.0], [2.0, 3.0]]),
+        ([[1.0, 2.0], [2.0, 3.0]], 2.0, [[5.0, 8.0], [8.0, 13.0]]),
+    ]
+    return generate_tests(smoke_data)
+
+
 def dim_data():
     random_n = random.sample(range(1, 1000), 500)
     smoke_data = [(1, 1), (2, 3), (5, 15)]
@@ -65,35 +95,13 @@ def projection_data():
     return generate_tests(smoke_data)
 
 
-def powerm_data():
-    smoke_data = [
-        ([[1.0, 2.0], [2.0, 3.0]], 1.0, [[1.0, 2.0], [2.0, 3.0]]),
-        ([[1.0, 2.0], [2.0, 3.0]], 2.0, [[5.0, 8.0], [8.0, 13.0]]),
-    ]
-    return generate_tests(smoke_data)
 
 
-def belongs_data():
-    smoke_data = [
-        (2, [[1.0, 2.0], [2.0, 1.0]], [True]),
-        (2, [[1.0, 1.0], [2.0, 1.0]], [False]),
-        (3, [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]], [True]),
-        (2, [[[1.0, 0.0], [0.0, 1.0]], [[1.0, -1.0], [0.0, 1.0]]], [True, False]),
-    ]
-    return generate_tests(smoke_data)
 
 
-def basis_data():
-    smoke_data = [
-        (1, [[1.0]]),
-        (2, [[[1.0, 0.0], [0, 0]], [[0, 1.0], [1.0, 0]], [[0, 0.0], [0, 1.0]]]),
-    ]
-    return generate_tests(smoke_data)
 
 
-def expm_data():
-    smoke_data = [([[0.0, 0.0], [0.0, 0.0]], [[1.0, 0.0], [0.0, 1.0]])]
-    return generate_tests(smoke_data)
+
 
 
 class TestSymmetricMatrices(geomstats.tests.TestCase):
@@ -105,10 +113,10 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         result = SymmetricMatrices(n).belongs(gs.array(mat))
         self.assertAllClose(result, expected)
 
-    @pytest.mark.parametrize("n, expected", basis_data())
-    def test_basis(self, n, expected):
+    @pytest.mark.parametrize("n, basis", basis_data())
+    def test_basis(self, n, basis):
         """Test of belongs method."""
-        self.assertAllClose(SymmetricMatrices(n).get_basis(), gs.array(expected))
+        self.assertAllClose(SymmetricMatrices(n).get_basis(), gs.array(basis))
 
     @pytest.mark.parametrize("mat, expected", expm_data())
     def test_expm(self, mat, expected):
