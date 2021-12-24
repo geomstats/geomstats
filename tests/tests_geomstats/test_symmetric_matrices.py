@@ -15,17 +15,25 @@ from tests.conftest import generate_tests
 
 def belongs_data():
     smoke_data = [
-        (2, [[1.0, 2.0], [2.0, 1.0]], [True]),
-        (2, [[1.0, 1.0], [2.0, 1.0]], [False]),
-        (3, [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]], [True]),
-        (2, [[[1.0, 0.0], [0.0, 1.0]], [[1.0, -1.0], [0.0, 1.0]]], [True, False]),
+        dict(n=2, mat=[[1.0, 2.0], [2.0, 1.0]], expected=[True]),
+        dict(n=2, mat=[[1.0, 1.0], [2.0, 1.0]], expected=[False]),
+        dict(
+            n=3,
+            mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+            expected=[True],
+        ),
+        dict(
+            n=2,
+            mat=[[[1.0, 0.0], [0.0, 1.0]], [[1.0, -1.0], [0.0, 1.0]]],
+            expected=[True, False],
+        ),
     ]
     return generate_tests(smoke_data)
 
 
 def basis_data():
     smoke_data = [
-        dict(n=1, basis=[[1.0]]),
+        dict(n=1, basis=[[[1.0]]]),
         dict(
             n=2,
             basis=[[[1.0, 0.0], [0, 0]], [[0, 1.0], [1.0, 0]], [[0, 0.0], [0, 1.0]]],
@@ -41,34 +49,38 @@ def expm_data():
 
 def powerm_data():
     smoke_data = [
-        ([[1.0, 2.0], [2.0, 3.0]], 1.0, [[1.0, 2.0], [2.0, 3.0]]),
-        ([[1.0, 2.0], [2.0, 3.0]], 2.0, [[5.0, 8.0], [8.0, 13.0]]),
+        dict(
+            mat=[[1.0, 2.0], [2.0, 3.0]], power=1.0, expected=[[1.0, 2.0], [2.0, 3.0]]
+        ),
+        dict(
+            mat=[[1.0, 2.0], [2.0, 3.0]], power=2.0, expected=[[5.0, 8.0], [8.0, 13.0]]
+        ),
     ]
     return generate_tests(smoke_data)
 
 
 def dim_data():
     random_n = random.sample(range(1, 1000), 500)
-    smoke_data = [(1, 1), (2, 3), (5, 15)]
+    smoke_data = [dict(n=1, dim=1), dict(n=2, dim=3), dict(n=5, dim=15)]
     rt_data = [(n, (n * (n + 1)) // 2) for n in random_n]
     return generate_tests(smoke_data, rt_data)
 
 
 def to_vector_data():
     smoke_data = [
-        (1, [[1.0]], [1.0]),
-        (
-            3,
-            [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
-            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+        dict(n=1, mat=[[1.0]], vec=[1.0]),
+        dict(
+            n=3,
+            mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+            vec=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
         ),
-        (
-            3,
-            [
+        dict(
+            n=3,
+            mat=[
                 [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
                 [[7.0, 8.0, 9.0], [8.0, 10.0, 11.0], [9.0, 11.0, 12.0]],
             ],
-            [[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], [7.0, 8.0, 9.0, 10.0, 11.0, 12.0]],
+            vec=[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], [7.0, 8.0, 9.0, 10.0, 11.0, 12.0]],
         ),
     ]
     return generate_tests(smoke_data)
@@ -76,16 +88,16 @@ def to_vector_data():
 
 def from_vector_data():
     smoke_data = [
-        (1, [1.0], [[1.0]]),
-        (
-            3,
-            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-            [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+        dict(n=1, vec=[1.0], mat=[[1.0]]),
+        dict(
+            n=3,
+            vec=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+            mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
         ),
-        (
-            3,
-            [[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], [7.0, 8.0, 9.0, 10.0, 11.0, 12.0]],
-            [
+        dict(
+            n=3,
+            vec=[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], [7.0, 8.0, 9.0, 10.0, 11.0, 12.0]],
+            mat=[
                 [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
                 [[7.0, 8.0, 9.0], [8.0, 10.0, 11.0], [9.0, 11.0, 12.0]],
             ],
@@ -95,7 +107,12 @@ def from_vector_data():
 
 
 def projection_data():
-    smoke_data = [(1, 1), (2, 1), (1, 10), (10, 10)]
+    smoke_data = [
+        dict(n=1, num_points=1),
+        dict(n=2, num_points=1),
+        dict(n=1, num_points=10),
+        dict(n=10, num_points=10),
+    ]
     return generate_tests(smoke_data)
 
 
@@ -116,6 +133,8 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
     @pytest.mark.parametrize("mat, expected", expm_data())
     def test_expm(self, mat, expected):
         """Test of expm method."""
+        print("mat", mat)
+        print("expected", expected)
         result = SymmetricMatrices.expm(gs.array(mat))
         self.assertAllClose(result, gs.array(expected))
 
