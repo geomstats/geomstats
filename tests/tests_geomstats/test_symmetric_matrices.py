@@ -15,8 +15,8 @@ from tests.conftest import generate_tests
 
 def belongs_data():
     smoke_data = [
-        dict(n=2, mat=[[1.0, 2.0], [2.0, 1.0]], expected=[True]),
-        dict(n=2, mat=[[1.0, 1.0], [2.0, 1.0]], expected=[False]),
+        dict(n=2, mat=[[1.0, 2.0], [2.0, 1.0]], expected=True),
+        dict(n=2, mat=[[1.0, 1.0], [2.0, 1.0]], expected=False),
         dict(
             n=3,
             mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
@@ -60,8 +60,10 @@ def powerm_data():
 
 
 def dim_data():
-    random_n = random.sample(range(1, 1000), 500)
+
     smoke_data = [dict(n=1, dim=1), dict(n=2, dim=3), dict(n=5, dim=15)]
+
+    random_n = random.sample(range(1, 1000), 500)
     rt_data = [(n, (n * (n + 1)) // 2) for n in random_n]
     return generate_tests(smoke_data, rt_data)
 
@@ -133,8 +135,6 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
     @pytest.mark.parametrize("mat, expected", expm_data())
     def test_expm(self, mat, expected):
         """Test of expm method."""
-        print("mat", mat)
-        print("expected", expected)
         result = SymmetricMatrices.expm(gs.array(mat))
         self.assertAllClose(result, gs.array(expected))
 
