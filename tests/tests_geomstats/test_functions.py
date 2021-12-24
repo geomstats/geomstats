@@ -18,7 +18,7 @@ class TestFunctionsSinf(geomstats.tests.TestCase):
         self.manifold = SinfSpace(domain)
         self.funcs = lambda a: np.sin(a * domain).reshape(1, num_samples)
 
-    def test_belongs(self):
+    def test_manifold(self):
         result = self.manifold.belongs(self.f_sinf)
         self.assertTrue(result)
 
@@ -33,7 +33,7 @@ class TestFunctionsSinf(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(result), ())
 
         proj_points = gs.array(
-            [manifold.projection(funcs(a)) for a in gs.linspace(1, 5, num=10)]
+            [manifold.projection(self.funcs(a)) for a in gs.linspace(1, 5, num=10)]
         ).squeeze()
         result = manifold.metric.inner_product(proj_points, point_b)
         self.assertAllClose(gs.shape(result), (len(proj_points),))
