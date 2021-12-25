@@ -4,6 +4,9 @@
 import math
 import warnings
 
+import pytest
+from numpy.linalg import cholesky
+
 import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
@@ -23,137 +26,55 @@ from geomstats.geometry.spd_matrices import (
 SQRT_2 = math.sqrt(2)
 
 
+def belongs_data():
+    smoke_data = [
+        dict(n=2, mat=[[3.0, -1.0], [-1.0, 3.0]], expected=True),
+        dict(n=2, mat=[[1.0, 1.0], [2.0, 1.0]], expected=False),
+        dict(
+            n=3,
+            mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+            expected=True,
+        ),
+        dict(
+            n=2,
+            mat=[[[1.0, 0.0], [0.0, 1.0]], [[1.0, -1.0], [0.0, 1.0]]],
+            expected=[True, False],
+        ),
+    ]
+    return generate_tests(smoke_data)
+
+
 class TestSPDMatrices(geomstats.tests.TestCase):
     """Test of SPDMatrices methods."""
 
-    def setup_method(self):
-        """Set up the test."""
-        warnings.simplefilter("ignore", category=ImportWarning)
-
-        gs.random.seed(1234)
-
-        self.n = 3
-        self.space = SPDMatrices(n=self.n)
-        self.metric_affine = SPDMetricAffine(n=self.n)
-        self.metric_bureswasserstein = SPDMetricBuresWasserstein(n=self.n)
-        self.metric_euclidean = SPDMetricEuclidean(n=self.n)
-        self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
-        self.n_samples = 4
-
-    def test_belongs(self):
+    @pytest.mark.parametrize("n, mat, expected", belongs_data())
+    def test_belongs(self, n, mat, expected):
         """Test of belongs method."""
-        mats = gs.array([[3.0, -1.0], [-1.0, 3.0]])
-        result = SPDMatrices(2).belongs(mats)
-        expected = True
-        self.assertAllClose(result, expected)
+        self.assertAllClose(SPDMatrices(n).belongs(gs.array(mat)), gs.array(expected))
 
-        mats = gs.array([[-1.0, -1.0], [-1.0, 3.0]])
-        result = SPDMatrices(2).belongs(mats)
-        expected = False
-        self.assertAllClose(result, expected)
-
-        mats = gs.eye(3)
-        result = SPDMatrices(2).belongs(mats)
-        expected = False
-        self.assertAllClose(result, expected)
-
-    def test_belongs_vectorization(self):
-        """Test of belongs method."""
-        mats = gs.array(
-            [[[1.0, 0], [0, 1.0]], [[1.0, 2.0], [2.0, 1.0]], [[1.0, 0.0], [1.0, 1.0]]]
+    @pytest.mark.parametrize("n, num_points", random_point_data())
+    def test_random_point(self, n, num_points):
+        """Test of random_point and belongs methods."""
+        space = SPDMatrices(n)
+        self.assertAllClose(
+            space.belongs(space.random_point(num_points)), gs.array([True] * num_points)
         )
-        result = SPDMatrices(2).belongs(mats)
-        expected = gs.array([True, False, False])
-        self.assertAllClose(result, expected)
 
-    def test_random_point_and_belongs(self):
-        """Test of random_point and belongs methods."""
-        point = self.space.random_point()
-        result = self.space.belongs(point)
-        expected = True
-        self.assertAllClose(result, expected)
-
-    def test_random_point_and_belongs_vectorization(self):
-        """Test of random_point and belongs methods."""
-        points = self.space.random_point(4)
-        result = self.space.belongs(points)
-        expected = gs.array([True] * 4)
-        self.assertAllClose(result, expected)
-
-    def test_vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
-        """Test for matrix to vector and vector to matrix conversions."""
-        sym_mat_1 = gs.array([[1.0, 0.6, -3.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]])
-        vector_1 = self.space.to_vector(sym_mat_1)
-        result_1 = self.space.from_vector(vector_1)
-        expected_1 = sym_mat_1
-
-        self.assertTrue(gs.allclose(result_1, expected_1))
-
-        vector_2 = gs.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
-        sym_mat_2 = self.space.from_vector(vector_2)
-        result_2 = self.space.to_vector(sym_mat_2)
-        expected_2 = vector_2
-
-        self.assertTrue(gs.allclose(result_2, expected_2))
-
-    def test_vector_and_symmetric_matrix_vectorization(self):
-        """Test of vectorization."""
-        n_samples = self.n_samples
-        vector = gs.random.rand(n_samples, 6)
-        sym_mat = self.space.from_vector(vector)
-        result = self.space.to_vector(sym_mat)
-        expected = vector
-
-        self.assertTrue(gs.allclose(result, expected))
-
-        sym_mat = self.space.random_point(n_samples)
-        vector = self.space.to_vector(sym_mat)
-        result = self.space.from_vector(vector)
-        expected = sym_mat
-
-        self.assertTrue(gs.allclose(result, expected))
-
-    def test_logm(self):
+    @pytest.mark.parametrize("n, spd_mat, logm", logm_data())
+    def test_logm(self, n, spd_mat, logm):
         """Test of logm method."""
-        expected = gs.array([[0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
-        c = math.cosh(1)
-        s = math.sinh(1)
-        e = math.exp(1)
-        v = gs.array([[c, s, 0.0], [s, c, 0.0], [0.0, 0.0, e]])
-        result = self.space.logm(v)
+        self.assertAllClose(SPDMatrices(n).logm(spd_mat), logm)
 
-        four_dim_expected = gs.broadcast_to(expected, (2, 2) + expected.shape)
-        four_dim_v = gs.broadcast_to(v, (2, 2) + v.shape)
-        four_dim_result = self.space.logm(four_dim_v)
+    @pytest.mark.parametrize("n, spd_mat, cf", cholesky_factor_data())
+    def test_cholesky_factor(self, n, spd_mat, cf):
+        """Test cholesky factor method"""
+        result_cf = SPDMatrices(n).cholesky_factor(gs.array(spd_mat))
 
-        self.assertAllClose(result, expected)
-        self.assertAllClose(four_dim_result, four_dim_expected)
-
-    def test_cholesky_factor(self):
-        spd_mat = gs.array([[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]])
-        cholesky_factor_expected = gs.array(
-            [[SQRT_2, 0.0, 0.0], [0.0, SQRT_2, 0.0], [0.0, 0.0, SQRT_2]]
+        self.assertAllClose(result_cf, gs.array(cf))
+        self.assertAllClose(
+            gs.all(PositiveLowerTriangularMatrices(n).belongs(result_cf)),
+            gs.array(True),
         )
-        cholesky_factor_result = self.space.cholesky_factor(spd_mat)
-
-        self.assertAllClose(cholesky_factor_expected, cholesky_factor_result)
-
-    def test_cholesky_factor_vectorization(self):
-        """Test cholesky factor method for batch of inputs"""
-        spd_mats = self.space.random_point(self.n_samples)
-        cholesky_factors = self.space.cholesky_factor(spd_mats)
-
-        pltm = PositiveLowerTriangularMatrices(self.n)
-        belongs_expected = True
-        belongs_result = gs.all(pltm.belongs(cholesky_factors))
-
-        reconstructed_result = gs.matmul(
-            cholesky_factors, Matrices.transpose(cholesky_factors)
-        )
-        reconstructed_expected = spd_mats
-
-        self.assertAllClose(belongs_expected, belongs_result)
-        self.assertAllClose(reconstructed_expected, reconstructed_result)
 
     def test_cholesky_factor_differential(self):
         """Test differential of cholesky factor map"""
