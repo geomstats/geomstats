@@ -20,7 +20,7 @@ def belongs_data():
         dict(
             n=3,
             mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
-            expected=[True],
+            expected=True,
         ),
         dict(
             n=2,
