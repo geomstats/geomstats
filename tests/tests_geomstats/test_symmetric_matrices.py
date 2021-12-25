@@ -125,7 +125,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
     def test_belongs(self, n, mat, expected):
         """Test of belongs method."""
         result = SymmetricMatrices(n).belongs(gs.array(mat))
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, gs.array(expected))
 
     @pytest.mark.parametrize("n, basis", basis_data())
     def test_basis(self, n, basis):
