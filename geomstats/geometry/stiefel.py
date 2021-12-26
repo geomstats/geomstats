@@ -7,7 +7,7 @@ import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -16,7 +16,7 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 EPSILON = 1e-6
 
 
-class Stiefel(EmbeddedManifold):
+class Stiefel(LevelSet):
     """Class for Stiefel manifolds St(n,p).
 
     A set of all orthonormal p-frames in n-dimensional space,
@@ -343,6 +343,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
     def log(self, point, base_point, max_iter=30, tol=gs.atol, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
+        When p=n, the space St(n,n)~O(n) has two non connected sheets: the
+        log is only defined for data from the same sheet.
+        For p<n, the space St(n,p)~O(n)/O(n-p)~SO(n)/SO(n-p) is connected.
         Based on [ZR2017]_.
 
         References
@@ -372,7 +375,12 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        p = self.p
+        n, p = self.n, self.p
+        if p == n:
+            det_point = gs.linalg.det(point)
+            det_base_point = gs.linalg.det(base_point)
+            if not gs.all(det_point * det_base_point > 0.):
+                raise ValueError("Points from different sheets in log")
 
         transpose_base_point = Matrices.transpose(base_point)
         matrix_m = gs.matmul(transpose_base_point, point)

@@ -1,16 +1,17 @@
 """Unit tests for full rank matrices."""
 
 import warnings
-import tests.helper as helper
+
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
 
 
 class TestFullRankMatrices(geomstats.tests.TestCase):
     """Test of Full Rank Matrices methods."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up the test."""
         warnings.simplefilter("ignore", category=ImportWarning)
 

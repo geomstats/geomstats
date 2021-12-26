@@ -12,6 +12,9 @@ from torch import broadcast_tensors as broadcast_arrays
 from torch import (
     ceil,
     clip,
+    complex32,
+    complex64,
+    complex128,
     cos,
     cosh,
     cross,
@@ -24,23 +27,10 @@ from torch import (
     flatten,
     float32,
     float64,
-    complex32,
-    complex64,
-    complex128,
     floor,
 )
 from torch import fmod as mod
-from torch import (
-    greater,
-    hstack,
-    imag,
-    int32,
-    int64,
-    isnan,
-    less,
-    log,
-    logical_or,
-)
+from torch import greater, hstack, imag, int32, int64, isnan, less, log, logical_or
 from torch import max as amax
 from torch import mean, meshgrid
 from torch import min as amin
@@ -53,12 +43,10 @@ from torch import (
     sign,
     sin,
     sinh,
-    sort,
     stack,
     std,
     tan,
     tanh,
-    tril,
     uint8,
     unique,
     vstack,
@@ -514,6 +502,14 @@ def diag_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
 
 
+def tril(mat, k=0):
+    return torch.tril(mat, diagonal=k)
+
+
+def triu(mat, k=0):
+    return torch.triu(mat, diagonal=k)
+
+
 def tril_indices(n, k=0, m=None):
     if m is None:
         m = n
@@ -780,6 +776,16 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
     return stack(list(map(pyfunc, x)))
 
 
+def vec_to_diag(vec):
+    return torch.diag_embed(vec, offset=0)
+
+
+def tril_to_vec(x, k=0):
+    n = x.shape[-1]
+    rows, cols = tril_indices(n, k=k)
+    return x[..., rows, cols]
+
+
 def triu_to_vec(x, k=0):
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
@@ -810,3 +816,17 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
     return mat
+
+
+def ravel_tril_indices(n, k=0, m=None):
+    if m is None:
+        size = (n, n)
+    else:
+        size = (n, m)
+    idxs = _np.tril_indices(n, k, m)
+    return torch.from_numpy(_np.ravel_multi_index(idxs, size))
+
+
+def sort(a, axis=-1):
+    sorted_a, _ = torch.sort(a, dim=axis)
+    return sorted_a

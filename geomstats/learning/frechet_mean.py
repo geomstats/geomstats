@@ -8,6 +8,7 @@ from sklearn.base import BaseEstimator
 import geomstats.backend as gs
 import geomstats.errors as error
 import geomstats.vectorization
+from geomstats.geometry.hypersphere import Hypersphere
 
 EPSILON = 1e-4
 
@@ -85,7 +86,15 @@ def linear_mean(points, weights=None, point_type="vector"):
 
 
 def _default_gradient_descent(
-    points, metric, weights, max_iter, point_type, epsilon, initial_step_size, verbose
+    points,
+    metric,
+    weights,
+    max_iter,
+    point_type,
+    epsilon,
+    init_step_size,
+    verbose,
+    init_point=None,
 ):
     """Perform default gradient descent."""
     if point_type == "vector":
@@ -99,7 +108,7 @@ def _default_gradient_descent(
     if weights is None:
         weights = gs.ones((n_points,))
 
-    mean = points[0]
+    mean = points[0] if init_point is None else init_point
 
     if n_points == 1:
         return mean
@@ -111,11 +120,10 @@ def _default_gradient_descent(
     var = 0.0
 
     norm_old = gs.linalg.norm(points)
-    step = initial_step_size
+    step = init_step_size
 
     while iteration < max_iter:
         logs = metric.log(point=points, base_point=mean)
-        weights, logs = gs.convert_to_wider_dtype([weights, logs])
 
         var = gs.sum(metric.squared_norm(logs, mean) * weights) / gs.sum(weights)
 
@@ -126,7 +134,7 @@ def _default_gradient_descent(
         sq_dist = metric.squared_norm(tangent_mean, mean)
         sq_dists_between_iterates.append(sq_dist)
 
-        var_is_0 = gs.isclose(var, gs.array(0.0, dtype=var.dtype))
+        var_is_0 = gs.isclose(var, 0.0)
         sq_dist_is_small = gs.less_equal(sq_dist, epsilon * metric.dim)
         condition = ~gs.logical_or(var_is_0, sq_dist_is_small)
         if not (condition or iteration == 0):
@@ -166,6 +174,7 @@ def _batch_gradient_descent(
     epsilon=5e-3,
     point_type="vector",
     verbose=False,
+    init_point=None,
 ):
     """Perform batch gradient descent."""
     if point_type == "vector":
@@ -194,7 +203,7 @@ def _batch_gradient_descent(
         weights = gs.ones((n_points, n_batch))
 
     flat_shape = (n_batch * n_points,) + shape[-ndim:]
-    estimates = points[0]
+    estimates = points[0] if init_point is None else init_point
     points_flattened = gs.reshape(points, (n_points * n_batch,) + shape[-ndim:])
     convergence = math.inf
     iteration = 0
@@ -263,8 +272,10 @@ def _adaptive_gradient_descent(
         Weights associated to the points.
     max_iter : int, optional
         Maximum number of iterations for the gradient descent.
-    init_point : array-like, shape=[n_init, dimension], optional
+    init_point : array-like, shape=[{dim, [n, n]}]
         Initial point.
+        Optional, default : None. In this case the first sample of the input data is
+        used.
     epsilon : float, optional
         Tolerance for stopping the gradient descent.
 
@@ -349,6 +360,80 @@ def _adaptive_gradient_descent(
     return current_mean
 
 
+def _circle_mean(points):
+    """Determine the mean on a circle.
+
+    Data are expected in radians in the range [-pi, pi). The mean is returned
+    in the same range. If the mean is unique, this algorithm is guaranteed to
+    find it. It is not vulnerable to local minima of the Frechet function. If
+    the mean is not unique, the algorithm only returns one of the means. Which
+    mean is returned depends on numerical rounding errors.
+
+    Reference
+    ---------
+    ..[HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
+                 Uniqueness, locus and asymptotics", Annals of the Institute of
+                 Statistical Mathematics 67 (1), 177–193.
+                 https://arxiv.org/abs/1108.2141
+    """
+    if points.ndim > 1:
+        points_ = Hypersphere.extrinsic_to_angle(points)
+    else:
+        points_ = gs.copy(points)
+    sample_size = points_.shape[0]
+    mean0 = gs.mean(points_)
+    var0 = gs.sum((points_ - mean0) ** 2)
+    sorted_points = gs.sort(points_)
+    means = _circle_variances(mean0, var0, sample_size, sorted_points)
+    return means[gs.argmin(means[:, 1]), 0]
+
+
+def _circle_variances(mean, var, n_samples, points):
+    """Compute the minimizer of the variance functional.
+
+    Parameters
+    ----------
+    mean : float
+        Mean angle.
+    var : float
+        Variance of the angles.
+    n_samples : int
+        Number of samples.
+    points : array-like, shape=[n,]
+        Data set of ordered angles.
+
+    References
+    ---------
+    ..[HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
+                 Uniqueness, locus and asymptotics", Annals of the Institute of
+                 Statistical Mathematics 67 (1), 177–193.
+                 https://arxiv.org/abs/1108.2141
+    """
+    means = (mean + gs.linspace(0.0, 2 * gs.pi, n_samples + 1)[:-1]) % (2 * gs.pi)
+    means = gs.where(means >= gs.pi, means - 2 * gs.pi, means)
+    parts = gs.array([sum(points) / n_samples if means[0] < 0 else 0])
+    m_plus = means >= 0
+    left_sums = gs.cumsum(points)
+    right_sums = left_sums[-1] - left_sums
+    i = gs.arange(n_samples, dtype=right_sums.dtype)
+    j = i[1:]
+    parts2 = right_sums[:-1] / (n_samples - j)
+    first_term = parts2[:1]
+    parts2 = gs.where(m_plus[1:], left_sums[:-1] / j, parts2)
+    parts = gs.concatenate([parts, first_term, parts2[1:]])
+
+    # Formula (6) from [HH15]_
+    plus_vec = (4 * gs.pi * i / n_samples) * (gs.pi + parts - mean) - (
+        2 * gs.pi * i / n_samples
+    ) ** 2
+    minus_vec = (4 * gs.pi * (n_samples - i) / n_samples) * (gs.pi - parts + mean) - (
+        2 * gs.pi * (n_samples - i) / n_samples
+    ) ** 2
+    minus_vec = gs.where(m_plus, plus_vec, minus_vec)
+    means = gs.transpose(gs.vstack([means, var + minus_vec]))
+    return means
+
+
 class FrechetMean(BaseEstimator):
     r"""Empirical Frechet mean.
 
@@ -359,6 +444,9 @@ class FrechetMean(BaseEstimator):
     max_iter : int
         Maximum number of iterations for gradient descent.
         Optional, default: 32.
+    epsilon : float
+        Tolerance for stopping the gradient descent.
+        Optional, default : 1e-4
     point_type : str, {\'vector\', \'matrix\'}
         Point type.
         Optional, default: None.
@@ -369,6 +457,12 @@ class FrechetMean(BaseEstimator):
         method but for batches of equal length of samples. In this case,
         samples must be of shape [n_samples, n_batch, {dim, [n,n]}].
         Optional, default: \'default\'.
+    init_point : array-like, shape=[{dim, [n, n]}]
+        Initial point.
+        Optional, default : None. In this case the first sample of the input data is
+        used.
+    lr : float
+        Initial step size or learning rate.
     verbose : bool
         Verbose option.
         Optional, default: False.
@@ -381,6 +475,7 @@ class FrechetMean(BaseEstimator):
         epsilon=EPSILON,
         point_type=None,
         method="default",
+        init_point=None,
         lr=1.0,
         verbose=False,
     ):
@@ -392,6 +487,7 @@ class FrechetMean(BaseEstimator):
         self.method = method
         self.lr = lr
         self.verbose = verbose
+        self.init_point = init_point
         self.estimate_ = None
 
         if point_type is None:
@@ -427,6 +523,9 @@ class FrechetMean(BaseEstimator):
             or "MinkowskiMetric" in metric_str
         )
 
+        if "HypersphereMetric" in metric_str and self.metric.dim == 1:
+            mean = Hypersphere.angle_to_extrinsic(_circle_mean(X))
+
         error.check_parameter_accepted_values(
             self.method, "method", ["default", "adaptive", "batch"]
         )
@@ -440,10 +539,11 @@ class FrechetMean(BaseEstimator):
                 weights=weights,
                 metric=self.metric,
                 max_iter=self.max_iter,
-                initial_step_size=self.lr,
+                init_step_size=self.lr,
                 point_type=self.point_type,
                 epsilon=self.epsilon,
                 verbose=self.verbose,
+                init_point=self.init_point,
             )
         elif self.method == "adaptive":
             mean = _adaptive_gradient_descent(
@@ -455,6 +555,7 @@ class FrechetMean(BaseEstimator):
                 epsilon=self.epsilon,
                 verbose=self.verbose,
                 initial_tau=self.lr,
+                init_point=self.init_point,
             )
         elif self.method == "batch":
             mean = _batch_gradient_descent(
@@ -466,6 +567,7 @@ class FrechetMean(BaseEstimator):
                 max_iter=self.max_iter,
                 point_type=self.point_type,
                 verbose=self.verbose,
+                init_point=self.init_point,
             )
 
         self.estimate_ = mean

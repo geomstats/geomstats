@@ -6,6 +6,7 @@ import joblib
 import geomstats.backend as gs
 import geomstats.geometry as geometry
 from geomstats.geometry.connection import Connection
+from geomstats.integrator import integrate
 
 EPSILON = 1e-4
 N_CENTERS = 10
@@ -16,6 +17,8 @@ N_STEPS = 10
 
 class RiemannianMetric(Connection, ABC):
     """Class for Riemannian and pseudo-Riemannian metrics.
+
+    The associated Levi-Civita connection on the tangent bundle.
 
     Parameters
     ----------
@@ -55,8 +58,11 @@ class RiemannianMetric(Connection, ABC):
             "The computation of the metric matrix" " is not implemented."
         )
 
-    def metric_inverse_matrix(self, base_point=None):
-        """Inner product matrix at the tangent space at a base point.
+    def cometric_matrix(self, base_point=None):
+        """Inner co-product matrix at the cotangent space at a base point.
+
+        This represents the cometric matrix, i.e. the inverse of the
+        metric matrix.
 
         Parameters
         ----------
@@ -111,7 +117,7 @@ class RiemannianMetric(Connection, ABC):
         christoffels: array-like, shape=[..., dim, dim, dim]
             Christoffel symbols.
         """
-        cometric_mat_at_point = self.metric_inverse_matrix(base_point)
+        cometric_mat_at_point = self.cometric_matrix(base_point)
         metric_derivative_at_point = self.inner_product_derivative_matrix(base_point)
         term_1 = gs.einsum(
             "...lk,...jli->...kij", cometric_mat_at_point, metric_derivative_at_point
@@ -148,6 +154,53 @@ class RiemannianMetric(Connection, ABC):
         aux = gs.einsum("...j,...jk->...k", tangent_vec_a, inner_prod_mat)
         inner_prod = gs.einsum("...k,...k->...", aux, tangent_vec_b)
         return inner_prod
+
+    def inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point):
+        """Compute inner coproduct between two cotangent vectors at base point.
+
+        This is the inner product associated to the cometric matrix.
+
+        Parameters
+        ----------
+        cotangent_vec_a : array-like, shape=[..., dim]
+            Cotangent vector at `base_point`.
+        cotangent_vet_b : array-like, shape=[..., dim]
+            Cotangent vector at `base_point`.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        inner_coproduct : float
+            Inner coproduct between the two cotangent vectors.
+        """
+        vector_2 = gs.einsum(
+            "...ij,...j->...i", self.cometric_matrix(base_point), cotangent_vec_b
+        )
+        inner_coproduct = gs.einsum("...i,...i->...", cotangent_vec_a, vector_2)
+        return inner_coproduct
+
+    def hamiltonian(self, state):
+        r"""Compute the hamiltonian energy associated to the cometric.
+
+        The Hamiltonian at state :math: `(q, p)` is defined by
+        .. math:
+                H(q, p) = \frac{1}{2} <p, p>_q
+        where :math: `<\cdot, \cdot>_q` is the cometric at :math: `q`.
+
+        Parameters
+        ----------
+        state : tuple of arrays
+            Position and momentum variables. The position is a point on the
+            manifold, while the momentum is cotangent vector.
+
+        Returns
+        -------
+        energy : float
+            Hamiltonian energy at `state`.
+        """
+        position, momentum = state
+        return 1.0 / 2 * self.inner_coproduct(momentum, momentum, position)
 
     def squared_norm(self, vector, base_point=None):
         """Compute the square of the norm of a vector.
@@ -433,60 +486,3 @@ class RiemannianMetric(Connection, ABC):
         condition = gs.isclose(normalization_factor, 0.0)
         normalization_factor = gs.where(condition, EPSILON, normalization_factor)
         return gs.where(~condition, sectional / normalization_factor, 0.0)
-
-
-def loss(y_pred, y_true, metric):
-    """Compute loss function between prediction and ground truth.
-
-    Loss function given by a Riemannian metric,
-    expressed as the squared geodesic distance between the prediction
-    and the ground truth.
-
-    Parameters
-    ----------
-    y_pred : array-like, shape=[..., dim]
-        Prediction.
-    y_true : array-like, shape=[..., dim]
-        Ground-truth.
-    metric : RiemannianMetric
-        Metric.
-
-    Returns
-    -------
-    sq_dist : array-like, shape=[...,]
-        Loss, i.e. the squared distance.
-    """
-    sq_dist = metric.squared_dist(y_pred, y_true)
-    return sq_dist
-
-
-def grad(y_pred, y_true, metric):
-    """Closed-form for the gradient of the loss function.
-
-    Parameters
-    ----------
-    y_pred : array-like, shape=[..., dim]
-        Prediction.
-    y_true : array-like, shape=[..., dim]
-        Ground-truth.
-    metric : RiemannianMetric
-        Metric.
-
-    Returns
-    -------
-    loss_grad : array-like, shape=[...,]
-        Gradient of the loss.
-
-    """
-    tangent_vec = metric.log(base_point=y_pred, point=y_true)
-    grad_vec = -2.0 * tangent_vec
-
-    inner_prod_mat = metric.metric_matrix(base_point=y_pred)
-    is_vectorized = inner_prod_mat.ndim == 3
-    axes = (0, 2, 1) if is_vectorized else (1, 0)
-
-    loss_grad = gs.einsum(
-        "...i,...ij->...i", grad_vec, gs.transpose(inner_prod_mat, axes=axes)
-    )
-
-    return loss_grad

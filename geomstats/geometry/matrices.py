@@ -164,6 +164,122 @@ class Matrices(VectorSpace):
         return m == n
 
     @classmethod
+    def is_diagonal(cls, mat, atol=gs.atol):
+        """Check if a matrix is square and diagonal.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_diagonal : array-like, shape=[...,]
+            Boolean evaluating if the matrix is square and diagonal.
+        """
+        is_square = cls.is_square(mat)
+        if not gs.all(is_square):
+            return False
+        diagonal_mat = from_vector_to_diagonal_matrix(cls.diagonal(mat))
+        is_diagonal = gs.all(gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
+        return is_diagonal
+
+    @classmethod
+    def is_lower_triangular(cls, mat, atol=gs.atol):
+        """Check if a matrix is lower triangular.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default : backend atol.
+
+        Returns
+        -------
+        is_tril : array-like, shape=[...,]
+            Boolean evaluating if the matrix is lower triangular
+        """
+        is_square = cls.is_square(mat)
+        if not is_square:
+            is_vectorized = gs.ndim(gs.array(mat)) == 3
+            return gs.array([False] * len(mat)) if is_vectorized else False
+        return cls.equal(mat, gs.tril(mat), atol)
+
+    @classmethod
+    def is_upper_triangular(cls, mat, atol=gs.atol):
+        """Check if a matrix is upper triangular.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default : backend atol.
+
+        Returns
+        -------
+        is_triu : array-like, shape=[...,]
+            Boolean evaluating if the matrix is upper triangular.
+        """
+        is_square = cls.is_square(mat)
+        if not is_square:
+            is_vectorized = gs.ndim(gs.array(mat)) == 3
+            return gs.array([False] * len(mat)) if is_vectorized else False
+        return cls.equal(mat, gs.triu(mat), atol)
+
+    @classmethod
+    def is_strictly_lower_triangular(cls, mat, atol=gs.atol):
+        """Check if a matrix is strictly lower triangular.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default : backend atol.
+
+        Returns
+        -------
+        is_strictly_tril : array-like, shape=[...,]
+            Boolean evaluating if the matrix is strictly lower triangular
+        """
+        is_square = cls.is_square(mat)
+        if not is_square:
+            is_vectorized = gs.ndim(gs.array(mat)) == 3
+            return gs.array([False] * len(mat)) if is_vectorized else False
+        return cls.equal(mat, gs.tril(mat, k=-1), atol)
+
+    @classmethod
+    def is_strictly_upper_triangular(cls, mat, atol=gs.atol):
+        """Check if a matrix is strictly upper triangular.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default : backend atol.
+
+        Returns
+        ------
+        is_strictly_triu : array-like, shape=[...,]
+            Boolean evaluating if the matrix is strictly upper triangular
+        """
+        is_square = cls.is_square(mat)
+        if not is_square:
+            is_vectorized = gs.ndim(gs.array(mat)) == 3
+            return gs.array([False] * len(mat)) if is_vectorized else False
+        return cls.equal(mat, gs.triu(mat, k=1))
+
+    @classmethod
     def is_symmetric(cls, mat, atol=gs.atol):
         """Check if a matrix is symmetric.
 
@@ -187,6 +303,47 @@ class Matrices(VectorSpace):
         return cls.equal(mat, cls.transpose(mat), atol)
 
     @classmethod
+    def is_pd(cls, mat):
+        """Check if a matrix is positive definite.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_pd : array-like, shape=[...,]
+            Boolean evaluating if the matrix is positive definite.
+        """
+        if mat.ndim == 2:
+            return gs.array(gs.linalg.is_single_matrix_pd(mat))
+        return gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
+
+    @classmethod
+    def is_spd(cls, mat, atol=gs.atol):
+        """Check if a matrix is symmetric positive definite.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_spd : array-like, shape=[...,]
+            Boolean evaluating if the matrix is symmetric positive definite.
+        """
+        is_spd = gs.logical_and(cls.is_symmetric(mat, atol), cls.is_pd(mat))
+        return is_spd
+
+    @classmethod
     def is_skew_symmetric(cls, mat, atol=gs.atol):
         """Check if a matrix is skew symmetric.
 
@@ -208,6 +365,85 @@ class Matrices(VectorSpace):
             is_vectorized = gs.ndim(gs.array(mat)) == 3
             return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, -cls.transpose(mat), atol)
+
+    @classmethod
+    def to_diagonal(cls, mat):
+        """Make a matrix diagonal, by zeroing out non diagonal elements.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        diag : array-like, shape=[..., n, n]
+        """
+        return cls.to_upper_triangular(cls.to_lower_triangular(mat))
+
+    @classmethod
+    def to_lower_triangular(cls, mat):
+        """Make a matrix lower triangular, by zeroing out upper elements.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        tril : array-like, shape=[..., n, n]
+            Lower  triangular matrix.
+        """
+        return gs.tril(mat)
+
+    @classmethod
+    def to_upper_triangular(cls, mat):
+        """Make a matrix upper triangular, by zeroing out lower elements.
+
+        Parameters
+        ---------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        triu : array-like, shape=[..., n, n]
+        """
+        return gs.triu(mat)
+
+    @classmethod
+    def to_strictly_lower_triangular(cls, mat):
+        """Make a matrix strictly lower triangular, by zeroing out
+        upper+diag elements.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        tril : array-like, shape=[..., n, n]
+            Lower  triangular matrix.
+        """
+        return gs.tril(mat, k=-1)
+
+    @classmethod
+    def to_strictly_upper_triangular(cls, mat):
+        """Make a matrix stritcly upper triangular, by zeroing out
+        lower+diag elements.
+
+        Parameters
+        ---------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        triu : array-like, shape=[..., n, n]
+        """
+        return gs.triu(mat, k=1)
 
     @classmethod
     def to_symmetric(cls, mat):
@@ -243,28 +479,23 @@ class Matrices(VectorSpace):
         return 1 / 2 * (mat - cls.transpose(mat))
 
     @classmethod
-    def is_diagonal(cls, mat, atol=gs.atol):
-        """Check if a matrix is square and diagonal.
+    def to_lower_triangular_diagonal_scaled(cls, mat, K=2.0):
+        """Make a matrix lower triangular, by zeroing out upper elements
+        and also diagonal is divided by factor K.
 
         Parameters
         ----------
         mat : array-like, shape=[..., n, n]
             Matrix.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
-        is_diagonal : array-like, shape=[...,]
-            Boolean evaluating if the matrix is square and diagonal.
+        tril : array-like, shape=[..., n, n]
+            Lower  triangular matrix.
         """
-        is_square = cls.is_square(mat)
-        if not gs.all(is_square):
-            return False
-        diagonal_mat = from_vector_to_diagonal_matrix(cls.diagonal(mat))
-        is_diagonal = gs.all(gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
-        return is_diagonal
+        slt = cls.to_strictly_lower_triangular(mat)
+        diag = cls.to_diagonal(mat) / K
+        return slt + diag
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample from a uniform distribution in a cube.
