@@ -44,7 +44,6 @@ class DiscreteCurves(Manifold):
     def __init__(self, ambient_manifold):
         super(DiscreteCurves, self).__init__(dim=math.inf)
         self.ambient_manifold = ambient_manifold
-        self.l2_metric = lambda n: L2Metric(self.ambient_manifold, n_landmarks=n)
         self.square_root_velocity_metric = SRVMetric(self.ambient_manifold)
         self.quotient_square_root_velocity_metric = QuotientSRVMetric(
             self.ambient_manifold
@@ -320,6 +319,13 @@ class L2CurvesMetric(RiemannianMetric):
         l2_landmarks_metric = self.l2_landmarks_metric(n_sampling_points)
         return l2_landmarks_metric.log(point, base_point)
 
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+        n_sampling_points = initial_point.shape[-2]
+        l2_landmarks_metric = self.l2_landmarks_metric(n_sampling_points)
+        return l2_landmarks_metric.geodesic(
+            initial_point, end_point, initial_tangent_vec
+        )
+
 
 class SRVMetric(RiemannianMetric):
     """Elastic metric defined using the Square Root Velocity Function.
@@ -568,6 +574,10 @@ class SRVMetric(RiemannianMetric):
         d_srv_vec_b = self.aux_differential_srv_transform(tangent_vec_b, curve)
         inner_prod = self.l2_metric.inner_product(d_srv_vec_a, d_srv_vec_b)
 
+        if not self.translation_invariant:
+            inner_prod += self.ambient_metric.inner_product(
+                tangent_vec_a[0], tangent_vec_b[0]
+            )
         return inner_prod
 
     def exp(self, tangent_vec, base_point):

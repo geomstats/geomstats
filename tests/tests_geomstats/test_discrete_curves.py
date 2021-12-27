@@ -7,6 +7,7 @@ from geomstats.geometry.discrete_curves import (
     ClosedDiscreteCurves,
     DiscreteCurves,
     ElasticMetric,
+    L2CurvesMetric,
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
@@ -41,10 +42,26 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         self.curve_b = curve_fun_b(self.sampling_times)
         self.curve_c = curve_fun_c(self.sampling_times)
 
+        self.space_curves_in_euclidean_3d = DiscreteCurves(ambient_manifold=r3)
+        self.space_curves_in_sphere_2d = DiscreteCurves(ambient_manifold=s2)
         self.space_closed_curves_in_euclidean_2d = ClosedDiscreteCurves(
             ambient_manifold=r2
         )
 
+        self.l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
+        self.l2_metric_r3 = L2CurvesMetric(ambient_manifold=r3)
+        # self.l2_metric_s2 = self.space_curves_in_sphere_2d.l2_metric(
+        #     self.n_sampling_points
+        # )
+        # self.l2_metric_r3 = self.space_curves_in_euclidean_3d.l2_metric(
+        #     self.n_sampling_points
+        # )
+        self.srv_metric_r3 = (
+            self.space_curves_in_euclidean_3d.square_root_velocity_metric
+        )
+        self.quotient_srv_metric_r3 = (
+            self.space_curves_in_euclidean_3d.quotient_square_root_velocity_metric
+        )
         self.a = 1
         self.b = 1
         self.elastic_metric = ElasticMetric(self.a, self.b)
@@ -52,20 +69,6 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         self.n_discretized_curves = 5
         self.times = gs.linspace(0.0, 1.0, self.n_discretized_curves)
         gs.random.seed(1234)
-        self.space_curves_in_euclidean_3d = DiscreteCurves(ambient_manifold=r3)
-        self.space_curves_in_sphere_2d = DiscreteCurves(ambient_manifold=s2)
-        self.l2_metric_s2 = self.space_curves_in_sphere_2d.l2_metric(
-            self.n_sampling_points
-        )
-        self.l2_metric_r3 = self.space_curves_in_euclidean_3d.l2_metric(
-            self.n_sampling_points
-        )
-        self.srv_metric_r3 = (
-            self.space_curves_in_euclidean_3d.square_root_velocity_metric
-        )
-        self.quotient_srv_metric_r3 = (
-            self.space_curves_in_euclidean_3d.quotient_square_root_velocity_metric
-        )
 
     def test_belongs(self):
         result = self.space_curves_in_sphere_2d.belongs(self.curve_a)
@@ -226,10 +229,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         srv_a = self.srv_metric_r3.srv_transform(self.curve_a)
         srv_b = self.srv_metric_r3.srv_transform(self.curve_b)
-        l2_metric = self.space_curves_in_euclidean_3d.l2_metric(
-            self.n_sampling_points - 1
-        )
-        geod_srv = l2_metric.geodesic(initial_point=srv_a, end_point=srv_b)
+        geod_srv = self.l2_metric_r3.geodesic(initial_point=srv_a, end_point=srv_b)
         geod_srv = geod_srv(self.times)
 
         starting_points = self.srv_metric_r3.ambient_metric.geodesic(
