@@ -50,12 +50,6 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         self.l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
         self.l2_metric_r3 = L2CurvesMetric(ambient_manifold=r3)
-        # self.l2_metric_s2 = self.space_curves_in_sphere_2d.l2_metric(
-        #     self.n_sampling_points
-        # )
-        # self.l2_metric_r3 = self.space_curves_in_euclidean_3d.l2_metric(
-        #     self.n_sampling_points
-        # )
         self.srv_metric_r3 = (
             self.space_curves_in_euclidean_3d.square_root_velocity_metric
         )
@@ -82,6 +76,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         result = self.space_curves_in_sphere_2d.belongs(curve_ab)
         self.assertTrue(gs.all(result))
 
+    @geomstats.tests.np_autograd_and_torch_only
     def test_l2_metric_log_and_squared_norm_and_dist(self):
         """Test that squared norm of logarithm is squared dist."""
         tangent_vec = self.l2_metric_s2.log(point=self.curve_b, base_point=self.curve_a)
