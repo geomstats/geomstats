@@ -369,6 +369,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = curve
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_autograd_and_torch_only
     def test_elastic_dist(self):
         """Test shape and positivity."""
         cells, _, _ = data_utils.load_cells()
@@ -377,11 +378,28 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         dist = metric.dist(curve_1, curve_2)
 
         result = dist.shape
-        expected = (1,)
+        expected = ()
         self.assertAllClose(result, expected)
 
         result = dist > 0
         self.assertTrue(result)
+
+    @geomstats.tests.np_autograd_and_torch_only
+    def test_elastic_and_srv_dist(self):
+        """Test that SRV dist and elastic dist coincide
+
+        for a=1 and b=1/2."""
+        r2 = Euclidean(dim=2)
+        elastic_metric = ElasticMetric(a=1.0, b=0.5)
+        curves_r2 = DiscreteCurves(ambient_manifold=r2)
+        curve_a_projected = gs.stack((self.curve_a[:, 0], self.curve_a[:, 2]), axis=-1)
+        curve_b_projected = gs.stack((self.curve_b[:, 0], self.curve_b[:, 2]), axis=-1)
+        result = elastic_metric.dist(curve_a_projected, curve_b_projected)
+        expected = curves_r2.square_root_velocity_metric.dist(
+            curve_a_projected, curve_b_projected
+        )
+        print(result / expected)
+        self.assertAllClose(result, expected)
 
     def test_cartesian_to_polar_and_inverse(self):
         """Test that going back to cartesian works."""

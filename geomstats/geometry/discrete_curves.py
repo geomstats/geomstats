@@ -216,7 +216,7 @@ class L2CurvesMetric(RiemannianMetric):
         """Compute the pointwise inner products of a pair of tangent vectors.
 
         Compute the inner-products between the components of two tangent vectors
-        at the different sampling point of a base curve.
+        at the different sampling points of a base curve.
 
         Parameters
         ----------
@@ -823,7 +823,6 @@ class ClosedDiscreteCurves(Manifold):
     def __init__(self, ambient_manifold):
         super(ClosedDiscreteCurves, self).__init__(dim=math.inf)
         self.ambient_manifold = ambient_manifold
-        self.l2_metric = lambda n: L2Metric(self.ambient_manifold, n_landmarks=n)
         self.square_root_velocity_metric = ClosedSRVMetric(ambient_manifold)
 
     def belongs(self, point, atol=gs.atol):
@@ -1084,7 +1083,7 @@ class ElasticMetric(RiemannianMetric):
         super(ElasticMetric, self).__init__(dim=math.inf, signature=(math.inf, 0, 0))
         self.ambient_manifold = R2
         self.ambient_metric = self.ambient_manifold.metric
-        self.l2_metric = lambda n: L2Metric(self.ambient_manifold, n_landmarks=n)
+        self.l2_metric = L2CurvesMetric(ambient_manifold=R2)
         self.a = a
         self.b = b
 
@@ -1229,8 +1228,9 @@ class ElasticMetric(RiemannianMetric):
         dist : [...]
             Geodesic distance between the curves.
         """
-        velocity_1 = curve_1[1:] - curve_1[:-1]
-        velocity_2 = curve_2[1:] - curve_2[:-1]
+        n_sampling_points = curve_1.shape[-2]
+        velocity_1 = (n_sampling_points - 1) * (curve_1[1:] - curve_1[:-1])
+        velocity_2 = (n_sampling_points - 1) * (curve_2[1:] - curve_2[:-1])
 
         speed_1, arg_1 = self.cartesian_to_polar(velocity_1)
         speed_2, arg_2 = self.cartesian_to_polar(velocity_2)
@@ -1254,8 +1254,8 @@ class ElasticMetric(RiemannianMetric):
         f_1 = self.polar_to_cartesian(f_1_norms, f_1_args)
         f_2 = self.polar_to_cartesian(f_2_norms, f_2_args)
 
-        l2_prod = self.l2_metric(n_sampling_points).inner_product
-        l2_dist = self.l2_metric(n_sampling_points).dist
+        l2_prod = self.l2_metric.inner_product
+        l2_dist = self.l2_metric.dist
 
         if rescaled:
             cosine = l2_prod(f_1, f_2) / (4 * self.b ** 2)
