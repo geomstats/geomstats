@@ -603,7 +603,6 @@ class SRVMetric(RiemannianMetric):
             )
         base_point = gs.to_ndarray(base_point, to_ndim=3)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
-        n_sampling_points = base_point.shape[1]
 
         base_curve_srv = self.srv_transform(base_point)
 
@@ -761,8 +760,10 @@ class SRVMetric(RiemannianMetric):
         srv_b = self.srv_transform(point_b)
         dist_starting_points = self.ambient_metric.dist(point_a[0, :], point_b[0, :])
         dist_srvs = self.l2_metric.norm(srv_b - srv_a)
-        dist = gs.sqrt(dist_starting_points ** 2 + dist_srvs ** 2)
+        if self.translation_invariant:
+            return dist_srvs
 
+        dist = gs.sqrt(dist_starting_points ** 2 + dist_srvs ** 2)
         return dist
 
     @staticmethod

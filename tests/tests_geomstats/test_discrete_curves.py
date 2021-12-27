@@ -8,6 +8,7 @@ from geomstats.geometry.discrete_curves import (
     DiscreteCurves,
     ElasticMetric,
     L2CurvesMetric,
+    SRVMetric,
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
@@ -493,11 +494,22 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_srv_inner_product_and_dist(self):
-        """Test that norm of log and dist coincide."""
-        log = self.srv_metric_r3.log(point=self.curve_b, base_point=self.curve_a)
-        result = self.srv_metric_r3.norm(vector=log, base_point=self.curve_a)
-        expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)
-        self.assertAllClose(result, expected)
+        """Test that norm of log and dist coincide
+
+        for curves with same / different starting points, and for
+        the translation invariant / non invariant SRV metric.
+        """
+        r3 = Euclidean(dim=3)
+        curve_b_transl = self.curve_b + gs.array([1.0, 0.0, 0.0])
+        curve_b = [self.curve_b, curve_b_transl]
+        translation_invariant = [True, False]
+        for curve in curve_b:
+            for param in translation_invariant:
+                srv_metric = SRVMetric(ambient_manifold=r3, translation_invariant=param)
+                log = srv_metric.log(point=curve, base_point=self.curve_a)
+                result = srv_metric.norm(vector=log, base_point=self.curve_a)
+                expected = srv_metric.dist(self.curve_a, curve)
+                self.assertAllClose(result, expected)
 
     def test_srv_inner_product_vectorization(self):
         """Test inner product of SRVMetric.
