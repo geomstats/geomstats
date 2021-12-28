@@ -4,8 +4,6 @@
 import math
 import warnings
 
-from numpy.linalg import cholesky
-
 import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
@@ -148,7 +146,7 @@ def test_inverse_differential_log_data():
     return generate_tests(smoke_data)
 
 
-def test_differential_exp():
+def differential_exp_data():
     smoke_data = [
         dict(
             tangent_vec=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
@@ -163,7 +161,7 @@ def test_differential_exp():
     return generate_tests(smoke_data)
 
 
-def test_inverse_differential_exp():
+def inverse_differential_exp_data():
     smoke_data = [
         dict(
             tangent_vec=[
@@ -226,42 +224,36 @@ class TestSPDMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
         )
 
     def test_differential_power(self, power, tangent_vec, base_point, expected):
-        """Test of differential_power method."""
         result_dp = SPDMatrices.differential_power(
             power, gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result_dp, gs.array(expected))
 
     def test_inverse_differential_power(self, power, tangent_vec, base_point, expected):
-        """Test of inverse_differential_power method."""
         result_idp = SPDMatrices.inverse_differential_power(
             power, gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result_idp, gs.array(expected))
 
     def test_differential_log(self, tangent_vec, base_point, expected):
-        """Test of differential_log method."""
         result_dl = SPDMatrices.differential_log(
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result_dl, gs.array(expected))
 
     def test_inverse_differential_log(self, tangent_vec, base_point, expected):
-        """Test of inverse_differential_log method."""
         result_idl = SPDMatrices.inverse_differential_log(
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result_idl, gs.array(expected))
 
     def test_differential_exp(self, tangent_vec, base_point, expected):
-        """Test of differential_exp method."""
         self.assertAllClose(
             SPDMatrices.differential_exp(gs.array(tangent_vec), gs.array(base_point)),
             gs.array(expected),
         )
 
     def test_inverse_differential_exp(self, tangent_vec, base_point, expected):
-        """Test of differential_exp method."""
         self.assertAllClose(
             SPDMatrices.inverse_differential_exp(
                 gs.array(tangent_vec), gs.array(base_point)
@@ -269,8 +261,23 @@ class TestSPDMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
             gs.array(expected),
         )
 
+
+class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
+    pass
+
+
+class TestSPDMetricBuresWasserstein(geomstats.tests.TestCase, metaclass=Parametrizer):
+    pass
+
+
+class TestSPDMetricEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
+    pass
+
+
+class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
+    pass
+
     def test_bureswasserstein_inner_product(self):
-        """Test of SPDMetricBuresWasserstein.inner_product method."""
         base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 1.5, 0.5], [0.0, 0.5, 1.5]])
         tangent_vec_a = gs.array([[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]])
         tangent_vec_b = gs.array([[1.0, 2.0, 4.0], [2.0, 3.0, 8.0], [4.0, 8.0, 5.0]])
@@ -281,7 +288,6 @@ class TestSPDMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     def test_power_affine_inner_product(self):
-        """Test of SPDMetricAffine.inner_product method."""
         base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]])
         tangent_vec = gs.array([[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]])
         metric = SPDMetricAffine(3, power_affine=0.5)
