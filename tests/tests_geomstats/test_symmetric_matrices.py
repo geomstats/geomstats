@@ -8,13 +8,15 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from tests.conftest import Parametrizer, generate_tests
+from tests.conftest import Parametrizer, TestData
 
 
 class TestSymmetricMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
     """Test of SymmetricMatrices methods."""
 
-    class TestingData:
+    class TestingData(TestData):
+        """Data class for Testing Symmetric Matrices"""
+
         def belongs_data(self):
             smoke_data = [
                 dict(n=2, mat=[[1.0, 2.0], [2.0, 1.0]], expected=True),
@@ -30,7 +32,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
                     expected=[True, False],
                 ),
             ]
-            return generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
         def basis_data(self):
             smoke_data = [
@@ -44,13 +46,13 @@ class TestSymmetricMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
                     ],
                 ),
             ]
-            return generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
         def expm_data(self):
             smoke_data = [
                 dict(mat=[[0.0, 0.0], [0.0, 0.0]], expected=[[1.0, 0.0], [0.0, 1.0]])
             ]
-            return generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
         def powerm_data(self):
             smoke_data = [
@@ -65,7 +67,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
                     expected=[[5.0, 8.0], [8.0, 13.0]],
                 ),
             ]
-            return generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
         def projection_data(self):
             smoke_data = [
@@ -74,7 +76,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
                 dict(n=1, num_points=10),
                 dict(n=10, num_points=10),
             ]
-            return generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
         def dim_data(self):
 
@@ -82,7 +84,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
 
             random_n = random.sample(range(1, 1000), 500)
             rt_data = [(n, (n * (n + 1)) // 2) for n in random_n]
-            return generate_tests(smoke_data, rt_data)
+            return self.generate_tests(smoke_data, rt_data)
 
         def to_vector_data(self):
             smoke_data = [
@@ -104,7 +106,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
                     ],
                 ),
             ]
-            return generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
         def from_vector_data(self):
             smoke_data = [
@@ -126,7 +128,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
                     ],
                 ),
             ]
-            return generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
     testing_data = TestingData()
 
