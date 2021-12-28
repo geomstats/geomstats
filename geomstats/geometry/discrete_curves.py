@@ -310,16 +310,67 @@ class L2CurvesMetric(RiemannianMetric):
         return self.riemann_sum(inner_products, missing_last_point)
 
     def exp(self, tangent_vec, base_point):
+        """Compute Riemannian exponential of tangent vector wrt to base curve.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector to discrete curve.
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Return
+        ------
+        end_curve :  array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve, result of the Riemannian exponential.
+        """
         n_sampling_points = base_point.shape[-2]
         l2_landmarks_metric = self.l2_landmarks_metric(n_sampling_points)
         return l2_landmarks_metric.exp(tangent_vec, base_point)
 
     def log(self, point, base_point):
+        """Compute Riemannian logarithm of a curve wrt a base curve.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve to use as base point.
+
+        Returns
+        -------
+        log : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector to a discrete curve.
+        """
         n_sampling_points = base_point.shape[-2]
         l2_landmarks_metric = self.l2_landmarks_metric(n_sampling_points)
         return l2_landmarks_metric.log(point, base_point)
 
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+        """Compute geodesic from initial curve to end curve.
+
+        Geodesic specified either by an initial curve and an end curve,
+        either by an initial curve and an initial tangent vector.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        end_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve. If None, an initial tangent vector must be given.
+            Optional, default : None
+        initial_tangent_vec : array-like,
+            shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector at base curve, the initial speed of the geodesics.
+            If None, an end curve must be given and a logarithm is computed.
+            Optional, default : None
+
+        Returns
+        -------
+        geodesic : callable
+            The time parameterized geodesic curve.
+        """
         n_sampling_points = initial_point.shape[-2]
         l2_landmarks_metric = self.l2_landmarks_metric(n_sampling_points)
         return l2_landmarks_metric.geodesic(
