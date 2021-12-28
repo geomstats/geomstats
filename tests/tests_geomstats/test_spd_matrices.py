@@ -19,7 +19,7 @@ from geomstats.geometry.spd_matrices import (
     SPDMetricEuclidean,
     SPDMetricLogEuclidean,
 )
-from tests.conftest import Parametrizer, generate_tests
+from tests.conftest import Parametrizer, TestData
 
 SQRT_2 = math.sqrt(2.0)
 LN_2 = math.log(2.0)
@@ -27,165 +27,149 @@ EXP_1 = math.exp(1.0)
 SINH_1 = math.sinh(1.0)
 
 
-def belongs_data():
-    smoke_data = [
-        dict(n=2, mat=[[3.0, -1.0], [-1.0, 3.0]], expected=True),
-        dict(n=2, mat=[[1.0, 1.0], [2.0, 1.0]], expected=False),
-        dict(
-            n=3,
-            mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
-            expected=True,
-        ),
-        dict(
-            n=2,
-            mat=[[[1.0, 0.0], [0.0, 1.0]], [[1.0, -1.0], [0.0, 1.0]]],
-            expected=[True, False],
-        ),
-    ]
-    return generate_tests(smoke_data)
-
-
-def random_point_data():
-    smoke_data = [
-        dict(n=1, num_points=1),
-        dict(n=2, num_points=1),
-        dict(n=10, num_points=10),
-        dict(n=10, num_points=1000),
-    ]
-    return generate_tests(smoke_data)
-
-
-def logm_data():
-    smoke_data = [
-        dict(spd_mat=[[1.0, 0.0], [0.0, 1.0]], expected=[[0.0, 0.0], [0.0, 0.0]])
-    ]
-    return generate_tests(smoke_data)
-
-
-def cholesky_factor_data():
-    smoke_data = [
-        dict(
-            spd_mat=[[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]],
-            cf=[[SQRT_2, 0.0, 0.0], [0.0, SQRT_2, 0.0], [0.0, 0.0, SQRT_2]],
-        )
-    ]
-    return generate_tests(smoke_data)
-
-
-def differential_cholesky_factor_data():
-    smoke_data = [
-        dict(
-            tangent_vec=[[1.0, 1.0], [1.0, 1.0]],
-            base_point=[[4.0, 2.0], [2.0, 5.0]],
-            expected=[[1 / 4, 0.0], [3 / 8, 1 / 16]],
-        )
-    ]
-    return generate_tests(smoke_data)
-
-
-def differential_power_data():
-    smoke_data = [
-        dict(
-            power=0.5,
-            tangent_vec=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
-            base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
-            expected=[
-                [1.0, 1 / 3, 1 / 3],
-                [1 / 3, 0.125, 0.125],
-                [1 / 3, 0.125, 0.125],
-            ],
-        )
-    ]
-    return generate_tests(smoke_data)
-
-
-def inverse_differential_power_data():
-    smoke_data = [
-        dict(
-            power=0.5,
-            tangent_vec=[
-                [1.0, 1 / 3, 1 / 3],
-                [1 / 3, 0.125, 0.125],
-                [1 / 3, 0.125, 0.125],
-            ],
-            base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
-            expected=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
-        )
-    ]
-    return generate_tests(smoke_data)
-
-
-def test_differential_log_data():
-    smoke_data = [
-        dict(
-            tangent_vec=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
-            base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
-            expected=[
-                [1.0, 1.0, 2 * LN_2],
-                [1.0, 1.0, 2 * LN_2],
-                [2 * LN_2, 2 * LN_2, 1],
-            ],
-        )
-    ]
-    return generate_tests(smoke_data)
-
-
-def test_inverse_differential_log_data():
-    smoke_data = [
-        dict(
-            tangent_vec=[
-                [1.0, 1.0, 2 * LN_2],
-                [1.0, 1.0, 2 * LN_2],
-                [2 * LN_2, 2 * LN_2, 1],
-            ],
-            base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
-            expected=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
-        )
-    ]
-
-    return generate_tests(smoke_data)
-
-
-def differential_exp_data():
-    smoke_data = [
-        dict(
-            tangent_vec=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
-            base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]],
-            expected=[
-                [EXP_1, EXP_1, SINH_1],
-                [EXP_1, EXP_1, SINH_1],
-                [SINH_1, SINH_1, 1 / EXP_1],
-            ],
-        )
-    ]
-    return generate_tests(smoke_data)
-
-
-def inverse_differential_exp_data():
-    smoke_data = [
-        dict(
-            tangent_vec=[
-                [EXP_1, EXP_1, SINH_1],
-                [EXP_1, EXP_1, SINH_1],
-                [SINH_1, SINH_1, 1 / EXP_1],
-            ],
-            base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]],
-            expected=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
-        )
-    ]
-    return generate_tests(smoke_data)
-
-
 class TestSPDMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
     """Test of SPDMatrices methods."""
 
-    belongs_data = belongs_data()
-    random_point_data = random_point_data()
-    logm_data = logm_data()
-    cholesky_factor_data = cholesky_factor_data()
-    differential_cholesky_factor_data = differential_cholesky_factor_data()
-    differential_power_data = differential_power_data()
-    inverse_differential_power_data = inverse_differential_power_data()
+    class TestDataSPDMatrices(TestData):
+        def belongs_data(self):
+            smoke_data = [
+                dict(n=2, mat=[[3.0, -1.0], [-1.0, 3.0]], expected=True),
+                dict(n=2, mat=[[1.0, 1.0], [2.0, 1.0]], expected=False),
+                dict(
+                    n=3,
+                    mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                    expected=True,
+                ),
+                dict(
+                    n=2,
+                    mat=[[[1.0, 0.0], [0.0, 1.0]], [[1.0, -1.0], [0.0, 1.0]]],
+                    expected=[True, False],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def random_point_data(self):
+            smoke_data = [
+                dict(n=1, num_points=1),
+                dict(n=2, num_points=1),
+                dict(n=10, num_points=10),
+                dict(n=10, num_points=1000),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def logm_data(self):
+            smoke_data = [
+                dict(
+                    spd_mat=[[1.0, 0.0], [0.0, 1.0]], expected=[[0.0, 0.0], [0.0, 0.0]]
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def cholesky_factor_data(self):
+            smoke_data = [
+                dict(
+                    spd_mat=[[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]],
+                    cf=[[SQRT_2, 0.0, 0.0], [0.0, SQRT_2, 0.0], [0.0, 0.0, SQRT_2]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def differential_cholesky_factor_data(self):
+            smoke_data = [
+                dict(
+                    tangent_vec=[[1.0, 1.0], [1.0, 1.0]],
+                    base_point=[[4.0, 2.0], [2.0, 5.0]],
+                    expected=[[1 / 4, 0.0], [3 / 8, 1 / 16]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def differential_power_data(self):
+            smoke_data = [
+                dict(
+                    power=0.5,
+                    tangent_vec=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
+                    expected=[
+                        [1.0, 1 / 3, 1 / 3],
+                        [1 / 3, 0.125, 0.125],
+                        [1 / 3, 0.125, 0.125],
+                    ],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def inverse_differential_power_data(self):
+            smoke_data = [
+                dict(
+                    power=0.5,
+                    tangent_vec=[
+                        [1.0, 1 / 3, 1 / 3],
+                        [1 / 3, 0.125, 0.125],
+                        [1 / 3, 0.125, 0.125],
+                    ],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
+                    expected=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def test_differential_log_data(self):
+            smoke_data = [
+                dict(
+                    tangent_vec=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
+                    expected=[
+                        [1.0, 1.0, 2 * LN_2],
+                        [1.0, 1.0, 2 * LN_2],
+                        [2 * LN_2, 2 * LN_2, 1],
+                    ],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def test_inverse_differential_log_data(self):
+            smoke_data = [
+                dict(
+                    tangent_vec=[
+                        [1.0, 1.0, 2 * LN_2],
+                        [1.0, 1.0, 2 * LN_2],
+                        [2 * LN_2, 2 * LN_2, 1],
+                    ],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
+                    expected=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
+                )
+            ]
+
+            return self.generate_tests(smoke_data)
+
+        def differential_exp_data(self):
+            smoke_data = [
+                dict(
+                    tangent_vec=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]],
+                    expected=[
+                        [EXP_1, EXP_1, SINH_1],
+                        [EXP_1, EXP_1, SINH_1],
+                        [SINH_1, SINH_1, 1 / EXP_1],
+                    ],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def inverse_differential_exp_data(self):
+            smoke_data = [
+                dict(
+                    tangent_vec=[
+                        [EXP_1, EXP_1, SINH_1],
+                        [EXP_1, EXP_1, SINH_1],
+                        [SINH_1, SINH_1, 1 / EXP_1],
+                    ],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]],
+                    expected=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
 
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(SPDMatrices(n).belongs(gs.array(mat)), gs.array(expected))
@@ -263,19 +247,64 @@ class TestSPDMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
 
 
 class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
-    pass
+    class TestDataSPDMetricAffine(TestData):
+        def inner_product_data(self):
+            smoke_data = [
+                dict(
+                    n=3,
+                    power_affine=0.5,
+                    tangent_vec_a=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+                    tangent_vec_b=[[1.0, 2.0, 4.0], [2.0, 3.0, 8.0], [4.0, 8.0, 5.0]],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 1.5, 0.5], [0.0, 0.5, 1.5]],
+                    expected=713 / 144,
+                )
+            ]
+            return self.generate_tests(smoke_data)
 
+        def exp_data(self):
+            smoke_data = [
+                dict(
+                    n=3,
+                    power_affine=0.5,
+                    point=[[9.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 1.0]],
+                    base_point=[[5.0, 0.0, 0.0], [0.0, 7.0, 2.0], [0.0, 2.0, 8.0]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
 
-class TestSPDMetricBuresWasserstein(geomstats.tests.TestCase, metaclass=Parametrizer):
-    pass
+    testing_data = TestDataSPDMetricAffine()
 
+    def test_inner_product(
+        self, n, power_affine, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        metric = SPDMetricAffine(n, power_affine)
+        self.assertAllClose(
+            metric.inner_product(
+                gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
+            ),
+            expected,
+        )
 
-class TestSPDMetricEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
-    pass
+    def test_exp(self, n, power_affine, point, base_point, expected):
+        metric = SPDMetricAffine(n, power_affine)
+        self.assertAllClose(metric.log(gs.array(point), gs.array(base_point)))
 
+        base_point = gs.array()
+        point = gs.array()
+        metric = SPDMetricAffine(3, power_affine=0.5)
+        log = metric.log(point, base_point)
+        result = metric.exp(log, base_point)
+        expected = point
+        self.assertAllClose(result, expected)
 
-class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
-    pass
+    # class TestSPDMetricBuresWasserstein(geomstats.tests.TestCase, metaclass=Parametrizer):
+    #     pass
+
+    # class TestSPDMetricEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
+    #     pass
+
+    # class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
+    #     pass
 
     def test_bureswasserstein_inner_product(self):
         base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 1.5, 0.5], [0.0, 0.5, 1.5]])
