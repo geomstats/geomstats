@@ -49,7 +49,6 @@ def random_point_data():
     smoke_data = [
         dict(n=1, num_points=1),
         dict(n=2, num_points=1),
-        dict(n=10, num_points=10),
         dict(n=10, num_points=1000),
     ]
     return generate_tests(smoke_data)
