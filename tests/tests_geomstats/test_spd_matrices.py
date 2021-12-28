@@ -22,6 +22,7 @@ from geomstats.geometry.spd_matrices import (
     SPDMetricEuclidean,
     SPDMetricLogEuclidean,
 )
+from tests.conftest import Parametrizer, generate_tests
 
 SQRT_2 = math.sqrt(2)
 
@@ -44,31 +45,104 @@ def belongs_data():
     return generate_tests(smoke_data)
 
 
-class TestSPDMatrices(geomstats.tests.TestCase):
+def random_point_data():
+    smoke_data = [
+        dict(n=1, num_points=1),
+        dict(n=2, num_points=1),
+        dict(n=10, num_points=10),
+        dict(n=10, num_points=1000),
+    ]
+    return generate_tests(smoke_data)
+
+
+def logm_data():
+    smoke_data = [
+        dict(spd_mat=[[1.0, 0.0], [0.0, 1.0]], expected=[[0.0, 0.0], [0.0, 0.0]])
+    ]
+    return generate_tests(smoke_data)
+
+
+def cholesky_factor_data():
+    smoke_data = [
+        dict(
+            spd_mat=[[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]],
+            cf=[[SQRT_2, 0.0, 0.0], [0.0, SQRT_2, 0.0], [0.0, 0.0, SQRT_2]],
+        )
+    ]
+    return generate_tests(smoke_data)
+
+
+def differential_cholesky_factor_data(tangent_vec, base_point, expected):
+    smoke_data = [
+        dict(
+            tangent_vec=[[1.0, 1.0], [1.0, 1.0]],
+            base_point=[[4.0, 2.0], [2.0, 5.0]],
+            expected=[[1 / 4, 0.0], [3 / 8, 1 / 16]],
+        )
+    ]
+    return generate_tests(smoke_data)
+
+
+def differential_power_data(power, tangent_vec, base_point, expected):
+    smoke_data = [
+        dict(
+            power=0.5,
+            tangent_vec=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+            base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
+            expected=[
+                [1.0, 1 / 3, 1 / 3],
+                [1 / 3, 0.125, 0.125],
+                [1 / 3, 0.125, 0.125],
+            ],
+        )
+    ]
+    return generate_tests(smoke_data)
+
+
+def inverse_differential_power_data(power, tangent_vec, base_point, expected):
+    smoke_data = [
+        dict(
+            power=0.5,
+            tangent_vec=[
+                [1.0, 1 / 3, 1 / 3],
+                [1 / 3, 0.125, 0.125],
+                [1 / 3, 0.125, 0.125],
+            ],
+            base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
+            expected=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+        )
+    ]
+    return generate_tests(smoke_data)
+
+
+class TestSPDMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
     """Test of SPDMatrices methods."""
 
-    @pytest.mark.parametrize("n, mat, expected", belongs_data())
+    belongs_data = belongs_data()
+    random_point_data = random_point_data()
+    logm_data = logm_data()
+    cholesky_factor_data = cholesky_factor_data()
+    differential_cholesky_factor_data = differential_cholesky_factor_data()
+    differential_power_data = differential_power_data()
+    inverse_differential_power_data = inverse_differential_power_data()
+
     def test_belongs(self, n, mat, expected):
         """Test of belongs method."""
         self.assertAllClose(SPDMatrices(n).belongs(gs.array(mat)), gs.array(expected))
 
-    @pytest.mark.parametrize("n, num_points", random_point_data())
     def test_random_point(self, n, num_points):
         """Test of random_point and belongs methods."""
         space = SPDMatrices(n)
-        self.assertAllClose(
-            space.belongs(space.random_point(num_points)), gs.array([True] * num_points)
-        )
+        self.assertAllClose(gs.all(space.random_point(num_points)), gs.array(True))
 
-    @pytest.mark.parametrize("n, spd_mat, logm", logm_data())
-    def test_logm(self, n, spd_mat, logm):
+    def test_logm(self, spd_mat, logm):
         """Test of logm method."""
-        self.assertAllClose(SPDMatrices(n).logm(spd_mat), logm)
+        self.assertAllClose(SPDMatrices.logm(gs.array(spd_mat)), gs.array(logm))
 
-    @pytest.mark.parametrize("n, spd_mat, cf", cholesky_factor_data())
-    def test_cholesky_factor(self, n, spd_mat, cf):
-        """Test cholesky factor method"""
-        result_cf = SPDMatrices(n).cholesky_factor(gs.array(spd_mat))
+    def test_cholesky_factor(self, spd_mat, cf):
+        """Test cholesky factor method."""
+        n = spd_mat.shape[0]
+        result_cf = SPDMatrices.cholesky_factor(gs.array(spd_mat))
 
         self.assertAllClose(result_cf, gs.array(cf))
         self.assertAllClose(
@@ -76,56 +150,28 @@ class TestSPDMatrices(geomstats.tests.TestCase):
             gs.array(True),
         )
 
-    def test_cholesky_factor_differential(self):
+    def test_differential_cholesky_factor(self, tangent_vec, base_point, expected):
         """Test differential of cholesky factor map"""
-        P = gs.array([[4.0, 2.0], [2.0, 5.0]])
-        W = gs.array([[1.0, 1.0], [1.0, 1.0]])
-        diff_chol_expected = gs.array([[1 / 4, 0.0], [3 / 8, 1 / 16]])
-        diff_chol_result = self.space.differential_cholesky_factor(W, P)
-        self.assertAllClose(diff_chol_expected, diff_chol_result)
-
-    def test_cholesky_factor_differential_belongs(self):
-        """Test differential of cholesky factor map for batch of inputs"""
-        n_samples = 5
-        P = self.space.random_point(n_samples)
-        W = self.space.ambient_space.random_point(n_samples)
-        diff_chol_fact_result = self.space.differential_cholesky_factor(W, P)
-        belongs_expected = True
-        belongs_result = gs.all(
-            LowerTriangularMatrices(self.n).belongs(diff_chol_fact_result)
+        n = base_point.shape[0]
+        result_dcf = SPDMatrices.differential_cholesky_factor(tangent_vec, base_point)
+        self.assertAllClose(result_dcf, gs.array(expected))
+        self.assertAllClose(
+            gs.all(LowerTriangularMatrices(n).belongs(result_dcf)), gs.array(True)
         )
 
-        shape_expected = n_samples
-        shape_result = diff_chol_fact_result.shape[0]
-
-        self.assertAllClose(shape_expected, shape_result)
-        self.assertAllClose(belongs_expected, belongs_result)
-
-    def test_differential_power(self):
+    def test_differential_power(self, power, tangent_vec, base_point, expected):
         """Test of differential_power method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]])
-        tangent_vec = gs.array([[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]])
-        power = 0.5
-        result = self.space.differential_power(
-            power=power, tangent_vec=tangent_vec, base_point=base_point
+        self.assertAllClose(
+            SPDMatrices.differential_power(power, tangent_vec, base_point),
+            gs.array(expected),
         )
-        expected = gs.array(
-            [[1.0, 1 / 3, 1 / 3], [1 / 3, 0.125, 0.125], [1 / 3, 0.125, 0.125]]
-        )
-        self.assertAllClose(result, expected)
 
-    def test_inverse_differential_power(self):
+    def test_inverse_differential_power(self, power, tangent_vec, base_point, expected):
         """Test of inverse_differential_power method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]])
-        tangent_vec = gs.array(
-            [[1.0, 1 / 3, 1 / 3], [1 / 3, 0.125, 0.125], [1 / 3, 0.125, 0.125]]
+        self.assertAllClose(
+            SPDMatrices.inverse_differential_power(power, tangent_vec, base_point),
+            gs.array(expected),
         )
-        power = 0.5
-        result = self.space.inverse_differential_power(
-            power=power, tangent_vec=tangent_vec, base_point=base_point
-        )
-        expected = gs.array([[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]])
-        self.assertAllClose(result, expected)
 
     def test_differential_log(self):
         """Test of differential_log method."""
@@ -309,55 +355,6 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         expected = gs.array([True] * n_samples)
 
         self.assertAllClose(result, expected)
-
-    def test_exp_vectorization(self):
-        """Test of SPDMetricAffine.exp with power=1 and vectorization."""
-        n_samples = self.n_samples
-        one_base_point = self.space.random_point(n_samples=1)
-        n_base_point = self.space.random_point(n_samples=n_samples)
-
-        n_tangent_vec_same_base = self.space.random_tangent_vec(
-            n_samples=n_samples, base_point=one_base_point
-        )
-        n_tangent_vec = self.space.random_tangent_vec(
-            n_samples=n_samples, base_point=n_base_point
-        )
-        metric = self.metric_affine
-
-        # Test with the 1 base_point, and several different tangent_vecs
-        result = metric.exp(n_tangent_vec_same_base, one_base_point)
-
-        self.assertAllClose(gs.shape(result), (n_samples, self.space.n, self.space.n))
-
-        # Test with the same number of base_points and tangent_vecs
-        result = metric.exp(n_tangent_vec, n_base_point)
-
-        self.assertAllClose(gs.shape(result), (n_samples, self.space.n, self.space.n))
-
-    def test_log_vectorization(self):
-        """Test of SPDMetricAffine.log with power 1 and vectorization."""
-        n_samples = self.n_samples
-        one_base_point = self.space.random_point(n_samples=1)
-        n_base_point = self.space.random_point(n_samples=n_samples)
-
-        one_point = self.space.random_point(n_samples=1)
-        n_point = self.space.random_point(n_samples=n_samples)
-        metric = self.metric_affine
-
-        # Test with different points, one base point
-        result = metric.log(n_point, one_base_point)
-
-        self.assertAllClose(gs.shape(result), (n_samples, self.space.n, self.space.n))
-
-        # Test with the same number of points and base points
-        result = metric.log(n_point, n_base_point)
-
-        self.assertAllClose(gs.shape(result), (n_samples, self.space.n, self.space.n))
-
-        # Test with the one point and n base points
-        result = metric.log(one_point, n_base_point)
-
-        self.assertAllClose(gs.shape(result), (n_samples, self.space.n, self.space.n))
 
     def test_geodesic_and_belongs(self):
         """Test of SPDMetricAffine.geodesic with power 1 and belongs."""
