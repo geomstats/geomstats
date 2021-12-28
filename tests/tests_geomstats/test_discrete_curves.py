@@ -6,10 +6,13 @@ import geomstats.tests
 from geomstats.geometry.discrete_curves import (
     ClosedDiscreteCurves,
     DiscreteCurves,
-    ElasticCurves,
+    ElasticMetric,
+    L2CurvesMetric,
+    SRVMetric,
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 
 
 class TestDiscreteCurves(geomstats.tests.TestCase):
@@ -40,32 +43,27 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         self.curve_b = curve_fun_b(self.sampling_times)
         self.curve_c = curve_fun_c(self.sampling_times)
 
+        self.space_curves_in_euclidean_3d = DiscreteCurves(ambient_manifold=r3)
+        self.space_curves_in_sphere_2d = DiscreteCurves(ambient_manifold=s2)
         self.space_closed_curves_in_euclidean_2d = ClosedDiscreteCurves(
             ambient_manifold=r2
         )
 
-        self.a = 1
-        self.b = 1
-        self.space_elastic_curves = ElasticCurves(self.a, self.b)
-        self.elastic_metric = self.space_elastic_curves.elastic_metric
-
-        self.n_discretized_curves = 5
-        self.times = gs.linspace(0.0, 1.0, self.n_discretized_curves)
-        gs.random.seed(1234)
-        self.space_curves_in_euclidean_3d = DiscreteCurves(ambient_manifold=r3)
-        self.space_curves_in_sphere_2d = DiscreteCurves(ambient_manifold=s2)
-        self.l2_metric_s2 = self.space_curves_in_sphere_2d.l2_metric(
-            self.n_sampling_points
-        )
-        self.l2_metric_r3 = self.space_curves_in_euclidean_3d.l2_metric(
-            self.n_sampling_points
-        )
+        self.l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
+        self.l2_metric_r3 = L2CurvesMetric(ambient_manifold=r3)
         self.srv_metric_r3 = (
             self.space_curves_in_euclidean_3d.square_root_velocity_metric
         )
         self.quotient_srv_metric_r3 = (
             self.space_curves_in_euclidean_3d.quotient_square_root_velocity_metric
         )
+        self.a = 1
+        self.b = 1
+        self.elastic_metric = ElasticMetric(self.a, self.b)
+
+        self.n_discretized_curves = 5
+        self.times = gs.linspace(0.0, 1.0, self.n_discretized_curves)
+        gs.random.seed(1234)
 
     def test_belongs(self):
         result = self.space_curves_in_sphere_2d.belongs(self.curve_a)
@@ -79,6 +77,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         result = self.space_curves_in_sphere_2d.belongs(curve_ab)
         self.assertTrue(gs.all(result))
 
+    @geomstats.tests.np_autograd_and_torch_only
     def test_l2_metric_log_and_squared_norm_and_dist(self):
         """Test that squared norm of logarithm is squared dist."""
         tangent_vec = self.l2_metric_s2.log(point=self.curve_b, base_point=self.curve_a)
@@ -160,20 +159,20 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = gs.stack(expected, axis=1)
         self.assertAllClose(result, expected)
 
-    def test_srv_metric_pointwise_inner_product(self):
+    def test_srv_metric_pointwise_inner_products(self):
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
         curves_ab = curves_ab(self.times)
         curves_bc = curves_bc(self.times)
 
         tangent_vecs = self.l2_metric_s2.log(point=curves_bc, base_point=curves_ab)
-        result = self.srv_metric_r3.pointwise_inner_product(
+        result = self.srv_metric_r3.l2_metric.pointwise_inner_products(
             tangent_vec_a=tangent_vecs, tangent_vec_b=tangent_vecs, base_curve=curves_ab
         )
         expected_shape = (self.n_discretized_curves, self.n_sampling_points)
         self.assertAllClose(gs.shape(result), expected_shape)
 
-        result = self.srv_metric_r3.pointwise_inner_product(
+        result = self.srv_metric_r3.l2_metric.pointwise_inner_products(
             tangent_vec_a=tangent_vecs[0],
             tangent_vec_b=tangent_vecs[0],
             base_curve=curves_ab[0],
@@ -181,8 +180,8 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected_shape = (self.n_sampling_points,)
         self.assertAllClose(gs.shape(result), expected_shape)
 
-    def test_square_root_velocity_and_inverse(self):
-        """Test of square_root_velocity and its inverse.
+    def test_srv_transform_and_inverse(self):
+        """Test of SRVT and its inverse.
 
         N.B: Here curves_ab are seen as curves in R3 and not S2.
         """
@@ -190,11 +189,9 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curves_ab = curves_ab(self.times)
 
         curves = curves_ab
-        srv_curves = self.srv_metric_r3.square_root_velocity(curves)
+        srv_curves = self.srv_metric_r3.srv_transform(curves)
         starting_points = curves[:, 0, :]
-        result = self.srv_metric_r3.square_root_velocity_inverse(
-            srv_curves, starting_points
-        )
+        result = self.srv_metric_r3.srv_transform_inverse(srv_curves, starting_points)
         expected = curves
 
         self.assertAllClose(result, expected)
@@ -226,12 +223,9 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         )
         result = geod(self.times)
 
-        srv_a = self.srv_metric_r3.square_root_velocity(self.curve_a)
-        srv_b = self.srv_metric_r3.square_root_velocity(self.curve_b)
-        l2_metric = self.space_curves_in_euclidean_3d.l2_metric(
-            self.n_sampling_points - 1
-        )
-        geod_srv = l2_metric.geodesic(initial_point=srv_a, end_point=srv_b)
+        srv_a = self.srv_metric_r3.srv_transform(self.curve_a)
+        srv_b = self.srv_metric_r3.srv_transform(self.curve_b)
+        geod_srv = self.l2_metric_r3.geodesic(initial_point=srv_a, end_point=srv_b)
         geod_srv = geod_srv(self.times)
 
         starting_points = self.srv_metric_r3.ambient_metric.geodesic(
@@ -239,9 +233,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         )
         starting_points = starting_points(self.times)
 
-        expected = self.srv_metric_r3.square_root_velocity_inverse(
-            geod_srv, starting_points
-        )
+        expected = self.srv_metric_r3.srv_transform_inverse(geod_srv, starting_points)
 
         self.assertAllClose(result, expected)
 
@@ -254,17 +246,12 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
             initial_curve=self.curve_a, end_curve=self.curve_b
         )
         geod = geod(self.times)
-
-        srv = self.srv_metric_r3.square_root_velocity(geod)
-
+        srv = self.srv_metric_r3.srv_transform(geod)
         srv_derivative = self.n_discretized_curves * (srv[1:, :] - srv[:-1, :])
-        l2_metric = self.space_curves_in_euclidean_3d.l2_metric(
-            self.n_sampling_points - 1
-        )
-        norms = l2_metric.norm(srv_derivative, geod[:-1, :-1, :])
+        norms = self.srv_metric_r3.l2_metric.norm(srv_derivative)
         result = gs.sum(norms, 0) / self.n_discretized_curves
 
-        expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)[0]
+        expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs(self):
@@ -318,10 +305,10 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
         curves_ab = curves_ab(self.times)
         curves_bc = curves_bc(self.times)
-        srvs_ab = self.srv_metric_r3.square_root_velocity(curves_ab)
-        srvs_bc = self.srv_metric_r3.square_root_velocity(curves_bc)
+        srvs_ab = self.srv_metric_r3.srv_transform(curves_ab)
+        srvs_bc = self.srv_metric_r3.srv_transform(curves_bc)
 
-        result = self.srv_metric_r3.srv_inner_product(srvs_ab, srvs_bc)
+        result = self.srv_metric_r3.l2_metric.inner_product(srvs_ab, srvs_bc)
         products = srvs_ab * srvs_bc
         expected = [gs.sum(product) for product in products]
         expected = gs.array(expected) / (srvs_ab.shape[-2] + 1)
@@ -337,9 +324,9 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         and that the resulting shape is right."""
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_ab = curves_ab(self.times)
-        srvs_ab = self.srv_metric_r3.square_root_velocity(curves_ab)
+        srvs_ab = self.srv_metric_r3.srv_transform(curves_ab)
 
-        result = self.srv_metric_r3.srv_norm(srvs_ab)
+        result = self.srv_metric_r3.l2_metric.norm(srvs_ab)
         products = srvs_ab * srvs_ab
         sums = [gs.sum(product) for product in products]
         squared_norm = gs.array(sums) / (srvs_ab.shape[-2] + 1)
@@ -348,6 +335,21 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         result = result.shape
         expected = [srvs_ab.shape[0]]
+        self.assertAllClose(result, expected)
+
+    def test_f_transform(self):
+        """Test that the f transform coincides with the SRVF
+
+        when a=1, b=1/2."""
+        r2 = Euclidean(dim=2)
+        elastic_metric = ElasticMetric(a=1.0, b=0.5)
+        curves_r2 = DiscreteCurves(ambient_manifold=r2)
+        curve_a_projected = gs.stack((self.curve_a[:, 0], self.curve_a[:, 2]), axis=-1)
+
+        result = elastic_metric.f_transform(curve_a_projected)
+        expected = gs.squeeze(
+            curves_r2.square_root_velocity_metric.srv_transform(curve_a_projected)
+        )
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_autograd_and_tf_only
@@ -367,6 +369,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = curve
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_autograd_and_torch_only
     def test_elastic_dist(self):
         """Test shape and positivity."""
         cells, _, _ = data_utils.load_cells()
@@ -375,11 +378,28 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         dist = metric.dist(curve_1, curve_2)
 
         result = dist.shape
-        expected = (1,)
+        expected = ()
         self.assertAllClose(result, expected)
 
         result = dist > 0
         self.assertTrue(result)
+
+    @geomstats.tests.np_autograd_and_torch_only
+    def test_elastic_and_srv_dist(self):
+        """Test that SRV dist and elastic dist coincide
+
+        for a=1 and b=1/2."""
+        r2 = Euclidean(dim=2)
+        elastic_metric = ElasticMetric(a=1.0, b=0.5)
+        curves_r2 = DiscreteCurves(ambient_manifold=r2)
+        curve_a_projected = gs.stack((self.curve_a[:, 0], self.curve_a[:, 2]), axis=-1)
+        curve_b_projected = gs.stack((self.curve_b[:, 0], self.curve_b[:, 2]), axis=-1)
+        result = elastic_metric.dist(curve_a_projected, curve_b_projected)
+        expected = curves_r2.square_root_velocity_metric.dist(
+            curve_a_projected, curve_b_projected
+        )
+        print(result / expected)
+        self.assertAllClose(result, expected)
 
     def test_cartesian_to_polar_and_inverse(self):
         """Test that going back to cartesian works."""
@@ -394,7 +414,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         self.assertAllClose(result, expected, rtol=10000 * gs.rtol)
 
     @geomstats.tests.np_and_autograd_only
-    def test_aux_differential_square_root_velocity(self):
+    def test_aux_differential_srv_transform(self):
         """Test differential of square root velocity transform.
 
         Check that its value at (curve, tangent_vec) coincides
@@ -409,18 +429,35 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         tangent_vec = gs.transpose(
             gs.tile(gs.linspace(1.0, 2.0, n_sampling_points), (dim, 1))
         )
-        result = self.srv_metric_r3.aux_differential_square_root_velocity(
-            tangent_vec, curve_a
-        )
+        result = self.srv_metric_r3.aux_differential_srv_transform(tangent_vec, curve_a)
 
         n_curves = 2000
         times = gs.linspace(0.0, 1.0, n_curves)
         path_of_curves = curve_a + gs.einsum("i,jk->ijk", times, tangent_vec)
-        srv_path = self.srv_metric_r3.square_root_velocity(path_of_curves)
+        srv_path = self.srv_metric_r3.srv_transform(path_of_curves)
         expected = n_curves * (srv_path[1] - srv_path[0])
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
 
-    def test_aux_differential_square_root_velocity_vectorization(self):
+    @geomstats.tests.np_and_autograd_only
+    def test_aux_differential_srv_transform_inverse(self):
+        """Test inverse of differential of square root velocity transform.
+
+        Check that it is the inverse of aux_differential_srv_transform.
+        """
+        dim = 3
+        tangent_vec = gs.transpose(
+            gs.tile(gs.linspace(0.0, 1.0, self.n_sampling_points), (dim, 1))
+        )
+        d_srv = self.srv_metric_r3.aux_differential_srv_transform(
+            tangent_vec, self.curve_a
+        )
+        result = self.srv_metric_r3.aux_differential_srv_transform_inverse(
+            d_srv, self.curve_a
+        )
+        expected = tangent_vec
+        self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
+
+    def test_aux_differential_srv_transform_vectorization(self):
         """Test differential of square root velocity transform.
 
         Check vectorization.
@@ -428,20 +465,18 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         dim = 3
         curves = gs.stack((self.curve_a, self.curve_b))
         tangent_vecs = gs.random.rand(2, self.n_sampling_points, dim)
-        result = self.srv_metric_r3.aux_differential_square_root_velocity(
-            tangent_vecs, curves
-        )
+        result = self.srv_metric_r3.aux_differential_srv_transform(tangent_vecs, curves)
 
-        res_a = self.srv_metric_r3.aux_differential_square_root_velocity(
+        res_a = self.srv_metric_r3.aux_differential_srv_transform(
             tangent_vecs[0], self.curve_a
         )
-        res_b = self.srv_metric_r3.aux_differential_square_root_velocity(
+        res_b = self.srv_metric_r3.aux_differential_srv_transform(
             tangent_vecs[1], self.curve_b
         )
         expected = gs.stack((res_a, res_b))
         self.assertAllClose(result, expected)
 
-    def test_inner_product(self):
+    def test_srv_inner_product(self):
         """Test inner product of SRVMetric.
 
         Check that the pullback metric gives an elastic metric
@@ -454,13 +489,13 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         )
 
         r3 = Euclidean(3)
-        d_vec_a = self.n_sampling_points * (
+        d_vec_a = (self.n_sampling_points - 1) * (
             tangent_vec_a[1:, :] - tangent_vec_a[:-1, :]
         )
-        d_vec_b = self.n_sampling_points * (
+        d_vec_b = (self.n_sampling_points - 1) * (
             tangent_vec_b[1:, :] - tangent_vec_b[:-1, :]
         )
-        velocity_vec = self.n_sampling_points * (
+        velocity_vec = (self.n_sampling_points - 1) * (
             self.curve_a[1:, :] - self.curve_a[:-1, :]
         )
         velocity_norm = r3.metric.norm(velocity_vec)
@@ -476,7 +511,25 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = gs.sum(integrand) / self.n_sampling_points
         self.assertAllClose(result, expected)
 
-    def test_inner_product_vectorization(self):
+    def test_srv_inner_product_and_dist(self):
+        """Test that norm of log and dist coincide
+
+        for curves with same / different starting points, and for
+        the translation invariant / non invariant SRV metric.
+        """
+        r3 = Euclidean(dim=3)
+        curve_b_transl = self.curve_b + gs.array([1.0, 0.0, 0.0])
+        curve_b = [self.curve_b, curve_b_transl]
+        translation_invariant = [True, False]
+        for curve in curve_b:
+            for param in translation_invariant:
+                srv_metric = SRVMetric(ambient_manifold=r3, translation_invariant=param)
+                log = srv_metric.log(point=curve, base_point=self.curve_a)
+                result = srv_metric.norm(vector=log, base_point=self.curve_a)
+                expected = srv_metric.dist(self.curve_a, curve)
+                self.assertAllClose(result, expected)
+
+    def test_srv_inner_product_vectorization(self):
         """Test inner product of SRVMetric.
 
         Check vectorization.
