@@ -4,7 +4,6 @@
 import math
 import warnings
 
-import pytest
 from numpy.linalg import cholesky
 
 import geomstats.backend as gs
@@ -24,7 +23,10 @@ from geomstats.geometry.spd_matrices import (
 )
 from tests.conftest import Parametrizer, generate_tests
 
-SQRT_2 = math.sqrt(2)
+SQRT_2 = math.sqrt(2.0)
+LN_2 = math.log(2.0)
+EXP_1 = math.exp(1.0)
+SINH_1 = math.sinh(1.0)
 
 
 def belongs_data():
@@ -49,6 +51,7 @@ def random_point_data():
     smoke_data = [
         dict(n=1, num_points=1),
         dict(n=2, num_points=1),
+        dict(n=10, num_points=10),
         dict(n=10, num_points=1000),
     ]
     return generate_tests(smoke_data)
@@ -71,7 +74,7 @@ def cholesky_factor_data():
     return generate_tests(smoke_data)
 
 
-def differential_cholesky_factor_data(tangent_vec, base_point, expected):
+def differential_cholesky_factor_data():
     smoke_data = [
         dict(
             tangent_vec=[[1.0, 1.0], [1.0, 1.0]],
@@ -82,7 +85,7 @@ def differential_cholesky_factor_data(tangent_vec, base_point, expected):
     return generate_tests(smoke_data)
 
 
-def differential_power_data(power, tangent_vec, base_point, expected):
+def differential_power_data():
     smoke_data = [
         dict(
             power=0.5,
@@ -98,7 +101,7 @@ def differential_power_data(power, tangent_vec, base_point, expected):
     return generate_tests(smoke_data)
 
 
-def inverse_differential_power_data(power, tangent_vec, base_point, expected):
+def inverse_differential_power_data():
     smoke_data = [
         dict(
             power=0.5,
@@ -109,6 +112,67 @@ def inverse_differential_power_data(power, tangent_vec, base_point, expected):
             ],
             base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
             expected=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+        )
+    ]
+    return generate_tests(smoke_data)
+
+
+def test_differential_log_data():
+    smoke_data = [
+        dict(
+            tangent_vec=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
+            base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
+            expected=[
+                [1.0, 1.0, 2 * LN_2],
+                [1.0, 1.0, 2 * LN_2],
+                [2 * LN_2, 2 * LN_2, 1],
+            ],
+        )
+    ]
+    return generate_tests(smoke_data)
+
+
+def test_inverse_differential_log_data():
+    smoke_data = [
+        dict(
+            tangent_vec=[
+                [1.0, 1.0, 2 * LN_2],
+                [1.0, 1.0, 2 * LN_2],
+                [2 * LN_2, 2 * LN_2, 1],
+            ],
+            base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
+            expected=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
+        )
+    ]
+
+    return generate_tests(smoke_data)
+
+
+def test_differential_exp():
+    smoke_data = [
+        dict(
+            tangent_vec=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
+            base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]],
+            expected=[
+                [EXP_1, EXP_1, SINH_1],
+                [EXP_1, EXP_1, SINH_1],
+                [SINH_1, SINH_1, 1 / EXP_1],
+            ],
+        )
+    ]
+    return generate_tests(smoke_data)
+
+
+def test_inverse_differential_exp():
+    smoke_data = [
+        dict(
+            tangent_vec=[
+                [EXP_1, EXP_1, SINH_1],
+                [EXP_1, EXP_1, SINH_1],
+                [SINH_1, SINH_1, 1 / EXP_1],
+            ],
+            base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]],
+            expected=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
         )
     ]
     return generate_tests(smoke_data)
@@ -126,20 +190,22 @@ class TestSPDMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
     inverse_differential_power_data = inverse_differential_power_data()
 
     def test_belongs(self, n, mat, expected):
-        """Test of belongs method."""
         self.assertAllClose(SPDMatrices(n).belongs(gs.array(mat)), gs.array(expected))
 
     def test_random_point(self, n, num_points):
-        """Test of random_point and belongs methods."""
         space = SPDMatrices(n)
         self.assertAllClose(gs.all(space.random_point(num_points)), gs.array(True))
 
+    def test_projection(self, n, num_points):
+        space = SPDMatrices(n)
+        shape = (num_points, n, n)
+        result = gs.all(helper.test_projection_and_belongs(space, shape))
+        self.assertTrue(result)
+
     def test_logm(self, spd_mat, logm):
-        """Test of logm method."""
         self.assertAllClose(SPDMatrices.logm(gs.array(spd_mat)), gs.array(logm))
 
     def test_cholesky_factor(self, spd_mat, cf):
-        """Test cholesky factor method."""
         n = spd_mat.shape[0]
         result_cf = SPDMatrices.cholesky_factor(gs.array(spd_mat))
 
@@ -150,9 +216,10 @@ class TestSPDMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
         )
 
     def test_differential_cholesky_factor(self, tangent_vec, base_point, expected):
-        """Test differential of cholesky factor map"""
         n = base_point.shape[0]
-        result_dcf = SPDMatrices.differential_cholesky_factor(tangent_vec, base_point)
+        result_dcf = SPDMatrices.differential_cholesky_factor(
+            tangent_vec, gs.array(tangent_vec)
+        )
         self.assertAllClose(result_dcf, gs.array(expected))
         self.assertAllClose(
             gs.all(LowerTriangularMatrices(n).belongs(result_dcf)), gs.array(True)
@@ -160,57 +227,47 @@ class TestSPDMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
 
     def test_differential_power(self, power, tangent_vec, base_point, expected):
         """Test of differential_power method."""
-        self.assertAllClose(
-            SPDMatrices.differential_power(power, tangent_vec, base_point),
-            gs.array(expected),
+        result_dp = SPDMatrices.differential_power(
+            power, gs.array(tangent_vec), gs.array(base_point)
         )
+        self.assertAllClose(result_dp, gs.array(expected))
 
     def test_inverse_differential_power(self, power, tangent_vec, base_point, expected):
         """Test of inverse_differential_power method."""
+        result_idp = SPDMatrices.inverse_differential_power(
+            power, gs.array(tangent_vec), gs.array(base_point)
+        )
+        self.assertAllClose(result_idp, gs.array(expected))
+
+    def test_differential_log(self, tangent_vec, base_point, expected):
+        """Test of differential_log method."""
+        result_dl = SPDMatrices.differential_log(
+            gs.array(tangent_vec), gs.array(base_point)
+        )
+        self.assertAllClose(result_dl, gs.array(expected))
+
+    def test_inverse_differential_log(self, tangent_vec, base_point, expected):
+        """Test of inverse_differential_log method."""
+        result_idl = SPDMatrices.inverse_differential_log(
+            gs.array(tangent_vec), gs.array(base_point)
+        )
+        self.assertAllClose(result_idl, gs.array(expected))
+
+    def test_differential_exp(self, tangent_vec, base_point, expected):
+        """Test of differential_exp method."""
         self.assertAllClose(
-            SPDMatrices.inverse_differential_power(power, tangent_vec, base_point),
+            SPDMatrices.differential_exp(gs.array(tangent_vec), gs.array(base_point)),
             gs.array(expected),
         )
 
-    def test_differential_log(self):
-        """Test of differential_log method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]])
-        tangent_vec = gs.array([[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]])
-        result = self.space.differential_log(tangent_vec, base_point)
-        x = 2 * gs.log(2.0)
-        expected = gs.array([[1.0, 1.0, x], [1.0, 1.0, x], [x, x, 1]])
-
-        self.assertAllClose(result, expected)
-
-    def test_inverse_differential_log(self):
-        """Test of inverse_differential_log method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]])
-        x = 2 * gs.log(2.0)
-        tangent_vec = gs.array([[1.0, 1.0, x], [1.0, 1.0, x], [x, x, 1]])
-        result = self.space.inverse_differential_log(tangent_vec, base_point)
-        expected = gs.array([[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]])
-        self.assertAllClose(result, expected)
-
-    def test_differential_exp(self):
+    def test_inverse_differential_exp(self, tangent_vec, base_point, expected):
         """Test of differential_exp method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]])
-        tangent_vec = gs.array([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]])
-        result = self.space.differential_exp(tangent_vec, base_point)
-        x = gs.exp(1.0)
-        y = gs.sinh(1.0)
-        expected = gs.array([[x, x, y], [x, x, y], [y, y, 1 / x]])
-
-        self.assertAllClose(result, expected)
-
-    def test_inverse_differential_exp(self):
-        """Test of inverse_differential_exp method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]])
-        x = gs.exp(1.0)
-        y = gs.sinh(1.0)
-        tangent_vec = gs.array([[x, x, y], [x, x, y], [y, y, 1.0 / x]])
-        result = self.space.inverse_differential_exp(tangent_vec, base_point)
-        expected = gs.array([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(
+            SPDMatrices.inverse_differential_exp(
+                gs.array(tangent_vec), gs.array(base_point)
+            ),
+            gs.array(expected),
+        )
 
     def test_bureswasserstein_inner_product(self):
         """Test of SPDMetricBuresWasserstein.inner_product method."""
@@ -485,10 +542,3 @@ class TestSPDMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
         projection = self.space.to_tangent(mat)
         result = self.space.is_tangent(projection)
         self.assertTrue(result)
-
-    def test_projection_and_belongs(self):
-        shape = (2, self.n, self.n)
-        space = self.space
-        result = helper.test_projection_and_belongs(space, shape)
-        for res in result:
-            self.assertTrue(res)
