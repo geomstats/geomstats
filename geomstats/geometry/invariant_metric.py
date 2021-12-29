@@ -681,8 +681,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
                      Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
                      480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
-        if hasattr(self.group, "are_antipodals") and self.group.are_antipodals(
-            point, base_point
+        if hasattr(self.group, "are_antipodals") and not gs.all(
+            ~self.group.are_antipodals(point, base_point)
         ):
             raise ValueError(
                 "The Logarithm map is not well-defined for"
