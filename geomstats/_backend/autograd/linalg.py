@@ -5,6 +5,7 @@ import functools
 import autograd.numpy as np
 import autograd.scipy.linalg as asp
 import scipy.linalg
+import scipy.optimize
 from autograd.extend import defvjp, primitive
 from autograd.numpy.linalg import (  # NOQA
     cholesky,
@@ -95,6 +96,10 @@ def solve_sylvester(a, b, q):
 
 def sqrtm(x):
     return np.vectorize(scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
+
+
+def quadratic_assignment(a, b, options):
+    return list(scipy.optimize.quadratic_assignment(a, b, options=options).col_ind)
 
 
 def qr(*args, **kwargs):

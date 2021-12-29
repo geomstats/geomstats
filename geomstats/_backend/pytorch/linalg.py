@@ -2,6 +2,7 @@
 
 import numpy as np
 import scipy.linalg
+import scipy.optimize
 import torch
 
 from ..numpy import linalg as gsnplinalg
@@ -42,6 +43,7 @@ class Logm(torch.autograd.Function):
         return Logm._logm(backward_tensor).to(tensor.dtype)[..., :n, n:]
 
 
+cholesky = torch.linalg.cholesky
 eig = torch.linalg.eig
 eigh = torch.linalg.eigh
 eigvalsh = torch.linalg.eigvalsh
@@ -51,10 +53,6 @@ det = torch.det
 solve = torch.linalg.solve
 qr = torch.linalg.qr
 logm = Logm.apply
-
-
-def cholesky(a):
-    return torch.cholesky(a, upper=False)
 
 
 def sqrtm(x):
@@ -81,6 +79,10 @@ def matrix_rank(a, hermitian=False, **_unused_kwargs):
     return torch.linalg.matrix_rank(a, hermitian)
 
 
+def quadratic_assignment(a, b, options):
+    return list(scipy.optimize.quadratic_assignment(a, b, options=options).col_ind)
+
+
 def solve_sylvester(a, b, q):
     if a.shape == b.shape:
         if torch.all(a == b) and torch.all(torch.abs(a - a.transpose(-2, -1)) < 1e-6):
@@ -89,12 +91,20 @@ def solve_sylvester(a, b, q):
                 tilde_q = eigvecs.transpose(-2, -1) @ q @ eigvecs
                 tilde_x = tilde_q / (eigvals[..., :, None] + eigvals[..., None, :])
                 return eigvecs @ tilde_x @ eigvecs.transpose(-2, -1)
-            if a.shape[-1] >= 2. and torch.all(eigvals[..., 0] > - 1e-6) \
-                    and torch.all(eigvals[..., 1] >= 1e-6) \
-                    and torch.all(torch.abs(q + q.transpose(-2, -1)) < 1e-6):
+
+            conditions = torch.all(eigvals >= 1e-6) or (
+                a.shape[-1] >= 2.0
+                and torch.all(eigvals[..., 0] > -1e-6)
+                and torch.all(eigvals[..., 1] >= 1e-6)
+                and torch.all(torch.abs(q + q.transpose(-2, -1)) < 1e-6)
+            )
+            if conditions:
                 tilde_q = eigvecs.transpose(-2, -1) @ q @ eigvecs
-                tilde_x = tilde_q / (eigvals[..., :, None] + eigvals[..., None, :]
-                                     + torch.eye(a.shape[-1]))
+                tilde_x = tilde_q / (
+                    eigvals[..., :, None]
+                    + eigvals[..., None, :]
+                    + torch.eye(a.shape[-1])
+                )
                 return eigvecs @ tilde_x @ eigvecs.transpose(-2, -1)
 
     solution = np.vectorize(
