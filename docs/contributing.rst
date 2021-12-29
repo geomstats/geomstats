@@ -614,7 +614,9 @@ guidelines:
 
 9. Use double quotes " and not single quotes ' for strings.
 
-10. If you need several lines for a function call, use the syntax::
+10. If you need several lines for a function call,
+
+use the syntax::
 
    my_function_with_a_very_long_name(
       my_param_1=value_1, my_param_2=value_2)
