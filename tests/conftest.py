@@ -1,3 +1,4 @@
+"""Pytest utility classes, functions and fixtures"""
 import inspect
 import os
 import types
@@ -8,7 +9,7 @@ import pytest
 import geomstats.backend as gs
 
 smoke = pytest.mark.smoke
-random = pytest.mark.rt
+random = pytest.mark.random
 
 
 def autograd_backend():
@@ -85,7 +86,53 @@ autograd_tf_and_torch_only = pytest.mark.skipif(
 )
 
 
+def pytorch_error_msg(a, b, rtol, atol):
+    msg = f"\ntensor 1\n{a}\ntensor 2\n{b}"
+    if torch.is_tensor(a) and torch.is_tensor(b):
+        if a.dtype == torch.bool and b.dtype == torch.bool:
+            diff = torch.logical_xor(a, b)
+            msg = msg + f"\ndifference \n{diff}"
+        else:
+            diff = torch.abs(a - b)
+            msg = msg + f"\ndifference \n{diff}\nrtol {rtol}\natol {atol}"
+    return msg
+
+
+class TestData:
+    """Class for TestData objects."""
+
+    def generate_tests(self, smoke_test_data, random_test_data=[]):
+        """Wraps test data with corresponding markers.
+
+        Parameters:
+            smoke_test_data : list
+                Test data that will be marked as smoke
+
+            random_test_data : list
+                Test data that will be marked as random.
+                Optional, default: []
+
+        Returns:
+            _: list
+                Tests.
+        """
+        smoke_tests = [
+            pytest.param(*data.values(), marks=smoke) for data in smoke_test_data
+        ]
+        random_tests = [pytest.param(*data, marks=random) for data in random_test_data]
+        return smoke_tests + random_tests
+
+
 class Parametrizer(type):
+    """Metaclass for test files.
+
+    Parametrizer decorates every function inside the class with pytest.mark.parametrizer
+    (except class methods and static methods). Two conventions have to followed
+
+    1)There should be TestData object named 'testing_data'.
+    2)Every test function should have corresponding data function inside TestData object. Ex:
+      test_exp() should have method called exp_data() inside 'testing_data.'"""
+
     def __new__(cls, name, bases, attrs):
         for attr_name, attr_value in attrs.items():
             if isinstance(attr_value, types.FunctionType):
@@ -100,28 +147,9 @@ class Parametrizer(type):
         return super(Parametrizer, cls).__new__(cls, name, bases, attrs)
 
 
-class TestData:
-    def generate_tests(self, smoke_test_data, random_test_data=[]):
-        smoke_tests = [
-            pytest.param(*data.values(), marks=smoke) for data in smoke_test_data
-        ]
-        random_tests = [pytest.param(*data, marks=random) for data in random_test_data]
-        return smoke_tests + random_tests
-
-
-def pytorch_error_msg(a, b, rtol, atol):
-    msg = f"\ntensor 1\n{a}\ntensor 2\n{b}"
-    if torch.is_tensor(a) and torch.is_tensor(b):
-        if a.dtype == torch.bool and b.dtype == torch.bool:
-            diff = torch.logical_xor(a, b)
-            msg = msg + f"\ndifference \n{diff}"
-        else:
-            diff = torch.abs(a - b)
-            msg = msg + f"\ndifference \n{diff}\nrtol {rtol}\natol {atol}"
-    return msg
-
-
 class TestCase:
+    """Class for Geomstats tests."""
+
     def assertAllClose(self, a, b, rtol=gs.rtol, atol=gs.atol):
         if tf_backend():
             return tf.test.TestCase().assertAllClose(a, b, rtol=rtol, atol=atol)
