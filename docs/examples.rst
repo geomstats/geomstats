@@ -1,8 +1,8 @@
 .. _examples:
 
-========
-Examples
-========
+=============
+Code Examples
+=============
 
 To learn how to use geomstats, you can look at the many examples in the repository
 `examples <https://github.com/geomstats/geomstats/tree/master/examples>`_.
