@@ -233,7 +233,7 @@ complies with the following rules. The **bolded** ones are especially important:
    any test in any backend (numpy, tensorflow or pytorch).
 
 5. **Make sure that your PR follows Python international style guidelines**,
-   `PEP8 <https://www.python.org/dev/peps/pep-0008>`_. The `flake8` package 
+   `PEP8 <https://www.python.org/dev/peps/pep-0008>`_. The `flake8` package
    automatically checks for style violations when you
    submit your PR. We recommend installing flake8 with its plugins on your
    machine by running::
@@ -614,13 +614,13 @@ guidelines:
 
 9. Use double quotes " and not single quotes ' for strings.
 
-10. If you need several lines for a function call, use the syntax
-::
+10. If you need several lines for a function call, use the syntax::
+
    my_function_with_a_very_long_name(
       my_param_1=value_1, my_param_2=value_2)
 
-and not
-::
+and not::
+
    my_function_with_a_very_long_name(my_param_1=value_1,
                                      my_param_2=value_2)
 
