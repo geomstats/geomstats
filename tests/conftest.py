@@ -1,4 +1,4 @@
-"""Pytest utility classes, functions and fixtures"""
+"""Pytest utility classes, functions and fixtures."""
 import inspect
 import os
 import types
@@ -102,19 +102,21 @@ class TestData:
     """Class for TestData objects."""
 
     def generate_tests(self, smoke_test_data, random_test_data=[]):
-        """Wraps test data with corresponding markers.
+        """Wrap test data with corresponding markers.
 
-        Parameters:
-            smoke_test_data : list
-                Test data that will be marked as smoke
+        Parameters
+        ----------
+        smoke_test_data : list
+            Test data that will be marked as smoke.
 
-            random_test_data : list
-                Test data that will be marked as random.
-                Optional, default: []
+        random_test_data : list
+            Test data that will be marked as random.
+            Optional, default: []
 
-        Returns:
-            _: list
-                Tests.
+        Returns
+        -------
+        _: list
+            Tests.
         """
         smoke_tests = [
             pytest.param(*data.values(), marks=smoke) for data in smoke_test_data
@@ -127,11 +129,11 @@ class Parametrizer(type):
     """Metaclass for test files.
 
     Parametrizer decorates every function inside the class with pytest.mark.parametrizer
-    (except class methods and static methods). Two conventions have to followed
+    (except class methods and static methods). Two conventions have to followed.
 
     1)There should be TestData object named 'testing_data'.
     2)Every test function should have corresponding data function inside TestData object. Ex:
-      test_exp() should have method called exp_data() inside 'testing_data.'"""
+      test_exp() should have method called exp_data() inside 'testing_data'."""
 
     def __new__(cls, name, bases, attrs):
         for attr_name, attr_value in attrs.items():
