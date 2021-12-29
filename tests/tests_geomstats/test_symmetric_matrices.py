@@ -8,13 +8,13 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from tests.conftest import Parametrizer, TestData
+from tests.conftest import Parametrizer, TestCase, TestData
 
 
-class TestSymmetricMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
+class TestSymmetricMatrices(TestCase, metaclass=Parametrizer):
     """Test of SymmetricMatrices methods."""
 
-    class TestingData(TestData):
+    class TestDataSymmetricMatrices(TestData):
         """Data class for Testing Symmetric Matrices"""
 
         def belongs_data(self):
@@ -130,7 +130,7 @@ class TestSymmetricMatrices(geomstats.tests.TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestingData()
+    testing_data = TestDataSymmetricMatrices()
 
     def test_belongs(self, n, mat, expected):
         result = SymmetricMatrices(n).belongs(gs.array(mat))
