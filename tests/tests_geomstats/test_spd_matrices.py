@@ -213,7 +213,7 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
 
     def test_differential_cholesky_factor(self, n, tangent_vec, base_point, expected):
         result_dcf = SPDMatrices.differential_cholesky_factor(
-            tangent_vec, gs.array(tangent_vec)
+            tangent_vec, gs.array(base_point)
         )
         self.assertAllClose(result_dcf, gs.array(expected))
         self.assertAllClose(
