@@ -337,7 +337,6 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def exp_data(self):
-
             smoke_data = [
                 dict(
                     n=2,
@@ -349,7 +348,14 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def log_data(self):
-            smoke_data = []
+            smoke_data = [
+                dict(
+                    n=2,
+                    point=[[4.0, 0.0], [0.0, 4.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    expected=[[2.0, 0.0], [0.0, 2.0]],
+                )
+            ]
             return self.generate_tests(smoke_data)
 
     testing_data = TestDataSPDMetricBuresWasserstein()
@@ -363,7 +369,12 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
 
     def test_exp(self, n, tangent_vec, base_point, expected):
         metric = SPDMetricBuresWasserstein(n)
-        result = metric.log(gs.array(tangent_vec), gs.array(base_point))
+        result = metric.exp(gs.array(tangent_vec), gs.array(base_point))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_log(self, n, point, base_point, expected):
+        metric = SPDMetricBuresWasserstein(n)
+        result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
 
