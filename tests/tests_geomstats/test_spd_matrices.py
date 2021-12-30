@@ -197,7 +197,9 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
         self.assertAllClose(gs.all(space.random_point(num_points)), gs.array(True))
 
     def test_projection(self, n, mat, expected):
-        self.assertAllClose(SPDMatrices(n).projection(mat), expected)
+        self.assertAllClose(
+            SPDMatrices(n).projection(gs.array(mat)), gs.array(expected)
+        )
 
     def test_logm(self, spd_mat, logm):
         self.assertAllClose(SPDMatrices.logm(gs.array(spd_mat)), gs.array(logm))
