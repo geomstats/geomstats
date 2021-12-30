@@ -24,6 +24,7 @@ from tests.conftest import Parametrizer, TestCase, TestData
 SQRT_2 = math.sqrt(2.0)
 LN_2 = math.log(2.0)
 EXP_1 = math.exp(1.0)
+EXP_2 = math.exp(2.0)
 SINH_1 = math.sinh(1.0)
 
 
@@ -44,6 +45,19 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
                     n=2,
                     mat=[[[1.0, 0.0], [0.0, 1.0]], [[1.0, -1.0], [0.0, 1.0]]],
                     expected=[True, False],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def projection_data(self):
+            smoke_data = [
+                dict(
+                    n=3, mat=[[1.0, 0.0], [0.0, 1.0]], expected=[[1.0, 0.0], [0.0, 1.0]]
+                ),
+                dict(
+                    n=3,
+                    mat=[[-1.0, 0.0], [0.0, -2.0]],
+                    expected=[[gs.atol, 0.0], [0.0, gs.atol]],
                 ),
             ]
             return self.generate_tests(smoke_data)
@@ -182,11 +196,8 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
         space = SPDMatrices(n)
         self.assertAllClose(gs.all(space.random_point(num_points)), gs.array(True))
 
-    # def test_projection(self, n, num_points):
-    #     space = SPDMatrices(n)
-    #     shape = (num_points, n, n)
-    #     result = gs.all(helper.test_projection_and_belongs(space, shape))
-    #     self.assertTrue(result)
+    def test_projection(self, n, mat, expected):
+        self.assertAllClose(SPDMatrices(n).projection(mat), expected)
 
     def test_logm(self, spd_mat, logm):
         self.assertAllClose(SPDMatrices.logm(gs.array(spd_mat)), gs.array(logm))
@@ -264,10 +275,11 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
         def exp_data(self):
             smoke_data = [
                 dict(
-                    n=3,
-                    power_affine=0.5,
-                    point=[[9.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 1.0]],
-                    base_point=[[5.0, 0.0, 0.0], [0.0, 7.0, 2.0], [0.0, 2.0, 8.0]],
+                    n=2,
+                    power_affine=1.0,
+                    tangent_vec=[[2.0, 0.0], [0.0, 2.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    expected=[[EXP_2, 0.0], [0.0, EXP_2]],
                 )
             ]
             return self.generate_tests(smoke_data)
@@ -275,10 +287,11 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
         def log_data(self):
             smoke_data = [
                 dict(
-                    n=3,
-                    power_affine=0.5,
-                    point=[[9.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 1.0]],
-                    base_point=[[5.0, 0.0, 0.0], [0.0, 7.0, 2.0], [0.0, 2.0, 8.0]],
+                    n=2,
+                    power_affine=1.0,
+                    point=[[1.0, 0.0], [0.0, 1.0]],
+                    base_point=[[2.0, 0.0], [0.0, 2.0]],
+                    expected=[[-2 * LN_2, 0.0], [0.0, -2 * LN_2]],
                 )
             ]
             return self.generate_tests(smoke_data)
@@ -294,17 +307,17 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected)
 
-    # def test_exp(self, n, power_affine, point, base_point, expected):
-    #     metric = SPDMetricAffine(n, power_affine)
-    #     self.assertAllClose(
-    #         metric.log(gs.array(point), gs.array(base_point)), gs.array(expected)
-    #     )
+    def test_exp(self, n, power_affine, tangent_vec, base_point, expected):
+        metric = SPDMetricAffine(n, power_affine)
+        self.assertAllClose(
+            metric.exp(gs.array(tangent_vec), gs.array(base_point), gs.array(expected))
+        )
 
-    # def test_log(self, n, power_affine, point, base_point, expected):
-    #     metric = SPDMetricAffine(n, power_affine)
-    #     self.assertAllClose(
-    #         metric.log(gs.array(point), gs.array(base_point)), gs.array(expected)
-    #     )
+    def test_log(self, n, power_affine, point, base_point, expected):
+        metric = SPDMetricAffine(n, power_affine)
+        self.assertAllClose(
+            metric.log(gs.array(point), gs.array(base_point)), gs.array(expected)
+        )
 
 
 class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
