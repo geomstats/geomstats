@@ -265,8 +265,8 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
                     n=3,
                     power_affine=0.5,
                     tangent_vec_a=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
-                    tangent_vec_b=[[1.0, 2.0, 4.0], [2.0, 3.0, 8.0], [4.0, 8.0, 5.0]],
-                    base_point=[[1.0, 0.0, 0.0], [0.0, 1.5, 0.5], [0.0, 0.5, 1.5]],
+                    tangent_vec_b=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
                     expected=713 / 144,
                 )
             ]
@@ -377,8 +377,8 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
             smoke_data = [
                 dict(
                     n=3,
-                    tangent_vec_a=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
-                    tangent_vec_b=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
+                    tangent_vec_a=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
+                    tangent_vec_b=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
                     base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
                     expected=5.0 + (4.0 * ((2 * LN_2) ** 2)),
                 )
@@ -405,7 +405,7 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
         )
         self.assertAllClose(result, gs.array(expected))
 
-    @geomstats.tests.tf_only
+    @geomstats.tests.np_autograd_and_tf_only
     def test_exp_domain(self, n, tangent_vec, base_point, expected):
         metric = SPDMetricLogEuclidean(n)
         result = metric.exp_domain(
