@@ -359,6 +359,17 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def exp_domain_data(self):
+            smoke_data = [
+                dict(
+                    n=3,
+                    tangent_vec=[[-1.0, 0.0, 0.0], [0.0, -0.5, 0.0], [0.0, 0.0, 1.0]],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]],
+                    expected=[-3, 1],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataSPDMetricEuclidean()
 
     def test_inner_product(
@@ -367,6 +378,14 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
         metric = SPDMetricEuclidean(n, power_euclidean)
         result = metric.inner_product(
             gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
+        )
+        self.assertAllClose(result, gs.array(expected))
+
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_exp_domain(self, n, tangent_vec, base_point, expected):
+        metric = SPDMetricEuclidean(n)
+        result = metric.exp_domain(
+            gs.array(tangent_vec), gs.array(base_point), expected
         )
         self.assertAllClose(result, gs.array(expected))
 
@@ -385,30 +404,11 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_domain_data(self):
-            smoke_data = [
-                dict(
-                    n=3,
-                    tangent_vec=[[-1.0, 0.0, 0.0], [0.0, -0.5, 0.0], [0.0, 0.0, 1.0]],
-                    base_point=[[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]],
-                    expected=[-3, 1],
-                )
-            ]
-            return self.generate_tests(smoke_data)
-
     testing_data = TestDataSPDMetricLogEuclidean()
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
         metric = SPDMetricLogEuclidean(n)
         result = metric.inner_product(
             gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
-        )
-        self.assertAllClose(result, gs.array(expected))
-
-    @geomstats.tests.np_autograd_and_tf_only
-    def test_exp_domain(self, n, tangent_vec, base_point, expected):
-        metric = SPDMetricLogEuclidean(n)
-        result = metric.exp_domain(
-            gs.array(tangent_vec), gs.array(base_point), expected
         )
         self.assertAllClose(result, gs.array(expected))
