@@ -310,7 +310,7 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
     def test_exp(self, n, power_affine, tangent_vec, base_point, expected):
         metric = SPDMetricAffine(n, power_affine)
         self.assertAllClose(
-            metric.exp(gs.array(tangent_vec), gs.array(base_point), gs.array(expected))
+            metric.exp(gs.array(tangent_vec), gs.array(base_point)), gs.array(expected)
         )
 
     def test_log(self, n, power_affine, point, base_point, expected):
