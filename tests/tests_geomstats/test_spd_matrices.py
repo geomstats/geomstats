@@ -422,7 +422,7 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp(self):
+        def exp_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -434,7 +434,7 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log(self):
+        def log_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -445,6 +445,9 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
                 )
             ]
             return self.generate_tests(smoke_data)
+
+        def exp_log_compostion_data(self):
+            return self.log_exp_composition(SPDMatrices)
 
     testing_data = TestDataSPDMetricEuclidean()
 
@@ -464,6 +467,17 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
             gs.array(tangent_vec), gs.array(base_point), expected
         )
         self.assertAllClose(result, gs.array(expected))
+
+    def test_log(self, n, point, base_point, expected):
+        metric = SPDMetricEuclidean(n)
+        result = metric.log(gs.array(point), gs.array(base_point))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_log_exp_composition(self, n, point, base_point):
+        metric = SPDMetricEuclidean(n)
+        log = metric.log(gs.array(point), base_point=gs.array(base_point))
+        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
+        self.assertAllClose(result, point)
 
 
 class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
@@ -502,15 +516,8 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_log_compostion_data(self):
-            random_n = random.sample(range(1, 100), 50)
-            random_data = []
-            for n in range(random_n):
-                space = SPDMatrices(n)
-                base_point = space.random_point(n_samples=1000)
-                point = space.random_point(n)
-                random_data.append(dict(n=n, point=point, base_point=base_point))
-            return self.generate_tests(random_data)
+        def log_exp_compostion_data(self):
+            return self.log_exp_composition(SPDMatrices)
 
     testing_data = TestDataSPDMetricLogEuclidean()
 

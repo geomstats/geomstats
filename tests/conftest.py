@@ -125,6 +125,16 @@ class TestData:
         random_tests = [pytest.param(*data, marks=random) for data in random_test_data]
         return smoke_tests + random_tests
 
+    def log_exp_composition(self, space, max_n=100, num_n=50, num_samples=1000):
+        random_n = random.sample(range(1, max_n), num_n)
+        random_data = []
+        for n in range(random_n):
+            space_n = space(n)
+            base_point = space_n.random_point(num_samples)
+            point = space_n.random_point(n)
+            random_data.append(dict(n=n, point=point, base_point=base_point))
+            return self.generate_tests(random_data)
+
 
 class Parametrizer(type):
     """Metaclass for test files.
