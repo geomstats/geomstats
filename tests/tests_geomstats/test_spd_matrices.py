@@ -2,6 +2,7 @@
 
 
 import math
+import random
 import warnings
 
 import geomstats.backend as gs
@@ -501,6 +502,16 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
             ]
             return self.generate_tests(smoke_data)
 
+        def exp_log_compostion_data(self):
+            random_n = random.sample(range(1, 100), 50)
+            random_data = []
+            for n in range(random_n):
+                space = SPDMatrices(n)
+                base_point = space.random_point(n_samples=1000)
+                point = space.random_point(n)
+                random_data.append(dict(n=n, point=point, base_point=base_point))
+            return self.generate_tests(random_data)
+
     testing_data = TestDataSPDMetricLogEuclidean()
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
@@ -519,3 +530,9 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
         metric = SPDMetricLogEuclidean(n)
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
+
+    def test_log_exp_composition(self, n, point, base_point):
+        metric = SPDMetricLogEuclidean(n)
+        log = metric.log(gs.array(point), base_point=gs.array(base_point))
+        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
+        self.assertAllClose(result, point)
