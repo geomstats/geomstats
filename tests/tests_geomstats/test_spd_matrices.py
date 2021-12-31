@@ -397,9 +397,34 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
             smoke_data = [
                 dict(
                     n=3,
+                    power_euclidean=1.0,
                     tangent_vec=[[-1.0, 0.0, 0.0], [0.0, -0.5, 0.0], [0.0, 0.0, 1.0]],
                     base_point=[[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]],
                     expected=[-3, 1],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def exp(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    power_euclidean=1.0,
+                    tangent_vec=[[2.0, 0.0], [0.0, 2.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    expected=[[3.0, 0.0], [0.0, 3.0]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def log(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    power_euclidean=1.0,
+                    point=[[2.0, 0.0], [0.0, 2.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    expected=[[1.0, 0.0], [0.0, 1.0]],
                 )
             ]
             return self.generate_tests(smoke_data)
@@ -416,8 +441,8 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, gs.array(expected))
 
     @geomstats.tests.np_autograd_and_tf_only
-    def test_exp_domain(self, n, tangent_vec, base_point, expected):
-        metric = SPDMetricEuclidean(n)
+    def test_exp_domain(self, n, power_euclidean, tangent_vec, base_point, expected):
+        metric = SPDMetricEuclidean(n, power_euclidean)
         result = metric.exp_domain(
             gs.array(tangent_vec), gs.array(base_point), expected
         )
