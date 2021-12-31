@@ -52,10 +52,10 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
         def projection_data(self):
             smoke_data = [
                 dict(
-                    n=3, mat=[[1.0, 0.0], [0.0, 1.0]], expected=[[1.0, 0.0], [0.0, 1.0]]
+                    n=2, mat=[[1.0, 0.0], [0.0, 1.0]], expected=[[1.0, 0.0], [0.0, 1.0]]
                 ),
                 dict(
-                    n=3,
+                    n=2,
                     mat=[[-1.0, 0.0], [0.0, -2.0]],
                     expected=[[gs.atol, 0.0], [0.0, gs.atol]],
                 ),
@@ -438,6 +438,28 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
             ]
             return self.generate_tests(smoke_data)
 
+        def exp_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    tangent_vec=[[2.0, 0.0], [0.0, 2.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    expected=[[EXP_2, 0.0], [0.0, EXP_2]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def log_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    point=[[2.0, 0.0], [0.0, 2.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    expected=[[LN_2, 0.0], [0.0, LN_2]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataSPDMetricLogEuclidean()
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
@@ -445,4 +467,14 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
         result = metric.inner_product(
             gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
         )
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_exp(self, n, tangent_vec, base_point, expected):
+        metric = SPDMetricLogEuclidean(n)
+        result = metric.exp(gs.array(tangent_vec), gs.array(base_point))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_log(self, n, point, base_point, expected):
+        metric = SPDMetricLogEuclidean(n)
+        result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
