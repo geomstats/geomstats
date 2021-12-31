@@ -14,7 +14,8 @@ class SinfSpaceMetric(RiemannianMetric):
 
     Parameters:
     -------
-    domain_samples : grid points on the domain (array of shape (n_samples, ))
+    domain_samples : array of shape (n_samples, )
+        grid points on the domain
     """
 
     def __init__(self, domain_samples):
@@ -27,6 +28,7 @@ class SinfSpaceMetric(RiemannianMetric):
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
+
         Parameters
         ----------
         tangent_vec_a: array-like, shape=[..., n_evals]
@@ -36,6 +38,7 @@ class SinfSpaceMetric(RiemannianMetric):
         base_point: array-like, shape=[..., n_evals]
             Base point.
             Optional, default: None.
+
         Returns
         -------
         inner_product : array-like, shape=[...,]
@@ -57,12 +60,14 @@ class SinfSpaceMetric(RiemannianMetric):
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
+
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n_evals]
             Tangent vector at a base point.
         base_point : array-like, shape=[..., n_evals]
             Point on the hypersphere.
+
         Returns
         -------
         exp : array-like, shape=[..., n_evals]
@@ -88,12 +93,14 @@ class SinfSpaceMetric(RiemannianMetric):
 
     def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of a point.
+
         Parameters
         ----------
         point : array-like, shape=[..., n_evals]
             Point on the hypersphere.
         base_point : array-like, shape=[..., n_evals]
             Point on the hypersphere.
+
         Returns
         -------
         log : array-like, shape=[..., n_evals]
@@ -118,16 +125,18 @@ class SinfSpaceMetric(RiemannianMetric):
 
 class SinfSpace(Manifold):
     """Class for space of L2 functions with norm 1.
+
     The tangent space is given by functions that have
     zero inner-product with the base point
 
-    Inputs:
+    Parameters:
     -------
-    domain_samples : grid points on the domain (array of shape (n_samples, ))
+    domain_samples : array of shape (n_samples, )
+        grid points on the domain
 
     Ref :
     -----
-    .. [Sea2011] Srivastava, Anuj, and Eric P. Klassen.
+    .. [Sea2016] Srivastava, Anuj, and Eric P. Klassen.
     Functional and shape data analysis.
     Vol. 1. New York: Springer, 2016.
     """
@@ -138,6 +147,7 @@ class SinfSpace(Manifold):
 
     def projection(self, point):
         """Project a point to the infinite dimensional hypersphere.
+
         Parameters
         ----------
         point : array-like, shape=[..., dim]
@@ -152,6 +162,7 @@ class SinfSpace(Manifold):
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the vector space.
+
         This method checks the shape of the input point.
         Parameters
         ----------
@@ -170,6 +181,7 @@ class SinfSpace(Manifold):
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
+
         Parameters
         ----------
         vector : array-like, shape=[..., dim]
@@ -179,6 +191,7 @@ class SinfSpace(Manifold):
         atol : float
             Absolute tolerance.
             Optional, default: backend atol.
+
         Returns
         -------
         is_tangent : bool
@@ -190,12 +203,14 @@ class SinfSpace(Manifold):
 
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
+
         Parameters
         ----------
         vector : array-like, shape=[..., dim]
             Vector.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
+
         Returns
         -------
         tangent_vec : array-like, shape=[..., dim]
@@ -208,7 +223,9 @@ class SinfSpace(Manifold):
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
+
         If the manifold is compact, a uniform distribution is used.
+
         Parameters
         ----------
         n_samples : int
@@ -217,6 +234,7 @@ class SinfSpace(Manifold):
         bound : float
             Bound of the interval in which to sample for non compact manifolds.
             Optional, default: 1.
+
         Returns
         -------
         samples : array-like, shape=[..., dim]

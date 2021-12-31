@@ -11,7 +11,7 @@ from geomstats.geometry.functions import SinfSpace
 
 
 class TestFunctionsSinf(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.domain = gs.linspace(-math.pi, math.pi)
         self.funcs = lambda a: np.sin(a * self.domain).reshape(1, 50)
         self.f = self.funcs(1)
