@@ -358,6 +358,17 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def squared_dist_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    point_a=[[1.0, 0.0], [0.0, 1.0]],
+                    point_b=[[2.0, 0.0], [0.0, 2.0]],
+                    expected=2 + 4 - (2 * 2 * SQRT_2),
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataSPDMetricBuresWasserstein()
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
@@ -375,6 +386,11 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
     def test_log(self, n, point, base_point, expected):
         metric = SPDMetricBuresWasserstein(n)
         result = metric.log(gs.array(point), gs.array(base_point))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_squared_dist(self, n, point_a, point_b, expected):
+        metric = SPDMetricBuresWasserstein(n)
+        result = metric.squared_dist(gs.array(point_a), gs.array(point_b))
         self.assertAllClose(result, gs.array(expected))
 
 
