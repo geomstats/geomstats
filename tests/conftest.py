@@ -2,15 +2,13 @@
 
 import inspect
 import os
+import random
 import types
 
 import numpy as np
 import pytest
 
 import geomstats.backend as gs
-
-smoke = pytest.mark.smoke
-random = pytest.mark.random
 
 
 def autograd_backend():
@@ -120,15 +118,18 @@ class TestData:
             Tests.
         """
         smoke_tests = [
-            pytest.param(*data.values(), marks=smoke) for data in smoke_test_data
+            pytest.param(*data.values(), marks=pytest.mark.smoke)
+            for data in smoke_test_data
         ]
-        random_tests = [pytest.param(*data, marks=random) for data in random_test_data]
+        random_tests = [
+            pytest.param(*data, marks=pytest.mark.random) for data in random_test_data
+        ]
         return smoke_tests + random_tests
 
-    def log_exp_composition(self, space, max_n=100, num_n=50, num_samples=1000):
+    def log_exp_composition(self, space, max_n=10, num_n=5, num_samples=10):
         random_n = random.sample(range(1, max_n), num_n)
         random_data = []
-        for n in range(random_n):
+        for n in random_n:
             space_n = space(n)
             base_point = space_n.random_point(num_samples)
             point = space_n.random_point(n)

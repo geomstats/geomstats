@@ -299,6 +299,9 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def log_exp_composition_data(self):
+            return self.log_exp_composition(SPDMatrices)
+
     testing_data = TestDataSPDMetricAffine()
 
     def test_inner_product(
@@ -321,6 +324,12 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
         self.assertAllClose(
             metric.log(gs.array(point), gs.array(base_point)), gs.array(expected)
         )
+
+    def test_log_exp_composition(self, n, point, base_point):
+        metric = SPDMetricAffine(n)
+        log = metric.log(gs.array(point), base_point=gs.array(base_point))
+        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
+        self.assertAllClose(result, point)
 
 
 class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
@@ -370,6 +379,9 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def log_exp_composition_data(self):
+            return self.log_exp_composition(SPDMatrices)
+
     testing_data = TestDataSPDMetricBuresWasserstein()
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
@@ -393,6 +405,12 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
         metric = SPDMetricBuresWasserstein(n)
         result = metric.squared_dist(gs.array(point_a), gs.array(point_b))
         self.assertAllClose(result, gs.array(expected))
+
+    def test_log_exp_composition(self, n, point, base_point):
+        metric = SPDMetricBuresWasserstein(n)
+        log = metric.log(gs.array(point), base_point=gs.array(base_point))
+        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
+        self.assertAllClose(result, point)
 
 
 class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
@@ -446,7 +464,7 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_log_compostion_data(self):
+        def log_exp_composition_data(self):
             return self.log_exp_composition(SPDMatrices)
 
     testing_data = TestDataSPDMetricEuclidean()
@@ -473,8 +491,8 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
-    def test_log_exp_composition(self, n, point, base_point):
-        metric = SPDMetricEuclidean(n)
+    def test_log_exp_composition(self, n, power_euclidean, point, base_point):
+        metric = SPDMetricEuclidean(n, power_euclidean)
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point)
@@ -516,7 +534,7 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
             ]
             return self.generate_tests(smoke_data)
 
-        def log_exp_compostion_data(self):
+        def log_exp_composition_data(self):
             return self.log_exp_composition(SPDMatrices)
 
     testing_data = TestDataSPDMetricLogEuclidean()
