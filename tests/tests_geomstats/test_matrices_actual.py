@@ -39,6 +39,26 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def mul(self):
+            mats_1 = (
+                [[1.0, 2.0], [3.0, 4.0]],
+                [[-1.0, 2.0], [-3.0, 4.0]],
+                [[1.0, -2.0], [3.0, -4.0]],
+            )
+
+            mats_2 = [[[2.0], [4.0]], [[1.0], [3.0]], [[1.0], [3.0]]]
+            mat_1_X_mat_2 = [[[10.0], [22.0]], [[5.0], [9.0]], [[-5.0], [-9.0]]]
+            smoke_data = [
+                dict(mat=mats_1, expected=[[23.0, -26.0], [51.0, -58.0]]),
+                dict(mat=(list(mats_1), mats_2), expected=mat_1_X_mat_2),
+            ]
+
+            return self.generate_tests(smoke_data)
+
+        def commutator_data(self):
+            smoke_data = []
+            return self.generate_tests(smoke_data)
+
     def test_belongs(self, m, n, mat, expected):
         self.assertAllClose(Matrices(m, n).belongs(gs.array(mat)), gs.array(expected))
 
@@ -46,3 +66,9 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         self.assertAllClose(
             Matrices(m, n).equal(gs.array(mat1), gs.array(mat2)), gs.array(expected)
         )
+
+    def test_mul(self, mat, expected):
+        self.assertAllClose(Matrices.mul(mat), expected)
+
+    def test_commutator(self, mat_a, mat_b, expected):
+        self.assertAllClose(Matrices.commutator(mat_a, mat_b), expected)
