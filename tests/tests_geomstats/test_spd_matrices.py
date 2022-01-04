@@ -1,6 +1,7 @@
 """Unit tests for the manifold of symmetric positive definite matrices."""
 
 
+import itertools
 import math
 import random
 import warnings
@@ -300,7 +301,8 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def log_exp_composition_data(self):
-            return self.log_exp_composition(SPDMatrices)
+            power_affine = [1.0] * 50 + [random.uniform(-5, 5) for l in range(50)]
+            return self.log_exp_composition(SPDMatrices, power_affine=power_affine)
 
     testing_data = TestDataSPDMetricAffine()
 
@@ -325,8 +327,8 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
             metric.log(gs.array(point), gs.array(base_point)), gs.array(expected)
         )
 
-    def test_log_exp_composition(self, n, point, base_point):
-        metric = SPDMetricAffine(n)
+    def test_log_exp_composition(self, n, power_affine, point, base_point):
+        metric = SPDMetricAffine(n, power_affine)
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point)
