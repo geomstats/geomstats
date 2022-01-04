@@ -1,6 +1,8 @@
 """The special Euclidean group SE(n).
 
 i.e. the Lie group of rigid transformations in n dimensions.
+
+Lead authors: Nicolas Guigui and Nina Miolane.
 """
 
 import geomstats.algebra_utils as utils

@@ -1,4 +1,7 @@
-"""Graph Space."""
+"""Graph Space.
+
+Lead author: Anna Calissano.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices, MatricesMetric

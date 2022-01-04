@@ -1,4 +1,7 @@
-"""Frechet mean."""
+"""Frechet mean.
+
+Lead authors: Nicolas Guigui and Nina Miolane.
+"""
 
 import logging
 import math

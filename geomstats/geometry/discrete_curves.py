@@ -1,4 +1,6 @@
-"""Parameterized curves on any given manifold."""
+"""Parameterized curves on any given manifold.
+
+Lead author: Alice Le Brigant."""
 
 import math
 

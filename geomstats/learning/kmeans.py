@@ -1,4 +1,6 @@
-"""K-means clustering."""
+"""K-means clustering.
+
+Lead author: Hadi Zaatiti."""
 
 import logging
 from random import randint

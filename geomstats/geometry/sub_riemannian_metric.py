@@ -1,4 +1,7 @@
-"""Implementation of sub-Riemannian geometry."""
+"""Sub-Riemannian metrics.
+
+Lead author: Morten Pedersen.
+"""
 
 import abc
 

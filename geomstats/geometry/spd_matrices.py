@@ -1,4 +1,7 @@
-"""The manifold of symmetric positive definite (SPD) matrices."""
+"""The manifold of symmetric positive definite (SPD) matrices.
+
+Lead author: Yann Thanwerdas.
+"""
 
 import math
 

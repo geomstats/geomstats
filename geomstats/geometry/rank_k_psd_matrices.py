@@ -1,4 +1,7 @@
-r"""The manifold of Positive Semi Definite matrices of rank k PSD(n,k)."""
+r"""The manifold of Positive Semi Definite matrices of rank k PSD(n,k).
+
+Lead author: Anna Calissano.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear

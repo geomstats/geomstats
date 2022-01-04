@@ -1,4 +1,7 @@
-"""Exposes the `SpecialOrthogonal` group class."""
+"""Exposes the `SpecialOrthogonal` group class.
+
+Lead authors: Nicolas Guigui and Nina Miolane.
+"""
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs

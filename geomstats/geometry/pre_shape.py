@@ -1,4 +1,7 @@
-"""Kendall Pre-Shape space."""
+"""Kendall Pre-Shape space.
+
+Lead authors: Elodie Maignant and Nicolas Guigui.
+"""
 
 import logging
 

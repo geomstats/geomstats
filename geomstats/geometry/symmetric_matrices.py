@@ -1,4 +1,7 @@
-"""The vector space of symmetric matrices."""
+"""The vector space of symmetric matrices.
+
+Lead author: Yann Thanwerdas.
+"""
 
 import logging
 

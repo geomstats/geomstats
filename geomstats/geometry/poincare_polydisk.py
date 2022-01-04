@@ -4,6 +4,8 @@ The Poincare polydisk is defined as a product manifold of the Hyperbolic space
 of dimension 2. The Poincare polydisk has a product metric. The metric on each
 space is the natural Poincare metric multiplied by a constant.
 
+Lead author: Yann Cabanes.
+
 References
 ----------
     .. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
