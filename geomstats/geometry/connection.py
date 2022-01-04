@@ -1,6 +1,7 @@
 """Affine connections.
 
-Lead author: Nicolas Guigui."""
+Lead author: Nicolas Guigui.
+"""
 
 from abc import ABC
 
