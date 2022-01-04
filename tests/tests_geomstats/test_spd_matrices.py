@@ -301,7 +301,7 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def log_exp_composition_data(self):
-            power_affine = [1.0] + [random.uniform(-1, 1) for l in range(20)]
+            power_affine = [1.0] + [random.uniform(-1, 1) for l in range(25)]
             return self.log_exp_composition(SPDMatrices, power_affine=power_affine)
 
     testing_data = TestDataSPDMetricAffine()
@@ -467,7 +467,7 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def log_exp_composition_data(self):
-            power_euclidean = [1.0] + [random.uniform(-1, 1) for l in range(20)]
+            power_euclidean = [1.0] + [random.uniform(-1, 1) for l in range(25)]
             return self.log_exp_composition(
                 SPDMatrices, power_euclidean=power_euclidean
             )
