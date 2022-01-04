@@ -1,6 +1,7 @@
 """K-means clustering.
 
-Lead author: Hadi Zaatiti."""
+Lead author: Hadi Zaatiti.
+"""
 
 import logging
 from random import randint
