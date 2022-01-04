@@ -8,7 +8,6 @@ from scipy.optimize import minimize
 
 import geomstats.backend as gs
 import geomstats.errors
-import geomstats.vectorization
 from geomstats.integrator import integrate
 
 N_STEPS = 10

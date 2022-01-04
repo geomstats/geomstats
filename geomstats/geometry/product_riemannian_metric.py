@@ -9,7 +9,6 @@ import joblib
 
 import geomstats.backend as gs
 import geomstats.errors
-import geomstats.vectorization
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
