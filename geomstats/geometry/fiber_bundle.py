@@ -1,6 +1,7 @@
 """Class for (principal) fiber bundles.
 
-Lead author: Nicolas Guigui."""
+Lead author: Nicolas Guigui.
+"""
 
 from abc import ABC
 

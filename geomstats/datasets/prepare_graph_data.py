@@ -1,6 +1,7 @@
 """Prepare and process graph-structured data.
 
-Lead author: Hadi Zaatiti."""
+Lead author: Hadi Zaatiti.
+"""
 
 import logging
 import random
