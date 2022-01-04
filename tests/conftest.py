@@ -133,7 +133,7 @@ class TestData:
             tests += random_tests
         return tests
 
-    def log_exp_composition(self, space, num_samples=10, max_n=10, num_n=5, **kwargs):
+    def log_exp_composition(self, space, num_samples=10, max_n=20, num_n=10, **kwargs):
         random_n = random.sample(range(1, max_n), num_n)
         random_data = []
         for n in random_n:
