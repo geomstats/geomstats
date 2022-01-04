@@ -1,5 +1,7 @@
 """Radial kernel functions.
 
+Lead author: Yann Cabanes.
+
 References
 ----------
 https://en.wikipedia.org/wiki/Kernel_(statistics)

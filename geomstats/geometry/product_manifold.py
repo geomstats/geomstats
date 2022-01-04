@@ -1,4 +1,7 @@
-"""Product of manifolds."""
+"""Product of manifolds.
+
+Lead author: Yann Cabanes.
+"""
 
 import joblib
 

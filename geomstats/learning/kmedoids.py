@@ -1,4 +1,7 @@
-"""K-medoids clustering."""
+"""K-medoids clustering.
+
+Lead author: Hadi Zaatiti.
+"""
 
 import logging
 

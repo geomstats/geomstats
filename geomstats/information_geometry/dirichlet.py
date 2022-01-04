@@ -1,4 +1,7 @@
-"""Statistical Manifold of Dirichlet distributions with the Fisher metric."""
+"""Statistical Manifold of Dirichlet distributions with the Fisher metric.
+
+Lead author: Alice Le Brigant.
+"""
 
 from scipy.integrate import odeint, solve_bvp
 from scipy.stats import dirichlet
@@ -642,9 +645,7 @@ class DirichletMetric(RiemannianMetric):
 
         return path
 
-    def log(
-        self, point, base_point, n_steps=N_STEPS, jacobian=False
-    ):
+    def log(self, point, base_point, n_steps=N_STEPS, jacobian=False):
         """Compute the logarithm map.
 
         Compute logarithm map associated to the Fisher information metric by
@@ -673,9 +674,7 @@ class DirichletMetric(RiemannianMetric):
         """
         t = gs.linspace(0.0, 1.0, n_steps)
         geodesic = self._geodesic_bvp(
-            initial_point=base_point,
-            end_point=point,
-            jacobian=jacobian
+            initial_point=base_point, end_point=point, jacobian=jacobian
         )
         geodesic_at_t = geodesic(t)
         log = n_steps * (geodesic_at_t[..., 1, :] - geodesic_at_t[..., 0, :])

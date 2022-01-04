@@ -1,4 +1,7 @@
-"""Class for (principal) fiber bundles."""
+"""Class for (principal) fiber bundles.
+
+Lead author: Nicolas Guigui."""
+
 from abc import ABC
 
 from scipy.optimize import minimize

@@ -1,4 +1,7 @@
-"""Principal Component Analysis on Manifolds."""
+"""Principal Component Analysis on Manifolds.
+
+Lead author: Nina Miolane.
+"""
 
 import numbers
 from math import log

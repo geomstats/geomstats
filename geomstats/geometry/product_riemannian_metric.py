@@ -1,6 +1,8 @@
 """Product of Riemannian metrics.
 
 Define the metric of a product manifold endowed with a product metric.
+
+Lead author: Nicolas Guigui.
 """
 
 import joblib

@@ -1,4 +1,6 @@
-"""Affine connections."""
+"""Affine connections.
+
+Lead author: Nicolas Guigui."""
 
 from abc import ABC
 

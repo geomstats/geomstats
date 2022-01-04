@@ -5,6 +5,8 @@ implemented here. The first one is as a matrix, as elements of R^(n x n).
 The second is by choosing a base and remembering the coefficients of an element
 in that base. This base will be provided in child classes
 (e.g. SkewSymmetricMatrices).
+
+Lead author: Stefan Heyder.
 """
 
 import abc

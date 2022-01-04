@@ -1,4 +1,8 @@
-"""Riemannian and pseudo-Riemannian metrics."""
+"""Riemannian and pseudo-Riemannian metrics.
+
+Lead author: Nina Miolane.
+"""
+
 from abc import ABC
 
 import joblib

@@ -1,4 +1,7 @@
-"""The manifold of lower triangular matrices with positive diagonal elements."""
+"""The manifold of lower triangular matrices with positive diagonal elements.
+
+Lead author: Saiteja Utpala.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
