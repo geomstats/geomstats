@@ -5,10 +5,7 @@ Lead author: Morten Pedersen.
 
 import abc
 
-from autograd.scipy.integrate import odeint
-
 import geomstats.backend as gs
-import geomstats.geometry as geometry
 
 
 class SubRiemannianMetric(abc.ABC):

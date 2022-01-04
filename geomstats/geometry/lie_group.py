@@ -7,7 +7,6 @@ import abc
 
 import geomstats.backend as gs
 import geomstats.errors as errors
-import geomstats.geometry.riemannian_metric as riemannian_metric
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
