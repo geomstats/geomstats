@@ -2,7 +2,7 @@
 
 The n-dimensional hyperbolic space with Poincare ball model.
 
-Lead author: Hadi Zaatiti
+Lead author: Hadi Zaatiti.
 """
 
 import geomstats.algebra_utils as utils
