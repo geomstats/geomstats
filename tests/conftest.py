@@ -140,8 +140,8 @@ class TestData:
             for prod in itertools.product(*kwargs.values()):
                 space_n = space(n)
                 base_point = space_n.random_point(num_samples)
-                point = space_n.random_point(n)
-                random_data.append((n) + prod + (point, base_point))
+                point = space_n.random_point(num_samples)
+                random_data.append((n,) + prod + (point, base_point))
         return self.generate_tests([], random_data)
 
 
