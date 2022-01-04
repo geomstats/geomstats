@@ -85,7 +85,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             self.generate_tests(smoke_data)
 
         def is_upper_triangualr(self):
-            smoke_data = []
+            smoke_data = [dict(mat=[])]
             self.generate_tests(smoke_data)
 
         def is_lower_triangular(self):

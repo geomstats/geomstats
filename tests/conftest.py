@@ -1,6 +1,7 @@
 """Pytest utility classes, functions and fixtures."""
 
 import inspect
+import itertools
 import os
 import random
 import types
@@ -117,24 +118,31 @@ class TestData:
         _: list
             Tests.
         """
-        smoke_tests = [
-            pytest.param(*data.values(), marks=pytest.mark.smoke)
-            for data in smoke_test_data
-        ]
-        random_tests = [
-            pytest.param(*data, marks=pytest.mark.random) for data in random_test_data
-        ]
-        return smoke_tests + random_tests
+        tests = []
+        if smoke_test_data:
+            smoke_tests = [
+                pytest.param(*data.values(), marks=pytest.mark.smoke)
+                for data in smoke_test_data
+            ]
+            tests += smoke_tests
+        if random_test_data:
+            random_tests = [
+                pytest.param(*data, marks=pytest.mark.random)
+                for data in random_test_data
+            ]
+            tests += random_tests
+        return tests
 
-    def log_exp_composition(self, space, max_n=10, num_n=5, num_samples=10):
+    def log_exp_composition(self, space, num_samples=10, max_n=10, num_n=5, **kwargs):
         random_n = random.sample(range(1, max_n), num_n)
         random_data = []
         for n in random_n:
-            space_n = space(n)
-            base_point = space_n.random_point(num_samples)
-            point = space_n.random_point(n)
-            random_data.append(dict(n=n, point=point, base_point=base_point))
-            return self.generate_tests(random_data)
+            for prod in itertools.product(*kwargs.values()):
+                space_n = space(n)
+                base_point = space_n.random_point(num_samples)
+                point = space_n.random_point(n)
+                random_data.append((n) + prod + (point, base_point))
+        return self.generate_tests([], random_data)
 
 
 class Parametrizer(type):
