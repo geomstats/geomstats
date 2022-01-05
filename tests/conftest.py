@@ -133,7 +133,31 @@ class TestData:
             tests += random_tests
         return tests
 
-    def log_exp_composition(self, space, num_samples=10, max_n=10, num_n=5, **kwargs):
+    def log_exp_composition(self, space, num_samples=100, max_n=20, num_n=5, **kwargs):
+        """Generate Data that checks for log and exp are inverses. Specifically
+
+            :math: Exp_{base_point}(Log_{base_point}(point)) = point
+
+
+        Parameters
+        ----------
+        space : cls
+            Manifold class that upon which metric is present.
+        max_n : int
+            Range of 'n' to generated.
+            Optional, default: 20
+        num_n : int
+            Number of 'n' to be generated.
+            Optional, default: 5
+        num_samples : int
+            Optional, default: 100
+
+        Returns
+        -------
+        _ : list
+            Test Data.
+
+        """
         random_n = random.sample(range(1, max_n), num_n)
         random_data = []
         for n in random_n:
