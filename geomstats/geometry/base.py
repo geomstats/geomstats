@@ -1,6 +1,6 @@
 """Abstract classes for manifolds.
 
-Lead authors: Nicolas Guigui.
+Lead authors: Nicolas Guigui and Nina Miolane.
 """
 
 import abc
