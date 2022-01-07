@@ -86,7 +86,11 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
                 dict(
                     n=3,
                     spd_mat=[[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]],
-                    cf=[[SQRT_2, 0.0, 0.0], [0.0, SQRT_2, 0.0], [0.0, 0.0, SQRT_2]],
+                    expected=[
+                        [SQRT_2, 0.0, 0.0],
+                        [0.0, SQRT_2, 0.0],
+                        [0.0, 0.0, SQRT_2],
+                    ],
                 )
             ]
             return self.generate_tests(smoke_data)
@@ -207,21 +211,21 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
         self.assertAllClose(SPDMatrices.logm(gs.array(spd_mat)), gs.array(logm))
 
     def test_cholesky_factor(self, n, spd_mat, cf):
-        result_cf = SPDMatrices.cholesky_factor(gs.array(spd_mat))
+        result = SPDMatrices.cholesky_factor(gs.array(spd_mat))
 
-        self.assertAllClose(result_cf, gs.array(cf))
+        self.assertAllClose(result, gs.array(cf))
         self.assertAllClose(
-            gs.all(PositiveLowerTriangularMatrices(n).belongs(result_cf)),
+            gs.all(PositiveLowerTriangularMatrices(n).belongs(result)),
             gs.array(True),
         )
 
     def test_differential_cholesky_factor(self, n, tangent_vec, base_point, expected):
-        result_dcf = SPDMatrices.differential_cholesky_factor(
+        result = SPDMatrices.differential_cholesky_factor(
             gs.array(tangent_vec), gs.array(base_point)
         )
-        self.assertAllClose(result_dcf, gs.array(expected))
+        self.assertAllClose(result, gs.array(expected))
         self.assertAllClose(
-            gs.all(LowerTriangularMatrices(n).belongs(result_dcf)), gs.array(True)
+            gs.all(LowerTriangularMatrices(n).belongs(result)), gs.array(True)
         )
 
     def test_differential_power(self, power, tangent_vec, base_point, expected):
@@ -302,7 +306,9 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
 
         def log_exp_composition_data(self):
             power_affine = [1.0] + [random.uniform(-1, 1) for l in range(25)]
-            return self.log_exp_composition(SPDMatrices, power_affine=power_affine)
+            return self._log_exp_composition_data(
+                SPDMatrices, power_affine=power_affine
+            )
 
     testing_data = TestDataSPDMetricAffine()
 
@@ -382,7 +388,7 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def log_exp_composition_data(self):
-            return self.log_exp_composition(SPDMatrices)
+            return self._log_exp_composition_data(SPDMatrices)
 
     testing_data = TestDataSPDMetricBuresWasserstein()
 
@@ -468,7 +474,7 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
 
         def log_exp_composition_data(self):
             power_euclidean = [1.0] + [random.uniform(-1, 1) for l in range(25)]
-            return self.log_exp_composition(
+            return self._log_exp_composition_data(
                 SPDMatrices, power_euclidean=power_euclidean
             )
 
@@ -540,7 +546,7 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
             return self.generate_tests(smoke_data)
 
         def log_exp_composition_data(self):
-            return self.log_exp_composition(SPDMatrices)
+            return self._log_exp_composition_data(SPDMatrices)
 
     testing_data = TestDataSPDMetricLogEuclidean()
 
@@ -566,3 +572,19 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point)
+
+        initial_point = self.space.random_point()
+        initial_tangent_vec = self.space.random_tangent_vec(
+            n_samples=1, base_point=initial_point
+        )
+
+        metric = self.metric_affine
+        geodesic = metric.geodesic(
+            initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
+        )
+
+        n_points = 10
+        t = gs.linspace(start=0.0, stop=1.0, num=n_points)
+        points = geodesic(t)
+        result = self.space.belongs(points)
+        self.assertTrue(gs.all(result))
