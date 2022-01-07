@@ -31,6 +31,10 @@ jobs:
           done
           pip install -e .
 
+      - name : linting [black and isort]
+        run: |
+          black .
+
       - name: linting [flake8]
         run: |
           flake8 .

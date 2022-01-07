@@ -3,10 +3,10 @@
 import warnings
 
 import pytest
-import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stiefel import Stiefel
@@ -47,13 +47,11 @@ class TestStiefel(geomstats.tests.TestCase):
 
         point_perp = gs.array([[0.0], [0.0], [0.0], [1.0]])
 
-        matrix_a_1 = gs.array(
-            [[0.0, 2.0, -5.0], [-2.0, 0.0, -1.0], [5.0, 1.0, 0.0]])
+        matrix_a_1 = gs.array([[0.0, 2.0, -5.0], [-2.0, 0.0, -1.0], [5.0, 1.0, 0.0]])
 
         matrix_b_1 = gs.array([[-2.0, 1.0, 4.0]])
 
-        matrix_a_2 = gs.array(
-            [[0.0, 2.0, -5.0], [-2.0, 0.0, -1.0], [5.0, 1.0, 0.0]])
+        matrix_a_2 = gs.array([[0.0, 2.0, -5.0], [-2.0, 0.0, -1.0], [5.0, 1.0, 0.0]])
 
         matrix_b_2 = gs.array([[-2.0, 1.0, 4.0]])
 
@@ -92,7 +90,7 @@ class TestStiefel(geomstats.tests.TestCase):
         det_base = gs.linalg.det(base_point)
         point = stiefel.random_point()
         det_point = gs.linalg.det(point)
-        if gs.all(det_base * det_point > 0.):
+        if gs.all(det_base * det_point > 0.0):
             point *= -1.0
 
         with pytest.raises(ValueError):
@@ -214,14 +212,12 @@ class TestStiefel(geomstats.tests.TestCase):
         tangent_vec = self.tangent_vector_1
 
         lifted = self.metric.lifting(point=point, base_point=base_point)
-        result = self.metric.retraction(tangent_vec=lifted,
-                                        base_point=base_point)
+        result = self.metric.retraction(tangent_vec=lifted, base_point=base_point)
         expected = point
 
         self.assertAllClose(result, expected)
 
-        retract = self.metric.retraction(tangent_vec=tangent_vec,
-                                         base_point=base_point)
+        retract = self.metric.retraction(tangent_vec=tangent_vec, base_point=base_point)
         result = self.metric.lifting(point=retract, base_point=base_point)
         expected = tangent_vec
 
@@ -235,8 +231,7 @@ class TestStiefel(geomstats.tests.TestCase):
 
         one_point = self.point_a
         one_base_point = self.point_b
-        n_points = gs.tile(gs.to_ndarray(self.point_a, to_ndim=3),
-                           (n_samples, 1, 1))
+        n_points = gs.tile(gs.to_ndarray(self.point_a, to_ndim=3), (n_samples, 1, 1))
         n_base_points = gs.tile(
             gs.to_ndarray(self.point_b, to_ndim=3), (n_samples, 1, 1)
         )
@@ -260,8 +255,7 @@ class TestStiefel(geomstats.tests.TestCase):
         p = self.p
 
         one_point = self.point_a
-        n_points = gs.tile(gs.to_ndarray(one_point, to_ndim=3),
-                           (n_samples, 1, 1))
+        n_points = gs.tile(gs.to_ndarray(one_point, to_ndim=3), (n_samples, 1, 1))
         one_tangent_vec = self.tangent_vector_1
         n_tangent_vecs = gs.tile(
             gs.to_ndarray(self.tangent_vector_2, to_ndim=3), (n_samples, 1, 1)
