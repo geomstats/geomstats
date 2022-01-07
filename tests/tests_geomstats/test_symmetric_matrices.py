@@ -1,11 +1,8 @@
 """Unit tests for the vector space of symmetric matrices."""
 
-import math
 import random
-import warnings
 
 import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from tests.conftest import Parametrizer, TestCase, TestData
