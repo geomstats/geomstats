@@ -34,6 +34,7 @@ jobs:
       - name : linting [black and isort]
         run: |
           black .
+          isort --profile black --check .
 
       - name: linting [flake8]
         run: |
