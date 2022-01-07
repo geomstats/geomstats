@@ -33,4 +33,4 @@ jobs:
 
       - name: linting [flake8]
         run: |
-          flake8 geomstats/
+          flake8 .
