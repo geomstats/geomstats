@@ -33,7 +33,7 @@ jobs:
 
       - name : linting [black and isort]
         run: |
-          black .
+          black . --check
           isort --profile black --check .
 
       - name: linting [flake8]
