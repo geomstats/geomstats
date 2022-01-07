@@ -1,5 +1,7 @@
 r"""Integrator functions used when no closed forms are available.
 
+Lead author: Nicolas Guigui.
+
 These are designed for first order ODE written of a variable x and a time
 variable t:
 .. math::

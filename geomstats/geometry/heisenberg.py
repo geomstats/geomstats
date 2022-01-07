@@ -1,4 +1,7 @@
-"""Implementation of the 3D Heisenberg group."""
+"""The 3D Heisenberg group.
+
+Lead author: Morten Pedersen.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean

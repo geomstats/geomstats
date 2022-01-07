@@ -1,4 +1,7 @@
-"""Lie groups."""
+"""Lie groups.
+
+Lead author: Nina Miolane.
+"""
 
 import abc
 

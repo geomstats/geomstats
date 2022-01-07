@@ -1,6 +1,8 @@
 """The n-dimensional hyperbolic space.
 
 Poincare half-space representation.
+
+Lead author: Alice Le Brigant.
 """
 
 import geomstats.backend as gs

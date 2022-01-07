@@ -1,4 +1,7 @@
-"""Expectation maximization algorithm."""
+"""Expectation maximization algorithm.
+
+Lead authors: Thomas Gerald and Hadi Zaatiti.
+"""
 
 import logging
 

@@ -1,16 +1,16 @@
-"""Testing class for geomstats.
+"""Pytest utility classes, functions and fixtures."""
 
-This class abstracts the backend type.
-
-Lead authors: Johan Mathe and Saiteja Utpala.
-"""
-
+import inspect
 import os
+import types
 
 import numpy as np
 import pytest
 
 import geomstats.backend as gs
+
+smoke = pytest.mark.smoke
+random = pytest.mark.random
 
 
 def autograd_backend():
@@ -31,6 +31,15 @@ def pytorch_backend():
 def tf_backend():
     """Check if tensorflow is set as backend."""
     return os.environ["GEOMSTATS_BACKEND"] == "tensorflow"
+
+
+if tf_backend():
+    import tensorflow as tf
+
+    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
+if pytorch_backend():
+    import torch
 
 
 autograd_only = pytest.mark.skipif(
@@ -78,15 +87,6 @@ autograd_tf_and_torch_only = pytest.mark.skipif(
 )
 
 
-if tf_backend():
-    import tensorflow as tf
-
-    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-
-if pytorch_backend():
-    import torch
-
-
 def pytorch_error_msg(a, b, rtol, atol):
     msg = f"\ntensor 1\n{a}\ntensor 2\n{b}"
     if torch.is_tensor(a) and torch.is_tensor(b):
@@ -99,7 +99,60 @@ def pytorch_error_msg(a, b, rtol, atol):
     return msg
 
 
+class TestData:
+    """Class for TestData objects."""
+
+    def generate_tests(self, smoke_test_data, random_test_data=[]):
+        """Wrap test data with corresponding markers.
+
+        Parameters
+        ----------
+        smoke_test_data : list
+            Test data that will be marked as smoke.
+
+        random_test_data : list
+            Test data that will be marked as random.
+            Optional, default: []
+
+        Returns
+        -------
+        _: list
+            Tests.
+        """
+        smoke_tests = [
+            pytest.param(*data.values(), marks=smoke) for data in smoke_test_data
+        ]
+        random_tests = [pytest.param(*data, marks=random) for data in random_test_data]
+        return smoke_tests + random_tests
+
+
+class Parametrizer(type):
+    """Metaclass for test files.
+
+    Parametrizer decorates every function inside the class with pytest.mark.parametrizer
+    (except class methods and static methods). Two conventions need to be respected:
+
+        1.There should be a TestData object named 'testing_data'.
+        2.Every test function should have its corresponding data function inside TestData object.
+        Ex. test_exp() should have method called exp_data() inside 'testing_data'."""
+
+    def __new__(cls, name, bases, attrs):
+        for attr_name, attr_value in attrs.items():
+            if isinstance(attr_value, types.FunctionType):
+
+                args_str = ", ".join(inspect.getfullargspec(attr_value)[0][1:])
+                data_fn_str = attr_name[5:] + "_data"
+                attrs[attr_name] = pytest.mark.parametrize(
+                    args_str,
+                    getattr(locals()["attrs"]["testing_data"], data_fn_str)(),
+                )(attr_value)
+
+        return super(Parametrizer, cls).__new__(cls, name, bases, attrs)
+
+
 class TestCase:
+    """Class for Geomstats tests."""
+
     def assertAllClose(self, a, b, rtol=gs.rtol, atol=gs.atol):
         if tf_backend():
             return tf.test.TestCase().assertAllClose(a, b, rtol=rtol, atol=atol)

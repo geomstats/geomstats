@@ -2,6 +2,7 @@
 
 import numpy as np
 import scipy.linalg
+import scipy.optimize
 import torch
 
 from ..numpy import linalg as gsnplinalg
@@ -42,6 +43,7 @@ class Logm(torch.autograd.Function):
         return Logm._logm(backward_tensor).to(tensor.dtype)[..., :n, n:]
 
 
+cholesky = torch.linalg.cholesky
 eig = torch.linalg.eig
 eigh = torch.linalg.eigh
 eigvalsh = torch.linalg.eigvalsh
@@ -51,10 +53,6 @@ det = torch.det
 solve = torch.linalg.solve
 qr = torch.linalg.qr
 logm = Logm.apply
-
-
-def cholesky(a):
-    return torch.cholesky(a, upper=False)
 
 
 def sqrtm(x):
@@ -79,6 +77,10 @@ def norm(x, ord=None, axis=None):
 
 def matrix_rank(a, hermitian=False, **_unused_kwargs):
     return torch.linalg.matrix_rank(a, hermitian)
+
+
+def quadratic_assignment(a, b, options):
+    return list(scipy.optimize.quadratic_assignment(a, b, options=options).col_ind)
 
 
 def solve_sylvester(a, b, q):

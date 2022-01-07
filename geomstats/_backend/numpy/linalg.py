@@ -2,6 +2,7 @@
 
 import numpy as np
 import scipy.linalg
+import scipy.optimize
 from numpy.linalg import (  # NOQA
     cholesky,
     det,
@@ -65,6 +66,10 @@ def solve_sylvester(a, b, q):
 
 def sqrtm(x):
     return np.vectorize(scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
+
+
+def quadratic_assignment(a, b, options):
+    return list(scipy.optimize.quadratic_assignment(a, b, options=options).col_ind)
 
 
 def qr(*args, **kwargs):

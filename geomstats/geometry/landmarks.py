@@ -1,4 +1,7 @@
-"""Manifold for sets of landmarks that belong to any given manifold."""
+"""Manifold for sets of landmarks that belong to any given manifold.
+
+Lead author: Nicolas Guigui.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.product_manifold import ProductManifold
