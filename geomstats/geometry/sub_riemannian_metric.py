@@ -1,8 +1,5 @@
 import abc
 
-import geomstats.backend as gs
-import geomstats.geometry as geometry
-
 
 class SubRiemannianMetric(abc.ABC):
     """Class for Sub-Riemannian metrics.

@@ -4,7 +4,6 @@ The n-dimensional hyperbolic space with Poincare ball model.
 """
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-import geomstats.vectorization
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean

@@ -121,5 +121,5 @@ def is_single_matrix_pd(mat):
     try:
         torch.linalg.cholesky(mat)
         return True
-    except RuntimeError as _e:
+    except RuntimeError:
         return False

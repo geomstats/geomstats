@@ -6,7 +6,6 @@ import joblib
 import geomstats.backend as gs
 import geomstats.geometry as geometry
 from geomstats.geometry.connection import Connection
-from geomstats.integrator import integrate
 
 EPSILON = 1e-4
 N_CENTERS = 10
