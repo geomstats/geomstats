@@ -33,5 +33,4 @@ jobs:
 
       - name: linting [flake8]
         run: |
-          flake8 --ignore=D,W503,W504 geomstats examples tests
-          flake8 geomstats/geometry geomstats/learning
+          flake8 geomstats/
