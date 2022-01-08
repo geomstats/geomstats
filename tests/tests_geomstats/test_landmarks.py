@@ -7,7 +7,7 @@ from geomstats.geometry.landmarks import Landmarks
 
 
 class TestLandmarks(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         s2 = Hypersphere(dim=2)
         r3 = s2.embedding_space
 

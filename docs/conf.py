@@ -1,11 +1,12 @@
 """Sphinx configuration file."""
 
-import geomstats
+import os
+import sys
 
 project = "Geomstats"
-copyright = "2019-2020, Geomstats, Inc."
+copyright = "2020-2021, Geomstats, Inc."
 author = "Geomstats Team"
-release = version = geomstats.__version__
+release = version = "2.3.1"
 
 extensions = [
     "nbsphinx",

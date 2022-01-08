@@ -1,4 +1,7 @@
-"""Online kmeans algorithm on Manifolds."""
+"""Online kmeans algorithm on Manifolds.
+
+Lead author: Alice Le Brigant.
+"""
 
 import logging
 

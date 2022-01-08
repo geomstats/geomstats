@@ -1,4 +1,7 @@
-"""The manifold of symmetric positive definite (SPD) matrices."""
+"""The manifold of symmetric positive definite (SPD) matrices.
+
+Lead author: Yann Thanwerdas.
+"""
 
 import math
 
@@ -7,6 +10,9 @@ import geomstats.vectorization
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.positive_lower_triangular_matrices import (
+    PositiveLowerTriangularMatrices,
+)
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -45,10 +51,9 @@ class SPDMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an SPD matrix.
         """
-        is_symmetric = self.ambient_space.belongs(mat, atol)
-        eigvalues = gs.linalg.eigvalsh(mat)
-        is_positive = gs.all(eigvalues > 0, axis=-1)
-        belongs = gs.logical_and(is_symmetric, is_positive)
+        is_sym = self.ambient_space.belongs(mat, atol)
+        is_pd = Matrices.is_pd(mat)
+        belongs = gs.logical_and(is_sym, is_pd)
         return belongs
 
     def projection(self, point):
@@ -123,8 +128,10 @@ class SPDMatrices(OpenSet):
 
         sqrt_base_point = gs.linalg.sqrtm(base_point)
 
-        tangent_vec_at_id = 2 * gs.random.rand(*size) - 1
-        tangent_vec_at_id += Matrices.transpose(tangent_vec_at_id)
+        tangent_vec_at_id_aux = 2 * gs.random.rand(*size) - 1
+        tangent_vec_at_id = tangent_vec_at_id_aux + Matrices.transpose(
+            tangent_vec_at_id_aux
+        )
 
         tangent_vec = Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
@@ -411,6 +418,49 @@ class SPDMatrices(OpenSet):
     powerm = SymmetricMatrices.powerm
     from_vector = SymmetricMatrices.__dict__["from_vector"]
     to_vector = SymmetricMatrices.__dict__["to_vector"]
+
+    @classmethod
+    def cholesky_factor(cls, mat):
+        """
+        Compute the cholesky_factor for a symmetric positive definite matrix
+
+        Parameters
+        ----------
+        mat : array_like, shape=[..., n, n]
+            spd matrix.
+
+        Returns
+        -------
+        cf : array_like, shape=[..., n, n]
+            lower triangular matrix with positive diagonal elements.
+        """
+        return gs.linalg.cholesky(mat)
+
+    @classmethod
+    def differential_cholesky_factor(cls, tangent_vec, base_point):
+        """Compute the differential of the cholesky factor map.
+
+        Parameters
+        ----------
+        tangent_vec : array_like, shape=[..., n, n]
+            Tangent vector at base point.
+            symmetric matrix.
+
+        base_point : array_like, shape=[..., n, n]
+            Base point.
+            spd matrix.
+
+        Returns
+        -------
+        differential_cf : array-like, shape=[..., n, n]
+            Differential of cholesky factor map
+            lower triangular matrix.
+        """
+        cf = cls.cholesky_factor(base_point)
+        differential_cf = PositiveLowerTriangularMatrices.inverse_differential_gram(
+            tangent_vec, cf
+        )
+        return differential_cf
 
 
 class SPDMetricAffine(RiemannianMetric):
@@ -882,6 +932,71 @@ class SPDMetricEuclidean(RiemannianMetric):
         domain = gs.concatenate((inf_value, sup_value), axis=1)
 
         return domain
+
+    def exp(self, tangent_vec, base_point, **kwargs):
+        """Compute the Euclidean exponential map.
+
+        Compute the Euclidean exponential at point base_point
+        of tangent vector tangent_vec.
+        This gives a symmetric positive definite matrix.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., n, n]
+            Euclidean exponential.
+        """
+        power_euclidean = self.power_euclidean
+
+        if power_euclidean == 1:
+            exp = tangent_vec + base_point
+        else:
+            exp = SymmetricMatrices.powerm(
+                SymmetricMatrices.powerm(base_point, power_euclidean)
+                + SPDMatrices.differential_power(
+                    power_euclidean, tangent_vec, base_point
+                ),
+                1 / power_euclidean,
+            )
+        return exp
+
+    def log(self, point, base_point, **kwargs):
+        """Compute the Euclidean logarithm map.
+
+        Compute the Euclidean logarithm at point base_point, of point.
+        This gives a tangent vector at point base_point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        log : array-like, shape=[..., n, n]
+            Euclidean logarithm.
+        """
+        power_euclidean = self.power_euclidean
+
+        if power_euclidean == 1:
+            log = point - base_point
+        else:
+            log = SPDMatrices.inverse_differential_power(
+                power_euclidean,
+                SymmetricMatrices.powerm(point, power_euclidean)
+                - SymmetricMatrices.powerm(base_point, power_euclidean),
+                base_point,
+            )
+
+        return log
 
 
 class SPDMetricLogEuclidean(RiemannianMetric):

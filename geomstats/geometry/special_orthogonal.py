@@ -1,10 +1,13 @@
-"""Exposes the `SpecialOrthogonal` group class."""
+"""Exposes the `SpecialOrthogonal` group class.
+
+Lead authors: Nicolas Guigui and Nina Miolane.
+"""
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
@@ -25,7 +28,7 @@ TAYLOR_COEFFS_1_AT_PI = [
 ]
 
 
-class _SpecialOrthogonalMatrices(MatrixLieGroup, EmbeddedManifold):
+class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
     """Class for special orthogonal groups in matrix representation.
 
     Parameters

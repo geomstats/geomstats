@@ -13,7 +13,7 @@ from geomstats.geometry.poincare_ball import PoincareBall
 
 
 class TestHyperbolicCoords(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
         self.dimension = 2
 

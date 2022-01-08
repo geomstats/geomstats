@@ -1,10 +1,12 @@
 """The n-dimensional hyperbolic space.
 
 The n-dimensional hyperbolic space with Poincare ball model.
+
+Lead author: Hadi Zaatiti.
 """
+
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-import geomstats.vectorization
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
@@ -225,7 +227,6 @@ class PoincareBallMetric(RiemannianMetric):
         )
         return ball_manifold.projection(result)
 
-    @geomstats.vectorization.decorator(["else", "vector", "vector"])
     def dist(self, point_a, point_b):
         """Compute the geodesic distance between two points.
 
@@ -251,7 +252,6 @@ class PoincareBallMetric(RiemannianMetric):
         dist *= self.scale
         return dist
 
-    @geomstats.vectorization.decorator(["else", "vector", "vector"])
     def retraction(self, tangent_vec, base_point):
         """Poincaré ball model retraction.
 
@@ -284,7 +284,6 @@ class PoincareBallMetric(RiemannianMetric):
 
         return base_point - gs.einsum("...i,...j->...j", retraction_factor, tangent_vec)
 
-    @geomstats.vectorization.decorator(["else", "vector"])
     def metric_matrix(self, base_point=None):
         """Compute the inner product matrix.
 
@@ -305,7 +304,7 @@ class PoincareBallMetric(RiemannianMetric):
         lambda_base = (2 / (1 - gs.sum(base_point * base_point, axis=-1))) ** 2
         identity = gs.eye(self.dim, self.dim)
 
-        return gs.einsum("i,jk->ijk", lambda_base, identity)
+        return gs.einsum("...,jk->...jk", lambda_base, identity)
 
     def normalization_factor(self, variances):
         """Return normalization factor of the Gaussian distribution.

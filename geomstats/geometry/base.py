@@ -1,4 +1,7 @@
-"""Manifold embedded in another manifold."""
+"""Abstract classes for manifolds.
+
+Lead authors: Nicolas Guigui and Nina Miolane.
+"""
 
 import abc
 
@@ -140,8 +143,8 @@ class VectorSpace(Manifold, abc.ABC):
         return point
 
 
-class EmbeddedManifold(Manifold, abc.ABC):
-    """Class for manifolds embedded in a vector space.
+class LevelSet(Manifold, abc.ABC):
+    """Class for manifolds embedded in a vector space by a submersion.
 
     Parameters
     ----------
@@ -164,7 +167,7 @@ class EmbeddedManifold(Manifold, abc.ABC):
         default_coords_type="intrinsic",
         **kwargs
     ):
-        super(EmbeddedManifold, self).__init__(
+        super(LevelSet, self).__init__(
             dim=dim,
             default_point_type=embedding_space.default_point_type,
             default_coords_type=default_coords_type,
