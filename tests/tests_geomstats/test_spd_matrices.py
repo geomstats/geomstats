@@ -1,12 +1,17 @@
 """Unit tests for the manifold of symmetric positive definite matrices."""
 
+
 import math
 import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
-from geomstats.geometry.matrices import MatricesMetric
+from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.positive_lower_triangular_matrices import (
+    PositiveLowerTriangularMatrices,
+)
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
@@ -14,6 +19,8 @@ from geomstats.geometry.spd_matrices import (
     SPDMetricEuclidean,
     SPDMetricLogEuclidean,
 )
+
+SQRT_2 = math.sqrt(2)
 
 
 class TestSPDMatrices(geomstats.tests.TestCase):
@@ -121,6 +128,57 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
         self.assertAllClose(four_dim_result, four_dim_expected)
+
+    def test_cholesky_factor(self):
+        spd_mat = gs.array([[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]])
+        cholesky_factor_expected = gs.array(
+            [[SQRT_2, 0.0, 0.0], [0.0, SQRT_2, 0.0], [0.0, 0.0, SQRT_2]]
+        )
+        cholesky_factor_result = self.space.cholesky_factor(spd_mat)
+
+        self.assertAllClose(cholesky_factor_expected, cholesky_factor_result)
+
+    def test_cholesky_factor_vectorization(self):
+        """Test cholesky factor method for batch of inputs"""
+        spd_mats = self.space.random_point(self.n_samples)
+        cholesky_factors = self.space.cholesky_factor(spd_mats)
+
+        pltm = PositiveLowerTriangularMatrices(self.n)
+        belongs_expected = True
+        belongs_result = gs.all(pltm.belongs(cholesky_factors))
+
+        reconstructed_result = gs.matmul(
+            cholesky_factors, Matrices.transpose(cholesky_factors)
+        )
+        reconstructed_expected = spd_mats
+
+        self.assertAllClose(belongs_expected, belongs_result)
+        self.assertAllClose(reconstructed_expected, reconstructed_result)
+
+    def test_cholesky_factor_differential(self):
+        """Test differential of cholesky factor map"""
+        P = gs.array([[4.0, 2.0], [2.0, 5.0]])
+        W = gs.array([[1.0, 1.0], [1.0, 1.0]])
+        diff_chol_expected = gs.array([[1 / 4, 0.0], [3 / 8, 1 / 16]])
+        diff_chol_result = self.space.differential_cholesky_factor(W, P)
+        self.assertAllClose(diff_chol_expected, diff_chol_result)
+
+    def test_cholesky_factor_differential_belongs(self):
+        """Test differential of cholesky factor map for batch of inputs"""
+        n_samples = 5
+        P = self.space.random_point(n_samples)
+        W = self.space.ambient_space.random_point(n_samples)
+        diff_chol_fact_result = self.space.differential_cholesky_factor(W, P)
+        belongs_expected = True
+        belongs_result = gs.all(
+            LowerTriangularMatrices(self.n).belongs(diff_chol_fact_result)
+        )
+
+        shape_expected = n_samples
+        shape_result = diff_chol_fact_result.shape[0]
+
+        self.assertAllClose(shape_expected, shape_result)
+        self.assertAllClose(belongs_expected, belongs_result)
 
     def test_differential_power(self):
         """Test of differential_power method."""

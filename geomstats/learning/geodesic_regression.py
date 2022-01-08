@@ -1,5 +1,7 @@
 r"""Geodesic Regression.
 
+Lead author: Nicolas Guigui.
+
 The generative model of the data is:
     :math:`Z = Exp_{\beta_0}(\beta_1.X)` and :math:`Y = Exp_Z(\epsilon)`
     where:

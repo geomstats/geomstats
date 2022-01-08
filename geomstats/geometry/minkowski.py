@@ -1,4 +1,7 @@
-"""Minkowski space."""
+"""Minkowski space.
+
+Lead author: Nina Miolane.
+"""
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix

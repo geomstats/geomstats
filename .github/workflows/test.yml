@@ -1,4 +1,4 @@
-name: "Linting and Testing"
+name: "Testing"
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
     - 'docs/**'
     - 'README.rst'
     - 'LICENSE.md'
+    - '.github/workflows/docs.yml'
     - '.deepsource.toml'
     - '.gitignore'
 
@@ -15,6 +16,7 @@ on:
     paths-ignore:
     - 'docs/**'
     - 'README.rst'
+    - '.github/workflows/docs.yml'
     - 'LICENSE.md'
     - '.deepsource.toml'
     - '.gitignore'
@@ -39,7 +41,6 @@ jobs:
         with:
           python-version: ${{matrix.python-version}}
 
-
       - name: install dependencies [pip]
         run:  |
           pip install --upgrade pip setuptools wheel
@@ -47,12 +48,6 @@ jobs:
             pip install -q -r $req
           done
           pip install -e .
-
-      - name: linting [flake8]
-        if: ${{matrix.test-folder == 'tests.tests_geomstats' && matrix.python-version == 3.8 && matrix.geomstats-backend == 'tensorflow'}}
-        run: |
-          flake8 --ignore=D,W503,W504 geomstats examples tests
-          flake8 geomstats/geometry geomstats/learning
 
       - name: unit testing [pytest]
         env:

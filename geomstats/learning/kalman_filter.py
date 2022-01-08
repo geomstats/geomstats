@@ -1,4 +1,7 @@
-"""Kalman filter on Lie groups, with two local test system models."""
+"""Kalman filter on Lie groups, with two local test system models.
+
+Lead author: Paul Chauchat.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean

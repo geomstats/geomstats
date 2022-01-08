@@ -1,13 +1,16 @@
-r"""The manifold of Positive Semi Definite matrices of rank k PSD(n,k)."""
+r"""The manifold of Positive Semi Definite matrices of rank k PSD(n,k).
+
+Lead author: Anna Calissano.
+"""
 
 import geomstats.backend as gs
-from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
-    SPDMetricBuresWasserstein,
     SPDMetricAffine,
+    SPDMetricBuresWasserstein,
     SPDMetricEuclidean,
     SPDMetricLogEuclidean,
 )
@@ -17,7 +20,7 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 class RankKPSDMatrices(Manifold):
     r"""Class for PSD(n,k).
 
-    The manifold of symmetric positive definite (PSD) matrices of rank k.
+    The manifold of Positive Semi Definite matrices of rank k: PSD(n,k).
 
     Parameters
     ----------
@@ -26,14 +29,11 @@ class RankKPSDMatrices(Manifold):
     k: int
         Integer representing the rank of the matrix (k<n).
     """
-    def __init__(
-        self,
-        n,
-        k,
-        **kwargs
-    ):
-        super(RankKPSDMatrices, self).__init__(**kwargs,
-                                               dim=int(k * n - k * (k + 1) / 2))
+
+    def __init__(self, n, k, **kwargs):
+        super(RankKPSDMatrices, self).__init__(
+            **kwargs, dim=int(k * n - k * (k + 1) / 2)
+        )
         self.n = n
         self.rank = k
         self.sym = SymmetricMatrices(self.n)
@@ -95,8 +95,9 @@ class RankKPSDMatrices(Manifold):
         sym_proj = (sym + h) / 2
         eigvals, eigvecs = gs.linalg.eigh(sym_proj)
         i = gs.array([0] * (self.n - self.rank) + [2 * gs.atol] * self.rank)
-        regularized = gs.assignment(eigvals, 0, gs.arange((self.n - self.rank)),
-                                    axis=0) + i
+        regularized = (
+            gs.assignment(eigvals, 0, gs.arange((self.n - self.rank)), axis=0) + i
+        )
         reconstruction = gs.einsum("...ij,...j->...ij", eigvecs, regularized)
 
         return Matrices.mul(reconstruction, Matrices.transpose(eigvecs))
@@ -144,11 +145,11 @@ class RankKPSDMatrices(Manifold):
         vector_sym = Matrices(self.n, self.n).to_symmetric(vector)
 
         _, r = gs.linalg.eigh(base_point)
-        r_ort = r[..., :, self.n - self.rank: self.n]
+        r_ort = r[..., :, self.n - self.rank : self.n]
         r_ort_t = Matrices.transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
         candidates = Matrices.mul(rr, vector_sym, rr)
-        result = gs.all(gs.isclose(candidates, 0., gs.atol), axis=(-2, -1))
+        result = gs.all(gs.isclose(candidates, 0.0, gs.atol), axis=(-2, -1))
         return result
 
     def to_tangent(self, vector, base_point):
@@ -169,7 +170,7 @@ class RankKPSDMatrices(Manifold):
         """
         vector_sym = Matrices(self.n, self.n).to_symmetric(vector)
         _, r = gs.linalg.eigh(base_point)
-        r_ort = r[..., :, self.n - self.rank: self.n]
+        r_ort = r[..., :, self.n - self.rank : self.n]
         r_ort_t = Matrices.transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
         return vector_sym - Matrices.mul(rr, vector_sym, rr)
@@ -199,6 +200,7 @@ class PSDMatrices(RankKPSDMatrices, SPDMatrices):
     k : int
         Integer representing the shapes of the matrices : n x n.
     """
+
     def __new__(
         cls,
         n,
@@ -209,4 +211,4 @@ class PSDMatrices(RankKPSDMatrices, SPDMatrices):
             return RankKPSDMatrices(n, k, **kwargs)
         if n == k:
             return SPDMatrices(n, **kwargs)
-        raise NotImplementedError('The PSD matrices is not implemented yet')
+        raise NotImplementedError("The PSD matrices is not implemented yet")

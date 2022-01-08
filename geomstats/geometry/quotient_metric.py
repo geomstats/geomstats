@@ -1,4 +1,7 @@
-"""Classes for fiber bundles and quotient metrics."""
+"""Classes for fiber bundles and quotient metrics.
+
+Lead author: Nicolas Guigui.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
