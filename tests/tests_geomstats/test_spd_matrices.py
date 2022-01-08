@@ -310,6 +310,10 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
                 SPDMatrices, power_affine=power_affine
             )
 
+        def geodesic_belongs_data(self):
+            power_affine = [1.0, 0.5, -0.5]
+            return self._geodesic_belongs_data(SPDMatrices, power_affine=power_affine)
+
     testing_data = TestDataSPDMetricAffine()
 
     def test_inner_product(
@@ -338,6 +342,17 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point)
+
+    def test_geodesic_belongs(
+        self, n, power_affine, initial_point, initial_tangent_vec, t
+    ):
+
+        metric = SPDMetricAffine(n, power_affine)
+        point = metric.geodesic(
+            initial_point=gs.array(initial_point),
+            initial_tangent_vec=gs.array(initial_tangent_vec),
+        )(t)
+        self.assertAllClose(SPDMatrices(n).belongs(point), gs.array(True))
 
 
 class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
@@ -390,6 +405,9 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
         def log_exp_composition_data(self):
             return self._log_exp_composition_data(SPDMatrices)
 
+        def geodesic_belongs_data(self):
+            return self._geodesic_belongs_data(SPDMatrices)
+
     testing_data = TestDataSPDMetricBuresWasserstein()
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
@@ -419,6 +437,15 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point)
+
+    def test_geodesic_belongs(self, n, initial_point, initial_tangent_vec, t):
+
+        metric = SPDMetricBuresWasserstein(n)
+        point = metric.geodesic(
+            initial_point=gs.array(initial_point),
+            initial_tangent_vec=gs.array(initial_tangent_vec),
+        )(t)
+        self.assertAllClose(SPDMatrices(n).belongs(point), gs.array(True))
 
 
 class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
@@ -478,6 +505,12 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
                 SPDMatrices, power_euclidean=power_euclidean
             )
 
+        def geodesic_belongs_data(self):
+            power_euclidean = [1.0]
+            return self._geodesic_belongs_data(
+                SPDMatrices, max_n=3, n_n=2, n_t=5, power_euclidean=power_euclidean
+            )
+
     testing_data = TestDataSPDMetricEuclidean()
 
     def test_inner_product(
@@ -507,15 +540,6 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point)
-
-    def test_geodesic_belongs(self, n, initial_point, initial_tangent_vec, t):
-
-        metric = SPDMetricEuclidean(n)
-        point = metric.geodesic(
-            initial_point=gs.array(initial_point),
-            initial_tangent_vec=gs.array(initial_tangent_vec),
-        )(t)
-        self.assertAllClose(SPDMatrices(n).belongs(point), gs.array(True))
 
 
 class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
