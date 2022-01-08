@@ -46,7 +46,7 @@ class SinfSpaceMetric(RiemannianMetric):
         """
 
         def _f(v1, v2):
-            return np.trapz(v1 * v2, x=self.x)
+            return gs.cast(np.trapz(v1 * v2, x=self.x), gs.float32)
 
         inner_prod = gs.vectorize(
             (tangent_vec_a, tangent_vec_b),
@@ -77,8 +77,8 @@ class SinfSpaceMetric(RiemannianMetric):
 
         def _f(v, p):
             norm_v = self.norm(v)
-            t1 = np.cos(norm_v) * p
-            t2 = (np.sin(norm_v) / norm_v) * p
+            t1 = gs.cos(norm_v) * p
+            t2 = (gs.sin(norm_v) / norm_v) * p
             return t1 + t2
 
         out = gs.vectorize(
@@ -109,8 +109,8 @@ class SinfSpaceMetric(RiemannianMetric):
         """
 
         def _f(p0, p1):
-            theta = np.arccos(self.inner_product(p1, p0, p0))
-            return (p1 - p0 * np.cos(theta)) * (theta / np.sin(theta))
+            theta = gs.arccos(self.inner_product(p1, p0, base_point=None))
+            return (p1 - p0 * gs.cos(theta)) * (theta / gs.sin(theta))
 
         out = gs.vectorize(
             (base_point, point),
