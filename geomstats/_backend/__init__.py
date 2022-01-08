@@ -1,3 +1,8 @@
+"""Execution backends.
+
+Lead authors: Johan Mathe and Niklas Koep.
+"""
+
 import logging
 import os
 import sys
@@ -89,6 +94,7 @@ BACKEND_ATTRIBUTES = {
         "polygamma",
         "power",
         "prod",
+        "ravel_tril_indices",
         "real",
         "repeat",
         "reshape",
@@ -114,9 +120,12 @@ BACKEND_ATTRIBUTES = {
         "trace",
         "transpose",
         "tril",
+        "triu",
         "tril_indices",
         "triu_indices",
+        "tril_to_vec",
         "triu_to_vec",
+        "vec_to_diag",
         "unique",
         "vectorize",
         "vstack",
@@ -133,9 +142,11 @@ BACKEND_ATTRIBUTES = {
         "eigvalsh",
         "expm",
         "inv",
+        "is_single_matrix_pd",
         "logm",
         "norm",
         "qr",
+        "quadratic_assignment",
         "solve",
         "solve_sylvester",
         "sqrtm",

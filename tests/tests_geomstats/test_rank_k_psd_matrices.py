@@ -4,7 +4,6 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
-import tests.helper as helper
 from geomstats.geometry.rank_k_psd_matrices import PSDMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 

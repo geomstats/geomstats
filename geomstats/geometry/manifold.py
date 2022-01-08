@@ -2,6 +2,8 @@
 
 In other words, a topological space that locally resembles
 Euclidean space near each point.
+
+Lead author: Nina Miolane.
 """
 
 import abc

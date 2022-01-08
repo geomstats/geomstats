@@ -1,10 +1,12 @@
 """The n-dimensional hyperbolic space.
 
 The n-dimensional hyperbolic space with Poincare ball model.
+
+Lead author: Hadi Zaatiti.
 """
+
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-import geomstats.vectorization
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean

@@ -1,6 +1,8 @@
 """Testing class for geomstats.
 
 This class abstracts the backend type.
+
+Lead authors: Johan Mathe and Saiteja Utpala.
 """
 
 import os

@@ -2,6 +2,8 @@
 
 The n-dimensional hypersphere embedded in (n+1)-dimensional
 Euclidean space.
+
+Lead author: Nina Miolane.
 """
 
 import logging

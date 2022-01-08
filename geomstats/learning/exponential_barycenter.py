@@ -1,4 +1,7 @@
-"""Exponential barycenter."""
+"""Exponential barycenter.
+
+Lead author: Nicolas Guigui.
+"""
 
 import logging
 

@@ -1,4 +1,7 @@
-"""Left- and right- invariant metrics that exist on Lie groups."""
+"""Left- and right- invariant metrics that exist on Lie groups.
+
+Lead authors: Nicolas Guigui and Nina Miolane.
+"""
 
 import geomstats.backend as gs
 import geomstats.errors

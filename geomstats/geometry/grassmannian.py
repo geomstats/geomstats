@@ -4,6 +4,8 @@ Manifold of linear subspaces.
 The Grassmannian :math:`Gr(n, k)` is the manifold of k-dimensional
 subspaces in n-dimensional Euclidean space.
 
+Lead author: Olivier Peltre.
+
 :math:`Gr(n, k)` is represented by
 :math:`n \times n` matrices
 of rank :math:`k`  satisfying :math:`P^2 = P` and :math:`P^T = P`.
@@ -77,6 +79,84 @@ def submersion(point, k):
     row_1 = gs.concatenate([first, gs.zeros_like(b)], axis=-1)
     row_2 = gs.concatenate([Matrices.transpose(gs.zeros_like(b)), second], axis=-1)
     return gs.concatenate([row_1, row_2], axis=-2)
+
+
+def _squared_dist_grad_point_a(point_a, point_b, metric):
+    """Compute gradient of squared_dist wrt point_a.
+
+    Compute the Riemannian gradient of the squared geodesic
+    distance with respect to the first point point_a.
+
+    Parameters
+    ----------
+    point_a : array-like, shape=[..., dim]
+        Point.
+    point_b : array-like, shape=[..., dim]
+        Point.
+    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+        Metric defining the distance.
+
+    Returns
+    -------
+    _ : array-like, shape=[..., dim]
+        Riemannian gradient, in the form of a tangent
+        vector at base point : point_a.
+    """
+    return -2 * metric.log(point_b, point_a)
+
+
+def _squared_dist_grad_point_b(point_a, point_b, metric):
+    """Compute gradient of squared_dist wrt point_b.
+
+    Compute the Riemannian gradient of the squared geodesic
+    distance with respect to the second point point_b.
+
+    Parameters
+    ----------
+    point_a : array-like, shape=[..., dim]
+        Point.
+    point_b : array-like, shape=[..., dim]
+        Point.
+    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+        Metric defining the distance.
+
+    Returns
+    -------
+    _ : array-like, shape=[..., dim]
+        Riemannian gradient, in the form of a tangent
+        vector at base point : point_b.
+    """
+    return -2 * metric.log(point_a, point_b)
+
+
+@gs.autodiff.custom_gradient(_squared_dist_grad_point_a, _squared_dist_grad_point_b)
+def _squared_dist(point_a, point_b, metric):
+    """Compute geodesic distance between two points.
+
+    Compute the squared geodesic distance between point_a
+    and point_b, as defined by the metric.
+
+    This is an auxiliary private function that:
+    - is called by the method `squared_dist` of the class
+    SpecialEuclideanMatrixCannonicalLeftMetric,
+    - has been created to support the implementation
+    of custom_gradient in tensorflow backend.
+
+    Parameters
+    ----------
+    point_a : array-like, shape=[..., dim]
+        Point.
+    point_b : array-like, shape=[..., dim]
+        Point.
+    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+        Metric defining the distance.
+
+    Returns
+    -------
+    _ : array-like, shape=[...,]
+        Geodesic distance between point_a and point_b.
+    """
+    return metric.private_squared_dist(point_a, point_b)
 
 
 class Grassmannian(LevelSet):
@@ -328,10 +408,55 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
                     “A Grassmann Manifold Handbook: Basic Geometry and
                     Computational Aspects.”
                     ArXiv:2011.13699 [Cs, Math], November 27, 2020.
-                    http://arxiv.org/abs/2011.13699.
+                    https://arxiv.org/abs/2011.13699.
 
         """
         expm = gs.linalg.expm
         mul = Matrices.mul
         rot = Matrices.bracket(base_point, -tangent_vec_b)
         return mul(expm(rot), tangent_vec_a, expm(-rot))
+
+    def private_squared_dist(self, point_a, point_b):
+        """Compute geodesic distance between two points.
+
+        Compute the squared geodesic distance between point_a
+        and point_b, as defined by the metric.
+
+        This is an auxiliary private function that:
+        - is called by the method `squared_dist` of the class
+        GrassmannianCanonicalMetric,
+        - has been created to support the implementation
+        of custom_gradient in tensorflow backend.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        _ : array-like, shape=[...,]
+            Geodesic distance between point_a and point_b.
+        """
+        dist = super().squared_dist(point_a, point_b)
+        return dist
+
+    def squared_dist(self, point_a, point_b, **kwargs):
+        """Squared geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[...,]
+            Squared distance.
+        """
+        dist = _squared_dist(point_a, point_b, metric=self)
+        return dist

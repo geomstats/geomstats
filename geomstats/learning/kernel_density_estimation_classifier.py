@@ -1,4 +1,7 @@
-"""The kernel density estimation classifier on manifolds."""
+"""The kernel density estimation classifier on manifolds.
+
+Lead author: Yann Cabanes.
+"""
 
 import math
 

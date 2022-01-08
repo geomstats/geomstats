@@ -866,6 +866,17 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, skew)
 
+    def test_sylvester_solve_psd(self):
+        psd = gs.array([[1.0, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.0]])
+
+        mat = gs.random.rand(3, 3)
+        skew = mat - gs.transpose(mat)
+        solution = gs.linalg.solve_sylvester(psd, psd, skew)
+        result = gs.matmul(psd, solution)
+        result += gs.matmul(solution, psd)
+
+        self.assertAllClose(result, skew)
+
     @geomstats.tests.np_autograd_and_torch_only
     def test_general_sylvester_solve(self):
         a = gs.array([[-3.0, -2.0, 0.0], [-1.0, -1.0, 3.0], [3.0, -5.0, -1.0]])
@@ -898,6 +909,12 @@ class TestBackends(geomstats.tests.TestCase):
         mat = SPDMatrices(3).random_point(2)
         result = gs.linalg.cholesky(mat)
         expected = _np.linalg.cholesky(mat)
+        self.assertAllClose(result, expected)
+
+    def test_triu(self):
+        mat = gs.array([[2.0, 1.0, 1.0], [1.0, -1.5, 2.0], [-1.0, 10.0, 2.0]])
+        result = gs.triu(mat)
+        expected = gs.array([[2.0, 1.0, 1.0], [0.0, -1.5, 2.0], [0.0, 0.0, 2.0]])
         self.assertAllClose(result, expected)
 
     def test_mat_from_diag_triu_tril(self):
@@ -940,6 +957,23 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.prod(vec)
         expected = gs.cumprod(vec)[-1]
         self.assertAllClose(result, expected)
+
+    def test_is_single_matrix_pd(self):
+        pd = gs.eye(3)
+        not_pd_1 = -1 * gs.eye(3)
+        not_pd_2 = gs.ones((3, 3))
+
+        pd_result = gs.linalg.is_single_matrix_pd(pd)
+        not_pd_1_result = gs.linalg.is_single_matrix_pd(not_pd_1)
+        not_pd_2_result = gs.linalg.is_single_matrix_pd(not_pd_2)
+
+        pd_expected = gs.array(True)
+        not_pd_1_expected = gs.array(False)
+        not_pd_2_expected = gs.array(False)
+
+        self.assertAllClose(pd_expected, pd_result)
+        self.assertAllClose(not_pd_1_expected, not_pd_1_result)
+        self.assertAllClose(not_pd_2_expected, not_pd_2_result)
 
     def test_unique(self):
         vec = gs.array([-1, 0, 1, 1, 0, -1])

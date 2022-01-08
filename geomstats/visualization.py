@@ -1,4 +1,7 @@
-"""Visualization for Geometric Statistics."""
+"""Visualization for Geometric Statistics.
+
+Lead authors: Nina Miolane and Elodie Maignant.
+"""
 import logging
 
 import matplotlib

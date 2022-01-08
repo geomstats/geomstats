@@ -1,10 +1,12 @@
-"""Product of manifolds."""
+"""Product of manifolds.
+
+Lead author: Yann Cabanes.
+"""
 
 import joblib
 
 import geomstats.backend as gs
 import geomstats.errors
-import geomstats.vectorization
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 
