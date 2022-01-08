@@ -1,8 +1,5 @@
 """Unit tests for the functions manifolds."""
 
-import math
-import warnings
-
 import numpy as np
 
 import geomstats.backend as gs
