@@ -508,6 +508,15 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point)
 
+    def test_geodesic_belongs(self, n, initial_point, initial_tangent_vec, t):
+
+        metric = SPDMetricEuclidean(n)
+        point = metric.geodesic(
+            initial_point=gs.array(initial_point),
+            initial_tangent_vec=gs.array(initial_tangent_vec),
+        )(t)
+        self.assertAllClose(SPDMatrices(n).belongs(point), gs.array(True))
+
 
 class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
     class TestDataSPDMetricLogEuclidean(TestData):
@@ -548,6 +557,9 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
         def log_exp_composition_data(self):
             return self._log_exp_composition_data(SPDMatrices)
 
+        def geodesic_belongs_data(self):
+            return self._geodesic_belongs_data(SPDMatrices)
+
     testing_data = TestDataSPDMetricLogEuclidean()
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
@@ -573,18 +585,11 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point)
 
-        initial_point = self.space.random_point()
-        initial_tangent_vec = self.space.random_tangent_vec(
-            n_samples=1, base_point=initial_point
-        )
+    def test_geodesic_belongs(self, n, initial_point, initial_tangent_vec, t):
 
-        metric = self.metric_affine
-        geodesic = metric.geodesic(
-            initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
-        )
-
-        n_points = 10
-        t = gs.linspace(start=0.0, stop=1.0, num=n_points)
-        points = geodesic(t)
-        result = self.space.belongs(points)
-        self.assertTrue(gs.all(result))
+        metric = SPDMetricLogEuclidean(n)
+        point = metric.geodesic(
+            initial_point=gs.array(initial_point),
+            initial_tangent_vec=gs.array(initial_tangent_vec),
+        )(t)
+        self.assertAllClose(SPDMatrices(n).belongs(point), gs.array(True))

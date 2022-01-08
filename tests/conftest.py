@@ -138,7 +138,7 @@ class TestData:
     ):
         """Generate Data that checks for log and exp are inverses. Specifically
 
-            :math: Exp_{base_point}(Log_{base_point}(point)) = point
+            :math: `Exp_{base_point}(Log_{base_point}(point)) = point`
 
 
         Parameters
@@ -167,6 +167,48 @@ class TestData:
                 base_point = space_n.random_point(num_samples)
                 point = space_n.random_point(num_samples)
                 random_data.append((n,) + prod + (point, base_point))
+        return self.generate_tests([], random_data)
+
+    def _geodesic_belongs_data(
+        self, space, max_n=10, n_n=5, n_geodesics=10, n_t=10, **kwargs
+    ):
+        """Generate Data that checks for points on geodesic belongs to data. Specifically
+
+            :math: `Exp_{base_point}(Log_{base_point}(point)) = point`
+
+
+        Parameters
+        ----------
+        space : cls
+            Manifold class that upon which metric is present.
+        max_n : int
+            Range of 'n' to generated.
+            Optional, default: 20
+        num_n : int
+            Number of 'n' to be generated.
+            Optional, default: 5
+        num_samples : int
+            Optional, default: 100
+
+        Returns
+        -------
+        _ : list
+            Test Data.
+        """
+        random_n = random.sample(range(1, max_n), n_n)
+        random_data = []
+        for n in random_n:
+            for prod in itertools.product(*kwargs.values()):
+                space_n_prod = space(n)
+                initial_points = space_n_prod.random_point(n_geodesics)
+                initial_tangent_points = space_n_prod.random_tangent_vec(n_geodesics)
+                random_t = gs.linspace(start=-1.0, stop=1.0, num=n_t)
+                for (initial_point, initial_tangent_point), t in itertools.product(
+                    zip(initial_points, initial_tangent_points), random_t
+                ):
+                    random_data.append(
+                        (n,) + prod + (initial_point, initial_tangent_point, t)
+                    )
         return self.generate_tests([], random_data)
 
 
