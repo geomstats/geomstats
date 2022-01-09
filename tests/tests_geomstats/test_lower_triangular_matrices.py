@@ -4,135 +4,115 @@ import math
 import warnings
 
 import geomstats.backend as gs
-import geomstats.tests
-import tests.helper as helper
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
+from tests.conftest import Parametrizer, TestCase, TestData
 
 
-class TestLowerTriangularMatrices(geomstats.tests.TestCase):
+class TestLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
     """Test of LowerTriangularMatrices methods."""
 
-    def setup_method(self):
-        """Set up the test."""
-        warnings.simplefilter("ignore", category=ImportWarning)
+    space = LowerTriangularMatrices
 
-        gs.random.seed(1234)
-
-        self.n = 3
-        self.space = LowerTriangularMatrices(self.n)
-
-    def test_belongs(self):
-        """Test of belongs method."""
-        mats = gs.array([[1.0, 0.0], [-1.0, 3.0]])
-        result = LowerTriangularMatrices(2).belongs(mats)
-        expected = True
-        self.assertAllClose(result, expected)
-
-        mats = gs.array([[1.0, -1.0], [-1.0, 3.0]])
-        result = LowerTriangularMatrices(2).belongs(mats)
-        expected = False
-        self.assertAllClose(result, expected)
-
-        mats = gs.array([[-1.0, 0.0], [0.0, -3.0]])
-        result = LowerTriangularMatrices(2).belongs(mats)
-        expected = True
-        self.assertAllClose(result, expected)
-
-        mats = gs.eye(3)
-        result = LowerTriangularMatrices(2).belongs(mats)
-        expected = False
-        self.assertAllClose(result, expected)
-
-    def test_belongs_vectorization(self):
-        """Test of belongs method."""
-        mats_2dim = gs.array(
-            [
-                [[1.0, 0], [0, 1.0]],
-                [[1.0, 2.0], [2.0, 1.0]],
-                [[-1.0, 0.0], [1.0, 1.0]],
-                [[0.0, 0.0], [1.0, 1.0]],
+    class TestDataLowerTriangularMatrices(TestData):
+        def belongs_data(self):
+            smoke_data = [
+                dict(n=2, mat=[[1.0, 0.0], [-1.0, 3.0]], expected=True),
+                dict(n=2, mat=[[1.0, -1.0], [-1.0, 3.0]], expected=False),
+                dict(
+                    n=2,
+                    mat=[
+                        [[1.0, 0], [0, 1.0]],
+                        [[1.0, 2.0], [2.0, 1.0]],
+                        [[-1.0, 0.0], [1.0, 1.0]],
+                        [[0.0, 0.0], [1.0, 1.0]],
+                    ],
+                    expected=[True, False, True, True],
+                ),
+                dict(
+                    n=3,
+                    mat=[
+                        [[1.0, 0.0, 1.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                        [[0.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                        [[1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                        [[-1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                    ],
+                    expected=[False, True, True, True],
+                ),
+                dict(n=3, mat=[[1.0, 0.0], [-1.0, 3.0]], expected=False),
             ]
-        )
+            return self.generate_tests(smoke_data)
 
-        mats_3dim = gs.array(
-            [
-                [[1.0, 0.0, 1.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-                [[0.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-                [[1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-                [[-1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+        def random_point_and_belongs(self):
+            smoke_data = [
+                dict(n=1, n_points=1),
+                dict(n=2, n_points=2),
+                dict(n=10, n_points=100),
+                dict(n=100, n_points=10),
             ]
-        )
+            return self.generate_tests(smoke_data)
 
-        result = LowerTriangularMatrices(2).belongs(mats_2dim)
-        expected = gs.array([True, False, True, True])
-        self.assertAllClose(result, expected)
-
-        result = LowerTriangularMatrices(3).belongs(mats_3dim)
-        expected = gs.array([False, True, True, True])
-        self.assertAllClose(result, expected)
-
-    def test_random_point_and_belongs(self):
-        """Test of random_point and belongs methods."""
-        point = self.space.random_point()
-        result = self.space.belongs(point)
-        expected = True
-        self.assertAllClose(result, expected)
-
-    def test_random_point_and_belongs_vectorization(self):
-        """Test of random_point and belongs methods."""
-        points = self.space.random_point(4)
-        result = self.space.belongs(points)
-        expected = gs.array([True] * 4)
-        self.assertAllClose(result, expected)
-
-    def test_to_vector(self):
-        """Test for matrix to vector"""
-        chol_mat = gs.array([[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]])
-        result = self.space.to_vector(chol_mat)
-        expected = gs.array([1.0, 0.6, 7.0, -3.0, 0.0, 8.0])
-        self.assertTrue(gs.allclose(result, expected))
-
-    def test_to_vector_vectorization(self):
-        """Test of to vector function with vectorization."""
-        chol_mat = gs.array(
-            [
-                [[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]],
-                [[2.0, 0.0, 0.0], [2.6, 7.0, 0.0], [-3.0, 0.0, 28.0]],
+        def to_vector_data(self):
+            smoke_data = [
+                dict(
+                    n=3,
+                    mat=[[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]],
+                    expected=[1.0, 0.6, 7.0, -3.0, 0.0, 8.0],
+                ),
+                dict(
+                    n=3,
+                    mat=[
+                        [[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]],
+                        [[2.0, 0.0, 0.0], [2.6, 7.0, 0.0], [-3.0, 0.0, 28.0]],
+                    ],
+                    expected=[
+                        [1.0, 0.6, 7.0, -3.0, 0.0, 8.0],
+                        [2.0, 2.6, 7.0, -3.0, 0.0, 28.0],
+                    ],
+                ),
             ]
-        )
-        result = self.space.to_vector(chol_mat)
-        expected = gs.array(
-            [[1.0, 0.6, 7.0, -3.0, 0.0, 8.0], [2.0, 2.6, 7.0, -3.0, 0.0, 28.0]]
-        )
-        self.assertTrue(gs.allclose(result, expected))
+            return self.generate_tests(smoke_data)
 
-    def test_get_basis(self):
-        """Test of get basis function"""
-        space2 = LowerTriangularMatrices(2)
-        result = space2.get_basis()
-        expected = gs.array(
-            [
-                [[1.0, 0.0], [0.0, 0.0]],
-                [[0.0, 0.0], [1.0, 0.0]],
-                [[0.0, 0.0], [0.0, 1.0]],
+        def get_basis_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    expected=[
+                        [[1.0, 0.0], [0.0, 0.0]],
+                        [[0.0, 0.0], [1.0, 0.0]],
+                        [[0.0, 0.0], [0.0, 1.0]],
+                    ],
+                )
             ]
-        )
-        self.assertAllClose(result, expected)
+            return self.generate_tests(smoke_data)
 
-        space10 = LowerTriangularMatrices(10)
-        result = space10.get_basis()
-        self.assertAllClose(gs.shape(result), (55, 10, 10))
+        def projection_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    point=[[2.0, 1.0], [1.0, 2.0]],
+                    expected=[[2.0, 0.0], [1.0, 2.0]],
+                ),
+                dict(
+                    n=2,
+                    point=[[1.0, 0.0], [0.0, 1.0]],
+                    expected=[[1.0, 0.0], [0.0, 1.0]],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
-    def test_projection(self):
-        """Test of projection function"""
-        point1 = gs.array([[2.0, 1.0], [1.0, 2.0]])
-        point2 = gs.array([[1.0, 0.0], [0.0, 1.0]])
+    testing_data = TestDataLowerTriangularMatrices()
 
-        space2 = LowerTriangularMatrices(2)
-        result = space2.projection(point1)
-        expected = gs.array([[2.0, 0.0], [1.0, 2.0]])
-        self.assertAllClose(result, expected)
+    def test_belongs(self, n, mat, expected):
+        self.assertAllClose(self.space(n).belongs(gs.array(mat)), gs.array(expected))
 
-        result = space2.projection(point2)
-        expected = point2
-        self.assertAllClose(result, expected)
+    def test_random_point_and_belongs(self, n, n_points):
+        self.assertAllClose(gs.all(self.space(n).random_point(n_points)), True)
+
+    def test_to_vector(self, n, mat, expected):
+        self.assertAllClose(self.space(n).to_vector(gs.array(mat)), gs.array(expected))
+
+    def test_get_basis(self, n, expected):
+        self.assertAllClose(self.space(n).get_basis(), gs.array(expected))
+
+    def test_projection_data(self, n, point, expected):
+        self.assertTrue(self.space(n).projection(point), gs.arrray(expected))
