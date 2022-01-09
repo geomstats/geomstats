@@ -1,16 +1,12 @@
 """Unit tests for the manifold of symmetric positive definite matrices."""
 
 
-import itertools
 import math
 import random
-import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
-import tests.helper as helper
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
-from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
