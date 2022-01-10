@@ -15,7 +15,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 class ProductManifold(Manifold):
     """Class for a product of manifolds M_1 x ... x M_n.
 
-    In contrast to the classes NFoldManifolds, Landmarks, or DiscretizedCruves,
+    In contrast to the classes NFoldManifold, Landmarks, or DiscretizedCurves,
     the manifolds M_1, ..., M_n need not be the same, nor of
     same dimension, but the list of manifolds needs to be provided.
 
