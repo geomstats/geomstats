@@ -6,18 +6,20 @@ from tests.conftest import Parametrizer, TestCase, TestData
 
 EYE_2 = [[1.0, 0], [0.0, 1.0]]
 EYE_3 = [[1.0, 0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
-MAT_2_3 = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+MAT_23 = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
 MAT1_33 = [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]]
 MAT2_33 = [[1.0, 2.0, 3.0], [2.0, 4.0, 7.0], [3.0, 5.0, 6.0]]
 MAT3_33 = [[0.0, 1.0, -2.0], [-1.0, 0.0, -3.0], [2.0, 3.0, 0.0]]
 MAT4_33 = [[2.0, -1.0, 0.0], [-1.0, 2.0, 1.0], [0.0, -1.0, 2.0]]
+MAT5_33 = [[2.0, 0.0, 0.0], [1.0, 3.0, 0.0], [8.0, -1.0, 2.0]]
+MAT6_33 = [[1.0, 3.0, 4.0], [0.0, 0.0, 6.0], [0.0, -1.0, 2.0]]
 
 
 class TestMatrices(TestCase, metaclass=Parametrizer):
     class TestDataMatrices(TestData):
         def belongs_data(self):
             sq_mat = EYE_2
-            non_sq_mat = MAT_2_3
+            non_sq_mat = MAT_23
             smoke_data = [
                 dict(m=2, n=2, mat=sq_mat, expected=True),
                 dict(m=2, n=1, mat=sq_mat, expected=False),
@@ -36,8 +38,8 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
                 dict(
                     m=2,
                     n=3,
-                    mat_1=[MAT_2_3, 2 * MAT_2_3],
-                    mat_2=[MAT_2_3, 3 * MAT_2_3],
+                    mat_1=[MAT_23, 2 * MAT_23],
+                    mat_2=[MAT_23, 3 * MAT_23],
                     expected=[True, False],
                 ),
             ]
@@ -64,6 +66,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         def is_symmetric_data(self):
             smoke_data = [
                 dict(mat=EYE_2, expected=True),
+                dict(m=2, n=3, mat=MAT_23, expected=False),
                 dict(mat=[EYE_2, EYE_2 + 1], expected=[True, True]),
                 dict(mat=[MAT1_33, MAT2_33, MAT3_33], expected=[True, False, True]),
             ]
@@ -72,6 +75,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         def is_skew_symmetric_data(self):
             smoke_data = [
                 dict(n=2, mat=EYE_2, expected=False),
+                dict(m=2, n=3, mat=MAT_23, expected=False),
                 dict(n=2, mat=[EYE_2, -1 * EYE_2], expected=[False, False]),
                 dict(n=3, mat=[MAT2_33, MAT3_33], expected=[False, True]),
             ]
@@ -80,6 +84,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         def is_pd(self):
             smoke_data = [
                 dict(n=2, mat=EYE_2, expected=True),
+                dict(m=2, n=3, mat=MAT_23, expected=False),
                 dict(n=2, mat=[EYE_2, -1 * EYE_2], expected=[True, False]),
                 dict(n=3, mat=[MAT2_33, MAT3_33], expected=[False, False]),
                 dict(n=3, mat=[MAT2_33, MAT3_33], expected=[False, False]),
@@ -90,22 +95,42 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             smoke_data = [
                 dict(n=2, mat=EYE_2, expected=True),
                 dict(n=3, mat=MAT4_33, expected=True),
+                dict(m=2, n=3, mat=MAT_23, expected=False),
                 dict(
                     n=2,
                     mat=[EYE_2, -1 * EYE_2, -2 * MAT4_33],
                     expected=[True, False, False],
                 ),
-                dict(n=3, mat=[MAT2_33, MAT3_33], expected=[False, False]),
-                dict(n=3, mat=[MAT2_33, MAT3_33], expected=[False, False]),
+                dict(
+                    n=3, mat=[MAT1_33, MAT2_33, MAT3_33], expected=[False, False, False]
+                ),
             ]
             self.generate_tests(smoke_data)
 
-        def is_upper_triangualr(self):
-            smoke_data = [dict(mat=[])]
+        def is_upper_triangularr(self):
+            smoke_data = [
+                dict(n=2, mat=EYE_2, expected=True),
+                dict(m=2, n=3, mat=MAT_23, expected=False),
+                dict(n=3, mat=MAT5_33, expected=True),
+                dict(
+                    n=3,
+                    mat=[MAT1_33, MAT2_33, MAT3_33, MAT4_33, EYE_3],
+                    expected=[False, False, False, False, True],
+                ),
+            ]
             self.generate_tests(smoke_data)
 
         def is_lower_triangular(self):
-            smoke_data = []
+            smoke_data = [
+                dict(n=2, mat=EYE_2, expected=True),
+                dict(m=2, n=3, mat=MAT_23, expected=False),
+                dict(n=3, mat=MAT5_33, expected=False),
+                dict(
+                    n=3,
+                    mat=[MAT1_33, MAT2_33, MAT3_33, MAT4_33, EYE_3],
+                    expected=[False, False, False, False, True],
+                ),
+            ]
             self.generate_tests(smoke_data)
 
         def is_strictly_lower_triangular(self):
