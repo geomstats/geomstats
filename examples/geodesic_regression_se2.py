@@ -66,9 +66,9 @@ def main():
         metric=METRIC,
         center_X=False,
         method="riemannian",
-        verbose=True,
         max_iter=100,
-        learning_rate=0.1,
+        init_step_size=0.1,
+        verbose=True,
         initialization="frechet",
     )
     gr.fit(X, y, compute_training_score=True)
