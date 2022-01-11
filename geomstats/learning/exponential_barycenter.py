@@ -15,7 +15,13 @@ EPSILON = 1e-6
 
 
 def _default_gradient_descent(
-    group, points, weights=None, max_iter=32, step=1.0, epsilon=EPSILON, verbose=False
+    group,
+    points,
+    weights=None,
+    max_iter=32,
+    init_step_size=1.0,
+    epsilon=EPSILON,
+    verbose=False,
 ):
     """Compute the (weighted) group exponential barycenter of `points`.
 
@@ -35,7 +41,7 @@ def _default_gradient_descent(
         Tolerance to reach convergence. The exstrinsic norm of the
         gradient is used as criterion.
         Optional, default: 1e-6.
-    step : float
+    init_step_size : float
         Learning rate in the gradient descent.
         Optional, default: 1.
     verbose : bool
@@ -69,7 +75,9 @@ def _default_gradient_descent(
         inv_mean = group.inverse(mean)
         centered_points = group.compose(inv_mean, points)
         logs = group.log(point=centered_points)
-        tangent_mean = step * gs.einsum("n, nk...->k...", weights / sum_weights, logs)
+        tangent_mean = init_step_size * gs.einsum(
+            "n, nk...->k...", weights / sum_weights, logs
+        )
         mean_next = group.compose(mean, group.exp(tangent_vec=tangent_mean))
 
         grad_norm = gs.linalg.norm(tangent_mean)
@@ -103,7 +111,7 @@ class ExponentialBarycenter(BaseEstimator):
         Tolerance to reach convergence. The exstrinsic norm of the
         gradient is used as criterion.
         Optional, default: 1e-6.
-    step : float
+    init_step_size : float
         Learning rate in the gradient descent.
         Optional, default: 1.
     verbose : bool
@@ -120,7 +128,7 @@ class ExponentialBarycenter(BaseEstimator):
         group,
         max_iter=32,
         epsilon=EPSILON,
-        step=1.0,
+        init_step_size=1.0,
         point_type=None,
         verbose=False,
     ):
@@ -128,7 +136,7 @@ class ExponentialBarycenter(BaseEstimator):
         self.max_iter = max_iter
         self.epsilon = epsilon
         self.verbose = verbose
-        self.step = step
+        self.init_step_size = init_step_size
         self.point_type = point_type
         self.estimate_ = None
 
@@ -160,12 +168,12 @@ class ExponentialBarycenter(BaseEstimator):
 
         else:
             mean = _default_gradient_descent(
+                group=self.group,
                 points=X,
                 weights=weights,
-                group=self.group,
                 max_iter=self.max_iter,
+                init_step_size=self.init_step_size,
                 epsilon=self.epsilon,
-                step=self.step,
                 verbose=self.verbose,
             )
         self.estimate_ = mean

@@ -1,6 +1,6 @@
 """Product of manifolds.
 
-Lead author: Yann Cabanes.
+Lead author: Nicolas Guigui.
 """
 
 import joblib
