@@ -90,6 +90,11 @@ Special Orthogonal Group
 .. automodule:: geomstats.geometry.special_orthogonal
    :members:
 
+Graph Space
+-----------
+.. automodule:: geomstats.geometry.graphspace
+   :members:
+
 Grassmannian Manifold
 ---------------------
 .. automodule:: geomstats.geometry.grassmannian
@@ -104,6 +109,16 @@ Poincare Polydisk Space
 -----------------------
 .. automodule:: geomstats.geometry.poincare_polydisk
    :members:
+
+Lower Triangular Matrices
+-------------------------
+.. automodule:: geomstats.geometry.lower_triangular_matrices
+   :members:
+
+Positive Lower Triangular Matrices
+----------------------------------
+.. automodule:: geomstats.geometry.postive_lower_triangular_matrices
+   :members
 
 
 Metrics
@@ -122,6 +137,11 @@ Product Riemannian Metric
 Invariant Metric
 ----------------
 .. automodule:: geomstats.geometry.invariant_metric
+   :members:
+
+Sub Riemannian Metric
+---------------------
+.. automodule:: geomstats.geometry.sub_riemannian_metric
    :members:
 
 
