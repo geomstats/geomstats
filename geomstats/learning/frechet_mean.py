@@ -406,7 +406,7 @@ def _circle_variances(mean, var, n_samples, points):
         Data set of ordered angles.
 
     References
-    ---------
+    ----------
     ..[HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
                  Uniqueness, locus and asymptotics", Annals of the Institute of
                  Statistical Mathematics 67 (1), 177–193.
