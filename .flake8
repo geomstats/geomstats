@@ -7,7 +7,9 @@ import_order_style = smarkets
 max-line-length = 88
 extend-ignore = E203
 per-file-ignores =
-    geomstats/_backend/autograd/__init__.py:F401, D103
-    geomstats/_backend/numpy/__init__.py:F401, D103
-    geomstats/_backend/pytorch/__init__.py:F401, D103
-    geomstats/_backend/tensorflow/__init__.py:F401, D103
+    geomstats/_backend/autograd/*:F401, D103
+    geomstats/_backend/numpy/*:F401, D103
+    geomstats/_backend/pytorch/*:F401, D103
+    geomstats/_backend/tensorflow/*:F401, D103
+    geomstats/visualization.py: D101, D102
+    geomstats/tests.py : D101, D102

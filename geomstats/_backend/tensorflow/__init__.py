@@ -846,7 +846,6 @@ def tile(x, multiples):
 
 
 def vec_to_diag(vec):
-    """Convert vec to diagonal matrix"""
     return tf.linalg.diag(vec)
 
 
@@ -854,7 +853,7 @@ def vec_to_triu(vec):
     """Take vec and forms strictly upper triangular matrix.
 
     Parameters
-    ---------
+    ----------
     vec : array_like, shape[..., n]
 
     Returns
