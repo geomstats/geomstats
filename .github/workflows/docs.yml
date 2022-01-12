@@ -30,7 +30,10 @@ jobs:
             pip install -q -r $req
           done
           pip install -e .
-          apt-get update -y && apt-get -y install pandoc
+
+      - name: Install Pandoc [apt-get]
+        run: |
+          sudo apt-get update -y && sudo apt-get -y install pandoc
 
       - name: Generate Docs [Sphinx]
         run: |
