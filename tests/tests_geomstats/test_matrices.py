@@ -1,5 +1,5 @@
 import geomstats.backend as gs
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 from tests.conftest import Parametrizer, TestCase, TestData
 
 EYE_2 = [[1.0, 0], [0.0, 1.0]]
@@ -59,9 +59,29 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def commutator_data(self):
-            smoke_data = []
+        def bracket_data(self):
+            smoke_data = [
+                dict(
+                    mat_a=([[1.0, 2.0], [3.0, 4.0]]),
+                    mat_b=([[1.0, 2.0], [3.0, 4.0]]),
+                    expected=[[0.0, 0.0], [0.0, 0.0]],
+                ),
+                dict(
+                    mat_a=[[[1.0, 2.0], [3.0, 4.0]], [[1.0, 2.0], [0.0, 1.0]]],
+                    mat_b=[[[2.0, 4.0], [5.0, 4.0]], [[1.0, 4.0], [5.0, 4.0]]],
+                    expected=[[[-2.0, -8.0], [9.0, 2.0]], [[10.0, 6.0], [0.0, -10.0]]],
+                ),
+            ]
             return self.generate_tests(smoke_data)
+
+        def congruent_data(self):
+            pass
+
+        def frobenius_product_data(self):
+            pass
+
+        def trace_product(self):
+            pass
 
         def is_symmetric_data(self):
             smoke_data = [
@@ -287,6 +307,11 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
     def test_mul(self, mat, expected):
         self.assertAllClose(Matrices.mul(mat), expected)
 
+    def test_bracket(self, mat_a, mat_b, expected):
+        self.assertAllClose(
+            Matrices.bracket(gs.array(mat_a), gs.array(mat_b)), gs.array(expected)
+        )
+
     def test_commutator(self, mat_a, mat_b, expected):
         self.assertAllClose(Matrices.commutator(mat_a, mat_b), expected)
 
@@ -359,4 +384,30 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         self.assertAllClose(
             Matrices(m, n).to_lower_triangular_diagonal_scaled(gs.array(mat)),
             gs.array(expected),
+        )
+
+
+class TestMatricesMetric(TestCase, metaclass=Parametrizer):
+    cls = MatricesMetric
+
+    class TestDataMatricesMetric(TestData):
+        def inner_product_data(self):
+            smoke_data = []
+            return self.generate_tests(smoke_data)
+
+        def norm_data(self):
+            smoke_data = []
+            return self.generate_tests(smoke_data)
+
+    testing_data = TestDataMatricesMetric()
+
+    def test_inner_product(self):
+        pass
+
+    def test_norm(self):
+        pass
+
+    def test_inner_product_norm(self, m, n, mat):
+        self.assertAllClose(
+            self.cls(m, n).inner_product(mat, mat), self.cls(m, n).norm(mat)
         )
