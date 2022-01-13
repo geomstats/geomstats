@@ -75,13 +75,49 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def congruent_data(self):
-            pass
+            smoke_data = [
+                dict(
+                    mat_1=[[1.0, 0.0], [2.0, -2]],
+                    mat_2=[[0.0, -2.0], [2.0, -3]],
+                    expected=[[-8.0, -20.0], [-12.0, -26.0]],
+                ),
+                dict(
+                    mat_1=[[[0.0, 1.0], [2.0, -2]], [[1.0, 0.0], [0.0, -1]]],
+                    mat_2=[[[1.0, -2.0], [2.0, -3]], [[0.0, 0.0], [-1.0, -3]]],
+                    expected=[[[-10.0, 0.0], [-4.0, 0.0]], [[0.0, 0.0], [0.0, -8.0]]],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
         def frobenius_product_data(self):
-            pass
+            smoke_data = [
+                dict(
+                    mat_a=[[[1.0, -2.0], [1.0, 4.0]], [[1.0, 2.0], [0.0, -3.0]]],
+                    mat_b=[[[0.0, 4.0], [2.0, 4.0]], [[1.0, -1.0], [5.0, 4.0]]],
+                    expected=[10.0, -13.0],
+                ),
+                dict(
+                    mat_a=[[5.0, 8.0], [2.0, 2.0]],
+                    mat_b=[[0.0, 0.25], [0.5, 2.0]],
+                    expected=7.0,
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
         def trace_product(self):
-            pass
+            smoke_data = [
+                dict(
+                    mat_a=[[-2.0, 0.0], [1.0, 2.0]],
+                    mat_b=[[0.0, 1.0], [2.0, -2.0]],
+                    expected=-3.0,
+                ),
+                dict(
+                    mat_a=[[[-5.0, 0.0], [-2.0, 0.0]], [[-2.0, 1.0], [-5.0, -6.0]]],
+                    mat_b=[[[6.0, 5.0], [-3.0, -2.0]], [[-2.0, 0.0], [4.0, -6.0]]],
+                    expected=[-40.0, 44.0],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
         def is_symmetric_data(self):
             smoke_data = [
@@ -312,8 +348,20 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             Matrices.bracket(gs.array(mat_a), gs.array(mat_b)), gs.array(expected)
         )
 
-    def test_commutator(self, mat_a, mat_b, expected):
-        self.assertAllClose(Matrices.commutator(mat_a, mat_b), expected)
+    def test_congruent(self, mat_a, mat_b, expected):
+        self.assertAllClose(
+            Matrices.congruent(gs.array(mat_a), gs.array(mat_b)), gs.array(expected)
+        )
+
+    def test_frobenius_product(self, mat_a, mat_b, expected):
+        self.assertAllClose(
+            Matrices.congruent(gs.array(mat_a), gs.array(mat_b)), gs.array(expected)
+        )
+
+    def test_trace_product(self, mat_a, mat_b, expected):
+        self.assertAllClose(
+            Matrices.congruent(gs.array(mat_a), gs.array(mat_b)), gs.array(expected)
+        )
 
     def test_is_symmetric(self, m, n, mat, expected):
         self.assertAllClose(
@@ -409,5 +457,5 @@ class TestMatricesMetric(TestCase, metaclass=Parametrizer):
 
     def test_inner_product_norm(self, m, n, mat):
         self.assertAllClose(
-            self.cls(m, n).inner_product(mat, mat), self.cls(m, n).norm(mat)
+            self.cls(m, n).inner_product(mat, mat), gs.pow(self.cls(m, n).norm(mat), 2)
         )
