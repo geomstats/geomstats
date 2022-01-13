@@ -1,7 +1,5 @@
 import geomstats.backend as gs
-import geomstats.tests
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.spd_matrices import SPDMatrices
 from tests.conftest import Parametrizer, TestCase, TestData
 
 EYE_2 = [[1.0, 0], [0.0, 1.0]]
@@ -65,54 +63,64 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
 
         def is_symmetric_data(self):
             smoke_data = [
-                dict(mat=EYE_2, expected=True),
+                dict(m=2, n=2, mat=EYE_2, expected=True),
                 dict(m=2, n=3, mat=MAT_23, expected=False),
-                dict(mat=[EYE_2, EYE_2 + 1], expected=[True, True]),
-                dict(mat=[MAT1_33, MAT2_33, MAT3_33], expected=[True, False, True]),
+                dict(m=2, n=2, mat=[EYE_2, EYE_2 + 1], expected=[True, True]),
+                dict(
+                    m=3,
+                    n=3,
+                    mat=[MAT1_33, MAT2_33, MAT3_33],
+                    expected=[True, False, True],
+                ),
             ]
             self.generate_tests(smoke_data)
 
         def is_skew_symmetric_data(self):
             smoke_data = [
-                dict(n=2, mat=EYE_2, expected=False),
+                dict(m=2, n=2, mat=EYE_2, expected=False),
                 dict(m=2, n=3, mat=MAT_23, expected=False),
-                dict(n=2, mat=[EYE_2, -1 * EYE_2], expected=[False, False]),
-                dict(n=3, mat=[MAT2_33, MAT3_33], expected=[False, True]),
+                dict(m=2, n=2, mat=[EYE_2, -1 * EYE_2], expected=[False, False]),
+                dict(m=3, n=3, mat=[MAT2_33, MAT3_33], expected=[False, True]),
             ]
             self.generate_tests(smoke_data)
 
         def is_pd(self):
             smoke_data = [
-                dict(n=2, mat=EYE_2, expected=True),
+                dict(m=2, n=2, mat=EYE_2, expected=True),
                 dict(m=2, n=3, mat=MAT_23, expected=False),
-                dict(n=2, mat=[EYE_2, -1 * EYE_2], expected=[True, False]),
-                dict(n=3, mat=[MAT2_33, MAT3_33], expected=[False, False]),
-                dict(n=3, mat=[MAT2_33, MAT3_33], expected=[False, False]),
+                dict(m=2, n=2, mat=[EYE_2, -1 * EYE_2], expected=[True, False]),
+                dict(m=3, n=3, mat=[MAT2_33, MAT3_33], expected=[False, False]),
+                dict(m=3, n=3, mat=[MAT2_33, MAT3_33], expected=[False, False]),
             ]
             self.generate_tests(smoke_data)
 
         def is_spd(self):
             smoke_data = [
-                dict(n=2, mat=EYE_2, expected=True),
-                dict(n=3, mat=MAT4_33, expected=True),
+                dict(m=3, n=2, mat=EYE_2, expected=True),
+                dict(m=3, n=3, mat=MAT4_33, expected=True),
                 dict(m=2, n=3, mat=MAT_23, expected=False),
                 dict(
+                    m=2,
                     n=2,
                     mat=[EYE_2, -1 * EYE_2, -2 * MAT4_33],
                     expected=[True, False, False],
                 ),
                 dict(
-                    n=3, mat=[MAT1_33, MAT2_33, MAT3_33], expected=[False, False, False]
+                    m=3,
+                    n=3,
+                    mat=[MAT1_33, MAT2_33, MAT3_33],
+                    expected=[False, False, False],
                 ),
             ]
             self.generate_tests(smoke_data)
 
         def is_upper_triangularr(self):
             smoke_data = [
-                dict(n=2, mat=EYE_2, expected=True),
+                dict(m=2, n=2, mat=EYE_2, expected=True),
                 dict(m=2, n=3, mat=MAT_23, expected=False),
-                dict(n=3, mat=MAT5_33, expected=True),
+                dict(m=3, n=3, mat=MAT5_33, expected=True),
                 dict(
+                    m=3,
                     n=3,
                     mat=[MAT1_33, MAT2_33, MAT3_33, MAT4_33, EYE_3],
                     expected=[False, False, False, False, True],
@@ -122,10 +130,11 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
 
         def is_lower_triangular(self):
             smoke_data = [
-                dict(n=2, mat=EYE_2, expected=True),
+                dict(m=2, n=2, mat=EYE_2, expected=True),
                 dict(m=2, n=3, mat=MAT_23, expected=False),
-                dict(n=3, mat=MAT5_33, expected=False),
+                dict(m=3, n=3, mat=MAT5_33, expected=False),
                 dict(
+                    m=3,
                     n=3,
                     mat=[MAT1_33, MAT2_33, MAT3_33, MAT4_33, EYE_3],
                     expected=[False, False, False, False, True],
@@ -155,36 +164,40 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
     def test_commutator(self, mat_a, mat_b, expected):
         self.assertAllClose(Matrices.commutator(mat_a, mat_b), expected)
 
-    def is_symmetric_data(self):
-        pass
+    def test_is_symmetric(self, m, n, mat, expected):
+        self.assertAllClose(
+            Matrices(m, n).is_symmetric(gs.array(mat)), gs.array(expected)
+        )
 
-    def is_skew_symmetric_data(self):
-        smoke_data = []
-        self.generate_tests(smoke_data)
+    def test_is_skew_symmetric(self, m, n, mat, expected):
+        self.assertAllClose(
+            Matrices(m, n).is_skew_symmetric(gs.array(mat)), gs.array(expected)
+        )
 
-    def is_pd(self):
-        smoke_data = []
-        self.generate_tests(smoke_data)
+    def test_is_pd(self, m, n, mat, expected):
+        self.assertAllClose(Matrices(m, n).is_pd(gs.array(mat)), gs.array(expected))
 
-    def is_spd(self):
-        smoke_data = []
-        self.generate_tests(smoke_data)
+    def test_is_spd(self, m, n, mat, expected):
+        self.assertAllClose(Matrices(m, n).is_spd(gs.array(mat)), gs.array(expected))
 
-    def is_upper_triangualr(self):
-        smoke_data = []
-        self.generate_tests(smoke_data)
+    def test_is_upper_triangualr(self, m, n, mat, expected):
+        self.assertAllClose(
+            Matrices(m, n).is_upper_triangular(gs.array(mat)), gs.array(expected)
+        )
 
-    def is_lower_triangular(self):
-        smoke_data = []
-        self.generate_tests(smoke_data)
+    def test_is_lower_triangular(self, m, n, mat, expected):
+        self.assertAllClose(
+            Matrices(m, n).is_lower_triangular(gs.array(mat)), gs.array(expected)
+        )
 
-    def is_strictly_lower_triangular(self):
-        smoke_data = []
-        self.generate_tests(smoke_data)
+    def test_is_strictly_lower_triangular(self, m, n, mat, expected):
+        self.assertAllClose(
+            Matrices(m, n).is_strictly_upper_triangular(gs.array(mat)),
+            gs.array(expected),
+        )
 
-    def is_strictly_upper_triangular(self):
-        smoke_data = []
-        self.generate_tests(smoke_data)
-
-    def test_to_matrixtype_belongs(self, matrix_type, points):
-        self.assertAllClose(Matrices.matrix_type(points))
+    def test_is_strictly_upper_triangular(self, m, n, mat, expected):
+        self.assertAllClose(
+            Matrices(m, n).is_strictly_upper_triangular(gs.array(mat)),
+            gs.array(expected),
+        )
