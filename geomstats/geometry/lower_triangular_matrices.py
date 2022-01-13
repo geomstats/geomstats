@@ -1,4 +1,7 @@
-"""The vector space of lower triangular matrices."""
+"""The vector space of lower triangular matrices.
+
+Lead author: Saiteja Utpala.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpace

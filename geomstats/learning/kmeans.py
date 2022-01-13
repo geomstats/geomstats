@@ -1,4 +1,7 @@
-"""K-means clustering."""
+"""K-means clustering.
+
+Lead author: Hadi Zaatiti.
+"""
 
 import logging
 from random import randint
@@ -53,7 +56,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         metric,
         n_clusters=8,
         init="random",
-        lr=1.0,
+        init_step_size=1.0,
         tol=1e-2,
         max_iter=100,
         max_iter_mean=100,
@@ -64,7 +67,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.init = init
         self.metric = metric
         self.tol = tol
-        self.lr = lr
+        self.init_step_size = init_step_size
         self.verbose = verbose
         self.mean_method = mean_method
         self.point_type = metric.default_point_type
@@ -117,10 +120,10 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
                     mean = FrechetMean(
                         metric=self.metric,
-                        method=self.mean_method,
                         max_iter=self.max_iter_mean,
-                        lr=self.lr,
                         point_type=self.point_type,
+                        method=self.mean_method,
+                        init_step_size=self.init_step_size,
                     )
                     mean.fit(fold)
 

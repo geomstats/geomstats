@@ -1,4 +1,8 @@
-"""Riemannian and pseudo-Riemannian metrics."""
+"""Riemannian and pseudo-Riemannian metrics.
+
+Lead author: Nina Miolane.
+"""
+
 from abc import ABC
 
 import joblib
@@ -6,7 +10,6 @@ import joblib
 import geomstats.backend as gs
 import geomstats.geometry as geometry
 from geomstats.geometry.connection import Connection
-from geomstats.integrator import integrate
 
 EPSILON = 1e-4
 N_CENTERS = 10
@@ -24,6 +27,9 @@ class RiemannianMetric(Connection, ABC):
     ----------
     dim : int
         Dimension of the manifold.
+    shape : tuple of int
+        Shape of one element of the manifold.
+        Optional, default : (dim, ).
     signature : tuple
         Signature of the metric.
         Optional, default: None.
@@ -32,9 +38,9 @@ class RiemannianMetric(Connection, ABC):
         Optional, default: 'vector'.
     """
 
-    def __init__(self, dim, signature=None, default_point_type="vector"):
+    def __init__(self, dim, shape=None, signature=None, default_point_type=None):
         super(RiemannianMetric, self).__init__(
-            dim=dim, default_point_type=default_point_type
+            dim=dim, shape=shape, default_point_type=default_point_type
         )
         if signature is None:
             signature = (dim, 0)
@@ -315,8 +321,7 @@ class RiemannianMetric(Connection, ABC):
             shape=[n_samples_a, dim] or [n_samples_a, n_samples_b, dim]
             Geodesic distance between the two points.
         """
-        point_type = self.default_point_type
-        ndim = 1 if point_type == "vector" else 2
+        ndim = len(self.shape)
 
         if point_a.shape[-ndim:] != point_b.shape[-ndim:]:
             raise ValueError("Manifold dimensions not equal")

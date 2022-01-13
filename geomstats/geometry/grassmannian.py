@@ -4,6 +4,8 @@ Manifold of linear subspaces.
 The Grassmannian :math:`Gr(n, k)` is the manifold of k-dimensional
 subspaces in n-dimensional Euclidean space.
 
+Lead author: Olivier Peltre.
+
 :math:`Gr(n, k)` is represented by
 :math:`n \times n` matrices
 of rank :math:`k`  satisfying :math:`P^2 = P` and :math:`P^T = P`.

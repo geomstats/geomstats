@@ -1,5 +1,7 @@
 r"""Integrator functions used when no closed forms are available.
 
+Lead author: Nicolas Guigui.
+
 These are designed for first order ODE written of a variable x and a time
 variable t:
 .. math::
@@ -32,7 +34,7 @@ def euler_step(force, state, time, dt):
     state : array-like, shape=[2, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
-    time ; float
+    time : float
         Time variable.
     dt : float
         Time-step in the integration.
@@ -59,6 +61,8 @@ def symplectic_euler_step(force, state, time, dt):
         time t.
     force : callable
         Vector field that is being integrated.
+    time : float
+        Time variable.
     dt : float
         Time-step in the integration.
 
@@ -82,6 +86,8 @@ def leapfrog_step(force, state, time, dt):
         time t.
     force : callable
         Vector field that is being integrated.
+    time : float
+        Time variable.
     dt : float
         Time-step in the integration.
 
@@ -105,7 +111,7 @@ def rk2_step(force, state, time, dt):
     state : array-like, shape=[2, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
-    time ; float
+    time : float
         Time variable.
     dt : float
         Time-step in the integration.

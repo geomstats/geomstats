@@ -2,6 +2,8 @@
 
 The n-dimensional hyperbolic space embedded with
 the hyperboloid representation (embedded in minkowsky space).
+
+Lead author: Nina Miolane.
 """
 
 import math

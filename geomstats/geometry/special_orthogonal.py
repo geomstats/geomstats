@@ -1,4 +1,7 @@
-"""Exposes the `SpecialOrthogonal` group class."""
+"""Exposes the `SpecialOrthogonal` group class.
+
+Lead authors: Nicolas Guigui and Nina Miolane.
+"""
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
@@ -179,9 +182,9 @@ class _SpecialOrthogonalVectors(LieGroup):
         Optional, default: 0.
     """
 
-    def __init__(self, n, epsilon=0.0):
+    def __init__(self, n, shape, epsilon=0.0):
         dim = n * (n - 1) // 2
-        LieGroup.__init__(self, dim=dim, default_point_type="vector")
+        LieGroup.__init__(self, dim=dim, shape=shape, default_point_type="vector")
 
         self.n = n
         self.epsilon = epsilon
@@ -415,7 +418,9 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialOrthogonal2Vectors, self).__init__(n=2, epsilon=epsilon)
+        super(_SpecialOrthogonal2Vectors, self).__init__(
+            n=2, epsilon=epsilon, shape=(2,)
+        )
 
     def regularize(self, point):
         """Regularize a point to be in accordance with convention.
@@ -580,7 +585,9 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialOrthogonal3Vectors, self).__init__(n=3, epsilon=epsilon)
+        super(_SpecialOrthogonal3Vectors, self).__init__(
+            n=3, shape=(3,), epsilon=epsilon
+        )
 
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.metric = self.bi_invariant_metric

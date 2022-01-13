@@ -1,10 +1,12 @@
-"""Lie groups."""
+"""Lie groups.
+
+Lead author: Nina Miolane.
+"""
 
 import abc
 
 import geomstats.backend as gs
 import geomstats.errors as errors
-import geomstats.geometry.riemannian_metric as riemannian_metric
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
@@ -16,7 +18,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
     """Class for matrix Lie groups."""
 
     def __init__(self, dim, n, lie_algebra=None, **kwargs):
-        super(MatrixLieGroup, self).__init__(dim=dim, **kwargs)
+        super(MatrixLieGroup, self).__init__(dim=dim, shape=(n, n), **kwargs)
         self.lie_algebra = lie_algebra
         self.n = n
         self.left_canonical_metric = InvariantMetric(
@@ -296,9 +298,11 @@ class LieGroup(Manifold, abc.ABC):
         product at the identity.
     """
 
-    def __init__(self, dim, default_point_type="vector", lie_algebra=None, **kwargs):
+    def __init__(
+        self, dim, shape, default_point_type="vector", lie_algebra=None, **kwargs
+    ):
         super(LieGroup, self).__init__(
-            dim=dim, default_point_type=default_point_type, **kwargs
+            dim=dim, shape=shape, default_point_type=default_point_type, **kwargs
         )
 
         self.lie_algebra = lie_algebra
