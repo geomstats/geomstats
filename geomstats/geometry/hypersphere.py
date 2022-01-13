@@ -835,17 +835,30 @@ class HypersphereMetric(RiemannianMetric):
         ----------
         tangent_vec_a : array-like, shape=[..., dim + 1]
             Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the hypersphere.
         tangent_vec_b : array-like, shape=[..., dim + 1]
             Tangent vector at base point, along which the parallel transport
             is computed.
-        base_point : array-like, shape=[..., dim + 1]
-            Point on the hypersphere.
+            Optional, default : None.
+        end_point : array-like, shape=[..., dim + 1]
+            Point on the hypersphere. Point to transport to. Unused if `tangent_vec_b`
+            is given.
+            Optional, default : None.
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., dim + 1]
-            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+            Transported tangent vector at `end_point=exp_(base_point)(tangent_vec_b)`.
         """
+        if tangent_vec_b is None:
+            if end_point is not None:
+                tangent_vec_b = self.log(end_point, base_point)
+            else:
+                raise ValueError(
+                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    " geodesic along which to transport."
+                )
         theta = gs.linalg.norm(tangent_vec_b, axis=-1)
         eps = gs.where(theta == 0.0, 1.0, theta)
         normalized_b = gs.einsum("...,...i->...i", 1 / eps, tangent_vec_b)

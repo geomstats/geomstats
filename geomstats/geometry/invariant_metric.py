@@ -1345,6 +1345,14 @@ class BiInvariantMetric(_InvariantMetricVector):
         transported_tangent_vec: array-like, shape=[..., n, n]
             Transported tangent vector at `end_point=exp_(base_point)(tangent_vec_b)`.
         """
+        if tangent_vec_b is None:
+            if end_point is not None:
+                tangent_vec_b = self.log(end_point, base_point)
+            else:
+                raise ValueError(
+                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    " geodesic along which to transport."
+                )
         midpoint = self.exp(1.0 / 2.0 * tangent_vec_b, base_point)
         transposed = Matrices.transpose(tangent_vec_a)
         transported_vec = Matrices.mul(midpoint, transposed, midpoint)

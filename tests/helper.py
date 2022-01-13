@@ -100,6 +100,10 @@ def test_parallel_transport(space, metric, shape):
     result = is_isometry(tan_vec_a, transported, end_point)
     results.append(gs.all(result))
 
+    transported = metric.parallel_transport(tan_vec_a, base_point, end_point=end_point)
+    result = is_isometry(tan_vec_a, transported, end_point)
+    results.append(gs.all(result))
+
     base_point = base_point[0]
     tan_vec_a = space.to_tangent(tan_vec_a, base_point)
     tan_vec_b = space.to_tangent(tan_vec_b, base_point)
