@@ -34,7 +34,7 @@ def euler_step(force, state, time, dt):
     state : array-like, shape=[2, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
-    time ; float
+    time : float
         Time variable.
     dt : float
         Time-step in the integration.
@@ -61,6 +61,8 @@ def symplectic_euler_step(force, state, time, dt):
         time t.
     force : callable
         Vector field that is being integrated.
+    time : float
+        Time variable.
     dt : float
         Time-step in the integration.
 
@@ -84,6 +86,8 @@ def leapfrog_step(force, state, time, dt):
         time t.
     force : callable
         Vector field that is being integrated.
+    time : float
+        Time variable.
     dt : float
         Time-step in the integration.
 
@@ -107,7 +111,7 @@ def rk2_step(force, state, time, dt):
     state : array-like, shape=[2, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
-    time ; float
+    time : float
         Time variable.
     dt : float
         Time-step in the integration.

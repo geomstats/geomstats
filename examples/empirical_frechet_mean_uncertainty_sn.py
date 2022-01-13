@@ -64,7 +64,7 @@ def empirical_frechet_var_bubble(n_samples, theta, dim, n_expectation=1000):
         data = gs.concatenate([rest_col, last_col], axis=-1)
 
         estimator = FrechetMean(
-            sphere.metric, method="adaptive", max_iter=32, init_point=north_pole
+            sphere.metric, max_iter=32, method="adaptive", init_point=north_pole
         )
         estimator.fit(data)
         current_mean = estimator.estimate_

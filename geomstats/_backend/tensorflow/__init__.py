@@ -603,19 +603,18 @@ def cast(x, dtype):
     return tf.cast(x, dtype)
 
 
-def broadcast_arrays(x, y, **kwargs):
-    tensors = [x, y]
+def broadcast_arrays(*args, **kwargs):
+    tensors = [*args]
     shapes = [t.get_shape().as_list() for t in tensors]
     max_rank = max(len(s) for s in shapes)
 
     for index, value in enumerate(shapes):
-        shape = value
-        if len(shape) == max_rank:
+        if len(value) == max_rank:
             continue
 
         tensor = tensors[index]
-        for _ in range(max_rank - len(shape)):
-            shape.insert(0, 1)
+        for _ in range(max_rank - len(value)):
+            value.insert(0, 1)
             tensor = tf.expand_dims(tensor, axis=0)
         tensors[index] = tensor
 
@@ -625,7 +624,7 @@ def broadcast_arrays(x, y, **kwargs):
         repeats = Counter(dimensions)
         if len(repeats) > 2 or (len(repeats) == 2 and 1 not in list(repeats.keys())):
             raise ValueError(
-                "operands could not be " "broadcast together with shapes", shapes
+                "operands could not be broadcast together with shapes", shapes
             )
         broadcast_shape.append(max(repeats.keys()))
 
@@ -873,8 +872,7 @@ def vec_to_triu(vec):
     non_zero = tf.not_equal(mask, tf.constant(0.0))
     indices = tf.where(non_zero)
     sparse = tf.SparseTensor(indices, values=vec, dense_shape=triu_shape)
-    triu = tf.sparse.to_dense(sparse)
-    return triu
+    return tf.sparse.to_dense(sparse)
 
 
 def vec_to_tril(vec):
@@ -899,8 +897,7 @@ def vec_to_tril(vec):
     non_zero = tf.not_equal(mask, tf.constant(0.0))
     indices = tf.where(non_zero)
     sparse = tf.SparseTensor(indices, values=vec, dense_shape=tril_shape)
-    tril = tf.sparse.to_dense(sparse)
-    return tril
+    return tf.sparse.to_dense(sparse)
 
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
