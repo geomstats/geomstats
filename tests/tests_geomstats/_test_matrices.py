@@ -17,19 +17,6 @@ class TestMatrices(geomstats.tests.TestCase):
         self.n_samples = 2
 
     @geomstats.tests.np_and_autograd_only
-    def test_bracket(self):
-        x = gs.array([[0.0, 0.0, 0.0], [0.0, 0.0, -1.0], [0.0, 1.0, 0.0]])
-        y = gs.array([[0.0, 0.0, 1.0], [0.0, 0.0, 0.0], [-1.0, 0.0, 0.0]])
-        z = gs.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
-        result = self.space.bracket([x, y], [y, z])
-        expected = gs.array([z, x])
-        self.assertAllClose(result, expected)
-
-        result = self.space.bracket(x, [x, y, z])
-        expected = gs.array([gs.zeros((3, 3)), z, -y])
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_autograd_only
     def test_transpose(self):
         tr = self.space.transpose
         ar = gs.array
