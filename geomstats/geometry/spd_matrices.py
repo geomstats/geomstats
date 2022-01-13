@@ -676,7 +676,8 @@ class SPDMetricAffine(RiemannianMetric):
         return log
 
     def parallel_transport(
-            self, tangent_vec_a, tangent_vec_b, base_point, end_point=None):
+        self, tangent_vec_a, base_point, tangent_vec_b=None, end_point=None
+    ):
         r"""Parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
@@ -692,20 +693,21 @@ class SPDMetricAffine(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., dim + 1]
+        tangent_vec_a : array-like, shape=[..., n, n]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[..., dim + 1]
-            Tangent vector at base point, initial speed of the geodesic along
-            which the parallel transport is computed.
-        base_point : array-like, shape=[..., dim + 1]
+        base_point : array-like, shape=[..., n, n]
             Point on the manifold of SPD matrices. Point to transport from
-        end_point : array-like, shape=[..., {dim, [n, m]}]
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector at base point, initial speed of the geodesic along
+            which the parallel transport is computed. Unused if `end_point` is given.
+            Optional, default: None.
+        end_point : array-like, shape=[..., n, n]
             Point on the manifold of SPD matrices. Point to transport to.
-            Optional, default: None
+            Optional, default: None.
 
         Returns
         -------
-        transported_tangent_vec: array-like, shape=[..., dim + 1]
+        transported_tangent_vec: array-like, shape=[..., n, n]
             Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
         if end_point is None:

@@ -419,27 +419,44 @@ class HyperboloidMetric(HyperbolicMetric):
         dist *= self.scale
         return dist
 
-    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the parallel transport of a tangent vector.
+    def parallel_transport(
+        self, tangent_vec_a, base_point, tangent_vec_b=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by exp_(base_point)(tangent_vec_b).
+        along the geodesic between two points `base_point` and `end_point`
+        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        t*tangent_vec_b)`.
 
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., dim + 1]
             Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the hyperboloid.
         tangent_vec_b : array-like, shape=[..., dim + 1]
             Tangent vector at base point, along which the parallel transport
             is computed.
-        base_point : array-like, shape=[..., dim + 1]
-            Point on the hyperboloid.
+            Optional, default : None.
+        end_point : array-like, shape=[..., dim + 1]
+            Point on the hyperboloid. Point to transport to. Unused if `tangent_vec_b`
+            is given.
+            Optional, default : None.
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., dim + 1]
             Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
+        if tangent_vec_b is None:
+            if end_point is not None:
+                tangent_vec_b = self.log(end_point, base_point)
+            else:
+                raise ValueError(
+                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    " geodesic along which to transport."
+                )
         theta = self.embedding_metric.norm(tangent_vec_b)
         eps = gs.where(theta == 0.0, 1.0, theta)
         normalized_b = gs.einsum("...,...i->...i", 1 / eps, tangent_vec_b)

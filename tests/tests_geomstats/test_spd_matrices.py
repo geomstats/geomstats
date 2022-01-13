@@ -389,7 +389,8 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
         tan_b = space.random_tangent_vec(n_samples, point)
         expected = metric.norm(tan_a, point)
         end_point = metric.exp(tan_b, point)
-        transported = metric.parallel_transport(tan_a, tan_b, point)
+
+        transported = metric.parallel_transport(tan_a, point, tan_b)
         result = metric.norm(transported, end_point)
 
         self.assertAllClose(expected, result, gs.atol * 10000)

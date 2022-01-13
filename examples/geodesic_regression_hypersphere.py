@@ -73,8 +73,8 @@ def main():
     tangent_vec_of_transport = METRIC.log(intercept, base_point=intercept_hat)
     transported_coef_hat = METRIC.parallel_transport(
         tangent_vec_a=tangent_vec_to_transport,
-        tangent_vec_b=tangent_vec_of_transport,
         base_point=intercept_hat,
+        tangent_vec_b=tangent_vec_of_transport,
     )
     mse_coef = METRIC.squared_norm(transported_coef_hat - coef, base_point=intercept)
 

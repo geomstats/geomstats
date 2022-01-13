@@ -79,7 +79,7 @@ def main():
     mse_intercept = METRIC.squared_dist(intercept_hat, intercept)
     mse_beta = METRIC.squared_norm(
         METRIC.parallel_transport(
-            beta_hat, METRIC.log(intercept_hat, intercept), intercept_hat
+            beta_hat, intercept_hat, METRIC.log(intercept_hat, intercept)
         )
         - coef,
         intercept,

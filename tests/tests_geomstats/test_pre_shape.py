@@ -754,9 +754,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         tan_b = gs.einsum("...ij,...->...ij", tan_b, 1.0 / metric.norm(tan_b, point))
         tan_a = gs.einsum("...ij,...->...ij", tan_a, 1.0 / metric.norm(tan_a, point))
 
-        transported = metric.parallel_transport(
-            tan_a, tan_b, point, n_steps=150, step="rk4"
-        )
+        transported = metric.parallel_transport(tan_a, point, tan_b)
         end_point = metric.exp(tan_b, point)
         result = metric.norm(transported, end_point)
         expected = metric.norm(tan_a, point)

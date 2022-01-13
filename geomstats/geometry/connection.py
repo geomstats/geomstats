@@ -628,7 +628,8 @@ class Connection(ABC):
         return path
 
     def parallel_transport(
-            self, tangent_vec_a, tangent_vec_b, base_point, end_point=None):
+        self, tangent_vec_a, base_point, tangent_vec_b=None, end_point=None
+    ):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
@@ -640,14 +641,15 @@ class Connection(ABC):
         ----------
         tangent_vec_a : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
-            Tangent vector at base point, along which the parallel transport
-            is computed. Unused if `end_point` is given.
         base_point : array-like, shape=[..., {dim, [n, m]}]
             Point on the manifold. Point to transport from.
+        tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+            Optional, default: None.
         end_point : array-like, shape=[..., {dim, [n, m]}]
             Point on the manifold. Point to transport to.
-            Optional, default: None
+            Optional, default: None.
 
         Returns
         -------

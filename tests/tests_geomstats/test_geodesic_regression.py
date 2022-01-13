@@ -244,8 +244,8 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         transported_coef_hat = self.sphere.metric.parallel_transport(
             tangent_vec_a=coef_hat,
-            tangent_vec_b=tangent_vec_of_transport,
             base_point=intercept_hat,
+            tangent_vec_b=tangent_vec_of_transport,
         )
 
         self.assertAllClose(transported_coef_hat, self.coef_sphere_true, atol=0.6)
@@ -295,8 +295,8 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         transported_coef_hat = self.se2.metric.parallel_transport(
             tangent_vec_a=coef_hat,
-            tangent_vec_b=tangent_vec_of_transport,
             base_point=intercept_hat,
+            tangent_vec_b=tangent_vec_of_transport,
         )
 
         self.assertAllClose(transported_coef_hat, self.coef_se2_true, atol=0.6)
@@ -330,8 +330,8 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         transported_coef_hat = self.sphere.metric.parallel_transport(
             tangent_vec_a=coef_hat,
-            tangent_vec_b=tangent_vec_of_transport,
             base_point=intercept_hat,
+            tangent_vec_b=tangent_vec_of_transport,
         )
 
         self.assertAllClose(transported_coef_hat, self.coef_sphere_true, atol=0.6)
@@ -364,8 +364,8 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         transported_coef_hat = self.se2.metric.parallel_transport(
             tangent_vec_a=coef_hat,
-            tangent_vec_b=tangent_vec_of_transport,
             base_point=intercept_hat,
+            tangent_vec_b=tangent_vec_of_transport,
         )
 
         self.assertAllClose(transported_coef_hat, self.coef_se2_true, atol=0.6)
@@ -398,8 +398,8 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         transported_coef_hat = self.sphere.metric.parallel_transport(
             tangent_vec_a=coef_hat,
-            tangent_vec_b=tangent_vec_of_transport,
             base_point=intercept_hat,
+            tangent_vec_b=tangent_vec_of_transport,
         )
 
         self.assertAllClose(transported_coef_hat, self.coef_sphere_true, atol=0.6)
@@ -433,8 +433,8 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         transported_coef_hat = self.se2.metric.parallel_transport(
             tangent_vec_a=coef_hat,
-            tangent_vec_b=tangent_vec_of_transport,
             base_point=intercept_hat,
+            tangent_vec_b=tangent_vec_of_transport,
         )
 
         self.assertAllClose(transported_coef_hat, self.coef_se2_true, atol=0.6)

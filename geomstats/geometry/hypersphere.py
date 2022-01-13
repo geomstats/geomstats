@@ -637,7 +637,7 @@ class _Hypersphere(LevelSet):
         if mean is not None:
             mean_from_north = metric.log(mean, north_pole)
             tangent_sample_at_pt = metric.parallel_transport(
-                tangent_sample, mean_from_north, north_pole
+                tangent_sample, north_pole, mean_from_north
             )
         else:
             tangent_sample_at_pt = tangent_sample
@@ -821,13 +821,15 @@ class HypersphereMetric(RiemannianMetric):
         """
         return self.dist(point_a, point_b) ** 2
 
-    @staticmethod
-    def parallel_transport(tangent_vec_a, tangent_vec_b, base_point, **kwargs):
+    def parallel_transport(
+        self, tangent_vec_a, base_point, tangent_vec_b=None, end_point=None
+    ):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by :math:`t \mapsto exp_(base_point)(t*
-        tangent_vec_b)`.
+        along the geodesic between two points `base_point` and `end_point`
+        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        t*tangent_vec_b)`.
 
         Parameters
         ----------

@@ -381,7 +381,8 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         return Matrices.bracket(GLn.log(rot) / 2, base_point)
 
     def parallel_transport(
-            self, tangent_vec_a, tangent_vec_b, base_point, end_point=None):
+        self, tangent_vec_a, base_point, tangent_vec_b=None, end_point=None
+    ):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
@@ -393,13 +394,15 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         ----------
         tangent_vec_a : array-like, shape=[..., n, n]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[..., n, n]
-            Tangent vector at base point, along which the parallel transport
-            is computed. Unused if `end_point` is given.
         base_point : array-like, shape=[..., n, n]
             Point on the Grassmann manifold. Point to transport from.
-        end_point : array-like, shape=[..., {dim, [n, m]}]
-            Point on the Grassmann manifold. Point to transport to.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+            Optional, default: None
+        end_point : array-like, shape=[..., n, n]
+            Point on the Grassmann manifold to transport to. Unused if `tangent_vec_b`
+            is given.
             Optional, default: None
 
         Returns
@@ -416,8 +419,14 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
                     https://arxiv.org/abs/2011.13699.
 
         """
-        if end_point is not None:
-            tangent_vec_b_ = self.log(end_point, base_point)
+        if tangent_vec_b is None:
+            if end_point is not None:
+                tangent_vec_b_ = self.log(end_point, base_point)
+            else:
+                raise ValueError(
+                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    " geodesic along which to transport."
+                )
         else:
             tangent_vec_b_ = tangent_vec_b
         expm = gs.linalg.expm
