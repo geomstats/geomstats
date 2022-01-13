@@ -134,6 +134,9 @@ dmypy.json
 # Miscellaneous
 out.mp4
 examples/out.mp4
+notebooks/*.mp4
+notebooks/*.png
+notebooks/*.svg
 
 # Python virtual environment
 venv/
