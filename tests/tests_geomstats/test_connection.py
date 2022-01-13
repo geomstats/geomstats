@@ -113,7 +113,7 @@ class TestConnection(geomstats.tests.TestCase):
                 scheme="pole",
                 n_rungs=1,
                 alpha=0.5,
-            ),
+            )
 
     def test_exp_connection_metric(self):
         point = gs.array([gs.pi / 2, 0])

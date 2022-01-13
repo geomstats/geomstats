@@ -421,17 +421,15 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         """
         if tangent_vec_b is None:
             if end_point is not None:
-                tangent_vec_b_ = self.log(end_point, base_point)
+                tangent_vec_b = self.log(end_point, base_point)
             else:
                 raise ValueError(
                     "Either an end_point or a tangent_vec_b must be given to define the"
                     " geodesic along which to transport."
                 )
-        else:
-            tangent_vec_b_ = tangent_vec_b
         expm = gs.linalg.expm
         mul = Matrices.mul
-        rot = Matrices.bracket(base_point, -tangent_vec_b_)
+        rot = Matrices.bracket(base_point, -tangent_vec_b)
         return mul(expm(rot), tangent_vec_a, expm(-rot))
 
     def private_squared_dist(self, point_a, point_b):
