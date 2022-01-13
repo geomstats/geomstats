@@ -66,7 +66,7 @@ class TestNotebooks(geomstats.tests.TestCase):
     @staticmethod
     @geomstats.tests.np_and_autograd_only
     def test_usecase_cell_shapes_analysis():
-        _exec_notebook("notebooks/usecase_cells_shape_analysis.ipynb")
+        _exec_notebook("notebooks/usecase_cell_shapes_analysis.ipynb")
 
     @staticmethod
     @geomstats.tests.np_and_autograd_only
