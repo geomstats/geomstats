@@ -10,7 +10,9 @@ MAT2_33 = [[1.0, 2.0, 3.0], [2.0, 4.0, 7.0], [3.0, 5.0, 6.0]]
 MAT3_33 = [[0.0, 1.0, -2.0], [-1.0, 0.0, -3.0], [2.0, 3.0, 0.0]]
 MAT4_33 = [[2.0, -1.0, 0.0], [-1.0, 2.0, 1.0], [0.0, -1.0, 2.0]]
 MAT5_33 = [[2.0, 0.0, 0.0], [1.0, 3.0, 0.0], [8.0, -1.0, 2.0]]
-MAT6_33 = [[1.0, 3.0, 4.0], [0.0, 0.0, 6.0], [0.0, -1.0, 2.0]]
+MAT6_33 = [[1.0, 3.0, 4.0], [0.0, 2.0, 6.0], [0.0, 0.0, 2.0]]
+MAT7_33 = [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [8.0, -1.0, 0.0]]
+MAT8_33 = [[0.0, 3.0, 4.0], [0.0, 0.0, 6.0], [0.0, 0.0, 0.0]]
 
 
 class TestMatrices(TestCase, metaclass=Parametrizer):
@@ -118,7 +120,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             smoke_data = [
                 dict(m=2, n=2, mat=EYE_2, expected=True),
                 dict(m=2, n=3, mat=MAT_23, expected=False),
-                dict(m=3, n=3, mat=MAT5_33, expected=True),
+                dict(m=3, n=3, mat=MAT6_33, expected=True),
                 dict(
                     m=3,
                     n=3,
@@ -126,7 +128,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
                     expected=[False, False, False, False, True],
                 ),
             ]
-            self.generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
         def is_lower_triangular(self):
             smoke_data = [
@@ -140,15 +142,139 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
                     expected=[False, False, False, False, True],
                 ),
             ]
-            self.generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
         def is_strictly_lower_triangular(self):
-            smoke_data = []
-            self.generate_tests(smoke_data)
+            smoke_data = [
+                dict(m=2, n=2, mat=EYE_2, expected=False),
+                dict(m=2, n=3, mat=MAT_23, expected=False),
+                dict(m=3, n=3, mat=MAT8_33, expected=True),
+                dict(
+                    m=3,
+                    n=3,
+                    mat=[MAT1_33, MAT2_33, MAT3_33, MAT4_33, MAT5_33, MAT6_33, EYE_3],
+                    expected=[False, False, False, False, False, False, False],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
         def is_strictly_upper_triangular(self):
-            smoke_data = []
-            self.generate_tests(smoke_data)
+            smoke_data = [
+                dict(m=2, n=2, mat=EYE_2, expected=False),
+                dict(m=2, n=3, mat=MAT_23, expected=False),
+                dict(m=3, n=3, mat=MAT7_33, expected=True),
+                dict(
+                    m=3,
+                    n=3,
+                    mat=[MAT1_33, MAT2_33, MAT3_33, MAT4_33, MAT5_33, MAT6_33, EYE_3],
+                    expected=[False, False, False, False, False, False, False],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def to_diagonal_data(self):
+            smoke_data = [
+                dict(
+                    m=2,
+                    n=2,
+                    mat=[[1.0, 2.0], [3.0, 4.0]],
+                    expected=[[1.0, 0.0], [0.0, 4.0]],
+                ),
+                dict(
+                    m=2,
+                    n=2,
+                    mat=[[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]],
+                    expected=[[[1.0, 0.0], [0.0, 4.0]], [[5.0, 0.0], [0.0, 8.0]]],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def to_lower_triangular_data(self):
+            smoke_data = [
+                dict(
+                    m=2,
+                    n=2,
+                    mat=[[1.0, 2.0], [3.0, 4.0]],
+                    expected=[[1.0, 0.0], [3.0, 4.0]],
+                ),
+                dict(
+                    m=2,
+                    n=2,
+                    mat=[[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]],
+                    expected=[[[1.0, 0.0], [3.0, 4.0]], [[5.0, 0.0], [7.0, 8.0]]],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def to_upper_triangular_data(self):
+            smoke_data = [
+                dict(
+                    m=2,
+                    n=2,
+                    mat=[[1.0, 2.0], [3.0, 4.0]],
+                    expected=[[1.0, 2.0], [0.0, 4.0]],
+                ),
+                dict(
+                    m=2,
+                    n=2,
+                    mat=[[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]],
+                    expected=[[[1.0, 2.0], [0.0, 4.0]], [[5.0, 6.0], [0.0, 8.0]]],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def to_strictly_lower_triangular_data(self):
+            smoke_data = [
+                dict(
+                    m=2,
+                    n=2,
+                    mat=[[1.0, 2.0], [3.0, 4.0]],
+                    expected=[[0.0, 0.0], [3.0, 0.0]],
+                ),
+                dict(
+                    m=2,
+                    n=2,
+                    mat=[[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]],
+                    expected=[[[0.0, 0.0], [3.0, 0.0]], [[0.0, 0.0], [7.0, 0.0]]],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def to_strictly_upper_triangular_data(self):
+            smoke_data = [
+                dict(
+                    m=2,
+                    n=2,
+                    mat=[[1.0, 2.0], [3.0, 4.0]],
+                    expected=[[0.0, 2.0], [0.0, 0.0]],
+                ),
+                dict(
+                    m=2,
+                    n=2,
+                    mat=[[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]],
+                    expected=[[[0.0, 2.0], [0.0, 0.0]], [[0.0, 6.0], [0.0, 0.0]]],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def to_lower_triangular_diagonal_scaled_data(self):
+            smoke_data = [
+                dict(
+                    m=2,
+                    n=2,
+                    mat=[[2.0, 2.0], [3.0, 4.0]],
+                    expected=[[1.0, 0.0], [3.0, 2.0]],
+                ),
+                dict(
+                    m=2,
+                    n=2,
+                    mat=[[[2.0, 2.0], [3.0, 4.0]], [[6.0, 6.0], [7.0, 8.0]]],
+                    expected=[[[1.0, 0], [3.0, 2.0]], [[3.0, 0.0], [7.0, 4.0]]],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+    testing_data = TestDataMatrices()
 
     def test_belongs(self, m, n, mat, expected):
         self.assertAllClose(Matrices(m, n).belongs(gs.array(mat)), gs.array(expected))
@@ -199,5 +325,38 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
     def test_is_strictly_upper_triangular(self, m, n, mat, expected):
         self.assertAllClose(
             Matrices(m, n).is_strictly_upper_triangular(gs.array(mat)),
+            gs.array(expected),
+        )
+
+    def test_to_diagonal(self, m, n, mat, expected):
+        self.assertAllClose(
+            Matrices(m, n).to_diagonal(gs.array(mat)), gs.array(expected)
+        )
+
+    def test_to_lower_triangular(self, m, n, mat, expected):
+        self.assertAllClose(
+            Matrices(m, n).to_lower_triangular(gs.array(mat)), gs.array(expected)
+        )
+
+    def test_to_upper_triangular(self, m, n, mat, expected):
+        self.assertAllClose(
+            Matrices(m, n).to_upper_triangular(gs.array(mat)), gs.array(expected)
+        )
+
+    def test_to_strictly_lower_triangular(self, m, n, mat, expected):
+        self.assertAllClose(
+            Matrices(m, n).to_strictly_lower_triangular(gs.array(mat)),
+            gs.array(expected),
+        )
+
+    def test_to_strictly_upper_triangular(self, m, n, mat, expected):
+        self.assertAllClose(
+            Matrices(m, n).to_strictly_upper_triangular(gs.array(mat)),
+            gs.array(expected),
+        )
+
+    def test_to_lower_triangular_diagonal_scaled(self, m, n, mat, expected):
+        self.assertAllClose(
+            Matrices(m, n).to_lower_triangular_diagonal_scaled(gs.array(mat)),
             gs.array(expected),
         )
