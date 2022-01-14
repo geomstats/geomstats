@@ -127,7 +127,9 @@ class TestData:
             tests += smoke_tests
         if random_test_data:
             random_tests = [
-                pytest.param(*data, marks=pytest.mark.random)
+                pytest.param(*data.values(), marks=pytest.mark.random)
+                if isinstance(data, dict)
+                else pytest.param(*data, marks=pytest.mark.random)
                 for data in random_test_data
             ]
             tests += random_tests
@@ -238,7 +240,9 @@ class Parametrizer(type):
     (except class methods and static methods). Two conventions need to be respected:
 
         1.There should be a TestData object named 'testing_data'.
-        2.Every test function should have its corresponding data function inside TestData object.
+        2.Every test function should have its corresponding data function inside
+        TestData object.
+
         Ex. test_exp() should have method called exp_data() inside 'testing_data'."""
 
     def __new__(cls, name, bases, attrs):
