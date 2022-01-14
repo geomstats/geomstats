@@ -45,7 +45,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def mul(self):
+        def mul_dat(self):
             mats_1 = (
                 [[1.0, 2.0], [3.0, 4.0]],
                 [[-1.0, 2.0], [-3.0, 4.0]],
@@ -104,7 +104,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def trace_product(self):
+        def trace_product_data(self):
             smoke_data = [
                 dict(
                     mat_a=[[-2.0, 0.0], [1.0, 2.0]],
@@ -115,6 +115,19 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
                     mat_a=[[[-5.0, 0.0], [-2.0, 0.0]], [[-2.0, 1.0], [-5.0, -6.0]]],
                     mat_b=[[[6.0, 5.0], [-3.0, -2.0]], [[-2.0, 0.0], [4.0, -6.0]]],
                     expected=[-40.0, 44.0],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def flatten_data(self):
+            smoke_data = [
+                dict(m=2, n=2, mat=EYE_2, expected=[1.0, 0.0, 0.0, 1.0]),
+                dict(m=2, n=3, mat=MAT_23, expected=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
+                dict(
+                    m=2,
+                    n=2,
+                    mat=[EYE_2, -1 * EYE_2],
+                    expected=[[1.0, 0.0, 0.0, 1.0], [-1.0, 0.0, 0.0, -1.0]],
                 ),
             ]
             return self.generate_tests(smoke_data)
