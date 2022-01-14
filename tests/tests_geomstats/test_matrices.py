@@ -2,6 +2,8 @@ import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from tests.conftest import Parametrizer, TestCase, TestData
 
+SQRT_2 = gs.sqrt(2)
+
 EYE_2 = [[1.0, 0], [0.0, 1.0]]
 EYE_3 = [[1.0, 0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
 MAT_23 = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
@@ -141,6 +143,27 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
                 dict(m=20, n=10, mat=Matrices(20, 10).random_point(100)),
             ]
             return self.generate_tests([], random_data)
+
+        def diagonal_data(self):
+            smoke_data = [
+                dict(m=2, n=2, mat=EYE_2, expected=[1.0, 1.0]),
+                dict(
+                    m=3,
+                    n=3,
+                    mat=[MAT1_33, MAT3_33],
+                    expected=[[1.0, 4.0, 6.0], [0.0, 0.0, 0.0]],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def transpose_data(self):
+            smoke_data = [
+                dict(m=3, n=3, mat=EYE_3, expected=EYE_3),
+                dict(
+                    m=3, n=3, mat=[MAT3_33, MAT4_33], expected=[-1 * MAT3_33, MAT4_33]
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
         def is_symmetric_data(self):
             smoke_data = [
@@ -387,6 +410,15 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             Matrices.congruent(gs.array(mat_a), gs.array(mat_b)), gs.array(expected)
         )
 
+    def test_flatten(self, m, n, mat, expected):
+        self.assertAllClose(Matrices(m, n).flatten(gs.array(mat)), gs.array(expected))
+
+    def test_transpose(self, m, n, mat, expected):
+        self.assertAllClose(Matrices(m, n).transpose(gs.array(mat)), gs.array(expected))
+
+    def test_diagonal(self, m, n, mat, expected):
+        self.assertAllClose(Matrices(m, n).diagonal(gs.array(mat)), gs.array(expected))
+
     def test_is_symmetric(self, m, n, mat, expected):
         self.assertAllClose(
             Matrices(m, n).is_symmetric(gs.array(mat)), gs.array(expected)
@@ -458,26 +490,69 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             gs.array(expected),
         )
 
+    def test_flatten_reshape(self, m, n, mat):
+        cls_mn = Matrices(m, n)
+        self.assertAllClose(
+            cls_mn.reshape(cls_mn.flatten(gs.array(mat))), gs.array(mat)
+        )
+        self.assertAllClose(
+            cls_mn.flatten(cls_mn.reshape(gs.array(mat))), gs.array(mat)
+        )
+
 
 class TestMatricesMetric(TestCase, metaclass=Parametrizer):
     cls = MatricesMetric
 
     class TestDataMatricesMetric(TestData):
         def inner_product_data(self):
-            smoke_data = []
+            smoke_data = [
+                dict(
+                    m=2,
+                    n=2,
+                    tangent_vec_a=[[-3.0, 1.0], [-1.0, -2.0]],
+                    tangent_vec_b=[[-9.0, 0.0], [4.0, 2.0]],
+                    expected=19.0,
+                ),
+                dict(
+                    m=2,
+                    n=2,
+                    tangent_vec_a=[
+                        [[-1.5, 0.0], [2.0, -3.0]],
+                        [[0.5, 7.0], [0.5, -2.0]],
+                    ],
+                    tangent_vec_b=[
+                        [[2.0, 0.0], [2.0, -3.0]],
+                        [[-1.0, 0.0], [1.0, -2.0]],
+                    ],
+                    expected=[10.0, 4.0],
+                ),
+            ]
             return self.generate_tests(smoke_data)
 
         def norm_data(self):
-            smoke_data = []
+            smoke_data = [
+                dict(m=2, n=2, vector=[[1.0, 0.0], [0.0, 1.0]], expected=SQRT_2),
+                dict(
+                    m=2,
+                    n=2,
+                    vector=[[[3.0, 0.0], [4.0, 0.0]], [[-3.0, 0.0], [-4.0, 0.0]]],
+                    expected=[5.0, 5.0],
+                ),
+            ]
             return self.generate_tests(smoke_data)
 
     testing_data = TestDataMatricesMetric()
 
-    def test_inner_product(self):
-        pass
+    def test_inner_product(self, m, n, tangent_vec_a, tangent_vec_b, expected):
+        self.assertAllClose(
+            self.cls(m, n).inner_product(
+                gs.array(tangent_vec_a), gs.array(tangent_vec_b)
+            ),
+            gs.array(expected),
+        )
 
-    def test_norm(self):
-        pass
+    def test_norm(self, m, n, vector, expected):
+        self.assertAllClose(self.cls(m, n).norm(gs.array(vector)), gs.array(expected))
 
     def test_inner_product_norm(self, m, n, mat):
         self.assertAllClose(
