@@ -25,37 +25,6 @@ class TestMatrices(geomstats.tests.TestCase):
         self.assertAllClose(tr(a), b)
         self.assertAllClose(tr(ar([a, b])), ar([b, a]))
 
-    @geomstats.tests.np_autograd_and_torch_only
-    def test_make_symmetric(self):
-        sym_mat = gs.array([[1.0, 2.0], [2.0, 1.0]])
-        result = self.space.to_symmetric(sym_mat)
-        expected = sym_mat
-        self.assertAllClose(result, expected)
-
-        mat = gs.array([[1.0, 2.0, 3.0], [0.0, 0.0, 0.0], [3.0, 1.0, 1.0]])
-        result = self.space.to_symmetric(mat)
-        expected = gs.array([[1.0, 1.0, 3.0], [1.0, 0.0, 0.5], [3.0, 0.5, 1.0]])
-        self.assertAllClose(result, expected)
-
-        mat = gs.array(
-            [[1e100, 1e-100, 1e100], [1e100, 1e-100, 1e100], [1e-100, 1e-100, 1e100]]
-        )
-        result = self.space.to_symmetric(mat)
-
-        res = 0.5 * (1e100 + 1e-100)
-
-        expected = gs.array([[1e100, res, res], [res, 1e-100, res], [res, res, 1e100]])
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_autograd_and_tf_only
-    def test_make_symmetric_and_is_symmetric_vectorization(self):
-        points = gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [4.0, 9.0]]])
-
-        sym_points = self.space.to_symmetric(points)
-        result = gs.all(self.space.is_symmetric(sym_points))
-        expected = True
-        self.assertAllClose(result, expected)
-
     def test_inner_product(self):
         base_point = gs.array([[1.0, 2.0, 3.0], [0.0, 0.0, 0.0], [3.0, 1.0, 1.0]])
 
@@ -72,17 +41,6 @@ class TestMatrices(geomstats.tests.TestCase):
         expected = gs.trace(gs.matmul(gs.transpose(tangent_vector_1), tangent_vector_2))
 
         self.assertAllClose(result, expected)
-
-    def test_cong(self):
-        base_point = gs.array([[1.0, 2.0, 3.0], [0.0, 0.0, 0.0], [3.0, 1.0, 1.0]])
-
-        tangent_vector = gs.array(
-            [[1.0, 2.0, 3.0], [0.0, -10.0, 0.0], [30.0, 1.0, 1.0]]
-        )
-
-        result = self.space.congruent(tangent_vector, base_point)
-        expected = gs.matmul(tangent_vector, gs.transpose(base_point))
-        expected = gs.matmul(base_point, expected)
 
         self.assertAllClose(result, expected)
 

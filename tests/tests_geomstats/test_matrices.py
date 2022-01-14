@@ -121,6 +121,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
 
         def flatten_data(self):
             smoke_data = [
+                dict(m=1, n=1, mat=[[1.0]], expected=[1.0]),
                 dict(m=2, n=2, mat=EYE_2, expected=[1.0, 0.0, 0.0, 1.0]),
                 dict(m=2, n=3, mat=MAT_23, expected=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
                 dict(
@@ -132,8 +133,18 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def flatten_reshape_data(self):
+            random_data = [
+                dict(m=1, n=1, mat=Matrices(1, 1).random_point(10000)),
+                dict(m=2, n=2, mat=Matrices(2, 2).random_point(1000)),
+                dict(m=2, n=10, mat=Matrices(2, 10).random_point(100)),
+                dict(m=20, n=10, mat=Matrices(20, 10).random_point(100)),
+            ]
+            return self.generate_tests([], random_data)
+
         def is_symmetric_data(self):
             smoke_data = [
+                dict(m=1, n=1, mat=[[-1.0]], expected=True),
                 dict(m=2, n=2, mat=EYE_2, expected=True),
                 dict(m=2, n=3, mat=MAT_23, expected=False),
                 dict(m=2, n=2, mat=[EYE_2, EYE_2 + 1], expected=[True, True]),
