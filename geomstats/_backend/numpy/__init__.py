@@ -123,6 +123,7 @@ DTYPES = {
 
 atol = np_atol
 rtol = np_rtol
+module = np
 
 
 def comb(n, k):

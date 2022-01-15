@@ -71,6 +71,7 @@ DTYPES = {
 
 atol = pytorch_atol
 rtol = pytorch_rtol
+module = torch
 
 
 def _raise_not_implemented_error(*args, **kwargs):

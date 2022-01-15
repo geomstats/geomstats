@@ -87,6 +87,7 @@ set_diag = tf.linalg.set_diag
 std = tf.math.reduce_std
 atol = tf_atol
 rtol = tf_rtol
+module = tf
 
 
 def _raise_not_implemented_error(*args, **kwargs):

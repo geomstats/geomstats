@@ -2,6 +2,7 @@
 
 import math
 
+import autograd
 import autograd.numpy as np
 from autograd.numpy import (
     abs,
@@ -123,6 +124,7 @@ DTYPES = {
 
 atol = np_atol
 rtol = np_rtol
+module = autograd
 
 
 def comb(n, k):
