@@ -5,12 +5,14 @@ from tests.conftest import Parametrizer, TestCase, TestData
 SQRT_2 = gs.sqrt(2)
 
 EYE_2 = [[1.0, 0], [0.0, 1.0]]
+MINUS_EYE_2 = [[-1.0, 0], [0.0, -1.0]]
 EYE_3 = [[1.0, 0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
-MAT_23 = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+MAT1_23 = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+MAT2_23 = [[0.0, -2.0, -3.0], [0.0, 1.0, 1.0]]
 MAT1_33 = [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]]
 MAT2_33 = [[1.0, 2.0, 3.0], [2.0, 4.0, 7.0], [3.0, 5.0, 6.0]]
 MAT3_33 = [[0.0, 1.0, -2.0], [-1.0, 0.0, -3.0], [2.0, 3.0, 0.0]]
-MAT4_33 = [[2.0, -1.0, 0.0], [-1.0, 2.0, 1.0], [0.0, -1.0, 2.0]]
+MAT4_33 = [[2.0, -1.0, 0.0], [-1.0, 2.0, -1.0], [0.0, -1.0, 2.0]]
 MAT5_33 = [[2.0, 0.0, 0.0], [1.0, 3.0, 0.0], [8.0, -1.0, 2.0]]
 MAT6_33 = [[1.0, 3.0, 4.0], [0.0, 2.0, 6.0], [0.0, 0.0, 2.0]]
 MAT7_33 = [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [8.0, -1.0, 0.0]]
@@ -21,14 +23,17 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
     class TestDataMatrices(TestData):
         def belongs_data(self):
             sq_mat = EYE_2
-            non_sq_mat = MAT_23
             smoke_data = [
                 dict(m=2, n=2, mat=sq_mat, expected=True),
                 dict(m=2, n=1, mat=sq_mat, expected=False),
-                dict(m=2, n=3, mat=non_sq_mat, expected=True),
-                dict(m=2, n=1, mat=non_sq_mat, expected=False),
-                dict(m=2, n=3, mat=[non_sq_mat, non_sq_mat], expected=[True, True]),
-                dict(m=2, n=3, mat=[non_sq_mat, sq_mat], expected=[True, False]),
+                dict(m=2, n=3, mat=[MAT1_23, MAT2_23], expected=[True, True]),
+                dict(m=2, n=1, mat=MAT1_23, expected=False),
+                dict(
+                    m=3,
+                    n=3,
+                    mat=[MAT1_33, MAT2_33, MAT3_33],
+                    expected=[True, True, True],
+                ),
             ]
             return self.generate_tests(smoke_data)
 
@@ -36,14 +41,8 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
 
             smoke_data = [
                 dict(m=2, n=2, mat_1=EYE_2, mat_2=EYE_2, expected=True),
-                dict(m=2, n=2, mat_1=EYE_2, mat_2=2 * EYE_2, expected=False),
-                dict(
-                    m=2,
-                    n=3,
-                    mat_1=[MAT_23, 2 * MAT_23],
-                    mat_2=[MAT_23, 3 * MAT_23],
-                    expected=[True, False],
-                ),
+                # dict(m=2, n=2, mat_1=EYE_2, mat_2=EYE_3, expected=False),
+                dict(m=2, n=3, mat_1=MAT1_23, mat_2=MAT2_23, expected=False),
             ]
             return self.generate_tests(smoke_data)
 
@@ -56,8 +55,8 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             mats_2 = [[[2.0], [4.0]], [[1.0], [3.0]], [[1.0], [3.0]]]
             mat_1_X_mat_2 = [[[10.0], [22.0]], [[5.0], [9.0]], [[-5.0], [-9.0]]]
             smoke_data = [
-                dict(mat=mats_1, expected=[[23.0, -26.0], [51.0, -58.0]]),
-                dict(mat=(list(mats_1), mats_2), expected=mat_1_X_mat_2),
+                dict(mat=gs.array(mats_1), expected=[[23.0, -26.0], [51.0, -58.0]]),
+                dict(mat=(gs.array(mats_1), gs.array(mats_2)), expected=mat_1_X_mat_2),
             ]
             return self.generate_tests(smoke_data)
 
@@ -86,7 +85,10 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
                 dict(
                     mat_1=[[[0.0, 1.0], [2.0, -2]], [[1.0, 0.0], [0.0, -1]]],
                     mat_2=[[[1.0, -2.0], [2.0, -3]], [[0.0, 0.0], [-1.0, -3]]],
-                    expected=[[[-10.0, 0.0], [-4.0, 0.0]], [[0.0, 0.0], [0.0, -8.0]]],
+                    expected=[
+                        [[-14.0, -23.0], [-22.0, -36.0]],
+                        [[0.0, 0.0], [0.0, -8.0]],
+                    ],
                 ),
             ]
             return self.generate_tests(smoke_data)
@@ -125,11 +127,11 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             smoke_data = [
                 dict(m=1, n=1, mat=[[1.0]], expected=[1.0]),
                 dict(m=2, n=2, mat=EYE_2, expected=[1.0, 0.0, 0.0, 1.0]),
-                dict(m=2, n=3, mat=MAT_23, expected=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
+                dict(m=2, n=3, mat=MAT1_23, expected=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
                 dict(
                     m=2,
                     n=2,
-                    mat=[EYE_2, -1 * EYE_2],
+                    mat=[EYE_2, MINUS_EYE_2],
                     expected=[[1.0, 0.0, 0.0, 1.0], [-1.0, 0.0, 0.0, -1.0]],
                 ),
             ]
@@ -157,10 +159,14 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def transpose_data(self):
+            transpose_MAT3_33 = [[0.0, -1.0, 2.0], [1.0, 0.0, 3.0], [-2.0, -3.0, 0.0]]
             smoke_data = [
                 dict(m=3, n=3, mat=EYE_3, expected=EYE_3),
                 dict(
-                    m=3, n=3, mat=[MAT3_33, MAT4_33], expected=[-1 * MAT3_33, MAT4_33]
+                    m=3,
+                    n=3,
+                    mat=[MAT3_33, MAT4_33],
+                    expected=[transpose_MAT3_33, MAT4_33],
                 ),
             ]
             return self.generate_tests(smoke_data)
@@ -169,12 +175,12 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             smoke_data = [
                 dict(m=1, n=1, mat=[[-1.0]], expected=True),
                 dict(m=2, n=2, mat=EYE_2, expected=True),
-                dict(m=2, n=3, mat=MAT_23, expected=False),
+                dict(m=2, n=3, mat=MAT1_23, expected=False),
                 dict(
                     m=3,
                     n=3,
                     mat=[MAT1_33, MAT2_33, MAT3_33],
-                    expected=[True, False, True],
+                    expected=[True, False, False],
                 ),
             ]
             return self.generate_tests(smoke_data)
@@ -182,8 +188,8 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         def is_skew_symmetric_data(self):
             smoke_data = [
                 dict(m=2, n=2, mat=EYE_2, expected=False),
-                dict(m=2, n=3, mat=MAT_23, expected=False),
-                dict(m=2, n=2, mat=[EYE_2, -1 * EYE_2], expected=[False, False]),
+                dict(m=2, n=3, mat=MAT1_23, expected=False),
+                dict(m=2, n=2, mat=[EYE_2, MINUS_EYE_2], expected=[False, False]),
                 dict(m=3, n=3, mat=[MAT2_33, MAT3_33], expected=[False, True]),
             ]
             return self.generate_tests(smoke_data)
@@ -191,8 +197,8 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         def is_pd_data(self):
             smoke_data = [
                 dict(m=2, n=2, mat=EYE_2, expected=True),
-                dict(m=2, n=3, mat=MAT_23, expected=False),
-                dict(m=2, n=2, mat=[EYE_2, -1 * EYE_2], expected=[True, False]),
+                dict(m=2, n=3, mat=MAT1_23, expected=False),
+                dict(m=2, n=2, mat=[EYE_2, MINUS_EYE_2], expected=[True, False]),
                 dict(m=3, n=3, mat=[MAT2_33, MAT3_33], expected=[False, False]),
                 dict(m=3, n=3, mat=[MAT2_33, MAT3_33], expected=[False, False]),
             ]
@@ -202,12 +208,12 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             smoke_data = [
                 dict(m=3, n=2, mat=EYE_2, expected=True),
                 dict(m=3, n=3, mat=MAT4_33, expected=True),
-                dict(m=2, n=3, mat=MAT_23, expected=False),
+                dict(m=2, n=3, mat=MAT1_23, expected=False),
                 dict(
                     m=2,
                     n=2,
-                    mat=[EYE_2, -1 * EYE_2, -2 * MAT4_33],
-                    expected=[True, False, False],
+                    mat=[EYE_2, MINUS_EYE_2],
+                    expected=[True, False],
                 ),
                 dict(
                     m=3,
@@ -221,7 +227,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         def is_upper_triangular_data(self):
             smoke_data = [
                 dict(m=2, n=2, mat=EYE_2, expected=True),
-                dict(m=2, n=3, mat=MAT_23, expected=False),
+                dict(m=2, n=3, mat=MAT1_23, expected=False),
                 dict(m=3, n=3, mat=MAT6_33, expected=True),
                 dict(
                     m=3,
@@ -235,8 +241,8 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         def is_lower_triangular_data(self):
             smoke_data = [
                 dict(m=2, n=2, mat=EYE_2, expected=True),
-                dict(m=2, n=3, mat=MAT_23, expected=False),
-                dict(m=3, n=3, mat=MAT5_33, expected=False),
+                dict(m=2, n=3, mat=MAT1_23, expected=False),
+                dict(m=3, n=3, mat=MAT5_33, expected=True),
                 dict(
                     m=3,
                     n=3,
@@ -249,8 +255,8 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         def is_strictly_lower_triangular_data(self):
             smoke_data = [
                 dict(m=2, n=2, mat=EYE_2, expected=False),
-                dict(m=2, n=3, mat=MAT_23, expected=False),
-                dict(m=3, n=3, mat=MAT8_33, expected=True),
+                dict(m=2, n=3, mat=MAT1_23, expected=False),
+                dict(m=3, n=3, mat=MAT7_33, expected=True),
                 dict(
                     m=3,
                     n=3,
@@ -263,8 +269,8 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         def is_strictly_upper_triangular_data(self):
             smoke_data = [
                 dict(m=2, n=2, mat=EYE_2, expected=False),
-                dict(m=2, n=3, mat=MAT_23, expected=False),
-                dict(m=3, n=3, mat=MAT7_33, expected=True),
+                dict(m=2, n=3, mat=MAT1_23, expected=False),
+                dict(m=3, n=3, mat=MAT8_33, expected=True),
                 dict(
                     m=3,
                     n=3,
@@ -387,7 +393,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         )
 
     def test_mul(self, mat, expected):
-        self.assertAllClose(Matrices.mul(mat), expected)
+        self.assertAllClose(Matrices.mul(*mat), gs.array(expected))
 
     def test_bracket(self, mat_a, mat_b, expected):
         self.assertAllClose(
@@ -401,12 +407,13 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
 
     def test_frobenius_product(self, mat_a, mat_b, expected):
         self.assertAllClose(
-            Matrices.congruent(gs.array(mat_a), gs.array(mat_b)), gs.array(expected)
+            Matrices.frobenius_product(gs.array(mat_a), gs.array(mat_b)),
+            gs.array(expected),
         )
 
     def test_trace_product(self, mat_a, mat_b, expected):
         self.assertAllClose(
-            Matrices.congruent(gs.array(mat_a), gs.array(mat_b)), gs.array(expected)
+            Matrices.trace_product(gs.array(mat_a), gs.array(mat_b)), gs.array(expected)
         )
 
     def test_flatten(self, m, n, mat, expected):
@@ -446,7 +453,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
 
     def test_is_strictly_lower_triangular(self, m, n, mat, expected):
         self.assertAllClose(
-            Matrices(m, n).is_strictly_upper_triangular(gs.array(mat)),
+            Matrices(m, n).is_strictly_lower_triangular(gs.array(mat)),
             gs.array(expected),
         )
 
@@ -492,7 +499,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
     def test_flatten_reshape(self, m, n, mat):
         cls_mn = Matrices(m, n)
         self.assertAllClose(
-            cls_mn.flatten(cls_mn.reshape(gs.array(mat))), gs.array(mat)
+            cls_mn.reshape(cls_mn.flatten(gs.array(mat))), gs.array(mat)
         )
 
 
