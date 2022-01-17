@@ -1,8 +1,5 @@
 """Unit tests for the vector space of lower triangular matrices."""
 
-import math
-import warnings
-
 import geomstats.backend as gs
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from tests.conftest import Parametrizer, TestCase, TestData
@@ -42,7 +39,7 @@ class TestLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def random_point_and_belongs(self):
+        def random_point_and_belongs_data(self):
             smoke_data = [
                 dict(n=1, n_points=1),
                 dict(n=2, n_points=2),
@@ -106,7 +103,10 @@ class TestLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
         self.assertAllClose(self.space(n).belongs(gs.array(mat)), gs.array(expected))
 
     def test_random_point_and_belongs(self, n, n_points):
-        self.assertAllClose(gs.all(self.space(n).random_point(n_points)), True)
+        space_n = self.space(n)
+        self.assertAllClose(
+            gs.all(space_n.belongs(space_n.random_point(n_points))), True
+        )
 
     def test_to_vector(self, n, mat, expected):
         self.assertAllClose(self.space(n).to_vector(gs.array(mat)), gs.array(expected))
@@ -114,5 +114,5 @@ class TestLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
     def test_get_basis(self, n, expected):
         self.assertAllClose(self.space(n).get_basis(), gs.array(expected))
 
-    def test_projection_data(self, n, point, expected):
-        self.assertTrue(self.space(n).projection(point), gs.arrray(expected))
+    def test_projection(self, n, point, expected):
+        self.assertAllClose(self.space(n).projection(point), gs.array(expected))

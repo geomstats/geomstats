@@ -1,7 +1,5 @@
 """Unit tests for full rank matrices."""
 
-import warnings
-
 import geomstats.backend as gs
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from tests.conftest import Parametrizer, TestCase, TestData
@@ -44,10 +42,13 @@ class TestFullRankMatrices(TestCase, metaclass=Parametrizer):
             shapes = [(1, 1), (1, 1), (1, 10), (2, 2), (10, 5), (15, 15)]
             sizes = [1, 10, 1, 1, 100, 10]
             random_data = [
-                dict(m=m, n=n, mats=gs.random.normal(m, n, size))
+                dict(m=m, n=n, mats=gs.random.normal(size=(size, m, n)))
                 for (m, n), size in zip(shapes, sizes)
             ]
+
             return self.generate_tests([], random_data)
+
+    testing_data = TestDataFullRankMatrices()
 
     def test_belongs(self, m, n, mat, expected):
         self.assertAllClose(self.cls(m, n).belongs(gs.array(mat)), gs.array(expected))
@@ -59,4 +60,5 @@ class TestFullRankMatrices(TestCase, metaclass=Parametrizer):
         )
 
     def test_projection_and_belongs(self, m, n, mat):
-        self.assertAllClose(self.cls(m, n).belongs(mat))
+        print(mat.shape)
+        self.assertAllClose(gs.all(self.cls(m, n).belongs(mat)), True)
