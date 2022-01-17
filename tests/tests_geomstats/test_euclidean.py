@@ -1,47 +1,11 @@
 """Unit tests for the Euclidean space."""
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
-from tests.conftest import Parametrizer, TestCase, TestData
+import geomstats.tests
+from geomstats.geometry.euclidean import Euclidean
 
 
-class TestEuclidean(TestCase, metaclass=Parametrizer):
-
-    cls = Euclidean
-
-    class TestDataEuclidean(TestData):
-        def belongs_data(self):
-            smoke_data = [
-                dict(dim=1, data=[1.0], expected=True),
-                dict(dim=2, data=[1.0, 0.0], expected=True),
-                dict(dim=3, data=[1.0, 0.0], expected=False),
-            ]
-            return self.generate_tests(smoke_data)
-
-    def test_belongs(self, dim, data, expected):
-        self.assertAllClose(self.cls(dim).belongs(gs.array(data)), gs.array(expected))
-
-
-class TestEuclideanMetric(TestCase, metaclass=Parametrizer):
-    cls = EuclideanMetric
-
-    class TestDataEuclideanMetric(TestData):
-        def squared_norm_data(self):
-            smoke_data = [
-                dict(dim=2, data=[[0.0, 1.0]], expected=[1.0]),
-                dict(
-                    dim=2,
-                    data=[[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]],
-                    expected=[5.0, 20.0, 26.0],
-                ),
-            ]
-            return self.generate_tests(smoke_data)
-
-    def test_squared_norm(self, dim, data, expected):
-        self.assertAllClose(
-            self.cls(dim).squared_norm(gs.array(data)), gs.array(expected)
-        )
-
+class TestEuclidean(geomstats.tests.TestCase):
     def setup_method(self):
         gs.random.seed(1234)
 
@@ -72,6 +36,42 @@ class TestEuclideanMetric(TestCase, metaclass=Parametrizer):
         vector = self.space.random_point()
         result = self.space.to_tangent(vector)
         self.assertAllClose(result, vector)
+
+    def test_squared_norm_vectorization(self):
+        n_samples = self.n_samples
+        n_points = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
+        result = self.metric.squared_norm(n_points)
+
+        expected = gs.array([5.0, 20.0, 26.0])
+
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+    def test_norm_vectorization_single_sample(self):
+        one_point = gs.array([[0.0, 1.0]])
+
+        result = self.metric.norm(one_point)
+        expected = gs.array([1.0])
+        self.assertAllClose(gs.shape(result), (1,))
+        self.assertAllClose(result, expected)
+
+        one_point = gs.array([0.0, 1.0])
+
+        result = self.metric.norm(one_point)
+        expected = 1.0
+        self.assertAllClose(gs.shape(result), ())
+        self.assertAllClose(result, expected)
+
+    def test_norm_vectorization_n_samples(self):
+        n_samples = self.n_samples
+        n_points = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
+
+        result = self.metric.norm(n_points)
+
+        expected = gs.array([2.2360679775, 4.472135955, 5.09901951359])
+
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
 
     def test_exp_vectorization(self):
         n_samples = self.n_samples
