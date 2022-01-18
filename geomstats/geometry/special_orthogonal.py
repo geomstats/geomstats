@@ -232,7 +232,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         Returns
         -------
         _ : array-like, shape=[...,]
-            Array of booleans determining if each pair of rotation
+            Boolean determining if each pair of rotation
             matrices corresponds to a pair of antipodal rotation
             matrices.
         """
