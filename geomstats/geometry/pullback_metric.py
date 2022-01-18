@@ -1,4 +1,7 @@
-"""Classes for the pullback metric."""
+"""Classes for the pullback metric.
+
+Lead author: Nina Miolane.
+"""
 
 import itertools
 

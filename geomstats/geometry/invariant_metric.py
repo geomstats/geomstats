@@ -1,4 +1,7 @@
-"""Left- and right- invariant metrics that exist on Lie groups."""
+"""Left- and right- invariant metrics that exist on Lie groups.
+
+Lead authors: Nicolas Guigui and Nina Miolane.
+"""
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -845,8 +848,8 @@ class _InvariantMetricVector(RiemannianMetric):
         Optional, default: 'left'.
     """
 
-    def __init__(self, group, left_or_right="left"):
-        super(_InvariantMetricVector, self).__init__(dim=group.dim)
+    def __init__(self, group, left_or_right="left", **kwargs):
+        super(_InvariantMetricVector, self).__init__(dim=group.dim, **kwargs)
 
         self.group = group
         self.metric_mat_at_identity = gs.eye(group.dim)
@@ -1180,7 +1183,7 @@ class BiInvariantMetric(_InvariantMetricVector):
     """
 
     def __init__(self, group):
-        super(BiInvariantMetric, self).__init__(group=group)
+        super(BiInvariantMetric, self).__init__(group=group, shape=group.shape)
         condition = (
             "SpecialOrthogonal" not in group.__str__()
             and "SO" not in group.__str__()

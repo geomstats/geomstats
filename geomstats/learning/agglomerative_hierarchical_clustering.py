@@ -1,4 +1,7 @@
-"""The Agglomerative Hierarchical Clustering (AHC) on manifolds."""
+"""The Agglomerative Hierarchical Clustering (AHC) on manifolds.
+
+Lead author: Yann Cabanes.
+"""
 
 from sklearn.cluster import AgglomerativeClustering
 

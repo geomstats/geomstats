@@ -1,3 +1,8 @@
+"""Execution backends.
+
+Lead authors: Johan Mathe and Niklas Koep.
+"""
+
 import logging
 import os
 import sys
