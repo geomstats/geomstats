@@ -573,8 +573,10 @@ class SRVMetric(RiemannianMetric):
                 "discrete curves embedded in a Euclidean "
                 "space."
             )
+
         curve = gs.to_ndarray(curve, to_ndim=3)
         n_curves, n_sampling_points, ambient_dim = curve.shape
+
         n_sampling_points = curve.shape[-2]
         velocity_vec = (n_sampling_points - 1) * (
             curve[..., 1:, :] - curve[..., :-1, :]
@@ -593,7 +595,18 @@ class SRVMetric(RiemannianMetric):
         d_vec = gs.einsum("...ij,...i->...ij", d_vec, velocity_norm ** (1 / 2))
         increment = d_vec / (n_sampling_points - 1)
         initial_value = gs.zeros((n_curves, 1, ambient_dim))
+
+        n_increments, _, _ = increment.shape
+        if n_curves != n_increments:
+            if n_curves == 1:
+                initial_value = gs.tile(initial_value, (n_increments, 1, 1))
+            elif n_increments == 1:
+                increment = gs.tile(increment, (n_curves, 1, 1))
+            else:
+                raise ValueError("Number of curves and of increments are incompatible.")
+
         vec = gs.concatenate((initial_value, increment), -2)
+
         vec = gs.cumsum(vec, -2)
 
         return gs.squeeze(vec)

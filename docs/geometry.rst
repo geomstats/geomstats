@@ -117,8 +117,8 @@ Lower Triangular Matrices
 
 Positive Lower Triangular Matrices
 ----------------------------------
-.. automodule:: geomstats.geometry.postive_lower_triangular_matrices
-   :members
+.. automodule:: geomstats.geometry.positive_lower_triangular_matrices
+   :members:
 
 
 Metrics
