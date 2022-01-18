@@ -108,6 +108,7 @@ class TestGrassmannian(geomstats.tests.TestCase):
         for res in result:
             self.assertTrue(res)
 
+    @geomstats.tests.np_autograd_and_tf_only
     def test_parallel_transport(self):
         space = self.space
         metric = self.metric
