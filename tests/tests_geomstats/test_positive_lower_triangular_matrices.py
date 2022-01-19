@@ -121,6 +121,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
 
 class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
     cls = CholeskyMetric
+    space = PositiveLowerTriangularMatrices
 
     class TestDataCholeskyMetric(TestData):
         def diag_inner_product_data(self):
@@ -203,6 +204,34 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def exp_belongs_data(self):
+            ns = [1, 2, 2, 3, 10, 100, 1000]
+            num_points = [1, 1, 2, 1000, 100, 10, 5]
+            space = PositiveLowerTriangularMatrices
+            random_data = [
+                dict(
+                    n=n,
+                    tangent_vec=space(n).ambient_space.random_point(num_point),
+                    base_point=space(n).random_point(num_point),
+                )
+                for n, num_point in zip(ns, num_points)
+            ]
+            return self.generate_tests([], random_data)
+
+        def log_belongs_data(self):
+            ns = [1, 2, 2, 3, 10, 100, 1000]
+            num_points = [1, 1, 2, 1000, 100, 10, 5]
+            space = PositiveLowerTriangularMatrices
+            random_data = [
+                dict(
+                    n=n,
+                    tangent_vec=space(n).random_point(num_point),
+                    base_point=space(n).random_point(num_point),
+                )
+                for n, num_point in zip(ns, num_points)
+            ]
+            return self.generate_tests([], random_data)
+
     testing_data = TestDataCholeskyMetric()
 
     def test_diag_inner_product(
@@ -238,3 +267,15 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
     def test_squared_dist(self, n, point_a, point_b, expected):
         result = self.cls(n).squared_dist(gs.array(point_a), gs.array(point_b))
         self.assertAllClose(result, gs.array(expected))
+
+    def test_exp_belongs(self, n, tangent_vec, base_point):
+        result = self.space(n).belongs(
+            self.cls(n).exp(gs.array(tangent_vec), gs.array(base_point))
+        )
+        self.assertAllClose(gs.all(result), True)
+
+    def test_log_belongs(self, n, point, base_point):
+        result = self.space(n).ambient_space.belongs(
+            self.cls(n).log(gs.array(point), gs.array(base_point))
+        )
+        self.assertAllClose(gs.all(result), True)
