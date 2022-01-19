@@ -66,7 +66,11 @@ To contribute to `geomstats` visit the page :ref:`contributing`.
    notebooks/04_riemannian_frechet_mean_and_tangent_pca
    notebooks/05_riemannian_kmeans
    notebooks/06_information_geometry
+   notebooks/07_implement_your_own_riemannian_geometry
+   notebooks/08_shape_analysis
    notebooks/usecase_emg_sign_classification_in_spd_manifold
    notebooks/usecase_graph_embedding_and_clustering_in_hyperbolic_space
    notebooks/usecase_optic_nerve_heads_analysis_in_kendall_shape_space
    notebooks/usecase_hand_poses_analysis_in_kendall_shape_space
+   notebooks/usecase_visualizations_in_kendall_shape_spaces
+
