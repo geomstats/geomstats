@@ -8,6 +8,7 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     CholeskyMetric,
     PositiveLowerTriangularMatrices,
 )
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from tests.conftest import Parametrizer, TestCase, TestData
 
 EULER = gs.exp(1.0)
@@ -90,6 +91,34 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def differential_gram_belongs_data(self):
+            ns = [1, 2, 2, 3, 10, 5, 100, 1000]
+            num_points = [1, 1, 2, 50, 1000, 100, 10, 5]
+            space = PositiveLowerTriangularMatrices
+            random_data = [
+                dict(
+                    n=n,
+                    tangent_vec=space(n).ambient_space.random_point(num_point),
+                    base_point=space(n).random_point(num_point),
+                )
+                for n, num_point in zip(ns, num_points)
+            ]
+            return self.generate_tests([], random_data)
+
+        def inverse_differential_gram_belongs_data(self):
+            ns = [1, 2, 2, 3, 10, 15, 100, 1000]
+            num_points = [1, 1, 2, 200, 1000, 100, 10, 5]
+            space = PositiveLowerTriangularMatrices
+            random_data = [
+                dict(
+                    n=n,
+                    tangent_vec=space(n).random_point(num_point),
+                    base_point=space(n).random_point(num_point),
+                )
+                for n, num_point in zip(ns, num_points)
+            ]
+            return self.generate_tests([], random_data)
+
     testing_data = TestDataPositiveLowerTriangularMatrices()
 
     def test_belongs(self, n, mat, expected):
@@ -114,9 +143,23 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
 
     def test_inverse_differential_gram(self, n, tangent_vec, base_point, expected):
         self.assertAllClose(
-            self.space(n).inverse_differential_gram(tangent_vec, base_point),
+            self.space(n).inverse_differential_gram(
+                gs.array(tangent_vec), gs.array(base_point)
+            ),
             gs.array(expected),
         )
+
+    def test_differential_gram_belongs(self, n, tangent_vec, base_point):
+        result = self.space(n).differential_gram(
+            gs.array(tangent_vec), gs.array(base_point)
+        )
+        self.assertAllClose(SymmetricMatrices(n).belongs(result), True)
+
+    def test_inverse_differential_gram_belongs(self, n, tangent_vec, base_point):
+        result = self.space(n).inverse_differential_gram(
+            gs.array(tangent_vec), gs.array(base_point)
+        )
+        self.assertAllClose(self.space(n).ambient_space.belongs(result), True)
 
 
 class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
