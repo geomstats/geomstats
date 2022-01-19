@@ -352,7 +352,7 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
         metric = SPDMetricAffine(n, power_affine)
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
-        self.assertAllClose(result, point)
+        self.assertAllClose(result, point, atol=gs.atol * 100)
 
     def test_geodesic_belongs(
         self, n, power_affine, initial_point, initial_tangent_vec, t
@@ -471,7 +471,7 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
         metric = SPDMetricBuresWasserstein(n)
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
-        self.assertAllClose(result, point)
+        self.assertAllClose(result, point, atol=gs.atol * 100)
 
     # def test_geodesic_belongs(self, n, initial_point, initial_tangent_vec, t):
 
@@ -586,7 +586,7 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
         metric = SPDMetricEuclidean(n, power_euclidean)
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
-        self.assertAllClose(result, point)
+        self.assertAllClose(result, point, atol=gs.atol * 100)
 
     # def test_geodesic_belongs(
     #     self, n, power_euclidean, initial_point, initial_tangent_vec, t
@@ -674,7 +674,7 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
         metric = SPDMetricLogEuclidean(n)
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
-        self.assertAllClose(result, point, atol=gs.atol * 1000)
+        self.assertAllClose(result, point, atol=gs.atol * 100)
 
     # def test_geodesic_belongs(self, n, initial_point, initial_tangent_vec, t):
 
