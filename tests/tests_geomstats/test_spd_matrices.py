@@ -318,7 +318,7 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
 
         def parallel_transport_exp_norm_data(self):
             random_n = random.sample(range(1, 20), 10)
-            random_power_affine = [1.0, 0.5, -0.5]
+            random_power_affine = [1.0]
             random_data = [
                 dict(n=n, power_affine=power_affine, n_samples=200)
                 for (n, power_affine) in zip(random_n, random_power_affine)
