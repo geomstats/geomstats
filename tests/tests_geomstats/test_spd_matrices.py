@@ -674,7 +674,7 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
         metric = SPDMetricLogEuclidean(n)
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
-        self.assertAllClose(result, point)
+        self.assertAllClose(result, point, atol=gs.atol * 1000)
 
     # def test_geodesic_belongs(self, n, initial_point, initial_tangent_vec, t):
 
@@ -687,6 +687,6 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
 
     def test_squared_dist_is_symmetric(self, n, point_a, point_b):
         metric = SPDMetricLogEuclidean(n)
-        sd_a_b = metric.squared_dist(point_a, point_b)
-        sd_b_a = metric.squared_dist(point_b, point_a)
+        sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
+        sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
         self.assertAllClose(sd_a_b, sd_b_a)
