@@ -96,7 +96,10 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
         self.assertAllClose(self.space(n).belongs(gs.array(mat)), gs.array(expected))
 
     def test_random_point_and_belongs(self, n, n_points):
-        self.assertAllClose(gs.all(self.space(n).random_point(n_points)), True)
+        space_n = self.space(n)
+        self.assertAllClose(
+            gs.all(space_n.belongs(space_n.random_point(n_points))), True
+        )
 
     def test_gram(self, n, point, expected):
         self.assertAllClose(self.space(n).gram(gs.array(point)), gs.array(expected))
