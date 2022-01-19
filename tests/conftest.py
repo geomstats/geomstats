@@ -219,15 +219,15 @@ class TestData:
         return self.generate_tests([], random_data)
 
     def _squared_dist_is_symmetric_data(
-        self, space, max_n=5, n_n=3, num_points=10, **kwargs
+        self, space, max_n=5, n_n=3, n_points=10, **kwargs
     ):
         random_n = random.sample(range(2, max_n), n_n)
         random_data = []
         for n in random_n:
             for prod in itertools.product(*kwargs.values()):
                 space_n = space(n)
-                points_a = space_n.random_point(num_points)
-                points_b = space_n.random_point(num_points)
+                points_a = space_n.random_point(n_points)
+                points_b = space_n.random_point(n_points)
                 for (point_a, point_b) in itertools.product(points_a, points_b):
                     random_data.append((n,) + prod + (point_a, point_b))
         return self.generate_tests([], random_data)

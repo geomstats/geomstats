@@ -301,7 +301,7 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def log_exp_composition_data(self):
-            power_affine = [1.0] + [random.uniform(-1, 1) for l in range(25)]
+            power_affine = [1.0] + [random.uniform(-1, 1) for _ in range(25)]
             return self._log_exp_composition_data(
                 SPDMatrices, power_affine=power_affine
             )
@@ -315,6 +315,15 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
             return self._squared_dist_is_symmetric_data(
                 SPDMatrices, power_affine=power_affine
             )
+
+        def parallel_transport_exp_norm_data(self):
+            random_n = random.sample(range(1, 20), 10)
+            random_power_affine = [1.0, 0.5, -0.5]
+            random_data = [
+                dict(n=n, power_affine=power_affine, n_samples=200)
+                for (n, power_affine) in zip(random_n, random_power_affine)
+            ]
+            return self.generate_tests([], random_data)
 
     testing_data = TestDataSPDMetricAffine()
 
@@ -361,6 +370,19 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
         sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
         sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
         self.assertAllClose(sd_a_b, sd_b_a)
+
+    def test_parallel_transport_exp_norm(self, n, power_affine, n_samples):
+        metric = SPDMetricAffine(n, power_affine)
+        space = SPDMatrices(n)
+        point = space.random_point(n_samples)
+        tan_a = space.random_tangent_vec(n_samples, point)
+        tan_b = space.random_tangent_vec(n_samples, point)
+        expected = metric.norm(tan_a, point)
+        end_point = metric.exp(tan_b, point)
+        transported = metric.parallel_transport(tan_a, tan_b, point)
+        result = metric.norm(transported, end_point)
+
+        self.assertAllClose(expected, result)
 
 
 class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
@@ -519,7 +541,7 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def log_exp_composition_data(self):
-            power_euclidean = [1.0] + [random.uniform(-1, 1) for l in range(25)]
+            power_euclidean = [1.0] + [random.uniform(-1, 1) for _ in range(25)]
             return self._log_exp_composition_data(
                 SPDMatrices, power_euclidean=power_euclidean
             )
