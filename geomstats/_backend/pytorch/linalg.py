@@ -18,7 +18,7 @@ class Logm(torch.autograd.Function):
     @staticmethod
     def _logm(x):
         np_logm = gsnplinalg.logm(x.detach().cpu())
-        torch_logm = torch.from_numpy(np_logm).to(x.device)
+        torch_logm = torch.from_numpy(np_logm).to(x.device, dtype=x.dtype)
         return torch_logm
 
     @staticmethod

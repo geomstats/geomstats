@@ -36,14 +36,12 @@ class TestGrassmannian(geomstats.tests.TestCase):
         expected = gs.array([p_yz, p_xz])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_tf_only
     def test_log(self):
         expected = Matrices.bracket(pi_4 * r_y, p_xy)
         result = self.metric.log(self.metric.exp(expected, p_xy), p_xy)
         self.assertTrue(self.space.is_tangent(result, p_xy))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_tf_only
     def test_log_vectorized(self):
         tangent_vecs = pi_4 * gs.array([r_y, r_z])
         base_points = gs.array([p_xy, p_xz])
@@ -108,7 +106,6 @@ class TestGrassmannian(geomstats.tests.TestCase):
         for res in result:
             self.assertTrue(res)
 
-    @geomstats.tests.np_autograd_and_tf_only
     def test_parallel_transport(self):
         space = self.space
         metric = self.metric
