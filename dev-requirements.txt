@@ -4,4 +4,3 @@ isort
 pre-commit
 pytest
 pytest-cov
-pytest-parallel
