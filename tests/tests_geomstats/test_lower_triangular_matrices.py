@@ -115,4 +115,6 @@ class TestLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
         self.assertAllClose(self.space(n).get_basis(), gs.array(expected))
 
     def test_projection(self, n, point, expected):
-        self.assertAllClose(self.space(n).projection(point), gs.array(expected))
+        self.assertAllClose(
+            self.space(n).projection(gs.array(point)), gs.array(expected)
+        )
