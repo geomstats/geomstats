@@ -153,13 +153,13 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
         result = self.space(n).differential_gram(
             gs.array(tangent_vec), gs.array(base_point)
         )
-        self.assertAllClose(SymmetricMatrices(n).belongs(result), True)
+        self.assertAllClose(gs.all(SymmetricMatrices(n).belongs(result)), True)
 
     def test_inverse_differential_gram_belongs(self, n, tangent_vec, base_point):
         result = self.space(n).inverse_differential_gram(
             gs.array(tangent_vec), gs.array(base_point)
         )
-        self.assertAllClose(self.space(n).ambient_space.belongs(result), True)
+        self.assertAllClose(gs.all(self.space(n).ambient_space.belongs(result)), True)
 
 
 class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
