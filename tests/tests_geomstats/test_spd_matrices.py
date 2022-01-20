@@ -354,16 +354,16 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point, atol=gs.atol * 1000)
 
-    def test_geodesic_belongs(
-        self, n, power_affine, initial_point, initial_tangent_vec, t
-    ):
+    # def test_geodesic_belongs(
+    #     self, n, power_affine, initial_point, initial_tangent_vec, t
+    # ):
 
-        metric = SPDMetricAffine(n, power_affine)
-        point = metric.geodesic(
-            initial_point=gs.array(initial_point),
-            initial_tangent_vec=gs.array(initial_tangent_vec),
-        )(t)
-        self.assertAllClose(SPDMatrices(n).belongs(point), gs.array(True))
+    #     metric = SPDMetricAffine(n, power_affine)
+    #     point = metric.geodesic(
+    #         initial_point=gs.array(initial_point),
+    #         initial_tangent_vec=gs.array(initial_tangent_vec),
+    #     )(t)
+    #     self.assertAllClose(SPDMatrices(n).belongs(point), gs.array(True))
 
     def test_squared_dist_is_symmetric(self, n, power_affine, point_a, point_b):
         metric = SPDMetricAffine(n, power_affine)
