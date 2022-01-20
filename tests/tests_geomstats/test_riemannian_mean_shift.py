@@ -1,4 +1,4 @@
-""" Unit tests for Riemannian Mean Shift method. """
+"""Unit tests for Riemannian Mean Shift method."""
 
 import geomstats.backend as gs
 import geomstats.tests
