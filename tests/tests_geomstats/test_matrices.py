@@ -1,8 +1,10 @@
+import math
+
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from tests.conftest import Parametrizer, TestCase, TestData
 
-SQRT_2 = gs.sqrt(2)
+SQRT_2 = math.sqrt(2)
 
 EYE_2 = [[1.0, 0], [0.0, 1.0]]
 MINUS_EYE_2 = [[-1.0, 0], [0.0, -1.0]]
