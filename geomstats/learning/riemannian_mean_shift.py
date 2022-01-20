@@ -11,8 +11,8 @@ from geomstats.learning.frechet_mean import FrechetMean
 
 
 class RiemannianMeanShift(ClusterMixin, BaseEstimator):
-    """
-    Class for Riemannian Mean Shift algorithm on manifolds.
+    """Class for Riemannian Mean Shift algorithm on manifolds.
+
     Mean Shift is a procedure for locating the maxima - the modes of a
     density function given discrete data sampled from that function. It is
     an iterative method for finding the centers of a collection of clusters.
@@ -23,23 +23,32 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
     ----------
     manifold : object of class RiemannianManifold
         Geomstats Riemannian manifold on which the
-        Riemannian Mean Shift algorithm is to applied.
+        Riemannian Mean Shift algorithm is to be applied.
     metric : object of class RiemannianMetric
         Geomstats Riemannian metric associated to the space used.
-    bandwidth : size of neighbourhood around each center
-        All points in 'bandwidth' size around center are considered for
-        calculating new mean centers.
-    tot : float, stopping condition
-        Computation of subsequent mean centers is stopped when the distance
-        between them is less than 'tot'
-    mean : Mean method used to calculate the new center of a cluster
-    n_centers : Total initial centers
-    n_jobs : Number of parallel threads to be initiated for parallel computation
+    bandwidth : float
+        Size of neighbourhood around each center. All points in 'bandwidth'
+        size around center are considered for calculating new mean centers.
+    tol : float
+        Stopping condition. Computation of subsequent mean centers is stopped
+        when the distance between them is less than 'tol'.
+        Optional, default : 1e-2.
+    n_centers : int
+        Number of centers.
+        Optional, default : 1.
+    n_jobs : int
+        Number of parallel threads to be initiated for parallel jobs.
+        Optional, default : 1.
     max_iter : int
-        Upper bound on total number of iterations for the centers to converge
-    init_centers : Initializing centers, either from the given input points or
-             random points uniformly distributed in the input manifold
-    kernel : Weighing function to assign kernel weights to each center
+        Upper bound on total number of iterations for the centers to converge.
+        Optional, default : 100.
+    init_centers : str
+        Initializing centers, either from the given input points or
+        random points uniformly distributed in the input manifold.
+        Optional, default : "from_points".
+    kernel : str
+        Weighing function to assign kernel weights to each center.
+        Optional, default : "flat".
     """
 
     def __init__(
@@ -67,12 +76,9 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         self.kernel = kernel
         self.centers = None
 
-        print(type(max_iter))
-        print(max_iter)
-
-    def __intersets_distances(self, points_A, points_B, **joblib_kwargs):
-        """Parallel computation of distances between two sets of points"""
-        n_A, n_B = points_A.shape[0], points_B.shape[0]
+    def dist_intersets(self, points_a, points_b, **joblib_kwargs):
+        """Parallel computation of distances between two sets of points."""
+        n_a, n_b = points_a.shape[0], points_b.shape[0]
 
         @joblib.delayed
         @joblib.wrap_non_picklable_objects
@@ -82,34 +88,41 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
 
         pool = joblib.Parallel(n_jobs=self.n_jobs, **joblib_kwargs)
         out = pool(
-            pickable_dist(points_A[i, :], points_B[j, :])
-            for i in range(n_A)
-            for j in range(n_B)
+            pickable_dist(point_a, point_b)
+            for point_a in points_a
+            for point_b in points_b
         )
 
-        return gs.array(out).reshape((n_A, n_B))
+        return gs.array(out).reshape((n_a, n_b))
 
-    def fit(self, X):
-        """Fit centers in all the input points to find 'n_centers' number of clusters"""
+    def fit(self, x, y=None):
+        """
+        Fit centers in all the input points to find
+        'n_centers' number of clusters.
+        """
 
         @joblib.delayed
         @joblib.wrap_non_picklable_objects
         def pickable_mean(points, weights):
-            """Frechet Mean of all points weighted by weights"""
+            """Frechet Mean of all points weighted by weights.
+
+            Parameters
+            ----------
+            points : array-like,
+                     Clusters of points.
+            weights : array-like,
+                      Weight associated with each point in cluster.
+            """
             return self.mean.fit(points, weights=weights).estimate_
 
-        # 'from_points' is the default initialization for centers used
         if self.init_centers == "from_points":
-            n_points = X.shape[0]
-            centers = X[gs.random.randint(n_points, size=self.n_centers), :]
-        if self.init_centers == "random_uniform":
-            n_centers = centers.shape[0]
-            centers = self.manifold.random_uniform(n_samples=n_centers)
+            n_points = x.shape[0]
+            centers = x[gs.random.randint(n_points, size=self.n_centers), :]
+        elif self.init_centers == "random_uniform":
+            centers = self.manifold.random_uniform(n_samples=self.n_centers)
 
-        print(type(self.max_iter))
-        print(self.max_iter)
         for _ in range(self.max_iter):
-            dists = self.__intersets_distances(centers, X)
+            dists = self.dist_intersets(centers, x)
 
             # assuming the use of 'flat' kernel
             if self.kernel == "flat":
@@ -126,10 +139,9 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
                     weights[j][indexes],
                 ]
                 points_to_average += [
-                    X[indexes],
+                    x[indexes],
                 ]
 
-            # compute Frechet means in parallel
             pool = joblib.Parallel(n_jobs=self.n_jobs)
             out = pool(
                 pickable_mean(points_to_average[j], nonzero_weights[j])
@@ -138,7 +150,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
 
             new_centers = gs.array(out)
 
-            displacements = [self.metric.dist(centers[j], new_centers[j])]
+            displacements = [self.metric.dist(centers, new_centers)]
             centers = new_centers
 
             if (gs.array(displacements) < self.tol).all():
@@ -147,15 +159,19 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         self.centers = centers
 
     def predict(self, points):
-        """Predict the closest cluster each point in 'points' belongs to"""
+        """Predict the closest cluster each point in 'points' belongs to.
+
+        Parameters
+        ----------
+        points : array-like,
+                 Clusters of points.
+        """
         if self.centers is None:
             raise Exception("Not fitted")
 
-        out = []
-        for i in range(points.shape[0]):
-            j_closest_center = self.metric.closest_neighbor_index(
-                points[i, :], self.centers
-            )
-            out.append(self.centers[j_closest_center, :])
+        closest_centers = []
+        for point in points:
+            closest_center = self.metric.closest_neighbor_index(point, self.centers)
+            closest_centers.append(self.centers[closest_center, :])
 
-        return gs.array(out)
+        return gs.array(closest_centers)
