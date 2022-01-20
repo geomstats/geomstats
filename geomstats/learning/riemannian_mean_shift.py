@@ -77,13 +77,31 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         self.centers = None
 
     def dist_intersets(self, points_a, points_b, **joblib_kwargs):
-        """Parallel computation of distances between two sets of points."""
+        """
+        Parallel computation of distances between two sets of points.
+
+        Parameters
+        ----------
+        points_a : array-like, shape=[..., n_features]
+            Clusters of points.
+        points_b : array-like, shape=[..., n_features]
+            Clusters of points.
+        """
         n_a, n_b = points_a.shape[0], points_b.shape[0]
 
         @joblib.delayed
         @joblib.wrap_non_picklable_objects
         def pickable_dist(x, y):
-            """Riemannian metric between points x & y"""
+            """
+            Riemannian metric between points x & y.
+
+            Parameters
+            ----------
+            x : single point, shape=[1, n_features]
+                Single point on manifold.
+            y : array-like, shape=[1, n_features]
+                Single point on manifold.
+            """
             return self.metric.dist(x, y)
 
         pool = joblib.Parallel(n_jobs=self.n_jobs, **joblib_kwargs)
@@ -97,8 +115,12 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
 
     def fit(self, x, y=None):
         """
-        Fit centers in all the input points to find
-        'n_centers' number of clusters.
+        Fit centers in all the input points.
+
+        Parameters
+        ----------
+        x : array-like, shape=[..., n_features]
+            Clusters of points.
         """
 
         @joblib.delayed
@@ -108,7 +130,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
 
             Parameters
             ----------
-            points : array-like,
+            points : array-like, shape=[..., n_features]
                      Clusters of points.
             weights : array-like,
                       Weight associated with each point in cluster.
@@ -124,7 +146,6 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         for _ in range(self.max_iter):
             dists = self.dist_intersets(centers, x)
 
-            # assuming the use of 'flat' kernel
             if self.kernel == "flat":
                 weights = gs.ones_like(dists)
 
@@ -163,8 +184,8 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
 
         Parameters
         ----------
-        points : array-like,
-                 Clusters of points.
+        points : array-like, shape=[..., n_features]
+            Clusters of points.
         """
         if self.centers is None:
             raise Exception("Not fitted")
