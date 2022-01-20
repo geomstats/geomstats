@@ -369,7 +369,7 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
         metric = SPDMetricAffine(n, power_affine)
         sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
         sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
-        self.assertAllClose(sd_a_b, sd_b_a)
+        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
 
     def test_parallel_transport_exp_norm(self, n, power_affine, n_samples):
         metric = SPDMetricAffine(n, power_affine)
@@ -382,7 +382,7 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
         transported = metric.parallel_transport(tan_a, tan_b, point)
         result = metric.norm(transported, end_point)
 
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, gs.atol * 10000)
 
 
 class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
@@ -486,7 +486,7 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
         metric = SPDMetricBuresWasserstein(n)
         sd_a_b = metric.squared_dist(point_a, point_b)
         sd_b_a = metric.squared_dist(point_b, point_a)
-        self.assertAllClose(sd_a_b, sd_b_a)
+        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
 
 
 class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
@@ -603,7 +603,7 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
         metric = SPDMetricEuclidean(n, power_euclidean)
         sd_a_b = metric.squared_dist(point_a, point_b)
         sd_b_a = metric.squared_dist(point_b, point_a)
-        self.assertAllClose(sd_a_b, sd_b_a)
+        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
 
 
 class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
@@ -689,4 +689,4 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
         metric = SPDMetricLogEuclidean(n)
         sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
         sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
-        self.assertAllClose(sd_a_b, sd_b_a)
+        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
