@@ -138,7 +138,7 @@ class TestData:
     def _log_exp_composition_data(
         self, space, n_samples=100, max_n=10, n_n=5, **kwargs
     ):
-        """Generate Data that checks for log and exp are inverses. Specifically
+        """Generate Data that checks for log and exp are inverse. Specifically
 
             :math: `Exp_{base_point}(Log_{base_point}(point)) = point`
 
