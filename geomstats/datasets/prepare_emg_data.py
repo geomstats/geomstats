@@ -35,6 +35,7 @@ class TimeSeriesCovariance:
     margin : int
         Number of index to remove before and after a sign change (Can
         help getting a stationary signal).
+
     Attributes
     ----------
     label_map : dictionary
