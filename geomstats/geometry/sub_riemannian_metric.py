@@ -211,7 +211,7 @@ class SubRiemannianMetric(abc.ABC):
 
     @staticmethod
     def iterate(func, n_steps):
-        r"""Constructs a function which iterates another function n_steps times.
+        r"""Construct a function which iterates another function n_steps times.
 
         Parameters
         ----------
