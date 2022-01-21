@@ -21,7 +21,7 @@ R3 = Euclidean(dim=3)
 
 class DiscreteCurves(Manifold):
     r"""Space of discrete curves.
-    
+
     Discrete curves are sampled at points in ambient_manifold.
 
     Each individual curve is represented by a 2d-array of shape `[
@@ -41,7 +41,7 @@ class DiscreteCurves(Manifold):
     l2_metric : callable
         Function that takes as argument an integer number of sampled points
         and returns the corresponding L2 metric (product) metric,
-        a RiemannianMetric object
+        a RiemannianMetric object.
     square_root_velocity_metric : RiemannianMetric
         Square root velocity metric.
     """
