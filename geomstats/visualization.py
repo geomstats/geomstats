@@ -234,8 +234,11 @@ class Sphere:
                     )
 
     def fibonnaci_points(self, n_points=16000):
-        """Spherical Fibonacci point sets yield nearly uniform point
-        distributions on the unit sphere."""
+        """Plot spherical Fibonacci point set.
+
+        Spherical Fibonacci point set yields nearly uniform point
+        distributions on the unit sphere.
+        """
         x_vals = []
         y_vals = []
         z_vals = []
