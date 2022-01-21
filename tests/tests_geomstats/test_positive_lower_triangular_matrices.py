@@ -65,7 +65,12 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
                     n=2,
                     point=[[1.0, 0.0], [2.0, 1.0]],
                     expected=[[1.0, 2.0], [2.0, 5.0]],
-                )
+                ),
+                dict(
+                    n=2,
+                    point=[[[2.0, 1.0], [0.0, 1.0]], [[-6.0, 0.0], [5.0, 3.0]]],
+                    expected=[[[5.0, 1.0], [1.0, 1.0]], [[36.0, -30.0], [-30.0, 34.0]]],
+                ),
             ]
             return self.generate_tests(smoke_data)
 
