@@ -269,7 +269,7 @@ class Matrices(VectorSpace):
             Optional, default : backend atol.
 
         Returns
-        ------
+        -------
         is_strictly_triu : array-like, shape=[...,]
             Boolean evaluating if the matrix is strictly upper triangular
         """
@@ -411,7 +411,7 @@ class Matrices(VectorSpace):
         out lower elements.
 
         Parameters
-        ---------
+        ----------
         mat : array-like, shape=[..., n, n]
             Matrix.
 
@@ -448,7 +448,7 @@ class Matrices(VectorSpace):
         out lower and diagonal elements.
 
         Parameters
-        ---------
+        ----------
         mat : array-like, shape=[..., n, n]
             Matrix.
 

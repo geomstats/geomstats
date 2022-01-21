@@ -857,7 +857,7 @@ def vec_to_triu(vec):
     vec : array_like, shape[..., n]
 
     Returns
-    ------
+    -------
     tril : array_like, shape=[..., k, k] where
         k is (1 + sqrt(1 + 8 * n)) / 2
     """
@@ -878,7 +878,7 @@ def vec_to_tril(vec):
     """Take vec and forms strictly lower triangular matrix.
 
     Parameters
-    ---------
+    ----------
     vec : array_like, shape=[..., n]
 
     Returns
