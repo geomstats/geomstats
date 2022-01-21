@@ -168,8 +168,9 @@ class DiscreteCurves(Manifold):
 
 
 class L2CurvesMetric(RiemannianMetric):
-    """L2 metric on the space regularly sampled discrete curves
+    """L2 metric on the space of discrete curves.
 
+    L2 metric on the space of regularly sampled discrete curves
     defined on the unit interval. The inner product between two tangent vectors
     is given by the integral of the ambient space inner product, approximated by
     a left Riemann sum.
@@ -192,9 +193,11 @@ class L2CurvesMetric(RiemannianMetric):
         self.l2_landmarks_metric = lambda n: L2Metric(ambient_manifold, n_landmarks=n)
 
     def riemann_sum(self, func, missing_last_point=True):
-        """Compute the left Riemann sum approximation of the integral of a function
+        """Compute the left Riemann sum approximation of the integral.
 
-        on the unit interval, given by sample points at regularly spaced times
+        Compute the left Riemann sum approximation of the integral of a
+        function func defined on on the unit interval,
+        given by sample points at regularly spaced times
         t_k = k / n_sampling_points for k = 0, ..., n_sampling_points.
 
         Parameters
