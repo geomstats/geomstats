@@ -182,16 +182,8 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
                 dict(
                     m=3,
                     n=3,
-                    mat=[
-                        MAT2_33,
-                        MAT3_33,
-                        MAT4_33,
-                        MAT5_33,
-                        MAT6_33,
-                        MAT7_33,
-                        MAT8_33,
-                    ],
-                    expected=[False, True, False, False, False, False, True, True],
+                    mat=[EYE_3, MAT3_33, MAT4_33, MAT5_33, MAT6_33, MAT7_33, MAT8_33],
+                    expected=[True, False, False, False, False, False, False],
                 ),
             ]
             return self.generate_tests(smoke_data)
@@ -318,6 +310,34 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
                     n=2,
                     mat=[[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]],
                     expected=[[[1.0, 0.0], [0.0, 4.0]], [[5.0, 0.0], [0.0, 8.0]]],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def to_symmetric_data(self):
+            res = 0.5 * (1e100 + 1e-100)
+            smoke_data = [
+                dict(
+                    m=2,
+                    n=2,
+                    mat=[[1.0, 2.0], [2.0, 1.0]],
+                    expected=[[1.0, 2.0], [2.0, 1.0]],
+                ),
+                dict(
+                    m=3,
+                    n=3,
+                    mat=[
+                        [[1.0, 2.0, 3.0], [0.0, 0.0, 0.0], [3.0, 1.0, 1.0]],
+                        [
+                            [1e100, 1e-100, 1e100],
+                            [1e100, 1e-100, 1e100],
+                            [1e-100, 1e-100, 1e100],
+                        ],
+                    ],
+                    expected=[
+                        [[1.0, 1.0, 3.0], [1.0, 0.0, 0.5], [3.0, 0.5, 1.0]],
+                        [[1e100, res, res], [res, 1e-100, res], [res, res, 1e100]],
+                    ],
                 ),
             ]
             return self.generate_tests(smoke_data)
@@ -450,6 +470,9 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
     def test_diagonal(self, m, n, mat, expected):
         self.assertAllClose(Matrices(m, n).diagonal(gs.array(mat)), gs.array(expected))
 
+    def test_is_diagonal(self, m, n, mat, expected):
+        self.assertAllClose(Matrices(m, n).is_diagonal(gs.array(mat)), expected)
+
     def test_is_symmetric(self, m, n, mat, expected):
         self.assertAllClose(
             Matrices(m, n).is_symmetric(gs.array(mat)), gs.array(expected)
@@ -491,6 +514,11 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
     def test_to_diagonal(self, m, n, mat, expected):
         self.assertAllClose(
             Matrices(m, n).to_diagonal(gs.array(mat)), gs.array(expected)
+        )
+
+    def test_to_symmetric(self, m, n, mat, expected):
+        self.assertAllClose(
+            Matrices(m, n).to_symmetric(gs.array(mat)), gs.array(expected)
         )
 
     def test_to_lower_triangular(self, m, n, mat, expected):
