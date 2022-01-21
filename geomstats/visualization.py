@@ -53,6 +53,7 @@ IMPLEMENTED = [
 
 
 def tutorial_matplotlib():
+    """Set default parameters for matplotlib."""
     fontsize = 12
     matplotlib.rc("font", size=fontsize)
     matplotlib.rc("text")
