@@ -578,7 +578,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         cls_mn = Matrices(m, n)
         to_function = getattr(cls_mn, "to_" + matrix_type)
         is_function = getattr(cls_mn, "is_" + matrix_type)
-        self.assertAllClose(gs.all(is_function(to_function(mat))), gs.array(True))
+        self.assertAllClose(gs.all(is_function(to_function(gs.array(mat)))), True)
 
 
 class TestMatricesMetric(TestCase, metaclass=Parametrizer):
