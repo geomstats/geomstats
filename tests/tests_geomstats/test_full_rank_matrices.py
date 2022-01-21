@@ -60,5 +60,4 @@ class TestFullRankMatrices(TestCase, metaclass=Parametrizer):
         )
 
     def test_projection_and_belongs(self, m, n, mat):
-        print(mat.shape)
         self.assertAllClose(gs.all(self.cls(m, n).belongs(mat)), True)

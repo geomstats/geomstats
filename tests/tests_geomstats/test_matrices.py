@@ -1,3 +1,4 @@
+"""Unit tests for the manifold of matrices."""
 import math
 
 import geomstats.backend as gs
@@ -55,10 +56,10 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
                 [[1.0, -2.0], [3.0, -4.0]],
             )
             mats_2 = [[[2.0], [4.0]], [[1.0], [3.0]], [[1.0], [3.0]]]
-            mat_1_X_mat_2 = [[[10.0], [22.0]], [[5.0], [9.0]], [[-5.0], [-9.0]]]
+            mat_1_x_mat_2 = [[[10.0], [22.0]], [[5.0], [9.0]], [[-5.0], [-9.0]]]
             smoke_data = [
                 dict(mat=gs.array(mats_1), expected=[[23.0, -26.0], [51.0, -58.0]]),
-                dict(mat=(gs.array(mats_1), gs.array(mats_2)), expected=mat_1_X_mat_2),
+                dict(mat=(gs.array(mats_1), gs.array(mats_2)), expected=mat_1_x_mat_2),
             ]
             return self.generate_tests(smoke_data)
 
@@ -169,6 +170,28 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
                     n=3,
                     mat=[MAT3_33, MAT4_33],
                     expected=[transpose_MAT3_33, MAT4_33],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def is_diagonal_data(self):
+            smoke_data = [
+                dict(m=1, n=1, mat=[[-1.0]], expected=True),
+                dict(m=2, n=2, mat=EYE_2, expected=True),
+                dict(m=2, n=3, mat=MAT1_23, expected=False),
+                dict(
+                    m=3,
+                    n=3,
+                    mat=[
+                        MAT2_33,
+                        MAT3_33,
+                        MAT4_33,
+                        MAT5_33,
+                        MAT6_33,
+                        MAT7_33,
+                        MAT8_33,
+                    ],
+                    expected=[False, True, False, False, False, False, True, True],
                 ),
             ]
             return self.generate_tests(smoke_data)
