@@ -21,11 +21,11 @@ class PositiveLowerTriangularMatrices(OpenSet):
         Integer representing the shape of the matrices: n x n.
 
     References
-        ----------
-        .. [TP2019] . "Riemannian Geometry of Symmetric
-        Positive Definite Matrices Via Cholesky Decomposition"
-        SIAM journal on Matrix Analysis and Applications , 2019.
-         https://arxiv.org/abs/1908.09326
+    ----------
+    .. [TP2019] . "Riemannian Geometry of Symmetric
+    Positive Definite Matrices Via Cholesky Decomposition"
+    SIAM journal on Matrix Analysis and Applications , 2019.
+    https://arxiv.org/abs/1908.09326
     """
 
     def __init__(self, n, **kwargs):
