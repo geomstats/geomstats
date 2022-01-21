@@ -432,12 +432,13 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             matrix_types = [
                 "diagonal",
                 "symmetric",
+                "skew_symmetric",
                 "lower_triangular",
                 "upper_triangular",
                 "strictly_lower_triangular",
                 "strictly_upper_triangular",
             ]
-            list_n = random.sample(range(1, 500), 50)
+            list_n = random.sample(range(1, 200), 50)
             n_samples = 50
             random_data = []
             for matrix_type in matrix_types:
