@@ -20,7 +20,9 @@ R3 = Euclidean(dim=3)
 
 
 class DiscreteCurves(Manifold):
-    r"""Space of discrete curves sampled at points in ambient_manifold.
+    r"""Space of discrete curves.
+    
+    Discrete curves are sampled at points in ambient_manifold.
 
     Each individual curve is represented by a 2d-array of shape `[
     n_sampling_points, ambient_dim]`. A Batch of curves can be passed to
