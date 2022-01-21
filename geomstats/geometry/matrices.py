@@ -368,7 +368,10 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_diagonal(cls, mat):
-        """Make a matrix diagonal, by zeroing out non diagonal elements.
+        """Make a matrix diagonal.
+
+        Make a matrix diagonal by zeroing out non
+        diagonal elements.
 
         Parameters
         ----------
@@ -383,7 +386,10 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_lower_triangular(cls, mat):
-        """Make a matrix lower triangular, by zeroing out upper elements.
+        """Make a matrix lower triangular.
+
+        Make a matrix lower triangular by zeroing
+        out upper elements.
 
         Parameters
         ----------
@@ -399,7 +405,10 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_upper_triangular(cls, mat):
-        """Make a matrix upper triangular, by zeroing out lower elements.
+        """Make a matrix upper triangular.
+
+        Make a matrix upper triangular by zeroing
+        out lower elements.
 
         Parameters
         ---------
@@ -414,8 +423,10 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_strictly_lower_triangular(cls, mat):
-        """Make a matrix strictly lower triangular, by zeroing out
-        upper+diag elements.
+        """Make a matrix strictly lower triangular.
+
+        Make a matrix stricly lower triangular by zeroing
+        out upper and diagonal elements.
 
         Parameters
         ----------
@@ -431,8 +442,10 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_strictly_upper_triangular(cls, mat):
-        """Make a matrix stritcly upper triangular, by zeroing out
-        lower+diag elements.
+        """Make a matrix stritcly upper triangular.
+
+        Make a matrix strictly upper triangular by zeroing
+        out lower and diagonal elements.
 
         Parameters
         ---------
@@ -447,7 +460,10 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_symmetric(cls, mat):
-        """Make a matrix symmetric, by averaging with its transpose.
+        """Make a matrix symmetric.
+
+        Make a matrix suymmetric by averaging it
+        with its transpose.
 
         Parameters
         ----------
@@ -463,8 +479,10 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_skew_symmetric(cls, mat):
-        """
-        Make a matrix skew-symmetric, by averaging with minus its transpose.
+        """Make a matrix skew-symmetric.
+
+        Make matrix skew-symmetric by averaging it
+        with minus its transpose.
 
         Parameters
         ----------
@@ -480,8 +498,10 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_lower_triangular_diagonal_scaled(cls, mat, K=2.0):
-        """Make a matrix lower triangular, by zeroing out upper elements
-        and also diagonal is divided by factor K.
+        """Make a matrix lower triangular.
+
+        Make matrix lower triangular by zeroing out
+        upper elements and divide diagonal by factor K.
 
         Parameters
         ----------
