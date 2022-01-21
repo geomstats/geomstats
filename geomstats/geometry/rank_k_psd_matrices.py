@@ -209,8 +209,9 @@ class PSDMatrices(RankKPSDMatrices, SPDMatrices):
         k,
         **kwargs,
     ):
+        """Instantiate class from one of the parent classes."""
         if n > k:
             return RankKPSDMatrices(n, k, **kwargs)
         if n == k:
             return SPDMatrices(n, **kwargs)
-        raise NotImplementedError("The PSD matrices is not implemented yet")
+        raise NotImplementedError("The PSD matrices is not implemented yet.")
