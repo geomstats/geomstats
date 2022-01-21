@@ -238,11 +238,13 @@ class BackendImporter:
         return new_module
 
     def find_module(self, fullname, path=None):
+        """Find module."""
         if self._path != fullname:
             return None
         return self
 
     def load_module(self, fullname):
+        """Load module."""
         if fullname in sys.modules:
             return sys.modules[fullname]
 

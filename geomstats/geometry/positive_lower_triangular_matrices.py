@@ -170,8 +170,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
 
 
 class CholeskyMetric(RiemannianMetric):
-    """Class for the cholesky metric on the cholesky space.
-
+    """Class for cholesky metric on cholesky space.
 
     Parameters
     ----------

@@ -9,8 +9,8 @@ from ..numpy import linalg as gsnplinalg
 
 
 class Logm(torch.autograd.Function):
-    """
-    Torch autograd function for matrix logarithm.
+    """Torch autograd function for matrix logarithm.
+
     Implementation based on:
     https://github.com/pytorch/pytorch/issues/9983#issuecomment-891777620
     """
@@ -23,11 +23,13 @@ class Logm(torch.autograd.Function):
 
     @staticmethod
     def forward(ctx, tensor):
+        """Apply matrix logarithm to a tensor."""
         ctx.save_for_backward(tensor)
         return Logm._logm(tensor)
 
     @staticmethod
     def backward(ctx, grad):
+        """Run gradients backward."""
         (tensor,) = ctx.saved_tensors
 
         vectorized = tensor.ndim == 3
