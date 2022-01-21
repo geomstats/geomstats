@@ -1,5 +1,6 @@
 """Unit tests for the manifold of matrices."""
 import math
+import random
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices, MatricesMetric
@@ -427,12 +428,23 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def to_matrix_type_belongs_to_matrix_type(self):
-            pass
-
-            # matrix_types = []
-            # for
-            # return self.generate_tests(random_data)
+        def to_matrix_type_is_matrix_type_data(self):
+            matrix_types = [
+                "diagonal",
+                "symmetric",
+                "lower_triangular",
+                "upper_triangular",
+                "strictly_lower_triangular",
+                "strictly_upper_triangular",
+            ]
+            list_n = random.sample(range(1, 500), 50)
+            n_samples = 50
+            random_data = []
+            for matrix_type in matrix_types:
+                for n in list_n:
+                    mat = gs.random.normal(size=(n_samples, n, n))
+                    random_data += [dict(m=n, n=n, matrix_type=matrix_type, mat=mat)]
+            return self.generate_tests([], random_data)
 
     testing_data = TestDataMatrices()
 
@@ -561,6 +573,12 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         self.assertAllClose(
             cls_mn.reshape(cls_mn.flatten(gs.array(mat))), gs.array(mat)
         )
+
+    def test_to_matrix_type_is_matrix_type(self, m, n, matrix_type, mat):
+        cls_mn = Matrices(m, n)
+        to_function = getattr(cls_mn, "to_" + matrix_type)
+        is_function = getattr(cls_mn, "is_" + matrix_type)
+        self.assertAllClose(gs.all(is_function(to_function(mat))), gs.array(True))
 
 
 class TestMatricesMetric(TestCase, metaclass=Parametrizer):
