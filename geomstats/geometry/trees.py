@@ -144,7 +144,7 @@ class Split(object):
 
     def __hash__(self):
         """ The hash function. """
-        return hash((self._part1, self._part2))
+        return hash((self.n, self._part1, self._part2))
 
     def __str__(self):
         """ String representation of the split. """
@@ -198,6 +198,8 @@ class Structure(object):
         self._leaf_paths = None
         self._separators = None
         self._support = None
+        self._chart = None
+        self._chart_gradient = None
 
     @property
     def n(self):
@@ -275,6 +277,53 @@ class Structure(object):
                 np.cumsum([len(splits) for splits in self.split_sets], dtype=int))
         return self._separators
 
+    @property
+    def chart(self):
+        """ Computes the chart of a grove with structure `st`.
+
+        Returns
+        -------
+        chart :
+            A map that takes as input a vector of length 'number of total splits',
+            and returns the corresponding correlation matrix.
+        """
+        if self._chart is None:
+            def _chart(x):
+                """ Input is a flat vector or list x (Nye parametrization). """
+                _w = self.ravel(x=x)
+                _corr = np.zeros((self.n, self.n))
+                for i, d in enumerate(self.leaf_paths):
+                    for (u, v), split_indices in d.items():
+                        _corr[u, v] = np.prod([1 - _w[i][k] for k in split_indices])
+                        _corr[v, u] = _corr[u, v]
+                np.fill_diagonal(a=_corr, val=1)
+                return _corr
+
+            self._chart = _chart
+        return self._chart
+
+    @property
+    def chart_gradient(self):
+        """ Computes the gradient of the chart of a grove with structure `st`.
+
+        Returns
+        -------
+        chart_gradient :
+            A map that takes as input a vector of length 'number of total splits',
+            and returns a list of the partial derivatives of the map ``self.chart``.
+        """
+        if self._chart_gradient is None:
+            def _chart_gradient(x):
+                """ Input is a flat vector or list x (Nye parametrization). """
+                coord_list = [[y if i != k else 0 for i, y in enumerate(x)] for k in
+                              range(len(x))]
+                _corr_gradient = [self.support[k] * -self.chart(xk) for k, xk in
+                                  enumerate(coord_list)]
+                return _corr_gradient
+
+            self._chart_gradient = _chart_gradient
+        return self._chart_gradient
+
     def where(self, s):
         """ Gives the index (unraveled) of the split s in the structure. """
         return int(np.argmin([o != s for o in self.unravel(self.split_sets)]))
@@ -299,13 +348,13 @@ class Structure(object):
     def __eq__(self, other):
         """ Determines if two structures are equal. """
         # if partitions are not equal, then structures are not equal.
-        if self.partition != other.partition:
-            return False
-        # two structures must contain exactly the same splits to be equal.
-        return self.split_sets == other.split_sets
+        equal_n = self.n == other.n
+        equal_partition = self.partition == other.partition
+        equal_split_sets = self.split_sets == other.split_sets
+        return equal_n and equal_partition and equal_split_sets
 
     def __le__(self, other):
-        """ Less than function (<).
+        """ Less than or equal function (<=).
 
         This method determines whether self < other with respect to the partial ordering
         introduced by [future publication].
@@ -355,8 +404,8 @@ class Structure(object):
         return other <= self
 
     def __lt__(self, other):
-        """ Less than or equal function (<=). """
-        return self < other or self == other
+        """ Less than function (<). """
+        return self <= other and self != other
 
     def __hash__(self):
         """ Computes the hash of the structure. """
@@ -403,7 +452,7 @@ class Wald(object):
     def corr(self):
         """ The correlation matrix representation of the forest. """
         if self._corr is None:
-            self._corr = compute_chart(st=self.st)(self.x)
+            self._corr = self.st.chart(self.x)
         return self._corr
 
     def __hash__(self):
@@ -418,59 +467,3 @@ class Wald(object):
 
     def __repr__(self):
         return str(self.x)
-
-
-def compute_chart(st: Structure):
-    """ Computes the chart of a grove with structure `st`.
-
-    Parameters
-    ----------
-    st : Structure
-        The structure of the grove.
-
-    Returns
-    -------
-    chart :
-        A map that takes as input a vector of length 'number of total splits in ``st``',
-        and returns the corresponding correlation matrix.
-    """
-
-    def _chart(x):
-        """ Input is a flat vector or list x (Nye parametrization). """
-        _w = st.ravel(x=x)
-        _corr = np.zeros((st.n, st.n))
-        for i, d in enumerate(st.leaf_paths):
-            for (u, v), split_indices in d.items():
-                _corr[u, v] = np.prod([1 - _w[i][k] for k in split_indices])
-                _corr[v, u] = _corr[u, v]
-        np.fill_diagonal(a=_corr, val=1)
-        return _corr
-
-    return _chart
-
-
-def compute_chart_gradient(st: Structure, chart):
-    """ Computes the gradient of the chart of a grove with structure `st`.
-
-    Parameters
-    ----------
-    st : Structure
-        The structure of the grove.
-    chart :
-        The output of the method ``compute_chart``, with parameter ``st``.
-
-    Returns
-    -------
-    chart_gradient :
-        A map that takes as input a vector of length 'number of total splits in ``st``',
-        and returns a list of the partial derivatives of the map ``chart``.
-    """
-
-    def _chart_gradient(x):
-        """ Input is a flat vector or list x (Nye parametrization). """
-        coord_list = [[y if i != k else 0 for i, y in enumerate(x)] for k in
-                      range(len(x))]
-        _corr_gradient = [st.support[k] * -chart(xk) for k, xk in enumerate(coord_list)]
-        return _corr_gradient
-
-    return _chart_gradient

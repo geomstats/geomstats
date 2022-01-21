@@ -35,7 +35,6 @@ import geomstats.backend as gs
 import geomstats.geometry.spd_matrices as spd
 from geomstats.geometry.spd_matrices import SPDMatrices as Spd
 
-import geomstats.geometry.trees as trees
 from geomstats.geometry.trees import Split, Structure, Wald
 
 from geomstats.geometry.matrices import Matrices as Mat
@@ -243,8 +242,7 @@ class WaldSpace(object):
         lifted_vector : array-like, shape=[..., n, n]
             The lifted vector in the tangent space of SPD matrices at the lifted point.
         """
-        _chart = trees.compute_chart(st=point.st)
-        _gradient_x = trees.compute_chart_gradient(st=point.st, chart=_chart)(x=point.x)
+        _gradient_x = point.st.chart_gradient(x=point.x)
 
         def _lift_vector(v):
             """ Lifts a single vector. """
@@ -355,7 +353,9 @@ class WaldSpace(object):
         """
         # the case where the grove has only one point: the isolated forest.
         if len(st0.partition) == st0.n:
-            return Wald(n=st0.n, corr=np.eye(st0.n))
+            st0 = Structure(n=st0.n, partition=tuple(() for _ in st0.n),
+                            split_sets=tuple(() for _ in st0.n))
+            return Wald(n=st0.n, st=st0, x=gs.array())
         # the target function that we will minimize.
         target_and_gradient = self._proj_target_gradient(point=point, st=st0)
         # the number of edges/splits in the forest
@@ -442,18 +442,16 @@ class WaldSpace(object):
         target_gradient :
             The gradient function taking coordinates ``x`` as arguments.
         """
-        chart = trees.compute_chart(st=st)
-        gradient = trees.compute_chart_gradient(st=st, chart=chart)
         p_sqrt = Sym.powerm(point, power=1.0 / 2)
         p_inv_sqrt = Sym.powerm(point, power=-1.0 / 2)
 
         def target_gradient(x):
-            _corr = chart(x)
+            _corr = st.chart(x)
             _target = self.a.squared_dist(point_a=_corr, point_b=point)
             dummy = Spd.logm(Mat.mul(p_inv_sqrt, _corr, p_inv_sqrt))
             dummy2 = Mat.mul(p_inv_sqrt, dummy, p_sqrt, GenL.inverse(_corr))
-            _target_gradient = np.array(
-                [0.5 * Mat.trace_product(dummy2, grad) for grad in gradient(x)])
+            _target_gradient = np.array([0.5 * Mat.trace_product(dummy2, grad)
+                                         for grad in st.chart_gradient(x)])
             return _target, _target_gradient
 
         return target_gradient
