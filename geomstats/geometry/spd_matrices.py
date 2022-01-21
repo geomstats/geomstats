@@ -421,8 +421,10 @@ class SPDMatrices(OpenSet):
 
     @classmethod
     def cholesky_factor(cls, mat):
-        """
-        Compute the cholesky_factor for a symmetric positive definite matrix
+        """Compute cholesky factor.
+
+        Compute cholesky factor for a symmetric positive
+        definite matrix.
 
         Parameters
         ----------
