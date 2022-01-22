@@ -100,7 +100,7 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
             list_n = random.sample(range(1, 200), 10)
             num_points = 10
             random_data = [
-                dict(n=n, mat=SPDMatrices.random_point(num_points)) for n in list_n
+                dict(n=n, mat=SPDMatrices(n).random_point(num_points)) for n in list_n
             ]
             return self.generate_tests([], random_data)
 
@@ -274,7 +274,7 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, gs.array(expected))
 
     def test_cholesky_factor_belongs(self, n, mat):
-        result = SPDMatrices(n).cholesky_factor(mat)
+        result = SPDMatrices(n).cholesky_factor(gs.array(mat))
         self.assertAllClose(
             gs.all(PositiveLowerTriangularMatrices(n).belongs(result)), True
         )
