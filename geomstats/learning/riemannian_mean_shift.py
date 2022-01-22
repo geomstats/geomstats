@@ -1,6 +1,6 @@
-"""
-Riemannian mean-shift clustering
-Lead author: Nina Miolane and Shubham Talbar
+"""Riemannian mean-shift clustering.
+
+Lead author: Nina Miolane and Shubham Talbar.
 """
 
 import joblib
@@ -128,9 +128,9 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
             Parameters
             ----------
             points : array-like, shape=[..., n_features]
-                     Clusters of points.
+                Clusters of points.
             weights : array-like,
-                      Weight associated with each point in cluster.
+                Weight associated with each point in cluster.
             """
             return self.mean.fit(points, weights=weights).estimate_
 
