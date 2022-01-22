@@ -131,6 +131,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         ----------
         tangent_vec : array_like, shape=[..., n, n]
             Tangent vector at base point.
+            Symmetric Matrix.
         base_point : array_like, shape=[..., n, n]
             Base point.
 
@@ -151,7 +152,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         ----------
         tangent_vec : array_like, shape=[..., n, n]
             tanget vector at gram(base_point)
-            Symmetric Matrix
+            Symmetric Matrix.
         base_point : array_like, shape=[..., n, n]
             Base point.
 
