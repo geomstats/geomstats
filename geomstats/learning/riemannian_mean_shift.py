@@ -77,8 +77,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         self.centers = None
 
     def dist_intersets(self, points_a, points_b, **joblib_kwargs):
-        """
-        Parallel computation of distances between two sets of points.
+        """Parallel computation of distances between two sets of points.
 
         Parameters
         ----------
@@ -92,8 +91,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         @joblib.delayed
         @joblib.wrap_non_picklable_objects
         def pickable_dist(x, y):
-            """
-            Riemannian metric between points x & y.
+            """Riemannian distance between points x & y.
 
             Parameters
             ----------
@@ -114,8 +112,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         return gs.array(out).reshape((n_a, n_b))
 
     def fit(self, x, y=None):
-        """
-        Fit centers in all the input points.
+        """Fit centers in all the input points.
 
         Parameters
         ----------

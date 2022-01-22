@@ -1,7 +1,5 @@
 """Unit tests for Riemannian Mean Shift method."""
 
-import os
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
@@ -10,8 +8,6 @@ from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.riemannian_mean_shift import (
     RiemannianMeanShift as riemannian_mean_shift,
 )
-
-os.environ["GEOMSTATS_BACKEND"] = "pytorch"
 
 
 class TestRiemannianMeanShift(geomstats.tests.TestCase):
