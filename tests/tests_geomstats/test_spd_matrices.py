@@ -80,6 +80,11 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
         def cholesky_factor_data(self):
             smoke_data = [
                 dict(
+                    n=2,
+                    spd_mat=[[[1.0, 2.0], [2.0, 5.0]], [[1.0, 0.0], [0.0, 1.0]]],
+                    expected=[[[1.0, 0.0], [2.0, 1.0]], [[1.0, 0.0], [0.0, 1.0]]],
+                ),
+                dict(
                     n=3,
                     spd_mat=[[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]],
                     expected=[
@@ -87,9 +92,17 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
                         [0.0, SQRT_2, 0.0],
                         [0.0, 0.0, SQRT_2],
                     ],
-                )
+                ),
             ]
             return self.generate_tests(smoke_data)
+
+        def cholesky_factor_belongs_data(self):
+            list_n = random.sample(range(1, 200), 10)
+            num_points = 10
+            random_data = [
+                dict(n=n, mat=SPDMatrices.random_point(num_points)) for n in list_n
+            ]
+            return self.generate_tests([], random_data)
 
         def differential_cholesky_factor_data(self):
             smoke_data = [
@@ -259,6 +272,12 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
+
+    def test_cholesky_factor_belongs(self, n, mat):
+        result = SPDMatrices(n).cholesky_factor(mat)
+        self.assertAllClose(
+            gs.all(PositiveLowerTriangularMatrices(n).belongs(result)), True
+        )
 
 
 class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
