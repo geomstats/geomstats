@@ -97,7 +97,7 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def cholesky_factor_belongs_data(self):
-            list_n = random.sample(range(1, 200), 10)
+            list_n = random.sample(range(1, 100), 10)
             n_samples = 10
             random_data = [
                 dict(n=n, mat=SPDMatrices(n).random_point(n_samples)) for n in list_n
