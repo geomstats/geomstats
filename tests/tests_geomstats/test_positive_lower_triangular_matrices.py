@@ -81,7 +81,16 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
                     tangent_vec=[[-1.0, 0.0], [2.0, -1.0]],
                     base_point=[[1.0, 0.0], [2.0, 1.0]],
                     expected=[[-2.0, 0.0], [0.0, 6.0]],
-                )
+                ),
+                dict(
+                    n=2,
+                    tangent_vec=[[[-1.0, 2.0], [2.0, -1.0]], [[0.0, 4.0], [4.0, -1.0]]],
+                    base_point=[[[3.0, 0.0], [-1.0, 2.0]], [[4.0, 0.0], [-1.0, 4.0]]],
+                    expected=[
+                        [[-6.0, 11.0], [11.0, -8.0]],
+                        [[0.0, 32.0], [32.0, -16.0]],
+                    ],
+                ),
             ]
             return self.generate_tests(smoke_data)
 
@@ -92,13 +101,19 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
                     tangent_vec=[[1.0, 2.0], [2.0, 5.0]],
                     base_point=[[1.0, 0.0], [2.0, 2.0]],
                     expected=[[0.5, 0.0], [1.0, 0.25]],
-                )
+                ),
+                dict(
+                    n=2,
+                    tangent_vec=[[[-4.0, 1.0], [1.0, -4.0]], [[0.0, 4.0], [4.0, -8.0]]],
+                    base_point=[[[2.0, 0.0], [-1.0, 2.0]], [[4.0, 0.0], [-1.0, 2.0]]],
+                    expected=[[[-1.0, 0.0], [0.0, -1.0]], [[0.0, 0.0], [1.0, -1.5]]],
+                ),
             ]
             return self.generate_tests(smoke_data)
 
         def differential_gram_belongs_data(self):
             ns = [1, 2, 2, 3, 10, 5, 100, 1000]
-            num_points = [1, 1, 2, 50, 1000, 100, 10, 5]
+            n_points = [1, 1, 2, 50, 1000, 100, 10, 5]
             space = PositiveLowerTriangularMatrices
             random_data = [
                 dict(
@@ -106,13 +121,13 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
                     tangent_vec=space(n).ambient_space.random_point(num_point),
                     base_point=space(n).random_point(num_point),
                 )
-                for n, num_point in zip(ns, num_points)
+                for n, num_point in zip(ns, n_points)
             ]
             return self.generate_tests([], random_data)
 
         def inverse_differential_gram_belongs_data(self):
             ns = [1, 2, 2, 3, 10, 15, 100, 1000]
-            num_points = [1, 1, 2, 200, 1000, 100, 10, 5]
+            n_points = [1, 1, 2, 200, 1000, 100, 10, 5]
             space = PositiveLowerTriangularMatrices
             random_data = [
                 dict(
@@ -120,7 +135,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
                     tangent_vec=space(n).random_point(num_point),
                     base_point=space(n).random_point(num_point),
                 )
-                for n, num_point in zip(ns, num_points)
+                for n, num_point in zip(ns, n_points)
             ]
             return self.generate_tests([], random_data)
 
@@ -254,7 +269,7 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
 
         def exp_belongs_data(self):
             ns = [1, 2, 2, 3, 10, 100, 1000]
-            num_points = [1, 1, 2, 1000, 100, 10, 5]
+            n_points = [1, 1, 2, 1000, 100, 10, 5]
             space = PositiveLowerTriangularMatrices
             random_data = [
                 dict(
@@ -262,13 +277,13 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
                     tangent_vec=space(n).ambient_space.random_point(num_point),
                     base_point=space(n).random_point(num_point),
                 )
-                for n, num_point in zip(ns, num_points)
+                for n, num_point in zip(ns, n_points)
             ]
             return self.generate_tests([], random_data)
 
         def log_belongs_data(self):
             ns = [1, 2, 2, 3, 10, 100, 1000]
-            num_points = [1, 1, 2, 1000, 100, 10, 5]
+            n_points = [1, 1, 2, 1000, 100, 10, 5]
             space = PositiveLowerTriangularMatrices
             random_data = [
                 dict(
@@ -276,7 +291,7 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
                     tangent_vec=space(n).random_point(num_point),
                     base_point=space(n).random_point(num_point),
                 )
-                for n, num_point in zip(ns, num_points)
+                for n, num_point in zip(ns, n_points)
             ]
             return self.generate_tests([], random_data)
 
