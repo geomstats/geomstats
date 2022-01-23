@@ -45,7 +45,6 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
 
             smoke_data = [
                 dict(m=2, n=2, mat_1=EYE_2, mat_2=EYE_2, expected=True),
-                # dict(m=2, n=2, mat_1=EYE_2, mat_2=EYE_3, expected=False),
                 dict(m=2, n=3, mat_1=MAT1_23, mat_2=MAT2_23, expected=False),
             ]
             return self.generate_tests(smoke_data)

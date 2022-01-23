@@ -207,9 +207,6 @@ class TestData:
                     n_geodesics, base_point=initial_point
                 )
                 random_t = gs.linspace(start=-1.0, stop=1.0, num=n_t)
-                # for (initial_point, initial_tangent_point), t in itertools.product(
-                #     zip(initial_points, initial_tangent_points), random_t
-                # ):
                 for initial_tangent_point, t in itertools.product(
                     initial_tangent_points, random_t
                 ):
