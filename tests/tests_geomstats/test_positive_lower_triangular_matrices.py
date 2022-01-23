@@ -112,7 +112,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def differential_gram_belongs_data(self):
-            n_list = [1, 2, 2, 3, 10, 5, 100, 1000]
+            n_list = [1, 2, 2, 3, 10, 5, 100, 200]
             n_samples_list = [1, 1, 2, 50, 1000, 100, 10, 5]
             space = PositiveLowerTriangularMatrices
             random_data = [
@@ -126,7 +126,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
             return self.generate_tests([], random_data)
 
         def inverse_differential_gram_belongs_data(self):
-            n_list = [1, 2, 2, 3, 10, 15, 100, 1000]
+            n_list = [1, 2, 2, 3, 10, 15, 100, 200]
             n_samples_list = [1, 1, 2, 200, 1000, 100, 10, 5]
             space = PositiveLowerTriangularMatrices
             random_data = [
