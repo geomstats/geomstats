@@ -112,30 +112,30 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def differential_gram_belongs_data(self):
-            ns = [1, 2, 2, 3, 10, 5, 100, 1000]
-            n_points = [1, 1, 2, 50, 1000, 100, 10, 5]
+            n_list = [1, 2, 2, 3, 10, 5, 100, 1000]
+            n_points_list = [1, 1, 2, 50, 1000, 100, 10, 5]
             space = PositiveLowerTriangularMatrices
             random_data = [
                 dict(
                     n=n,
-                    tangent_vec=space(n).ambient_space.random_point(num_point),
-                    base_point=space(n).random_point(num_point),
+                    tangent_vec=space(n).ambient_space.random_point(n_points),
+                    base_point=space(n).random_point(n_points),
                 )
-                for n, num_point in zip(ns, n_points)
+                for n, n_points in zip(n_list, n_points_list)
             ]
             return self.generate_tests([], random_data)
 
         def inverse_differential_gram_belongs_data(self):
-            ns = [1, 2, 2, 3, 10, 15, 100, 1000]
-            n_points = [1, 1, 2, 200, 1000, 100, 10, 5]
+            n_list = [1, 2, 2, 3, 10, 15, 100, 1000]
+            n_points_list = [1, 1, 2, 200, 1000, 100, 10, 5]
             space = PositiveLowerTriangularMatrices
             random_data = [
                 dict(
                     n=n,
-                    tangent_vec=space(n).random_point(num_point),
-                    base_point=space(n).random_point(num_point),
+                    tangent_vec=space(n).ambient_space.random_point(n_points),
+                    base_point=space(n).random_point(n_points),
                 )
-                for n, num_point in zip(ns, n_points)
+                for n, n_points in zip(n_list, n_points_list)
             ]
             return self.generate_tests([], random_data)
 
@@ -268,30 +268,30 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def exp_belongs_data(self):
-            ns = [1, 2, 2, 3, 10, 100, 1000]
-            n_points = [1, 1, 2, 1000, 100, 10, 5]
+            n_list = [1, 2, 2, 3, 10, 100, 1000]
+            n_points_list = [1, 1, 2, 1000, 100, 10, 5]
             space = PositiveLowerTriangularMatrices
             random_data = [
                 dict(
                     n=n,
-                    tangent_vec=space(n).ambient_space.random_point(num_point),
-                    base_point=space(n).random_point(num_point),
+                    tangent_vec=space(n).ambient_space.random_point(n_point),
+                    base_point=space(n).random_point(n_point),
                 )
-                for n, num_point in zip(ns, n_points)
+                for n, n_point in zip(n_list, n_points_list)
             ]
             return self.generate_tests([], random_data)
 
         def log_belongs_data(self):
-            ns = [1, 2, 2, 3, 10, 100, 1000]
-            n_points = [1, 1, 2, 1000, 100, 10, 5]
+            n_list = [1, 2, 2, 3, 10, 100, 1000]
+            n_points_list = [1, 1, 2, 1000, 100, 10, 5]
             space = PositiveLowerTriangularMatrices
             random_data = [
                 dict(
                     n=n,
-                    tangent_vec=space(n).random_point(num_point),
-                    base_point=space(n).random_point(num_point),
+                    point=space(n).random_point(n_points),
+                    base_point=space(n).random_point(n_points),
                 )
-                for n, num_point in zip(ns, n_points)
+                for n, n_points in zip(n_list, n_points_list)
             ]
             return self.generate_tests([], random_data)
 
