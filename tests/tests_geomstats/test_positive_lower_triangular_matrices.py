@@ -218,7 +218,17 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
                     tangent_vec_b=[[2.0, 0.0], [-3.0, -1.0]],
                     base_point=[[SQRT_2, 0.0], [-3.0, 1.0]],
                     expected=8.0,
-                )
+                ),
+                dict(
+                    n=2,
+                    tangent_vec_a=[
+                        [[3.0, 0.0], [4.0, 2.0]],
+                        [[-1.0, 0.0], [2.0, -4.0]],
+                    ],
+                    tangent_vec_b=[[[4.0, 0.0], [3.0, 3.0]], [[3.0, 0.0], [-6.0, 2.0]]],
+                    base_point=[[[3, 0.0], [-2.0, 6.0]], [[1, 0.0], [-1.0, 1.0]]],
+                    expected=[13.5, -23.0],
+                ),
             ]
             return self.generate_tests(smoke_data)
 
@@ -229,7 +239,16 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
                     tangent_vec=[[-1.0, 0.0], [2.0, 3.0]],
                     base_point=[[1.0, 0.0], [2.0, 2.0]],
                     expected=[[1 / EULER, 0.0], [4.0, 2 * gs.exp(1.5)]],
-                )
+                ),
+                dict(
+                    n=2,
+                    tangent_vec=[[[0.0, 0.0], [2.0, 0.0]], [[1.0, 0.0], [0.0, 0.0]]],
+                    base_point=[[[1.0, 0.0], [2.0, 2.0]], [[1.0, 0.0], [0.0, 2.0]]],
+                    expected=[
+                        [[1.0, 0.0], [4.0, 2.0]],
+                        [[gs.exp(1.0), 0.0], [0.0, 2.0]],
+                    ],
+                ),
             ]
             return self.generate_tests(smoke_data)
 
@@ -240,7 +259,16 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
                     point=[[EULER, 0.0], [2.0, EULER ** 3]],
                     base_point=[[EULER ** 3, 0.0], [4.0, EULER ** 4]],
                     expected=[[-2.0 * EULER ** 3, 0.0], [-2.0, -1 * EULER ** 4]],
-                )
+                ),
+                dict(
+                    n=2,
+                    point=[
+                        [[gs.exp(-2.0), 0.0], [0.0, gs.exp(2.0)]],
+                        [[gs.exp(-3.0), 0.0], [2.0, gs.exp(3.0)]],
+                    ],
+                    base_point=[[[1.0, 0.0], [-1.0, 1.0]], [[1.0, 0.0], [0.0, 1.0]]],
+                    expected=[[[-2.0, 0.0], [1.0, 2.0]], [[-3.0, 0.0], [2.0, 3.0]]],
+                ),
             ]
             return self.generate_tests(smoke_data)
 
