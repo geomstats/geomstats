@@ -60,12 +60,12 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def random_point_data(self):
+        def random_point_belongs_data(self):
             smoke_data = [
-                dict(n=1, n_points=1),
-                dict(n=2, n_points=1),
-                dict(n=10, n_points=10),
-                dict(n=10, n_points=1000),
+                dict(n=1, n_samples=1),
+                dict(n=2, n_samples=1),
+                dict(n=10, n_samples=10),
+                dict(n=10, n_samples=1000),
             ]
             return self.generate_tests(smoke_data)
 
@@ -98,9 +98,9 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
 
         def cholesky_factor_belongs_data(self):
             list_n = random.sample(range(1, 200), 10)
-            n_points = 10
+            n_samples = 10
             random_data = [
-                dict(n=n, mat=SPDMatrices(n).random_point(n_points)) for n in list_n
+                dict(n=n, mat=SPDMatrices(n).random_point(n_samples)) for n in list_n
             ]
             return self.generate_tests([], random_data)
 
@@ -207,9 +207,11 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(SPDMatrices(n).belongs(gs.array(mat)), gs.array(expected))
 
-    def test_random_point(self, n, n_points):
+    def test_random_point_belongs(self, n, n_samples):
         space = SPDMatrices(n)
-        self.assertAllClose(gs.all(space.random_point(n_points)), gs.array(True))
+        self.assertAllClose(
+            gs.all(space.belongs(space.random_point(n_samples))), gs.array(True)
+        )
 
     def test_projection(self, n, mat, expected):
         self.assertAllClose(
