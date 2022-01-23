@@ -373,17 +373,6 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point, atol=gs.atol * 1000)
 
-    # def test_geodesic_belongs(
-    #     self, n, power_affine, initial_point, initial_tangent_vec, t
-    # ):
-
-    #     metric = SPDMetricAffine(n, power_affine)
-    #     point = metric.geodesic(
-    #         initial_point=gs.array(initial_point),
-    #         initial_tangent_vec=gs.array(initial_tangent_vec),
-    #     )(t)
-    #     self.assertAllClose(SPDMatrices(n).belongs(point), gs.array(True))
-
     def test_squared_dist_is_symmetric(self, n, power_affine, point_a, point_b):
         metric = SPDMetricAffine(n, power_affine)
         sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
@@ -492,15 +481,6 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point, atol=gs.atol * 1000)
 
-    # def test_geodesic_belongs(self, n, initial_point, initial_tangent_vec, t):
-
-    #     metric = SPDMetricBuresWasserstein(n)
-    #     point = metric.geodesic(
-    #         initial_point=gs.array(initial_point),
-    #         initial_tangent_vec=gs.array(initial_tangent_vec),
-    #     )(t)
-    #     self.assertAllClose(SPDMatrices(n).belongs(point), gs.array(True))
-
     def test_squared_dist_is_symmetric(self, n, point_a, point_b):
         metric = SPDMetricBuresWasserstein(n)
         sd_a_b = metric.squared_dist(point_a, point_b)
@@ -607,17 +587,6 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point, atol=gs.atol * 1000)
 
-    # def test_geodesic_belongs(
-    #     self, n, power_euclidean, initial_point, initial_tangent_vec, t
-    # ):
-
-    #     metric = SPDMetricEuclidean(n, power_euclidean)
-    #     point = metric.geodesic(
-    #         initial_point=gs.array(initial_point),
-    #         initial_tangent_vec=gs.array(initial_tangent_vec),
-    #     )(t)
-    #     self.assertAllClose(SPDMatrices(n).belongs(point), gs.array(True))
-
     def test_squared_dist_is_symmetric(self, n, power_euclidean, point_a, point_b):
         metric = SPDMetricEuclidean(n, power_euclidean)
         sd_a_b = metric.squared_dist(point_a, point_b)
@@ -694,15 +663,6 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point, atol=gs.atol * 1000)
-
-    # def test_geodesic_belongs(self, n, initial_point, initial_tangent_vec, t):
-
-    #     metric = SPDMetricLogEuclidean(n)
-    #     point = metric.geodesic(
-    #         initial_point=gs.array(initial_point),
-    #         initial_tangent_vec=gs.array(initial_tangent_vec),
-    #     )(t)
-    #     self.assertAllClose(SPDMatrices(n).belongs(point), gs.array(True))
 
     def test_squared_dist_is_symmetric(self, n, point_a, point_b):
         metric = SPDMetricLogEuclidean(n)
