@@ -2905,7 +2905,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         and the self.group logarithm are inverse.
         Expect their composition to give the identity function.
         """
-
         for angle_type in self.elements:
             point = self.elements[angle_type]
             result = helper.group_log_then_exp_from_identity(
