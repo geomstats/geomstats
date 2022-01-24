@@ -170,7 +170,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
             gs.array(expected),
         )
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @geomstats.tests.np_and_autograd_only
     def test_differential_gram_belongs(self, n, tangent_vec, base_point):
         result = self.space(n).differential_gram(
             gs.array(tangent_vec), gs.array(base_point)
