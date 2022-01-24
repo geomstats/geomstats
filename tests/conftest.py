@@ -256,11 +256,12 @@ class Parametrizer(type):
     Parametrizer decorates every function inside the class with pytest.mark.parametrizer
     (except class methods and static methods). Two conventions need to be respected:
 
-        1.There should be a TestData object named 'testing_data'.
-        2.Every test function should have its corresponding data function inside
-        TestData object.
+    1.There should be a TestData object named 'testing_data'.
+    2.Every test function should have its corresponding data function inside
+    TestData object.
 
-        Ex. test_exp() should have method called exp_data() inside 'testing_data'."""
+    Ex. test_exp() should have method called exp_data() inside 'testing_data'.
+    """
 
     def __new__(cls, name, bases, attrs):
         for attr_name, attr_value in attrs.items():

@@ -826,7 +826,6 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         are inverse.
         Expect their composition to give the identity function.
         """
-
         angle_types = self.angles_close_to_pi
         # Canonical inner product on the lie algebra
         for metric in [
