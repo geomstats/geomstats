@@ -136,7 +136,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
 
         if self.init_centers == "from_points":
             n_points = x.shape[0]
-            centers = x[gs.random.randint(n_points, size=self.n_centers), :]
+            centers = x[gs.random.randint(n_points, size=(self.n_centers,)), :]
         elif self.init_centers == "random_uniform":
             centers = self.manifold.random_uniform(n_samples=self.n_centers)
 
@@ -147,7 +147,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
                 weights = gs.ones_like(dists)
 
             weights[dists > self.bandwidth] = 0.0
-            weights = weights / gs.sum(weights, axis=1, keepdims=1)
+            weights = weights / gs.sum(weights, axis=1, keepdims=True)
 
             points_to_average, nonzero_weights = [], []
 

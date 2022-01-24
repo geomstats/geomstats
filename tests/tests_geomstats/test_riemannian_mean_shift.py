@@ -13,6 +13,7 @@ from geomstats.learning.riemannian_mean_shift import (
 class TestRiemannianMeanShift(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
+    @geomstats.tests.np_autograd_and_torch_only
     def test_hypersphere_riemannian_mean_shift_predict(self):
         gs.random.seed(1234)
         dim = 2
@@ -40,6 +41,7 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_autograd_and_torch_only
     def test_single_cluster_riemannian_mean_shift(self):
         gs.random.seed(10)
 
@@ -67,6 +69,7 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_and_autograd_only
     def test_double_cluster_riemannian_mean_shift(self):
         gs.random.seed(10)
         number_of_samples = 20
