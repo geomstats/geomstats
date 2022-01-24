@@ -536,7 +536,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
             Matrices(m, n).to_diagonal(gs.array(mat)), gs.array(expected)
         )
 
-    @geomstats.tests.np_autograd_and_pytorch_only
+    @geomstats.tests.np_autograd_and_torch_only
     def test_to_symmetric(self, m, n, mat, expected):
         self.assertAllClose(
             Matrices(m, n).to_symmetric(gs.array(mat)), gs.array(expected)
