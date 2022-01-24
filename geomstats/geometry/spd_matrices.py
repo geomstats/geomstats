@@ -884,8 +884,8 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
     def parallel_transport(
         self,
         tangent_vec_a,
-        tangent_vec_b,
         base_point,
+        tangent_vec_b=None,
         end_point=None,
         n_steps=10,
         step="rk4",
