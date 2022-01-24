@@ -38,7 +38,6 @@ jobs:
       - name: Generate Docs [Sphinx]
         run: |
           sphinx-build  -b html -D version=latest -D release=latest docs docs/_build
-          echo ${{ github.repository }}
 
       - name: Deployement of Docs
         uses: JamesIves/github-pages-deploy-action@v4.2.2
