@@ -163,7 +163,8 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         """Test metric matrix.
 
         Check the value of the metric matrix for a particular
-        point in the space of beta distributions."""
+        point in the space of beta distributions.
+        """
         point = gs.array([1.0, 1.0])
         result = self.beta.metric.metric_matrix(point)
         expected = gs.array([[1.0, -0.644934066], [-0.644934066, 1.0]])

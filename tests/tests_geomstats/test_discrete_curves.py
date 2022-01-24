@@ -12,7 +12,6 @@ from geomstats.geometry.discrete_curves import (
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 
 
 class TestDiscreteCurves(geomstats.tests.TestCase):
@@ -279,9 +278,10 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_autograd_only
     def test_projection_closed_curves(self):
-        """Test that projecting the projection returns the projection
+        """Test that projecting the projection returns projection.
 
-        and that the projection is a closed curve."""
+        Also test that the projection is a closed curve.
+        """
         planar_closed_curves = self.space_closed_curves_in_euclidean_2d
 
         cells, _, _ = data_utils.load_cells()
@@ -298,9 +298,10 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
             self.assertAllClose(result, expected, rtol=10 * gs.rtol)
 
     def test_srv_inner_product(self):
-        """Test that srv_inner_product works as expected
+        """Test that srv_inner_product works as expected.
 
-        and that the resulting shape is right."""
+        Also test that the resulting shape is right.
+        """
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
         curves_ab = curves_ab(self.times)
@@ -319,9 +320,10 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_srv_norm(self):
-        """Test that srv_norm works as expected
+        """Test that srv_norm works as expected.
 
-        and that the resulting shape is right."""
+        Also test that the resulting shape is right.
+        """
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_ab = curves_ab(self.times)
         srvs_ab = self.srv_metric_r3.srv_transform(curves_ab)
@@ -338,9 +340,10 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_f_transform(self):
-        """Test that the f transform coincides with the SRVF
+        """Test that the f transform coincides with the SRVF.
 
-        when a=1, b=1/2."""
+        With the parameters: a=1, b=1/2.
+        """
         r2 = Euclidean(dim=2)
         elastic_metric = ElasticMetric(a=1.0, b=0.5)
         curves_r2 = DiscreteCurves(ambient_manifold=r2)
@@ -386,9 +389,10 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_elastic_and_srv_dist(self):
-        """Test that SRV dist and elastic dist coincide
+        """Test that SRV dist and elastic dist coincide.
 
-        for a=1 and b=1/2."""
+        For a=1 and b=1/2.
+        """
         r2 = Euclidean(dim=2)
         elastic_metric = ElasticMetric(a=1.0, b=0.5)
         curves_r2 = DiscreteCurves(ambient_manifold=r2)
@@ -476,7 +480,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = gs.stack((res_a, res_b))
         self.assertAllClose(result, expected)
 
-    def test_srv_inner_product(self):
+    def test_srv_inner_product_elastic(self):
         """Test inner product of SRVMetric.
 
         Check that the pullback metric gives an elastic metric
