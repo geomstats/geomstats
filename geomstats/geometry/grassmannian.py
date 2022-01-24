@@ -429,7 +429,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
                 )
         expm = gs.linalg.expm
         mul = Matrices.mul
-        rot = Matrices.bracket(base_point, -tangent_vec_b)
+        rot = -Matrices.bracket(base_point, tangent_vec_b)
         return mul(expm(rot), tangent_vec_a, expm(-rot))
 
     def private_squared_dist(self, point_a, point_b):
