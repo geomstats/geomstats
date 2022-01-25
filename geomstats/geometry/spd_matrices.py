@@ -1008,6 +1008,40 @@ class SPDMetricEuclidean(RiemannianMetric):
 
         return log
 
+    def parallel_transport(
+        self, tangent_vec_a, base_point, tangent_vec_b=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector a
+        along the geodesic between two points `base_point` and `end_point`
+        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        t*tangent_vec_b)`. In a Euclidean space, parallel transport is simply a
+        translation, so `tangent_vec_a` is returned identically.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold. Point to transport from.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+            Optional, default: None.
+        end_point : array-like, shape=[..., n, n]
+            Point on the manifold. Point to transport to.
+            Optional, default: None.
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[..., n, n]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+        """
+        if self.power_euclidean == 1:
+            return tangent_vec_a
+        raise NotImplementedError("Parallel transport is only implemented for power 1")
+
 
 class SPDMetricLogEuclidean(RiemannianMetric):
     """Class for the Log-Euclidean metric on the SPD manifold.

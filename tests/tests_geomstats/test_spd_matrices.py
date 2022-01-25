@@ -560,6 +560,18 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
                 SPDMatrices, power_euclidean=power_euclidean
             )
 
+        def parallel_transport_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    power_euclidean=1.0,
+                    tangent_vec_a=[[2.0, 0.0], [0.0, 2.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    tangent_vec_b=[[1.0, 0.0], [0.0, 0.5]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataSPDMetricEuclidean()
 
     def test_inner_product(
@@ -595,6 +607,13 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
         sd_a_b = metric.squared_dist(point_a, point_b)
         sd_b_a = metric.squared_dist(point_b, point_a)
         self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
+
+    def test_parallel_transport(
+        self, n, power_euclidean, tangent_vec_a, base_point, tangent_vec_b
+    ):
+        metric = SPDMetricEuclidean(n, power_euclidean)
+        result = metric.parallel_transport(tangent_vec_a, base_point, tangent_vec_b)
+        self.assertAllClose(result, tangent_vec_a)
 
 
 class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
