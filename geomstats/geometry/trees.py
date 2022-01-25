@@ -176,8 +176,8 @@ class Structure(object):
         forest.
     """
 
-    def __init__(self, n, split_sets, partition):
-        """ Initialize a structure with """
+    def __init__(self, n, partition, split_sets):
+        """ Initialize a structure with partition and sets of splits of components. """
         self._n = n
         # make some assertions about the given parameters.
         # same number of components in both partition and split_sets
