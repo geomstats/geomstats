@@ -86,7 +86,7 @@ BACKEND_ATTRIBUTES = {
         "mean",
         "meshgrid",
         "mod",
-        "module",
+        "module_name",
         "ndim",
         "one_hot",
         "ones",

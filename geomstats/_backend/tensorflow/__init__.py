@@ -70,7 +70,7 @@ from . import linalg  # NOQA
 from . import random  # NOQA
 
 DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3, complex64: 4, complex128: 5}
-
+module_name = "tensorflow"
 
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
@@ -87,7 +87,6 @@ set_diag = tf.linalg.set_diag
 std = tf.math.reduce_std
 atol = tf_atol
 rtol = tf_rtol
-module = tf
 
 
 def _raise_not_implemented_error(*args, **kwargs):

@@ -68,10 +68,10 @@ DTYPES = {
     complex128: 5,
 }
 
+module_name = "torch"
 
 atol = pytorch_atol
 rtol = pytorch_rtol
-module = torch
 
 
 def _raise_not_implemented_error(*args, **kwargs):

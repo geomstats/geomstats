@@ -120,10 +120,10 @@ DTYPES = {
     ndtype("complex128"): 5,
 }
 
+module_name = "numpy"
 
 atol = np_atol
 rtol = np_rtol
-module = np
 
 
 def comb(n, k):
