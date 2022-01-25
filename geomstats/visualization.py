@@ -8,6 +8,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
+import numpy as np
 import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
@@ -16,6 +17,7 @@ from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.waldspace import WaldSpace
 
 SE3_GROUP = SpecialEuclidean(n=3, point_type="vector")
 SE2_GROUP = SpecialEuclidean(n=2, point_type="matrix")
@@ -31,6 +33,7 @@ METRIC_S32 = KendallShapeMetric(k_landmarks=3, m_ambient=2)
 M33 = Matrices(m=3, n=3)
 S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
 METRIC_S33 = KendallShapeMetric(k_landmarks=3, m_ambient=3)
+WS3 = WaldSpace(n=3)
 
 AX_SCALE = 1.2
 
@@ -49,6 +52,7 @@ IMPLEMENTED = [
     "S33",
     "M33",
     "SPD2",
+    "WaldSpace3"
 ]
 
 
@@ -1103,6 +1107,126 @@ class KendallDisk:
         tv = METRIC_S33.norm(tangent_vec, base_point) * (x_r * u_r + x_th * u_th)
 
         self.ax.quiver(bp[0], bp[1], tv[0], tv[1], **kwargs)
+
+
+class WaldSpace3(object):
+    """Class used to plot points in Wald space with n = 3.
+
+    Attributes
+    ----------
+    """
+    def __init__(self):
+        self.ax = None
+        self.elev = None
+        self.azim = None
+        self.set_ax()
+
+        # draw the 2-d boundary wireframes
+        alpha = 0.2
+        int01 = gs.linspace(10 ** -5, 1, 100, endpoint=True)
+        a, b = gs.meshgrid(int01, int01)
+        surf_up = np.minimum(np.minimum(a / b, b / a), 1)
+        surf_down = a * b
+        self.ax.plot_wireframe(a, b, surf_up, color='orange', lw=0.3, alpha=alpha)
+        self.ax.plot_wireframe(a, b, surf_down, color='orange', lw=0.3, alpha=alpha)
+
+        # draw the 1-d or 0-d boundaries in black
+        zeros = gs.zeros((2,))
+        int01 = gs.linspace(10 ** -5, 1, 2, endpoint=True)
+        # forest 1,2 vs 3
+        a, b, c = int01, zeros, zeros
+        self.ax.plot(a, b, zs=c, label='', color='black', lw=1)
+        # forest 1,3 vs 2
+        a, b, c = zeros, int01, zeros
+        self.ax.plot(a, b, zs=c, label='', color='black', lw=1)
+        # forest 2,3 vs 1
+        a, b, c = zeros, zeros, int01
+        self.ax.plot(a, b, zs=c, label='', color='black', lw=1)
+        # complete forest 1 vs 2 vs 3
+        a, b, c = [0], [0], [0]
+        self.ax.scatter(a, b, zs=c, label='', color='black', s=3)
+
+    def set_ax(self, ax=None):
+        """Set axis."""
+        if ax is None:
+            ax = plt.subplot(111, projection="3d")
+
+        ax_s = 0.1
+        plt.setp(
+            ax,
+            xlim=(-ax_s, 1 + ax_s),
+            ylim=(-ax_s, 1 + ax_s),
+            zlim=(-ax_s, 1 + ax_s),
+            xlabel=r"$\rho_{12}$",
+            ylabel=r"$\rho_{13}$",
+            zlabel=r"$\rho_{23}$",
+        )
+        self.ax = ax
+
+    def set_view(self, elev=60.0, azim=0.0):
+        """Set azimuth and elevation angle."""
+        if self.ax is None:
+            self.set_ax()
+
+        self.elev, self.azim = gs.pi * elev / 180, gs.pi * azim / 180
+        self.ax.view_init(elev, azim)
+
+    def pass_point(self, point, marker='o', label='', text='', color=None,
+                   offset=(0, 0, 0), textcolor=None):
+        color = color if color is not None \
+            else next(self.ax._get_lines.prop_cycler)['color']
+        x, y, z = tuple(WS3.lift(point)[(0, 0, 1), (1, 2, 2)])
+        if text:
+            textcolor = color if textcolor is None else textcolor
+            self.ax.text(x + offset[0], y + offset[1], z + offset[2], text,
+                         color=textcolor)
+        self.ax.scatter(x, y, z, marker=marker, label=label, color=color)
+
+    def pass_points(self, points, marker='o', label=None, text=None, color=None):
+        params = [[param] * len(points) if not isinstance(param, list) else param
+                  for param in [marker, label, text, color]]
+        for point, _m, _l, _t, _c in zip(points, *params):
+            self.pass_point(point, _m, _l, _t, _c)
+
+    def pass_curve(self, curve, lw=1, label=None, color=None, alpha=1):
+        color = color if color is not None \
+            else next(self.ax._get_lines.prop_cycler)['color']
+        xs, ys, zs = [p.corr[0, 1] for p in curve], \
+                     [p.corr[0, 2] for p in curve], \
+                     [p.corr[1, 2] for p in curve]
+        self.ax.plot3D(xs=xs, ys=ys, zs=zs, lw=lw, label=label, color=color,
+                       alpha=alpha)
+
+    def pass_curves(self, curves, lw=1, label=None, color=None, alpha=1):
+        color = color if color is not None \
+            else next(self.ax._get_lines.prop_cycler)['color']
+        params = [[param] * len(curves) if not isinstance(param, list) else param
+                  for param in [lw, label, color, alpha]]
+        for curve, _lw, _l, _c, _a in zip(curves, *params):
+            self.pass_curve(curve, _lw, _l, _c, _a)
+
+    @staticmethod
+    def show():
+        plt.legend()
+        plt.show()
+
+    @staticmethod
+    def legend(**kwargs):
+        leg = plt.legend(**kwargs)
+        for lh in leg.legendHandles:
+            lh.set_alpha(1)
+            lh.set_lw(2)
+        return leg
+
+    @staticmethod
+    def savefig(fn, **kwargs):
+        plt.savefig(fname=fn, **kwargs)
+
+    @staticmethod
+    def close():
+        plt.cla()
+        plt.clf()
+        plt.close()
 
 
 def convert_to_trihedron(point, space=None):
