@@ -72,13 +72,15 @@ class WaldSpace(object):
         # check for vectorized version of belongs
         try:
             is_n = [_w.n == self.n for _w in wald]
+            is_in_01 = [gs.all(0 <= _w.x) and gs.all(_w.x <= 1) for _w in wald]
             is_pd = [Mat.is_pd(mat=self.lift(_w)) for _w in wald]
-            belongs = gs.logical_and(is_n, is_pd)
+            belongs = gs.logical_and(is_n, gs.logical_and(is_pd, is_in_01))
             return belongs
         except TypeError:
             is_n = wald.n == self.n
             is_pd = Mat.is_pd(mat=self.lift(wald))
-            belongs = gs.logical_and(is_n, is_pd)
+            is_in_01 = gs.all(0 <= wald.x) and gs.all(wald.x <= 1)
+            belongs = gs.logical_and(is_n, gs.logical_and(is_pd, is_in_01))
             return belongs
 
     def random_point(self, n_samples=1, btol=1e-08, prob=0.9):
@@ -178,14 +180,13 @@ class WaldSpace(object):
             # generate random partition
             partition = _generate_partition(_prob=prob)
             # generate random sets of splits for each component of the partition
-            split_collection = [_generate_splits(labels=_part) for _part in partition]
+            split_sets = [_generate_splits(labels=_part) for _part in partition]
             # delete random splits of those sets of splits
-            split_collection = [
+            split_sets = [
                 _delete_random_edges(splits=_splits, labels=_part, probability=prob)
-                for _part, _splits in zip(partition, split_collection)]
+                for _part, _splits in zip(partition, split_sets)]
             # create the structure for the wald, that is partition + sets of splits
-            st = Structure(n=partition, split_sets=split_collection,
-                           partition=self.n)
+            st = Structure(n=self.n, partition=partition, split_sets=split_sets)
             # generate random weights for the edges
             x = np.random.uniform(size=len(st.unravel(st.split_sets)))
             x = np.minimum(np.maximum(btol, x), 1 - btol)
@@ -514,6 +515,6 @@ def neighbours(st: Structure, sp: Split):
     sp2 = Split(n=sp.n, part1=set_a | set_d, part2=set_b | set_c)
     split_collection1 = [[sp1] + [s for s in st.split_sets[0] if s != sp]]
     split_collection2 = [[sp2] + [s for s in st.split_sets[0] if s != sp]]
-    st1 = Structure(n=st.partition, split_sets=split_collection1, partition=st.n)
-    st2 = Structure(n=st.partition, split_sets=split_collection2, partition=st.n)
+    st1 = Structure(n=st.n, partition=st.partition, split_sets=split_collection1)
+    st2 = Structure(n=st.n, partition=st.partition, split_sets=split_collection2)
     return [(st1, sp1), (st2, sp2)]
