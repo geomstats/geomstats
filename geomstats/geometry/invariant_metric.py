@@ -1,4 +1,7 @@
-"""Left- and right- invariant metrics that exist on Lie groups."""
+"""Left- and right- invariant metrics that exist on Lie groups.
+
+Lead authors: Nicolas Guigui and Nina Miolane.
+"""
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -681,6 +684,13 @@ class _InvariantMetricMatrix(RiemannianMetric):
                      Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
                      480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
+        if hasattr(self.group, "are_antipodals") and not gs.all(
+            ~self.group.are_antipodals(point, base_point)
+        ):
+            raise ValueError(
+                "The Logarithm map is not well-defined for"
+                f" antipodal matrices: {point} and {base_point}."
+            )
         return self.group.to_tangent(
             super(_InvariantMetricMatrix, self).log(
                 point,
@@ -838,8 +848,8 @@ class _InvariantMetricVector(RiemannianMetric):
         Optional, default: 'left'.
     """
 
-    def __init__(self, group, left_or_right="left"):
-        super(_InvariantMetricVector, self).__init__(dim=group.dim)
+    def __init__(self, group, left_or_right="left", **kwargs):
+        super(_InvariantMetricVector, self).__init__(dim=group.dim, **kwargs)
 
         self.group = group
         self.metric_mat_at_identity = gs.eye(group.dim)
@@ -1173,7 +1183,7 @@ class BiInvariantMetric(_InvariantMetricVector):
     """
 
     def __init__(self, group):
-        super(BiInvariantMetric, self).__init__(group=group)
+        super(BiInvariantMetric, self).__init__(group=group, shape=group.shape)
         condition = (
             "SpecialOrthogonal" not in group.__str__()
             and "SO" not in group.__str__()

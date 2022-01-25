@@ -1,4 +1,7 @@
-r"""The manifold of Positive Semi Definite matrices of rank k PSD(n,k)."""
+r"""The manifold of Positive Semi Definite matrices of rank k PSD(n,k).
+
+Lead author: Anna Calissano.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear
@@ -29,7 +32,9 @@ class RankKPSDMatrices(Manifold):
 
     def __init__(self, n, k, **kwargs):
         super(RankKPSDMatrices, self).__init__(
-            **kwargs, dim=int(k * n - k * (k + 1) / 2)
+            **kwargs,
+            dim=int(k * n - k * (k + 1) / 2),
+            shape=(n, n),
         )
         self.n = n
         self.rank = k
@@ -204,8 +209,9 @@ class PSDMatrices(RankKPSDMatrices, SPDMatrices):
         k,
         **kwargs,
     ):
+        """Instantiate class from one of the parent classes."""
         if n > k:
             return RankKPSDMatrices(n, k, **kwargs)
         if n == k:
             return SPDMatrices(n, **kwargs)
-        raise NotImplementedError("The PSD matrices is not implemented yet")
+        raise NotImplementedError("The PSD matrices is not implemented yet.")

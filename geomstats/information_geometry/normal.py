@@ -1,4 +1,7 @@
-"""Statistical Manifold of normal distributions with the Fisher metric."""
+"""Statistical Manifold of normal distributions with the Fisher metric.
+
+Lead author: Alice Le Brigant.
+"""
 
 from scipy.stats import norm
 

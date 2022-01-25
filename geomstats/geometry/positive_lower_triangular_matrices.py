@@ -1,4 +1,7 @@
-"""The manifold of lower triangular matrices with positive diagonal elements."""
+"""The manifold of lower triangular matrices with positive diagonal elements.
+
+Lead author: Saiteja Utpala.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
@@ -8,9 +11,9 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class PositiveLowerTriangularMatrices(OpenSet):
-    """Class for the manifold of lower triangular matrices
-    with positive diagonal elements. This is also called
-    cholesky space.
+    """Manifold of lower triangular matrices with >0 diagonal.
+
+    This manifold is also called the cholesky space.
 
     Parameters
     ----------
@@ -18,11 +21,11 @@ class PositiveLowerTriangularMatrices(OpenSet):
         Integer representing the shape of the matrices: n x n.
 
     References
-        ----------
-        .. [TP2019] . "Riemannian Geometry of Symmetric
-        Positive Definite Matrices Via Cholesky Decomposition"
-        SIAM journal on Matrix Analysis and Applications , 2019.
-         https://arxiv.org/abs/1908.09326
+    ----------
+    .. [TP2019] . "Riemannian Geometry of Symmetric
+    Positive Definite Matrices Via Cholesky Decomposition"
+    SIAM journal on Matrix Analysis and Applications , 2019.
+    https://arxiv.org/abs/1908.09326
     """
 
     def __init__(self, n, **kwargs):
@@ -57,8 +60,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         return self.projection(sample)
 
     def belongs(self, mat, atol=gs.atol):
-        """Check if a matrix is lower triangular matrix with
-        positive diagonal elements.
+        """Check if mat is lower triangular with >0 diagonal.
 
         Parameters
         ----------
@@ -128,6 +130,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         ----------
         tangent_vec : array_like, shape=[..., n, n]
             Tangent vector at base point.
+            Symmetric Matrix.
         base_point : array_like, shape=[..., n, n]
             Base point.
 
@@ -148,7 +151,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         ----------
         tangent_vec : array_like, shape=[..., n, n]
             tanget vector at gram(base_point)
-            Symmetric Matrix
+            Symmetric Matrix.
         base_point : array_like, shape=[..., n, n]
             Base point.
 
@@ -168,8 +171,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
 
 
 class CholeskyMetric(RiemannianMetric):
-    """Class for the cholesky metric on the cholesky space.
-
+    """Class for cholesky metric on cholesky space.
 
     Parameters
     ----------

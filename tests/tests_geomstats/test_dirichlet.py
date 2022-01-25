@@ -383,7 +383,8 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         """Test projection and belongs.
 
         Check that result of projection belongs to the space of
-        Dirichlet distributions."""
+        Dirichlet distributions.
+        """
         shape = (self.n_samples, self.dim)
         result = helper.test_projection_and_belongs(self.dirichlet, shape)
         for res in result:

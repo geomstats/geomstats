@@ -1,4 +1,7 @@
-"""Affine connections."""
+"""Affine connections.
+
+Lead author: Nicolas Guigui.
+"""
 
 from abc import ABC
 
@@ -6,10 +9,10 @@ from scipy.optimize import minimize
 
 import geomstats.backend as gs
 import geomstats.errors
-import geomstats.vectorization
 from geomstats.integrator import integrate
 
 N_STEPS = 10
+POINT_TYPES = {1: "vector", 2: "matrix", 3: "matrix"}
 
 
 class Connection(ABC):
@@ -19,6 +22,9 @@ class Connection(ABC):
     ----------
     dim : int
         Dimension of the underlying manifold.
+    shape : tuple of int
+        Shape of one element of the manifold.
+        Optional, default : (dim, ).
     default_point_type : str, {\'vector\', \'matrix\'}
         Point type.
         Optional, default: \'vector\'.
@@ -28,14 +34,20 @@ class Connection(ABC):
     """
 
     def __init__(
-        self, dim, default_point_type="vector", default_coords_type="intrinsic"
+        self, dim, shape=None, default_point_type=None, default_coords_type="intrinsic"
     ):
+        if shape is None:
+            shape = (dim,)
+        if default_point_type is None:
+            default_point_type = POINT_TYPES[len(shape)]
+
         geomstats.errors.check_integer(dim, "dim")
         geomstats.errors.check_parameter_accepted_values(
             default_point_type, "default_point_type", ["vector", "matrix"]
         )
 
         self.dim = dim
+        self.shape = shape
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
 

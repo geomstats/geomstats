@@ -19,11 +19,11 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
 
         x = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
-        kmeans = RiemannianKMeans(metric, 1, tol=1e-3, lr=1.0)
+        kmeans = RiemannianKMeans(metric, 1, init_step_size=1.0, tol=1e-3)
         kmeans.fit(x)
         center = kmeans.centroids
 
-        mean = FrechetMean(metric=metric, lr=1.0)
+        mean = FrechetMean(metric=metric, init_step_size=1.0)
         mean.fit(x)
 
         result = metric.dist(center, mean.estimate_)
@@ -38,11 +38,11 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         data = space.random_point(n_samples=n_points)
         metric = spd_matrices.SPDMetricAffine(dim)
 
-        kmeans = RiemannianKMeans(metric, n_clusters=1, lr=1.0)
+        kmeans = RiemannianKMeans(metric, n_clusters=1, init_step_size=1.0)
         kmeans.fit(data)
         result = kmeans.centroids
 
-        mean = FrechetMean(metric=metric, point_type="matrix", max_iter=100)
+        mean = FrechetMean(metric=metric, max_iter=100, point_type="matrix")
         mean.fit(data)
         expected = mean.estimate_
         self.assertAllClose(result, expected)
@@ -56,7 +56,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
 
         x = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
-        kmeans = RiemannianKMeans(metric, 5, tol=1e-5, lr=1.0)
+        kmeans = RiemannianKMeans(metric, 5, init_step_size=1.0, tol=1e-5)
         kmeans.fit(x)
         result = kmeans.predict(x)
 

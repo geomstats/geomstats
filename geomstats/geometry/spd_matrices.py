@@ -1,4 +1,7 @@
-"""The manifold of symmetric positive definite (SPD) matrices."""
+"""The manifold of symmetric positive definite (SPD) matrices.
+
+Lead author: Yann Thanwerdas.
+"""
 
 import math
 
@@ -418,8 +421,10 @@ class SPDMatrices(OpenSet):
 
     @classmethod
     def cholesky_factor(cls, mat):
-        """
-        Compute the cholesky_factor for a symmetric positive definite matrix
+        """Compute cholesky factor.
+
+        Compute cholesky factor for a symmetric positive
+        definite matrix.
 
         Parameters
         ----------

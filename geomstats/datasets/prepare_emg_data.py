@@ -6,6 +6,8 @@ of the sign change. It then creates batches of data that will be used to
 build the covariance matrices. In practice, one needs to choose the size
 of the batches big enough to get enough information, and small enough so
 that the online classifier is reactive enough.
+
+Lead author: Marius Guerard.
 """
 
 import numpy as np
@@ -33,6 +35,7 @@ class TimeSeriesCovariance:
     margin : int
         Number of index to remove before and after a sign change (Can
         help getting a stationary signal).
+
     Attributes
     ----------
     label_map : dictionary
