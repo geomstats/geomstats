@@ -47,7 +47,7 @@ class TestMyManifold(geomstats.tests.TestCase):
     """
 
     def setup_method(self):
-        """setUp method.
+        """Set up unit-tests.
 
         Use the setUp method to define variables that remain constant
         during all tests. For example, here we test the
@@ -62,7 +62,6 @@ class TestMyManifold(geomstats.tests.TestCase):
 
         The method test_dimension tests the `dim` attribute.
         """
-
         result = self.manifold.dim
         expected = self.dimension
         # Each test ends with the following syntax, comparing

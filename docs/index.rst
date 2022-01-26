@@ -68,9 +68,10 @@ To contribute to `geomstats` visit the page :ref:`contributing`.
    notebooks/06_information_geometry
    notebooks/07_implement_your_own_riemannian_geometry
    notebooks/08_shape_analysis
+   notebooks/usecase_cell_shapes_analysis
    notebooks/usecase_emg_sign_classification_in_spd_manifold
    notebooks/usecase_graph_embedding_and_clustering_in_hyperbolic_space
-   notebooks/usecase_optic_nerve_heads_analysis_in_kendall_shape_space
    notebooks/usecase_hand_poses_analysis_in_kendall_shape_space
+   notebooks/usecase_optic_nerve_heads_analysis_in_kendall_shape_space
    notebooks/usecase_visualizations_in_kendall_shape_spaces
 
