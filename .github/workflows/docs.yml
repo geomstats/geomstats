@@ -41,7 +41,7 @@ jobs:
 
       - name: Deployement of Docs
         uses: JamesIves/github-pages-deploy-action@v4.2.2
-        if : ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if : ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'geomstats/geomstats' }}
         with:
           branch : master
           folder: docs/_build

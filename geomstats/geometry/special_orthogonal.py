@@ -166,6 +166,120 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         """
         return self.lie_algebra.basis_representation(skew_mat)
 
+    def rotation_vector_from_matrix(self, rot_mat):
+        r"""Convert rotation matrix (in 2D or 3D) to rotation vector.
+
+        Get the angle through the atan2 function:
+
+        Parameters
+        ----------
+        rot_mat : array-like, shape=[..., 2, 2]
+            Rotation matrix.
+
+        Returns
+        -------
+        regularized_rot_vec : array-like, shape=[..., 1]
+            Rotation vector.
+        """
+        if self.n not in (2, 3):
+            raise NotImplementedError(
+                "The function matrix_from_rotation_vector is not "
+                "implemented if n is not in 2 or 3."
+            )
+        so_vector = (
+            _SpecialOrthogonal2Vectors()
+            if self.n == 2
+            else _SpecialOrthogonal3Vectors()
+        )
+        return so_vector.rotation_vector_from_matrix(rot_mat)
+
+    def matrix_from_rotation_vector(self, rot_vec):
+        """Convert rotation vector (2D or 3D) to rotation matrix.
+
+        Parameters
+        ----------
+        rot_vec: array-like, shape=[..., 1]
+            Rotation vector.
+
+        Returns
+        -------
+        rot_mat: array-like, shape=[..., 2, 2]
+            Rotation matrix.
+        """
+        if self.n not in (2, 3):
+            raise NotImplementedError(
+                "The function matrix_from_rotation_vector is not "
+                "implemented if n is not in 2 or 3."
+            )
+        so_vector = (
+            _SpecialOrthogonal2Vectors()
+            if self.n == 2
+            else _SpecialOrthogonal3Vectors()
+        )
+        return so_vector.matrix_from_rotation_vector(rot_vec)
+
+    @staticmethod
+    def are_antipodals(rotation_mat1, rotation_mat2):
+        """Determine if two rotation matrices are antipodals.
+
+        Parameters
+        ----------
+        rotation_mat1 : array-like, shape=[..., n, n]
+            Rotation matrix.
+        rotation_mat2 : array-like, shape=[..., n, n]
+            Rotation matrix.
+
+        Returns
+        -------
+        _ : array-like, shape=[...,]
+            Boolean determining if each pair of rotation
+            matrices corresponds to a pair of antipodal rotation
+            matrices.
+        """
+        sq_rot_mat1 = gs.matmul(rotation_mat1, rotation_mat1)
+        sq_rot_mat2 = gs.matmul(rotation_mat2, rotation_mat2)
+        are_different = ~gs.all(gs.isclose(rotation_mat1, rotation_mat2), axis=(-2, -1))
+
+        return are_different & gs.all(
+            gs.isclose(sq_rot_mat1, sq_rot_mat2), axis=(-2, -1)
+        )
+
+    def log(self, point, base_point=None):
+        r"""
+        Compute the group logarithm of point at base_point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Rotation matrix.
+        base_point : array-like, shape=[..., n, n]
+            Rotation matrix.
+            Optional, defaults to identity if None.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Matrix such that `exp(tangent_vec, base_point) = point`.
+
+        Notes
+        -----
+        Denoting `point` by :math:`g` and `base_point` by :math:`h`,
+        the output satisfies:
+
+        .. math::
+
+            g = \exp(\log(g, h), h)
+        """
+        if base_point is None:
+            base_point = self.identity
+        if gs.any(self.are_antipodals(point, base_point)):
+            raise ValueError(
+                "The Group Logarithm is not well-defined for"
+                f" antipodal rotation matrices: {point} and"
+                f"{base_point}."
+            )
+        return super().log(point, base_point)
+
 
 class _SpecialOrthogonalVectors(LieGroup):
     """Class for the special orthogonal groups SO({2,3}) in vector form.
