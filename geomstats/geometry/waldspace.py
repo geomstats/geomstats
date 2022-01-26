@@ -262,7 +262,18 @@ class WaldSpace(object):
             return _lift_vector(vector)
 
     def length(self, path):
-        """ Approximates the length of a given discretized path in Wald space. """
+        """ Approximates the length of a given discretized path in Wald space.
+
+        Parameters
+        ----------
+        path : list of Wald
+            The path with objects of type Wald.
+
+        Returns
+        -------
+        length : float
+            The length of the path, the sum of successive pairwise distances.
+        """
         _length = gs.sum(self.a.dist(self.lift(_p), self.lift(_q))
                          for _p, _q in zip(path[:-1], path[1:]))
         return _length
