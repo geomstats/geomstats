@@ -261,6 +261,12 @@ class WaldSpace(object):
         except TypeError:
             return _lift_vector(vector)
 
+    def length(self, path):
+        """ Approximates the length of a given discretized path in Wald space. """
+        _length = gs.sum(self.a.dist(self.lift(_p), self.lift(_q))
+                         for _p, _q in zip(path[:-1], path[1:]))
+        return _length
+
     def geodesic(self, p: Wald, q: Wald, n_points=20, **proj_args):
         """ Approximates a shortest path between ``p`` and ``q``.
 
