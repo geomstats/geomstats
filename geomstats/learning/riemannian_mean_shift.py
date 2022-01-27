@@ -174,7 +174,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
             if (gs.array(displacements) < self.tol).all():
                 break
 
-        self.centers = centers
+        self.centers = gs.unique(centers, axis=0)
 
     def predict(self, points):
         """Predict the closest cluster each point in 'points' belongs to.
