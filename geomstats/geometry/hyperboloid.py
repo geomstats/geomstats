@@ -2,6 +2,8 @@
 
 The n-dimensional hyperbolic space embedded with
 the hyperboloid representation (embedded in minkowsky space).
+
+Lead author: Nina Miolane.
 """
 
 import math
@@ -10,11 +12,11 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry._hyperbolic import HyperbolicMetric, _Hyperbolic
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
 
 
-class Hyperboloid(_Hyperbolic, EmbeddedManifold):
+class Hyperboloid(_Hyperbolic, LevelSet):
     """Class for the n-dimensional hyperboloid space.
 
     Class for the n-dimensional hyperboloid space as embedded in (

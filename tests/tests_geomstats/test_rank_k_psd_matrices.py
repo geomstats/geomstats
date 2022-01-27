@@ -2,8 +2,6 @@ r"""Unit tests for the space of PSD matrices of rank k."""
 
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.rank_k_psd_matrices import PSDMatrices
@@ -13,7 +11,7 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 class TestPSDMatricesRankK(geomstats.tests.TestCase):
     r"""Test of PSD Matrices Rank k methods."""
 
-    def setUp(self):
+    def setup_method(self):
         r"""Set up the test."""
         warnings.simplefilter("ignore", category=ImportWarning)
 
@@ -28,9 +26,11 @@ class TestPSDMatricesRankK(geomstats.tests.TestCase):
         r"""Test of belongs method."""
         psd_n_k = self.space
         mat_not_psd_n_k = gs.array(
-            [[0.8369314, -0.7342977, 1.0402943],
-             [0.04035992, -0.7218659, 1.0794858],
-             [0.9032698, -0.73601735, -0.36105633]]
+            [
+                [0.8369314, -0.7342977, 1.0402943],
+                [0.04035992, -0.7218659, 1.0794858],
+                [0.9032698, -0.73601735, -0.36105633],
+            ]
         )
         mat_psd_n_k = gs.array([[1.0, 1.0, 0], [1.0, 4.0, 0], [0, 0, 0]])
         result = psd_n_k.belongs(mat_not_psd_n_k)
@@ -56,28 +56,22 @@ class TestPSDMatricesRankK(geomstats.tests.TestCase):
         r"""Test the tangent functions."""
         base_point = self.space.random_point(3)
         vectors = self.sym.random_point(3)
-        vectors_t = self.space.to_tangent(base_point=base_point,
-                                          vector=vectors)
-        vectors_t_bp0 = self.space.to_tangent(base_point=base_point[0],
-                                              vector=vectors)
+        vectors_t = self.space.to_tangent(base_point=base_point, vector=vectors)
+        vectors_t_bp0 = self.space.to_tangent(base_point=base_point[0], vector=vectors)
 
-        result = self.space.is_tangent(base_point=base_point,
-                                       vector=vectors)
+        result = self.space.is_tangent(base_point=base_point, vector=vectors)
         self.assertFalse(gs.all(result))
-        result = self.space.is_tangent(base_point=base_point,
-                                       vector=vectors_t)
+        result = self.space.is_tangent(base_point=base_point, vector=vectors_t)
         self.assertTrue(gs.all(result))
 
-        result = self.space.is_tangent(base_point=base_point[0],
-                                       vector=vectors)
+        result = self.space.is_tangent(base_point=base_point[0], vector=vectors)
         self.assertFalse(gs.all(result))
-        result = self.space.is_tangent(base_point=base_point[0],
-                                       vector=vectors_t_bp0)
+        result = self.space.is_tangent(base_point=base_point[0], vector=vectors_t_bp0)
         self.assertTrue(gs.all(result))
 
-        result = self.space.is_tangent(base_point=base_point[0],
-                                       vector=vectors[0])
+        result = self.space.is_tangent(base_point=base_point[0], vector=vectors[0])
         self.assertFalse(gs.all(result))
-        result = self.space.is_tangent(base_point=base_point[0],
-                                       vector=vectors_t_bp0[0])
+        result = self.space.is_tangent(
+            base_point=base_point[0], vector=vectors_t_bp0[0]
+        )
         self.assertTrue(gs.all(result))

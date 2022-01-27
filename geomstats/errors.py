@@ -65,6 +65,7 @@ def check_parameter_accepted_values(param, param_name, accepted_values):
 
 
 def check_tf_error(exception, name):
+    """Raise error in tensorflow."""
     if os.environ["GEOMSTATS_BACKEND"] == "tensorflow":
         from tensorflow import errors
 

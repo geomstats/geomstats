@@ -9,14 +9,14 @@ from geomstats.learning.agglomerative_hierarchical_clustering import (
 )
 
 
+@geomstats.tests.np_and_autograd_only
 class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):
     """Class defining the Agglomerative Hierarchical Clustering tests."""
 
-    def setUp(self):
+    def setup_method(self):
         """Define the parameters to test."""
         gs.random.seed(1234)
 
-    @geomstats.tests.np_and_autograd_only
     def test_fit_euclidean_distance_string(self):
         """Test the 'fit' class method using the 'euclidean' distance."""
         n_clusters = 2
@@ -33,7 +33,6 @@ class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_autograd_only
     def test_fit_euclidean_distance_callable(self):
         """Test the 'fit' class method using the Euclidean distance."""
         n_clusters = 2
@@ -52,7 +51,6 @@ class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_autograd_only
     def test_fit_hypersphere_distance(self):
         """Test the 'fit' class method using the hypersphere distance."""
         n_clusters = 2

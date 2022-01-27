@@ -65,6 +65,11 @@ class TestNotebooks(geomstats.tests.TestCase):
 
     @staticmethod
     @geomstats.tests.np_and_autograd_only
+    def test_usecase_cell_shapes_analysis():
+        _exec_notebook("notebooks/usecase_cell_shapes_analysis.ipynb")
+
+    @staticmethod
+    @geomstats.tests.np_and_autograd_only
     def test_usecase_emg_sign_classification_in_spd_manifold():
         _exec_notebook(
             "notebooks/usecase_emg_sign_classification_in_spd_manifold.ipynb"

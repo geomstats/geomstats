@@ -9,6 +9,8 @@ coordinates systems.
 
 """
 
+import pytest
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hyperboloid import Hyperboloid
@@ -16,7 +18,7 @@ from geomstats.geometry.poincare_ball import PoincareBall
 
 
 class TestPoincareBall(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.manifold = PoincareBall(2)
         self.metric = self.manifold.metric
 
@@ -96,7 +98,8 @@ class TestPoincareBall(geomstats.tests.TestCase):
         result = gs.stack(result, axis=0)
 
         self.assertAllClose(result_vect, result)
-        with self.assertRaises(ValueError):
+
+        with pytest.raises(ValueError):
             self.manifold.metric.dist_broadcast(point_a, point_d)
 
     def test_dist_pairwise(self):
@@ -238,5 +241,5 @@ class TestPoincareBall(geomstats.tests.TestCase):
     def test_mobius_out_of_the_ball(self):
         x, y = gs.array([0.7, 0.9]), gs.array([0.2, 0.2])
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             self.manifold.metric.mobius_add(x, y, project_first=False)

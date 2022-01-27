@@ -10,7 +10,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class TestRiemannianMetric(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=UserWarning)
         gs.random.seed(0)
         self.dim = 2
@@ -42,8 +42,51 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
     def test_cometric_matrix(self):
         base_point = self.euc.random_point()
 
-        result = self.euc_metric.metric_inverse_matrix(base_point)
+        result = self.euc_metric.cometric_matrix(base_point)
         expected = gs.eye(self.dim)
+
+        self.assertAllClose(result, expected)
+
+    def test_inner_coproduct(self):
+        base_point = self.euc.random_point()
+        cotangent_vec_a = gs.array([1.0, 2.0])
+        cotangent_vec_b = gs.array([1.0, 2.0])
+
+        result = self.euc_metric.inner_coproduct(
+            cotangent_vec_a, cotangent_vec_b, base_point
+        )
+        expected = 5.0
+
+        self.assertAllClose(result, expected)
+
+        base_point = gs.array([0.0, 0.0, 1.0])
+        cotangent_vec_a = self.sphere.to_tangent(gs.array([1.0, 2.0, 0.0]), base_point)
+        cotangent_vec_b = self.sphere.to_tangent(gs.array([1.0, 3.0, 0.0]), base_point)
+
+        result = self.sphere_metric.inner_coproduct(
+            cotangent_vec_a, cotangent_vec_b, base_point
+        )
+        expected = 7.0
+
+        self.assertAllClose(result, expected)
+
+    def test_hamiltonian_euc_metric(self):
+        position = gs.array([1.0, 2.0])
+        momentum = gs.array([1.0, 2.0])
+        state = position, momentum
+        result = self.euc_metric.hamiltonian(state)
+
+        expected = 2.5
+
+        self.assertAllClose(result, expected)
+
+    def test_hamiltonian_sphere_metric(self):
+        position = gs.array([0.0, 0.0, 1.0])
+        momentum = gs.array([1.0, 2.0, 1.0])
+        state = position, momentum
+        result = self.sphere_metric.hamiltonian(state)
+
+        expected = 3.0
 
         self.assertAllClose(result, expected)
 

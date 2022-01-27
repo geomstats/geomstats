@@ -10,7 +10,6 @@ import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 
 
-
 class WrappedGaussianProcess(GaussianProcessRegressor):
     r""" Wrapped Gaussian Process.
 
@@ -143,7 +142,7 @@ class WrappedGaussianProcess(GaussianProcessRegressor):
 
         tangent_means = super(WrappedGaussianProcess, self).predict(X)
         base_points = self.prior(X)
-        y_mean = self.metric.Exp(tangent_means, basepoint=base_points)
+        y_mean = self.metric.exp(tangent_means, base_point=base_points)
         return y_mean
 
     def sample_y(self, X, n_samples=1, random_state=0):
@@ -173,10 +172,10 @@ class WrappedGaussianProcess(GaussianProcessRegressor):
         if len(tangent_samples.shape) == 2:
             base_points = self.prior(X)
             for i in range(tangent_samples.shape[1]):
-                y_samples[:, i] = self.metric.Exp(tangent_samples[:, i], basepoint=base_points)
+                y_samples[:, i] = self.metric.exp(tangent_samples[:, i], base_point=base_points)
         else:  # len(tangent_samples.shape) == 3
             base_points = self.prior(X)
             for i in range(tangent_samples.shape[1]):
-                y_samples[:,:, i] = self.metric.Exp(tangent_samples[:,:, i], basepoint=base_points)
+                y_samples[:, :, i] = self.metric.exp(tangent_samples[:, :, i], base_point=base_points)
 
         return y_samples

@@ -22,7 +22,7 @@ ATOL = 1e-5
 
 
 class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
         gs.random.seed(1234)
 
@@ -826,7 +826,6 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         are inverse.
         Expect their composition to give the identity function.
         """
-
         angle_types = self.angles_close_to_pi
         # Canonical inner product on the lie algebra
         for metric in [

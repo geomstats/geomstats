@@ -1,7 +1,11 @@
-"""The MDM classifier on manifolds."""
+"""The MDM classifier on manifolds.
+
+Lead authors: Daniel Brooks and Quentin Barthelemy.
+"""
 
 from scipy.special import softmax
 from sklearn.metrics import accuracy_score
+
 import geomstats.backend as gs
 from geomstats.learning.frechet_mean import FrechetMean
 
@@ -96,7 +100,9 @@ class RiemannianMinimumDistanceToMeanClassifier:
         return gs.array(y)
 
     def predict_proba(self, X):
-        """Compute probabilities to belong to classes according to
+        """Compute probabilities.
+
+        Compute probabilities to belong to classes according to
         riemannian_metric.
 
         Parameters
@@ -116,9 +122,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
         n_samples = X.shape[0]
         probas = []
         for i in range(n_samples):
-            dist2 = self.riemannian_metric.squared_dist(
-                X[i], self.mean_estimates_
-            )
+            dist2 = self.riemannian_metric.squared_dist(X[i], self.mean_estimates_)
             probas.append(softmax(-dist2))
         return gs.array(probas)
 

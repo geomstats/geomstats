@@ -1,130 +1,162 @@
 """Unit tests for the vector space of symmetric matrices."""
 
-import math
-import warnings
+import random
 
 import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from tests.conftest import Parametrizer, TestCase, TestData
 
 
-class TestSymmetricMatrices(geomstats.tests.TestCase):
+class TestSymmetricMatrices(TestCase, metaclass=Parametrizer):
     """Test of SymmetricMatrices methods."""
 
-    def setUp(self):
-        """Set up the test."""
-        warnings.simplefilter("ignore", category=ImportWarning)
+    class TestDataSymmetricMatrices(TestData):
+        """Data class for Testing Symmetric Matrices"""
 
-        gs.random.seed(1234)
+        def belongs_data(self):
+            smoke_data = [
+                dict(n=2, mat=[[1.0, 2.0], [2.0, 1.0]], expected=True),
+                dict(n=2, mat=[[1.0, 1.0], [2.0, 1.0]], expected=False),
+                dict(
+                    n=3,
+                    mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                    expected=True,
+                ),
+                dict(
+                    n=2,
+                    mat=[[[1.0, 0.0], [0.0, 1.0]], [[1.0, -1.0], [0.0, 1.0]]],
+                    expected=[True, False],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
-        self.n = 3
-        self.space = SymmetricMatrices(self.n)
+        def basis_data(self):
+            smoke_data = [
+                dict(n=1, basis=[[[1.0]]]),
+                dict(
+                    n=2,
+                    basis=[
+                        [[1.0, 0.0], [0, 0]],
+                        [[0, 1.0], [1.0, 0]],
+                        [[0, 0.0], [0, 1.0]],
+                    ],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
-    def test_belongs(self):
-        """Test of belongs method."""
-        sym_n = self.space
-        mat_sym = gs.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]])
-        mat_not_sym = gs.array([[1.0, 0.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]])
-        result = sym_n.belongs(mat_sym)
-        expected = True
-        self.assertAllClose(result, expected)
+        def expm_data(self):
+            smoke_data = [
+                dict(mat=[[0.0, 0.0], [0.0, 0.0]], expected=[[1.0, 0.0], [0.0, 1.0]])
+            ]
+            return self.generate_tests(smoke_data)
 
-        result = sym_n.belongs(mat_not_sym)
-        expected = False
-        self.assertAllClose(result, expected)
+        def powerm_data(self):
+            smoke_data = [
+                dict(
+                    mat=[[1.0, 2.0], [2.0, 3.0]],
+                    power=1.0,
+                    expected=[[1.0, 2.0], [2.0, 3.0]],
+                ),
+                dict(
+                    mat=[[1.0, 2.0], [2.0, 3.0]],
+                    power=2.0,
+                    expected=[[5.0, 8.0], [8.0, 13.0]],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
-    def test_basis(self):
-        """Test of belongs method."""
-        sym_n = SymmetricMatrices(2)
-        mat_sym_1 = gs.array([[1.0, 0.0], [0, 0]])
-        mat_sym_2 = gs.array([[0, 1.0], [1.0, 0]])
-        mat_sym_3 = gs.array([[0, 0.0], [0, 1.0]])
-        expected = gs.stack([mat_sym_1, mat_sym_2, mat_sym_3])
-        result = sym_n.basis
-        self.assertAllClose(result, expected)
+        def projection_data(self):
+            smoke_data = [
+                dict(n=1, num_points=1),
+                dict(n=2, num_points=1),
+                dict(n=1, num_points=10),
+                dict(n=10, num_points=10),
+            ]
+            return self.generate_tests(smoke_data)
 
-    def test_expm(self):
-        """Test of expm method."""
-        sym_n = SymmetricMatrices(self.n)
-        v = gs.array([[0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
-        result = sym_n.expm(v)
-        c = math.cosh(1)
-        s = math.sinh(1)
-        e = math.exp(1)
-        expected = gs.array([[c, s, 0.0], [s, c, 0.0], [0.0, 0.0, e]])
+        def dim_data(self):
 
-        four_dim_v = gs.broadcast_to(v, (2, 2) + v.shape)
-        four_dim_expected = gs.broadcast_to(expected, (2, 2) + expected.shape)
-        four_dim_result = sym_n.expm(four_dim_v)
+            smoke_data = [dict(n=1, dim=1), dict(n=2, dim=3), dict(n=5, dim=15)]
 
-        self.assertAllClose(result, expected)
-        self.assertAllClose(four_dim_result, four_dim_expected)
+            random_n = random.sample(range(1, 1000), 500)
+            rt_data = [(n, (n * (n + 1)) // 2) for n in random_n]
+            return self.generate_tests(smoke_data, rt_data)
 
-    def test_powerm(self):
-        """Test of powerm method."""
-        sym_n = SymmetricMatrices(self.n)
-        expected = gs.array(
-            [[[1, 1.0 / 4.0, 0.0], [1.0 / 4, 2.0, 0.0], [0.0, 0.0, 1.0]]]
-        )
+        def to_vector_data(self):
+            smoke_data = [
+                dict(n=1, mat=[[1.0]], vec=[1.0]),
+                dict(
+                    n=3,
+                    mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                    vec=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+                ),
+                dict(
+                    n=3,
+                    mat=[
+                        [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                        [[7.0, 8.0, 9.0], [8.0, 10.0, 11.0], [9.0, 11.0, 12.0]],
+                    ],
+                    vec=[
+                        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+                        [7.0, 8.0, 9.0, 10.0, 11.0, 12.0],
+                    ],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
-        power = gs.array(1.0 / 2.0)
+        def from_vector_data(self):
+            smoke_data = [
+                dict(n=1, vec=[1.0], mat=[[1.0]]),
+                dict(
+                    n=3,
+                    vec=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+                    mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                ),
+                dict(
+                    n=3,
+                    vec=[
+                        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+                        [7.0, 8.0, 9.0, 10.0, 11.0, 12.0],
+                    ],
+                    mat=[
+                        [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                        [[7.0, 8.0, 9.0], [8.0, 10.0, 11.0], [9.0, 11.0, 12.0]],
+                    ],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
-        result = sym_n.powerm(expected, power)
-        result = gs.matmul(result, gs.transpose(result, (0, 2, 1)))
-        self.assertAllClose(result, expected)
+    testing_data = TestDataSymmetricMatrices()
 
-    def test_vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
-        """Test for matrix to vector and vector to matrix conversions."""
-        sym_mat_1 = gs.array([[1.0, 0.6, -3.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]])
-        vector_1 = self.space.to_vector(sym_mat_1)
-        result_1 = self.space.from_vector(vector_1)
-        expected_1 = sym_mat_1
+    def test_belongs(self, n, mat, expected):
+        result = SymmetricMatrices(n).belongs(gs.array(mat))
+        self.assertAllClose(result, gs.array(expected))
 
-        self.assertTrue(gs.allclose(result_1, expected_1))
+    def test_basis(self, n, basis):
+        self.assertAllClose(SymmetricMatrices(n).get_basis(), gs.array(basis))
 
-        vector_2 = gs.array([1, 2, 3, 4, 5, 6])
-        sym_mat_2 = self.space.from_vector(vector_2)
-        result_2 = self.space.to_vector(sym_mat_2)
-        expected_2 = vector_2
+    def test_expm(self, mat, expected):
+        result = SymmetricMatrices.expm(gs.array(mat))
+        self.assertAllClose(result, gs.array(expected))
 
-        self.assertTrue(gs.allclose(result_2, expected_2))
+    def test_powerm(self, mat, power, expected):
+        result = SymmetricMatrices.powerm(gs.array(mat), power)
+        self.assertAllClose(result, gs.array(expected))
 
-    def test_vector_and_symmetric_matrix_vectorization(self):
-        """Test of vectorization."""
-        n_samples = 5
-        vector = gs.random.rand(n_samples, 6)
-        sym_mat = self.space.from_vector(vector)
-        result = self.space.to_vector(sym_mat)
-        expected = vector
-
-        self.assertTrue(gs.allclose(result, expected))
-
-        vector = self.space.to_vector(sym_mat)
-        result = self.space.from_vector(vector)
-        expected = sym_mat
-
-        self.assertTrue(gs.allclose(result, expected))
-
-    def test_symmetric_matrix_from_vector(self):
-        vector_2 = gs.array([1, 2, 3, 4, 5, 6])
-        result = self.space.from_vector(vector_2)
-        expected = gs.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]])
-        self.assertAllClose(result, expected)
-
-    def test_projection_and_belongs(self):
-        shape = (2, self.n, self.n)
-        result = helper.test_projection_and_belongs(self.space, shape)
-        for res in result:
-            self.assertTrue(res)
-
-    def test_random_and_belongs(self):
-        mat = self.space.random_point()
-        result = self.space.belongs(mat)
+    def test_projection(self, n, num_points):
+        space = SymmetricMatrices(n)
+        shape = (num_points, n, n)
+        result = gs.all(helper.test_projection_and_belongs(space, shape))
         self.assertTrue(result)
 
-    def test_dim(self):
-        result = self.space.dim
-        n = self.space.n
-        expected = int(n * (n + 1) / 2)
-        self.assertAllClose(result, expected)
+    def test_from_vector(self, n, vec, expected):
+        result = SymmetricMatrices(n).from_vector(gs.array(vec))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_to_vector(self, n, mat, expected):
+        result = SymmetricMatrices(n).to_vector(gs.array(mat))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_dim(self, n, expected_dim):
+        self.assertAllClose(SymmetricMatrices(n).dim, expected_dim)

@@ -1,4 +1,7 @@
-"""Statistical Manifold of beta distributions with the Fisher metric."""
+"""Statistical Manifold of beta distributions with the Fisher metric.
+
+Lead author: Alice Le Brigant.
+"""
 
 from scipy.stats import beta
 

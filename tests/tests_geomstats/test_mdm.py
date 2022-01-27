@@ -2,7 +2,9 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.spd_matrices import (
-    SPDMetricAffine, SPDMetricLogEuclidean, SPDMetricEuclidean
+    SPDMetricAffine,
+    SPDMetricEuclidean,
+    SPDMetricLogEuclidean,
 )
 from geomstats.learning.mdm import RiemannianMinimumDistanceToMeanClassifier
 
@@ -32,8 +34,8 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
                 bary_a_expected = gs.array([[EULER, 0], [0, 1]])
                 bary_b_expected = gs.array([[EULER ** 4, 0], [0, 1]])
             elif metric in [SPDMetricEuclidean]:
-                bary_a_expected = gs.array([[.5 * EULER ** 2 + .5, 0], [0, 1]])
-                bary_b_expected = gs.array([[.5 * EULER ** 8 + .5, 0], [0, 1]])
+                bary_a_expected = gs.array([[0.5 * EULER ** 2 + 0.5, 0], [0, 1]])
+                bary_b_expected = gs.array([[0.5 * EULER ** 8 + 0.5, 0], [0, 1]])
             else:
                 raise ValueError("Invalid metric: {}".format(metric))
 
@@ -61,12 +63,12 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
 
     def test_predict_proba(self):
         """Test the predict_proba method."""
-        X_train_a = gs.array([[1., 0], [0, 1]])[None, ...]
+        X_train_a = gs.array([[1.0, 0], [0, 1]])[None, ...]
         X_train_b = gs.array([[EULER ** 10, 0], [0, 1]])[None, ...]
         X_train = gs.concatenate([X_train_a, X_train_b])
         y_train = gs.array([1, 2])
 
-        X_test = gs.array([[[1., 0], [0, 1]], [[EULER ** 5, 0], [0, 1]]])
+        X_test = gs.array([[[1.0, 0], [0, 1]], [[EULER ** 5, 0], [0, 1]]])
 
         for metric in METRICS:
             MDMEstimator = RiemannianMinimumDistanceToMeanClassifier(
