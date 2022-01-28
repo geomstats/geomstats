@@ -2,6 +2,8 @@
 
 import warnings
 
+import pytest
+
 import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
@@ -15,7 +17,7 @@ point1 = gs.array([[1.0, 0.0], [0.0, 1.0], [0.0, 0.0]])
 
 
 class TestStiefel(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         """
         Tangent vectors constructed following:
         http://noodle.med.yale.edu/hdtag/notes/steifel_notes.pdf
@@ -80,6 +82,19 @@ class TestStiefel(geomstats.tests.TestCase):
         result = self.space.random_uniform()
 
         self.assertAllClose(gs.shape(result), (self.n, self.p))
+
+    @staticmethod
+    def test_log_two_sheets_error():
+        stiefel = Stiefel(n=3, p=3)
+        base_point = stiefel.random_point()
+        det_base = gs.linalg.det(base_point)
+        point = stiefel.random_point()
+        det_point = gs.linalg.det(point)
+        if gs.all(det_base * det_point > 0.0):
+            point *= -1.0
+
+        with pytest.raises(ValueError):
+            stiefel.metric.log(point, base_point)
 
     @geomstats.tests.np_and_autograd_only
     def test_log_and_exp(self):

@@ -10,7 +10,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestLieAlgebra(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.n = 4
         self.dim = int(self.n * (self.n - 1) / 2)
         self.algebra = SkewSymmetricMatrices(n=self.n)

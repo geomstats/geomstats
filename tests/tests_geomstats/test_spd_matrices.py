@@ -1,12 +1,15 @@
 """Unit tests for the manifold of symmetric positive definite matrices."""
 
+
 import math
-import warnings
+import random
 
 import geomstats.backend as gs
 import geomstats.tests
-import tests.helper as helper
-from geomstats.geometry.matrices import MatricesMetric
+from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
+from geomstats.geometry.positive_lower_triangular_matrices import (
+    PositiveLowerTriangularMatrices,
+)
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
@@ -14,482 +17,657 @@ from geomstats.geometry.spd_matrices import (
     SPDMetricEuclidean,
     SPDMetricLogEuclidean,
 )
+from tests.conftest import Parametrizer, TestCase, TestData
+
+SQRT_2 = math.sqrt(2.0)
+LN_2 = math.log(2.0)
+EXP_1 = math.exp(1.0)
+EXP_2 = math.exp(2.0)
+SINH_1 = math.sinh(1.0)
 
 
-class TestSPDMatrices(geomstats.tests.TestCase):
+class TestSPDMatrices(TestCase, metaclass=Parametrizer):
     """Test of SPDMatrices methods."""
 
-    def setUp(self):
-        """Set up the test."""
-        warnings.simplefilter("ignore", category=ImportWarning)
-
-        gs.random.seed(1234)
-
-        self.n = 3
-        self.space = SPDMatrices(n=self.n)
-        self.metric_affine = SPDMetricAffine(n=self.n)
-        self.metric_bureswasserstein = SPDMetricBuresWasserstein(n=self.n)
-        self.metric_euclidean = SPDMetricEuclidean(n=self.n)
-        self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
-        self.n_samples = 4
-
-    def test_belongs(self):
-        """Test of belongs method."""
-        mats = gs.array([[3.0, -1.0], [-1.0, 3.0]])
-        result = SPDMatrices(2).belongs(mats)
-        expected = True
-        self.assertAllClose(result, expected)
-
-        mats = gs.array([[-1.0, -1.0], [-1.0, 3.0]])
-        result = SPDMatrices(2).belongs(mats)
-        expected = False
-        self.assertAllClose(result, expected)
-
-        mats = gs.eye(3)
-        result = SPDMatrices(2).belongs(mats)
-        expected = False
-        self.assertAllClose(result, expected)
-
-    def test_belongs_vectorization(self):
-        """Test of belongs method."""
-        mats = gs.array(
-            [[[1.0, 0], [0, 1.0]], [[1.0, 2.0], [2.0, 1.0]], [[1.0, 0.0], [1.0, 1.0]]]
-        )
-        result = SPDMatrices(2).belongs(mats)
-        expected = gs.array([True, False, False])
-        self.assertAllClose(result, expected)
-
-    def test_random_point_and_belongs(self):
-        """Test of random_point and belongs methods."""
-        point = self.space.random_point()
-        result = self.space.belongs(point)
-        expected = True
-        self.assertAllClose(result, expected)
-
-    def test_random_point_and_belongs_vectorization(self):
-        """Test of random_point and belongs methods."""
-        points = self.space.random_point(4)
-        result = self.space.belongs(points)
-        expected = gs.array([True] * 4)
-        self.assertAllClose(result, expected)
-
-    def test_vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
-        """Test for matrix to vector and vector to matrix conversions."""
-        sym_mat_1 = gs.array([[1.0, 0.6, -3.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]])
-        vector_1 = self.space.to_vector(sym_mat_1)
-        result_1 = self.space.from_vector(vector_1)
-        expected_1 = sym_mat_1
-
-        self.assertTrue(gs.allclose(result_1, expected_1))
-
-        vector_2 = gs.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
-        sym_mat_2 = self.space.from_vector(vector_2)
-        result_2 = self.space.to_vector(sym_mat_2)
-        expected_2 = vector_2
-
-        self.assertTrue(gs.allclose(result_2, expected_2))
-
-    def test_vector_and_symmetric_matrix_vectorization(self):
-        """Test of vectorization."""
-        n_samples = self.n_samples
-        vector = gs.random.rand(n_samples, 6)
-        sym_mat = self.space.from_vector(vector)
-        result = self.space.to_vector(sym_mat)
-        expected = vector
-
-        self.assertTrue(gs.allclose(result, expected))
-
-        sym_mat = self.space.random_point(n_samples)
-        vector = self.space.to_vector(sym_mat)
-        result = self.space.from_vector(vector)
-        expected = sym_mat
-
-        self.assertTrue(gs.allclose(result, expected))
-
-    def test_logm(self):
-        """Test of logm method."""
-        expected = gs.array([[0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
-        c = math.cosh(1)
-        s = math.sinh(1)
-        e = math.exp(1)
-        v = gs.array([[c, s, 0.0], [s, c, 0.0], [0.0, 0.0, e]])
-        result = self.space.logm(v)
-
-        four_dim_expected = gs.broadcast_to(expected, (2, 2) + expected.shape)
-        four_dim_v = gs.broadcast_to(v, (2, 2) + v.shape)
-        four_dim_result = self.space.logm(four_dim_v)
-
-        self.assertAllClose(result, expected)
-        self.assertAllClose(four_dim_result, four_dim_expected)
-
-    def test_differential_power(self):
-        """Test of differential_power method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]])
-        tangent_vec = gs.array([[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]])
-        power = 0.5
-        result = self.space.differential_power(
-            power=power, tangent_vec=tangent_vec, base_point=base_point
-        )
-        expected = gs.array(
-            [[1.0, 1 / 3, 1 / 3], [1 / 3, 0.125, 0.125], [1 / 3, 0.125, 0.125]]
-        )
-        self.assertAllClose(result, expected)
-
-    def test_inverse_differential_power(self):
-        """Test of inverse_differential_power method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]])
-        tangent_vec = gs.array(
-            [[1.0, 1 / 3, 1 / 3], [1 / 3, 0.125, 0.125], [1 / 3, 0.125, 0.125]]
-        )
-        power = 0.5
-        result = self.space.inverse_differential_power(
-            power=power, tangent_vec=tangent_vec, base_point=base_point
-        )
-        expected = gs.array([[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]])
-        self.assertAllClose(result, expected)
-
-    def test_differential_log(self):
-        """Test of differential_log method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]])
-        tangent_vec = gs.array([[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]])
-        result = self.space.differential_log(tangent_vec, base_point)
-        x = 2 * gs.log(2.0)
-        expected = gs.array([[1.0, 1.0, x], [1.0, 1.0, x], [x, x, 1]])
-
-        self.assertAllClose(result, expected)
-
-    def test_inverse_differential_log(self):
-        """Test of inverse_differential_log method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]])
-        x = 2 * gs.log(2.0)
-        tangent_vec = gs.array([[1.0, 1.0, x], [1.0, 1.0, x], [x, x, 1]])
-        result = self.space.inverse_differential_log(tangent_vec, base_point)
-        expected = gs.array([[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]])
-        self.assertAllClose(result, expected)
-
-    def test_differential_exp(self):
-        """Test of differential_exp method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]])
-        tangent_vec = gs.array([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]])
-        result = self.space.differential_exp(tangent_vec, base_point)
-        x = gs.exp(1.0)
-        y = gs.sinh(1.0)
-        expected = gs.array([[x, x, y], [x, x, y], [y, y, 1 / x]])
-
-        self.assertAllClose(result, expected)
-
-    def test_inverse_differential_exp(self):
-        """Test of inverse_differential_exp method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]])
-        x = gs.exp(1.0)
-        y = gs.sinh(1.0)
-        tangent_vec = gs.array([[x, x, y], [x, x, y], [y, y, 1.0 / x]])
-        result = self.space.inverse_differential_exp(tangent_vec, base_point)
-        expected = gs.array([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]])
-        self.assertAllClose(result, expected)
-
-    def test_bureswasserstein_inner_product(self):
-        """Test of SPDMetricBuresWasserstein.inner_product method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 1.5, 0.5], [0.0, 0.5, 1.5]])
-        tangent_vec_a = gs.array([[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]])
-        tangent_vec_b = gs.array([[1.0, 2.0, 4.0], [2.0, 3.0, 8.0], [4.0, 8.0, 5.0]])
-        metric = SPDMetricBuresWasserstein(3)
-        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array(4.0)
-
-        self.assertAllClose(result, expected)
-
-    def test_power_affine_inner_product(self):
-        """Test of SPDMetricAffine.inner_product method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]])
-        tangent_vec = gs.array([[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]])
-        metric = SPDMetricAffine(3, power_affine=0.5)
-        result = metric.inner_product(tangent_vec, tangent_vec, base_point)
-        expected = 713 / 144
-
-        self.assertAllClose(result, expected)
-
-    def test_power_euclidean_inner_product(self):
-        """Test of SPDMetricEuclidean.inner_product method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]])
-        tangent_vec = gs.array([[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]])
-        metric = SPDMetricEuclidean(3, power_euclidean=0.5)
-        result = metric.inner_product(tangent_vec, tangent_vec, base_point)
-        expected = 3472 / 576
-        self.assertAllClose(result, expected)
-
-        result = self.metric_euclidean.inner_product(
-            tangent_vec, tangent_vec, base_point
-        )
-        expected = MatricesMetric(3, 3).inner_product(tangent_vec, tangent_vec)
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_autograd_and_tf_only
-    def test_euclidean_exp_domain(self):
-        """Test of SPDMetricEuclidean.exp_domain method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]])
-        tangent_vec = gs.array([[-1.0, 0.0, 0.0], [0.0, -0.5, 0.0], [0.0, 0.0, 1.0]])
-        metric = self.metric_euclidean
-        result = metric.exp_domain(tangent_vec, base_point)
-        expected = gs.array([-3, 1])
-
-        self.assertAllClose(result, expected)
-
-    def test_log_euclidean_inner_product(self):
-        """Test of SPDMetricLogEuclidean.inner_product method."""
-        base_point = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]])
-        tangent_vec = gs.array([[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]])
-        metric = self.metric_logeuclidean
-        result = metric.inner_product(tangent_vec, tangent_vec, base_point)
-        x = 2 * gs.log(2.0)
-        expected = 5.0 + 4.0 * x ** 2
-
-        self.assertAllClose(result, expected)
-
-    def test_log_and_exp_affine_invariant(self):
-        """Test of SPDMetricAffine.log and exp methods with power=1."""
-        base_point = gs.array([[5.0, 0.0, 0.0], [0.0, 7.0, 2.0], [0.0, 2.0, 8.0]])
-        point = gs.array([[9.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 1.0]])
-
-        metric = self.metric_affine
-        log = metric.log(point=point, base_point=base_point)
-        result = metric.exp(tangent_vec=log, base_point=base_point)
-        expected = point
-
-        self.assertAllClose(result, expected)
-
-    def test_log_and_exp_power_affine(self):
-        """Test of SPDMetricAffine.log and exp methods with power!=1."""
-        base_point = gs.array([[5.0, 0.0, 0.0], [0.0, 7.0, 2.0], [0.0, 2.0, 8.0]])
-        point = gs.array([[9.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 1.0]])
-        metric = SPDMetricAffine(3, power_affine=0.5)
-        log = metric.log(point, base_point)
-        result = metric.exp(log, base_point)
-        expected = point
-        self.assertAllClose(result, expected)
-
-    def test_log_and_exp_bureswasserstein(self):
-        """Test of SPDMetricBuresWasserstein.log and exp methods."""
-        base_point = gs.array([[5.0, 0.0, 0.0], [0.0, 7.0, 2.0], [0.0, 2.0, 8.0]])
-        point = gs.array([[9.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 1.0]])
-
-        metric = self.metric_bureswasserstein
-        log = metric.log(point=point, base_point=base_point)
-        result = metric.exp(tangent_vec=log, base_point=base_point)
-        expected = point
-
-        self.assertAllClose(result, expected)
-
-    def test_log_and_exp_logeuclidean(self):
-        """Test of SPDMetricLogEuclidean.log and exp methods."""
-        base_point = gs.array([[5.0, 0.0, 0.0], [0.0, 7.0, 2.0], [0.0, 2.0, 8.0]])
-        point = gs.array([[9.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 1.0]])
-
-        metric = self.metric_logeuclidean
-        log = metric.log(point=point, base_point=base_point)
-        result = metric.exp(tangent_vec=log, base_point=base_point)
-        expected = point
-
-        self.assertAllClose(result, expected)
-
-    def test_exp_and_belongs(self):
-        """Test of SPDMetricAffine.exp with power=1 and belongs methods."""
-        n_samples = self.n_samples
-        base_point = self.space.random_point(n_samples=1)
-        tangent_vec = self.space.random_tangent_vec(
-            n_samples=n_samples, base_point=base_point
-        )
-        metric = self.metric_affine
-        exps = metric.exp(tangent_vec, base_point)
-        result = self.space.belongs(exps)
-        expected = gs.array([True] * n_samples)
-
-        self.assertAllClose(result, expected)
-
-    def test_exp_vectorization(self):
-        """Test of SPDMetricAffine.exp with power=1 and vectorization."""
-        n_samples = self.n_samples
-        one_base_point = self.space.random_point(n_samples=1)
-        n_base_point = self.space.random_point(n_samples=n_samples)
-
-        n_tangent_vec_same_base = self.space.random_tangent_vec(
-            n_samples=n_samples, base_point=one_base_point
-        )
-        n_tangent_vec = self.space.random_tangent_vec(
-            n_samples=n_samples, base_point=n_base_point
-        )
-        metric = self.metric_affine
-
-        # Test with the 1 base_point, and several different tangent_vecs
-        result = metric.exp(n_tangent_vec_same_base, one_base_point)
-
-        self.assertAllClose(gs.shape(result), (n_samples, self.space.n, self.space.n))
-
-        # Test with the same number of base_points and tangent_vecs
-        result = metric.exp(n_tangent_vec, n_base_point)
-
-        self.assertAllClose(gs.shape(result), (n_samples, self.space.n, self.space.n))
-
-    def test_log_vectorization(self):
-        """Test of SPDMetricAffine.log with power 1 and vectorization."""
-        n_samples = self.n_samples
-        one_base_point = self.space.random_point(n_samples=1)
-        n_base_point = self.space.random_point(n_samples=n_samples)
-
-        one_point = self.space.random_point(n_samples=1)
-        n_point = self.space.random_point(n_samples=n_samples)
-        metric = self.metric_affine
-
-        # Test with different points, one base point
-        result = metric.log(n_point, one_base_point)
-
-        self.assertAllClose(gs.shape(result), (n_samples, self.space.n, self.space.n))
-
-        # Test with the same number of points and base points
-        result = metric.log(n_point, n_base_point)
-
-        self.assertAllClose(gs.shape(result), (n_samples, self.space.n, self.space.n))
-
-        # Test with the one point and n base points
-        result = metric.log(one_point, n_base_point)
-
-        self.assertAllClose(gs.shape(result), (n_samples, self.space.n, self.space.n))
-
-    def test_geodesic_and_belongs(self):
-        """Test of SPDMetricAffine.geodesic with power 1 and belongs."""
-        initial_point = self.space.random_point()
-        initial_tangent_vec = self.space.random_tangent_vec(
-            n_samples=1, base_point=initial_point
-        )
-        metric = self.metric_affine
-        geodesic = metric.geodesic(
-            initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
+    class TestDataSPDMatrices(TestData):
+        def belongs_data(self):
+            smoke_data = [
+                dict(n=2, mat=[[3.0, -1.0], [-1.0, 3.0]], expected=True),
+                dict(n=2, mat=[[1.0, 1.0], [2.0, 1.0]], expected=False),
+                dict(
+                    n=3,
+                    mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                    expected=False,
+                ),
+                dict(
+                    n=2,
+                    mat=[[[1.0, 0.0], [0.0, 1.0]], [[1.0, -1.0], [0.0, 1.0]]],
+                    expected=[True, False],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def projection_data(self):
+            smoke_data = [
+                dict(
+                    n=2, mat=[[1.0, 0.0], [0.0, 1.0]], expected=[[1.0, 0.0], [0.0, 1.0]]
+                ),
+                dict(
+                    n=2,
+                    mat=[[-1.0, 0.0], [0.0, -2.0]],
+                    expected=[[gs.atol, 0.0], [0.0, gs.atol]],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def random_point_belongs_data(self):
+            smoke_data = [
+                dict(n=1, n_samples=1),
+                dict(n=2, n_samples=1),
+                dict(n=10, n_samples=10),
+                dict(n=10, n_samples=1000),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def logm_data(self):
+            smoke_data = [
+                dict(
+                    spd_mat=[[1.0, 0.0], [0.0, 1.0]], expected=[[0.0, 0.0], [0.0, 0.0]]
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def cholesky_factor_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    spd_mat=[[[1.0, 2.0], [2.0, 5.0]], [[1.0, 0.0], [0.0, 1.0]]],
+                    expected=[[[1.0, 0.0], [2.0, 1.0]], [[1.0, 0.0], [0.0, 1.0]]],
+                ),
+                dict(
+                    n=3,
+                    spd_mat=[[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]],
+                    expected=[
+                        [SQRT_2, 0.0, 0.0],
+                        [0.0, SQRT_2, 0.0],
+                        [0.0, 0.0, SQRT_2],
+                    ],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def cholesky_factor_belongs_data(self):
+            list_n = random.sample(range(1, 100), 10)
+            n_samples = 10
+            random_data = [
+                dict(n=n, mat=SPDMatrices(n).random_point(n_samples)) for n in list_n
+            ]
+            return self.generate_tests([], random_data)
+
+        def differential_cholesky_factor_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    tangent_vec=[[1.0, 1.0], [1.0, 1.0]],
+                    base_point=[[4.0, 2.0], [2.0, 5.0]],
+                    expected=[[1 / 4, 0.0], [3 / 8, 1 / 16]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def differential_power_data(self):
+            smoke_data = [
+                dict(
+                    power=0.5,
+                    tangent_vec=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
+                    expected=[
+                        [1.0, 1 / 3, 1 / 3],
+                        [1 / 3, 0.125, 0.125],
+                        [1 / 3, 0.125, 0.125],
+                    ],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def inverse_differential_power_data(self):
+            smoke_data = [
+                dict(
+                    power=0.5,
+                    tangent_vec=[
+                        [1.0, 1 / 3, 1 / 3],
+                        [1 / 3, 0.125, 0.125],
+                        [1 / 3, 0.125, 0.125],
+                    ],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
+                    expected=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def differential_log_data(self):
+            smoke_data = [
+                dict(
+                    tangent_vec=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
+                    expected=[
+                        [1.0, 1.0, 2 * LN_2],
+                        [1.0, 1.0, 2 * LN_2],
+                        [2 * LN_2, 2 * LN_2, 1],
+                    ],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def inverse_differential_log_data(self):
+            smoke_data = [
+                dict(
+                    tangent_vec=[
+                        [1.0, 1.0, 2 * LN_2],
+                        [1.0, 1.0, 2 * LN_2],
+                        [2 * LN_2, 2 * LN_2, 1],
+                    ],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
+                    expected=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
+                )
+            ]
+
+            return self.generate_tests(smoke_data)
+
+        def differential_exp_data(self):
+            smoke_data = [
+                dict(
+                    tangent_vec=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]],
+                    expected=[
+                        [EXP_1, EXP_1, SINH_1],
+                        [EXP_1, EXP_1, SINH_1],
+                        [SINH_1, SINH_1, 1 / EXP_1],
+                    ],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def inverse_differential_exp_data(self):
+            smoke_data = [
+                dict(
+                    tangent_vec=[
+                        [EXP_1, EXP_1, SINH_1],
+                        [EXP_1, EXP_1, SINH_1],
+                        [SINH_1, SINH_1, 1 / EXP_1],
+                    ],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]],
+                    expected=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+    testing_data = TestDataSPDMatrices()
+
+    def test_belongs(self, n, mat, expected):
+        self.assertAllClose(SPDMatrices(n).belongs(gs.array(mat)), gs.array(expected))
+
+    def test_random_point_belongs(self, n, n_samples):
+        space = SPDMatrices(n)
+        self.assertAllClose(
+            gs.all(space.belongs(space.random_point(n_samples))), gs.array(True)
         )
 
-        n_points = 10
-        t = gs.linspace(start=0.0, stop=1.0, num=n_points)
-        points = geodesic(t)
-        result = self.space.belongs(points)
-        self.assertTrue(gs.all(result))
+    def test_projection(self, n, mat, expected):
+        self.assertAllClose(
+            SPDMatrices(n).projection(gs.array(mat)), gs.array(expected)
+        )
 
-    def test_squared_dist_is_symmetric(self):
-        """Test of SPDMetricAffine.squared_dist (power=1) and is_symmetric."""
-        n_samples = self.n_samples
+    def test_logm(self, spd_mat, logm):
+        self.assertAllClose(SPDMatrices.logm(gs.array(spd_mat)), gs.array(logm))
 
-        point_1 = self.space.random_point(n_samples=1)
-        point_2 = self.space.random_point(n_samples=1)
+    def test_cholesky_factor(self, n, spd_mat, cf):
+        result = SPDMatrices.cholesky_factor(gs.array(spd_mat))
 
-        metric = self.metric_affine
+        self.assertAllClose(result, gs.array(cf))
+        self.assertAllClose(
+            gs.all(PositiveLowerTriangularMatrices(n).belongs(result)),
+            gs.array(True),
+        )
 
-        sq_dist_1_2 = metric.squared_dist(point_1, point_2)
-        sq_dist_2_1 = metric.squared_dist(point_2, point_1)
+    def test_differential_cholesky_factor(self, n, tangent_vec, base_point, expected):
+        result = SPDMatrices.differential_cholesky_factor(
+            gs.array(tangent_vec), gs.array(base_point)
+        )
+        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(
+            gs.all(LowerTriangularMatrices(n).belongs(result)), gs.array(True)
+        )
 
-        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
+    def test_differential_power(self, power, tangent_vec, base_point, expected):
+        result = SPDMatrices.differential_power(
+            power, gs.array(tangent_vec), gs.array(base_point)
+        )
+        self.assertAllClose(result, gs.array(expected))
 
-        point_2 = self.space.random_point(n_samples=n_samples)
+    def test_inverse_differential_power(self, power, tangent_vec, base_point, expected):
+        result = SPDMatrices.inverse_differential_power(
+            power, gs.array(tangent_vec), gs.array(base_point)
+        )
+        self.assertAllClose(result, gs.array(expected))
 
-        sq_dist_1_2 = metric.squared_dist(point_1, point_2)
-        sq_dist_2_1 = metric.squared_dist(point_2, point_1)
-        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
+    def test_differential_log(self, tangent_vec, base_point, expected):
+        result = SPDMatrices.differential_log(
+            gs.array(tangent_vec), gs.array(base_point)
+        )
+        self.assertAllClose(result, gs.array(expected))
 
-        point_1 = self.space.random_point(n_samples=n_samples)
-        point_2 = self.space.random_point(n_samples=1)
+    def test_inverse_differential_log(self, tangent_vec, base_point, expected):
+        result = SPDMatrices.inverse_differential_log(
+            gs.array(tangent_vec), gs.array(base_point)
+        )
+        self.assertAllClose(result, gs.array(expected))
 
-        sq_dist_1_2 = metric.squared_dist(point_1, point_2)
-        sq_dist_2_1 = metric.squared_dist(point_2, point_1)
+    def test_differential_exp(self, tangent_vec, base_point, expected):
+        result = SPDMatrices.differential_exp(
+            gs.array(tangent_vec), gs.array(base_point)
+        )
+        self.assertAllClose(result, gs.array(expected))
 
-        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
+    def test_inverse_differential_exp(self, tangent_vec, base_point, expected):
+        result = SPDMatrices.inverse_differential_exp(
+            gs.array(tangent_vec), gs.array(base_point)
+        )
+        self.assertAllClose(result, gs.array(expected))
 
-        sq_dist_1_2 = metric.squared_dist(point_1, point_2)
-        sq_dist_2_1 = metric.squared_dist(point_2, point_1)
+    def test_cholesky_factor_belongs(self, n, mat):
+        result = SPDMatrices(n).cholesky_factor(gs.array(mat))
+        self.assertAllClose(
+            gs.all(PositiveLowerTriangularMatrices(n).belongs(result)), True
+        )
 
-        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
-    def test_squared_dist_vectorization(self):
-        """Test of SPDMetricAffine.squared_dist (power=1) and vectorization."""
-        n_samples = self.n_samples
-        point_1 = self.space.random_point(n_samples=n_samples)
-        point_2 = self.space.random_point(n_samples=n_samples)
+class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
+    class TestDataSPDMetricAffine(TestData):
+        def inner_product_data(self):
+            smoke_data = [
+                dict(
+                    n=3,
+                    power_affine=0.5,
+                    tangent_vec_a=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+                    tangent_vec_b=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
+                    expected=713 / 144,
+                )
+            ]
+            return self.generate_tests(smoke_data)
 
-        metric = self.metric_affine
-        result = metric.squared_dist(point_1, point_2)
+        def exp_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    power_affine=1.0,
+                    tangent_vec=[[2.0, 0.0], [0.0, 2.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    expected=[[EXP_2, 0.0], [0.0, EXP_2]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
 
-        self.assertAllClose(gs.shape(result), (n_samples,))
+        def log_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    power_affine=1.0,
+                    point=[[1.0, 0.0], [0.0, 1.0]],
+                    base_point=[[2.0, 0.0], [0.0, 2.0]],
+                    expected=[[-2 * LN_2, 0.0], [0.0, -2 * LN_2]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
 
-        point_1 = self.space.random_point(n_samples=1)
-        point_2 = self.space.random_point(n_samples=n_samples)
+        def log_exp_composition_data(self):
+            power_affine = [1.0, 0.5, -0.5]
+            return self._log_exp_composition_data(
+                SPDMatrices, power_affine=power_affine
+            )
 
-        result = metric.squared_dist(point_1, point_2)
+        def geodesic_belongs_data(self):
+            power_affine = [1.0]
+            return self._geodesic_belongs_data(SPDMatrices, power_affine=power_affine)
 
-        self.assertAllClose(gs.shape(result), (n_samples,))
+        def squared_dist_is_symmetric_data(self):
+            power_affine = [1.0, 0.5, -0.5]
+            return self._squared_dist_is_symmetric_data(
+                SPDMatrices, power_affine=power_affine
+            )
 
-        point_1 = self.space.random_point(n_samples=n_samples)
-        point_2 = self.space.random_point(n_samples=1)
+        def parallel_transport_exp_norm_data(self):
+            random_n = random.sample(range(1, 10), 5)
+            random_power_affine = [1.0]
+            random_data = [
+                dict(n=n, power_affine=power_affine, n_samples=200)
+                for (n, power_affine) in zip(random_n, random_power_affine)
+            ]
+            return self.generate_tests([], random_data)
 
-        result = metric.squared_dist(point_1, point_2)
+    testing_data = TestDataSPDMetricAffine()
 
-        self.assertAllClose(gs.shape(result), (n_samples,))
+    def test_inner_product(
+        self, n, power_affine, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        metric = SPDMetricAffine(n, power_affine)
+        result = metric.inner_product(
+            gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
+        )
+        self.assertAllClose(result, expected)
 
-        point_1 = self.space.random_point(n_samples=1)
-        point_2 = self.space.random_point(n_samples=1)
+    def test_exp(self, n, power_affine, tangent_vec, base_point, expected):
+        metric = SPDMetricAffine(n, power_affine)
+        self.assertAllClose(
+            metric.exp(gs.array(tangent_vec), gs.array(base_point)), gs.array(expected)
+        )
 
-        result = metric.squared_dist(point_1, point_2)
+    def test_log(self, n, power_affine, point, base_point, expected):
+        metric = SPDMetricAffine(n, power_affine)
+        self.assertAllClose(
+            metric.log(gs.array(point), gs.array(base_point)), gs.array(expected)
+        )
 
-        self.assertAllClose(gs.shape(result), ())
+    def test_log_exp_composition(self, n, power_affine, point, base_point):
+        metric = SPDMetricAffine(n, power_affine)
+        log = metric.log(gs.array(point), base_point=gs.array(base_point))
+        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
+        self.assertAllClose(result, point, atol=gs.atol * 1000)
 
-    def test_parallel_transport_affine_invariant(self):
-        """Test of SPDMetricAffine.parallel_transport method with power=1."""
-        n_samples = self.n_samples
-        gs.random.seed(1)
-        point = self.space.random_point(n_samples)
-        tan_a = self.space.random_tangent_vec(n_samples, point)
-        tan_b = self.space.random_tangent_vec(n_samples, point)
+    def test_squared_dist_is_symmetric(self, n, power_affine, point_a, point_b):
+        metric = SPDMetricAffine(n, power_affine)
+        sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
+        sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
+        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
 
-        metric = self.metric_affine
+    def test_parallel_transport_exp_norm(self, n, power_affine, n_samples):
+        metric = SPDMetricAffine(n, power_affine)
+        space = SPDMatrices(n)
+        point = space.random_point(n_samples)
+        tan_a = space.random_tangent_vec(n_samples, point)
+        tan_b = space.random_tangent_vec(n_samples, point)
         expected = metric.norm(tan_a, point)
         end_point = metric.exp(tan_b, point)
-
         transported = metric.parallel_transport(tan_a, tan_b, point)
         result = metric.norm(transported, end_point)
 
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, gs.atol * 10000)
 
-    def test_squared_dist_bureswasserstein(self):
-        """Test of SPDMetricBuresWasserstein.squared_dist method."""
-        point_a = gs.array([[5.0, 0.0, 0.0], [0.0, 7.0, 2.0], [0.0, 2.0, 8.0]])
-        point_b = gs.array([[9.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 1.0]])
 
-        metric = self.metric_bureswasserstein
-        result = metric.squared_dist(point_a, point_b)
+class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
+    class TestDataSPDMetricBuresWasserstein(TestData):
+        def inner_product_data(self):
+            smoke_data = [
+                dict(
+                    n=3,
+                    tangent_vec_a=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+                    tangent_vec_b=[[1.0, 2.0, 4.0], [2.0, 3.0, 8.0], [4.0, 8.0, 5.0]],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 1.5, 0.5], [0.0, 0.5, 1.5]],
+                    expected=4.0,
+                )
+            ]
+            return self.generate_tests(smoke_data)
 
-        log = metric.log(point=point_b, base_point=point_a)
-        expected = metric.squared_norm(vector=log, base_point=point_a)
+        def exp_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    tangent_vec=[[2.0, 0.0], [0.0, 2.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    expected=[[4.0, 0.0], [0.0, 4.0]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
 
-        self.assertAllClose(result, expected)
+        def log_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    point=[[4.0, 0.0], [0.0, 4.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    expected=[[2.0, 0.0], [0.0, 2.0]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
 
-    def test_squared_dist_bureswasserstein_vectorization(self):
-        """Test of SPDMetricBuresWasserstein.squared_dist method."""
-        point_a = self.space.random_point(2)
-        point_b = gs.array([[9.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 1.0]])
+        def squared_dist_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    point_a=[[1.0, 0.0], [0.0, 1.0]],
+                    point_b=[[2.0, 0.0], [0.0, 2.0]],
+                    expected=2 + 4 - (2 * 2 * SQRT_2),
+                )
+            ]
+            return self.generate_tests(smoke_data)
 
-        metric = self.metric_bureswasserstein
-        result = metric.squared_dist(point_a, point_b)
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(SPDMatrices)
 
-        log = metric.log(point=point_b, base_point=point_a)
-        expected = metric.squared_norm(vector=log, base_point=point_a)
+        def geodesic_belongs_data(self):
+            return self._geodesic_belongs_data(
+                SPDMatrices,
+            )
 
-        self.assertAllClose(result, expected)
+        def squared_dist_is_symmetric_data(self):
+            return self._squared_dist_is_symmetric_data(SPDMatrices)
 
-    def test_to_tangent_and_is_tangent(self):
-        mat = gs.random.rand(3, 3)
-        projection = self.space.to_tangent(mat)
-        result = self.space.is_tangent(projection)
-        self.assertTrue(result)
+    testing_data = TestDataSPDMetricBuresWasserstein()
 
-    def test_projection_and_belongs(self):
-        shape = (2, self.n, self.n)
-        space = self.space
-        result = helper.test_projection_and_belongs(space, shape)
-        for res in result:
-            self.assertTrue(res)
+    def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
+        metric = SPDMetricBuresWasserstein(n)
+        result = metric.inner_product(
+            gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
+        )
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_exp(self, n, tangent_vec, base_point, expected):
+        metric = SPDMetricBuresWasserstein(n)
+        result = metric.exp(gs.array(tangent_vec), gs.array(base_point))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_log(self, n, point, base_point, expected):
+        metric = SPDMetricBuresWasserstein(n)
+        result = metric.log(gs.array(point), gs.array(base_point))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_squared_dist(self, n, point_a, point_b, expected):
+        metric = SPDMetricBuresWasserstein(n)
+        result = metric.squared_dist(gs.array(point_a), gs.array(point_b))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_log_exp_composition(self, n, point, base_point):
+        metric = SPDMetricBuresWasserstein(n)
+        log = metric.log(gs.array(point), base_point=gs.array(base_point))
+        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
+        self.assertAllClose(result, point, atol=gs.atol * 1000)
+
+    def test_squared_dist_is_symmetric(self, n, point_a, point_b):
+        metric = SPDMetricBuresWasserstein(n)
+        sd_a_b = metric.squared_dist(point_a, point_b)
+        sd_b_a = metric.squared_dist(point_b, point_a)
+        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
+
+
+class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
+    class TestDataSPDMetricEuclidean(TestData):
+        def inner_product_data(self):
+            smoke_data = [
+                dict(
+                    n=3,
+                    power_euclidean=0.5,
+                    tangent_vec_a=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+                    tangent_vec_b=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
+                    expected=3472 / 576,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def exp_domain_data(self):
+            smoke_data = [
+                dict(
+                    n=3,
+                    power_euclidean=1.0,
+                    tangent_vec=[[-1.0, 0.0, 0.0], [0.0, -0.5, 0.0], [0.0, 0.0, 1.0]],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]],
+                    expected=[-3, 1],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def exp_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    power_euclidean=1.0,
+                    tangent_vec=[[2.0, 0.0], [0.0, 2.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    expected=[[3.0, 0.0], [0.0, 3.0]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def log_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    power_euclidean=1.0,
+                    point=[[2.0, 0.0], [0.0, 2.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    expected=[[1.0, 0.0], [0.0, 1.0]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def log_exp_composition_data(self):
+            power_euclidean = [1.0, 0.5, -0.5]
+            return self._log_exp_composition_data(
+                SPDMatrices, power_euclidean=power_euclidean
+            )
+
+        def geodesic_belongs_data(self):
+            power_euclidean = [1.0]
+            return self._geodesic_belongs_data(
+                SPDMatrices, max_n=3, n_n=2, n_t=5, power_euclidean=power_euclidean
+            )
+
+        def squared_dist_is_symmetric_data(self):
+            power_euclidean = [1.0]
+            return self._squared_dist_is_symmetric_data(
+                SPDMatrices, power_euclidean=power_euclidean
+            )
+
+    testing_data = TestDataSPDMetricEuclidean()
+
+    def test_inner_product(
+        self, n, power_euclidean, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        metric = SPDMetricEuclidean(n, power_euclidean)
+        result = metric.inner_product(
+            gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
+        )
+        self.assertAllClose(result, gs.array(expected))
+
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_exp_domain(self, n, power_euclidean, tangent_vec, base_point, expected):
+        metric = SPDMetricEuclidean(n, power_euclidean)
+        result = metric.exp_domain(
+            gs.array(tangent_vec), gs.array(base_point), expected
+        )
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_log(self, n, power_euclidean, point, base_point, expected):
+        metric = SPDMetricEuclidean(n)
+        result = metric.log(gs.array(point), gs.array(base_point))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_log_exp_composition(self, n, power_euclidean, point, base_point):
+        metric = SPDMetricEuclidean(n, power_euclidean)
+        log = metric.log(gs.array(point), base_point=gs.array(base_point))
+        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
+        self.assertAllClose(result, point, atol=gs.atol * 1000)
+
+    def test_squared_dist_is_symmetric(self, n, power_euclidean, point_a, point_b):
+        metric = SPDMetricEuclidean(n, power_euclidean)
+        sd_a_b = metric.squared_dist(point_a, point_b)
+        sd_b_a = metric.squared_dist(point_b, point_a)
+        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
+
+
+class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
+    class TestDataSPDMetricLogEuclidean(TestData):
+        def inner_product_data(self):
+            smoke_data = [
+                dict(
+                    n=3,
+                    tangent_vec_a=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
+                    tangent_vec_b=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
+                    base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
+                    expected=5.0 + (4.0 * ((2 * LN_2) ** 2)),
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def exp_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    tangent_vec=[[2.0, 0.0], [0.0, 2.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    expected=[[EXP_2, 0.0], [0.0, EXP_2]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def log_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    point=[[2.0, 0.0], [0.0, 2.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    expected=[[LN_2, 0.0], [0.0, LN_2]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(SPDMatrices)
+
+        def geodesic_belongs_data(self):
+            return self._geodesic_belongs_data(SPDMatrices)
+
+        def squared_dist_is_symmetric_data(self):
+            return self._squared_dist_is_symmetric_data(SPDMatrices)
+
+    testing_data = TestDataSPDMetricLogEuclidean()
+
+    def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
+        metric = SPDMetricLogEuclidean(n)
+        result = metric.inner_product(
+            gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
+        )
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_exp(self, n, tangent_vec, base_point, expected):
+        metric = SPDMetricLogEuclidean(n)
+        result = metric.exp(gs.array(tangent_vec), gs.array(base_point))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_log(self, n, point, base_point, expected):
+        metric = SPDMetricLogEuclidean(n)
+        result = metric.log(gs.array(point), gs.array(base_point))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_log_exp_composition(self, n, point, base_point):
+        metric = SPDMetricLogEuclidean(n)
+        log = metric.log(gs.array(point), base_point=gs.array(base_point))
+        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
+        self.assertAllClose(result, point, atol=gs.atol * 1000)
+
+    def test_squared_dist_is_symmetric(self, n, point_a, point_b):
+        metric = SPDMetricLogEuclidean(n)
+        sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
+        sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
+        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)

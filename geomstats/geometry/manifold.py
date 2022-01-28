@@ -2,6 +2,8 @@
 
 In other words, a topological space that locally resembles
 Euclidean space near each point.
+
+Lead author: Nina Miolane.
 """
 
 import abc
@@ -9,6 +11,8 @@ import abc
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+
+POINT_TYPES = {1: "vector", 2: "matrix"}
 
 
 class Manifold(abc.ABC):
@@ -18,6 +22,11 @@ class Manifold(abc.ABC):
     ----------
     dim : int
         Dimension of the manifold.
+    shape : tuple of int
+        Shape of one element of the manifold.
+        Optional, default : None.
+    metric : RiemannianMetric
+        Metric object to use on the manifold.
     default_point_type : str, {\'vector\', \'matrix\'}
         Point type.
         Optional, default: 'vector'.
@@ -29,18 +38,26 @@ class Manifold(abc.ABC):
     def __init__(
         self,
         dim,
+        shape,
         metric=None,
-        default_point_type="vector",
+        default_point_type=None,
         default_coords_type="intrinsic",
         **kwargs
     ):
         super(Manifold, self).__init__(**kwargs)
         geomstats.errors.check_integer(dim, "dim")
+
+        if not isinstance(shape, tuple):
+            raise ValueError("Expected a tuple for the shape argument.")
+        if default_point_type is None:
+            default_point_type = POINT_TYPES[len(shape)]
+
         geomstats.errors.check_parameter_accepted_values(
             default_point_type, "default_point_type", ["vector", "matrix"]
         )
 
         self.dim = dim
+        self.shape = shape
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
         self.metric = metric

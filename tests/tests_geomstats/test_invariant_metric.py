@@ -3,6 +3,8 @@
 import logging
 import warnings
 
+import pytest
+
 import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
@@ -14,7 +16,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestInvariantMetric(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         logger = logging.getLogger()
         logger.disabled = True
         warnings.simplefilter("ignore", category=ImportWarning)
@@ -772,3 +774,9 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
         self.assertAllClose(end_point_result, expected_end_point)
         self.assertAllClose(expected, result)
+
+    def test_log_antipodals(self):
+        rotation_mat1 = gs.eye(3)
+        rotation_mat2 = gs.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
+        with pytest.raises(ValueError):
+            self.matrix_so3.bi_invariant_metric.log(rotation_mat1, rotation_mat2)

@@ -12,7 +12,7 @@ from geomstats.learning.geodesic_regression import GeodesicRegression
 class TestGeodesicRegression(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(1234)
         self.n_samples = 20
 
@@ -87,9 +87,9 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             metric=self.sphere.metric,
             center_X=False,
             method="extrinsic",
-            verbose=True,
             max_iter=50,
-            learning_rate=0.1,
+            init_step_size=0.1,
+            verbose=True,
         )
         loss = gr._loss(
             self.X_sphere,
@@ -108,9 +108,9 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             metric=self.metric_se2,
             center_X=False,
             method="extrinsic",
-            verbose=True,
             max_iter=50,
-            learning_rate=0.1,
+            init_step_size=0.1,
+            verbose=True,
         )
         loss = gr._loss(self.X_se2, self.y_se2, self.param_se2_true, self.shape_se2)
         self.assertAllClose(loss.shape, ())
@@ -123,9 +123,9 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             metric=self.sphere.metric,
             center_X=False,
             method="extrinsic",
-            verbose=True,
             max_iter=50,
-            learning_rate=0.1,
+            init_step_size=0.1,
+            verbose=True,
             regularization=0,
         )
 
@@ -169,9 +169,9 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             metric=self.metric_se2,
             center_X=False,
             method="extrinsic",
-            verbose=True,
             max_iter=50,
-            learning_rate=0.1,
+            init_step_size=0.1,
+            verbose=True,
         )
 
         def loss_of_param(param):
@@ -257,9 +257,9 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             metric=self.metric_se2,
             center_X=False,
             method="extrinsic",
-            verbose=True,
             max_iter=50,
-            learning_rate=0.1,
+            init_step_size=0.1,
+            verbose=True,
         )
 
         def loss_of_param(param):
@@ -308,9 +308,9 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             metric=self.sphere.metric,
             center_X=False,
             method="extrinsic",
-            verbose=True,
             max_iter=50,
-            learning_rate=0.1,
+            init_step_size=0.1,
+            verbose=True,
             initialization="random",
             regularization=0.9,
         )
@@ -343,9 +343,9 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             metric=self.metric_se2,
             center_X=False,
             method="extrinsic",
-            verbose=True,
             max_iter=50,
-            learning_rate=0.1,
+            init_step_size=0.1,
+            verbose=True,
             initialization="warm_start",
         )
 
@@ -377,9 +377,9 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             metric=self.sphere.metric,
             center_X=False,
             method="riemannian",
-            verbose=True,
             max_iter=50,
-            learning_rate=0.1,
+            init_step_size=0.1,
+            verbose=True,
         )
 
         gr.fit(self.X_sphere, self.y_sphere, compute_training_score=True)
@@ -412,9 +412,9 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             metric=self.metric_se2,
             center_X=False,
             method="riemannian",
-            verbose=True,
             max_iter=50,
-            learning_rate=0.1,
+            init_step_size=0.1,
+            verbose=True,
             initialization=init,
         )
 
