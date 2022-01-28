@@ -97,3 +97,8 @@ class TestNotebooks(geomstats.tests.TestCase):
             "notebooks/"
             "usecase_optic_nerve_heads_analysis_in_kendall_shape_space.ipynb"
         )
+
+    @staticmethod
+    @geomstats.tests.np_and_autograd_only
+    def test_parallel_transport():
+        _exec_notebook("notebooks/" "parallel_transport.ipynb")
