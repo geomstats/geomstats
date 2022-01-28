@@ -1,4 +1,7 @@
-"""Expectation maximization algorithm."""
+"""Expectation maximization algorithm.
+
+Lead authors: Thomas Gerald and Hadi Zaatiti.
+"""
 
 import logging
 
@@ -221,7 +224,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         Optional, default: 1e-2.
         Convergence tolerance. If the difference of mean distance
         between two steps is lower than tol.
-    lr_mean : float
+    init_step_size : float
         Learning rate in the gradient descent computation of the Frechet means.
         Optional, default: 1.
     max_iter : int
@@ -273,7 +276,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         n_gaussians=8,
         initialisation_method="random",
         tol=DEFAULT_TOL,
-        lr_mean=1.0,
+        init_step_size=1.0,
         max_iter=100,
         max_iter_mean=100,
         tol_mean=1e-4,
@@ -293,7 +296,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.variances_range = None
         self.normalization_factor_var = None
         self.phi_inv_var = None
-        self.lr_mean = lr_mean
+        self.init_step_size = init_step_size
         self.max_iter = max_iter
         self.max_iter_mean = max_iter_mean
         self.tol_mean = tol_mean
@@ -315,11 +318,11 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
         mean = FrechetMean(
             metric=self.metric,
-            method=self.mean_method,
-            lr=self.lr_mean,
-            epsilon=self.tol_mean,
             max_iter=self.max_iter_mean,
+            epsilon=self.tol_mean,
             point_type=self.point_type,
+            method=self.mean_method,
+            init_step_size=self.init_step_size,
         )
 
         data_expand = gs.expand_dims(data, 1)
@@ -466,8 +469,8 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                 metric=self.metric,
                 n_clusters=self.n_gaussians,
                 init="random",
+                init_step_size=self.init_step_size,
                 mean_method="batch",
-                lr=self.lr_mean,
             )
 
             centroids = kmeans.fit(X=data)

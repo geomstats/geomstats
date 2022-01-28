@@ -8,8 +8,9 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.pullback_metric import PullbackMetric
 
 
+@geomstats.tests.autograd_and_torch_only
 class TestPullbackMetric(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=UserWarning)
         gs.random.seed(0)
         self.dim = 2
@@ -32,7 +33,6 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             dim=self.dim, embedding_dim=self.dim + 1, immersion=self.immersion
         )
 
-    @geomstats.tests.autograd_tf_and_torch_only
     def test_immersion(self):
         expected = gs.array([0.0, 0.0, 1.0])
         result = self.immersion(gs.array([0.0, 0.0]))
@@ -46,7 +46,6 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         result = self.immersion(gs.array([gs.pi / 2.0, gs.pi]))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
     def test_immersion_and_spherical_to_extrinsic(self):
         point = gs.array([0.0, 0.0])
         expected = self.immersion(point)
@@ -58,7 +57,6 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         result = self.sphere.spherical_to_extrinsic(point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
     def test_jacobian_immersion(self):
         def _expected_jacobian_immersion(point):
             theta = point[..., 0]
@@ -87,7 +85,6 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         expected = _expected_jacobian_immersion(base_point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
     def test_tangent_immersion(self):
         point = gs.array([gs.pi / 2.0, gs.pi / 2.0])
 
@@ -113,7 +110,6 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         expected = gs.array([0.0, 1.0, 0.0])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
     def test_metric_matrix(self):
         def _expected_metric_matrix(point):
             theta = point[..., 0]
@@ -135,7 +131,6 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         expected = _expected_metric_matrix(base_point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
     def test_inverse_metric_matrix(self):
         def _expected_inverse_metric_matrix(point):
             theta = point[..., 0]
@@ -143,16 +138,15 @@ class TestPullbackMetric(geomstats.tests.TestCase):
             return mat
 
         base_point = gs.array([0.6, -1.0])
-        result = self.pullback_metric.metric_inverse_matrix(base_point)
+        result = self.pullback_metric.cometric_matrix(base_point)
         expected = _expected_inverse_metric_matrix(base_point)
         self.assertAllClose(result, expected)
 
         base_point = gs.array([0.8, -0.8])
-        result = self.pullback_metric.metric_inverse_matrix(base_point)
+        result = self.pullback_metric.cometric_matrix(base_point)
         expected = _expected_inverse_metric_matrix(base_point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
     def test_inner_product_and_sphere_inner_product(self):
         """Test consistency between sphere's inner-products.
 
@@ -198,27 +192,25 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         )
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_and_tf_only
-    def test_christoffels_and_sphere_christoffels(self):
-        """Test consistency between sphere's christoffels.
+    # def test_christoffels_and_sphere_christoffels(self):
+    #     """Test consistency between sphere's christoffels.
 
-        The christoffels of the class Hypersphere are
-        defined in terms of spherical coordinates.
+    #     The christoffels of the class Hypersphere are
+    #     defined in terms of spherical coordinates.
 
-        The christoffels of pullback_metric are also defined
-        in terms of the spherical coordinates.
-        """
-        base_point = gs.array([0.1, 0.2])
-        result = self.pullback_metric.christoffels(base_point=base_point)
-        expected = self.sphere_metric.christoffels(point=base_point)
-        self.assertAllClose(result, expected)
+    #     The christoffels of pullback_metric are also defined
+    #     in terms of the spherical coordinates.
+    #     """
+    #     base_point = gs.array([0.1, 0.2])
+    #     result = self.pullback_metric.christoffels(base_point=base_point)
+    #     expected = self.sphere_metric.christoffels(point=base_point)
+    #     self.assertAllClose(result, expected)
 
-        base_point = gs.array([0.7, 0.233])
-        result = self.pullback_metric.christoffels(base_point=base_point)
-        expected = self.sphere_metric.christoffels(point=base_point)
-        self.assertAllClose(result, expected)
+    #     base_point = gs.array([0.7, 0.233])
+    #     result = self.pullback_metric.christoffels(base_point=base_point)
+    #     expected = self.sphere_metric.christoffels(point=base_point)
+    #     self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
     def test_exp_and_sphere_exp(self):
         """Test consistency between sphere's Riemannian exp.
 
@@ -253,7 +245,6 @@ class TestPullbackMetric(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-1)
 
-    @geomstats.tests.autograd_and_torch_only
     def test_parallel_transport_and_sphere_parallel_transport(self):
         """Test consistency between sphere's parallel transports.
 

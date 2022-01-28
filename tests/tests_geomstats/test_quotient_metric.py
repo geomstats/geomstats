@@ -1,5 +1,7 @@
 """Unit tests for the quotient space."""
 
+import pytest
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.fiber_bundle import FiberBundle
@@ -46,7 +48,7 @@ class BuresWassersteinBundle(GeneralLinear, FiberBundle):
 
 
 class TestQuotientMetric(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         gs.random.seed(0)
         n = 3
         self.bundle = BuresWassersteinBundle(n)
@@ -168,7 +170,5 @@ class TestQuotientMetric(geomstats.tests.TestCase):
         point = self.bundle.riemannian_submersion(mat)
         tangent_vec = Matrices.to_symmetric(self.bundle.random_point()) / 5
 
-        self.assertRaises(
-            NotImplementedError,
-            lambda: self.bundle.integrability_tensor(tangent_vec, tangent_vec, point),
-        )
+        with pytest.raises(NotImplementedError):
+            self.bundle.integrability_tensor(tangent_vec, tangent_vec, point)

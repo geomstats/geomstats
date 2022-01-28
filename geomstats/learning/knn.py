@@ -1,4 +1,7 @@
-"""The KNN classifier on manifolds."""
+"""The KNN classifier on manifolds.
+
+Lead author: Yann Cabanes.
+"""
 
 from sklearn.neighbors import KNeighborsClassifier
 

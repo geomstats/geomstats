@@ -1,12 +1,14 @@
 """The special Euclidean group SE(n).
 
 i.e. the Lie group of rigid transformations in n dimensions.
+
+Lead authors: Nicolas Guigui and Nina Miolane.
 """
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import GeneralLinear, Matrices
 from geomstats.geometry.invariant_metric import InvariantMetric, _InvariantMetricMatrix
@@ -103,7 +105,7 @@ def _squared_dist(point_a, point_b, metric):
     _ : array-like, shape=[...,]
         Geodesic distance between point_a and point_b.
     """
-    return metric._private_squared_dist(point_a, point_b)
+    return metric.private_squared_dist(point_a, point_b)
 
 
 def homogeneous_representation(rotation, translation, output_shape, constant=1.0):
@@ -192,7 +194,7 @@ def tangent_submersion(vector, point):
     return homogeneous_representation(submersed_rot, vec, point.shape, constant=scalar)
 
 
-class _SpecialEuclideanMatrices(MatrixLieGroup, EmbeddedManifold):
+class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
     """Class for special Euclidean group.
 
     Parameters
@@ -331,7 +333,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
     def __init__(self, n, epsilon=0.0):
         dim = n * (n + 1) // 2
-        LieGroup.__init__(self, dim=dim, default_point_type="vector")
+        LieGroup.__init__(self, dim=dim, shape=(dim,), default_point_type="vector")
 
         self.n = n
         self.epsilon = epsilon
@@ -1166,7 +1168,30 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
             max_shape = tangent_vec_b.shape
         return homogeneous_representation(transported_rot, translation, max_shape, 0.0)
 
-    def _private_squared_dist(self, point_a, point_b):
+    def private_squared_dist(self, point_a, point_b):
+        """Compute geodesic distance between two points.
+
+        Compute the squared geodesic distance between point_a
+        and point_b, as defined by the metric.
+
+        This is an auxiliary private function that:
+        - is called by the method `squared_dist` of the class
+        SpecialEuclideanMatrixCannonicalLeftMetric,
+        - has been created to support the implementation
+        of custom_gradient in tensorflow backend.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        _ : array-like, shape=[...,]
+            Geodesic distance between point_a and point_b.
+        """
         dist = super().squared_dist(point_a, point_b)
         return dist
 

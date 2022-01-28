@@ -1,11 +1,14 @@
-"""Kendall Pre-Shape space."""
+"""Kendall Pre-Shape space.
+
+Lead authors: Elodie Maignant and Nicolas Guigui.
+"""
 
 import logging
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import flip_determinant
 from geomstats.errors import check_tf_error
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices, MatricesMetric
@@ -14,7 +17,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.integrator import integrate
 
 
-class PreShapeSpace(EmbeddedManifold, FiberBundle):
+class PreShapeSpace(LevelSet, FiberBundle):
     r"""Class for the Kendall pre-shape space.
 
     The pre-shape space is the sphere of the space of centered k-ad of

@@ -1,4 +1,8 @@
-"""Unit tests for special orthogonal group SO(3)."""
+"""Unit tests for special orthogonal group SO(3).
+
+These tests are done in the rotation vector representation,
+i.e. the axis-angle representation of the 3D rotation matrices.
+"""
 
 import warnings
 
@@ -12,7 +16,7 @@ EPSILON = 1e-5
 
 
 class TestSpecialOrthogonal3(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
         warnings.simplefilter("ignore", category=UserWarning)
 
@@ -2901,7 +2905,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         and the self.group logarithm are inverse.
         Expect their composition to give the identity function.
         """
-
         for angle_type in self.elements:
             point = self.elements[angle_type]
             result = helper.group_log_then_exp_from_identity(

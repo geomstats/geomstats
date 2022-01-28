@@ -1,4 +1,4 @@
-"""LogNormal Distribution"""
+"""LogNormal Distribution."""
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
@@ -11,7 +11,7 @@ from geomstats.geometry.spd_matrices import (
 
 
 class _LogNormalSPD:
-    """LogNormal Distribution on manifold of SPD Matrices"""
+    """LogNormal Distribution on manifold of SPD Matrices."""
 
     def __init__(self, manifold, mean, cov):
         n = mean.shape[-1]
@@ -44,7 +44,7 @@ class _LogNormalSPD:
         return samples_sym
 
     def sample(self, n_samples):
-        """Generate samples for SPD manifold"""
+        """Generate samples for SPD manifold."""
         if isinstance(self.manifold.metric, SPDMetricLogEuclidean):
             sym_matrix = self.manifold.logm(self.mean)
             mean_euclidean = gs.hstack(
@@ -66,7 +66,7 @@ class _LogNormalSPD:
 
 
 class _LogNormalEuclidean:
-    """LogNormal Distribution on Euclidean Space"""
+    """LogNormal Distribution on Euclidean Space."""
 
     def __init__(self, manifold, mean, cov):
         n = mean.shape[-1]
@@ -85,13 +85,13 @@ class _LogNormalEuclidean:
         self.cov = cov
 
     def sample(self, n_samples):
-        """Generate samples for Euclidean Manifold"""
+        """Generate samples for Euclidean Manifold."""
         _samples = gs.random.multivariate_normal(self.mean, self.cov, (n_samples,))
         return gs.exp(_samples)
 
 
 def _sampler_factory(manifold, mean, cov):
-    """Factory method for creating sampler"""
+    """Create Distribution obj."""
     if isinstance(manifold, Euclidean):
         return _LogNormalEuclidean(manifold, mean, cov)
     return _LogNormalSPD(manifold, mean, cov)
@@ -177,18 +177,36 @@ class LogNormal:
 
     @property
     def manifold(self):
+        """Property method for the manifold obj.
+
+        Returns
+        -------
+            _: Manfiold obj.
+        """
         return self.__sampler.manifold
 
     @property
     def mean(self):
+        """Property method for the mean obj .
+
+        Returns
+        -------
+            _: Mean obj.
+        """
         return self.__sampler.mean
 
     @property
     def cov(self):
+        """Property method for the cov obj .
+
+        Returns
+        -------
+            _: Cov obj.
+        """
         return self.__sampler.cov
 
     def sample(self, n_samples=1):
-        """Generate samples
+        """Generate samples.
 
         Parameters
         ----------
@@ -206,5 +224,5 @@ class LogNormal:
         return self.__sampler.sample(n_samples)
 
     def pdf(self, points):
-        """Evaluate probability density function for given points"""
+        """Evaluate probability density function for given points."""
         raise NotImplementedError
