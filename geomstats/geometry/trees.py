@@ -10,6 +10,8 @@ import functools
 import numpy as np
 import itertools as it
 
+import geomstats.backend as gs
+
 
 @functools.total_ordering
 class Split(object):
