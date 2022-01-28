@@ -38,7 +38,7 @@ class Split(object):
 
     def __init__(self, n, part1, part2):
         # sort both parts and convert them into tuples
-        part1, part2 = tuple(np.sort(list(part1))), tuple(np.sort(list(part2)))
+        part1, part2 = tuple(gs.sort(list(part1))), tuple(gs.sort(list(part2)))
         if set(part1) & set(part2):
             raise ValueError(
                 f"A split consists of disjoint sets, those are not: {part1}, {part2}.")
