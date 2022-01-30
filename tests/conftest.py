@@ -277,6 +277,45 @@ class Parametrizer(type):
         return super(Parametrizer, cls).__new__(cls, name, bases, attrs)
 
 
+class MetricParametrizer(Parametrizer):
+    def __init__(cls, name, bases, attrs, atol=gs.atol, rtol=gs.rtol):
+        Parametrizer.__init__(cls, name, bases, attrs)
+        cls.atol = gs.atol
+        cls.rtol = gs.rtol
+
+    def __new__(cls, name, bases, attrs, atol=gs.atol, rtol=gs.rtol):
+        def test_log_exp_composition(self, metric_args, point, base_point):
+            metric = self.cls(metric_args)
+            log = metric.log(gs.array(point), base_point=gs.array(base_point))
+            result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
+            self.assertAllClose(result, point, atol=atol, rtol=rtol)
+
+        def test_squared_dist_is_symmetric(self, metric_args, point_a, point_b):
+            metric = self.cls(metric_args)
+            sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
+            sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
+            self.assertAllClose(sd_a_b, sd_b_a, atol=atol, rtol=rtol)
+
+        def test_exp_belongs(self, metric_args, space_args, tangent_vec, base_point):
+            metric = self.cls(metric_args)
+            space = self.space(space_args)
+            exp = metric.exp(gs.array(tangent_vec), gs.array(base_point))
+            self.assetAllClose(gs.all(space.belongs(exp)), True)
+
+        def test_log_is_tangent(self, metric_args, space_args, base_point, point):
+            metric = self.cls(metric_args)
+            space = self.space(space_args)
+            log = metric.log(base_point, point)
+            self.assetAllClose(gs.all(space.is_tangent(log)), True)
+
+        attrs[test_log_exp_composition.__name__] = test_log_exp_composition
+        attrs[test_squared_dist_is_symmetric.__name__] = test_squared_dist_is_symmetric
+        attrs[test_exp_belongs.__name__] = test_exp_belongs
+        attrs[test_log_is_tangent.__name__] = test_log_is_tangent
+
+        return super(Parametrizer, cls).__new__(cls, name, bases, attrs)
+
+
 class TestCase:
     """Class for Geomstats tests."""
 

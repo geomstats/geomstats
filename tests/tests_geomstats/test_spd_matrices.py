@@ -17,7 +17,7 @@ from geomstats.geometry.spd_matrices import (
     SPDMetricEuclidean,
     SPDMetricLogEuclidean,
 )
-from tests.conftest import Parametrizer, TestCase, TestData
+from tests.conftest import MetricParametrizer, Parametrizer, TestCase, TestData
 
 SQRT_2 = math.sqrt(2.0)
 LN_2 = math.log(2.0)
@@ -282,7 +282,13 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
         )
 
 
-class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
+class TestSPDMetricAffine(
+    geomstats.tests.TestCase, metaclass=MetricParametrizer, atol=gs.atol * 1000
+):
+
+    cls = SPDMetricAffine
+    space = SPDMatrices
+
     class TestDataSPDMetricAffine(TestData):
         def inner_product_data(self):
             smoke_data = [
@@ -368,18 +374,6 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
         self.assertAllClose(
             metric.log(gs.array(point), gs.array(base_point)), gs.array(expected)
         )
-
-    def test_log_exp_composition(self, n, power_affine, point, base_point):
-        metric = SPDMetricAffine(n, power_affine)
-        log = metric.log(gs.array(point), base_point=gs.array(base_point))
-        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
-        self.assertAllClose(result, point, atol=gs.atol * 1000)
-
-    def test_squared_dist_is_symmetric(self, n, power_affine, point_a, point_b):
-        metric = SPDMetricAffine(n, power_affine)
-        sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
-        sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
-        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
 
     def test_parallel_transport_exp_norm(self, n, power_affine, n_samples):
         metric = SPDMetricAffine(n, power_affine)
