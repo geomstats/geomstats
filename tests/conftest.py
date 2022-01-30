@@ -136,7 +136,7 @@ class TestData:
         return tests
 
     def _log_exp_composition_data(
-        self, space, n_samples=100, max_n=10, n_n=5, **kwargs
+        self, args, n_samples=100, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate Data that checks for log and exp are inverse. Specifically
 
@@ -161,14 +161,11 @@ class TestData:
         _ : list
             Test Data.
         """
-        random_n = random.sample(range(1, max_n), n_n)
         random_data = []
-        for n in random_n:
-            for prod in itertools.product(*kwargs.values()):
-                space_n = space(n)
-                base_point = space_n.random_point(n_samples)
-                point = space_n.random_point(n_samples)
-                random_data.append((n,) + prod + (point, base_point))
+        for metric_args, space in args:
+            base_point = space.random_point(n_samples)
+            point = space.random_point(n_samples)
+            random_data.append(((metric_args), point, base_point, rtol, atol))
         return self.generate_tests([], random_data)
 
     def _geodesic_belongs_data(
@@ -216,7 +213,7 @@ class TestData:
         return self.generate_tests([], random_data)
 
     def _squared_dist_is_symmetric_data(
-        self, space, max_n=5, n_n=3, n_samples=10, **kwargs
+        self, args, n_samples=100, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate Data that checks squared_dist is symmetric.
 
@@ -238,15 +235,73 @@ class TestData:
         _ : list
             Test Data.
         """
-        random_n = random.sample(range(2, max_n), n_n)
         random_data = []
-        for n in random_n:
-            for prod in itertools.product(*kwargs.values()):
-                space_n = space(n)
-                points_a = space_n.random_point(n_samples)
-                points_b = space_n.random_point(n_samples)
-                for point_a, point_b in itertools.product(points_a, points_b):
-                    random_data.append((n,) + prod + (point_a, point_b))
+        for metric_args, space in args:
+            print("test", metric_args)
+            points_a = space.random_point(n_samples)
+            points_b = space.random_point(n_samples)
+            random_data.append(((metric_args), points_a, points_b, rtol, atol))
+        return self.generate_tests([], random_data)
+
+    def _exp_belongs_data(self, args, n_samples=100):
+        """Generate Data that checks squared_dist is symmetric.
+
+        Parameters
+        ----------
+        space : cls
+            Manifold class on which metric is present.
+        max_n : int
+            Range of 'n' to generated.
+            Optional, default: 10
+        n_n : int
+            Maximum value when generating 'n'.
+            Optional, default: 3
+        n_samples : int
+            Number of points to be generated.
+            Optional, default: 10
+        Returns
+        -------
+        _ : list
+            Test Data.
+        """
+        random_data = []
+        for metric_args, space in args:
+            # TODO  (sait) : after random_tangent_vec is fixed
+            int_n_samples = (int)(gs.sqrt(n_samples))
+            base_points = space.random_point(int_n_samples)
+            for base_point in base_points:
+                tangent_vec = space.random_tangent_vec(
+                    int_n_samples, base_point=base_point
+                )
+                random_data.append(((metric_args), space, tangent_vec, base_point))
+        return self.generate_tests([], random_data)
+
+    def _log_is_tangent_data(self, args, n_samples=100):
+        """Generate Data that checks squared_dist is symmetric.
+
+        Parameters
+        ----------
+        space : cls
+            Manifold class on which metric is present.
+        max_n : int
+            Range of 'n' to generated.
+            Optional, default: 10
+        n_n : int
+            Maximum value when generating 'n'.
+            Optional, default: 3
+        n_samples : int
+            Number of points to be generated.
+            Optional, default: 10
+        Returns
+        -------
+        _ : list
+            Test Data.
+        """
+        random_data = []
+        for metric_args, space in args:
+            base_points = space.random_point(n_samples)
+            points = space.random_point(n_samples)
+            random_data.append(((metric_args), space, base_points, points))
         return self.generate_tests([], random_data)
 
 
@@ -264,6 +319,10 @@ class Parametrizer(type):
     """
 
     def __new__(cls, name, bases, attrs):
+        print("")
+        print("test", attrs)
+        print("")
+
         for attr_name, attr_value in attrs.items():
             if isinstance(attr_value, types.FunctionType):
 
@@ -278,42 +337,39 @@ class Parametrizer(type):
 
 
 class MetricParametrizer(Parametrizer):
-    def __init__(cls, name, bases, attrs, atol=gs.atol, rtol=gs.rtol):
-        Parametrizer.__init__(cls, name, bases, attrs)
-        cls.atol = gs.atol
-        cls.rtol = gs.rtol
-
-    def __new__(cls, name, bases, attrs, atol=gs.atol, rtol=gs.rtol):
-        def test_log_exp_composition(self, metric_args, point, base_point):
-            metric = self.cls(metric_args)
+    def __new__(cls, name, bases, attrs):
+        def test_log_exp_composition(self, metric_args, point, base_point, rtol, atol):
+            metric = self.cls(*metric_args)
             log = metric.log(gs.array(point), base_point=gs.array(base_point))
             result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
-            self.assertAllClose(result, point, atol=atol, rtol=rtol)
+            self.assertAllClose(result, point, rtol=rtol, atol=atol)
 
-        def test_squared_dist_is_symmetric(self, metric_args, point_a, point_b):
-            metric = self.cls(metric_args)
+        def test_squared_dist_is_symmetric(
+            self, metric_args, point_a, point_b, rtol, atol
+        ):
+            metric = self.cls(*metric_args)
             sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
             sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
-            self.assertAllClose(sd_a_b, sd_b_a, atol=atol, rtol=rtol)
+            self.assertAllClose(sd_a_b, sd_b_a, rtol=rtol, atol=atol)
 
-        def test_exp_belongs(self, metric_args, space_args, tangent_vec, base_point):
-            metric = self.cls(metric_args)
-            space = self.space(space_args)
+        def test_exp_belongs(self, metric_args, space, tangent_vec, base_point):
+            metric = self.cls(*metric_args)
             exp = metric.exp(gs.array(tangent_vec), gs.array(base_point))
-            self.assetAllClose(gs.all(space.belongs(exp)), True)
+            self.assertAllClose(gs.all(space.belongs(exp)), True)
 
-        def test_log_is_tangent(self, metric_args, space_args, base_point, point):
-            metric = self.cls(metric_args)
-            space = self.space(space_args)
-            log = metric.log(base_point, point)
-            self.assetAllClose(gs.all(space.is_tangent(log)), True)
+        def test_log_is_tangent(self, metric_args, space, base_point, point):
+            metric = self.cls(*metric_args)
+            log = metric.log(gs.array(base_point), gs.array(point))
+            self.assertAllClose(
+                gs.all(space.is_tangent(log, gs.array(base_point))), True
+            )
 
         attrs[test_log_exp_composition.__name__] = test_log_exp_composition
         attrs[test_squared_dist_is_symmetric.__name__] = test_squared_dist_is_symmetric
         attrs[test_exp_belongs.__name__] = test_exp_belongs
         attrs[test_log_is_tangent.__name__] = test_log_is_tangent
 
-        return super(Parametrizer, cls).__new__(cls, name, bases, attrs)
+        return super(MetricParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
 class TestCase:

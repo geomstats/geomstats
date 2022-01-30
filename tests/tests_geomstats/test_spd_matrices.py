@@ -1,6 +1,7 @@
 """Unit tests for the manifold of symmetric positive definite matrices."""
 
 
+import itertools
 import math
 import random
 
@@ -282,9 +283,7 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
         )
 
 
-class TestSPDMetricAffine(
-    geomstats.tests.TestCase, metaclass=MetricParametrizer, atol=gs.atol * 1000
-):
+class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=MetricParametrizer):
 
     cls = SPDMetricAffine
     space = SPDMatrices
@@ -328,20 +327,44 @@ class TestSPDMetricAffine(
             return self.generate_tests(smoke_data)
 
         def log_exp_composition_data(self):
-            power_affine = [1.0, 0.5, -0.5]
-            return self._log_exp_composition_data(
-                SPDMatrices, power_affine=power_affine
-            )
+            n_list = random.sample(range(2, 50), 10)
+            power_affine_list = [1.0, 0.5, -0.5]
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list, power_affine_list)
+            ]
+            return self._log_exp_composition_data(args)
+
+        def exp_belongs_data(self):
+            n_list = random.sample(range(2, 50), 10)
+            power_affine_list = [1.0, 0.5, -0.5]
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list, power_affine_list)
+            ]
+            return self._exp_belongs_data(args)
+
+        def log_is_tangent_data(self):
+            n_list = random.sample(range(2, 50), 10)
+            power_affine_list = [1.0, 0.5, -0.5]
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list, power_affine_list)
+            ]
+            return self._log_is_tangent_data(args)
 
         def geodesic_belongs_data(self):
             power_affine = [1.0]
             return self._geodesic_belongs_data(SPDMatrices, power_affine=power_affine)
 
         def squared_dist_is_symmetric_data(self):
-            power_affine = [1.0, 0.5, -0.5]
-            return self._squared_dist_is_symmetric_data(
-                SPDMatrices, power_affine=power_affine
-            )
+            n_list = random.sample(range(2, 50), 10)
+            power_affine_list = [1.0, 0.5, -0.5]
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list, power_affine_list)
+            ]
+            return self._squared_dist_is_symmetric_data(args)
 
         def parallel_transport_exp_norm_data(self):
             random_n = random.sample(range(1, 10), 5)
@@ -374,6 +397,18 @@ class TestSPDMetricAffine(
         self.assertAllClose(
             metric.log(gs.array(point), gs.array(base_point)), gs.array(expected)
         )
+
+    # def test_log_exp_composition(self, n, power_affine, point, base_point):
+    #     metric = SPDMetricAffine(n, power_affine)
+    #     log = metric.log(gs.array(point), base_point=gs.array(base_point))
+    #     result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
+    #     self.assertAllClose(result, point, atol=gs.atol * 1000)
+
+    # def test_squared_dist_is_symmetric(self, n, power_affine, point_a, point_b):
+    #     metric = SPDMetricAffine(n, power_affine)
+    #     sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
+    #     sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
+    #     self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
 
     def test_parallel_transport_exp_norm(self, n, power_affine, n_samples):
         metric = SPDMetricAffine(n, power_affine)
@@ -471,17 +506,17 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
         result = metric.squared_dist(gs.array(point_a), gs.array(point_b))
         self.assertAllClose(result, gs.array(expected))
 
-    def test_log_exp_composition(self, n, point, base_point):
-        metric = SPDMetricBuresWasserstein(n)
-        log = metric.log(gs.array(point), base_point=gs.array(base_point))
-        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
-        self.assertAllClose(result, point, atol=gs.atol * 1000)
+    # def test_log_exp_composition(self, n, point, base_point):
+    #     metric = SPDMetricBuresWasserstein(n)
+    #     log = metric.log(gs.array(point), base_point=gs.array(base_point))
+    #     result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
+    #     self.assertAllClose(result, point, atol=gs.atol * 1000)
 
-    def test_squared_dist_is_symmetric(self, n, point_a, point_b):
-        metric = SPDMetricBuresWasserstein(n)
-        sd_a_b = metric.squared_dist(point_a, point_b)
-        sd_b_a = metric.squared_dist(point_b, point_a)
-        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
+    # def test_squared_dist_is_symmetric(self, n, point_a, point_b):
+    #     metric = SPDMetricBuresWasserstein(n)
+    #     sd_a_b = metric.squared_dist(point_a, point_b)
+    #     sd_b_a = metric.squared_dist(point_b, point_a)
+    #     self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
 
 
 class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
@@ -577,17 +612,17 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
-    def test_log_exp_composition(self, n, power_euclidean, point, base_point):
-        metric = SPDMetricEuclidean(n, power_euclidean)
-        log = metric.log(gs.array(point), base_point=gs.array(base_point))
-        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
-        self.assertAllClose(result, point, atol=gs.atol * 1000)
+    # def test_log_exp_composition(self, n, power_euclidean, point, base_point):
+    #     metric = SPDMetricEuclidean(n, power_euclidean)
+    #     log = metric.log(gs.array(point), base_point=gs.array(base_point))
+    #     result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
+    #     self.assertAllClose(result, point, atol=gs.atol * 1000)
 
-    def test_squared_dist_is_symmetric(self, n, power_euclidean, point_a, point_b):
-        metric = SPDMetricEuclidean(n, power_euclidean)
-        sd_a_b = metric.squared_dist(point_a, point_b)
-        sd_b_a = metric.squared_dist(point_b, point_a)
-        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
+    # def test_squared_dist_is_symmetric(self, n, power_euclidean, point_a, point_b):
+    #     metric = SPDMetricEuclidean(n, power_euclidean)
+    #     sd_a_b = metric.squared_dist(point_a, point_b)
+    #     sd_b_a = metric.squared_dist(point_b, point_a)
+    #     self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
 
 
 class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
@@ -654,14 +689,14 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
-    def test_log_exp_composition(self, n, point, base_point):
-        metric = SPDMetricLogEuclidean(n)
-        log = metric.log(gs.array(point), base_point=gs.array(base_point))
-        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
-        self.assertAllClose(result, point, atol=gs.atol * 1000)
+    # def test_log_exp_composition(self, n, point, base_point):
+    #     metric = SPDMetricLogEuclidean(n)
+    #     log = metric.log(gs.array(point), base_point=gs.array(base_point))
+    #     result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
+    #     self.assertAllClose(result, point, atol=gs.atol * 1000)
 
-    def test_squared_dist_is_symmetric(self, n, point_a, point_b):
-        metric = SPDMetricLogEuclidean(n)
-        sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
-        sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
-        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
+    # def test_squared_dist_is_symmetric(self, n, point_a, point_b):
+    #     metric = SPDMetricLogEuclidean(n)
+    #     sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
+    #     sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
+    #     self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
