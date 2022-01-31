@@ -1131,25 +1131,25 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         return log
 
     def parallel_transport(
-        self, tangent_vec_a, base_point, tangent_vec_b=None, end_point=None, **kwargs
+        self, tangent_vec, base_point, direction=None, end_point=None
     ):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
         along the geodesic between two points `base_point` and `end_point`
         or alternatively defined by :math:`t\mapsto exp_(base_point)(
-        t*tangent_vec_b)`. As the special Euclidean group endowed with its
+        t*direction)`. As the special Euclidean group endowed with its
         canonical left-invariant metric is a symmetric space, parallel
         transport is achieved by a geodesic symmetry, or equivalently, one step
          of the pole ladder scheme.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n + 1, n + 1]
+        tangent_vec : array-like, shape=[..., n + 1, n + 1]
             Tangent vector at base point to be transported.
         base_point : array-like, shape=[..., n + 1, n + 1]
             Point on the hypersphere.
-        tangent_vec_b : array-like, shape=[..., n + 1, n + 1]
+        direction : array-like, shape=[..., n + 1, n + 1]
             Tangent vector at base point, along which the parallel transport
             is computed.
             Optional, default: None
@@ -1163,25 +1163,25 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         transported_tangent_vec: array-like, shape=[..., n + 1, n + 1]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
-        if tangent_vec_b is None:
+        if direction is None:
             if end_point is not None:
-                tangent_vec_b = self.log(end_point, base_point)
+                direction = self.log(end_point, base_point)
             else:
                 raise ValueError(
                     "Either an end_point or a tangent_vec_b must be given to define the"
                     " geodesic along which to transport."
                 )
-        rot_a = tangent_vec_a[..., : self.n, : self.n]
-        rot_b = tangent_vec_b[..., : self.n, : self.n]
+        rot_a = tangent_vec[..., : self.n, : self.n]
+        rot_b = direction[..., : self.n, : self.n]
         rot_bp = base_point[..., : self.n, : self.n]
         transported_rot = self.group.rotations.bi_invariant_metric.parallel_transport(
             rot_a, rot_bp, rot_b
         )
-        translation = tangent_vec_a[..., : self.n, self.n]
-        max_shape = tangent_vec_a.shape
-        if (tangent_vec_b.ndim == 3) and (tangent_vec_a.ndim == 2):
-            translation = gs.stack([translation] * tangent_vec_b.shape[0])
-            max_shape = tangent_vec_b.shape
+        translation = tangent_vec[..., : self.n, self.n]
+        max_shape = tangent_vec.shape
+        if (direction.ndim == 3) and (tangent_vec.ndim == 2):
+            translation = gs.stack([translation] * direction.shape[0])
+            max_shape = direction.shape
         return homogeneous_representation(transported_rot, translation, max_shape, 0.0)
 
     def private_squared_dist(self, point_a, point_b):

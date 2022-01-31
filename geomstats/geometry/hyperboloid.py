@@ -420,22 +420,22 @@ class HyperboloidMetric(HyperbolicMetric):
         return dist
 
     def parallel_transport(
-        self, tangent_vec_a, base_point, tangent_vec_b=None, end_point=None
+        self, tangent_vec, base_point, direction=None, end_point=None
     ):
         r"""Compute the parallel transport of a tangent vector.
 
-        Closed-form solution for the parallel transport of a tangent vector a
+        Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
         or alternatively defined by :math:`t\mapsto exp_(base_point)(
-        t*tangent_vec_b)`.
+        t*direction)`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., dim + 1]
+        tangent_vec : array-like, shape=[..., dim + 1]
             Tangent vector at base point to be transported.
         base_point : array-like, shape=[..., dim + 1]
             Point on the hyperboloid.
-        tangent_vec_b : array-like, shape=[..., dim + 1]
+        direction : array-like, shape=[..., dim + 1]
             Tangent vector at base point, along which the parallel transport
             is computed.
             Optional, default : None.
@@ -449,19 +449,19 @@ class HyperboloidMetric(HyperbolicMetric):
         transported_tangent_vec: array-like, shape=[..., dim + 1]
             Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
-        if tangent_vec_b is None:
+        if direction is None:
             if end_point is not None:
-                tangent_vec_b = self.log(end_point, base_point)
+                direction = self.log(end_point, base_point)
             else:
                 raise ValueError(
                     "Either an end_point or a tangent_vec_b must be given to define the"
                     " geodesic along which to transport."
                 )
-        theta = self.embedding_metric.norm(tangent_vec_b)
+        theta = self.embedding_metric.norm(direction)
         eps = gs.where(theta == 0.0, 1.0, theta)
-        normalized_b = gs.einsum("...,...i->...i", 1 / eps, tangent_vec_b)
-        pb = self.embedding_metric.inner_product(tangent_vec_a, normalized_b)
-        p_orth = tangent_vec_a - gs.einsum("...,...i->...i", pb, normalized_b)
+        normalized_b = gs.einsum("...,...i->...i", 1 / eps, direction)
+        pb = self.embedding_metric.inner_product(tangent_vec, normalized_b)
+        p_orth = tangent_vec - gs.einsum("...,...i->...i", pb, normalized_b)
         transported = (
             gs.einsum("...,...i->...i", gs.sinh(theta) * pb, base_point)
             + gs.einsum("...,...i->...i", gs.cosh(theta) * pb, normalized_b)

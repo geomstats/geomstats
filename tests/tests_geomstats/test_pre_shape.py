@@ -767,8 +767,6 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(gs.all(is_tangent))
         self.assertTrue(gs.all(is_horizontal))
 
-        transported = metric.parallel_transport(
-            tan_a[0], point, end_point=end_point[0], n_steps=150, step="rk4"
-        )
+        transported = metric.parallel_transport(tan_a[0], point, end_point=end_point[0])
         result = metric.norm(transported, end_point[0])
         self.assertAllClose(result, expected[0])

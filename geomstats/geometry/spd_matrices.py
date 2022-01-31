@@ -676,14 +676,14 @@ class SPDMetricAffine(RiemannianMetric):
         return log
 
     def parallel_transport(
-        self, tangent_vec_a, base_point, tangent_vec_b=None, end_point=None
+        self, tangent_vec, base_point, direction=None, end_point=None
     ):
         r"""Parallel transport of a tangent vector.
 
-        Closed-form solution for the parallel transport of a tangent vector a
+        Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
         or alternatively defined by :math:`t\mapsto exp_(base_point)(
-        t*tangent_vec_b)`.
+        t*direction)`.
         Denoting `tangent_vec_a` by `S`, `base_point` by `A`, and `end_point`
         by `B` or `B = Exp_A(tangent_vec_b)` and :math: `E = (BA^{- 1})^({ 1
         / 2})`. Then the parallel transport to `B` is:
@@ -693,11 +693,11 @@ class SPDMetricAffine(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
+        tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point to be transported.
         base_point : array-like, shape=[..., n, n]
             Point on the manifold of SPD matrices. Point to transport from
-        tangent_vec_b : array-like, shape=[..., n, n]
+        direction : array-like, shape=[..., n, n]
             Tangent vector at base point, initial speed of the geodesic along
             which the parallel transport is computed. Unused if `end_point` is given.
             Optional, default: None.
@@ -711,11 +711,11 @@ class SPDMetricAffine(RiemannianMetric):
             Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
         if end_point is None:
-            end_point = self.exp(tangent_vec_b, base_point)
+            end_point = self.exp(direction, base_point)
         inverse_base_point = GeneralLinear.inverse(base_point)
         congruence_mat = Matrices.mul(end_point, inverse_base_point)
         congruence_mat = gs.linalg.sqrtm(congruence_mat)
-        return Matrices.congruent(tangent_vec_a, congruence_mat)
+        return Matrices.congruent(tangent_vec, congruence_mat)
 
 
 class SPDMetricBuresWasserstein(RiemannianMetric):
@@ -1009,23 +1009,22 @@ class SPDMetricEuclidean(RiemannianMetric):
         return log
 
     def parallel_transport(
-        self, tangent_vec_a, base_point, tangent_vec_b=None, end_point=None
+        self, tangent_vec, base_point, direction=None, end_point=None
     ):
         r"""Compute the parallel transport of a tangent vector.
 
-        Closed-form solution for the parallel transport of a tangent vector a
+        Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
         or alternatively defined by :math:`t\mapsto exp_(base_point)(
-        t*tangent_vec_b)`. In a Euclidean space, parallel transport is simply a
-        translation, so `tangent_vec_a` is returned identically.
+        t*direction)`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
+        tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point to be transported.
         base_point : array-like, shape=[..., n, n]
             Point on the manifold. Point to transport from.
-        tangent_vec_b : array-like, shape=[..., n, n]
+        direction : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
             Optional, default: None.
@@ -1039,7 +1038,7 @@ class SPDMetricEuclidean(RiemannianMetric):
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         if self.power_euclidean == 1:
-            return tangent_vec_a
+            return tangent_vec
         raise NotImplementedError("Parallel transport is only implemented for power 1")
 
 

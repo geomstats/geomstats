@@ -381,18 +381,18 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         return Matrices.bracket(GLn.log(rot) / 2, base_point)
 
     def parallel_transport(
-        self, tangent_vec_a, base_point, tangent_vec_b=None, end_point=None
+        self, tangent_vec, base_point, tangent_vec_b=None, end_point=None
     ):
         r"""Compute the parallel transport of a tangent vector.
 
-        Closed-form solution for the parallel transport of a tangent vector a
+        Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
         or alternatively defined by :math:`t\mapsto exp_(base_point)(
-        t*tangent_vec_b)`.
+        t*direction)`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
+        tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point to be transported.
         base_point : array-like, shape=[..., n, n]
             Point on the Grassmann manifold. Point to transport from.
@@ -430,7 +430,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         expm = gs.linalg.expm
         mul = Matrices.mul
         rot = -Matrices.bracket(base_point, tangent_vec_b)
-        return mul(expm(rot), tangent_vec_a, expm(-rot))
+        return mul(expm(rot), tangent_vec, expm(-rot))
 
     def private_squared_dist(self, point_a, point_b):
         """Compute geodesic distance between two points.

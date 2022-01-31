@@ -706,9 +706,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
     def parallel_transport(
         self,
-        tangent_vec_a,
+        tangent_vec,
         base_point,
-        tangent_vec_b=None,
+        direction=None,
         end_point=None,
         n_steps=10,
         step="rk4",
@@ -719,16 +719,16 @@ class _InvariantMetricMatrix(RiemannianMetric):
         Approximate solution for the parallel transport of a tangent vector a
         along the geodesic between two points `base_point` and `end_point`
         or alternatively defined by :math:`t\mapsto exp_(base_point)(
-        t*tangent_vec_b)`. The parallel transport equation is written entirely
+        t*direction)`. The parallel transport equation is written entirely
         in the Lie algebra and solved with an integration scheme.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
+        tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point to be transported.
         base_point : array-like, shape=[..., n, n]
             Point on the manifold.
-        tangent_vec_b : array-like, shape=[..., n, n]
+        direction : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
             Optional, default: None
@@ -766,7 +766,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                    Paris 2021. Springer. Lecture Notes in Computer Science.
                    https://hal.inria.fr/hal-03154318.
         """
-        if tangent_vec_b is None:
+        if direction is None:
             if end_point is not None:
                 tangent_vec_b_ = self.log(end_point, base_point)
             else:
@@ -775,13 +775,13 @@ class _InvariantMetricMatrix(RiemannianMetric):
                     " geodesic along which to transport."
                 )
         else:
-            tangent_vec_b_ = tangent_vec_b
+            tangent_vec_b_ = direction
 
         group = self.group
         translation_map = group.tangent_translation_map(
             base_point, left_or_right=self.left_or_right, inverse=True
         )
-        left_angular_vel_a = group.to_tangent(translation_map(tangent_vec_a))
+        left_angular_vel_a = group.to_tangent(translation_map(tangent_vec))
         left_angular_vel_b = group.to_tangent(translation_map(tangent_vec_b_))
 
         def acceleration(state, time):
@@ -792,11 +792,11 @@ class _InvariantMetricMatrix(RiemannianMetric):
             return gs.stack([gam_dot, omega_dot, zeta_dot])
 
         if (base_point.ndim == 2 or base_point.shape[0] == 1) and (
-            3 in (tangent_vec_a.ndim, tangent_vec_b_.ndim)
+            3 in (tangent_vec.ndim, tangent_vec_b_.ndim)
         ):
             n_sample = (
-                tangent_vec_a.shape[0]
-                if tangent_vec_a.ndim == 3
+                tangent_vec.shape[0]
+                if tangent_vec.ndim == 3
                 else tangent_vec_b_.shape[0]
             )
             base_point = gs.stack([base_point] * n_sample)
@@ -1315,24 +1315,24 @@ class BiInvariantMetric(_InvariantMetricVector):
         )
 
     def parallel_transport(
-        self, tangent_vec_a, base_point, tangent_vec_b=None, end_point=None
+        self, tangent_vec, base_point, direction=None, end_point=None
     ):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Closed-form solution for the parallel transport of a tangent vector a
         along the geodesic between the base point and an end point, or alternatively
-        defined by :math: `t \mapsto exp_(base_point)(t*tangent_vec_b)`.
+        defined by :math: `t \mapsto exp_(base_point)(t*direction)`.
         As a compact Lie group endowed with its canonical bi-invariant metric is a
         symmetric space, parallel transport is achieved by a geodesic symmetry, or
         equivalently, one step of the pole ladder scheme.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
+        tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point to be transported.
         base_point : array-like, shape=[..., n, n]
             Point on the manifold.
-        tangent_vec_b : array-like, shape=[..., n, n]
+        direction : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
             Optional, default: None.
@@ -1345,15 +1345,15 @@ class BiInvariantMetric(_InvariantMetricVector):
         transported_tangent_vec: array-like, shape=[..., n, n]
             Transported tangent vector at `end_point=exp_(base_point)(tangent_vec_b)`.
         """
-        if tangent_vec_b is None:
+        if direction is None:
             if end_point is not None:
-                tangent_vec_b = self.log(end_point, base_point)
+                direction = self.log(end_point, base_point)
             else:
                 raise ValueError(
                     "Either an end_point or a tangent_vec_b must be given to define the"
                     " geodesic along which to transport."
                 )
-        midpoint = self.exp(1.0 / 2.0 * tangent_vec_b, base_point)
-        transposed = Matrices.transpose(tangent_vec_a)
+        midpoint = self.exp(1.0 / 2.0 * direction, base_point)
+        transposed = Matrices.transpose(tangent_vec)
         transported_vec = Matrices.mul(midpoint, transposed, midpoint)
         return (-1.0) * transported_vec

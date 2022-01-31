@@ -273,6 +273,6 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         expected = self.sphere_metric.parallel_transport(
             immersed_tangent_vec_a,
             base_point=immersed_base_point,
-            tangent_vec_b=immersed_tangent_vec_b,
+            direction=immersed_tangent_vec_b,
         )
         self.assertAllClose(result, expected, atol=1e-5)

@@ -628,22 +628,22 @@ class Connection(ABC):
         return path
 
     def parallel_transport(
-        self, tangent_vec_a, base_point, tangent_vec_b=None, end_point=None
+        self, tangent_vec, base_point, direction=None, end_point=None
     ):
         r"""Compute the parallel transport of a tangent vector.
 
-        Closed-form solution for the parallel transport of a tangent vector a
+        Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
         or alternatively defined by :math:`t\mapsto exp_(base_point)(
-        t*tangent_vec_b)`.
+        t*direction)`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., {dim, [n, m]}]
+        tangent_vec : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at base point to be transported.
         base_point : array-like, shape=[..., {dim, [n, m]}]
             Point on the manifold. Point to transport from.
-        tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
+        direction : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at base point, along which the parallel transport
             is computed.
             Optional, default: None.
