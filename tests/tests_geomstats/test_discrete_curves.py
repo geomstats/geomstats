@@ -475,7 +475,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = gs.stack((res_a, res_b))
         self.assertAllClose(result, expected)
 
-    def test_srv_inner_product_r3(self):
+    def test_srv_inner_product_elastic(self):
         """Test inner product of SRVMetric.
 
         Check that the pullback metric gives an elastic metric
