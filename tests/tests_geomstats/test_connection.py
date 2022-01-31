@@ -53,10 +53,10 @@ class TestConnection(geomstats.tests.TestCase):
             for n_rungs in [min_n, 11]:
                 ladder = self.hypersphere.metric.ladder_parallel_transport(
                     tan_vec_a,
-                    tan_vec_b,
                     base_point,
-                    scheme=step,
+                    tan_vec_b,
                     n_rungs=n_rungs,
+                    scheme=step,
                     alpha=alpha,
                 )
                 result = ladder["transported_tangent_vec"]
@@ -82,11 +82,11 @@ class TestConnection(geomstats.tests.TestCase):
             expected_point = self.hypersphere.metric.exp(tan_vec_b, base_point)
             ladder = self.hypersphere.metric.ladder_parallel_transport(
                 tan_vec_a,
-                tan_vec_b,
                 base_point,
-                return_geodesics=True,
-                scheme=step,
+                tan_vec_b,
                 n_rungs=n_steps,
+                scheme=step,
+                return_geodesics=True,
             )
             result = ladder["transported_tangent_vec"]
             result_point = ladder["end_point"]
@@ -107,12 +107,12 @@ class TestConnection(geomstats.tests.TestCase):
         with pytest.raises(ValueError):
             self.hypersphere.metric.ladder_parallel_transport(
                 tan_vec_a,
-                tan_vec_b,
                 base_point,
-                return_geodesics=False,
-                scheme="pole",
+                tan_vec_b,
                 n_rungs=1,
+                scheme="pole",
                 alpha=0.5,
+                return_geodesics=False,
             )
 
     def test_exp_connection_metric(self):

@@ -337,9 +337,9 @@ class Connection(ABC):
 
     def ladder_parallel_transport(
         self,
-        tangent_vec_a,
-        tangent_vec_b,
+        tangent_vec,
         base_point,
+        direction,
         n_rungs=1,
         scheme="pole",
         alpha=1,
@@ -352,14 +352,14 @@ class Connection(ABC):
         spaces and of order two in general while Schild's ladder is a first
         order approximation [GP2020]_. Both schemes are available on any affine
         connection manifolds whose exponential and logarithm maps are
-        implemented. `tangent_vec_a` is transported along the geodesic starting
-        at the base_point with initial tangent vector `tangent_vec_b`.
+        implemented. `tangent_vec` is transported along the geodesic starting
+        at the base_point with initial tangent vector `direction`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point to transport.
-        tangent_vec_b : array-like, shape=[..., dim]
+        direction : array-like, shape=[..., dim]
             Tangent vector at base point, initial speed of the geodesic along
             which to transport.
         base_point : array-like, shape=[..., dim]
@@ -404,13 +404,13 @@ class Connection(ABC):
         if alpha < 1:
             raise ValueError("alpha must be greater or equal to one")
         current_point = base_point
-        next_tangent_vec = tangent_vec_a / (n_rungs ** alpha)
+        next_tangent_vec = tangent_vec / (n_rungs ** alpha)
         methods = {"pole": self._pole_ladder_step, "schild": self._schild_ladder_step}
         single_step = methods[scheme]
         base_shoot = self.exp(base_point=current_point, tangent_vec=next_tangent_vec)
         trajectory = []
         for i_point in range(n_rungs):
-            frac_tan_vector_b = (i_point + 1) / n_rungs * tangent_vec_b
+            frac_tan_vector_b = (i_point + 1) / n_rungs * direction
             next_point = self.exp(base_point=base_point, tangent_vec=frac_tan_vector_b)
             next_step = single_step(
                 base_point=current_point,
