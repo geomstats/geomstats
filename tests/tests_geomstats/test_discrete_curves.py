@@ -12,7 +12,6 @@ from geomstats.geometry.discrete_curves import (
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 
 
 class TestDiscreteCurves(geomstats.tests.TestCase):
@@ -476,7 +475,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected = gs.stack((res_a, res_b))
         self.assertAllClose(result, expected)
 
-    def test_srv_inner_product(self):
+    def test_srv_inner_product_r3(self):
         """Test inner product of SRVMetric.
 
         Check that the pullback metric gives an elastic metric
