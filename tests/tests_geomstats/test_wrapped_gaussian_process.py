@@ -1,76 +1,81 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import ConstantKernel, RBF
-from sklearn.model_selection import train_test_split
+"""Unit tests for Wrapped gaussian process."""
+
 import geomstats.backend as gs
-import geomstats.visualization as visualization
+import numpy as np
+
+import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.frechet_mean import FrechetMean, variance
-from geomstats.learning.geodesic_regression import GeodesicRegression
 from geomstats.learning.wrapped_gaussian_process import WrappedGaussianProcess
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel
 
-# Define the space and metric
-DIM = 2
-SPACE = Hypersphere(dim=DIM)
-EMBEDDING_DIM = SPACE.embedding_space.dim
-METRIC = SPACE.metric
-gs.random.seed(0)
 
-# Generate sinusoidal data on the sphere
-# First generate the geodesic
-n_samples = 100
-X = gs.linspace(0, 1.5 * np.pi, n_samples)
-Xs = gs.linspace(0, 1.5 * np.pi, n_samples * 10).reshape(-1, 1)
-intercept = np.array([0, -1, 0])
-coef = np.array([1, 0, 0.5])
-y = METRIC.exp(X[:, None] * coef, base_point=intercept)
-# Then add orthogonal sinusoidal oscillations
-o = 1 / 20 * np.array([-0.5, 0, 1])
-o = SPACE.to_tangent(o, base_point=y)
-s = X[:, None] * np.sin(5 * np.pi * X[:, None])
-y = METRIC.exp(s * o, base_point=y)
+class TestWrappedGaussianProcess(geomstats.tests.TestCase):
 
-# Add noise
-# normal_noise = gs.random.normal(size=(n_samples, EMBEDDING_DIM))
-# noise = SPACE.to_tangent(normal_noise, base_point=y) / gs.pi / 2
-# y3 = METRIC.exp(noise, y2)
+    def setup_method(self):
+        gs.random.seed(1234)
+        self.n_samples = 20
 
-fig = plt.figure(figsize=(8, 8))
-ax = visualization.plot(y, space='S2', color='black', alpha=0.7, label='Data points')
-ax.set_box_aspect([1, 1, 1])
-ax.legend()
-plt.show()
+        # Set up for hypersphere
+        self.dim_sphere = 2
+        self.shape_sphere = (self.dim_sphere + 1,)
+        self.sphere = Hypersphere(dim=self.dim_sphere)
 
-# Wrapped Gaussian Process Regression
-X_train, X_test, y_train, y_test = train_test_split(X.reshape(-1, 1), y, test_size=0.6, random_state=42)
-prior = lambda X: METRIC.exp(X * coef, base_point=intercept)
-kernel = ConstantKernel(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
+        self.intercept_sphere_true = np.array([0, -1, 0])
+        self.coef_sphere_true = np.array([1, 0, 0.5])
 
-fig = plt.figure(figsize=(8, 8))
-ax = visualization.plot(y_train, space='S2', color='black', alpha=0.7, label='Train data points')
-ax.scatter(prior(X_train)[:, 0], prior(X_train)[:, 1], prior(X_train)[:, 2], color='red', alpha=.7, label='prior')
-ax.set_box_aspect([1, 1, 1])
-ax.legend()
-plt.show()
+        # set up the prior
+        self.prior = lambda x: self.sphere.metric.exp(
+            x * self.coef_sphere_true,
+            base_point=self.intercept_sphere_true,
+        )
 
-wgp = WrappedGaussianProcess(space=SPACE, metric=METRIC, prior=prior, kernel=kernel)
-wgp.fit(X_train, y_train)
-f_pred = wgp.predict(Xs)
+        self.kernel = ConstantKernel(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
 
-fig =  plt.figure(figsize=(8, 8))
-ax = visualization.plot(y_train, space='S2', color='black', alpha=0.7, label='Train data points')
-ax.plot(f_pred[:, 0], f_pred[:, 1], f_pred[:, 2], color='blue', alpha=.7, label='f prediction')
-ax.set_box_aspect([1, 1, 1])
-ax.legend()
-plt.show()
+        # generate data
+        X = gs.linspace(0, 1.5 * np.pi, self.n_samples)
+        self.X_sphere = (X - gs.mean(X)).reshape(-1, 1)
+        # generate the geodesic
+        y = self.prior(self.X_sphere)
+        # Then add orthogonal sinusoidal oscillations
 
-# y1d = s + noise[:, 1].reshape(-1, 1)
-# plt.scatter(X, y1d, color='red')
-# plt.scatter(X, s.reshape(-1, 1), color='blue')
-# plt.show()
-#
-# X_train, X_test, y_train, y_test = train_test_split(X.reshape(-1, 1), y, test_size=0.5, random_state=42)
-#
-# wgp = WrappedGaussianProcess(space=SPACE, metric=METRIC, prior=METRIC.exp(X*coef, base_point=intercept))
-# wgp.fit(X_train, y_train)
+        o = 1 / 20 * np.array([-0.5, 0, 1])
+        o = self.sphere.to_tangent(o, base_point=y)
+        s = self.X_sphere * np.sin(5 * np.pi * self.X_sphere)
+        self.y_sphere = self.sphere.metric.exp(s * o, base_point=y)
+
+    def test_fit_hypersphere(self):
+        """Test the fit method"""
+        wgpr = WrappedGaussianProcess(
+            self.sphere,
+            metric=self.sphere.metric,
+            prior=self.prior,
+            kernel=self.kernel
+        )
+        wgpr.fit(self.X_sphere, self.y_sphere)
+        self.assertAllClose(wgpr.score(self.X_sphere, self.y_sphere), 1)
+
+    def test_predict_hypersphere(self):
+        """Test the predict method"""
+        wgpr = WrappedGaussianProcess(
+            self.sphere,
+            metric=self.sphere.metric,
+            prior=self.prior,
+            kernel=self.kernel
+        )
+        wgpr.fit(self.X_sphere, self.y_sphere)
+        y, std = wgpr.predict(self.X_sphere, return_tangent_std=True)
+        self.assertAllClose(std, 0, atol=1e-4)
+        self.assertAllClose(y, self.y_sphere, atol=1e-4)
+
+    def test_samples_y_hypersphere(self):
+        """Test the samples_y method"""
+        wgpr = WrappedGaussianProcess(
+            self.sphere,
+            metric=self.sphere.metric,
+            prior=self.prior,
+            kernel=self.kernel
+        )
+        wgpr.fit(self.X_sphere, self.y_sphere)
+        y = wgpr.sample_y(self.X_sphere, n_samples=100)
+        y_ = y.transpose((1, 0, 2)).reshape(y.shape[-2], -1).T
+        self.assertTrue(self.sphere.belongs(y_).all())

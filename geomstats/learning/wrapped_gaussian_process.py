@@ -3,17 +3,15 @@ r""" Wrapped Gaussian Process.
 TODO
 
 """
-
-import logging
-
 import numpy as np
+from sklearn.base import MultiOutputMixin, BaseEstimator, RegressorMixin
 from sklearn.gaussian_process import GaussianProcessRegressor
 
 
-class WrappedGaussianProcess(GaussianProcessRegressor):
+class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
     r""" Wrapped Gaussian Process.
 
-    TODO
+    The implementation is based on algorithm 1 of [1].
 
     Parameters
     ----------
@@ -21,32 +19,61 @@ class WrappedGaussianProcess(GaussianProcessRegressor):
         Manifold.
     metric : RiemannianMetric
         Riemannian metric.
-    center_X : bool
-        Subtract mean to X as a preprocessing.
-    method : str, {\'extrinsic\', \'riemannian\'}
-        Gradient descent method.
-        Optional, default: extrinsic.
-    max_iter : int
-        Maximum number of iterations for gradient descent.
-        Optional, default: 100.
-    learning_rate : float
-        Initial learning rate for gradient descent.
-        Optional, default: 0.1
-    tol : float
-        Tolerance for loss minimization.
-        Optional, default: 1e-5
-    verbose : bool
-        Verbose option.
-        Optional, default: False.
-    initialization : str or array-like,
-        {'random', 'data', 'frechet', warm_start'}
-        Initial values of the parameters for the optimization,
-        or initialization method.
-        Optional, default: 'random'
-    regularization : float
-        Weight on the constraint for the intercept to lie on the manifold in
-        the extrinsic optimization scheme. An L^2 constraint is applied.
-        Optional, default: 1.
+    prior : function
+        Associate to each input a manifold valued point.
+     kernel : kernel instance, default=None
+        The kernel specifying the covariance function of the GP. If None is
+        passed, the kernel ``ConstantKernel(1.0, constant_value_bounds="fixed")
+        * RBF(1.0, length_scale_bounds="fixed")`` is used as default. Note that
+        the kernel hyperparameters are optimized during fitting unless the
+        bounds are marked as "fixed".
+    alpha : float or ndarray of shape (n_samples,), default=1e-10
+        Value added to the diagonal of the kernel matrix during fitting.
+        This can prevent a potential numerical issue during fitting, by
+        ensuring that the calculated values form a positive definite matrix.
+        It can also be interpreted as the variance of additional Gaussian
+        measurement noise on the training observations. Note that this is
+        different from using a `WhiteKernel`. If an array is passed, it must
+        have the same number of entries as the data used for fitting and is
+        used as datapoint-dependent noise level. Allowing to specify the
+        noise level directly as a parameter is mainly for convenience and
+        for consistency with :class:`~sklearn.linear_model.Ridge`.
+    optimizer : "fmin_l_bfgs_b" or callable, default="fmin_l_bfgs_b"
+        Can either be one of the internally supported optimizers for optimizing
+        the kernel's parameters, specified by a string, or an externally
+        defined optimizer passed as a callable. If a callable is passed, it
+        must have the signature::
+            def optimizer(obj_func, initial_theta, bounds):
+                # * 'obj_func': the objective function to be minimized, which
+                #   takes the hyperparameters theta as a parameter and an
+                #   optional flag eval_gradient, which determines if the
+                #   gradient is returned additionally to the function value
+                # * 'initial_theta': the initial value for theta, which can be
+                #   used by local optimizers
+                # * 'bounds': the bounds on the values of theta
+                ....
+                # Returned are the best found hyperparameters theta and
+                # the corresponding value of the target function.
+                return theta_opt, func_min
+        Per default, the L-BFGS-B algorithm from `scipy.optimize.minimize`
+        is used. If None is passed, the kernel's parameters are kept fixed.
+        Available internal optimizers are: `{'fmin_l_bfgs_b'}`.
+    n_restarts_optimizer : int, default=0
+        The number of restarts of the optimizer for finding the kernel's
+        parameters which maximize the log-marginal likelihood. The first run
+        of the optimizer is performed from the kernel's initial parameters,
+        the remaining ones (if any) from thetas sampled log-uniform randomly
+        from the space of allowed theta-values. If greater than 0, all bounds
+        must be finite. Note that `n_restarts_optimizer == 0` implies that one
+        run is performed.
+    copy_X_train : bool, default=True
+        If True, a persistent copy of the training data is stored in the
+        object. Otherwise, just a reference to the training data is stored,
+        which might cause predictions to change if the data is modified
+        externally.
+    random_state : int, RandomState instance or None, default=None
+        Determines random number generation used to initialize the centers.
+        Pass an int for reproducible results across multiple function calls.
     """
 
     def __init__(
@@ -59,7 +86,6 @@ class WrappedGaussianProcess(GaussianProcessRegressor):
             alpha=1e-10,
             optimizer="fmin_l_bfgs_b",
             n_restarts_optimizer=0,
-            normalize_y=False,
             copy_X_train=True,
             random_state=None,
     ):
@@ -68,22 +94,25 @@ class WrappedGaussianProcess(GaussianProcessRegressor):
         self.metric = metric
         self.space = space
         self.prior = prior
+        self.copy_X_train = copy_X_train
 
-        super(WrappedGaussianProcess, self).__init__(kernel=kernel,
-                                                     alpha=alpha,
-                                                     optimizer=optimizer,
-                                                     n_restarts_optimizer=n_restarts_optimizer,
-                                                     normalize_y=normalize_y,
-                                                     copy_X_train=copy_X_train,
-                                                     random_state=random_state)
+        self.y_train_ = None
+        self.tangent_y_train_ = None
 
-    def _check_prior(self):
-        """
-        TODO
-        """
-        ...
+        self._euclidean_gpr = GaussianProcessRegressor(kernel=kernel,
+                                                       alpha=alpha,
+                                                       optimizer=optimizer,
+                                                       n_restarts_optimizer=n_restarts_optimizer,
+                                                       normalize_y=False,
+                                                       copy_X_train=copy_X_train,
+                                                       random_state=random_state)
 
-        return True
+        # I know that inheritance seems more appropriate here, but the issue is that the .sample_y method of wgrp calls
+        # the .sample_y of gpr, which calls the .predict of wgpr instead of the one of gpr.
+        # Moreover the attribute .y_train_ would be the tangent_y and not the true y_train.
+
+        self.__dict__.update(self._euclidean_gpr.__dict__)
+        self.log_marginal_likelihood = self._euclidean_gpr.log_marginal_likelihood
 
     def _get_tangent_targets(self, X, y):
         """
@@ -105,13 +134,21 @@ class WrappedGaussianProcess(GaussianProcessRegressor):
         self : object
             WrappedGaussianProcessRegressor class instance.
         """
-        assert self.space.belongs(y).all(), "The target values must belongs to the given space"
+        assert np.array(self.space.belongs(y)).all(), "The target values must belongs to the given space"
+
+        # compute the tangent dataset using the prior
         tangent_y = self._get_tangent_targets(X, y)
-        super(WrappedGaussianProcess, self).fit(X, tangent_y)
+        # fit a gpr on the tangent dataset
+        self._euclidean_gpr.fit(X, tangent_y)
+        # update the attributes of the wgpr using the new attributes of the gpr
+
+        self.__dict__.update(self._euclidean_gpr.__dict__)
+        self.y_train_ = y
+        self.tangent_y_train_ = tangent_y  # = self._euclidean_gpr.y_train_
 
         return self
 
-    def predict(self, X, return_std=False, return_cov=False):
+    def predict(self, X, return_tangent_std=False, return_tangent_cov=False):
         """Predict using the Gaussian process regression model.
         We can also predict based on an unfitted model by using the GP prior.
         In addition to the mean of the predictive distribution, optionally also
@@ -139,11 +176,23 @@ class WrappedGaussianProcess(GaussianProcessRegressor):
             Covariance of joint predictive distribution a query points.
             Only returned when `return_cov` is True.
         """
+        if return_tangent_cov:
+            tangent_means, tangent_cov = self._euclidean_gpr.predict(X, return_cov=True, return_std=False)
+            base_points = self.prior(X)
+            y_mean = self.metric.exp(tangent_means, base_point=base_points)
+            return y_mean, tangent_cov
 
-        tangent_means = super(WrappedGaussianProcess, self).predict(X)
-        base_points = self.prior(X)
-        y_mean = self.metric.exp(tangent_means, base_point=base_points)
-        return y_mean
+        if return_tangent_std:
+            tangent_means, tangent_std = self._euclidean_gpr.predict(X, return_cov=False, return_std=True)
+            base_points = self.prior(X)
+            y_mean = self.metric.exp(tangent_means, base_point=base_points)
+            return y_mean, tangent_std
+
+        else:
+            tangent_means = self._euclidean_gpr.predict(X, return_cov=False, return_std=False)
+            base_points = self.prior(X)
+            y_mean = self.metric.exp(tangent_means, base_point=base_points)
+            return y_mean
 
     def sample_y(self, X, n_samples=1, random_state=0):
         """Draw samples from Gaussian process and evaluate at X.
@@ -166,16 +215,13 @@ class WrappedGaussianProcess(GaussianProcessRegressor):
             evaluated at query points.
         """
 
-        tangent_samples = super(WrappedGaussianProcess, self).sample_y(X, n_samples, random_state)
+        tangent_samples = self._euclidean_gpr.sample_y(X, n_samples, random_state)
         y_samples = np.zeros(tangent_samples.shape)
 
-        if len(tangent_samples.shape) == 2:
-            base_points = self.prior(X)
-            for i in range(tangent_samples.shape[1]):
-                y_samples[:, i] = self.metric.exp(tangent_samples[:, i], base_point=base_points)
-        else:  # len(tangent_samples.shape) == 3
-            base_points = self.prior(X)
-            for i in range(tangent_samples.shape[1]):
-                y_samples[:, :, i] = self.metric.exp(tangent_samples[:, :, i], base_point=base_points)
+        base_points = self.prior(X)
+        # this for loop can probably be vectorized by repeating
+        # the base_points and reshaping the tangent_samples
+        for i in range(tangent_samples.shape[-1]):
+            y_samples[..., i] = self.metric.exp(tangent_samples[..., i], base_point=base_points)
 
         return y_samples
