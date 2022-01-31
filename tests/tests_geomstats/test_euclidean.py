@@ -80,7 +80,7 @@ class TestEuclidean(TestCase, metaclass=Parametrizer):
         points = self.cls(dim).random_point(n_samples)
         self.assertAllClose(gs.all(self.cls(dim).is_tangent(points)), gs.array(True))
 
-    def test_random_point_is_identity(self, dim, n_samples):
+    def test_to_tangent_is_identity(self, dim, n_samples):
         points = self.cls(dim).random_point(n_samples)
         self.assertAllClose(self.cls(dim).to_tangent(points), points)
 
