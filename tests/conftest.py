@@ -320,9 +320,6 @@ class Parametrizer(type):
     """
 
     def __new__(cls, name, bases, attrs):
-        print("")
-        print("test", attrs)
-        print("")
 
         for attr_name, attr_value in attrs.items():
             if isinstance(attr_value, types.FunctionType):

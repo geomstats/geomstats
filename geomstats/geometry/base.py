@@ -137,6 +137,25 @@ class VectorSpace(Manifold, abc.ABC):
         point = bound * (gs.random.rand(*size) - 0.5) * 2
         return point
 
+    def random_tangent_vec(self, n_samples=1, base_point=None, bound=1.0):
+        """Sample in the vector space with a uniform distribution in a box.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Side of hypercube support of the uniform distribution.
+            Optional, default: 1.0
+
+        Returns
+        -------
+        point : array-like, shape=[..., dim]
+           Sample.
+        """
+        return self.random_point(n_samples, bound)
+
 
 class LevelSet(Manifold, abc.ABC):
     """Class for manifolds embedded in a vector space by a submersion.
@@ -374,10 +393,31 @@ class OpenSet(Manifold, abc.ABC):
         Returns
         -------
         samples : array-like, shape=[..., {dim, [n, n]}]
-            Points sampled on the hypersphere.
+            Points sampled on the manifold.
         """
         sample = self.ambient_space.random_point(n_samples, bound)
         return self.projection(sample)
+
+    def random_tangent_vec(self, n_samples=1, base_point=None, bound=1.0):
+        """Sample random points on the tangent space at base point.
+
+        If the manifold is compact, a uniform distribution is used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact manifolds.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., {dim, [n, n]}]
+            Points sampled on the tangent space at base point.
+        """
+        return self.ambient_space.random_point(n_samples, bound)
 
     @abc.abstractmethod
     def projection(self, point):
