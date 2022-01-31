@@ -1,15 +1,18 @@
-r""" Wrapped Gaussian Process.
+r"""Wrapped Gaussian Process.
 
-TODO
+Extension of Gaussian Processes to Riemannian Manifolds, introduced in [1].
 
+[1] Mallasto, A. and Feragen, A. Wrapped gaussian process
+regression on riemannian manifolds. In 2018 IEEE/CVF
+Conference on Computer Vision and Pattern Recognition
 """
 import numpy as np
-from sklearn.base import MultiOutputMixin, BaseEstimator, RegressorMixin
+from sklearn.base import BaseEstimator, MultiOutputMixin, RegressorMixin
 from sklearn.gaussian_process import GaussianProcessRegressor
 
 
 class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
-    r""" Wrapped Gaussian Process.
+    r"""Wrapped Gaussian Process.
 
     The implementation is based on algorithm 1 of [1].
 
@@ -74,6 +77,10 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
     random_state : int, RandomState instance or None, default=None
         Determines random number generation used to initialize the centers.
         Pass an int for reproducible results across multiple function calls.
+
+    [1] Mallasto, A. and Feragen, A. Wrapped gaussian process
+    regression on riemannian manifolds. In 2018 IEEE/CVF
+    Conference on Computer Vision and Pattern Recognition
     """
 
     def __init__(
@@ -99,42 +106,59 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         self.y_train_ = None
         self.tangent_y_train_ = None
 
-        self._euclidean_gpr = GaussianProcessRegressor(kernel=kernel,
-                                                       alpha=alpha,
-                                                       optimizer=optimizer,
-                                                       n_restarts_optimizer=n_restarts_optimizer,
-                                                       normalize_y=False,
-                                                       copy_X_train=copy_X_train,
-                                                       random_state=random_state)
+        self._euclidean_gpr = \
+            GaussianProcessRegressor(kernel=kernel,
+                                     alpha=alpha,
+                                     optimizer=optimizer,
+                                     n_restarts_optimizer=n_restarts_optimizer,
+                                     normalize_y=False,
+                                     copy_X_train=copy_X_train,
+                                     random_state=random_state)
 
-        # I know that inheritance seems more appropriate here, but the issue is that the .sample_y method of wgrp calls
-        # the .sample_y of gpr, which calls the .predict of wgpr instead of the one of gpr.
-        # Moreover the attribute .y_train_ would be the tangent_y and not the true y_train.
+        # I know that inheritance seems more appropriate here, but the issue is
+        # that the .sample_y method of wgrp calls the .sample_y of gpr,
+        # which calls the .predict of wgpr instead of the one of gpr.
+        # Moreover the attribute .y_train_ would be the tangent_y and not the true
+        # y_train.
 
         self.__dict__.update(self._euclidean_gpr.__dict__)
         self.log_marginal_likelihood = self._euclidean_gpr.log_marginal_likelihood
 
     def _get_tangent_targets(self, X, y):
-        """
-        TODO
-        """
-        base_points = self.prior(X)
-        return self.metric.log(y, base_point=base_points)
+        """Compute the tangent targets, using the provided prior.
 
-    def fit(self, X, y):
-        """Fit Wrapped Gaussian process regression model.
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features) or list of object
             Feature vectors or other representations of training data.
         y : array-like of shape (n_samples,) or (n_samples, n_targets)
             Target values. The target must belongs to the manifold space
+
+        Returns
+        -------
+        tangent_y : array-like of shape (n_samples,) or (n_samples, n_targets)
+                Target projected on the associated (by the prior) tangent space.
+        """
+        base_points = self.prior(X)
+        return self.metric.log(y, base_point=base_points)
+
+    def fit(self, X, y):
+        """Fit Wrapped Gaussian process regression model.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features) or list of object
+            Feature vectors or other representations of training data.
+        y : array-like of shape (n_samples,) or (n_samples, n_targets)
+            Target values. The target must belongs to the manifold space
+
         Returns
         -------
         self : object
             WrappedGaussianProcessRegressor class instance.
         """
-        assert np.array(self.space.belongs(y)).all(), "The target values must belongs to the given space"
+        if not np.array(self.space.belongs(y)).all():
+            raise AttributeError("The target values must belongs to the given space")
 
         # compute the tangent dataset using the prior
         tangent_y = self._get_tangent_targets(X, y)
@@ -150,71 +174,84 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
     def predict(self, X, return_tangent_std=False, return_tangent_cov=False):
         """Predict using the Gaussian process regression model.
+
         We can also predict based on an unfitted model by using the GP prior.
         In addition to the mean of the predictive distribution, optionally also
         returns its standard deviation (`return_std=True`) or covariance
         (`return_cov=True`). Note that at most one of the two can be requested.
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features) or list of object
             Query points where the GP is evaluated.
-        return_std : bool, default=False
-            If True, the standard-deviation of the predictive distribution at
-            the query points is returned along with the mean.
-        return_cov : bool, default=False
+        return_tangent_std : bool, default=False
+            If True, the standard-deviation of the predictive distribution on at
+            the query points in the tangent space is returned along with the mean.
+        return_tangent_cov : bool, default=False
             If True, the covariance of the joint predictive distribution at
-            the query points is returned along with the mean.
+            the query points in the tangent space is returned along with the mean.
+
         Returns
         -------
         y_mean : ndarray of shape (n_samples,) or (n_samples, n_targets)
             Mean of predictive distribution a query points.
         y_std : ndarray of shape (n_samples,) or (n_samples, n_targets), optional
-            Standard deviation of predictive distribution at query points.
+            Standard deviation of predictive distribution at query points in
+            the tangent space.
             Only returned when `return_std` is True.
         y_cov : ndarray of shape (n_samples, n_samples) or \
                 (n_samples, n_samples, n_targets), optional
-            Covariance of joint predictive distribution a query points.
+            Covariance of joint predictive distribution a query points
+            in the tangent space.
             Only returned when `return_cov` is True.
         """
         if return_tangent_cov:
-            tangent_means, tangent_cov = self._euclidean_gpr.predict(X, return_cov=True, return_std=False)
+            tangent_means, tangent_cov = self._euclidean_gpr.predict(X,
+                                                                     return_cov=True,
+                                                                     return_std=False)
             base_points = self.prior(X)
             y_mean = self.metric.exp(tangent_means, base_point=base_points)
-            return y_mean, tangent_cov
+            result = (y_mean, tangent_cov)
 
-        if return_tangent_std:
-            tangent_means, tangent_std = self._euclidean_gpr.predict(X, return_cov=False, return_std=True)
+        elif return_tangent_std:
+            tangent_means, tangent_std = self._euclidean_gpr.predict(X,
+                                                                     return_cov=False,
+                                                                     return_std=True)
             base_points = self.prior(X)
             y_mean = self.metric.exp(tangent_means, base_point=base_points)
-            return y_mean, tangent_std
+            result = (y_mean, tangent_std)
 
         else:
-            tangent_means = self._euclidean_gpr.predict(X, return_cov=False, return_std=False)
+            tangent_means = self._euclidean_gpr.predict(X,
+                                                        return_cov=False,
+                                                        return_std=False)
             base_points = self.prior(X)
             y_mean = self.metric.exp(tangent_means, base_point=base_points)
-            return y_mean
+            result = y_mean
+
+        return result
 
     def sample_y(self, X, n_samples=1, random_state=0):
-        """Draw samples from Gaussian process and evaluate at X.
+        """Draw samples from Wrapped Gaussian process and evaluate at X.
+
         Parameters
         ----------
         X : array-like of shape (n_samples_X, n_features) or list of object
-            Query points where the GP is evaluated.
+            Query points where the WGP is evaluated.
         n_samples : int, default=1
-            Number of samples drawn from the Gaussian process per query point.
+            Number of samples drawn from the Wrapped Gaussian process per query point.
         random_state : int, RandomState instance or None, default=0
             Determines random number generation to randomly draw samples.
             Pass an int for reproducible results across multiple function
             calls.
-            See :term:`Glossary <random_state>`.
+
         Returns
         -------
         y_samples : ndarray of shape (n_samples_X, n_samples), or \
             (n_samples_X, n_targets, n_samples)
-            Values of n_samples samples drawn from Gaussian process and
+            Values of n_samples samples drawn from wrapped Gaussian process and
             evaluated at query points.
         """
-
         tangent_samples = self._euclidean_gpr.sample_y(X, n_samples, random_state)
         y_samples = np.zeros(tangent_samples.shape)
 
@@ -222,6 +259,8 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         # this for loop can probably be vectorized by repeating
         # the base_points and reshaping the tangent_samples
         for i in range(tangent_samples.shape[-1]):
-            y_samples[..., i] = self.metric.exp(tangent_samples[..., i], base_point=base_points)
+            y_samples[..., i] = self.metric.exp(
+                tangent_samples[..., i],
+                base_point=base_points)
 
         return y_samples
