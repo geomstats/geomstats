@@ -243,7 +243,7 @@ class TestData:
             random_data.append(((metric_args), points_a, points_b, rtol, atol))
         return self.generate_tests([], random_data)
 
-    def _exp_belongs_data(self, args, n_samples=100):
+    def _exp_belongs_data(self, args, n_samples=10):
         """Generate Data that checks squared_dist is symmetric.
 
         Parameters
@@ -266,6 +266,7 @@ class TestData:
         """
         random_data = []
         for metric_args, space in args:
+            print("test ing", metric_args)
             # TODO  (sait) : after random_tangent_vec is fixed
             int_n_samples = (int)(gs.sqrt(n_samples))
             base_points = space.random_point(int_n_samples)

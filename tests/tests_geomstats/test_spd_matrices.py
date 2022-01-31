@@ -353,10 +353,6 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=MetricParametrizer
             ]
             return self._log_is_tangent_data(args)
 
-        def geodesic_belongs_data(self):
-            power_affine = [1.0]
-            return self._geodesic_belongs_data(SPDMatrices, power_affine=power_affine)
-
         def squared_dist_is_symmetric_data(self):
             n_list = random.sample(range(2, 50), 10)
             power_affine_list = [1.0, 0.5, -0.5]
@@ -365,6 +361,10 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=MetricParametrizer
                 for metric_args in itertools.product(n_list, power_affine_list)
             ]
             return self._squared_dist_is_symmetric_data(args)
+
+        def geodesic_belongs_data(self):
+            power_affine = [1.0]
+            return self._geodesic_belongs_data(SPDMatrices, power_affine=power_affine)
 
         def parallel_transport_exp_norm_data(self):
             random_n = random.sample(range(1, 10), 5)
@@ -424,7 +424,11 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=MetricParametrizer
         self.assertAllClose(expected, result, gs.atol * 10000)
 
 
-class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
+class TestSPDMetricBuresWasserstein(TestCase, metaclass=MetricParametrizer):
+
+    cls = SPDMetricBuresWasserstein
+    space = SPDMatrices
+
     class TestDataSPDMetricBuresWasserstein(TestData):
         def inner_product_data(self):
             smoke_data = [
@@ -471,16 +475,42 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(SPDMatrices)
-
         def geodesic_belongs_data(self):
             return self._geodesic_belongs_data(
                 SPDMatrices,
             )
 
+        def log_exp_composition_data(self):
+            n_list = random.sample(range(2, 50), 10)
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list)
+            ]
+            return self._log_exp_composition_data(args)
+
+        def exp_belongs_data(self):
+            n_list = random.sample(range(2, 50), 10)
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list)
+            ]
+            return self._exp_belongs_data(args)
+
+        def log_is_tangent_data(self):
+            n_list = random.sample(range(2, 50), 10)
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list)
+            ]
+            return self._log_is_tangent_data(args)
+
         def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(SPDMatrices)
+            n_list = random.sample(range(2, 50), 10)
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list)
+            ]
+            return self._squared_dist_is_symmetric_data(args)
 
     testing_data = TestDataSPDMetricBuresWasserstein()
 
@@ -519,7 +549,10 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
     #     self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
 
 
-class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
+class TestSPDMetricEuclidean(TestCase, metaclass=MetricParametrizer):
+    cls = SPDMetricEuclidean
+    space = SPDMatrices
+
     class TestDataSPDMetricEuclidean(TestData):
         def inner_product_data(self):
             smoke_data = [
@@ -571,22 +604,40 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def log_exp_composition_data(self):
-            power_euclidean = [1.0, 0.5, -0.5]
-            return self._log_exp_composition_data(
-                SPDMatrices, power_euclidean=power_euclidean
-            )
+            n_list = random.sample(range(2, 20), 10)
+            power_euclidean_list = [1.0, 0.5, -0.5]
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list, power_euclidean_list)
+            ]
+            return self._log_exp_composition_data(args)
 
-        def geodesic_belongs_data(self):
-            power_euclidean = [1.0]
-            return self._geodesic_belongs_data(
-                SPDMatrices, max_n=3, n_n=2, n_t=5, power_euclidean=power_euclidean
-            )
+        def exp_belongs_data(self):
+            n_list = random.sample(range(2, 20), 0)
+            power_euclidean_list = []
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list, power_euclidean_list)
+            ]
+            return self._exp_belongs_data(args)
+
+        def log_is_tangent_data(self):
+            n_list = random.sample(range(2, 20), 10)
+            power_euclidean_list = [1.0, 0.5, -0.5]
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list, power_euclidean_list)
+            ]
+            return self._log_is_tangent_data(args)
 
         def squared_dist_is_symmetric_data(self):
-            power_euclidean = [1.0]
-            return self._squared_dist_is_symmetric_data(
-                SPDMatrices, power_euclidean=power_euclidean
-            )
+            n_list = random.sample(range(2, 20), 10)
+            power_euclidean_list = [1.0, 0.5, -0.5]
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list, power_euclidean_list)
+            ]
+            return self._squared_dist_is_symmetric_data(args)
 
     testing_data = TestDataSPDMetricEuclidean()
 
@@ -625,7 +676,10 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
     #     self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
 
 
-class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
+class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=MetricParametrizer):
+    cls = SPDMetricLogEuclidean
+    space = SPDMatrices
+
     class TestDataSPDMetricLogEuclidean(TestData):
         def inner_product_data(self):
             smoke_data = [
@@ -662,13 +716,36 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
             return self.generate_tests(smoke_data)
 
         def log_exp_composition_data(self):
-            return self._log_exp_composition_data(SPDMatrices)
+            n_list = random.sample(range(2, 50), 10)
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list)
+            ]
+            return self._log_exp_composition_data(args)
 
-        def geodesic_belongs_data(self):
-            return self._geodesic_belongs_data(SPDMatrices)
+        def exp_belongs_data(self):
+            n_list = random.sample(range(2, 50), 10)
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list)
+            ]
+            return self._exp_belongs_data(args)
+
+        def log_is_tangent_data(self):
+            n_list = random.sample(range(2, 50), 10)
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list)
+            ]
+            return self._log_is_tangent_data(args)
 
         def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(SPDMatrices)
+            n_list = random.sample(range(2, 50), 10)
+            args = [
+                (metric_args, SPDMatrices(metric_args[0]))
+                for metric_args in itertools.product(n_list)
+            ]
+            return self._squared_dist_is_symmetric_data(args)
 
     testing_data = TestDataSPDMetricLogEuclidean()
 

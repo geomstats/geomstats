@@ -55,24 +55,6 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
 
         self.n_samples = 4
 
-    def test_random_and_belongs(self):
-        """Checks random_point and belongs
-
-        Test that the random uniform method samples
-        on the special euclidean group.
-        """
-        base_point = self.group.random_point()
-        result = self.group.belongs(base_point)
-        expected = True
-        self.assertAllClose(result, expected)
-
-    def test_random_and_belongs_vectorization(self):
-        n_samples = self.n_samples
-        points = self.group.random_point(n_samples=n_samples)
-        result = self.group.belongs(points)
-        expected = gs.array([True] * n_samples)
-        self.assertAllClose(result, expected)
-
     def test_regularize(self):
         point = self.elements_all["point_1"]
         result = self.group.regularize(point)
