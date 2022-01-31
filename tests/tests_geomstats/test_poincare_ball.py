@@ -32,7 +32,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
         distance_a_b = self.metric.dist(point_a, point_b)
         squared_distance = self.metric.squared_dist(point_a, point_b)
 
-        self.assertAllClose(distance_a_b ** 2, squared_distance)
+        self.assertAllClose(distance_a_b**2, squared_distance)
 
     def test_coordinates(self):
         point_a = gs.array([-0.3, 0.7])

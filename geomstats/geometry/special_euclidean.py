@@ -708,9 +708,9 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         base_1 = gs.eye(2)
         base_2 = self.rotations.skew_matrix_from_vector(gs.ones(1))
         cos_coef = rot_vec * utils.taylor_exp_even_func(
-            rot_vec ** 2, utils.cosc_close_0, order=3
+            rot_vec**2, utils.cosc_close_0, order=3
         )
-        sin_coef = utils.taylor_exp_even_func(rot_vec ** 2, utils.sinc_close_0, order=3)
+        sin_coef = utils.taylor_exp_even_func(rot_vec**2, utils.sinc_close_0, order=3)
 
         sin_term = gs.einsum("...i,...jk->...jk", sin_coef, base_1)
         cos_term = gs.einsum("...i,...jk->...jk", cos_coef, base_2)
@@ -722,7 +722,7 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         exp_transform = self._exp_translation_transform(rot_vec)
 
         inv_determinant = 0.5 / utils.taylor_exp_even_func(
-            rot_vec ** 2, utils.cosc_close_0, order=4
+            rot_vec**2, utils.cosc_close_0, order=4
         )
         transform = gs.einsum(
             "...l, ...jk -> ...jk", inv_determinant, Matrices.transpose(exp_transform)
@@ -918,7 +918,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         transform : array-like, shape=[..., 3, 3]
             Matrix to be applied to the translation part in exp.
         """
-        sq_angle = gs.sum(rot_vec ** 2, axis=-1)
+        sq_angle = gs.sum(rot_vec**2, axis=-1)
         skew_mat = self.rotations.skew_matrix_from_vector(rot_vec)
         sq_skew_mat = gs.matmul(skew_mat, skew_mat)
 
@@ -968,32 +968,32 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
 
         coef_2 += mask_close_0_float * (
             1.0 / 12.0
-            + angle ** 2 / 720.0
-            + angle ** 4 / 30240.0
-            + angle ** 6 / 1209600.0
+            + angle**2 / 720.0
+            + angle**4 / 30240.0
+            + angle**6 / 1209600.0
         )
 
         delta_angle = angle - gs.pi
         coef_2 += mask_close_pi_float * (
             1.0 / PI2
             + (PI2 - 8.0) * delta_angle / (4.0 * PI3)
-            - ((PI2 - 12.0) * delta_angle ** 2 / (4.0 * PI4))
-            + ((-192.0 + 12.0 * PI2 + PI4) * delta_angle ** 3 / (48.0 * PI5))
-            - ((-240.0 + 12.0 * PI2 + PI4) * delta_angle ** 4 / (48.0 * PI6))
+            - ((PI2 - 12.0) * delta_angle**2 / (4.0 * PI4))
+            + ((-192.0 + 12.0 * PI2 + PI4) * delta_angle**3 / (48.0 * PI5))
+            - ((-240.0 + 12.0 * PI2 + PI4) * delta_angle**4 / (48.0 * PI6))
             + (
                 (-2880.0 + 120.0 * PI2 + 10.0 * PI4 + PI6)
-                * delta_angle ** 5
+                * delta_angle**5
                 / (480.0 * PI7)
             )
             - (
                 (-3360 + 120.0 * PI2 + 10.0 * PI4 + PI6)
-                * delta_angle ** 6
+                * delta_angle**6
                 / (480.0 * PI8)
             )
         )
 
         psi = 0.5 * angle * gs.sin(angle) / (1 - gs.cos(angle))
-        coef_2 += mask_else_float * (1 - psi) / (angle ** 2)
+        coef_2 += mask_else_float * (1 - psi) / (angle**2)
 
         term_1 = gs.einsum("...i,...ij->...ij", coef_1, skew_mat)
         term_2 = gs.einsum("...i,...ij->...ij", coef_2, sq_skew_mat)

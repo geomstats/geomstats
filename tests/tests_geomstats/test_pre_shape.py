@@ -720,8 +720,8 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             coef_x * self.hor_x, coef_y * self.hor_y, self.base_point
         )
         expected = (
-            coef_x ** 2
-            * coef_y ** 2
+            coef_x**2
+            * coef_y**2
             * self.shape_metric.directional_curvature_derivative(
                 self.hor_x, self.hor_y, self.base_point
             )

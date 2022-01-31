@@ -179,7 +179,7 @@ class Connection(ABC):
             velocity = gs.cast(velocity, dtype=base_point.dtype)
             velocity = gs.reshape(velocity, max_shape)
             delta = self.exp(velocity, base_point, n_steps, step) - point
-            return gs.sum(delta ** 2)
+            return gs.sum(delta**2)
 
         objective_with_grad = gs.autodiff.value_and_grad(objective, to_numpy=True)
 
@@ -404,7 +404,7 @@ class Connection(ABC):
         if alpha < 1:
             raise ValueError("alpha must be greater or equal to one")
         current_point = base_point
-        next_tangent_vec = tangent_vec / (n_rungs ** alpha)
+        next_tangent_vec = tangent_vec / (n_rungs**alpha)
         methods = {"pole": self._pole_ladder_step, "schild": self._schild_ladder_step}
         single_step = methods[scheme]
         base_shoot = self.exp(base_point=current_point, tangent_vec=next_tangent_vec)
@@ -424,7 +424,7 @@ class Connection(ABC):
         transported_tangent_vec = self.log(base_shoot, current_point)
         if n_rungs % 2 == 1 and scheme == "pole":
             transported_tangent_vec *= -1.0
-        transported_tangent_vec *= n_rungs ** alpha
+        transported_tangent_vec *= n_rungs**alpha
         return {
             "transported_tangent_vec": transported_tangent_vec,
             "end_point": current_point,

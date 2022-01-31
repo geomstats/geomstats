@@ -168,7 +168,7 @@ class SPDMatrices(OpenSet):
         elif power == math.inf:
             powered_eigvalues = gs.exp(eigvalues)
         else:
-            powered_eigvalues = eigvalues ** power
+            powered_eigvalues = eigvalues**power
 
         denominator = eigvalues[..., :, None] - eigvalues[..., None, :]
         numerator = powered_eigvalues[..., :, None] - powered_eigvalues[..., None, :]
@@ -554,7 +554,7 @@ class SPDMetricAffine(RiemannianMetric):
                 modified_tangent_vec_a, modified_tangent_vec_b, power_inv_base_point
             )
 
-            inner_product = inner_product / (power_affine ** 2)
+            inner_product = inner_product / (power_affine**2)
 
         return inner_product
 
@@ -905,7 +905,7 @@ class SPDMetricEuclidean(RiemannianMetric):
 
             inner_product = Matrices.frobenius_product(
                 modified_tangent_vec_a, modified_tangent_vec_b
-            ) / (power_euclidean ** 2)
+            ) / (power_euclidean**2)
         return inner_product
 
     @staticmethod

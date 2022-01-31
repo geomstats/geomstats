@@ -532,7 +532,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         basis = metric.normal_basis(group.lie_algebra.basis)
         x, y, z = basis
         result = metric.structure_constant(x, y, z)
-        expected = 2.0 ** 0.5 / 2.0
+        expected = 2.0**0.5 / 2.0
         self.assertAllClose(result, expected)
 
         result = -metric.structure_constant(y, x, z)
@@ -572,7 +572,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         metric = InvariantMetric(group=group)
         x, y, z = metric.normal_basis(group.lie_algebra.basis)
         result = metric.connection(x, y)
-        expected = 1.0 / 2 ** 0.5 / 2.0 * z
+        expected = 1.0 / 2**0.5 / 2.0 * z
         self.assertAllClose(result, expected)
 
         point = group.random_uniform()

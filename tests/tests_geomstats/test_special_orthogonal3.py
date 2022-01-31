@@ -280,7 +280,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             [[0.0, 81.0, 1.0], [-81.0, 0.0, -12.0], [-1.0, 12.0, 0.0]]
         )
         coef_1 = gs.sin(angle) / angle
-        coef_2 = (1.0 - gs.cos(angle)) / (angle ** 2)
+        coef_2 = (1.0 - gs.cos(angle)) / (angle**2)
         expected = (
             gs.eye(3)
             + coef_1 * skew_rot_vec_3
@@ -296,7 +296,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         )
 
         coef_1 = gs.sin(angle) / angle
-        coef_2 = (1 - gs.cos(angle)) / (angle ** 2)
+        coef_2 = (1 - gs.cos(angle)) / (angle**2)
         result = self.group.matrix_from_rotation_vector(rot_vec_6)
         expected = (
             gs.eye(3)
@@ -2442,9 +2442,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                 "with_angle_2pi",
                 "with_angle_close_2pi_high",
             ]:
-                expected = 1.0 + angle ** 2 / 12.0 + angle ** 4 / 240.0
+                expected = 1.0 + angle**2 / 12.0 + angle**4 / 240.0
             else:
-                expected = angle ** 2 / (4 * gs.sin(angle / 2) ** 2)
+                expected = angle**2 / (4 * gs.sin(angle / 2) ** 2)
 
             self.assertAllClose(result, expected)
 
@@ -2779,7 +2779,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
     def test_group_exp_from_identity_coincides_with_expm(self):
         """Test exponentials."""
         # FIXME: Problem in shapes
-        normal_rv = gs.random.rand(gs.array(3 ** 2))
+        normal_rv = gs.random.rand(gs.array(3**2))
         tangent_sample = gs.reshape(normal_rv, (3, 3))
         tangent_sample = tangent_sample - gs.transpose(tangent_sample)
         expected = gs.linalg.expm(tangent_sample)
@@ -3040,10 +3040,10 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     point_2 = self.group.regularize(point_2)
 
                     sq_dist_1_2 = gs.mod(
-                        metric.squared_dist(point_1, point_2) + 1e-4, gs.pi ** 2
+                        metric.squared_dist(point_1, point_2) + 1e-4, gs.pi**2
                     )
                     sq_dist_2_1 = gs.mod(
-                        metric.squared_dist(point_2, point_1) + 1e-4, gs.pi ** 2
+                        metric.squared_dist(point_2, point_1) + 1e-4, gs.pi**2
                     )
                     self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-4)
 
@@ -3062,7 +3062,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                 point_2 = self.group.regularize(point_2)
 
                 sq_dist = metric.squared_dist(point_1, point_2)
-                diff = sq_dist - gs.pi ** 2
+                diff = sq_dist - gs.pi**2
                 self.assertTrue(
                     diff <= 0 or abs(diff) < EPSILON, "sq_dist = {}".format(sq_dist)
                 )
