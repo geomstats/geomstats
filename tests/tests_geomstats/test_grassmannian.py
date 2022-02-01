@@ -1,10 +1,12 @@
 """Unit tests for the Grassmannian."""
 
+import random
+
 import geomstats.backend as gs
-import geomstats.tests
-import tests.helper as helper
+import geomstats.tests.helper as helper
 from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
 from geomstats.geometry.matrices import Matrices
+from tests.conftest import MetricParametrizer, Parametrizer, TestCase, TestData
 
 p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
 p_yz = gs.array([[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
@@ -16,103 +18,97 @@ pi_2 = gs.pi / 2
 pi_4 = gs.pi / 4
 
 
-class TestGrassmannian(geomstats.tests.TestCase):
-    def setup_method(self):
-        gs.random.seed(1234)
+class TestGrassmannian(TestCase, metaclass=Parametrizer):
+    cls = Grassmannian
 
-        self.n = 3
-        self.k = 2
-        self.space = Grassmannian(self.n, self.k)
-        self.metric = GrassmannianCanonicalMetric(self.n, self.k)
+    class TestDataGrassmannian(TestData):
+        def belongs_data(self):
+            smoke_data = [
+                dict(n=3, k=2, point=p_xy, expected=True),
+                dict(n=3, k=2, point=gs.array([p_yz, p_xz]), expected=[True, True]),
+            ]
+            return self.generate_tests(smoke_data)
 
-    def test_exp_np(self):
-        vec = Matrices.bracket(pi_2 * r_y, gs.array([p_xy, p_yz]))
-        result = self.metric.exp(vec, gs.array([p_xy, p_yz]))
-        expected = gs.array([p_yz, p_xy])
-        self.assertAllClose(result, expected)
+        def random_point_belongs_shape_data(self):
+            random_data = []
+            n_list = random.sample(range(2, 50), 5)
+            for n in n_list:
+                k_list = random.sample(range(1, n), 5)
+                for k in k_list:
+                    n_samples = random.sample(range(2, 50))
+                    random_data += [dict(n=n, k=k, n_samples=n_samples)]
 
-        vec = Matrices.bracket(pi_2 * gs.array([r_y, r_z]), gs.array([p_xy, p_yz]))
-        result = self.metric.exp(vec, gs.array([p_xy, p_yz]))
-        expected = gs.array([p_yz, p_xz])
-        self.assertAllClose(result, expected)
+            return self.generate_tests([], random_data)
 
-    @geomstats.tests.np_autograd_and_tf_only
-    def test_log(self):
-        expected = Matrices.bracket(pi_4 * r_y, p_xy)
-        result = self.metric.log(self.metric.exp(expected, p_xy), p_xy)
-        self.assertTrue(self.space.is_tangent(result, p_xy))
-        self.assertAllClose(result, expected)
+        def to_tangent_is_tangent_data(self):
+            random_data = []
+            n_list = random.sample(range(2, 50), 5)
+            for n in n_list:
+                k_list = random.sample(range(1, n), 5)
+                for k in k_list:
+                    n_samples = random.sample(range(2, 50))
+                    random_data += [dict(n=n, k=k, n_samples=n_samples)]
 
-    @geomstats.tests.np_autograd_and_tf_only
-    def test_log_vectorized(self):
-        tangent_vecs = pi_4 * gs.array([r_y, r_z])
-        base_points = gs.array([p_xy, p_xz])
-        points = self.metric.exp(tangent_vecs, base_points)
-        result = self.metric.log(points, base_points)
-        expected = tangent_vecs
-        self.assertAllClose(result, expected)
+            return self.generate_tests([], random_data)
 
-    def test_belongs(self):
-        point = p_xy
-        result = self.space.belongs(point)
-        self.assertTrue(result)
+    def test_belongs(self, n, k, point, expected):
+        self.assertAllClose(self.cls(n, k).belongs(point), gs.array(expected))
 
-        point = gs.array([p_yz, p_xz])
-        result = self.space.belongs(point)
-        self.assertTrue(gs.all(result))
+    def test_random_point_belongs_shape(self, n, k, n_samples):
+        result = gs.all(self.cls(n, k).belongs(self.cls(n, k).random_point(n_samples)))
+        self.assertAllClose(result, gs.array(True))
 
-        not_a_point = gs.random.rand(3, 2)
-        result = self.space.belongs(not_a_point)
-        self.assertTrue(~result)
+    def test_to_tangent_is_tangent(self, n, k, n_samples):
+        space = self.cls(n, k)
+        point = space.random_point(n_samples)
+        vector = gs.random.rand(*point.shape) / 4
+        tangent_vec = space.to_tangent(vector, point)
+        result = space.is_tangent(tangent_vec, point)
+        self.assertAllClose(result, gs.array(True))
 
-        not_a_point = gs.random.rand(3, 3)
-        result = self.space.belongs(not_a_point)
-        self.assertTrue(~result)
+    def test_projection_and_belongs(self, n, k):
+        space = self.cls(n, k)
+        shape = (2, n, k)
+        result = helper.test_projection_and_belongs(space, shape)
+        self.assertAllClose(gs.all(result), gs.array(True))
 
-        point = gs.array([p_xy, not_a_point])
-        result = self.space.belongs(point)
-        expected = gs.array([True, False])
-        self.assertAllClose(result, expected)
 
-    def test_random_and_belongs(self):
-        point = self.space.random_uniform()
-        result = self.space.belongs(point)
-        self.assertTrue(result)
+class TestGrassmannianCanonicalMetric(TestCase, metaclass=MetricParametrizer):
+    cls = GrassmannianCanonicalMetric
+    space = Grassmannian
 
-        expected = (self.n,) * 2
-        result_shape = point.shape
-        self.assertAllClose(result_shape, expected)
+    class TestDataGrassmannianCanonicalMetric(TestData):
+        def exp_data(self):
+            smoke_data = [
+                dict(
+                    n=3,
+                    k=2,
+                    tangent_vec=Matrices.bracket(pi_2 * r_y, gs.array([p_xy, p_yz])),
+                    base_point=gs.array([p_xy, p_yz]),
+                    expected=gs.array([p_yz, p_xy]),
+                ),
+                dict(
+                    n=3,
+                    k=2,
+                    tangent_vec=Matrices.bracket(
+                        pi_2 * gs.array([r_y, r_z]), gs.array([p_xy, p_yz])
+                    ),
+                    base_point=gs.array([p_xy, p_yz]),
+                    expected=gs.array([p_yz, p_xz]),
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
-        n_samples = 5
-        points = self.space.random_uniform(n_samples)
-        result = gs.all(self.space.belongs(points))
-        self.assertTrue(result)
+    def test_exp(self, n, k, tangent_vec, base_point, expected):
+        self.assertAllClose(
+            self.cls(n, k).exp(gs.array(tangent_vec), gs.array(base_point)),
+            gs.array(expected),
+        )
 
-        expected = (n_samples,) + (self.n,) * 2
-        result_shape = points.shape
-        self.assertAllClose(result_shape, expected)
-
-    def test_is_to_tangent(self):
-        base_point = self.space.random_uniform()
-        vector = gs.random.rand(self.n, self.n)
-        tangent_vec = self.space.to_tangent(vector, base_point)
-        result = self.space.is_tangent(tangent_vec, base_point)
-        self.assertTrue(result)
-
-        reprojected = self.space.to_tangent(tangent_vec, base_point)
-        self.assertAllClose(tangent_vec, reprojected)
-
-    def test_projection_and_belongs(self):
-        shape = (2, self.n, self.n)
-        result = helper.test_projection_and_belongs(self.space, shape)
-        for res in result:
-            self.assertTrue(res)
-
-    def test_parallel_transport(self):
-        space = self.space
-        metric = self.metric
-        shape = (2, space.n, space.n)
+    def test_parallel_transport(self, n, k):
+        metric = self.cls(n, k)
+        space = self.space(n, k)
+        shape = (2, n, k)
 
         result = helper.test_parallel_transport(space, metric, shape)
-        for res in result:
-            self.assertTrue(res)
+        self.assertAllClose(gs.all(result), gs.array(True))
