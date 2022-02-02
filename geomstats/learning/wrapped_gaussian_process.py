@@ -9,10 +9,10 @@ regression on riemannian manifolds. In 2018 IEEE/CVF
 Conference on Computer Vision and Pattern Recognition
 """
 
-import geomstats.backend as gs
-
 from sklearn.base import BaseEstimator, MultiOutputMixin, RegressorMixin
 from sklearn.gaussian_process import GaussianProcessRegressor
+
+import geomstats.backend as gs
 
 
 class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
@@ -213,7 +213,9 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
             tangent_means, tangent_cov = self._euclidean_gpr.predict(X,
                                                                      return_cov=True,
                                                                      return_std=False)
-            tangent_means, tangent_cov = gs.array(tangent_means), gs.array(tangent_cov)
+            tangent_means = gs.cast(tangent_means, dtype=X.dtype)
+            tangent_cov = gs.cast(tangent_cov, dtype=X.dtype)
+
             base_points = self.prior(X)
             y_mean = self.metric.exp(tangent_means, base_point=base_points)
             result = (y_mean, tangent_cov)
@@ -223,7 +225,9 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
                                                                      return_cov=False,
                                                                      return_std=True)
             base_points = self.prior(X)
-            tangent_means, tangent_std = gs.array(tangent_means), gs.array(tangent_std)
+            tangent_means = gs.cast(tangent_means, dtype=X.dtype)
+            tangent_std = gs.cast(tangent_std, dtype=X.dtype)
+
             y_mean = self.metric.exp(tangent_means, base_point=base_points)
             result = (y_mean, tangent_std)
 
@@ -232,7 +236,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
                                                         return_cov=False,
                                                         return_std=False)
             base_points = self.prior(X)
-            tangent_means = gs.array(tangent_means)
+            tangent_means = gs.cast(tangent_means, dtype=X.dtype)
             y_mean = self.metric.exp(tangent_means, base_point=base_points)
             result = y_mean
 
@@ -260,7 +264,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
             evaluated at query points.
         """
         tangent_samples = self._euclidean_gpr.sample_y(X, n_samples, random_state)
-        tangent_samples = gs.array(tangent_samples)
+        tangent_samples = gs.cast(tangent_samples, dtype=X.dtype)
         y_samples = gs.zeros(tangent_samples.shape)
 
         base_points = self.prior(X)
