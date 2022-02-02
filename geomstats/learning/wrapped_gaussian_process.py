@@ -1,12 +1,16 @@
 r"""Wrapped Gaussian Process.
 
+Lead author: .
+
 Extension of Gaussian Processes to Riemannian Manifolds, introduced in [1].
 
 [1] Mallasto, A. and Feragen, A. Wrapped gaussian process
 regression on riemannian manifolds. In 2018 IEEE/CVF
 Conference on Computer Vision and Pattern Recognition
 """
-import numpy as np
+
+import geomstats.backend as gs
+
 from sklearn.base import BaseEstimator, MultiOutputMixin, RegressorMixin
 from sklearn.gaussian_process import GaussianProcessRegressor
 
@@ -14,7 +18,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
     r"""Wrapped Gaussian Process.
 
-    The implementation is based on algorithm 1 of [1].
+    The implementation is based on the algorithm 4 of [1].
 
     Parameters
     ----------
@@ -118,7 +122,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         # I know that inheritance seems more appropriate here, but the issue is
         # that the .sample_y method of wgrp calls the .sample_y of gpr,
         # which calls the .predict of wgpr instead of the one of gpr.
-        # Moreover the attribute .y_train_ would be the tangent_y and not the true
+        # Moreover the attribute .y_train_ would be the tangent_y_train and not the true
         # y_train.
 
         self.__dict__.update(self._euclidean_gpr.__dict__)
@@ -157,7 +161,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         self : object
             WrappedGaussianProcessRegressor class instance.
         """
-        if not np.array(self.space.belongs(y)).all():
+        if not gs.all(self.space.belongs(y)):
             raise AttributeError("The target values must belongs to the given space")
 
         # compute the tangent dataset using the prior
@@ -209,6 +213,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
             tangent_means, tangent_cov = self._euclidean_gpr.predict(X,
                                                                      return_cov=True,
                                                                      return_std=False)
+            tangent_means, tangent_cov = gs.array(tangent_means), gs.array(tangent_cov)
             base_points = self.prior(X)
             y_mean = self.metric.exp(tangent_means, base_point=base_points)
             result = (y_mean, tangent_cov)
@@ -218,6 +223,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
                                                                      return_cov=False,
                                                                      return_std=True)
             base_points = self.prior(X)
+            tangent_means, tangent_std = gs.array(tangent_means), gs.array(tangent_std)
             y_mean = self.metric.exp(tangent_means, base_point=base_points)
             result = (y_mean, tangent_std)
 
@@ -226,6 +232,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
                                                         return_cov=False,
                                                         return_std=False)
             base_points = self.prior(X)
+            tangent_means = gs.array(tangent_means)
             y_mean = self.metric.exp(tangent_means, base_point=base_points)
             result = y_mean
 
@@ -253,7 +260,8 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
             evaluated at query points.
         """
         tangent_samples = self._euclidean_gpr.sample_y(X, n_samples, random_state)
-        y_samples = np.zeros(tangent_samples.shape)
+        tangent_samples = gs.array(tangent_samples)
+        y_samples = gs.zeros(tangent_samples.shape)
 
         base_points = self.prior(X)
         # this for loop can probably be vectorized by repeating
