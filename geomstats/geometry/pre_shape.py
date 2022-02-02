@@ -875,17 +875,24 @@ class PreShapeMetric(RiemannianMetric):
         """
         return gs.zeros_like(tangent_vec_a)
 
-    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
         """Compute the Riemannian parallel transport of a tangent vector.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at a base point.
-        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at a base point.
         base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point on the pre-shape space.
+        direction : array-like, shape=[..., k_landmarks, m_ambient]
+            Tangent vector at a base point.
+            Optional, default : None.
+        end_point : array-like, shape=[..., k_landmarks, m_ambient]
+            Point on the pre-shape space, to transport to. Unused if `tangent_vec_b`
+            is given.
+            Optional, default : None.
 
         Returns
         -------
@@ -893,16 +900,23 @@ class PreShapeMetric(RiemannianMetric):
             Point on the pre-shape space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        max_shape = (
-            tangent_vec_a.shape if tangent_vec_a.ndim == 3 else tangent_vec_b.shape
-        )
+        if direction is None:
+            if end_point is not None:
+                direction = self.log(end_point, base_point)
+            else:
+                raise ValueError(
+                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    " geodesic along which to transport."
+                )
+
+        max_shape = tangent_vec.shape if tangent_vec.ndim == 3 else direction.shape
 
         flat_bp = gs.reshape(base_point, (-1, self.sphere_metric.dim + 1))
-        flat_tan_a = gs.reshape(tangent_vec_a, (-1, self.sphere_metric.dim + 1))
-        flat_tan_b = gs.reshape(tangent_vec_b, (-1, self.sphere_metric.dim + 1))
+        flat_tan_a = gs.reshape(tangent_vec, (-1, self.sphere_metric.dim + 1))
+        flat_tan_b = gs.reshape(direction, (-1, self.sphere_metric.dim + 1))
 
         flat_transport = self.sphere_metric.parallel_transport(
-            flat_tan_a, flat_tan_b, flat_bp
+            flat_tan_a, flat_bp, flat_tan_b
         )
         return gs.reshape(flat_transport, max_shape)
 
@@ -984,27 +998,38 @@ class KendallShapeMetric(QuotientMetric):
         return 3.0 * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
 
     def parallel_transport(
-        self, tangent_vec_a, tangent_vec_b, base_point, n_steps=100, step="rk4"
+        self,
+        tangent_vec,
+        base_point,
+        direction=None,
+        end_point=None,
+        n_steps=100,
+        step="rk4",
     ):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Approximation of the solution of the parallel transport of a tangent
-        vector a along the geodesic defined by :math:`t \mapsto exp_(
-        base_point)(t* tangent_vec_b)`.
+        vector a along the geodesic between two points `base_point` and `end_point`
+        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        t*direction)`
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., k, m]
+        tangent_vec : array-like, shape=[..., k, m]
             Tangent vector at `base_point` to transport.
-        tangent_vec_b : array-like, shape=[..., k, m]
+        base_point : array-like, shape=[..., k, m]
+            Initial point of the geodesic to transport along.
+        direction : array-like, shape=[..., k, m]
             Tangent vector ar `base_point`, initial velocity of the geodesic to
             transport  along.
-        base_point : array-like, shape=[..., k, m]
-            Initial point of the geodesic.
+            Optional, default: None.
+        end_point : array-like, shape=[..., k, m]
+            Point to transport to. Unused if `tangent_vec_b` is given.
+            Optional, default: None.
         n_steps : int
             Number of steps to use to approximate the solution of the
             ordinary differential equation.
-            Optional, default: 100
+            Optional, default: 100.
         step : str, {'euler', 'rk2', 'rk4'}
             Scheme to use in the integration scheme.
             Optional, default: 'rk4'.
@@ -1026,17 +1051,21 @@ class KendallShapeMetric(QuotientMetric):
         --------
         Integration module: geomstats.integrator
         """
-        horizontal_a = self.fiber_bundle.horizontal_projection(
-            tangent_vec_a, base_point
-        )
-        horizontal_b = self.fiber_bundle.horizontal_projection(
-            tangent_vec_b, base_point
-        )
+        if direction is None:
+            if end_point is not None:
+                direction = self.log(end_point, base_point)
+            else:
+                raise ValueError(
+                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    " geodesic along which to transport."
+                )
+        horizontal_a = self.fiber_bundle.horizontal_projection(tangent_vec, base_point)
+        horizontal_b = self.fiber_bundle.horizontal_projection(direction, base_point)
 
         def force(state, time):
             gamma_t = self.ambient_metric.exp(time * horizontal_b, base_point)
             speed = self.ambient_metric.parallel_transport(
-                horizontal_b, time * horizontal_b, base_point
+                horizontal_b, base_point, time * horizontal_b
             )
             coef = self.inner_product(speed, state, gamma_t)
             normal = gs.einsum("...,...ij->...ij", coef, gamma_t)

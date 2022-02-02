@@ -219,7 +219,7 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
             [[0.0, 81.0, 1.0], [-81.0, 0.0, -12.0], [-1.0, 12.0, 0.0]]
         )
         coef_1 = gs.sin(angle) / angle
-        coef_2 = (1.0 - gs.cos(angle)) / (angle ** 2)
+        coef_2 = (1.0 - gs.cos(angle)) / (angle**2)
         expected = (
             gs.eye(3)
             + coef_1 * skew_rot_vec_3
@@ -235,7 +235,7 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         )
 
         coef_1 = gs.sin(angle) / angle
-        coef_2 = (1 - gs.cos(angle)) / (angle ** 2)
+        coef_2 = (1 - gs.cos(angle)) / (angle**2)
         result = group.matrix_from_rotation_vector(rot_vec_6)
         expected = (
             gs.eye(3)

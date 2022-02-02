@@ -73,7 +73,7 @@ class _Hyperbolic:
         point_extrinsic : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
         """
-        coord_0 = gs.sqrt(1.0 + gs.sum(point ** 2, axis=-1))
+        coord_0 = gs.sqrt(1.0 + gs.sum(point**2, axis=-1))
         point_extrinsic = gs.concatenate([coord_0[..., None], point], axis=-1)
 
         return point_extrinsic
@@ -139,7 +139,7 @@ class _Hyperbolic:
         point_extrinsic : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
         """
-        squared_norm = gs.sum(point ** 2, -1)
+        squared_norm = gs.sum(point**2, -1)
         denominator = 1 - squared_norm
         t = (1 + squared_norm) / denominator
         intrinsic = gs.einsum("...i, ...->...i", 2 * point, 1.0 / denominator)
@@ -210,7 +210,7 @@ class _Hyperbolic:
         point_ball : array-like, shape=[..., dim]
             Point in the hyperbolic space in Poincare ball coordinates.
         """
-        sq_norm = gs.sum(point ** 2, axis=-1)
+        sq_norm = gs.sum(point**2, axis=-1)
         den = 1 + sq_norm + 2 * point[..., -1]
         component_1 = gs.einsum("...i,...->...i", point[..., :-1], 2.0 / den)
         component_2 = (sq_norm - 1) / den
@@ -236,7 +236,7 @@ class _Hyperbolic:
         point_ball : array-like, shape=[..., dim]
             Point in the hyperbolic space in half-space coordinates.
         """
-        sq_norm = gs.sum(point ** 2, axis=-1)
+        sq_norm = gs.sum(point**2, axis=-1)
         den = 1 + sq_norm - 2 * point[..., -1]
         component_1 = gs.einsum("...i,...->...i", point[..., :-1], 2.0 / den)
         component_2 = (1 - sq_norm) / den
@@ -266,7 +266,7 @@ class _Hyperbolic:
         tangent_vec_ball : array-like, shape=[..., dim]
            Tangent vector in the Poincare ball.
         """
-        sq_norm = gs.sum(base_point ** 2, axis=-1)
+        sq_norm = gs.sum(base_point**2, axis=-1)
         den = 1.0 + sq_norm + 2.0 * base_point[..., -1]
         scalar_prod = gs.sum(base_point * tangent_vec, axis=-1)
         component_1 = gs.einsum(
@@ -274,11 +274,11 @@ class _Hyperbolic:
         ) - 4.0 * gs.einsum(
             "...i,...->...i",
             base_point[..., :-1],
-            (scalar_prod + tangent_vec[..., -1]) / den ** 2,
+            (scalar_prod + tangent_vec[..., -1]) / den**2,
         )
         component_2 = (
             2 * scalar_prod / den
-            - 2 * (sq_norm - 1) * (scalar_prod + tangent_vec[..., -1]) / den ** 2
+            - 2 * (sq_norm - 1) * (scalar_prod + tangent_vec[..., -1]) / den**2
         )
         tangent_vec_ball = gs.concatenate(
             [component_1, component_2[..., None]], axis=-1
@@ -307,7 +307,7 @@ class _Hyperbolic:
             Tangent vector in the Poincare half-space.
 
         """
-        sq_norm = gs.sum(base_point ** 2, axis=-1)
+        sq_norm = gs.sum(base_point**2, axis=-1)
         den = 1 + sq_norm - 2 * base_point[..., -1]
         scalar_prod = gs.sum(base_point * tangent_vec, -1)
         component_1 = gs.einsum(
@@ -315,11 +315,11 @@ class _Hyperbolic:
         ) - 4.0 * gs.einsum(
             "...i,...->...i",
             base_point[..., :-1],
-            (scalar_prod - tangent_vec[..., -1]) / den ** 2,
+            (scalar_prod - tangent_vec[..., -1]) / den**2,
         )
         component_2 = (
             -2.0 * scalar_prod / den
-            - 2 * (1.0 - sq_norm) * (scalar_prod - tangent_vec[..., -1]) / den ** 2
+            - 2 * (1.0 - sq_norm) * (scalar_prod - tangent_vec[..., -1]) / den**2
         )
         tangent_vec_half_space = gs.concatenate(
             [component_1, component_2[..., None]], axis=-1
@@ -494,7 +494,7 @@ class HyperbolicMetric(RiemannianMetric):
             Inner-product of the two tangent vectors.
         """
         inner_prod = self._inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        inner_prod *= self.scale ** 2
+        inner_prod *= self.scale**2
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
@@ -517,7 +517,7 @@ class HyperbolicMetric(RiemannianMetric):
             Squared norm of the vector.
         """
         sq_norm = self._squared_norm(vector)
-        sq_norm *= self.scale ** 2
+        sq_norm *= self.scale**2
         return sq_norm
 
     def _squared_norm(self, vector, base_point=None):

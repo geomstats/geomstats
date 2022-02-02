@@ -835,7 +835,7 @@ class SRVMetric(RiemannianMetric):
         if self.translation_invariant:
             return dist_srvs
 
-        dist = gs.sqrt(dist_starting_points ** 2 + dist_srvs ** 2)
+        dist = gs.sqrt(dist_starting_points**2 + dist_srvs**2)
         return dist
 
     @staticmethod
@@ -1279,7 +1279,7 @@ class ElasticMetric(RiemannianMetric):
         curve_x = gs.array(curve_x)
         curve_y = gs.array(curve_y)
         curve = gs.transpose(gs.vstack((curve_x, curve_y))) / n_sampling_points
-        curve = 1 / (4 * self.b ** 2) * curve + starting_point
+        curve = 1 / (4 * self.b**2) * curve + starting_point
 
         return curve
 
@@ -1332,7 +1332,7 @@ class ElasticMetric(RiemannianMetric):
         l2_dist = self.l2_metric.dist
 
         if rescaled:
-            cosine = l2_prod(f_1, f_2) / (4 * self.b ** 2)
+            cosine = l2_prod(f_1, f_2) / (4 * self.b**2)
             distance = 2 * self.b * gs.arccos(gs.clip(cosine, -1, 1))
         else:
             distance = l2_dist(f_1, f_2)
@@ -1538,7 +1538,7 @@ class QuotientSRVMetric(SRVMetric):
         )
         vec_b = -2 * self.l2_metric.pointwise_norms(
             d_pos, position
-        ) ** 2 - quotient ** 2 * (
+        ) ** 2 - quotient**2 * (
             self.l2_metric.pointwise_norms(d2_pos, position) ** 2
             - self.l2_metric.pointwise_inner_products(d2_pos, d_pos, position) ** 2
             / self.l2_metric.pointwise_norms(d_pos, position) ** 2
@@ -1550,9 +1550,9 @@ class QuotientSRVMetric(SRVMetric):
         )
         vec_d = self.l2_metric.pointwise_norms(d_pos, position) * (
             self.l2_metric.pointwise_inner_products(d2_vec, d_pos, position)
-            - (quotient ** 2 - 1)
+            - (quotient**2 - 1)
             * self.l2_metric.pointwise_inner_products(d_vec, d2_pos, position)
-            + (quotient ** 2 - 2)
+            + (quotient**2 - 2)
             * self.l2_metric.pointwise_inner_products(d2_pos, d_pos, position)
             * self.l2_metric.pointwise_inner_products(d_vec, d_pos, position)
             / self.l2_metric.pointwise_norms(d_pos, position) ** 2

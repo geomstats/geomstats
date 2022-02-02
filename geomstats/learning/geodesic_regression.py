@@ -348,7 +348,7 @@ class GeodesicRegression(BaseEstimator):
         if hasattr(self.metric, "parallel_transport"):
 
             def vector_transport(tan_a, tan_b, base_point, _):
-                return self.metric.parallel_transport(tan_a, tan_b, base_point)
+                return self.metric.parallel_transport(tan_a, base_point, tan_b)
 
         else:
 

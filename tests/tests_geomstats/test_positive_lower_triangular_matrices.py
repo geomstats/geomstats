@@ -258,9 +258,9 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
             smoke_data = [
                 dict(
                     n=2,
-                    point=[[EULER, 0.0], [2.0, EULER ** 3]],
-                    base_point=[[EULER ** 3, 0.0], [4.0, EULER ** 4]],
-                    expected=[[-2.0 * EULER ** 3, 0.0], [-2.0, -1 * EULER ** 4]],
+                    point=[[EULER, 0.0], [2.0, EULER**3]],
+                    base_point=[[EULER**3, 0.0], [4.0, EULER**4]],
+                    expected=[[-2.0 * EULER**3, 0.0], [-2.0, -1 * EULER**4]],
                 ),
                 dict(
                     n=2,
@@ -278,19 +278,19 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
             smoke_data = [
                 dict(
                     n=2,
-                    point_a=[[EULER, 0.0], [2.0, EULER ** 3]],
-                    point_b=[[EULER ** 3, 0.0], [4.0, EULER ** 4]],
+                    point_a=[[EULER, 0.0], [2.0, EULER**3]],
+                    point_b=[[EULER**3, 0.0], [4.0, EULER**4]],
                     expected=9,
                 ),
                 dict(
                     n=2,
                     point_a=[
-                        [[EULER, 0.0], [2.0, EULER ** 3]],
-                        [[EULER, 0.0], [4.0, EULER ** 3]],
+                        [[EULER, 0.0], [2.0, EULER**3]],
+                        [[EULER, 0.0], [4.0, EULER**3]],
                     ],
                     point_b=[
-                        [[EULER ** 3, 0.0], [4.0, EULER ** 4]],
-                        [[EULER ** 3, 0.0], [7.0, EULER ** 4]],
+                        [[EULER**3, 0.0], [4.0, EULER**4]],
+                        [[EULER**3, 0.0], [7.0, EULER**4]],
                     ],
                     expected=[9, 14],
                 ),

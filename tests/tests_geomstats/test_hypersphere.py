@@ -617,7 +617,7 @@ class TestHypersphere(geomstats.tests.TestCase):
             sum_points = gs.sum(points, axis=0)
             mean_norm = gs.linalg.norm(sum_points) / n_points
             kappa_estimate = (
-                mean_norm * (dim + 1.0 - mean_norm ** 2) / (1.0 - mean_norm ** 2)
+                mean_norm * (dim + 1.0 - mean_norm**2) / (1.0 - mean_norm**2)
             )
             kappa_estimate = gs.cast(kappa_estimate, gs.float64)
             p = dim + 1
@@ -626,7 +626,7 @@ class TestHypersphere(geomstats.tests.TestCase):
                 bessel_func_1 = scipy.special.iv(p / 2.0, kappa_estimate)
                 bessel_func_2 = scipy.special.iv(p / 2.0 - 1.0, kappa_estimate)
                 ratio = bessel_func_1 / bessel_func_2
-                denominator = 1.0 - ratio ** 2 - (p - 1.0) * ratio / kappa_estimate
+                denominator = 1.0 - ratio**2 - (p - 1.0) * ratio / kappa_estimate
                 mean_norm = gs.cast(mean_norm, gs.float64)
                 kappa_estimate = kappa_estimate - (ratio - mean_norm) / denominator
             result = kappa_estimate

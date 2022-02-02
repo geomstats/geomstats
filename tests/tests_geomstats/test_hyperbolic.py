@@ -497,7 +497,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
             tangent_vec_a, tangent_vec_b, base_point
         )
         result = inner_product_scaled_metric
-        expected = scale ** 2 * inner_product_default_metric
+        expected = scale**2 * inner_product_default_metric
         self.assertAllClose(result, expected)
 
     def test_scaled_squared_norm(self):
@@ -515,7 +515,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
             tangent_vec, base_point
         )
         result = squared_norm_scaled_metric
-        expected = scale ** 2 * squared_norm_default_metric
+        expected = scale**2 * squared_norm_default_metric
         self.assertAllClose(result, expected)
 
     def test_scaled_distance(self):

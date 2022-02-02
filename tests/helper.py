@@ -96,7 +96,11 @@ def test_parallel_transport(space, metric, shape):
     tan_vec_b = space.to_tangent(gs.random.rand(*shape) / 5, base_point)
     end_point = metric.exp(tan_vec_b, base_point)
 
-    transported = metric.parallel_transport(tan_vec_a, tan_vec_b, base_point)
+    transported = metric.parallel_transport(tan_vec_a, base_point, tan_vec_b)
+    result = is_isometry(tan_vec_a, transported, end_point)
+    results.append(gs.all(result))
+
+    transported = metric.parallel_transport(tan_vec_a, base_point, end_point=end_point)
     result = is_isometry(tan_vec_a, transported, end_point)
     results.append(gs.all(result))
 
@@ -104,27 +108,27 @@ def test_parallel_transport(space, metric, shape):
     tan_vec_a = space.to_tangent(tan_vec_a, base_point)
     tan_vec_b = space.to_tangent(tan_vec_b, base_point)
     end_point = metric.exp(tan_vec_b, base_point)
-    transported = metric.parallel_transport(tan_vec_a, tan_vec_b, base_point)
+    transported = metric.parallel_transport(tan_vec_a, base_point, tan_vec_b)
     result = is_isometry(tan_vec_a, transported, end_point)
     results.append(gs.all(result))
 
     one_tan_vec_a = tan_vec_a[0]
-    transported = metric.parallel_transport(one_tan_vec_a, tan_vec_b, base_point)
+    transported = metric.parallel_transport(one_tan_vec_a, base_point, tan_vec_b)
     result = is_isometry(one_tan_vec_a, transported, end_point)
     results.append(gs.all(result))
 
     one_tan_vec_b = tan_vec_b[0]
     end_point = end_point[0]
-    transported = metric.parallel_transport(tan_vec_a, one_tan_vec_b, base_point)
+    transported = metric.parallel_transport(tan_vec_a, base_point, one_tan_vec_b)
     result = is_isometry(tan_vec_a, transported, end_point)
     results.append(gs.all(result))
 
-    transported = metric.parallel_transport(one_tan_vec_a, one_tan_vec_b, base_point)
+    transported = metric.parallel_transport(one_tan_vec_a, base_point, one_tan_vec_b)
     result = is_isometry(one_tan_vec_a, transported, end_point)
     results.append(gs.all(result))
 
     transported = metric.parallel_transport(
-        one_tan_vec_a, gs.zeros_like(one_tan_vec_b), base_point
+        one_tan_vec_a, base_point, gs.zeros_like(one_tan_vec_b)
     )
     result = gs.isclose(transported, one_tan_vec_a)
     results.append(gs.all(result))

@@ -720,8 +720,8 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
             coef_x * self.hor_x, coef_y * self.hor_y, self.base_point
         )
         expected = (
-            coef_x ** 2
-            * coef_y ** 2
+            coef_x**2
+            * coef_y**2
             * self.shape_metric.directional_curvature_derivative(
                 self.hor_x, self.hor_y, self.base_point
             )
@@ -755,7 +755,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         tan_a = gs.einsum("...ij,...->...ij", tan_a, 1.0 / metric.norm(tan_a, point))
 
         transported = metric.parallel_transport(
-            tan_a, tan_b, point, n_steps=150, step="rk4"
+            tan_a, point, tan_b, n_steps=150, step="rk4"
         )
         end_point = metric.exp(tan_b, point)
         result = metric.norm(transported, end_point)
@@ -766,3 +766,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         is_horizontal = space.is_horizontal(transported, end_point)
         self.assertTrue(gs.all(is_tangent))
         self.assertTrue(gs.all(is_horizontal))
+
+        transported = metric.parallel_transport(tan_a[0], point, end_point=end_point[0])
+        result = metric.norm(transported, end_point[0])
+        self.assertAllClose(result, expected[0])

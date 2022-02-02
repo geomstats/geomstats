@@ -314,7 +314,7 @@ class DirichletMetric(RiemannianMetric):
         jac_1_mat = gs.squeeze(gs.tile(jac_1, (self.dim, self.dim, self.dim, 1, 1)))
         jac_2 = (
             -term_6
-            / term_9 ** 2
+            / term_9**2
             * gs.einsum("j...,i...->ji...", term_4 - term_3, term_1)
         )
         jac_2_mat = gs.squeeze(gs.tile(jac_2, (self.dim, self.dim, 1, 1, 1)))
@@ -323,7 +323,7 @@ class DirichletMetric(RiemannianMetric):
         jac_3_mat = gs.squeeze(gs.tile(jac_3_mat, (self.dim, self.dim, 1, 1, 1)))
         jac_4 = (
             1
-            / term_9 ** 2
+            / term_9**2
             * gs.einsum("k...,j...,i...->kji...", term_5, term_4 - term_3, term_1)
         )
         jac_4_mat = gs.transpose(from_vector_to_diagonal_matrix(gs.transpose(jac_4)))

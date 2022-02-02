@@ -716,8 +716,8 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.where(gs_array > 20.0, 0.0, gs_array)
         self.assertAllCloseToNp(gs_result, np_result)
 
-        np_result = _np.where(np_array > 20, np_array ** 2, 4.0)
-        gs_result = gs.where(gs_array > 20, gs_array ** 2, 4.0)
+        np_result = _np.where(np_array > 20, np_array**2, 4.0)
+        gs_result = gs.where(gs_array > 20, gs_array**2, 4.0)
         self.assertAllCloseToNp(gs_result, np_result)
 
         base_list = [[0, 1, 0, 1, 0, 1, 0, 1, 0, 1]]

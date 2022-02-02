@@ -64,15 +64,15 @@ inv_tanc_close_0 = {
     "coefficients": INV_TANC_TAYLOR_COEFFS,
 }
 cosc_close_0 = {
-    "function": lambda x: (1 - gs.cos(x)) / x ** 2,
+    "function": lambda x: (1 - gs.cos(x)) / x**2,
     "coefficients": COSC_TAYLOR_COEFFS,
 }
 var_sinc_close_0 = {
-    "function": lambda x: (x - gs.sin(x)) / x ** 3,
+    "function": lambda x: (x - gs.sin(x)) / x**3,
     "coefficients": [-k for k in SINC_TAYLOR_COEFFS[1:]],
 }
 var_inv_tanc_close_0 = {
-    "function": lambda x: (1 - (x / gs.tan(x))) / x ** 2,
+    "function": lambda x: (1 - (x / gs.tan(x))) / x**2,
     "coefficients": VAR_INV_TAN_TAYLOR_COEFFS,
 }
 sinch_close_0 = {
@@ -160,7 +160,7 @@ def taylor_exp_even_func(point, taylor_function, order=5, tol=EPSILON):
     approx = gs.einsum(
         "k,k...->...",
         gs.array(taylor_function["coefficients"][:order]),
-        gs.array([point ** k for k in range(order)]),
+        gs.array([point**k for k in range(order)]),
     )
     point_ = gs.where(gs.abs(point) <= tol, tol, point)
     exact = taylor_function["function"](gs.sqrt(point_))
