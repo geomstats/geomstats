@@ -8,7 +8,6 @@ from sklearn.gaussian_process.kernels import RBF, ConstantKernel
 
 
 class TestWrappedGaussianProcess(geomstats.tests.TestCase):
-
     def setup_method(self):
         gs.random.seed(1234)
         self.n_samples = 20
@@ -44,10 +43,7 @@ class TestWrappedGaussianProcess(geomstats.tests.TestCase):
     def test_fit_hypersphere(self):
         """Test the fit method"""
         wgpr = WrappedGaussianProcess(
-            self.sphere,
-            metric=self.sphere.metric,
-            prior=self.prior,
-            kernel=self.kernel
+            self.sphere, metric=self.sphere.metric, prior=self.prior, kernel=self.kernel
         )
         wgpr.fit(self.X_sphere, self.y_sphere)
         self.assertAllClose(wgpr.score(self.X_sphere, self.y_sphere), 1)
@@ -55,10 +51,7 @@ class TestWrappedGaussianProcess(geomstats.tests.TestCase):
     def test_predict_hypersphere(self):
         """Test the predict method"""
         wgpr = WrappedGaussianProcess(
-            self.sphere,
-            metric=self.sphere.metric,
-            prior=self.prior,
-            kernel=self.kernel
+            self.sphere, metric=self.sphere.metric, prior=self.prior, kernel=self.kernel
         )
         wgpr.fit(self.X_sphere, self.y_sphere)
         y, std = wgpr.predict(self.X_sphere, return_tangent_std=True)
@@ -69,10 +62,7 @@ class TestWrappedGaussianProcess(geomstats.tests.TestCase):
     def test_samples_y_hypersphere(self):
         """Test the samples_y method"""
         wgpr = WrappedGaussianProcess(
-            self.sphere,
-            metric=self.sphere.metric,
-            prior=self.prior,
-            kernel=self.kernel
+            self.sphere, metric=self.sphere.metric, prior=self.prior, kernel=self.kernel
         )
         wgpr.fit(self.X_sphere, self.y_sphere)
         y = wgpr.sample_y(self.X_sphere, n_samples=100)

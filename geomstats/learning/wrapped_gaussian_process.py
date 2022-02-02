@@ -88,17 +88,17 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
     """
 
     def __init__(
-            self,
-            space,
-            metric,
-            prior,
-            kernel=None,
-            *,
-            alpha=1e-10,
-            optimizer="fmin_l_bfgs_b",
-            n_restarts_optimizer=0,
-            copy_X_train=True,
-            random_state=None,
+        self,
+        space,
+        metric,
+        prior,
+        kernel=None,
+        *,
+        alpha=1e-10,
+        optimizer="fmin_l_bfgs_b",
+        n_restarts_optimizer=0,
+        copy_X_train=True,
+        random_state=None,
     ):
         if metric is None:
             metric = space.metric
@@ -110,14 +110,15 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         self.y_train_ = None
         self.tangent_y_train_ = None
 
-        self._euclidean_gpr = \
-            GaussianProcessRegressor(kernel=kernel,
-                                     alpha=alpha,
-                                     optimizer=optimizer,
-                                     n_restarts_optimizer=n_restarts_optimizer,
-                                     normalize_y=False,
-                                     copy_X_train=copy_X_train,
-                                     random_state=random_state)
+        self._euclidean_gpr = GaussianProcessRegressor(
+            kernel=kernel,
+            alpha=alpha,
+            optimizer=optimizer,
+            n_restarts_optimizer=n_restarts_optimizer,
+            normalize_y=False,
+            copy_X_train=copy_X_train,
+            random_state=random_state,
+        )
 
         # I know that inheritance seems more appropriate here, but the issue is
         # that the .sample_y method of wgrp calls the .sample_y of gpr,
@@ -210,9 +211,9 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
             Only returned when `return_cov` is True.
         """
         if return_tangent_cov:
-            tangent_means, tangent_cov = self._euclidean_gpr.predict(X,
-                                                                     return_cov=True,
-                                                                     return_std=False)
+            tangent_means, tangent_cov = self._euclidean_gpr.predict(
+                X, return_cov=True, return_std=False
+            )
             tangent_means = gs.cast(tangent_means, dtype=X.dtype)
             tangent_cov = gs.cast(tangent_cov, dtype=X.dtype)
 
@@ -221,9 +222,9 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
             result = (y_mean, tangent_cov)
 
         elif return_tangent_std:
-            tangent_means, tangent_std = self._euclidean_gpr.predict(X,
-                                                                     return_cov=False,
-                                                                     return_std=True)
+            tangent_means, tangent_std = self._euclidean_gpr.predict(
+                X, return_cov=False, return_std=True
+            )
             base_points = self.prior(X)
             tangent_means = gs.cast(tangent_means, dtype=X.dtype)
             tangent_std = gs.cast(tangent_std, dtype=X.dtype)
@@ -232,9 +233,9 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
             result = (y_mean, tangent_std)
 
         else:
-            tangent_means = self._euclidean_gpr.predict(X,
-                                                        return_cov=False,
-                                                        return_std=False)
+            tangent_means = self._euclidean_gpr.predict(
+                X, return_cov=False, return_std=False
+            )
             base_points = self.prior(X)
             tangent_means = gs.cast(tangent_means, dtype=X.dtype)
             y_mean = self.metric.exp(tangent_means, base_point=base_points)
@@ -266,23 +267,24 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         tangent_samples = self._euclidean_gpr.sample_y(X, n_samples, random_state)
         tangent_samples = gs.cast(tangent_samples, dtype=X.dtype)
         # flatten the samples
-        tangent_samples = gs.reshape(gs.transpose(tangent_samples, [0, 2, 1]),
-                                     (-1, tangent_samples.shape[1]))
+        tangent_samples = gs.reshape(
+            gs.transpose(tangent_samples, [0, 2, 1]), (-1, tangent_samples.shape[1])
+        )
 
         # generate the base_points
         base_points = self.prior(X)
         # repeat the base points in order to match the tangent samples
         base_points = gs.repeat(gs.expand_dims(base_points, 2), n_samples, axis=2)
         # flatten the base_points
-        base_points = gs.reshape(gs.transpose(base_points, [0, 2, 1]),
-                                 (-1, tangent_samples.shape[1]))
+        base_points = gs.reshape(
+            gs.transpose(base_points, [0, 2, 1]), (-1, tangent_samples.shape[1])
+        )
 
         # get the flattened samples
         y_samples = self.metric.exp(tangent_samples, base_point=base_points)
-        y_samples = gs.transpose(gs.reshape(y_samples,
-                                            (X.shape[0],
-                                             n_samples,
-                                             y_samples.shape[1])),
-                                 [0, 2, 1])
+        y_samples = gs.transpose(
+            gs.reshape(y_samples, (X.shape[0], n_samples, y_samples.shape[1])),
+            [0, 2, 1],
+        )
 
         return y_samples
