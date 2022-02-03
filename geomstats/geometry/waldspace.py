@@ -397,6 +397,8 @@ class WaldSpace(object):
         while True:
             wald = self._proj_method_local(point=point, st0=st0, x0=x0, btol=btol,
                                            ftol=ftol, gtol=gtol)
+            if np.any(wald.x == 1):
+                raise ValueError("Projection onto forest, this case is not treated.")
             if np.all(wald.x != 0):
                 # in this case, we are in the interior of a grove, a minimum.
                 return wald

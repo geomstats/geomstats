@@ -133,7 +133,7 @@ class Split(object):
         """ Checks whether this split is compatible with another split. """
         p1, p2 = set(self.part1), set(self.part2)
         o1, o2 = set(other.part1), set(other.part2)
-        return not gs.all([p1 & o1, p1 & o2, p2 & o1, p2 & o2])
+        return sum([bool(s) for s in [p1 & o1, p1 & o2, p2 & o1, p2 & o2]]) < 4
 
     def __eq__(self, other):
         """ The equal function. """
@@ -275,8 +275,8 @@ class Structure(object):
             index. Useful for unraveling the vector ``self.x`` into lists of lists.
         """
         if self._separators is None:
-            self._separators = [0] + list(
-                gs.cumsum([len(splits) for splits in self.split_sets], dtype=int))
+            lengths = [len(splits) for splits in self.split_sets]
+            self._separators = [0] + [sum(lengths[0:j+1]) for j in range(len(lengths))]
         return self._separators
 
     @property
