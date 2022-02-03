@@ -69,19 +69,16 @@ class WaldSpace(object):
         belongs : bool
             Boolean denoting if `wald` belongs to Wald space.
         """
-        # check for vectorized version of belongs
-        try:
-            is_n = [_w.n == self.n for _w in wald]
-            is_in_01 = [gs.all(0 <= _w.x) and gs.all(_w.x <= 1) for _w in wald]
-            is_pd = [Mat.is_pd(mat=self.lift(_w)) for _w in wald]
-            belongs = gs.logical_and(is_n, gs.logical_and(is_pd, is_in_01))
-            return belongs
-        except TypeError:
-            is_n = wald.n == self.n
-            is_pd = Mat.is_pd(mat=self.lift(wald))
-            is_in_01 = gs.all(0 <= wald.x) and gs.all(wald.x <= 1)
-            belongs = gs.logical_and(is_n, gs.logical_and(is_pd, is_in_01))
-            return belongs
+        def _belongs_wald(w):
+            is_n = (w.n == self.n)
+            is_pd = Mat.is_pd(mat=self.lift(w))
+            is_in_01 = gs.all(0 <= w.x) and gs.all(w.x <= 1)
+            return is_n and is_pd and is_in_01
+
+        if isinstance(wald, Wald):
+            return _belongs_wald(w=wald)
+        else:
+            return gs.array([_belongs_wald(w=_w) for _w in wald])
 
     def random_point(self, n_samples=1, btol=1e-08, prob=0.9):
         """Sample a random point in Wald space.
@@ -109,9 +106,9 @@ class WaldSpace(object):
             _partition = [[0]]
             for u in range(1, self.n):
                 # decide whether new component is constructed
-                if np.random.rand() < _prob:
+                if gs.random.rand() < _prob:
                     # add label to random existing component
-                    _partition[np.random.randint(len(_partition))].append(u)
+                    _partition[gs.random.randint(len(_partition))].append(u)
                 else:
                     # construct new component
                     _partition.append([u])
@@ -123,19 +120,19 @@ class WaldSpace(object):
             if len(labels) <= 1:
                 return tuple()
             labels = labels.copy()
-            _u = labels.pop(np.random.randint(len(labels)))
-            _v = labels.pop(np.random.randint(len(labels)))
+            _u = labels.pop(gs.random.randint(len(labels)))
+            _v = labels.pop(gs.random.randint(len(labels)))
             new_labels = [_u, _v]
             # start with the split of the set {_u, _v}
             old_splits = [Split(n=self.n, part1=[_u], part2=[_v])]
             # iteratively add new split/edge with leaf _u by docking at random old split
             while labels:
                 # random new leaf
-                _u = labels.pop(np.random.randint(len(labels)))
+                _u = labels.pop(gs.random.randint(len(labels)))
                 # split representing the pendant edge at the leaf
                 new_splits = [Split(n=self.n, part1=[_u], part2=new_labels)]
                 # random edge that gets divided
-                div_split = old_splits.pop(np.random.randint(len(old_splits)))
+                div_split = old_splits.pop(gs.random.randint(len(old_splits)))
                 # create two parts from old divided edge
                 new_splits.append(Split(n=self.n, part1=div_split.part1 + (_u,),
                                         part2=div_split.part2))
@@ -159,7 +156,7 @@ class WaldSpace(object):
             # random decide whether to delete splits, starting from the last split
             for i in reversed(range(len(splits))):
                 # in this case, delete split, if allowed
-                if np.random.rand() > probability:
+                if gs.random.rand() > probability:
                     splits_copy = splits.copy()
                     splits_copy.pop(i)
                     # if allowed (i.e. exists split separating every pair of labels),
@@ -188,7 +185,8 @@ class WaldSpace(object):
             # create the structure for the wald, that is partition + sets of splits
             st = Structure(n=self.n, partition=partition, split_sets=split_sets)
             # generate random weights for the edges
-            x = np.random.uniform(size=len(st.unravel(st.split_sets)))
+            x = gs.random.uniform(size=len(st.unravel(st.split_sets)))
+            # TODO element wise minimum of arrays, minimum needed. gs.minimum not impl.
             x = np.minimum(np.maximum(btol, x), 1 - btol)
             # create the wald
             samples.append(Wald(n=self.n, st=st, x=x))
@@ -212,21 +210,10 @@ class WaldSpace(object):
         lifted_point : array-like, shape=[..., n, n]
             The lifted point that is a strictly positive definite matrix.
         """
-
-        def _lift(p):
-            """ Lifts a single point. """
-            try:
-                # if p is of class Wald, then return its correlation matrix
-                return p.corr
-            except AttributeError:
-                # else it is assumed to already be a correlation matrix and returned
-                return p
-
-        try:
-            # if it is a list, then apply to all elements
-            return gs.array([_lift(_p) for _p in point])
-        except TypeError:
-            return _lift(point)
+        if isinstance(point, Wald):
+            return point.corr
+        else:
+            return gs.array([p.corr if isinstance(p, Wald) else p for p in point])
 
     def lift_vector(self, vector, point: Wald):
         """ Lifts vector in tangent space of grove to vector in ambient tangent space.
