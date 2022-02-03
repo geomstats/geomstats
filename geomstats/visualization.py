@@ -417,9 +417,9 @@ class PoincareHalfPlane:
         disk_x = disk_coords[:, 0]
         disk_y = disk_coords[:, 1]
 
-        denominator = disk_x ** 2 + (1 - disk_y) ** 2
+        denominator = disk_x**2 + (1 - disk_y) ** 2
         coords_0 = gs.expand_dims(2 * disk_x / denominator, axis=1)
-        coords_1 = gs.expand_dims((1 - disk_x ** 2 - disk_y ** 2) / denominator, axis=1)
+        coords_1 = gs.expand_dims((1 - disk_x**2 - disk_y**2) / denominator, axis=1)
 
         half_plane_coords = gs.concatenate([coords_0, coords_1], axis=1)
         return half_plane_coords
@@ -459,7 +459,7 @@ class KleinDisk:
         poincare_radius = gs.linalg.norm(poincare_coords, axis=1)
         poincare_angle = gs.arctan2(poincare_coords[:, 1], poincare_coords[:, 0])
 
-        klein_radius = 2 * poincare_radius / (1 + poincare_radius ** 2)
+        klein_radius = 2 * poincare_radius / (1 + poincare_radius**2)
         klein_angle = poincare_angle
 
         coords_0 = gs.expand_dims(klein_radius * gs.cos(klein_angle), axis=1)
@@ -916,16 +916,13 @@ class KendallDisk:
             [[1.0, 0.0], [-0.5, gs.sqrt(3.0) / 2.0], [-0.5, -gs.sqrt(3.0) / 2.0]]
         ) / gs.sqrt(3.0)
 
-        self.centre = (
-            gs.array(
-                [
-                    [1.0, 0.0, 0.0],
-                    [-0.5, gs.sqrt(3.0) / 2.0, 0.0],
-                    [-0.5, -gs.sqrt(3.0) / 2.0, 0.0],
-                ]
-            )
-            / gs.sqrt(3.0)
-        )
+        self.centre = gs.array(
+            [
+                [1.0, 0.0, 0.0],
+                [-0.5, gs.sqrt(3.0) / 2.0, 0.0],
+                [-0.5, -gs.sqrt(3.0) / 2.0, 0.0],
+            ]
+        ) / gs.sqrt(3.0)
 
         self.ua = gs.array(
             [[-1.0, 0.0], [0.5, gs.sqrt(3.0) / 2.0], [0.5, -gs.sqrt(3.0) / 2.0]]
@@ -1231,7 +1228,7 @@ def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
             point_type = "extrinsic"
         n_disks = points.shape[1]
         poincare_poly_disk = PoincarePolyDisk(point_type=point_type, n_disks=n_disks)
-        n_columns = int(gs.ceil(n_disks ** 0.5))
+        n_columns = int(gs.ceil(n_disks**0.5))
         n_rows = int(gs.ceil(n_disks / n_columns))
 
         axis_list = []

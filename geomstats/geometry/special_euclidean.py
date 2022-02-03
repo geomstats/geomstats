@@ -708,9 +708,9 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         base_1 = gs.eye(2)
         base_2 = self.rotations.skew_matrix_from_vector(gs.ones(1))
         cos_coef = rot_vec * utils.taylor_exp_even_func(
-            rot_vec ** 2, utils.cosc_close_0, order=3
+            rot_vec**2, utils.cosc_close_0, order=3
         )
-        sin_coef = utils.taylor_exp_even_func(rot_vec ** 2, utils.sinc_close_0, order=3)
+        sin_coef = utils.taylor_exp_even_func(rot_vec**2, utils.sinc_close_0, order=3)
 
         sin_term = gs.einsum("...i,...jk->...jk", sin_coef, base_1)
         cos_term = gs.einsum("...i,...jk->...jk", cos_coef, base_2)
@@ -722,7 +722,7 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         exp_transform = self._exp_translation_transform(rot_vec)
 
         inv_determinant = 0.5 / utils.taylor_exp_even_func(
-            rot_vec ** 2, utils.cosc_close_0, order=4
+            rot_vec**2, utils.cosc_close_0, order=4
         )
         transform = gs.einsum(
             "...l, ...jk -> ...jk", inv_determinant, Matrices.transpose(exp_transform)
@@ -918,7 +918,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         transform : array-like, shape=[..., 3, 3]
             Matrix to be applied to the translation part in exp.
         """
-        sq_angle = gs.sum(rot_vec ** 2, axis=-1)
+        sq_angle = gs.sum(rot_vec**2, axis=-1)
         skew_mat = self.rotations.skew_matrix_from_vector(rot_vec)
         sq_skew_mat = gs.matmul(skew_mat, skew_mat)
 
@@ -968,32 +968,32 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
 
         coef_2 += mask_close_0_float * (
             1.0 / 12.0
-            + angle ** 2 / 720.0
-            + angle ** 4 / 30240.0
-            + angle ** 6 / 1209600.0
+            + angle**2 / 720.0
+            + angle**4 / 30240.0
+            + angle**6 / 1209600.0
         )
 
         delta_angle = angle - gs.pi
         coef_2 += mask_close_pi_float * (
             1.0 / PI2
             + (PI2 - 8.0) * delta_angle / (4.0 * PI3)
-            - ((PI2 - 12.0) * delta_angle ** 2 / (4.0 * PI4))
-            + ((-192.0 + 12.0 * PI2 + PI4) * delta_angle ** 3 / (48.0 * PI5))
-            - ((-240.0 + 12.0 * PI2 + PI4) * delta_angle ** 4 / (48.0 * PI6))
+            - ((PI2 - 12.0) * delta_angle**2 / (4.0 * PI4))
+            + ((-192.0 + 12.0 * PI2 + PI4) * delta_angle**3 / (48.0 * PI5))
+            - ((-240.0 + 12.0 * PI2 + PI4) * delta_angle**4 / (48.0 * PI6))
             + (
                 (-2880.0 + 120.0 * PI2 + 10.0 * PI4 + PI6)
-                * delta_angle ** 5
+                * delta_angle**5
                 / (480.0 * PI7)
             )
             - (
                 (-3360 + 120.0 * PI2 + 10.0 * PI4 + PI6)
-                * delta_angle ** 6
+                * delta_angle**6
                 / (480.0 * PI8)
             )
         )
 
         psi = 0.5 * angle * gs.sin(angle) / (1 - gs.cos(angle))
-        coef_2 += mask_else_float * (1 - psi) / (angle ** 2)
+        coef_2 += mask_else_float * (1 - psi) / (angle**2)
 
         term_1 = gs.einsum("...i,...ij->...ij", coef_1, skew_mat)
         term_2 = gs.einsum("...i,...ij->...ij", coef_2, sq_skew_mat)
@@ -1130,42 +1130,58 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         log = homogeneous_representation(rotation_log, translation_log, max_shape, 0.0)
         return log
 
-    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point, **kwargs):
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
-        tangent_vec_b)`. As the special Euclidean group endowed with its
+        along the geodesic between two points `base_point` and `end_point`
+        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        t*direction)`. As the special Euclidean group endowed with its
         canonical left-invariant metric is a symmetric space, parallel
         transport is achieved by a geodesic symmetry, or equivalently, one step
          of the pole ladder scheme.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n + 1, n + 1]
+        tangent_vec : array-like, shape=[..., n + 1, n + 1]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[..., n + 1, n + 1]
-            Tangent vector at base point, along which the parallel transport
-            is computed.
         base_point : array-like, shape=[..., n + 1, n + 1]
             Point on the hypersphere.
+        direction : array-like, shape=[..., n + 1, n + 1]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+            Optional, default: None
+        end_point : array-like, shape=[..., n + 1, n + 1]
+            Point on the Grassmann manifold to transport to. Unused if `tangent_vec_b`
+            is given.
+            Optional, default: None
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., n + 1, n + 1]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
-        rot_a = tangent_vec_a[..., : self.n, : self.n]
-        rot_b = tangent_vec_b[..., : self.n, : self.n]
+        if direction is None:
+            if end_point is not None:
+                direction = self.log(end_point, base_point)
+            else:
+                raise ValueError(
+                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    " geodesic along which to transport."
+                )
+        rot_a = tangent_vec[..., : self.n, : self.n]
+        rot_b = direction[..., : self.n, : self.n]
         rot_bp = base_point[..., : self.n, : self.n]
         transported_rot = self.group.rotations.bi_invariant_metric.parallel_transport(
-            rot_a, rot_b, rot_bp
+            rot_a, rot_bp, rot_b
         )
-        translation = tangent_vec_a[..., : self.n, self.n]
-        max_shape = tangent_vec_a.shape
-        if (tangent_vec_b.ndim == 3) and (tangent_vec_a.ndim == 2):
-            translation = gs.stack([translation] * tangent_vec_b.shape[0])
-            max_shape = tangent_vec_b.shape
+        translation = tangent_vec[..., : self.n, self.n]
+        max_shape = tangent_vec.shape
+        if (direction.ndim == 3) and (tangent_vec.ndim == 2):
+            translation = gs.stack([translation] * direction.shape[0])
+            max_shape = direction.shape
         return homogeneous_representation(transported_rot, translation, max_shape, 0.0)
 
     def private_squared_dist(self, point_a, point_b):

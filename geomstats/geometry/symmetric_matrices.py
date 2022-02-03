@@ -228,9 +228,13 @@ class SymmetricMatrices(VectorSpace):
         """
         eigvals, eigvecs = gs.linalg.eigh(mat)
         if check_positive and gs.any(gs.cast(eigvals, gs.float32) < 0.0):
-            logging.warning(
-                "Negative eigenvalue encountered in" " {}".format(function.__name__)
-            )
+            try:
+                name = function.__name__
+            except AttributeError:
+                name = function[0].__name__
+
+            logging.warning("Negative eigenvalue encountered in" " {}".format(name))
+
         return_list = True
         if not isinstance(function, list):
             function = [function]

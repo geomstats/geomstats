@@ -168,7 +168,7 @@ class SPDMatrices(OpenSet):
         elif power == math.inf:
             powered_eigvalues = gs.exp(eigvalues)
         else:
-            powered_eigvalues = eigvalues ** power
+            powered_eigvalues = eigvalues**power
 
         denominator = eigvalues[..., :, None] - eigvalues[..., None, :]
         numerator = powered_eigvalues[..., :, None] - powered_eigvalues[..., None, :]
@@ -554,7 +554,7 @@ class SPDMetricAffine(RiemannianMetric):
                 modified_tangent_vec_a, modified_tangent_vec_b, power_inv_base_point
             )
 
-            inner_product = inner_product / (power_affine ** 2)
+            inner_product = inner_product / (power_affine**2)
 
         return inner_product
 
@@ -675,39 +675,47 @@ class SPDMetricAffine(RiemannianMetric):
             log = SPDMatrices.inverse_differential_power(power_affine, log, base_point)
         return log
 
-    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
         r"""Parallel transport of a tangent vector.
 
-        Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by exp_(base_point)(tangent_vec_b).
-        Denoting `tangent_vec_a` by `S`, `base_point` by `A`, let
-        `B = Exp_A(tangent_vec_b)` and :math: `E = (BA^{- 1})^({ 1 / 2})`.
-        Then the
-        parallel transport to `B`is:
+        Closed-form solution for the parallel transport of a tangent vector
+        along the geodesic between two points `base_point` and `end_point`
+        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        t*direction)`.
+        Denoting `tangent_vec_a` by `S`, `base_point` by `A`, and `end_point`
+        by `B` or `B = Exp_A(tangent_vec_b)` and :math: `E = (BA^{- 1})^({ 1
+        / 2})`. Then the parallel transport to `B` is:
 
         ..math::
                         S' = ESE^T
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., dim + 1]
+        tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[..., dim + 1]
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold of SPD matrices. Point to transport from
+        direction : array-like, shape=[..., n, n]
             Tangent vector at base point, initial speed of the geodesic along
-            which the parallel transport is computed.
-        base_point : array-like, shape=[..., dim + 1]
-            Point on the manifold of SPD matrices.
+            which the parallel transport is computed. Unused if `end_point` is given.
+            Optional, default: None.
+        end_point : array-like, shape=[..., n, n]
+            Point on the manifold of SPD matrices. Point to transport to.
+            Optional, default: None.
 
         Returns
         -------
-        transported_tangent_vec: array-like, shape=[..., dim + 1]
+        transported_tangent_vec: array-like, shape=[..., n, n]
             Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
-        end_point = self.exp(tangent_vec_b, base_point)
+        if end_point is None:
+            end_point = self.exp(direction, base_point)
         inverse_base_point = GeneralLinear.inverse(base_point)
         congruence_mat = Matrices.mul(end_point, inverse_base_point)
         congruence_mat = gs.linalg.sqrtm(congruence_mat)
-        return Matrices.congruent(tangent_vec_a, congruence_mat)
+        return Matrices.congruent(tangent_vec, congruence_mat)
 
 
 class SPDMetricBuresWasserstein(RiemannianMetric):
@@ -897,7 +905,7 @@ class SPDMetricEuclidean(RiemannianMetric):
 
             inner_product = Matrices.frobenius_product(
                 modified_tangent_vec_a, modified_tangent_vec_b
-            ) / (power_euclidean ** 2)
+            ) / (power_euclidean**2)
         return inner_product
 
     @staticmethod
@@ -999,6 +1007,39 @@ class SPDMetricEuclidean(RiemannianMetric):
             )
 
         return log
+
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector
+        along the geodesic between two points `base_point` and `end_point`
+        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        t*direction)`.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold. Point to transport from.
+        direction : array-like, shape=[..., n, n]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+            Optional, default: None.
+        end_point : array-like, shape=[..., n, n]
+            Point on the manifold. Point to transport to.
+            Optional, default: None.
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[..., n, n]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+        """
+        if self.power_euclidean == 1:
+            return tangent_vec
+        raise NotImplementedError("Parallel transport is only implemented for power 1")
 
 
 class SPDMetricLogEuclidean(RiemannianMetric):

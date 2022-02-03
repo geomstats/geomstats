@@ -63,7 +63,7 @@ def gmm_pdf(data, means, variances, norm_func, metric, variances_range, norm_fun
     distances = -(metric.dist_broadcast(data, means) ** 2)
     distances = gs.reshape(distances, (data.shape[0] * variances.shape[0]))
 
-    num = gs.exp(distances / (2 * variances_flatten ** 2))
+    num = gs.exp(distances / (2 * variances_flatten**2))
 
     den = norm_func(variances, variances_range, norm_func_var)
 
@@ -103,11 +103,11 @@ def weighted_gmm_pdf(mixture_coefficients, mesh_data, means, variances, metric):
     variances_units = gs.expand_dims(variances, 0)
     variances_units = gs.repeat(variances_units, distance_to_mean.shape[0], axis=0)
 
-    distribution_normal = gs.exp(-(distance_to_mean ** 2) / (2 * variances_units ** 2))
+    distribution_normal = gs.exp(-(distance_to_mean**2) / (2 * variances_units**2))
 
     zeta_sigma = (2 * gs.pi) ** (2 / 3) * variances
     zeta_sigma = zeta_sigma * gs.exp(
-        (variances ** 2 / 2) * gs.erf(variances / gs.sqrt(2))
+        (variances**2 / 2) * gs.erf(variances / gs.sqrt(2))
     )
 
     result_num = gs.expand_dims(mixture_coefficients, 0)
@@ -593,6 +593,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
         _, log_grad_zeta = self.metric.norm_factor_gradient(variances)
 
-        phi_inv_var = variances ** 3 * log_grad_zeta
+        phi_inv_var = variances**3 * log_grad_zeta
 
         return variances, normalization_factor_var, phi_inv_var

@@ -532,7 +532,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         basis = metric.normal_basis(group.lie_algebra.basis)
         x, y, z = basis
         result = metric.structure_constant(x, y, z)
-        expected = 2.0 ** 0.5 / 2.0
+        expected = 2.0**0.5 / 2.0
         self.assertAllClose(result, expected)
 
         result = -metric.structure_constant(y, x, z)
@@ -572,7 +572,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         metric = InvariantMetric(group=group)
         x, y, z = metric.normal_basis(group.lie_algebra.basis)
         result = metric.connection(x, y)
-        expected = 1.0 / 2 ** 0.5 / 2.0 * z
+        expected = 1.0 / 2**0.5 / 2.0 * z
         self.assertAllClose(result, expected)
 
         point = group.random_uniform()
@@ -766,9 +766,9 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             "...ij,...->...ij", tan_a, 1.0 / metric.norm(tan_a, base_point=point)
         )
 
-        expected = group.left_canonical_metric.parallel_transport(tan_a, tan_b, point)
+        expected = group.left_canonical_metric.parallel_transport(tan_a, point, tan_b)
         result, end_point_result = metric.parallel_transport(
-            tan_a, tan_b, point, n_steps=20, step="rk4", return_endpoint=True
+            tan_a, point, tan_b, n_steps=20, step="rk4", return_endpoint=True
         )
         expected_end_point = metric.exp(tan_b, point, n_steps=20)
 
