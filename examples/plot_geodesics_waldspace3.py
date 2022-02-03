@@ -13,8 +13,6 @@ are infinitely far away from points in the interior.
 Lead author: Jonas Lueg
 """
 
-import numpy as np
-
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 
@@ -47,8 +45,7 @@ def main():
     # Plot those paths and points in Wald space embedded into SPD(3).
     ws3_plot = visualization.WaldSpace3()
     for curve in [curve12, curve23, curve13]:
-        ws3_plot.pass_curve(curve=curve,
-                            label=f"length = {np.round(WS3.length(curve), 5)}")
+        ws3_plot.pass_curve(curve=curve, label=f"length = {WS3.length(curve)}")
     ws3_plot.pass_points(points=[p1, p2, p3], marker='.',
                          text=[r'$p_1$', r'$p_2$', r'$p_3$'], color='black')
     ws3_plot.show()
