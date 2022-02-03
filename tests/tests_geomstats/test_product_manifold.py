@@ -11,7 +11,7 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.product_manifold import NFoldManifold, ProductManifold
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from tests.conftest import Parametrizer, TestCase, TestData
+from tests.conftest import Parametrizer, TestCase, TestData, tf_backend
 
 space_matrix = ProductManifold(
     manifolds=[Hypersphere(dim=2), Hyperboloid(dim=2)],
@@ -76,15 +76,17 @@ class TestProductManifold(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def inner_product_data(self):
-            euclidean = Euclidean(3)
-            minkowski = Minkowski(3)
-            space = ProductManifold(
-                manifolds=[euclidean, minkowski], default_point_type="matrix"
-            )
-            point = space.random_point(1)
-            expected = gs.eye(6)
-            expected[3, 3] = -1
-            smoke_data = [dict(manifold=space, point=point, expected=expected)]
+            smoke_data = []
+            if not tf_backend():
+                euclidean = Euclidean(3)
+                minkowski = Minkowski(3)
+                space = ProductManifold(
+                    manifolds=[euclidean, minkowski], default_point_type="matrix"
+                )
+                point = space.random_point(1)
+                expected = gs.eye(6)
+                expected[3, 3] = -1
+                smoke_data = [dict(manifold=space, point=point, expected=expected)]
             return self.generate_tests(smoke_data)
 
         def to_tangent_is_tangent_data(self):
