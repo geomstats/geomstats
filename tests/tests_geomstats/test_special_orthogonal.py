@@ -5,6 +5,7 @@ from contextlib import nullcontext as does_not_raise
 import pytest
 
 import geomstats.backend as gs
+import tests.helper as helper
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.conftest import Parametrizer, TestCase, TestData, tf_backend
 
@@ -113,18 +114,60 @@ class TestSpecialOrthogonal(TestCase, metaclass=Parametrizer):
             random_data = [dict(n=n, n_samples=100) for n in n_list]
             return self.generate_tests(smoke_data, random_data)
 
-        # def is_tangent(self):
-        #     theta = gs.pi / 3
-        #     smoke_data = [
-        #         dict(n=2, mat=sample_algebra_matrix(theta), expected=True),
-        #         dict(n=2, mat=sample_group_matrix(theta), expected=False),
-        #         dict(
-        #             n=2,
-        #             mat=[sample_algebra_matrix(theta), sample_group_matrix(theta)],
-        #             expected=[True, False],
-        #         ),
-        #     ]
-        #     return self.generate_tests(smoke_data)
+        def is_tangent_data(self):
+            theta = gs.pi / 3
+            smoke_data = [
+                dict(n=2, vec=[[0.0, -theta], [theta, 0.0]], expected=True),
+                dict(n=2, vec=[[0.0, -theta], [theta, 1.0]], expected=False),
+                dict(
+                    n=2,
+                    vec=[[[0.0, -theta], [theta, 0.0]], [[0.0, -theta], [theta, 1.0]]],
+                    expected=[True, False],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def is_tangent_compose_data(self):
+            point = self.group.random_uniform()
+            theta = 1.0
+            vec_1 = gs.array([[0.0, -theta], [theta, 0.0]])
+            vec_2 = gs.array([[0.0, -theta], [theta, 1.0]])
+
+            smoke_data = [
+                dict(
+                    n=2,
+                    vec=SpecialOrthogonal(2).compose(point, vec_1),
+                    point=point,
+                    expected=True,
+                ),
+                dict(
+                    n=2,
+                    vec=SpecialOrthogonal(2).compose(point, vec_2),
+                    point=point,
+                    expected=False,
+                ),
+                dict(
+                    n=2,
+                    vec=[
+                        SpecialOrthogonal(2).compose(point, vec_1),
+                        SpecialOrthogonal(2).compose(point, vec_2),
+                    ],
+                    point=point,
+                    expected=[True, False],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def to_tangent_data(self):
+            theta = 1.0
+            smoke_data = [
+                dict(
+                    n=2,
+                    vec=[[0.0, -theta], [theta, 0.0]],
+                    expected=[[0.0, -theta], [theta, 0.0]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
 
         def skew_to_vector_and_vector_to_skew_data(self):
             n_list = random.sample(range(2, 50), 10)
@@ -133,10 +176,14 @@ class TestSpecialOrthogonal(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        # def are_antipodals_data(self):
-        #     n_list = random.sample(range(2, 50), 10)
-        #     n_samples = random.sample(range(1, 20), 10)
-        #     random_data = [dict(n=n, mat=gs.eye(3))]
+        def are_antipodals_data(self):
+            mat1 = gs.eye(3)
+            mat2 = gs.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
+            smoke_data = [
+                dict(n=3, mat1=mat1, mat2=mat2, expected=True),
+                dict(n=3, mat1=[mat1, mat2], mat2=[mat2, mat2], expected=[True, False]),
+            ]
+            return self.generate_tests(smoke_data)
 
         def log_at_antipodals_value_error_data(self):
             smoke_data = [
@@ -144,13 +191,6 @@ class TestSpecialOrthogonal(TestCase, metaclass=Parametrizer):
                     n=3,
                     mat1=gs.eye(3),
                     mat2=[[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]],
-                    expected=pytest.raises(ValueError),
-                ),
-                dict(
-                    n=3,
-                    mat1=(2.0 * gs.pi / (3.0 * gs.sqrt(3.0)))
-                    * gs.array([1.0, 1.0, 1.0]),
-                    mat2=(-gs.pi / (3.0 * gs.sqrt(3.0))) * gs.array([1.0, 1.0, 1.0]),
                     expected=pytest.raises(ValueError),
                 ),
                 dict(
@@ -231,6 +271,33 @@ class TestSpecialOrthogonal(TestCase, metaclass=Parametrizer):
             random_data = []
             return self.generate_tests(random_data)
 
+        def rotation_vector_rotation_matrix_regularize_data(self):
+            n_list = random.sample(range(2, 50), 10)
+            random_data = [
+                dict(
+                    n=n,
+                    point=SpecialOrthogonal(n=3, point_type="vector").random_point(),
+                )
+                for n in n_list
+            ]
+            return self.generate_tests([], random_data)
+
+        def parallel_transport_data(self):
+            n_list = random.sample(range(2, 10), 5)
+            n_samples_list = random.sample(range(2, 10), 5)
+            random_data = [
+                dict(n=n, n_samples=n_samples)
+                for n, n_samples in zip(n_list, n_samples_list)
+            ]
+            return self.generate_tests([], random_data)
+
+        def metric_left_invariant_data(self):
+
+            smoke_data = [dict(n=3)]
+            return self.generate_tests(smoke_data)
+
+    testing_data = TestDataSpecialOrthogonal()
+
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(self.cls(n).belongs(mat), gs.array(expected))
 
@@ -304,12 +371,29 @@ class TestSpecialOrthogonal(TestCase, metaclass=Parametrizer):
         log = group.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(log, gs.array(expected))
 
-    def test_matrix_from_tait_bryan_angles(self, coord_type, order, angles, expected):
-        group = self.cls(3, point_type="vector")
-        result = group.matrix_from_tait_bryan_angles(
-            gs.array(angles), coord_type, order
+    def test_rotation_vector_rotation_matrix_regularize(self, n, point):
+        group = SpecialOrthogonal(n=n)
+        rot_mat = group.matrix_from_rotation_vector(gs.array(point))
+        self.assertAllClose(
+            group.regularize(gs.array(point)),
+            group.rotation_vector_from_matrix(rot_mat),
         )
-        self.assertAllClose(result, gs.array(expected))
+
+    def test_parallel_transport(self, n, n_samples):
+        metric = self.cls(n).bi_invariant_metric
+        shape = (self.n_samples, self.group.n, self.group.n)
+        result = gs.all(helper.test_parallel_transport(self.group, metric, shape))
+        self.assertAllClose(result, gs.array(True))
+
+    def test_metric_left_invariant(self, n):
+        group = self.cls(n)
+        point = group.random_point()
+        tangent_vec = group.lie_algebra.basis[0]
+        expected = group.bi_invariant_metric.norm(tangent_vec)
+
+        translated = group.tangent_translation_map(point)(tangent_vec)
+        result = group.bi_invariant_metric.norm(translated)
+        self.assertAllClose(result, expected)
 
 
 class TestSpecialOrthogonal3(TestCase, metaclass=Parametrizer):
@@ -418,6 +502,8 @@ class TestSpecialOrthogonal3(TestCase, metaclass=Parametrizer):
                 smoke_data += [dict(point=point)]
 
             return self.generate_tests(smoke_data)
+
+    testing_data = TestDataSpecialOrthogonal3()
 
     def test_tait_bryan_angles_matrix(self, coord, order, vec, mat):
         group = self.cls(3, point_type="vector")
