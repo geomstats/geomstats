@@ -7,7 +7,6 @@ Lead author: Jonas Lueg
 """
 
 import functools
-import numpy as np
 import itertools as it
 
 import geomstats.backend as gs
@@ -40,7 +39,7 @@ class Split(object):
 
     def __init__(self, n, part1, part2):
         # sort both parts and convert them into tuples
-        part1, part2 = tuple(gs.sort(list(part1))), tuple(gs.sort(list(part2)))
+        part1, part2 = tuple(sorted(list(part1))), tuple(sorted(list(part2)))
         if set(part1) & set(part2):
             raise ValueError(
                 f"A split consists of disjoint sets, those are not: {part1}, {part2}.")
@@ -134,7 +133,7 @@ class Split(object):
         """ Checks whether this split is compatible with another split. """
         p1, p2 = set(self.part1), set(self.part2)
         o1, o2 = set(other.part1), set(other.part2)
-        return not np.all([p1 & o1, p1 & o2, p2 & o1, p2 & o2])
+        return not gs.all([p1 & o1, p1 & o2, p2 & o1, p2 & o2])
 
     def __eq__(self, other):
         """ The equal function. """
@@ -194,7 +193,8 @@ class Structure(object):
         # standardize the representation
         partition = [tuple(sorted(x)) for x in partition]
         # sort the partition itself, but also the split_sets.
-        sort_key = np.argsort([part[0] for part in partition])
+        seq = [part[0] for part in partition]
+        sort_key = sorted(range(len(seq)), key=seq.__getitem__)
         self._partition = tuple([partition[key] for key in sort_key])
         self._split_sets = tuple([tuple(sorted(split_sets[key])) for key in sort_key])
         self._leaf_paths = None
@@ -253,7 +253,7 @@ class Structure(object):
         if self._support is None:
             # for i-th component and k-th split in that component,
             # support[i][k][u, v] is True, if that split separates u and v.
-            _support = [[np.zeros((self.n, self.n), dtype=bool) for _ in splits] for
+            _support = [[gs.zeros((self.n, self.n), dtype=bool) for _ in splits] for
                         splits in self.split_sets]
             for i, d in enumerate(self.leaf_paths):
                 for (u, v), split_list in d.items():
@@ -276,7 +276,7 @@ class Structure(object):
         """
         if self._separators is None:
             self._separators = [0] + list(
-                np.cumsum([len(splits) for splits in self.split_sets], dtype=int))
+                gs.cumsum([len(splits) for splits in self.split_sets], dtype=int))
         return self._separators
 
     @property
@@ -293,12 +293,14 @@ class Structure(object):
             def _chart(x):
                 """ Input is a flat vector or list x (Nye parametrization). """
                 _w = self.ravel(x=x)
-                _corr = np.zeros((self.n, self.n))
+                _corr = gs.zeros((self.n, self.n))
                 for i, d in enumerate(self.leaf_paths):
                     for (u, v), split_indices in d.items():
-                        _corr[u, v] = np.prod([1 - _w[i][k] for k in split_indices])
+                        _corr[u, v] = gs.prod([1 - _w[i][k] for k in split_indices])
                         _corr[v, u] = _corr[u, v]
-                np.fill_diagonal(a=_corr, val=1)
+                # TODO use gs.fill_diagonal here, but it is not implemented yet
+                for u in range(self.n):
+                    _corr[u, u] = 1
                 return _corr
 
             self._chart = _chart
@@ -328,7 +330,7 @@ class Structure(object):
 
     def where(self, s):
         """ Gives the index (unraveled) of the split s in the structure. """
-        return int(np.argmin([o != s for o in self.unravel(self.split_sets)]))
+        return int(gs.argmin([o != s for o in self.unravel(self.split_sets)]))
 
     def ravel(self, x):
         """ Transforms an iterable of length 'number of splits' into a list of lists."""
@@ -431,8 +433,8 @@ class Wald(object):
     def __init__(self, n, st: Structure, x):
         self._n: int = n
         self._st: Structure = st
-        self._x: np.ndarray = x
-        self._corr: [np.ndarray, None] = None
+        self._x = x
+        self._corr = None
         return
 
     @property
@@ -441,7 +443,7 @@ class Wald(object):
         return self._st
 
     @property
-    def x(self) -> np.ndarray:
+    def x(self) -> gs.array:
         """ The (flat) vector containing the edge weights in Nye notation. """
         return self._x
 
@@ -468,4 +470,4 @@ class Wald(object):
         return str((self.st, tuple(self.x)))
 
     def __repr__(self):
-        return str(self.x)
+        return str((self.st, tuple(self.x)))
