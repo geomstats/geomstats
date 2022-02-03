@@ -1,10 +1,11 @@
 """Unit tests for Wrapped gaussian process."""
 
-import geomstats.tests
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel
+
 import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.wrapped_gaussian_process import WrappedGaussianProcess
-from sklearn.gaussian_process.kernels import RBF, ConstantKernel
 
 
 class TestWrappedGaussianProcess(geomstats.tests.TestCase):
