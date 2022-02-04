@@ -20,3 +20,17 @@ class OpenSetProperites:
         space = self.space(*space_args)
         result = gs.all(space.ambient_space.belongs(gs.array(data), atol))
         self.asertAllClose(result, gs.array(True))
+
+
+class LieGroupProperties:
+    def exp_log_composition_identity(self, group_args, tangent_vec, base_point):
+        group = self.group(*group_args)
+        exp_point = group.exp_from_identity(gs.array(tangent_vec), gs.array(base_point))
+        log_vec = group.log_from_idenity(exp_point)
+        self.assertAllClose(log_vec, gs.array(tangent_vec))
+
+    def log_exp_composition_identity(self, group_args, point, base_point):
+        group = self.group(*group_args)
+        log_vec = group.log_from_identity(gs.array(point), gs.array(base_point))
+        exp_point = group.exp_from_identity(log_vec)
+        self.assertAllClose(exp_point, gs.array(point))
