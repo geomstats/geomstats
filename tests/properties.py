@@ -52,9 +52,7 @@ class ManifoldProperties:
         belongs = space.belongs(space.projection(gs.array(point)), belongs_atol)
         self.assertAllClose(gs.all(belongs), gs.array(True))
 
-    def to_tangent_and_is_tangent(
-        self, space_args, vector, base_point, is_tangent_atol
-    ):
+    def to_tangent_is_tangent(self, space_args, vector, base_point, is_tangent_atol):
         """Check that to_tangent returns a tangent vector.
 
         Parameters
@@ -74,8 +72,145 @@ class ManifoldProperties:
         self.assertAllClose(result, gs.array(True))
 
 
+class OpenSetProperties(ManifoldProperties):
+    def to_tangent_belongs_ambient_space(self, space_args, data, belongs_atol):
+        space = self.space(*space_args)
+        result = gs.all(space.ambient_space.belongs(gs.array(data), belongs_atol))
+        self.asertAllClose(result, gs.array(True))
+
+
+class LieGroupProperties:
+    def exp_log_composition(self, group_args, tangent_vec, base_point, rtol, atol):
+        """Check that group exponential and logarithm are inverse.
+
+        This is calling group exponential first, then group logarithm.
+
+        Parameters
+        ----------
+        group_args : tuple
+            Arguments to pass to constructor of the group.
+        tangent_vec : array-like
+            Tangent vector to the manifold at base_point.
+        base_point : array-like
+            Point on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        group = self.group(*group_args)
+        exp_point = group.exp_from_identity(gs.array(tangent_vec), gs.array(base_point))
+        log_vec = group.log_from_identity(exp_point, gs.array(base_point))
+        self.assertAllClose(log_vec, gs.array(tangent_vec), rtol, atol)
+
+    def log_exp_composition(self, group_args, point, base_point, rtol, atol):
+        """Check that group exponential and logarithm are inverse.
+
+        This is calling group logarithm first, then group exponential.
+
+        Parameters
+        ----------
+        group_args : tuple
+            Arguments to pass to constructor of the group.
+        point : array-like
+            Point on the manifold.
+        base_point : array-like
+            Point on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        group = self.group(*group_args)
+        log_vec = group.log_from_identity(gs.array(point), gs.array(base_point))
+        exp_point = group.exp_from_identity(log_vec, gs.array(base_point))
+        self.assertAllClose(exp_point, gs.array(point), rtol, atol)
+
+
+class VectorSpaceProperties:
+    def basis_belongs(self, space_args, belongs_atol):
+        """Check that basis elements belong to vector space.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the vector space.
+        belongs_atol : float
+            Absolute tolerance of the belongs function.
+        """
+        space = self.space(*space_args)
+        result = gs.all(space.belongs(space.basis, belongs_atol))
+        self.assertAllClose(result, gs.array(True))
+
+    def basis_cardinality(self, space_args):
+        """Check that the number of basis elements is the dimension.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the vector space.
+        """
+        space = self.space(*space_args)
+        basis = space.basis
+        self.assertAllClose(len(basis), space.dim)
+
+
+class LieAlgebraProperties(VectorSpaceProperties):
+    def basis_representation_matrix_representation_composition(
+        self, algebra_args, matrix_rep, rtol, atol
+    ):
+        """Check that changing coordinate system twice gives back the point.
+
+        A point written in basis representation is converted to matrix representation
+        and back.
+
+        Parameters
+        ----------
+        algebra_args : tuple
+            Arguments to pass to constructor of the Lie algebra.
+        matrix_rep : array-like
+            Point on the Lie algebra given in its matrix representation.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        algebra = self.algebra(*algebra_args)
+        basis_rep = algebra.basis_representation(gs.array(matrix_rep))
+        result = algebra.matrix_representation(basis_rep)
+        self.assertAllClose(result, gs.array(matrix_rep), rtol, atol)
+
+    def matrix_representation_basis_representation_composition(
+        self,
+        algebra_args,
+        basis_rep,
+        rtol,
+        atol,
+    ):
+        """Check that changing coordinate system twice gives back the point.
+
+        A point written in matrix representation is converted to basis representation
+        and back.
+
+        Parameters
+        ----------
+        algebra_args : tuple
+            Arguments to pass to constructor of the Lie algebra.
+        basis_rep : array-like
+            Point on the Lie algebra given in its basis representation.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        algebra = self.algebra(*algebra_args)
+        mat_rep = algebra.matrix_representation(basis_rep)
+        result = algebra.basis_representation(mat_rep)
+        self.assertAllClose(result, gs.array(basis_rep), rtol, atol)
+
+
 class LevelSetProperties(ManifoldProperties):
-    def extrinsic_then_intrinsic(self, space_args, point_extrinsic, rtol, atol):
+    def extrinsic_intrinsic_composition(self, space_args, point_extrinsic, rtol, atol):
         """Check that changing coordinate system twice gives back the point.
 
         A point written in extrinsic coordinates is converted to intrinsic coordinates
@@ -99,7 +234,7 @@ class LevelSetProperties(ManifoldProperties):
 
         self.assertAllClose(result, expected, rtol, atol)
 
-    def intrinsic_then_extrinsic(self, space_args, point_intrinsic, rtol, atol):
+    def intrinsic_extrinsic_composition(self, space_args, point_intrinsic, rtol, atol):
         """Check that changing coordinate system twice gives back the point.
 
         A point written in intrinsic coordinates is converted to extrinsic coordinates
@@ -310,7 +445,7 @@ class ConnectionProperties:
     def exp_log_composition(self, connection_args, tangent_vec, base_point, rtol, atol):
         """Check that connection exponential and logarithm are inverse.
 
-        This is calling connection exponential first, then connection exponential.
+        This is calling connection exponential first, then connection logarithm.
 
         Parameters
         ----------
