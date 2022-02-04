@@ -27,11 +27,11 @@ class Split(object):
     ----------
     n : int
         The number of labels, the set of labels will be :math:`\{0,\dots,n-1\}`.
-    part1 :
+    part1 : tuple
         The first part of the split, an iterable that is a subset of
         :math:`\{0,\dots,n-1\}`. It may be empty for technical reasons, but must have
         empty intersection with ``part2``.
-    part2 :
+    part2 : tuple
         The second part of the split, an iterable that is a subset of
         :math:`\{0,\dots,n-1\}`. It may be empty for technical reasons, but must have
         empty intersection with ``part1``.
@@ -76,8 +76,8 @@ class Split(object):
 
     def restr(self, subset: set):
         """The restriction of a split to a subset, returns a split."""
-        return Split(n=self.n, part1=set(self.part1) & subset,
-                     part2=set(self.part2) & subset)
+        return Split(n=self.n, part1=tuple(set(self.part1) & subset),
+                     part2=tuple(set(self.part2) & subset))
 
     def contains(self, subset: set):
         """ Determines if a subset is contained in either part of a split.
@@ -114,10 +114,9 @@ class Split(object):
         if type(u) == type(v) == int:
             return (u in self.part1 and v in self.part2) or (
                     u in self.part2 and v in self.part1)
-        else:
-            b1 = set(u).issubset(set(self.part1)) and set(v).issubset(set(self.part2))
-            b2 = set(v).issubset(set(self.part1)) and set(u).issubset(set(self.part2))
-            return b1 or b2
+        b1 = set(u).issubset(set(self.part1)) and set(v).issubset(set(self.part2))
+        b2 = set(v).issubset(set(self.part1)) and set(u).issubset(set(self.part2))
+        return b1 or b2
 
     def point_to_split(self, other):
         """ Gives back the part of this split that is directed to the other split. """
@@ -130,7 +129,11 @@ class Split(object):
             self.part1) & set(other.part2) else self.part1
 
     def compatible_with(self, other):
-        """ Checks whether this split is compatible with another split. """
+        """ Checks whether this split is compatible with another split.
+
+        Two splits are compatible, if at least one intersection of the respective parts
+        of the splits is empty.
+        """
         p1, p2 = set(self.part1), set(self.part2)
         o1, o2 = set(other.part1), set(other.part2)
         return sum([bool(s) for s in [p1 & o1, p1 & o2, p2 & o1, p2 & o2]]) < 4
@@ -182,13 +185,18 @@ class Structure(object):
         self._n = n
         # make some assertions about the given parameters.
         # same number of components in both partition and split_sets
-        assert len(split_sets) == len(partition)
+        if len(split_sets) != len(partition):
+            raise ValueError(f"Number of split sets is not equal to number of "
+                             f"components.")
         # all parts of partition give the whole set of labels.
-        assert set.union(*[set(part) for part in partition]) == set(range(n))
+        if set.union(*[set(part) for part in partition]) != set(range(n)):
+            raise ValueError(f"partition is not a partition of the set (1,2,...,n).")
         # each split is a proper split of the label set of its component.
         for _part, _splits in zip(partition, split_sets):
             for _sp in _splits:
-                assert (set(_sp.part1) | set(_sp.part2)) == set(_part)
+                if (set(_sp.part1) | set(_sp.part2)) != set(_part):
+                    raise ValueError(f"The split {_sp} is not a split of component "
+                                     f"{_part}.")
 
         # standardize the representation
         partition = [tuple(sorted(x)) for x in partition]
