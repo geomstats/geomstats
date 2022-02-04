@@ -1,12 +1,18 @@
 r"""Wrapped Gaussian Process.
 
-Lead author: .
+Lead author: Arthur Pignet
 
-Extension of Gaussian Processes to Riemannian Manifolds, introduced in [1].
+Extension of Gaussian Processes to Riemannian Manifolds,
+introduced in [Mallasto]_.
 
-[1] Mallasto, A. and Feragen, A. Wrapped gaussian process
-regression on riemannian manifolds. In 2018 IEEE/CVF
-Conference on Computer Vision and Pattern Recognition
+References
+----------
+..[Mallasto]   Mallasto, A. and Feragen, A.
+            “Wrapped gaussian process
+            regression on riemannian manifolds.”
+            IEEE/CVF
+Conference on Computer Vision and Pattern Recognition (2018)
+
 """
 
 from sklearn.base import BaseEstimator, MultiOutputMixin, RegressorMixin
@@ -120,12 +126,6 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
             random_state=random_state,
         )
 
-        # I know that inheritance seems more appropriate here, but the issue is
-        # that the .sample_y method of wgrp calls the .sample_y of gpr,
-        # which calls the .predict of wgpr instead of the one of gpr.
-        # Moreover the attribute .y_train_ would be the tangent_y_train and not the true
-        # y_train.
-
         self.__dict__.update(self._euclidean_gpr.__dict__)
         self.log_marginal_likelihood = self._euclidean_gpr.log_marginal_likelihood
 
@@ -149,6 +149,12 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
     def fit(self, X, y):
         """Fit Wrapped Gaussian process regression model.
+
+        The Wrapped Gaussian process is fit through the following steps:
+
+        - Compute the tangent dataset using the prior
+        - Fit a Gaussian process regression on the tangent dataset
+        - Store the resulting euclidean Gaussian process
 
         Parameters
         ----------
@@ -179,6 +185,15 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
     def predict(self, X, return_tangent_std=False, return_tangent_cov=False):
         """Predict using the Gaussian process regression model.
+
+        A fitted Wrapped Gaussian process can be use to predict values
+        through the following steps:
+
+            - Use the stored Gaussian process regression on the dataset to
+                return tangent predictions
+            - Compute the base-points using the prior
+            - Map the tangent predictions on the manifold via the metric's exp
+                with the base-points yielded by the prior
 
         We can also predict based on an unfitted model by using the GP prior.
         In addition to the mean of the predictive distribution, optionally also
@@ -245,6 +260,17 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
     def sample_y(self, X, n_samples=1, random_state=0):
         """Draw samples from Wrapped Gaussian process and evaluate at X.
+
+        A fitted Wrapped Gaussian process can be use to sample
+        values through the following steps:
+
+            - Use the stored Gaussian process regression on the dataset
+                to sample tangent values
+            - Compute the base-points using the prior
+            - Flatten (and repeat if needed) both the base-points and the
+                tangent samples to benefit from vectorized computation.
+            - Map the tangent samples on the manifold via the metric's exp with the
+                flattened and repeated base-points yielded by the prior
 
         Parameters
         ----------

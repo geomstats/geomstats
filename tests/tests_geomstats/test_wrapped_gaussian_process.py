@@ -59,7 +59,6 @@ class TestWrappedGaussianProcess(geomstats.tests.TestCase):
         self.assertAllClose(std, gs.zeros(*std.shape), atol=1e-4)
         self.assertAllClose(y, self.y_sphere, atol=1e-4)
 
-    @geomstats.tests.np_and_torch_only
     def test_samples_y_hypersphere(self):
         """Test the samples_y method"""
         wgpr = WrappedGaussianProcess(
