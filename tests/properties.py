@@ -4,36 +4,122 @@ import geomstats.backend as gs
 
 
 class ManifoldProperties:
-    def projection_shape_and_belongs(self, space_args, data, expected, belongs_atol):
-        space = self.space(*space_args)
-        belongs = space.belongs(space.projection(gs.array(data)), belongs_atol)
-        self.assertAllClose(gs.all(belongs), gs.array(True))
-        self.assertAllClose(gs.shape(belongs), expected)
+    def belongs_shape(self, space_args, point, expected):
+        """Check that belongs returns an array of the correct shape.
 
-    def to_tangent_shape_and_is_tangent(
-        self, space_args, vector, base_point, expected, is_tangent_atol
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to be passed to the constructor of the manifold.
+        point : array-like
+            Point.
+        expected : tuple
+            Expected shape for the result of the belongs function.
+        """
+        space = self.space(*space_args)
+        result = gs.shape(space.belongs(gs.array(point)))
+        self.assertAllClose(result, expected)
+
+    def to_tangent_shape(self, space_args, vector, expected):
+        """Check that to_tangent returns an array of the correct shape.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to be passed to the constructor of the manifold.
+        point : array-like
+            Point.
+        expected : tuple
+            Expected shape for the result of the belongs function.
+        """
+        space = self.space(*space_args)
+        result = gs.shape(space.to_tangent(gs.array(vector)))
+        self.assertAllClose(result, expected)
+
+    def projection_belongs(self, space_args, point, belongs_atol):
+        """Check that a point projected on a manifold belongs to the manifold.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to be passed to the constructor of the manifold.
+        point : array-like
+            Point to be projected on the manifold.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
+        space = self.space(*space_args)
+        belongs = space.belongs(space.projection(gs.array(point)), belongs_atol)
+        self.assertAllClose(gs.all(belongs), gs.array(True))
+
+    def to_tangent_and_is_tangent(
+        self, space_args, vector, base_point, is_tangent_atol
     ):
+        """Check that to_tangent returns a tangent vector.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to be passed to the constructor of the manifold.
+        vector : array-like
+            Vector to be projected on the tangent space at base_point.
+        base_point : array-like
+            Point on the manifold.
+        is_tangent : float
+            Absolute tolerance for the to_tangent function.
+        """
         space = self.space(*space_args)
         tangent = space.to_tangent(gs.array(vector))
         result = gs.all(space.is_tangent(tangent, base_point, is_tangent_atol))
         self.assertAllClose(result, gs.array(True))
-        self.assertAllClose(gs.shape(tangent), expected)
 
 
 class LevelSetProperties(ManifoldProperties):
-    def extrinsic_then_intrinsic(self, space_args, point, rtol, atol):
+    def extrinsic_then_intrinsic(self, space_args, point_extrinsic, rtol, atol):
+        """Check that changing coordinate system twice gives back the point.
+
+        A point written in extrinsic coordinates is converted to intrinsic coordinates
+        and back.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to be passed to the constructor of the manifold.
+        point_extrinsic : array-like
+            Point on the manifold in extrinsic coordinates
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
         space = self.space(*space_args)
-        point_intrinsic = space.extrinsic_to_intrinsic_coords(point)
+        point_intrinsic = space.extrinsic_to_intrinsic_coords(point_extrinsic)
         result = space.intrinsic_to_extrinsic_coords(point_intrinsic)
-        expected = point
+        expected = point_extrinsic
 
         self.assertAllClose(result, expected, rtol, atol)
 
-    def intrinsic_then_extrinsic(self, space_args, point, rtol, atol):
+    def intrinsic_then_extrinsic(self, space_args, point_intrinsic, rtol, atol):
+        """Check that changing coordinate system twice gives back the point.
+
+        A point written in intrinsic coordinates is converted to extrinsic coordinates
+        and back.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to be passed to the constructor of the manifold.
+        point_intrinsic : array-like
+            Point on the manifold in intrinsic coordinates
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
         space = self.space(*space_args)
-        point_extrinsic = space.intrinsic_to_extrinsic_coords(point)
+        point_extrinsic = space.intrinsic_to_extrinsic_coords(point_intrinsic)
         result = space.extrinsic_to_intrinsic_coords(point_extrinsic)
-        expected = point
+        expected = point_intrinsic
 
         self.assertAllClose(result, expected, rtol, atol)
 
@@ -42,6 +128,21 @@ class ConnectionProperties:
     def exp_belongs(
         self, connection_args, space, tangent_vec, base_point, belongs_atol
     ):
+        """Check that the connection exponential gives a point on the manifold.
+
+        Parameters
+        ----------
+        connection_args : tuple
+            Arguments to be passed to the constructor of the connection.
+        space : Manifold
+            Manifold where connection is defined.
+        tangent_vec : array-like
+            Tangent vector at base point.
+        base_point : array-like
+            Point on the manifold.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
         connection = self.connection(*connection_args)
         exp = connection.exp(gs.array(tangent_vec), gs.array(base_point))
         result = gs.all(space.belongs(exp, belongs_atol))
@@ -50,6 +151,21 @@ class ConnectionProperties:
     def log_is_tangent(
         self, connection_args, space, base_point, point, is_tangent_atol
     ):
+        """Check that the connection logarithm gives a tangent vector.
+
+        Parameters
+        ----------
+        connection_args : tuple
+            Arguments to be passed to the constructor of the connection.
+        space : Manifold
+            Manifold where connection is defined.
+        base_point : array-like
+            Point on the manifold.
+        point : array-like
+            Point on the manifold.
+        is_tangent_atol : float
+            Absolute tolerance for the is_tangent function.
+        """
         connection = self.connection(*connection_args)
         log = connection.log(gs.array(base_point), gs.array(point))
         result = gs.all(space.is_tangent(log, gs.array(base_point), is_tangent_atol))
@@ -64,6 +180,25 @@ class ConnectionProperties:
         initial_tangent_vec,
         belongs_atol,
     ):
+        """Check that connection geodesics belong to manifold.
+
+        This is for geodesics defined by the initial value problem (ivp).
+
+        Parameters
+        ----------
+        connection_args : tuple
+            Arguments to be passed to the constructor of the connection.
+        space : Manifold
+            Manifold where connection is defined.
+        n_points : int
+            Number of points on the geodesics.
+        initial_point : array-like
+            Point on the manifold.
+        initial_tangent_vec : array-like
+            Tangent vector at base point.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
         connection = self.connection(*connection_args)
         geodesic = connection.geodesic(
             initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
@@ -80,6 +215,25 @@ class ConnectionProperties:
     def geodesic_bvp_belongs(
         self, connection_args, space, n_points, initial_point, end_point, belongs_atol
     ):
+        """Check that connection geodesics belong to manifold.
+
+        This is for geodesics defined by the boundary value problem (bvp).
+
+        Parameters
+        ----------
+        connection_args : tuple
+            Arguments to be passed to the constructor of the connection.
+        space : Manifold
+            Manifold where connection is defined.
+        n_points : int
+            Number of points on the geodesics.
+        initial_point : array-like
+            Point on the manifold.
+        end_point : array-like
+            Point on the manifold.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
         connection = self.connection(*connection_args)
 
         geodesic = connection.geodesic(initial_point=initial_point, end_point=end_point)
@@ -93,12 +247,46 @@ class ConnectionProperties:
         self.assertAllClose(result, expected)
 
     def log_exp_composition(self, connection_args, point, base_point, rtol, atol):
+        """Check that connection exponential and logarithm are inverse.
+
+        This is calling connection logarithm first, then connection logarithm.
+
+        Parameters
+        ----------
+        connection_args : tuple
+            Arguments to be passed to the constructor of the connection.
+        point : array-like
+            Point on the manifold.
+        base_point : array-like
+            Point on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
         connection = self.connection(*connection_args)
         log = connection.log(gs.array(point), base_point=gs.array(base_point))
         result = connection.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point, rtol=rtol, atol=atol)
 
     def exp_log_composition(self, connection_args, tangent_vec, base_point, rtol, atol):
+        """Check that connection exponential and logarithm are inverse.
+
+        This is calling connection exponential first, then connection exponential.
+
+        Parameters
+        ----------
+        connection_args : tuple
+            Arguments to be passed to the constructor of the connection.
+        tangent_vec : array-like
+            Tangent vector to the manifold at base_point.
+        base_point : array-like
+            Point on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
         connection = self.connection(*connection_args)
         exp = connection.exp(tangent_vec=tangent_vec, base_point=gs.array(base_point))
         result = connection.log(exp, base_point=gs.array(base_point))
@@ -116,6 +304,29 @@ class ConnectionProperties:
         rtol,
         atol,
     ):
+        """Check that end point of ladder parallel transport matches exponential.
+
+        Parameters
+        ----------
+        connection_args : tuple
+            Arguments to be passed to the constructor of the connection.
+        direction : array-like
+            Tangent vector to the manifold at base_point.
+        tangent_vec : array-like
+            Tangent vector to the manifold at base_point.
+        base_point : array-like
+            Point on the manifold.
+        scheme : str, {'pole', 'schild'}
+            The scheme to use for the construction of the ladder at each step.
+        n_rungs : int
+            Number of steps of the ladder.
+        alpha : float
+            Exponent for the scaling of the vector to transport.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
         connection = self.connection(*connection_args)
 
         ladder = connection.ladder_parallel_transport(
