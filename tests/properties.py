@@ -4,15 +4,13 @@ import geomstats.backend as gs
 
 
 class ManifoldTestProperties:
-    def test_projection_shape_and_belongs(
-        self, space_args, data, expected, belongs_atol
-    ):
+    def projection_shape_and_belongs(self, space_args, data, expected, belongs_atol):
         space = self.space(*space_args)
         belongs = space.belongs(space.projection(gs.array(data)), belongs_atol)
         self.assertAllClose(gs.all(belongs), gs.array(True))
         self.assertAllClose(gs.shape(belongs), expected)
 
-    def test_to_tangent_shape_and_is_tangent(
+    def to_tangent_shape_and_is_tangent(
         self, space_args, vector, base_point, expected, is_tangent_atol
     ):
         space = self.space(*space_args)
@@ -23,7 +21,7 @@ class ManifoldTestProperties:
 
 
 class ConnectionTestProperties:
-    def test_exp_belongs(
+    def exp_belongs(
         self, connection_args, space, tangent_vec, base_point, belongs_atol
     ):
         connection = self.connection(*connection_args)
@@ -31,7 +29,7 @@ class ConnectionTestProperties:
         result = gs.all(space.belongs(exp, belongs_atol))
         self.assertAllClose(result, gs.array(True))
 
-    def test_log_is_tangent(
+    def log_is_tangent(
         self, connection_args, space, base_point, point, is_tangent_atol
     ):
         connection = self.connection(*connection_args)
@@ -39,7 +37,7 @@ class ConnectionTestProperties:
         result = gs.all(space.is_tangent(log, gs.array(base_point), is_tangent_atol))
         self.assertAllClose(result, gs.array(True))
 
-    def test_geodesic_ivp_belongs(
+    def geodesic_ivp_belongs(
         self,
         connection_args,
         space,
@@ -61,7 +59,7 @@ class ConnectionTestProperties:
 
         self.assertAllClose(result, expected)
 
-    def test_geodesic_bvp_belongs(
+    def geodesic_bvp_belongs(
         self, connection_args, space, n_points, initial_point, end_point, belongs_atol
     ):
         connection = self.connection(*connection_args)
@@ -76,21 +74,19 @@ class ConnectionTestProperties:
 
         self.assertAllClose(result, expected)
 
-    def test_log_exp_composition(self, connection_args, point, base_point, rtol, atol):
+    def log_exp_composition(self, connection_args, point, base_point, rtol, atol):
         connection = self.connection(*connection_args)
         log = connection.log(gs.array(point), base_point=gs.array(base_point))
         result = connection.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point, rtol=rtol, atol=atol)
 
-    def test_exp_log_composition(
-        self, connection_args, tangent_vec, base_point, rtol, atol
-    ):
+    def exp_log_composition(self, connection_args, tangent_vec, base_point, rtol, atol):
         connection = self.connection(*connection_args)
         exp = connection.exp(tangent_vec=tangent_vec, base_point=gs.array(base_point))
         result = connection.log(exp, base_point=gs.array(base_point))
         self.assertAllClose(result, tangent_vec, rtol=rtol, atol=atol)
 
-    def test_exp_ladder_parallel_transport(
+    def exp_ladder_parallel_transport(
         self,
         connection_args,
         direction,
@@ -118,7 +114,7 @@ class ConnectionTestProperties:
 
         self.assertAllClose(result, expected, rtol=rtol, atol=atol)
 
-    def test_exp_geodesic_ivp(
+    def exp_geodesic_ivp(
         self, connection_args, n_points, tangent_vec, base_point, rtol, atol
     ):
         connection = self.connection(*connection_args)
@@ -133,7 +129,7 @@ class ConnectionTestProperties:
 
 
 class RiemannianMetricTestProperties(ConnectionTestProperties):
-    def test_squared_dist_is_symmetric(self, metric_args, point_a, point_b, rtol, atol):
+    def squared_dist_is_symmetric(self, metric_args, point_a, point_b, rtol, atol):
         metric = self.metric(*metric_args)
         sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
         sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
@@ -150,7 +146,7 @@ class RiemannianMetricTestProperties(ConnectionTestProperties):
         )
         return gs.logical_and(is_tangent, is_equinormal)
 
-    def test_parallel_transport_ivp_is_isometry(
+    def parallel_transport_ivp_is_isometry(
         self,
         metric_args,
         space,
@@ -179,7 +175,7 @@ class RiemannianMetricTestProperties(ConnectionTestProperties):
         expected = gs.array(len(result) * [True])
         self.assertAllClose(result, expected)
 
-    def test_parallel_transport_bvp_is_isometry(
+    def parallel_transport_bvp_is_isometry(
         self,
         metric_args,
         space,
