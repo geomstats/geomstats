@@ -37,21 +37,21 @@ class LieGroupProperties:
 
 
 class VectorSpaceProperties:
-    def basis_belongs_and_basis_cardinality(self, algebra_args):
+    def basis_belongs_and_basis_cardinality(self, algebra_args, belongs_atol):
         algebra = self.algebra(*algebra_args)
-        basis = algebra.belongs(algebra.basis)
+        basis = algebra.belongs(algebra.basis, belongs_atol)
         self.assertAllClose(len(basis), algebra.dim)
         self.assertAllClose(gs.all(basis), gs.array(True))
 
 
 class LieAlgebraProperties(VectorSpaceProperties):
     def basis_representation_matrix_represenation_composition(
-        self, algebra_args, mat_rep, atol, rtol
+        self, algebra_args, mat_rep, rtol, atol
     ):
         algebra = self.algebra(*algebra_args)
         basis_rep = algebra.basis_representation(gs.array(mat_rep))
         result = algebra.matrix_representation(basis_rep)
-        self.assertAllClose(result, gs.array(mat_rep))
+        self.assertAllClose(result, gs.array(mat_rep), rtol, atol)
 
     def matrix_representation_basis_represenation_composition(
         self, algebra_args, basis_rep, atol, rtol
@@ -59,4 +59,4 @@ class LieAlgebraProperties(VectorSpaceProperties):
         algebra = self.algebra(*algebra_args)
         mat_rep = algebra.matrix_representation(basis_rep)
         result = algebra.basis_representation(mat_rep)
-        self.assertAllClose(result, gs.array(basis_rep))
+        self.assertAllClose(result, gs.array(basis_rep), rtol, atol)
