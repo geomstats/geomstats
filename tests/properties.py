@@ -3,7 +3,7 @@
 import geomstats.backend as gs
 
 
-class ManifoldTestProperties:
+class ManifoldProperties:
     def projection_shape_and_belongs(self, space_args, data, expected, belongs_atol):
         space = self.space(*space_args)
         belongs = space.belongs(space.projection(gs.array(data)), belongs_atol)
@@ -20,7 +20,7 @@ class ManifoldTestProperties:
         self.assertAllClose(gs.shape(tangent), expected)
 
 
-class ConnectionTestProperties:
+class ConnectionProperties:
     def exp_belongs(
         self, connection_args, space, tangent_vec, base_point, belongs_atol
     ):
@@ -128,7 +128,7 @@ class ConnectionTestProperties:
         self.assertAllClose(expected, result, rtol=rtol, atol=atol)
 
 
-class RiemannianMetricTestProperties(ConnectionTestProperties):
+class RiemannianMetricProperties(ConnectionProperties):
     def squared_dist_is_symmetric(self, metric_args, point_a, point_b, rtol, atol):
         metric = self.metric(*metric_args)
         sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
