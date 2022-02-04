@@ -124,8 +124,7 @@ class RiemannianMetricTestProperties(ConnectionTestProperties):
         sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
         self.assertAllClose(sd_a_b, sd_b_a, rtol=rtol, atol=atol)
 
-    def _is_isometry(self, metric_args, space, tan_a, trans_a, endpoint):
-        metric = self.metric(*metric_args)
+    def _is_isometry(self, metric, space, tan_a, trans_a, endpoint):
 
         is_tangent = space.is_tangent(trans_a, endpoint)
         is_equinormal = gs.isclose(
@@ -141,12 +140,12 @@ class RiemannianMetricTestProperties(ConnectionTestProperties):
         end_point = metric.exp(direction, base_point)
 
         transported = metric.parallel_transport(tangent_vec, base_point, direction)
-        result = self._is_isometry(tangent_vec, transported, end_point)
+        result = self._is_isometry(metric, space, tangent_vec, transported, end_point)
         expected = gs.array(len(result) * [True])
         self.assertAllClose(result, expected, rtol=rtol, atol=atol)
 
     def test_parallel_transport_bvp_is_isometry(
-        self, metric_args, tangent_vec, base_point, direction, rtol, atol
+        self, metric_args, space, tangent_vec, base_point, direction, rtol, atol
     ):
         metric = self.metric(*metric_args)
 
@@ -155,6 +154,6 @@ class RiemannianMetricTestProperties(ConnectionTestProperties):
         transported = metric.parallel_transport(
             tangent_vec, base_point, end_point=end_point
         )
-        result = self._is_isometry(tangent_vec, transported, end_point)
+        result = self._is_isometry(metric, tangent_vec, space, transported, end_point)
         expected = gs.array(len(result) * [True])
         self.assertAllClose(result, expected, rtol=rtol, atol=atol)
