@@ -100,9 +100,9 @@ class Split(object):
 
         Parameters
         ----------
-        u :
+        u : list of int, int
             Either an integer or a set of labels.
-        v :
+        v : list of int, int
             Either an integer or a set of labels.
 
         Returns
@@ -169,10 +169,10 @@ class Structure(object):
     ----------
     n : int
         Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
-    partition :
+    partition : tuple of tuple of int
         An iterable of iterables, namely a partition of the set :math:`\{0,\dots,n-1\}`,
         representing the connected components of the forest.
-    split_sets :
+    split_sets : tuple of tuple of Split
         An iterable of iterables of splits, where each set of splits contains only
         splits of the respective connected component in the partition, so their order
         is related. The splits are then the edges of the connected components,
@@ -232,7 +232,7 @@ class Structure(object):
 
         Returns
         -------
-        leaf_paths :
+        leaf_paths : list of dict
             A list of dictionaries, each dictionary is for the respective connected
             component of the forest, and the items of each dictionary are for each pair
             of labels u, v in the respective component, a list of the splits on the
@@ -251,7 +251,7 @@ class Structure(object):
 
         Returns
         -------
-        support :
+        support : list of list
             A list (of same length as ``self.partition``) of lists, each of these lists
             is for the respective connected component and contains for each split in
             this connected component an :math:`n\times n` dimensional matrix, where the
@@ -277,7 +277,7 @@ class Structure(object):
 
         Returns
         -------
-        separators :
+        separators : list of int
             An increasing list of numbers between 0 and ``len(self.x)``, starting with
             0, where each number indicates that a new connected component starts at that
             index. Useful for unraveling the vector ``self.x`` into lists of lists.
@@ -293,7 +293,7 @@ class Structure(object):
 
         Returns
         -------
-        chart :
+        chart : callable
             A map that takes as input a vector of length 'number of total splits',
             and returns the corresponding correlation matrix.
         """
@@ -320,7 +320,7 @@ class Structure(object):
 
         Returns
         -------
-        chart_gradient :
+        chart_gradient : callable
             A map that takes as input a vector of length 'number of total splits',
             and returns a list of the partial derivatives of the map ``self.chart``.
         """
