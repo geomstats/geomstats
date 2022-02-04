@@ -5,12 +5,12 @@ import geomstats.backend as gs
 
 class ManifoldProperties:
     def belongs_shape(self, space_args, point, expected):
-        """Check that belongs returns an array of the correct shape.
+        """Check that belongs returns an array of the expected shape.
 
         Parameters
         ----------
         space_args : tuple
-            Arguments to be passed to the constructor of the manifold.
+            Arguments to pass to constructor of the manifold.
         point : array-like
             Point.
         expected : tuple
@@ -21,12 +21,12 @@ class ManifoldProperties:
         self.assertAllClose(result, expected)
 
     def to_tangent_shape(self, space_args, vector, expected):
-        """Check that to_tangent returns an array of the correct shape.
+        """Check that to_tangent returns an array of the expected shape.
 
         Parameters
         ----------
         space_args : tuple
-            Arguments to be passed to the constructor of the manifold.
+            Arguments to pass to constructor of the manifold.
         point : array-like
             Point.
         expected : tuple
@@ -42,7 +42,7 @@ class ManifoldProperties:
         Parameters
         ----------
         space_args : tuple
-            Arguments to be passed to the constructor of the manifold.
+            Arguments to pass to constructor of the manifold.
         point : array-like
             Point to be projected on the manifold.
         belongs_atol : float
@@ -60,7 +60,7 @@ class ManifoldProperties:
         Parameters
         ----------
         space_args : tuple
-            Arguments to be passed to the constructor of the manifold.
+            Arguments to pass to constructor of the manifold.
         vector : array-like
             Vector to be projected on the tangent space at base_point.
         base_point : array-like
@@ -84,7 +84,7 @@ class LevelSetProperties(ManifoldProperties):
         Parameters
         ----------
         space_args : tuple
-            Arguments to be passed to the constructor of the manifold.
+            Arguments to pass to constructor of the manifold.
         point_extrinsic : array-like
             Point on the manifold in extrinsic coordinates.
         rtol : float
@@ -108,7 +108,7 @@ class LevelSetProperties(ManifoldProperties):
         Parameters
         ----------
         space_args : tuple
-            Arguments to be passed to the constructor of the manifold.
+            Arguments to pass to constructor of the manifold.
         point_intrinsic : array-like
             Point on the manifold in intrinsic coordinates.
         rtol : float
@@ -125,6 +125,44 @@ class LevelSetProperties(ManifoldProperties):
 
 
 class ConnectionProperties:
+    def exp_shape(self, connection_args, tangent_vec, base_point, expected):
+        """Check that exp returns an array of the expected shape.
+
+        Parameters
+        ----------
+        connection_args : tuple
+            Arguments to pass to constructor of the connection.
+        tangent_vec : array-like
+            Tangent vector at base point.
+        base_point : array-like
+            Point on the manifold.
+        expected : tuple
+            Expected shape for the result of the exp function.
+        """
+        connection = self.connection(*connection_args)
+        exp = connection.exp(gs.array(tangent_vec), gs.array(base_point))
+        result = gs.shape(exp)
+        self.assertAllClose(result, expected)
+
+    def log_shape(self, connection_args, point, base_point, expected):
+        """Check that log returns an array of the expected shape.
+
+        Parameters
+        ----------
+        connection_args : tuple
+            Arguments to pass to constructor of the connection.
+        point : array-like
+            Point on the manifold.
+        base_point : array-like
+            Point on the manifold.
+        expected : tuple
+            Expected shape for the result of the log function.
+        """
+        connection = self.connection(*connection_args)
+        log = connection.log(gs.array(point), gs.array(base_point))
+        result = gs.shape(log)
+        self.assertAllClose(result, expected)
+
     def exp_belongs(
         self, connection_args, space, tangent_vec, base_point, belongs_atol
     ):
@@ -133,7 +171,7 @@ class ConnectionProperties:
         Parameters
         ----------
         connection_args : tuple
-            Arguments to be passed to the constructor of the connection.
+            Arguments to pass to constructor of the connection.
         space : Manifold
             Manifold where connection is defined.
         tangent_vec : array-like
@@ -156,7 +194,7 @@ class ConnectionProperties:
         Parameters
         ----------
         connection_args : tuple
-            Arguments to be passed to the constructor of the connection.
+            Arguments to pass to constructor of the connection.
         space : Manifold
             Manifold where connection is defined.
         base_point : array-like
@@ -187,7 +225,7 @@ class ConnectionProperties:
         Parameters
         ----------
         connection_args : tuple
-            Arguments to be passed to the constructor of the connection.
+            Arguments to pass to constructor of the connection.
         space : Manifold
             Manifold where connection is defined.
         n_points : int
@@ -222,7 +260,7 @@ class ConnectionProperties:
         Parameters
         ----------
         connection_args : tuple
-            Arguments to be passed to the constructor of the connection.
+            Arguments to pass to constructor of the connection.
         space : Manifold
             Manifold where connection is defined.
         n_points : int
@@ -254,7 +292,7 @@ class ConnectionProperties:
         Parameters
         ----------
         connection_args : tuple
-            Arguments to be passed to the constructor of the connection.
+            Arguments to pass to constructor of the connection.
         point : array-like
             Point on the manifold.
         base_point : array-like
@@ -277,7 +315,7 @@ class ConnectionProperties:
         Parameters
         ----------
         connection_args : tuple
-            Arguments to be passed to the constructor of the connection.
+            Arguments to pass to constructor of the connection.
         tangent_vec : array-like
             Tangent vector to the manifold at base_point.
         base_point : array-like
@@ -309,7 +347,7 @@ class ConnectionProperties:
         Parameters
         ----------
         connection_args : tuple
-            Arguments to be passed to the constructor of the connection.
+            Arguments to pass to constructor of the connection.
         direction : array-like
             Tangent vector to the manifold at base_point.
         tangent_vec : array-like
@@ -351,7 +389,7 @@ class ConnectionProperties:
         Parameters
         ----------
         connection_args : tuple
-            Arguments to be passed to the constructor of the connection.
+            Arguments to pass to constructor of the connection.
         n_points : int
             Number of points on the geodesic.
         tangent_vec : array-like
@@ -381,7 +419,7 @@ class RiemannianMetricProperties(ConnectionProperties):
         Parameters
         ----------
         metric_args : tuple
-            Arguments to be passed to the constructor of the metric.
+            Arguments to pass to constructor of the metric.
         point_a : array-like
             Point on the manifold.
         point_b : array-like
@@ -455,7 +493,7 @@ class RiemannianMetricProperties(ConnectionProperties):
         Parameters
         ----------
         metric_args : tuple
-            Arguments to be passed to the constructor of the metric.
+            Arguments to pass to constructor of the metric.
         space : Manifold
             Manifold where metric is defined.
         tangent_vec : array-like
@@ -507,7 +545,7 @@ class RiemannianMetricProperties(ConnectionProperties):
         Parameters
         ----------
         metric_args : tuple
-            Arguments to be passed to the constructor of the metric.
+            Arguments to pass to constructor of the metric.
         space : Manifold
             Manifold where metric is defined.
         tangent_vec : array-like
