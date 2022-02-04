@@ -86,7 +86,7 @@ class LevelSetProperties(ManifoldProperties):
         space_args : tuple
             Arguments to be passed to the constructor of the manifold.
         point_extrinsic : array-like
-            Point on the manifold in extrinsic coordinates
+            Point on the manifold in extrinsic coordinates.
         rtol : float
             Relative tolerance to test this property.
         atol : float
@@ -110,7 +110,7 @@ class LevelSetProperties(ManifoldProperties):
         space_args : tuple
             Arguments to be passed to the constructor of the manifold.
         point_intrinsic : array-like
-            Point on the manifold in intrinsic coordinates
+            Point on the manifold in intrinsic coordinates.
         rtol : float
             Relative tolerance to test this property.
         atol : float
