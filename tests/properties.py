@@ -124,7 +124,8 @@ class RiemannianMetricTestProperties(ConnectionTestProperties):
         sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
         self.assertAllClose(sd_a_b, sd_b_a, rtol=rtol, atol=atol)
 
-    def _is_isometry(self, metric, space, tan_a, trans_a, endpoint):
+    @staticmethod
+    def _is_isometry(metric, space, tan_a, trans_a, endpoint):
 
         is_tangent = space.is_tangent(trans_a, endpoint)
         is_equinormal = gs.isclose(
