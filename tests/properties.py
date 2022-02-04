@@ -154,6 +154,6 @@ class RiemannianMetricTestProperties(ConnectionTestProperties):
         transported = metric.parallel_transport(
             tangent_vec, base_point, end_point=end_point
         )
-        result = self._is_isometry(metric, tangent_vec, space, transported, end_point)
+        result = self._is_isometry(metric, space, tangent_vec, transported, end_point)
         expected = gs.array(len(result) * [True])
         self.assertAllClose(result, expected, rtol=rtol, atol=atol)
