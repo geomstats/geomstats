@@ -65,8 +65,8 @@ class ManifoldProperties:
             Vector to be projected on the tangent space at base_point.
         base_point : array-like
             Point on the manifold.
-        is_tangent : float
-            Absolute tolerance for the to_tangent function.
+        is_tangent_atol : float
+            Absolute tolerance for the is_tangent function.
         """
         space = self.space(*space_args)
         tangent = space.to_tangent(gs.array(vector))
@@ -346,6 +346,23 @@ class ConnectionProperties:
     def exp_geodesic_ivp(
         self, connection_args, n_points, tangent_vec, base_point, rtol, atol
     ):
+        """Check that end point of geodesic matches exponential.
+
+        Parameters
+        ----------
+        connection_args : tuple
+            Arguments to be passed to the constructor of the connection.
+        n_points : int
+            Number of points on the geodesic.
+        tangent_vec : array-like
+            Tangent vector to the manifold at base_point.
+        base_point : array-like
+            Point on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
         connection = self.connection(*connection_args)
         geodesic = connection.geodesic(
             initial_point=base_point, initial_tangent_vec=tangent_vec
@@ -359,6 +376,21 @@ class ConnectionProperties:
 
 class RiemannianMetricProperties(ConnectionProperties):
     def squared_dist_is_symmetric(self, metric_args, point_a, point_b, rtol, atol):
+        """Check that the squared geodesic distance is symmetric.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to be passed to the constructor of the metric.
+        point_a : array-like
+            Point on the manifold.
+        point_b : array-like
+            Point on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
         metric = self.metric(*metric_args)
         sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
         sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
@@ -366,12 +398,42 @@ class RiemannianMetricProperties(ConnectionProperties):
 
     @staticmethod
     def _is_isometry(
-        metric, space, tan_a, trans_a, endpoint, is_tangent_atol, rtol, atol
+        metric,
+        space,
+        tangent_vec,
+        trans_tangent_vec,
+        base_point,
+        is_tangent_atol,
+        rtol,
+        atol,
     ):
+        """Check that a transformation is an isometry.
 
-        is_tangent = space.is_tangent(trans_a, endpoint, is_tangent_atol)
+        This is an auxiliary function.
+
+        Parameters
+        ----------
+        metric : RiemannianMetric
+            Riemannian metric.
+        tangent_vec : array-like
+            Tangent vector at base point.
+        trans_tangent_vec : array-like
+            Transformed tangent vector at base point.
+        base_point : array-like
+            Point on manifold.
+        is_tangent_atol: float
+            Asbolute tolerance for the is_tangent function.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        is_tangent = space.is_tangent(trans_tangent_vec, base_point, is_tangent_atol)
         is_equinormal = gs.isclose(
-            metric.norm(trans_a, endpoint), metric.norm(tan_a, endpoint), rtol, atol
+            metric.norm(trans_tangent_vec, base_point),
+            metric.norm(tangent_vec, base_point),
+            rtol,
+            atol,
         )
         return gs.logical_and(is_tangent, is_equinormal)
 
@@ -386,6 +448,29 @@ class RiemannianMetricProperties(ConnectionProperties):
         rtol,
         atol,
     ):
+        """Check that parallel transport is an isometry.
+
+        This is for parallel transport defined by initial value problem (ivp).
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to be passed to the constructor of the metric.
+        space : Manifold
+            Manifold where metric is defined.
+        tangent_vec : array-like
+            Tangent vector at base point, to be transported.
+        base_point : array-like
+            Point on manifold.
+        direction : array-like
+            Tangent vector at base point, along which to transport.
+        is_tangent_atol: float
+            Asbolute tolerance for the is_tangent function.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
         metric = self.metric(*metric_args)
 
         end_point = metric.exp(direction, base_point)
@@ -410,14 +495,35 @@ class RiemannianMetricProperties(ConnectionProperties):
         space,
         tangent_vec,
         base_point,
-        direction,
+        end_point,
         is_tangent_atol,
         rtol,
         atol,
     ):
-        metric = self.metric(*metric_args)
+        """Check that parallel transport is an isometry.
 
-        end_point = metric.exp(direction, base_point)
+        This is for parallel transport defined by boundary value problem (ivp).
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to be passed to the constructor of the metric.
+        space : Manifold
+            Manifold where metric is defined.
+        tangent_vec : array-like
+            Tangent vector at base point, to be transported.
+        base_point : array-like
+            Point on manifold.
+        end_point : array-like
+            Point on manifold.
+        is_tangent_atol: float
+            Asbolute tolerance for the is_tangent function.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
 
         transported = metric.parallel_transport(
             tangent_vec, base_point, end_point=end_point
