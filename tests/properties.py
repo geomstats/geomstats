@@ -2,9 +2,9 @@ import geomstats.backend as gs
 
 
 class ManifoldProperties:
-    def projection_shape_and_belongs(self, space_args, data, expected, atol):
+    def projection_shape_and_belongs(self, space_args, data, expected, belongs_atol):
         space = self.space(*space_args)
-        belongs = space.belongs(space.projection(gs.array(data)), atol)
+        belongs = space.belongs(space.projection(gs.array(data)), belongs_atol)
         self.assertAllClose(gs.all(belongs), gs.array(True))
         self.assertAllClose(gs.shape(belongs), expected)
 
