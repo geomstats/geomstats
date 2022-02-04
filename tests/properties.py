@@ -20,6 +20,24 @@ class ManifoldProperties:
         self.assertAllClose(gs.shape(tangent), expected)
 
 
+class LevelSetProperties(ManifoldProperties):
+    def extrinsic_then_intrinsic(self, space_args, point, rtol, atol):
+        space = self.space(*space_args)
+        point_intrinsic = space.extrinsic_to_intrinsic_coords(point)
+        result = space.intrinsic_to_extrinsic_coords(point_intrinsic)
+        expected = point
+
+        self.assertAllClose(result, expected, rtol, atol)
+
+    def intrinsic_then_extrinsic(self, space_args, point, rtol, atol):
+        space = self.space(*space_args)
+        point_extrinsic = space.intrinsic_to_extrinsic_coords(point)
+        result = space.extrinsic_to_intrinsic_coords(point_extrinsic)
+        expected = point
+
+        self.assertAllClose(result, expected, rtol, atol)
+
+
 class ConnectionProperties:
     def exp_belongs(
         self, connection_args, space, tangent_vec, base_point, belongs_atol
