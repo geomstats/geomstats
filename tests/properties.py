@@ -21,12 +21,14 @@ class ConnectionTestProperties:
     def test_exp_belongs(self, connection_args, space, tangent_vec, base_point):
         connection = self.connection(*connection_args)
         exp = connection.exp(gs.array(tangent_vec), gs.array(base_point))
-        self.assertAllClose(gs.all(space.belongs(exp)), True)
+        result = gs.all(space.belongs(exp))
+        self.assertAllClose(result, True)
 
     def test_log_is_tangent(self, connection_args, space, base_point, point):
         connection = self.connection(*connection_args)
         log = connection.log(gs.array(base_point), gs.array(point))
-        self.assertAllClose(gs.all(space.is_tangent(log, gs.array(base_point))), True)
+        result = gs.all(space.is_tangent(log, gs.array(base_point)))
+        self.assertAllClose(result, True)
 
     def test_geodesic_ivp_belongs(
         self, connection_args, space, n_points, initial_point, initial_tangent_vec
