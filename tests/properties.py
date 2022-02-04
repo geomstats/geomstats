@@ -15,7 +15,7 @@ class ManifoldProperties:
         self.assertAllclose(gs.shape(tangent), expected)
 
 
-class OpenSetProperites(ManifoldProperties):
+class OpenSetProperties(ManifoldProperties):
     def to_tangent_belongs_ambient_space(self, space_args, data, belongs_atol):
         space = self.space(*space_args)
         result = gs.all(space.ambient_space.belongs(gs.array(data), belongs_atol))
