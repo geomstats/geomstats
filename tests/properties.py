@@ -3,6 +3,47 @@
 import geomstats.backend as gs
 
 
+def _is_isometry(
+    metric,
+    space,
+    tangent_vec,
+    trans_tangent_vec,
+    base_point,
+    is_tangent_atol,
+    rtol,
+    atol,
+):
+    """Check that a transformation is an isometry.
+
+    This is an auxiliary function.
+
+    Parameters
+    ----------
+    metric : RiemannianMetric
+        Riemannian metric.
+    tangent_vec : array-like
+        Tangent vector at base point.
+    trans_tangent_vec : array-like
+        Transformed tangent vector at base point.
+    base_point : array-like
+        Point on manifold.
+    is_tangent_atol: float
+        Asbolute tolerance for the is_tangent function.
+    rtol : float
+        Relative tolerance to test this property.
+    atol : float
+        Absolute tolerance to test this property.
+    """
+    is_tangent = space.is_tangent(trans_tangent_vec, base_point, is_tangent_atol)
+    is_equinormal = gs.isclose(
+        metric.norm(trans_tangent_vec, base_point),
+        metric.norm(tangent_vec, base_point),
+        rtol,
+        atol,
+    )
+    return gs.logical_and(is_tangent, is_equinormal)
+
+
 class ManifoldProperties:
     def belongs_shape(self, space_args, point, expected):
         """Check that belongs returns an array of the expected shape.
@@ -569,47 +610,6 @@ class RiemannianMetricProperties(ConnectionProperties):
         sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
         self.assertAllClose(sd_a_b, sd_b_a, rtol=rtol, atol=atol)
 
-    @staticmethod
-    def _is_isometry(
-        metric,
-        space,
-        tangent_vec,
-        trans_tangent_vec,
-        base_point,
-        is_tangent_atol,
-        rtol,
-        atol,
-    ):
-        """Check that a transformation is an isometry.
-
-        This is an auxiliary function.
-
-        Parameters
-        ----------
-        metric : RiemannianMetric
-            Riemannian metric.
-        tangent_vec : array-like
-            Tangent vector at base point.
-        trans_tangent_vec : array-like
-            Transformed tangent vector at base point.
-        base_point : array-like
-            Point on manifold.
-        is_tangent_atol: float
-            Asbolute tolerance for the is_tangent function.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
-        is_tangent = space.is_tangent(trans_tangent_vec, base_point, is_tangent_atol)
-        is_equinormal = gs.isclose(
-            metric.norm(trans_tangent_vec, base_point),
-            metric.norm(tangent_vec, base_point),
-            rtol,
-            atol,
-        )
-        return gs.logical_and(is_tangent, is_equinormal)
-
     def parallel_transport_ivp_is_isometry(
         self,
         metric_args,
@@ -649,7 +649,7 @@ class RiemannianMetricProperties(ConnectionProperties):
         end_point = metric.exp(direction, base_point)
 
         transported = metric.parallel_transport(tangent_vec, base_point, direction)
-        result = self._is_isometry(
+        result = _is_isometry(
             metric,
             space,
             tangent_vec,
@@ -701,7 +701,7 @@ class RiemannianMetricProperties(ConnectionProperties):
         transported = metric.parallel_transport(
             tangent_vec, base_point, end_point=end_point
         )
-        result = self._is_isometry(
+        result = _is_isometry(
             metric,
             space,
             tangent_vec,
