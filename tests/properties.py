@@ -16,6 +16,7 @@ def _is_isometry(
     """Check that a transformation is an isometry.
 
     This is an auxiliary function.
+
     Parameters
     ----------
     metric : RiemannianMetric
