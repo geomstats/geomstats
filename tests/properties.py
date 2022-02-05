@@ -14,6 +14,7 @@ def _is_isometry(
     atol,
 ):
     """Check that a transformation is an isometry.
+
     This is an auxiliary function.
     Parameters
     ----------
