@@ -124,13 +124,13 @@ class WaldSpace(object):
             _v = labels.pop(gs.random.randint(len(labels)))
             new_labels = [_u, _v]
             # start with the split of the set {_u, _v}
-            old_splits = [Split(n=self.n, part1=[_u], part2=[_v])]
+            old_splits = [Split(n=self.n, part1=(_u,), part2=(_v,))]
             # iteratively add new split/edge with leaf _u by docking at random old split
             while labels:
                 # random new leaf
                 _u = labels.pop(gs.random.randint(len(labels)))
                 # split representing the pendant edge at the leaf
-                new_splits = [Split(n=self.n, part1=[_u], part2=new_labels)]
+                new_splits = [Split(n=self.n, part1=(_u,), part2=tuple(new_labels))]
                 # random edge that gets divided
                 div_split = old_splits.pop(gs.random.randint(len(old_splits)))
                 # create two parts from old divided edge
@@ -444,9 +444,9 @@ class WaldSpace(object):
 
         Returns
         -------
-        target :
+        target : callable
             The target function taking coordinates ``x`` as arguments.
-        target_gradient :
+        target_gradient : callable
             The gradient function taking coordinates ``x`` as arguments.
         """
         p_sqrt = Sym.powerm(point, power=1.0 / 2)
@@ -480,7 +480,7 @@ def neighbours(st: Structure, sp: Split):
 
     Returns
     -------
-    neighbours :
+    neighbours : list of tuple
         A two-element list where each element is a tuple of the form (``st0``, ``sp0``),
         that is the neighboring structure ``st0`` and the corresponding new split
         ``sp0``.
