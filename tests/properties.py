@@ -45,38 +45,6 @@ def _is_isometry(
 
 
 class ManifoldProperties:
-    def belongs_shape(self, space_args, point, expected):
-        """Check that belongs returns an array of the expected shape.
-
-        Parameters
-        ----------
-        space_args : tuple
-            Arguments to pass to constructor of the manifold.
-        point : array-like
-            Point.
-        expected : tuple
-            Expected shape for the result of the belongs function.
-        """
-        space = self.space(*space_args)
-        result = gs.shape(space.belongs(gs.array(point)))
-        self.assertAllClose(result, expected)
-
-    def to_tangent_shape(self, space_args, vector, expected):
-        """Check that to_tangent returns an array of the expected shape.
-
-        Parameters
-        ----------
-        space_args : tuple
-            Arguments to pass to constructor of the manifold.
-        point : array-like
-            Point.
-        expected : tuple
-            Expected shape for the result of the belongs function.
-        """
-        space = self.space(*space_args)
-        result = gs.shape(space.to_tangent(gs.array(vector)))
-        self.assertAllClose(result, expected)
-
     def projection_belongs(self, space_args, point, belongs_atol):
         """Check that a point projected on a manifold belongs to the manifold.
 
