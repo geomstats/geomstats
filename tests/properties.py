@@ -269,44 +269,6 @@ class LevelSetProperties(ManifoldProperties):
 
 
 class ConnectionProperties:
-    def exp_shape(self, connection_args, tangent_vec, base_point, expected):
-        """Check that exp returns an array of the expected shape.
-
-        Parameters
-        ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
-        tangent_vec : array-like
-            Tangent vector at base point.
-        base_point : array-like
-            Point on the manifold.
-        expected : tuple
-            Expected shape for the result of the exp function.
-        """
-        connection = self.connection(*connection_args)
-        exp = connection.exp(gs.array(tangent_vec), gs.array(base_point))
-        result = gs.shape(exp)
-        self.assertAllClose(result, expected)
-
-    def log_shape(self, connection_args, point, base_point, expected):
-        """Check that log returns an array of the expected shape.
-
-        Parameters
-        ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
-        point : array-like
-            Point on the manifold.
-        base_point : array-like
-            Point on the manifold.
-        expected : tuple
-            Expected shape for the result of the log function.
-        """
-        connection = self.connection(*connection_args)
-        log = connection.log(gs.array(point), gs.array(base_point))
-        result = gs.shape(log)
-        self.assertAllClose(result, expected)
-
     def exp_belongs(
         self, connection_args, space, tangent_vec, base_point, belongs_atol
     ):
