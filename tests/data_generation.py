@@ -260,3 +260,81 @@ class RiemannianMetricTestData(TestData):
                 [dict(metric_args=metric_args, point_a=point_a, point_b=point_b)]
             )
             return self.generate_tests([], random_data)
+
+    def _parallel_transport_ivp_is_isometry_data(
+        self,
+        metric_args_list,
+        spaces,
+        n_tangent_vecs_list,
+        n_base_points_list,
+        n_directions_list,
+        is_tangent_atol=gs.atol,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        random_data = []
+        for metric_args, space, n_tangent_vecs, n_base_points, n_directions in zip(
+            metric_args_list,
+            spaces,
+            n_base_points_list,
+            n_tangent_vecs_list,
+            n_directions_list,
+        ):
+            base_point = space.random_point(n_base_points)
+            tangent_vec = space.random_tangent_vec(n_tangent_vecs, base_point)
+            direction = space.random_tangent_vec(n_directions, base_point)
+            random_data.append(
+                [
+                    dict(
+                        metric_args=metric_args,
+                        space=space,
+                        tangent_vec=tangent_vec,
+                        base_point=base_point,
+                        direction=direction,
+                        is_tangent_atol=is_tangent_atol,
+                        rtol=rtol,
+                        atol=atol,
+                    )
+                ]
+            )
+
+        self.generate_tests([], random_data)
+
+    def _parallel_transport_bvp_is_isometry_data(
+        self,
+        metric_args_list,
+        spaces,
+        n_tangent_vecs_list,
+        n_base_points_list,
+        n_end_points_list,
+        is_tangent_atol=gs.atol,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        random_data = []
+        for metric_args, space, n_tangent_vecs, n_base_points, n_end_points in zip(
+            metric_args_list,
+            spaces,
+            n_base_points_list,
+            n_tangent_vecs_list,
+            n_end_points_list,
+        ):
+            base_point = space.random_point(n_base_points)
+            tangent_vec = space.random_tangent_vec(n_tangent_vecs, base_point)
+            end_point = space.random_point(n_end_points, base_point)
+            random_data.append(
+                [
+                    dict(
+                        metric_args=metric_args,
+                        space=space,
+                        tangent_vec=tangent_vec,
+                        base_point=base_point,
+                        end_point=end_point,
+                        is_tangent_atol=is_tangent_atol,
+                        rtol=rtol,
+                        atol=atol,
+                    )
+                ]
+            )
+
+        self.generate_tests([], random_data)
