@@ -80,19 +80,19 @@ class MatrixLieAlgebraParametrizer(VectorSpaceParametrizer):
         return super(MatrixLieAlgebraParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
-class LevelSetParametrizer:
+class LevelSetParametrizer(ManifoldParametrizer):
     def __new__(cls, name, bases, attrs):
         _iterate_and_assign(attrs, LevelSetProperties)
         return super(LevelSetParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
-class ConnectionParametrizer:
+class ConnectionParametrizer(Parametrizer):
     def __new__(cls, name, bases, attrs):
         _iterate_and_assign(attrs, ConnectionProperties)
         return super(ConnectionParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
-class RiemannianMetricParametrizer:
+class RiemannianMetricParametrizer(ConnectionParametrizer):
     def __new__(cls, name, bases, attrs):
         _iterate_and_assign(attrs, RiemannianMetricProperties)
         return super(RiemannianMetricParametrizer, cls).__new__(cls, name, bases, attrs)

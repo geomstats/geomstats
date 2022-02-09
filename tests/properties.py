@@ -45,6 +45,22 @@ def _is_isometry(
 
 
 class ManifoldProperties:
+    def random_point_belongs(self, space_args, n_points, belongs_atol):
+        """Check that a random point on a manifold belongs to the manifold.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the manifold.
+        point : array-like
+            Point to be projected on the manifold.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
+        space = self.space(*space_args)
+        belongs = space.belongs(space.random_point(n_points), belongs_atol)
+        self.assertAllClose(gs.all(belongs), gs.array(True))
+
     def projection_belongs(self, space_args, point, belongs_atol):
         """Check that a point projected on a manifold belongs to the manifold.
 
@@ -75,6 +91,9 @@ class ManifoldProperties:
         is_tangent_atol : float
             Absolute tolerance for the is_tangent function.
         """
+        print("sa", space_args)
+        print("vec", vector.shape)
+        print("base", base_point.shape)
         space = self.space(*space_args)
         tangent = space.to_tangent(gs.array(vector), gs.array(base_point))
         result = gs.all(
@@ -221,53 +240,7 @@ class MatrixLieAlgebraProperties(VectorSpaceProperties):
 
 
 class LevelSetProperties(ManifoldProperties):
-    def extrinsic_intrinsic_composition(self, space_args, point_extrinsic, rtol, atol):
-        """Check that changing coordinate system twice gives back the point.
-
-        A point written in extrinsic coordinates is converted to intrinsic coordinates
-        and back.
-
-        Parameters
-        ----------
-        space_args : tuple
-            Arguments to pass to constructor of the manifold.
-        point_extrinsic : array-like
-            Point on the manifold in extrinsic coordinates.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
-        space = self.space(*space_args)
-        point_intrinsic = space.extrinsic_to_intrinsic_coords(point_extrinsic)
-        result = space.intrinsic_to_extrinsic_coords(point_intrinsic)
-        expected = point_extrinsic
-
-        self.assertAllClose(result, expected, rtol, atol)
-
-    def intrinsic_extrinsic_composition(self, space_args, point_intrinsic, rtol, atol):
-        """Check that changing coordinate system twice gives back the point.
-
-        A point written in intrinsic coordinates is converted to extrinsic coordinates
-        and back.
-
-        Parameters
-        ----------
-        space_args : tuple
-            Arguments to pass to constructor of the manifold.
-        point_intrinsic : array-like
-            Point on the manifold in intrinsic coordinates.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
-        space = self.space(*space_args)
-        point_extrinsic = space.intrinsic_to_extrinsic_coords(point_intrinsic)
-        result = space.extrinsic_to_intrinsic_coords(point_extrinsic)
-        expected = point_intrinsic
-
-        self.assertAllClose(result, expected, rtol, atol)
+    pass
 
 
 class ConnectionProperties:
