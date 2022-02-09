@@ -76,8 +76,10 @@ class ManifoldProperties:
             Absolute tolerance for the is_tangent function.
         """
         space = self.space(*space_args)
-        tangent = space.to_tangent(gs.array(vector))
-        result = gs.all(space.is_tangent(tangent, base_point, is_tangent_atol))
+        tangent = space.to_tangent(gs.array(vector), gs.array(base_point))
+        result = gs.all(
+            space.is_tangent(tangent, gs.array(base_point), is_tangent_atol)
+        )
         self.assertAllClose(result, gs.array(True))
 
 

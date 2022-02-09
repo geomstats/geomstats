@@ -122,25 +122,25 @@ class TestSymmetricMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             return self.generate_tests(smoke_data)
 
         def basis_belongs_data(self):
-            space_args_list = random.sample(range(1, 10), 5)
+            space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
             return self._basis_belongs_data(space_args_list)
 
         def basis_cardinality_data(self):
-            space_args_list = random.sample(range(1, 10), 5)
+            space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
             return self._basis_cardinality_data(space_args_list)
 
         def projection_belongs_data(self):
-            space_args_list = random.sample(range(1, 10), 5)
+            space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
             n_samples_list = random.sample(range(1, 10), 5)
             shapes = [
                 (n_samples, n, n)
-                for n, n_samples in zip(space_args_list, n_samples_list)
+                for (n,), n_samples in zip(space_args_list, n_samples_list)
             ]
             return self._projection_belongs_data(space_args_list, shapes)
 
         def to_tangent_is_tangent_data(self):
-            space_args_list = random.sample(range(1, 10), 5)
-            tangent_shapes_list = [(n, n) for n in space_args_list]
+            space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
+            tangent_shapes_list = [(n, n) for (n,) in space_args_list]
             n_vecs_list = random.sample(range(1, 10), 5)
             n_base_points_list = random.sample(range(1, 10), 5)
             return self._to_tangent_is_tangent_data(

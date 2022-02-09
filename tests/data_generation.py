@@ -45,6 +45,8 @@ class ManifoldTestData(TestData):
     def _projection_belongs_data(
         self, space_args_list, shapes_list, belongs_atol=gs.atol
     ):
+        print("test", space_args_list)
+        print("one", shapes_list)
         random_data = [
             dict(
                 space_args=space_args,
@@ -68,7 +70,7 @@ class ManifoldTestData(TestData):
         for space_args, tangent_shape, n_vecs, n_base_points in zip(
             space_args_list, tangent_shapes_list, n_vecs_list, n_base_points_list
         ):
-            space = space_cls(space_args)
+            space = space_cls(*space_args)
             vec = gs.random.normal(size=(n_vecs,) + tangent_shape)
             base_point = space.random_point(n_base_points)
             random_data.append(
@@ -118,12 +120,15 @@ class LieGroupTestData(ManifoldTestData):
 
 
 class VectorSpaceTestData(ManifoldTestData):
-    def _basis_belongs_data(self, space_args, belongs_atol=gs.atol):
-        random_data = [dict(space_args=space_args, belongs_atol=belongs_atol)]
+    def _basis_belongs_data(self, space_args_list, belongs_atol=gs.atol):
+        random_data = [
+            dict(space_args=space_args, belongs_atol=belongs_atol)
+            for space_args in space_args_list
+        ]
         return self.generate_tests([], random_data)
 
-    def _basis_cardinality_data(self, space_args):
-        random_data = [dict(space_args=space_args)]
+    def _basis_cardinality_data(self, space_args_list):
+        random_data = [dict(space_args=space_args) for space_args in space_args_list]
         return self.generate_tests([], random_data)
 
 
