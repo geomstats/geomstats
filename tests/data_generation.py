@@ -199,6 +199,7 @@ class ConnectionTestData(TestData):
         space_list,
         tangent_shape_list,
         n_tangent_vecs_list,
+        belongs_atol=gs.atol,
     ):
         random_data = []
         for connection_args, space, tangent_shape, n_tangent_vecs in zip(
@@ -214,11 +215,14 @@ class ConnectionTestData(TestData):
                     space=space,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
+                    belongs_atol=gs.atol,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def _log_is_tangent_data(self, connection_args_list, space_list, n_points_list):
+    def _log_is_tangent_data(
+        self, connection_args_list, space_list, n_points_list, is_tangent=gs.atol
+    ):
         random_data = []
         for connection_args, space, n_points in zip(
             connection_args_list, space_list, n_points_list
@@ -231,68 +235,127 @@ class ConnectionTestData(TestData):
                     space=space,
                     point=point,
                     base_point=base_point,
+                    is_tangent=gs.atol,
                 )
             )
         return self.generate_tests([], random_data)
 
     def _geodesic_ivp_belongs_data(
-        self, connection_args_list, space_list, tangent_shapes_list, n_tangent_vecs_list
+        self,
+        connection_args_list,
+        space_list,
+        n_t_list,
+        tangent_shapes_list,
+        belongs_atol=gs.atol,
     ):
         random_data = []
-        for connection_args, space, n_points, tangent_shape, n_tangent_vecs in zip(
-            connection_args_list, space_list, tangent_shapes_list, n_tangent_vecs_list
+        for connection_args, space, n_t, tangent_shape in zip(
+            connection_args_list, space_list, n_t_list, tangent_shapes_list
         ):
             initial_point = space.random_point()
             initial_tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + tangent_shape), initial_point
+                gs.random.normal(size=tangent_shape), initial_point
             )
             random_data.append(
                 dict(
                     connection_args=connection_args,
                     space=space,
-                    n_points=n_points,
+                    n_t=n_t,
                     initial_point=initial_point,
                     initial_tangent_vec=initial_tangent_vec,
+                    belongs_atol=belongs_atol,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def _geodesic_bvp_belongs_data(self, connection_args_list, spaces, n_t_list):
+    def _geodesic_bvp_belongs_data(
+        self,
+        connection_args_list,
+        space_list,
+        n_t_list,
+        belongs_atol=gs.atol,
+    ):
         random_data = []
-        for connection_args, space, n_t in zip(connection_args_list, spaces, n_t_list):
+        for connection_args, space, n_t in zip(
+            connection_args_list,
+            space_list,
+            n_t_list,
+        ):
             initial_point = space.random_point()
             end_point = space.random_point()
             random_data.append(
-                [
-                    dict(
-                        connection_args=connection_args,
-                        space=space,
-                        initial_point=initial_point,
-                        end_point=end_point,
-                    )
-                ]
+                dict(
+                    connection_args=connection_args,
+                    space=space,
+                    n_t=n_t,
+                    initial_point=initial_point,
+                    end_point=end_point,
+                    belongs_atol=belongs_atol,
+                )
             )
         return self.generate_tests([], random_data)
 
     def _log_exp_composition_data(
-        self, connection_args_list, space_list, tangent_shape_list, n_tangent_vecs_list
+        self,
+        connection_args_list,
+        space_list,
+        tangent_shape_list,
+        n_tangent_vecs_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
     ):
-        return self._exp_belongs_data(
+        random_data = []
+        for connection_args, space, tangent_shape, n_tangent_vecs in zip(
             connection_args_list, space_list, tangent_shape_list, n_tangent_vecs_list
-        )
+        ):
+            base_point = space.random_point()
+            tangent_vec = space.to_tangent(
+                gs.random.normal(size=(n_tangent_vecs,) + tangent_shape), base_point
+            )
+            random_data.append(
+                dict(
+                    connection_args=connection_args,
+                    space=space,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    rtol=rtol,
+                    atol=atol,
+                )
+            )
+        return self.generate_tests([], random_data)
 
     def _exp_log_composition_data(
-        self, connection_args_list, space_list, n_points_list
+        self,
+        connection_args_list,
+        space_list,
+        n_points_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
     ):
-        return self._log_is_tangent_data(
+        random_data = []
+        for connection_args, space, n_points in zip(
             connection_args_list, space_list, n_points_list
-        )
+        ):
+            point = space.random_point(n_points)
+            base_point = space.random_point()
+            random_data.append(
+                dict(
+                    connection_args=connection_args,
+                    space=space,
+                    point=point,
+                    base_point=base_point,
+                    rtol=gs.rtol,
+                    atol=gs.atol,
+                )
+            )
+        return self.generate_tests([], random_data)
 
     def _exp_ladder_parallel_transport_data(
         self,
         connection_args_list,
         spaces_list,
         tangent_shape_list,
+        n_tangent_vecs_list,
         n_rungs_list,
         alpha_list,
         scheme_list,
@@ -300,10 +363,19 @@ class ConnectionTestData(TestData):
         atol=gs.atol,
     ):
         random_data = []
-        for (connection_args, space, tangent_shape, n_rungs, alpha, scheme,) in zip(
+        for (
+            connection_args,
+            space,
+            tangent_shape,
+            n_tangent_vecs,
+            n_rungs,
+            alpha,
+            scheme,
+        ) in zip(
             connection_args_list,
             spaces_list,
             tangent_shape_list,
+            n_tangent_vecs_list,
             n_rungs_list,
             alpha_list,
             scheme_list,
@@ -311,7 +383,7 @@ class ConnectionTestData(TestData):
             base_point = space.random_point()
 
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=tangent_shape), base_point
+                gs.random.normal(size=(n_tangent_vecs,) + tangent_shape), base_point
             )
             direction = space.to_tangent(
                 gs.random.normal(size=tangent_shape), base_point
@@ -352,7 +424,7 @@ class ConnectionTestData(TestData):
         ):
             base_point = space.random_point()
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=n_tangent_vecs + tangent_shape), base_point
+                gs.random.normal(size=(n_tangent_vecs,) + tangent_shape), base_point
             )
             random_data.append(
                 dict(
@@ -417,18 +489,16 @@ class RiemannianMetricTestData(ConnectionTestData):
                 gs.random.normal(size=tangent_shape), base_point
             )
             random_data.append(
-                [
-                    dict(
-                        metric_args=metric_args,
-                        space=space,
-                        tangent_vec=tangent_vec,
-                        base_point=base_point,
-                        direction=direction,
-                        is_tangent_atol=is_tangent_atol,
-                        rtol=rtol,
-                        atol=atol,
-                    )
-                ]
+                dict(
+                    metric_args=metric_args,
+                    space=space,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    direction=direction,
+                    is_tangent_atol=is_tangent_atol,
+                    rtol=rtol,
+                    atol=atol,
+                )
             )
 
         return self.generate_tests([], random_data)
@@ -454,18 +524,16 @@ class RiemannianMetricTestData(ConnectionTestData):
             )
             end_point = space.random_point()
             random_data.append(
-                [
-                    dict(
-                        metric_args=metric_args,
-                        space=space,
-                        tangent_vec=tangent_vec,
-                        base_point=base_point,
-                        end_point=end_point,
-                        is_tangent_atol=is_tangent_atol,
-                        rtol=rtol,
-                        atol=atol,
-                    )
-                ]
+                dict(
+                    metric_args=metric_args,
+                    space=space,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    end_point=end_point,
+                    is_tangent_atol=is_tangent_atol,
+                    rtol=rtol,
+                    atol=atol,
+                )
             )
 
         return self.generate_tests([], random_data)

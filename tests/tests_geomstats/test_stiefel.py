@@ -100,7 +100,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
         n_tangent_vecs_list = random.sample(range(1, 10), 5)
         n_directions_list = random.sample(range(1, 10), 5)
         n_end_points_list = random.sample(range(2, 10), 5)
-        n_t_list = random.sample(range(1, 100), 5)
+        n_t_list = random.sample(range(2, 10), 5)
         alpha_list = [1] * 5
         n_rungs_list = [1] * 5
         scheme_list = ["pole"] * 5
@@ -165,10 +165,19 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
             )
 
         def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data()
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.spaces_list,
+                self.n_t_list,
+                self.tangent_shape_list,
+            )
 
         def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data()
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.spaces_list,
+                self.n_t_list,
+            )
 
         def log_exp_composition_data(self):
             return self.exp_belongs_data()
@@ -180,7 +189,8 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
             return self._exp_ladder_parallel_transport_data(
                 self.metric_args_list,
                 self.spaces_list,
-                self.tangent_shapes_list,
+                self.tangent_shape_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
@@ -190,7 +200,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
             return self._exp_geodesic_ivp_data(
                 self.metric_args_list,
                 self.spaces_list,
-                self.tangent_shapes_list,
+                self.tangent_shape_list,
                 self.n_tangent_vecs_list,
                 self.n_points_list,
             )
