@@ -88,7 +88,7 @@ class OpenSetProperties(ManifoldProperties):
         self.asertAllClose(result, gs.array(True))
 
 
-class LieGroupProperties:
+class LieGroupProperties(ManifoldProperties):
     def exp_log_composition(self, group_args, tangent_vec, base_point, rtol, atol):
         """Check that group exponential and logarithm are inverse.
 
@@ -136,7 +136,7 @@ class LieGroupProperties:
         self.assertAllClose(exp_point, gs.array(point), rtol, atol)
 
 
-class VectorSpaceProperties:
+class VectorSpaceProperties(ManifoldProperties):
     def basis_belongs(self, space_args, belongs_atol):
         """Check that basis elements belong to vector space.
 
@@ -164,7 +164,7 @@ class VectorSpaceProperties:
         self.assertAllClose(len(basis), space.dim)
 
 
-class LieAlgebraProperties(VectorSpaceProperties):
+class MatrixLieAlgebraProperties(VectorSpaceProperties):
     def basis_representation_matrix_representation_composition(
         self, algebra_args, matrix_rep, rtol, atol
     ):
