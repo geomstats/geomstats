@@ -294,7 +294,7 @@ class ConnectionProperties:
         self,
         connection_args,
         space,
-        n_points,
+        n_t,
         initial_point,
         initial_tangent_vec,
         belongs_atol,
@@ -309,7 +309,7 @@ class ConnectionProperties:
             Arguments to pass to constructor of the connection.
         space : Manifold
             Manifold where connection is defined.
-        n_points : int
+        n_t : int
             Number of points on the geodesics.
         initial_point : array-like
             Point on the manifold.
@@ -323,16 +323,16 @@ class ConnectionProperties:
             initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
         )
 
-        t = gs.linspace(start=0.0, stop=1.0, num=n_points)
+        t = gs.linspace(start=0.0, stop=1.0, num=n_t)
         points = geodesic(t)
 
         result = space.belongs(points, belongs_atol)
-        expected = gs.array(n_points * [True])
+        expected = gs.array(n_t * [True])
 
         self.assertAllClose(result, expected)
 
     def geodesic_bvp_belongs(
-        self, connection_args, space, n_points, initial_point, end_point, belongs_atol
+        self, connection_args, space, n_t, initial_point, end_point, belongs_atol
     ):
         """Check that connection geodesics belong to manifold.
 
@@ -344,7 +344,7 @@ class ConnectionProperties:
             Arguments to pass to constructor of the connection.
         space : Manifold
             Manifold where connection is defined.
-        n_points : int
+        n_t : int
             Number of points on the geodesics.
         initial_point : array-like
             Point on the manifold.
@@ -357,11 +357,11 @@ class ConnectionProperties:
 
         geodesic = connection.geodesic(initial_point=initial_point, end_point=end_point)
 
-        t = gs.linspace(start=0.0, stop=1.0, num=n_points)
+        t = gs.linspace(start=0.0, stop=1.0, num=n_t)
         points = geodesic(t)
 
         result = space.belongs(points, belongs_atol)
-        expected = gs.array(n_points * [True])
+        expected = gs.array(n_t * [True])
 
         self.assertAllClose(result, expected)
 

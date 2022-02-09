@@ -1,10 +1,8 @@
 """Unit tests for Stiefel manifolds."""
 
 import random
-import warnings
 
 import pytest
-from sklearn import metrics
 
 import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear
@@ -90,6 +88,23 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
     metric = StiefelCanonicalMetric
 
     class TestDataStiefelCanonicalMetric(RiemannianMetricTestData):
+
+        n_list = random.sample(range(2, 10), 5)
+        p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
+        metric_args_list = [(n, p) for n, p in zip(n_list, p_list)]
+        tangent_shape_list = metric_args_list
+        spaces_list = [Stiefel(n, p) for n, p in metric_args_list]
+        n_points_list = random.sample(range(1, 10), 5)
+        n_points_a_list = random.sample(range(1, 10), 5)
+        n_points_b_list = random.sample(range(1, 10), 5)
+        n_tangent_vecs_list = random.sample(range(1, 10), 5)
+        n_directions_list = random.sample(range(1, 10), 5)
+        n_end_points_list = random.sample(range(2, 10), 5)
+        n_t_list = random.sample(range(1, 100), 5)
+        alpha_list = [1] * 5
+        n_rungs_list = [1] * 5
+        scheme_list = ["pole"] * 5
+
         def log_two_sheets_error_data(self):
             stiefel = Stiefel(n=3, p=3)
             base_point = stiefel.random_point()
@@ -111,125 +126,78 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
             return self.generate_tests([], random_data)
 
         def squared_dist_is_symmetric_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            metric_args_list = [(n, p) for n, p in zip(n_list, p_list)]
-            spaces_list = [Stiefel(n, p) for n, p in metric_args_list]
-            n_points_a_list = random.sample(range(1, 10), 5)
-            n_points_b_list = random.sample(range(1, 10), 5)
             return self._squared_dist_is_symmetric_data(
-                metric_args_list, spaces_list, n_points_a_list, n_points_b_list
+                self.metric_args_list,
+                self.spaces_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
             )
 
         def parallel_transport_ivp_is_isometry_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            metric_args_list = [(n, p) for n, p in zip(n_list, p_list)]
-            spaces_list = [Stiefel(n, p) for n, p in metric_args_list]
-            tangent_shape_list = metric_args_list
-            n_tangent_vecs_list = random.sample(range(1, 10), 5)
-            n_directions_list = random.sample(range(1, 10), 5)
-
             return self._parallel_transport_ivp_is_isometry_data(
-                metric_args_list,
-                spaces_list,
-                tangent_shape_list,
-                n_tangent_vecs_list,
-                n_directions_list,
+                self.metric_args_list,
+                self.spaces_list,
+                self.tangent_shape_list,
+                self.n_tangent_vecs_list,
             )
 
         def parallel_transport_bvp_is_isometry_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            metric_args_list = [(n, p) for n, p in zip(n_list, p_list)]
-            spaces_list = [Stiefel(n, p) for n, p in metric_args_list]
-            tangent_shape_list = metric_args_list
-            n_base_points_list = random.sample(range(2, 10), 5)
-            n_end_points_list = random.sample(range(2, 10), 5)
-
-            return self._parallel_transport_ivp_is_isometry_data(
-                metric_args_list,
-                spaces_list,
-                tangent_shape_list,
-                n_base_points_list,
-                n_end_points_list,
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.spaces_list,
+                self.tangent_shape_list,
+                self.n_tangent_vecs_list,
             )
 
         def exp_belongs_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            metric_args_list = [(n, p) for n, p in zip(n_list, p_list)]
-            spaces_list = [Stiefel(n, p) for n, p in metric_args_list]
-            tangent_shapes_list = metric_args_list
-            n_tangent_vecs_list = random.sample(range(1, 10), 5)
             return self._exp_belongs_data(
-                metric_args_list, spaces_list, n_tangent_vecs_list,  tangent_shapes_list, n_tangent_vecs_list
+                self.metric_args_list,
+                self.spaces_list,
+                self.tangent_shape_list,
+                self.n_tangent_vecs_list,
             )
 
         def log_is_tangent_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            metric_args_list = [(n, p) for n, p in zip(n_list, p_list)]
-            spaces_list = [Stiefel(n, p) for n, p in metric_args_list]
-            tangent_shapes_list = metric_args_list
-            n_tangent_vecs_list = random.sample(range(1, 10), 5)
             return self._log_is_tangent_data(
-                metric_args_list, spaces_list, n_tangent_vecs_list,  tangent_shapes_list, n_tangent_vecs_list
+                self.metric_args_list,
+                self.spaces_list,
+                self.n_points_list,
             )
 
         def geodesic_ivp_belongs_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            metric_args_list = [(n, p) for n, p in zip(n_list, p_list)]
-            spaces_list = [Stiefel(n, p) for n, p in metric_args_list]
-            n_points_a_list = random.sample(range(1, 10), 5)
-            n_points_b_list = random.sample(range(1, 10), 5)
-            return self._geodesic_ivp_belongs_data()
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list, self.spaces_list, self.tangent_shape_list
+            )
 
         def geodesic_bvp_belongs_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            metric_args_list = [(n, p) for n, p in zip(n_list, p_list)]
-            spaces_list = [Stiefel(n, p) for n, p in metric_args_list]
-            n_points_a_list = random.sample(range(1, 10), 5)
-            n_points_b_list = random.sample(range(1, 10), 5)
-            return self._geodesic_bvp_belongs_data()
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list, self.spaces_list, self.n_t_list
+            )
 
         def log_exp_composition_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            metric_args_list = [(n, p) for n, p in zip(n_list, p_list)]
-            spaces_list = [Stiefel(n, p) for n, p in metric_args_list]
-            n_points_a_list = random.sample(range(1, 10), 5)
-            n_points_b_list = random.sample(range(1, 10), 5)
-            return self._log_exp_composition_data()
+            return self.exp_belongs_data()
 
         def exp_log_composition_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            metric_args_list = [(n, p) for n, p in zip(n_list, p_list)]
-            spaces_list = [Stiefel(n, p) for n, p in metric_args_list]
-            n_points_a_list = random.sample(range(1, 10), 5)
-            n_points_b_list = random.sample(range(1, 10), 5)
-            return self._exp_log_composition_data()
+            return self.log_is_tangent_data()
 
         def exp_ladder_parallel_transport_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            metric_args_list = [(n, p) for n, p in zip(n_list, p_list)]
-            spaces_list = [Stiefel(n, p) for n, p in metric_args_list]
-            n_points_a_list = random.sample(range(1, 10), 5)
-            n_points_b_list = random.sample(range(1, 10), 5)
-            return self._exp_ladder_parallel_transport_data()
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.spaces_list,
+                self.tangent_shapes_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
 
         def exp_geodesic_ivp_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            metric_args_list = [(n, p) for n, p in zip(n_list, p_list)]
-            spaces_list = [Stiefel(n, p) for n, p in metric_args_list]
-            n_points_a_list = random.sample(range(1, 10), 5)
-            n_points_b_list = random.sample(range(1, 10), 5)
-            return self._exp_geodesic_ivp_data()
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.spaces_list,
+                self.tangent_shapes_list,
+                self.n_tangent_vecs_list,
+                self.n_points_list,
+            )
 
     testing_data = TestDataStiefelCanonicalMetric()
 

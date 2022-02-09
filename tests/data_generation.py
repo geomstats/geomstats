@@ -196,77 +196,72 @@ class ConnectionTestData(TestData):
     def _exp_belongs_data(
         self,
         connection_args_list,
-        spaces_list,
-        tangent_shapes_list,
+        space_list,
+        tangent_shape_list,
         n_tangents_list,
     ):
         random_data = []
-        for connection_args, space,  tangent_shape, n_tangent_vecs in zip(
-            connection_args_list, spaces_list, tangent_shapes_list, n_tangents_list
+        for connection_args, space, tangent_shape, n_tangent_vecs in zip(
+            connection_args_list, space_list, tangent_shape_list, n_tangents_list
         ):
             base_point = space.random_point()
             tangent_vec = space.to_tangent(
                 gs.random.normal(size=n_tangent_vecs + tangent_shape), base_point
             )
             random_data.append(
-                    dict(
-                        connection_args=connection_args,
-                        space=space,
-                        tangent_vec=tangent_vec,
-                        base_point=base_point,
-                    )
+                dict(
+                    connection_args=connection_args,
+                    space=space,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                )
             )
         return self.generate_tests([], random_data)
 
-    def _log_is_tangent_data(
-        self, connection_args_list, spaces, n_points_list, n_base_points_list
-    ):
+    def _log_is_tangent_data(self, connection_args_list, space_list, n_points_list):
         random_data = []
-        for connection_args, space, n_points, n_base_points in zip(
-            connection_args_list, spaces, n_points_list, n_base_points_list
+        for connection_args, space, n_points in zip(
+            connection_args_list, space_list, n_points_list
         ):
             point = space.random_point(n_points)
-            base_point = space.random_point(n_base_points)
+            base_point = space.random_point()
             random_data.append(
-                    dict(
-                        connection_args=connection_args,
-                        space=space,
-                        point=point,
-                        base_point=base_point,
-                    )
+                dict(
+                    connection_args=connection_args,
+                    space=space,
+                    point=point,
+                    base_point=base_point,
+                )
             )
         return self.generate_tests([], random_data)
 
     def _geodesic_ivp_belongs_data(
-        self, connection_args_list, spaces, n_initial_points_list, n_tangent_vecs_list
+        self, connection_args_list, space_list, tangent_shapes_list
     ):
         random_data = []
-        for connection_args, space, n_points, n_tangent_vecs in zip(
-            connection_args_list, spaces, n_initial_points_list, n_tangent_vecs_list
+        for connection_args, space, n_points, tangent_shape in zip(
+            connection_args_list, space_list, tangent_shapes_list
         ):
-            initial_point = space.random_point(n_points)
-            base_point = space.random_tangent_vec(n_tangent_vecs, initial_point)
+            initial_point = space.random_point()
+            initial_tangent_vec = space.to_tangent(
+                gs.random.normal(size=tangent_shape), initial_point
+            )
             random_data.append(
-                [
-                    dict(
-                        connection_args=connection_args,
-                        space=space,
-                        initial_point=initial_point,
-                        base_point=base_point,
-                    )
-                ]
+                dict(
+                    connection_args=connection_args,
+                    space=space,
+                    n_points=n_points,
+                    initial_point=initial_point,
+                    initial_tangent_vec=initial_tangent_vec,
+                )
             )
         return self.generate_tests([], random_data)
 
-    def _geodesic_bvp_belongs_data(
-        self, connection_args_list, spaces, n_initial_points_list, n_end_points_list
-    ):
+    def _geodesic_bvp_belongs_data(self, connection_args_list, spaces, n_t_list):
         random_data = []
-        for connection_args, space, n_initial_points, n_end_points in zip(
-            connection_args_list, spaces, n_initial_points_list, n_end_points_list
-        ):
-            initial_point = space.random_point(n_initial_points)
-            end_point = space.random_point(n_end_points)
+        for connection_args, space, n_t in zip(connection_args_list, spaces, n_t_list):
+            initial_point = space.random_point()
+            end_point = space.random_point()
             random_data.append(
                 [
                     dict(
@@ -289,7 +284,7 @@ class ConnectionTestData(TestData):
     def _exp_log_composition_data(
         self, connection_args_list, spaces, n_tangents_list, n_base_points_list
     ):
-        return self._exp_belongs_data(
+        return self._log_is_tangent_data(
             connection_args_list, spaces, n_tangents_list, n_base_points_list
         )
 
@@ -298,8 +293,6 @@ class ConnectionTestData(TestData):
         connection_args_list,
         spaces_list,
         tangent_shape_list,
-        n_tangent_vecs_list,
-        n_directions_list,
         n_rungs_list,
         alpha_list,
         scheme_list,
@@ -307,21 +300,10 @@ class ConnectionTestData(TestData):
         atol=gs.atol,
     ):
         random_data = []
-        for (
-            connection_args,
-            space,
-            tangent_shape,
-            n_tangent_vecs,
-            n_directions,
-            n_rungs,
-            alpha,
-            scheme,
-        ) in zip(
+        for (connection_args, space, tangent_shape, n_rungs, alpha, scheme,) in zip(
             connection_args_list,
             spaces_list,
             tangent_shape_list,
-            n_tangent_vecs_list,
-            n_directions_list,
             n_rungs_list,
             alpha_list,
             scheme_list,
@@ -329,10 +311,10 @@ class ConnectionTestData(TestData):
             base_point = space.random_point()
 
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=n_tangent_vecs + tangent_shape), base_point
+                gs.random.normal(size=tangent_shape), base_point
             )
             direction = space.to_tangent(
-                gs.random.normal(size=n_directions + tangent_shape), base_point
+                gs.random.normal(size=tangent_shape), base_point
             )
             random_data.append(
                 dict(
@@ -355,8 +337,8 @@ class ConnectionTestData(TestData):
         connection_args_list,
         spaces_list,
         tangent_shapes_list,
+        n_tangent_vecs_list,
         n_points_list,
-        n_tangent_vecs,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
@@ -365,23 +347,23 @@ class ConnectionTestData(TestData):
             connection_args_list,
             spaces_list,
             tangent_shapes_list,
-            n_tangent_vecs,
+            n_tangent_vecs_list,
             n_points_list,
         ):
             base_point = space.random_point()
             tangent_vec = space.to_tangent(
                 gs.random.normal(size=n_tangent_vecs + tangent_shape), base_point
             )
-        random_data.append(
-            dict(
-                connection_args=connection_args,
-                n_points=n_points,
-                tangent_vec=tangent_vec,
-                base_point=base_point,
-                rtol=rtol,
-                atol=atol,
+            random_data.append(
+                dict(
+                    connection_args=connection_args,
+                    n_points=n_points,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    rtol=rtol,
+                    atol=atol,
+                )
             )
-        )
         return self.generate_tests([], random_data)
 
 
@@ -415,7 +397,7 @@ class RiemannianMetricTestData(ConnectionTestData):
     def _parallel_transport_ivp_is_isometry_data(
         self,
         metric_args_list,
-        spaces_list,
+        space_list,
         tangent_shape_list,
         n_tangent_vecs_list,
         n_directions_list,
@@ -424,12 +406,11 @@ class RiemannianMetricTestData(ConnectionTestData):
         atol=gs.atol,
     ):
         random_data = []
-        for metric_args, space, tangent_shape, n_tangent_vecs, n_directions in zip(
+        for metric_args, space, tangent_shape, n_tangent_vecs in zip(
             metric_args_list,
-            spaces_list,
+            space_list,
             tangent_shape_list,
             n_tangent_vecs_list,
-            n_directions_list,
         ):
             base_point = space.random_point()
 
@@ -437,7 +418,7 @@ class RiemannianMetricTestData(ConnectionTestData):
                 gs.random.normal(size=n_tangent_vecs + tangent_shape), base_point
             )
             direction = space.to_tangent(
-                gs.random.normal(size=n_directions + tangent_shape), base_point
+                gs.random.normal(size=tangent_shape), base_point
             )
             random_data.append(
                 [
@@ -459,25 +440,26 @@ class RiemannianMetricTestData(ConnectionTestData):
     def _parallel_transport_bvp_is_isometry_data(
         self,
         metric_args_list,
-        spaces,
+        space_list,
+        tangent_shape_list,
         n_tangent_vecs_list,
-        n_base_points_list,
-        n_end_points_list,
         is_tangent_atol=gs.atol,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
         random_data = []
-        for metric_args, space, n_tangent_vecs, n_base_points, n_end_points in zip(
+        for metric_args, space, tangent_shape, n_tangent_vecs in zip(
             metric_args_list,
-            spaces,
-            n_base_points_list,
+            space_list,
+            tangent_shape_list,
             n_tangent_vecs_list,
-            n_end_points_list,
         ):
-            base_point = space.random_point(n_base_points)
-            tangent_vec = space.random_tangent_vec(n_tangent_vecs, base_point)
-            end_point = space.random_point(n_end_points, base_point)
+            base_point = space.random_point()
+
+            tangent_vec = space.to_tangent(
+                gs.random.normal(size=n_tangent_vecs + tangent_shape), base_point
+            )
+            end_point = space.random_point()
             random_data.append(
                 [
                     dict(
