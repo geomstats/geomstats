@@ -1,3 +1,5 @@
+from random import random
+
 import pytest
 
 import geomstats.backend as gs
@@ -42,22 +44,45 @@ class TestData:
 
 
 class ManifoldTestData(TestData):
-    def _projection_belongs_data(self, space_args, shapes, belongs_atol=gs.atol):
+    def _projection_belongs_data(
+        self, space_args_list, shapes_list, belongs_atol=gs.atol
+    ):
         random_data = [
             dict(
                 space_args=space_args,
                 data=gs.random.normal(size=shape),
                 belongs_atol=belongs_atol,
             )
-            for shape in shapes
+            for space_args, shape in zip(space_args_list, shapes_list)
         ]
         return self.generate_tests([], random_data)
 
-    def _to_tangent_is_tangent_data(self, space_args, tangent_shapes):
-        random_data = [
-            dict(space_args=space_args, data=gs.random.normal(size=tangent_shape))
-            for tangent_shape in tangent_shapes
-        ]
+    def _to_tangent_is_tangent_data(
+        self,
+        space_cls,
+        space_args_list,
+        tangent_shapes_list,
+        n_vecs_list,
+        n_base_points_list,
+        is_tangent_atol=gs.atol,
+    ):
+        random_data = []
+        for space_args, tangent_shape, n_vecs, n_base_points in zip(
+            space_args_list, tangent_shapes_list, n_vecs_list, n_base_points_list
+        ):
+            space = space_cls(space_args)
+            vec = gs.random.normal(size=(n_vecs,) + tangent_shape)
+            base_point = space.random_point(n_base_points)
+            random.append(
+                [
+                    dict(
+                        space_args=space_args,
+                        vec=vec,
+                        base_point=base_point,
+                        is_tangent_atol=is_tangent_atol,
+                    )
+                ]
+            )
         return self.generate_tests([], random_data)
 
 
@@ -97,7 +122,7 @@ class LieGroupTestData(ManifoldTestData):
 
 
 class VectorSpaceTestData(ManifoldTestData):
-    def _basis_belongs_data(self, space_args, belongs_atol):
+    def _basis_belongs_data(self, space_args, belongs_atol=gs.atol):
         random_data = [dict(space_args=space_args, belongs_atol=belongs_atol)]
         return self.generate_tests([], random_data)
 
