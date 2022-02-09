@@ -138,6 +138,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 self.metric_args_list,
                 self.spaces_list,
                 self.tangent_shape_list,
+                self.n_tangent_vecs_list,
             )
 
         def parallel_transport_bvp_is_isometry_data(self):
@@ -145,6 +146,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 self.metric_args_list,
                 self.spaces_list,
                 self.tangent_shape_list,
+                self.n_tangent_vecs_list,
             )
 
         def exp_belongs_data(self):
