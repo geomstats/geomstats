@@ -3,7 +3,6 @@
 import random
 
 import geomstats.backend as gs
-import tests.helper as helper
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from tests.conftest import TestCase
 from tests.data_generation import VectorSpaceTestData
@@ -67,15 +66,6 @@ class TestSymmetricMatrices(TestCase, metaclass=VectorSpaceParametrizer):
                     power=2.0,
                     expected=[[5.0, 8.0], [8.0, 13.0]],
                 ),
-            ]
-            return self.generate_tests(smoke_data)
-
-        def projection_data(self):
-            smoke_data = [
-                dict(n=1, num_points=1),
-                dict(n=2, num_points=1),
-                dict(n=1, num_points=10),
-                dict(n=10, num_points=10),
             ]
             return self.generate_tests(smoke_data)
 
@@ -150,7 +140,7 @@ class TestSymmetricMatrices(TestCase, metaclass=VectorSpaceParametrizer):
 
         def to_tangent_is_tangent_data(self):
             space_args_list = random.sample(range(1, 10), 5)
-            tangent_shapes_list = [(n, n) for n in zip(space_args_list)]
+            tangent_shapes_list = [(n, n) for n in space_args_list]
             n_vecs_list = random.sample(range(1, 10), 5)
             n_base_points_list = random.sample(range(1, 10), 5)
             return self._to_tangent_is_tangent_data(
@@ -177,12 +167,6 @@ class TestSymmetricMatrices(TestCase, metaclass=VectorSpaceParametrizer):
     def test_powerm(self, mat, power, expected):
         result = SymmetricMatrices.powerm(gs.array(mat), power)
         self.assertAllClose(result, gs.array(expected))
-
-    def test_projection(self, n, num_points):
-        space = SymmetricMatrices(n)
-        shape = (num_points, n, n)
-        result = gs.all(helper.test_projection_and_belongs(space, shape))
-        self.assertTrue(result)
 
     def test_from_vector(self, n, vec, expected):
         result = SymmetricMatrices(n).from_vector(gs.array(vec))

@@ -1,5 +1,3 @@
-from random import random
-
 import pytest
 
 import geomstats.backend as gs
@@ -73,15 +71,13 @@ class ManifoldTestData(TestData):
             space = space_cls(space_args)
             vec = gs.random.normal(size=(n_vecs,) + tangent_shape)
             base_point = space.random_point(n_base_points)
-            random.append(
-                [
-                    dict(
-                        space_args=space_args,
-                        vec=vec,
-                        base_point=base_point,
-                        is_tangent_atol=is_tangent_atol,
-                    )
-                ]
+            random_data.append(
+                dict(
+                    space_args=space_args,
+                    vec=vec,
+                    base_point=base_point,
+                    is_tangent_atol=is_tangent_atol,
+                )
             )
         return self.generate_tests([], random_data)
 
