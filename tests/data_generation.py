@@ -74,7 +74,7 @@ class OpenSetTestData(ManifoldTestData):
         return self.generate_tests([], random_data)
 
 
-class LieGroupTestData:
+class LieGroupTestData(ManifoldTestData):
     def _exp_log_composition_data(self, group_args, group_cls, n_samples, base_point):
         random_data = [
             dict(
@@ -96,7 +96,7 @@ class LieGroupTestData:
         return self.generate_tests([], random_data)
 
 
-class VectorSpaceTestData:
+class VectorSpaceTestData(ManifoldTestData):
     def _basis_belongs_data(self, space_args, belongs_atol):
         random_data = [dict(space_args=space_args, belongs_atol=belongs_atol)]
         return self.generate_tests([], random_data)
@@ -246,7 +246,7 @@ class ConnectionTestData(TestData):
         )
 
 
-class RiemannianMetricTestData(TestData):
+class RiemannianMetricTestData(ConnectionTestData):
     def _squared_dist_is_symmetric_data(
         self, metric_args_list, metric_cls, spaces, n_points_a_list, n_points_b_list
     ):

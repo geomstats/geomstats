@@ -1,8 +1,18 @@
 import inspect
 import types
 
-import properties
 import pytest
+
+from tests.properties import (
+    ConnectionProperties,
+    LevelSetProperties,
+    LieGroupProperties,
+    ManifoldProperties,
+    MatrixLieAlgebraProperties,
+    OpenSetProperties,
+    RiemannianMetricProperties,
+    VectorSpaceProperties,
+)
 
 
 def _iterate_and_assign(attrs, properties_class):
@@ -42,47 +52,47 @@ class Parametrizer(type):
 
 class ManifoldParametrizer(Parametrizer):
     def __new__(cls, name, bases, attrs):
-        _iterate_and_assign(attrs, properties.ManifoldProperties)
+        _iterate_and_assign(attrs, ManifoldProperties)
         return super(ManifoldParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
 class OpenSetParametrizer(ManifoldParametrizer):
     def __new__(cls, name, bases, attrs):
-        _iterate_and_assign(attrs, properties.OpenSetProperties)
+        _iterate_and_assign(attrs, OpenSetProperties)
         return super(OpenSetParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
 class LieGroupParametrizer(ManifoldParametrizer):
     def __new__(cls, name, bases, attrs):
-        _iterate_and_assign(attrs, properties.LieGroupProperties)
+        _iterate_and_assign(attrs, LieGroupProperties)
         return super(LieGroupParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
 class VectorSpaceParametrizer(ManifoldParametrizer):
     def __new__(cls, name, bases, attrs):
-        _iterate_and_assign(attrs, properties.VectorSpaceProperties)
+        _iterate_and_assign(attrs, VectorSpaceProperties)
         return super(VectorSpaceParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
 class MatrixLieAlgebraParametrizer(VectorSpaceParametrizer):
     def __new__(cls, name, bases, attrs):
-        _iterate_and_assign(attrs, properties.MatrixLieAlgebraProperties)
+        _iterate_and_assign(attrs, MatrixLieAlgebraProperties)
         return super(MatrixLieAlgebraParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
 class LevelSetParametrizer:
     def __new__(cls, name, bases, attrs):
-        _iterate_and_assign(attrs, properties.LevelSetProperties)
+        _iterate_and_assign(attrs, LevelSetProperties)
         return super(LevelSetParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
 class ConnectionParametrizer:
     def __new__(cls, name, bases, attrs):
-        _iterate_and_assign(attrs, properties.ConnectionProperties)
+        _iterate_and_assign(attrs, ConnectionProperties)
         return super(ConnectionParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
 class RiemannianMetricParametrizer:
     def __new__(cls, name, bases, attrs):
-        _iterate_and_assign(attrs, properties.RiemannianMetricProperties)
+        _iterate_and_assign(attrs, RiemannianMetricProperties)
         return super(RiemannianMetricParametrizer, cls).__new__(cls, name, bases, attrs)
