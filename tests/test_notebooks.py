@@ -106,9 +106,19 @@ class TestNotebooks(geomstats.tests.TestCase):
     @staticmethod
     @geomstats.tests.np_and_autograd_only
     def test_a00_introduction_to_geomstats():
-        _exec_notebook("notebooks/" "a00_introduction_to_geomstats")
+        _exec_notebook("notebooks/" "a00_introduction_to_geomstats.ipynb")
 
     @staticmethod
     @geomstats.tests.np_and_autograd_only
     def test_a01_manifold_class():
-        _exec_notebook("notebooks/" "a01_manifold_class")
+        _exec_notebook("notebooks/" "a01_manifold_class.ipynb")
+
+    @staticmethod
+    @geomstats.tests.np_and_autograd_only
+    def test_a02_connection_class():
+        _exec_notebook("notebooks/" "a02_connection_class.ipynb")
+
+    @staticmethod
+    @geomstats.tests.np_and_autograd_only
+    def test_a03_riemannianMetric_class():
+        _exec_notebook("notebooks/" "a03_riemannianMetric_class.ipynb")
