@@ -1,5 +1,6 @@
 """Test properties of differential geometry."""
 
+
 import geomstats.backend as gs
 
 
@@ -268,7 +269,7 @@ class ConnectionProperties:
         self.assertAllClose(result, gs.array(True))
 
     def log_is_tangent(
-        self, connection_args, space, base_point, point, is_tangent_atol
+        self, connection_args, space, point, base_point, is_tangent_atol
     ):
         """Check that the connection logarithm gives a tangent vector.
 
@@ -278,15 +279,17 @@ class ConnectionProperties:
             Arguments to pass to constructor of the connection.
         space : Manifold
             Manifold where connection is defined.
-        base_point : array-like
-            Point on the manifold.
         point : array-like
+            Point on the manifold.
+        base_point : array-like
             Point on the manifold.
         is_tangent_atol : float
             Absolute tolerance for the is_tangent function.
         """
+        print("log", point.shape)
+        print("loge", base_point.shape)
         connection = self.connection(*connection_args)
-        log = connection.log(gs.array(base_point), gs.array(point))
+        log = connection.log(gs.array(point), gs.array(base_point))
         result = gs.all(space.is_tangent(log, gs.array(base_point), is_tangent_atol))
         self.assertAllClose(result, gs.array(True))
 

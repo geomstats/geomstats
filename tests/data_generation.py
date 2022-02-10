@@ -221,7 +221,7 @@ class ConnectionTestData(TestData):
         return self.generate_tests([], random_data)
 
     def _log_is_tangent_data(
-        self, connection_args_list, space_list, n_points_list, is_tangent=gs.atol
+        self, connection_args_list, space_list, n_points_list, is_tangent_atol=gs.atol
     ):
         random_data = []
         for connection_args, space, n_points in zip(
@@ -235,7 +235,7 @@ class ConnectionTestData(TestData):
                     space=space,
                     point=point,
                     base_point=base_point,
-                    is_tangent=gs.atol,
+                    is_tangent_atol=is_tangent_atol,
                 )
             )
         return self.generate_tests([], random_data)

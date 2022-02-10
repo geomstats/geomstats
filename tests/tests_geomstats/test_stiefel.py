@@ -85,7 +85,9 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
 
 
 class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrizer):
-    metric = StiefelCanonicalMetric
+    metric = connection = StiefelCanonicalMetric
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
 
     class TestDataStiefelCanonicalMetric(RiemannianMetricTestData):
 
@@ -162,6 +164,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 self.metric_args_list,
                 self.spaces_list,
                 self.n_points_list,
+                is_tangent_atol=gs.atol * 100000000,
             )
 
         def geodesic_ivp_belongs_data(self):
@@ -208,6 +211,6 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
     testing_data = TestDataStiefelCanonicalMetric()
 
     def test_log_two_sheets_error(self, n, p, point, base_point, expected):
-        metric = self.space(n, p)
+        metric = self.metric(n, p)
         with expected:
             metric.log(point, base_point)
