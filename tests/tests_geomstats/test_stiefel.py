@@ -88,6 +88,12 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
     metric = connection = StiefelCanonicalMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_log_exp_composition = True
+    skip_test_exp_log_composition = True
+    skip_test_log_is_tangent = True
+    skip_test_geodesic_bvp_belongs = True
+    skip_test_squared_dist_is_symmetric = True
 
     class TestDataStiefelCanonicalMetric(RiemannianMetricTestData):
 
@@ -98,7 +104,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
         spaces_list = [Stiefel(n, p) for n, p in metric_args_list]
         n_points_list = random.sample(range(1, 10), 5)
         n_points_a_list = random.sample(range(1, 10), 5)
-        n_points_b_list = random.sample(range(1, 10), 5)
+        n_points_b_list = [1]
         n_tangent_vecs_list = random.sample(range(1, 10), 5)
         n_directions_list = random.sample(range(1, 10), 5)
         n_end_points_list = random.sample(range(2, 10), 5)
@@ -133,22 +139,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 self.spaces_list,
                 self.n_points_a_list,
                 self.n_points_b_list,
-            )
-
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
-                self.metric_args_list,
-                self.spaces_list,
-                self.tangent_shape_list,
-                self.n_tangent_vecs_list,
-            )
-
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
-                self.metric_args_list,
-                self.spaces_list,
-                self.tangent_shape_list,
-                self.n_tangent_vecs_list,
+                atol=gs.atol * 1000,
             )
 
         def exp_belongs_data(self):
@@ -157,6 +148,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 self.spaces_list,
                 self.tangent_shape_list,
                 self.n_tangent_vecs_list,
+                belongs_atol=gs.atol * 1000,
             )
 
         def log_is_tangent_data(self):
@@ -164,7 +156,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 self.metric_args_list,
                 self.spaces_list,
                 self.n_points_list,
-                is_tangent_atol=gs.atol * 100000000,
+                is_tangent_atol=gs.atol * 1000,
             )
 
         def geodesic_ivp_belongs_data(self):
@@ -173,6 +165,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 self.spaces_list,
                 self.n_t_list,
                 self.tangent_shape_list,
+                belongs_atol=gs.atol * 1000,
             )
 
         def geodesic_bvp_belongs_data(self):
@@ -180,13 +173,27 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 self.metric_args_list,
                 self.spaces_list,
                 self.n_t_list,
+                belongs_atol=gs.atol * 1000,
             )
 
         def log_exp_composition_data(self):
-            return self.exp_belongs_data()
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.spaces_list,
+                self.tangent_shape_list,
+                self.n_tangent_vecs_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 100000,
+            )
 
         def exp_log_composition_data(self):
-            return self.log_is_tangent_data()
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.spaces_list,
+                self.n_points_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 100000,
+            )
 
         def exp_ladder_parallel_transport_data(self):
             return self._exp_ladder_parallel_transport_data(
@@ -206,6 +213,8 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 self.tangent_shape_list,
                 self.n_tangent_vecs_list,
                 self.n_points_list,
+                rtol=gs.rtol * 1000,
+                atol=gs.atol * 1000,
             )
 
     testing_data = TestDataStiefelCanonicalMetric()

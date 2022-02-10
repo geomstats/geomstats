@@ -315,7 +315,6 @@ class ConnectionTestData(TestData):
             random_data.append(
                 dict(
                     connection_args=connection_args,
-                    space=space,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
                     rtol=rtol,
@@ -341,7 +340,6 @@ class ConnectionTestData(TestData):
             random_data.append(
                 dict(
                     connection_args=connection_args,
-                    space=space,
                     point=point,
                     base_point=base_point,
                     rtol=gs.rtol,
