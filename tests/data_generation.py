@@ -215,7 +215,7 @@ class ConnectionTestData(TestData):
                     space=space,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
-                    belongs_atol=gs.atol,
+                    belongs_atol=belongs_atol,
                 )
             )
         return self.generate_tests([], random_data)
@@ -342,8 +342,8 @@ class ConnectionTestData(TestData):
                     connection_args=connection_args,
                     point=point,
                     base_point=base_point,
-                    rtol=gs.rtol,
-                    atol=gs.atol,
+                    rtol=rtol,
+                    atol=atol,
                 )
             )
         return self.generate_tests([], random_data)

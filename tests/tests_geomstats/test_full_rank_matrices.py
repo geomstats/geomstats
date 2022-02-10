@@ -2,7 +2,9 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
-from tests.conftest import Parametrizer, TestCase, TestData
+from tests.conftest import TestCase
+from tests.data_generation import TestData
+from tests.parametrizers import Parametrizer
 
 
 class TestFullRankMatrices(TestCase, metaclass=Parametrizer):

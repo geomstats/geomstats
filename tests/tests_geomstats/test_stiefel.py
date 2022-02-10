@@ -91,14 +91,14 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
     skip_test_exp_geodesic_ivp = True
     skip_test_log_exp_composition = True
     skip_test_exp_log_composition = True
-    skip_test_log_is_tangent = False
+    skip_test_log_is_tangent = True
     skip_test_geodesic_bvp_belongs = True
     skip_test_squared_dist_is_symmetric = True
 
     class TestDataStiefelCanonicalMetric(RiemannianMetricTestData):
 
-        n_list = random.sample(range(2, 10), 5)
-        p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
+        n_list = random.sample(range(3, 10), 5)
+        p_list = [random.sample(range(2, n), 1)[0] for n in n_list]
         metric_args_list = [(n, p) for n, p in zip(n_list, p_list)]
         tangent_shape_list = metric_args_list
         spaces_list = [Stiefel(n, p) for n, p in metric_args_list]

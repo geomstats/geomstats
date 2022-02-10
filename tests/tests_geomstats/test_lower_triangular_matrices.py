@@ -2,7 +2,9 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
-from tests.conftest import Parametrizer, TestCase, TestData
+from tests.conftest import TestCase
+from tests.data_generation import TestData
+from tests.parametrizers import Parametrizer
 
 
 class TestLowerTriangularMatrices(TestCase, metaclass=Parametrizer):

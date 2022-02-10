@@ -17,7 +17,9 @@ from geomstats.geometry.spd_matrices import (
     SPDMetricEuclidean,
     SPDMetricLogEuclidean,
 )
-from tests.conftest import Parametrizer, TestCase, TestData
+from tests.conftest import TestCase
+from tests.data_generation import TestData
+from tests.parametrizers import Parametrizer
 
 SQRT_2 = math.sqrt(2.0)
 LN_2 = math.log(2.0)

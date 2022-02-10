@@ -132,23 +132,30 @@ class TestSymmetricMatrices(TestCase, metaclass=VectorSpaceParametrizer):
         def projection_belongs_data(self):
             space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
             n_samples_list = random.sample(range(1, 10), 5)
-            shapes = [
-                (n_samples, n, n)
-                for (n,), n_samples in zip(space_args_list, n_samples_list)
-            ]
-            return self._projection_belongs_data(space_args_list, shapes)
+            shapes = [(n, n) for (n,), in zip(space_args_list)]
+            return self._projection_belongs_data(
+                space_args_list, shapes, n_samples_list
+            )
 
         def to_tangent_is_tangent_data(self):
             space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
             tangent_shapes_list = [(n, n) for (n,) in space_args_list]
             n_vecs_list = random.sample(range(1, 10), 5)
-            n_base_points_list = random.sample(range(1, 10), 5)
             return self._to_tangent_is_tangent_data(
-                SymmetricMatrices,
+                SymmetricMatrices, space_args_list, tangent_shapes_list, n_vecs_list
+            )
+
+        def random_point_belongs_data(self):
+            smoke_space_args_list = [(1,), (2,), (3,)]
+            smoke_n_points_list = [1, 1, 10]
+            space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
+            n_points_list = [n for n in random.sample(range(1, 100), 5)]
+
+            return self._random_point_belongs_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
                 space_args_list,
-                tangent_shapes_list,
-                n_vecs_list,
-                n_base_points_list,
+                n_points_list,
             )
 
     testing_data = TestDataSymmetricMatrices()

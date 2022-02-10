@@ -10,7 +10,9 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from tests.conftest import Parametrizer, TestCase, TestData
+from tests.conftest import TestCase
+from tests.data_generation import TestData
+from tests.parametrizers import Parametrizer
 
 EULER = gs.exp(1.0)
 SQRT_2 = math.sqrt(2)
