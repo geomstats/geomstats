@@ -339,6 +339,54 @@ class LevelSetTestData(ManifoldTestData):
 
 
 class ConnectionTestData(TestData):
+    def _exp_shape_data(
+        self, connection_args_list, space_list, tangent_shape_list, batch_size_list
+    ):
+        random_data = []
+        for connection_args, space, tangent_shape, batch_size in zip(
+            connection_args_list, space_list, tangent_shape_list, batch_size_list
+        ):
+            base_point = space.random_point(batch_size)
+            tangent_vec = space.to_tangent(
+                gs.random.normal(size=(batch_size,) + tangent_shape), base_point
+            )
+            n_points_list = itertools.product([1, batch_size], [1, batch_size])
+            expected_shape_list = [space.shape] + [(batch_size,) + space.shape] * 3
+            for (n_tangent_vecs, n_base_points), expected_shape in zip(
+                n_points_list, expected_shape_list
+            ):
+                random_data.append(
+                    dict(
+                        connection_args=connection_args,
+                        tangent_vec=tangent_vec[:n_tangent_vecs],
+                        base_point=base_point[:n_base_points],
+                        expected_shape=expected_shape,
+                    )
+                )
+        return self.generate_tests([], random_data)
+
+    def _log_shape_data(self, connection_args_list, space_list, batch_size_list):
+        random_data = []
+        for connection_args, space, batch_size in zip(
+            connection_args_list, space_list, batch_size_list
+        ):
+            base_point = space.random_point(batch_size)
+            point = space.random_point(batch_size)
+            n_points_list = itertools.product([1, batch_size], [1, batch_size])
+            expected_shape_list = [space.shape] + [(batch_size,) + space.shape] * 3
+            for (n_points, n_base_points), expected_shape in zip(
+                n_points_list, expected_shape_list
+            ):
+                random_data.append(
+                    dict(
+                        connection_args=connection_args,
+                        point=point[:n_points],
+                        base_point=base_point[:n_base_points],
+                        expected_shape=expected_shape,
+                    )
+                )
+        return self.generate_tests([], random_data)
+
     def _exp_belongs_data(
         self,
         connection_args_list,

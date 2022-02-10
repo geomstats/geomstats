@@ -45,6 +45,7 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
             tangent_shapes_list = space_args_list
             n_vecs_list = random.sample(range(1, 10), 5)
             is_tangent_atol = gs.atol * 1000
+
             return self._to_tangent_is_tangent_data(
                 Stiefel,
                 space_args_list,
@@ -107,8 +108,9 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
         n_points_b_list = [1]
         n_tangent_vecs_list = random.sample(range(1, 10), 5)
         n_directions_list = random.sample(range(1, 10), 5)
-        n_end_points_list = random.sample(range(2, 10), 5)
-        n_t_list = random.sample(range(2, 10), 5)
+        n_end_points_list = random.sample(range(1, 10), 5)
+        n_t_list = random.sample(range(1, 10), 5)
+        batch_size_list = random.sample(range(2, 10), 5)
         alpha_list = [1] * 5
         n_rungs_list = [1] * 5
         scheme_list = ["pole"] * 5
@@ -132,6 +134,21 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 )
             ]
             return self.generate_tests([], random_data)
+
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.spaces_list,
+                self.tangent_shape_list,
+                self.batch_size_list,
+            )
+
+        def log_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.spaces_list,
+                self.batch_size_list,
+            )
 
         def squared_dist_is_symmetric_data(self):
             return self._squared_dist_is_symmetric_data(
