@@ -6,6 +6,12 @@ import pytest
 import geomstats.backend as gs
 
 
+def better_squeeze(array):
+    if len(array) == 1:
+        return gs.squeeze(array, axis=0)
+    return array
+
+
 class TemporaryTestData:
     """Class for TemporaryTestData objects for backward compatibility."""
 
@@ -358,8 +364,8 @@ class ConnectionTestData(TestData):
                 random_data.append(
                     dict(
                         connection_args=connection_args,
-                        tangent_vec=tangent_vec[:n_tangent_vecs],
-                        base_point=base_point[:n_base_points],
+                        tangent_vec=better_squeeze(tangent_vec[:n_tangent_vecs]),
+                        base_point=better_squeeze(base_point[:n_base_points]),
                         expected_shape=expected_shape,
                     )
                 )
@@ -377,11 +383,12 @@ class ConnectionTestData(TestData):
             for (n_points, n_base_points), expected_shape in zip(
                 n_points_list, expected_shape_list
             ):
+
                 random_data.append(
                     dict(
                         connection_args=connection_args,
-                        point=point[:n_points],
-                        base_point=base_point[:n_base_points],
+                        point=better_squeeze(point[:n_points]),
+                        base_point=better_squeeze(base_point[:n_base_points]),
                         expected_shape=expected_shape,
                     )
                 )

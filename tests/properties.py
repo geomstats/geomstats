@@ -258,6 +258,9 @@ class ConnectionProperties:
         expected : tuple
             Expected shape for the result of the exp function.
         """
+        print(tangent_vec.shape)
+        print(base_point.shape)
+        print(expected)
         connection = self.connection(*connection_args)
         exp = connection.exp(gs.array(tangent_vec), gs.array(base_point))
         result = gs.shape(exp)
