@@ -18,7 +18,7 @@ from geomstats.geometry.spd_matrices import (
     SPDMetricLogEuclidean,
 )
 from tests.conftest import TestCase
-from tests.data_generation import TestData
+from tests.data_generation import TemporaryTestData
 from tests.parametrizers import Parametrizer
 
 SQRT_2 = math.sqrt(2.0)
@@ -31,7 +31,7 @@ SINH_1 = math.sinh(1.0)
 class TestSPDMatrices(TestCase, metaclass=Parametrizer):
     """Test of SPDMatrices methods."""
 
-    class TestDataSPDMatrices(TestData):
+    class TestDataSPDMatrices(TemporaryTestData):
         def belongs_data(self):
             smoke_data = [
                 dict(n=2, mat=[[3.0, -1.0], [-1.0, 3.0]], expected=True),
@@ -285,7 +285,7 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
 
 
 class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
-    class TestDataSPDMetricAffine(TestData):
+    class TestDataSPDMetricAffine(TemporaryTestData):
         def inner_product_data(self):
             smoke_data = [
                 dict(
@@ -399,7 +399,7 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
 
 
 class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
-    class TestDataSPDMetricBuresWasserstein(TestData):
+    class TestDataSPDMetricBuresWasserstein(TemporaryTestData):
         def inner_product_data(self):
             smoke_data = [
                 dict(
@@ -494,7 +494,7 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
 
 
 class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
-    class TestDataSPDMetricEuclidean(TestData):
+    class TestDataSPDMetricEuclidean(TemporaryTestData):
         def inner_product_data(self):
             smoke_data = [
                 dict(
@@ -619,7 +619,7 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
 
 
 class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
-    class TestDataSPDMetricLogEuclidean(TestData):
+    class TestDataSPDMetricLogEuclidean(TemporaryTestData):
         def inner_product_data(self):
             smoke_data = [
                 dict(

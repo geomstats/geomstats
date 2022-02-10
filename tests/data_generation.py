@@ -1,6 +1,152 @@
+import itertools
+import random
+
 import pytest
 
 import geomstats.backend as gs
+
+
+class TemporaryTestData:
+    """Class for TemporaryTestData objects for backward compatibility."""
+
+    def generate_tests(self, smoke_test_data, random_test_data=[]):
+        """Wrap test data with corresponding markers.
+        Parameters
+        ----------
+        smoke_test_data : list
+            Test data that will be marked as smoke.
+        random_test_data : list
+            Test data that will be marked as random.
+            Optional, default: []
+        Returns
+        -------
+        _: list
+            Tests.
+        """
+        tests = []
+        if smoke_test_data:
+            smoke_tests = [
+                pytest.param(*data.values(), marks=pytest.mark.smoke)
+                for data in smoke_test_data
+            ]
+            tests += smoke_tests
+        if random_test_data:
+            random_tests = [
+                pytest.param(*data.values(), marks=pytest.mark.random)
+                if isinstance(data, dict)
+                else pytest.param(*data, marks=pytest.mark.random)
+                for data in random_test_data
+            ]
+            tests += random_tests
+        return tests
+
+    def _log_exp_composition_data(
+        self, space, n_samples=100, max_n=10, n_n=5, **kwargs
+    ):
+        """Generate Data that checks for log and exp are inverse. Specifically
+            :math: `Exp_{base_point}(Log_{base_point}(point)) = point`
+        Parameters
+        ----------
+        space : cls
+            Manifold class on which metric is present.
+        max_n : int
+            Maximum value when generating 'n'.
+            Optional, default: 20
+        n_n : int
+            Number of 'n' to be generated.
+            Optional, default: 5
+        n_samples : int
+            Optional, default: 100
+        Returns
+        -------
+        _ : list
+            Test Data.
+        """
+        random_n = random.sample(range(1, max_n), n_n)
+        random_data = []
+        for n in random_n:
+            for prod in itertools.product(*kwargs.values()):
+                space_n = space(n)
+                base_point = space_n.random_point(n_samples)
+                point = space_n.random_point(n_samples)
+                random_data.append((n,) + prod + (point, base_point))
+        return self.generate_tests([], random_data)
+
+    def _geodesic_belongs_data(
+        self, space, max_n=10, n_n=5, n_geodesics=10, n_t=10, **kwargs
+    ):
+        """Generate Data that checks for points on geodesic belongs to data.
+        Parameters
+        ----------
+        space : cls
+            Manifold class on which metric is present.
+        max_n : int
+            Maximum value when generating 'n'.
+            Optional, default: 10
+        n_n : int
+            Maximum value when generating 'n'.
+            Optional, default: 5
+        n_geodesics : int
+            Number of geodesics to be generated.
+            Optional, default: 10
+        n_t : int
+            Number of points to be sampled on each geodesic.
+            Optional, default: 10
+        Returns
+        -------
+        _ : list
+            Test Data.
+        """
+        random_n = random.sample(range(2, max_n), n_n)
+        random_data = []
+        for n in random_n:
+            for prod in itertools.product(*kwargs.values()):
+                space_n = space(n)
+                initial_point = space_n.random_point()
+                initial_tangent_points = space_n.random_tangent_vec(
+                    n_geodesics, base_point=initial_point
+                )
+                random_t = gs.linspace(start=-1.0, stop=1.0, num=n_t)
+                for initial_tangent_point, t in itertools.product(
+                    initial_tangent_points, random_t
+                ):
+                    random_data.append(
+                        (n,) + prod + (initial_point, initial_tangent_point, t)
+                    )
+        return self.generate_tests([], random_data)
+
+    def _squared_dist_is_symmetric_data(
+        self, space, max_n=5, n_n=3, n_samples=10, **kwargs
+    ):
+        """Generate Data that checks squared_dist is symmetric.
+        Parameters
+        ----------
+        space : cls
+            Manifold class on which metric is present.
+        max_n : int
+            Range of 'n' to generated.
+            Optional, default: 10
+        n_n : int
+            Maximum value when generating 'n'.
+            Optional, default: 3
+        n_samples : int
+            Number of points to be generated.
+            Optional, default: 10
+        Returns
+        -------
+        _ : list
+            Test Data.
+        """
+        random_n = random.sample(range(2, max_n), n_n)
+        random_data = []
+        for n in random_n:
+            for prod in itertools.product(*kwargs.values()):
+                space_n = space(n)
+                points_a = space_n.random_point(n_samples)
+                points_b = space_n.random_point(n_samples)
+                for point_a, point_b in itertools.product(points_a, points_b):
+                    random_data.append((n,) + prod + (point_a, point_b))
+        return self.generate_tests([], random_data)
 
 
 class TestData:

@@ -3,7 +3,7 @@
 import geomstats.backend as gs
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from tests.conftest import TestCase
-from tests.data_generation import TestData
+from tests.data_generation import TemporaryTestData
 from tests.parametrizers import Parametrizer
 
 
@@ -11,7 +11,7 @@ class TestFullRankMatrices(TestCase, metaclass=Parametrizer):
 
     cls = FullRankMatrices
 
-    class TestDataFullRankMatrices(TestData):
+    class TestDataFullRankMatrices(TemporaryTestData):
         def belongs_data(self):
             smoke_data = [
                 dict(
