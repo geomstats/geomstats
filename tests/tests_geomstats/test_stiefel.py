@@ -91,7 +91,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
     skip_test_exp_geodesic_ivp = True
     skip_test_log_exp_composition = True
     skip_test_exp_log_composition = True
-    skip_test_log_is_tangent = True
+    skip_test_log_is_tangent = False
     skip_test_geodesic_bvp_belongs = True
     skip_test_squared_dist_is_symmetric = True
 
