@@ -45,6 +45,23 @@ def _is_isometry(
 
 
 class ManifoldProperties:
+    def random_point_belongs(self, space_args, n_points, belongs_atol):
+        """Check that a random point belongs to the manifold.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the manifold.
+        n_points : array-like
+            Number of random points to sample.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
+        space = self.space(*space_args)
+        random_point = space.random_point(n_points)
+        result = space.belongs(random_point, atol=belongs_atol)
+        self.assertAllClose(result, [True] * n_points)
+
     def belongs_shape(self, space_args, point, expected):
         """Check that belongs returns an array of the expected shape.
 
@@ -114,10 +131,79 @@ class ManifoldProperties:
 
 
 class OpenSetProperties(ManifoldProperties):
-    def to_tangent_belongs_ambient_space(self, space_args, data, belongs_atol):
+    def to_tangent_is_tangent_in_ambient_space(
+        self, space_args, vector, base_point, belongs_atol
+    ):
+        """Check that tangent vectors are in ambient space's tangent space.
+
+        This projects a vector to the tangent space of the manifold, and
+        then checks that tangent vector belongs to ambient space's tangent space.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the manifold.
+        vector : array-like
+            Vector to be projected on the tangent space at base_point.
+        base_point : array-like
+            Point on the manifold.
+        is_tangent_atol : float
+            Absolute tolerance for the is_tangent function.
+        """
         space = self.space(*space_args)
-        result = gs.all(space.ambient_space.belongs(gs.array(data), belongs_atol))
+        tangent_vec = space.to_tangent(gs.array(vector), base_point)
+        result = gs.all(space.ambient_space.is_tangent(tangent_vec, belongs_atol))
         self.asertAllClose(result, gs.array(True))
+
+
+class LevelSetProperties(ManifoldProperties):
+    def extrinsic_intrinsic_composition(self, space_args, point_extrinsic, rtol, atol):
+        """Check that changing coordinate system twice gives back the point.
+
+        A point written in extrinsic coordinates is converted to intrinsic coordinates
+        and back.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the manifold.
+        point_extrinsic : array-like
+            Point on the manifold in extrinsic coordinates.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        space = self.space(*space_args)
+        point_intrinsic = space.extrinsic_to_intrinsic_coords(point_extrinsic)
+        result = space.intrinsic_to_extrinsic_coords(point_intrinsic)
+        expected = point_extrinsic
+
+        self.assertAllClose(result, expected, rtol, atol)
+
+    def intrinsic_extrinsic_composition(self, space_args, point_intrinsic, rtol, atol):
+        """Check that changing coordinate system twice gives back the point.
+
+        A point written in intrinsic coordinates is converted to extrinsic coordinates
+        and back.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the manifold.
+        point_intrinsic : array-like
+            Point on the manifold in intrinsic coordinates.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        space = self.space(*space_args)
+        point_extrinsic = space.intrinsic_to_extrinsic_coords(point_intrinsic)
+        result = space.extrinsic_to_intrinsic_coords(point_extrinsic)
+        expected = point_intrinsic
+
+        self.assertAllClose(result, expected, rtol, atol)
 
 
 class LieGroupProperties:
@@ -248,56 +334,6 @@ class LieAlgebraProperties(VectorSpaceProperties):
         mat_rep = algebra.matrix_representation(basis_rep)
         result = algebra.basis_representation(mat_rep)
         self.assertAllClose(result, gs.array(basis_rep), rtol, atol)
-
-
-class LevelSetProperties(ManifoldProperties):
-    def extrinsic_intrinsic_composition(self, space_args, point_extrinsic, rtol, atol):
-        """Check that changing coordinate system twice gives back the point.
-
-        A point written in extrinsic coordinates is converted to intrinsic coordinates
-        and back.
-
-        Parameters
-        ----------
-        space_args : tuple
-            Arguments to pass to constructor of the manifold.
-        point_extrinsic : array-like
-            Point on the manifold in extrinsic coordinates.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
-        space = self.space(*space_args)
-        point_intrinsic = space.extrinsic_to_intrinsic_coords(point_extrinsic)
-        result = space.intrinsic_to_extrinsic_coords(point_intrinsic)
-        expected = point_extrinsic
-
-        self.assertAllClose(result, expected, rtol, atol)
-
-    def intrinsic_extrinsic_composition(self, space_args, point_intrinsic, rtol, atol):
-        """Check that changing coordinate system twice gives back the point.
-
-        A point written in intrinsic coordinates is converted to extrinsic coordinates
-        and back.
-
-        Parameters
-        ----------
-        space_args : tuple
-            Arguments to pass to constructor of the manifold.
-        point_intrinsic : array-like
-            Point on the manifold in intrinsic coordinates.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
-        space = self.space(*space_args)
-        point_extrinsic = space.intrinsic_to_extrinsic_coords(point_intrinsic)
-        result = space.extrinsic_to_intrinsic_coords(point_extrinsic)
-        expected = point_intrinsic
-
-        self.assertAllClose(result, expected, rtol, atol)
 
 
 class ConnectionProperties:

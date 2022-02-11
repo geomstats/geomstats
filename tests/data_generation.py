@@ -7,6 +7,7 @@ import geomstats.backend as gs
 
 
 def better_squeeze(array):
+    """Delete possible singleton dimension on first axis."""
     if len(array) == 1:
         return gs.squeeze(array, axis=0)
     return array
@@ -16,7 +17,7 @@ class TemporaryTestData:
     """Class for TemporaryTestData objects for backward compatibility."""
 
     def generate_tests(self, smoke_test_data, random_test_data=[]):
-        """Wrap test data with corresponding markers.
+        """Wrap test data with corresponding Pytest markers.
         Parameters
         ----------
         smoke_test_data : list
@@ -49,8 +50,11 @@ class TemporaryTestData:
     def _log_exp_composition_data(
         self, space, n_samples=100, max_n=10, n_n=5, **kwargs
     ):
-        """Generate Data that checks for log and exp are inverse. Specifically
+        """Generate Data that checks for log and exp are inverse.
+
+        Specifically:
             :math: `Exp_{base_point}(Log_{base_point}(point)) = point`
+
         Parameters
         ----------
         space : cls
@@ -63,6 +67,7 @@ class TemporaryTestData:
             Optional, default: 5
         n_samples : int
             Optional, default: 100
+
         Returns
         -------
         _ : list
@@ -82,6 +87,7 @@ class TemporaryTestData:
         self, space, max_n=10, n_n=5, n_geodesics=10, n_t=10, **kwargs
     ):
         """Generate Data that checks for points on geodesic belongs to data.
+
         Parameters
         ----------
         space : cls
@@ -98,6 +104,7 @@ class TemporaryTestData:
         n_t : int
             Number of points to be sampled on each geodesic.
             Optional, default: 10
+
         Returns
         -------
         _ : list
@@ -125,6 +132,7 @@ class TemporaryTestData:
         self, space, max_n=5, n_n=3, n_samples=10, **kwargs
     ):
         """Generate Data that checks squared_dist is symmetric.
+
         Parameters
         ----------
         space : cls
@@ -138,6 +146,7 @@ class TemporaryTestData:
         n_samples : int
             Number of points to be generated.
             Optional, default: 10
+
         Returns
         -------
         _ : list
@@ -194,6 +203,8 @@ class TestData:
 
 
 class ManifoldTestData(TestData):
+    """Class for ManifoldTestData: data to test manifold properties."""
+
     def _random_point_belongs_data(
         self,
         smoke_space_args_list,
@@ -202,6 +213,21 @@ class ManifoldTestData(TestData):
         n_points_list,
         belongs_atol=gs.atol,
     ):
+        """Generate data to check that a random point belongs to the manifold.
+
+        Parameters
+        ----------
+        smoke_space_args_list : list
+            List of spaces' args on which smoke tests will run.
+        smoke_n_points_list : list
+            Integers representing the numbers of points on which smoke tests will run.
+        space_args_list : list
+            List of spaces' (manifolds') args on which randomized tests will run.
+        n_points : list
+            List of integers as numbers of points on which randomized tests will run.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
 
         smoke_data = [
             dict(space_args=space_args, n_points=n_points, belongs_atol=belongs_atol)
@@ -216,6 +242,21 @@ class ManifoldTestData(TestData):
     def _projection_belongs_data(
         self, space_args_list, shapes_list, n_samples_list, cls, belongs_atol=gs.atol
     ):
+        """Generate data to check that a point projected on a manifold belongs to the manifold.
+
+        Parameters
+        ----------
+        space_args_list : list
+            List of spaces' args on which tests will run.
+        shapes_list : list
+            List of shapes of the random data that is generated, and projected.
+        n_samples_list : list
+            List of integers for the number of random data is generated, and projected.
+        cls : ManifoldTestData
+            Class.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
 
         random_data = [
             dict(
@@ -234,17 +275,30 @@ class ManifoldTestData(TestData):
         self,
         space_cls,
         space_args_list,
-        tangent_shapes_list,
+        shapes_list,
         n_vecs_list,
         is_tangent_atol=gs.atol,
     ):
+        """Generate data to check that to_tangent returns a tangent vector.
+
+        Parameters
+        ----------
+        space_cls : Manifold
+            Class of the space, i.e. a child class of Manifold.
+        space_args_list : list
+            List of spaces' args on which tests will run.
+        vec_shapes_list : list
+            List of shapes of the random vectors generated, and projected.
+        n_vecs_list : list
+            List of integers for the number of random vectors generated, and projected.
+        is_tangent_atol : float
+            Absolute tolerance for the is_tangent function.
+        """
 
         random_data = []
-        for space_args, tangent_shape, n_vecs in zip(
-            space_args_list, tangent_shapes_list, n_vecs_list
-        ):
+        for space_args, shape, n_vecs in zip(space_args_list, shapes_list, n_vecs_list):
             space = space_cls(*space_args)
-            vec = gs.random.normal(size=(n_vecs,) + tangent_shape)
+            vec = gs.random.normal(size=(n_vecs,) + shape)
             base_point = space.random_point()
             random_data.append(
                 dict(
@@ -258,36 +312,124 @@ class ManifoldTestData(TestData):
 
 
 class OpenSetTestData(ManifoldTestData):
-    def _to_tangent_belongs_ambient_space_data(
+    def _to_tangent_is_tangent_in_ambient_space_data(
         self,
-        space_args,
-        tangent_shapes,
+        space_cls,
+        space_args_list,
+        shapes_list,
     ):
+        """Generate data to check that tangent vectors are in ambient space's tangent space.
+
+        Parameters
+        ----------
+        space_cls : Manifold
+            Class of the space, i.e. a child class of Manifold.
+        space_args_list : list
+            Arguments to pass to constructor of the manifold.
+        shapes_list : list
+            List of shapes of the random data that is generated, and projected.
+        """
         random_data = [
-            dict(space_args=space_args, data=gs.random.normal(size=tangent_shape))
-            for tangent_shape in tangent_shapes
+            dict(
+                space_args=space_args,
+                vector=gs.random.normal(size=shape),
+                base_point=space_cls(*space_args).random_point(shape[0]),
+            )
+            for space_args, shape in zip(space_args_list, shapes_list)
+        ]
+        return self.generate_tests([], random_data)
+
+
+class LevelSetTestData(ManifoldTestData):
+    def _extrinsic_intrinsic_composition_data(
+        self, space_cls, space_args_list, n_samples_list
+    ):
+        """Generate data to check that changing coordinate system twice gives back the point.
+
+        Assumes that random_point generates points in extrinsic coordinates.
+
+        Parameters
+        ----------
+        space_cls : Manifold
+            Class of the space, i.e. a child class of Manifold.
+        space_args_list : list
+            Arguments to pass to constructor of the manifold.
+        n_samples_list : list
+            List of number of extrinsic points to generate.
+        """
+        random_data = [
+            dict(
+                space_args=space_args,
+                point_extrinsic=space_cls(*space_args).random_point(n_samples),
+            )
+            for space_args, n_samples in zip(space_args_list, n_samples_list)
+        ]
+        return self.generate_tests([], random_data)
+
+    def _intrinsic_extrinsic_composition_data(self, space_args_list, n_samples_list):
+        """Generate data to check that changing coordinate system twice gives back the point.
+
+        Assumes that the first elements in space_args is the dimension of the space.
+
+        Parameters
+        ----------
+        space_args_list : list
+            Arguments to pass to constructor of the manifold.
+        n_samples_list : list
+            List of number of intrinsic points to generate.
+        """
+        random_data = [
+            dict(
+                space_args=space_args,
+                point_intrinsic=gs.random.normal(size=(n_samples,) + space_args[0]),
+            )
+            for space_args, n_samples in zip(space_args_list, n_samples_list)
         ]
         return self.generate_tests([], random_data)
 
 
 class LieGroupTestData(ManifoldTestData):
-    def _exp_log_composition_data(self, group_args, group_cls, n_samples, base_point):
+    def _exp_log_composition_data(self, group_cls, group_args_list, n_samples_list):
+        """Generate data to check that group exponential and logarithm are inverse.
+
+        Parameters
+        ----------
+        group_cls : LieGroup
+            Class of the group, i.e. a child class of LieGroup.
+        group_args_list : list
+            Arguments to pass to constructor of the Lie group.
+        n_samples_list : list
+            List of number of points and tangent vectors to generate.
+        """
         random_data = [
             dict(
                 group_args=group_args,
-                tangent_vec=group_cls(group_args).random_tangent_vec(n_samples),
-                base_point=group_cls(group_args).random_point(n_samples),
+                tangent_vec=group_cls(*group_args).random_tangent_vec(n_samples),
+                base_point=group_cls(*group_args).random_point(n_samples),
             )
+            for group_args, n_samples in zip(group_args_list, n_samples_list)
         ]
         return self.generate_tests([], random_data)
 
-    def _log_exp_composition_data(self, group_args, group_cls, n_samples, base_point):
+    def _log_exp_composition_data(self, group_cls, group_args_list, n_samples_list):
+        """Generate data to check that group logarithm and exponential are inverse.
+
+        Parameters
+        ----------
+        group_cls : LieGroup
+            Class of the group, i.e. a child class of LieGroup.
+        group_args_list : list
+            Arguments to pass to constructor of the Lie group.
+        n_samples_list : list
+            List of number of points and tangent vectors to generate.
+        """
         random_data = [
             dict(
                 group_args=group_args,
                 tangent_vec=group_cls(group_args).random_tangent_vec(n_samples),
                 base_point=group_cls(group_args).random_point(n_samples),
             )
+            for group_args, n_samples in zip(group_args_list, n_samples_list)
         ]
         return self.generate_tests([], random_data)
 
@@ -332,16 +474,6 @@ class LieAlgebraTestData(VectorSpaceTestData):
                 atol=atol,
             )
         ]
-        return self.generate_tests([], random_data)
-
-
-class LevelSetTestData(ManifoldTestData):
-    def _extrinsic_intrinsic_composition_data(self, space_args):
-        random_data = [dict(space_args=space_args)]
-        return self.generate_tests([], random_data)
-
-    def _intrinsic_extrinsic_composition_data(self, space_args):
-        random_data = [dict(space_args=space_args)]
         return self.generate_tests([], random_data)
 
 
