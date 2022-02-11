@@ -6,14 +6,10 @@ import geomstats.backend as gs
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from tests.conftest import TestCase
 from tests.data_generation import VectorSpaceTestData
-from tests.parametrizers import (
-    ManifoldParametrizer,
-    Parametrizer,
-    VectorSpaceParametrizer,
-)
+from tests.parametrizers import VectorSpaceParametrizer
 
 
-class TestSymmetricMatrices(TestCase, metaclass=ManifoldParametrizer):
+class TestSymmetricMatrices(TestCase, metaclass=VectorSpaceParametrizer):
     """Test of SymmetricMatrices methods."""
 
     space = SymmetricMatrices

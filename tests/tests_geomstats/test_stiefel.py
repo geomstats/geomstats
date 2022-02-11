@@ -10,12 +10,7 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
 from tests.conftest import TestCase, np_autograd_and_tf_only
 from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
-from tests.parametrizers import (
-    LevelSetParametrizer,
-    ManifoldParametrizer,
-    Parametrizer,
-    RiemannianMetricParametrizer,
-)
+from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
 
 p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
 r_z = gs.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
@@ -35,6 +30,8 @@ point_b = gs.array(
 
 class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
     space = Stiefel
+    skip_test_extrinsic_intrinsic_composition = True
+    skip_test_intrinsic_extrinsic_composition = True
 
     class TestDataStiefel(LevelSetTestData):
         def random_point_belongs_data(self):
