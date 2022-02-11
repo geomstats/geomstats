@@ -6,10 +6,14 @@ import geomstats.backend as gs
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from tests.conftest import TestCase
 from tests.data_generation import VectorSpaceTestData
-from tests.parametrizers import VectorSpaceParametrizer
+from tests.parametrizers import (
+    ManifoldParametrizer,
+    Parametrizer,
+    VectorSpaceParametrizer,
+)
 
 
-class TestSymmetricMatrices(TestCase, metaclass=VectorSpaceParametrizer):
+class TestSymmetricMatrices(TestCase, metaclass=ManifoldParametrizer):
     """Test of SymmetricMatrices methods."""
 
     space = SymmetricMatrices
@@ -134,7 +138,7 @@ class TestSymmetricMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             n_samples_list = random.sample(range(1, 10), 5)
             shapes = [(n, n) for (n,), in zip(space_args_list)]
             return self._projection_belongs_data(
-                space_args_list, shapes, n_samples_list
+                space_args_list, shapes, n_samples_list, SymmetricMatrices
             )
 
         def to_tangent_is_tangent_data(self):

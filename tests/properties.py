@@ -46,23 +46,23 @@ def _is_isometry(
 
 
 class ManifoldProperties:
-    def random_point_belongs(self, space_args, n_points, belongs_atol):
-        """Check that a random point on a manifold belongs to the manifold.
+    # def random_point_belongs(self, space_args, n_points, belongs_atol):
+    #     """Check that a random point on a manifold belongs to the manifold.
 
-        Parameters
-        ----------
-        space_args : tuple
-            Arguments to pass to constructor of the manifold.
-        point : array-like
-            Point to be projected on the manifold.
-        belongs_atol : float
-            Absolute tolerance for the belongs function.
-        """
-        space = self.space(*space_args)
-        belongs = space.belongs(space.random_point(n_points), belongs_atol)
-        self.assertAllClose(gs.all(belongs), gs.array(True))
+    #     Parameters
+    #     ----------
+    #     space_args : tuple
+    #         Arguments to pass to constructor of the manifold.
+    #     point : array-like
+    #         Point to be projected on the manifold.
+    #     belongs_atol : float
+    #         Absolute tolerance for the belongs function.
+    #     """
+    #     space = self.space(*space_args)
+    #     belongs = space.belongs(space.random_point(n_points), belongs_atol)
+    #     self.assertAllClose(gs.all(belongs), gs.array(True))
 
-    def projection_belongs(self, space_args, point, belongs_atol):
+    def projection_belongs(self, space_args, point, cls, belongs_atol):
         """Check that a point projected on a manifold belongs to the manifold.
 
         Parameters
@@ -78,29 +78,29 @@ class ManifoldProperties:
         belongs = space.belongs(space.projection(gs.array(point)), belongs_atol)
         self.assertAllClose(gs.all(belongs), gs.array(True))
 
-    def to_tangent_is_tangent(self, space_args, vector, base_point, is_tangent_atol):
-        """Check that to_tangent returns a tangent vector.
+    # def to_tangent_is_tangent(self, space_args, vector, base_point, is_tangent_atol):
+    #     """Check that to_tangent returns a tangent vector.
 
-        Parameters
-        ----------
-        space_args : tuple
-            Arguments to pass to constructor of the manifold.
-        vector : array-like
-            Vector to be projected on the tangent space at base_point.
-        base_point : array-like
-            Point on the manifold.
-        is_tangent_atol : float
-            Absolute tolerance for the is_tangent function.
-        """
-        print("sa", space_args)
-        print("vec", vector.shape)
-        print("base", base_point.shape)
-        space = self.space(*space_args)
-        tangent = space.to_tangent(gs.array(vector), gs.array(base_point))
-        result = gs.all(
-            space.is_tangent(tangent, gs.array(base_point), is_tangent_atol)
-        )
-        self.assertAllClose(result, gs.array(True))
+    #     Parameters
+    #     ----------
+    #     space_args : tuple
+    #         Arguments to pass to constructor of the manifold.
+    #     vector : array-like
+    #         Vector to be projected on the tangent space at base_point.
+    #     base_point : array-like
+    #         Point on the manifold.
+    #     is_tangent_atol : float
+    #         Absolute tolerance for the is_tangent function.
+    #     """
+    #     print("sa", space_args)
+    #     print("vec", vector.shape)
+    #     print("base", base_point.shape)
+    #     space = self.space(*space_args)
+    #     tangent = space.to_tangent(gs.array(vector), gs.array(base_point))
+    #     result = gs.all(
+    #         space.is_tangent(tangent, gs.array(base_point), is_tangent_atol)
+    #     )
+    #     self.assertAllClose(result, gs.array(True))
 
 
 class OpenSetProperties(ManifoldProperties):

@@ -3,6 +3,7 @@ import types
 
 import pytest
 
+import geomstats.backend as gs
 from tests.properties import (
     ConnectionProperties,
     LevelSetProperties,
@@ -54,7 +55,7 @@ class Parametrizer(type):
 
 class ManifoldParametrizer(Parametrizer):
     def __new__(cls, name, bases, attrs):
-        _iterate_and_assign(attrs, ManifoldProperties)
+
         return super(ManifoldParametrizer, cls).__new__(cls, name, bases, attrs)
 
 

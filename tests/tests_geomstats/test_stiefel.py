@@ -10,7 +10,12 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
 from tests.conftest import TestCase, np_autograd_and_tf_only
 from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
-from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
+from tests.parametrizers import (
+    LevelSetParametrizer,
+    ManifoldParametrizer,
+    Parametrizer,
+    RiemannianMetricParametrizer,
+)
 
 p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
 r_z = gs.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
@@ -72,7 +77,7 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
             shapes_list = space_args_list
             n_samples_list = random.sample(range(1, 10), 5)
             return self._projection_belongs_data(
-                space_args_list, shapes_list, n_samples_list
+                space_args_list, shapes_list, n_samples_list, Stiefel
             )
 
         def to_grassmannian_data(self):

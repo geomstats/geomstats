@@ -214,13 +214,14 @@ class ManifoldTestData(TestData):
         return self.generate_tests(smoke_data, random_data)
 
     def _projection_belongs_data(
-        self, space_args_list, shapes_list, n_samples_list, belongs_atol=gs.atol
+        self, space_args_list, shapes_list, n_samples_list, cls, belongs_atol=gs.atol
     ):
 
         random_data = [
             dict(
                 space_args=space_args,
                 data=gs.random.normal(size=(n_samples,) + shape),
+                cls=cls,
                 belongs_atol=belongs_atol,
             )
             for space_args, shape, n_samples in zip(
