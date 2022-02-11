@@ -943,15 +943,32 @@ class RiemannianMetricTestData(ConnectionTestData):
     def _squared_dist_is_symmetric_data(
         self,
         metric_args_list,
-        spaces_list,
+        space_list,
         n_points_a_list,
         n_points_b_list,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
+        """Generate data to check that the squared geodesic distance is symmetric.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_a_list : list
+            List of number of points A to generate on the manifold.
+        n_points_b_list : list
+            List of number of points B to generate on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
         random_data = []
         for metric_args, space, n_points_a, n_points_b in zip(
-            metric_args_list, spaces_list, n_points_a_list, n_points_b_list
+            metric_args_list, space_list, n_points_a_list, n_points_b_list
         ):
             point_a = space.random_point(n_points_a)
             point_b = space.random_point(n_points_b)
@@ -970,24 +987,39 @@ class RiemannianMetricTestData(ConnectionTestData):
         self,
         metric_args_list,
         space_list,
-        tangent_shape_list,
-        n_tangent_vecs_list,
+        shape_list,
+        n_samples_list,
         is_tangent_atol=gs.atol,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
+        """Generate data to check that parallel transport is an isometry.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        n_samples_list : list
+            List of number of random data to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
         random_data = []
-        for metric_args, space, tangent_shape, n_tangent_vecs in zip(
-            metric_args_list, space_list, tangent_shape_list, n_tangent_vecs_list
+        for metric_args, space, shape, n_samples in zip(
+            metric_args_list, space_list, shape_list, n_samples_list
         ):
             base_point = space.random_point()
 
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + tangent_shape), base_point
+                gs.random.normal(size=(n_samples,) + shape), base_point
             )
-            direction = space.to_tangent(
-                gs.random.normal(size=tangent_shape), base_point
-            )
+            direction = space.to_tangent(gs.random.normal(size=shape), base_point)
             random_data.append(
                 dict(
                     metric_args=metric_args,
@@ -1007,15 +1039,34 @@ class RiemannianMetricTestData(ConnectionTestData):
         self,
         metric_args_list,
         space_list,
-        tangent_shape_list,
-        n_tangent_vecs_list,
+        shape_list,
+        n_samples_list,
         is_tangent_atol=gs.atol,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
+        """Generate data to check that parallel transport is an isometry.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        n_samples_list : list
+            List of number of random data to generate.
+        is_tangent_atol: float
+            Asbolute tolerance for the is_tangent function.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
         random_data = []
         for metric_args, space, tangent_shape, n_tangent_vecs in zip(
-            metric_args_list, space_list, tangent_shape_list, n_tangent_vecs_list
+            metric_args_list, space_list, shape_list, n_samples_list
         ):
             base_point = space.random_point()
 
