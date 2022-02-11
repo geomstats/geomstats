@@ -519,18 +519,31 @@ class LieAlgebraTestData(VectorSpaceTestData):
 
 class ConnectionTestData(TestData):
     def _exp_shape_data(
-        self, connection_args_list, space_list, tangent_shape_list, batch_size_list
+        self, connection_args_list, space_list, shape_list, n_samples_list
     ):
+        """Generate data to check that exp returns an array of the expected shape.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        n_samples_list : list
+            List of number of random data to generate.
+        """
         random_data = []
-        for connection_args, space, tangent_shape, batch_size in zip(
-            connection_args_list, space_list, tangent_shape_list, batch_size_list
+        for connection_args, space, tangent_shape, n_samples in zip(
+            connection_args_list, space_list, shape_list, n_samples_list
         ):
-            base_point = space.random_point(batch_size)
+            base_point = space.random_point(n_samples)
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=(batch_size,) + tangent_shape), base_point
+                gs.random.normal(size=(n_samples,) + tangent_shape), base_point
             )
-            n_points_list = itertools.product([1, batch_size], [1, batch_size])
-            expected_shape_list = [space.shape] + [(batch_size,) + space.shape] * 3
+            n_points_list = itertools.product([1, n_samples], [1, n_samples])
+            expected_shape_list = [space.shape] + [(n_samples,) + space.shape] * 3
             for (n_tangent_vecs, n_base_points), expected_shape in zip(
                 n_points_list, expected_shape_list
             ):
@@ -544,15 +557,26 @@ class ConnectionTestData(TestData):
                 )
         return self.generate_tests([], random_data)
 
-    def _log_shape_data(self, connection_args_list, space_list, batch_size_list):
+    def _log_shape_data(self, connection_args_list, space_list, n_samples_list):
+        """Generate data to check that log returns an array of the expected shape.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        n_samples_list : list
+            List of number of random data to generate.
+        """
         random_data = []
-        for connection_args, space, batch_size in zip(
-            connection_args_list, space_list, batch_size_list
+        for connection_args, space, n_samples in zip(
+            connection_args_list, space_list, n_samples_list
         ):
-            base_point = space.random_point(batch_size)
-            point = space.random_point(batch_size)
-            n_points_list = itertools.product([1, batch_size], [1, batch_size])
-            expected_shape_list = [space.shape] + [(batch_size,) + space.shape] * 3
+            base_point = space.random_point(n_samples)
+            point = space.random_point(n_samples)
+            n_points_list = itertools.product([1, n_samples], [1, n_samples])
+            expected_shape_list = [space.shape] + [(n_samples,) + space.shape] * 3
             for (n_points, n_base_points), expected_shape in zip(
                 n_points_list, expected_shape_list
             ):
@@ -571,17 +595,30 @@ class ConnectionTestData(TestData):
         self,
         connection_args_list,
         space_list,
-        tangent_shape_list,
-        n_tangent_vecs_list,
+        shape_list,
+        n_samples_list,
         belongs_atol=gs.atol,
     ):
+        """Generate data to check that exp gives a point on the manifold.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        n_samples_list : list
+            List of number of random data to generate.
+        """
         random_data = []
-        for connection_args, space, tangent_shape, n_tangent_vecs in zip(
-            connection_args_list, space_list, tangent_shape_list, n_tangent_vecs_list
+        for connection_args, space, shape, n_tangent_vecs in zip(
+            connection_args_list, space_list, shape_list, n_samples_list
         ):
             base_point = space.random_point()
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + tangent_shape), base_point
+                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
             )
             random_data.append(
                 dict(
@@ -595,13 +632,24 @@ class ConnectionTestData(TestData):
         return self.generate_tests([], random_data)
 
     def _log_is_tangent_data(
-        self, connection_args_list, space_list, n_points_list, is_tangent_atol=gs.atol
+        self, connection_args_list, space_list, n_samples_list, is_tangent_atol=gs.atol
     ):
+        """Generate data to check that log gives a tangent vector.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        n_samples_list : list
+            List of number of random data to generate.
+        """
         random_data = []
-        for connection_args, space, n_points in zip(
-            connection_args_list, space_list, n_points_list
+        for connection_args, space, n_samples in zip(
+            connection_args_list, space_list, n_samples_list
         ):
-            point = space.random_point(n_points)
+            point = space.random_point(n_samples)
             base_point = space.random_point()
             random_data.append(
                 dict(
@@ -618,23 +666,38 @@ class ConnectionTestData(TestData):
         self,
         connection_args_list,
         space_list,
-        n_t_list,
-        tangent_shapes_list,
+        shape_list,
+        n_points_list,
         belongs_atol=gs.atol,
     ):
+        """Generate data to check that connection geodesics belong to manifold.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        n_points_list : list
+            List of number of times on the geodesics.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
         random_data = []
-        for connection_args, space, n_t, tangent_shape in zip(
-            connection_args_list, space_list, n_t_list, tangent_shapes_list
+        for connection_args, space, n_points, shape in zip(
+            connection_args_list, space_list, n_points_list, shape_list
         ):
             initial_point = space.random_point()
             initial_tangent_vec = space.to_tangent(
-                gs.random.normal(size=tangent_shape), initial_point
+                gs.random.normal(size=shape), initial_point
             )
             random_data.append(
                 dict(
                     connection_args=connection_args,
                     space=space,
-                    n_t=n_t,
+                    n_points=n_points,
                     initial_point=initial_point,
                     initial_tangent_vec=initial_tangent_vec,
                     belongs_atol=belongs_atol,
@@ -646,14 +709,27 @@ class ConnectionTestData(TestData):
         self,
         connection_args_list,
         space_list,
-        n_t_list,
+        n_points_list,
         belongs_atol=gs.atol,
     ):
+        """Generate data to check that connection geodesics belong to manifold.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        n_points_list : list
+            List of number of points on the geodesics.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
         random_data = []
-        for connection_args, space, n_t in zip(
+        for connection_args, space, n_points in zip(
             connection_args_list,
             space_list,
-            n_t_list,
+            n_points_list,
         ):
             initial_point = space.random_point()
             end_point = space.random_point()
@@ -661,7 +737,7 @@ class ConnectionTestData(TestData):
                 dict(
                     connection_args=connection_args,
                     space=space,
-                    n_t=n_t,
+                    n_points=n_points,
                     initial_point=initial_point,
                     end_point=end_point,
                     belongs_atol=belongs_atol,
@@ -673,18 +749,31 @@ class ConnectionTestData(TestData):
         self,
         connection_args_list,
         space_list,
-        tangent_shape_list,
-        n_tangent_vecs_list,
+        shape_list,
+        n_samples_list,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
+        """Generate data to check that exponential and logarithm are inverse.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        n_samples_list : list
+            List of number of random data to generate.
+        """
         random_data = []
-        for connection_args, space, tangent_shape, n_tangent_vecs in zip(
-            connection_args_list, space_list, tangent_shape_list, n_tangent_vecs_list
+        for connection_args, space, shape, n_samples in zip(
+            connection_args_list, space_list, shape_list, n_samples_list
         ):
             base_point = space.random_point()
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + tangent_shape), base_point
+                gs.random.normal(size=(n_samples,) + shape), base_point
             )
             random_data.append(
                 dict(
@@ -701,15 +790,26 @@ class ConnectionTestData(TestData):
         self,
         connection_args_list,
         space_list,
-        n_points_list,
+        n_samples_list,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
+        """Generate data to check that exp gives a point on the manifold.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        n_samples_list : list
+            List of number of random data to generate.
+        """
         random_data = []
-        for connection_args, space, n_points in zip(
-            connection_args_list, space_list, n_points_list
+        for connection_args, space, n_samples in zip(
+            connection_args_list, space_list, n_samples_list
         ):
-            point = space.random_point(n_points)
+            point = space.random_point(n_samples)
             base_point = space.random_point()
             random_data.append(
                 dict(
@@ -725,29 +825,42 @@ class ConnectionTestData(TestData):
     def _exp_ladder_parallel_transport_data(
         self,
         connection_args_list,
-        spaces_list,
-        tangent_shape_list,
-        n_tangent_vecs_list,
+        space_list,
+        shape_list,
+        n_samples_list,
         n_rungs_list,
         alpha_list,
         scheme_list,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
+        """Generate data to check that end point of ladder matches exponential.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        n_rungs_list : list
+            List of number of rungs for the ladder.
+        alpha_list : list
+            List of exponents for th scaling of the vector to transport.
+        scheme_list : list
+            List of ladder schemes to test.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
         random_data = []
-        for (
-            connection_args,
-            space,
-            tangent_shape,
-            n_tangent_vecs,
-            n_rungs,
-            alpha,
-            scheme,
-        ) in zip(
+        for (connection_args, space, shape, n_samples, n_rungs, alpha, scheme,) in zip(
             connection_args_list,
-            spaces_list,
-            tangent_shape_list,
-            n_tangent_vecs_list,
+            space_list,
+            shape_list,
+            n_samples_list,
             n_rungs_list,
             alpha_list,
             scheme_list,
@@ -755,11 +868,9 @@ class ConnectionTestData(TestData):
             base_point = space.random_point()
 
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + tangent_shape), base_point
+                gs.random.normal(size=(n_samples,) + shape), base_point
             )
-            direction = space.to_tangent(
-                gs.random.normal(size=tangent_shape), base_point
-            )
+            direction = space.to_tangent(gs.random.normal(size=shape), base_point)
             random_data.append(
                 dict(
                     connection_args=connection_args,
@@ -779,24 +890,41 @@ class ConnectionTestData(TestData):
     def _exp_geodesic_ivp_data(
         self,
         connection_args_list,
-        spaces_list,
-        tangent_shapes_list,
-        n_tangent_vecs_list,
+        space_list,
+        shape_list,
+        n_samples_list,
         n_points_list,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
+        """Generate data to check that end point of geodesic matches exponential.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        n_samples_list : list
+            List of number of random data to generate.
+        n_points_list : list
+            List of number of times on the geodesics.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
         random_data = []
-        for connection_args, space, tangent_shape, n_tangent_vecs, n_points in zip(
+        for connection_args, space, shape, n_samples, n_points in zip(
             connection_args_list,
-            spaces_list,
-            tangent_shapes_list,
-            n_tangent_vecs_list,
+            space_list,
+            shape_list,
+            n_samples_list,
             n_points_list,
         ):
             base_point = space.random_point()
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + tangent_shape), base_point
+                gs.random.normal(size=(n_samples,) + shape), base_point
             )
             random_data.append(
                 dict(
