@@ -149,7 +149,7 @@ class TestSymmetricMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             smoke_space_args_list = [(1,), (2,), (3,)]
             smoke_n_points_list = [1, 1, 10]
             space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
-            n_points_list = [n for n in random.sample(range(1, 100), 5)]
+            n_points_list = list(random.sample(range(1, 100), 5))
 
             return self._random_point_belongs_data(
                 smoke_space_args_list,

@@ -39,7 +39,7 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
             smoke_n_points_list = [1, 2, 1, 2]
             n_list = random.sample(range(2, 10), 5)
             p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            space_args_list = [(n, p) for n, p in zip(n_list, p_list)]
+            space_args_list = list(zip(n_list, p_list))
             n_points_list = random.sample(range(1, 10), 5)
 
             belongs_atol = gs.atol * 10000
@@ -54,7 +54,7 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
         def to_tangent_is_tangent_data(self):
             n_list = random.sample(range(2, 10), 5)
             p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            space_args_list = [(n, p) for n, p in zip(n_list, p_list)]
+            space_args_list = list(zip(n_list, p_list))
             tangent_shapes_list = space_args_list
             n_vecs_list = random.sample(range(1, 10), 5)
             is_tangent_atol = gs.atol * 1000
@@ -70,7 +70,7 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
         def projection_belongs_data(self):
             n_list = random.sample(range(2, 10), 5)
             p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            space_args_list = [(n, p) for n, p in zip(n_list, p_list)]
+            space_args_list = list(zip(n_list, p_list))
             shapes_list = space_args_list
             n_samples_list = random.sample(range(1, 10), 5)
             return self._projection_belongs_data(
@@ -114,7 +114,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
 
         n_list = random.sample(range(3, 10), 5)
         p_list = [random.sample(range(2, n), 1)[0] for n in n_list]
-        metric_args_list = [(n, p) for n, p in zip(n_list, p_list)]
+        metric_args_list = list(zip(n_list, p_list))
         tangent_shape_list = metric_args_list
         spaces_list = [Stiefel(n, p) for n, p in metric_args_list]
         n_points_list = random.sample(range(1, 10), 5)

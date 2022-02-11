@@ -251,6 +251,7 @@ class MatrixLieAlgebraParametrizer(VectorSpaceParametrizer):
 
             A point written in basis representation is converted to matrix
             representation and back.
+
             Parameters
             ----------
             algebra_args : tuple
@@ -278,6 +279,7 @@ class MatrixLieAlgebraParametrizer(VectorSpaceParametrizer):
 
             A point written in matrix representation is converted to basis
             representation and back.
+
             Parameters
             ----------
             algebra_args : tuple
@@ -370,6 +372,7 @@ class ConnectionParametrizer(Parametrizer):
     def __new__(cls, name, bases, attrs):
         def test_exp_shape(self, connection_args, tangent_vec, base_point, expected):
             """Check that exp returns an array of the expected shape.
+
             Parameters
             ----------
             connection_args : tuple
@@ -388,6 +391,7 @@ class ConnectionParametrizer(Parametrizer):
 
         def test_log_shape(self, connection_args, point, base_point, expected):
             """Check that log returns an array of the expected shape.
+
             Parameters
             ----------
             connection_args : tuple

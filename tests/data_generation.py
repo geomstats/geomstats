@@ -17,6 +17,7 @@ class TemporaryTestData:
 
     def generate_tests(self, smoke_test_data, random_test_data=[]):
         """Wrap test data with corresponding markers.
+
         Parameters
         ----------
         smoke_test_data : list
@@ -24,6 +25,7 @@ class TemporaryTestData:
         random_test_data : list
             Test data that will be marked as random.
             Optional, default: []
+
         Returns
         -------
         _: list
@@ -82,6 +84,7 @@ class TemporaryTestData:
         self, space, max_n=10, n_n=5, n_geodesics=10, n_t=10, **kwargs
     ):
         """Generate Data that checks for points on geodesic belongs to data.
+
         Parameters
         ----------
         space : cls
@@ -125,6 +128,7 @@ class TemporaryTestData:
         self, space, max_n=5, n_n=3, n_samples=10, **kwargs
     ):
         """Generate Data that checks squared_dist is symmetric.
+
         Parameters
         ----------
         space : cls
