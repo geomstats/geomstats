@@ -419,7 +419,7 @@ class LieGroupTestData(ManifoldTestData):
         group_cls : LieGroup
             Class of the group, i.e. a child class of LieGroup.
         group_args_list : list
-            Arguments to pass to constructor of the Lie group.
+            List of arguments to pass to constructor of the Lie group.
         n_samples_list : list
             List of number of points and tangent vectors to generate.
         """
@@ -436,6 +436,15 @@ class LieGroupTestData(ManifoldTestData):
 
 class VectorSpaceTestData(ManifoldTestData):
     def _basis_belongs_data(self, space_args_list, belongs_atol=gs.atol):
+        """Generate data to check that basis elements belong to vector space.
+
+        Parameters
+        ----------
+        space_args_list : list
+            List of arguments to pass to constructor of the vector space.
+        belongs_atol : float
+            Absolute tolerance of the belongs function.
+        """
         random_data = [
             dict(space_args=space_args, belongs_atol=belongs_atol)
             for space_args in space_args_list
@@ -443,14 +452,32 @@ class VectorSpaceTestData(ManifoldTestData):
         return self.generate_tests([], random_data)
 
     def _basis_cardinality_data(self, space_args_list):
+        """Generate data to check that the number of basis elements is the dimension.
+
+        Parameters
+        ----------
+        space_args_list : list
+            List of arguments to pass to constructor of the vector space.
+        """
         random_data = [dict(space_args=space_args) for space_args in space_args_list]
         return self.generate_tests([], random_data)
 
 
 class LieAlgebraTestData(VectorSpaceTestData):
     def basis_representation_matrix_representation_composition_data(
-        self, space_args, space_cls, n_samples, rtol=gs.rtol, atol=gs.atol
+        self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):
+        """Generate data to check that changing coordinates twice gives back the point.
+
+        Parameters
+        ----------
+        space_cls : LieAlgebra
+            Class of the space, i.e. a child class of LieAlgebra.
+        space_args_list : list
+            Arguments to pass to constructor of the manifold.
+        n_samples_list : list
+            List of numbers of samples to generate.
+        """
         random_data = [
             dict(
                 space_args=space_args,
@@ -458,12 +485,24 @@ class LieAlgebraTestData(VectorSpaceTestData):
                 rtol=rtol,
                 atol=atol,
             )
+            for space_args, n_samples in zip(space_args_list, n_samples_list)
         ]
         return self.generate_tests([], random_data)
 
     def matrix_representation_basis_representation_composition_data(
-        self, space_args, space_cls, n_samples, rtol=gs.rtol, atol=gs.atol
+        self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):
+        """Generate data to check that changing coordinates twice gives back the point.
+
+        Parameters
+        ----------
+        space_cls : LieAlgebra
+            Class of the space, i.e. a child class of LieAlgebra.
+        space_args_list : list
+            Arguments to pass to constructor of the manifold.
+        n_samples_list : list
+            List of numbers of samples to generate.
+        """
         random_data = [
             dict(
                 space_args=space_args,
@@ -473,6 +512,7 @@ class LieAlgebraTestData(VectorSpaceTestData):
                 rtol=rtol,
                 atol=atol,
             )
+            for space_args, n_samples in zip(space_args_list, n_samples_list)
         ]
         return self.generate_tests([], random_data)
 
