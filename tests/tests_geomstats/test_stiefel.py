@@ -32,6 +32,7 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
     space = Stiefel
     skip_test_extrinsic_intrinsic_composition = True
     skip_test_intrinsic_extrinsic_composition = True
+    skip_test_to_tangent_is_tangent_ = True
 
     class TestDataStiefel(LevelSetTestData):
         def random_point_belongs_data(self):
