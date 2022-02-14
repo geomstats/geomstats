@@ -482,7 +482,7 @@ class ConnectionParametrizer(Parametrizer):
             self,
             connection_args,
             space,
-            n_t,
+            n_points,
             initial_point,
             initial_tangent_vec,
             belongs_atol,
@@ -497,7 +497,7 @@ class ConnectionParametrizer(Parametrizer):
                 Arguments to pass to constructor of the connection.
             space : Manifold
                 Manifold where connection is defined.
-            n_t : int
+            n_points : int
                 Number of points on the geodesics.
             initial_point : array-like
                 Point on the manifold.
@@ -511,16 +511,22 @@ class ConnectionParametrizer(Parametrizer):
                 initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
             )
 
-            t = gs.linspace(start=0.0, stop=1.0, num=n_t)
+            t = gs.linspace(start=0.0, stop=1.0, num=n_points)
             points = geodesic(t)
 
             result = space.belongs(points, belongs_atol)
-            expected = gs.array(n_t * [True])
+            expected = gs.array(n_points * [True])
 
             self.assertAllClose(result, expected)
 
         def test_geodesic_bvp_belongs(
-            self, connection_args, space, n_t, initial_point, end_point, belongs_atol
+            self,
+            connection_args,
+            space,
+            n_points,
+            initial_point,
+            end_point,
+            belongs_atol,
         ):
             """Check that connection geodesics belong to manifold.
 
@@ -532,7 +538,7 @@ class ConnectionParametrizer(Parametrizer):
                 Arguments to pass to constructor of the connection.
             space : Manifold
                 Manifold where connection is defined.
-            n_t : int
+            n_points : int
                 Number of points on the geodesics.
             initial_point : array-like
                 Point on the manifold.
@@ -547,11 +553,11 @@ class ConnectionParametrizer(Parametrizer):
                 initial_point=initial_point, end_point=end_point
             )
 
-            t = gs.linspace(start=0.0, stop=1.0, num=n_t)
+            t = gs.linspace(start=0.0, stop=1.0, num=n_points)
             points = geodesic(t)
 
             result = space.belongs(points, belongs_atol)
-            expected = gs.array(n_t * [True])
+            expected = gs.array(n_points * [True])
 
             self.assertAllClose(result, expected)
 
