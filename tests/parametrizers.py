@@ -94,8 +94,8 @@ class ManifoldParametrizer(Parametrizer):
             """
             space = self.space(*space_args)
             random_point = space.random_point(n_points)
-            result = space.belongs(random_point, atol=belongs_atol)
-            self.assertAllClose(result, [True] * n_points)
+            result = gs.all(space.belongs(random_point, atol=belongs_atol))
+            self.assertAllClose(result, True)
 
         def test_projection_belongs(self, space_args, point, belongs_atol):
             """Check that a point projected on a manifold belongs to the manifold.
