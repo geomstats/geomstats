@@ -195,8 +195,8 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
             return self._geodesic_ivp_belongs_data(
                 self.metric_args_list,
                 self.spaces_list,
-                self.n_t_list,
                 self.tangent_shape_list,
+                self.n_t_list,
                 belongs_atol=gs.atol * 1000,
             )
 
