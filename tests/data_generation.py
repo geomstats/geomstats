@@ -241,7 +241,7 @@ class ManifoldTestData(TestData):
         return self.generate_tests(smoke_data, random_data)
 
     def _projection_belongs_data(
-        self, space_args_list, shapes_list, n_samples_list, cls, belongs_atol=gs.atol
+        self, space_args_list, shapes_list, n_samples_list, belongs_atol=gs.atol
     ):
         """Generate data to check that a point projected on a manifold belongs to the manifold.
 
@@ -253,8 +253,6 @@ class ManifoldTestData(TestData):
             List of shapes of the random data that is generated, and projected.
         n_samples_list : list
             List of integers for the number of random data is generated, and projected.
-        cls : ManifoldTestData
-            Class.
         belongs_atol : float
             Absolute tolerance for the belongs function.
         """
@@ -262,7 +260,6 @@ class ManifoldTestData(TestData):
             dict(
                 space_args=space_args,
                 data=gs.random.normal(size=(n_samples,) + shape),
-                cls=cls,
                 belongs_atol=belongs_atol,
             )
             for space_args, shape, n_samples in zip(
