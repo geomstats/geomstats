@@ -81,20 +81,21 @@ class Parametrizer(type):
 class ManifoldParametrizer(Parametrizer):
     def __new__(cls, name, bases, attrs):
         def test_random_point_belongs(self, space_args, n_points, belongs_atol):
-            """Check that a random point on a manifold belongs to the manifold.
+            """Check that a random point belongs to the manifold.
 
             Parameters
             ----------
             space_args : tuple
                 Arguments to pass to constructor of the manifold.
             n_points : array-like
-                number of random points to be generated.
+                Number of random points to sample.
             belongs_atol : float
                 Absolute tolerance for the belongs function.
             """
             space = self.space(*space_args)
-            belongs = space.belongs(space.random_point(n_points), belongs_atol)
-            self.assertAllClose(gs.all(belongs), gs.array(True))
+            random_point = space.random_point(n_points)
+            result = space.belongs(random_point, atol=belongs_atol)
+            self.assertAllClose(result, [True] * n_points)
 
         def test_projection_belongs(self, space_args, point, belongs_atol):
             """Check that a point projected on a manifold belongs to the manifold.
@@ -143,14 +144,34 @@ class ManifoldParametrizer(Parametrizer):
 
 class OpenSetParametrizer(ManifoldParametrizer):
     def __new__(cls, name, bases, attrs):
-        def test_to_tangent_belongs_ambient_space(self, space_args, data, belongs_atol):
+        def test_to_tangent_is_tangent_in_ambient_space(
+            self, space_args, vector, base_point, belongs_atol
+        ):
+            """Check that tangent vectors are in ambient space's tangent space.
+
+            This projects a vector to the tangent space of the manifold, and
+            then checks that tangent vector belongs to ambient space's tangent space.
+
+            Parameters
+            ----------
+            space_args : tuple
+                Arguments to pass to constructor of the manifold.
+            vector : array-like
+                Vector to be projected on the tangent space at base_point.
+            base_point : array-like
+                Point on the manifold.
+            is_tangent_atol : float
+                Absolute tolerance for the is_tangent function.
+            """
             space = self.space(*space_args)
-            result = gs.all(space.ambient_space.belongs(gs.array(data), belongs_atol))
+            result = gs.all(space.ambient_space.belongs(gs.array(vector), belongs_atol))
+            tangent_vec = space.to_tangent(gs.array(vector), base_point)
+            result = gs.all(space.ambient_space.is_tangent(tangent_vec, belongs_atol))
             self.asertAllClose(result, gs.array(True))
 
         attrs[
-            test_to_tangent_belongs_ambient_space.__name
-        ] = test_to_tangent_belongs_ambient_space
+            test_to_tangent_is_tangent_in_ambient_space.__name
+        ] = test_to_tangent_is_tangent_in_ambient_space
         return super(OpenSetParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
@@ -314,8 +335,8 @@ class LevelSetParametrizer(ManifoldParametrizer):
         ):
             """Check that changing coordinate system twice gives back the point.
 
-            A point written in extrinsic coordinates is converted to intrinsic
-            coordinates and back.
+            A point written in extrinsic coordinates is converted to
+            intrinsic coordinates and back.
 
             Parameters
             ----------
@@ -332,7 +353,6 @@ class LevelSetParametrizer(ManifoldParametrizer):
             point_intrinsic = space.extrinsic_to_intrinsic_coords(point_extrinsic)
             result = space.intrinsic_to_extrinsic_coords(point_intrinsic)
             expected = point_extrinsic
-
             self.assertAllClose(result, expected, rtol, atol)
 
         def test_intrinsic_extrinsic_composition(
