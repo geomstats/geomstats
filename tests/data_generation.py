@@ -225,7 +225,7 @@ class ManifoldTestData(TestData):
             Integers representing the numbers of points on which smoke tests will run.
         space_args_list : list
             List of spaces' (manifolds') args on which randomized tests will run.
-        n_points : list
+        n_points_list : list
             List of integers as numbers of points on which randomized tests will run.
         belongs_atol : float
             Absolute tolerance for the belongs function.
