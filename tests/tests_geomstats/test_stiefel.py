@@ -110,6 +110,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
     skip_test_geodesic_bvp_belongs = True
     skip_test_squared_dist_is_symmetric = True
     skip_test_exp_shape = True
+    skip_test_log_shape = True
 
     class TestDataStiefelCanonicalMetric(RiemannianMetricTestData):
 
