@@ -1,3 +1,5 @@
+"""Core parametrizer classes for Tests."""
+
 import inspect
 import types
 
@@ -85,8 +87,8 @@ class ManifoldParametrizer(Parametrizer):
             ----------
             space_args : tuple
                 Arguments to pass to constructor of the manifold.
-            point : array-like
-                Point to be projected on the manifold.
+            n_points : array-like
+                number of random points to be generated.
             belongs_atol : float
                 Absolute tolerance for the belongs function.
             """
@@ -94,7 +96,7 @@ class ManifoldParametrizer(Parametrizer):
             belongs = space.belongs(space.random_point(n_points), belongs_atol)
             self.assertAllClose(gs.all(belongs), gs.array(True))
 
-        def test_projection_belongs(self, space_args, point, cls, belongs_atol):
+        def test_projection_belongs(self, space_args, point, belongs_atol):
             """Check that a point projected on a manifold belongs to the manifold.
 
             Parameters

@@ -75,7 +75,7 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
             shapes_list = space_args_list
             n_samples_list = random.sample(range(1, 10), 5)
             return self._projection_belongs_data(
-                space_args_list, shapes_list, n_samples_list, Stiefel
+                space_args_list, shapes_list, n_samples_list
             )
 
         def to_grassmannian_data(self):

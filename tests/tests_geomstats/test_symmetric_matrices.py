@@ -134,7 +134,7 @@ class TestSymmetricMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             n_samples_list = random.sample(range(1, 10), 5)
             shapes = [(n, n) for (n,), in zip(space_args_list)]
             return self._projection_belongs_data(
-                space_args_list, shapes, n_samples_list, SymmetricMatrices
+                space_args_list, shapes, n_samples_list
             )
 
         def to_tangent_is_tangent_data(self):
