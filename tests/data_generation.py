@@ -495,7 +495,7 @@ class LieAlgebraTestData(VectorSpaceTestData):
         space_cls : LieAlgebra
             Class of the space, i.e. a child class of LieAlgebra.
         space_args_list : list
-            Arguments to pass to constructor of the manifold.
+            Arguments to pass to constructor of the LieAlgebra.
         n_samples_list : list
             List of numbers of samples to generate.
         """
