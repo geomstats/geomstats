@@ -10,7 +10,9 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from tests.conftest import Parametrizer, TestCase, TestData
+from tests.conftest import TestCase
+from tests.data_generation import TemporaryTestData
+from tests.parametrizers import Parametrizer
 
 EULER = gs.exp(1.0)
 SQRT_2 = math.sqrt(2)
@@ -21,7 +23,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
 
     space = PositiveLowerTriangularMatrices
 
-    class TestDataPositiveLowerTriangularMatrices(TestData):
+    class TestDataPositiveLowerTriangularMatrices(TemporaryTestData):
         def belongs_data(self):
             smoke_data = [
                 dict(n=2, mat=[[1.0, 0.0], [-1.0, 3.0]], expected=True),
@@ -188,7 +190,7 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
     cls = CholeskyMetric
     space = PositiveLowerTriangularMatrices
 
-    class TestDataCholeskyMetric(TestData):
+    class TestDataCholeskyMetric(TemporaryTestData):
         def diag_inner_product_data(self):
             smoke_data = [
                 dict(

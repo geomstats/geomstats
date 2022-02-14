@@ -5,7 +5,9 @@ import random
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from tests.conftest import Parametrizer, TestCase, TestData
+from tests.conftest import TestCase
+from tests.data_generation import TestData
+from tests.parametrizers import Parametrizer
 
 SQRT_2 = math.sqrt(2)
 

@@ -17,6 +17,7 @@ class TemporaryTestData:
 
     def generate_tests(self, smoke_test_data, random_test_data=[]):
         """Wrap test data with corresponding markers.
+
         Parameters
         ----------
         smoke_test_data : list
@@ -24,6 +25,7 @@ class TemporaryTestData:
         random_test_data : list
             Test data that will be marked as random.
             Optional, default: []
+
         Returns
         -------
         _: list
@@ -82,6 +84,7 @@ class TemporaryTestData:
         self, space, max_n=10, n_n=5, n_geodesics=10, n_t=10, **kwargs
     ):
         """Generate Data that checks for points on geodesic belongs to data.
+
         Parameters
         ----------
         space : cls
@@ -125,6 +128,7 @@ class TemporaryTestData:
         self, space, max_n=5, n_n=3, n_samples=10, **kwargs
     ):
         """Generate Data that checks squared_dist is symmetric.
+
         Parameters
         ----------
         space : cls
@@ -214,14 +218,13 @@ class ManifoldTestData(TestData):
         return self.generate_tests(smoke_data, random_data)
 
     def _projection_belongs_data(
-        self, space_args_list, shapes_list, n_samples_list, cls, belongs_atol=gs.atol
+        self, space_args_list, shapes_list, n_samples_list, belongs_atol=gs.atol
     ):
 
         random_data = [
             dict(
                 space_args=space_args,
                 data=gs.random.normal(size=(n_samples,) + shape),
-                cls=cls,
                 belongs_atol=belongs_atol,
             )
             for space_args, shape, n_samples in zip(
