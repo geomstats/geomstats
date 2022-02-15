@@ -436,7 +436,7 @@ class TestSPDMetricAffine(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_t_list,
+                self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
@@ -444,7 +444,7 @@ class TestSPDMetricAffine(
             return self._geodesic_bvp_belongs_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_t_list,
+                self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
