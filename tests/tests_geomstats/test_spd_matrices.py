@@ -330,14 +330,11 @@ class TestSPDMetricAffine(
         n_list = random.sample(range(2, 10), 5)
         metric_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
-        spaces_list = [SPDMatrices(n) for n in metric_args_list]
+        space_list = [SPDMatrices(n) for n, in metric_args_list]
         n_points_list = random.sample(range(1, 10), 5)
+        n_samples_list = random.sample(range(1, 10), 5)
         n_points_a_list = random.sample(range(1, 10), 5)
         n_points_b_list = [1]
-        n_tangent_vecs_list = random.sample(range(1, 10), 5)
-        n_directions_list = random.sample(range(1, 10), 5)
-        n_end_points_list = random.sample(range(1, 10), 5)
-        n_t_list = random.sample(range(1, 10), 5)
         batch_size_list = random.sample(range(2, 10), 5)
         alpha_list = [1] * 5
         n_rungs_list = [1] * 5
@@ -396,22 +393,22 @@ class TestSPDMetricAffine(
         def exp_shape_data(self):
             return self._exp_shape_data(
                 self.metric_args_list,
-                self.spaces_list,
-                self.tangent_shape_list,
+                self.space_list,
+                self.shape_list,
                 self.batch_size_list,
             )
 
         def log_shape_data(self):
             return self._log_shape_data(
                 self.metric_args_list,
-                self.spaces_list,
+                self.space_list,
                 self.batch_size_list,
             )
 
         def squared_dist_is_symmetric_data(self):
             return self._squared_dist_is_symmetric_data(
                 self.metric_args_list,
-                self.spaces_list,
+                self.space_list,
                 self.n_points_a_list,
                 self.n_points_b_list,
                 atol=gs.atol * 1000,
@@ -420,25 +417,25 @@ class TestSPDMetricAffine(
         def exp_belongs_data(self):
             return self._exp_belongs_data(
                 self.metric_args_list,
-                self.spaces_list,
-                self.tangent_shape_list,
-                self.n_tangent_vecs_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
                 belongs_atol=gs.atol * 1000,
             )
 
         def log_is_tangent_data(self):
             return self._log_is_tangent_data(
                 self.metric_args_list,
-                self.spaces_list,
-                self.n_points_list,
+                self.space_list,
+                self.n_samples_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
         def geodesic_ivp_belongs_data(self):
             return self._geodesic_ivp_belongs_data(
                 self.metric_args_list,
-                self.spaces_list,
-                self.tangent_shape_list,
+                self.space_list,
+                self.shape_list,
                 self.n_t_list,
                 belongs_atol=gs.atol * 1000,
             )
@@ -446,7 +443,7 @@ class TestSPDMetricAffine(
         def geodesic_bvp_belongs_data(self):
             return self._geodesic_bvp_belongs_data(
                 self.metric_args_list,
-                self.spaces_list,
+                self.space_list,
                 self.n_t_list,
                 belongs_atol=gs.atol * 1000,
             )
@@ -454,9 +451,9 @@ class TestSPDMetricAffine(
         def log_exp_composition_data(self):
             return self._log_exp_composition_data(
                 self.metric_args_list,
-                self.spaces_list,
-                self.tangent_shape_list,
-                self.n_tangent_vecs_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 100000,
             )
@@ -464,8 +461,8 @@ class TestSPDMetricAffine(
         def exp_log_composition_data(self):
             return self._exp_log_composition_data(
                 self.metric_args_list,
-                self.spaces_list,
-                self.n_points_list,
+                self.space_list,
+                self.n_samples_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 100000,
             )
@@ -473,9 +470,9 @@ class TestSPDMetricAffine(
         def exp_ladder_parallel_transport_data(self):
             return self._exp_ladder_parallel_transport_data(
                 self.metric_args_list,
-                self.spaces_list,
-                self.tangent_shape_list,
-                self.n_tangent_vecs_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
@@ -484,12 +481,32 @@ class TestSPDMetricAffine(
         def exp_geodesic_ivp_data(self):
             return self._exp_geodesic_ivp_data(
                 self.metric_args_list,
-                self.spaces_list,
-                self.tangent_shape_list,
-                self.n_tangent_vecs_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
                 self.n_points_list,
                 rtol=gs.rtol * 1000,
                 atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 100,
+                atol=gs.atol * 100,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 100,
+                atol=gs.atol * 100,
             )
 
     testing_data = TestDataSPDMetricAffine()
