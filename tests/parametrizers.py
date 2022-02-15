@@ -145,7 +145,7 @@ class ManifoldParametrizer(Parametrizer):
 class OpenSetParametrizer(ManifoldParametrizer):
     def __new__(cls, name, bases, attrs):
         def test_to_tangent_is_tangent_in_ambient_space(
-            self, space_args, vector, base_point, belongs_atol
+            self, space_args, vector, base_point, is_tangent_atol
         ):
             """Check that tangent vectors are in ambient space's tangent space.
 
@@ -164,13 +164,17 @@ class OpenSetParametrizer(ManifoldParametrizer):
                 Absolute tolerance for the is_tangent function.
             """
             space = self.space(*space_args)
-            result = gs.all(space.ambient_space.belongs(gs.array(vector), belongs_atol))
+            result = gs.all(
+                space.ambient_space.belongs(gs.array(vector), is_tangent_atol)
+            )
             tangent_vec = space.to_tangent(gs.array(vector), base_point)
-            result = gs.all(space.ambient_space.is_tangent(tangent_vec, belongs_atol))
-            self.asertAllClose(result, gs.array(True))
+            result = gs.all(
+                space.ambient_space.is_tangent(tangent_vec, is_tangent_atol)
+            )
+            self.assertAllClose(result, gs.array(True))
 
         attrs[
-            test_to_tangent_is_tangent_in_ambient_space.__name
+            test_to_tangent_is_tangent_in_ambient_space.__name__
         ] = test_to_tangent_is_tangent_in_ambient_space
         return super(OpenSetParametrizer, cls).__new__(cls, name, bases, attrs)
 
