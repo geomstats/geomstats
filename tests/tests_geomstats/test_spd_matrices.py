@@ -327,9 +327,7 @@ class TestSPDMetricAffine(
     class TestDataSPDMetricAffine(RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
         power_affine_list = [1.0, -0.5, 0.5, 1.0, 1.0]
-        metric_args_list = [
-            (n, power_affine) for n, power_affine in zip(n_list, power_affine_list)
-        ]
+        metric_args_list = list(zip(n_list, power_affine_list))
         shape_list = [(n, n) for n in n_list]
         space_list = [SPDMatrices(n) for n in n_list]
         n_points_list = random.sample(range(1, 7), 5)
@@ -736,12 +734,8 @@ class TestSPDMetricEuclidean(TestCase, metaclass=RiemannianMetricParametrizer):
     class TestDataSPDMetricEuclidean(RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
         power_euclidean_list = [1.0, -0.5, 0.5, 1.0, 1.0]
-        metric_args_list = [
-            (n, power_affine) for n, power_affine in zip(n_list, power_euclidean_list)
-        ]
-        one_metric_args_list = [
-            (n, power_affine) for n, power_affine in zip(n_list, [1.0] * 5)
-        ]
+        metric_args_list = list(zip(n_list, power_euclidean_list))
+        one_metric_args_list = list(zip(n_list, [1.0] * 5))
         shape_list = [(n, n) for n in n_list]
         space_list = [SPDMatrices(n) for n in n_list]
         n_points_list = random.sample(range(1, 7), 5)
