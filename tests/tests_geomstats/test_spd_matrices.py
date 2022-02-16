@@ -325,19 +325,19 @@ class TestSPDMetricAffine(
     skip_test_exp_ladder_parallel_transport = True
 
     class TestDataSPDMetricAffine(RiemannianMetricTestData):
-        n_list = random.sample(range(2, 7), 5)
-        power_affine_list = [1.0, -0.5, 0.5, 1.0, 1.0]
+        n_list = random.sample(range(2, 5), 2)
+        power_affine_list = [1.0, -0.5]
         metric_args_list = list(zip(n_list, power_affine_list))
         shape_list = [(n, n) for n in n_list]
         space_list = [SPDMatrices(n) for n in n_list]
-        n_points_list = random.sample(range(1, 7), 5)
-        n_samples_list = random.sample(range(1, 7), 5)
-        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_list = random.sample(range(1, 7), 2)
+        n_samples_list = random.sample(range(1, 7), 2)
+        n_points_a_list = random.sample(range(1, 7), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 5)
-        alpha_list = [1] * 5
-        n_rungs_list = [1] * 5
-        scheme_list = ["pole"] * 5
+        batch_size_list = random.sample(range(2, 7), 2)
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
 
         def inner_product_data(self):
             smoke_data = [
