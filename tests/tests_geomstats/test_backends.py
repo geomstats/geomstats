@@ -854,7 +854,7 @@ class TestBackends(geomstats.tests.TestCase):
         s_r = gs.linalg.svd(gs_point, compute_uv=compute_uv)
         self.assertAllClose(s, s_r)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @geomstats.tests.np_and_autograd_only
     def test_sylvester_solve(self):
         mat = gs.random.rand(4, 3)
         spd = gs.matmul(gs.transpose(mat), mat)
