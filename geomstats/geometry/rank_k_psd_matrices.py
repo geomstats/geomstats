@@ -127,7 +127,7 @@ class RankKPSDMatrices(Manifold):
         spd_mat = GeneralLinear.exp(Matrices.to_symmetric(mat))
         return self.projection(spd_mat)
 
-    def is_tangent(self, vector, base_point):
+    def is_tangent(self, vector, base_point, tangent_atol=gs.atol):
         r"""Check if the vector belongs to the tangent space.
 
         Parameters
@@ -137,6 +137,9 @@ class RankKPSDMatrices(Manifold):
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
             Optional, default: None.
+        tangent_atol: float
+            Absolute tolerance.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -151,7 +154,7 @@ class RankKPSDMatrices(Manifold):
         r_ort_t = Matrices.transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
         candidates = Matrices.mul(rr, vector_sym, rr)
-        result = gs.all(gs.isclose(candidates, 0.0, gs.atol), axis=(-2, -1))
+        result = gs.all(gs.isclose(candidates, 0.0, tangent_atol), axis=(-2, -1))
         return result
 
     def to_tangent(self, vector, base_point):
