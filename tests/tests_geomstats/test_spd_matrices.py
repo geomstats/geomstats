@@ -438,19 +438,19 @@ class TestSPDMetricAffine(
             return self._log_exp_composition_data(
                 self.metric_args_list,
                 self.space_list,
-                self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 100000,
+                atol=gs.atol * 10000,
             )
 
         def exp_log_composition_data(self):
             return self._exp_log_composition_data(
                 self.metric_args_list,
                 self.space_list,
+                self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 100000,
+                atol=gs.atol * 10000,
             )
 
         def exp_ladder_parallel_transport_data(self):
@@ -525,6 +525,7 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
     skip_test_log_exp_composition = True
+    skip_test_exp_log_composition = True
 
     class TestDataSPDMetricBuresWasserstein(RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
@@ -647,19 +648,19 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
             return self._log_exp_composition_data(
                 self.metric_args_list,
                 self.space_list,
-                self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 100000,
+                atol=gs.atol * 10000,
             )
 
         def exp_log_composition_data(self):
             return self._exp_log_composition_data(
                 self.metric_args_list,
                 self.space_list,
+                self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 100000,
+                atol=gs.atol * 10000,
             )
 
         def exp_ladder_parallel_transport_data(self):
@@ -868,21 +869,21 @@ class TestSPDMetricEuclidean(TestCase, metaclass=RiemannianMetricParametrizer):
 
         def log_exp_composition_data(self):
             return self._log_exp_composition_data(
-                self.one_metric_args_list,
+                self.metric_args_list,
                 self.space_list,
-                self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 100000,
+                atol=gs.atol * 10000,
             )
 
         def exp_log_composition_data(self):
             return self._exp_log_composition_data(
-                self.one_metric_args_list,
+                self.metric_args_list,
                 self.space_list,
+                self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 100000,
+                atol=gs.atol * 10000,
             )
 
         def exp_ladder_parallel_transport_data(self):
@@ -1094,19 +1095,19 @@ class TestSPDMetricLogEuclidean(
             return self._log_exp_composition_data(
                 self.metric_args_list,
                 self.space_list,
-                self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 100000,
+                atol=gs.atol * 10000,
             )
 
         def exp_log_composition_data(self):
             return self._exp_log_composition_data(
                 self.metric_args_list,
                 self.space_list,
+                self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 100000,
+                atol=gs.atol * 10000,
             )
 
         def exp_ladder_parallel_transport_data(self):
