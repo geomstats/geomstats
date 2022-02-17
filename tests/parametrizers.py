@@ -65,7 +65,6 @@ class Parametrizer(type):
     def __new__(cls, name, bases, attrs):
         for attr_name, attr_value in attrs.copy().items():
             if isinstance(attr_value, types.FunctionType):
-                print("attr name", attr_name)
                 if ("skip_" + attr_name, True) not in locals()["attrs"].items():
                     args_str = ", ".join(inspect.getfullargspec(attr_value)[0][1:])
                     data_fn_str = attr_name[5:] + "_data"
@@ -200,10 +199,8 @@ class LieGroupParametrizer(ManifoldParametrizer):
                 Absolute tolerance to test this property.
             """
             group = self.group(*group_args)
-            exp_point = group.exp_from_identity(
-                gs.array(tangent_vec), gs.array(base_point)
-            )
-            log_vec = group.log_from_identity(exp_point, gs.array(base_point))
+            exp_point = group.exp(gs.array(tangent_vec), gs.array(base_point))
+            log_vec = group.log(exp_point, gs.array(base_point))
             self.assertAllClose(log_vec, gs.array(tangent_vec), rtol, atol)
 
         def test_log_exp_composition(self, group_args, point, base_point, rtol, atol):
@@ -225,8 +222,8 @@ class LieGroupParametrizer(ManifoldParametrizer):
                 Absolute tolerance to test this property.
             """
             group = self.group(*group_args)
-            log_vec = group.log_from_identity(gs.array(point), gs.array(base_point))
-            exp_point = group.exp_from_identity(log_vec, gs.array(base_point))
+            log_vec = group.log(gs.array(point), gs.array(base_point))
+            exp_point = group.exp(log_vec, gs.array(base_point))
             self.assertAllClose(exp_point, gs.array(point), rtol, atol)
 
         attrs[test_exp_log_composition.__name__] = test_exp_log_composition

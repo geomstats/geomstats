@@ -138,6 +138,7 @@ class ManifoldTestData(TestData):
             Absolute tolerance for the is_tangent function.
         """
         random_data = []
+
         for space_args, shape, n_vecs in zip(space_args_list, shape_list, n_vecs_list):
             space = space_cls(*space_args)
             vec = gs.random.normal(size=(n_vecs,) + shape)
@@ -230,7 +231,13 @@ class LevelSetTestData(ManifoldTestData):
 
 class LieGroupTestData(ManifoldTestData):
     def _exp_log_composition_data(
-        self, group_cls, group_args_list, shape_list, n_samples_list
+        self,
+        group_cls,
+        group_args_list,
+        shape_list,
+        n_samples_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
     ):
         """Generate data to check that group exponential and logarithm are inverse.
 
@@ -257,11 +264,15 @@ class LieGroupTestData(ManifoldTestData):
                         group_args=group_args,
                         tangent_vec=tangent_vec,
                         base_point=base_point,
+                        rtol=rtol,
+                        atol=atol,
                     )
                 )
         return self.generate_tests([], random_data)
 
-    def _log_exp_composition_data(self, group_cls, group_args_list, n_samples_list):
+    def _log_exp_composition_data(
+        self, group_cls, group_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
+    ):
         """Generate data to check that group logarithm and exponential are inverse.
 
         Parameters
@@ -283,9 +294,10 @@ class LieGroupTestData(ManifoldTestData):
                         group_args=group_args,
                         point=point,
                         base_point=base_point,
+                        rtol=rtol,
+                        atol=atol,
                     )
                 )
-        print("temp", random_data)
         return self.generate_tests([], random_data)
 
 
