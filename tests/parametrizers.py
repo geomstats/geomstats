@@ -164,7 +164,7 @@ class OpenSetParametrizer(ManifoldParametrizer):
                 Absolute tolerance for the is_tangent function.
             """
             space = self.space(*space_args)
-            tangent_vec = space.to_tangent(gs.array(vector), base_point)
+            tangent_vec = space.to_tangent(gs.array(vector), gs.array(base_point))
             result = gs.all(
                 space.ambient_space.is_tangent(tangent_vec, is_tangent_atol)
             )

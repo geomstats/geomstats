@@ -458,7 +458,7 @@ class VectorSpaceTestData(ManifoldTestData):
 
 
 class MatrixLieAlgebraTestData(VectorSpaceTestData):
-    def basis_representation_matrix_representation_composition_data(
+    def _basis_representation_matrix_representation_composition_data(
         self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinates twice gives back the point.
@@ -483,7 +483,7 @@ class MatrixLieAlgebraTestData(VectorSpaceTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def matrix_representation_basis_representation_composition_data(
+    def _matrix_representation_basis_representation_composition_data(
         self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinates twice gives back the point.
