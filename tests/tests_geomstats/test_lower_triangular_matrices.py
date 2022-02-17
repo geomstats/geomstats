@@ -1,18 +1,26 @@
 """Unit tests for the vector space of lower triangular matrices."""
+import random
 
 import geomstats.backend as gs
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from tests.conftest import TestCase
-from tests.data_generation import TemporaryTestData
-from tests.parametrizers import Parametrizer
+from tests.data_generation import VectorSpaceTestData
+from tests.parametrizers import VectorSpaceParametrizer
 
 
-class TestLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
+class TestLowerTriangularMatrices(TestCase, metaclass=VectorSpaceParametrizer):
     """Test of LowerTriangularMatrices methods."""
 
     space = LowerTriangularMatrices
 
-    class TestDataLowerTriangularMatrices(TemporaryTestData):
+    class TestDataLowerTriangularMatrices(VectorSpaceTestData):
+        n_list = [n for n in random.sample(range(2, 5), 2)]
+        space_args_list = [(n,) for n in n_list]
+        shape_list = [(n, n) for n in n_list]
+        n_samples_list = [n for n in random.sample(range(2, 5), 2)]
+        n_points_list = [n for n in random.sample(range(2, 5), 2)]
+        n_vecs_list = [n for n in random.sample(range(2, 5), 2)]
+
         def belongs_data(self):
             smoke_data = [
                 dict(n=2, mat=[[1.0, 0.0], [-1.0, 3.0]], expected=True),
@@ -98,6 +106,35 @@ class TestLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
                 ),
             ]
             return self.generate_tests(smoke_data)
+
+        def basis_belongs_data(self):
+            return self._basis_belongs_data(self.space_args_list)
+
+        def basis_cardinality_data(self):
+            return self._basis_cardinality_data(self.space_args_list)
+
+        def random_point_belongs_data(self):
+            smoke_space_args_list = [(2,), (3,)]
+            smoke_n_points_list = [1, 2]
+            return self._random_point_belongs_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+            )
+
+        def projection_belongs_data(self):
+            return self._projection_belongs_data(
+                self.space_args_list, self.shape_list, self.n_samples_list
+            )
+
+        def to_tangent_is_tangent_data(self):
+            return self._to_tangent_is_tangent_data(
+                LowerTriangularMatrices,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
 
     testing_data = TestDataLowerTriangularMatrices()
 

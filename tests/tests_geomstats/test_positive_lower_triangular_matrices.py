@@ -222,6 +222,7 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
 
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_exp_geodesic_ivp = True
 
     class TestDataCholeskyMetric(RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
