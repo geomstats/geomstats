@@ -10,12 +10,15 @@ from tests.parametrizers import MatrixLieAlgebraParametrizer
 
 class TestSkewSymmetricMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer):
 
-    space = SkewSymmetricMatrices
+    space = algebra = SkewSymmetricMatrices
 
     class TestDataSkewSymmetricMatrices(MatrixLieAlgebraTestData):
         n_list = [n for n in random.sample(range(2, 5), 2)]
         space_args_list = [(n,) for n in n_list]
+        shape_list = [(n, n) for n in n_list]
         n_samples_list = [n for n in random.sample(range(2, 5), 2)]
+        n_points_list = [n for n in random.sample(range(2, 5), 2)]
+        n_vecs_list = [n for n in random.sample(range(2, 5), 2)]
 
         def belongs_data(self):
             smoke_data = [
@@ -25,7 +28,7 @@ class TestSkewSymmetricMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer
             return self.generate_tests(smoke_data)
 
         def bch_up_to_fourth_order_works_data(self):
-            smoke_data = [dict(n=2) for i in range(2, 10)]
+            smoke_data = [dict(n=i) for i in range(3, 10)]
             return self.generate_tests(smoke_data)
 
         def basis_representation_matrix_representation_composition_data(self):
@@ -33,9 +36,38 @@ class TestSkewSymmetricMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer
                 SkewSymmetricMatrices, self.space_args_list, self.n_samples_list
             )
 
-        def matrix_representation_basis_representation_composition(self):
+        def matrix_representation_basis_representation_composition_data(self):
             return self._matrix_representation_basis_representation_composition_data(
                 SkewSymmetricMatrices, self.space_args_list, self.n_samples_list
+            )
+
+        def basis_belongs_data(self):
+            return self._basis_belongs_data(self.space_args_list)
+
+        def basis_cardinality_data(self):
+            return self._basis_cardinality_data(self.space_args_list)
+
+        def random_point_belongs_data(self):
+            smoke_space_args_list = [(2,), (3,)]
+            smoke_n_points_list = [1, 2]
+            return self._random_point_belongs_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+            )
+
+        def projection_belongs_data(self):
+            return self._projection_belongs_data(
+                self.space_args_list, self.shape_list, self.n_samples_list
+            )
+
+        def to_tangent_is_tangent_data(self):
+            return self._to_tangent_is_tangent_data(
+                SkewSymmetricMatrices,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
             )
 
     testing_data = TestDataSkewSymmetricMatrices()
