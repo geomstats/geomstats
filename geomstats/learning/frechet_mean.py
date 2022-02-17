@@ -335,7 +335,7 @@ def _adaptive_gradient_descent(
         current_tangent_mean, base_point=current_mean
     )
 
-    while sq_norm_current_tangent_mean > epsilon ** 2 and iteration < max_iter:
+    while sq_norm_current_tangent_mean > epsilon**2 and iteration < max_iter:
         iteration += 1
 
         shooting_vector = tau * current_tangent_mean

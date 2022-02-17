@@ -477,7 +477,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         res_b = self.srv_metric_r3.aux_differential_srv_transform(
             tangent_vecs[1], self.curve_b
         )
-        expected = gs.stack((res_a, res_b))
+        expected = gs.stack([res_a, res_b])
         self.assertAllClose(result, expected)
 
     def test_srv_inner_product_elastic(self):
@@ -507,8 +507,8 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         a_param = 1
         b_param = 1 / 2
         integrand = (
-            a_param ** 2 * gs.sum(d_vec_a * d_vec_b, axis=1)
-            - (a_param ** 2 - b_param ** 2)
+            a_param**2 * gs.sum(d_vec_a * d_vec_b, axis=1)
+            - (a_param**2 - b_param**2)
             * gs.sum(d_vec_a * unit_velocity_vec, axis=1)
             * gs.sum(d_vec_b * unit_velocity_vec, axis=1)
         ) / velocity_norm
@@ -654,7 +654,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         _, _, vertical_norms = self.quotient_srv_metric_r3.split_horizontal_vertical(
             velocity_vec, horizontal_geod[:-1]
         )
-        result = gs.sum(vertical_norms ** 2, axis=1) ** (1 / 2)
+        result = gs.sum(vertical_norms**2, axis=1) ** (1 / 2)
         expected = gs.zeros(n_times - 1)
         self.assertAllClose(result, expected, atol=1e-3)
 
@@ -665,7 +665,7 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         Check that the quotient distance is the same as the distance
         between the end points of the horizontal geodesic.
         """
-        curve_a_resampled = self.curve_fun_a(self.sampling_times ** 2)
+        curve_a_resampled = self.curve_fun_a(self.sampling_times**2)
         curve_b = gs.transpose(
             gs.stack(
                 (

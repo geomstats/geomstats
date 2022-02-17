@@ -486,7 +486,7 @@ class RiemannianMetric(Connection, ABC):
         norm_a = self.squared_norm(tangent_vec_a, base_point)
         norm_b = self.squared_norm(tangent_vec_b, base_point)
         inner_ab = self.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        normalization_factor = norm_a * norm_b - inner_ab ** 2
+        normalization_factor = norm_a * norm_b - inner_ab**2
 
         condition = gs.isclose(normalization_factor, 0.0)
         normalization_factor = gs.where(condition, EPSILON, normalization_factor)

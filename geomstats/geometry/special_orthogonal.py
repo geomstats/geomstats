@@ -865,7 +865,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         numerator = 0.5 * mask_0 + angle * mask_else
         denominator = (
-            (1 - angle ** 2 / 6) * mask_0 + 2 * gs.sin(angle) * mask_else + mask_pi
+            (1 - angle**2 / 6) * mask_0 + 2 * gs.sin(angle) * mask_else + mask_pi
         )
 
         rot_vec_not_pi = rot_vec_not_pi * numerator / denominator
@@ -901,7 +901,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         """
         rot_vec = self.regularize(rot_vec)
 
-        squared_angle = gs.sum(rot_vec ** 2, axis=-1)
+        squared_angle = gs.sum(rot_vec**2, axis=-1)
         skew_rot_vec = self.skew_matrix_from_vector(rot_vec)
 
         coef_1 = utils.taylor_exp_even_func(squared_angle, utils.sinc_close_0)
@@ -949,7 +949,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         """
         rot_vec = self.regularize(rot_vec)
 
-        squared_angle = gs.sum(rot_vec ** 2, axis=-1)
+        squared_angle = gs.sum(rot_vec**2, axis=-1)
 
         coef_cos = utils.taylor_exp_even_func(squared_angle / 4, utils.cos_close_0)
         coef_sinc = 0.5 * utils.taylor_exp_even_func(
@@ -981,7 +981,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         half_angle = gs.arccos(cos_half_angle)
 
         coef_isinc = 2 * utils.taylor_exp_even_func(
-            half_angle ** 2, utils.inv_sinc_close_0
+            half_angle**2, utils.inv_sinc_close_0
         )
 
         rot_vec = gs.einsum("...,...i->...i", coef_isinc, quaternion[..., 1:])
@@ -1440,9 +1440,9 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         tait_bryan_angles : array-like, shape=[..., 3]
         """
         w, x, y, z = gs.hsplit(quaternion, 4)
-        angle_1 = gs.arctan2(y * z + w * x, 1.0 / 2.0 - (x ** 2 + y ** 2))
+        angle_1 = gs.arctan2(y * z + w * x, 1.0 / 2.0 - (x**2 + y**2))
         angle_2 = gs.arcsin(-2.0 * (x * z - w * y))
-        angle_3 = gs.arctan2(x * y + w * z, 1.0 / 2.0 - (y ** 2 + z ** 2))
+        angle_3 = gs.arctan2(x * y + w * z, 1.0 / 2.0 - (y**2 + z**2))
         tait_bryan_angles = gs.concatenate([angle_1, angle_2, angle_3], axis=1)
         return tait_bryan_angles
 
@@ -1596,12 +1596,12 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         )
 
         point = self.regularize(point)
-        squared_angle = gs.sum(point ** 2, axis=-1)
+        squared_angle = gs.sum(point**2, axis=-1)
 
         angle = gs.sqrt(squared_angle)
         delta_angle = angle - gs.pi
         approx_at_pi = gs.sum(
-            gs.array([TAYLOR_COEFFS_1_AT_PI[k] * delta_angle ** k for k in range(1, 7)])
+            gs.array([TAYLOR_COEFFS_1_AT_PI[k] * delta_angle**k for k in range(1, 7)])
         )
         coef_1 = utils.taylor_exp_even_func(squared_angle / 4, utils.inv_tanc_close_0)
         coef_1 = gs.where(-delta_angle < utils.EPSILON, approx_at_pi, coef_1)

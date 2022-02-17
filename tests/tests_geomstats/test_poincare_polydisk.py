@@ -48,5 +48,5 @@ class TestPoincarePolydisk(geomstats.tests.TestCase):
         distance_single_disk = single_disk.metric.dist(point_a, point_b)
         distance_two_disks = two_disks.metric.dist(duplicate_point_a, duplicate_point_b)
         result = distance_two_disks
-        expected = 3 ** 0.5 * distance_single_disk
+        expected = 3**0.5 * distance_single_disk
         self.assertAllClose(result, expected)

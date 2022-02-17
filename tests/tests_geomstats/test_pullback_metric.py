@@ -263,7 +263,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
         immersed_tangent_vec_b = gs.matmul(jac_immersion, tangent_vec_b)
 
         result_dict = self.pullback_metric.ladder_parallel_transport(
-            tangent_vec_a, tangent_vec_b, base_point=base_point
+            tangent_vec_a, base_point=base_point, direction=tangent_vec_b
         )
 
         result = result_dict["transported_tangent_vec"]
@@ -272,7 +272,7 @@ class TestPullbackMetric(geomstats.tests.TestCase):
 
         expected = self.sphere_metric.parallel_transport(
             immersed_tangent_vec_a,
-            immersed_tangent_vec_b,
             base_point=immersed_base_point,
+            direction=immersed_tangent_vec_b,
         )
         self.assertAllClose(result, expected, atol=1e-5)

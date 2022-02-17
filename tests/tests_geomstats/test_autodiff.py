@@ -21,13 +21,13 @@ class TestAutodiff(geomstats.tests.TestCase):
         n = 10
         vector = gs.ones(n)
         with pytest.raises(RuntimeError):
-            gs.autodiff.value_and_grad(lambda v: gs.sum(v ** 2))(vector)
+            gs.autodiff.value_and_grad(lambda v: gs.sum(v**2))(vector)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_value_and_grad_one_vector_var(self):
         n = 10
         vector = gs.ones(n)
-        result_loss, result_grad = gs.autodiff.value_and_grad(lambda v: gs.sum(v ** 2))(
+        result_loss, result_grad = gs.autodiff.value_and_grad(lambda v: gs.sum(v**2))(
             vector
         )
         expected_loss = n
@@ -72,7 +72,7 @@ class TestAutodiff(geomstats.tests.TestCase):
     def test_value_and_grad_one_vector_var_np_input(self):
         n = 10
         vector = _np.ones(n)
-        result_loss, result_grad = gs.autodiff.value_and_grad(lambda v: gs.sum(v ** 2))(
+        result_loss, result_grad = gs.autodiff.value_and_grad(lambda v: gs.sum(v**2))(
             vector
         )
         expected_loss = n
@@ -129,7 +129,7 @@ class TestAutodiff(geomstats.tests.TestCase):
 
         @gs.autodiff.custom_gradient(grad_x)
         def func(x):
-            return gs.sum(x ** 2)
+            return gs.sum(x**2)
 
         arg_x = gs.array([1.0, 3.0])
         result_value, result_grad = gs.autodiff.value_and_grad(func)(arg_x)
@@ -301,7 +301,7 @@ class TestAutodiff(geomstats.tests.TestCase):
             return out
 
         def fun2_grad(x):
-            return 3 * x ** 2
+            return 3 * x**2
 
         arg = gs.array([1.0, 2.0])
 

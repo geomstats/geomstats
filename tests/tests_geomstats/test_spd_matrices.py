@@ -17,7 +17,9 @@ from geomstats.geometry.spd_matrices import (
     SPDMetricEuclidean,
     SPDMetricLogEuclidean,
 )
-from tests.conftest import Parametrizer, TestCase, TestData
+from tests.conftest import TestCase
+from tests.data_generation import OpenSetTestData, RiemannianMetricTestData
+from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
 
 SQRT_2 = math.sqrt(2.0)
 LN_2 = math.log(2.0)
@@ -26,10 +28,22 @@ EXP_2 = math.exp(2.0)
 SINH_1 = math.sinh(1.0)
 
 
-class TestSPDMatrices(TestCase, metaclass=Parametrizer):
+class TestSPDMatrices(TestCase, metaclass=OpenSetParametrizer):
     """Test of SPDMatrices methods."""
 
-    class TestDataSPDMatrices(TestData):
+    space = SPDMatrices
+
+    class TestDataSPDMatrices(OpenSetTestData):
+
+        smoke_space_args_list = [(2,), (3,), (4,), (5,)]
+        smoke_n_points_list = [1, 2, 1, 2]
+        n_list = random.sample(range(2, 10), 5)
+        space_args_list = [(n,) for n in n_list]
+        n_points_list = random.sample(range(1, 10), 5)
+        shape_list = [(n, n) for n in n_list]
+        n_vecs_list = random.sample(range(1, 10), 5)
+        n_samples_list = random.sample(range(1, 10), 5)
+
         def belongs_data(self):
             smoke_data = [
                 dict(n=2, mat=[[3.0, -1.0], [-1.0, 3.0]], expected=True),
@@ -57,15 +71,6 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
                     mat=[[-1.0, 0.0], [0.0, -2.0]],
                     expected=[[gs.atol, 0.0], [0.0, gs.atol]],
                 ),
-            ]
-            return self.generate_tests(smoke_data)
-
-        def random_point_belongs_data(self):
-            smoke_data = [
-                dict(n=1, n_samples=1),
-                dict(n=2, n_samples=1),
-                dict(n=10, n_samples=10),
-                dict(n=10, n_samples=1000),
             ]
             return self.generate_tests(smoke_data)
 
@@ -202,16 +207,42 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def random_point_belongs_data(self):
+            belongs_atol = gs.atol * 100000
+            return self._random_point_belongs_data(
+                self.smoke_space_args_list,
+                self.smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+                belongs_atol,
+            )
+
+        def to_tangent_is_tangent_data(self):
+
+            is_tangent_atol = gs.atol * 1000
+
+            return self._to_tangent_is_tangent_data(
+                SPDMatrices,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+                is_tangent_atol,
+            )
+
+        def projection_belongs_data(self):
+            return self._projection_belongs_data(
+                self.space_args_list, self.shape_list, self.n_samples_list
+            )
+
+        def to_tangent_is_tangent_in_ambient_space_data(self):
+            return self._to_tangent_is_tangent_in_ambient_space_data(
+                SPDMatrices, self.space_args_list, self.shape_list
+            )
+
     testing_data = TestDataSPDMatrices()
 
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(SPDMatrices(n).belongs(gs.array(mat)), gs.array(expected))
-
-    def test_random_point_belongs(self, n, n_samples):
-        space = SPDMatrices(n)
-        self.assertAllClose(
-            gs.all(space.belongs(space.random_point(n_samples))), gs.array(True)
-        )
 
     def test_projection(self, n, mat, expected):
         self.assertAllClose(
@@ -282,8 +313,32 @@ class TestSPDMatrices(TestCase, metaclass=Parametrizer):
         )
 
 
-class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
-    class TestDataSPDMetricAffine(TestData):
+class TestSPDMetricAffine(
+    geomstats.tests.TestCase, metaclass=RiemannianMetricParametrizer
+):
+    connection = metric = SPDMetricAffine
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_log_exp_composition = True
+    skip_test_exp_log_composition = True
+    skip_test_exp_ladder_parallel_transport = True
+
+    class TestDataSPDMetricAffine(RiemannianMetricTestData):
+        n_list = random.sample(range(2, 5), 2)
+        power_affine_list = [1.0, -0.5]
+        metric_args_list = list(zip(n_list, power_affine_list))
+        shape_list = [(n, n) for n in n_list]
+        space_list = [SPDMatrices(n) for n in n_list]
+        n_points_list = random.sample(range(1, 7), 2)
+        n_samples_list = random.sample(range(1, 7), 2)
+        n_points_a_list = random.sample(range(1, 7), 2)
+        n_points_b_list = [1]
+        batch_size_list = random.sample(range(2, 7), 2)
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
+
         def inner_product_data(self):
             smoke_data = [
                 dict(
@@ -321,30 +376,124 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log_exp_composition_data(self):
-            power_affine = [1.0, 0.5, -0.5]
-            return self._log_exp_composition_data(
-                SPDMatrices, power_affine=power_affine
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
             )
 
-        def geodesic_belongs_data(self):
-            power_affine = [1.0]
-            return self._geodesic_belongs_data(SPDMatrices, power_affine=power_affine)
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
+            )
 
         def squared_dist_is_symmetric_data(self):
-            power_affine = [1.0, 0.5, -0.5]
             return self._squared_dist_is_symmetric_data(
-                SPDMatrices, power_affine=power_affine
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
             )
 
-        def parallel_transport_exp_norm_data(self):
-            random_n = random.sample(range(1, 10), 5)
-            random_power_affine = [1.0]
-            random_data = [
-                dict(n=n, power_affine=power_affine, n_samples=200)
-                for (n, power_affine) in zip(random_n, random_power_affine)
-            ]
-            return self.generate_tests([], random_data)
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
+
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 100000,
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 100000,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=gs.rtol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
 
     testing_data = TestDataSPDMetricAffine()
 
@@ -369,34 +518,28 @@ class TestSPDMetricAffine(geomstats.tests.TestCase, metaclass=Parametrizer):
             metric.log(gs.array(point), gs.array(base_point)), gs.array(expected)
         )
 
-    def test_log_exp_composition(self, n, power_affine, point, base_point):
-        metric = SPDMetricAffine(n, power_affine)
-        log = metric.log(gs.array(point), base_point=gs.array(base_point))
-        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
-        self.assertAllClose(result, point, atol=gs.atol * 1000)
 
-    def test_squared_dist_is_symmetric(self, n, power_affine, point_a, point_b):
-        metric = SPDMetricAffine(n, power_affine)
-        sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
-        sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
-        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
+class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametrizer):
+    metric = connection = SPDMetricBuresWasserstein
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_log_exp_composition = True
 
-    def test_parallel_transport_exp_norm(self, n, power_affine, n_samples):
-        metric = SPDMetricAffine(n, power_affine)
-        space = SPDMatrices(n)
-        point = space.random_point(n_samples)
-        tan_a = space.random_tangent_vec(n_samples, point)
-        tan_b = space.random_tangent_vec(n_samples, point)
-        expected = metric.norm(tan_a, point)
-        end_point = metric.exp(tan_b, point)
-        transported = metric.parallel_transport(tan_a, tan_b, point)
-        result = metric.norm(transported, end_point)
+    class TestDataSPDMetricBuresWasserstein(RiemannianMetricTestData):
+        n_list = random.sample(range(2, 7), 5)
+        metric_args_list = [(n,) for n in n_list]
+        shape_list = [(n, n) for n in n_list]
+        space_list = [SPDMatrices(n) for n in n_list]
+        n_points_list = random.sample(range(1, 7), 5)
+        n_samples_list = random.sample(range(1, 7), 5)
+        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_b_list = [1]
+        batch_size_list = random.sample(range(2, 7), 5)
+        alpha_list = [1] * 5
+        n_rungs_list = [1] * 5
+        scheme_list = ["pole"] * 5
 
-        self.assertAllClose(expected, result, gs.atol * 10000)
-
-
-class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
-    class TestDataSPDMetricBuresWasserstein(TestData):
         def inner_product_data(self):
             smoke_data = [
                 dict(
@@ -442,16 +585,124 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(SPDMatrices)
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
+            )
 
-        def geodesic_belongs_data(self):
-            return self._geodesic_belongs_data(
-                SPDMatrices,
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
             )
 
         def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(SPDMatrices)
+            return self._squared_dist_is_symmetric_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
+
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 100000,
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 100000,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=gs.rtol * 100000,
+                atol=gs.atol * 100000,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
 
     testing_data = TestDataSPDMetricBuresWasserstein()
 
@@ -470,28 +721,32 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=Parametrizer):
     def test_log(self, n, point, base_point, expected):
         metric = SPDMetricBuresWasserstein(n)
         result = metric.log(gs.array(point), gs.array(base_point))
-        self.assertAllClose(result, gs.array(expected))
-
-    def test_squared_dist(self, n, point_a, point_b, expected):
-        metric = SPDMetricBuresWasserstein(n)
-        result = metric.squared_dist(gs.array(point_a), gs.array(point_b))
-        self.assertAllClose(result, gs.array(expected))
-
-    def test_log_exp_composition(self, n, point, base_point):
-        metric = SPDMetricBuresWasserstein(n)
-        log = metric.log(gs.array(point), base_point=gs.array(base_point))
-        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
-        self.assertAllClose(result, point, atol=gs.atol * 1000)
-
-    def test_squared_dist_is_symmetric(self, n, point_a, point_b):
-        metric = SPDMetricBuresWasserstein(n)
-        sd_a_b = metric.squared_dist(point_a, point_b)
-        sd_b_a = metric.squared_dist(point_b, point_a)
-        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
+        self.assertAllClose(result, expected)
 
 
-class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
-    class TestDataSPDMetricEuclidean(TestData):
+class TestSPDMetricEuclidean(TestCase, metaclass=RiemannianMetricParametrizer):
+    connection = metric = SPDMetricEuclidean
+    skip_test_exp_geodesic_ivp = True
+    skip_test_geodesic_ivp_belongs = True
+    skip_test_exp_belongs = True
+    skip_test_exp_log_composition = True
+
+    class TestDataSPDMetricEuclidean(RiemannianMetricTestData):
+        n_list = random.sample(range(2, 7), 5)
+        power_euclidean_list = [1.0, -0.5, 0.5, 1.0, 1.0]
+        metric_args_list = list(zip(n_list, power_euclidean_list))
+        one_metric_args_list = list(zip(n_list, [1.0] * 5))
+        shape_list = [(n, n) for n in n_list]
+        space_list = [SPDMatrices(n) for n in n_list]
+        n_points_list = random.sample(range(1, 7), 5)
+        n_samples_list = random.sample(range(1, 7), 5)
+        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_b_list = [1]
+        batch_size_list = random.sample(range(2, 7), 5)
+        alpha_list = [1] * 5
+        n_rungs_list = [1] * 5
+        scheme_list = ["pole"] * 5
+
         def inner_product_data(self):
             smoke_data = [
                 dict(
@@ -541,22 +796,135 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log_exp_composition_data(self):
-            power_euclidean = [1.0, 0.5, -0.5]
-            return self._log_exp_composition_data(
-                SPDMatrices, power_euclidean=power_euclidean
+        def parallel_transport_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    power_euclidean=1.0,
+                    tangent_vec_a=[[2.0, 0.0], [0.0, 2.0]],
+                    base_point=[[1.0, 0.0], [0.0, 1.0]],
+                    tangent_vec_b=[[1.0, 0.0], [0.0, 0.5]],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
             )
 
-        def geodesic_belongs_data(self):
-            power_euclidean = [1.0]
-            return self._geodesic_belongs_data(
-                SPDMatrices, max_n=3, n_n=2, n_t=5, power_euclidean=power_euclidean
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
             )
 
         def squared_dist_is_symmetric_data(self):
-            power_euclidean = [1.0]
             return self._squared_dist_is_symmetric_data(
-                SPDMatrices, power_euclidean=power_euclidean
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 10000,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 10000,
+            )
+
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.one_metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 10000,
+            )
+
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.one_metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 100000,
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.one_metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 100000,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.one_metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=gs.rtol * 100000,
+                atol=gs.atol * 100000,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.one_metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.one_metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
             )
 
     testing_data = TestDataSPDMetricEuclidean()
@@ -595,9 +963,41 @@ class TestSPDMetricEuclidean(TestCase, metaclass=Parametrizer):
         sd_b_a = metric.squared_dist(point_b, point_a)
         self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
 
+    def test_parallel_transport(
+        self, n, power_euclidean, tangent_vec_a, base_point, tangent_vec_b
+    ):
+        metric = SPDMetricEuclidean(n, power_euclidean)
+        result = metric.parallel_transport(tangent_vec_a, base_point, tangent_vec_b)
+        self.assertAllClose(result, tangent_vec_a)
 
-class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer):
-    class TestDataSPDMetricLogEuclidean(TestData):
+
+class TestSPDMetricLogEuclidean(
+    geomstats.tests.TestCase, metaclass=RiemannianMetricParametrizer
+):
+    connection = metric = SPDMetricLogEuclidean
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_log_exp_composition = True
+    skip_test_exp_log_composition = True
+    skip_test_exp_ladder_parallel_transport = True
+    skip_test_exp_belongs = True
+
+    class TestDataSPDMetricLogEuclidean(RiemannianMetricTestData):
+
+        n_list = random.sample(range(2, 7), 5)
+        metric_args_list = [(n,) for n in n_list]
+        shape_list = [(n, n) for n in n_list]
+        space_list = [SPDMatrices(n) for n in n_list]
+        n_points_list = random.sample(range(1, 7), 5)
+        n_samples_list = random.sample(range(1, 7), 5)
+        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_b_list = [1]
+        batch_size_list = random.sample(range(2, 7), 5)
+        alpha_list = [1] * 5
+        n_rungs_list = [1] * 5
+        scheme_list = ["pole"] * 5
+
         def inner_product_data(self):
             smoke_data = [
                 dict(
@@ -632,14 +1032,124 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
             ]
             return self.generate_tests(smoke_data)
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(SPDMatrices)
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
+            )
 
-        def geodesic_belongs_data(self):
-            return self._geodesic_belongs_data(SPDMatrices)
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
+            )
 
         def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(SPDMatrices)
+            return self._squared_dist_is_symmetric_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 10000,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 10000,
+            )
+
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 10000,
+            )
+
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 100000,
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 100000,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=gs.rtol * 100000,
+                atol=gs.atol * 100000,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
 
     testing_data = TestDataSPDMetricLogEuclidean()
 
@@ -659,15 +1169,3 @@ class TestSPDMetricLogEuclidean(geomstats.tests.TestCase, metaclass=Parametrizer
         metric = SPDMetricLogEuclidean(n)
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
-
-    def test_log_exp_composition(self, n, point, base_point):
-        metric = SPDMetricLogEuclidean(n)
-        log = metric.log(gs.array(point), base_point=gs.array(base_point))
-        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
-        self.assertAllClose(result, point, atol=gs.atol * 1000)
-
-    def test_squared_dist_is_symmetric(self, n, point_a, point_b):
-        metric = SPDMetricLogEuclidean(n)
-        sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
-        sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
-        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)

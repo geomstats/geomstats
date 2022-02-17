@@ -93,7 +93,7 @@ class VectorSpace(Manifold, abc.ABC):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        return self.belongs(vector)
+        return self.belongs(vector, atol)
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the vector space.
@@ -112,7 +112,7 @@ class VectorSpace(Manifold, abc.ABC):
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
             Tangent vector at base point.
         """
-        return vector
+        return self.projection(vector)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in the vector space with a uniform distribution in a box.

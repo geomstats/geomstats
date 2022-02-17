@@ -25,7 +25,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
 
     def __init__(self, n, positive_det=False, **kwargs):
         if "dim" not in kwargs.keys():
-            kwargs["dim"] = n ** 2
+            kwargs["dim"] = n**2
         super(GeneralLinear, self).__init__(ambient_space=Matrices(n, n), n=n, **kwargs)
         self.positive_det = positive_det
 

@@ -10,7 +10,9 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from tests.conftest import Parametrizer, TestCase, TestData
+from tests.conftest import TestCase
+from tests.data_generation import TemporaryTestData
+from tests.parametrizers import Parametrizer
 
 EULER = gs.exp(1.0)
 SQRT_2 = math.sqrt(2)
@@ -21,7 +23,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
 
     space = PositiveLowerTriangularMatrices
 
-    class TestDataPositiveLowerTriangularMatrices(TestData):
+    class TestDataPositiveLowerTriangularMatrices(TemporaryTestData):
         def belongs_data(self):
             smoke_data = [
                 dict(n=2, mat=[[1.0, 0.0], [-1.0, 3.0]], expected=True),
@@ -188,7 +190,7 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
     cls = CholeskyMetric
     space = PositiveLowerTriangularMatrices
 
-    class TestDataCholeskyMetric(TestData):
+    class TestDataCholeskyMetric(TemporaryTestData):
         def diag_inner_product_data(self):
             smoke_data = [
                 dict(
@@ -258,9 +260,9 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
             smoke_data = [
                 dict(
                     n=2,
-                    point=[[EULER, 0.0], [2.0, EULER ** 3]],
-                    base_point=[[EULER ** 3, 0.0], [4.0, EULER ** 4]],
-                    expected=[[-2.0 * EULER ** 3, 0.0], [-2.0, -1 * EULER ** 4]],
+                    point=[[EULER, 0.0], [2.0, EULER**3]],
+                    base_point=[[EULER**3, 0.0], [4.0, EULER**4]],
+                    expected=[[-2.0 * EULER**3, 0.0], [-2.0, -1 * EULER**4]],
                 ),
                 dict(
                     n=2,
@@ -278,19 +280,19 @@ class TestCholeskyMetric(TestCase, metaclass=Parametrizer):
             smoke_data = [
                 dict(
                     n=2,
-                    point_a=[[EULER, 0.0], [2.0, EULER ** 3]],
-                    point_b=[[EULER ** 3, 0.0], [4.0, EULER ** 4]],
+                    point_a=[[EULER, 0.0], [2.0, EULER**3]],
+                    point_b=[[EULER**3, 0.0], [4.0, EULER**4]],
                     expected=9,
                 ),
                 dict(
                     n=2,
                     point_a=[
-                        [[EULER, 0.0], [2.0, EULER ** 3]],
-                        [[EULER, 0.0], [4.0, EULER ** 3]],
+                        [[EULER, 0.0], [2.0, EULER**3]],
+                        [[EULER, 0.0], [4.0, EULER**3]],
                     ],
                     point_b=[
-                        [[EULER ** 3, 0.0], [4.0, EULER ** 4]],
-                        [[EULER ** 3, 0.0], [7.0, EULER ** 4]],
+                        [[EULER**3, 0.0], [4.0, EULER**4]],
+                        [[EULER**3, 0.0], [7.0, EULER**4]],
                     ],
                     expected=[9, 14],
                 ),

@@ -2,7 +2,9 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
-from tests.conftest import Parametrizer, TestCase, TestData
+from tests.conftest import TestCase
+from tests.data_generation import TemporaryTestData
+from tests.parametrizers import Parametrizer
 
 
 class TestLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
@@ -10,7 +12,7 @@ class TestLowerTriangularMatrices(TestCase, metaclass=Parametrizer):
 
     space = LowerTriangularMatrices
 
-    class TestDataLowerTriangularMatrices(TestData):
+    class TestDataLowerTriangularMatrices(TemporaryTestData):
         def belongs_data(self):
             smoke_data = [
                 dict(n=2, mat=[[1.0, 0.0], [-1.0, 3.0]], expected=True),
