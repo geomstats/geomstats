@@ -12,6 +12,7 @@ class TestLowerTriangularMatrices(TestCase, metaclass=VectorSpaceParametrizer):
     """Test of LowerTriangularMatrices methods."""
 
     space = LowerTriangularMatrices
+    skip_test_basis_belongs = True
 
     class TestDataLowerTriangularMatrices(VectorSpaceTestData):
         n_list = [n for n in random.sample(range(2, 5), 2)]
