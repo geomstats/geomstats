@@ -97,7 +97,7 @@ class TestHeisenbergVectors(TestCase, metaclass=LieGroupParametrizer):
 
     def test_jacobian_translation(self, vec, expected):
         self.assertAllClose(
-            self.space().jacobian_translation(gs.array(vec), gs.array(expected))
+            self.space().jacobian_translation(gs.array(vec)), gs.array(expected)
         )
 
     def test_random_point_belongs(self, n_samples, bound):
