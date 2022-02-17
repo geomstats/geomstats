@@ -229,7 +229,9 @@ class LevelSetTestData(ManifoldTestData):
 
 
 class LieGroupTestData(ManifoldTestData):
-    def _exp_log_composition_data(self, group_cls, group_args_list, n_samples_list):
+    def _exp_log_composition_data(
+        self, group_cls, group_args_list, shape_list, n_samples_list
+    ):
         """Generate data to check that group exponential and logarithm are inverse.
 
         Parameters
@@ -241,14 +243,22 @@ class LieGroupTestData(ManifoldTestData):
         n_samples_list : list
             List of number of points and tangent vectors to generate.
         """
-        random_data = [
-            dict(
-                group_args=group_args,
-                tangent_vec=group_cls(*group_args).random_tangent_vec(n_samples),
-                base_point=group_cls(*group_args).random_point(n_samples),
-            )
-            for group_args, n_samples in zip(group_args_list, n_samples_list)
-        ]
+        random_data = []
+        for group_args, shape, n_samples in zip(
+            group_args_list, shape_list, n_samples_list
+        ):
+            group = group_cls(*group_args)
+            for base_point in [group.random_point(), group.identity]:
+                tangent_vec = group.to_tangent(
+                    gs.random.normal(size=(n_samples,) + shape), base_point
+                )
+                random_data.append(
+                    dict(
+                        group_args=group_args,
+                        tangent_vec=tangent_vec,
+                        base_point=base_point,
+                    )
+                )
         return self.generate_tests([], random_data)
 
     def _log_exp_composition_data(self, group_cls, group_args_list, n_samples_list):
@@ -263,14 +273,19 @@ class LieGroupTestData(ManifoldTestData):
         n_samples_list : list
             List of number of points and tangent vectors to generate.
         """
-        random_data = [
-            dict(
-                group_args=group_args,
-                tangent_vec=group_cls(group_args).random_tangent_vec(n_samples),
-                base_point=group_cls(group_args).random_point(n_samples),
-            )
-            for group_args, n_samples in zip(group_args_list, n_samples_list)
-        ]
+        random_data = []
+        for group_args, n_samples in zip(group_args_list, n_samples_list):
+            group = group_cls(*group_args)
+            for base_point in [group.random_point(), group.identity]:
+                point = group.random_point(n_samples)
+                random_data.append(
+                    dict(
+                        group_args=group_args,
+                        point=point,
+                        base_point=base_point,
+                    )
+                )
+        print("temp", random_data)
         return self.generate_tests([], random_data)
 
 
