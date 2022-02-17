@@ -743,6 +743,42 @@ class ConnectionTestData(TestData):
         self,
         connection_args_list,
         space_list,
+        n_samples_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        """Generate data to check that logarithm and exponential are inverse.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        n_samples_list : list
+            List of number of random data to generate.
+        """
+        random_data = []
+        for connection_args, space, n_samples in zip(
+            connection_args_list, space_list, n_samples_list
+        ):
+            point = space.random_point(n_samples)
+            base_point = space.random_point()
+            random_data.append(
+                dict(
+                    connection_args=connection_args,
+                    point=point,
+                    base_point=base_point,
+                    rtol=rtol,
+                    atol=atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def _exp_log_composition_data(
+        self,
+        connection_args_list,
+        space_list,
         shape_list,
         n_samples_list,
         rtol=gs.rtol,
@@ -773,42 +809,6 @@ class ConnectionTestData(TestData):
                 dict(
                     connection_args=connection_args,
                     tangent_vec=tangent_vec,
-                    base_point=base_point,
-                    rtol=rtol,
-                    atol=atol,
-                )
-            )
-        return self.generate_tests([], random_data)
-
-    def _exp_log_composition_data(
-        self,
-        connection_args_list,
-        space_list,
-        n_samples_list,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
-        """Generate data to check that exp gives a point on the manifold.
-
-        Parameters
-        ----------
-        connection_args_list : list
-            List of argument to pass to constructor of the connection.
-        space_list : list
-            List of manifolds on which the connection is defined.
-        n_samples_list : list
-            List of number of random data to generate.
-        """
-        random_data = []
-        for connection_args, space, n_samples in zip(
-            connection_args_list, space_list, n_samples_list
-        ):
-            point = space.random_point(n_samples)
-            base_point = space.random_point()
-            random_data.append(
-                dict(
-                    connection_args=connection_args,
-                    point=point,
                     base_point=base_point,
                     rtol=rtol,
                     atol=atol,

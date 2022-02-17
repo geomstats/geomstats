@@ -565,9 +565,9 @@ class ConnectionParametrizer(Parametrizer):
         def test_log_exp_composition(
             self, connection_args, point, base_point, rtol, atol
         ):
-            """Check that connection exponential and logarithm are inverse.
+            """Check that connection logarithm and exponential are inverse.
 
-            This is calling connection logarithm first, then connection logarithm.
+            This is calling connection logarithm first, then connection exponential.
 
             Parameters
             ----------

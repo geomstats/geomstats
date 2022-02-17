@@ -407,19 +407,19 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             return self._log_exp_composition_data(
                 self.metric_args_list,
                 self.space_list,
-                self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 100000,
+                atol=gs.atol * 10000,
             )
 
         def exp_log_composition_data(self):
             return self._exp_log_composition_data(
                 self.metric_args_list,
                 self.space_list,
+                self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 100000,
+                atol=gs.atol * 10000,
             )
 
         def exp_ladder_parallel_transport_data(self):
