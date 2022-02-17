@@ -457,7 +457,7 @@ class VectorSpaceTestData(ManifoldTestData):
         return self.generate_tests([], random_data)
 
 
-class LieAlgebraTestData(VectorSpaceTestData):
+class MatrixLieAlgebraTestData(VectorSpaceTestData):
     def basis_representation_matrix_representation_composition_data(
         self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):
