@@ -27,8 +27,36 @@ class TestSkewSymmetricMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer
             ]
             return self.generate_tests(smoke_data)
 
-        def bch_up_to_fourth_order_works_data(self):
-            smoke_data = [dict(n=i) for i in range(3, 10)]
+        def baker_campbell_hausdorff_data(self):
+            n_list = range(3, 10)
+            smoke_data = []
+            for n in n_list:
+                space = SkewSymmetricMatrices(n)
+                fb = space.basis[0]
+                sb = space.basis[1]
+                fb_sb_bracket = space.bracket(fb, sb)
+                expected1 = fb + sb
+                expected2 = expected1 + 0.5 * fb_sb_bracket
+                expected3 = (
+                    expected2
+                    + 1.0 / 12.0 * space.bracket(fb, fb_sb_bracket)
+                    - 1.0 / 12.0 * space.bracket(sb, fb_sb_bracket)
+                )
+                expected4 = expected3 - 1.0 / 24.0 * space.bracket(
+                    sb, space.bracket(fb, fb_sb_bracket)
+                )
+                expected = [expected1, expected2, expected3, expected4]
+                for order in range(1, 5):
+                    smoke_data.append(
+                        dict(
+                            n=n,
+                            matrix_a=fb,
+                            matrix_b=sb,
+                            order=order,
+                            expected=expected[order - 1],
+                        )
+                    )
+
             return self.generate_tests(smoke_data)
 
         def basis_representation_matrix_representation_composition_data(self):
@@ -76,30 +104,9 @@ class TestSkewSymmetricMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer
         skew = self.space(n)
         self.assertAllClose(skew.belongs(gs.array(mat)), gs.array(expected))
 
-    def test_bch_up_to_fourth_order_works(self, n):
+    def test_baker_campbell_hausdorff(self, n, matrix_a, matrix_b, order, expected):
         skew = SkewSymmetricMatrices(n)
-        first_base = skew.basis[0]
-        second_base = skew.basis[1]
-
-        expected = first_base + second_base
-        result = skew.baker_campbell_hausdorff(first_base, second_base, order=1)
-        self.assertAllClose(expected, result)
-
-        lb_first_second = skew.bracket(first_base, second_base)
-        expected = expected + 0.5 * lb_first_second
-        result = skew.baker_campbell_hausdorff(first_base, second_base, order=2)
-        self.assertAllClose(expected, result)
-
-        expected = (
-            expected
-            + 1.0 / 12.0 * skew.bracket(first_base, lb_first_second)
-            - 1.0 / 12.0 * skew.bracket(second_base, lb_first_second)
+        result = skew.baker_campbell_hausdorff(
+            gs.array(matrix_a), gs.array(matrix_b), order=order
         )
-        result = skew.baker_campbell_hausdorff(first_base, second_base, order=3)
-        self.assertAllClose(expected, result)
-
-        expected = expected - 1.0 / 24.0 * skew.bracket(
-            second_base, skew.bracket(first_base, lb_first_second)
-        )
-        result = skew.baker_campbell_hausdorff(first_base, second_base, order=4)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(result, gs.array(expected))
