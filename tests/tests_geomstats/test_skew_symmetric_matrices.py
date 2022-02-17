@@ -13,12 +13,12 @@ class TestSkewSymmetricMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer
     space = algebra = SkewSymmetricMatrices
 
     class TestDataSkewSymmetricMatrices(MatrixLieAlgebraTestData):
-        n_list = [n for n in random.sample(range(2, 5), 2)]
+        n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
-        n_samples_list = [n for n in random.sample(range(2, 5), 2)]
-        n_points_list = [n for n in random.sample(range(2, 5), 2)]
-        n_vecs_list = [n for n in random.sample(range(2, 5), 2)]
+        n_samples_list = random.sample(range(2, 5), 2)
+        n_points_list = random.sample(range(2, 5), 2)
+        n_vecs_list = random.sample(range(2, 5), 2)
 
         def belongs_data(self):
             smoke_data = [

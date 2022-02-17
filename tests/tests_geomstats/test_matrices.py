@@ -32,13 +32,13 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
     skip_test_basis_cardinality = True
 
     class TestDataMatrices(VectorSpaceTestData):
-        m_list = [m for m in random.sample(range(3, 5), 2)]
-        n_list = [n for n in random.sample(range(3, 5), 2)]
+        m_list = random.sample(range(3, 5), 2)
+        n_list = random.sample(range(3, 5), 2)
         space_args_list = list(zip(m_list, n_list))
         shape_list = space_args_list
-        n_samples_list = [n for n in random.sample(range(2, 5), 2)]
-        n_points_list = [n for n in random.sample(range(2, 5), 2)]
-        n_vecs_list = [n for n in random.sample(range(2, 5), 2)]
+        n_samples_list = random.sample(range(2, 5), 2)
+        n_points_list = random.sample(range(2, 5), 2)
+        n_vecs_list = random.sample(range(2, 5), 2)
 
         def belongs_data(self):
             sq_mat = EYE_2
@@ -638,8 +638,8 @@ class TestMatricesMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_exp_geodesic_ivp = True
 
     class TestDataMatricesMetric(RiemannianMetricTestData):
-        m_list = [m for m in random.sample(range(3, 5), 2)]
-        n_list = [n for n in random.sample(range(3, 5), 2)]
+        m_list = random.sample(range(3, 5), 2)
+        n_list = random.sample(range(3, 5), 2)
         metric_args_list = list(zip(m_list, n_list))
         space_args_list = metric_args_list
         shape_list = space_args_list
