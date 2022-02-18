@@ -76,6 +76,7 @@ class TestGrassmannian(TestCase, metaclass=LevelSetParametrizer):
 class TestGrassmannianCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     metric = connection = GrassmannianCanonicalMetric
     skip_test_exp_log_composition = True
+    skip_test_exp_geodesic_ivp = True
 
     class TestDataGrassmannianCanonicalMetric(RiemannianMetricTestData):
         n_list = random.sample(range(3, 10), 5)
