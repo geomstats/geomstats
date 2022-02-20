@@ -19,6 +19,7 @@ improvements for Testing Diff Geometry (iteration 2.0)
      -  dist_shape, norm_shape,
      -  inner_product_shape
      -  metric_pairwise shape
+     -  christoffel shape
 * add parametrizer test that  d(point_a, point_b) = ||Log(point_a, point_b)|| to connection or metric?
 * add parametrizer test that squared_d(point_a, point_b) = ||Log(point_a, point_b)||^2
 * add parametrizer test that d(point_a, point_a) = 0
