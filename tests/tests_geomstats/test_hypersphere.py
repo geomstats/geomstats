@@ -8,7 +8,7 @@ import scipy.special
 import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
-from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.learning.frechet_mean import FrechetMean
@@ -41,6 +41,32 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def angle_to_extrinsic_data(self):
+            smoke_data = [
+                dict(
+                    dim=1, point=gs.pi / 4, expected=gs.array([1.0, 1.0]) / gs.sqrt(2.0)
+                ),
+                dict(
+                    dim=1,
+                    point=gs.array([1.0 / 3, 0.0]) * gs.pi,
+                    expected=gs.array([[1.0 / 2, gs.sqrt(3.0) / 2], [1.0, 0.0]]),
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def extrinsic_to_angle_data(self):
+            smoke_data = [
+                dict(
+                    dim=1, point=gs.array([1.0, 1.0]) / gs.sqrt(2.0), expected=gs.pi / 4
+                ),
+                dict(
+                    dim=1,
+                    point=gs.array([[1.0 / 2, gs.sqrt(3.0) / 2], [1.0, 0.0]]),
+                    expected=gs.array([1.0 / 3, 0.0]) * gs.pi,
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
     def test_replace_values(self, dim, points, new_points, indcs, expected):
         space = self.space(dim)
         result = space._replace_values(
@@ -48,8 +74,32 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
         )
         self.assertAllClose(result, expected)
 
+    def test_angle_to_extrinsic(self, dim, point, expected):
+        space = self.space(dim)
+        result = space.angle_to_extrinsic(point)
+        self.assertAllClose(result, expected)
+
+    def test_extrinsic_to_angle(self, dim, point, expected):
+        space = self.space(dim)
+        result = space.extrinsic_to_angle(point)
+        self.assertAllClose(result, expected)
+
+    def test_extrinsic_to_angle(self):
+        space = Hypersphere(1)
+        point = gs.array([1.0, 1.0]) / gs.sqrt(2.0)
+        result = space.extrinsic_to_angle(point)
+        expected = gs.pi / 4
+        self.assertAllClose(result, expected)
+
+        point = gs.array([[1.0 / 2, gs.sqrt(3.0) / 2], [1.0, 0.0]])
+        result = space.extrinsic_to_angle(point)
+        expected = gs.array([1.0 / 3, 0.0]) * gs.pi
+        self.assertAllClose(result, expected)
+
 
 class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
+    metric = connection = HypersphereMetric
+
     class TestDataHypersphereMetric(RiemannianMetricTestData):
         dim_list = random.sample(range(2, 7), 5)
         metric_args_list = [(n,) for n in dim_list]
@@ -65,7 +115,7 @@ class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
         scheme_list = ["pole"] * 5
 
         def log_exp_composition_data(self):
-            # smoke_data covers edge case: two very close points, base_point_2 and point_2,
+            # following smoke_data covers edge case: two very close points, base_point_2 and point_2,
             # form an angle < epsilon
             base_point = gs.array([1.0, 2.0, 3.0, 4.0, 6.0])
             base_point = base_point / gs.linalg.norm(base_point)
@@ -75,6 +125,62 @@ class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
             return self._log_exp_composition_data(
                 self.metric_args_list, self.space_list, self.n_samples_list, smoke_data
             )
+
+        def test_inner_product(self):
+            smoke_data = [
+                dict(
+                    dim=4,
+                    tangent_vec_a=[1.0, 0.0, 0.0, 0.0, 0.0],
+                    tangent_vec_b=[0.0, 1.0, 0.0, 0.0, 0.0],
+                    base_point=[0.0, 0.0, 0.0, 0.0, 1.0],
+                    expected=0.0,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def dist_data(self):
+            # smoke data is currently testing points at orthogonal
+            point_a = gs.array([10.0, -2.0, -0.5, 0.0, 0.0])
+            point_a = point_a / gs.linalg.norm(point_a)
+            point_b = gs.array([2.0, 10, 0.0, 0.0, 0.0])
+            point_b = point_b / gs.linalg.norm(point_b)
+            smoke_data = [
+                dict(dim=4, point_a=point_a, point_b=point_b, expected=gs.pi / 2)
+            ]
+            return self.generate_tests(smoke_data)
+
+        def diameter_data(self):
+            point_a = gs.array([[0.0, 0.0, 1.0]])
+            point_b = gs.array([[1.0, 0.0, 0.0]])
+            point_c = gs.array([[0.0, 0.0, -1.0]])
+            smoke_data = [
+                dict(dim=2, points=[point_a, point_b, point_c], expected=gs.pi)
+            ]
+            return self.generate_tests(smoke_data)
+
+    def test_inner_product(
+        self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        metric = self.metric(dim)
+        result = metric.inner_product(
+            gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
+        )
+        self.assertAllClose(result, expected)
+
+    def test_dist(self, dim, point_a, point_b, expected):
+        metric = self.metric(dim)
+        result = metric.dist(gs.array(point_a), gs.array(point_b))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_dist_pairwise(self, dim, point_a, point_b, expected):
+        metric = self.metric(dim)
+        result = metric.dist_pairwise(gs.array(point_a), gs.array(point_a))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_diameter(self, dim, points, expected):
+        metric = self.metric(dim)
+        result = metric.diameter(gs.array(points))
+        self.assertAllClose(result, gs.array(expected))
 
 
 class TestHypersphere(geomstats.tests.TestCase):
@@ -164,21 +270,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         self.assertTrue(is_sym)
         self.assertTrue(belongs)
 
-    def test_dist_orthogonal_points(self):
-        # Distance between two orthogonal points is pi / 2.
-        point_a = gs.array([10.0, -2.0, -0.5, 0.0, 0.0])
-        point_a = point_a / gs.linalg.norm(point_a)
-        point_b = gs.array([2.0, 10, 0.0, 0.0, 0.0])
-        point_b = point_b / gs.linalg.norm(point_b)
-        result = gs.dot(point_a, point_b)
-        expected = 0
-        self.assertAllClose(result, expected)
-
-        result = self.metric.dist(point_a, point_b)
-        expected = gs.pi / 2
-
-        self.assertAllClose(result, expected)
-
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         base_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
         base_point = base_point / gs.linalg.norm(base_point)
@@ -209,25 +300,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = gs.linalg.norm(tangent_vec, axis=-1) % (2 * gs.pi)
 
         self.assertAllClose(result, expected)
-
-    def test_inner_product(self):
-        tangent_vec_a = gs.array([1.0, 0.0, 0.0, 0.0, 0.0])
-        tangent_vec_b = gs.array([0.0, 1.0, 0.0, 0.0, 0.0])
-        base_point = gs.array([0.0, 0.0, 0.0, 0.0, 1.0])
-        result = self.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        expected = 0.0
-
-        self.assertAllClose(expected, result)
-
-    def test_diameter(self):
-        dim = 2
-        sphere = Hypersphere(dim)
-        point_a = gs.array([[0.0, 0.0, 1.0]])
-        point_b = gs.array([[1.0, 0.0, 0.0]])
-        point_c = gs.array([[0.0, 0.0, -1.0]])
-        result = sphere.metric.diameter(gs.vstack((point_a, point_b, point_c)))
-        expected = gs.pi
-        self.assertAllClose(expected, result)
 
     def test_closest_neighbor_index(self):
         """Check that the closest neighbor is one of neighbors."""
@@ -502,30 +574,6 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         with pytest.raises(ValueError):
             sphere.tangent_extrinsic_to_spherical(point)
-
-    def test_angle_to_extrinsic(self):
-        space = Hypersphere(1)
-        point = gs.pi / 4
-        result = space.angle_to_extrinsic(point)
-        expected = gs.array([1.0, 1.0]) / gs.sqrt(2.0)
-        self.assertAllClose(result, expected)
-
-        point = gs.array([1.0 / 3, 0.0]) * gs.pi
-        result = space.angle_to_extrinsic(point)
-        expected = gs.array([[1.0 / 2, gs.sqrt(3.0) / 2], [1.0, 0.0]])
-        self.assertAllClose(result, expected)
-
-    def test_extrinsic_to_angle(self):
-        space = Hypersphere(1)
-        point = gs.array([1.0, 1.0]) / gs.sqrt(2.0)
-        result = space.extrinsic_to_angle(point)
-        expected = gs.pi / 4
-        self.assertAllClose(result, expected)
-
-        point = gs.array([[1.0 / 2, gs.sqrt(3.0) / 2], [1.0, 0.0]])
-        result = space.extrinsic_to_angle(point)
-        expected = gs.array([1.0 / 3, 0.0]) * gs.pi
-        self.assertAllClose(result, expected)
 
     def test_extrinsic_to_angle_inverse(self):
         space = Hypersphere(1)
