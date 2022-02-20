@@ -1,5 +1,7 @@
 """Unit tests for the Hypersphere."""
 
+import imp
+
 import pytest
 import scipy.special
 
@@ -9,10 +11,31 @@ import tests.helper as helper
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 from geomstats.learning.frechet_mean import FrechetMean
+from tests.conftest import TestCase
+from tests.data_generation import TestData
 
 MEAN_ESTIMATION_TOL = 5e-3
 KAPPA_ESTIMATION_TOL = 3e-2
 ONLINE_KMEANS_TOL = 2e-2
+
+
+class TestHypersphere(TestCase, metaclass=ManifoldParametrizer):
+    space = Hypersphere
+    class TestDataHypersphere(TestData):
+        def replace_values_data(self):
+            smoke_data = [dict(dim=4, points = gs.ones((3, 5)), new_points = gs.zeros((2, 5)),indcs = [True, False, True],expected=gs.stack([gs.zeros(5), gs.ones(5), gs.zeros(5)])  )]
+            return self.generate_tests(smoke_data)
+
+
+
+    def test_replace_values(self,dim, points, new_points, indcs, expected):
+        space = self.space(dim)
+        result = space._replace_values(gs.array(points), gs.array(new_points), gs.array(indcs))
+        self.assertAllClose(result, expected)
+
+
+    def
+
 
 
 class TestHypersphere(geomstats.tests.TestCase):
@@ -24,112 +47,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         self.metric = self.space.metric
         self.n_samples = 10
 
-    def test_random_uniform_and_belongs(self):
-        """Test random uniform and belongs.
 
-        Test that the random uniform method samples
-        on the hypersphere space.
-        """
-        n_samples = self.n_samples
-        point = self.space.random_uniform(n_samples)
-        result = self.space.belongs(point)
-        expected = gs.array([True] * n_samples)
-
-        self.assertAllClose(expected, result)
-
-    def test_random_uniform(self):
-        point = self.space.random_uniform()
-
-        self.assertAllClose(gs.shape(point), (self.dimension + 1,))
-
-    def test_replace_values(self):
-        points = gs.ones((3, 5))
-        new_points = gs.zeros((2, 5))
-        indcs = [True, False, True]
-        update = self.space._replace_values(points, new_points, indcs)
-        self.assertAllClose(update, gs.stack([gs.zeros(5), gs.ones(5), gs.zeros(5)]))
-
-    def test_projection_and_belongs(self):
-        shape = (self.n_samples, self.dimension + 1)
-        result = helper.test_projection_and_belongs(self.space, shape)
-        for res in result:
-            self.assertTrue(res)
-
-    def test_intrinsic_and_extrinsic_coords(self):
-        """
-        Test that the composition of
-        intrinsic_to_extrinsic_coords and
-        extrinsic_to_intrinsic_coords
-        gives the identity.
-        """
-        space = Hypersphere(dim=2)
-        point_int = gs.array([0.1, 0.0])
-        point_ext = space.intrinsic_to_extrinsic_coords(point_int)
-        result = space.extrinsic_to_intrinsic_coords(point_ext)
-        expected = point_int
-
-        self.assertAllClose(result, expected)
-
-        point_ext = 1.0 / (gs.sqrt(2.0)) * gs.array([1.0, 0.0, 1.0])
-        point_int = space.extrinsic_to_intrinsic_coords(point_ext)
-        result = space.intrinsic_to_extrinsic_coords(point_int)
-        expected = point_ext
-
-        self.assertAllClose(result, expected)
-
-    def test_intrinsic_and_extrinsic_coords_vectorization(self):
-        """Test change of coordinates.
-
-        Test that the composition of
-        intrinsic_to_extrinsic_coords and
-        extrinsic_to_intrinsic_coords
-        gives the identity.
-        """
-        space = Hypersphere(dim=2)
-        point_int = gs.array(
-            [
-                [0.1, 0.1],
-                [0.1, 0.4],
-                [0.1, 0.3],
-                [0.0, 0.0],
-                [0.1, 0.5],
-            ]
-        )
-        point_ext = space.intrinsic_to_extrinsic_coords(point_int)
-        result = space.extrinsic_to_intrinsic_coords(point_ext)
-        expected = point_int
-
-        self.assertAllClose(result, expected)
-
-        point_int = space.extrinsic_to_intrinsic_coords(point_ext)
-        result = space.intrinsic_to_extrinsic_coords(point_int)
-        expected = point_ext
-
-        self.assertAllClose(result, expected)
-
-    def test_log_and_exp_general_case(self):
-        """Test Log and Exp.
-
-        Test that the Riemannian exponential
-        and the Riemannian logarithm are inverse.
-
-        Expect their composition to give the identity function.
-
-        NB: points on the n-dimensional sphere are
-        (n+1)-D vectors of norm 1.
-        """
-        # Riemannian Log then Riemannian Exp
-        # General case
-        base_point = gs.array([1.0, 2.0, 3.0, 4.0, 6.0])
-        base_point = base_point / gs.linalg.norm(base_point)
-        point = gs.array([0.0, 5.0, 6.0, 2.0, -1.0])
-        point = point / gs.linalg.norm(point)
-
-        log = self.metric.log(point=point, base_point=base_point)
-        result = self.metric.exp(tangent_vec=log, base_point=base_point)
-        expected = point
-
-        self.assertAllClose(result, expected)
 
     def test_log_and_exp_edge_case(self):
         """Test Log and Exp.
@@ -156,108 +74,8 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    def test_exp_vectorization_single_samples(self):
-        dim = self.dimension + 1
 
-        one_vec = self.space.random_uniform()
-        one_base_point = self.space.random_uniform()
-        one_tangent_vec = self.space.to_tangent(one_vec, base_point=one_base_point)
 
-        result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertAllClose(gs.shape(result), (dim,))
-
-        one_base_point = gs.to_ndarray(one_base_point, to_ndim=2)
-        result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertAllClose(gs.shape(result), (1, dim))
-
-        one_tangent_vec = gs.to_ndarray(one_tangent_vec, to_ndim=2)
-        result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertAllClose(gs.shape(result), (1, dim))
-
-        one_base_point = self.space.random_uniform()
-        result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertAllClose(gs.shape(result), (1, dim))
-
-    def test_exp_vectorization_n_samples(self):
-        n_samples = self.n_samples
-        dim = self.dimension + 1
-
-        one_vec = self.space.random_uniform()
-        one_base_point = self.space.random_uniform()
-        n_vecs = self.space.random_uniform(n_samples=n_samples)
-        n_base_points = self.space.random_uniform(n_samples=n_samples)
-
-        n_tangent_vecs = self.space.to_tangent(n_vecs, base_point=one_base_point)
-        result = self.metric.exp(n_tangent_vecs, one_base_point)
-
-        self.assertAllClose(gs.shape(result), (n_samples, dim))
-
-        one_tangent_vec = self.space.to_tangent(one_vec, base_point=n_base_points)
-        result = self.metric.exp(one_tangent_vec, n_base_points)
-
-        self.assertAllClose(gs.shape(result), (n_samples, dim))
-
-        n_tangent_vecs = self.space.to_tangent(n_vecs, base_point=n_base_points)
-        result = self.metric.exp(n_tangent_vecs, n_base_points)
-
-        self.assertAllClose(gs.shape(result), (n_samples, dim))
-
-    def test_log_vectorization_single_samples(self):
-        dim = self.dimension + 1
-
-        one_base_point = self.space.random_uniform()
-        one_point = self.space.random_uniform()
-
-        result = self.metric.log(one_point, one_base_point)
-        self.assertAllClose(gs.shape(result), (dim,))
-
-        one_base_point = gs.to_ndarray(one_base_point, to_ndim=2)
-        result = self.metric.log(one_point, one_base_point)
-        self.assertAllClose(gs.shape(result), (1, dim))
-
-        one_point = gs.to_ndarray(one_base_point, to_ndim=2)
-        result = self.metric.log(one_point, one_base_point)
-        self.assertAllClose(gs.shape(result), (1, dim))
-
-        one_base_point = self.space.random_uniform()
-        result = self.metric.log(one_point, one_base_point)
-        self.assertAllClose(gs.shape(result), (1, dim))
-
-    def test_log_vectorization_n_samples(self):
-        n_samples = self.n_samples
-        dim = self.dimension + 1
-
-        one_base_point = self.space.random_uniform()
-        one_point = self.space.random_uniform()
-        n_points = self.space.random_uniform(n_samples=n_samples)
-        n_base_points = self.space.random_uniform(n_samples=n_samples)
-
-        result = self.metric.log(one_point, one_base_point)
-        self.assertAllClose(gs.shape(result), (dim,))
-
-        result = self.metric.log(n_points, one_base_point)
-        self.assertAllClose(gs.shape(result), (n_samples, dim))
-
-        result = self.metric.log(one_point, n_base_points)
-        self.assertAllClose(gs.shape(result), (n_samples, dim))
-
-        result = self.metric.log(n_points, n_base_points)
-        self.assertAllClose(gs.shape(result), (n_samples, dim))
-
-    def test_exp_log_are_inverse(self):
-        initial_point = self.space.random_uniform(2)
-        end_point = self.space.random_uniform(2)
-        vec = self.space.metric.log(point=end_point, base_point=initial_point)
-        result = self.space.metric.exp(vec, initial_point)
-        self.assertAllClose(end_point, result)
-
-    def test_log_extreme_case(self):
-        initial_point = self.space.random_uniform(2)
-        vec = 1e-4 * gs.random.rand(*initial_point.shape)
-        vec = self.space.to_tangent(vec, initial_point)
-        point = self.space.metric.exp(vec, base_point=initial_point)
-        result = self.space.metric.log(point, initial_point)
-        self.assertAllClose(vec, result)
 
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
         """Test Log and Exp.
@@ -328,57 +146,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = self.metric.squared_dist(point_a, point_b)
 
         self.assertAllClose(result, expected)
-
-    def test_squared_dist_vectorization_single_sample(self):
-        one_point_a = self.space.random_uniform()
-        one_point_b = self.space.random_uniform()
-
-        result = self.metric.squared_dist(one_point_a, one_point_b)
-        self.assertAllClose(gs.shape(result), ())
-
-        one_point_a = gs.to_ndarray(one_point_a, to_ndim=2)
-        result = self.metric.squared_dist(one_point_a, one_point_b)
-        self.assertAllClose(gs.shape(result), (1,))
-
-        one_point_b = gs.to_ndarray(one_point_b, to_ndim=2)
-        result = self.metric.squared_dist(one_point_a, one_point_b)
-        self.assertAllClose(gs.shape(result), (1,))
-
-        one_point_a = self.space.random_uniform()
-        result = self.metric.squared_dist(one_point_a, one_point_b)
-        self.assertAllClose(gs.shape(result), (1,))
-
-    def test_squared_dist_vectorization_n_samples(self):
-        n_samples = self.n_samples
-
-        one_point_a = self.space.random_uniform()
-        one_point_b = self.space.random_uniform()
-        n_points_a = self.space.random_uniform(n_samples=n_samples)
-        n_points_b = self.space.random_uniform(n_samples=n_samples)
-
-        result = self.metric.squared_dist(one_point_a, one_point_b)
-        self.assertAllClose(gs.shape(result), ())
-
-        result = self.metric.squared_dist(n_points_a, one_point_b)
-        self.assertAllClose(gs.shape(result), (n_samples,))
-
-        result = self.metric.squared_dist(one_point_a, n_points_b)
-        self.assertAllClose(gs.shape(result), (n_samples,))
-
-        result = self.metric.squared_dist(n_points_a, n_points_b)
-        self.assertAllClose(gs.shape(result), (n_samples,))
-
-        one_point_a = gs.to_ndarray(one_point_a, to_ndim=2)
-        one_point_b = gs.to_ndarray(one_point_b, to_ndim=2)
-
-        result = self.metric.squared_dist(n_points_a, one_point_b)
-        self.assertAllClose(gs.shape(result), (n_samples,))
-
-        result = self.metric.squared_dist(one_point_a, n_points_b)
-        self.assertAllClose(gs.shape(result), (n_samples,))
-
-        result = self.metric.squared_dist(n_points_a, n_points_b)
-        self.assertAllClose(gs.shape(result), (n_samples,))
 
     def test_norm_and_dist(self):
         """
@@ -475,42 +242,6 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    def test_geodesic_and_belongs(self):
-        n_geodesic_points = 10
-        initial_point = self.space.random_uniform(2)
-        vector = gs.array([[2.0, 0.0, -1.0, -2.0, 1.0]] * 2)
-        initial_tangent_vec = self.space.to_tangent(
-            vector=vector, base_point=initial_point
-        )
-        geodesic = self.metric.geodesic(
-            initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
-        )
-        t = gs.linspace(start=0.0, stop=1.0, num=n_geodesic_points)
-        points = geodesic(t)
-        result = gs.stack([self.space.belongs(pt) for pt in points])
-        self.assertTrue(gs.all(result))
-
-        initial_point = initial_point[0]
-        initial_tangent_vec = initial_tangent_vec[0]
-        geodesic = self.metric.geodesic(
-            initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
-        )
-        points = geodesic(t)
-        result = self.space.belongs(points)
-        expected = gs.array(n_geodesic_points * [True])
-        self.assertAllClose(expected, result)
-
-    def test_geodesic_end_point(self):
-        n_geodesic_points = 10
-        initial_point = self.space.random_uniform(4)
-        geodesic = self.metric.geodesic(
-            initial_point=initial_point[:2], end_point=initial_point[2:]
-        )
-        t = gs.linspace(start=0.0, stop=1.0, num=n_geodesic_points)
-        points = geodesic(t)
-        result = points[:, -1]
-        expected = initial_point[2:]
-        self.assertAllClose(expected, result)
 
     def test_inner_product(self):
         tangent_vec_a = gs.array([1.0, 0.0, 0.0, 0.0, 0.0])
@@ -521,46 +252,6 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
-    def test_inner_product_vectorization_single_samples(self):
-        tangent_vec_a = gs.array([1.0, 0.0, 0.0, 0.0, 0.0])
-        tangent_vec_b = gs.array([0.0, 1.0, 0.0, 0.0, 0.0])
-        base_point = gs.array([0.0, 0.0, 0.0, 0.0, 1.0])
-
-        result = self.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        expected = 0.0
-        self.assertAllClose(expected, result)
-
-        tangent_vec_a = gs.array([[1.0, 0.0, 0.0, 0.0, 0.0]])
-        tangent_vec_b = gs.array([0.0, 1.0, 0.0, 0.0, 0.0])
-        base_point = gs.array([0.0, 0.0, 0.0, 0.0, 1.0])
-
-        result = self.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array([0.0])
-        self.assertAllClose(expected, result)
-
-        tangent_vec_a = gs.array([1.0, 0.0, 0.0, 0.0, 0.0])
-        tangent_vec_b = gs.array([[0.0, 1.0, 0.0, 0.0, 0.0]])
-        base_point = gs.array([0.0, 0.0, 0.0, 0.0, 1.0])
-
-        result = self.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array([0.0])
-        self.assertAllClose(expected, result)
-
-        tangent_vec_a = gs.array([[1.0, 0.0, 0.0, 0.0, 0.0]])
-        tangent_vec_b = gs.array([[0.0, 1.0, 0.0, 0.0, 0.0]])
-        base_point = gs.array([0.0, 0.0, 0.0, 0.0, 1.0])
-
-        result = self.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array([0.0])
-        self.assertAllClose(expected, result)
-
-        tangent_vec_a = gs.array([[1.0, 0.0, 0.0, 0.0, 0.0]])
-        tangent_vec_b = gs.array([[0.0, 1.0, 0.0, 0.0, 0.0]])
-        base_point = gs.array([[0.0, 0.0, 0.0, 0.0, 1.0]])
-
-        result = self.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array([0.0])
-        self.assertAllClose(expected, result)
 
     def test_diameter(self):
         dim = 2
@@ -799,32 +490,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = gs.array([2, dim, dim, dim])
         self.assertAllClose(result, expected)
 
-    def test_parallel_transport_vectorization(self):
-        sphere = Hypersphere(2)
-        metric = sphere.metric
-        shape = (4, 3)
 
-        results = helper.test_parallel_transport(sphere, metric, shape)
-        for res in results:
-            self.assertTrue(res)
-
-    def test_is_tangent(self):
-        space = self.space
-        vec = space.random_uniform()
-        result = space.is_tangent(vec, vec)
-        self.assertFalse(result)
-
-        base_point = space.random_uniform()
-        tangent_vec = space.to_tangent(vec, base_point)
-        result = space.is_tangent(tangent_vec, base_point)
-        self.assertTrue(result)
-
-        base_point = space.random_uniform(2)
-        vec = space.random_uniform(2)
-        tangent_vec = space.to_tangent(vec, base_point)
-        result = space.is_tangent(tangent_vec, base_point)
-        self.assertAllClose(gs.shape(result), (2,))
-        self.assertTrue(gs.all(result))
 
     def test_sectional_curvature(self):
         n_samples = 4
