@@ -1,6 +1,6 @@
 """Unit tests for the Hypersphere."""
 
-import imp
+import random
 
 import pytest
 import scipy.special
@@ -10,32 +10,71 @@ import geomstats.tests
 import tests.helper as helper
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.learning.frechet_mean import FrechetMean
 from tests.conftest import TestCase
-from tests.data_generation import TestData
+from tests.data_generation import LevelSetTestData, RiemannianMetricTestData, TestData
+from tests.parametrizers import (
+    LevelSetParametrizer,
+    ManifoldParametrizer,
+    RiemannianMetricParametrizer,
+)
 
 MEAN_ESTIMATION_TOL = 5e-3
 KAPPA_ESTIMATION_TOL = 3e-2
 ONLINE_KMEANS_TOL = 2e-2
 
 
-class TestHypersphere(TestCase, metaclass=ManifoldParametrizer):
+class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
     space = Hypersphere
+
     class TestDataHypersphere(TestData):
         def replace_values_data(self):
-            smoke_data = [dict(dim=4, points = gs.ones((3, 5)), new_points = gs.zeros((2, 5)),indcs = [True, False, True],expected=gs.stack([gs.zeros(5), gs.ones(5), gs.zeros(5)])  )]
+            smoke_data = [
+                dict(
+                    dim=4,
+                    points=gs.ones((3, 5)),
+                    new_points=gs.zeros((2, 5)),
+                    indcs=[True, False, True],
+                    expected=gs.stack([gs.zeros(5), gs.ones(5), gs.zeros(5)]),
+                )
+            ]
             return self.generate_tests(smoke_data)
 
-
-
-    def test_replace_values(self,dim, points, new_points, indcs, expected):
+    def test_replace_values(self, dim, points, new_points, indcs, expected):
         space = self.space(dim)
-        result = space._replace_values(gs.array(points), gs.array(new_points), gs.array(indcs))
+        result = space._replace_values(
+            gs.array(points), gs.array(new_points), gs.array(indcs)
+        )
         self.assertAllClose(result, expected)
 
 
-    def
+class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
+    class TestDataHypersphereMetric(RiemannianMetricTestData):
+        dim_list = random.sample(range(2, 7), 5)
+        metric_args_list = [(n,) for n in dim_list]
+        shape_list = [(dim + 1,) for dim in dim_list]
+        space_list = [Hypersphere(n) for n in dim_list]
+        n_points_list = random.sample(range(1, 7), 5)
+        n_samples_list = random.sample(range(1, 7), 5)
+        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_b_list = [1]
+        batch_size_list = random.sample(range(2, 7), 5)
+        alpha_list = [1] * 5
+        n_rungs_list = [1] * 5
+        scheme_list = ["pole"] * 5
 
+        def log_exp_composition_data(self):
+            # smoke_data covers edge case: two very close points, base_point_2 and point_2,
+            # form an angle < epsilon
+            base_point = gs.array([1.0, 2.0, 3.0, 4.0, 6.0])
+            base_point = base_point / gs.linalg.norm(base_point)
+            point = base_point + 1e-4 * gs.array([-1.0, -2.0, 1.0, 1.0, 0.1])
+            point = point / gs.linalg.norm(point)
+            smoke_data = [dict(space_args=(4,), point=point, base_point=base_point)]
+            return self._log_exp_composition_data(
+                self.metric_args_list, self.space_list, self.n_samples_list, smoke_data
+            )
 
 
 class TestHypersphere(geomstats.tests.TestCase):
@@ -46,36 +85,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         self.space = Hypersphere(dim=self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
-
-
-
-    def test_log_and_exp_edge_case(self):
-        """Test Log and Exp.
-
-        Test that the Riemannian exponential
-        and the Riemannian logarithm are inverse.
-
-        Expect their composition to give the identity function.
-
-        NB: points on the n-dimensional sphere are
-        (n+1)-D vectors of norm 1.
-        """
-        # Riemannian Log then Riemannian Exp
-        # Edge case: two very close points, base_point_2 and point_2,
-        # form an angle < epsilon
-        base_point = gs.array([1.0, 2.0, 3.0, 4.0, 6.0])
-        base_point = base_point / gs.linalg.norm(base_point)
-        point = base_point + 1e-4 * gs.array([-1.0, -2.0, 1.0, 1.0, 0.1])
-        point = point / gs.linalg.norm(point)
-
-        log = self.metric.log(point=point, base_point=base_point)
-        result = self.metric.exp(tangent_vec=log, base_point=base_point)
-        expected = point
-
-        self.assertAllClose(result, expected)
-
-
-
 
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
         """Test Log and Exp.
@@ -133,47 +142,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
         result = self.metric.log(point=exp, base_point=base_point)
         self.assertAllClose(result, vector)
-
-    def test_squared_norm_and_squared_dist(self):
-        """
-        Test that the squared distance between two points is
-        the squared norm of their logarithm.
-        """
-        point_a = 1.0 / gs.sqrt(129.0) * gs.array([10.0, -2.0, -5.0, 0.0, 0.0])
-        point_b = 1.0 / gs.sqrt(435.0) * gs.array([1.0, -20.0, -5.0, 0.0, 3.0])
-        log = self.metric.log(point=point_a, base_point=point_b)
-        result = self.metric.squared_norm(vector=log)
-        expected = self.metric.squared_dist(point_a, point_b)
-
-        self.assertAllClose(result, expected)
-
-    def test_norm_and_dist(self):
-        """
-        Test that the distance between two points is
-        the norm of their logarithm.
-        """
-        point_a = 1.0 / gs.sqrt(129.0) * gs.array([10.0, -2.0, -5.0, 0.0, 0.0])
-        point_b = 1.0 / gs.sqrt(435.0) * gs.array([1.0, -20.0, -5.0, 0.0, 3.0])
-        log = self.metric.log(point=point_a, base_point=point_b)
-
-        self.assertAllClose(gs.shape(log), (5,))
-
-        result = self.metric.norm(vector=log)
-        self.assertAllClose(gs.shape(result), ())
-
-        expected = self.metric.dist(point_a, point_b)
-        self.assertAllClose(gs.shape(expected), ())
-
-        self.assertAllClose(result, expected)
-
-    def test_dist_point_and_itself(self):
-        # Distance between a point and itself is 0
-        point_a = 1.0 / gs.sqrt(129.0) * gs.array([10.0, -2.0, -5.0, 0.0, 0.0])
-        point_b = point_a
-        result = self.metric.dist(point_a, point_b)
-        expected = 0.0
-
-        self.assertAllClose(result, expected)
 
     def test_dist_pairwise(self):
 
@@ -242,7 +210,6 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-
     def test_inner_product(self):
         tangent_vec_a = gs.array([1.0, 0.0, 0.0, 0.0, 0.0])
         tangent_vec_b = gs.array([0.0, 1.0, 0.0, 0.0, 0.0])
@@ -251,7 +218,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = 0.0
 
         self.assertAllClose(expected, result)
-
 
     def test_diameter(self):
         dim = 2
@@ -489,8 +455,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         result = christoffel.shape
         expected = gs.array([2, dim, dim, dim])
         self.assertAllClose(result, expected)
-
-
 
     def test_sectional_curvature(self):
         n_samples = 4
