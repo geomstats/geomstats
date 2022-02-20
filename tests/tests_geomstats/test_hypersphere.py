@@ -67,13 +67,53 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def spherical_to_extrinsic():
-            smoke_data = [dict(dim=2, point=gs.array([gs.pi / 2, 0]),expected=gs.array([1.0, 0.0, 0.0])), dict(dim=2,point=gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]]), expected= gs.array(
-            [
-                [1.0, 0.0, 0.0],
-                [gs.sqrt(2.0) / 4.0, gs.sqrt(2.0) / 4.0, gs.sqrt(3.0) / 2.0],
+        def spherical_to_extrinsic_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point=gs.array([gs.pi / 2, 0]),
+                    expected=gs.array([1.0, 0.0, 0.0]),
+                ),
+                dict(
+                    dim=2,
+                    point=gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]]),
+                    expected=gs.array(
+                        [
+                            [1.0, 0.0, 0.0],
+                            [
+                                gs.sqrt(2.0) / 4.0,
+                                gs.sqrt(2.0) / 4.0,
+                                gs.sqrt(3.0) / 2.0,
+                            ],
+                        ]
+                    ),
+                ),
             ]
-        ))]
+            return self.generate_tests(smoke_data)
+
+        def extrinsic_to_spherical_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point=gs.array([1.0, 0.0, 0.0]),
+                    expected=gs.array([gs.pi / 2, 0]),
+                ),
+                dict(
+                    dim=2,
+                    point=gs.array(
+                        [
+                            [1.0, 0.0, 0.0],
+                            [
+                                gs.sqrt(2.0) / 4.0,
+                                gs.sqrt(2.0) / 4.0,
+                                gs.sqrt(3.0) / 2.0,
+                            ],
+                        ]
+                    ),
+                    expected=gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]]),
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
     def test_replace_values(self, dim, points, new_points, indcs, expected):
         space = self.space(dim)
@@ -92,51 +132,14 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
         result = space.extrinsic_to_angle(point)
         self.assertAllClose(result, expected)
 
-    def test_spherical_to_extrinsic(self):
-        """
-        Check vectorization of conversion from spherical
-        to extrinsic coordinates on the 2-sphere.
-        """
-        dim = 2
-        sphere = Hypersphere(dim)
-
-        points_spherical = gs.array([gs.pi / 2, 0])
-        result = sphere.spherical_to_extrinsic(points_spherical)
-        expected = gs.array([1.0, 0.0, 0.0])
+    def test_spherical_to_extrinic(self, dim, point, expected):
+        space = self.space(dim)
+        result = space.spherical_to_extrinsic(point)
         self.assertAllClose(result, expected)
 
-    def test_extrinsic_to_spherical(self):
-        """
-        Check vectorization of conversion from spherical
-        to extrinsic coordinates on the 2-sphere.
-        """
-        dim = 2
-        sphere = Hypersphere(dim)
-
-        points_extrinsic = gs.array([1.0, 0.0, 0.0])
-        result = sphere.extrinsic_to_spherical(points_extrinsic)
-        expected = gs.array([gs.pi / 2, 0])
-        self.assertAllClose(result, expected)
-
-    def test_spherical_to_extrinsic_vectorization(self):
-        dim = 2
-        sphere = Hypersphere(dim)
-        points_spherical = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
-        result = sphere.spherical_to_extrinsic(points_spherical)
-        expected =
-        self.assertAllClose(result, expected)
-
-    def test_extrinsic_to_spherical_vectorization(self):
-        dim = 2
-        sphere = Hypersphere(dim)
-        expected = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
-        point_extrinsic = gs.array(
-            [
-                [1.0, 0.0, 0.0],
-                [gs.sqrt(2.0) / 4.0, gs.sqrt(2.0) / 4.0, gs.sqrt(3.0) / 2.0],
-            ]
-        )
-        result = sphere.extrinsic_to_spherical(point_extrinsic)
+    def test_extrinsic_to_spherical(self, dim, point, expected):
+        space = self.space(dim)
+        result = space.extrinsic_to_spherical(point)
         self.assertAllClose(result, expected)
 
     def test_spherical_to_extrinsic_and_inverse(self):
@@ -215,6 +218,11 @@ class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def christoffels_shape_data(self):
+            point = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
+            smoke_data = [dict(dim=2, point=point, expected=[2, 2, 2, 2])]
+            return self.generate_tests(smoke_data)
+
     def test_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
@@ -238,6 +246,25 @@ class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
         metric = self.metric(dim)
         result = metric.diameter(gs.array(points))
         self.assertAllClose(result, gs.array(expected))
+
+    def test_christoffels_shape(self, dim, point, expected):
+        metric = self.metric(dim)
+        result = metric.christoffels(point)
+        self.assertAllClose(gs.shape(result), expected)
+
+    def test_sectional_curvature(self):
+        n_samples = 4
+        sphere = self.space
+        base_point = sphere.random_uniform(n_samples)
+        tan_vec_a = sphere.to_tangent(
+            gs.random.rand(n_samples, sphere.dim + 1), base_point
+        )
+        tan_vec_b = sphere.to_tangent(
+            gs.random.rand(n_samples, sphere.dim + 1), base_point
+        )
+        result = sphere.metric.sectional_curvature(tan_vec_a, tan_vec_b, base_point)
+        expected = gs.ones(result.shape)
+        self.assertAllClose(result, expected)
 
 
 class TestHypersphere(geomstats.tests.TestCase):
@@ -505,33 +532,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         spherical = sphere.extrinsic_to_spherical(points_extrinsic)
         result = sphere.tangent_spherical_to_extrinsic(tangent_spherical, spherical)
         self.assertAllClose(result, tangent_extrinsic)
-
-    def test_christoffels_vectorization(self):
-        """
-        Check vectorization of Christoffel symbols in
-        spherical coordinates on the 2-sphere.
-        """
-        dim = 2
-        sphere = Hypersphere(dim)
-        points_spherical = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
-        christoffel = sphere.metric.christoffels(points_spherical)
-        result = christoffel.shape
-        expected = gs.array([2, dim, dim, dim])
-        self.assertAllClose(result, expected)
-
-    def test_sectional_curvature(self):
-        n_samples = 4
-        sphere = self.space
-        base_point = sphere.random_uniform(n_samples)
-        tan_vec_a = sphere.to_tangent(
-            gs.random.rand(n_samples, sphere.dim + 1), base_point
-        )
-        tan_vec_b = sphere.to_tangent(
-            gs.random.rand(n_samples, sphere.dim + 1), base_point
-        )
-        result = sphere.metric.sectional_curvature(tan_vec_a, tan_vec_b, base_point)
-        expected = gs.ones(result.shape)
-        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_riemannian_normal_and_belongs(self):
