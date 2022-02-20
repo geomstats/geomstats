@@ -1,0 +1,29 @@
+improvements for Testing Diff Geometry (iteration 2.0)
+-----------------------------
+* readiblity of doc strings in parametrizer
+* add parametrizer tests that checks squared_dist_shape, square_norm_shape, dist_shape, norm_shape,  inner_product_shape for batch inputs (like exp, log)
+* Fiber Bundle parametrizer (I think pretty much every test in CorrelationMatricesBundle is generic)
+* currently parametrizer are generating random data and testing, But we should also provide smoke data. Why?
+  because if some knows the manifold well, they know the edge cases. we want to them to run for every iteration.
+
+* need to make generic inverse checker in friendly way. There are many pair of functions whose composition
+   we want to check, ones exp-log are being taken care of. Buttt
+  -  extrinsic_to_angle and angle_to_extrinsic are inverses
+  -  spherical_to_extrinsic and extrinsic_to_spherical are inverse
+
+  essentially idea is to contruct a meta test_f1-f2-composition.
+
+* random_point belongs is just testing random point. But let's say we want to other distributions
+* add parametrizer test that  d(point_a, point_b) = ||Log(point_a, point_b)|| to connection or metric?
+* add parametrizer test that squared_d(point_a, point_b) = ||Log(point_a, point_b)||^2
+* add parametrizer test that d(point_a, point_a) = 0
+* add message to each test that explains if we want to add some meaningful message
+* add 'id' to pytest markers so tests can be marked with meaningful ids  id="edge case"
+
+
+
+questions for Ninaa.
+-------------------
+* what is difference between spherical, intrinsic, extrinsic coords
+
+
