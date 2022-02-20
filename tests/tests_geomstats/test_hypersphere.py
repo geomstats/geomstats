@@ -67,6 +67,14 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def spherical_to_extrinsic():
+            smoke_data = [dict(dim=2, point=gs.array([gs.pi / 2, 0]),expected=gs.array([1.0, 0.0, 0.0])), dict(dim=2,point=gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]]), expected= gs.array(
+            [
+                [1.0, 0.0, 0.0],
+                [gs.sqrt(2.0) / 4.0, gs.sqrt(2.0) / 4.0, gs.sqrt(3.0) / 2.0],
+            ]
+        ))]
+
     def test_replace_values(self, dim, points, new_points, indcs, expected):
         space = self.space(dim)
         result = space._replace_values(
@@ -84,17 +92,66 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
         result = space.extrinsic_to_angle(point)
         self.assertAllClose(result, expected)
 
-    def test_extrinsic_to_angle(self):
-        space = Hypersphere(1)
-        point = gs.array([1.0, 1.0]) / gs.sqrt(2.0)
-        result = space.extrinsic_to_angle(point)
-        expected = gs.pi / 4
+    def test_spherical_to_extrinsic(self):
+        """
+        Check vectorization of conversion from spherical
+        to extrinsic coordinates on the 2-sphere.
+        """
+        dim = 2
+        sphere = Hypersphere(dim)
+
+        points_spherical = gs.array([gs.pi / 2, 0])
+        result = sphere.spherical_to_extrinsic(points_spherical)
+        expected = gs.array([1.0, 0.0, 0.0])
         self.assertAllClose(result, expected)
 
-        point = gs.array([[1.0 / 2, gs.sqrt(3.0) / 2], [1.0, 0.0]])
-        result = space.extrinsic_to_angle(point)
-        expected = gs.array([1.0 / 3, 0.0]) * gs.pi
+    def test_extrinsic_to_spherical(self):
+        """
+        Check vectorization of conversion from spherical
+        to extrinsic coordinates on the 2-sphere.
+        """
+        dim = 2
+        sphere = Hypersphere(dim)
+
+        points_extrinsic = gs.array([1.0, 0.0, 0.0])
+        result = sphere.extrinsic_to_spherical(points_extrinsic)
+        expected = gs.array([gs.pi / 2, 0])
         self.assertAllClose(result, expected)
+
+    def test_spherical_to_extrinsic_vectorization(self):
+        dim = 2
+        sphere = Hypersphere(dim)
+        points_spherical = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
+        result = sphere.spherical_to_extrinsic(points_spherical)
+        expected =
+        self.assertAllClose(result, expected)
+
+    def test_extrinsic_to_spherical_vectorization(self):
+        dim = 2
+        sphere = Hypersphere(dim)
+        expected = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
+        point_extrinsic = gs.array(
+            [
+                [1.0, 0.0, 0.0],
+                [gs.sqrt(2.0) / 4.0, gs.sqrt(2.0) / 4.0, gs.sqrt(3.0) / 2.0],
+            ]
+        )
+        result = sphere.extrinsic_to_spherical(point_extrinsic)
+        self.assertAllClose(result, expected)
+
+    def test_spherical_to_extrinsic_and_inverse(self):
+        dim = 2
+        n_samples = 5
+        sphere = Hypersphere(dim)
+        points = gs.random.rand(n_samples, 2) * gs.pi * gs.array([1.0, 2.0])[None, :]
+        extrinsic = sphere.spherical_to_extrinsic(points)
+        result = sphere.extrinsic_to_spherical(extrinsic)
+        self.assertAllClose(result, points)
+
+        points_extrinsic = sphere.random_uniform(n_samples)
+        spherical = sphere.extrinsic_to_spherical(points_extrinsic)
+        result = sphere.spherical_to_extrinsic(spherical)
+        self.assertAllClose(result, points_extrinsic)
 
 
 class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
@@ -382,72 +439,6 @@ class TestHypersphere(geomstats.tests.TestCase):
             self.assertAllClose(point.shape, (dim + 1,))
             result = sphere.belongs(point)
             self.assertTrue(result)
-
-    def test_spherical_to_extrinsic(self):
-        """
-        Check vectorization of conversion from spherical
-        to extrinsic coordinates on the 2-sphere.
-        """
-        dim = 2
-        sphere = Hypersphere(dim)
-
-        points_spherical = gs.array([gs.pi / 2, 0])
-        result = sphere.spherical_to_extrinsic(points_spherical)
-        expected = gs.array([1.0, 0.0, 0.0])
-        self.assertAllClose(result, expected)
-
-    def test_extrinsic_to_spherical(self):
-        """
-        Check vectorization of conversion from spherical
-        to extrinsic coordinates on the 2-sphere.
-        """
-        dim = 2
-        sphere = Hypersphere(dim)
-
-        points_extrinsic = gs.array([1.0, 0.0, 0.0])
-        result = sphere.extrinsic_to_spherical(points_extrinsic)
-        expected = gs.array([gs.pi / 2, 0])
-        self.assertAllClose(result, expected)
-
-    def test_spherical_to_extrinsic_vectorization(self):
-        dim = 2
-        sphere = Hypersphere(dim)
-        points_spherical = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
-        result = sphere.spherical_to_extrinsic(points_spherical)
-        expected = gs.array(
-            [
-                [1.0, 0.0, 0.0],
-                [gs.sqrt(2.0) / 4.0, gs.sqrt(2.0) / 4.0, gs.sqrt(3.0) / 2.0],
-            ]
-        )
-        self.assertAllClose(result, expected)
-
-    def test_extrinsic_to_spherical_vectorization(self):
-        dim = 2
-        sphere = Hypersphere(dim)
-        expected = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
-        point_extrinsic = gs.array(
-            [
-                [1.0, 0.0, 0.0],
-                [gs.sqrt(2.0) / 4.0, gs.sqrt(2.0) / 4.0, gs.sqrt(3.0) / 2.0],
-            ]
-        )
-        result = sphere.extrinsic_to_spherical(point_extrinsic)
-        self.assertAllClose(result, expected)
-
-    def test_spherical_to_extrinsic_and_inverse(self):
-        dim = 2
-        n_samples = 5
-        sphere = Hypersphere(dim)
-        points = gs.random.rand(n_samples, 2) * gs.pi * gs.array([1.0, 2.0])[None, :]
-        extrinsic = sphere.spherical_to_extrinsic(points)
-        result = sphere.extrinsic_to_spherical(extrinsic)
-        self.assertAllClose(result, points)
-
-        points_extrinsic = sphere.random_uniform(n_samples)
-        spherical = sphere.extrinsic_to_spherical(points_extrinsic)
-        result = sphere.spherical_to_extrinsic(spherical)
-        self.assertAllClose(result, points_extrinsic)
 
     def test_tangent_spherical_to_extrinsic(self):
         """
