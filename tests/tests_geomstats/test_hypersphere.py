@@ -245,7 +245,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
 
         def intrinsic_extrinsic_composition_data(self):
             space_args_list = [(1,), (2,)]
-            return self._extrinsic_intrinsic_composition_data(
+            return self._intrinsic_extrinsic_composition_data(
                 Hypersphere, space_args_list, self.n_samples_list
             )
 
@@ -511,7 +511,15 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             base_point = base_point / gs.linalg.norm(base_point)
             point = base_point + 1e-4 * gs.array([-1.0, -2.0, 1.0, 1.0, 0.1])
             point = point / gs.linalg.norm(point)
-            smoke_data = [dict(space_args=(4,), point=point, base_point=base_point)]
+            smoke_data = [
+                dict(
+                    space_args=(4,),
+                    point=point,
+                    base_point=base_point,
+                    rtol=gs.rtol,
+                    atol=gs.atol,
+                )
+            ]
             return self._log_exp_composition_data(
                 self.metric_args_list, self.space_list, self.n_samples_list, smoke_data
             )
@@ -523,7 +531,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 10000,
+                atol=gs.atol * 100000,
             )
 
         def exp_ladder_parallel_transport_data(self):
