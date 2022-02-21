@@ -336,19 +336,6 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
                 tangent_vec, base_point, base_point_spherical
             )
 
-    # def test_tangent_extrinsic_to_spherical_inverse(
-    #     self, dim, tangent_spherical, base_point_spherical
-    # ):
-
-    #     space = self.space(dim)
-    #     tangent_extrinsic = space.tangent_spherical_to_extrinsic(
-    #         tangent_spherical, base_point_spherical
-    #     )
-    #     result = space.tangent_extrinsic_to_spherical(
-    #         tangent_extrinsic, base_point_spherical=base_point_spherical
-    #     )
-    #     self.assertAllClose(result, tangent_spherical)
-
     @geomstats.tests.np_autograd_and_torch_only
     def test_riemannian_normal_frechet_mean(self, dim):
         space = self.space(dim)
