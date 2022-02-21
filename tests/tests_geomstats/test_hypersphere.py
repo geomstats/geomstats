@@ -4,6 +4,7 @@ import random
 from contextlib import nullcontext as does_not_raise
 
 import pytest
+import scipy.special
 
 import geomstats.backend as gs
 import geomstats.tests
@@ -209,6 +210,24 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             smoke_data = [dict(dim=3, n_points=1), dict(dim=4, n_points=10)]
             return self.generate_tests(smoke_data)
 
+        def sample_von_mises_fisher_mean_data(self):
+            dim_list = random.sample(range(2, 10), 5)
+            smoke_data = [
+                dict(
+                    dim=dim,
+                    mean=Hypersphere(dim).random_point(),
+                    kappa=1000.0,
+                    n_points=10000,
+                )
+                for dim in dim_list
+            ]
+            return self.generate_tests(smoke_data)
+
+        def sample_random_von_mises_kappa_data(self):
+            dim_list = random.sample(range(2, 10), 5)
+            smoke_data = [dict(dim=dim, kappa=1.0, n_points=50000) for dim in dim_list]
+            return self.generate_tests(smoke_data)
+
         def random_point_belongs_data(self):
             belongs_atol = gs.atol * 10000
             smoke_space_args_list = [(2,), (3,), (4,)]
@@ -350,6 +369,44 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
         result = space.belongs(sample)
         self.assertTrue(gs.all(result))
 
+    def test_sample_von_mises_fisher_mean(self, dim, mean, kappa, n_points):
+        """
+        Check that the maximum likelihood estimates of the mean and
+        concentration parameter are close to the real values. A first
+        estimation of the concentration parameter is obtained by a
+        closed-form expression and improved through the Newton method.
+        """
+        space = self.space(dim)
+        mean = space.random_uniform()
+        points = space.random_von_mises_fisher(mu=mean, kappa=kappa, n_samples=n_points)
+        sum_points = gs.sum(points, axis=0)
+        result = sum_points / gs.linalg.norm(sum_points)
+        expected = mean
+        self.assertAllClose(result, expected, atol=MEAN_ESTIMATION_TOL)
+
+    def test_sample_random_von_mises_kappa(self, dim, kappa, n_points):
+        # check concentration parameter for dispersed distribution
+        sphere = Hypersphere(dim)
+        points = sphere.random_von_mises_fisher(kappa=kappa, n_samples=n_points)
+        sum_points = gs.sum(points, axis=0)
+        mean_norm = gs.linalg.norm(sum_points) / n_points
+        kappa_estimate = (
+            mean_norm * (dim + 1.0 - mean_norm**2) / (1.0 - mean_norm**2)
+        )
+        kappa_estimate = gs.cast(kappa_estimate, gs.float64)
+        p = dim + 1
+        n_steps = 100
+        for _ in range(n_steps):
+            bessel_func_1 = scipy.special.iv(p / 2.0, kappa_estimate)
+            bessel_func_2 = scipy.special.iv(p / 2.0 - 1.0, kappa_estimate)
+            ratio = bessel_func_1 / bessel_func_2
+            denominator = 1.0 - ratio**2 - (p - 1.0) * ratio / kappa_estimate
+            mean_norm = gs.cast(mean_norm, gs.float64)
+            kappa_estimate = kappa_estimate - (ratio - mean_norm) / denominator
+        result = kappa_estimate
+        expected = kappa
+        self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
+
 
 class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     metric = connection = HypersphereMetric
@@ -407,30 +464,30 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             smoke_data = [dict(dim=2, point=point, expected=[2, 2, 2, 2])]
             return self.generate_tests(smoke_data)
 
-        # def sectional_curvature_data(self):
-        #     dim_list = random.sample(range(2, 10), 5)
-        #     n_samples_list = random.sample(range(1, 10), 5)
-        #     random_data = []
-        #     for dim, n_samples in zip(dim_list, n_samples_list):
-        #         sphere = Hypersphere(dim)
-        #         base_point = sphere.random_uniform()
-        #         tangent_vec_a = sphere.to_tangent(
-        #             gs.random.rand(n_samples, sphere.dim + 1), base_point
-        #         )
-        #         tangent_vec_b = sphere.to_tangent(
-        #             gs.random.rand(n_samples, sphere.dim + 1), base_point
-        #         )
-        #         expected = gs.ones(1)  # try shape here
-        #         random_data.append(
-        #             dict(
-        #                 dim=dim,
-        #                 tangent_vec_a=tangent_vec_a,
-        #                 tangent_vec_b=tangent_vec_b,
-        #                 expected=expected,
-        #             ),
-
-        #         )
-        #     return self.generate_tests(random_data)
+        def sectional_curvature_data(self):
+            dim_list = random.sample(range(2, 10), 5)
+            n_samples_list = random.sample(range(1, 10), 5)
+            random_data = []
+            for dim, n_samples in zip(dim_list, n_samples_list):
+                sphere = Hypersphere(dim)
+                base_point = sphere.random_uniform()
+                tangent_vec_a = sphere.to_tangent(
+                    gs.random.rand(n_samples, sphere.dim + 1), base_point
+                )
+                tangent_vec_b = sphere.to_tangent(
+                    gs.random.rand(n_samples, sphere.dim + 1), base_point
+                )
+                expected = gs.ones(n_samples)  # try shape here
+                random_data.append(
+                    dict(
+                        dim=dim,
+                        tangent_vec_a=tangent_vec_a,
+                        tangent_vec_b=tangent_vec_b,
+                        base_point=base_point,
+                        expected=expected,
+                    ),
+                )
+            return self.generate_tests(random_data)
 
         def dist_pairwise_data(self):
             smoke_data = [
@@ -611,12 +668,12 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         result = metric.christoffels(point)
         self.assertAllClose(gs.shape(result), expected)
 
-    # def test_sectional_curvature(
-    #     self, dim, tangnet_vec_a, tangent_vec_b, base_point, expected
-    # ):
-    #     metric = self.metric(dim)
-    #     result = metric.sectional_curvature(tangnet_vec_a, tangent_vec_b, base_point)
-    #     self.assertAllClose(result, expected)
+    def test_sectional_curvature(
+        self, dim, tangnet_vec_a, tangent_vec_b, base_point, expected
+    ):
+        metric = self.metric(dim)
+        result = metric.sectional_curvature(tangnet_vec_a, tangent_vec_b, base_point)
+        self.assertAllClose(result, expected)
 
 
 # class TestHypersphere(geomstats.tests.TestCase):
@@ -716,51 +773,3 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
 #         expected = gs.linalg.norm(tangent_vec, axis=-1) % (2 * gs.pi)
 
 #         self.assertAllClose(result, expected)
-
-#     def test_sample_von_mises_fisher_arbitrary_mean(self):
-#         """
-#         Check that the maximum likelihood estimates of the mean and
-#         concentration parameter are close to the real values. A first
-#         estimation of the concentration parameter is obtained by a
-#         closed-form expression and improved through the Newton method.
-#         """
-#         for dim in [2, 9]:
-#             n_points = 10000
-#             sphere = Hypersphere(dim)
-
-#             # check mean value for concentrated distribution for different mean
-#             kappa = 1000.0
-#             mean = sphere.random_uniform()
-#             points = sphere.random_von_mises_fisher(
-#                 mu=mean, kappa=kappa, n_samples=n_points
-#             )
-#             sum_points = gs.sum(points, axis=0)
-#             result = sum_points / gs.linalg.norm(sum_points)
-#             expected = mean
-#             self.assertAllClose(result, expected, atol=MEAN_ESTIMATION_TOL)
-
-#     def test_random_von_mises_kappa(self):
-#         # check concentration parameter for dispersed distribution
-#         kappa = 1.0
-#         n_points = 100000
-#         for dim in [2, 9]:
-#             sphere = Hypersphere(dim)
-#             points = sphere.random_von_mises_fisher(kappa=kappa, n_samples=n_points)
-#             sum_points = gs.sum(points, axis=0)
-#             mean_norm = gs.linalg.norm(sum_points) / n_points
-#             kappa_estimate = (
-#                 mean_norm * (dim + 1.0 - mean_norm**2) / (1.0 - mean_norm**2)
-#             )
-#             kappa_estimate = gs.cast(kappa_estimate, gs.float64)
-#             p = dim + 1
-#             n_steps = 100
-#             for _ in range(n_steps):
-#                 bessel_func_1 = scipy.special.iv(p / 2.0, kappa_estimate)
-#                 bessel_func_2 = scipy.special.iv(p / 2.0 - 1.0, kappa_estimate)
-#                 ratio = bessel_func_1 / bessel_func_2
-#                 denominator = 1.0 - ratio**2 - (p - 1.0) * ratio / kappa_estimate
-#                 mean_norm = gs.cast(mean_norm, gs.float64)
-#                 kappa_estimate = kappa_estimate - (ratio - mean_norm) / denominator
-#             result = kappa_estimate
-#             expected = kappa
-#             self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
