@@ -22,6 +22,14 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
     space = Hypersphere
 
     class TestDataHypersphere(LevelSetTestData):
+
+        dim_list = random.sample(range(3, 6), 2)
+        space_args_list = dim_list
+        n_points_list = random.sample(range(1, 5), 2)
+        shape_list = [(dim + 1,) for dim in dim_list]
+        n_vecs_list = random.sample(range(1, 5), 2)
+        n_samples_list = random.sample(range(1, 5), 2)
+
         def replace_values_data(self):
             smoke_data = [
                 dict(
@@ -136,7 +144,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             dim_list = [2, 3]
             for dim in dim_list:
                 space = Hypersphere(dim)
-                base_point = space.point()
+                base_point = space.random_point()
                 tangent_vec = space.to_tangent(space.random_point(), base_point)
                 if dim == 2:
                     expected = does_not_raise()
@@ -200,6 +208,48 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             smoke_data = [dict(dim=3, n_points=1), dict(dim=4, n_points=10)]
             return self.generate_tests(smoke_data)
 
+        def random_point_belongs_data(self):
+            belongs_atol = gs.atol * 10000
+            smoke_space_args_list = [(2,), (3,), (4,)]
+            smoke_n_points_list = [1, 2, 1]
+            return self._random_point_belongs_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+                belongs_atol,
+            )
+
+        def to_tangent_is_tangent_data(self):
+
+            is_tangent_atol = gs.atol * 1000
+            return self._to_tangent_is_tangent_data(
+                Hypersphere,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+                is_tangent_atol,
+            )
+
+        def projection_belongs_data(self):
+            return self._projection_belongs_data(
+                self.space_args_list, self.shape_list, self.n_samples_list
+            )
+
+        def extrinsic_intrinsic_composition_data(self):
+            space_args_list = [(1,), (2,)]
+            return self._extrinsic_intrinsic_composition_data(
+                Hypersphere, space_args_list, self.n_samples_list
+            )
+
+        def intrinsic_extrinsic_composition_data(self):
+            space_args_list = [(1,), (2,)]
+            return self._extrinsic_intrinsic_composition_data(
+                Hypersphere, space_args_list, self.n_samples_list
+            )
+
+    testing_data = TestDataHypersphere()
+
     def test_replace_values(self, dim, points, new_points, indcs, expected):
         space = self.space(dim)
         result = space._replace_values(
@@ -217,7 +267,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
         result = space.extrinsic_to_angle(point)
         self.assertAllClose(result, expected)
 
-    def test_spherical_to_extrinic(self, dim, point, expected):
+    def test_spherical_to_extrinsic(self, dim, point, expected):
         space = self.space(dim)
         result = space.spherical_to_extrinsic(point)
         self.assertAllClose(result, expected)
@@ -266,18 +316,18 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
                 tangent_vec, base_point, base_point_spherical
             )
 
-    def test_tangent_extrinsic_to_spherical_inverse(
-        self, dim, tangent_spherical, base_point_spherical
-    ):
+    # def test_tangent_extrinsic_to_spherical_inverse(
+    #     self, dim, tangent_spherical, base_point_spherical
+    # ):
 
-        space = self.space(dim)
-        tangent_extrinsic = space.tangent_spherical_to_extrinsic(
-            tangent_spherical, base_point_spherical
-        )
-        result = space.tangent_extrinsic_to_spherical(
-            tangent_extrinsic, base_point_spherical=base_point_spherical
-        )
-        self.assertAllClose(result, tangent_spherical)
+    #     space = self.space(dim)
+    #     tangent_extrinsic = space.tangent_spherical_to_extrinsic(
+    #         tangent_spherical, base_point_spherical
+    #     )
+    #     result = space.tangent_extrinsic_to_spherical(
+    #         tangent_extrinsic, base_point_spherical=base_point_spherical
+    #     )
+    #     self.assertAllClose(result, tangent_spherical)
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_riemannian_normal_frechet_mean(self, dim):
@@ -404,6 +454,8 @@ class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
                 )
             ]
             return self.generate_tests(smoke_data)
+
+    testing_data = TestDataHypersphereMetric()
 
     def test_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
