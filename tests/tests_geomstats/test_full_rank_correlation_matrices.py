@@ -2,7 +2,6 @@
 
 import random
 
-
 import geomstats.backend as gs
 from geomstats.geometry.full_rank_correlation_matrices import (
     CorrelationMatricesBundle,
@@ -140,6 +139,14 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
 
             return self.generate_tests([], random_data)
 
+        def align_is_horizontal_data(self):
+            random_data = []
+            for n, n_samples in zip(self.n_list, self.n_samples_list):
+                bundle = CorrelationMatricesBundle(n)
+                point = bundle.random_point(2)
+                random_data.append(dict(n=n, point_a=point[0], point_b=point[1]))
+            return self.generate_tests([], random_data)
+
     testing_data = TestDataCorrelationMatricesBundle()
 
     def test_riemannian_submersion_belongs_to_base(self, n, point):
@@ -157,7 +164,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
         tangent_vec = bundle.tangent_riemannian_submersion(
             gs.array(vec), gs.array(point)
         )
-        result = gs.all(bundle.is_tangent(vec, gs.array(point)))
+        result = gs.all(bundle.is_tangent(gs.array(tangent_vec), gs.array(point)))
         self.assertAllClose(result, gs.array(True))
 
     def test_vertical_projection_tangent_submersion(self, n, vec, mat):
@@ -192,15 +199,12 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, gs.array(True))
 
     @autograd_tf_and_torch_only
-    def test_align_is_horizontal(
-        self,
-        point1,
-        point2,
-    ):
-        aligned = self.bundle.align(point1, point2, tol=1e-10)
-        log = self.bundle.ambient_metric.log(aligned, point2)
-        result = self.bundle.is_horizontal(log, point2, atol=gs.atol * 100)
-        self.assertTrue(result)
+    def test_align_is_horizontal(self, n, point_a, point_b):
+        bundle = self.space(n)
+        aligned = bundle.align(point_a, point_b, tol=1e-5)
+        log = bundle.ambient_metric.log(aligned, point_b)
+        result = bundle.is_horizontal(log, point_b, atol=gs.atol * 10000)
+        self.assertAllClose(result, True)
 
     def test_horizontal_lift_and_tangent_riemannian_submersion(
         self, n, tangent_vec, mat
@@ -211,21 +215,22 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, tangent_vec)
 
 
-# class TestFullRankCorrelationAffineQuotientMetric(
-#     TestCase, metaclass=Parametrizer
-# ):
-#     metric = connection = FullRankCorrelationAffineQuotientMetric
+class TestFullRankCorrelationAffineQuotientMetric(TestCase, metaclass=Parametrizer):
+    metric = connection = FullRankCorrelationAffineQuotientMetric
 
-#     class TestDataFullRankcorrelationAffineQuotientMetric(TestData):
+    class TestDataFullRankcorrelationAffineQuotientMetric(TestData):
+        def exp_log_composition_data(self):
+            bundle = CorrelationMatricesBundle(3)
+            point = bundle.riemannian_submersion(bundle.random_point(2))
+            random_data = [dict(dim=3, point=point)]
+            return self.generate_tests([], random_data)
 
-#         @geomstats.tests.autograd_tf_and_torch_only
-#         def test_exp_and_log(self):
-#             mats = self.bundle.random_point(2)
-#             points = self.bundle.riemannian_submersion(mats)
+    @autograd_tf_and_torch_only
+    def test_exp_log_composition(self, dim, point):
 
-#             log = self.quotient_metric.log(points[1], points[0])
-#             result = self.quotient_metric.exp(log, points[0])
-#             self.assertAllClose(result, points[1], atol=gs.atol * 100)
+        metric = FullRankCorrelationAffineQuotientMetric(dim)
+        log = metric.log(point[1], point[0])
+        result = metric.exp(log, point[0])
+        self.assertAllClose(result, point[1], atol=gs.atol * 100)
 
-
-#     testing_data =TestDataFullRankcorrelationAffineQuotientMetric()
+    testing_data = TestDataFullRankcorrelationAffineQuotientMetric()

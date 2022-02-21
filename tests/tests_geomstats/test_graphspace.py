@@ -12,16 +12,36 @@ class TestGraphSpace(TestCase, metaclass=Parametrizer):
 
     class TestDataGraphSpace(TestData):
         def belongs_data(self):
-            smoke_data = []
+            smoke_data = [
+                dict(
+                    dim=2,
+                    mat=gs.array(
+                        [[[3.0, -1.0], [-1.0, 3.0]], [[4.0, -6.0], [-1.0, 3.0]]]
+                    ),
+                    expected=[True, True],
+                ),
+                dict(dim=2, mat=gs.array([-1.0, -1.0]), expected=False),
+            ]
             return self.generate_tests(smoke_data)
 
         def random_point_belongs_data(self):
             smoke_data = [dict(n=2, n_points=1), dict(n=2, n_points=10)]
             return self.generate_tests(smoke_data)
 
+        def permute_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    graph=gs.array([[0.0, 1.0], [2.0, 3.0]]),
+                    permutation=[1, 0],
+                    expected=gs.array([[3.0, 2.0], [1.0, 0.0]]),
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataGraphSpace()
 
-    def test_random_point_belongs_data(self, n, n_points):
+    def test_random_point_belongs(self, n, n_points):
         space = self.space(n)
         point = space.random_point(n_points)
         result = gs.all(space.belongs(point))
@@ -29,7 +49,7 @@ class TestGraphSpace(TestCase, metaclass=Parametrizer):
 
     def test_belongs(self, n, mat, expected):
         space = self.space(n)
-        self.assertAllClose(gs.all(space.belongs(gs.array(mat))), gs.array(expected))
+        self.assertAllClose(space.belongs(gs.array(mat)), gs.array(expected))
 
     def test_permute(self, n, graph, permutation, expected):
         space = self.space(n)
