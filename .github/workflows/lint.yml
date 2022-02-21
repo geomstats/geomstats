@@ -7,7 +7,7 @@ on:
     branches: [master]
 
 jobs:
-  build:
+  lint:
 
     runs-on: ${{matrix.os}}
     strategy:
@@ -31,11 +31,15 @@ jobs:
           done
           pip install -e .
 
+      - name: linting [flake8] geomstats/
+        uses: reviewdog/action-flake8@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-check
+          filter_mode: nofilter
+          workdir: geomstats/
+      
       - name : linting [black and isort]
         run: |
           black . --check
           isort --profile black --check .
-
-      - name: linting [flake8]
-        run: |
-          flake8 geomstats/ tests/
