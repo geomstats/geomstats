@@ -131,8 +131,8 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             smoke_data = [
                 dict(
                     dim=dim,
-                    n_points=100000,
                     kappa=10,
+                    n_points=100000,
                     expected=gs.array([1.0] + [0.0] * dim),
                     atol=KAPPA_ESTIMATION_TOL,
                 )
@@ -223,7 +223,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def sample_random_von_mises_kappa_data(self):
+        def sample_random_von_mises_fisher_kappa_data(self):
             dim_list = random.sample(range(2, 10), 5)
             smoke_data = [dict(dim=dim, kappa=1.0, n_points=50000) for dim in dim_list]
             return self.generate_tests(smoke_data)
@@ -364,14 +364,13 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
         closed-form expression and improved through the Newton method.
         """
         space = self.space(dim)
-        mean = space.random_uniform()
         points = space.random_von_mises_fisher(mu=mean, kappa=kappa, n_samples=n_points)
         sum_points = gs.sum(points, axis=0)
         result = sum_points / gs.linalg.norm(sum_points)
         expected = mean
         self.assertAllClose(result, expected, atol=MEAN_ESTIMATION_TOL)
 
-    def test_sample_random_von_mises_kappa(self, dim, kappa, n_points):
+    def test_sample_random_von_mises_fisher_kappa(self, dim, kappa, n_points):
         # check concentration parameter for dispersed distribution
         sphere = Hypersphere(dim)
         points = sphere.random_von_mises_fisher(kappa=kappa, n_samples=n_points)
@@ -442,7 +441,9 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             point_b = gs.array([[1.0, 0.0, 0.0]])
             point_c = gs.array([[0.0, 0.0, -1.0]])
             smoke_data = [
-                dict(dim=2, points=[point_a, point_b, point_c], expected=gs.pi)
+                dict(
+                    dim=2, points=gs.vstack((point_a, point_b, point_c)), expected=gs.pi
+                )
             ]
             return self.generate_tests(smoke_data)
 
