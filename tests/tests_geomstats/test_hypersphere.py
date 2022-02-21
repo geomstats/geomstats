@@ -434,12 +434,11 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         def dist_pairwise_data(self):
             smoke_data = [
                 dict(
-                    point_a=1.0
-                    / gs.sqrt(129.0)
-                    * gs.array([10.0, -2.0, -5.0, 0.0, 0.0]),
-                    point_b=1.0
-                    / gs.sqrt(435.0)
-                    * gs.array([1.0, -20.0, -5.0, 0.0, 3.0]),
+                    dim=4,
+                    point=[
+                        1.0 / gs.sqrt(129.0) * gs.array([10.0, -2.0, -5.0, 0.0, 0.0]),
+                        1.0 / gs.sqrt(435.0) * gs.array([1.0, -20.0, -5.0, 0.0, 3.0]),
+                    ],
                     expected=gs.array([[0.0, 1.24864502], [1.24864502, 0.0]]),
                     rtol=1e-3,
                 )
@@ -592,10 +591,10 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         result = metric.dist(gs.array(point_a), gs.array(point_b))
         self.assertAllClose(result, gs.array(expected))
 
-    def test_dist_pairwise(self, dim, point_a, point_b, expected):
+    def test_dist_pairwise(self, dim, point, expected, rtol):
         metric = self.metric(dim)
-        result = metric.dist_pairwise(gs.array(point_a), gs.array(point_a))
-        self.assertAllClose(result, gs.array(expected))
+        result = metric.dist_pairwise(gs.array(point))
+        self.assertAllClose(result, gs.array(expected), rtol=rtol)
 
     def test_diameter(self, dim, points, expected):
         metric = self.metric(dim)
