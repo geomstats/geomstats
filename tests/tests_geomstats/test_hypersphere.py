@@ -4,21 +4,14 @@ import random
 from contextlib import nullcontext as does_not_raise
 
 import pytest
-import scipy.special
 
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
-from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.learning.frechet_mean import FrechetMean
 from tests.conftest import TestCase
-from tests.data_generation import LevelSetTestData, RiemannianMetricTestData, TestData
-from tests.parametrizers import (
-    LevelSetParametrizer,
-    ManifoldParametrizer,
-    RiemannianMetricParametrizer,
-)
+from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
+from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
 
 MEAN_ESTIMATION_TOL = 5e-3
 KAPPA_ESTIMATION_TOL = 3e-2
@@ -28,7 +21,7 @@ ONLINE_KMEANS_TOL = 2e-2
 class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
     space = Hypersphere
 
-    class TestDataHypersphere(TestData):
+    class TestDataHypersphere(LevelSetTestData):
         def replace_values_data(self):
             smoke_data = [
                 dict(
@@ -199,7 +192,13 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def
+        def riemannian_normal_frechet_mean_data(self):
+            smoke_data = [dict(dim=3), dict(dim=4)]
+            return self.generate_tests(smoke_data)
+
+        def riemannian_normal_and_belongs_data(self):
+            smoke_data = [dict(dim=3, n_points=1), dict(dim=4, n_points=10)]
+            return self.generate_tests(smoke_data)
 
     def test_replace_values(self, dim, points, new_points, indcs, expected):
         space = self.space(dim)
@@ -280,29 +279,25 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
         )
         self.assertAllClose(result, tangent_spherical)
 
+    @geomstats.tests.np_autograd_and_torch_only
+    def test_riemannian_normal_frechet_mean(self, dim):
+        space = self.space(dim)
+        mean = space.random_uniform()
+        precision = gs.eye(space.dim) * 10
+        sample = space.random_riemannian_normal(mean, precision, 10000)
+        estimator = FrechetMean(space.metric, method="adaptive")
+        estimator.fit(sample)
+        estimate = estimator.estimate_
+        self.assertAllClose(estimate, mean, atol=1e-2)
 
-
-    def test_tangent_spherical_and_extrinsic_inverse(self):
-        dim = 2
-        n_samples = 5
-        sphere = Hypersphere(dim)
-        points = gs.random.rand(n_samples, 2) * gs.pi * gs.array([1.0, 2.0])[None, :]
-        tangent_spherical = gs.random.rand(n_samples, 2)
-        tangent_extrinsic = sphere.tangent_spherical_to_extrinsic(
-            tangent_spherical, points
-        )
-        result = sphere.tangent_extrinsic_to_spherical(
-            tangent_extrinsic, base_point_spherical=points
-        )
-        self.assertAllClose(result, tangent_spherical)
-
-        points_extrinsic = sphere.random_uniform(n_samples)
-        vector = gs.random.rand(n_samples, dim + 1)
-        tangent_extrinsic = sphere.to_tangent(vector, points_extrinsic)
-
-        spherical = sphere.extrinsic_to_spherical(points_extrinsic)
-        result = sphere.tangent_spherical_to_extrinsic(tangent_spherical, spherical)
-        self.assertAllClose(result, tangent_extrinsic)
+    @geomstats.tests.np_autograd_and_torch_only
+    def test_riemannian_normal_and_belongs(self, dim, n_points):
+        space = self.space(dim)
+        mean = space.random_uniform()
+        cov = gs.eye(dim)
+        sample = space.random_riemannian_normal(mean, cov, n_points)
+        result = space.belongs(sample)
+        self.assertTrue(gs.all(result))
 
 
 class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
@@ -323,7 +318,7 @@ class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
         scheme_list = ["pole"] * 5
 
         def log_exp_composition_data(self):
-            # following smoke_data covers edge case: two very close points, base_point_2 and point_2,
+            # edge case: two very close points, base_point_2 and point_2,
             # form an angle < epsilon
             base_point = gs.array([1.0, 2.0, 3.0, 4.0, 6.0])
             base_point = base_point / gs.linalg.norm(base_point)
@@ -447,179 +442,159 @@ class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
         self.assertAllClose(result, expected)
 
 
-class TestHypersphere(geomstats.tests.TestCase):
-    def setup_method(self):
-        gs.random.seed(1234)
+# class TestHypersphere(geomstats.tests.TestCase):
+#     def setup_method(self):
+#         gs.random.seed(1234)
 
-        self.dimension = 4
-        self.space = Hypersphere(dim=self.dimension)
-        self.metric = self.space.metric
-        self.n_samples = 10
+#         self.dimension = 4
+#         self.space = Hypersphere(dim=self.dimension)
+#         self.metric = self.space.metric
+#         self.n_samples = 10
 
-    def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
-        """Test Log and Exp.
+#     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
+#         """Test Log and Exp.
 
-        Test that the Riemannian exponential
-        and the Riemannian logarithm are inverse.
+#         Test that the Riemannian exponential
+#         and the Riemannian logarithm are inverse.
 
-        Expect their composition to give the identity function.
+#         Expect their composition to give the identity function.
 
-        NB: points on the n-dimensional sphere are
-        (n+1)-D vectors of norm 1.
-        """
-        # Riemannian Exp then Riemannian Log
-        # General case
-        # NB: Riemannian log gives a regularized tangent vector,
-        # so we take the norm modulo 2 * pi.
-        base_point = gs.array([0.0, -3.0, 0.0, 3.0, 4.0])
-        base_point = base_point / gs.linalg.norm(base_point)
+#         NB: points on the n-dimensional sphere are
+#         (n+1)-D vectors of norm 1.
+#         """
+#         # Riemannian Exp then Riemannian Log
+#         # General case
+#         # NB: Riemannian log gives a regularized tangent vector,
+#         # so we take the norm modulo 2 * pi.
+#         base_point = gs.array([0.0, -3.0, 0.0, 3.0, 4.0])
+#         base_point = base_point / gs.linalg.norm(base_point)
 
-        vector = gs.array([3.0, 2.0, 0.0, 0.0, -1.0])
-        vector = self.space.to_tangent(vector=vector, base_point=base_point)
+#         vector = gs.array([3.0, 2.0, 0.0, 0.0, -1.0])
+#         vector = self.space.to_tangent(vector=vector, base_point=base_point)
 
-        exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
-        result = self.metric.log(point=exp, base_point=base_point)
+#         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
+#         result = self.metric.log(point=exp, base_point=base_point)
 
-        expected = vector
-        norm_expected = gs.linalg.norm(expected)
-        regularized_norm_expected = gs.mod(norm_expected, 2 * gs.pi)
-        expected = expected / norm_expected * regularized_norm_expected
+#         expected = vector
+#         norm_expected = gs.linalg.norm(expected)
+#         regularized_norm_expected = gs.mod(norm_expected, 2 * gs.pi)
+#         expected = expected / norm_expected * regularized_norm_expected
 
-        # The Log can be the opposite vector on the tangent space,
-        # whose Exp gives the base_point
-        are_close = gs.allclose(result, expected)
-        norm_2pi = gs.isclose(gs.linalg.norm(result - expected), 2 * gs.pi)
-        self.assertTrue(are_close or norm_2pi)
+#         # The Log can be the opposite vector on the tangent space,
+#         # whose Exp gives the base_point
+#         are_close = gs.allclose(result, expected)
+#         norm_2pi = gs.isclose(gs.linalg.norm(result - expected), 2 * gs.pi)
+#         self.assertTrue(are_close or norm_2pi)
 
-    def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
-        """Test Log and Exp.
+#     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
+#         """Test Log and Exp.
 
-        Test that the Riemannian exponential
-        and the Riemannian logarithm are inverse.
+#         Test that the Riemannian exponential
+#         and the Riemannian logarithm are inverse.
 
-        Expect their composition to give the identity function.
+#         Expect their composition to give the identity function.
 
-        NB: points on the n-dimensional sphere are
-        (n+1)-D vectors of norm 1.
-        """
-        # Riemannian Exp then Riemannian Log
-        # Edge case: tangent vector has norm < epsilon
-        base_point = gs.array([10.0, -2.0, -0.5, 34.0, 3.0])
-        base_point = base_point / gs.linalg.norm(base_point)
-        vector = 1e-4 * gs.array([0.06, -51.0, 6.0, 5.0, 3.0])
-        vector = self.space.to_tangent(vector=vector, base_point=base_point)
+#         NB: points on the n-dimensional sphere are
+#         (n+1)-D vectors of norm 1.
+#         """
+#         # Riemannian Exp then Riemannian Log
+#         # Edge case: tangent vector has norm < epsilon
+#         base_point = gs.array([10.0, -2.0, -0.5, 34.0, 3.0])
+#         base_point = base_point / gs.linalg.norm(base_point)
+#         vector = 1e-4 * gs.array([0.06, -51.0, 6.0, 5.0, 3.0])
+#         vector = self.space.to_tangent(vector=vector, base_point=base_point)
 
-        exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
-        result = self.metric.log(point=exp, base_point=base_point)
-        self.assertAllClose(result, vector)
+#         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
+#         result = self.metric.log(point=exp, base_point=base_point)
+#         self.assertAllClose(result, vector)
 
-    def test_dist_pairwise(self):
+#     def test_dist_pairwise(self):
 
-        point_a = 1.0 / gs.sqrt(129.0) * gs.array([10.0, -2.0, -5.0, 0.0, 0.0])
-        point_b = 1.0 / gs.sqrt(435.0) * gs.array([1.0, -20.0, -5.0, 0.0, 3.0])
+#         point_a = 1.0 / gs.sqrt(129.0) * gs.array([10.0, -2.0, -5.0, 0.0, 0.0])
+#         point_b = 1.0 / gs.sqrt(435.0) * gs.array([1.0, -20.0, -5.0, 0.0, 3.0])
 
-        point = gs.array([point_a, point_b])
-        result = self.metric.dist_pairwise(point)
+#         point = gs.array([point_a, point_b])
+#         result = self.metric.dist_pairwise(point)
 
-        expected = gs.array([[0.0, 1.24864502], [1.24864502, 0.0]])
+#         expected = gs.array([[0.0, 1.24864502], [1.24864502, 0.0]])
 
-        self.assertAllClose(result, expected, rtol=1e-3)
+#         self.assertAllClose(result, expected, rtol=1e-3)
 
-    def test_exp_and_dist_and_projection_to_tangent_space(self):
-        base_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
-        base_point = base_point / gs.linalg.norm(base_point)
-        vector = gs.array([9.0, 0.0, -1.0, -2.0, 1.0])
-        tangent_vec = self.space.to_tangent(vector=vector, base_point=base_point)
+#     def test_exp_and_dist_and_projection_to_tangent_space(self):
+#         base_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
+#         base_point = base_point / gs.linalg.norm(base_point)
+#         vector = gs.array([9.0, 0.0, -1.0, -2.0, 1.0])
+#         tangent_vec = self.space.to_tangent(vector=vector, base_point=base_point)
 
-        exp = self.metric.exp(tangent_vec=tangent_vec, base_point=base_point)
-        result = self.metric.dist(base_point, exp)
-        expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
-        self.assertAllClose(result, expected)
+#         exp = self.metric.exp(tangent_vec=tangent_vec, base_point=base_point)
+#         result = self.metric.dist(base_point, exp)
+#         expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
+#         self.assertAllClose(result, expected)
 
-    def test_exp_and_dist_and_projection_to_tangent_space_vec(self):
-        base_point = gs.array(
-            [[16.0, -2.0, -2.5, 84.0, 3.0], [16.0, -2.0, -2.5, 84.0, 3.0]]
-        )
+#     def test_exp_and_dist_and_projection_to_tangent_space_vec(self):
+#         base_point = gs.array(
+#             [[16.0, -2.0, -2.5, 84.0, 3.0], [16.0, -2.0, -2.5, 84.0, 3.0]]
+#         )
 
-        base_single_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
-        scalar_norm = gs.linalg.norm(base_single_point)
+#         base_single_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
+#         scalar_norm = gs.linalg.norm(base_single_point)
 
-        base_point = base_point / scalar_norm
-        vector = gs.array([[9.0, 0.0, -1.0, -2.0, 1.0], [9.0, 0.0, -1.0, -2.0, 1]])
+#         base_point = base_point / scalar_norm
+#         vector = gs.array([[9.0, 0.0, -1.0, -2.0, 1.0], [9.0, 0.0, -1.0, -2.0, 1]])
 
-        tangent_vec = self.space.to_tangent(vector=vector, base_point=base_point)
+#         tangent_vec = self.space.to_tangent(vector=vector, base_point=base_point)
 
-        exp = self.metric.exp(tangent_vec=tangent_vec, base_point=base_point)
+#         exp = self.metric.exp(tangent_vec=tangent_vec, base_point=base_point)
 
-        result = self.metric.dist(base_point, exp)
-        expected = gs.linalg.norm(tangent_vec, axis=-1) % (2 * gs.pi)
+#         result = self.metric.dist(base_point, exp)
+#         expected = gs.linalg.norm(tangent_vec, axis=-1) % (2 * gs.pi)
 
-        self.assertAllClose(result, expected)
+#         self.assertAllClose(result, expected)
 
-    def test_sample_von_mises_fisher_arbitrary_mean(self):
-        """
-        Check that the maximum likelihood estimates of the mean and
-        concentration parameter are close to the real values. A first
-        estimation of the concentration parameter is obtained by a
-        closed-form expression and improved through the Newton method.
-        """
-        for dim in [2, 9]:
-            n_points = 10000
-            sphere = Hypersphere(dim)
+#     def test_sample_von_mises_fisher_arbitrary_mean(self):
+#         """
+#         Check that the maximum likelihood estimates of the mean and
+#         concentration parameter are close to the real values. A first
+#         estimation of the concentration parameter is obtained by a
+#         closed-form expression and improved through the Newton method.
+#         """
+#         for dim in [2, 9]:
+#             n_points = 10000
+#             sphere = Hypersphere(dim)
 
-            # check mean value for concentrated distribution for different mean
-            kappa = 1000.0
-            mean = sphere.random_uniform()
-            points = sphere.random_von_mises_fisher(
-                mu=mean, kappa=kappa, n_samples=n_points
-            )
-            sum_points = gs.sum(points, axis=0)
-            result = sum_points / gs.linalg.norm(sum_points)
-            expected = mean
-            self.assertAllClose(result, expected, atol=MEAN_ESTIMATION_TOL)
+#             # check mean value for concentrated distribution for different mean
+#             kappa = 1000.0
+#             mean = sphere.random_uniform()
+#             points = sphere.random_von_mises_fisher(
+#                 mu=mean, kappa=kappa, n_samples=n_points
+#             )
+#             sum_points = gs.sum(points, axis=0)
+#             result = sum_points / gs.linalg.norm(sum_points)
+#             expected = mean
+#             self.assertAllClose(result, expected, atol=MEAN_ESTIMATION_TOL)
 
-    def test_random_von_mises_kappa(self):
-        # check concentration parameter for dispersed distribution
-        kappa = 1.0
-        n_points = 100000
-        for dim in [2, 9]:
-            sphere = Hypersphere(dim)
-            points = sphere.random_von_mises_fisher(kappa=kappa, n_samples=n_points)
-            sum_points = gs.sum(points, axis=0)
-            mean_norm = gs.linalg.norm(sum_points) / n_points
-            kappa_estimate = (
-                mean_norm * (dim + 1.0 - mean_norm**2) / (1.0 - mean_norm**2)
-            )
-            kappa_estimate = gs.cast(kappa_estimate, gs.float64)
-            p = dim + 1
-            n_steps = 100
-            for _ in range(n_steps):
-                bessel_func_1 = scipy.special.iv(p / 2.0, kappa_estimate)
-                bessel_func_2 = scipy.special.iv(p / 2.0 - 1.0, kappa_estimate)
-                ratio = bessel_func_1 / bessel_func_2
-                denominator = 1.0 - ratio**2 - (p - 1.0) * ratio / kappa_estimate
-                mean_norm = gs.cast(mean_norm, gs.float64)
-                kappa_estimate = kappa_estimate - (ratio - mean_norm) / denominator
-            result = kappa_estimate
-            expected = kappa
-            self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
-
-    @geomstats.tests.np_autograd_and_torch_only
-    def test_riemannian_normal_and_belongs(self):
-        mean = self.space.random_uniform()
-        cov = gs.eye(self.space.dim)
-        sample = self.space.random_riemannian_normal(mean, cov, 10)
-        result = self.space.belongs(sample)
-        self.assertTrue(gs.all(result))
-
-    @geomstats.tests.np_autograd_and_torch_only
-    def test_riemannian_normal_mean(self):
-        space = self.space
-        mean = space.random_uniform()
-        precision = gs.eye(space.dim) * 10
-        sample = space.random_riemannian_normal(mean, precision, 10000)
-        estimator = FrechetMean(space.metric, method="adaptive")
-        estimator.fit(sample)
-        estimate = estimator.estimate_
-        self.assertAllClose(estimate, mean, atol=1e-2)
-
+#     def test_random_von_mises_kappa(self):
+#         # check concentration parameter for dispersed distribution
+#         kappa = 1.0
+#         n_points = 100000
+#         for dim in [2, 9]:
+#             sphere = Hypersphere(dim)
+#             points = sphere.random_von_mises_fisher(kappa=kappa, n_samples=n_points)
+#             sum_points = gs.sum(points, axis=0)
+#             mean_norm = gs.linalg.norm(sum_points) / n_points
+#             kappa_estimate = (
+#                 mean_norm * (dim + 1.0 - mean_norm**2) / (1.0 - mean_norm**2)
+#             )
+#             kappa_estimate = gs.cast(kappa_estimate, gs.float64)
+#             p = dim + 1
+#             n_steps = 100
+#             for _ in range(n_steps):
+#                 bessel_func_1 = scipy.special.iv(p / 2.0, kappa_estimate)
+#                 bessel_func_2 = scipy.special.iv(p / 2.0 - 1.0, kappa_estimate)
+#                 ratio = bessel_func_1 / bessel_func_2
+#                 denominator = 1.0 - ratio**2 - (p - 1.0) * ratio / kappa_estimate
+#                 mean_norm = gs.cast(mean_norm, gs.float64)
+#                 kappa_estimate = kappa_estimate - (ratio - mean_norm) / denominator
+#             result = kappa_estimate
+#             expected = kappa
+#             self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
