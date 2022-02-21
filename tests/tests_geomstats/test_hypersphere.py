@@ -24,7 +24,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
     class TestDataHypersphere(LevelSetTestData):
 
         dim_list = random.sample(range(3, 6), 2)
-        space_args_list = dim_list
+        space_args_list = [(dim,) for dim in dim_list]
         n_points_list = random.sample(range(1, 5), 2)
         shape_list = [(dim + 1,) for dim in dim_list]
         n_vecs_list = random.sample(range(1, 5), 2)
@@ -148,6 +148,15 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
                 tangent_vec = space.to_tangent(space.random_point(), base_point)
                 if dim == 2:
                     expected = does_not_raise()
+                    smoke_data.append(
+                        dict(
+                            dim=2,
+                            tangent_vec=tangent_vec,
+                            base_point=None,
+                            base_point_spherical=None,
+                            expected=pytest.raises(ValueError),
+                        )
+                    )
                 else:
                     expected = pytest.raises(NotImplementedError)
                 smoke_data.append(
@@ -159,15 +168,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
                         expected=expected,
                     )
                 )
-                smoke_data.append(
-                    dict(
-                        dim=dim,
-                        tangent_vec=tangent_vec,
-                        base_point=None,
-                        base_point_spherical=None,
-                        expected=does_not_raise(),
-                    )
-                )
+
             return self.generate_tests(smoke_data)
 
         def tangent_spherical_to_extrinsic_data(self):
@@ -279,7 +280,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
 
     def test_random_von_mises_fisher_belongs(self, dim, n_samples):
         space = self.space(dim)
-        result = space.belongs(space.random_von_mises_fisher(n_samples))
+        result = space.belongs(space.random_von_mises_fisher(n_samples=n_samples))
         self.assertAllClose(gs.all(result), gs.array(True))
 
     def test_random_von_mises_fisher_mean(self, dim, kappa, n_samples, expected, atol):
@@ -350,8 +351,9 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
         self.assertTrue(gs.all(result))
 
 
-class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
+class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     metric = connection = HypersphereMetric
+    skip_test_exp_geodesic_ivp = True
 
     class TestDataHypersphereMetric(RiemannianMetricTestData):
         dim_list = random.sample(range(2, 7), 5)
@@ -367,19 +369,7 @@ class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
         n_rungs_list = [1] * 5
         scheme_list = ["pole"] * 5
 
-        def log_exp_composition_data(self):
-            # edge case: two very close points, base_point_2 and point_2,
-            # form an angle < epsilon
-            base_point = gs.array([1.0, 2.0, 3.0, 4.0, 6.0])
-            base_point = base_point / gs.linalg.norm(base_point)
-            point = base_point + 1e-4 * gs.array([-1.0, -2.0, 1.0, 1.0, 0.1])
-            point = point / gs.linalg.norm(point)
-            smoke_data = [dict(space_args=(4,), point=point, base_point=base_point)]
-            return self._log_exp_composition_data(
-                self.metric_args_list, self.space_list, self.n_samples_list, smoke_data
-            )
-
-        def test_inner_product(self):
+        def inner_product_data(self):
             smoke_data = [
                 dict(
                     dim=4,
@@ -416,31 +406,32 @@ class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
             smoke_data = [dict(dim=2, point=point, expected=[2, 2, 2, 2])]
             return self.generate_tests(smoke_data)
 
-        def sectional_curvature_data(self):
-            dim_list = random.sample(range(2, 10), 5)
-            n_samples_list = random.sample(range(1, 10), 5)
-            random_data = []
-            for dim, n_samples in zip(dim_list, n_samples_list):
-                sphere = Hypersphere(dim)
-                base_point = sphere.random_uniform()
-                tangent_vec_a = sphere.to_tangent(
-                    gs.random.rand(n_samples, sphere.dim + 1), base_point
-                )
-                tangent_vec_b = sphere.to_tangent(
-                    gs.random.rand(n_samples, sphere.dim + 1), base_point
-                )
-                expected = gs.ones(1)  # try shape here
-                random_data.append(
-                    dict(
-                        dim=dim,
-                        tangent_vec_a=tangent_vec_a,
-                        tangent_vec_b=tangent_vec_b,
-                    ),
-                    expected=expected,
-                )
-            return self.generate_tests(random_data)
+        # def sectional_curvature_data(self):
+        #     dim_list = random.sample(range(2, 10), 5)
+        #     n_samples_list = random.sample(range(1, 10), 5)
+        #     random_data = []
+        #     for dim, n_samples in zip(dim_list, n_samples_list):
+        #         sphere = Hypersphere(dim)
+        #         base_point = sphere.random_uniform()
+        #         tangent_vec_a = sphere.to_tangent(
+        #             gs.random.rand(n_samples, sphere.dim + 1), base_point
+        #         )
+        #         tangent_vec_b = sphere.to_tangent(
+        #             gs.random.rand(n_samples, sphere.dim + 1), base_point
+        #         )
+        #         expected = gs.ones(1)  # try shape here
+        #         random_data.append(
+        #             dict(
+        #                 dim=dim,
+        #                 tangent_vec_a=tangent_vec_a,
+        #                 tangent_vec_b=tangent_vec_b,
+        #                 expected=expected,
+        #             ),
 
-        def pairwise_data(self):
+        #         )
+        #     return self.generate_tests(random_data)
+
+        def dist_pairwise_data(self):
             smoke_data = [
                 dict(
                     point_a=1.0
@@ -454,6 +445,128 @@ class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
                 )
             ]
             return self.generate_tests(smoke_data)
+
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
+            )
+
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
+            )
+
+        def squared_dist_is_symmetric_data(self):
+            return self._squared_dist_is_symmetric_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
+
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_exp_composition_data(self):
+            # edge case: two very close points, base_point_2 and point_2,
+            # form an angle < epsilon
+            base_point = gs.array([1.0, 2.0, 3.0, 4.0, 6.0])
+            base_point = base_point / gs.linalg.norm(base_point)
+            point = base_point + 1e-4 * gs.array([-1.0, -2.0, 1.0, 1.0, 0.1])
+            point = point / gs.linalg.norm(point)
+            smoke_data = [dict(space_args=(4,), point=point, base_point=base_point)]
+            return self._log_exp_composition_data(
+                self.metric_args_list, self.space_list, self.n_samples_list, smoke_data
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=1e-3,
+                atol=1e-3,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
 
     testing_data = TestDataHypersphereMetric()
 
@@ -486,12 +599,12 @@ class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
         result = metric.christoffels(point)
         self.assertAllClose(gs.shape(result), expected)
 
-    def test_sectional_curvature(
-        self, dim, tangnet_vec_a, tangent_vec_b, base_point, expected
-    ):
-        metric = self.metric(dim)
-        result = metric.sectional_curvature(tangnet_vec_a, tangent_vec_b, base_point)
-        self.assertAllClose(result, expected)
+    # def test_sectional_curvature(
+    #     self, dim, tangnet_vec_a, tangent_vec_b, base_point, expected
+    # ):
+    #     metric = self.metric(dim)
+    #     result = metric.sectional_curvature(tangnet_vec_a, tangent_vec_b, base_point)
+    #     self.assertAllClose(result, expected)
 
 
 # class TestHypersphere(geomstats.tests.TestCase):
