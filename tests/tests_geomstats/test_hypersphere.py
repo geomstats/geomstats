@@ -586,11 +586,26 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             )
 
         def exp_log_composition_data(self):
+            base_point = gs.array([10.0, -2.0, -0.5, 34.0, 3.0])
+            base_point = base_point / gs.linalg.norm(base_point)
+            vector = 1e-4 * gs.array([0.06, -51.0, 6.0, 5.0, 3.0])
+            tangent_vec = self.space.to_tangent(vector=vector, base_point=base_point)
+
+            smoke_data = [
+                dict(
+                    space_args=(4,),
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    rtol=gs.rtol,
+                    atol=gs.atol,
+                )
+            ]
             return self._exp_log_composition_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
+                smoke_data,
                 rtol=gs.rtol * 100,
                 atol=1e-3,
             )
@@ -637,6 +652,18 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
+        def exp_and_dist_and_projection_to_tangent_space_data(self):
+            unnorm_base_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
+            base_point = unnorm_base_point / gs.linalg.norm(unnorm_base_point)
+            smoke_data = [
+                dict(
+                    dim=4,
+                    vector=gs.array([9.0, 0.0, -1.0, -2.0, 1.0]),
+                    base_point=base_point,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataHypersphereMetric()
 
     def test_inner_product(
@@ -675,101 +702,12 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         result = metric.sectional_curvature(tangnet_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
-
-# class TestHypersphere(geomstats.tests.TestCase):
-#     def setup_method(self):
-#         gs.random.seed(1234)
-
-#         self.dimension = 4
-#         self.space = Hypersphere(dim=self.dimension)
-#         self.metric = self.space.metric
-#         self.n_samples = 10
-
-#     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
-#         """Test Log and Exp.
-
-#         Test that the Riemannian exponential
-#         and the Riemannian logarithm are inverse.
-
-#         Expect their composition to give the identity function.
-
-#         NB: points on the n-dimensional sphere are
-#         (n+1)-D vectors of norm 1.
-#         """
-#         # Riemannian Exp then Riemannian Log
-#         # General case
-#         # NB: Riemannian log gives a regularized tangent vector,
-#         # so we take the norm modulo 2 * pi.
-#         base_point = gs.array([0.0, -3.0, 0.0, 3.0, 4.0])
-#         base_point = base_point / gs.linalg.norm(base_point)
-
-#         vector = gs.array([3.0, 2.0, 0.0, 0.0, -1.0])
-#         vector = self.space.to_tangent(vector=vector, base_point=base_point)
-
-#         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
-#         result = self.metric.log(point=exp, base_point=base_point)
-
-#         expected = vector
-#         norm_expected = gs.linalg.norm(expected)
-#         regularized_norm_expected = gs.mod(norm_expected, 2 * gs.pi)
-#         expected = expected / norm_expected * regularized_norm_expected
-
-#         # The Log can be the opposite vector on the tangent space,
-#         # whose Exp gives the base_point
-#         are_close = gs.allclose(result, expected)
-#         norm_2pi = gs.isclose(gs.linalg.norm(result - expected), 2 * gs.pi)
-#         self.assertTrue(are_close or norm_2pi)
-
-#     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
-#         """Test Log and Exp.
-
-#         Test that the Riemannian exponential
-#         and the Riemannian logarithm are inverse.
-
-#         Expect their composition to give the identity function.
-
-#         NB: points on the n-dimensional sphere are
-#         (n+1)-D vectors of norm 1.
-#         """
-#         # Riemannian Exp then Riemannian Log
-#         # Edge case: tangent vector has norm < epsilon
-#         base_point = gs.array([10.0, -2.0, -0.5, 34.0, 3.0])
-#         base_point = base_point / gs.linalg.norm(base_point)
-#         vector = 1e-4 * gs.array([0.06, -51.0, 6.0, 5.0, 3.0])
-#         vector = self.space.to_tangent(vector=vector, base_point=base_point)
-
-#         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
-#         result = self.metric.log(point=exp, base_point=base_point)
-#         self.assertAllClose(result, vector)
-
-
-#     def test_exp_and_dist_and_projection_to_tangent_space(self):
-#         base_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
-#         base_point = base_point / gs.linalg.norm(base_point)
-#         vector = gs.array([9.0, 0.0, -1.0, -2.0, 1.0])
-#         tangent_vec = self.space.to_tangent(vector=vector, base_point=base_point)
-
-#         exp = self.metric.exp(tangent_vec=tangent_vec, base_point=base_point)
-#         result = self.metric.dist(base_point, exp)
-#         expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
-#         self.assertAllClose(result, expected)
-
-#     def test_exp_and_dist_and_projection_to_tangent_space_vec(self):
-#         base_point = gs.array(
-#             [[16.0, -2.0, -2.5, 84.0, 3.0], [16.0, -2.0, -2.5, 84.0, 3.0]]
-#         )
-
-#         base_single_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
-#         scalar_norm = gs.linalg.norm(base_single_point)
-
-#         base_point = base_point / scalar_norm
-#         vector = gs.array([[9.0, 0.0, -1.0, -2.0, 1.0], [9.0, 0.0, -1.0, -2.0, 1]])
-
-#         tangent_vec = self.space.to_tangent(vector=vector, base_point=base_point)
-
-#         exp = self.metric.exp(tangent_vec=tangent_vec, base_point=base_point)
-
-#         result = self.metric.dist(base_point, exp)
-#         expected = gs.linalg.norm(tangent_vec, axis=-1) % (2 * gs.pi)
-
-#         self.assertAllClose(result, expected)
+    def test_exp_and_dist_and_projection_to_tangent_space(
+        self, dim, vector, base_point
+    ):
+        metric = self.metric(dim)
+        tangent_vec = Hypersphere(dim).to_tangent(vector=vector, base_point=base_point)
+        exp = metric.exp(tangent_vec=tangent_vec, base_point=base_point)
+        result = metric.dist(base_point, exp)
+        expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
+        self.assertAllClose(result, expected)
