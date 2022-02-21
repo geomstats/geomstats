@@ -688,7 +688,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     ):
         metric = self.metric(dim)
         result = metric.sectional_curvature(tangnet_vec_a, tangent_vec_b, base_point)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-6)
 
     def test_exp_and_dist_and_projection_to_tangent_space(
         self, dim, vector, base_point
