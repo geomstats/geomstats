@@ -1,4 +1,5 @@
 """Unit tests for the Euclidean space."""
+import math
 import random
 
 import geomstats.backend as gs
@@ -7,8 +8,8 @@ from tests.conftest import TestCase
 from tests.data_generation import RiemannianMetricTestData, VectorSpaceTestData
 from tests.parametrizers import RiemannianMetricParametrizer, VectorSpaceParametrizer
 
-SQRT_2 = gs.sqrt(2)
-SQRT_5 = gs.sqrt(5)
+SQRT_2 = math.sqrt(2)
+SQRT_5 = math.sqrt(5)
 
 
 class TestEuclidean(TestCase, metaclass=VectorSpaceParametrizer):

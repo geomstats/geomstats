@@ -678,7 +678,7 @@ class ConnectionTestData(TestData):
         space_list,
         shape_list,
         n_samples_list,
-        smoke_data=[],
+        smoke_data=None,
         rtol=gs.rtol,
         atol=gs.atol,
     ):

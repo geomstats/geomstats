@@ -152,7 +152,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
     def test_riemannian_submersion_belongs_to_base(self, n, point):
         bundle = self.space(n)
         result = bundle.base.belongs(bundle.riemannian_submersion(gs.array(point)))
-        self.assertAllClose(result, gs.array(True))
+        self.assertAllClose(gs.all(result), gs.array(True))
 
     def test_lift_riemannian_submersion_composition(self, n, point):
         bundle = self.space(n)
