@@ -19,6 +19,8 @@ class TestGraphSpace(TestCase, metaclass=Parametrizer):
             smoke_data = [dict(n=2, n_points=1), dict(n=2, n_points=10)]
             return self.generate_tests(smoke_data)
 
+    testing_data = TestDataGraphSpace()
+
     def test_random_point_belongs_data(self, n, n_points):
         space = self.space(n)
         point = space.random_point(n_points)
@@ -49,6 +51,8 @@ class TestGraphSpaceMetric(TestCase, metaclass=Parametrizer):
             ]
 
             return self.generate_tests(smoke_data)
+
+    testing_data = TestDataGraphSpaceMetric()
 
     def test_matchers(self, n, set1, set2):
         metric = self.metric(n)
