@@ -252,7 +252,6 @@ class LieGroupTestData(ManifoldTestData):
         group_args_list,
         shape_list,
         n_samples_list,
-        smoke_data=[],
         rtol=gs.rtol,
         atol=gs.atol,
     ):
@@ -285,14 +284,13 @@ class LieGroupTestData(ManifoldTestData):
                         atol=atol,
                     )
                 )
-        return self.generate_tests(smoke_data, random_data)
+        return self.generate_tests([], random_data)
 
     def _log_exp_composition_data(
         self,
         group_cls,
         group_args_list,
         n_samples_list,
-        smoke_data=[],
         rtol=gs.rtol,
         atol=gs.atol,
     ):
@@ -321,7 +319,7 @@ class LieGroupTestData(ManifoldTestData):
                         atol=atol,
                     )
                 )
-        return self.generate_tests(smoke_data, random_data)
+        return self.generate_tests([], random_data)
 
 
 class VectorSpaceTestData(ManifoldTestData):
@@ -640,7 +638,7 @@ class ConnectionTestData(TestData):
         connection_args_list,
         space_list,
         n_samples_list,
-        smoke_data=[],
+        smoke_data=None,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
@@ -670,6 +668,8 @@ class ConnectionTestData(TestData):
                     atol=atol,
                 )
             )
+        if smoke_data is None:
+            smoke_data = []
         return self.generate_tests(smoke_data, random_data)
 
     def _exp_log_composition_data(
@@ -712,7 +712,9 @@ class ConnectionTestData(TestData):
                     atol=atol,
                 )
             )
-        return self.generate_tests([], random_data)
+        if smoke_data is None:
+            smoke_data = []
+        return self.generate_tests(smoke_data, random_data)
 
     def _exp_ladder_parallel_transport_data(
         self,

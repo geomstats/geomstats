@@ -141,7 +141,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
 
         def align_is_horizontal_data(self):
             random_data = []
-            for n, n_samples in zip(self.n_list, self.n_samples_list):
+            for n in self.n_list:
                 bundle = CorrelationMatricesBundle(n)
                 point = bundle.random_point(2)
                 random_data.append(dict(n=n, point_a=point[0], point_b=point[1]))
