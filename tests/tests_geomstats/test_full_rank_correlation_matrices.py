@@ -61,7 +61,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
     space = CorrelationMatricesBundle
 
     class TestDataCorrelationMatricesBundle(TestData):
-        n_list = random.sample(range(2, 7), 3)
+        n_list = random.sample(range(2, 6), 3)
         n_samples_list = random.sample(range(1, 7), 3)
 
         def riemannian_submersion_belongs_to_base_data(self):
@@ -140,8 +140,9 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
             return self.generate_tests([], random_data)
 
         def align_is_horizontal_data(self):
+            n_list = [2, 3]
             random_data = []
-            for n in self.n_list:
+            for n in n_list:
                 bundle = CorrelationMatricesBundle(n)
                 point = bundle.random_point(2)
                 random_data.append(dict(n=n, point_a=point[0], point_b=point[1]))
@@ -201,10 +202,10 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
     @autograd_tf_and_torch_only
     def test_align_is_horizontal(self, n, point_a, point_b):
         bundle = self.space(n)
-        aligned = bundle.align(point_a, point_b, tol=1e-5)
+        aligned = bundle.align(point_a, point_b, tol=1e-10)
         log = bundle.ambient_metric.log(aligned, point_b)
         result = bundle.is_horizontal(log, point_b, atol=gs.atol * 10000)
-        self.assertAllClose(result, True)
+        self.assertAllClose(result, gs.array(True))
 
     def test_horizontal_lift_and_tangent_riemannian_submersion(
         self, n, tangent_vec, mat
