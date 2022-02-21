@@ -23,7 +23,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
 
     class TestDataHypersphere(LevelSetTestData):
 
-        dim_list = random.sample(range(3, 6), 2)
+        dim_list = random.sample(range(1, 5), 2)
         space_args_list = [(dim,) for dim in dim_list]
         n_points_list = random.sample(range(1, 5), 2)
         shape_list = [(dim + 1,) for dim in dim_list]
@@ -193,10 +193,10 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
                 ),
                 dict(
                     dim=2,
-                    tangent_vec=[0, 0.5, -0.25],
-                    base_point=[1.0, 0.0, 0.0],
+                    tangent_vec=gs.array([0, 0.5, -0.25]),
+                    base_point=gs.array([1.0, 0.0, 0.0]),
                     base_point_spherical=None,
-                    expected=[0.25, 0.5],
+                    expected=gs.array([0.25, 0.5]),
                 ),
             ]
             return self.generate_tests(smoke_data)
@@ -354,6 +354,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
 class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     metric = connection = HypersphereMetric
     skip_test_exp_geodesic_ivp = True
+    skip_test_exp_log_composition = True
 
     class TestDataHypersphereMetric(RiemannianMetricTestData):
         dim_list = random.sample(range(2, 7), 5)
@@ -520,7 +521,11 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 )
             ]
             return self._log_exp_composition_data(
-                self.metric_args_list, self.space_list, self.n_samples_list, smoke_data
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                smoke_data,
+                atol=1e-3,
             )
 
         def exp_log_composition_data(self):
@@ -530,7 +535,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 100000,
+                atol=1e-3,
             )
 
         def exp_ladder_parallel_transport_data(self):
@@ -680,17 +685,6 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
 #         result = self.metric.log(point=exp, base_point=base_point)
 #         self.assertAllClose(result, vector)
 
-#     def test_dist_pairwise(self):
-
-#         point_a = 1.0 / gs.sqrt(129.0) * gs.array([10.0, -2.0, -5.0, 0.0, 0.0])
-#         point_b = 1.0 / gs.sqrt(435.0) * gs.array([1.0, -20.0, -5.0, 0.0, 3.0])
-
-#         point = gs.array([point_a, point_b])
-#         result = self.metric.dist_pairwise(point)
-
-#         expected = gs.array([[0.0, 1.24864502], [1.24864502, 0.0]])
-
-#         self.assertAllClose(result, expected, rtol=1e-3)
 
 #     def test_exp_and_dist_and_projection_to_tangent_space(self):
 #         base_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
