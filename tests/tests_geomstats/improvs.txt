@@ -24,6 +24,11 @@ improvements for Testing Diff Geometry (iteration 2.0)
 * add parametrizer test that squared_d(point_a, point_b) = ||Log(point_a, point_b)||^2
 * add parametrizer test that d(point_a, point_a) = 0
 * add parametrizer tests that dist_pairwise belongs to symmetric matrix
+* add parametrizer tests that dist_pairwsie works in parallel mode.
+* add parametrizer tests that closest neighbor index\
+* add parametrizer tests that to Vector space :
+      - test_random_point_is_tangent,
+      - test_to_tangent_is_identity
 * add 'id' to pytest markers so tests can be marked with meaningful ids  id="edge case"
 
 
