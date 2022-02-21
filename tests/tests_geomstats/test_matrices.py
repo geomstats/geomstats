@@ -495,6 +495,10 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
                 is_tangent_atol,
             )
 
+        def basis_data(self):
+            smoke_data = [dict(n=2, m=2), dict(n=2, m=3)]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataMatrices()
 
     def test_belongs(self, m, n, mat, expected):
@@ -629,6 +633,17 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
         to_function = getattr(cls_mn, "to_" + matrix_type)
         is_function = getattr(cls_mn, "is_" + matrix_type)
         self.assertAllClose(gs.all(is_function(to_function(gs.array(mat)))), True)
+
+    def test_basis(self, m, n):
+        expected = gs.array(
+            [
+                gs.array_from_sparse([(i, j)], [1], (m, n))
+                for i in range(m)
+                for j in range(n)
+            ]
+        )
+        result = Matrices(m, n).basis
+        self.assertAllClose(result, expected)
 
 
 class TestMatricesMetric(TestCase, metaclass=RiemannianMetricParametrizer):
