@@ -118,7 +118,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             return self.generate_tests(smoke_data)
 
         def random_von_mises_fisher_belongs_data(self):
-            dim_list = random.sample(range(2, 10), 5)
+            dim_list = random.sample(range(2, 8), 5)
             n_samples_list = random.sample(range(1, 10), 5)
             random_data = [
                 dict(dim=dim, n_samples=n_samples)
@@ -127,7 +127,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             return self.generate_tests([], random_data)
 
         def random_von_mises_fisher_mean_data(self):
-            dim_list = random.sample(range(2, 10), 5)
+            dim_list = random.sample(range(2, 8), 5)
             smoke_data = [
                 dict(
                     dim=dim,
@@ -224,7 +224,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             return self.generate_tests(smoke_data)
 
         def sample_random_von_mises_fisher_kappa_data(self):
-            dim_list = random.sample(range(2, 10), 5)
+            dim_list = random.sample(range(2, 8), 5)
             smoke_data = [dict(dim=dim, kappa=1.0, n_points=50000) for dim in dim_list]
             return self.generate_tests(smoke_data)
 
