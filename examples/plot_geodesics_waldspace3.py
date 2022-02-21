@@ -16,11 +16,11 @@ Lead author: Jonas Lueg
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 
-from geomstats.geometry.waldspace import WaldSpace
+from geomstats.geometry.waldspace import WaldSpaceMetric
 from geomstats.geometry.trees import Split, Structure, Wald
 
 # Wald space with three labels.
-WS3 = WaldSpace(n=3)
+WS3 = WaldSpaceMetric(n=3)
 
 
 def main():
@@ -32,20 +32,22 @@ def main():
     st = Structure(n=3, partition=((0, 1, 2),), split_sets=((sp0, sp1, sp2),))
 
     # Construct the three points in Wald space.
-    p1 = Wald(n=3, st=st, x=gs.array([0.1, 0.9, 0.07]))
-    p2 = Wald(n=3, st=st, x=gs.array([0.08, 0.1, 0.9]))
-    p3 = Wald(n=3, st=st, x=gs.array([0.3, 0.001, 0.01]))
+    p1 = Wald(n=3, st=st, x=gs.array([0.1, 0.9, 0.07])).corr
+    p2 = Wald(n=3, st=st, x=gs.array([0.08, 0.1, 0.9])).corr
+    p3 = Wald(n=3, st=st, x=gs.array([0.3, 0.001, 0.01])).corr
 
     # Compute the approximations of geodesics.
     proj_args = {'method': 'local', 'btol': 10**-8, 'gtol': 10**-5}
     curve12 = WS3.geodesic(p=p1, q=p2, n_points=20, **proj_args)
     curve23 = WS3.geodesic(p=p2, q=p3, n_points=20, **proj_args)
-    curve13 = WS3.geodesic(p=p1, q=p3, n_points=30, **proj_args)
+    curve13 = WS3.geodesic(p=p1, q=p3, n_points=20, **proj_args)
+    print(curve12)
 
     # Plot those paths and points in Wald space embedded into SPD(3).
     ws3_plot = visualization.WaldSpace3()
     for curve in [curve12, curve23, curve13]:
-        ws3_plot.pass_curve(curve=curve, label=f"length = {WS3.length(curve)}")
+        _curve = WS3.space.to_forest(curve)
+        ws3_plot.pass_curve(curve=_curve, label=f"length = {WS3.length(curve)}")
     ws3_plot.pass_points(points=[p1, p2, p3], marker='.',
                          text=[r'$p_1$', r'$p_2$', r'$p_3$'], color='black')
     ws3_plot.show()

@@ -1175,7 +1175,7 @@ class WaldSpace3(object):
                    offset=(0, 0, 0), textcolor=None):
         color = color if color is not None \
             else next(self.ax._get_lines.prop_cycler)['color']
-        x, y, z = tuple(WS3.lift(point)[(0, 0, 1), (1, 2, 2)])
+        x, y, z = tuple(point[(0, 0, 1), (1, 2, 2)])
         if text:
             textcolor = color if textcolor is None else textcolor
             self.ax.text(x + offset[0], y + offset[1], z + offset[2], text,

@@ -54,14 +54,30 @@ class WaldSpace(object):
 
     def __init__(self, n):
         self.n = n  # dimension of the wald space
-        self.a = spd.SPDMetricAffine(n=n, power_affine=1)  # a for ambient space
+        self.a = spd.SPDMatrices(n=self.n)
 
-    def belongs(self, wald):
+    def to_forest(self, point):
+        """ Takes an array [n_samples, n, n] and gives a tuple of shape [n_samples]. """
+
+        def _to_forest(_point):
+            _dist = np.maximum(0, -np.log(_point))
+            _st = compute_structure_from_dist(dist=_dist, btol=10 ** -10)
+            _ells = np.array([compute_length_of_split_from_dist(sp, dist=_dist)
+                              for sp in _st.unravel(_st.split_sets)])
+            _x = np.maximum(0, np.minimum(1, 1 - np.exp(-_ells)))
+            return Wald(n=self.n, st=_st, x=_x)
+
+        if len(point.shape) == 2:
+            return _to_forest(_point=point)
+        else:
+            return tuple([_to_forest(_point=point[i, :, :]) for i in range(point.shape[0])])
+
+    def belongs(self, point, btol=10**-10):
         """Check if a point `wald` belongs to Wald space.
 
         Parameters
         ----------
-        wald : Wald or list of Wald
+        point : array-like, shape = [n_samples, n, n]
             The point to be checked.
 
         Returns
@@ -69,16 +85,24 @@ class WaldSpace(object):
         belongs : bool
             Boolean denoting if `wald` belongs to Wald space.
         """
-        def _belongs_wald(w):
-            is_n = (w.n == self.n)
-            is_pd = Mat.is_pd(mat=self.lift(w))
-            is_in_01 = gs.all(0 <= w.x) and gs.all(w.x <= 1)
-            return is_n and is_pd and is_in_01
+        def _belongs(p):
+            if not self.a.belongs(p):
+                return False
+            for i in range(self.n):
+                if p[i, i] != 1:
+                    return False
+            for i, j, k in it.combinations(range(self.n), 3):
+                if p[i, j] < p[i, k]*p[j, k] - btol:
+                    return False
+            for i, j, k, l in it.combinations(range(self.n), 4):
+                if p[i, j]*p[k, l] < min(p[i, k]*p[j, l], p[i, l]*p[j, k]) - btol:
+                    return False
+            return True
 
-        if isinstance(wald, Wald):
-            return _belongs_wald(w=wald)
+        if len(point.shape) == 2:
+            return _belongs(p=point)
         else:
-            return gs.array([_belongs_wald(w=_w) for _w in wald])
+            return gs.array([_belongs(w) for w in point])
 
     def random_point(self, n_samples=1, btol=1e-08, prob=0.9):
         """Sample a random point in Wald space.
@@ -96,7 +120,7 @@ class WaldSpace(object):
             tree. Defaults to 0.9.
         Returns
         -------
-        samples : list, shape=[..., n_samples]
+        samples : list, shape=[n_samples, n, n]
             Points sampled in Wald space.
         """
 
@@ -170,17 +194,15 @@ class WaldSpace(object):
             return gs.all([gs.any([sp.separates(_u, _v) for sp in splits]) for _u, _v in
                            it.combinations(labels, 2)])
 
-        # generate samples:
-        prob = prob ** (1 / (self.n - 1))
-        samples = []
-        for _ in range(n_samples):
+        def _generate_wald(_prob):
+            """ Generates a random wald. """
             # generate random partition
-            partition = _generate_partition(_prob=prob)
+            partition = _generate_partition(_prob=_prob)
             # generate random sets of splits for each component of the partition
             split_sets = [_generate_splits(labels=_part) for _part in partition]
             # delete random splits of those sets of splits
             split_sets = [
-                _delete_random_edges(splits=_splits, labels=_part, probability=prob)
+                _delete_random_edges(splits=_splits, labels=_part, probability=_prob)
                 for _part, _splits in zip(partition, split_sets)]
             # create the structure for the wald, that is partition + sets of splits
             st = Structure(n=self.n, partition=partition, split_sets=split_sets)
@@ -189,12 +211,45 @@ class WaldSpace(object):
             # TODO element wise minimum of arrays, minimum needed. gs.minimum not impl.
             x = np.minimum(np.maximum(btol, x), 1 - btol)
             # create the wald
-            samples.append(Wald(n=self.n, st=st, x=x))
+            return Wald(n=self.n, st=st, x=x)
 
-        if n_samples is 1:
-            return samples[0]
+        # generate samples:
+        prob = prob ** (1 / (self.n - 1))
+        if n_samples == 1:
+            return _generate_wald(_prob=prob).corr
         else:
-            return samples
+            return gs.array([_generate_wald(_prob=prob).corr for _ in range(n_samples)])
+
+
+class WaldSpaceMetric(object):
+    def __init__(self, n):
+        self.n = n
+        self.space = WaldSpace(n=n)
+        self.a = spd.SPDMetricAffine(n=n, power_affine=1)  # a for ambient space
+
+    def geodesic(self, p, q, n_points, **kwargs):
+        """ Computes a geodesic between p and q with n_points.
+
+        Parameters
+        ----------
+        p : array-like, shape=[..., n, n]
+            The starting point.
+        q : array-like, shape=[..., n, n]
+            The end point.
+        n_points : int
+            Number of points on the geodesic.
+        """
+        wald_p = self.space.to_forest(p)
+        wald_q = self.space.to_forest(q)
+        if len(p.shape) == 2 and len(q.shape) == 2:
+            path_ = self._geodesic(p=wald_p, q=wald_q, n_points=n_points, **kwargs)
+            return gs.array(self.lift(path_))
+        if len(p.shape) == len(q.shape):
+            paths_ = [self._geodesic(p=wp, q=wq, n_points=n_points, **kwargs)
+                      for wp, wq in zip(wald_p, wald_q)]
+            return gs.array([self.lift(path_) for path_ in paths_])
+        raise NotImplementedError("Cannot compute geodesics for different "
+                                  "number of points.")
 
     @staticmethod
     def lift(point):
@@ -253,7 +308,7 @@ class WaldSpace(object):
 
         Parameters
         ----------
-        path : list of Wald
+        path : array-like, shape=[n_points, n, n]
             The path with objects of type Wald.
 
         Returns
@@ -261,11 +316,10 @@ class WaldSpace(object):
         length : float
             The length of the path, the sum of successive pairwise distances.
         """
-        _length = gs.sum(self.a.dist(self.lift(_p), self.lift(_q))
-                         for _p, _q in zip(path[:-1], path[1:]))
+        _length = gs.sum(self.a.dist(_p, _q) for _p, _q in zip(path[:-1], path[1:]))
         return _length
 
-    def geodesic(self, p: Wald, q: Wald, n_points=20, **proj_args):
+    def _geodesic(self, p: Wald, q: Wald, n_points=20, **proj_args):
         """ Approximates a shortest path between ``p`` and ``q``.
 
         Essentially an implementation of Algorithm 2 from [Lueg21]_, with minor
@@ -367,7 +421,7 @@ class WaldSpace(object):
         n_edges = len(st0.unravel(st0.split_sets))
         # default parameters
         if x0 is None:
-            x0 = np.repeat(0.5, n_edges)
+            x0 = gs.array([0.5] * n_edges)
         bounds = [(btol, 1 - btol)] * n_edges
         # minimize.
         res = scipy.optimize.minimize(target_and_gradient, x0=x0, jac=True,
@@ -462,6 +516,162 @@ class WaldSpace(object):
             return _target, _target_gradient
 
         return target_gradient
+
+
+def equivalence_partition(group, relation):
+    """Partitions a set of objects into equivalence classes
+    Taken from
+    'https://stackoverflow.com/questions/38924421/is-there-a-standard-way-to-partition-a
+    n-interable-into-equivalence-classes-given'
+
+    Args:
+        group: collection of objects to be partitioned
+        relation: equivalence relation. I.e. relation(o1,o2) evaluates to True
+            if and only if o1 and o2 are equivalent
+
+    Returns: classes, partitions
+        classes: A sequence of sets. Each one is an equivalence class
+        partitions: A dictionary mapping objects to equivalence classes
+    """
+    classes = []
+    partitions = {}
+    for o in group:  # for each object
+        # find the class it is in
+        found = False
+        for c in classes:
+            if relation(next(iter(c)), o):  # is it equivalent to this class?
+                c.add(o)
+                partitions[o] = c
+                found = True
+                break
+        if not found:  # it is in a new class
+            classes.append({o})
+            partitions[o] = classes[-1]
+    classes = tuple(map(tuple, classes))
+    partitions = {key: tuple(item) for key, item in partitions.items()}
+    return classes, partitions
+
+
+def compute_structure_from_dist(dist, btol=10 ** -10):
+    """ Computes the split representation of a forest characterized by a distance matrix
+     that can have entries = inf."""
+    _n = dist.shape[0]
+    _partition, _ = equivalence_partition(group=range(_n),
+                                          relation=lambda i, j: dist[i, j] < np.inf)
+    # for each component, compute the splits in that TREE
+    _split_collection = [
+        _compute_splits_from_sub_dist(sub_dist=dist, sub_labels=labels, btol=btol)
+        for labels in _partition]
+    return Structure(n=_n, partition=_partition, split_sets=_split_collection)
+
+
+def _compute_splits_from_sub_dist(sub_dist, sub_labels, btol=10 ** -10):
+    """ Computes the split representation of a single tree characterized by a distance
+    matrix.
+
+    The label set might be smaller than the dimension of dist, in which case,
+    canonically, the sub-matrix is taken.
+    """
+    _n = sub_dist.shape[0]
+    # test if we have only one label, then we have zero splits. note that sub_dist might
+    # be bigger!
+    if len(sub_labels) == 1:
+        return tuple()
+
+    # plan is the following:
+    # generate all pairs, i.e. sets of the form {i, j}
+    # compute all 2-splits, i.e. splits of the form {i, j}|{k, l}
+    # compute their length and take only those with positive length (i.e. they are
+    # compatible with forest structure)
+    # the pair that appears most often in those 2-splits must be a cherry
+    # the cherry is reduced to a single leaf with a new label and the process is
+    # repeated
+    # after that, all new labels are resolved back to their original leaves,
+    # giving the tree
+
+    used_keys = set(sub_labels)
+    key_dict = {u: {u} for u in used_keys}
+    # important: pairs is a list for it to be compatible with sorting statements
+    pairs = [{u, v} for u, v in it.product(used_keys, repeat=2) if u < v]
+    # for technical reasons: we have new keys, and a maximum of 2*N - 3, and need to
+    # compare those splits, thus w.r.t. n
+    _m = 2 * _n - 3
+    pair_splits = {Split(n=_m, part1=p1, part2=p2) for p1, p2 in
+                   it.product(pairs, repeat=2) if not set(p1) & set(p2)}
+    _ps_lengths = {sp: compute_length_of_split_from_dist(split=sp, dist=sub_dist) for sp
+                   in pair_splits}
+    pair_splits = {sp for sp in pair_splits if _ps_lengths[sp] > btol}
+
+    # start with the pendant edges, although not all of them need to exist!!!
+    splits = {Split(n=_m, part1=(u,), part2=tuple(used_keys - {u})) for u in used_keys}
+    _s_lengths = {sp: compute_length_of_split_from_dist(split=sp, dist=sub_dist) for sp
+                  in splits}
+    splits = {sp for sp in splits if _s_lengths[sp] > btol}
+
+    while pair_splits:
+        # compute how often a pair appears, take the most frequent one as the next
+        # cherry to reduce
+        frequencies = [len([sp for sp in pair_splits if sp.contains(pair)]) for pair in
+                       pairs]
+        # most frequent pair is next cherry (set of two used keys)
+        next_cherry = set(pairs[np.argsort(frequencies)[-1]])
+        # the cherry determines a unique split, it's saved in its unresolved state
+        # (identify with new key)
+        splits = splits.add(
+            Split(n=_m, part1=tuple(next_cherry), part2=tuple(used_keys - next_cherry)))
+        new_key = max(key_dict.keys()) + 1
+        # update the pair_splits. some pairs are vanishing (namely those that have the
+        # next_cherry as one part).
+        pair_splits = {Split(n=_m, part1=tuple(
+            [new_key if u in next_cherry else u for u in sp.part1]),
+                             part2=tuple([new_key if u in next_cherry else u for u in
+                                          sp.part2]))
+                       for sp in pair_splits if not sp.contains(next_cherry)}
+        # store the new key that now encodes the two labels contained in the cherry
+        key_dict[new_key] = set.union(*[key_dict[k] for k in next_cherry])
+        # update the label set with the new key and removing the labels contained in
+        # the cherry
+        used_keys = used_keys - next_cherry | {new_key}
+        # update the pairs that are contained in the set of pair_splits
+        pairs = [[new_key if u in next_cherry else u for u in p] for p in pairs if
+                 next_cherry != set(p)]
+        # eliminate doubles (frozenset is needed since a set must contain hashable
+        # types only).
+        pairs = list(map(list, set(map(frozenset, pairs))))
+
+    # finally, a star tree is what's left, we add those splits to the tree_splits as
+    # well
+    # they might very well be already contained in tree_splits
+    splits = splits | {Split(n=_m, part1=used_keys - {u}, part2=(u,)) for u in
+                       used_keys}
+
+    # now we can convert the splits consisting of unresolved keys back to splits
+    # containing only original labels
+    # and again eliminate doubles: that's why we use the set.
+    splits = {Split(n=_n, part1=tuple(set.union(*[key_dict[u] for u in sp.part2])),
+                    part2=tuple(set.union(*[key_dict[u] for u in sp.part1])))
+              for sp in splits}
+    _s_lengths = {sp: compute_length_of_split_from_dist(split=sp, dist=sub_dist) for sp
+                  in splits}
+    splits = sorted([sp for sp in splits if _s_lengths[sp] > btol])
+    return splits
+
+
+def compute_length_of_split_from_dist(split: Split, dist):
+    """ Gives back the supposed length of a split according to the dist matrix dist."""
+    if not split:  # if one part is empty, define this as minus infinity.
+        return -np.inf
+
+    pairs1 = list(it.combinations(split.part1, 2) if len(split.part1) > 1 else [
+        (split.part1[0],) * 2])
+    pairs2 = list(it.combinations(split.part2, 2) if len(split.part2) > 1 else [
+        (split.part2[0],) * 2])
+    # take care of infinite cases. some splits might have infinite length
+    # (although we generally want to avoid that)
+    return 0.5 * np.min(
+        [[np.inf if np.isinf(dist[p1[0], p2[0]]) or np.isinf(dist[p1[1], p2[1]])
+          else dist[p1[0], p2[0]] + dist[p1[1], p2[1]] - dist[p1] - dist[p2]
+          for p1 in pairs1] for p2 in pairs2])
 
 
 def neighbours(st: Structure, sp: Split):
