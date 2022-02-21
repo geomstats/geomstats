@@ -1,13 +1,13 @@
 """Unit tests for the Hypersphere."""
 
 import random
+from contextlib import nullcontext as does_not_raise
 
 import pytest
 import scipy.special
 
 import geomstats.backend as gs
 import geomstats.tests
-import tests.helper as helper
 from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -115,6 +115,92 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def random_von_mises_fisher_belongs_data(self):
+            dim_list = random.sample(range(2, 10), 5)
+            n_samples_list = random.sample(range(1, 10), 5)
+            random_data = [
+                dict(dim=dim, n_samples=n_samples)
+                for dim, n_samples in zip(dim_list, n_samples_list)
+            ]
+            return self.generate_tests([], random_data)
+
+        def random_von_mises_fisher_mean_data(self):
+            dim_list = random.sample(range(2, 10), 5)
+            smoke_data = [
+                dict(
+                    dim=dim,
+                    n_points=100000,
+                    kappa=10,
+                    expected=gs.array([1.0] + [0.0] * dim),
+                    atol=KAPPA_ESTIMATION_TOL,
+                )
+                for dim in dim_list
+            ]
+            return self.generate_tests(smoke_data)
+
+        def tangent_extrinsic_to_spherical_raises_data(self):
+            smoke_data = []
+            dim_list = [2, 3]
+            for dim in dim_list:
+                space = Hypersphere(dim)
+                base_point = space.point()
+                tangent_vec = space.to_tangent(space.random_point(), base_point)
+                if dim == 2:
+                    expected = does_not_raise()
+                else:
+                    expected = pytest.raises(NotImplementedError)
+                smoke_data.append(
+                    dict(
+                        dim=dim,
+                        tangent_vec=tangent_vec,
+                        base_point=base_point,
+                        base_point_spherical=None,
+                        expected=expected,
+                    )
+                )
+                smoke_data.append(
+                    dict(
+                        dim=dim,
+                        tangent_vec=tangent_vec,
+                        base_point=None,
+                        base_point_spherical=None,
+                        expected=does_not_raise(),
+                    )
+                )
+            return self.generate_tests(smoke_data)
+
+        def tangent_spherical_to_extrinsic_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    tangent_vec_spherical=gs.array([[0.25, 0.5], [0.3, 0.2]]),
+                    base_point_spherical=gs.array([[gs.pi / 2, 0], [gs.pi / 2, 0]]),
+                    expected=gs.array([[0, 0.5, -0.25], [0, 0.2, -0.3]]),
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def tangent_extrinsic_to_spherical_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    tangent_vec=gs.array([[0, 0.5, -0.25], [0, 0.2, -0.3]]),
+                    base_point=None,
+                    base_point_spherical=gs.array([[gs.pi / 2, 0], [gs.pi / 2, 0]]),
+                    expected=gs.array([[0.25, 0.5], [0.3, 0.2]]),
+                ),
+                dict(
+                    dim=2,
+                    tangent_vec=[0, 0.5, -0.25],
+                    base_point=[1.0, 0.0, 0.0],
+                    base_point_spherical=None,
+                    expected=[0.25, 0.5],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def
+
     def test_replace_values(self, dim, points, new_points, indcs, expected):
         space = self.space(dim)
         result = space._replace_values(
@@ -142,19 +228,81 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
         result = space.extrinsic_to_spherical(point)
         self.assertAllClose(result, expected)
 
-    def test_spherical_to_extrinsic_and_inverse(self):
+    def test_random_von_mises_fisher_belongs(self, dim, n_samples):
+        space = self.space(dim)
+        result = space.belongs(space.random_von_mises_fisher(n_samples))
+        self.assertAllClose(gs.all(result), gs.array(True))
+
+    def test_random_von_mises_fisher_mean(self, dim, kappa, n_samples, expected, atol):
+        space = self.space(dim)
+        points = space.random_von_mises_fisher(kappa=kappa, n_samples=n_samples)
+        sum_points = gs.sum(points, axis=0)
+        result = sum_points / gs.linalg.norm(sum_points)
+        self.assertAllClose(result, expected, atol=atol)
+
+    def test_tangent_spherical_to_extrinsic(
+        self, dim, tangent_vec_spherical, base_point_spherical, expected
+    ):
+        space = self.space(dim)
+        result = space.tangent_spherical_to_extrinsic(
+            tangent_vec_spherical, base_point_spherical
+        )
+        self.assertAllClose(result, expected)
+
+    def test_tangent_extrinsic_to_spherical(
+        self, dim, tangent_vec, base_point, base_point_spherical, expected
+    ):
+        space = self.space(dim)
+        result = space.tangent_extrinsic_to_spherical(
+            tangent_vec, base_point, base_point_spherical
+        )
+        self.assertAllClose(result, expected)
+
+    def test_tangent_extrinsic_to_spherical_raises(
+        self, dim, tangent_vec, base_point, base_point_spherical, expected
+    ):
+        space = self.space(dim)
+        with expected:
+            space.tangent_extrinsic_to_spherical(
+                tangent_vec, base_point, base_point_spherical
+            )
+
+    def test_tangent_extrinsic_to_spherical_inverse(
+        self, dim, tangent_spherical, base_point_spherical
+    ):
+
+        space = self.space(dim)
+        tangent_extrinsic = space.tangent_spherical_to_extrinsic(
+            tangent_spherical, base_point_spherical
+        )
+        result = space.tangent_extrinsic_to_spherical(
+            tangent_extrinsic, base_point_spherical=base_point_spherical
+        )
+        self.assertAllClose(result, tangent_spherical)
+
+
+
+    def test_tangent_spherical_and_extrinsic_inverse(self):
         dim = 2
         n_samples = 5
         sphere = Hypersphere(dim)
         points = gs.random.rand(n_samples, 2) * gs.pi * gs.array([1.0, 2.0])[None, :]
-        extrinsic = sphere.spherical_to_extrinsic(points)
-        result = sphere.extrinsic_to_spherical(extrinsic)
-        self.assertAllClose(result, points)
+        tangent_spherical = gs.random.rand(n_samples, 2)
+        tangent_extrinsic = sphere.tangent_spherical_to_extrinsic(
+            tangent_spherical, points
+        )
+        result = sphere.tangent_extrinsic_to_spherical(
+            tangent_extrinsic, base_point_spherical=points
+        )
+        self.assertAllClose(result, tangent_spherical)
 
         points_extrinsic = sphere.random_uniform(n_samples)
+        vector = gs.random.rand(n_samples, dim + 1)
+        tangent_extrinsic = sphere.to_tangent(vector, points_extrinsic)
+
         spherical = sphere.extrinsic_to_spherical(points_extrinsic)
-        result = sphere.spherical_to_extrinsic(spherical)
-        self.assertAllClose(result, points_extrinsic)
+        result = sphere.tangent_spherical_to_extrinsic(tangent_spherical, spherical)
+        self.assertAllClose(result, tangent_extrinsic)
 
 
 class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
@@ -223,6 +371,45 @@ class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
             smoke_data = [dict(dim=2, point=point, expected=[2, 2, 2, 2])]
             return self.generate_tests(smoke_data)
 
+        def sectional_curvature_data(self):
+            dim_list = random.sample(range(2, 10), 5)
+            n_samples_list = random.sample(range(1, 10), 5)
+            random_data = []
+            for dim, n_samples in zip(dim_list, n_samples_list):
+                sphere = Hypersphere(dim)
+                base_point = sphere.random_uniform()
+                tangent_vec_a = sphere.to_tangent(
+                    gs.random.rand(n_samples, sphere.dim + 1), base_point
+                )
+                tangent_vec_b = sphere.to_tangent(
+                    gs.random.rand(n_samples, sphere.dim + 1), base_point
+                )
+                expected = gs.ones(1)  # try shape here
+                random_data.append(
+                    dict(
+                        dim=dim,
+                        tangent_vec_a=tangent_vec_a,
+                        tangent_vec_b=tangent_vec_b,
+                    ),
+                    expected=expected,
+                )
+            return self.generate_tests(random_data)
+
+        def pairwise_data(self):
+            smoke_data = [
+                dict(
+                    point_a=1.0
+                    / gs.sqrt(129.0)
+                    * gs.array([10.0, -2.0, -5.0, 0.0, 0.0]),
+                    point_b=1.0
+                    / gs.sqrt(435.0)
+                    * gs.array([1.0, -20.0, -5.0, 0.0, 3.0]),
+                    expected=gs.array([[0.0, 1.24864502], [1.24864502, 0.0]]),
+                    rtol=1e-3,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
     def test_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
@@ -252,18 +439,11 @@ class TestHypersphereMetric(TestCase, metaclas=RiemannianMetricParametrizer):
         result = metric.christoffels(point)
         self.assertAllClose(gs.shape(result), expected)
 
-    def test_sectional_curvature(self):
-        n_samples = 4
-        sphere = self.space
-        base_point = sphere.random_uniform(n_samples)
-        tan_vec_a = sphere.to_tangent(
-            gs.random.rand(n_samples, sphere.dim + 1), base_point
-        )
-        tan_vec_b = sphere.to_tangent(
-            gs.random.rand(n_samples, sphere.dim + 1), base_point
-        )
-        result = sphere.metric.sectional_curvature(tan_vec_a, tan_vec_b, base_point)
-        expected = gs.ones(result.shape)
+    def test_sectional_curvature(
+        self, dim, tangnet_vec_a, tangent_vec_b, base_point, expected
+    ):
+        metric = self.metric(dim)
+        result = metric.sectional_curvature(tangnet_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
 
@@ -345,15 +525,6 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, rtol=1e-3)
 
-    def test_dist_pairwise_parallel(self):
-        n_samples = 15
-        points = self.space.random_uniform(n_samples)
-        result = self.metric.dist_pairwise(points, n_jobs=2, prefer="threads")
-        is_sym = Matrices.is_symmetric(result)
-        belongs = Matrices(n_samples, n_samples).belongs(result)
-        self.assertTrue(is_sym)
-        self.assertTrue(belongs)
-
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         base_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
         base_point = base_point / gs.linalg.norm(base_point)
@@ -384,19 +555,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = gs.linalg.norm(tangent_vec, axis=-1) % (2 * gs.pi)
 
         self.assertAllClose(result, expected)
-
-    def test_closest_neighbor_index(self):
-        """Check that the closest neighbor is one of neighbors."""
-        n_samples = 10
-        points = self.space.random_uniform(n_samples=n_samples)
-        point = points[0, :]
-        neighbors = points[1:, :]
-        index = self.metric.closest_neighbor_index(point, neighbors)
-        closest_neighbor = points[index, :]
-
-        test = gs.sum(gs.all(points == closest_neighbor, axis=1))
-        result = test > 0
-        self.assertTrue(result)
 
     def test_sample_von_mises_fisher_arbitrary_mean(self):
         """
@@ -446,93 +604,6 @@ class TestHypersphere(geomstats.tests.TestCase):
             expected = kappa
             self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
 
-    def test_random_von_mises_general_dim_mean(self):
-        for dim in [2, 9]:
-            sphere = Hypersphere(dim)
-            n_points = 100000
-
-            # check mean value for concentrated distribution
-            kappa = 10
-            points = sphere.random_von_mises_fisher(kappa=kappa, n_samples=n_points)
-            sum_points = gs.sum(points, axis=0)
-            expected = gs.array([1.0] + [0.0] * dim)
-            result = sum_points / gs.linalg.norm(sum_points)
-            self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
-
-    def test_random_von_mises_one_sample_belongs(self):
-        for dim in [2, 9]:
-            sphere = Hypersphere(dim)
-            point = sphere.random_von_mises_fisher()
-            self.assertAllClose(point.shape, (dim + 1,))
-            result = sphere.belongs(point)
-            self.assertTrue(result)
-
-    def test_tangent_spherical_to_extrinsic(self):
-        """
-        Check vectorization of conversion from spherical
-        to extrinsic coordinates for tangent vectors to the
-        2-sphere.
-        """
-        dim = 2
-        sphere = Hypersphere(dim)
-        base_points_spherical = gs.array([[gs.pi / 2, 0], [gs.pi / 2, 0]])
-        tangent_vecs_spherical = gs.array([[0.25, 0.5], [0.3, 0.2]])
-        result = sphere.tangent_spherical_to_extrinsic(
-            tangent_vecs_spherical, base_points_spherical
-        )
-        expected = gs.array([[0, 0.5, -0.25], [0, 0.2, -0.3]])
-        self.assertAllClose(result, expected)
-
-        result = sphere.tangent_spherical_to_extrinsic(
-            tangent_vecs_spherical[0], base_points_spherical[0]
-        )
-        self.assertAllClose(result, expected[0])
-
-    def test_tangent_extrinsic_to_spherical(self):
-        """
-        Check vectorization of conversion from spherical
-        to extrinsic coordinates for tangent vectors to the
-        2-sphere.
-        """
-        dim = 2
-        sphere = Hypersphere(dim)
-        base_points_spherical = gs.array([[gs.pi / 2, 0], [gs.pi / 2, 0]])
-        expected = gs.array([[0.25, 0.5], [0.3, 0.2]])
-        tangent_vecs = gs.array([[0, 0.5, -0.25], [0, 0.2, -0.3]])
-        result = sphere.tangent_extrinsic_to_spherical(
-            tangent_vecs, base_point_spherical=base_points_spherical
-        )
-        self.assertAllClose(result, expected)
-
-        result = sphere.tangent_extrinsic_to_spherical(
-            tangent_vecs[0], base_point=gs.array([1.0, 0.0, 0.0])
-        )
-        self.assertAllClose(result, expected[0])
-
-    def test_tangent_spherical_and_extrinsic_inverse(self):
-        dim = 2
-        n_samples = 5
-        sphere = Hypersphere(dim)
-        points = gs.random.rand(n_samples, 2) * gs.pi * gs.array([1.0, 2.0])[None, :]
-        tangent_spherical = gs.random.rand(n_samples, 2)
-        tangent_extrinsic = sphere.tangent_spherical_to_extrinsic(
-            tangent_spherical, points
-        )
-        result = sphere.tangent_extrinsic_to_spherical(
-            tangent_extrinsic, base_point_spherical=points
-        )
-        self.assertAllClose(result, tangent_spherical)
-
-        points_extrinsic = sphere.random_uniform(n_samples)
-        vector = gs.random.rand(n_samples, dim + 1)
-        tangent_extrinsic = sphere.to_tangent(vector, points_extrinsic)
-        tangent_spherical = sphere.tangent_extrinsic_to_spherical(
-            tangent_extrinsic, base_point=points_extrinsic
-        )
-        spherical = sphere.extrinsic_to_spherical(points_extrinsic)
-        result = sphere.tangent_spherical_to_extrinsic(tangent_spherical, spherical)
-        self.assertAllClose(result, tangent_extrinsic)
-
     @geomstats.tests.np_autograd_and_torch_only
     def test_riemannian_normal_and_belongs(self):
         mean = self.space.random_uniform()
@@ -552,29 +623,3 @@ class TestHypersphere(geomstats.tests.TestCase):
         estimate = estimator.estimate_
         self.assertAllClose(estimate, mean, atol=1e-2)
 
-    def test_raises(self):
-        space = self.space
-        point = space.random_uniform()
-        with pytest.raises(NotImplementedError):
-            space.extrinsic_to_spherical(point)
-
-        with pytest.raises(NotImplementedError):
-            space.tangent_extrinsic_to_spherical(point, point)
-
-        sphere = Hypersphere(2)
-
-        with pytest.raises(ValueError):
-            sphere.tangent_extrinsic_to_spherical(point)
-
-    def test_extrinsic_to_angle_inverse(self):
-        space = Hypersphere(1)
-        point = space.random_uniform()
-        angle = space.extrinsic_to_angle(point)
-        result = space.angle_to_extrinsic(angle)
-        self.assertAllClose(result, point)
-
-        space = Hypersphere(1, default_coords_type="intrinsic")
-        angle = space.random_uniform()
-        extrinsic = space.angle_to_extrinsic(angle)
-        result = space.extrinsic_to_angle(extrinsic)
-        self.assertAllClose(result, angle)
