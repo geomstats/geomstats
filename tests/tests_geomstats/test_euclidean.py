@@ -217,7 +217,7 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 )
             )
             smoke_data.append(
-                dict(dim=2, point_a=one_point_a, point_b=one_point_a, expected=85.0)
+                dict(dim=2, point_a=one_point_a, point_b=one_point_b, expected=85.0)
             )
             smoke_data.append(
                 dict(
@@ -242,7 +242,7 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             one_point_a = gs.array([0.0, 1.0])
             one_point_b = gs.array([2.0, 10.0])
             n_points_a = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
-            n_points_b = gs.array([[0.0, 10.0], [8.0, 0.0], [0.0, 6.0]])
+            n_points_b = gs.array([[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]])
             smoke_data = []
             smoke_data.append(
                 dict(
@@ -256,7 +256,7 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 dict(
                     dim=2,
                     point_a=one_point_a,
-                    point_b=one_point_a,
+                    point_b=one_point_b,
                     expected=gs.sqrt(gs.array(85.0)),
                 )
             )
