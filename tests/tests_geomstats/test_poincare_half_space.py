@@ -1,5 +1,7 @@
 """Unit tests for the Hyperbolic space using Poincare half space model."""
 
+import random
+
 import numpy as np
 
 import geomstats.backend as gs
@@ -9,7 +11,7 @@ from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
 )
-from tests.conftest import TestCase
+from tests.conftest import TestCase, np_and_autograd_only
 from tests.data_generation import OpenSetTestData, RiemannianMetricTestData
 from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
 
@@ -18,6 +20,13 @@ class TestPoincareHalfSpace(TestCase, metaclass=OpenSetParametrizer):
     space = PoincareHalfSpace
 
     class TestDataPoincareHalfSpace(OpenSetTestData):
+        dim_list = random.sample(range(2, 5), 2)
+        space_args_list = [(dim,) for dim in dim_list]
+        shape_list = [(dim,) for dim in dim_list]
+        n_samples_list = random.sample(range(2, 5), 2)
+        n_points_list = random.sample(range(2, 5), 2)
+        n_vecs_list = random.sample(range(2, 5), 2)
+
         def belongs_data(self):
             smoke_data = [
                 dict(dim=2, vec=[1.5, 2.3], expected=True),
@@ -54,18 +63,50 @@ class TestPoincareHalfSpace(TestCase, metaclass=OpenSetParametrizer):
             smoke_data = [dict(dim=2, point_ball=gs.array([-0.3, 0.7]))]
             return self.generate_tests(smoke_data)
 
+        def half_space_coordinates_ball_coordinates_composition_data(self):
+            smoke_data = [dict(dim=2, point_half_space=gs.array([1.5, 2.3]))]
+            return self.generate_tests(smoke_data)
+
+        def random_point_belongs_data(self):
+            smoke_space_args_list = [(2,), (3,)]
+            smoke_n_points_list = [1, 2]
+            return self._random_point_belongs_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+            )
+
+        def projection_belongs_data(self):
+            return self._projection_belongs_data(
+                self.space_args_list, self.shape_list, self.n_samples_list
+            )
+
+        def to_tangent_is_tangent_data(self):
+            return self._to_tangent_is_tangent_data(
+                PoincareHalfSpace,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
+
+        def to_tangent_is_tangent_in_ambient_space_data(self):
+            return self._to_tangent_is_tangent_in_ambient_space_data(
+                PoincareHalfSpace, self.space_args_list, self.shape_list
+            )
+
     testing_data = TestDataPoincareHalfSpace()
 
     def test_belongs(self, dim, vec, expected):
         space = self.space(dim)
-        self.assertAllClose(space.belongs(vec), gs.array(expected))
+        self.assertAllClose(space.belongs(gs.array(vec)), gs.array(expected))
 
     def test_half_space_to_ball_coordinates(self, dim, point, expected):
         space = self.space(dim)
         result = space.half_space_to_ball_coordinates(gs.array(point))
         self.assertAllClose(result, gs.array(expected))
 
-    def half_space_coordinates_ball_coordinates_composition(
+    def test_half_space_coordinates_ball_coordinates_composition(
         self, dim, point_half_space
     ):
         space = self.space(dim)
@@ -92,8 +133,24 @@ class TestPoincareHalfSpace(TestCase, metaclass=OpenSetParametrizer):
 
 class TestPoincareHalfSpaceMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     metric = connection = PoincareHalfSpaceMetric
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_exp_geodesic_ivp = True
 
     class TestDataPoincareHalfSpaceMetric(RiemannianMetricTestData):
+        dim_list = random.sample(range(2, 7), 5)
+        metric_args_list = [(dim,) for dim in dim_list]
+        shape_list = [(dim,) for dim in dim_list]
+        space_list = [PoincareHalfSpace(dim) for dim in dim_list]
+        n_points_list = random.sample(range(1, 7), 5)
+        n_samples_list = random.sample(range(1, 7), 5)
+        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_b_list = [1]
+        batch_size_list = random.sample(range(2, 7), 5)
+        alpha_list = [1] * 5
+        n_rungs_list = [1] * 5
+        scheme_list = ["pole"] * 5
+
         def inner_product_data(self):
             smoke_data = [
                 dict(
@@ -106,8 +163,14 @@ class TestPoincareHalfSpaceMetric(TestCase, metaclass=RiemannianMetricParametriz
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_and_coordinates_data(self):
-            smoke_data = [dict(dim=2, tangent_vec=[0.0, 1.0], base_point=[1.5, 2.3])]
+        def exp_and_coordinates_tangent_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    tangent_vec=gs.array([0.0, 1.0]),
+                    base_point=gs.array([1.5, 2.3]),
+                )
+            ]
             return self.generate_tests(smoke_data)
 
         def exp_data(self):
@@ -149,36 +212,140 @@ class TestPoincareHalfSpaceMetric(TestCase, metaclass=RiemannianMetricParametriz
                 )
                 return end_point_expected
 
-            inputs_to_exp = [
-                dict(tangent_vec=gs.array([2.0, 1.0]), base_point=gs.array([1.0, 1.0])),
-                dict(
-                    tangent_vec=gs.array([[2.0, 1.0], [2.0, 1.0]]),
-                    base_point=gs.array([[1.0, 1.0], [1.0, 1.0]]),
-                ),
-            ]
+            inputs_to_exp = [(gs.array([2.0, 1.0]), gs.array([1.0, 1.0]))]
             smoke_data = []
-            for tangent_vec, base_point in inputs_to_exp:
-                smoke_data.append(
-                    [
+            if not geomstats.tests.tf_backend():
+                for tangent_vec, base_point in inputs_to_exp:
+                    smoke_data.append(
                         dict(
                             dim=2,
-                            tanngent_vec=tangent_vec,
+                            tangent_vec=tangent_vec,
                             base_point=base_point,
                             expected=_exp(tangent_vec, base_point),
                         )
-                    ]
-                )
+                    )
             return self.generate_tests(smoke_data)
 
-        def ball_half_plane_tangent_are_inverse_data(self):
-            smoke_data = [
-                dict(
-                    dim=2,
-                    tangent_vec=gs.array([0.5, 1.0]),
-                    base_point=gs.array([1.5, 2.3]),
-                )
-            ]
-            return self.generate_tests(smoke_data)
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
+            )
+
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
+            )
+
+        def squared_dist_is_symmetric_data(self):
+            return self._squared_dist_is_symmetric_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
+
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=gs.rtol * 100000,
+                atol=gs.atol * 100000,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+    testing_data = TestDataPoincareHalfSpaceMetric()
 
     def test_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
@@ -194,7 +361,7 @@ class TestPoincareHalfSpaceMetric(TestCase, metaclass=RiemannianMetricParametriz
         end_point = metric.exp(tangent_vec, base_point)
         self.assertAllClose(base_point[0], end_point[0])
 
-    @geomstats.tests.np_and_autograd_only
+    @np_and_autograd_only
     def test_exp(self, dim, tangent_vec, base_point, expected):
         metric = self.metric(dim)
         result = metric.exp(gs.array(tangent_vec), gs.array(base_point))
