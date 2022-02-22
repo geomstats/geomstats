@@ -1,25 +1,7 @@
-r""" Classes for trees and forests, splits and structures.
+""" Classes for trees and forests, splits and structures.
 
-Class ``Split``.
-Essentially, a ``Split`` is a two-set partition of a subset of :math:`\{0,\dots,n-1\}`.
-This class is designed such that one part of both parts of the partition can be empty.
-Splits are corresponding uniquely to edges in a phylogenetic forest, where, if one cuts
-the edge in the forest, the resulting two-set partition of the labels of the respective
-component of the forest is the corresponding split.
-
-Class ``Structure``.
-A structure is a partition into non-empty sets of the set :math:`\{0,\dots,n-1\}`,
-together with a set of splits for each element of the partition, where every split is a
-two-set partition of the respective element.
-A structure basically describes a phylogenetic forest, where each set of splits gives
-the structure of the tree with the labels of the corresponding element of the partition.
-
-Class ``Wald``.
-A wald is essentially a phylogenetic forest with weights between zero and one on the
-edges. The forest structure is stored as a ``Structure`` and the edge weights are an
-array of length that is equal to the total number of splits in the structure. These
-elements are the points in Wald space and other phylogenetic forest spaces, like BHV
-space, although the partition is just the whole set of labels in this case.
+An instance of class Wald (Tree or Forest) is an element of the Wald Space or BHV space,
+for example.
 
 Lead author: Jonas Lueg
 """
@@ -31,14 +13,15 @@ import geomstats.backend as gs
 
 
 @functools.total_ordering
-class Split:
-    r"""Class for non-empty two-set partition of a set (in the mathematical sense).
+class Split(object):
+    r""" A non-empty two-set partition of a set.
 
-    Two-set partitions of a smaller subset of :math:`\{0,...,n-1\}` are also allowed.
+    We also allow splits to be a two-set partition of a smaller subset of {0,...,n-1},
+    but the parameter ``n`` is still relevant for the hash function.
 
     The parameters ``part1`` and ``part2`` are assigned to the attributes ``self.part1``
-    and ``self.part2`` in a unique sorted way: the one that contains the smallest
-    minimal value is assigned to ``self.part1`` for consistency.
+    and ``self.part2`` sorted, and the one that contains the smallest minimal value is
+    assigned to ``self.part1``, to obtain consistency.
 
     Parameters
     ----------
@@ -46,12 +29,12 @@ class Split:
         The number of labels, the set of labels will be :math:`\{0,\dots,n-1\}`.
     part1 : iterable
         The first part of the split, an iterable that is a subset of
-        :math:`\{0,\dots,n-1\}`. It may be empty, but must have empty intersection with
-        ``part2``.
+        :math:`\{0,\dots,n-1\}`. It may be empty for technical reasons, but must have
+        empty intersection with ``part2``.
     part2 : iterable
         The second part of the split, an iterable that is a subset of
-        :math:`\{0,\dots,n-1\}`. It may be empty, but must have empty intersection with
-        ``part1``.
+        :math:`\{0,\dots,n-1\}`. It may be empty for technical reasons, but must have
+        empty intersection with ``part1``.
     """
 
     def __init__(self, n, part1, part2):
@@ -66,55 +49,43 @@ class Split:
             self._part2 = part2 if part1[0] < part2[0] else part1
         elif not part1:
             self._part1 = part2
-            self._part2 = ()
+            self._part2 = tuple()
         elif not part2:
             self._part1 = part1
-            self._part2 = ()
+            self._part2 = tuple()
         else:
-            self._part1 = ()
-            self._part2 = ()
+            self._part1 = tuple()
+            self._part2 = tuple()
         # TODO: the parameter n could be dropped theoretically...
         self._n = n
 
     @property
     def part1(self):
-        """Return first set of labels of the split."""
+        """The first tuple of the split."""
         return self._part1
 
     @property
     def part2(self):
-        """Return the second set of labels of the split."""
+        """The second tuple of the split."""
         return self._part2
 
     @property
     def n(self):
-        r"""Return number of labels, the set of labels is :math:`\{0,\dots,n-1\}`."""
+        r"""Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`."""
         return self._n
 
     def restr(self, subset: set):
-        r"""Return the restriction of a split to a subset.
-
-        Parameters
-        ----------
-        subset : set
-            The subset that the split is restricted to.
-
-        Returns
-        -------
-        restr_split : Split
-            The restricted split, if the split is :math:`A\vert B`, then the split
-            restricted to the subset :math:`C` is :math:`A\cap C\vert B\cap C`.
-        """
+        """The restriction of a split to a subset, returns a split."""
         return Split(n=self.n, part1=tuple(set(self.part1) & subset),
                      part2=tuple(set(self.part2) & subset))
 
     def contains(self, subset: set):
-        """Determine if a subset is contained in either part of a split.
+        """ Determines if a subset is contained in either part of a split.
 
         Parameters
         ----------
         subset : set
-            The subset containing labels.
+            The subset.
 
         Returns
         -------
@@ -125,7 +96,7 @@ class Split:
         return subset.issubset(set(self.part1)) or subset.issubset(set(self.part2))
 
     def separates(self, u, v):
-        """Determine whether the labels (or label sets) are separated by the split.
+        """ Determines whether the labels (or label sets) are separated by the split.
 
         Parameters
         ----------
@@ -137,104 +108,62 @@ class Split:
         Returns
         -------
         is_separated : bool
-            A boolean determining whether u and v are separated by the split (i.e. if
-             they are not in the same part).
+            Determines whether u and v are separated by the split (i.e. if they are not
+            in the same part).
         """
-        if type(u) is type(v) is int:
+        if type(u) == type(v) == int:
             return (u in self.part1 and v in self.part2) or (
                     u in self.part2 and v in self.part1)
         b1 = set(u).issubset(set(self.part1)) and set(v).issubset(set(self.part2))
         b2 = set(v).issubset(set(self.part1)) and set(u).issubset(set(self.part2))
         return b1 or b2
 
-    def point_to_split(self, other_split):
-        """Return the part of this split that is directed toward the other split.
+    def point_to_split(self, other):
+        """ Gives back the part of this split that is directed to the other split. """
+        return self.part1 if set(self.part1) & set(other.part1) and set(
+            self.part1) & set(other.part2) else self.part2
 
-        Each split contains part1 and part2, the parts that the corresponding edge in
-        the graph splits the set of labels into. Thus one can think of the split as an
-        edge, where part1 points in the direction of the part of the tree where the
-        labels of part1 are contained, and part2 points in the other direction.
-        So, part1 points in the direction of ``other_split``, if it corresponds to an
-        edge that is contained in the tree that part1 points to, else part2 points in
-        the direction of ``other_split``.
+    def point_away_split(self, other):
+        """ Gives back the part of this split that is directed away from other split."""
+        return self.part2 if set(self.part1) & set(other.part1) and set(
+            self.part1) & set(other.part2) else self.part1
 
-        Parameters
-        ----------
-        other_split : Split
-            The other split.
-
-        Returns
-        -------
-        part_that_points : iterable
-            Return the part of the split ``self`` that points toward ``other_split``.
-        """
-        return self.part1 if set(self.part1) & set(other_split.part1) and set(
-            self.part1) & set(other_split.part2) else self.part2
-
-    def point_away_split(self, other_split):
-        """Return the part of this split that is directed away from other split.
-
-        Parameters
-        ----------
-        other_split : Split
-            The other split.
-
-        Returns
-        -------
-        part_that_does_not_point : iterable
-            Return the part of the split ``self`` that does not point toward
-            ``other_split``. See ``self.point_to_split`` for further explanation.
-        """
-        return self.part2 if set(self.part1) & set(other_split.part1) and set(
-            self.part1) & set(other_split.part2) else self.part1
-
-    def compatible_with(self, other_split):
-        """Check whether this split is compatible with another split.
+    def compatible_with(self, other):
+        """ Checks whether this split is compatible with another split.
 
         Two splits are compatible, if at least one intersection of the respective parts
         of the splits is empty.
-
-        Parameters
-        ----------
-        other_split : Split
-            The other split.
-
-        Returns
-        -------
-        is_compatible_with : bool
-            Return ``True`` if the splits are compatible, else ``False``.
         """
         p1, p2 = set(self.part1), set(self.part2)
-        o1, o2 = set(other_split.part1), set(other_split.part2)
+        o1, o2 = set(other.part1), set(other.part2)
         return sum([bool(s) for s in [p1 & o1, p1 & o2, p2 & o1, p2 & o2]]) < 4
 
-    def __eq__(self, other_split):
-        """Check for equal hashes of the two splits."""
-        return self.__hash__() == other_split.__hash__()
+    def __eq__(self, other):
+        """ The equal function. """
+        return self.__hash__() == other.__hash__()
 
-    def __lt__(self, other_split):
-        """Check if the hash of this split is less than the hash of the other split."""
-        return self.__hash__() < other_split.__hash__()
+    def __lt__(self, other):
+        """ Less than function (<). """
+        return self.__hash__() < other.__hash__()
 
     def __hash__(self):
-        """Compute the hash of a split."""
+        """ The hash function. """
         return hash((self.n, self._part1, self._part2))
 
     def __str__(self):
-        """Return the string representation of the split."""
+        """ String representation of the split. """
         return str((self.part1, self.part2))
 
     def __repr__(self):
-        """Return the fancy printable string representation of the split."""
         return f"{self.part1}|{self.part2}"
 
     def __bool__(self):
-        """Return False only if both parts are empty sets."""
+        """ Returns False only if both parts are empty sets. """
         return bool(self.part1) and bool(self.part2)
 
 
-class Structure:
-    r"""A structure of a forest, that is the connected components and the edges.
+class Structure(object):
+    r""" A structure of a forest, that is the connected components and the edges.
 
     Parameters
     ----------
@@ -257,11 +186,11 @@ class Structure:
         # make some assertions about the given parameters.
         # same number of components in both partition and split_sets
         if len(split_sets) != len(partition):
-            raise ValueError("Number of split sets is not equal to number of "
-                             "components.")
+            raise ValueError(f"Number of split sets is not equal to number of "
+                             f"components.")
         # all parts of partition give the whole set of labels.
         if set.union(*[set(part) for part in partition]) != set(range(n)):
-            raise ValueError("partition is not a partition of the set (1,2,...,n).")
+            raise ValueError(f"partition is not a partition of the set (1,2,...,n).")
         # each split is a proper split of the label set of its component.
         for _part, _splits in zip(partition, split_sets):
             for _sp in _splits:
@@ -279,6 +208,7 @@ class Structure:
         self._leaf_paths = None
         self._separators = None
         self._support = None
+        self._chart = None
         self._chart_gradient = None
 
     @property
@@ -317,7 +247,7 @@ class Structure:
 
     @property
     def support(self):
-        r""" For each split, gives a boolean matrix with entries indicating separation.
+        """ For each split, gives a boolean matrix with entries indicating separation.
 
         Returns
         -------
@@ -358,33 +288,35 @@ class Structure:
                                       range(len(lengths))]
         return self._separators
 
-    def chart(self, x):
-        """ Computes the chart of a grove with structure `self` at coordinate `x`.
-
-        Parameters
-        ----------
-        x : array-like, shape=[n_edges]
-            Takes a vector of length 'number of total splits' of the structure.
+    @property
+    def chart(self):
+        """ Computes the chart of a grove with structure `st`.
 
         Returns
         -------
-        corr : array-like, shape=[n, n]
-            Returns the corresponding correlation matrix.
+        chart : callable
+            A map that takes as input a vector of length 'number of total splits',
+            and returns the corresponding correlation matrix.
         """
-        _w = self.ravel(x=x)
-        _corr = [[0 for _ in range(self.n)] for _ in range(self.n)]
-        for i, d in enumerate(self.leaf_paths):
-            for (u, v), split_indices in d.items():
-                if len(split_indices):
-                    _corr[u][v] = gs.prod(gs.array([1 - _w[i][k]
-                                                    for k in split_indices]))
-                else:
-                    _corr[u][v] = 1
-                _corr[v][u] = _corr[u][v]
-        # TODO use gs.fill_diagonal here, but it is not implemented yet
-        for u in range(self.n):
-            _corr[u][u] = 1
-        return gs.array(_corr, dtype=gs.float32)
+        if self._chart is None:
+            def _chart(x):
+                """ Input is a flat vector or list x (Nye parametrization). """
+                _w = self.ravel(x=x)
+                _corr = [[0 for _ in range(self.n)] for _ in range(self.n)]
+                for i, d in enumerate(self.leaf_paths):
+                    for (u, v), split_indices in d.items():
+                        if len(split_indices):
+                            _corr[u][v] = gs.prod(gs.array([1 - _w[i][k] for k in split_indices]))
+                        else:
+                            _corr[u][v] = 1
+                        _corr[v][u] = _corr[u][v]
+                # TODO use gs.fill_diagonal here, but it is not implemented yet
+                for u in range(self.n):
+                    _corr[u][u] = 1
+                return gs.array(_corr, dtype=gs.float32)
+
+            self._chart = _chart
+        return self._chart
 
     @property
     def chart_gradient(self):
@@ -401,8 +333,8 @@ class Structure:
                 """ Input is a flat vector or list x (Nye parametrization). """
                 coord_list = [[y if i != k else 0 for i, y in enumerate(x)] for k in
                               range(len(x))]
-                _corr_gradient = [self.support[k] * -self.chart(xk)
-                                  for k, xk in enumerate(coord_list)]
+                _corr_gradient = [self.support[k] * -self.chart(xk) for k, xk in
+                                  enumerate(coord_list)]
                 return _corr_gradient
 
             self._chart_gradient = _chart_gradient
@@ -448,8 +380,6 @@ class Structure:
         other : Structure
             The structure to which self is compared to.
         """
-        class MyCheckException(Exception):
-            pass
         xs = [set(x) for x in self.partition]
         ys = [set(y) for y in other.partition]
         # ----- check out condition 1. of the partial ordering -----
@@ -465,19 +395,17 @@ class Structure:
                 # the corresponding component.
                 restr_other_splits = {sp_y.restr(subset=xs[i]) for sp_y in
                                       other.split_sets[x_to_y[i]]}
-                if not set(splits).issubset(restr_other_splits):
-                    raise MyCheckException()
-        except MyCheckException:
+                assert set(splits).issubset(restr_other_splits)
+        except AssertionError:
             return False
         # ----- check out condition 3. of the partial ordering -----
         try:
-            for j in range(len(ys)):
+            for j, y in enumerate(ys):
                 xs_in_y = [x for i, x in enumerate(xs) if x_to_y[i] == j]
                 for x1, x2 in it.combinations(xs_in_y, r=2):
-                    sep_sp = [sp for sp in other.split_sets[j] if sp.separates(x1, x2)]
-                    if len(sep_sp) == 0:
-                        raise MyCheckException()
-        except MyCheckException:
+                    assert len([sp for sp in other.split_sets[j] if
+                                sp.separates(x1, x2)]) != 0
+        except AssertionError:
             return False
 
         # ----- all conditions are satisfied -> it is indeed a partial ordering! -----
@@ -500,7 +428,7 @@ class Structure:
         return hash(str(self))
 
 
-class Wald:
+class Wald(object):
     r""" A class for phylogenetic forests, elements of the Wald space.
 
     Parameters
@@ -519,6 +447,7 @@ class Wald:
         self._st: Structure = st
         self._x = x
         self._corr = None
+        return
 
     @property
     def st(self) -> Structure:

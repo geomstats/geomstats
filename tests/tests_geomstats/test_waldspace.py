@@ -6,9 +6,12 @@ from geomstats.geometry.trees import Structure, Split, Wald
 
 
 class TestSplit(geomstats.tests.TestCase):
+    def setup_method(self):
+        """ Setup method. """
+        pass
 
     def test_restr(self):
-        """Tests the attribute restr of class Split."""
+        """ Tests the attribute restr of class Split. """
         split1 = Split(n=5, part1=[2, 3], part2=[0, 1, 4])
         subset1 = {0, 1, 2}
         result = split1.restr(subset=subset1)
@@ -22,7 +25,7 @@ class TestSplit(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_contains(self):
-        """Tests the attribute contains of class Split."""
+        """ Tests the attribute contains of class Split. """
         split1 = Split(n=5, part1=[0, 4], part2=[1, 2, 3])
         subset1 = {0, 2}
         result = split1.contains(subset=subset1)
@@ -36,7 +39,7 @@ class TestSplit(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_separates(self):
-        """Tests the attribute separates of class Split."""
+        """ Tests the attribute separates of class Split. """
         split1 = Split(n=3, part1=[0, 1], part2=[2])
         u1 = [0, 1]
         v1 = [2]
@@ -66,7 +69,7 @@ class TestSplit(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_point_to_split(self):
-        """Tests the attribute point_to_split of class Split."""
+        """ Tests the attribute point_to_split of class Split. """
         split1a = Split(n=5, part1=[0, 4], part2=[1, 2, 3])
         split1b = Split(n=5, part1=[2, 3], part2=[0, 1, 4])
 
@@ -79,7 +82,7 @@ class TestSplit(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_point_away_split(self):
-        """Tests the attribute point_away_split of class Split."""
+        """ Tests the attribute point_away_split of class Split. """
         split1a = Split(n=5, part1=[0, 4], part2=[1, 2, 3])
         split1b = Split(n=5, part1=[2, 3], part2=[0, 1, 4])
 
@@ -92,7 +95,7 @@ class TestSplit(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_compatible_with(self):
-        """Tests the attribute compatible_with of class Split."""
+        """ Tests the attribute compatible_with of class Split. """
         split1a = Split(n=5, part1=[0, 4], part2=[1, 2, 3])
         split1b = Split(n=5, part1=[2, 3], part2=[0, 1, 4])
 
@@ -105,7 +108,7 @@ class TestSplit(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_hash(self):
-        """Tests the attribute __hash__ of class Split."""
+        """ Tests the attribute __hash__ of class Split. """
         split1a = Split(n=5, part1=[0, 4], part2=[1, 2, 3])
         split1b = Split(n=5, part1=[2, 3], part2=[0, 1, 4])
 
@@ -127,9 +130,11 @@ class TestSplit(geomstats.tests.TestCase):
 
 
 class TestStructure(geomstats.tests.TestCase):
+    def setup_method(self):
+        pass
 
     def test_partition(self):
-        """Tests the attribute partition of class Structure."""
+        """ Tests the attribute partition of class Structure. """
         st1a = Structure(n=3, partition=((1, 0), (2,)), split_sets=((), ()))
         st1b = Structure(n=3, partition=((2,), (0, 1)), split_sets=((), ()))
         result = st1a.partition == st1b.partition
@@ -143,7 +148,7 @@ class TestStructure(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_partial_ordering(self):
-        """Tests the attributes __gt__, __ge__, __eq__, __lt__, __le__, __ne__."""
+        """ Tests the attributes __gt__, __ge__, __eq__, __lt__, __le__, __ne__. """
         sp1 = [[((0,), (1,))]]
         split_sets1 = [[Split(2, a, b) for a, b in splits] for splits in sp1]
         st1 = Structure(n=2, partition=((0, 1),), split_sets=split_sets1)
@@ -224,7 +229,7 @@ class TestWaldSpace(geomstats.tests.TestCase):
         self.ws4 = WaldSpace(n=4)
 
     def test_belongs(self):
-        """Test belongs method."""
+        """ Test belongs method. """
         sp1 = [[((0,), (1, 2, 3)), ((3,), (0, 1, 2)), ((1,), (0, 2, 3)),
                 ((2,), (0, 1, 3)), ((1, 2), (0, 3))]]
         split_sets1 = [[Split(4, a, b) for a, b in splits] for splits in sp1]
@@ -281,7 +286,7 @@ class TestWaldSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_belongs_vectorization(self):
-        """Test belongs with several input points."""
+        """ Test belongs with several input points. """
         sp1 = [[((0,), (1, 2, 3)), ((3,), (0, 1, 2)), ((1,), (0, 2, 3)),
                 ((2,), (0, 1, 3)), ((1, 2), (0, 3))]]
         split_sets1 = [[Split(4, a, b) for a, b in splits] for splits in sp1]
@@ -325,7 +330,7 @@ class TestWaldSpace(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_random_point_and_belongs(self):
-        """Test of random_point and belongs methods."""
+        """ Test of random_point and belongs methods. """
         wald = self.ws4.random_point()
         p = wald
         if not self.ws4.a.belongs(p):
@@ -347,7 +352,7 @@ class TestWaldSpace(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_random_point_and_belongs_vectorization(self):
-        """Test of random_point and belongs methods, vectorized version."""
+        """ Test of random_point and belongs methods, vectorized version. """
         walds = self.ws4.random_point(n_samples=10)
         result = self.ws4.belongs(point=walds, atol=gs.atol)
         expected = gs.array([True] * 10)
