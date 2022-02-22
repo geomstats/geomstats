@@ -65,6 +65,7 @@ from autograd.numpy import (
     maximum,
     mean,
     meshgrid,
+    minimum,
     mod,
     ones,
     ones_like,

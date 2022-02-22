@@ -85,6 +85,7 @@ BACKEND_ATTRIBUTES = {
         "maximum",
         "mean",
         "meshgrid",
+        "minimum",
         "mod",
         "ndim",
         "one_hot",

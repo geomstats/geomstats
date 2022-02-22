@@ -333,6 +333,10 @@ def maximum(a, b):
     return torch.max(array(a), array(b))
 
 
+def minimum(a, b):
+    return torch.min(array(a), array(b))
+
+
 def to_ndarray(x, to_ndim, axis=0):
     x = array(x)
     if x.dim() == to_ndim - 1:

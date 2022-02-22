@@ -38,6 +38,7 @@ from tensorflow import (
     logical_or,
     maximum,
     meshgrid,
+    minimum,
     ones,
     ones_like,
 )
