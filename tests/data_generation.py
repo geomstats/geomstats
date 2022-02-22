@@ -183,7 +183,7 @@ class OpenSetTestData(ManifoldTestData):
 
 class LevelSetTestData(ManifoldTestData):
     def _extrinsic_intrinsic_composition_data(
-        self, space_cls, space_args_list, n_samples_list
+        self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinate system twice gives back the point.
 
@@ -201,31 +201,45 @@ class LevelSetTestData(ManifoldTestData):
         random_data = [
             dict(
                 space_args=space_args,
-                point_extrinsic=space_cls(*space_args).random_point(n_samples),
+                point_extrinsic=space_cls(
+                    *space_args, default_coords_type="extrinsic"
+                ).random_point(n_samples),
+                rtol=rtol,
+                atol=atol,
             )
             for space_args, n_samples in zip(space_args_list, n_samples_list)
         ]
         return self.generate_tests([], random_data)
 
-    def _intrinsic_extrinsic_composition_data(self, space_args_list, n_samples_list):
+    def _intrinsic_extrinsic_composition_data(
+        self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
+    ):
         """Generate data to check that changing coordinate system twice gives back the point.
 
         Assumes that the first elements in space_args is the dimension of the space.
 
         Parameters
         ----------
+        space_cls : Manifold
+            Class of the space, i.e. a child class of Manifold.
         space_args_list : list
             Arguments to pass to constructor of the manifold.
         n_samples_list : list
             List of number of intrinsic points to generate.
         """
-        random_data = [
-            dict(
-                space_args=space_args,
-                point_intrinsic=gs.random.normal(size=(n_samples,) + space_args[0]),
+        random_data = []
+        for space_args, n_samples in zip(space_args_list, n_samples_list):
+
+            space = space_cls(*space_args, default_coords_type="intrinsic")
+            point_intrinic = space.random_point(n_samples)
+            random_data.append(
+                dict(
+                    space_args=space_args,
+                    point_intrinic=point_intrinic,
+                    rtol=rtol,
+                    atol=atol,
+                )
             )
-            for space_args, n_samples in zip(space_args_list, n_samples_list)
-        ]
         return self.generate_tests([], random_data)
 
 
@@ -271,7 +285,12 @@ class LieGroupTestData(ManifoldTestData):
         return self.generate_tests([], random_data)
 
     def _log_exp_composition_data(
-        self, group_cls, group_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
+        self,
+        group_cls,
+        group_args_list,
+        n_samples_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
     ):
         """Generate data to check that group logarithm and exponential are inverse.
 
@@ -617,6 +636,7 @@ class ConnectionTestData(TestData):
         connection_args_list,
         space_list,
         n_samples_list,
+        smoke_data=None,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
@@ -646,7 +666,9 @@ class ConnectionTestData(TestData):
                     atol=atol,
                 )
             )
-        return self.generate_tests([], random_data)
+        if smoke_data is None:
+            smoke_data = []
+        return self.generate_tests(smoke_data, random_data)
 
     def _exp_log_composition_data(
         self,
@@ -654,6 +676,7 @@ class ConnectionTestData(TestData):
         space_list,
         shape_list,
         n_samples_list,
+        smoke_data=None,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
@@ -687,7 +710,9 @@ class ConnectionTestData(TestData):
                     atol=atol,
                 )
             )
-        return self.generate_tests([], random_data)
+        if smoke_data is None:
+            smoke_data = []
+        return self.generate_tests(smoke_data, random_data)
 
     def _exp_ladder_parallel_transport_data(
         self,
