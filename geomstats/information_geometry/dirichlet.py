@@ -520,9 +520,7 @@ class DirichletMetric(RiemannianMetric):
 
         Returns
         -------
-        energy : float
-            Energy of the polynomial approximation of the geodesic.
-        length : float
+        dist : float
             Length of the polynomial approximation of the geodesic.
         curve : array-like, shape=(n_times, dim)
             Polynomial approximation of the geodesic.
@@ -537,6 +535,17 @@ class DirichletMetric(RiemannianMetric):
             ----------
             param : array-like, shape=(degree - 1, dim)
                 Parameters of the curve coordinates' polynomial functions of time.
+
+            Returns
+            -------
+            energy : float
+                Energy of the polynomial approximation of the geodesic.
+            length : float
+                Length of the polynomial approximation of the geodesic.
+            curve : array-like, shape=(n_times, dim)
+                Polynomial approximation of the geodesic.
+            velocity : array-like, shape=(n_times, dim)
+                Velocity of the polynomial approximation of the geodesic.
             """
             last_coef = end_point - initial_point - gs.sum(param, axis=0)
             coef = gs.vstack((initial_point, param, last_coef))
@@ -565,6 +574,11 @@ class DirichletMetric(RiemannianMetric):
             ----------
             param : array-like, shape=(degree - 1, dim)
                 Parameters of the curve coordinates' polynomial functions of time.
+
+            Returns
+            -------
+            jac : array-like, shape=(dim * (degree - 1),)
+                Jacobian of the cost function at polynomial curve.
             """
             last_coef = end_point - initial_point - gs.sum(param, 0)
             coef = gs.vstack((initial_point, param, last_coef))
