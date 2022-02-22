@@ -3,6 +3,7 @@
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
+from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.matrices import Matrices
 
@@ -27,7 +28,10 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         if "dim" not in kwargs.keys():
             kwargs["dim"] = n**2
         super(GeneralLinear, self).__init__(
-            ambient_space=Matrices(n, n), n=n, lie_algebra=Matrices(n, n), **kwargs
+            ambient_space=Matrices(n, n),
+            n=n,
+            lie_algebra=GeneralLinearLieAlgebra(n),
+            **kwargs
         )
         self.positive_det = positive_det
 
@@ -161,3 +165,54 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
             return cls.exp(vecs, base_point)
 
         return path
+
+
+class GeneralLinearLieAlgebra(MatrixLieAlgebra):
+    """Lie algebra of the general linear group.
+
+    This is the space of matrices.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
+    """
+
+    def __init__(self, n):
+        super(GeneralLinearLieAlgebra, self).__init__(n=n, dim=n**2)
+        self.mat_space = Matrices(n, n)
+        self.basis = self.mat_space.basis
+
+    def basis_representation(self, matrix_representation):
+        """Compute the coefficient in the usual matrix basis.
+
+        This simply flattens the input.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., dim]
+            Representation in the basis.
+        """
+        return self.mat_space.flatten(matrix_representation)
+
+    def matrix_representation(self, basis_representation):
+        """Compute the matrix representation for the given basis coefficients.
+
+        This simply reshapes the input into a square matrix.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis.
+
+        Returns
+        -------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+        """
+        return self.mat_space.reshape(basis_representation)

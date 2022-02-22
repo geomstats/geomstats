@@ -28,8 +28,6 @@ MAT8_33 = [[0.0, 3.0, 4.0], [0.0, 0.0, 6.0], [0.0, 0.0, 0.0]]
 
 class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
     space = Matrices
-    skip_test_basis_belongs = True
-    skip_test_basis_cardinality = True
 
     class TestDataMatrices(VectorSpaceTestData):
         m_list = random.sample(range(3, 5), 2)
@@ -496,7 +494,30 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             )
 
         def basis_data(self):
-            smoke_data = [dict(n=2, m=2), dict(n=2, m=3)]
+            smoke_data = [
+                dict(
+                    n=2,
+                    m=2,
+                    expected=gs.array(
+                        [
+                            gs.array_from_sparse([(i, j)], [1], (2, 2))
+                            for i in range(2)
+                            for j in range(2)
+                        ]
+                    ),
+                ),
+                dict(
+                    n=2,
+                    m=3,
+                    expected=gs.array(
+                        [
+                            gs.array_from_sparse([(i, j)], [1], (2, 3))
+                            for i in range(2)
+                            for j in range(3)
+                        ]
+                    ),
+                ),
+            ]
             return self.generate_tests(smoke_data)
 
     testing_data = TestDataMatrices()
@@ -634,14 +655,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
         is_function = getattr(cls_mn, "is_" + matrix_type)
         self.assertAllClose(gs.all(is_function(to_function(gs.array(mat)))), True)
 
-    def test_basis(self, m, n):
-        expected = gs.array(
-            [
-                gs.array_from_sparse([(i, j)], [1], (m, n))
-                for i in range(m)
-                for j in range(n)
-            ]
-        )
+    def test_basis(self, m, n, expected):
         result = Matrices(m, n).basis
         self.assertAllClose(result, expected)
 
