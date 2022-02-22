@@ -197,6 +197,10 @@ class LevelSetTestData(ManifoldTestData):
             Arguments to pass to constructor of the manifold.
         n_samples_list : list
             List of number of extrinsic points to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
         """
         random_data = [
             dict(
@@ -226,6 +230,10 @@ class LevelSetTestData(ManifoldTestData):
             Arguments to pass to constructor of the manifold.
         n_samples_list : list
             List of number of intrinsic points to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
         """
         random_data = []
         for space_args, n_samples in zip(space_args_list, n_samples_list):
