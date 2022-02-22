@@ -44,6 +44,8 @@ class TestPoincareHalfSpace(TestCase, metaclass=OpenSetParametrizer):
             smoke_data = [
                 dict(
                     dim=2,
+                    tangent_vec=gs.array([0.5, 1.0]),
+                    base_point=gs.array([1.5, 2.3]),
                 )
             ]
             return self.generate_tests(smoke_data)
@@ -67,8 +69,8 @@ class TestPoincareHalfSpace(TestCase, metaclass=OpenSetParametrizer):
         self, dim, point_half_space
     ):
         space = self.space(dim)
-        point_ball = self.manifold.half_space_to_ball_coordinates(point_half_space)
-        result = self.manifold.ball_to_half_space_coordinates(point_ball)
+        point_ball = space.half_space_to_ball_coordinates(point_half_space)
+        result = space.ball_to_half_space_coordinates(point_ball)
         self.assertAllClose(result, point_half_space)
 
     def test_ball_half_plane_tangent_are_inverse(self, dim, tangent_vec, base_point):
@@ -145,6 +147,7 @@ class TestPoincareHalfSpaceMetric(TestCase, metaclass=RiemannianMetricParametriz
                 end_point_expected = gs.hstack(
                     [np.real(end_point_complex), np.imag(end_point_complex)]
                 )
+                return end_point_expected
 
             inputs_to_exp = [
                 dict(tangent_vec=gs.array([2.0, 1.0]), base_point=gs.array([1.0, 1.0])),
@@ -188,7 +191,7 @@ class TestPoincareHalfSpaceMetric(TestCase, metaclass=RiemannianMetricParametriz
 
     def test_exp_and_coordinates_tangent(self, dim, tangent_vec, base_point):
         metric = self.metric(dim)
-        end_point = self.metric.exp(tangent_vec, base_point)
+        end_point = metric.exp(tangent_vec, base_point)
         self.assertAllClose(base_point[0], end_point[0])
 
     @geomstats.tests.np_and_autograd_only
