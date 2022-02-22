@@ -226,7 +226,7 @@ class TestFullRankCorrelationAffineQuotientMetric(TestCase, metaclass=Parametriz
             random_data = [dict(dim=3, point=point)]
             return self.generate_tests([], random_data)
 
-        def exp_belongs(self):
+        def exp_belongs_data(self):
 
             bundle = CorrelationMatricesBundle(3)
             base_point = bundle.base.random_point()
@@ -244,7 +244,7 @@ class TestFullRankCorrelationAffineQuotientMetric(TestCase, metaclass=Parametriz
         result = metric.exp(log, point[0])
         self.assertAllClose(result, point[1], atol=gs.atol * 100)
 
-    def exp_belongs(self, dim, tangent_vec, base_point):
+    def test_exp_belongs(self, dim, tangent_vec, base_point):
         metric = self.metric(dim)
         exp = metric.exp(tangent_vec, base_point)
         self.assertAllClose(CorrelationMatricesBundle(dim).belongs(exp), True)
