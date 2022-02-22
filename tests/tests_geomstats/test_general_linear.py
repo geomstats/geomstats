@@ -3,7 +3,7 @@
 import random
 
 import geomstats.backend as gs
-from geomstats.geometry.general_linear import GeneralLinear, GeneralLinearLieAlgebra
+from geomstats.geometry.general_linear import GeneralLinear, SquareMatrices
 from tests.conftest import TestCase
 from tests.data_generation import LieGroupTestData, MatrixLieAlgebraTestData
 from tests.parametrizers import LieGroupParametrizer, MatrixLieAlgebraParametrizer
@@ -217,10 +217,10 @@ class TestGeneralLinear(TestCase, metaclass=LieGroupParametrizer):
         self.assertAllClose(result, gs.array(expected))
 
 
-class TestGeneralLinearLieAlgebra(TestCase, metaclass=MatrixLieAlgebraParametrizer):
-    space = algebra = GeneralLinearLieAlgebra
+class TestSquareMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer):
+    space = algebra = SquareMatrices
 
-    class TestDataGeneralLinearLieAlgebra(MatrixLieAlgebraTestData):
+    class TestDataSquareMatrices(MatrixLieAlgebraTestData):
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
@@ -238,12 +238,12 @@ class TestGeneralLinearLieAlgebra(TestCase, metaclass=MatrixLieAlgebraParametriz
 
         def basis_representation_matrix_representation_composition_data(self):
             return self._basis_representation_matrix_representation_composition_data(
-                GeneralLinearLieAlgebra, self.space_args_list, self.n_samples_list
+                SquareMatrices, self.space_args_list, self.n_samples_list
             )
 
         def matrix_representation_basis_representation_composition_data(self):
             return self._matrix_representation_basis_representation_composition_data(
-                GeneralLinearLieAlgebra, self.space_args_list, self.n_samples_list
+                SquareMatrices, self.space_args_list, self.n_samples_list
             )
 
         def basis_belongs_data(self):
@@ -269,13 +269,13 @@ class TestGeneralLinearLieAlgebra(TestCase, metaclass=MatrixLieAlgebraParametriz
 
         def to_tangent_is_tangent_data(self):
             return self._to_tangent_is_tangent_data(
-                GeneralLinearLieAlgebra,
+                SquareMatrices,
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
             )
 
-    testing_data = TestDataGeneralLinearLieAlgebra()
+    testing_data = TestDataSquareMatrices()
 
     def test_belongs(self, n, mat, expected):
         space = self.space(n)
