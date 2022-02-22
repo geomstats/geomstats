@@ -1289,6 +1289,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
         self.skew = SkewSymmetricMatrices(n)
 
     def _create_basis(self):
+        """Create the canonical basis."""
         n = self.n
         basis = homogeneous_representation(
             self.skew.basis,

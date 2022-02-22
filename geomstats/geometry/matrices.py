@@ -31,6 +31,7 @@ class Matrices(VectorSpace):
         self.basis = None
 
     def _create_basis(self):
+        """Create the canonical basis."""
         m, n = self.m, self.n
         return gs.reshape(gs.eye(n * m), (n * m, m, n))
 

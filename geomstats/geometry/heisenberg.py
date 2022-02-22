@@ -32,6 +32,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         )
 
     def _create_basis(self):
+        """Create the canonical basis."""
         return gs.eye(3)
 
     def get_identity(self, point_type="vector"):

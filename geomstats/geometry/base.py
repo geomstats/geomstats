@@ -148,12 +148,10 @@ class VectorSpace(Manifold, abc.ABC):
 
     @basis.setter
     def basis(self, basis):
-        if basis is not None:
-            if len(basis) < self.dim:
-                raise ValueError(
-                    "The basis should have length equal to the "
-                    "dimension of the space."
-                )
+        if basis is not None and len(basis) < self.dim:
+            raise ValueError(
+                "The basis should have length equal to the " "dimension of the space."
+            )
         self._basis = basis
 
     @abc.abstractmethod
