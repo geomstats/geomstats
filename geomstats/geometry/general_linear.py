@@ -183,6 +183,7 @@ class GeneralLinearLieAlgebra(MatrixLieAlgebra):
         self.mat_space = Matrices(n, n)
 
     def _create_basis(self):
+        """Create the canonical basis of the space of matrices."""
         return self.mat_space.basis
 
     def basis_representation(self, matrix_representation):

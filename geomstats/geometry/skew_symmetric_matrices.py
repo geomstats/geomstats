@@ -28,6 +28,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         self.ambient_space = Matrices(n, n)
 
     def _create_basis(self):
+        """Create the canonical basis."""
         n = self.n
         if n == 2:
             return gs.array([[[0.0, -1.0], [1.0, 0.0]]])
