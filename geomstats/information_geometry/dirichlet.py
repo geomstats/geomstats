@@ -559,7 +559,7 @@ class DirichletMetric(RiemannianMetric):
             return energy, length, curve, velocity
 
         def cost_jacobian(param):
-            """Compute the jacobian of the cost function at polynomial curve defined by param.
+            """Compute the jacobian of the cost function at polynomial curve.
 
             Parameters
             ----------
