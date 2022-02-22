@@ -28,10 +28,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         if "dim" not in kwargs.keys():
             kwargs["dim"] = n**2
         super(GeneralLinear, self).__init__(
-            ambient_space=Matrices(n, n),
-            n=n,
-            lie_algebra=GeneralLinearLieAlgebra(n),
-            **kwargs
+            ambient_space=Matrices(n, n), n=n, lie_algebra=SquareMatrices(n), **kwargs
         )
         self.positive_det = positive_det
 
@@ -167,7 +164,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         return path
 
 
-class GeneralLinearLieAlgebra(MatrixLieAlgebra):
+class SquareMatrices(MatrixLieAlgebra):
     """Lie algebra of the general linear group.
 
     This is the space of matrices.
@@ -179,7 +176,7 @@ class GeneralLinearLieAlgebra(MatrixLieAlgebra):
     """
 
     def __init__(self, n):
-        super(GeneralLinearLieAlgebra, self).__init__(n=n, dim=n**2)
+        super(SquareMatrices, self).__init__(n=n, dim=n**2)
         self.mat_space = Matrices(n, n)
 
     def _create_basis(self):
