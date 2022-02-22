@@ -28,7 +28,7 @@ class Matrices(VectorSpace):
         geomstats.errors.check_integer(m, "m")
         self.m = m
         self.n = n
-        self.basis = gs.eye(n * m).reshape(n * m, m, n)
+        self.basis = gs.reshape(gs.eye(n * m), (n * m, m, n))
 
     def belongs(self, point, atol=gs.atol):
         """Check if point belongs to the Matrices space.
