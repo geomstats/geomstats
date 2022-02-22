@@ -232,8 +232,6 @@ class LevelSetTestData(ManifoldTestData):
 
             space = space_cls(*space_args, default_coords_type="intrinsic")
             point_intrinic = space.random_point(n_samples)
-            print("space", space_args)
-            print("in data", point_intrinic.shape)
             random_data.append(
                 dict(
                     space_args=space_args,

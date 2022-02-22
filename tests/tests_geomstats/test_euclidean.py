@@ -90,10 +90,10 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
 
         def exp_data(self):
 
-            one_tv = gs.array([0.0, 1.0])
-            one_bp = gs.array([2.0, 10.0])
-            n_tvs = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
-            n_bps = gs.array([[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]])
+            one_tangent_vec = gs.array([0.0, 1.0])
+            one_base_point = gs.array([2.0, 10.0])
+            n_tangent_vecs = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
+            n_base_points = gs.array([[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]])
             smoke_data = [
                 dict(
                     dim=2,
@@ -103,18 +103,27 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 ),
                 dict(
                     dim=2,
-                    tangent_vec=one_tv,
-                    base_point=one_bp,
-                    expected=one_tv + one_bp,
+                    tangent_vec=one_tangent_vec,
+                    base_point=one_base_point,
+                    expected=one_tangent_vec + one_base_point,
                 ),
                 dict(
-                    dim=2, tangent_vec=one_tv, base_point=n_bps, expected=one_tv + n_bps
+                    dim=2,
+                    tangent_vec=one_tangent_vec,
+                    base_point=n_base_points,
+                    expected=one_tangent_vec + n_base_points,
                 ),
                 dict(
-                    dim=2, tangent_vec=n_tvs, base_point=one_bp, expected=n_tvs + one_bp
+                    dim=2,
+                    tangent_vec=n_tangent_vecs,
+                    base_point=one_base_point,
+                    expected=n_tangent_vecs + one_base_point,
                 ),
                 dict(
-                    dim=2, tangent_vec=n_tvs, base_point=n_bps, expected=n_tvs + n_bps
+                    dim=2,
+                    tangent_vec=n_tangent_vecs,
+                    base_point=n_base_points,
+                    expected=n_tangent_vecs + n_base_points,
                 ),
             ]
             return self.generate_tests(smoke_data)
@@ -136,27 +145,27 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             return self.generate_tests(smoke_data)
 
         def inner_product_data(self):
-            tangent_vec_1 = [[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]]
-            tangent_vec_2 = [[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]]
+            n_tangent_vecs_1 = [[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]]
+            n_tangent_vecs_2 = [[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]]
             tangent_vec_3 = [0.0, 1.0]
             tangent_vec_4 = [2.0, 10.0]
             smoke_data = [
                 dict(
                     dim=2,
-                    tangent_vec_a=tangent_vec_1,
+                    tangent_vec_a=n_tangent_vecs_1,
                     tangent_vec_b=tangent_vec_4,
                     expected=[14.0, -44.0, 0.0],
                 ),
                 dict(
                     dim=2,
                     tangent_vec_a=tangent_vec_3,
-                    tangent_vec_b=tangent_vec_2,
+                    tangent_vec_b=n_tangent_vecs_2,
                     expected=[10.0, -1.0, 6.0],
                 ),
                 dict(
                     dim=2,
-                    tangent_vec_a=tangent_vec_1,
-                    tangent_vec_b=tangent_vec_2,
+                    tangent_vec_a=n_tangent_vecs_1,
+                    tangent_vec_b=n_tangent_vecs_2,
                     expected=[14.0, -12.0, 21.0],
                 ),
                 dict(

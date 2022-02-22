@@ -139,7 +139,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
 
             return self.generate_tests([], random_data)
 
-        def align_is_horizontal_data(self):
+        def log_after_align_is_horizontal_data(self):
             n_list = [2, 3]
             random_data = []
             for n in n_list:
@@ -200,7 +200,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, gs.array(True))
 
     @autograd_tf_and_torch_only
-    def test_align_is_horizontal(self, n, point_a, point_b):
+    def test_log_after_align_is_horizontal(self, n, point_a, point_b):
         bundle = self.space(n)
         aligned = bundle.align(point_a, point_b, tol=1e-10)
         log = bundle.ambient_metric.log(aligned, point_b)
@@ -226,12 +226,25 @@ class TestFullRankCorrelationAffineQuotientMetric(TestCase, metaclass=Parametriz
             random_data = [dict(dim=3, point=point)]
             return self.generate_tests([], random_data)
 
+        def exp_belongs(self):
+
+            bundle = CorrelationMatricesBundle(3)
+            base_point = bundle.base.random_point()
+            tangent_vec = bundle.base.to_tangent(bundle.random_point(), base_point)
+            smoke_data = [dict(dim=3, tangent_vec=tangent_vec, base_point=base_point)]
+            return self.generate_tests(smoke_data)
+
+    testing_data = TestDataFullRankcorrelationAffineQuotientMetric()
+
     @autograd_tf_and_torch_only
     def test_exp_log_composition(self, dim, point):
 
-        metric = FullRankCorrelationAffineQuotientMetric(dim)
+        metric = self.metric(dim)
         log = metric.log(point[1], point[0])
         result = metric.exp(log, point[0])
         self.assertAllClose(result, point[1], atol=gs.atol * 100)
 
-    testing_data = TestDataFullRankcorrelationAffineQuotientMetric()
+    def exp_belongs(self, dim, tangent_vec, base_point):
+        metric = self.metric(dim)
+        exp = metric.exp(tangent_vec, base_point)
+        self.assertAllClose(CorrelationMatricesBundle(dim).belongs(exp), True)
