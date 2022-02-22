@@ -450,7 +450,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
                 "strictly_lower_triangular",
                 "strictly_upper_triangular",
             ]
-            list_n = random.sample(range(1, 200), 50)
+            list_n = random.sample(range(1, 100), 50)
             n_samples = 50
             random_data = []
             for matrix_type in matrix_types:

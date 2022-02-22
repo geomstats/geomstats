@@ -166,7 +166,7 @@ class TestSymmetricMatrices(TestCase, metaclass=VectorSpaceParametrizer):
         self.assertAllClose(result, gs.array(expected))
 
     def test_basis(self, n, basis):
-        self.assertAllClose(SymmetricMatrices(n).get_basis(), gs.array(basis))
+        self.assertAllClose(SymmetricMatrices(n).basis, gs.array(basis))
 
     def test_expm(self, mat, expected):
         result = SymmetricMatrices.expm(gs.array(mat))

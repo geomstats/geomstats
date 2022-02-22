@@ -12,7 +12,6 @@ class TestLowerTriangularMatrices(TestCase, metaclass=VectorSpaceParametrizer):
     """Test of LowerTriangularMatrices methods."""
 
     space = LowerTriangularMatrices
-    skip_test_basis_belongs = True
 
     class TestDataLowerTriangularMatrices(VectorSpaceTestData):
         n_list = random.sample(range(2, 5), 2)
@@ -152,7 +151,7 @@ class TestLowerTriangularMatrices(TestCase, metaclass=VectorSpaceParametrizer):
         self.assertAllClose(self.space(n).to_vector(gs.array(mat)), gs.array(expected))
 
     def test_get_basis(self, n, expected):
-        self.assertAllClose(self.space(n).get_basis(), gs.array(expected))
+        self.assertAllClose(self.space(n).basis, gs.array(expected))
 
     def test_projection(self, n, point, expected):
         self.assertAllClose(

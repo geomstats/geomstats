@@ -181,7 +181,9 @@ class GeneralLinearLieAlgebra(MatrixLieAlgebra):
     def __init__(self, n):
         super(GeneralLinearLieAlgebra, self).__init__(n=n, dim=n**2)
         self.mat_space = Matrices(n, n)
-        self.basis = self.mat_space.basis
+
+    def _create_basis(self):
+        return self.mat_space.basis
 
     def basis_representation(self, matrix_representation):
         """Compute the coefficient in the usual matrix basis.
