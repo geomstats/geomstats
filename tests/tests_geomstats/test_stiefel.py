@@ -38,7 +38,7 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
         def random_point_belongs_data(self):
             smoke_space_args_list = [(2, 2), (3, 3), (4, 3), (3, 2)]
             smoke_n_points_list = [1, 2, 1, 2]
-            n_list = random.sample(range(2, 10), 5)
+            n_list = random.sample(range(2, 7), 5)
             p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
             space_args_list = list(zip(n_list, p_list))
             n_points_list = random.sample(range(1, 10), 5)
@@ -114,7 +114,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
 
     class TestDataStiefelCanonicalMetric(RiemannianMetricTestData):
 
-        n_list = random.sample(range(3, 10), 5)
+        n_list = random.sample(range(3, 8), 5)
         p_list = [random.sample(range(2, n), 1)[0] for n in n_list]
         metric_args_list = list(zip(n_list, p_list))
         shape_list = metric_args_list
@@ -182,7 +182,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 self.space_list,
                 self.shape_list,
                 self.n_tangent_vecs_list,
-                belongs_atol=gs.atol * 1000,
+                belongs_atol=gs.atol * 10000,
             )
 
         def log_is_tangent_data(self):
