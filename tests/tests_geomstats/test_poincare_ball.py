@@ -90,18 +90,18 @@ class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_exp_geodesic_ivp = True
 
     class TestDataPoincareBallMetric(RiemannianMetricTestData):
-        n_list = random.sample(range(2, 7), 5)
+        n_list = random.sample(range(2, 5), 2)
         metric_args_list = [(n,) for n in n_list]
         shape_list = [(n,) for n in n_list]
         space_list = [PoincareBall(n) for n in n_list]
-        n_points_list = random.sample(range(1, 7), 5)
-        n_samples_list = random.sample(range(1, 7), 5)
-        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_list = random.sample(range(1, 5), 2)
+        n_samples_list = random.sample(range(1, 5), 2)
+        n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 5)
-        alpha_list = [1] * 5
-        n_rungs_list = [1] * 5
-        scheme_list = ["pole"] * 5
+        batch_size_list = random.sample(range(2, 5), 2)
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
 
         def mobius_out_of_the_ball_data(self):
             smoke_data = [dict(dim=2, x=[0.7, 0.9], y=[0.2, 0.2])]

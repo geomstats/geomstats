@@ -20,7 +20,7 @@ class TestPoincarePolydisk(TestCase, metaclass=OpenSetParametrizer):
 
     class TestDataPoincarePolydisk(OpenSetTestData):
 
-        n_disks_list = random.sample(range(2, 5), 2)
+        n_disks_list = random.sample(range(2, 4), 2)
         space_args_list = [(n_disks,) for n_disks in n_disks_list]
         shape_list = [(n_disks, 3) for n_disks in n_disks_list]
         n_samples_list = random.sample(range(2, 5), 2)
@@ -46,7 +46,7 @@ class TestPoincarePolydisk(TestCase, metaclass=OpenSetParametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
-                belongs_atol=1e-3,
+                belongs_atol=1e-2,
             )
 
         def to_tangent_is_tangent_data(self):
