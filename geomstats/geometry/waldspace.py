@@ -1,7 +1,9 @@
 r"""Wald space.
 
-A metric space :math:`(\mathcal{W}\times, d_{\mathcal{W}})` for phylogenetic forests
-obtained from embedding into the strictly positive definite matrices.
+The metric space :math:`(\mathcal{W}, d_{\mathcal{W}})` obtained from embedding the
+phylogenetic forests with :math:`n` labels into the Riemannian manifold of strictly
+positive real symmetric :math:`n\times n` matrices with affine-invariant geometry, that
+is :class:`spd.SpdMetricAffine`.
 
 Lead author: Jonas Lueg
 
@@ -50,7 +52,7 @@ class WaldSpace:
         self.a = spd.SPDMatrices(n=self.n)
 
     def to_forest(self, point):
-        """Takes an array [n_samples, n, n] and gives a tuple of shape [n_samples]."""
+        """Take an array [n_samples, n, n] and give a tuple of shape [n_samples]."""
 
         def _to_forest(_point):
             """Takes an array [n, n] and gives back an element of class Wald."""
@@ -159,7 +161,7 @@ class WaldSpace:
                                         part2=div_.part2 + (_u,)))
                 # add the new label _u to every other old split correctly
                 for sp in old_splits:
-                    _part = sp.point_to_split(other=div_)
+                    _part = sp.point_to_split(other_split=div_)
                     new_splits.append(
                         Split(n=self.n, part1=sp.point_away_split(div_),
                               part2=sp.point_to_split(div_) + (_u,)))
