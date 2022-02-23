@@ -233,7 +233,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         """
         belong_point = self.belongs(point_extrinsic)
         if not gs.all(belong_point):
-            raise NameError("Point that does not belong to the hyperboloid " "found")
+            raise ValueError("Point that does not belong to the hyperboloid " "found")
         return _Hyperbolic.change_coordinates_system(
             point_extrinsic, "extrinsic", "intrinsic"
         )
