@@ -106,105 +106,105 @@ class TestHyperbolic(TestCase, metaclass=OpenSetParametrizer):
             space.extrinsic_to_intrinsic_coords(point)
 
 
-class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
-    class TestDataHyperboloidMetric(RiemannianMetricTestData):
-        def inner_product_is_minkowski_inner_product_data(self):
-            base_point = gs.array([1.16563816, 0.36381045, -0.47000603, 0.07381469])
-            tangent_vec_a = self.space.to_tangent(
-                vector=gs.array([10.0, 200.0, 1.0, 1.0]), base_point=base_point
-            )
-            tangent_vec_b = self.space.to_tangent(
-                vector=gs.array([11.0, 20.0, -21.0, 0.0]), base_point=base_point
-            )
-            smoke_data = [
-                dict(
-                    dim=3,
-                    tangent_vec_a=tangent_vec_a,
-                    tangent_vec_b=tangent_vec_b,
-                    base_point=base_point,
-                )
-            ]
-            return self.generate_tests(smoke_data)
+# class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+#     class TestDataHyperboloidMetric(RiemannianMetricTestData):
+#         def inner_product_is_minkowski_inner_product_data(self):
+#             base_point = gs.array([1.16563816, 0.36381045, -0.47000603, 0.07381469])
+#             tangent_vec_a = self.space.to_tangent(
+#                 vector=gs.array([10.0, 200.0, 1.0, 1.0]), base_point=base_point
+#             )
+#             tangent_vec_b = self.space.to_tangent(
+#                 vector=gs.array([11.0, 20.0, -21.0, 0.0]), base_point=base_point
+#             )
+#             smoke_data = [
+#                 dict(
+#                     dim=3,
+#                     tangent_vec_a=tangent_vec_a,
+#                     tangent_vec_b=tangent_vec_b,
+#                     base_point=base_point,
+#                 )
+#             ]
+#             return self.generate_tests(smoke_data)
 
-        def scaled_inner_product_data(self):
-            space = Hyperboloid(3)
-            base_point = space.from_coordinates(gs.array([1.0, 1.0, 1.0]), "intrinsic")
-            tangent_vec_a = space.to_tangent(gs.array([1.0, 2.0, 3.0, 4.0]), base_point)
-            tangent_vec_b = space.to_tangent(gs.array([5.0, 6.0, 7.0, 8.0]), base_point)
-            smoke_data = [
-                dict(
-                    dim=3,
-                    scale=2,
-                    tangent_vec_a=tangent_vec_a,
-                    tangent_vec_b=tangent_vec_b,
-                    base_point=base_point,
-                )
-            ]
-            return self.generate_tests(smoke_data)
+#         def scaled_inner_product_data(self):
+#             space = Hyperboloid(3)
+#             base_point = space.from_coordinates(gs.array([1.0, 1.0, 1.0]), "intrinsic")
+#             tangent_vec_a = space.to_tangent(gs.array([1.0, 2.0, 3.0, 4.0]), base_point)
+#             tangent_vec_b = space.to_tangent(gs.array([5.0, 6.0, 7.0, 8.0]), base_point)
+#             smoke_data = [
+#                 dict(
+#                     dim=3,
+#                     scale=2,
+#                     tangent_vec_a=tangent_vec_a,
+#                     tangent_vec_b=tangent_vec_b,
+#                     base_point=base_point,
+#                 )
+#             ]
+#             return self.generate_tests(smoke_data)
 
-        def scaled_squared_norm_data(self):
-            space = Hyperboloid(3)
-            base_point = space.from_coordinates(gs.array([1.0, 1.0, 1.0]), "intrinsic")
-            tangent_vec = space.to_tangent(gs.array([1.0, 2.0, 3.0, 4.0]), base_point)
-            smoke_data = [
-                dict(dim=3, scale=2, tangent_vec=tangent_vec, base_point=base_point)
-            ]
-            return self.generate_tests(smoke_data)
+#         def scaled_squared_norm_data(self):
+#             space = Hyperboloid(3)
+#             base_point = space.from_coordinates(gs.array([1.0, 1.0, 1.0]), "intrinsic")
+#             tangent_vec = space.to_tangent(gs.array([1.0, 2.0, 3.0, 4.0]), base_point)
+#             smoke_data = [
+#                 dict(dim=3, scale=2, tangent_vec=tangent_vec, base_point=base_point)
+#             ]
+#             return self.generate_tests(smoke_data)
 
-        def scaled_dist_data(self):
-            space = Hyperboloid(3)
-            point_a = space.from_coordinates(gs.array([1.0, 2.0, 3.0]), "intrinsic")
-            point_b = space.from_coordinates(gs.array([4.0, 5.0, 6.0]), "intrinsic")
-            smoke_data = [dict(dim=3, point_a=point_a, point_b=point_b)]
-            return self.generate_tests(smoke_data)
+#         def scaled_dist_data(self):
+#             space = Hyperboloid(3)
+#             point_a = space.from_coordinates(gs.array([1.0, 2.0, 3.0]), "intrinsic")
+#             point_b = space.from_coordinates(gs.array([4.0, 5.0, 6.0]), "intrinsic")
+#             smoke_data = [dict(dim=3, point_a=point_a, point_b=point_b)]
+#             return self.generate_tests(smoke_data)
 
-    def test_inner_product_is_minkowski_inner_product(
-        self, dim, tangent_vec_a, tangent_vec_b, base_point
-    ):
-        metric = self.metric(dim)
-        minkowki_space = Minkowski(dim + 1)
-        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        expected = minkowki_space.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-        self.assertAllClose(result, expected)
+#     def test_inner_product_is_minkowski_inner_product(
+#         self, dim, tangent_vec_a, tangent_vec_b, base_point
+#     ):
+#         metric = self.metric(dim)
+#         minkowki_space = Minkowski(dim + 1)
+#         result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+#         expected = minkowki_space.metric.inner_product(
+#             tangent_vec_a, tangent_vec_b, base_point
+#         )
+#         self.assertAllClose(result, expected)
 
-    def test_scaled_inner_product(
-        self, dim, scale, tangent_vec_a, tangent_vec_b, base_point
-    ):
-        default_space = Hyperboloid(dim=dim)
-        scaled_space = Hyperboloid(dim=dim, scale=scale)
-        inner_product_default_metric = default_space.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-        inner_product_scaled_metric = scaled_space.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-        result = inner_product_scaled_metric
-        expected = scale**2 * inner_product_default_metric
-        self.assertAllClose(result, expected)
+#     def test_scaled_inner_product(
+#         self, dim, scale, tangent_vec_a, tangent_vec_b, base_point
+#     ):
+#         default_space = Hyperboloid(dim=dim)
+#         scaled_space = Hyperboloid(dim=dim, scale=scale)
+#         inner_product_default_metric = default_space.metric.inner_product(
+#             tangent_vec_a, tangent_vec_b, base_point
+#         )
+#         inner_product_scaled_metric = scaled_space.metric.inner_product(
+#             tangent_vec_a, tangent_vec_b, base_point
+#         )
+#         result = inner_product_scaled_metric
+#         expected = scale**2 * inner_product_default_metric
+#         self.assertAllClose(result, expected)
 
-    def test_scaled_squred_norm(self, dim, scale, tangent_vec, base_point):
-        default_space = Hyperboloid(dim=dim)
-        scaled_space = Hyperboloid(dim=dim, scale=scale)
-        squared_norm_default_metric = default_space.metric.squared_norm(
-            tangent_vec, base_point
-        )
-        squared_norm_scaled_metric = scaled_space.metric.squared_norm(
-            tangent_vec, base_point
-        )
-        result = squared_norm_scaled_metric
-        expected = scale**2 * squared_norm_default_metric
-        self.assertAllClose(result, expected)
+#     def test_scaled_squred_norm(self, dim, scale, tangent_vec, base_point):
+#         default_space = Hyperboloid(dim=dim)
+#         scaled_space = Hyperboloid(dim=dim, scale=scale)
+#         squared_norm_default_metric = default_space.metric.squared_norm(
+#             tangent_vec, base_point
+#         )
+#         squared_norm_scaled_metric = scaled_space.metric.squared_norm(
+#             tangent_vec, base_point
+#         )
+#         result = squared_norm_scaled_metric
+#         expected = scale**2 * squared_norm_default_metric
+#         self.assertAllClose(result, expected)
 
-    def test_scaled_dist(self, dim, scale, point_a, point_b):
-        default_space = Hyperboloid(dim=dim)
-        scaled_space = Hyperboloid(dim=dim, scale=scale)
-        distance_default_metric = default_space.metric.dist(point_a, point_b)
-        distance_scaled_metric = scaled_space.metric.dist(point_a, point_b)
-        result = distance_scaled_metric
-        expected = scale * distance_default_metric
-        self.assertAllClose(result, expected)
+#     def test_scaled_dist(self, dim, scale, point_a, point_b):
+#         default_space = Hyperboloid(dim=dim)
+#         scaled_space = Hyperboloid(dim=dim, scale=scale)
+#         distance_default_metric = default_space.metric.dist(point_a, point_b)
+#         distance_scaled_metric = scaled_space.metric.dist(point_a, point_b)
+#         result = distance_scaled_metric
+#         expected = scale * distance_default_metric
+#         self.assertAllClose(result, expected)
 
 
 # class TestHyperbolic(geomstats.tests.TestCase):
