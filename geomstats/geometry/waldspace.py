@@ -1,4 +1,4 @@
-r""" Wald space.
+r"""Wald space.
 
 A metric space :math:`(\mathcal{W}\times, d_{\mathcal{W}})` for phylogenetic forests
 obtained from embedding into the strictly positive definite matrices.
@@ -35,8 +35,8 @@ import geomstats.geometry.spd_matrices as spd
 from geomstats.geometry.trees import Split, Structure, Wald
 
 
-class WaldSpace(object):
-    """ Class for the Wald space, a metric space for phylogenetic forests.
+class WaldSpace:
+    """Class for the Wald space, a metric space for phylogenetic forests.
 
     Parameters
     ----------
@@ -50,9 +50,10 @@ class WaldSpace(object):
         self.a = spd.SPDMatrices(n=self.n)
 
     def to_forest(self, point):
-        """ Takes an array [n_samples, n, n] and gives a tuple of shape [n_samples]. """
+        """Takes an array [n_samples, n, n] and gives a tuple of shape [n_samples]."""
 
         def _to_forest(_point):
+            """Takes an array [n, n] and gives back an element of class Wald."""
             _dist = gs.maximum(0, -gs.log(_point))
             _st = compute_structure_from_dist(dist=_dist, btol=10 ** -10)
             _ells = gs.array([compute_length_of_split_from_dist(sp, dist=_dist)
@@ -62,9 +63,7 @@ class WaldSpace(object):
 
         if len(point.shape) == 2:
             return _to_forest(_point=point)
-        else:
-            return tuple([_to_forest(_point=point[i, :, :])
-                          for i in range(point.shape[0])])
+        return tuple([_to_forest(_point=point[i, :, :]) for i in range(point.shape[0])])
 
     def belongs(self, point, atol=gs.atol):
         """Check if a point `wald` belongs to Wald space.
@@ -81,6 +80,7 @@ class WaldSpace(object):
             Boolean denoting if `wald` belongs to Wald space.
         """
         def _belongs(p):
+            """Takes a point (an array) and checks whether it belongs to WaldSpace."""
             if not self.a.belongs(p):
                 return False
             for i in range(self.n):
@@ -96,8 +96,7 @@ class WaldSpace(object):
 
         if len(point.shape) == 2:
             return _belongs(p=point)
-        else:
-            return gs.array([_belongs(w) for w in point])
+        return gs.array([_belongs(w) for w in point])
 
     def random_point(self, n_samples=1, btol=1e-08, prob=0.9):
         """Sample a random point in Wald space.
@@ -120,24 +119,25 @@ class WaldSpace(object):
         """
 
         def _generate_partition(_prob):
-            """ Generates a random partition of ``range(self.n)``. """
+            """Generates a random partition of ``range(self.n)``."""
             # start with sampling the connected components.
             _partition = [[0]]
             for u in range(1, self.n):
                 # decide whether new component is constructed
                 if gs.random.rand(1) < _prob:
                     # add label to random existing component
-                    _partition[int(gs.random.randint(0, len(_partition), (1,)))].append(u)
+                    comp_idx = int(gs.random.randint(0, len(_partition), (1,)))
+                    _partition[comp_idx].append(u)
                 else:
                     # construct new component
                     _partition.append([u])
             return _partition
 
         def _generate_splits(labels):
-            """ Generates random maximal set of compatible splits of set ``labels``. """
+            """Generates random maximal set of compatible splits of set ``labels``."""
             # there are no splits of sets consisting of one element
             if len(labels) <= 1:
-                return tuple()
+                return ()
             labels = labels.copy()
             _u = labels.pop(int(gs.random.randint(0, len(labels), (1,))))
             _v = labels.pop(int(gs.random.randint(0, len(labels), (1,))))
@@ -151,24 +151,29 @@ class WaldSpace(object):
                 # split representing the pendant edge at the leaf
                 new_splits = [Split(n=self.n, part1=(_u,), part2=tuple(new_labels))]
                 # random edge that gets divided
-                div_split = old_splits.pop(int(gs.random.randint(0, len(old_splits), (1,))))
+                div_ = old_splits.pop(int(gs.random.randint(0, len(old_splits), (1,))))
                 # create two parts from old divided edge
-                new_splits.append(Split(n=self.n, part1=div_split.part1 + (_u,),
-                                        part2=div_split.part2))
-                new_splits.append(Split(n=self.n, part1=div_split.part1,
-                                        part2=div_split.part2 + (_u,)))
+                new_splits.append(Split(n=self.n, part1=div_.part1 + (_u,),
+                                        part2=div_.part2))
+                new_splits.append(Split(n=self.n, part1=div_.part1,
+                                        part2=div_.part2 + (_u,)))
                 # add the new label _u to every other old split correctly
                 for sp in old_splits:
-                    _part = sp.point_to_split(other=div_split)
+                    _part = sp.point_to_split(other=div_)
                     new_splits.append(
-                        Split(n=self.n, part1=sp.point_away_split(div_split),
-                              part2=sp.point_to_split(div_split) + (_u,)))
+                        Split(n=self.n, part1=sp.point_away_split(div_),
+                              part2=sp.point_to_split(div_) + (_u,)))
                 new_labels.append(_u)
                 old_splits = new_splits
             return old_splits
 
+        def _check_separability(splits, labels):
+            """Checks if exists at least one split between each pair of labels."""
+            return gs.all([gs.any([sp.separates(_u, _v) for sp in splits]) for _u, _v in
+                           it.combinations(labels, 2)])
+
         def _delete_random_edges(splits, labels, probability):
-            """ Given set of ``splits`` of set of ``labels``, delete random splits. """
+            """Given set of ``splits`` of set of ``labels``, delete random splits."""
             if probability == 1:
                 return splits
             # random decide whether to delete splits, starting from the last split
@@ -185,13 +190,8 @@ class WaldSpace(object):
             print(f"Test 2 -- splits are {splits}.")
             return splits
 
-        def _check_separability(splits, labels):
-            """ Checks if exists at least one split between each pair of labels. """
-            return gs.all([gs.any([sp.separates(_u, _v) for sp in splits]) for _u, _v in
-                           it.combinations(labels, 2)])
-
         def _generate_wald(_prob):
-            """ Generates a random wald. """
+            """Generates a random wald."""
             # generate random partition
             partition = _generate_partition(_prob=_prob)
             # generate random sets of splits for each component of the partition
@@ -216,8 +216,7 @@ class WaldSpace(object):
             print(sample)
             print(sample.x.shape)
             return sample.corr
-        else:
-            return gs.array([_generate_wald(_prob=prob).corr for _ in range(n_samples)])
+        return gs.array([_generate_wald(_prob=prob).corr for _ in range(n_samples)])
 
 
 def equivalence_partition(group, relation):
@@ -255,8 +254,7 @@ def equivalence_partition(group, relation):
 
 
 def compute_structure_from_dist(dist, btol=10 ** -10):
-    """ Computes the split representation of a forest characterized by a distance matrix
-     that can have entries = inf."""
+    """Computes the structure induced by a distance matrix, entries = inf possible."""
     _n = dist.shape[0]
     _partition, _ = equivalence_partition(group=range(_n),
                                           relation=lambda i, j: dist[i, j] < math.inf)
@@ -268,7 +266,7 @@ def compute_structure_from_dist(dist, btol=10 ** -10):
 
 
 def _compute_splits_from_sub_dist(sub_dist, sub_labels, btol=10 ** -10):
-    """ Computes the split representation of a single tree characterized by a distance
+    """Computes the split representation of a single tree characterized by a distance
     matrix.
 
     The label set might be smaller than the dimension of dist, in which case,
@@ -278,7 +276,7 @@ def _compute_splits_from_sub_dist(sub_dist, sub_labels, btol=10 ** -10):
     # test if we have only one label, then we have zero splits. note that sub_dist might
     # be bigger!
     if len(sub_labels) == 1:
-        return tuple()
+        return ()
 
     # plan is the following:
     # generate all pairs, i.e. sets of the form {i, j}
@@ -361,7 +359,7 @@ def _compute_splits_from_sub_dist(sub_dist, sub_labels, btol=10 ** -10):
 
 
 def compute_length_of_split_from_dist(split: Split, dist):
-    """ Gives back the supposed length of a split according to the dist matrix dist."""
+    """Gives back the supposed length of a split according to the dist matrix dist."""
     if not split:  # if one part is empty, define this as minus infinity.
         return -math.inf
 
@@ -378,7 +376,7 @@ def compute_length_of_split_from_dist(split: Split, dist):
 
 
 def neighbours(st: Structure, sp: Split):
-    """ Returns structures at the boundary of ``st`` with split ``sp``.
+    """Returns structures at the boundary of ``st`` with split ``sp``.
 
     Essentially gives the structures that are obtained when a nearest neighbour
     interchange is performed, that are those two fully resolved tree topologies adjacent
@@ -400,7 +398,7 @@ def neighbours(st: Structure, sp: Split):
     """
     # assume that split 'sp' splits into (set_a + set_b) vs. (set_c + set_d)
     set_a, set_b, set_c, set_d = set(), set(), set(), set()
-    set_ab, set_cd = set(sp.part1), set(sp.part2)
+    set_ab = set(sp.part1)
     rest_dict = {s: set(s.point_away_split(sp)) for s in st.split_sets[0]
                  if s != sp}
     empty_count = 4  # stop if all sets (set_a, ..., set_d) are filled with something.

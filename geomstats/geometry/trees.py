@@ -13,7 +13,7 @@ import geomstats.backend as gs
 
 
 @functools.total_ordering
-class Split(object):
+class Split:
     r""" A non-empty two-set partition of a set.
 
     We also allow splits to be a two-set partition of a smaller subset of {0,...,n-1},
@@ -49,13 +49,13 @@ class Split(object):
             self._part2 = part2 if part1[0] < part2[0] else part1
         elif not part1:
             self._part1 = part2
-            self._part2 = tuple()
+            self._part2 = ()
         elif not part2:
             self._part1 = part1
-            self._part2 = tuple()
+            self._part2 = ()
         else:
-            self._part1 = tuple()
-            self._part2 = tuple()
+            self._part1 = ()
+            self._part2 = ()
         # TODO: the parameter n could be dropped theoretically...
         self._n = n
 
@@ -111,7 +111,7 @@ class Split(object):
             Determines whether u and v are separated by the split (i.e. if they are not
             in the same part).
         """
-        if type(u) == type(v) == int:
+        if type(u) is type(v) is int:
             return (u in self.part1 and v in self.part2) or (
                     u in self.part2 and v in self.part1)
         b1 = set(u).issubset(set(self.part1)) and set(v).issubset(set(self.part2))
@@ -162,7 +162,7 @@ class Split(object):
         return bool(self.part1) and bool(self.part2)
 
 
-class Structure(object):
+class Structure:
     r""" A structure of a forest, that is the connected components and the edges.
 
     Parameters
@@ -186,11 +186,11 @@ class Structure(object):
         # make some assertions about the given parameters.
         # same number of components in both partition and split_sets
         if len(split_sets) != len(partition):
-            raise ValueError(f"Number of split sets is not equal to number of "
-                             f"components.")
+            raise ValueError("Number of split sets is not equal to number of "
+                             "components.")
         # all parts of partition give the whole set of labels.
         if set.union(*[set(part) for part in partition]) != set(range(n)):
-            raise ValueError(f"partition is not a partition of the set (1,2,...,n).")
+            raise ValueError("partition is not a partition of the set (1,2,...,n).")
         # each split is a proper split of the label set of its component.
         for _part, _splits in zip(partition, split_sets):
             for _sp in _splits:
@@ -208,7 +208,6 @@ class Structure(object):
         self._leaf_paths = None
         self._separators = None
         self._support = None
-        self._chart = None
         self._chart_gradient = None
 
     @property
@@ -247,7 +246,7 @@ class Structure(object):
 
     @property
     def support(self):
-        """ For each split, gives a boolean matrix with entries indicating separation.
+        r""" For each split, gives a boolean matrix with entries indicating separation.
 
         Returns
         -------
@@ -288,35 +287,33 @@ class Structure(object):
                                       range(len(lengths))]
         return self._separators
 
-    @property
-    def chart(self):
-        """ Computes the chart of a grove with structure `st`.
+    def chart(self, x):
+        """ Computes the chart of a grove with structure `self` at coordinate `x`.
+
+        Parameters
+        ----------
+        x : array-like, shape=[n_edges]
+            Takes a vector of length 'number of total splits' of the structure.
 
         Returns
         -------
-        chart : callable
-            A map that takes as input a vector of length 'number of total splits',
-            and returns the corresponding correlation matrix.
+        corr : array-like, shape=[n, n]
+            Returns the corresponding correlation matrix.
         """
-        if self._chart is None:
-            def _chart(x):
-                """ Input is a flat vector or list x (Nye parametrization). """
-                _w = self.ravel(x=x)
-                _corr = [[0 for _ in range(self.n)] for _ in range(self.n)]
-                for i, d in enumerate(self.leaf_paths):
-                    for (u, v), split_indices in d.items():
-                        if len(split_indices):
-                            _corr[u][v] = gs.prod(gs.array([1 - _w[i][k] for k in split_indices]))
-                        else:
-                            _corr[u][v] = 1
-                        _corr[v][u] = _corr[u][v]
-                # TODO use gs.fill_diagonal here, but it is not implemented yet
-                for u in range(self.n):
-                    _corr[u][u] = 1
-                return gs.array(_corr, dtype=gs.float32)
-
-            self._chart = _chart
-        return self._chart
+        _w = self.ravel(x=x)
+        _corr = [[0 for _ in range(self.n)] for _ in range(self.n)]
+        for i, d in enumerate(self.leaf_paths):
+            for (u, v), split_indices in d.items():
+                if len(split_indices):
+                    _corr[u][v] = gs.prod(gs.array([1 - _w[i][k]
+                                                    for k in split_indices]))
+                else:
+                    _corr[u][v] = 1
+                _corr[v][u] = _corr[u][v]
+        # TODO use gs.fill_diagonal here, but it is not implemented yet
+        for u in range(self.n):
+            _corr[u][u] = 1
+        return gs.array(_corr, dtype=gs.float32)
 
     @property
     def chart_gradient(self):
@@ -333,8 +330,8 @@ class Structure(object):
                 """ Input is a flat vector or list x (Nye parametrization). """
                 coord_list = [[y if i != k else 0 for i, y in enumerate(x)] for k in
                               range(len(x))]
-                _corr_gradient = [self.support[k] * -self.chart(xk) for k, xk in
-                                  enumerate(coord_list)]
+                _corr_gradient = [self.support[k] * -self.chart(xk)
+                                  for k, xk in enumerate(coord_list)]
                 return _corr_gradient
 
             self._chart_gradient = _chart_gradient
@@ -380,6 +377,8 @@ class Structure(object):
         other : Structure
             The structure to which self is compared to.
         """
+        class MyCheckException(Exception):
+            pass
         xs = [set(x) for x in self.partition]
         ys = [set(y) for y in other.partition]
         # ----- check out condition 1. of the partial ordering -----
@@ -395,17 +394,19 @@ class Structure(object):
                 # the corresponding component.
                 restr_other_splits = {sp_y.restr(subset=xs[i]) for sp_y in
                                       other.split_sets[x_to_y[i]]}
-                assert set(splits).issubset(restr_other_splits)
-        except AssertionError:
+                if not set(splits).issubset(restr_other_splits):
+                    raise MyCheckException()
+        except MyCheckException:
             return False
         # ----- check out condition 3. of the partial ordering -----
         try:
-            for j, y in enumerate(ys):
+            for j in range(len(ys)):
                 xs_in_y = [x for i, x in enumerate(xs) if x_to_y[i] == j]
                 for x1, x2 in it.combinations(xs_in_y, r=2):
-                    assert len([sp for sp in other.split_sets[j] if
-                                sp.separates(x1, x2)]) != 0
-        except AssertionError:
+                    sep_sp = [sp for sp in other.split_sets[j] if sp.separates(x1, x2)]
+                    if len(sep_sp) == 0:
+                        raise MyCheckException()
+        except MyCheckException:
             return False
 
         # ----- all conditions are satisfied -> it is indeed a partial ordering! -----
@@ -428,7 +429,7 @@ class Structure(object):
         return hash(str(self))
 
 
-class Wald(object):
+class Wald:
     r""" A class for phylogenetic forests, elements of the Wald space.
 
     Parameters
@@ -447,7 +448,6 @@ class Wald(object):
         self._st: Structure = st
         self._x = x
         self._corr = None
-        return
 
     @property
     def st(self) -> Structure:
