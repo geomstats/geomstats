@@ -1,5 +1,4 @@
 """Unit tests for the Hyperbolic space."""
-import math
 import random
 
 import pytest
@@ -7,7 +6,6 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.minkowski import Minkowski
-from geomstats.geometry.poincare_ball import PoincareBall
 from tests.conftest import TestCase
 from tests.data_generation import OpenSetTestData, RiemannianMetricTestData
 from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
