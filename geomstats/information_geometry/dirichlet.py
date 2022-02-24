@@ -146,7 +146,7 @@ class DirichletDistributions(OpenSet):
             parameters provided by point.
         """
         geomstats.errors.check_belongs(point, self)
-        point = gs.expand_dims(point, 0)
+        point = gs.to_ndarray(point, to_ndim=2)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
