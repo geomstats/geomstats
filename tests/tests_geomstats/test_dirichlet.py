@@ -92,6 +92,20 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
     def test_point_to_pdf(self):
         """Test point_to_pdf.
 
+        Check the computation of the pdf.
+        """
+        point = self.dirichlet.random_point()
+        pdf = self.dirichlet.point_to_pdf(point)
+        alpha = gs.ones(self.dim)
+        samples = self.dirichlet.sample(alpha, self.n_samples)
+        result = pdf(samples)
+        expected = [dirichlet.pdf(x, point) for x in samples]
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_point_to_pdf_vectorization(self):
+        """Test point_to_pdf.
+
         Check vectorization of the computation of the pdf.
         """
         n_points = 2

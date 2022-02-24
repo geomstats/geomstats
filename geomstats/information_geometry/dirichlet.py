@@ -146,6 +146,7 @@ class DirichletDistributions(OpenSet):
             parameters provided by point.
         """
         geomstats.errors.check_belongs(point, self)
+        point = gs.expand_dims(point, 0)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
@@ -165,7 +166,7 @@ class DirichletDistributions(OpenSet):
             pdf_at_x = []
             for param in point:
                 pdf_at_x.append([gs.array(dirichlet.pdf(pt, param)) for pt in x])
-            pdf_at_x = gs.stack(pdf_at_x, axis=0)
+            pdf_at_x = gs.squeeze(gs.stack(pdf_at_x, axis=0))
 
             return pdf_at_x
 
