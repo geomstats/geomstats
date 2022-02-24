@@ -22,87 +22,6 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
             expected = n * (n - 1) / 2
             self.assertAllClose(result, expected)
 
-    def test_belongs(self):
-        theta = gs.pi / 3
-        point_1 = gs.array(
-            [[gs.cos(theta), -gs.sin(theta)], [gs.sin(theta), gs.cos(theta)]]
-        )
-        result = self.group.belongs(point_1)
-        self.assertTrue(result)
-
-        point_2 = gs.array(
-            [[gs.cos(theta), gs.sin(theta)], [gs.sin(theta), gs.cos(theta)]]
-        )
-        result = self.group.belongs(point_2)
-        self.assertFalse(result)
-
-        point = gs.array([point_1, point_2])
-        expected = gs.array([True, False])
-        result = self.group.belongs(point)
-        self.assertAllClose(result, expected)
-
-        point = point_1[0]
-        result = self.group.belongs(point)
-        self.assertFalse(result)
-
-        point = gs.zeros((2, 3))
-        result = self.group.belongs(point)
-        self.assertFalse(result)
-
-        point = gs.zeros((2, 2, 3))
-        result = self.group.belongs(point)
-        self.assertFalse(gs.all(result))
-
-    def test_random_uniform_and_belongs(self):
-        point = self.group.random_uniform()
-        result = self.group.belongs(point)
-        expected = True
-        self.assertAllClose(result, expected)
-
-        point = self.group.random_uniform(self.n_samples)
-        result = self.group.belongs(point)
-        expected = gs.array([True] * self.n_samples)
-        self.assertAllClose(result, expected)
-
-    def test_identity(self):
-        result = self.group.identity
-        expected = gs.eye(self.n)
-        self.assertAllClose(result, expected)
-
-    def test_is_in_lie_algebra(self):
-        theta = gs.pi / 3
-        vec_1 = gs.array([[0.0, -theta], [theta, 0.0]])
-        result = self.group.is_tangent(vec_1)
-        self.assertTrue(result)
-
-        vec_2 = gs.array([[0.0, -theta], [theta, 1.0]])
-        result = self.group.is_tangent(vec_2)
-        self.assertFalse(result)
-
-        vec = gs.array([vec_1, vec_2])
-        result = self.group.is_tangent(vec)
-        expected = gs.array([True, False])
-        self.assertAllClose(result, expected)
-
-    def test_is_tangent(self):
-        point = self.group.random_uniform()
-        theta = 1.0
-        vec_1 = gs.array([[0.0, -theta], [theta, 0.0]])
-        vec_1 = self.group.compose(point, vec_1)
-        result = self.group.is_tangent(vec_1, point)
-        self.assertTrue(result)
-
-        vec_2 = gs.array([[0.0, -theta], [theta, 1.0]])
-        vec_2 = self.group.compose(point, vec_2)
-        result = self.group.is_tangent(vec_2, point)
-        self.assertFalse(result)
-
-        vec = gs.array([vec_1, vec_2])
-        point = gs.array([point, point])
-        expected = gs.array([True, False])
-        result = self.group.is_tangent(vec, point)
-        self.assertAllClose(result, expected)
-
     def test_to_tangent(self):
         theta = 1.0
         vec_1 = gs.array([[0.0, -theta], [theta, 0.0]])
@@ -116,28 +35,6 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         result = self.group.to_tangent(tangent_vecs, base_points)
         expected = tangent_vecs
         self.assertAllClose(result, expected)
-
-    def test_projection_and_belongs(self):
-        gs.random.seed(4)
-        shape = (self.n_samples, self.n, self.n)
-        result = helper.test_projection_and_belongs(self.group, shape, gs.atol * 100)
-        for res in result:
-            self.assertTrue(res)
-
-    def test_skew_to_vec_and_back(self):
-        group = SpecialOrthogonal(n=4)
-        vec = gs.random.rand(group.dim)
-        mat = group.skew_matrix_from_vector(vec)
-        result = group.vector_from_skew_matrix(mat)
-        self.assertAllClose(result, vec)
-
-    def test_parallel_transport(self):
-        metric = self.group.bi_invariant_metric
-        shape = (self.n_samples, self.group.n, self.group.n)
-
-        results = helper.test_parallel_transport(self.group, metric, shape)
-        for res in results:
-            self.assertTrue(res)
 
     def test_metric_left_invariant(self):
         group = self.group
@@ -194,55 +91,6 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         rotation_mat2 = gs.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
         with pytest.raises(ValueError):
             self.so3.log(rotation_mat1, rotation_mat2)
-
-    def test_matrix_from_rotation_vector(self):
-        group = SpecialOrthogonal(n=3)
-        rot_vec_0 = gs.array([0.0, 0.0, 0.0])
-        result = group.matrix_from_rotation_vector(rot_vec_0)
-        expected = gs.eye(3)
-        self.assertAllClose(result, expected)
-
-        rot_vec_1 = gs.array([gs.pi / 3.0, 0.0, 0.0])
-        result = group.matrix_from_rotation_vector(rot_vec_1)
-        expected = gs.array(
-            [
-                [1.0, 0.0, 0.0],
-                [0.0, 0.5, -gs.sqrt(3.0) / 2],
-                [0.0, gs.sqrt(3.0) / 2, 0.5],
-            ]
-        )
-        self.assertAllClose(result, expected)
-
-        rot_vec_3 = 1e-11 * gs.array([12.0, 1.0, -81.0])
-        angle = gs.linalg.norm(rot_vec_3)
-        skew_rot_vec_3 = 1e-11 * gs.array(
-            [[0.0, 81.0, 1.0], [-81.0, 0.0, -12.0], [-1.0, 12.0, 0.0]]
-        )
-        coef_1 = gs.sin(angle) / angle
-        coef_2 = (1.0 - gs.cos(angle)) / (angle**2)
-        expected = (
-            gs.eye(3)
-            + coef_1 * skew_rot_vec_3
-            + coef_2 * gs.matmul(skew_rot_vec_3, skew_rot_vec_3)
-        )
-        result = group.matrix_from_rotation_vector(rot_vec_3)
-        self.assertAllClose(result, expected)
-
-        rot_vec_6 = gs.array([0.1, 1.3, -0.5])
-        angle = gs.linalg.norm(rot_vec_6)
-        skew_rot_vec_6 = gs.array(
-            [[0.0, 0.5, 1.3], [-0.5, 0.0, -0.1], [-1.3, 0.1, 0.0]]
-        )
-
-        coef_1 = gs.sin(angle) / angle
-        coef_2 = (1 - gs.cos(angle)) / (angle**2)
-        result = group.matrix_from_rotation_vector(rot_vec_6)
-        expected = (
-            gs.eye(3)
-            + coef_1 * skew_rot_vec_6
-            + coef_2 * gs.matmul(skew_rot_vec_6, skew_rot_vec_6)
-        )
-        self.assertAllClose(result, expected)
 
     def test_matrix_from_rotation_vector_vectorization(self):
         n_samples = self.n_samples
