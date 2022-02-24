@@ -170,7 +170,6 @@ class WaldSpace:
                 )
                 # add the new label _u to every other old split correctly
                 for sp in old_splits:
-                    # _part = sp.point_to_split(other_split=div_)
                     new_splits.append(
                         Split(
                             n=self.n,
