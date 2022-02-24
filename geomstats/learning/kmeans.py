@@ -6,6 +6,7 @@ Lead author: Hadi Zaatiti.
 import logging
 from random import randint
 
+from scipy.stats import rv_discrete
 from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
@@ -75,6 +76,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.max_iter_mean = max_iter_mean
 
         self.centroids = None
+        self.init_centroids = None
 
     def fit(self, X):
         """Provide clusters centroids and data labels.
@@ -97,11 +99,26 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             Centroids.
         """
         n_samples = X.shape[0]
-        self.centroids = [
-            gs.expand_dims(X[randint(0, n_samples - 1)], 0)
-            for i in range(self.n_clusters)
-        ]
-        self.centroids = gs.concatenate(self.centroids, axis=0)
+        if self.init == "kmeans++":
+            centroids = [gs.expand_dims(X[randint(0, n_samples - 1)], 0)]
+            for i in range(self.n_clusters - 1):
+                dists = [
+                    gs.to_ndarray(self.metric.dist(centroids[j], X), 2, 1)
+                    for j in range(i + 1)
+                ]
+                dists = gs.hstack(dists)
+                dists_to_closest_centroid = gs.amin(dists, 1)
+                indices = gs.arange(n_samples)
+                weights = dists_to_closest_centroid / gs.sum(dists_to_closest_centroid)
+                index = rv_discrete(values=(indices, weights)).rvs()
+                centroids.append(gs.expand_dims(X[index], 0))
+        else:
+            centroids = [
+                gs.expand_dims(X[randint(0, n_samples - 1)], 0)
+                for i in range(self.n_clusters)
+            ]
+        self.centroids = gs.concatenate(centroids, axis=0)
+        self.init_centroids = gs.concatenate(centroids, axis=0)
         index = 0
         while index < self.max_iter:
             index += 1
