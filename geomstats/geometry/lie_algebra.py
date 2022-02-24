@@ -109,7 +109,7 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
     def matrix_representation(self, basis_representation):
         """Compute the matrix representation for the given basis coefficients.
 
-        Sums the basis elements according to the coefficents given in
+        Sums the basis elements according to the coefficients given in
         basis_representation.
 
         Parameters
