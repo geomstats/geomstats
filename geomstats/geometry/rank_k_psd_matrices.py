@@ -4,14 +4,18 @@ Lead author: Anna Calissano.
 """
 
 import geomstats.backend as gs
+from geomstats.geometry.fiber_bundle import FiberBundle
+from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricBuresWasserstein,
     SPDMetricEuclidean,
 )
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
@@ -179,8 +183,6 @@ class RankKPSDMatrices(Manifold):
         return vector_sym - Matrices.mul(rr, vector_sym, rr)
 
 
-PSDMetricBuresWasserstein = SPDMetricBuresWasserstein
-
 PSDMetricEuclidean = SPDMetricEuclidean
 
 
@@ -212,3 +214,96 @@ class PSDMatrices(RankKPSDMatrices, SPDMatrices):
         if n == k:
             return SPDMatrices(n, **kwargs)
         raise NotImplementedError("The PSD matrices is not implemented yet.")
+
+
+class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
+    """Class for the quotient structure on PSD matrices."""
+
+    def __init__(self, n, k):
+        super(BuresWassersteinBundle, self).__init__(
+            m=n,
+            n=k,
+            base=PSDMatrices(n, k),
+            group=SpecialOrthogonal(k),
+            ambient_metric=MatricesMetric(n, k),
+        )
+        self.k = k
+
+    @staticmethod
+    def riemannian_submersion(point):
+        """Project."""
+        return Matrices.mul(point, Matrices.transpose(point))
+
+    def tangent_riemannian_submersion(self, tangent_vec, base_point):
+        """Differential."""
+        product = Matrices.mul(base_point, Matrices.transpose(tangent_vec))
+        return 2 * Matrices.to_symmetric(product)
+
+    def lift(self, point):
+        """Find a representer in top space."""
+        eigvals, eigvecs = gs.linalg.eigh(point)
+        return gs.einsum("...ij,...j->...ij", eigvecs, eigvals[..., : self.k] ** 0.5)
+
+    def vertical_projection(self, tangent_vec, base_point, return_skew=False):
+        r"""Project to vertical subspace.
+
+        Compute the vertical component of a tangent vector :math:`w` at a
+        base point :math:`x` by solving the sylvester equation:
+        .. math::
+                        `Axx^T + xx^TA = wx^T - xw^T`
+
+        where A is skew-symmetric. Then Ax is the vertical projection of w.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, k]
+            Tangent vector to the pre-shape space at `base_point`.
+        base_point : array-like, shape=[..., n, k]
+            Point on the pre-shape space.
+        return_skew : bool
+            Whether to return the skew-symmetric matrix A.
+            Optional, default: False
+
+        Returns
+        -------
+        vertical : array-like, shape=[..., n, k]
+            Vertical component of `tangent_vec`.
+        skew : array-like, shape=[..., m_ambient, m_ambient]
+            Vertical component of `tangent_vec`.
+        """
+        transposed_point = Matrices.transpose(base_point)
+        left_term = gs.matmul(transposed_point, base_point)
+        alignment = gs.matmul(Matrices.transpose(tangent_vec), base_point)
+        right_term = alignment - Matrices.transpose(alignment)
+        skew = gs.linalg.solve_sylvester(left_term, left_term, right_term)
+
+        vertical = -gs.matmul(base_point, skew)
+        return (vertical, skew) if return_skew else vertical
+
+    def align(self, point, base_point, **kwargs):
+        """Align point to base_point.
+
+        Find the optimal rotation R in SO(m) such that the base point and
+        R.point are well positioned.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, k]
+            Point on the manifold.
+        base_point : array-like, shape=[..., n, k]
+            Point on the manifold.
+
+        Returns
+        -------
+        aligned : array-like, shape=[..., n, k]
+            R.point.
+        """
+        return Matrices.align_matrices(base_point, point)
+
+
+class PSDMetricBuresWasserstein(QuotientMetric):
+    """Bures-Wasserstein metric for fixed rank PSD matrices."""
+
+    def __init__(self, n, k):
+        fiber_bundle = BuresWassersteinBundle(n, k)
+        super(PSDMetricBuresWasserstein, self).__init__(fiber_bundle=fiber_bundle)
