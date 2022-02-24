@@ -29,7 +29,7 @@ class VectorSpace(Manifold, abc.ABC):
             kwargs["dim"] = int(gs.prod(gs.array(shape)))
         super(VectorSpace, self).__init__(shape=shape, **kwargs)
         self.shape = shape
-        self.basis = None
+        self._basis = None
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the vector space.
@@ -148,7 +148,7 @@ class VectorSpace(Manifold, abc.ABC):
 
     @basis.setter
     def basis(self, basis):
-        if basis is not None and len(basis) < self.dim:
+        if len(basis) < self.dim:
             raise ValueError(
                 "The basis should have length equal to the " "dimension of the space."
             )

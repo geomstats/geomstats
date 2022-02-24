@@ -36,7 +36,6 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
         geomstats.errors.check_integer(dim, "dim")
         geomstats.errors.check_integer(n, "n")
         self.dim = dim
-        self.basis = None
         self.n = n
 
     bracket = Matrices.bracket
