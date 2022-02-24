@@ -389,3 +389,30 @@ class TestDirichletDistributions(geomstats.tests.TestCase):
         result = helper.test_projection_and_belongs(self.dirichlet, shape)
         for res in result:
             self.assertTrue(res)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_approx_geodesic_bvp(self):
+        """Test approximate solution to geodesic boundary value problem.
+
+        Check that the distance given by the approximate solution is close
+        to the exact solution.
+        """
+        point_a = self.dirichlet.random_point()
+        point_b = self.dirichlet.random_point()
+        res = self.dirichlet.metric._approx_geodesic_bvp(point_a, point_b)
+        result = res[0]
+        expected = self.dirichlet.metric.dist(point_a, point_b)
+        self.assertAllClose(expected, result, atol=0, rtol=1e-1)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_polynomial_init(self):
+        """Test polynomial initialization of the geodesic boundary value problem.
+
+        Check that in a particular case, where linear initialization fails,
+        polynomial initialization gives the desired result.
+        """
+        point_a = gs.array([100.0, 1.0, 1.0])
+        point_b = gs.array([1.0, 1.0, 100.0])
+        result = self.dirichlet.metric.dist(point_a, point_b, init="polynomial")
+        expected = 8.5
+        self.assertAllClose(expected, result, atol=0, rtol=1e-1)
