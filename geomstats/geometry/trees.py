@@ -477,8 +477,6 @@ class Structure:
         class MyCheckException(Exception):
             """Raise an exception when less equal is not true."""
 
-            pass
-
         xs = [set(x) for x in self.partition]
         ys = [set(y) for y in other.partition]
         # ----- check out condition 1. of the partial ordering -----
