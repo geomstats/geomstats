@@ -1,14 +1,12 @@
 import geomstats.backend as gs
 import geomstats.tests
-
+from geomstats.geometry.trees import Split, Structure, Wald
 from geomstats.geometry.waldspace import WaldSpace
-from geomstats.geometry.trees import Structure, Split, Wald
 
 
 class TestSplit(geomstats.tests.TestCase):
-
     def test_restr(self):
-        """Tests the attribute restr of class Split."""
+        """Test the attribute restr of class Split."""
         split1 = Split(n=5, part1=[2, 3], part2=[0, 1, 4])
         subset1 = {0, 1, 2}
         result = split1.restr(subset=subset1)
@@ -22,7 +20,7 @@ class TestSplit(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_contains(self):
-        """Tests the attribute contains of class Split."""
+        """Test the attribute contains of class Split."""
         split1 = Split(n=5, part1=[0, 4], part2=[1, 2, 3])
         subset1 = {0, 2}
         result = split1.contains(subset=subset1)
@@ -36,7 +34,7 @@ class TestSplit(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_separates(self):
-        """Tests the attribute separates of class Split."""
+        """Test the attribute separates of class Split."""
         split1 = Split(n=3, part1=[0, 1], part2=[2])
         u1 = [0, 1]
         v1 = [2]
@@ -66,7 +64,7 @@ class TestSplit(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_point_to_split(self):
-        """Tests the attribute point_to_split of class Split."""
+        """Test the attribute point_to_split of class Split."""
         split1a = Split(n=5, part1=[0, 4], part2=[1, 2, 3])
         split1b = Split(n=5, part1=[2, 3], part2=[0, 1, 4])
 
@@ -79,7 +77,7 @@ class TestSplit(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_point_away_split(self):
-        """Tests the attribute point_away_split of class Split."""
+        """Test the attribute point_away_split of class Split."""
         split1a = Split(n=5, part1=[0, 4], part2=[1, 2, 3])
         split1b = Split(n=5, part1=[2, 3], part2=[0, 1, 4])
 
@@ -92,7 +90,7 @@ class TestSplit(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_compatible_with(self):
-        """Tests the attribute compatible_with of class Split."""
+        """Test the attribute compatible_with of class Split."""
         split1a = Split(n=5, part1=[0, 4], part2=[1, 2, 3])
         split1b = Split(n=5, part1=[2, 3], part2=[0, 1, 4])
 
@@ -105,7 +103,7 @@ class TestSplit(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_hash(self):
-        """Tests the attribute __hash__ of class Split."""
+        """Test the attribute __hash__ of class Split."""
         split1a = Split(n=5, part1=[0, 4], part2=[1, 2, 3])
         split1b = Split(n=5, part1=[2, 3], part2=[0, 1, 4])
 
@@ -127,9 +125,8 @@ class TestSplit(geomstats.tests.TestCase):
 
 
 class TestStructure(geomstats.tests.TestCase):
-
     def test_partition(self):
-        """Tests the attribute partition of class Structure."""
+        """Test the attribute partition of class Structure."""
         st1a = Structure(n=3, partition=((1, 0), (2,)), split_sets=((), ()))
         st1b = Structure(n=3, partition=((2,), (0, 1)), split_sets=((), ()))
         result = st1a.partition == st1b.partition
@@ -143,80 +140,96 @@ class TestStructure(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
     def test_partial_ordering(self):
-        """Tests the attributes __gt__, __ge__, __eq__, __lt__, __le__, __ne__."""
+        """Test the attributes __gt__, __ge__, __eq__, __lt__, __le__, __ne__."""
         sp1 = [[((0,), (1,))]]
         split_sets1 = [[Split(2, a, b) for a, b in splits] for splits in sp1]
         st1 = Structure(n=2, partition=((0, 1),), split_sets=split_sets1)
         st2 = Structure(n=2, partition=((0, 1),), split_sets=((),))
-        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2,
-                  st1 != st2]
+        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2, st1 != st2]
         expected = [True, True, False, False, False, True]
         self.assertEqual(result, expected)
 
-        sp1 = [[((0,), (1, 2, 3)), ((3,), (0, 1, 2)), ((1,), (0, 2, 3)),
-                ((2,), (0, 1, 3)), ((1, 2), (0, 3))]]
+        sp1 = [
+            [
+                ((0,), (1, 2, 3)),
+                ((3,), (0, 1, 2)),
+                ((1,), (0, 2, 3)),
+                ((2,), (0, 1, 3)),
+                ((1, 2), (0, 3)),
+            ]
+        ]
         split_sets1 = [[Split(4, a, b) for a, b in splits] for splits in sp1]
         st1 = Structure(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1)
         sp2 = [[((1,), (2,))], [((0,), (3,))]]
         split_sets2 = [[Split(4, a, b) for a, b in splits] for splits in sp2]
         st2 = Structure(n=4, partition=((1, 2), (0, 3)), split_sets=split_sets2)
 
-        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2,
-                  st1 != st2]
+        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2, st1 != st2]
         expected = [True, True, False, False, False, True]
         self.assertEqual(result, expected)
 
-        sp1 = [[((0,), (1, 2, 3)), ((3,), (0, 1, 2)), ((1,), (0, 2, 3)),
-                ((2,), (0, 1, 3)), ((0, 2), (1, 3))]]
+        sp1 = [
+            [
+                ((0,), (1, 2, 3)),
+                ((3,), (0, 1, 2)),
+                ((1,), (0, 2, 3)),
+                ((2,), (0, 1, 3)),
+                ((0, 2), (1, 3)),
+            ]
+        ]
         split_sets1 = [[Split(4, a, b) for a, b in splits] for splits in sp1]
         st1 = Structure(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1)
         sp2 = [[((1,), (2,))], [((0,), (3,))]]
         split_sets2 = [[Split(4, a, b) for a, b in splits] for splits in sp2]
         st2 = Structure(n=4, partition=((1, 2), (0, 3)), split_sets=split_sets2)
 
-        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2,
-                  st1 != st2]
+        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2, st1 != st2]
         expected = [False, False, False, False, False, True]
         self.assertEqual(result, expected)
 
-        sp1 = [[((0,), (1, 2, 3)), ((3,), (0, 1, 2)), ((1,), (0, 2, 3)),
-                ((2,), (0, 1, 3)), ((0, 2), (1, 3))]]
+        sp1 = [
+            [
+                ((0,), (1, 2, 3)),
+                ((3,), (0, 1, 2)),
+                ((1,), (0, 2, 3)),
+                ((2,), (0, 1, 3)),
+                ((0, 2), (1, 3)),
+            ]
+        ]
         split_sets1 = [[Split(4, a, b) for a, b in splits] for splits in sp1]
         st1 = Structure(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1)
-        sp2 = [[((0,), (1, 2, 3)), ((3,), (0, 1, 2)), ((1,), (0, 2, 3)),
-                ((2,), (0, 1, 3)), ((0, 3), (1, 2))]]
+        sp2 = [
+            [
+                ((0,), (1, 2, 3)),
+                ((3,), (0, 1, 2)),
+                ((1,), (0, 2, 3)),
+                ((2,), (0, 1, 3)),
+                ((0, 3), (1, 2)),
+            ]
+        ]
         split_sets2 = [[Split(4, a, b) for a, b in splits] for splits in sp2]
         st2 = Structure(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets2)
 
-        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2,
-                  st1 != st2]
+        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2, st1 != st2]
         expected = [False, False, False, False, False, True]
         self.assertEqual(result, expected)
 
-        sp1 = [[((0,), (1, 2, 3)), ((3,), (0, 1, 2)), ((1,), (0, 2, 3)),
-                ((2,), (0, 1, 3))]]
+        sp1 = [
+            [((0,), (1, 2, 3)), ((3,), (0, 1, 2)), ((1,), (0, 2, 3)), ((2,), (0, 1, 3))]
+        ]
         split_sets1 = [[Split(4, a, b) for a, b in splits] for splits in sp1]
         st1 = Structure(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1)
         sp2 = [[((1,), (2,))], [((0,), (3,))]]
         split_sets2 = [[Split(4, a, b) for a, b in splits] for splits in sp2]
         st2 = Structure(n=4, partition=((1, 2), (0, 3)), split_sets=split_sets2)
 
-        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2,
-                  st1 != st2]
+        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2, st1 != st2]
         expected = [False, False, False, False, False, True]
         self.assertEqual(result, expected)
 
 
 class TestWaldSpace(geomstats.tests.TestCase):
-    """Class testing the methods of MyManifold.
-
-    In the class TestMyManifold, each test method:
-    - needs to start with `test_`
-    - represents a unit-test, i.e. it tests one and only one method
-    or attribute of the class MyManifold,
-    - ends with the line: `self.assertAllClose(result, expected)`,
-    as in the examples below.
-    """
+    """Class testing the methods and attributes of ``WaldSpace``."""
 
     def setup_method(self):
         gs.random.seed(1234)
@@ -225,8 +238,15 @@ class TestWaldSpace(geomstats.tests.TestCase):
 
     def test_belongs(self):
         """Test belongs method."""
-        sp1 = [[((0,), (1, 2, 3)), ((3,), (0, 1, 2)), ((1,), (0, 2, 3)),
-                ((2,), (0, 1, 3)), ((1, 2), (0, 3))]]
+        sp1 = [
+            [
+                ((0,), (1, 2, 3)),
+                ((3,), (0, 1, 2)),
+                ((1,), (0, 2, 3)),
+                ((2,), (0, 1, 3)),
+                ((1, 2), (0, 3)),
+            ]
+        ]
         split_sets1 = [[Split(4, a, b) for a, b in splits] for splits in sp1]
         st1 = Structure(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1)
         x1 = gs.array([0.1, 0.99, 0.81, 0.4, 0.01])
@@ -282,8 +302,15 @@ class TestWaldSpace(geomstats.tests.TestCase):
 
     def test_belongs_vectorization(self):
         """Test belongs with several input points."""
-        sp1 = [[((0,), (1, 2, 3)), ((3,), (0, 1, 2)), ((1,), (0, 2, 3)),
-                ((2,), (0, 1, 3)), ((1, 2), (0, 3))]]
+        sp1 = [
+            [
+                ((0,), (1, 2, 3)),
+                ((3,), (0, 1, 2)),
+                ((1,), (0, 2, 3)),
+                ((2,), (0, 1, 3)),
+                ((1, 2), (0, 3)),
+            ]
+        ]
         split_sets1 = [[Split(4, a, b) for a, b in splits] for splits in sp1]
         st1 = Structure(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1)
         x1 = gs.array([0.1, 0.99, 0.81, 0.4, 0.01])
@@ -334,11 +361,12 @@ class TestWaldSpace(geomstats.tests.TestCase):
             if p[i, i] != 1:
                 print("alert diag")
         import itertools as it
+
         for i, j, k in it.combinations(range(self.ws4.n), 3):
-            if p[i, j] < p[i, k]*p[j, k]:
+            if p[i, j] < p[i, k] * p[j, k]:
                 print("alert triangles")
         for i, j, k, l in it.combinations(range(self.ws4.n), 4):
-            if p[i, j]*p[k, l] < min(p[i, k]*p[j, l], p[i, l]*p[j, k]):
+            if p[i, j] * p[k, l] < min(p[i, k] * p[j, l], p[i, l] * p[j, k]):
                 print("alert four-point")
                 print(f"{i}, {j}, {k}, {l}")
                 print(f"{p[i, j]*p[k, l]}, {min(p[i, k]*p[j, l], p[i, l]*p[j, k])}")
