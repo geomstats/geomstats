@@ -7,6 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid, HyperboloidMetric
 from geomstats.geometry.minkowski import Minkowski
+from geomstats.geometry.poincare_ball import PoincareBall
 from tests.conftest import TestCase
 from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
 from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
@@ -33,7 +34,24 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
 
         def belongs_data(self):
             smoke_data = [
-                dict(dim=3, vec=gs.array([1.0, 0.0, 0.0, 0.0]), expected=True)
+                dict(
+                    dim=3,
+                    coords_type="extrinsic",
+                    vec=gs.array([1.0, 0.0, 0.0, 0.0]),
+                    expected=True,
+                ),
+                dict(
+                    dim=2,
+                    coords_type="extrinsic",
+                    vec=gs.array([0.5, 7, 3.0]),
+                    expected=False,
+                ),
+                dict(
+                    dim=2,
+                    coords_type="intrinsic",
+                    vec=gs.array([0.5, 7]),
+                    expected=True,
+                ),
             ]
             return self.generate_tests(smoke_data)
 
@@ -96,11 +114,25 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
                 Hyperbolic, self.space_args_list, self.n_samples_list
             )
 
+        def extrinsic_ball_extrinsic_composition_data(self):
+            smoke_data = [dict(dim=2, point_intrinsic=gs.array([0.5, 7]))]
+            return self.generate_tests(smoke_data)
+
+        def extrinsic_half_plane_extrinsic_composition_data(self):
+            smoke_data = [
+                dict(dim=2, point_intrinsic=gs.array([0.5, 7], dtype=gs.float64))
+            ]
+            return self.generate_tests(smoke_data)
+
+        def ball_extrinsic_ball_data(self):
+            smoke_data = [dict(dim=2, x_ball=gs.array([0.5, 0.2]))]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataHyperbolic()
 
-    def test_belongs(self, dim, vec, expected):
-        space = self.space(dim)
-        self.assertTrue(space.belongs(gs.array(vec)), gs.array(expected))
+    def test_belongs(self, dim, coords_type, vec, expected):
+        space = self.space(dim, coords_type=coords_type)
+        self.assertAllClose(space.belongs(vec), gs.array(expected))
 
     def test_regularize_raises(self, dim, point, expected):
         space = self.space(dim)
@@ -111,6 +143,29 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
         space = self.space(dim)
         with expected:
             space.extrinsic_to_intrinsic_coords(point)
+
+    def test_ball_extrinsic_ball(self, dim, x_ball):
+        x_extrinsic = PoincareBall(dim).to_coordinates(
+            x_ball, to_coords_type="extrinsic"
+        )
+        result = self.space(dim).to_coordinates(x_extrinsic, to_coords_type="ball")
+        self.assertAllClose(result, x_ball)
+
+    def test_extrinsic_ball_extrinsic_composition(self, dim, point_intrinsic):
+        x = Hyperboloid(dim, coords_type="intrinsic").to_coordinates(
+            point_intrinsic, to_coords_type="extrinsic"
+        )
+        x_b = Hyperboloid(dim).to_coordinates(x, to_coords_type="ball")
+        x2 = PoincareBall(dim).to_coordinates(x_b, to_coords_type="extrinsic")
+        self.assertAllClose(x, x2)
+
+    def test_extrinsic_half_plane_extrinsic_composition(self, dim, point_intrinsic):
+        x = Hyperboloid(dim, coords_type="intrinsic").to_coordinates(
+            point_intrinsic, to_coords_type="extrinsic"
+        )
+        x_up = Hyperboloid(dim).to_coordinates(x, to_coords_type="half-space")
+        x2 = Hyperbolic.change_coordinates_system(x_up, "half-space", "extrinsic")
+        self.assertAllClose(x, x2)
 
 
 class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
@@ -302,6 +357,38 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
+        def log_exp_intrinsic_ball_extrinsic_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    x_intrinsic=gs.array([4.0, 0.2]),
+                    y_intrinsic=gs.array([3.0, 3]),
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def distance_ball_extrinsic_from_ball_data(self):
+
+            smoke_data = [
+                dict(dim=2, x_ball=gs.array([0.7, 0.2]), y_ball=gs.array([0.2, 0.2]))
+            ]
+            return self.generate_tests(smoke_data)
+
+        def distance_ball_extrinsic_intrinsic_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    x_intrinsic=gs.array([10, 0.2]),
+                    y_intrinsic=gs.array([1, 6.0]),
+                ),
+                dict(
+                    dim=4,
+                    x_intrinsic=gs.array([10, 0.2, 3, 4]),
+                    y_intrinsic=gs.array([1, 6, 2.0, 1]),
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataHyperboloidMetric()
 
     def test_inner_product_is_minkowski_inner_product(
@@ -351,3 +438,55 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         result = distance_scaled_metric
         expected = scale * distance_default_metric
         self.assertAllClose(result, expected)
+
+    def test_log_exp_intrinsic_ball_extrinsic(self, dim, x_intrinsic, y_intrinsic):
+        intrinsic_manifold = Hyperboloid(dim=dim, coords_type="intrinsic")
+        extrinsic_manifold = Hyperbolic(dim=dim, coords_type="extrinsic")
+        ball_manifold = PoincareBall(dim)
+        x_extr = intrinsic_manifold.to_coordinates(
+            x_intrinsic, to_coords_type="extrinsic"
+        )
+        y_extr = intrinsic_manifold.to_coordinates(
+            y_intrinsic, to_coords_type="extrinsic"
+        )
+        x_ball = extrinsic_manifold.to_coordinates(x_extr, to_coords_type="ball")
+        y_ball = extrinsic_manifold.to_coordinates(y_extr, to_coords_type="ball")
+
+        x_ball_log_exp = ball_manifold.metric.exp(
+            ball_manifold.metric.log(y_ball, x_ball), x_ball
+        )
+
+        x_extr_a = extrinsic_manifold.metric.exp(
+            extrinsic_manifold.metric.log(y_extr, x_extr), x_extr
+        )
+        x_extr_b = extrinsic_manifold.from_coordinates(
+            x_ball_log_exp, from_coords_type="ball"
+        )
+        self.assertAllClose(x_extr_a, x_extr_b, atol=3e-4)
+
+    def test_distance_ball_extrinsic_from_ball(self, dim, x_ball, y_ball):
+
+        ball_manifold = PoincareBall(dim)
+        space = Hyperboloid(dim)
+        x_extr = ball_manifold.to_coordinates(x_ball, to_coords_type="extrinsic")
+        y_extr = ball_manifold.to_coordinates(y_ball, to_coords_type="extrinsic")
+        dst_ball = ball_manifold.metric.dist(x_ball, y_ball)
+        dst_extr = space.metric.dist(x_extr, y_extr)
+        self.assertAllClose(dst_ball, dst_extr)
+
+    def test_distance_ball_extrinsic_intrinsic(self, dim, x_intrinsic, y_intrinsic):
+
+        intrinsic_manifold = Hyperboloid(dim, coords_type="intrinsic")
+        extrinsic_manifold = Hyperboloid(dim, coords_type="extrinsic")
+        x_extr = intrinsic_manifold.to_coordinates(
+            x_intrinsic, to_coords_type="extrinsic"
+        )
+        y_extr = intrinsic_manifold.to_coordinates(
+            y_intrinsic, to_coords_type="extrinsic"
+        )
+        x_ball = extrinsic_manifold.to_coordinates(x_extr, to_coords_type="ball")
+        y_ball = extrinsic_manifold.to_coordinates(y_extr, to_coords_type="ball")
+        dst_ball = PoincareBall(dim).metric.dist(x_ball, y_ball)
+        dst_extr = extrinsic_manifold.metric.dist(x_extr, y_extr)
+
+        self.assertAllClose(dst_ball, dst_extr)
