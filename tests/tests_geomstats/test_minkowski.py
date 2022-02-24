@@ -1,195 +1,290 @@
 """Unit tests for Minkowski space."""
 
 import math
-
-import numpy as np
+import random
 
 import geomstats.backend as gs
-import geomstats.tests
-from geomstats.geometry.minkowski import Minkowski
+from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
+from tests.conftest import TestCase
+from tests.data_generation import RiemannianMetricTestData, VectorSpaceTestData
+from tests.parametrizers import RiemannianMetricParametrizer, VectorSpaceParametrizer
 
 
-class TestMinkowski(geomstats.tests.TestCase):
-    def setup_method(self):
-        gs.random.seed(1234)
+class TestMinkowski(TestCase, metaclass=VectorSpaceParametrizer):
+    space = Minkowski
+    skip_test_basis_belongs = True
+    skip_test_basis_cardinality = True
 
-        self.time_like_dim = 0
-        self.dimension = 2
-        self.space = Minkowski(self.dimension)
-        self.metric = self.space.metric
-        self.n_samples = 10
+    class TestDataMinkowski(VectorSpaceTestData):
+        n_list = random.sample(range(2, 8), 2)
+        space_args_list = [(n,) for n in n_list]
+        shape_list = space_args_list
+        n_samples_list = random.sample(range(2, 8), 2)
+        n_points_list = random.sample(range(2, 8), 2)
+        n_vecs_list = random.sample(range(2, 8), 2)
 
-    def test_belongs(self):
-        point = gs.array([-1.0, 3.0])
-        result = self.space.belongs(point)
-        expected = True
+        def belongs_data(self):
+            smoke_data = [dict(dim=2, point=[-1.0, 3.0], expected=True)]
+            return self.generate_tests(smoke_data)
 
-        self.assertAllClose(result, expected)
+        def basis_belongs_data(self):
+            return self._basis_belongs_data(self.space_args_list)
 
-    def test_random_point(self):
-        point = self.space.random_point()
-        self.assertAllClose(gs.shape(point), (self.dimension,))
+        def basis_cardinality_data(self):
+            return self._basis_cardinality_data(self.space_args_list)
 
-    def test_random_point_and_belongs(self):
-        point = self.space.random_point()
-        result = self.space.belongs(point)
-        expected = True
-        self.assertAllClose(result, expected)
-
-    def test_inner_product_matrix(self):
-        result = self.metric.metric_matrix()
-
-        expected = gs.array([[-1.0, 0.0], [0.0, 1.0]])
-        self.assertAllClose(result, expected)
-
-    def test_inner_product(self):
-        point_a = gs.array([0.0, 1.0])
-        point_b = gs.array([2.0, 10.0])
-
-        result = self.metric.inner_product(point_a, point_b)
-        expected = gs.dot(point_a, point_b)
-        expected -= 2 * point_a[self.time_like_dim] * point_b[self.time_like_dim]
-
-        self.assertAllClose(result, expected)
-
-    def test_inner_product_vectorization(self):
-        n_samples = 3
-        one_point_a = gs.array([-1.0, 0.0])
-        one_point_b = gs.array([1.0, 0.0])
-
-        n_points_a = gs.array([[-1.0, 0.0], [1.0, 0.0], [2.0, math.sqrt(3)]])
-        n_points_b = gs.array(
-            [[2.0, -math.sqrt(3)], [4.0, math.sqrt(15)], [-4.0, math.sqrt(15)]]
-        )
-
-        result = self.metric.inner_product(one_point_a, one_point_b)
-        expected = gs.dot(one_point_a, gs.transpose(one_point_b))
-        expected -= (
-            2 * one_point_a[self.time_like_dim] * one_point_b[self.time_like_dim]
-        )
-
-        result_no = self.metric.inner_product(n_points_a, one_point_b)
-        result_on = self.metric.inner_product(one_point_a, n_points_b)
-
-        result_nn = self.metric.inner_product(n_points_a, n_points_b)
-
-        self.assertAllClose(result, expected)
-        self.assertAllClose(gs.shape(result_no), (n_samples,))
-        self.assertAllClose(gs.shape(result_on), (n_samples,))
-        self.assertAllClose(gs.shape(result_nn), (n_samples,))
-
-        expected = np.zeros(n_samples)
-        for i in range(n_samples):
-            expected[i] = gs.dot(n_points_a[i], n_points_b[i])
-            expected[i] -= (
-                2
-                * n_points_a[i, self.time_like_dim]
-                * n_points_b[i, self.time_like_dim]
+        def random_point_belongs_data(self):
+            smoke_space_args_list = [(2,), (3,)]
+            smoke_n_points_list = [1, 2]
+            return self._random_point_belongs_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
             )
 
-        self.assertAllClose(result_nn, expected)
+        def projection_belongs_data(self):
+            return self._projection_belongs_data(
+                self.space_args_list, self.shape_list, self.n_samples_list
+            )
 
-    def test_squared_norm(self):
-        point = gs.array([-2.0, 4.0])
+        def to_tangent_is_tangent_data(self):
+            return self._to_tangent_is_tangent_data(
+                Minkowski,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
 
-        result = self.metric.squared_norm(point)
-        expected = 12.0
-        self.assertAllClose(result, expected)
+    testing_data = TestDataMinkowski()
 
-    def test_squared_norm_vectorization(self):
-        n_samples = 3
-        n_points = gs.array([[-1.0, 0.0], [1.0, 0.0], [2.0, math.sqrt(3)]])
-
-        result = self.metric.squared_norm(n_points)
-        self.assertAllClose(gs.shape(result), (n_samples,))
-
-    def test_exp(self):
-        base_point = gs.array([1.0, 0.0])
-        vector = gs.array([2.0, math.sqrt(3)])
-
-        result = self.metric.exp(tangent_vec=vector, base_point=base_point)
-        expected = base_point + vector
-        self.assertAllClose(result, expected)
-
-    def test_exp_vectorization(self):
-        dim = self.dimension
-        n_samples = 3
-        one_tangent_vec = gs.array([-1.0, 0.0])
-        one_base_point = gs.array([1.0, 0.0])
-
-        n_tangent_vecs = gs.array([[-1.0, 0.0], [1.0, 0.0], [2.0, math.sqrt(3)]])
-        n_base_points = gs.array(
-            [[2.0, -math.sqrt(3)], [4.0, math.sqrt(15)], [-4.0, math.sqrt(15)]]
+    def test_belongs(self, dim, point, expected):
+        self.assertAllClose(
+            self.space(dim).belongs(gs.array(point)), gs.array(expected)
         )
 
-        result = self.metric.exp(one_tangent_vec, one_base_point)
-        expected = one_tangent_vec + one_base_point
-        self.assertAllClose(result, expected)
 
-        result = self.metric.exp(n_tangent_vecs, one_base_point)
-        self.assertAllClose(gs.shape(result), (n_samples, dim))
+class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+    connection = metric = MinkowskiMetric
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_exp_geodesic_ivp = True
 
-        result = self.metric.exp(one_tangent_vec, n_base_points)
-        self.assertAllClose(gs.shape(result), (n_samples, dim))
+    class TestDataMinkowskiMetric(RiemannianMetricTestData):
+        n_list = random.sample(range(2, 7), 5)
+        metric_args_list = [(n,) for n in n_list]
+        shape_list = metric_args_list
+        space_list = [Minkowski(n) for n in n_list]
+        n_points_list = random.sample(range(1, 7), 5)
+        n_samples_list = random.sample(range(1, 7), 5)
+        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_b_list = [1]
+        batch_size_list = random.sample(range(2, 7), 5)
+        alpha_list = [1] * 5
+        n_rungs_list = [1] * 5
+        scheme_list = ["pole"] * 5
 
-        result = self.metric.exp(n_tangent_vecs, n_base_points)
-        self.assertAllClose(gs.shape(result), (n_samples, dim))
+        def metric_matrix_data(self):
+            smoke_data = [dict(dim=2, expected=[[-1.0, 0.0], [0.0, 1.0]])]
+            return self.generate_tests(smoke_data)
 
-    def test_log(self):
-        base_point = gs.array([-1.0, 0.0])
-        point = gs.array([2.0, math.sqrt(3)])
+        def inner_product_data(self):
+            smoke_data = [
+                dict(dim=2, point_a=[0.0, 1.0], point_b=[2.0, 10.0], expected=10.0),
+                dict(
+                    dim=2,
+                    point_a=[[-1.0, 0.0], [1.0, 0.0], [2.0, math.sqrt(3)]],
+                    point_b=[
+                        [2.0, -math.sqrt(3)],
+                        [4.0, math.sqrt(15)],
+                        [-4.0, math.sqrt(15)],
+                    ],
+                    expected=[2.0, -4.0, 14.70820393],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
-        result = self.metric.log(point=point, base_point=base_point)
-        expected = point - base_point
-        self.assertAllClose(result, expected)
+        def squared_norm_data(self):
+            smoke_data = [dict(dim=2, vector=[-2.0, 4.0], expected=12.0)]
+            return self.generate_tests(smoke_data)
 
-    def test_log_vectorization(self):
-        dim = self.dimension
-        n_samples = 3
-        one_point = gs.array([-1.0, 0.0])
-        one_base_point = gs.array([1.0, 0.0])
+        def squared_dist_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point_a=[2.0, -math.sqrt(3)],
+                    point_b=[4.0, math.sqrt(15)],
+                    expected=27.416407,
+                )
+            ]
+            return self.generate_tests(smoke_data)
 
-        n_points = gs.array([[-1.0, 0.0], [1.0, 0.0], [2.0, math.sqrt(3)]])
-        n_base_points = gs.array(
-            [[2.0, -math.sqrt(3)], [4.0, math.sqrt(15)], [-4.0, math.sqrt(15)]]
+        def exp_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    tangent_vec=[2.0, math.sqrt(3)],
+                    base_point=[1.0, 0.0],
+                    expected=[3.0, math.sqrt(3)],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def log_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point=[2.0, math.sqrt(3)],
+                    base_point=[-1.0, 0.0],
+                    expected=[3.0, math.sqrt(3)],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
+            )
+
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
+            )
+
+        def squared_dist_is_symmetric_data(self):
+            return self._squared_dist_is_symmetric_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
+
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=gs.rtol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+    testing_data = TestDataMinkowskiMetric()
+
+    def test_metric_matrix(self, dim, expected):
+        metric = self.metric(dim)
+        self.assertAllClose(metric.metric_matrix(), gs.array(expected))
+
+    def test_inner_product(self, dim, point_a, point_b, expected):
+        metric = self.metric(dim)
+        self.assertAllClose(
+            metric.inner_product(gs.array(point_a), gs.array(point_b)),
+            gs.array(expected),
         )
 
-        result = self.metric.log(one_point, one_base_point)
-        expected = one_point - one_base_point
-        self.assertAllClose(result, expected)
+    def test_squared_norm(self, dim, point, expected):
+        metric = self.metric(dim)
+        self.assertAllClose(metric.squared_norm(gs.array(point)), gs.array(expected))
 
-        result = self.metric.log(n_points, one_base_point)
-        self.assertAllClose(gs.shape(result), (n_samples, dim))
+    def test_exp(self, dim, tangent_vec, base_point, expected):
+        result = self.metric(dim).exp(gs.array(tangent_vec), gs.array(base_point))
+        self.assertAllClose(result, gs.array(expected))
 
-        result = self.metric.log(one_point, n_base_points)
-        self.assertAllClose(gs.shape(result), (n_samples, dim))
+    def test_log(self, dim, point, base_point, expected):
+        result = self.metric(dim).log(gs.array(point), gs.array(base_point))
+        self.assertAllClose(result, gs.array(expected))
 
-        result = self.metric.log(n_points, n_base_points)
-        self.assertAllClose(gs.shape(result), (n_samples, dim))
-
-    def test_squared_dist(self):
-        point_a = gs.array([2.0, -math.sqrt(3)])
-        point_b = gs.array([4.0, math.sqrt(15)])
-
-        result = self.metric.squared_dist(point_a, point_b)
-        vec = point_b - point_a
-        expected = gs.dot(vec, vec)
-        expected -= 2 * vec[self.time_like_dim] * vec[self.time_like_dim]
-        self.assertAllClose(result, expected)
-
-    def test_geodesic_and_belongs(self):
-        n_geodesic_points = 100
-        initial_point = gs.array([2.0, -math.sqrt(3)])
-        initial_tangent_vec = gs.array([2.0, 0.0])
-
-        geodesic = self.metric.geodesic(
-            initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
-        )
-
-        t = gs.linspace(start=0.0, stop=1.0, num=n_geodesic_points)
-        points = geodesic(t)
-
-        result = self.space.belongs(points)
-        expected = gs.array(n_geodesic_points * [True])
-
-        self.assertAllClose(result, expected)
+    def test_squared_dist(self, dim, point_a, point_b, expected):
+        result = self.metric(dim).squared_dist(gs.array(point_a), gs.array(point_b))
+        self.assertAllClose(result, gs.array(expected))
