@@ -77,8 +77,9 @@ class BetaDistributions(DirichletDistributions):
             parameters provided by point.
         """
         geomstats.errors.check_belongs(point, self)
-        a_params = gs.expand_dims(point[..., 0], 0)
-        b_params = gs.expand_dims(point[..., 1], 0)
+        point = gs.to_ndarray(point, to_ndim=2)
+        a_params = point[..., 0]
+        b_params = point[..., 1]
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
