@@ -71,7 +71,7 @@ class VectorSpace(Manifold, abc.ABC):
         point: array-like, shape[..., {dim, [n, n]}]
             Point.
         """
-        return point
+        return gs.copy(point)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.

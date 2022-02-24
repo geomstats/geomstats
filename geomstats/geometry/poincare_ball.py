@@ -97,7 +97,7 @@ class PoincareBall(_Hyperbolic, OpenSet):
             projected_point = -gs.maximum(-projected_point, -point)
             return projected_point
 
-        return point
+        return gs.copy(point)
 
 
 class PoincareBallMetric(RiemannianMetric):
