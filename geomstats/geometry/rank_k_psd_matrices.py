@@ -244,9 +244,15 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
         """Horizontal lift of a tangent vector."""
         if fiber_point is None:
             fiber_point = self.lift(base_point)
-        alignment = Matrices.mul(Matrices.transpose(fiber_point), fiber_point)
+        transposed_point = Matrices.transpose(fiber_point)
+        alignment = Matrices.mul(transposed_point, fiber_point)
         projector = Matrices.mul(fiber_point, GeneralLinear.inverse(alignment))
-        return projector
+        right_term = Matrices.mul(transposed_point, tangent_vec, fiber_point)
+        sylvester = gs.linalg.solve_sylvester(alignment, alignment, right_term)
+        skew_term = Matrices.mul(projector, sylvester)
+        orth_proj = gs.eye(self.n) - Matrices.mul(projector, transposed_point)
+        orth_part = Matrices.mul(orth_proj, tangent_vec, projector)
+        return skew_term + orth_part
 
     def vertical_projection(self, tangent_vec, base_point, return_skew=False):
         r"""Project to vertical subspace.
