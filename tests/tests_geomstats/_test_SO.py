@@ -5,7 +5,6 @@ from contextlib import nullcontext as does_not_raise
 import pytest
 
 import geomstats.backend as gs
-import tests.helper as helper
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.conftest import TestCase, tf_backend
 from tests.data_generation import LieGroupTestData, TestData
@@ -398,7 +397,9 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
 
     def test_is_tangent_compose(self, n, point, vec, expected):
         group = self.space(n)
-        self.assertAllClose(group.compose(gs.array(point), gs.array(vec)), gs.array(expected))
+        self.assertAllClose(
+            group.compose(gs.array(point), gs.array(vec)), gs.array(expected)
+        )
 
     # def test_skew_to_vector_and_vector_to_skew(self, n, point_type, vec):
     #     group = self.space(n, point_type)
@@ -492,176 +493,178 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
     #     self.assertAllClose(result, expected)
 
 
-# class TestSpecialOrthogonal3(TestCase, metaclass=Parametrizer):
-#     cls = SpecialOrthogonal
+class TestSpecialOrthogonal3(TestCase, metaclass=Parametrizer):
+    cls = SpecialOrthogonal
 
-#     class TestDataSpecialOrthogonal3(TestData):
-#         def tait_bryan_angles_matrix_data(self):
-#             xyz = gs.array(
-#                 [
-#                     [
-#                         [cos_angle_pi_6, -sin_angle_pi_6, 0.0],
-#                         [sin_angle_pi_6, cos_angle_pi_6, 0.0],
-#                         [0.0, 0.0, 1.0],
-#                     ],
-#                     [
-#                         [cos_angle_pi_6, 0.0, sin_angle_pi_6],
-#                         [0.0, 1.0, 0.0],
-#                         [-sin_angle_pi_6, 0.0, cos_angle_pi_6],
-#                     ],
-#                     [
-#                         [1.0, 0.0, 0.0],
-#                         [0.0, cos_angle_pi_6, -sin_angle_pi_6],
-#                         [0.0, sin_angle_pi_6, cos_angle_pi_6],
-#                     ],
-#                 ]
-#             )
-#             zyx = gs.flip(xyz, axis=0)
-#             data = {"xyz": xyz, "zyx": zyx}
-#             smoke_data = []
-#             for coord, order in itertools.product(coords, orders):
-#                 for i in range(3):
-#                     vec = gs.zeros(3)
-#                     vec[i] = angle_pi_6
-#                     smoke_data += [
-#                         dict(coord=coord, order=order, vec=vec, mat=data[order][i])
-#                     ]
-#                 smoke_data += [
-#                     dict(coord=coord, order=order, vec=gs.zeros(3), mat=gs.eye(3))
-#                 ]
-#             return self.generate_tests(smoke_data)
+    class TestDataSpecialOrthogonal3(TestData):
+        def tait_bryan_angles_matrix_data(self):
+            xyz = gs.array(
+                [
+                    [
+                        [cos_angle_pi_6, -sin_angle_pi_6, 0.0],
+                        [sin_angle_pi_6, cos_angle_pi_6, 0.0],
+                        [0.0, 0.0, 1.0],
+                    ],
+                    [
+                        [cos_angle_pi_6, 0.0, sin_angle_pi_6],
+                        [0.0, 1.0, 0.0],
+                        [-sin_angle_pi_6, 0.0, cos_angle_pi_6],
+                    ],
+                    [
+                        [1.0, 0.0, 0.0],
+                        [0.0, cos_angle_pi_6, -sin_angle_pi_6],
+                        [0.0, sin_angle_pi_6, cos_angle_pi_6],
+                    ],
+                ]
+            )
+            zyx = gs.flip(xyz, axis=0)
+            data = {"xyz": xyz, "zyx": zyx}
+            smoke_data = []
+            for coord, order in itertools.product(coords, orders):
+                for i in range(3):
+                    vec = gs.zeros(3)
+                    vec[i] = angle_pi_6
+                    smoke_data += [
+                        dict(coord=coord, order=order, vec=vec, mat=data[order][i])
+                    ]
+                smoke_data += [
+                    dict(coord=coord, order=order, vec=gs.zeros(3), mat=gs.eye(3))
+                ]
+            return self.generate_tests(smoke_data)
 
-#         def tait_bryan_angles_quaternion_data(self):
-#             xyz = gs.array(
-#                 [cos_angle_pi_12, sin_angle_pi_6, 0.0, 0.0],
-#                 [cos_angle_pi_12, 0.0, sin_angle_pi_6, 0.0],
-#                 [cos_angle_pi_12, 0.0, 0.0, sin_angle_pi_6],
-#             )
+        def tait_bryan_angles_quaternion_data(self):
+            xyz = gs.array(
+                [
+                    [cos_angle_pi_12, sin_angle_pi_6, 0.0, 0.0],
+                    [cos_angle_pi_12, 0.0, sin_angle_pi_6, 0.0],
+                    [cos_angle_pi_12, 0.0, 0.0, sin_angle_pi_6],
+                ]
+            )
 
-#             zyx = gs.flip(xyz, axis=0)
-#             data = {"xyz": xyz, "zyx": zyx}
-#             smoke_data = []
-#             e1 = gs.array([1.0, 0.0, 0.0, 0.0])
-#             for coord, order in itertools.product(coords, orders):
-#                 for i in range(3):
-#                     vec = gs.zeros(3)
-#                     vec[i] = angle_pi_6
-#                     smoke_data += [
-#                         dict(coord=coord, order=order, vec=vec, quat=data[order][i])
-#                     ]
-#                 smoke_data += [dict(coord=coord, order=order, vec=gs.zeros(3), quat=e1)]
-#             return self.generate_tests(smoke_data)
+            zyx = gs.flip(xyz, axis=0)
+            data = {"xyz": xyz, "zyx": zyx}
+            smoke_data = []
+            e1 = gs.array([1.0, 0.0, 0.0, 0.0])
+            for coord, order in itertools.product(coords, orders):
+                for i in range(3):
+                    vec = gs.zeros(3)
+                    vec[i] = angle_pi_6
+                    smoke_data += [
+                        dict(coord=coord, order=order, vec=vec, quat=data[order][i])
+                    ]
+                smoke_data += [dict(coord=coord, order=order, vec=gs.zeros(3), quat=e1)]
+            return self.generate_tests(smoke_data)
 
-#         def quaternion_from_rotation_vector_tait_bryan_angles_data(self):
-#             smoke_data = []
-#             for coord, order in itertools.product(coords, orders):
-#                 for angle_type in self.elements:
-#                     point = self.elements[angle_type]
-#                     if angle_type not in self.angles_close_to_pi:
-#                         smoke_data += [dict(coord=coord, order=order, point=point)]
+        def quaternion_from_rotation_vector_tait_bryan_angles_data(self):
+            smoke_data = []
+            for coord, order in itertools.product(coords, orders):
+                for angle_type in elements_all:
+                    point = elements_all[angle_type]
+                    if angle_type not in angles_close_to_pi:
+                        smoke_data += [dict(coord=coord, order=order, point=point)]
 
-#             return self.generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
-#         def tait_bryan_angles_rotation_vector_data(self):
-#             smoke_data = []
-#             for coord, order in itertools.product(coords, orders):
-#                 for angle_type in self.elements:
-#                     point = self.elements[angle_type]
-#                     if angle_type not in self.angles_close_to_pi:
-#                         smoke_data += [dict(coord=coord, order=order, point=point)]
+        def tait_bryan_angles_rotation_vector_data(self):
+            smoke_data = []
+            for coord, order in itertools.product(coords, orders):
+                for angle_type in elements_all:
+                    point = elements_all[angle_type]
+                    if angle_type not in angles_close_to_pi:
+                        smoke_data += [dict(coord=coord, order=order, point=point)]
 
-#             return self.generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
-#         def quaternion_and_rotation_vector_with_angles_close_to_pi_data(self):
-#             smoke_data = []
-#             angle_types = self.angles_close_to_pi
-#             for angle_type in angle_types:
-#                 point = self.elements[angle_type]
-#                 smoke_data += [dict(point=point)]
+        def quaternion_and_rotation_vector_with_angles_close_to_pi_data(self):
+            smoke_data = []
+            angle_types = angles_close_to_pi
+            for angle_type in angle_types:
+                point = elements_all[angle_type]
+                smoke_data += [dict(point=point)]
 
-#             return self.generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
-#         def quaternion_and_matrix_with_angles_close_to_pi_data(self):
-#             smoke_data = []
-#             angle_types = self.angles_close_to_pi
-#             for angle_type in angle_types:
-#                 point = self.elements[angle_type]
-#                 smoke_data += [dict(point=point)]
+        def quaternion_and_matrix_with_angles_close_to_pi_data(self):
+            smoke_data = []
+            angle_types = angles_close_to_pi
+            for angle_type in angle_types:
+                point = elements_all[angle_type]
+                smoke_data += [dict(point=point)]
 
-#             return self.generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
-#         def rotation_vector_and_rotation_matrix_with_angles_close_to_pi_data(self):
-#             smoke_data = []
-#             angle_types = self.angles_close_to_pi
-#             for angle_type in angle_types:
-#                 point = self.elements[angle_type]
-#                 smoke_data += [dict(point=point)]
+        def rotation_vector_and_rotation_matrix_with_angles_close_to_pi_data(self):
+            smoke_data = []
+            angle_types = angles_close_to_pi
+            for angle_type in angle_types:
+                point = elements_all[angle_type]
+                smoke_data += [dict(point=point)]
 
-#             return self.generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
-#     testing_data = TestDataSpecialOrthogonal3()
+    testing_data = TestDataSpecialOrthogonal3()
 
-#     def test_tait_bryan_angles_matrix(self, coord, order, vec, mat):
-#         group = self.cls(3, point_type="vector")
+    def test_tait_bryan_angles_matrix(self, coord, order, vec, mat):
+        group = self.cls(3, point_type="vector")
 
-#         mat_from_vec = group.matrix_from_tait_bryan_angles(vec, coord, order)
-#         self.assertAllClose(mat_from_vec, mat)
-#         vec_from_mat = group.tait_bryan_angles_from_matrix(mat, coord, order)
-#         self.assertAllClose(vec_from_mat, vec)
+        mat_from_vec = group.matrix_from_tait_bryan_angles(vec, coord, order)
+        self.assertAllClose(mat_from_vec, mat)
+        vec_from_mat = group.tait_bryan_angles_from_matrix(mat, coord, order)
+        self.assertAllClose(vec_from_mat, vec)
 
-#     def test_tait_bryan_angles_quaternion(self, coord, order, vec, quat):
-#         group = self.cls(3, point_type="vector")
+    def test_tait_bryan_angles_quaternion(self, coord, order, vec, quat):
+        group = self.cls(3, point_type="vector")
 
-#         quat_from_vec = group.quaternion_from_tait_bryan_angles(vec, coord, order)
-#         self.assertAllClose(quat_from_vec, quat)
-#         vec_from_quat = group.tait_bryan_angles_from_matrix(quat, coord, order)
-#         self.assertAllClose(vec_from_quat, vec)
+        quat_from_vec = group.quaternion_from_tait_bryan_angles(vec, coord, order)
+        self.assertAllClose(quat_from_vec, quat)
+        vec_from_quat = group.tait_bryan_angles_from_matrix(quat, coord, order)
+        self.assertAllClose(vec_from_quat, vec)
 
-#     def test_quaternion_from_rotation_vector_tait_bryan_angles(
-#         self, coord, order, point
-#     ):
-#         group = self.cls(3, point_type="vector")
+    def test_quaternion_from_rotation_vector_tait_bryan_angles(
+        self, coord, order, point
+    ):
+        group = self.cls(3, point_type="vector")
 
-#         quat = group.quaternion_from_rotation_vector(point)
-#         tait_bryan_angle = group.tait_bryan_angles_from_quaternion(quat, coord, order)
-#         result = group.quaternion_from_tait_bryan_angles(tait_bryan_angle, coord, order)
-#         self.assertAllClose(result, quat)
+        quat = group.quaternion_from_rotation_vector(point)
+        tait_bryan_angle = group.tait_bryan_angles_from_quaternion(quat, coord, order)
+        result = group.quaternion_from_tait_bryan_angles(tait_bryan_angle, coord, order)
+        self.assertAllClose(result, quat)
 
-#     def test_tait_bryan_angles_rotation_vector(self, coord, order, point):
-#         group = self.cls(3, point_type="vector")
+    def test_tait_bryan_angles_rotation_vector(self, coord, order, point):
+        group = self.cls(3, point_type="vector")
 
-#         tait_bryan_angle = group.tait_bryan_angles_from_rotation_vector(
-#             point, coord, order
-#         )
-#         result = group.rotation_vector_from_tait_bryan_angles(tait_bryan_angle)
-#         expected = group.regularize(point)
-#         self.assertAllClose(result, expected)
+        tait_bryan_angle = group.tait_bryan_angles_from_rotation_vector(
+            point, coord, order
+        )
+        result = group.rotation_vector_from_tait_bryan_angles(tait_bryan_angle)
+        expected = group.regularize(point)
+        self.assertAllClose(result, expected)
 
-#     def test_quaternion_and_rotation_vector_with_angles_close_to_pi(self, point):
-#         group = self.cls(3, point_type="vector")
+    def test_quaternion_and_rotation_vector_with_angles_close_to_pi(self, point):
+        group = self.cls(3, point_type="vector")
 
-#         quaternion = group.quaternion_from_rotation_vector(point)
-#         result = group.rotation_vector_from_quaternion(quaternion)
-#         expected1 = group.regularize(point)
-#         expected2 = -1 * expected1
-#         expected = gs.allclose(result, expected1) or gs.allclose(result, expected2)
-#         self.assertAllClose(expected, gs.array(True))
+        quaternion = group.quaternion_from_rotation_vector(point)
+        result = group.rotation_vector_from_quaternion(quaternion)
+        expected1 = group.regularize(point)
+        expected2 = -1 * expected1
+        expected = gs.allclose(result, expected1) or gs.allclose(result, expected2)
+        self.assertAllClose(expected, gs.array(True))
 
-#     def test_quaternion_and_matrix_with_angles_close_to_pi(self, point):
-#         group = self.cls(3, point_type="vector")
-#         mat = group.matrix_from_rotation_vector(point)
-#         quat = group.quaternion_from_matrix(mat)
-#         result = group.matrix_from_quaternion(quat)
-#         expected1 = mat
-#         expected2 = gs.linalg.inv(mat)
-#         expected = gs.allclose(result, expected1) or gs.allclose(result, expected2)
-#         self.assertAllClose(expected, gs.array(True))
+    def test_quaternion_and_matrix_with_angles_close_to_pi(self, point):
+        group = self.cls(3, point_type="vector")
+        mat = group.matrix_from_rotation_vector(point)
+        quat = group.quaternion_from_matrix(mat)
+        result = group.matrix_from_quaternion(quat)
+        expected1 = mat
+        expected2 = gs.linalg.inv(mat)
+        expected = gs.allclose(result, expected1) or gs.allclose(result, expected2)
+        self.assertAllClose(expected, gs.array(True))
 
-#     def test_rotation_vector_and_rotation_matrix_with_angles_close_to_pi(self, point):
-#         group = self.cls(3, point_type="vector")
-#         mat = group.matrix_from_rotation_vector(point)
-#         result = group.rotation_vector_from_matrix(mat)
-#         expected1 = group.regularize(point)
-#         expected2 = -1 * expected1
-#         expected = gs.allclose(result, expected1) or gs.allclose(result, expected2)
-#         self.assertAllClose(expected, gs.array(True))
+    def test_rotation_vector_and_rotation_matrix_with_angles_close_to_pi(self, point):
+        group = self.cls(3, point_type="vector")
+        mat = group.matrix_from_rotation_vector(point)
+        result = group.rotation_vector_from_matrix(mat)
+        expected1 = group.regularize(point)
+        expected2 = -1 * expected1
+        expected = gs.allclose(result, expected1) or gs.allclose(result, expected2)
+        self.assertAllClose(expected, gs.array(True))
