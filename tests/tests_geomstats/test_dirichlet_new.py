@@ -112,6 +112,16 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
             ]
             return self.generate_tests([], random_data)
 
+        def christoffels_data(self):
+            n_points = 2
+            dim = 3
+            points = self.space(dim).random_point(n_points)
+            christoffel_1 = self.space(dim).metric.christoffels(points[0, :])
+            christoffel_2 = self.space(dim).metric.christoffels(points[1, :])
+            expected = gs.stack((christoffel_1, christoffel_2), axis=0)
+            smoke_data = [dict(dim=dim, points=points, expected=expected)]
+            return self.generate_tests(smoke_data)
+
         def christoffels_shape_data(self):
             smoke_data = [
                 dict(dim=2, n_points=1, expected=(2, 2, 2)),
@@ -170,6 +180,7 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
 
     def test_point_to_pdf(self, dim, n_points, n_samples):
         point = self.space(dim).random_point(n_points)
+        point = gs.to_ndarray(point, 2)
         pdf = self.space(dim).point_to_pdf(point)
         alpha = gs.ones(dim)
         samples = self.space(dim).sample(alpha, n_samples)
@@ -199,6 +210,11 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
         )
         expected = SymmetricMatrices.from_vector(vector)
         return self.assertAllClose(self.space(2).metric.metric_matrix(points), expected)
+
+    def test_christoffels(self, dim, points, expected):
+        return self.assertAllClose(
+            self.space(dim).metric.christoffels(points), expected
+        )
 
     def test_christoffels_shape(self, dim, n_points, expected):
         points = self.space(dim).random_point(n_points)
