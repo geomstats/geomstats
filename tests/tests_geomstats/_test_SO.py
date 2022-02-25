@@ -401,11 +401,11 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             group.compose(gs.array(point), gs.array(vec)), gs.array(expected)
         )
 
-    # def test_skew_to_vector_and_vector_to_skew(self, n, point_type, vec):
-    #     group = self.space(n, point_type)
-    #     mat = group.skew_matrix_from_vector(gs.array(vec))
-    #     result = group.vector_from_skew_matrix(mat)
-    #     self.assertAllClose(result, vec)
+    def test_skew_to_vector_and_vector_to_skew(self, n, point_type, vec):
+        group = self.space(n, point_type)
+        mat = group.skew_matrix_from_vector(gs.array(vec))
+        result = group.vector_from_skew_matrix(mat)
+        self.assertAllClose(result, vec)
 
     # def test_are_antipodals(self, n, mat1, mat2, expected):
     #     group = self.space(n)
