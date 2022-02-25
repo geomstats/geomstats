@@ -221,13 +221,12 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
 
     def __init__(self, n, k):
         super(BuresWassersteinBundle, self).__init__(
-            m=n,
-            n=k,
+            n=n,
+            k=k,
             base=PSDMatrices(n, k),
             group=SpecialOrthogonal(k),
             ambient_metric=MatricesMetric(n, k),
         )
-        self.k = k
 
     @staticmethod
     def riemannian_submersion(point):
@@ -242,7 +241,8 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
     def lift(self, point):
         """Find a representer in top space."""
         eigvals, eigvecs = gs.linalg.eigh(point)
-        return gs.einsum("...ij,...j->...ij", eigvecs, eigvals[..., : self.k] ** 0.5)
+        exclude = self.n - self.k
+        return gs.einsum("...ij,...j->...ij", eigvecs, eigvals[..., exclude:] ** 0.5)
 
     def vertical_projection(self, tangent_vec, base_point, return_skew=False):
         r"""Project to vertical subspace.
