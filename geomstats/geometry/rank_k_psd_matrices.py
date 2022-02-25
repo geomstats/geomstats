@@ -10,11 +10,7 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.spd_matrices import (
-    SPDMatrices,
-    SPDMetricBuresWasserstein,
-    SPDMetricEuclidean,
-)
+from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -199,7 +195,7 @@ class PSDMatrices(RankKPSDMatrices, SPDMatrices):
     n : int
         Integer representing the shapes of the matrices : n x n.
     k : int
-        Integer representing the shapes of the matrices : n x n.
+        Integer representing the rank of the matrices.
     """
 
     def __new__(
