@@ -237,8 +237,9 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
     def lift(self, point):
         """Find a representer in top space."""
         eigvals, eigvecs = gs.linalg.eigh(point)
-        exclude = self.n - self.k
-        return gs.einsum("...ij,...j->...ij", eigvecs, eigvals[..., exclude:] ** 0.5)
+        return gs.einsum(
+            "...ij,...j->...ij", eigvecs[..., -self.k :], eigvals[..., -self.k :] ** 0.5
+        )
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
         """Horizontal lift of a tangent vector."""
@@ -308,7 +309,7 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
         aligned : array-like, shape=[..., n, k]
             R.point.
         """
-        return Matrices.align_matrices(base_point, point)
+        return Matrices.align_matrices(point, base_point)
 
 
 class PSDMetricBuresWasserstein(QuotientMetric):
