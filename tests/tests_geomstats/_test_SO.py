@@ -1,6 +1,7 @@
 import itertools
 import random
 from contextlib import nullcontext as does_not_raise
+from tokenize import group
 
 import pytest
 
@@ -79,8 +80,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
 
     class TestDataSpecialOrthogonal(LieGroupTestData):
         n_list = random.sample(range(2, 5), 2)
-        positive_det_list = [True, False]
-        space_args_list = list(zip(n_list, positive_det_list))
+        space_args_list = list(zip(n_list)) + [(2, "vector"), (3, "vector")]
         shape_list = [(n, n) for n in n_list]
         n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
@@ -207,7 +207,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             return self.generate_tests(smoke_data)
 
         def from_vector_from_matrix_data(self):
-            n_list = random.sample(range(2, 50), 10)
+            n_list = [2, 3]
             n_samples_list = random.sample(range(1, 20), 10)
             random_data = [
                 dict(n=n, n_samples=n_samples)
@@ -271,16 +271,12 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log_shape_data(self):
-            random_data = []
-            return self.generate_tests(random_data)
-
         def rotation_vector_rotation_matrix_regularize_data(self):
-            n_list = random.sample(range(2, 50), 10)
+            n_list = [2, 3]
             random_data = [
                 dict(
                     n=n,
-                    point=SpecialOrthogonal(n=3, point_type="vector").random_point(),
+                    point=SpecialOrthogonal(n=n, point_type="vector").random_point(),
                 )
                 for n in n_list
             ]
@@ -376,6 +372,24 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             return self._log_exp_composition_data(
                 SpecialOrthogonal, self.space_args_list, self.n_samples_list
             )
+
+        def compose_point_inverse_is_identity_data(self):
+            smoke_data = []
+            for space_args in self.space_args_list:
+                smoke_data += [dict(space_args=space_args)]
+            return self.generate_tests(smoke_data)
+
+        def compose_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point_type="vector",
+                    point_a=gs.array([0.12]),
+                    point_b=gs.array([-0.15]),
+                    expected=gs.array([-0.03]),
+                )
+            ]
+            return self.generate_tests(smoke_data)
 
         # def metric_left_invariant_data(self):
 
@@ -488,6 +502,83 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
     def test_matrix_from_rotation_vector(self, dim, rot_vec, expected):
         group = SpecialOrthogonal(dim)
         result = group.matrix_from_rotation_vector(rot_vec)
+        self.assertAllClose(result, expected)
+
+    def test_compose_point_inverse_is_identity(self, space_args):
+        group = SpecialOrthogonal(*space_args)
+        point = gs.squeeze(group.random_point())
+        inv_point = group.inverse(point)
+        self.assertAllClose(group.compose(point, inv_point), group.identity)
+
+    def test_compose(self, n, point_type, point_a, point_b, expected):
+        group = SpecialOrthogonal(n, point_type)
+        result = group.compose(point_a, point_b)
+        expected = group.regularize(expected)
+        self.assertAllClose(result, expected)
+
+    def test_regularize(self):
+        angle = 2 * gs.pi + 1
+        result = self.group.regularize(gs.array([angle]))
+        expected = gs.array([1.0])
+        self.assertAllClose(result, expected)
+
+    def test_regularize_vectorization(self):
+        n_samples = self.n_samples
+        rot_vecs = self.group.random_uniform(n_samples=n_samples)
+        result = self.group.regularize(rot_vecs)
+
+        self.assertAllClose(gs.shape(result), (n_samples, self.group.dim))
+
+    def test_matrix_from_rotation_vector(self):
+        angle = gs.pi / 3
+        expected = gs.array([[1.0 / 2, -gs.sqrt(3.0) / 2], [gs.sqrt(3.0) / 2, 1.0 / 2]])
+        result = self.group.matrix_from_rotation_vector(gs.array([angle]))
+        self.assertAllClose(result, expected)
+
+    def test_matrix_from_rotation_vector_vectorization(self):
+        n_samples = self.n_samples
+        rot_vecs = self.group.random_uniform(n_samples=n_samples)
+
+        rot_mats = self.group.matrix_from_rotation_vector(rot_vecs)
+
+        self.assertAllClose(gs.shape(rot_mats), (n_samples, self.group.n, self.group.n))
+
+    def test_rotation_vector_from_matrix(self):
+        angle = 0.12
+        rot_mat = gs.array(
+            [[gs.cos(angle), -gs.sin(angle)], [gs.sin(angle), gs.cos(angle)]]
+        )
+        result = self.group.rotation_vector_from_matrix(rot_mat)
+        expected = gs.array([0.12])
+
+        self.assertAllClose(result, expected)
+
+    def test_rotation_vector_and_rotation_matrix(self):
+        """
+        This tests that the composition of
+        rotation_vector_from_matrix
+        and
+        matrix_from_rotation_vector
+        is the identity.
+        """
+        # TODO(nguigs): bring back a 1d representation of SO2
+        point = gs.array([0.78])
+
+        rot_mat = self.group.matrix_from_rotation_vector(point)
+        result = self.group.rotation_vector_from_matrix(rot_mat)
+
+        expected = point
+
+        self.assertAllClose(result, expected)
+
+    def test_rotation_vector_and_rotation_matrix_vectorization(self):
+        rot_vecs = gs.array([[2.0], [1.3], [0.8], [0.03]])
+
+        rot_mats = self.group.matrix_from_rotation_vector(rot_vecs)
+        result = self.group.rotation_vector_from_matrix(rot_mats)
+
+        expected = self.group.regularize(rot_vecs)
+
         self.assertAllClose(result, expected)
 
 
