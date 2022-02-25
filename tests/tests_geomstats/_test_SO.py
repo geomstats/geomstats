@@ -760,7 +760,7 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 10000,
+                atol=gs.atol * 100,
             )
 
         def exp_ladder_parallel_transport_data(self):
@@ -781,8 +781,8 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.shape_list,
                 self.n_samples_list,
                 self.n_points_list,
-                rtol=gs.rtol * 10000,
-                atol=gs.atol * 10000,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 100,
             )
 
         def parallel_transport_ivp_is_isometry_data(self):
@@ -791,9 +791,9 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                is_tangent_atol=gs.atol * 10000,
+                is_tangent_atol=gs.atol * 100,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 10000,
+                atol=gs.atol * 100,
             )
 
         def parallel_transport_bvp_is_isometry_data(self):
@@ -802,9 +802,9 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                is_tangent_atol=gs.atol * 10000,
+                is_tangent_atol=gs.atol * 100,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 10000,
+                atol=gs.atol * 100,
             )
 
         def log_exp_intrinsic_ball_extrinsic_data(self):
