@@ -5,10 +5,15 @@ from contextlib import nullcontext as does_not_raise
 import pytest
 
 import geomstats.backend as gs
+from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.conftest import TestCase, tf_backend
-from tests.data_generation import LieGroupTestData, TestData
-from tests.parametrizers import LieGroupParametrizer, Parametrizer
+from tests.data_generation import LieGroupTestData, RiemannianMetricTestData, TestData
+from tests.parametrizers import (
+    LieGroupParametrizer,
+    Parametrizer,
+    RiemannianMetricParametrizer,
+)
 
 
 def sample_matrix(theta, mul=1.0):
@@ -252,7 +257,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             return self.generate_tests([], random_data)
 
         def skew_matrix_from_vector_data(self):
-            smoke_data = dict(n=2, mat=[0.9], expected=[[0.0, -0.9], [0.9, 0.0]])
+            smoke_data = [dict(n=2, mat=[0.9], expected=[[0.0, -0.9], [0.9, 0.0]])]
             return self.generate_tests(smoke_data)
 
         def log_data(self):
@@ -401,71 +406,65 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             group.compose(gs.array(point), gs.array(vec)), gs.array(expected)
         )
 
-    def test_skew_to_vector_and_vector_to_skew(self, n, point_type, vec):
-        group = self.space(n, point_type)
-        mat = group.skew_matrix_from_vector(gs.array(vec))
-        result = group.vector_from_skew_matrix(mat)
-        self.assertAllClose(result, vec)
+    # def test_skew_to_vector_and_vector_to_skew(self, n, point_type, vec):
+    #     group = self.space(n, point_type)
+    #     mat = group.skew_matrix_from_vector(gs.array(vec))
+    #     result = group.vector_from_skew_matrix(mat)
+    #     self.assertAllClose(result, vec)
 
-    # def test_are_antipodals(self, n, mat1, mat2, expected):
-    #     group = self.space(n)
-    #     self.assertAllClose(group.are_antipodals(mat1, mat2), gs.array(expected))
+    def test_are_antipodals(self, n, mat1, mat2, expected):
+        group = self.space(n)
+        self.assertAllClose(group.are_antipodals(mat1, mat2), gs.array(expected))
 
     # def test_log_at_antipodals_value_error(self, n, vec, expected):
     #     group = self.space(n)
     #     with expected:
     #         group.log(vec)
 
-    # def test_from_vector_from_matrix(self, n, n_samples):
-    #     group = self.space(n)
-    #     groupvec = self.space(n, point_type="vector")
-    #     point = groupvec.random_point(n_samples)
-    #     rot_mat = group.matrix_from_rotation_vector(point)
-    #     self.assertAllClose(
-    #         group.rotation_vector_from_matrix(rot_mat), group.regularize(point)
-    #     )
+    def test_from_vector_from_matrix(self, n, n_samples):
+        group = self.space(n)
+        groupvec = self.space(n, point_type="vector")
+        point = groupvec.random_point(n_samples)
+        rot_mat = group.matrix_from_rotation_vector(point)
+        self.assertAllClose(
+            group.rotation_vector_from_matrix(rot_mat), group.regularize(point)
+        )
 
-    # def test_rotation_vector_from_matrix(self, n, mat, expected):
-    #     group = self.space(n)
-    #     self.assertAllClose(
-    #         group.rotation_vector_from_matrix(gs.array(mat)), gs.array(expected)
-    #     )
+    def test_rotation_vector_from_matrix(self, n, mat, expected):
+        group = self.space(n)
+        self.assertAllClose(
+            group.rotation_vector_from_matrix(gs.array(mat)), gs.array(expected)
+        )
 
     # def test_distance_broadcast_shape(self, n, mat1, mat2, expected):
     #     group = self.space(n)
     #     result = gs.shape(group.bi_invariant_metric.dist_broadcast(mat1, mat2))
     #     self.assertAllClose(result, expected)
 
-    # def test_projection(self, n, mat, expected):
-    #     group = self.space(n=n, point_type="vector")
-    #     self.assertAllClose(group.projection(mat), expected)
+    def test_projection(self, n, mat, expected):
+        group = self.space(n=n, point_type="vector")
+        self.assertAllClose(group.projection(mat), expected)
 
-    # def test_projection_shape(self, n, vec, expected):
-    #     group = self.space(n=n, point_type="vector")
-    #     self.assertAllClose(gs.shape(group.projection(gs.array(vec))), expected)
+    def test_projection_shape(self, n, vec, expected):
+        group = self.space(n=n, point_type="vector")
+        self.assertAllClose(gs.shape(group.projection(gs.array(vec))), expected)
 
-    # def test_skew_matrix_from_vector(self, n, vec, expected):
-    #     group = self.space(n=n, point_type="vector")
-    #     self.assertAllClose(group.skew_matrix_from_vector(gs.array(vec)), expected)
+    def test_skew_matrix_from_vector(self, n, vec, expected):
+        group = self.space(n=n, point_type="vector")
+        self.assertAllClose(group.skew_matrix_from_vector(gs.array(vec)), expected)
 
-    # def test_log(self, n, point, base_point, expected):
-    #     group = self.space(n=n, point_type="vector")
-    #     log = group.log(gs.array(point), gs.array(base_point))
-    #     self.assertAllClose(log, gs.array(expected))
+    def test_log(self, n, point, base_point, expected):
+        group = self.space(n=n, point_type="vector")
+        log = group.log(gs.array(point), gs.array(base_point))
+        self.assertAllClose(log, gs.array(expected))
 
-    # def test_rotation_vector_rotation_matrix_regularize(self, n, point):
-    #     group = SpecialOrthogonal(n=n)
-    #     rot_mat = group.matrix_from_rotation_vector(gs.array(point))
-    #     self.assertAllClose(
-    #         group.regularize(gs.array(point)),
-    #         group.rotation_vector_from_matrix(rot_mat),
-    #     )
-
-    # def test_parallel_transport(self, n, n_samples):
-    #     metric = self.space(n).bi_invariant_metric
-    #     shape = (self.n_samples, self.group.n, self.group.n)
-    #     result = gs.all(helper.test_parallel_transport(self.group, metric, shape))
-    #     self.assertAllClose(result, gs.array(True))
+    def test_rotation_vector_rotation_matrix_regularize(self, n, point):
+        group = SpecialOrthogonal(n=n)
+        rot_mat = group.matrix_from_rotation_vector(gs.array(point))
+        self.assertAllClose(
+            group.regularize(gs.array(point)),
+            group.rotation_vector_from_matrix(rot_mat),
+        )
 
     # def test_metric_left_invariant(self, n):
     #     group = self.space(n)
@@ -484,13 +483,12 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
     #     rot_vecs = group_vec.random_uniform(n_samples=n_samples)
 
     #     rot_mats = group_mat.matrix_from_rotation_vector(rot_vecs)
-
     #     self.assertAllClose(gs.shape(rot_mats), (n_samples, group_mat.n, group_mat.n))
 
-    # def test_matrix_from_rotation_vector(self, dim, rot_vec, expected):
-    #     group = SpecialOrthogonal(dim)
-    #     result = group.matrix_from_rotation_vector(rot_vec)
-    #     self.assertAllClose(result, expected)
+    def test_matrix_from_rotation_vector(self, dim, rot_vec, expected):
+        group = SpecialOrthogonal(dim)
+        result = group.matrix_from_rotation_vector(rot_vec)
+        self.assertAllClose(result, expected)
 
 
 class TestSpecialOrthogonal3(TestCase, metaclass=Parametrizer):
@@ -668,3 +666,155 @@ class TestSpecialOrthogonal3(TestCase, metaclass=Parametrizer):
         expected2 = -1 * expected1
         expected = gs.allclose(result, expected1) or gs.allclose(result, expected2)
         self.assertAllClose(expected, gs.array(True))
+
+
+class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+    metric = connection = BiInvariantMetric
+    skip_test_exp_geodesic_ivp = True
+
+    class TestDataBiInvariantMetric(RiemannianMetricTestData):
+        dim_list = random.sample(range(2, 6), 2)
+        metric_args_list = [(SpecialOrthogonal(dim),) for dim in dim_list]
+        shape_list = [(dim, dim) for dim in dim_list]
+        space_list = [SpecialOrthogonal(dim) for dim in dim_list]
+        n_points_list = random.sample(range(1, 5), 2)
+        n_samples_list = random.sample(range(1, 5), 2)
+        n_points_a_list = random.sample(range(1, 5), 2)
+        n_points_b_list = [1]
+        batch_size_list = random.sample(range(2, 5), 2)
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
+
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
+            )
+
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
+            )
+
+        def squared_dist_is_symmetric_data(self):
+            return self._squared_dist_is_symmetric_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
+
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=gs.rtol * 10000,
+                atol=gs.atol * 10000,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 10000,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 10000,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def log_exp_intrinsic_ball_extrinsic_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    x_intrinsic=gs.array([4.0, 0.2]),
+                    y_intrinsic=gs.array([3.0, 3]),
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+    testing_data = TestDataBiInvariantMetric()
