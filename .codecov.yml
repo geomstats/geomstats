@@ -45,18 +45,6 @@ coverage:
         if_ci_failed: error
         only_pulls: false
 
-      numpy:
-        flags:
-          - numpy
-      autograd:
-        flags:
-          - autograd
-      pytorch:
-        flags:
-          - pytorch
-      tensorflow:
-        flags:
-          - tensorflow
 
 # Files to ignore
 ignore:
