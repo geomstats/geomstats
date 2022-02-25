@@ -673,15 +673,15 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_exp_geodesic_ivp = True
 
     class TestDataBiInvariantMetric(RiemannianMetricTestData):
-        dim_list = random.sample(range(2, 6), 2)
+        dim_list = random.sample(range(2, 6), 4)
         metric_args_list = [(SpecialOrthogonal(dim),) for dim in dim_list]
         shape_list = [(dim, dim) for dim in dim_list]
         space_list = [SpecialOrthogonal(dim) for dim in dim_list]
-        n_points_list = random.sample(range(1, 5), 2)
-        n_samples_list = random.sample(range(1, 5), 2)
-        n_points_a_list = random.sample(range(1, 5), 2)
+        n_points_list = random.sample(range(1, 10), 4)
+        n_samples_list = random.sample(range(1, 10), 4)
+        n_points_a_list = random.sample(range(1, 10), 4)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 5), 2)
+        batch_size_list = random.sample(range(2, 10), 4)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
@@ -749,8 +749,8 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
-                rtol=gs.rtol * 100,
-                atol=gs.atol * 10000,
+                rtol=gs.rtol * 1000,
+                atol=gs.atol * 1000,
             )
 
         def exp_log_composition_data(self):
@@ -759,8 +759,8 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                rtol=gs.rtol * 100,
-                atol=gs.atol * 100,
+                rtol=gs.rtol * 1000,
+                atol=gs.atol * 1000,
             )
 
         def exp_ladder_parallel_transport_data(self):
