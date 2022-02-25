@@ -240,6 +240,14 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
         exclude = self.n - self.k
         return gs.einsum("...ij,...j->...ij", eigvecs, eigvals[..., exclude:] ** 0.5)
 
+    def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
+        """Horizontal lift of a tangent vector."""
+        if fiber_point is None:
+            fiber_point = self.lift(base_point)
+        alignment = Matrices.mul(Matrices.transpose(fiber_point), fiber_point)
+        projector = Matrices.mul(fiber_point, GeneralLinear.inverse(alignment))
+        return projector
+
     def vertical_projection(self, tangent_vec, base_point, return_skew=False):
         r"""Project to vertical subspace.
 
