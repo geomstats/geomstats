@@ -1287,6 +1287,10 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
         super(SpecialEuclideanMatrixLieAlgebra, self).__init__(dim, n)
 
         self.skew = SkewSymmetricMatrices(n)
+
+    def _create_basis(self):
+        """Create the canonical basis."""
+        n = self.n
         basis = homogeneous_representation(
             self.skew.basis,
             gs.zeros((self.skew.dim, n)),
@@ -1297,7 +1301,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
 
         for row in gs.arange(n):
             basis.append(gs.array_from_sparse([(row, n)], [1.0], (n + 1, n + 1)))
-        self.basis = gs.stack(basis)
+        return gs.stack(basis)
 
     def belongs(self, mat, atol=ATOL):
         """Evaluate if the rotation part of mat is a skew-symmetric matrix.

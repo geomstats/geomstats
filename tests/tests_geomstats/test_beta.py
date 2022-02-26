@@ -176,6 +176,18 @@ class TestBetaDistributions(geomstats.tests.TestCase):
     def test_point_to_pdf(self):
         """Test point_to_pdf.
 
+        Check the computation of the pdf.
+        """
+        point = self.beta.random_point()
+        pdf = self.beta.point_to_pdf(point)
+        x = gs.linspace(0.0, 1.0, 10)
+        result = pdf(x)
+        expected = beta.pdf(x, a=point[0], b=point[1])
+        self.assertAllClose(result, expected)
+
+    def test_point_to_pdf_vectorization(self):
+        """Test point_to_pdf.
+
         Check vectorization of the computation of the pdf.
         """
         point = self.beta.random_point(n_samples=2)
