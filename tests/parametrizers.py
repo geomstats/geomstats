@@ -475,6 +475,8 @@ class ConnectionParametrizer(Parametrizer):
             connection = self.connection(*connection_args)
             log = connection.log(gs.array(point), gs.array(base_point))
             result = gs.shape(log)
+            print("expected", expected)
+            print("result", result)
             self.assertAllClose(result, expected)
 
         def test_exp_belongs(
