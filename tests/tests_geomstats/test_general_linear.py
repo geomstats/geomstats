@@ -3,15 +3,14 @@
 import random
 
 import geomstats.backend as gs
-from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.general_linear import GeneralLinear, SquareMatrices
 from tests.conftest import TestCase
-from tests.data_generation import LieGroupTestData
-from tests.parametrizers import LieGroupParametrizer
+from tests.data_generation import LieGroupTestData, MatrixLieAlgebraTestData
+from tests.parametrizers import LieGroupParametrizer, MatrixLieAlgebraParametrizer
 
 
 class TestGeneralLinear(TestCase, metaclass=LieGroupParametrizer):
     space = group = GeneralLinear
-    skip_test_to_tangent_is_tangent = True
     skip_test_exp_log_composition = True
     skip_test_log_exp_composition = True
 
@@ -216,3 +215,68 @@ class TestGeneralLinear(TestCase, metaclass=LieGroupParametrizer):
         group = self.space(n)
         result = group.orbit(gs.array(point), gs.array(base_point))(time)
         self.assertAllClose(result, gs.array(expected))
+
+
+class TestSquareMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer):
+    space = algebra = SquareMatrices
+
+    class TestDataSquareMatrices(MatrixLieAlgebraTestData):
+        n_list = random.sample(range(2, 5), 2)
+        space_args_list = [(n,) for n in n_list]
+        shape_list = [(n, n) for n in n_list]
+        n_samples_list = random.sample(range(2, 5), 2)
+        n_points_list = random.sample(range(2, 5), 2)
+        n_vecs_list = random.sample(range(2, 5), 2)
+
+        def belongs_data(self):
+            smoke_data = [
+                dict(n=3, mat=gs.eye(3), expected=True),
+                dict(n=3, mat=gs.ones((3, 3)), expected=True),
+                dict(n=3, mat=gs.ones(3), expected=False),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def basis_representation_matrix_representation_composition_data(self):
+            return self._basis_representation_matrix_representation_composition_data(
+                SquareMatrices, self.space_args_list, self.n_samples_list
+            )
+
+        def matrix_representation_basis_representation_composition_data(self):
+            return self._matrix_representation_basis_representation_composition_data(
+                SquareMatrices, self.space_args_list, self.n_samples_list
+            )
+
+        def basis_belongs_data(self):
+            return self._basis_belongs_data(self.space_args_list)
+
+        def basis_cardinality_data(self):
+            return self._basis_cardinality_data(self.space_args_list)
+
+        def random_point_belongs_data(self):
+            smoke_space_args_list = [(2,), (3,)]
+            smoke_n_points_list = [1, 2]
+            return self._random_point_belongs_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+            )
+
+        def projection_belongs_data(self):
+            return self._projection_belongs_data(
+                self.space_args_list, self.shape_list, self.n_samples_list
+            )
+
+        def to_tangent_is_tangent_data(self):
+            return self._to_tangent_is_tangent_data(
+                SquareMatrices,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
+
+    testing_data = TestDataSquareMatrices()
+
+    def test_belongs(self, n, mat, expected):
+        space = self.space(n)
+        self.assertAllClose(space.belongs(gs.array(mat)), gs.array(expected))

@@ -29,6 +29,7 @@ class VectorSpace(Manifold, abc.ABC):
             kwargs["dim"] = int(gs.prod(gs.array(shape)))
         super(VectorSpace, self).__init__(shape=shape, **kwargs)
         self.shape = shape
+        self._basis = None
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the vector space.
@@ -49,7 +50,7 @@ class VectorSpace(Manifold, abc.ABC):
         """
         minimal_ndim = len(self.shape)
         belongs = point.shape[-minimal_ndim:] == self.shape
-        if point.ndim == minimal_ndim:
+        if point.ndim <= minimal_ndim:
             return belongs
         return gs.tile(gs.array([belongs]), [point.shape[0]])
 
@@ -136,6 +137,26 @@ class VectorSpace(Manifold, abc.ABC):
             size = (n_samples,) + self.shape
         point = bound * (gs.random.rand(*size) - 0.5) * 2
         return point
+
+    @property
+    def basis(self):
+        """Basis of the vector space."""
+        if self._basis is None:
+            self._basis = self._create_basis()
+
+        return self._basis
+
+    @basis.setter
+    def basis(self, basis):
+        if len(basis) < self.dim:
+            raise ValueError(
+                "The basis should have length equal to the " "dimension of the space."
+            )
+        self._basis = basis
+
+    @abc.abstractmethod
+    def _create_basis(self):
+        """Create a canonical basis."""
 
 
 class LevelSet(Manifold, abc.ABC):
