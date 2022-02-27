@@ -1,5 +1,7 @@
 """Unit tests for the preshape space."""
 
+import random
+
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
@@ -51,10 +53,20 @@ a_x_h = smoke_space.integrability_tensor(hor_x, hor_h, base_point)
 nabla_x_h = hor_dh + a_x_h
 
 
-class TestPreShapeSpace(TestCase, metaclass=Parametrizer):
+class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
     space = PreShapeSpace
+    skip_test_extrinsic_intrinsic_composition = True
+    skip_test_intrinsic_extrinsic_composition = True
 
-    class TestDataPreShapeSpace(TestData):
+    class TestDataPreShapeSpace(LevelSetTestData):
+        k_landmarks_list = random.sample(range(3, 6), 2)
+        m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
+        space_args_list = list(zip(k_landmarks_list, m_ambient_list))
+        n_points_list = random.sample(range(1, 5), 2)
+        shape_list = [(k, m) for k, m in space_args_list]
+        n_vecs_list = random.sample(range(1, 5), 2)
+        n_samples_list = random.sample(range(1, 5), 2)
+
         def belongs_data(self):
             random_data = [
                 dict(
@@ -276,6 +288,46 @@ class TestPreShapeSpace(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def random_point_belongs_data(self):
+            belongs_atol = gs.atol * 100
+            smoke_space_args_list = [(2, 2), (3, 2), (4, 3)]
+            smoke_n_points_list = [1, 2, 1]
+            return self._random_point_belongs_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+                belongs_atol,
+            )
+
+        def to_tangent_is_tangent_data(self):
+
+            is_tangent_atol = gs.atol * 100
+            return self._to_tangent_is_tangent_data(
+                PreShapeSpace,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+                is_tangent_atol,
+            )
+
+        def projection_belongs_data(self):
+            return self._projection_belongs_data(
+                self.space_args_list, self.shape_list, self.n_samples_list
+            )
+
+        def extrinsic_intrinsic_composition_data(self):
+            space_args_list = [(1,), (2,)]
+            return self._extrinsic_intrinsic_composition_data(
+                PreShapeSpace, space_args_list, self.n_samples_list
+            )
+
+        def intrinsic_extrinsic_composition_data(self):
+            space_args_list = [(1,), (2,)]
+            return self._intrinsic_extrinsic_composition_data(
+                PreShapeSpace, space_args_list, self.n_samples_list
+            )
+
     testing_data = TestDataPreShapeSpace()
 
     def test_belongs(self, k_landmarks, m_ambient, mat, expected):
@@ -369,7 +421,6 @@ class TestPreShapeSpace(TestCase, metaclass=Parametrizer):
         self, k_landmarks, m_ambient, tangent_vec_x, tangent_vec_e, base_point
     ):
         """Test if old and new implementation give the same result."""
-
         space = self.space(k_landmarks, m_ambient)
         result = space.integrability_tensor_old(
             tangent_vec_x, tangent_vec_e, base_point
@@ -433,7 +484,6 @@ class TestPreShapeSpace(TestCase, metaclass=Parametrizer):
         For :math:`X,Y` horizontal and :math:`V,W` vertical:
         :math:`\nabla_X (< A_Y Z , V > + < A_Y V , Z >) = 0`.
         """
-
         space = self.space(k_landmarks, m_ambient)
 
         scal = space.ambient_metric.inner_product
@@ -752,7 +802,6 @@ class TestKendasllShapeMetric(TestCase, metaclass=Parametrizer):
         The sectional curvature is computed here with the generic
         directional_curvature and sectional curvature methods.
         """
-
         space = self.space(k_landmarks, m_ambient)
         metric = self.metric(k_landmarks, m_ambient)
         hor_a = space.horizontal_projection(tangent_vec_a, base_point)
@@ -892,4 +941,3 @@ class TestKendasllShapeMetric(TestCase, metaclass=Parametrizer):
         )
         result = metric.norm(transported, end_point[0])
         self.assertAllClose(result, expected[0])
-
