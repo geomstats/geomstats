@@ -10,7 +10,7 @@ from geomstats.geometry.pre_shape import (
     PreShapeSpace,
 )
 from geomstats.geometry.quotient_metric import QuotientMetric
-from tests.conftest import TestCase
+from tests.conftest import TestCase, np_autograd_and_torch_only
 from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
 from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
 
@@ -680,12 +680,24 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             return self.generate_tests(smoke_data)
 
         def kendall_sectional_curvature_data(self):
+            k_landmarks = 4
+            m_ambient = 3
+            space = smoke_space
+            n_samples = 4 * k_landmarks * m_ambient
+            base_point = space.random_point(1)
+
+            vec_a = gs.random.rand(n_samples, k_landmarks, m_ambient)
+            tg_vec_a = space.to_tangent(space.center(vec_a), base_point)
+
+            vec_b = gs.random.rand(n_samples, k_landmarks, m_ambient)
+            tg_vec_b = space.to_tangent(space.center(vec_b), base_point)
+
             smoke_data = [
                 dict(
                     k_landmarks=4,
                     m_ambient=3,
-                    tangent_vec_a=tg_vec_0,
-                    tangent_vec_b=tg_vec_1,
+                    tangent_vec_a=tg_vec_a,
+                    tangent_vec_b=tg_vec_b,
                     base_point=base_point,
                 )
             ]
@@ -1040,6 +1052,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         )
         self.assertAllClose(result, expected)
 
+    @np_autograd_and_torch_only
     def test_parallel_transport(
         self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
     ):
@@ -1074,12 +1087,6 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         is_horizontal = space.is_horizontal(transported, end_point)
         self.assertTrue(gs.all(is_tangent))
         self.assertTrue(gs.all(is_horizontal))
-
-        transported = metric.parallel_transport(
-            tan_a[0], base_point, end_point=end_point[0]
-        )
-        result = metric.norm(transported, end_point[0])
-        self.assertAllClose(result, expected[0])
 
 
 class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
