@@ -7,12 +7,8 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
 from geomstats.geometry.quotient_metric import QuotientMetric
 from tests.conftest import TestCase
-from tests.data_generation import LevelSetTestData, RiemannianMetricTestData, TestData
-from tests.parametrizers import (
-    LevelSetParametrizer,
-    Parametrizer,
-    RiemannianMetricParametrizer,
-)
+from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
+from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
 
 smoke_space = PreShapeSpace(4, 3)
 vector = gs.random.rand(11, 4, 3)
@@ -633,11 +629,31 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
         self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp)
 
 
-class TestKendasllShapeMetric(TestCase, metaclass=Parametrizer):
+class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     metric = connection = KendallShapeMetric
     space = PreShapeSpace
+    skip_test_exp_geodesic_ivp = True
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_log_exp_composition = True
+    skip_test_exp_log_composition = True
 
-    class TestDataKendallShapeMetric(TestData):
+    class TestDataKendallShapeMetric(RiemannianMetricTestData):
+        k_landmarks_list = random.sample(range(3, 6), 2)
+        m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
+        metric_args_list = list(zip(k_landmarks_list, m_ambient_list))
+
+        shape_list = [(k, m) for k, m in metric_args_list]
+        space_list = [PreShapeSpace(k, m) for k, m in metric_args_list]
+        n_points_list = random.sample(range(1, 7), 2)
+        n_samples_list = random.sample(range(1, 7), 2)
+        n_points_a_list = random.sample(range(1, 7), 2)
+        n_points_b_list = [1]
+        batch_size_list = random.sample(range(2, 7), 2)
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
+
         def curvature_is_skew_operator_data(self):
             base_point = smoke_space.random_point(2)
             vec = gs.random.rand(4, 4, 3)
@@ -747,6 +763,125 @@ class TestKendasllShapeMetric(TestCase, metaclass=Parametrizer):
                 )
             ]
             return self.generate_tests(smoke_data)
+
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
+            )
+
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
+            )
+
+        def squared_dist_is_symmetric_data(self):
+            return self._squared_dist_is_symmetric_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
+
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=gs.rtol * 10000,
+                atol=gs.atol * 10000,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
 
     testing_data = TestDataKendallShapeMetric()
 
