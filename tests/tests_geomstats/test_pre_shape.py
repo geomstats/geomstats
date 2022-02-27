@@ -63,7 +63,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
         m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
         space_args_list = list(zip(k_landmarks_list, m_ambient_list))
         n_points_list = random.sample(range(1, 5), 2)
-        shape_list = [(k, m) for k, m in space_args_list]
+        shape_list = space_args_list
         n_vecs_list = random.sample(range(1, 5), 2)
         n_samples_list = random.sample(range(1, 5), 2)
 
@@ -647,7 +647,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
         metric_args_list = list(zip(k_landmarks_list, m_ambient_list))
 
-        shape_list = [(k, m) for k, m in metric_args_list]
+        shape_list = metric_args_list
         space_list = [PreShapeSpace(k, m) for k, m in metric_args_list]
         n_points_list = random.sample(range(1, 7), 2)
         n_samples_list = random.sample(range(1, 7), 2)
@@ -1101,7 +1101,7 @@ class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
         metric_args_list = list(zip(k_landmarks_list, m_ambient_list))
 
-        shape_list = [(k, m) for k, m in metric_args_list]
+        shape_list = metric_args_list
         space_list = [PreShapeSpace(k, m) for k, m in metric_args_list]
         n_points_list = random.sample(range(1, 7), 2)
         n_samples_list = random.sample(range(1, 7), 2)
