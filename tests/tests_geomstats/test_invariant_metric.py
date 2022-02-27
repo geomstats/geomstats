@@ -261,12 +261,22 @@ class TestInvariantMetric(TestCase, metaclass=Parametrizer):
         def connection_translation_map_data(self):
             group = self.matrix_so3
             metric = InvariantMetric(group)
-            smoke_data = [dict(group=group, point=group.random_point())]
+            x, y, z = metric.normal_basis(group.lie_algebra.basis)
+            smoke_data = [
+                dict(
+                    group=group,
+                    tangent_vec_a=x,
+                    tangent_vec_b=y,
+                    point=group.random_point(),
+                    expected=1.0 / 2**0.5 / 2.0 * z,
+                )
+            ]
             return self.generate_tests(smoke_data)
 
         def sectional_curvature_data(self):
             group = self.matrix_so3
             metric = InvariantMetric(group)
+
             x, y, z = metric.normal_basis(group.lie_algebra.basis)
             smoke_data = [
                 dict(group=group, tangent_vec_a=x, tangent_vec_b=y, expected=1.0 / 8),
@@ -324,7 +334,7 @@ class TestInvariantMetric(TestCase, metaclass=Parametrizer):
                     tangent_vec_b=y,
                     tangent_vec_c=x,
                     point=group.random_point(),
-                    expected=gs.zeros_like(z),
+                    expected=1.0 / 8 * y,
                 )
             ]
             return self.generate_tests(smoke_data)
@@ -452,27 +462,29 @@ class TestInvariantMetric(TestCase, metaclass=Parametrizer):
         metric = InvariantMetric(group)
         self.assertAllClose(metric.connection(tangent_vec_a, tangent_vec_b), expected)
 
-    def test_connection_translation_map(self, group, point):
+    def test_connection_translation_map(
+        self, group, tangent_vec_a, tangent_vec_b, point, expected
+    ):
         metric = InvariantMetric(group)
         translation_map = group.tangent_translation_map(point)
-        x, y, z = metric.normal_basis(group.lie_algebra.basis)
-        tan_a = translation_map(x)
-        tan_b = translation_map(y)
+        tan_a = translation_map(tangent_vec_a)
+        tan_b = translation_map(tangent_vec_b)
         result = metric.connection(tan_a, tan_b, point)
         expected = translation_map(expected)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, rtol=1e-3, atol=1e-3)
 
     def test_sectional_curvature(self, group, tangent_vec_a, tangent_vec_b, expected):
         metric = InvariantMetric(group)
         result = metric.sectional_curvature(tangent_vec_a, tangent_vec_b)
         self.assertAllClose(result, expected)
 
-    def test_sectional_curvature_translation_point(self, group, point):
+    def test_sectional_curvature_translation_point(
+        self, group, tangent_vec_a, tangent_vec_b, point, expected
+    ):
         metric = InvariantMetric(group)
         translation_map = group.tangent_translation_map(point)
-        x, y, z = metric.normal_basis(group.lie_algebra.basis)
-        tan_a = translation_map(x)
-        tan_b = translation_map(y)
+        tan_a = translation_map(tangent_vec_a)
+        tan_b = translation_map(tangent_vec_b)
         result = metric.connection(tan_a, tan_b, point)
         expected = translation_map(expected)
         self.assertAllClose(result, expected)
@@ -481,7 +493,7 @@ class TestInvariantMetric(TestCase, metaclass=Parametrizer):
         self, group, tangent_vec_a, tangent_vec_b, tangent_vec_c, expected
     ):
         metric = InvariantMetric(group)
-        result = metric.sectional_curvature(tangent_vec_a, tangent_vec_b, tangent_vec_c)
+        result = metric.curvature(tangent_vec_a, tangent_vec_b, tangent_vec_c)
         self.assertAllClose(result, expected)
 
     def test_curvature_translation_point(
