@@ -159,16 +159,60 @@ class TestInvariantMetric(TestCase, metaclass=Parametrizer):
             metric = InvariantMetric(group)
             x, y, z = metric.normal_basis(group.lie_algebra.basis)
             smoke_data = []
-            for x, y, z in itertools.permutations((x, y, z)):
-                smoke_data += [
-                    dict(
-                        group=self.matrix_so3,
-                        tangent_vec_a=x,
-                        tangent_vec_b=y,
-                        tangent_vec_c=z,
-                        expected=2.0**0.5 / 2.0,
-                    )
-                ]
+            smoke_data += [
+                dict(
+                    group=self.matrix_so3,
+                    tangent_vec_a=x,
+                    tangent_vec_b=y,
+                    tangent_vec_c=z,
+                    expected=2.0**0.5 / 2.0,
+                )
+            ]
+            smoke_data += [
+                dict(
+                    group=self.matrix_so3,
+                    tangent_vec_a=y,
+                    tangent_vec_b=x,
+                    tangent_vec_c=z,
+                    expected=-(2.0**0.5 / 2.0),
+                )
+            ]
+            smoke_data += [
+                dict(
+                    group=self.matrix_so3,
+                    tangent_vec_a=y,
+                    tangent_vec_b=z,
+                    tangent_vec_c=x,
+                    expected=2.0**0.5 / 2.0,
+                )
+            ]
+            smoke_data += [
+                dict(
+                    group=self.matrix_so3,
+                    tangent_vec_a=z,
+                    tangent_vec_b=y,
+                    tangent_vec_c=x,
+                    expected=-(2.0**0.5 / 2.0),
+                )
+            ]
+            smoke_data += [
+                dict(
+                    group=self.matrix_so3,
+                    tangent_vec_a=z,
+                    tangent_vec_b=x,
+                    tangent_vec_c=y,
+                    expected=2.0**0.5 / 2.0,
+                )
+            ]
+            smoke_data += [
+                dict(
+                    group=self.matrix_so3,
+                    tangent_vec_a=x,
+                    tangent_vec_b=z,
+                    tangent_vec_c=y,
+                    expected=-(2.0**0.5 / 2.0),
+                )
+            ]
 
             for x, y in itertools.permutations((x, y, z), 2):
                 smoke_data += [
@@ -343,7 +387,7 @@ class TestInvariantMetric(TestCase, metaclass=Parametrizer):
     ):
         metric = self.metric(group, metric_mat_at_identity, left_or_right)
         dim = metric.group.dim
-        result = self.left_metric.metric_mat_at_identity
+        result = metric.metric_mat_at_identity
         self.assertAllClose(gs.shape(result), (dim, dim))
 
     def test_inner_product_matrix_shape(
@@ -351,13 +395,13 @@ class TestInvariantMetric(TestCase, metaclass=Parametrizer):
     ):
         metric = self.metric(group, metric_mat_at_identity, left_or_right)
         base_point = None
-        dim = self.left_metric.group.dim
-        result = self.left_metric.metric_matrix(base_point=base_point)
+        dim = metric.group.dim
+        result = metric.metric_matrix(base_point=base_point)
         self.assertAllClose(gs.shape(result), (dim, dim))
 
-        base_point = self.group.identity
-        dim = self.left_metric.group.dim
-        result = self.left_metric.metric_matrix(base_point=base_point)
+        base_point = group.identity
+        dim = metric.group.dim
+        result = metric.metric_matrix(base_point=base_point)
         self.assertAllClose(gs.shape(result), (dim, dim))
 
     def test_inner_product_matrix_and_its_inverse(
@@ -382,9 +426,7 @@ class TestInvariantMetric(TestCase, metaclass=Parametrizer):
         expected,
     ):
         metric = self.metric(group, metric_mat_at_identity, left_or_right)
-        result = metric.inner_product_at_identity(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
+        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
     def test_structure_constant(
@@ -503,6 +545,7 @@ class TestInvariantMetric(TestCase, metaclass=Parametrizer):
         result = metric.exp(tangent_vec, identity, n_steps=100, step="rk2")
         self.assertAllClose(expected, result, atol=1e-5)
 
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_integrated_exp_and_log_at_id(self, group):
         metric = InvariantMetric(group=group)
         basis = group.lie_algebra.basis
