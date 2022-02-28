@@ -61,8 +61,8 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
     space = CorrelationMatricesBundle
 
     class TestDataCorrelationMatricesBundle(TestData):
-        n_list = random.sample(range(2, 6), 3)
-        n_samples_list = random.sample(range(1, 7), 3)
+        n_list = random.sample(range(2, 4), 2)
+        n_samples_list = random.sample(range(1, 4), 2)
 
         def riemannian_submersion_belongs_to_base_data(self):
             random_data = []
@@ -242,7 +242,7 @@ class TestFullRankCorrelationAffineQuotientMetric(TestCase, metaclass=Parametriz
         metric = self.metric(dim)
         log = metric.log(point[1], point[0])
         result = metric.exp(log, point[0])
-        self.assertAllClose(result, point[1], atol=gs.atol * 100)
+        self.assertAllClose(result, point[1], atol=gs.atol * 10000)
 
     def test_exp_belongs(self, dim, tangent_vec, base_point):
         metric = self.metric(dim)
