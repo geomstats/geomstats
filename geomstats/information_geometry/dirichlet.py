@@ -126,7 +126,19 @@ class DirichletDistributions(OpenSet):
         point = gs.to_ndarray(point, to_ndim=2)
         samples = []
         for param in point:
-            samples.append(gs.array(dirichlet.rvs(param, size=n_samples)))
+            sample = gs.array(dirichlet.rvs(param, size=n_samples))
+            samples.append(
+                gs.hstack(
+                    (
+                        sample[:, :-1],
+                        gs.transpose(
+                            gs.to_ndarray(
+                                1 - gs.sum(sample[:, :-1], axis=-1), to_ndim=2
+                            )
+                        ),
+                    )
+                )
+            )
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
     def point_to_pdf(self, point):
@@ -166,7 +178,7 @@ class DirichletDistributions(OpenSet):
             """
             pdf_at_x = []
             for param in point:
-                pdf_at_x.append([gs.array(dirichlet.pdf(pt, param)) for pt in x])
+                pdf_at_x.append(gs.array([dirichlet.pdf(pt, param) for pt in x]))
             pdf_at_x = gs.squeeze(gs.stack(pdf_at_x, axis=0))
 
             return pdf_at_x
