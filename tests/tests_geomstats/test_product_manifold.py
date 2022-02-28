@@ -28,10 +28,14 @@ class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
     class TestDataProductManifold(TestData):
 
         n_list = random.sample(range(2, 4), 2)
-        base_list = [SpecialOrthogonal(n) for n in n_list]
-        power_list = random.sample(range(2, 4), 2)
-        space_args_list = [(base, power) for base, power in zip(base_list, power_list)]
-        shape_list = [(power, n, n) for n, power in zip(n_list, power_list)]
+        default_point_list = ["vector", "matrix"]
+        manifolds_list = [[Hypersphere(dim=n), Hyperboloid(dim=n)] for n in n_list]
+        metric_list = [None] * 2
+        space_args_list = list(zip(manifolds_list, metric_list, default_point_list))
+        shape_list = [
+            (n + 1, n + 1) if default_point == "matrix" else (2 * (n + 1),)
+            for n, default_point in zip(n_list, default_point_list)
+        ]
         n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
