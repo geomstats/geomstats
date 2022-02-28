@@ -167,6 +167,15 @@ class TestNFoldManifold(TestCase, metaclass=ManifoldParametrizer):
     space = NFoldManifold
 
     class TestDataNFoldManifold(ManifoldTestData):
+        n_list = random.sample(range(2, 4), 2)
+        base_list = [SpecialOrthogonal(n) for n in n_list]
+        power_list = random.sample(range(2, 4), 2)
+        space_args_list = [(base, power) for base, power in zip(base_list, power_list)]
+        shape_list = [(power, n, n) for n, power in zip(n_list, power_list)]
+        n_samples_list = random.sample(range(2, 5), 2)
+        n_points_list = random.sample(range(2, 5), 2)
+        n_vecs_list = random.sample(range(2, 5), 2)
+
         def belongs_data(self):
             smoke_data = [
                 dict(
@@ -189,7 +198,10 @@ class TestNFoldManifold(TestCase, metaclass=ManifoldParametrizer):
             return self.generate_tests(smoke_data)
 
         def random_point_belongs_data(self):
-            smoke_space_args_list = [(2,), (3,)]
+            smoke_space_args_list = [
+                (SpecialOrthogonal(2), 2),
+                (SpecialOrthogonal(2), 2),
+            ]
             smoke_n_points_list = [1, 2]
             return self._random_point_belongs_data(
                 smoke_space_args_list,
@@ -200,7 +212,10 @@ class TestNFoldManifold(TestCase, metaclass=ManifoldParametrizer):
 
         def projection_belongs_data(self):
             return self._projection_belongs_data(
-                self.space_args_list, self.shape_list, self.n_samples_list
+                self.space_args_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=1e-3,
             )
 
         def to_tangent_is_tangent_data(self):
