@@ -21,6 +21,9 @@ from tests.parametrizers import ManifoldParametrizer, RiemannianMetricParametriz
 smoke_manifolds_1 = [Hypersphere(dim=2), Hyperboloid(dim=2)]
 smoke_metrics_1 = [Hypersphere(dim=2).metric, Hyperboloid(dim=2).metric]
 
+smoke_manifolds_2 = [Euclidean(3), Minkowski(3)]
+smoke_metrics_2 = [Euclidean(3).metric, Minkowski(3).metric]
+
 
 class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
     space = ProductManifold
@@ -158,7 +161,7 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
         def inner_product_matrix_data(self):
             smoke_data = [
                 dict(
-                    metric=smoke_metrics_1,
+                    metric=smoke_metrics_2,
                     default_point_type="vector",
                     point=ProductManifold(
                         smoke_manifolds_1, default_point_type="vector"
@@ -168,13 +171,13 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
                     ).random_point(5),
                 ),
                 dict(
-                    manifold=smoke_metrics_1,
+                    manifold=smoke_metrics_2,
                     default_point_type="matrix",
                     point=ProductManifold(
-                        smoke_manifolds_1, default_point_type="matrix"
+                        smoke_manifolds_2, default_point_type="matrix"
                     ).random_point(5),
                     base_point=ProductManifold(
-                        smoke_manifolds_1, default_point_type="matrix"
+                        smoke_manifolds_2, default_point_type="matrix"
                     ).random_point(5),
                 ),
             ]
