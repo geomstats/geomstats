@@ -17,6 +17,7 @@ from geomstats.geometry.product_manifold import (
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.conftest import TestCase
 from tests.data_generation import (
+    ManifoldTestData,
     RiemannianMetricTestData,
     TestData,
     VectorSpaceTestData,
@@ -162,47 +163,63 @@ smoke_manifolds_1 = [Hypersphere(dim=2), Hyperboloid(dim=2)]
 #         self.assertAllClose(result, expected)
 
 
-# class TestNFoldManifold(TestCase, metaclass=ManifoldParametrizer):
-#     space = NFoldManifold
+class TestNFoldManifold(TestCase, metaclass=ManifoldParametrizer):
+    space = NFoldManifold
 
-#     class TestDataNFoldManifold:
-#         def belongs_data(self):
-#             smoke_data = [
-#                 dict(
-#                     base=SpecialOrthogonal(3),
-#                     power=2,
-#                     point=gs.stack([gs.eye(3) + 1.0, gs.eye(3)]),
-#                     expected=False,
-#                 ),
-#                 dict(
-#                     base=SpecialOrthogonal(3),
-#                     power=2,
-#                     point=gs.array([gs.eye(3)]*2),
-#                     expected=[True, True],
-#                 )
-#             ]
-#             return self.generate_tests(smoke_data)
+    class TestDataNFoldManifold(ManifoldTestData):
+        def belongs_data(self):
+            smoke_data = [
+                dict(
+                    base=SpecialOrthogonal(3),
+                    power=2,
+                    point=gs.stack([gs.eye(3) + 1.0, gs.eye(3)]),
+                    expected=False,
+                ),
+                dict(
+                    base=SpecialOrthogonal(3),
+                    power=2,
+                    point=gs.array([gs.eye(3)] * 2),
+                    expected=[True, True],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
-#         def shape_data(self):
-#             smoke_data =  [
-#                 dict(
-#                     base=SpecialOrthogonal(3),
-#                     power=2,
-#                     shape=(2, 3, 3)
-#                 )
-#             ]
-#             return self.generate_tests(smoke_data)
+        def shape_data(self):
+            smoke_data = [dict(base=SpecialOrthogonal(3), power=2, shape=(2, 3, 3))]
+            return self.generate_tests(smoke_data)
 
-#     def test_belongs(self, base, power, point, expected):
-#         space = self.space(base, power)
-#         self.assertAllClose(space.belongs(point), expected)
+        def random_point_belongs_data(self):
+            smoke_space_args_list = [(2,), (3,)]
+            smoke_n_points_list = [1, 2]
+            return self._random_point_belongs_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+            )
 
-#     def test_shape(self, base, power, expected):
-#         space = self.space(base, power)
-#         self.assertAllClose(space.shape, expected)
+        def projection_belongs_data(self):
+            return self._projection_belongs_data(
+                self.space_args_list, self.shape_list, self.n_samples_list
+            )
 
+        def to_tangent_is_tangent_data(self):
+            return self._to_tangent_is_tangent_data(
+                NFoldManifold,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
 
-#     testing_data = TestDataNFoldManifold()
+    def test_belongs(self, base, power, point, expected):
+        space = self.space(base, power)
+        self.assertAllClose(space.belongs(point), expected)
+
+    def test_shape(self, base, power, expected):
+        space = self.space(base, power)
+        self.assertAllClose(space.shape, expected)
+
+    testing_data = TestDataNFoldManifold()
 
 
 class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
