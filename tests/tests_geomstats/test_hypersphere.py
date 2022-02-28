@@ -14,9 +14,9 @@ from tests.conftest import TestCase
 from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
 from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
 
-MEAN_ESTIMATION_TOL = 1e-3
-KAPPA_ESTIMATION_TOL = 1e-2
-ONLINE_KMEANS_TOL = 1e-2
+MEAN_ESTIMATION_TOL = 1e-1
+KAPPA_ESTIMATION_TOL = 1e-1
+ONLINE_KMEANS_TOL = 1e-1
 
 
 class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
