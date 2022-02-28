@@ -11,40 +11,50 @@ from tests.data_generation import TestData
 from tests.parametrizers import Parametrizer
 
 
-@geomstats.tests.autograd_and_tf_only
+def _sphere_immersion(spherical_coords):
+    theta = spherical_coords[..., 0]
+    phi = spherical_coords[..., 1]
+    return gs.array(
+        [
+            gs.cos(phi) * gs.sin(theta),
+            gs.sin(phi) * gs.sin(theta),
+            gs.cos(theta),
+        ]
+    )
+
+
+def _expected_jacobian_immersion(point):
+    theta = point[..., 0]
+    phi = point[..., 1]
+    jacobian = gs.array(
+        [
+            [gs.cos(phi) * gs.cos(theta), -gs.sin(phi) * gs.sin(theta)],
+            [gs.sin(phi) * gs.cos(theta), gs.cos(phi) * gs.sin(theta)],
+            [-gs.sin(theta), 0.0],
+        ]
+    )
+    return jacobian
+
+
+def _expected_metric_matrix(point):
+    theta = point[..., 0]
+    mat = gs.array([[1.0, 0.0], [0.0, gs.sin(theta) ** 2]])
+    return mat
+
+
+def _expected_inverse_metric_matrix(point):
+    theta = point[..., 0]
+    mat = gs.array([[1.0, 0.0], [0.0, gs.sin(theta) ** (-2)]])
+    return mat
+
+
+immersion = _sphere_immersion
+expected_jacobian_immersion = _expected_jacobian_immersion
+
+
+@geomstats.tests.autograd_tf_and_torch_only
 class TestPullbackMetric(TestCase, metaclass=Parametrizer):
     class TestDataPullbackMetric(TestData):
-        def _sphere_immersion(spherical_coords):
-            theta = spherical_coords[..., 0]
-            phi = spherical_coords[..., 1]
-            return gs.array(
-                [
-                    gs.cos(phi) * gs.sin(theta),
-                    gs.sin(phi) * gs.sin(theta),
-                    gs.cos(theta),
-                ]
-            )
-
-        def _expected_jacobian_immersion(point):
-            theta = point[..., 0]
-            phi = point[..., 1]
-            jacobian = gs.array(
-                [
-                    [gs.cos(phi) * gs.cos(theta), -gs.sin(phi) * gs.sin(theta)],
-                    [gs.sin(phi) * gs.cos(theta), gs.cos(phi) * gs.sin(theta)],
-                    [-gs.sin(theta), 0.0],
-                ]
-            )
-            return jacobian
-
-        def _expected_metric_matrix(point):
-            theta = point[..., 0]
-            mat = gs.array([[1.0, 0.0], [0.0, gs.sin(theta) ** 2]])
-            return mat
-
-        immersion = _sphere_immersion
-        expected_jacobian_immersion = _expected_jacobian_immersion
-
         def immersion_data(self):
             smoke_data = [
                 dict(
@@ -63,7 +73,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def immersion_and_spherical_to_extrinsic_data(self):
-            smoke_data = [dict(point=gs.array([0.0, 0.0]))]
+            smoke_data = [dict(dim=2, point=gs.array([0.0, 0.0]))]
             return self.generate_tests(smoke_data)
 
         def tangent_immersion_data(self):
@@ -140,7 +150,10 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def inverse_metric_matrix_data(self):
-            smoke_data = [dict(dim=2, base_point=gs.array([0.6, -1.0]))]
+            smoke_data = [
+                dict(dim=2, base_point=gs.array([0.6, -1.0])),
+                dict(dim=2, base_point=gs.array([0.8, -0.8])),
+            ]
             return self.generate_tests(smoke_data)
 
         def christoffels_and_sphere_christoffels_data(self):
@@ -168,44 +181,44 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
     testing_data = TestDataPullbackMetric()
 
     def test_immersion(self, spherical_coords, expected):
-        result = self.immersion(spherical_coords)
+        result = immersion(spherical_coords)
         self.assertAllClose(result, expected)
 
-    def test_immersion_and_spherical_to_extrinsic(self, point, sphere):
-        expected = self.immersion(point)
-        result = sphere.spherical_to_extrinsic(point)
+    def test_immersion_and_spherical_to_extrinsic(self, dim, point):
+        expected = immersion(point)
+        result = Hypersphere(dim).spherical_to_extrinsic(point)
         self.assertAllClose(result, expected)
 
     def test_jacobian_immersion(self, dim, pole):
         pullback_metric = PullbackMetric(
-            dim=dim, embedding_dim=dim + 1, immersion=self.immersion
+            dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
         result = pullback_metric.jacobian_immersion(pole)
-        expected = self._expected_jacobian_immersion(pole)
+        expected = _expected_jacobian_immersion(pole)
         self.assertAllClose(result, expected)
 
     def test_tangent_immersion(self, dim, tangent_vec, point, expected):
         pullback_metric = PullbackMetric(
-            dim=dim, embedding_dim=dim + 1, immersion=self.immersion
+            dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
         result = pullback_metric.tangent_immersion(tangent_vec, point)
         self.assertAllClose(result, expected)
 
     def test_metric_matrix(self, dim, base_point):
         pullback_metric = PullbackMetric(
-            dim=dim, embedding_dim=dim + 1, immersion=self.immersion
+            dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
         result = pullback_metric.metric_matrix(base_point)
-        expected = self._expected_metric_matrix(base_point)
+        expected = _expected_metric_matrix(base_point)
         self.assertAllClose(result, expected)
 
     def test_inverse_metric_matrix(self, dim, base_point):
         pullback_metric = PullbackMetric(
-            dim=dim, embedding_dim=dim + 1, immersion=self.immersion
+            dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
 
         result = pullback_metric.cometric_matrix(base_point)
-        expected = self._expected_inverse_metric_matrix(base_point)
+        expected = _expected_inverse_metric_matrix(base_point)
         self.assertAllClose(result, expected)
 
     def test_inner_product_and_sphere_inner_product(
@@ -224,9 +237,9 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         of the spherical coordinates.
         """
         pullback_metric = PullbackMetric(
-            dim=dim, embedding_dim=dim + 1, immersion=self.immersion
+            dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
-        immersed_base_point = self.immersion(base_point)
+        immersed_base_point = immersion(base_point)
         jac_immersion = pullback_metric.jacobian_immersion(base_point)
         immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec_a)
         immersed_tangent_vec_b = gs.matmul(jac_immersion, tangent_vec_b)
@@ -252,7 +265,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         in terms of the spherical coordinates.
         """
         pullback_metric = PullbackMetric(
-            dim=dim, embedding_dim=dim + 1, immersion=self.immersion
+            dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
         result = pullback_metric.christoffels(base_point)
         expected = Hypersphere(2).metric.christoffels(base_point)
@@ -268,9 +281,9 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         in terms of the spherical coordinates.
         """
         pullback_metric = PullbackMetric(
-            dim=dim, embedding_dim=dim + 1, immersion=self.immersion
+            dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
-        immersed_base_point = self.immersion(base_point)
+        immersed_base_point = immersion(base_point)
         jac_immersion = pullback_metric.jacobian_immersion(base_point)
         immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec)
         result = pullback_metric.exp(tangent_vec, base_point=base_point)
@@ -280,6 +293,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected, atol=1e-1)
 
+    @geomstats.tests.autograd_and_torch_only
     def test_parallel_transport_and_sphere_parallel_transport(
         self, dim, tangent_vec_a, tangent_vec_b, base_point
     ):
@@ -292,9 +306,9 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         in terms of the spherical coordinates.
         """
         pullback_metric = PullbackMetric(
-            dim=dim, embedding_dim=dim + 1, immersion=self.immersion
+            dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
-        immersed_base_point = self.immersion(base_point)
+        immersed_base_point = immersion(base_point)
         jac_immersion = pullback_metric.jacobian_immersion(base_point)
         immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec_a)
         immersed_tangent_vec_b = gs.matmul(jac_immersion, tangent_vec_b)
@@ -307,7 +321,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         end_point = result_dict["end_point"]
         result = pullback_metric.tangent_immersion(v=result, x=end_point)
 
-        expected = Hypersphere(dim).parallel_transport(
+        expected = Hypersphere(dim).metric.parallel_transport(
             immersed_tangent_vec_a,
             base_point=immersed_base_point,
             direction=immersed_tangent_vec_b,
