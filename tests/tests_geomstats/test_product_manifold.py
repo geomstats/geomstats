@@ -15,7 +15,7 @@ from geomstats.geometry.product_manifold import (
 from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.conftest import TestCase
-from tests.data_generation import ManifoldTestData, RiemannianMetricTestData, TestData
+from tests.data_generation import ManifoldTestData, RiemannianMetricTestData
 from tests.parametrizers import ManifoldParametrizer, RiemannianMetricParametrizer
 
 smoke_manifolds_1 = [Hypersphere(dim=2), Hyperboloid(dim=2)]
@@ -24,14 +24,21 @@ smoke_metrics_1 = [Hypersphere(dim=2).metric, Hyperboloid(dim=2).metric]
 
 class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
     space = ProductManifold
+    skip_test_projection_belongs = True
+    skip_test_to_tangent_is_tangent = True
 
-    class TestDataProductManifold(TestData):
+    class TestDataProductManifold(ManifoldTestData):
 
         n_list = random.sample(range(2, 4), 2)
         default_point_list = ["vector", "matrix"]
         manifolds_list = [[Hypersphere(dim=n), Hyperboloid(dim=n)] for n in n_list]
-        metric_list = [None] * 2
-        space_args_list = list(zip(manifolds_list, metric_list, default_point_list))
+        space_args_list = [
+            (
+                manifold,
+                None,
+            )
+            for manifold, default_point in zip(manifolds_list, default_point_list)
+        ]
         shape_list = [
             (n + 1, n + 1) if default_point == "matrix" else (2 * (n + 1),)
             for n, default_point in zip(n_list, default_point_list)
@@ -76,8 +83,8 @@ class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
 
         def random_point_belongs_data(self):
             smoke_space_args_list = [
-                (SpecialOrthogonal(2), 2),
-                (SpecialOrthogonal(2), 2),
+                (smoke_manifolds_1, None, "vector"),
+                (smoke_manifolds_1, None, "matrix"),
             ]
             smoke_n_points_list = [1, 2]
             return self._random_point_belongs_data(
@@ -92,12 +99,12 @@ class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
-                belongs_atol=1e-3,
+                belongs_atol=1e-2,
             )
 
         def to_tangent_is_tangent_data(self):
             return self._to_tangent_is_tangent_data(
-                NFoldManifold,
+                ProductManifold,
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
@@ -237,7 +244,7 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
                 self.space_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=1e-3,
+                atol=1e-2,
             )
 
         def exp_log_composition_data(self):
@@ -247,7 +254,7 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
                 self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=1e-3,
+                atol=1e-2,
             )
 
         def exp_ladder_parallel_transport_data(self):
