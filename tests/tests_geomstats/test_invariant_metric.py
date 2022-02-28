@@ -1,6 +1,7 @@
 """Unit tests for the invariant metrics on Lie groups."""
 
 import itertools
+import random
 
 import pytest
 
@@ -21,10 +22,22 @@ from tests.parametrizers import (
 )
 
 
-class TestInvariantMetric(TestCase, metaclass=Parametrizer):
+class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     metric = connection = InvariantMetric
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_exp_shape = True
+    skip_test_exp_belongs = True
+    skip_test_geodesic_ivp_belongs = True
+    skip_test_exp_log_composition = True
+    skip_test_exp_ladder_parallel_transport = True
+    skip_test_log_is_tangent = True
+    skip_test_log_shape = True
+    skip_test_geodesic_bvp_belongs = True
+    skip_test_log_exp_composition = True
 
-    class TestDataInvariantMetric(TestData):
+    class TestDataInvariantMetric(RiemannianMetricTestData):
         group = SpecialEuclidean(n=3, point_type="vector")
         matrix_se3 = SpecialEuclidean(n=3)
         matrix_so3 = SpecialOrthogonal(n=3)
@@ -35,6 +48,26 @@ class TestInvariantMetric(TestCase, metaclass=Parametrizer):
         point_2_matrix = vector_so3.matrix_from_rotation_vector(point_2[..., :3])
         # Edge case for the point, angle < epsilon,
         point_small = gs.array([-1e-7, 0.0, -7 * 1e-8, 6.0, 5.0, 9.0])
+
+        diag_mat_at_identity = gs.eye(group.dim)
+        metric_args_list = [
+            (group, None, "left"),
+            (group, None, "right"),
+            (group, gs.eye(group.dim), "left"),
+            (group, gs.eye(group.dim), "right"),
+            (matrix_so3, None, "right"),
+            (matrix_so3, None, "left"),
+        ]
+        shape_list = [metric_args[0].shape for metric_args in metric_args_list]
+        space_list = [metric_args[0] for metric_args in metric_args_list]
+        n_points_list = random.sample(range(1, 10), 6)
+        n_samples_list = random.sample(range(1, 10), 6)
+        n_points_a_list = random.sample(range(1, 10), 6)
+        n_points_b_list = [1]
+        batch_size_list = random.sample(range(2, 10), 6)
+        alpha_list = [1] * 6
+        n_rungs_list = [1] * 6
+        scheme_list = ["pole"] * 6
 
         def inner_product_mat_at_identity_shape_data(self):
             group = SpecialEuclidean(n=3, point_type="vector")
@@ -389,6 +422,125 @@ class TestInvariantMetric(TestCase, metaclass=Parametrizer):
         def integrated_parallel_transport_data(self):
             smoke_data = [dict(group=self.matrix_se3, n=3, n_samples=2)]
             return self.generate_tests(smoke_data)
+
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
+            )
+
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
+            )
+
+        def squared_dist_is_symmetric_data(self):
+            return self._squared_dist_is_symmetric_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
+
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=gs.rtol * 100000,
+                atol=gs.atol * 100000,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
 
     testing_data = TestDataInvariantMetric()
 
