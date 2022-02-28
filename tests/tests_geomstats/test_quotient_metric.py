@@ -156,26 +156,26 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         tangent_vec = Matrices.to_symmetric(vec)
         horizontal = bundle.horizontal_lift(tangent_vec, fiber_point=mat)
         result = bundle.tangent_riemannian_submersion(horizontal, mat)
-        self.assertAllClose(result, tangent_vec)
+        self.assertAllClose(result, tangent_vec, atol=1e-3)
 
     def test_is_horizontal(self, n, mat, vec):
         bundle = self.bundle(n)
         tangent_vec = Matrices.to_symmetric(vec)
         horizontal = bundle.horizontal_lift(tangent_vec, fiber_point=mat)
-        result = bundle.is_horizontal(horizontal, mat)
+        result = bundle.is_horizontal(horizontal, mat, atol=1e-3)
         self.assertTrue(result)
 
     def test_is_vertical(self, n, mat, vec):
         bundle = self.bundle(n)
         vertical = bundle.vertical_projection(vec, mat)
-        result = bundle.is_vertical(vertical, mat)
+        result = bundle.is_vertical(vertical, mat, atol=1e-3)
         self.assertTrue(result)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_align(self, n, point_a, point_b):
         bundle = self.bundle(n)
         aligned = bundle.align(point_a, point_b, tol=1e-10)
-        result = bundle.is_horizontal(point_b - aligned, point_b, atol=1e-4)
+        result = bundle.is_horizontal(point_b - aligned, point_b, atol=1e-3)
         self.assertTrue(result)
 
     def test_inner_product(self, n, mat, vec_a, vec_b):
@@ -188,7 +188,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
             tangent_vecs[0], tangent_vecs[1], fiber_point=mat
         )
         expected = base_metric.inner_product(tangent_vecs[0], tangent_vecs[1], point)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-3)
 
     def test_exp(self, n, mat, vec):
         bundle = self.bundle(n)
@@ -199,7 +199,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
 
         result = quotient_metric.exp(tangent_vec, point)
         expected = base_metric.exp(tangent_vec, point)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-2)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_log(self, n, mat_a, mat_b):
@@ -210,7 +210,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
 
         result = quotient_metric.log(points[1], points[0])
         expected = base_metric.log(points[1], points[0])
-        self.assertAllClose(result, expected, atol=3e-4)
+        self.assertAllClose(result, expected, atol=1e-3)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_squared_dist(self, n, mat_a, mat_b):
@@ -221,7 +221,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
 
         result = quotient_metric.squared_dist(points[1], points[0], tol=1e-10)
         expected = base_metric.squared_dist(points[1], points[0])
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=1e-3)
 
     def test_integrability_tensor(self, n, mat, vec):
         bundle = self.bundle(n)
