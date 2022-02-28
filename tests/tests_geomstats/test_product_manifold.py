@@ -247,7 +247,7 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
                 self.space_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=1e-2,
+                atol=1e-1,
             )
 
         def exp_log_composition_data(self):
@@ -256,8 +256,8 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                rtol=gs.rtol * 100,
-                atol=1e-2,
+                rtol=gs.rtol * 1000,
+                atol=1e-1,
             )
 
         def exp_ladder_parallel_transport_data(self):
