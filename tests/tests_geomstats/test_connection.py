@@ -152,7 +152,7 @@ class TestConnection(TestCase, metaclass=Parametrizer):
             self.assertAllClose(result, expected, rtol=tol, atol=tol)
             self.assertAllClose(result_point, expected_point)
 
-    def test_ladder_alpha(dim, n_samples):
+    def test_ladder_alpha(self, dim, n_samples):
         sphere = Hypersphere(dim)
         base_point = sphere.random_uniform(n_samples)
         tan_vec_a = sphere.to_tangent(gs.random.rand(n_samples, 3), base_point)
