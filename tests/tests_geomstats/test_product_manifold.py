@@ -129,7 +129,7 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
     skip_test_log_shape = True
 
     class TestDataProductRiemannianMetric(RiemannianMetricTestData):
-        n_list = random.sample(range(2, 4), 2)
+        n_list = random.sample(range(2, 3), 1)
         default_point_list = ["vector", "matrix"]
         manifolds_list = [[Hypersphere(dim=n), Hyperboloid(dim=n)] for n in n_list]
         metrics_list = [
@@ -144,14 +144,14 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
             ProductManifold(manifolds, None, default_point_type)
             for manifolds, default_point_type in zip(manifolds_list, default_point_list)
         ]
-        n_points_list = random.sample(range(2, 5), 2)
-        n_samples_list = random.sample(range(2, 5), 2)
-        n_points_a_list = random.sample(range(2, 5), 2)
+        n_points_list = random.sample(range(2, 5), 1)
+        n_samples_list = random.sample(range(2, 5), 1)
+        n_points_a_list = random.sample(range(2, 5), 1)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 5), 2)
-        alpha_list = [1] * 2
-        n_rungs_list = [1] * 2
-        scheme_list = ["pole"] * 2
+        batch_size_list = random.sample(range(2, 5), 1)
+        alpha_list = [1] * 1
+        n_rungs_list = [1] * 1
+        scheme_list = ["pole"] * 1
 
         def inner_product_matrix_data(self):
             smoke_data = [
