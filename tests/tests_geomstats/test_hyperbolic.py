@@ -274,7 +274,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                belongs_atol=gs.atol * 1000,
+                belongs_atol=gs.atol * 10000,
             )
 
         def log_is_tangent_data(self):
