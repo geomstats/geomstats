@@ -645,8 +645,8 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
-                rtol=gs.rtol * 100,
-                atol=gs.atol * 10000,
+                rtol=gs.rtol * 10,
+                atol=gs.atol * 10,
             )
 
         def exp_log_composition_data(self):
@@ -656,8 +656,8 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
                 self.shape_list,
                 self.n_samples_list,
                 amplitude=7.0,
-                rtol=gs.rtol,
-                atol=gs.atol,
+                rtol=gs.rtol * 10,
+                atol=gs.atol * 10,
             )
 
         def exp_ladder_parallel_transport_data(self):
