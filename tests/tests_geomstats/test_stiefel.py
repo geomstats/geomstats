@@ -238,7 +238,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
-                atol=gs.atol * 1000,
+                atol=1e-2,
             )
 
         def exp_geodesic_ivp_data(self):
