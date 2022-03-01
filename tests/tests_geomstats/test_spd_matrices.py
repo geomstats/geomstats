@@ -524,7 +524,7 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
-    skip_test_log_exp_composition = True
+    # skip_test_log_exp_composition = True
     skip_test_exp_log_composition = True
 
     class TestDataSPDMetricBuresWasserstein(RiemannianMetricTestData):
