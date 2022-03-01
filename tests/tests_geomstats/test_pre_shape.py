@@ -1050,7 +1050,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             * coef_y**2
             * metric.directional_curvature_derivative(hor_x, hor_y, base_point)
         )
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol * 1000)
 
     @np_autograd_and_torch_only
     def test_parallel_transport(
