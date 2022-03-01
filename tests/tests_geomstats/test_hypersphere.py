@@ -259,13 +259,13 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
         def extrinsic_intrinsic_composition_data(self):
             space_args_list = [(1,), (2,)]
             return self._extrinsic_intrinsic_composition_data(
-                Hypersphere, space_args_list, self.n_samples_list
+                Hypersphere, space_args_list, self.n_samples_list, atol=gs.atol * 100
             )
 
         def intrinsic_extrinsic_composition_data(self):
             space_args_list = [(1,), (2,)]
             return self._intrinsic_extrinsic_composition_data(
-                Hypersphere, space_args_list, self.n_samples_list
+                Hypersphere, space_args_list, self.n_samples_list, atol=gs.atol * 100
             )
 
     testing_data = TestDataHypersphere()
