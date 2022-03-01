@@ -591,4 +591,32 @@ class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
+        def inner_product_shape_data(self):
+            space = NFoldManifold(SpecialOrthogonal(3), 2)
+            n_samples = 4
+            point = gs.stack([gs.eye(3)] * space.n_copies * n_samples)
+            point = gs.reshape(point, (n_samples, *space.shape))
+            tangent_vec = space.to_tangent(gs.zeros((n_samples, *space.shape)), point)
+            smoke_data = [
+                dict(space=space, n_samples=4, point=point, tangent_vec=tangent_vec)
+            ]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataNFoldMetric()
+
+    def test_inner_product_shape(self, space, n_samples, point, tangent_vec):
+        result = space.metric.inner_product(tangent_vec, tangent_vec, point)
+        expected = gs.zeros(n_samples)
+        self.assertAllClose(result, expected)
+
+        point = point[0]
+        result = space.metric.inner_product(tangent_vec, tangent_vec, point)
+        expected = gs.zeros(n_samples)
+        self.assertAllClose(result, expected)
+
+        result = space.metric.inner_product(tangent_vec[0], tangent_vec, point)
+        self.assertAllClose(result, expected)
+
+        expected = 0.0
+        result = space.metric.inner_product(tangent_vec[0], tangent_vec[0], point)
+        self.assertAllClose(result, expected)
