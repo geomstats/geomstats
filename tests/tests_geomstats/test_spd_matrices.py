@@ -320,8 +320,6 @@ class TestSPDMetricAffine(
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
-    skip_test_log_exp_composition = True
-    skip_test_exp_log_composition = True
     skip_test_exp_ladder_parallel_transport = True
 
     class TestDataSPDMetricAffine(RiemannianMetricTestData):
@@ -524,8 +522,6 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
-    # skip_test_log_exp_composition = True
-    skip_test_exp_log_composition = True
 
     class TestDataSPDMetricBuresWasserstein(RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
@@ -659,8 +655,9 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                rtol=gs.rtol * 100,
-                atol=gs.atol * 10000,
+                amplitude=7.0,
+                rtol=gs.rtol,
+                atol=gs.atol,
             )
 
         def exp_ladder_parallel_transport_data(self):
