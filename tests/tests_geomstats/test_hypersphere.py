@@ -24,7 +24,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
 
     class TestDataHypersphere(LevelSetTestData):
 
-        dim_list = random.sample(range(1, 5), 2)
+        dim_list = random.sample(range(1, 4), 2)
         space_args_list = [(dim,) for dim in dim_list]
         n_points_list = random.sample(range(1, 5), 2)
         shape_list = [(dim + 1,) for dim in dim_list]
@@ -399,18 +399,18 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_exp_geodesic_ivp = True
 
     class TestDataHypersphereMetric(RiemannianMetricTestData):
-        dim_list = random.sample(range(2, 7), 5)
+        dim_list = random.sample(range(2, 5), 2)
         metric_args_list = [(n,) for n in dim_list]
         shape_list = [(dim + 1,) for dim in dim_list]
         space_list = [Hypersphere(n) for n in dim_list]
-        n_points_list = random.sample(range(1, 7), 5)
-        n_samples_list = random.sample(range(1, 7), 5)
-        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_list = random.sample(range(1, 5), 2)
+        n_samples_list = random.sample(range(1, 5), 2)
+        n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 5)
-        alpha_list = [1] * 5
-        n_rungs_list = [1] * 5
-        scheme_list = ["pole"] * 5
+        batch_size_list = random.sample(range(2, 5), 2)
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
 
         def inner_product_data(self):
             smoke_data = [
