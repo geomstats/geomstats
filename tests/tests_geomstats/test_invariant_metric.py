@@ -352,7 +352,7 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         def curvature_translation_point_data(self):
             group = self.matrix_so3
             metric = InvariantMetric(group)
-            x, y, z = metric.normal_basis(group.lie_algebra.basis)
+            x, y, _ = metric.normal_basis(group.lie_algebra.basis)
 
             smoke_data = [
                 dict(
@@ -706,10 +706,10 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         identity = group.identity
         result = metric.exp(tangent_vec, identity, n_steps=100, step="rk4")
         expected = group.exp(tangent_vec, identity)
-        self.assertAllClose(expected, result, atol=1e-5)
+        self.assertAllClose(expected, result, atol=1e-4)
 
         result = metric.exp(tangent_vec, identity, n_steps=100, step="rk2")
-        self.assertAllClose(expected, result, atol=1e-5)
+        self.assertAllClose(expected, result, atol=1e-4)
 
     def test_integrated_se3_exp_at_id(self, group):
         lie_algebra = group.lie_algebra
@@ -722,10 +722,10 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         identity = group.identity
         result = metric.exp(tangent_vec, identity, n_steps=100, step="rk4")
         expected = canonical_metric.exp(tangent_vec, identity)
-        self.assertAllClose(expected, result, atol=1e-5)
+        self.assertAllClose(expected, result, atol=1e-4)
 
         result = metric.exp(tangent_vec, identity, n_steps=100, step="rk2")
-        self.assertAllClose(expected, result, atol=1e-5)
+        self.assertAllClose(expected, result, atol=1e-4)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_integrated_exp_and_log_at_id(self, group):
