@@ -27,8 +27,6 @@ smoke_metrics_2 = [Euclidean(3).metric, Minkowski(3).metric]
 
 class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
     space = ProductManifold
-    skip_test_projection_belongs = True
-    skip_test_to_tangent_is_tangent = True
 
     class TestDataProductManifold(ManifoldTestData):
 
@@ -36,10 +34,7 @@ class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
         default_point_list = ["vector", "matrix"]
         manifolds_list = [[Hypersphere(dim=n), Hyperboloid(dim=n)] for n in n_list]
         space_args_list = [
-            (
-                manifold,
-                None,
-            )
+            (manifold, None, default_point)
             for manifold, default_point in zip(manifolds_list, default_point_list)
         ]
         shape_list = [
