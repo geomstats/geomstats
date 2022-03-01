@@ -309,6 +309,27 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
             ]
             return self.generate_tests([], random_data)
 
+        def dist_log_exp_norm_data(self):
+            smoke_data = [
+                dict(
+                    space=smoke_manifolds_1,
+                    default_point_type="vector",
+                    n_samples=10,
+                    einsum_str="..., ...j->...j",
+                    expected=gs.ones(10),
+                ),
+                dict(
+                    space=smoke_manifolds_1,
+                    default_point_type="matrix",
+                    n_samples=10,
+                    einsum_str="..., ...jl->...jl",
+                    expected=gs.ones(
+                        10,
+                    ),
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataProductRiemannianMetric()
 
     @geomstats.tests.np_autograd_and_torch_only
@@ -330,6 +351,26 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
         expected = gs.eye(6)
         expected[3, 3] = -1
         result = space.metric.metric_matrix(point)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_dist_log_exp_norm(
+        self, manifolds, default_point_type, n_samples, einsum_str, expected
+    ):
+        space = ProductManifold(
+            manifolds=manifolds, default_point_type=default_point_type
+        )
+        point = space.random_point(n_samples)
+        base_point = space.random_point(n_samples)
+
+        logs = space.metric.log(point, base_point)
+        normalized_logs = gs.einsum(
+            einsum_str,
+            1.0 / space.metric.norm(logs, base_point),
+            logs,
+        )
+        point = space.metric.exp(normalized_logs, base_point)
+        result = space.metric.dist(point, base_point)
         self.assertAllClose(result, expected)
 
 
