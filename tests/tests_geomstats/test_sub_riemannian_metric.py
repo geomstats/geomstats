@@ -129,7 +129,7 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
     @geomstats.tests.autograd_tf_and_torch_only
     def test_iterate(self, metric, test_state, n_steps, step_size, expected):
         step = metric.symp_euler
-        result = self.example_metric.iterate(step(step_size), n_steps)(test_state)[-10]
+        result = metric.iterate(step(step_size), n_steps)(test_state)[-10]
         self.assertAllClose(result, expected)
 
     @geomstats.tests.autograd_tf_and_torch_only
