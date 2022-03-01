@@ -7,19 +7,13 @@ import pytest
 
 import geomstats.backend as gs
 import geomstats.tests
-import tests.helper as helper
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.conftest import TestCase
-from tests.data_generation import LevelSetTestData, RiemannianMetricTestData, TestData
-from tests.parametrizers import (
-    LevelSetParametrizer,
-    Parametrizer,
-    RiemannianMetricParametrizer,
-)
+from tests.data_generation import RiemannianMetricTestData
+from tests.parametrizers import RiemannianMetricParametrizer
 
 
 class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
@@ -412,11 +406,16 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             return self.generate_tests(smoke_data)
 
         def integrated_exp_at_id_data(self):
-            smoke_data = [dict(group=self.matrix_so3), dict(group=self.matrix_se3)]
+
+            smoke_data = [dict(group=self.matrix_so3)]
+            return self.generate_tests(smoke_data)
+
+        def integrated_se3_exp_at_id_data(self):
+            smoke_data = [dict(group=self.matrix_se3)]
             return self.generate_tests(smoke_data)
 
         def integrated_exp_and_log_at_id_data(self):
-            smoke_data = [dict(group=self.matrix_so3), dict(group=self.matrix_se3)]
+            smoke_data = [dict(group=self.matrix_so3)]
             return self.generate_tests(smoke_data)
 
         def integrated_parallel_transport_data(self):
@@ -695,7 +694,10 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         result = metric.curvature_derivative(tan_a, tan_b, tan_c, tan_d, base_point)
         self.assertAllClose(result, expected)
 
-    def test_integrated_exp_at_id(self, group):
+    def test_integrated_exp_at_id(
+        self,
+        group,
+    ):
         metric = InvariantMetric(group=group)
         basis = metric.normal_basis(group.lie_algebra.basis)
 
@@ -704,6 +706,22 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         identity = group.identity
         result = metric.exp(tangent_vec, identity, n_steps=100, step="rk4")
         expected = group.exp(tangent_vec, identity)
+        self.assertAllClose(expected, result, atol=1e-5)
+
+        result = metric.exp(tangent_vec, identity, n_steps=100, step="rk2")
+        self.assertAllClose(expected, result, atol=1e-5)
+
+    def test_integrated_se3_exp_at_id(self, group):
+        lie_algebra = group.lie_algebra
+        metric = InvariantMetric(group=group)
+        canonical_metric = group.left_canonical_metric
+        basis = metric.normal_basis(lie_algebra.basis)
+
+        vector = gs.random.rand(len(basis))
+        tangent_vec = gs.einsum("...j,jkl->...kl", vector, basis)
+        identity = group.identity
+        result = metric.exp(tangent_vec, identity, n_steps=100, step="rk4")
+        expected = canonical_metric.exp(tangent_vec, identity)
         self.assertAllClose(expected, result, atol=1e-5)
 
         result = metric.exp(tangent_vec, identity, n_steps=100, step="rk2")
