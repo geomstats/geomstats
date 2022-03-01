@@ -241,7 +241,7 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
-                rtol=gs.rtol * 100,
+                rtol=gs.rtol * 1000,
                 atol=1e-1,
             )
 
