@@ -25,7 +25,7 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
 
     class TestDataHyperbolic(LevelSetTestData):
 
-        dim_list = random.sample(range(2, 5), 2)
+        dim_list = random.sample(range(2, 4), 2)
         space_args_list = [(dim,) for dim in dim_list]
         shape_list = [(dim + 1,) for dim in dim_list]
         n_samples_list = random.sample(range(2, 5), 2)
@@ -180,7 +180,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
 
     class TestDataHyperboloidMetric(RiemannianMetricTestData):
 
-        dim_list = random.sample(range(2, 5), 2)
+        dim_list = random.sample(range(2, 4), 2)
         metric_args_list = [(dim,) for dim in dim_list]
         shape_list = [(dim + 1,) for dim in dim_list]
         space_list = [Hyperboloid(dim) for dim in dim_list]
@@ -274,7 +274,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                belongs_atol=gs.atol * 10000,
+                belongs_atol=1e-2,
             )
 
         def log_is_tangent_data(self):
@@ -282,7 +282,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
-                is_tangent_atol=gs.atol * 1000,
+                is_tangent_atol=1e-2,
             )
 
         def geodesic_ivp_belongs_data(self):
