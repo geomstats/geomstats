@@ -50,10 +50,6 @@ class TriPod(LengthSpace[TriPoint]):
         super(TriPod, self).__init__()
         self.e = Euclidean(dim=1).metric
 
-    def belongs(self, point: TriPoint):
-        """Check if a point belongs to the space."""
-        return True
-
     def random_point(self) -> TriPoint:
         """Compute a random point of the tripod space."""
         _s = gs.random.randint(low=0, high=4)

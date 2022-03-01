@@ -31,9 +31,9 @@ class PointSet(Generic[P], ABC):
     def __init__(self):
         super(PointSet, self).__init__()
 
-    @abstractmethod
-    def belongs(self, point: P):
+    def belongs(self, point):
         """Check whether a point belongs to the space."""
+        return type(point) is P
 
     @abstractmethod
     def random_point(self) -> P:
