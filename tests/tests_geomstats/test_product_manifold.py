@@ -421,7 +421,7 @@ class TestNFoldManifold(TestCase, metaclass=ManifoldParametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
-                belongs_atol=1e-3,
+                belongs_atol=1e-1,
             )
 
         def to_tangent_is_tangent_data(self):
