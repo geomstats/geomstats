@@ -26,7 +26,7 @@ P = TypeVar("P", bound=Point)
 
 
 class PointSet(Generic[P], ABC):
-    """Class for a set of points, where points are instances of a class ``P``."""
+    """Class for a set of points, where points are instances of a class ``P`` type."""
 
     def __init__(self):
         super(PointSet, self).__init__()
