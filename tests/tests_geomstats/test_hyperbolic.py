@@ -308,7 +308,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 10000,
+                atol=gs.atol * 100000,
             )
 
         def exp_log_composition_data(self):
@@ -318,7 +318,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 100,
-                atol=gs.atol * 10000,
+                atol=gs.atol * 100000,
             )
 
         def exp_ladder_parallel_transport_data(self):
