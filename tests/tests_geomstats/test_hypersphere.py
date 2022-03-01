@@ -14,9 +14,9 @@ from tests.conftest import TestCase
 from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
 from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
 
-MEAN_ESTIMATION_TOL = 5e-3
-KAPPA_ESTIMATION_TOL = 3e-2
-ONLINE_KMEANS_TOL = 2e-2
+MEAN_ESTIMATION_TOL = 1e-1
+KAPPA_ESTIMATION_TOL = 1e-1
+ONLINE_KMEANS_TOL = 1e-1
 
 
 class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
@@ -453,8 +453,8 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             return self.generate_tests(smoke_data)
 
         def sectional_curvature_data(self):
-            dim_list = random.sample(range(2, 10), 5)
-            n_samples_list = random.sample(range(1, 10), 5)
+            dim_list = random.sample(range(2, 5), 2)
+            n_samples_list = random.sample(range(1, 4), 2)
             random_data = []
             for dim, n_samples in zip(dim_list, n_samples_list):
                 sphere = Hypersphere(dim)
