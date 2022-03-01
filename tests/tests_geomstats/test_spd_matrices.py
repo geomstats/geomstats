@@ -986,18 +986,18 @@ class TestSPDMetricLogEuclidean(
 
     class TestDataSPDMetricLogEuclidean(RiemannianMetricTestData):
 
-        n_list = random.sample(range(2, 7), 5)
+        n_list = random.sample(range(2, 5), 2)
         metric_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
         space_list = [SPDMatrices(n) for n in n_list]
-        n_points_list = random.sample(range(1, 7), 5)
-        n_samples_list = random.sample(range(1, 7), 5)
-        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_list = random.sample(range(1, 5), 2)
+        n_samples_list = random.sample(range(1, 5), 2)
+        n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 5)
-        alpha_list = [1] * 5
-        n_rungs_list = [1] * 5
-        scheme_list = ["pole"] * 5
+        batch_size_list = random.sample(range(2, 5), 2)
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
 
         def inner_product_data(self):
             smoke_data = [
