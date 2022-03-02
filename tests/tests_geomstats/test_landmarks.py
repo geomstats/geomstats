@@ -64,13 +64,12 @@ class TestL2Metric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_belongs = True
-    skip_test_exp_log_composition = True
     skip_test_exp_shape = True
     skip_test_log_shape = True
 
     class TestDataL2Metric(RiemannianMetricTestData):
 
-        dim_list = random.sample(range(1, 3), 2)
+        dim_list = random.sample(range(2, 4), 2)
         n_landmarks_list = random.sample(range(2, 5), 2)
         metric_args_list = [
             (Hypersphere(dim), n_landmarks)
@@ -83,11 +82,11 @@ class TestL2Metric(TestCase, metaclass=RiemannianMetricParametrizer):
         shape_list = [
             (n_landmark, dim + 1) for dim, n_landmark in zip(dim_list, n_landmarks_list)
         ] * 2
-        n_points_list = random.sample(range(2, 7), 4)
-        n_samples_list = random.sample(range(2, 7), 4)
-        n_points_a_list = random.sample(range(2, 7), 4)
+        n_points_list = random.sample(range(2, 5), 2)
+        n_samples_list = random.sample(range(2, 5), 2)
+        n_points_a_list = random.sample(range(2, 5), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 4)
+        batch_size_list = random.sample(range(2, 5), 2)
         alpha_list = [1] * 4
         n_rungs_list = [1] * 4
         scheme_list = ["pole"] * 4
@@ -155,8 +154,8 @@ class TestL2Metric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
-                rtol=gs.rtol * 100,
-                atol=gs.atol * 100,
+                rtol=gs.rtol * 1000,
+                atol=gs.atol * 1000,
             )
 
         def exp_log_composition_data(self):
