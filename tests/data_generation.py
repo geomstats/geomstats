@@ -685,6 +685,7 @@ class ConnectionTestData(TestData):
         shape_list,
         n_samples_list,
         smoke_data=None,
+        amplitude=1.0,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
@@ -700,6 +701,9 @@ class ConnectionTestData(TestData):
             List of shapes for random data to generate.
         n_samples_list : list
             List of number of random data to generate.
+        amplitude : float
+            Factor to scale the amplitude of a tangent vector to stay in the
+            injectivity domain of the exponential map.
         """
         random_data = []
         for connection_args, space, shape, n_samples in zip(
@@ -707,7 +711,7 @@ class ConnectionTestData(TestData):
         ):
             base_point = space.random_point()
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_samples,) + shape), base_point
+                gs.random.normal(size=(n_samples,) + shape) / amplitude, base_point
             )
             random_data.append(
                 dict(
