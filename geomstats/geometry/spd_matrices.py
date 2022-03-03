@@ -880,6 +880,24 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
         return trace_a + trace_b - 2 * trace_prod
 
+    def injectivity_radius(self, base_point):
+        """Compute the upper bound of the injectivity domain.
+
+        This is the smallest eigen value of the base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        eigen_values = gs.linalg.eigvalsh(base_point)
+        return eigen_values[..., 0]
+
 
 class SPDMetricEuclidean(RiemannianMetric):
     """Class for the Euclidean metric on the SPD manifold."""
@@ -964,6 +982,24 @@ class SPDMetricEuclidean(RiemannianMetric):
         domain = gs.concatenate((inf_value, sup_value), axis=1)
 
         return domain
+
+    def injectivity_radius(self, base_point):
+        """Compute the upper bound of the injectivity domain.
+
+        This is the smallest eigen value of the base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        eigen_values = gs.linalg.eigvalsh(base_point)
+        return eigen_values[..., 0]
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Euclidean exponential map.
@@ -1156,3 +1192,20 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         log = SPDMatrices.differential_exp(log_point - log_base_point, log_base_point)
 
         return log
+
+    def injectivity_radius(self, base_point):
+        """Radius of the largest ball where the exponential is injective.
+
+        Because of this space is flat, the injectivity radius is infinite everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return math.inf
