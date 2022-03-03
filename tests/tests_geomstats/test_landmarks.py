@@ -210,4 +210,88 @@ class TestL2Metric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 100,
             )
 
+        def l2_metric_inner_product_vectorization_data(self):
+            smoke_data =[]
+            return self.generate_tests(smoke_data)
+
+        def l2_metric_exp_vectorization_data(self):
+            smoke_data=[]
+            return self.generate_tests(smoke_data)
+
+        def l2_metric_log_vectorization_data(self):
+            smoke_data=[]
+            return self.generate_tests(smoke_data)
+            
+
     testing_data = TestDataL2Metric()
+
+
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_l2_metric_inner_product_vectorization(self, l2_metric_s2):
+        """Test the vectorization inner_product."""
+        n_samples = self.n_landmark_sets
+        landmarks_ab = l2_metric_s2.geodesic(self.landmarks_a, self.landmarks_b)
+        landmarks_bc = l2_metric_s2.geodesic(self.landmarks_b, self.landmarks_c)
+        landmarks_ab = landmarks_ab(self.times)
+        landmarks_bc = landmarks_bc(self.times)
+
+        tangent_vecs = l2_metric_s2.log(
+            point=landmarks_bc, base_point=landmarks_ab
+        )
+
+        result = l2_metric_s2.inner_product(
+            tangent_vecs, tangent_vecs, landmarks_ab
+        )
+
+        self.assertAllClose(gs.shape(result), (n_samples,))
+
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_l2_metric_exp_vectorization(self, l2_metric_s2):
+        """Test the vectorization of exp."""
+        landmarks_ab = l2_metric_s2.geodesic(self.landmarks_a, self.landmarks_b)
+        landmarks_bc = l2_metric_s2.geodesic(self.landmarks_b, self.landmarks_c)
+        landmarks_ab = landmarks_ab(self.times)
+        landmarks_bc = landmarks_bc(self.times)
+
+        tangent_vecs = l2_metric_s2.log(
+            point=landmarks_bc, base_point=landmarks_ab
+        )
+
+        result = self.l2_metric_s2.exp(
+            tangent_vec=tangent_vecs, base_point=landmarks_ab
+        )
+        self.assertAllClose(gs.shape(result), gs.shape(landmarks_ab))
+
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_l2_metric_log_vectorization(self, l2_metric_s2):
+        """Test the vectorization of log."""
+        landmarks_ab = l2_metric_s2.geodesic(self.landmarks_a, self.landmarks_b)
+        landmarks_bc = l2_metric_s2.geodesic(self.landmarks_b, self.landmarks_c)
+        landmarks_ab = landmarks_ab(self.times)
+        landmarks_bc = landmarks_bc(self.times)
+
+        tangent_vecs = l2_metric_s2.log(
+            point=landmarks_bc, base_point=landmarks_ab
+        )
+
+        result = tangent_vecs
+        self.assertAllClose(gs.shape(result), gs.shape(landmarks_ab))
+
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_l2_metric_geodesic(self, l2_metric_s2):
+        """Test the geodesic method of L2Metric."""
+        landmarks_ab = l2_metric_s2.geodesic(self.landmarks_a, self.landmarks_b)
+        landmarks_ab = landmarks_ab(self.times)
+
+        result = landmarks_ab
+        expected = []
+        for k in range(self.n_sampling_points):
+            geod = l2_metric_s2.ambient_metric.geodesic(
+                initial_point=self.landmarks_a[k, :], end_point=self.landmarks_b[k, :]
+            )
+            expected.append(geod(self.times))
+        expected = gs.stack(expected, axis=1)
+
+        self.assertAllClose(result, expected)
+
+
