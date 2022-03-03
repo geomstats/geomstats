@@ -662,7 +662,10 @@ class Connection(ABC):
         )
 
     def injectivity_radius(self, base_point):
-        """Compute the upper bound of the injectivity domain.
+        """Compute the radius of the injectivity domain.
+
+        This is the largest radius r for which the exponential map is a
+        injective on the open ball of radius r and centered at the base point.
 
         Parameters
         ----------
