@@ -417,7 +417,6 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
                     Computational Aspects.”
                     ArXiv:2011.13699 [Cs, Math], November 27, 2020.
                     https://arxiv.org/abs/2011.13699.
-
         """
         if tangent_vec_b is None:
             if end_point is not None:
@@ -476,3 +475,30 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         """
         dist = _squared_dist(point_a, point_b, metric=self)
         return dist
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is the largest radius r for which the exponential map is a
+        injective on the open ball of radius r and centered at the base point.
+        In this case it is Pi / 2 everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+
+        References
+        ----------
+        .. [BZA20]  Bendokat, Thomas, Ralf Zimmermann, and P.-A. Absil.
+            “A Grassmann Manifold Handbook: Basic Geometry and
+            Computational Aspects.”
+            ArXiv:2011.13699 [Cs, Math], November 27, 2020.
+            https://arxiv.org/abs/2011.13699.
+        """
+        return gs.pi / 2
