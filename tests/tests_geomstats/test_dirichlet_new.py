@@ -5,11 +5,15 @@ import random
 from scipy.stats import dirichlet
 
 import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from geomstats.information_geometry.dirichlet import DirichletDistributions
+from geomstats.information_geometry.dirichlet import (
+    DirichletDistributions,
+    DirichletMetric,
+)
 from tests.conftest import TestCase
-from tests.data_generation import OpenSetTestData
-from tests.parametrizers import OpenSetParametrizer
+from tests.data_generation import OpenSetTestData, RiemannianMetricTestData
+from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
 
 
 class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
@@ -34,11 +38,11 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
             return self.generate_tests(smoke_data)
 
         def random_point_data(self):
-            smoke_data = [
-                dict(dim=2, n_samples=1, expected=(2,)),
-                dict(dim=3, n_samples=5, expected=(5, 3)),
+            random_data = [
+                dict(point=self.space(2).random_point(1), expected=(2,)),
+                dict(point=self.space(3).random_point(5), expected=(5, 3)),
             ]
-            return self.generate_tests(smoke_data)
+            return self.generate_tests([], random_data)
 
         def random_point_belongs_data(self):
             smoke_space_args_list = [(2,), (3,)]
@@ -81,10 +85,28 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
 
         def sample_belongs_data(self):
             random_data = [
-                dict(dim=n, n_points=n_points, n_samples=n_samples)
-                for n in self.n_list
-                for n_points in self.n_points_list
-                for n_samples in self.n_samples_list
+                dict(
+                    dim=2,
+                    point=self.space(2).random_point(3),
+                    n_samples=4,
+                    expected=gs.ones((3, 4)),
+                ),
+                dict(
+                    dim=3,
+                    point=self.space(3).random_point(1),
+                    n_samples=2,
+                    expected=gs.ones(2),
+                ),
+                dict(
+                    dim=4,
+                    point=self.space(4).random_point(2),
+                    n_samples=3,
+                    expected=gs.ones((2, 3)),
+                ),
+                # dict(dim=n, n_points=n_points, n_samples=n_samples)
+                # for n in self.n_list
+                # for n_points in self.n_points_list
+                # for n_samples in self.n_samples_list
             ]
             return self.generate_tests([], random_data)
 
@@ -97,13 +119,155 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def metric_matrix_shape_data(self):
+    testing_data = TestDataDirichlet()
+
+    def test_belongs(self, dim, vec, expected):
+        self.assertAllClose(self.space(dim).belongs(gs.array(vec)), expected)
+
+    def test_random_point(self, point, expected):
+        self.assertAllClose(point.shape, expected)
+
+    def test_sample(self, dim, point, n_samples, expected):
+        self.assertAllClose(self.space(dim).sample(point, n_samples).shape, expected)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_sample_belongs(self, dim, point, n_samples, expected):
+        samples = self.space(dim).sample(point, n_samples)
+        self.assertAllClose(gs.sum(samples, axis=-1), expected)
+
+    # def test_sample_belongs(self, dim, n_points, n_samples):
+    #     points = self.space(dim).random_point(n_points)
+    #     samples = self.space(dim).sample(points, n_samples)
+    #     expected = gs.squeeze(gs.ones((n_points, n_samples)))
+    #     self.assertAllClose(gs.sum(samples, axis=-1), expected)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_point_to_pdf(self, dim, n_points, n_samples):
+        point = self.space(dim).random_point(n_points)
+        point = gs.to_ndarray(point, 2)
+        pdf = self.space(dim).point_to_pdf(point)
+        alpha = gs.ones(dim)
+        samples = self.space(dim).sample(alpha, n_samples)
+        result = pdf(samples)
+        pdf = []
+        for i in range(n_points):
+            pdf.append(gs.array([dirichlet.pdf(x, point[i, :]) for x in samples]))
+        expected = gs.squeeze(gs.stack(pdf, axis=0))
+        self.assertAllClose(result, expected)
+
+
+class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+    space = DirichletDistributions
+    connection = metric = DirichletMetric
+    skip_test_exp_shape = True  # because several base points for one vector
+    skip_test_log_shape = True  # because of pytorch and tf
+    skip_test_exp_belongs = True  # because of pytorch and tf
+    skip_test_log_is_tangent = True  # because of pytorch and tf
+    skip_test_log_exp_composition = True  # because of pytorch and tf
+    skip_test_exp_log_composition = True  # because of pytorch and tf
+    skip_test_squared_dist_is_symmetric = True  # because of pytorch and tf
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_geodesic_ivp_belongs = True
+    skip_test_geodesic_bvp_belongs = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_exp_ladder_parallel_transport = True
+
+    class TestDataDirichletMetric(RiemannianMetricTestData):
+        space = DirichletDistributions
+        metric = DirichletMetric
+        n_list = random.sample(range(2, 5), 2)
+        metric_args_list = list(
+            zip(
+                n_list,
+            )
+        )
+        space_list = [DirichletDistributions(n) for n in n_list]
+        space_args_list = [(n,) for n in n_list]
+        n_samples_list = random.sample(range(2, 5), 2)
+        shape_list = [(n,) for n in n_list]
+        n_points_list = random.sample(range(1, 5), 2)
+        n_vecs_list = random.sample(range(2, 5), 2)
+
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+            )
+
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+            )
+
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+            )
+
+        def exp_diagonal_data(self):
+            param_list = [0.8, 1.2, 2.5]
             smoke_data = [
+                dict(dim=dim, param=param, param_list=param_list)
+                for dim in self.n_list
+                for param in param_list
+            ]
+            return self.generate_tests(smoke_data)
+
+        def exp_subspace_data(self):
+            smoke_data = [
+                dict(
+                    dim=3,
+                    point=[0.1, 0.1, 0.5],
+                    vec=[1.3, 1.3, 2.2],
+                    expected=[True, True, False],
+                ),
+                dict(
+                    dim=3,
+                    point=[3.5, 0.1, 3.5],
+                    vec=[0.8, 0.1, 0.8],
+                    expected=[True, False, True],
+                ),
+                dict(
+                    dim=4,
+                    point=[1.1, 1.1, 2.3, 1.1],
+                    vec=[0.6, 0.6, 2.1, 0.6],
+                    expected=[True, True, False, True],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def squared_dist_is_symmetric_data(self):
+            return self._squared_dist_is_symmetric_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                self.n_points_list,
+                0.05,
+                0.05,
+            )
+
+        def metric_matrix_shape_data(self):
+            random_data = [
                 dict(dim=2, n_points=1, expected=(2, 2)),
                 dict(dim=2, n_points=3, expected=(3, 2, 2)),
                 dict(dim=3, n_points=2, expected=(2, 3, 3)),
             ]
-            return self.generate_tests(smoke_data)
+            return self.generate_tests([], random_data)
 
         def metric_matrix_dim_2_data(self):
             random_data = [
@@ -112,23 +276,23 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def christoffels_data(self):
+        def christoffels_vectorization_data(self):
             n_points = 2
             dim = 3
             points = self.space(dim).random_point(n_points)
-            christoffel_1 = self.space(dim).metric.christoffels(points[0, :])
-            christoffel_2 = self.space(dim).metric.christoffels(points[1, :])
+            christoffel_1 = self.metric(dim).christoffels(points[0, :])
+            christoffel_2 = self.metric(dim).christoffels(points[1, :])
             expected = gs.stack((christoffel_1, christoffel_2), axis=0)
-            smoke_data = [dict(dim=dim, points=points, expected=expected)]
-            return self.generate_tests(smoke_data)
+            random_data = [dict(dim=dim, point=points, expected=expected)]
+            return self.generate_tests([], random_data)
 
         def christoffels_shape_data(self):
-            smoke_data = [
+            random_data = [
                 dict(dim=2, n_points=1, expected=(2, 2, 2)),
                 dict(dim=2, n_points=3, expected=(3, 2, 2, 2)),
                 dict(dim=3, n_points=2, expected=(2, 3, 3, 3)),
             ]
-            return self.generate_tests(smoke_data)
+            return self.generate_tests([], random_data)
 
         def christoffels_dim_2_data(self):
             def coefficients(param_a, param_b):
@@ -156,50 +320,62 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
             vector_1 = gs.stack([c6, c5, c4], axis=-1)
             gamma_0 = SymmetricMatrices.from_vector(vector_0)
             gamma_1 = SymmetricMatrices.from_vector(vector_1)
-            smoke_data = [
+            random_data = [
                 dict(point=points, expected=gs.stack([gamma_0, gamma_1], axis=-3))
             ]
-            return self.generate_tests(smoke_data)
+            return self.generate_tests([], random_data)
 
-    testing_data = TestDataDirichlet()
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=0.1,
+                atol=1.0,
+            )
 
-    def test_belongs(self, dim, vec, expected):
-        self.assertAllClose(self.space(dim).belongs(gs.array(vec)), expected)
+        def exp_log_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=0.1,
+                atol=1.0,
+            )
 
-    def test_random_point(self, dim, n_samples, expected):
-        self.assertAllClose(self.space(dim).random_point(n_samples).shape, expected)
+        def geodesic_ivp_shape_data(self):
+            random_data = [
+                dict(dim=dim, n_points=n_points, n_steps=50)
+                for dim in [2, 3]
+                for n_points in [2, 3]
+            ]
+            return self.generate_tests([], random_data)
 
-    def test_sample(self, dim, point, n_samples, expected):
-        self.assertAllClose(self.space(dim).sample(point, n_samples).shape, expected)
+        def geodesic_bvp_shape_data(self):
+            random_data = [
+                dict(dim=dim, n_points=n_points, n_steps=50)
+                for dim in [2, 3]
+                for n_points in [2, 3]
+            ]
+            return self.generate_tests([], random_data)
 
-    def test_sample_belongs(self, dim, n_points, n_samples):
-        points = self.space(dim).random_point(n_points)
-        samples = self.space(dim).sample(points, n_samples)
-        expected = gs.squeeze(gs.ones((n_points, n_samples)))
-        self.assertAllClose(gs.sum(samples, axis=-1), expected)
+        def geodesic_data(self):
+            random_data = [dict(dim=dim) for dim in self.n_list]
+            return self.generate_tests([], random_data)
 
-    def test_point_to_pdf(self, dim, n_points, n_samples):
-        point = self.space(dim).random_point(n_points)
-        point = gs.to_ndarray(point, 2)
-        pdf = self.space(dim).point_to_pdf(point)
-        alpha = gs.ones(dim)
-        samples = self.space(dim).sample(alpha, n_samples)
-        result = pdf(samples)
-        pdf = []
-        for i in range(n_points):
-            pdf.append(gs.array([dirichlet.pdf(x, point[i, :]) for x in samples]))
-        expected = gs.squeeze(gs.stack(pdf, axis=0))
-        self.assertAllClose(result, expected)
+    testing_data = TestDataDirichletMetric()
 
+    @geomstats.tests.np_autograd_and_torch_only
     def test_metric_matrix_shape(self, dim, n_points, expected):
         points = self.space(dim).random_point(n_points)
         return self.assertAllClose(
-            self.space(dim).metric.metric_matrix(points).shape, expected
+            self.metric(dim).metric_matrix(points).shape, expected
         )
 
-    def test_metric_matrix_dim_2(self, points):
-        param_a = points[..., 0]
-        param_b = points[..., 1]
+    @geomstats.tests.np_autograd_and_torch_only
+    def test_metric_matrix_dim_2(self, point):
+        param_a = point[..., 0]
+        param_b = point[..., 1]
         vector = gs.stack(
             [
                 gs.polygamma(1, param_a) - gs.polygamma(1, param_a + param_b),
@@ -209,18 +385,74 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
             axis=-1,
         )
         expected = SymmetricMatrices.from_vector(vector)
-        return self.assertAllClose(self.space(2).metric.metric_matrix(points), expected)
+        return self.assertAllClose(self.metric(2).metric_matrix(point), expected)
 
-    def test_christoffels(self, dim, points, expected):
-        return self.assertAllClose(
-            self.space(dim).metric.christoffels(points), expected
-        )
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_christoffels_vectorization(self, dim, point, expected):
+        return self.assertAllClose(self.metric(dim).christoffels(point), expected)
 
+    @geomstats.tests.np_autograd_and_tf_only
     def test_christoffels_shape(self, dim, n_points, expected):
         points = self.space(dim).random_point(n_points)
         return self.assertAllClose(
-            self.space(dim).metric.christoffels(points).shape, expected
+            self.metric(dim).christoffels(points).shape, expected
         )
 
-    def test_christoffels_dim_2(self, points, expected):
-        return self.assertAllClose(self.space(2).metric.christoffels(points), expected)
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_christoffels_dim_2(self, point, expected):
+        return self.assertAllClose(self.metric(2).christoffels(point), expected)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_exp_diagonal(self, dim, param, param_list):
+        """Check that the diagonal x1 = ... = xn is totally geodesic."""
+        base_point = param * gs.ones(dim)
+        initial_vectors = gs.transpose(gs.tile(param_list, (dim, 1)))
+        result = self.metric(dim).exp(initial_vectors, base_point)
+        expected = gs.squeeze(gs.transpose(gs.tile(result[..., 0], (dim, 1))))
+        return self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_exp_subspace(self, dim, vec, point, expected):
+        """Check that subspaces xi1 = ... = xik are totally geodesic."""
+        end_point = self.metric(dim).exp(vec, point)
+        result = gs.isclose(end_point - end_point[0], 0)
+        return self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_geodesic_ivp_shape(self, dim, n_points, n_steps):
+        t = gs.linspace(0.0, 1.0, n_steps)
+        initial_points = self.space(dim).random_point(n_points)
+        initial_tangent_vecs = self.space(dim).random_point(n_points)
+        geodesic = self.metric(dim)._geodesic_ivp(initial_points, initial_tangent_vecs)
+        geodesic_at_t = geodesic(t)
+        result = geodesic_at_t.shape
+        expected = (n_points, n_steps, dim)
+        return self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_geodesic_bvp_shape(self, dim, n_points, n_steps):
+        t = gs.linspace(0.0, 1.0, n_steps)
+        initial_points = self.space(dim).random_point(n_points)
+        end_points = self.space(dim).random_point(n_points)
+        geodesic = self.metric(dim)._geodesic_bvp(initial_points, end_points)
+        geodesic_at_t = geodesic(t)
+        result = geodesic_at_t.shape
+        expected = (n_points, n_steps, dim)
+        return self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_geodesic(self, dim):
+        """Check that the norm of the geodesic velocity is constant."""
+        initial_point = self.space(dim).random_point()
+        end_point = self.space(dim).random_point()
+        n_steps = 10000
+        geod = self.metric(dim).geodesic(
+            initial_point=initial_point, end_point=end_point
+        )
+        t = gs.linspace(0.0, 1.0, n_steps)
+        geod_at_t = geod(t)
+        velocity = n_steps * (geod_at_t[1:, :] - geod_at_t[:-1, :])
+        velocity_norm = self.metric(dim).norm(velocity, geod_at_t[:-1, :])
+        result = 1 / velocity_norm.min() * (velocity_norm.max() - velocity_norm.min())
+        expected = 0.0
+        return self.assertAllClose(expected, result, rtol=1.0)
