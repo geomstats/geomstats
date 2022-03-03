@@ -1085,6 +1085,24 @@ class HypersphereMetric(RiemannianMetric):
         """
         return gs.zeros_like(tangent_vec_a)
 
+    def injectivity_radius(self, base_point):
+        """Radius of the largest ball where the exponential is injective.
+
+        In the case of the sphere, it does not depend on the base point and is Pi
+        everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim+1]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return gs.pi
+
 
 class Hypersphere(_Hypersphere):
     """Class for the n-dimensional hypersphere.
