@@ -9,10 +9,8 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
-    SPDMetricAffine,
     SPDMetricBuresWasserstein,
     SPDMetricEuclidean,
-    SPDMetricLogEuclidean,
 )
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -184,10 +182,6 @@ class RankKPSDMatrices(Manifold):
 PSDMetricBuresWasserstein = SPDMetricBuresWasserstein
 
 PSDMetricEuclidean = SPDMetricEuclidean
-
-PSDMetricLogEuclidean = SPDMetricLogEuclidean
-
-PSDMetricAffine = SPDMetricAffine
 
 
 class PSDMatrices(RankKPSDMatrices, SPDMatrices):

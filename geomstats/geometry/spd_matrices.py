@@ -712,9 +712,12 @@ class SPDMetricAffine(RiemannianMetric):
         """
         if end_point is None:
             end_point = self.exp(direction, base_point)
-        inverse_base_point = GeneralLinear.inverse(base_point)
-        congruence_mat = Matrices.mul(end_point, inverse_base_point)
-        congruence_mat = gs.linalg.sqrtm(congruence_mat)
+        # compute B^1/2(B^-1/2 A B^-1/2)B^-1/2 instead of sqrtm(AB^-1)
+        sqrt_bp, inv_sqrt_bp = SymmetricMatrices.powerm(base_point, [1.0 / 2, -1.0 / 2])
+        pdt = SymmetricMatrices.powerm(
+            Matrices.mul(inv_sqrt_bp, end_point, inv_sqrt_bp), 1.0 / 2
+        )
+        congruence_mat = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
         return Matrices.congruent(tangent_vec, congruence_mat)
 
 

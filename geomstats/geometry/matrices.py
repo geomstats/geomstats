@@ -28,7 +28,6 @@ class Matrices(VectorSpace):
         geomstats.errors.check_integer(m, "m")
         self.m = m
         self.n = n
-        self.basis = None
 
     def _create_basis(self):
         """Create the canonical basis."""
