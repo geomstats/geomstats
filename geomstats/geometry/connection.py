@@ -660,3 +660,18 @@ class Connection(ABC):
             "The closed-form solution of parallel transport is not known, "
             "use the ladder_parallel_transport instead."
         )
+
+    def injectivity_radius(self, base_point):
+        """Compute the upper bound of the injectivity domain.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., {dim, [n, m]}]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        raise NotImplementedError("The injectivity range is not implemented yet.")

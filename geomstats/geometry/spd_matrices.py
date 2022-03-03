@@ -720,6 +720,24 @@ class SPDMetricAffine(RiemannianMetric):
         congruence_mat = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
         return Matrices.congruent(tangent_vec, congruence_mat)
 
+    def injectivity_radius(self, base_point):
+        """Radius of the largest ball where the exponential is injective.
+
+        Because of the negative curvature of this space, the injectivity radius is
+        infinite everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return math.inf
+
 
 class SPDMetricBuresWasserstein(RiemannianMetric):
     """Class for the Bures-Wasserstein metric on the SPD manifold.
