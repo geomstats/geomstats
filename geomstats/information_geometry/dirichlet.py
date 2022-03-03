@@ -464,7 +464,8 @@ class DirichletMetric(RiemannianMetric):
                     solution = odeint(ivp, initial_state, t_int, ())
                     geod.append(solution[:, : self.dim])
 
-            return geod[0] if len(initial_point) == 1 else gs.stack(geod)
+            geod = geod[0] if len(initial_point) == 1 else gs.stack(geod)
+            return gs.where(geod < gs.atol, gs.atol, geod)
 
         return path
 
@@ -647,7 +648,12 @@ class DirichletMetric(RiemannianMetric):
         return dist, curve, velocity
 
     def _geodesic_bvp(
-        self, initial_point, end_point, n_steps=N_STEPS, jacobian=False, init="linear"
+        self,
+        initial_point,
+        end_point,
+        n_steps=N_STEPS,
+        jacobian=False,
+        init="polynomial",
     ):
         """Solve geodesic boundary problem.
 
@@ -815,11 +821,14 @@ class DirichletMetric(RiemannianMetric):
                 geodesic = solution_at_t[: self.dim, :]
                 geod.append(gs.squeeze(gs.transpose(geodesic)))
 
-            return geod[0] if len(initial_point) == 1 else gs.stack(geod)
+            geod = geod[0] if len(initial_point) == 1 else gs.stack(geod)
+            return gs.where(geod < gs.atol, gs.atol, geod)
 
         return path
 
-    def log(self, point, base_point, n_steps=N_STEPS, jacobian=False, init="linear"):
+    def log(
+        self, point, base_point, n_steps=N_STEPS, jacobian=False, init="polynomial"
+    ):
         """Compute the logarithm map.
 
         Compute logarithm map associated to the Fisher information metric by
