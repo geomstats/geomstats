@@ -204,7 +204,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
         bundle = self.space(n)
         aligned = bundle.align(point_a, point_b, tol=1e-10)
         log = bundle.ambient_metric.log(aligned, point_b)
-        result = bundle.is_horizontal(log, point_b, atol=gs.atol * 10000)
+        result = bundle.is_horizontal(log, point_b, atol=1e-2)
         self.assertAllClose(result, gs.array(True))
 
     def test_horizontal_lift_and_tangent_riemannian_submersion(

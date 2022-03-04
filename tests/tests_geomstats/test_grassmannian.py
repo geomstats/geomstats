@@ -64,7 +64,10 @@ class TestGrassmannian(TestCase, metaclass=LevelSetParametrizer):
 
         def projection_belongs_data(self):
             return self._projection_belongs_data(
-                self.space_args_list, self.shape_list, self.n_samples_list
+                self.space_args_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
             )
 
     testing_data = TestDataGrassmannian()
