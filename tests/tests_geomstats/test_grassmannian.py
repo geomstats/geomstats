@@ -63,7 +63,10 @@ class TestGrassmannian(TestCase, metaclass=LevelSetParametrizer):
 
         def projection_belongs_data(self):
             return self._projection_belongs_data(
-                self.space_args_list, self.shape_list, self.n_samples_list
+                self.space_args_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
             )
 
     testing_data = TestDataGrassmannian()
@@ -78,7 +81,7 @@ class TestGrassmannianCanonicalMetric(TestCase, metaclass=RiemannianMetricParame
     skip_test_exp_geodesic_ivp = True
 
     class TestDataGrassmannianCanonicalMetric(RiemannianMetricTestData):
-        n_list = random.sample(range(3, 6), 2)
+        n_list = random.sample(range(3, 5), 2)
         k_list = [random.sample(range(2, n), 1)[0] for n in n_list]
         metric_args_list = list(zip(n_list, k_list))
         shape_list = [(n, n) for n in n_list]
