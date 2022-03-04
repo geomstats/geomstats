@@ -259,13 +259,13 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
         def extrinsic_intrinsic_composition_data(self):
             space_args_list = [(1,), (2,)]
             return self._extrinsic_intrinsic_composition_data(
-                Hypersphere, space_args_list, self.n_samples_list
+                Hypersphere, space_args_list, self.n_samples_list, atol=gs.atol * 100
             )
 
         def intrinsic_extrinsic_composition_data(self):
             space_args_list = [(1,), (2,)]
             return self._intrinsic_extrinsic_composition_data(
-                Hypersphere, space_args_list, self.n_samples_list
+                Hypersphere, space_args_list, self.n_samples_list, atol=gs.atol * 100
             )
 
     testing_data = TestDataHypersphere()
@@ -686,7 +686,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     ):
         metric = self.metric(dim)
         result = metric.sectional_curvature(tangent_vec_a, tangent_vec_b, base_point)
-        self.assertAllClose(result, expected, atol=1e-5)
+        self.assertAllClose(result, expected, atol=1e-2)
 
     def test_exp_and_dist_and_projection_to_tangent_space(
         self, dim, vector, base_point
