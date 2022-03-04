@@ -286,15 +286,15 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
         result = gs.shape(group.compose(gs.array(point_a), gs.array(point_b)))
         self.assertAllClose(result, expected)
 
-    def test_regularize_shape(self, n, point_type, n_samples):
-        group = self.space(n, point_type)
-        points = group.random_point(n_samples=n_samples)
-        regularized_points = group.regularize(points)
+    # def test_regularize_shape(self, n, point_type, n_samples):
+    #     group = self.space(n, point_type)
+    #     points = group.random_point(n_samples=n_samples)
+    #     regularized_points = group.regularize(points)
 
-        self.assertAllClose(
-            gs.shape(regularized_points),
-            (n_samples, *group.get_point_type_shape()),
-        )
+    #     self.assertAllClose(
+    #         gs.shape(regularized_points),
+    #         (n_samples, *group.get_point_type_shape()),
+    #     )
 
 
 class TestSpecialEuclideanMatrixLieAlgebra(
