@@ -92,6 +92,30 @@ class TestL2Metric(TestCase, metaclass=RiemannianMetricParametrizer):
         n_rungs_list = [1] * 4
         scheme_list = ["pole"] * 4
 
+        s2 = Hypersphere(dim=2)
+        initial_point = [0.0, 0.0, 1.0]
+        initial_tangent_vec_a = [1.0, 0.0, 0.0]
+        initial_tangent_vec_b = [0.0, 1.0, 0.0]
+        initial_tangent_vec_c = [-1.0, 0.0, 0.0]
+
+        landmarks_a = s2.metric.geodesic(
+            initial_point=initial_point, initial_tangent_vec=initial_tangent_vec_a
+        )
+        landmarks_b = s2.metric.geodesic(
+            initial_point=initial_point, initial_tangent_vec=initial_tangent_vec_b
+        )
+        landmarks_c = s2.metric.geodesic(
+            initial_point=initial_point, initial_tangent_vec=initial_tangent_vec_c
+        )
+
+        n_sampling_points = 10
+        sampling_times = gs.linspace(0.0, 1.0, n_sampling_points)
+        landmark_set_a = landmarks_a(sampling_times)
+        landmark_set_b = landmarks_b(sampling_times)
+        landmark_set_c = landmarks_c(sampling_times)
+        n_landmark_sets = 5
+        times = gs.linspace(0.0, 1.0, n_landmark_sets)
+
         def exp_shape_data(self):
             return self._exp_shape_data(
                 self.metric_args_list,
@@ -212,27 +236,53 @@ class TestL2Metric(TestCase, metaclass=RiemannianMetricParametrizer):
             )
 
         def l2_metric_inner_product_vectorization_data(self):
-            smoke_data = []
+            l2_metric = Landmarks(
+                ambient_manifold=Hypersphere(dim=2), k_landmarks=self.n_sampling_points
+            ).metric
+            smoke_data = [
+                dict(
+                    l2_metric=l2_metric,
+                    times=self.times,
+                    landmarks_a=self.landmarks_a,
+                    landmarks_b=self.landmarks_b,
+                    landmarks_c=self.landmarks_c,
+                )
+            ]
             return self.generate_tests(smoke_data)
 
         def l2_metric_exp_vectorization_data(self):
-            smoke_data = []
+            l2_metric = Landmarks(
+                ambient_manifold=Hypersphere(dim=2), k_landmarks=self.n_sampling_points
+            ).metric
+            smoke_data = [dict(l2_metric=l2_metric)]
             return self.generate_tests(smoke_data)
 
         def l2_metric_log_vectorization_data(self):
-            smoke_data = []
+            l2_metric = Landmarks(
+                ambient_manifold=Hypersphere(dim=2), k_landmarks=self.n_sampling_points
+            ).metric
+            smoke_data = [dict(l2_metric=l2_metric)]
+            return self.generate_tests(smoke_data)
+
+        def l2_metric_geodesic_data(self):
+            l2_metric = Landmarks(
+                ambient_manifold=Hypersphere(dim=2), k_landmarks=self.n_sampling_points
+            ).metric
+            smoke_data = [dict(l2_metric=l2_metric)]
             return self.generate_tests(smoke_data)
 
     testing_data = TestDataL2Metric()
 
     @geomstats.tests.np_autograd_and_tf_only
-    def test_l2_metric_inner_product_vectorization(self, l2_metric_s2):
+    def test_l2_metric_inner_product_vectorization(
+        self, l2_metric_s2, times, landmarks_a, landmarks_b, landmarks_c
+    ):
         """Test the vectorization inner_product."""
         n_samples = self.n_landmark_sets
-        landmarks_ab = l2_metric_s2.geodesic(self.landmarks_a, self.landmarks_b)
-        landmarks_bc = l2_metric_s2.geodesic(self.landmarks_b, self.landmarks_c)
-        landmarks_ab = landmarks_ab(self.times)
-        landmarks_bc = landmarks_bc(self.times)
+        landmarks_ab = l2_metric_s2.geodesic(landmarks_a, landmarks_b)
+        landmarks_bc = l2_metric_s2.geodesic(landmarks_b, landmarks_c)
+        landmarks_ab = landmarks_ab(times)
+        landmarks_bc = landmarks_bc(times)
 
         tangent_vecs = l2_metric_s2.log(point=landmarks_bc, base_point=landmarks_ab)
 
@@ -241,12 +291,12 @@ class TestL2Metric(TestCase, metaclass=RiemannianMetricParametrizer):
         self.assertAllClose(gs.shape(result), (n_samples,))
 
     @geomstats.tests.np_autograd_and_tf_only
-    def test_l2_metric_exp_vectorization(self, l2_metric_s2):
+    def test_l2_metric_exp_vectorization(self, l2_metric_s2, times):
         """Test the vectorization of exp."""
         landmarks_ab = l2_metric_s2.geodesic(self.landmarks_a, self.landmarks_b)
         landmarks_bc = l2_metric_s2.geodesic(self.landmarks_b, self.landmarks_c)
-        landmarks_ab = landmarks_ab(self.times)
-        landmarks_bc = landmarks_bc(self.times)
+        landmarks_ab = landmarks_ab(times)
+        landmarks_bc = landmarks_bc(times)
 
         tangent_vecs = l2_metric_s2.log(point=landmarks_bc, base_point=landmarks_ab)
 
@@ -256,12 +306,12 @@ class TestL2Metric(TestCase, metaclass=RiemannianMetricParametrizer):
         self.assertAllClose(gs.shape(result), gs.shape(landmarks_ab))
 
     @geomstats.tests.np_autograd_and_tf_only
-    def test_l2_metric_log_vectorization(self, l2_metric_s2):
+    def test_l2_metric_log_vectorization(self, l2_metric_s2, times):
         """Test the vectorization of log."""
         landmarks_ab = l2_metric_s2.geodesic(self.landmarks_a, self.landmarks_b)
         landmarks_bc = l2_metric_s2.geodesic(self.landmarks_b, self.landmarks_c)
-        landmarks_ab = landmarks_ab(self.times)
-        landmarks_bc = landmarks_bc(self.times)
+        landmarks_ab = landmarks_ab(times)
+        landmarks_bc = landmarks_bc(times)
 
         tangent_vecs = l2_metric_s2.log(point=landmarks_bc, base_point=landmarks_ab)
 
@@ -269,18 +319,20 @@ class TestL2Metric(TestCase, metaclass=RiemannianMetricParametrizer):
         self.assertAllClose(gs.shape(result), gs.shape(landmarks_ab))
 
     @geomstats.tests.np_autograd_and_tf_only
-    def test_l2_metric_geodesic(self, l2_metric_s2):
+    def test_l2_metric_geodesic(
+        self, l2_metric_s2, times, n_sampling_points, landmarks_a, landmarks_b
+    ):
         """Test the geodesic method of L2Metric."""
-        landmarks_ab = l2_metric_s2.geodesic(self.landmarks_a, self.landmarks_b)
-        landmarks_ab = landmarks_ab(self.times)
+        landmarks_ab = l2_metric_s2.geodesic(landmarks_a, landmarks_b)
+        landmarks_ab = landmarks_ab(times)
 
         result = landmarks_ab
         expected = []
-        for k in range(self.n_sampling_points):
+        for k in range(n_sampling_points):
             geod = l2_metric_s2.ambient_metric.geodesic(
-                initial_point=self.landmarks_a[k, :], end_point=self.landmarks_b[k, :]
+                initial_point=landmarks_a[k, :], end_point=landmarks_b[k, :]
             )
-            expected.append(geod(self.times))
+            expected.append(geod(times))
         expected = gs.stack(expected, axis=1)
 
         self.assertAllClose(result, expected)
