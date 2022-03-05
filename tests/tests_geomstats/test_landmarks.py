@@ -197,7 +197,7 @@ class TestL2Metric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.shape_list,
                 self.n_samples_list,
                 rtol=gs.rtol * 10000,
-                atol=1e-2,
+                atol=gs.atol * 100000,
             )
 
         def exp_ladder_parallel_transport_data(self):
