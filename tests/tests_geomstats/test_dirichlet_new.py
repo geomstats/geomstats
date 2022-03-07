@@ -103,19 +103,26 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
                     n_samples=3,
                     expected=gs.ones((2, 3)),
                 ),
-                # dict(dim=n, n_points=n_points, n_samples=n_samples)
-                # for n in self.n_list
-                # for n_points in self.n_points_list
-                # for n_samples in self.n_samples_list
             ]
             return self.generate_tests([], random_data)
 
         def point_to_pdf_data(self):
-            n_samples = 10
             random_data = [
-                dict(dim=n, n_points=n_points, n_samples=n_samples)
-                for n in self.n_list
-                for n_points in self.n_points_list
+                dict(
+                    dim=2,
+                    point=self.space(2).random_point(2),
+                    n_samples=10,
+                ),
+                dict(
+                    dim=3,
+                    point=self.space(3).random_point(4),
+                    n_samples=10,
+                ),
+                dict(
+                    dim=4,
+                    point=self.space(4).random_point(1),
+                    n_samples=10,
+                ),
             ]
             return self.generate_tests([], random_data)
 
@@ -135,16 +142,10 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
         samples = self.space(dim).sample(point, n_samples)
         self.assertAllClose(gs.sum(samples, axis=-1), expected)
 
-    # def test_sample_belongs(self, dim, n_points, n_samples):
-    #     points = self.space(dim).random_point(n_points)
-    #     samples = self.space(dim).sample(points, n_samples)
-    #     expected = gs.squeeze(gs.ones((n_points, n_samples)))
-    #     self.assertAllClose(gs.sum(samples, axis=-1), expected)
-
     @geomstats.tests.np_and_autograd_only
-    def test_point_to_pdf(self, dim, n_points, n_samples):
-        point = self.space(dim).random_point(n_points)
+    def test_point_to_pdf(self, dim, point, n_samples):
         point = gs.to_ndarray(point, 2)
+        n_points = point.shape[0]
         pdf = self.space(dim).point_to_pdf(point)
         alpha = gs.ones(dim)
         samples = self.space(dim).sample(alpha, n_samples)
@@ -263,9 +264,9 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
 
         def metric_matrix_shape_data(self):
             random_data = [
-                dict(dim=2, n_points=1, expected=(2, 2)),
-                dict(dim=2, n_points=3, expected=(3, 2, 2)),
-                dict(dim=3, n_points=2, expected=(2, 3, 3)),
+                dict(dim=2, point=self.space(2).random_point(1), expected=(2, 2)),
+                dict(dim=2, point=self.space(2).random_point(3), expected=(3, 2, 2)),
+                dict(dim=3, points=self.space(3).random_point(2), expected=(2, 3, 3)),
             ]
             return self.generate_tests([], random_data)
 
@@ -288,9 +289,9 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
 
         def christoffels_shape_data(self):
             random_data = [
-                dict(dim=2, n_points=1, expected=(2, 2, 2)),
-                dict(dim=2, n_points=3, expected=(3, 2, 2, 2)),
-                dict(dim=3, n_points=2, expected=(2, 3, 3, 3)),
+                dict(dim=2, point=self.space(2).random_point(1), expected=(2, 2, 2)),
+                dict(dim=2, point=self.space(2).random_point(3), expected=(3, 2, 2, 2)),
+                dict(dim=3, point=self.space(3).random_point(2), expected=(2, 3, 3, 3)),
             ]
             return self.generate_tests([], random_data)
 
@@ -345,31 +346,151 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
 
         def geodesic_ivp_shape_data(self):
             random_data = [
-                dict(dim=dim, n_points=n_points, n_steps=50)
-                for dim in [2, 3]
-                for n_points in [2, 3]
+                dict(
+                    dim=2,
+                    point=self.space(2).random_point(1),
+                    vec=self.space(2).random_point(1),
+                    n_steps=50,
+                    expected=(50, 2),
+                ),
+                dict(
+                    dim=2,
+                    point=self.space(2).random_point(3),
+                    vec=self.space(2).random_point(3),
+                    n_steps=50,
+                    expected=(3, 50, 2),
+                ),
+                dict(
+                    dim=3,
+                    point=self.space(3).random_point(4),
+                    vec=self.space(3).random_point(4),
+                    n_steps=50,
+                    expected=(4, 50, 3),
+                ),
             ]
             return self.generate_tests([], random_data)
 
         def geodesic_bvp_shape_data(self):
             random_data = [
-                dict(dim=dim, n_points=n_points, n_steps=50)
-                for dim in [2, 3]
-                for n_points in [2, 3]
+                dict(
+                    dim=2,
+                    point_a=self.space(2).random_point(1),
+                    point_b=self.space(2).random_point(1),
+                    n_steps=50,
+                    expected=(50, 2),
+                ),
+                dict(
+                    dim=2,
+                    point_a=self.space(2).random_point(3),
+                    point_b=self.space(2).random_point(3),
+                    n_steps=50,
+                    expected=(3, 50, 2),
+                ),
+                dict(
+                    dim=3,
+                    point_a=self.space(3).random_point(4),
+                    point_b=self.space(3).random_point(4),
+                    n_steps=50,
+                    expected=(4, 50, 3),
+                ),
             ]
             return self.generate_tests([], random_data)
 
         def geodesic_data(self):
-            random_data = [dict(dim=dim) for dim in self.n_list]
+            random_data = [
+                dict(
+                    dim=2,
+                    point_a=self.space(2).random_point(),
+                    point_b=self.space(2).random_point(),
+                ),
+                dict(
+                    dim=4,
+                    point_a=self.space(4).random_point(),
+                    point_b=self.space(4).random_point(),
+                ),
+            ]
             return self.generate_tests([], random_data)
+
+        def geodesic_shape_data(self):
+            random_data = [
+                dict(
+                    dim=2,
+                    point=self.space(2).random_point(),
+                    vec=self.space(2).random_point(),
+                    time=0.5,
+                    expected=(2,),
+                ),
+                dict(
+                    dim=3,
+                    point=self.space(3).random_point(),
+                    vec=self.space(3).random_point(4),
+                    time=0.5,
+                    expected=(4, 3),
+                ),
+                dict(
+                    dim=3,
+                    point=self.space(3).random_point(),
+                    vec=self.space(3).random_point(4),
+                    time=gs.linspace(0.0, 1.0, 10),
+                    expected=(4, 10, 3),
+                ),
+            ]
+            return self.generate_tests([], random_data)
+
+        def jacobian_christoffels_data(self):
+            random_data = [
+                dict(dim=2, point=self.space(2).random_point(2)),
+                dict(dim=4, point=self.space(4).random_point(2)),
+            ]
+            return self.generate_tests([], random_data)
+
+        def jacobian_in_geodesic_bvp_data(self):
+            random_data = [
+                dict(
+                    dim=2,
+                    point_a=self.space(2).random_point(),
+                    point_b=self.space(2).random_point(),
+                ),
+                dict(
+                    dim=3,
+                    point_a=self.space(3).random_point(),
+                    point_b=self.space(3).random_point(),
+                ),
+            ]
+            return self.generate_tests([], random_data)
+
+        def approx_geodesic_bvp_data(self):
+            random_data = [
+                dict(
+                    dim=2,
+                    point_a=self.space(2).random_point(),
+                    point_b=self.space(2).random_point(),
+                ),
+                dict(
+                    dim=3,
+                    point_a=self.space(3).random_point(),
+                    point_b=self.space(3).random_point(),
+                ),
+            ]
+            return self.generate_tests([], random_data)
+
+        def polynomial_init_data(self):
+            smoke_data = [
+                dict(
+                    dim=3,
+                    point_a=[100.0, 1.0, 1.0],
+                    point_b=[1.0, 1.0, 100.0],
+                    expected=8.5,
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
     testing_data = TestDataDirichletMetric()
 
     @geomstats.tests.np_autograd_and_torch_only
-    def test_metric_matrix_shape(self, dim, n_points, expected):
-        points = self.space(dim).random_point(n_points)
+    def test_metric_matrix_shape(self, dim, point, expected):
         return self.assertAllClose(
-            self.metric(dim).metric_matrix(points).shape, expected
+            self.metric(dim).metric_matrix(point).shape, expected
         )
 
     @geomstats.tests.np_autograd_and_torch_only
@@ -392,11 +513,8 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         return self.assertAllClose(self.metric(dim).christoffels(point), expected)
 
     @geomstats.tests.np_autograd_and_tf_only
-    def test_christoffels_shape(self, dim, n_points, expected):
-        points = self.space(dim).random_point(n_points)
-        return self.assertAllClose(
-            self.metric(dim).christoffels(points).shape, expected
-        )
+    def test_christoffels_shape(self, dim, point, expected):
+        return self.assertAllClose(self.metric(dim).christoffels(point).shape, expected)
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_christoffels_dim_2(self, point, expected):
@@ -419,36 +537,26 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         return self.assertAllClose(expected, result)
 
     @geomstats.tests.np_and_autograd_only
-    def test_geodesic_ivp_shape(self, dim, n_points, n_steps):
+    def test_geodesic_ivp_shape(self, dim, point, vec, n_steps, expected):
         t = gs.linspace(0.0, 1.0, n_steps)
-        initial_points = self.space(dim).random_point(n_points)
-        initial_tangent_vecs = self.space(dim).random_point(n_points)
-        geodesic = self.metric(dim)._geodesic_ivp(initial_points, initial_tangent_vecs)
+        geodesic = self.metric(dim)._geodesic_ivp(point, vec)
         geodesic_at_t = geodesic(t)
         result = geodesic_at_t.shape
-        expected = (n_points, n_steps, dim)
         return self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
-    def test_geodesic_bvp_shape(self, dim, n_points, n_steps):
+    def test_geodesic_bvp_shape(self, dim, point_a, point_b, n_steps, expected):
         t = gs.linspace(0.0, 1.0, n_steps)
-        initial_points = self.space(dim).random_point(n_points)
-        end_points = self.space(dim).random_point(n_points)
-        geodesic = self.metric(dim)._geodesic_bvp(initial_points, end_points)
+        geodesic = self.metric(dim)._geodesic_bvp(point_a, point_b)
         geodesic_at_t = geodesic(t)
         result = geodesic_at_t.shape
-        expected = (n_points, n_steps, dim)
         return self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
-    def test_geodesic(self, dim):
+    def test_geodesic(self, dim, point_a, point_b):
         """Check that the norm of the geodesic velocity is constant."""
-        initial_point = self.space(dim).random_point()
-        end_point = self.space(dim).random_point()
         n_steps = 10000
-        geod = self.metric(dim).geodesic(
-            initial_point=initial_point, end_point=end_point
-        )
+        geod = self.metric(dim).geodesic(initial_point=point_a, end_point=point_b)
         t = gs.linspace(0.0, 1.0, n_steps)
         geod_at_t = geod(t)
         velocity = n_steps * (geod_at_t[1:, :] - geod_at_t[:-1, :])
@@ -456,3 +564,43 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         result = 1 / velocity_norm.min() * (velocity_norm.max() - velocity_norm.min())
         expected = 0.0
         return self.assertAllClose(expected, result, rtol=1.0)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_geodesic_shape(self, dim, point, vec, time, expected):
+        geod = self.metric(dim).geodesic(initial_point=point, initial_tangent_vec=vec)
+        result = geod(time).shape
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.autograd_and_torch_only
+    def test_jacobian_christoffels(self, dim, point):
+        result = self.metric(dim).jacobian_christoffels(point[0, :])
+        self.assertAllClose((dim, dim, dim, dim), result.shape)
+
+        expected = gs.autodiff.jacobian(self.metric(dim).christoffels)(point[0, :])
+        self.assertAllClose(expected, result)
+
+        result = self.metric(dim).jacobian_christoffels(point)
+        expected = [
+            self.metric(dim).jacobian_christoffels(point[0, :]),
+            self.metric(dim).jacobian_christoffels(point[1, :]),
+        ]
+        expected = gs.stack(expected, 0)
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_jacobian_in_geodesic_bvp(self, dim, point_a, point_b):
+        result = self.metric(dim).dist(point_a, point_b, jacobian=True)
+        expected = self.metric(dim).dist(point_a, point_b)
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_approx_geodesic_bvp(self, dim, point_a, point_b):
+        res = self.metric(dim)._approx_geodesic_bvp(point_a, point_b)
+        result = res[0]
+        expected = self.metric(dim).dist(point_a, point_b)
+        self.assertAllClose(expected, result, atol=0, rtol=1e-1)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_polynomial_init(self, dim, point_a, point_b, expected):
+        result = self.metric(dim).dist(point_a, point_b, init="polynomial")
+        self.assertAllClose(expected, result, atol=0, rtol=1e-1)
