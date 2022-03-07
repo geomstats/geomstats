@@ -61,8 +61,8 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
     space = CorrelationMatricesBundle
 
     class TestDataCorrelationMatricesBundle(TestData):
-        n_list = random.sample(range(2, 4), 2)
-        n_samples_list = random.sample(range(1, 4), 2)
+        n_list = random.sample(range(2, 3), 1)
+        n_samples_list = random.sample(range(1, 3), 1)
 
         def riemannian_submersion_belongs_to_base_data(self):
             random_data = []
