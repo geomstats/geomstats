@@ -149,7 +149,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         vertical_vec = bundle.vertical_projection(vec, mat)
         result = bundle.tangent_riemannian_submersion(vertical_vec, mat)
         expected = gs.zeros_like(result)
-        self.assertAllClose(result, expected, atol=1e-5)
+        self.assertAllClose(result, expected, atol=1e-3)
 
     def test_horizontal_lift_and_tangent_riemannian_submersion(self, n, mat, vec):
         bundle = self.bundle(n)
