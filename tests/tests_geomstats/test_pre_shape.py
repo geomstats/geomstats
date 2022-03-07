@@ -966,7 +966,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             * metric.inner_product(hor_b, hor_b, base_point)
             - metric.inner_product(hor_a, hor_b, base_point) ** 2
         )
-        condition = ~gs.isclose(denominator, 0.0)
+        condition = ~gs.isclose(denominator, 0.0, atol=gs.atol * 100)
         kappa = numerator[condition] / denominator[condition]
         kappa_direct = metric.sectional_curvature(hor_a, hor_b, base_point)[condition]
         self.assertAllClose(kappa, kappa_direct)
