@@ -8,7 +8,7 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import BiInvariantMetric, InvariantMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from tests.conftest import TestCase, tf_backend
+from tests.conftest import TestCase, pytorch_backend, tf_backend
 from tests.data_generation import LieGroupTestData, RiemannianMetricTestData, TestData
 from tests.parametrizers import (
     LieGroupParametrizer,
@@ -88,6 +88,7 @@ if tf_backend():
 
 class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
     space = group = SpecialOrthogonal
+    skip_test_log_exp_composition = pytorch_backend()
 
     class TestDataSpecialOrthogonal(LieGroupTestData):
         n_list = random.sample(range(2, 4), 2)
