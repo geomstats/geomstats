@@ -85,11 +85,6 @@ angles_close_to_pi = angles_close_to_pi_all
 if tf_backend():
     angles_close_to_pi = ["with_angle_close_pi_low"]
 
-angles_close_to_pi = angles_close_to_pi
-angles_close_to_pi_all = angles_close_to_pi_all
-elements = elements
-elements_all = elements_all
-
 
 class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
     space = group = SpecialOrthogonal
@@ -798,7 +793,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         def group_log_then_exp_with_angles_close_to_pi_data(self):
             smoke_data = []
             for angle_type in angles_close_to_pi:
-                for angle_type_base in elements:
+                for angle_type_base in elements.keys():
                     smoke_data += [
                         dict(
                             point=elements[angle_type],
