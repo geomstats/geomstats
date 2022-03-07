@@ -463,8 +463,8 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             base_point,
         )
         result = nabla_x_a_y_z + nabla_x_a_z_y
-        self.assertAllClose(a_y_z + a_z_y, gs.zeros_like(result))
-        self.assertAllClose(result, gs.zeros_like(result))
+        self.assertAllClose(a_y_z + a_z_y, gs.zeros_like(result), atol=gs.atol * 10)
+        self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
     def test_integrability_tensor_derivative_is_skew_symmetric(
         self,
@@ -584,8 +584,8 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             hor_x, hor_y, a_x_y, hor_z, a_x_z, base_point
         )
 
-        self.assertAllClose(a_y_z, a_y_z_qp)
-        self.assertAllClose(nabla_x_a_y_z, nabla_x_a_y_z_qp)
+        self.assertAllClose(a_y_z, a_y_z_qp, atol=gs.atol * 10)
+        self.assertAllClose(nabla_x_a_y_z, nabla_x_a_y_z_qp, atol=gs.atol * 10)
 
     def test_iterated_integrability_tensor_derivative_parallel(
         self, k_landmarks, m_ambient, hor_x, hor_y, base_point
@@ -970,7 +970,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         kappa = numerator[condition] / denominator[condition]
         kappa_direct = metric.sectional_curvature(hor_a, hor_b, base_point)[condition]
         self.assertAllClose(kappa, kappa_direct)
-        result = kappa > 1.0 - 1e-12
+        result = kappa > 1.0 - 1e-10
         self.assertTrue(gs.all(result))
 
     def test_kendall_curvature_derivative_bianchi_identity(
@@ -988,7 +988,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         term_z = metric.curvature_derivative(hor_z, hor_x, hor_y, hor_h, base_point)
 
         result = term_x + term_y + term_z
-        self.assertAllClose(result, gs.zeros_like(result))
+        self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
     def test_curvature_derivative_is_skew_operator(
         self, k_landmarks, m_ambient, hor_x, hor_y, hor_z, base_point
@@ -1000,7 +1000,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         """
         metric = self.metric(k_landmarks, m_ambient)
         result = metric.curvature_derivative(hor_x, hor_y, hor_y, hor_z, base_point)
-        self.assertAllClose(result, gs.zeros_like(result))
+        self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
     def test_directional_curvature_derivative(
         self, k_landmarks, m_ambient, hor_x, hor_y, base_point
@@ -1020,20 +1020,20 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         result_kendall_shape_metric = metric.directional_curvature_derivative(
             hor_x, hor_y, base_point
         )
-        self.assertAllClose(result_kendall_shape_metric, expected)
+        self.assertAllClose(result_kendall_shape_metric, expected, atol=gs.atol * 10)
 
         # Method from the QuotientMetric class
         result_quotient_metric = super(
             KendallShapeMetric, metric
         ).directional_curvature_derivative(hor_x, hor_y, base_point)
-        self.assertAllClose(result_quotient_metric, expected)
+        self.assertAllClose(result_quotient_metric, expected, atol=gs.atol * 10)
 
         # Method from the Connection class
 
         result_connection = super(
             QuotientMetric, metric
         ).directional_curvature_derivative(hor_x, hor_y, base_point)
-        self.assertAllClose(result_connection, expected)
+        self.assertAllClose(result_connection, expected, atol=gs.atol * 10)
 
     def test_directional_curvature_derivative_is_quadratic(
         self, k_landmarks, m_ambient, coef_x, coef_y, hor_x, hor_y, base_point
