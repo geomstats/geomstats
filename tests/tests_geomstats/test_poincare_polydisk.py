@@ -132,7 +132,7 @@ class TestPoincarePolydiskMetric(TestCase, metaclass=Parametrizer):
         two_disks = PoincarePolydisk(n_disks=2 * n_disks, coords_type="extrinsic")
 
         distance_single_disk = single_disk.metric.dist(
-            point_a_extrinsic, point_b_extrinsic
+            point_a_extrinsic[None, :], point_b_extrinsic[None, :]
         )
         distance_two_disks = two_disks.metric.dist(duplicate_point_a, duplicate_point_b)
         result = distance_two_disks
