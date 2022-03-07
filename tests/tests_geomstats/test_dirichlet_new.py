@@ -161,12 +161,20 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     space = DirichletDistributions
     connection = metric = DirichletMetric
     skip_test_exp_shape = True  # because several base points for one vector
-    skip_test_log_shape = True  # because of pytorch and tf
-    skip_test_exp_belongs = True  # because of pytorch and tf
-    skip_test_log_is_tangent = True  # because of pytorch and tf
-    skip_test_log_exp_composition = True  # because of pytorch and tf
-    skip_test_exp_log_composition = True  # because of pytorch and tf
-    skip_test_squared_dist_is_symmetric = True  # because of pytorch and tf
+    skip_test_log_shape = (
+        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+    )
+    skip_test_exp_belongs = (
+        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+    )
+    skip_test_log_is_tangent = (
+        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+    )
+    skip_test_squared_dist_is_symmetric = (
+        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+    )
+    skip_test_log_exp_composition = True
+    skip_test_exp_log_composition = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_geodesic_ivp_belongs = True
@@ -332,7 +340,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.n_samples_list,
                 rtol=0.1,
-                atol=1.0,
+                atol=0.0,
             )
 
         def exp_log_composition_data(self):
@@ -341,7 +349,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.n_samples_list,
                 rtol=0.1,
-                atol=1.0,
+                atol=0.0,
             )
 
         def geodesic_ivp_shape_data(self):
