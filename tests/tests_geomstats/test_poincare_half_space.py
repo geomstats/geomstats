@@ -256,7 +256,7 @@ class TestPoincareHalfSpaceMetric(TestCase, metaclass=RiemannianMetricParametriz
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                belongs_atol=gs.atol * 1000,
+                belongs_atol=gs.atol * 10000,
             )
 
         def log_is_tangent_data(self):
@@ -264,7 +264,7 @@ class TestPoincareHalfSpaceMetric(TestCase, metaclass=RiemannianMetricParametriz
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
-                is_tangent_atol=gs.atol * 1000,
+                is_tangent_atol=gs.atol * 10900,
             )
 
         def geodesic_ivp_belongs_data(self):
