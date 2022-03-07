@@ -5,6 +5,8 @@ The n-dimensional hyperbolic space with Poincare ball model.
 Lead author: Hadi Zaatiti.
 """
 
+import math
+
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry._hyperbolic import _Hyperbolic
@@ -440,3 +442,21 @@ class PoincareBallMetric(RiemannianMetric):
         norm_factor_gradient = grad_term_1 + (grad_term_21 * grad_term_22)
 
         return gs.squeeze(norm_factor), gs.squeeze(norm_factor_gradient)
+
+    def injectivity_radius(self, base_point):
+        """Radius of the largest ball where the exponential is injective.
+
+        In the case of the hyperbolic space, it does not depend on the base point and
+        is infinite everywhere, because of the negative curvature.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return math.inf

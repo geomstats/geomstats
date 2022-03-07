@@ -535,7 +535,7 @@ class Connection(ABC):
 
         References
         ----------
-        .. [Pennec] Pennec, xavier. Curvature effects on the empirical mean in
+        .. [Pennec] Pennec, Xavier. Curvature effects on the empirical mean in
         Riemannian and affine Manifolds: a non-asymptotic high concentration
         expansion in the small-sample regime. Preprint. June 2019.
         https://arxiv.org/abs/1906.07418

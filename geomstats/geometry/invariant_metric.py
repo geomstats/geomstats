@@ -1357,3 +1357,20 @@ class BiInvariantMetric(_InvariantMetricVector):
         transposed = Matrices.transpose(tangent_vec)
         transported_vec = Matrices.mul(midpoint, transposed, midpoint)
         return (-1.0) * transported_vec
+
+    def injectivity_radius(self, base_point):
+        """Radius of the largest ball where the exponential is injective.
+
+        In the case of a bi-invariant metric, it does not depend on the base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return gs.pi * self.dim**0.5
