@@ -259,6 +259,7 @@ class LieGroupTestData(ManifoldTestData):
         shape_list,
         n_samples_list,
         smoke_data=None,
+        amplitude=1.0,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
@@ -280,7 +281,7 @@ class LieGroupTestData(ManifoldTestData):
             group = group_cls(*group_args)
             for base_point in [group.random_point(), group.identity]:
                 tangent_vec = group.to_tangent(
-                    gs.random.normal(size=(n_samples,) + shape), base_point
+                    gs.random.normal(size=(n_samples,) + shape) / amplitude, base_point
                 )
                 random_data.append(
                     dict(

@@ -85,12 +85,17 @@ angles_close_to_pi = angles_close_to_pi_all
 if tf_backend():
     angles_close_to_pi = ["with_angle_close_pi_low"]
 
+angles_close_to_pi = angles_close_to_pi
+angles_close_to_pi_all = angles_close_to_pi_all
+elements = elements
+elements_all = elements_all
+
 
 class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
     space = group = SpecialOrthogonal
 
     class TestDataSpecialOrthogonal(LieGroupTestData):
-        n_list = random.sample(range(2, 5), 2)
+        n_list = random.sample(range(2, 4), 2)
         space_args_list = list(zip(n_list)) + [(2, "vector"), (3, "vector")]
         shape_list = [(n, n) for n in n_list] + [(1,), (3,)]
         n_samples_list = random.sample(range(2, 10), 4)
@@ -104,14 +109,16 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
                 dict(n=2, mat=sample_matrix(theta, mul=1.0), expected=False),
                 dict(n=2, mat=gs.zeros((2, 3)), expected=False),
                 dict(n=3, mat=gs.zeros((2, 3)), expected=False),
-                dict(n=2, mat=gs.zeros((2, 2, 3)), expected=False),
+                dict(n=2, mat=gs.zeros((2, 2, 3)), expected=gs.array([False, False])),
                 dict(
                     n=2,
-                    mat=[
-                        sample_matrix(theta / 2, mul=-1.0),
-                        sample_matrix(theta / 2, mul=1.0),
-                    ],
-                    expected=[True, False],
+                    mat=gs.stack(
+                        [
+                            sample_matrix(theta / 2, mul=-1.0),
+                            sample_matrix(theta / 2, mul=1.0),
+                        ]
+                    ),
+                    expected=gs.array([True, False]),
                 ),
             ]
             return self.generate_tests(smoke_data)
@@ -221,7 +228,12 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             mat2 = gs.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
             smoke_data = [
                 dict(n=3, mat1=mat1, mat2=mat2, expected=True),
-                dict(n=3, mat1=[mat1, mat2], mat2=[mat2, mat2], expected=[True, False]),
+                dict(
+                    n=3,
+                    mat1=gs.array([mat1, mat2]),
+                    mat2=gs.array([mat2, mat2]),
+                    expected=[True, False],
+                ),
             ]
             return self.generate_tests(smoke_data)
 
@@ -230,7 +242,9 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
                 dict(
                     n=3,
                     point=gs.eye(3),
-                    base_point=[[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]],
+                    base_point=gs.array(
+                        [[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]]
+                    ),
                     expected=pytest.raises(ValueError),
                 ),
                 dict(
@@ -404,9 +418,9 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
         def projection_belongs_data(self):
             space_args_list = list(zip(self.n_list))
             shape_list = [(n, n) for n in self.n_list]
-            n_samples_list = random.sample(range(2, 10), 2)
+            n_samples_list = random.sample(range(2, 5), 2)
             return self._projection_belongs_data(
-                space_args_list, shape_list, n_samples_list, gs.atol * 1000
+                space_args_list, shape_list, n_samples_list, gs.atol * 10000
             )
 
         def to_tangent_is_tangent_data(self):
@@ -426,16 +440,23 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
+                amplitude=100.0,
+                rtol=gs.rtol * 10000,
+                atol=gs.atol * 100000,
             )
 
         def log_exp_composition_data(self):
             return self._log_exp_composition_data(
-                SpecialOrthogonal, self.space_args_list, self.n_samples_list
+                SpecialOrthogonal,
+                self.space_args_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100000,
+                atol=gs.atol * 100000,
             )
 
         def compose_point_inverse_is_identity_data(self):
             smoke_data = []
-            for space_args in self.space_args_list:
+            for space_args in list(zip(self.n_list)):
                 smoke_data += [dict(space_args=space_args)]
             return self.generate_tests(smoke_data)
 
@@ -665,10 +686,12 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
             zyx = gs.flip(xyz, axis=0)
             data = {"xyz": xyz, "zyx": zyx}
             smoke_data = []
+
             for coord, order in itertools.product(coords, orders):
                 for i in range(3):
-                    vec = gs.zeros(3)
-                    vec[i] = angle_pi_6
+                    vec = gs.squeeze(
+                        gs.array_from_sparse([(0, i)], [angle_pi_6], (1, 3))
+                    )
                     smoke_data += [
                         dict(coord=coord, order=order, vec=vec, mat=data[order][i])
                     ]
@@ -692,8 +715,9 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
             e1 = gs.array([1.0, 0.0, 0.0, 0.0])
             for coord, order in itertools.product(["intrinsic", "extrinsic"], orders):
                 for i in range(3):
-                    vec = gs.zeros(3)
-                    vec[i] = angle_pi_6
+                    vec = gs.squeeze(
+                        gs.array_from_sparse([(0, i)], [angle_pi_6], (1, 3))
+                    )
                     smoke_data += [
                         dict(coord=coord, order=order, vec=vec, quat=data[order][i])
                     ]
@@ -703,8 +727,8 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         def quaternion_from_rotation_vector_tait_bryan_angles_data(self):
             smoke_data = []
             for coord, order in itertools.product(coords, orders):
-                for angle_type in elements_all:
-                    point = elements_all[angle_type]
+                for angle_type in elements:
+                    point = elements[angle_type]
                     if angle_type not in angles_close_to_pi:
                         smoke_data += [dict(coord=coord, order=order, point=point)]
 
@@ -712,9 +736,9 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
 
         def tait_bryan_angles_rotation_vector_data(self):
             smoke_data = []
-            for coord, order in itertools.product(coords, ["xyz"]):
-                for angle_type in elements_all:
-                    point = elements_all[angle_type]
+            for coord, order in itertools.product(coords, orders):
+                for angle_type in elements:
+                    point = elements[angle_type]
                     if angle_type not in angles_close_to_pi:
                         smoke_data += [dict(coord=coord, order=order, point=point)]
 
@@ -1091,15 +1115,15 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_exp_geodesic_ivp = True
 
     class TestDataBiInvariantMetric(RiemannianMetricTestData):
-        dim_list = random.sample(range(2, 6), 4)
+        dim_list = random.sample(range(2, 4), 2)
         metric_args_list = [(SpecialOrthogonal(dim),) for dim in dim_list]
         shape_list = [(dim, dim) for dim in dim_list]
         space_list = [SpecialOrthogonal(dim) for dim in dim_list]
-        n_points_list = random.sample(range(1, 10), 4)
-        n_samples_list = random.sample(range(1, 10), 4)
-        n_points_a_list = random.sample(range(1, 10), 4)
+        n_points_list = random.sample(range(1, 10), 2)
+        n_samples_list = random.sample(range(1, 10), 2)
+        n_points_a_list = random.sample(range(1, 10), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 10), 4)
+        batch_size_list = random.sample(range(2, 10), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
@@ -1167,8 +1191,8 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
-                rtol=gs.rtol * 1000,
-                atol=gs.atol * 1000,
+                rtol=gs.rtol * 10000,
+                atol=gs.atol * 10000,
             )
 
         def exp_log_composition_data(self):
@@ -1177,8 +1201,8 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                rtol=gs.rtol * 1000,
-                atol=gs.atol * 1000,
+                rtol=gs.rtol * 10000,
+                atol=gs.atol * 10000,
             )
 
         def exp_ladder_parallel_transport_data(self):
@@ -1209,9 +1233,9 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                is_tangent_atol=gs.atol * 100,
-                rtol=gs.rtol * 100,
-                atol=gs.atol * 100,
+                is_tangent_atol=gs.atol * 1000,
+                rtol=gs.rtol * 1000,
+                atol=gs.atol * 1000,
             )
 
         def parallel_transport_bvp_is_isometry_data(self):
@@ -1220,9 +1244,9 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                is_tangent_atol=gs.atol * 100,
-                rtol=gs.rtol * 100,
-                atol=gs.atol * 100,
+                is_tangent_atol=gs.atol * 1000,
+                rtol=gs.rtol * 1000,
+                atol=gs.atol * 1000,
             )
 
         def log_exp_intrinsic_ball_extrinsic_data(self):
