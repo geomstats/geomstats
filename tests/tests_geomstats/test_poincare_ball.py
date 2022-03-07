@@ -89,6 +89,7 @@ class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_belongs = True
+    skip_test_geodesic_ivp_belongs = True
 
     class TestDataPoincareBallMetric(RiemannianMetricTestData):
         n_list = random.sample(range(2, 5), 2)

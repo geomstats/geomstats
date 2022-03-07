@@ -317,6 +317,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
+                amplitude=10.0,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 100000,
             )
