@@ -124,11 +124,13 @@ class ProductRiemannianMetric(RiemannianMetric):
     def _iterate_over_metrics(self, func, args, intrinsic=False):
 
         cum_index = (
-            gs.cumsum(self.dims, axis=0)[:-1]
+            gs.cumsum(self.dims)[:-1]
             if intrinsic
-            else gs.cumsum(gs.array([k + 1 for k in self.dims]), axis=0)
+            else gs.cumsum(gs.array([k + 1 for k in self.dims]))
         )
-        arguments = {key: gs.split(args[key], cum_index, axis=1) for key in args.keys()}
+        arguments = {
+            key: gs.split(args[key], cum_index, axis=-1) for key in args.keys()
+        }
         args_list = [
             {key: arguments[key][j] for key in args.keys()}
             for j in range(self.n_metrics)
@@ -175,9 +177,6 @@ class ProductRiemannianMetric(RiemannianMetric):
             point_type, "point_type", ["vector", "matrix"]
         )
 
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
-        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
         if point_type == "vector":
             intrinsic = self.is_intrinsic(tangent_vec_b)
             args = {
@@ -186,7 +185,7 @@ class ProductRiemannianMetric(RiemannianMetric):
                 "base_point": base_point,
             }
             inner_prod = self._iterate_over_metrics("inner_product", args, intrinsic)
-            return gs.sum(gs.stack(inner_prod, axis=1), axis=1)
+            return gs.sum(gs.stack(inner_prod, axis=-2), axis=-2)
 
         inner_products = [
             metric.inner_product(
@@ -198,7 +197,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         ]
         return sum(inner_products)
 
-    def exp(self, tangent_vec, base_point=None, point_type=None):
+    def exp(self, tangent_vec, base_point=None, point_type=None, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -248,7 +247,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         )
         return exp[0] if len(tangent_vec) == 1 else exp
 
-    def log(self, point, base_point=None, point_type=None):
+    def log(self, point, base_point=None, point_type=None, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
         Parameters
@@ -278,23 +277,17 @@ class ProductRiemannianMetric(RiemannianMetric):
         )
 
         if point_type == "vector":
-            point = gs.to_ndarray(point, to_ndim=2)
-            base_point = gs.to_ndarray(base_point, to_ndim=2)
             intrinsic = self.is_intrinsic(base_point)
             args = {"point": point, "base_point": base_point}
             logs = self._iterate_over_metrics("log", args, intrinsic)
-            logs = gs.concatenate(logs, axis=1)
+            logs = gs.concatenate(logs, axis=-1)
             return logs
 
-        point = gs.to_ndarray(point, to_ndim=2, axis=0)
-        point = gs.to_ndarray(point, to_ndim=3, axis=0)
-        base_point = gs.to_ndarray(base_point, to_ndim=2, axis=0)
-        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=0)
         logs = gs.stack(
             [
-                self.metrics[i].log(point[:, i], base_point[:, i])
+                self.metrics[i].log(point[..., i, :], base_point[..., i, :])
                 for i in range(self.n_metrics)
             ],
-            axis=1,
+            axis=-2,
         )
         return logs
