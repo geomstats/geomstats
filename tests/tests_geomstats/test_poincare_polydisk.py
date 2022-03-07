@@ -39,6 +39,7 @@ class TestPoincarePolydisk(TestCase, metaclass=OpenSetParametrizer):
                 smoke_n_points_list,
                 self.space_args_list,
                 self.n_points_list,
+                belongs_atol=1e-3,
             )
 
         def projection_belongs_data(self):
@@ -46,7 +47,7 @@ class TestPoincarePolydisk(TestCase, metaclass=OpenSetParametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
-                belongs_atol=1e-2,
+                belongs_atol=1e-1,
             )
 
         def to_tangent_is_tangent_data(self):
@@ -55,6 +56,7 @@ class TestPoincarePolydisk(TestCase, metaclass=OpenSetParametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
+                is_tangent_atol=1e-3,
             )
 
         def to_tangent_is_tangent_in_ambient_space_data(self):
