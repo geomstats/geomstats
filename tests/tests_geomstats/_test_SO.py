@@ -635,7 +635,6 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         def tait_bryan_angles_quaternion_data(self):
             xyz = gs.array(
                 [
-                    
                     [cos_angle_pi_12, 0.0, 0.0, sin_angle_pi_12],
                     [cos_angle_pi_12, 0.0, sin_angle_pi_12, 0.0],
                     [cos_angle_pi_12, sin_angle_pi_12, 0.0, 0.0],
@@ -668,7 +667,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
 
         def tait_bryan_angles_rotation_vector_data(self):
             smoke_data = []
-            for coord, order in itertools.product(coords, orders):
+            for coord, order in itertools.product(coords, ["xyz"]):
                 for angle_type in elements_all:
                     point = elements_all[angle_type]
                     if angle_type not in angles_close_to_pi:
@@ -828,7 +827,9 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         tait_bryan_angle = group.tait_bryan_angles_from_rotation_vector(
             point, coord, order
         )
-        result = group.rotation_vector_from_tait_bryan_angles(tait_bryan_angle)
+        result = group.rotation_vector_from_tait_bryan_angles(
+            tait_bryan_angle, coord, order
+        )
         expected = group.regularize(point)
         self.assertAllClose(result, expected)
 
