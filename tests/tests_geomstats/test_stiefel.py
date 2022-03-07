@@ -114,23 +114,23 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
 
     class TestDataStiefelCanonicalMetric(RiemannianMetricTestData):
 
-        n_list = random.sample(range(3, 8), 5)
+        n_list = random.sample(range(3, 5), 2)
         p_list = [random.sample(range(2, n), 1)[0] for n in n_list]
         metric_args_list = list(zip(n_list, p_list))
         shape_list = metric_args_list
         space_list = [Stiefel(n, p) for n, p in metric_args_list]
-        n_points_list = random.sample(range(1, 10), 5)
-        n_points_a_list = random.sample(range(1, 10), 5)
+        n_points_list = random.sample(range(1, 5), 2)
+        n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
-        n_tangent_vecs_list = random.sample(range(1, 10), 5)
-        n_directions_list = random.sample(range(1, 10), 5)
-        n_end_points_list = random.sample(range(1, 10), 5)
-        n_t_list = random.sample(range(1, 10), 5)
-        batch_size_list = random.sample(range(2, 10), 5)
-        n_samples_list = random.sample(range(2, 10), 5)
-        alpha_list = [1] * 5
-        n_rungs_list = [1] * 5
-        scheme_list = ["pole"] * 5
+        n_tangent_vecs_list = random.sample(range(1, 5), 2)
+        n_directions_list = random.sample(range(1, 5), 2)
+        n_end_points_list = random.sample(range(1, 5), 2)
+        n_t_list = random.sample(range(1, 5), 2)
+        batch_size_list = random.sample(range(2, 5), 2)
+        n_samples_list = random.sample(range(2, 5), 2)
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
 
         def log_two_sheets_error_data(self):
             stiefel = Stiefel(n=3, p=3)
@@ -238,7 +238,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
-                atol=gs.atol * 1000,
+                atol=1e-2,
             )
 
         def exp_geodesic_ivp_data(self):
