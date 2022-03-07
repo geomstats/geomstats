@@ -269,6 +269,7 @@ class LieGroupParametrizer(ManifoldParametrizer):
             atol : float
                 Absolute tolerance to test this property.
             """
+            print("tet", group_args)
             group = self.group(*group_args)
             log_vec = group.log(gs.array(point), gs.array(base_point))
             exp_point = group.exp(log_vec, gs.array(base_point))

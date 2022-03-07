@@ -834,6 +834,31 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
                     smoke_data += [dict(point=point)]
             return self.generate_tests(smoke_data)
 
+        def regularize_extreme_cases_data(self):
+            smoke_data = [dict(elements_all=elements_all)]
+            return self.generate_tests(smoke_data)
+
+        def regularize_data(self):
+            point = (gs.pi + 1e-6) * gs.array(
+                [[1.0, 0.0, 0.0], [2, 0.5, 0.0], [0.0, 0.0, 0.0], [0.5, 0.0, 0.0]]
+            )
+            expected_2 = (
+                point[1]
+                / gs.linalg.norm(point[1])
+                * (gs.linalg.norm(point[1]) - 2 * gs.pi)
+            )
+            expected = gs.array(
+                [
+                    [-(gs.pi - 1e-7), 0.0, 0.0],
+                    expected_2,
+                    [0.0, 0.0, 0.0],
+                    [(gs.pi + 1e-7) / 2.0, 0.0, 0.0],
+                ]
+            )
+
+            smoke_data = [dict(point=point, expected=expected)]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataSpecialOrthogonal3()
 
     def test_tait_bryan_angles_matrix(self, coord, order, vec, mat):
@@ -996,6 +1021,69 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         self.assertTrue(
             gs.allclose(result, expected) or gs.allclose(result, inv_expected)
         )
+
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_regularize_extreme_cases(self, elements_all):
+        group = SpecialOrthogonal(3, "vector")
+        point = elements_all["with_angle_0"]
+        self.assertAllClose(gs.linalg.norm(point), 0.0)
+        result = group.regularize(point)
+        expected = point
+        self.assertAllClose(result, expected)
+
+        less_than_pi = ["with_angle_close_0", "with_angle_close_pi_low"]
+        for angle_type in less_than_pi:
+            point = elements_all[angle_type]
+            result = group.regularize(point)
+            expected = point
+            self.assertAllClose(result, expected)
+
+        angle_type = "with_angle_pi"
+        point = elements_all[angle_type]
+        result = group.regularize(point)
+        expected = point
+        self.assertAllClose(result, expected)
+
+        angle_type = "with_angle_close_pi_high"
+        point = elements_all[angle_type]
+        result = group.regularize(point)
+        self.assertTrue(0 <= gs.linalg.norm(result) < gs.pi)
+        norm = gs.linalg.norm(point)
+        expected = point / norm * (norm - 2 * gs.pi)
+        self.assertAllClose(result, expected)
+
+        in_pi_2pi = ["with_angle_in_pi_2pi", "with_angle_close_2pi_low"]
+
+        for angle_type in in_pi_2pi:
+            point = elements_all[angle_type]
+            angle = gs.linalg.norm(point)
+            new_angle = gs.pi - (angle - gs.pi)
+
+            point_initial = point
+            result = group.regularize(point)
+
+            expected = -(new_angle / angle) * point_initial
+            self.assertAllClose(result, expected)
+
+        angle_type = "with_angle_2pi"
+        point = elements_all[angle_type]
+        result = group.regularize(point)
+        expected = gs.array([0.0, 0.0, 0.0])
+        self.assertAllClose(result, expected)
+
+        angle_type = "with_angle_close_2pi_high"
+        point = elements_all[angle_type]
+        angle = gs.linalg.norm(point)
+        new_angle = angle - 2 * gs.pi
+
+        result = group.regularize(point)
+        expected = new_angle * point / angle
+        self.assertAllClose(result, expected)
+
+    def test_regularize(self, point, expected):
+        group = SpecialOrthogonal(3, "vector")
+        result = group.regularize(point)
+        self.assertAllClose(result, expected)
 
 
 class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
