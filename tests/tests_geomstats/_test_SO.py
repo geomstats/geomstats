@@ -635,9 +635,10 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         def tait_bryan_angles_quaternion_data(self):
             xyz = gs.array(
                 [
-                    [cos_angle_pi_12, sin_angle_pi_6, 0.0, 0.0],
-                    [cos_angle_pi_12, 0.0, sin_angle_pi_6, 0.0],
-                    [cos_angle_pi_12, 0.0, 0.0, sin_angle_pi_6],
+                    
+                    [cos_angle_pi_12, 0.0, 0.0, sin_angle_pi_12],
+                    [cos_angle_pi_12, 0.0, sin_angle_pi_12, 0.0],
+                    [cos_angle_pi_12, sin_angle_pi_12, 0.0, 0.0],
                 ]
             )
 
@@ -645,7 +646,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
             data = {"xyz": xyz, "zyx": zyx}
             smoke_data = []
             e1 = gs.array([1.0, 0.0, 0.0, 0.0])
-            for coord, order in itertools.product(coords, orders):
+            for coord, order in itertools.product(["intrinsic", "extrinsic"], orders):
                 for i in range(3):
                     vec = gs.zeros(3)
                     vec[i] = angle_pi_6
@@ -808,7 +809,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
 
         quat_from_vec = group.quaternion_from_tait_bryan_angles(vec, coord, order)
         self.assertAllClose(quat_from_vec, quat)
-        vec_from_quat = group.tait_bryan_angles_from_matrix(quat, coord, order)
+        vec_from_quat = group.tait_bryan_angles_from_quaternion(quat, coord, order)
         self.assertAllClose(vec_from_quat, vec)
 
     def test_quaternion_from_rotation_vector_tait_bryan_angles(
