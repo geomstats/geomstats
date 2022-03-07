@@ -401,13 +401,13 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             tangent_vec_b, result_ab, base_point
         )
         expected = 0.0
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol * 10)
 
         horizontal_b = space.horizontal_projection(tangent_vec_b, base_point)
         horizontal_a = space.horizontal_projection(tangent_vec_a, base_point)
         result = space.integrability_tensor(horizontal_a, horizontal_b, base_point)
         expected = -space.integrability_tensor(horizontal_b, horizontal_a, base_point)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol * 10)
 
         is_vertical = space.is_vertical(result, base_point)
         self.assertTrue(is_vertical)
