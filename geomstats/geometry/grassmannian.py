@@ -29,7 +29,7 @@ For such a representation, work in the Stiefel manifold instead.
 
 References
 ----------
-[Batzies15]_    Batzies, E., K. Hüper, L. Machado, and F. Silva Leite.
+.. [Batzies15]   Batzies, E., K. Hüper, L. Machado, and F. Silva Leite.
                 “Geometric Mean and Geodesic Regression on Grassmannians.”
                 Linear Algebra and Its Applications 466 (February 1, 2015):
                 83–101. https://doi.org/10.1016/j.laa.2014.10.003.
