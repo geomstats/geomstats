@@ -452,7 +452,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             return self.generate_tests(smoke_data)
 
         def sectional_curvature_data(self):
-            dim_list = random.sample(range(2, 5), 2)
+            dim_list = [4]
             n_samples_list = random.sample(range(1, 4), 2)
             random_data = []
             for dim, n_samples in zip(dim_list, n_samples_list):

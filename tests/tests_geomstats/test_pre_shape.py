@@ -1,403 +1,389 @@
 """Unit tests for the preshape space."""
 
+import random
+
 import geomstats.backend as gs
-import geomstats.tests
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
+from geomstats.geometry.pre_shape import (
+    KendallShapeMetric,
+    PreShapeMetric,
+    PreShapeSpace,
+)
+from geomstats.geometry.quotient_metric import QuotientMetric
+from tests.conftest import TestCase, np_autograd_and_torch_only
+from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
+from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
+
+smoke_space = PreShapeSpace(4, 3)
+vector = gs.random.rand(11, 4, 3)
+base_point = smoke_space.random_point()
+tg_vec_0 = smoke_space.to_tangent(vector[0], base_point)
+hor_x = smoke_space.horizontal_projection(tg_vec_0, base_point)
+tg_vec_1 = smoke_space.to_tangent(vector[1], base_point)
+hor_y = smoke_space.horizontal_projection(tg_vec_1, base_point)
+tg_vec_2 = smoke_space.to_tangent(vector[2], base_point)
+hor_z = smoke_space.horizontal_projection(tg_vec_2, base_point)
+tg_vec_3 = smoke_space.to_tangent(vector[3], base_point)
+hor_h = smoke_space.horizontal_projection(tg_vec_3, base_point)
+tg_vec_4 = smoke_space.to_tangent(vector[4], base_point)
+ver_v = smoke_space.vertical_projection(tg_vec_4, base_point)
+tg_vec_5 = smoke_space.to_tangent(vector[5], base_point)
+ver_w = smoke_space.vertical_projection(tg_vec_5, base_point)
+tg_vec_6 = smoke_space.to_tangent(vector[6], base_point)
+hor_dy = smoke_space.horizontal_projection(tg_vec_6, base_point)
+tg_vec_7 = smoke_space.to_tangent(vector[7], base_point)
+hor_dz = smoke_space.horizontal_projection(tg_vec_7, base_point)
+tg_vec_8 = smoke_space.to_tangent(vector[8], base_point)
+ver_dv = smoke_space.vertical_projection(tg_vec_8, base_point)
+tg_vec_9 = smoke_space.to_tangent(vector[9], base_point)
+ver_dw = smoke_space.vertical_projection(tg_vec_9, base_point)
+tg_vec_10 = smoke_space.to_tangent(vector[10], base_point)
+hor_dh = smoke_space.horizontal_projection(tg_vec_10, base_point)
+
+# generate valid derivatives of horizontal / vertical vector fields.
+a_x_y = smoke_space.integrability_tensor(hor_x, hor_y, base_point)
+nabla_x_y = hor_dy + a_x_y
+a_x_z = smoke_space.integrability_tensor(hor_x, hor_z, base_point)
+nabla_x_z = hor_dz + a_x_z
+a_x_v = smoke_space.integrability_tensor(hor_x, ver_v, base_point)
+nabla_x_v = ver_dv + a_x_v
+a_x_w = smoke_space.integrability_tensor(hor_x, ver_w, base_point)
+nabla_x_w = ver_dw + a_x_w
+a_x_h = smoke_space.integrability_tensor(hor_x, hor_h, base_point)
+nabla_x_h = hor_dh + a_x_h
 
 
-class TestPreShapeSpace(geomstats.tests.TestCase):
-    def setup_method(self):
-        gs.random.seed(1234)
+class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
+    space = PreShapeSpace
+    skip_test_extrinsic_intrinsic_composition = True
+    skip_test_intrinsic_extrinsic_composition = True
 
-        self.k_landmarks = 4
-        self.m_ambient = 3
-        self.space = PreShapeSpace(self.k_landmarks, self.m_ambient)
-        self.matrices = self.space.embedding_space
-        self.n_samples = 10
-        self.shape_metric = KendallShapeMetric(self.k_landmarks, self.m_ambient)
+    class TestDataPreShapeSpace(LevelSetTestData):
+        k_landmarks_list = random.sample(range(3, 6), 2)
+        m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
+        space_args_list = list(zip(k_landmarks_list, m_ambient_list))
+        n_points_list = random.sample(range(1, 5), 2)
+        shape_list = space_args_list
+        n_vecs_list = random.sample(range(1, 5), 2)
+        n_samples_list = random.sample(range(1, 5), 2)
 
-        self.base_point = self.space.random_point()
-        vector = gs.random.rand(11, self.k_landmarks, self.m_ambient)
-        tg_vec_0 = self.space.to_tangent(vector[0], self.base_point)
-        self.hor_x = self.space.horizontal_projection(tg_vec_0, self.base_point)
-        tg_vec_1 = self.space.to_tangent(vector[1], self.base_point)
-        self.hor_y = self.space.horizontal_projection(tg_vec_1, self.base_point)
-        tg_vec_2 = self.space.to_tangent(vector[2], self.base_point)
-        self.hor_z = self.space.horizontal_projection(tg_vec_2, self.base_point)
-        tg_vec_3 = self.space.to_tangent(vector[3], self.base_point)
-        self.hor_h = self.space.horizontal_projection(tg_vec_3, self.base_point)
-        tg_vec_4 = self.space.to_tangent(vector[4], self.base_point)
-        self.ver_v = self.space.vertical_projection(tg_vec_4, self.base_point)
-        tg_vec_5 = self.space.to_tangent(vector[5], self.base_point)
-        self.ver_w = self.space.vertical_projection(tg_vec_5, self.base_point)
-        tg_vec_6 = self.space.to_tangent(vector[6], self.base_point)
-        hor_dy = self.space.horizontal_projection(tg_vec_6, self.base_point)
-        tg_vec_7 = self.space.to_tangent(vector[7], self.base_point)
-        hor_dz = self.space.horizontal_projection(tg_vec_7, self.base_point)
-        tg_vec_8 = self.space.to_tangent(vector[8], self.base_point)
-        ver_dv = self.space.vertical_projection(tg_vec_8, self.base_point)
-        tg_vec_9 = self.space.to_tangent(vector[9], self.base_point)
-        ver_dw = self.space.vertical_projection(tg_vec_9, self.base_point)
-        tg_vec_10 = self.space.to_tangent(vector[10], self.base_point)
-        hor_dh = self.space.horizontal_projection(tg_vec_10, self.base_point)
+        def belongs_data(self):
+            random_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    mat=gs.random.rand(2, 4),
+                    expected=gs.array(False),
+                ),
+                dict(
+                    m_ambient=3,
+                    k_landmarks=4,
+                    mat=gs.random.rand(10, 2, 4),
+                    expected=gs.array([False] * 10),
+                ),
+            ]
+            return self.generate_tests([], random_data)
 
-        # generate valid derivatives of horizontal / vertical vector fields.
-        a_x_y = self.space.integrability_tensor(self.hor_x, self.hor_y, self.base_point)
-        self.nabla_x_y = hor_dy + a_x_y
-        a_x_z = self.space.integrability_tensor(self.hor_x, self.hor_z, self.base_point)
-        self.nabla_x_z = hor_dz + a_x_z
-        a_x_v = self.space.integrability_tensor(self.hor_x, self.ver_v, self.base_point)
-        self.nabla_x_v = ver_dv + a_x_v
-        a_x_w = self.space.integrability_tensor(self.hor_x, self.ver_w, self.base_point)
-        self.nabla_x_w = ver_dw + a_x_w
-        a_x_h = self.space.integrability_tensor(self.hor_x, self.hor_h, self.base_point)
-        self.nabla_x_h = hor_dh + a_x_h
+        def is_centered_data(self):
+            random_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    point=gs.ones((4, 3)),
+                    expected=gs.array(False),
+                ),
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    point=gs.zeros((4, 3)),
+                    expected=gs.array(True),
+                ),
+            ]
+            return self.generate_tests([], random_data)
 
-    def test_belongs(self):
-        point = gs.random.rand(self.m_ambient - 1, self.k_landmarks)
-        result = self.space.belongs(point)
-        self.assertFalse(result)
+        def to_center_is_center_data(self):
+            smoke_data = [
+                dict(k_landmarks=4, m_ambient=3, point=gs.ones((4, 3))),
+                dict(k_landmarks=4, m_ambient=3, point=gs.ones((10, 4, 3))),
+            ]
+            return self.generate_tests(smoke_data)
 
-        point = gs.random.rand(self.n_samples, self.m_ambient - 1, self.k_landmarks)
-        result = self.space.belongs(point)
-        self.assertFalse(gs.all(result))
+        def vertical_projection_data(self):
+            vector = gs.random.rand(10, 4, 3)
+            space = PreShapeSpace(4, 3)
+            point = space.random_point()
+            smoke_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    tangent_vec=space.to_tangent(vector[0], point),
+                    point=point,
+                ),
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    tangent_vec=space.to_tangent(vector, point),
+                    point=point,
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
-    def test_random_point_and_belongs(self):
-        """Test random uniform and belongs.
+        def horizontal_projection_data(self):
+            vector = gs.random.rand(10, 4, 3)
+            space = PreShapeSpace(4, 3)
+            point = space.random_point()
+            smoke_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    tangent_vec=space.to_tangent(vector[0], point),
+                    point=point,
+                ),
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    tangent_vec=space.to_tangent(vector, point),
+                    point=point,
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
-        Test that the random uniform method samples
-        on the pre-shape space.
-        """
-        n_samples = self.n_samples
-        point = self.space.random_point(n_samples)
-        result = self.space.belongs(point)
-        expected = gs.array([True] * n_samples)
+        def horizontal_and_is_tangent_data(self):
+            vector = gs.random.rand(10, 4, 3)
+            space = PreShapeSpace(4, 3)
+            point = space.random_point()
+            smoke_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    tangent_vec=space.to_tangent(vector[0], point),
+                    point=point,
+                ),
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    tangent_vec=space.to_tangent(vector, point),
+                    point=point,
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
-        self.assertAllClose(expected, result)
+        def alignment_is_symmetric_data(self):
+            space = PreShapeSpace(4, 3)
+            random_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    point=space.random_point(),
+                    base_point=space.random_point(),
+                ),
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    point=space.random_point(),
+                    base_point=space.random_point(2),
+                ),
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    point=space.random_point(2),
+                    base_point=space.random_point(2),
+                ),
+            ]
+            return self.generate_tests([], random_data)
 
-    def test_random_point_shape(self):
-        point = self.space.random_point()
-        result = gs.shape(point)
-        expected = (
-            self.k_landmarks,
-            self.m_ambient,
-        )
+        def integrability_tensor_data(self):
+            space = PreShapeSpace(4, 3)
+            vector = gs.random.rand(2, 4, 3)
+            base_point = space.random_point()
+            random_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    tangent_vec_a=space.to_tangent(vector[0], base_point),
+                    tangent_vec_b=space.to_tangent(vector[1], base_point),
+                    base_point=base_point,
+                )
+            ]
+            return self.generate_tests(random_data)
 
-        self.assertAllClose(result, expected)
+        def integrability_tensor_old_data(self):
+            return self.integrability_tensor_data()
 
-        point = self.space.random_point(self.n_samples)
-        result = gs.shape(point)
-        expected = (
-            self.n_samples,
-            self.k_landmarks,
-            self.m_ambient,
-        )
-        self.assertAllClose(result, expected)
+        def integrability_tensor_derivative_is_alternate_data(self):
+            smoke_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    hor_x=hor_x,
+                    hor_y=hor_y,
+                    hor_z=hor_z,
+                    nabla_x_y=nabla_x_y,
+                    nabla_x_z=nabla_x_z,
+                    base_point=base_point,
+                )
+            ]
+            return self.generate_tests(smoke_data)
 
-    def test_projection_and_belongs(self):
-        point = Matrices.transpose(
-            gs.array(
-                [
-                    [1.0, 0.0, 0.0, 1.0],
-                    [0.0, 1.0, 0.0, 1.0],
-                    [0.0, 0.0, 1.0, 1.0],
-                ]
+        def integrability_tensor_derivative_is_skew_symmetric_data(self):
+            smoke_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    hor_x=hor_x,
+                    hor_y=hor_y,
+                    hor_z=hor_z,
+                    ver_v=ver_v,
+                    nabla_x_y=nabla_x_y,
+                    nabla_x_z=nabla_x_z,
+                    nabla_x_v=nabla_x_v,
+                    base_point=base_point,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def integrability_tensor_derivative_reverses_hor_ver_data(self):
+            smoke_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    hor_x=hor_x,
+                    hor_y=hor_y,
+                    hor_z=hor_z,
+                    ver_v=ver_v,
+                    ver_w=ver_w,
+                    hor_h=hor_h,
+                    nabla_x_y=nabla_x_y,
+                    nabla_x_z=nabla_x_z,
+                    nabla_x_h=nabla_x_h,
+                    nabla_x_v=nabla_x_v,
+                    nabla_x_w=nabla_x_w,
+                    base_point=base_point,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def integrability_tensor_derivative_parallel_data(self):
+            smoke_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    hor_x=hor_x,
+                    hor_y=hor_y,
+                    hor_z=hor_z,
+                    base_point=base_point,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def iterated_integrability_tensor_derivative_parallel_data(self):
+            smoke_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    hor_x=hor_x,
+                    hor_y=hor_y,
+                    base_point=base_point,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def random_point_belongs_data(self):
+            belongs_atol = gs.atol * 100
+            smoke_space_args_list = [(2, 2), (3, 2), (4, 3)]
+            smoke_n_points_list = [1, 2, 1]
+            return self._random_point_belongs_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+                belongs_atol,
             )
-        )
-        proj = self.space.projection(point)
-        result = self.space.belongs(proj)
-        expected = True
 
-        self.assertAllClose(expected, result)
+        def to_tangent_is_tangent_data(self):
 
-    def test_is_centered(self):
-        point = gs.ones((self.k_landmarks, self.m_ambient))
-        result = self.space.is_centered(point)
-        self.assertFalse(result)
+            is_tangent_atol = gs.atol * 100
+            return self._to_tangent_is_tangent_data(
+                PreShapeSpace,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+                is_tangent_atol,
+            )
 
-        point = gs.zeros((self.k_landmarks, self.m_ambient))
-        result = self.space.is_centered(point)
-        self.assertTrue(result)
+        def projection_belongs_data(self):
+            return self._projection_belongs_data(
+                self.space_args_list, self.shape_list, self.n_samples_list
+            )
 
-    def test_to_center_is_center(self):
-        point = gs.ones((self.k_landmarks, self.m_ambient))
-        point = self.space.center(point)
-        result = self.space.is_centered(point)
-        self.assertTrue(result)
+        def extrinsic_intrinsic_composition_data(self):
+            space_args_list = [(1,), (2,)]
+            return self._extrinsic_intrinsic_composition_data(
+                PreShapeSpace, space_args_list, self.n_samples_list
+            )
 
-    def test_to_center_is_centered_vectorization(self):
-        point = gs.ones((self.n_samples, self.k_landmarks, self.m_ambient))
-        point = self.space.center(point)
-        result = gs.all(self.space.is_centered(point))
-        self.assertTrue(result)
+        def intrinsic_extrinsic_composition_data(self):
+            space_args_list = [(1,), (2,)]
+            return self._intrinsic_extrinsic_composition_data(
+                PreShapeSpace, space_args_list, self.n_samples_list
+            )
 
-    def test_is_tangent_to_tangent(self):
-        point, vector = self.matrices.random_point(2)
-        point = self.space.projection(point)
+    testing_data = TestDataPreShapeSpace()
 
-        result = self.space.is_tangent(vector, point)
-        self.assertFalse(result)
-
-        tangent_vec = self.space.to_tangent(vector, point)
-        result = self.space.is_tangent(tangent_vec, point)
-        self.assertTrue(result)
-
-        vec = gs.array([tangent_vec, vector])
-        result = self.space.is_tangent(vec, point)
-        expected = gs.array([True, False])
+    def test_belongs(self, k_landmarks, m_ambient, mat, expected):
+        space = self.space(k_landmarks, m_ambient)
+        result = space.belongs(mat)
         self.assertAllClose(result, expected)
 
-    def test_vertical_projection(self):
-        vector = gs.random.rand(self.k_landmarks, self.m_ambient)
-        point = self.space.random_point()
-        tan = self.space.to_tangent(vector, point)
-        vertical = self.space.vertical_projection(tan, point)
+    def test_is_centered(self, k_landmarks, m_ambient, point, expected):
+        space = self.space(k_landmarks, m_ambient)
+        result = space.is_centered(point)
+        self.assertAllClose(result, expected)
+
+    def test_to_center_is_center(self, k_landmarks, m_ambient, point):
+        space = self.space(k_landmarks, m_ambient)
+        centered_point = space.center(point)
+        result = gs.all(space.is_centered(centered_point))
+        self.assertAllClose(result, gs.array(True))
+
+    def test_vertical_projection(self, k_landmarks, m_ambient, tangent_vec, point):
+        space = self.space(k_landmarks, m_ambient)
+        vertical = space.vertical_projection(tangent_vec, point)
         transposed_point = Matrices.transpose(point)
 
-        tmp_expected = gs.matmul(transposed_point, tan)
+        tmp_expected = gs.matmul(transposed_point, tangent_vec)
         expected = Matrices.transpose(tmp_expected) - tmp_expected
 
         tmp_result = gs.matmul(transposed_point, vertical)
         result = Matrices.transpose(tmp_result) - tmp_result
         self.assertAllClose(result, expected)
 
-    def test_vertical_projection_vectorization(self):
-        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
-        point = self.space.random_point(self.n_samples)
-        tan = self.space.to_tangent(vector, point)
-        vertical = self.space.vertical_projection(tan, point)
-        transposed_point = Matrices.transpose(point)
-
-        tmp_expected = gs.matmul(transposed_point, tan)
-        expected = Matrices.transpose(tmp_expected) - tmp_expected
-
-        tmp_result = gs.matmul(transposed_point, vertical)
-        result = Matrices.transpose(tmp_result) - tmp_result
-        self.assertAllClose(result, expected)
-
-    def test_horizontal_projection(self):
-        vector = gs.random.rand(self.k_landmarks, self.m_ambient)
-        point = self.space.random_point()
-        tan = self.space.to_tangent(vector, point)
-        horizontal = self.space.horizontal_projection(tan, point)
+    def test_horizontal_projection(self, k_landmarks, m_ambient, tangent_vec, point):
+        space = self.space(k_landmarks, m_ambient)
+        horizontal = space.horizontal_projection(tangent_vec, point)
         transposed_point = Matrices.transpose(point)
         result = gs.matmul(transposed_point, horizontal)
         expected = Matrices.transpose(result)
-
         self.assertAllClose(result, expected)
 
-    def test_horizontal_projection_vectorized(self):
-        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
-        point = self.space.random_point(self.n_samples)
-        tan = self.space.to_tangent(vector, point)
-        horizontal = self.space.horizontal_projection(tan, point)
-        transposed_point = Matrices.transpose(point)
-        result = gs.matmul(transposed_point, horizontal)
-        expected = Matrices.transpose(result)
+    def test_horizontal_and_is_tangent(
+        self, k_landmarks, m_ambient, tangent_vec, point
+    ):
+        space = self.space(k_landmarks, m_ambient)
+        horizontal = space.horizontal_projection(tangent_vec, point)
+        result = gs.all(space.is_tangent(horizontal, point))
+        self.assertAllClose(result, gs.array(True))
 
-        self.assertAllClose(result, expected)
-
-    def test_horizontal_and_is_tangent(self):
-        vector = gs.random.rand(self.k_landmarks, self.m_ambient)
-        point = self.space.random_point()
-        tan = self.space.to_tangent(vector, point)
-        horizontal = self.space.horizontal_projection(tan, point)
-
-        horizontal = gs.stack([horizontal, vector])
-        result = self.space.is_tangent(horizontal, point)
-        expected = gs.array([True, False])
-
-        self.assertAllClose(result, expected)
-
-    def test_align(self):
-        point, base_point = self.space.random_point(2)
-        aligned = self.space.align(point, base_point)
+    def test_alignment_is_symmetric(self, k_landmarks, m_ambient, point, base_point):
+        space = self.space(k_landmarks, m_ambient)
+        aligned = space.align(point, base_point)
         alignment = gs.matmul(Matrices.transpose(aligned), base_point)
-        result = Matrices.is_symmetric(alignment)
-        self.assertTrue(result)
+        result = gs.all(Matrices.is_symmetric(alignment))
+        self.assertAllClose(result, gs.array(True))
 
-    def test_align_vectorization(self):
-        base_point = self.space.random_point()
-        point = self.space.random_point(2)
-        aligned = self.space.align(point, base_point)
-        alignment = gs.matmul(Matrices.transpose(aligned), base_point)
-        result = Matrices.is_symmetric(alignment)
-        self.assertTrue(gs.all(result))
-
-        base_point = self.space.random_point(2)
-        point = self.space.random_point()
-        aligned = self.space.align(point, base_point)
-        alignment = gs.matmul(Matrices.transpose(aligned), base_point)
-        result = Matrices.is_symmetric(alignment)
-        self.assertTrue(gs.all(result))
-
-    def test_inner_product_shape(self):
-        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
-        point = self.space.random_point()
-        tan = self.space.to_tangent(vector, point)
-        inner = self.space.ambient_metric.inner_product(tan, tan, point)
-        self.assertAllClose(inner.shape, (self.n_samples,))
-
-    def test_exp_and_belongs(self):
-        vector = gs.random.rand(self.k_landmarks, self.m_ambient)
-        point = self.space.random_point()
-        tan = self.space.to_tangent(vector, point)
-        exp = self.space.ambient_metric.exp(tan, point)
-        result = self.space.belongs(exp)
-        self.assertTrue(result)
-
-        exp = self.space.ambient_metric.exp(gs.zeros_like(point), point)
-        result = gs.isclose(point, exp)
-        self.assertTrue(gs.all(result))
-
-    def test_exp_and_belongs_vectorization(self):
-        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
-        point = self.space.random_point(self.n_samples)
-        tan = self.space.to_tangent(vector, point)
-        exp = self.space.ambient_metric.exp(tan, point)
-        result = self.space.belongs(exp)
-        self.assertTrue(gs.all(result))
-
-        point = point[0]
-        tan = self.space.to_tangent(vector, point)
-        exp = self.space.ambient_metric.exp(tan, point)
-        result = self.space.belongs(exp)
-        self.assertTrue(gs.all(result))
-
-    def test_log_and_exp(self):
-        point, base_point = self.space.random_point(2)
-        log = self.space.ambient_metric.log(point, base_point)
-        result = self.space.is_tangent(log, base_point)
-        self.assertTrue(result)
-
-        exp = self.space.ambient_metric.exp(log, base_point)
-        self.assertAllClose(exp, point)
-
-    def test_exp_and_log(self):
-        base_point = self.space.random_point()
-        vector = gs.random.rand(self.k_landmarks, self.m_ambient)
-        tangent_vec = self.space.to_tangent(vector, base_point)
-        point = self.space.ambient_metric.exp(tangent_vec, base_point)
-        log = self.space.ambient_metric.log(point, base_point)
-        result = self.space.is_tangent(log, base_point)
-        self.assertTrue(result)
-
-        self.assertAllClose(tangent_vec, log)
-
-    def test_log_vectorization(self):
-        point = self.space.random_point(self.n_samples)
-        base_point = self.space.random_point()
-        log = self.space.ambient_metric.log(point, base_point)
-        result = self.space.is_tangent(log, base_point)
-        self.assertTrue(gs.all(result))
-
-        exp = self.space.ambient_metric.exp(log, base_point)
-        self.assertAllClose(exp, point)
-
-        log = self.space.ambient_metric.log(base_point, point)
-        result = self.space.is_tangent(log, point)
-        self.assertTrue(gs.all(result))
-
-        exp = self.space.ambient_metric.exp(log, point)
-        expected = gs.stack([base_point] * self.n_samples)
-        self.assertAllClose(exp, expected)
-
-    def test_kendall_inner_product_shape(self):
-        vector = gs.random.rand(self.n_samples, self.k_landmarks, self.m_ambient)
-        point = self.space.random_point()
-        tan = self.space.to_tangent(vector, point)
-        inner = self.shape_metric.inner_product(tan, tan, point)
-        self.assertAllClose(inner.shape, (self.n_samples,))
-
-    def test_kendall_log_and_exp(self):
-        point, base_point = self.space.random_point(2)
-        expected = self.space.align(point, base_point)
-        log = self.shape_metric.log(expected, base_point)
-        result = self.space.is_horizontal(log, base_point)
-        self.assertTrue(result)
-
-        exp = self.shape_metric.exp(log, base_point)
-        self.assertAllClose(exp, expected)
-
-    def test_kendall_exp_and_log(self):
-        base_point = self.space.random_point()
-        vector = gs.random.rand(self.k_landmarks, self.m_ambient)
-        tangent_vec = self.space.to_tangent(vector, base_point)
-        point = self.shape_metric.exp(tangent_vec, base_point)
-        log = self.shape_metric.log(point, base_point)
-        result = self.space.is_tangent(log, base_point)
-        self.assertTrue(result)
-
-        expected = self.space.horizontal_projection(tangent_vec, base_point)
-        self.assertAllClose(expected, log, rtol=1e-3)
-
-    def test_dist_extreme_case(self):
-        point = self.space.projection(gs.eye(self.k_landmarks, self.m_ambient))
-        result = self.shape_metric.dist(point, point)
-        expected = 0.0
-        self.assertAllClose(result, expected)
-
-    def test_dist(self):
-        point, base_point = self.space.random_point(2)
-        result = self.shape_metric.dist(point, base_point)
-        log = self.shape_metric.log(point, base_point)
-        expected = self.shape_metric.norm(log, base_point)
-        self.assertAllClose(result, expected)
-
-    def test_dist_vectorization(self):
-        point = self.space.random_point(self.n_samples)
-        base_point = self.space.random_point(self.n_samples)
-        aligned = self.space.align(point, base_point)
-        result = self.shape_metric.dist(aligned, base_point)
-        log = self.shape_metric.log(aligned, base_point)
-        expected = self.shape_metric.norm(log, base_point)
-        self.assertAllClose(result, expected)
-
-    def test_curvature_is_skew_operator(self):
-        """Pre-shape space curvature tensor is skew in the first two arguments.
-
-        :math:`R(X,X)Y = 0`.
-        """
-        space = self.space
-        base_point = space.random_point(2)
-        vector = gs.random.rand(4, self.k_landmarks, self.m_ambient)
-        tangent_vec_a = space.to_tangent(vector[:2], base_point)
-        tangent_vec_b = space.to_tangent(vector[2:], base_point)
-
-        result = self.shape_metric.curvature(
-            tangent_vec_a, tangent_vec_a, tangent_vec_b, base_point
-        )
-        expected = gs.zeros_like(result)
-        self.assertAllClose(result, expected)
-
-    def test_curvature_bianchi_identity(self):
-        """First Bianchi identity on curvature in pre-shape space.
-
-        :math:`R(X,Y)Z + R(Y,Z)X + R(Z,X)Y = 0`.
-        """
-        space = self.space
-        base_point = space.random_point()
-        vector = gs.random.rand(3, self.k_landmarks, self.m_ambient)
-        tangent_vec_a = space.to_tangent(vector[0], base_point)
-        tangent_vec_b = space.to_tangent(vector[1], base_point)
-        tangent_vec_c = space.to_tangent(vector[2], base_point)
-
-        curvature_1 = self.shape_metric.curvature(
-            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
-        )
-        curvature_2 = self.shape_metric.curvature(
-            tangent_vec_b, tangent_vec_c, tangent_vec_a, base_point
-        )
-        curvature_3 = self.shape_metric.curvature(
-            tangent_vec_c, tangent_vec_a, tangent_vec_b, base_point
-        )
-
-        result = curvature_1 + curvature_2 + curvature_3
-        expected = gs.zeros_like(result)
-        self.assertAllClose(result, expected)
-
-    def test_integrability_tensor(self):
+    def test_integrability_tensor(
+        self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
+    ):
         """Identities of integrability tensor in kendall pre-shape space.
 
         The integrability tensor A_X E is skew-symmetric with respect to the
@@ -408,11 +394,7 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         - A_Y X`)  for horizontal vector fields :math:'X,Y',  and it is
         exchanging horizontal and vertical vector spaces.
         """
-        space = self.space
-        base_point = space.random_point()
-        vector = gs.random.rand(2, self.k_landmarks, self.m_ambient)
-        tangent_vec_a = space.to_tangent(vector[0], base_point)
-        tangent_vec_b = space.to_tangent(vector[1], base_point)
+        space = self.space(k_landmarks, m_ambient)
         result_ab = space.integrability_tensor(tangent_vec_a, tangent_vec_b, base_point)
 
         result = space.ambient_metric.inner_product(
@@ -435,21 +417,533 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         is_horizontal = space.is_horizontal(result, base_point)
         self.assertTrue(is_horizontal)
 
-    def test_integrability_tensor_old(self):
+    def test_integrability_tensor_old(
+        self, k_landmarks, m_ambient, tangent_vec_x, tangent_vec_e, base_point
+    ):
         """Test if old and new implementation give the same result."""
-        space = self.space
-        base_point = space.random_point()
-        vector = gs.random.rand(2, self.k_landmarks, self.m_ambient)
-        tangent_vec_x = space.to_tangent(vector[0], base_point)
-        tangent_vec_e = space.to_tangent(vector[1], base_point)
-
+        space = self.space(k_landmarks, m_ambient)
         result = space.integrability_tensor_old(
             tangent_vec_x, tangent_vec_e, base_point
         )
         expected = space.integrability_tensor(tangent_vec_x, tangent_vec_e, base_point)
         self.assertAllClose(result, expected)
 
-    def test_kendall_sectional_curvature(self):
+    def test_integrability_tensor_derivative_is_alternate(
+        self,
+        k_landmarks,
+        m_ambient,
+        hor_x,
+        hor_y,
+        hor_z,
+        nabla_x_y,
+        nabla_x_z,
+        base_point,
+    ):
+        r"""Integrability tensor derivatives is alternate in pre-shape.
+
+        For two horizontal vector fields :math:`X,Y` the integrability
+        tensor (hence its derivatives) is alternate:
+        :math:`\nabla_X ( A_Y Z + A_Z Y ) = 0`.
+        """
+        space = self.space(k_landmarks, m_ambient)
+        nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
+            hor_x,
+            hor_y,
+            nabla_x_y,
+            hor_z,
+            nabla_x_z,
+            base_point,
+        )
+        nabla_x_a_z_y, a_z_y = space.integrability_tensor_derivative(
+            hor_x,
+            hor_z,
+            nabla_x_z,
+            hor_y,
+            nabla_x_y,
+            base_point,
+        )
+        result = nabla_x_a_y_z + nabla_x_a_z_y
+        self.assertAllClose(a_y_z + a_z_y, gs.zeros_like(result))
+        self.assertAllClose(result, gs.zeros_like(result))
+
+    def test_integrability_tensor_derivative_is_skew_symmetric(
+        self,
+        k_landmarks,
+        m_ambient,
+        hor_x,
+        hor_y,
+        hor_z,
+        ver_v,
+        nabla_x_y,
+        nabla_x_z,
+        nabla_x_v,
+        base_point,
+    ):
+        r"""Integrability tensor derivatives is skew-symmetric in pre-shape.
+
+        For :math:`X,Y` horizontal and :math:`V,W` vertical:
+        :math:`\nabla_X (< A_Y Z , V > + < A_Y V , Z >) = 0`.
+        """
+        space = self.space(k_landmarks, m_ambient)
+
+        scal = space.ambient_metric.inner_product
+
+        nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
+            hor_x,
+            hor_y,
+            nabla_x_y,
+            hor_z,
+            nabla_x_z,
+            base_point,
+        )
+
+        nabla_x_a_y_v, a_y_v = space.integrability_tensor_derivative(
+            hor_x,
+            hor_y,
+            nabla_x_y,
+            ver_v,
+            nabla_x_v,
+            base_point,
+        )
+
+        result = (
+            scal(nabla_x_a_y_z, ver_v)
+            + scal(a_y_z, nabla_x_v)
+            + scal(nabla_x_a_y_v, hor_z)
+            + scal(a_y_v, nabla_x_z)
+        )
+        self.assertAllClose(result, gs.zeros_like(result))
+
+    def test_integrability_tensor_derivative_reverses_hor_ver(
+        self,
+        k_landmarks,
+        m_ambient,
+        hor_x,
+        hor_y,
+        hor_z,
+        ver_v,
+        ver_w,
+        hor_h,
+        nabla_x_y,
+        nabla_x_z,
+        nabla_x_h,
+        nabla_x_v,
+        nabla_x_w,
+        base_point,
+    ):
+        r"""Integrability tensor derivatives exchanges hor & ver in pre-shape.
+
+        For :math:`X,Y,Z` horizontal and :math:`V,W` vertical, the
+        integrability tensor (and thus its derivative) reverses horizontal
+        and vertical subspaces: :math:`\nabla_X < A_Y Z, H > = 0`  and
+        :math:`nabla_X < A_Y V, W > = 0`.
+        """
+        space = self.space(k_landmarks, m_ambient)
+
+        scal = space.ambient_metric.inner_product
+
+        nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
+            hor_x,
+            hor_y,
+            nabla_x_y,
+            hor_z,
+            nabla_x_z,
+            base_point,
+        )
+        result = scal(nabla_x_a_y_z, hor_h) + scal(a_y_z, nabla_x_h)
+        self.assertAllClose(result, gs.zeros_like(result))
+
+        nabla_x_a_y_v, a_y_v = space.integrability_tensor_derivative(
+            hor_x,
+            hor_y,
+            nabla_x_y,
+            ver_v,
+            nabla_x_v,
+            base_point,
+        )
+        result = scal(nabla_x_a_y_v, ver_w) + scal(a_y_v, nabla_x_w)
+        self.assertAllClose(result, gs.zeros_like(result))
+
+    def test_integrability_tensor_derivative_parallel(
+        self, k_landmarks, m_ambient, hor_x, hor_y, hor_z, base_point
+    ):
+        """Test optimized integrability tensor derivatives in pre-shape space.
+
+        Optimized version for quotient-parallel vector fields should equal
+        the general implementation.
+        """
+        space = self.space(k_landmarks, m_ambient)
+        (nabla_x_a_y_z_qp, a_y_z_qp,) = space.integrability_tensor_derivative_parallel(
+            hor_x, hor_y, hor_z, base_point
+        )
+
+        a_x_y = space.integrability_tensor(hor_x, hor_y, base_point)
+        a_x_z = space.integrability_tensor(hor_x, hor_z, base_point)
+
+        nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
+            hor_x, hor_y, a_x_y, hor_z, a_x_z, base_point
+        )
+
+        self.assertAllClose(a_y_z, a_y_z_qp)
+        self.assertAllClose(nabla_x_a_y_z, nabla_x_a_y_z_qp)
+
+    def test_iterated_integrability_tensor_derivative_parallel(
+        self, k_landmarks, m_ambient, hor_x, hor_y, base_point
+    ):
+        """Test optimized iterated integrability tensor derivatives.
+
+        The optimized version of the iterated integrability tensor
+        :math:`A_X A_Y A_X Y`, computed with the horizontal lift of
+        quotient-parallel vector fields extending the tangent vectors
+        :math:`X,Y` of Kendall shape spaces (identified to horizontal vectors
+        of the pre-shape space), is the recursive application of two general
+        integrability tensor derivatives with proper derivatives.
+        Intermediate computations returned are also verified.
+        """
+        space = self.space(k_landmarks, m_ambient)
+        a_x_y = space.integrability_tensor(hor_x, hor_y, base_point)
+        nabla_x_v, a_x_y = space.integrability_tensor_derivative(
+            hor_x,
+            hor_x,
+            gs.zeros_like(hor_x),
+            hor_y,
+            a_x_y,
+            base_point,
+        )
+
+        (nabla_x_a_y_a_x_y, a_y_a_x_y,) = space.integrability_tensor_derivative(
+            hor_x, hor_y, a_x_y, a_x_y, nabla_x_v, base_point
+        )
+
+        a_x_a_y_a_x_y = space.integrability_tensor(hor_x, a_y_a_x_y, base_point)
+
+        (
+            nabla_x_a_y_a_x_y_qp,
+            a_x_a_y_a_x_y_qp,
+            nabla_x_v_qp,
+            a_y_a_x_y_qp,
+            ver_v_qp,
+        ) = space.iterated_integrability_tensor_derivative_parallel(
+            hor_x, hor_y, base_point
+        )
+        self.assertAllClose(a_x_y, ver_v_qp)
+        self.assertAllClose(a_y_a_x_y, a_y_a_x_y_qp)
+        self.assertAllClose(nabla_x_v, nabla_x_v_qp)
+        self.assertAllClose(a_x_a_y_a_x_y, a_x_a_y_a_x_y_qp)
+        self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp)
+
+
+class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+    metric = connection = KendallShapeMetric
+    space = PreShapeSpace
+    skip_test_exp_geodesic_ivp = True
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_log_exp_composition = True
+    skip_test_exp_log_composition = True
+
+    class TestDataKendallShapeMetric(RiemannianMetricTestData):
+        k_landmarks_list = random.sample(range(3, 6), 2)
+        m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
+        metric_args_list = list(zip(k_landmarks_list, m_ambient_list))
+
+        shape_list = metric_args_list
+        space_list = [PreShapeSpace(k, m) for k, m in metric_args_list]
+        n_points_list = random.sample(range(1, 7), 2)
+        n_samples_list = random.sample(range(1, 7), 2)
+        n_points_a_list = random.sample(range(1, 7), 2)
+        n_points_b_list = [1]
+        batch_size_list = random.sample(range(2, 7), 2)
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
+
+        def curvature_is_skew_operator_data(self):
+            base_point = smoke_space.random_point(2)
+            vec = gs.random.rand(4, 4, 3)
+            smoke_data = [
+                dict(k_landmarks=4, m_ambient=3, vec=vec, base_point=base_point)
+            ]
+            return self.generate_tests(smoke_data)
+
+        def curvature_bianchi_identity_data(self):
+            smoke_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    tangent_vec_a=tg_vec_0,
+                    tangent_vec_b=tg_vec_1,
+                    tangent_vec_cs=tg_vec_2,
+                    base_point=base_point,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def kendall_sectional_curvature_data(self):
+            k_landmarks = 4
+            m_ambient = 3
+            space = smoke_space
+            n_samples = 4 * k_landmarks * m_ambient
+            base_point = space.random_point(1)
+
+            vec_a = gs.random.rand(n_samples, k_landmarks, m_ambient)
+            tg_vec_a = space.to_tangent(space.center(vec_a), base_point)
+
+            vec_b = gs.random.rand(n_samples, k_landmarks, m_ambient)
+            tg_vec_b = space.to_tangent(space.center(vec_b), base_point)
+
+            smoke_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    tangent_vec_a=tg_vec_a,
+                    tangent_vec_b=tg_vec_b,
+                    base_point=base_point,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def kendall_curvature_derivative_bianchi_identity_data(self):
+            smoke_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    hor_x=hor_x,
+                    hor_y=hor_y,
+                    hor_z=hor_z,
+                    hor_h=hor_h,
+                    base_point=base_point,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def curvature_derivative_is_skew_operator_data(self):
+            smoke_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    hor_x=hor_x,
+                    hor_y=hor_y,
+                    hor_z=hor_z,
+                    base_point=base_point,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def directional_curvature_derivative_data(self):
+            smoke_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    hor_x=hor_x,
+                    hor_y=hor_y,
+                    base_point=base_point,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def directional_curvature_derivative_is_quadratic_data(self):
+            coef_x = -2.5
+            coef_y = 1.5
+            smoke_data = [
+                dict(
+                    k_landmarks=4,
+                    m_ambient=3,
+                    coef_x=coef_x,
+                    coef_y=coef_y,
+                    hor_x=hor_x,
+                    hor_y=hor_y,
+                    base_point=base_point,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def parallel_transport_data(self):
+            k_landmarks = 4
+            m_ambient = 3
+            n_samples = 10
+            space = PreShapeSpace(4, 3)
+            base_point = space.projection(gs.eye(4)[:, :3])
+            vec_a = gs.random.rand(n_samples, k_landmarks, m_ambient)
+            tangent_vec_a = space.to_tangent(space.center(vec_a), base_point)
+
+            vec_b = gs.random.rand(n_samples, k_landmarks, m_ambient)
+            tangent_vec_b = space.to_tangent(space.center(vec_b), base_point)
+            smoke_data = [
+                dict(
+                    k_landmarks=k_landmarks,
+                    m_ambient=m_ambient,
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
+            )
+
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
+            )
+
+        def squared_dist_is_symmetric_data(self):
+            return self._squared_dist_is_symmetric_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
+
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=gs.rtol * 10000,
+                atol=gs.atol * 10000,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+    testing_data = TestDataKendallShapeMetric()
+
+    def test_curvature_is_skew_operator(self, k_landmarks, m_ambient, vec, base_point):
+        metric = self.metric(k_landmarks, m_ambient)
+        space = self.space(k_landmarks, m_ambient)
+        tangent_vec_a = space.to_tangent(vec[:2], base_point)
+        tangent_vec_b = space.to_tangent(vec[2:], base_point)
+
+        result = metric.curvature(
+            tangent_vec_a, tangent_vec_a, tangent_vec_b, base_point
+        )
+        expected = gs.zeros_like(result)
+        self.assertAllClose(result, expected)
+
+    def test_curvature_bianchi_identity(
+        self,
+        k_landmarks,
+        m_ambient,
+        tangent_vec_a,
+        tangent_vec_b,
+        tangent_vec_c,
+        base_point,
+    ):
+        """First Bianchi identity on curvature in pre-shape space.
+
+        :math:`R(X,Y)Z + R(Y,Z)X + R(Z,X)Y = 0`.
+        """
+        metric = self.metric(k_landmarks, m_ambient)
+        curvature_1 = metric.curvature(
+            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
+        )
+        curvature_2 = metric.curvature(
+            tangent_vec_b, tangent_vec_c, tangent_vec_a, base_point
+        )
+        curvature_3 = metric.curvature(
+            tangent_vec_c, tangent_vec_a, tangent_vec_b, base_point
+        )
+
+        result = curvature_1 + curvature_2 + curvature_3
+        expected = gs.zeros_like(result)
+        self.assertAllClose(result, expected)
+
+    def test_kendall_sectional_curvature(
+        self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
+    ):
         """Sectional curvature of Kendall shape space is larger than 1.
 
         The sectional curvature always increase by taking the quotient in a
@@ -459,18 +953,10 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         The sectional curvature is computed here with the generic
         directional_curvature and sectional curvature methods.
         """
-        space = self.space
-        metric = self.shape_metric
-        n_samples = 4 * self.k_landmarks * self.m_ambient
-        base_point = self.space.random_point(1)
-
-        vec_a = gs.random.rand(n_samples, self.k_landmarks, self.m_ambient)
-        tg_vec_a = space.to_tangent(space.center(vec_a), base_point)
-        hor_a = space.horizontal_projection(tg_vec_a, base_point)
-
-        vec_b = gs.random.rand(n_samples, self.k_landmarks, self.m_ambient)
-        tg_vec_b = space.to_tangent(space.center(vec_b), base_point)
-        hor_b = space.horizontal_projection(tg_vec_b, base_point)
+        space = self.space(k_landmarks, m_ambient)
+        metric = self.metric(k_landmarks, m_ambient)
+        hor_a = space.horizontal_projection(tangent_vec_a, base_point)
+        hor_b = space.horizontal_projection(tangent_vec_b, base_point)
 
         tidal_force = metric.directional_curvature(hor_a, hor_b, base_point)
 
@@ -487,279 +973,114 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         result = kappa > 1.0 - 1e-12
         self.assertTrue(gs.all(result))
 
-    def test_integrability_tensor_derivative_is_alternate(self):
-        r"""Integrability tensor derivatives is alternate in pre-shape.
-
-        For two horizontal vector fields :math:`X,Y` the integrability
-        tensor (hence its derivatives) is alternate:
-        :math:`\nabla_X ( A_Y Z + A_Z Y ) = 0`.
-        """
-        nabla_x_a_y_z, a_y_z = self.space.integrability_tensor_derivative(
-            self.hor_x,
-            self.hor_y,
-            self.nabla_x_y,
-            self.hor_z,
-            self.nabla_x_z,
-            self.base_point,
-        )
-        nabla_x_a_z_y, a_z_y = self.space.integrability_tensor_derivative(
-            self.hor_x,
-            self.hor_z,
-            self.nabla_x_z,
-            self.hor_y,
-            self.nabla_x_y,
-            self.base_point,
-        )
-        result = nabla_x_a_y_z + nabla_x_a_z_y
-        self.assertAllClose(a_y_z + a_z_y, gs.zeros_like(result))
-        self.assertAllClose(result, gs.zeros_like(result))
-
-    def test_integrability_tensor_derivative_is_skew_symmetric(self):
-        r"""Integrability tensor derivatives is skew-symmetric in pre-shape.
-
-        For :math:`X,Y` horizontal and :math:`V,W` vertical:
-        :math:`\nabla_X (< A_Y Z , V > + < A_Y V , Z >) = 0`.
-        """
-        scal = self.space.ambient_metric.inner_product
-
-        nabla_x_a_y_z, a_y_z = self.space.integrability_tensor_derivative(
-            self.hor_x,
-            self.hor_y,
-            self.nabla_x_y,
-            self.hor_z,
-            self.nabla_x_z,
-            self.base_point,
-        )
-
-        nabla_x_a_y_v, a_y_v = self.space.integrability_tensor_derivative(
-            self.hor_x,
-            self.hor_y,
-            self.nabla_x_y,
-            self.ver_v,
-            self.nabla_x_v,
-            self.base_point,
-        )
-
-        result = (
-            scal(nabla_x_a_y_z, self.ver_v)
-            + scal(a_y_z, self.nabla_x_v)
-            + scal(nabla_x_a_y_v, self.hor_z)
-            + scal(a_y_v, self.nabla_x_z)
-        )
-        self.assertAllClose(result, gs.zeros_like(result))
-
-    def test_integrability_tensor_derivative_reverses_hor_ver(self):
-        r"""Integrability tensor derivatives exchanges hor & ver in pre-shape.
-
-        For :math:`X,Y,Z` horizontal and :math:`V,W` vertical, the
-        integrability tensor (and thus its derivative) reverses horizontal
-        and vertical subspaces: :math:`\nabla_X < A_Y Z, H > = 0`  and
-        :math:`nabla_X < A_Y V, W > = 0`.
-        """
-        scal = self.space.ambient_metric.inner_product
-
-        nabla_x_a_y_z, a_y_z = self.space.integrability_tensor_derivative(
-            self.hor_x,
-            self.hor_y,
-            self.nabla_x_y,
-            self.hor_z,
-            self.nabla_x_z,
-            self.base_point,
-        )
-        result = scal(nabla_x_a_y_z, self.hor_h) + scal(a_y_z, self.nabla_x_h)
-        self.assertAllClose(result, gs.zeros_like(result))
-
-        nabla_x_a_y_v, a_y_v = self.space.integrability_tensor_derivative(
-            self.hor_x,
-            self.hor_y,
-            self.nabla_x_y,
-            self.ver_v,
-            self.nabla_x_v,
-            self.base_point,
-        )
-        result = scal(nabla_x_a_y_v, self.ver_w) + scal(a_y_v, self.nabla_x_w)
-        self.assertAllClose(result, gs.zeros_like(result))
-
-    def test_integrability_tensor_derivative_parallel(self):
-        """Test optimized integrability tensor derivatives in pre-shape space.
-
-        Optimized version for quotient-parallel vector fields should equal
-        the general implementation.
-        """
-        (
-            nabla_x_a_y_z_qp,
-            a_y_z_qp,
-        ) = self.space.integrability_tensor_derivative_parallel(
-            self.hor_x, self.hor_y, self.hor_z, self.base_point
-        )
-
-        a_x_y = self.space.integrability_tensor(self.hor_x, self.hor_y, self.base_point)
-        a_x_z = self.space.integrability_tensor(self.hor_x, self.hor_z, self.base_point)
-
-        nabla_x_a_y_z, a_y_z = self.space.integrability_tensor_derivative(
-            self.hor_x, self.hor_y, a_x_y, self.hor_z, a_x_z, self.base_point
-        )
-
-        self.assertAllClose(a_y_z, a_y_z_qp)
-        self.assertAllClose(nabla_x_a_y_z, nabla_x_a_y_z_qp)
-
-    def test_iterated_integrability_tensor_derivative_parallel(self):
-        """Test optimized iterated integrability tensor derivatives.
-
-        The optimized version of the iterated integrability tensor
-        :math:`A_X A_Y A_X Y`, computed with the horizontal lift of
-        quotient-parallel vector fields extending the tangent vectors
-        :math:`X,Y` of Kendall shape spaces (identified to horizontal vectors
-        of the pre-shape space), is the recursive application of two general
-        integrability tensor derivatives with proper derivatives.
-        Intermediate computations returned are also verified.
-        """
-        a_x_y = self.space.integrability_tensor(self.hor_x, self.hor_y, self.base_point)
-        nabla_x_v, a_x_y = self.space.integrability_tensor_derivative(
-            self.hor_x,
-            self.hor_x,
-            gs.zeros_like(self.hor_x),
-            self.hor_y,
-            a_x_y,
-            self.base_point,
-        )
-
-        (nabla_x_a_y_a_x_y, a_y_a_x_y,) = self.space.integrability_tensor_derivative(
-            self.hor_x, self.hor_y, a_x_y, a_x_y, nabla_x_v, self.base_point
-        )
-
-        a_x_a_y_a_x_y = self.space.integrability_tensor(
-            self.hor_x, a_y_a_x_y, self.base_point
-        )
-
-        (
-            nabla_x_a_y_a_x_y_qp,
-            a_x_a_y_a_x_y_qp,
-            nabla_x_v_qp,
-            a_y_a_x_y_qp,
-            ver_v_qp,
-        ) = self.space.iterated_integrability_tensor_derivative_parallel(
-            self.hor_x, self.hor_y, self.base_point
-        )
-        self.assertAllClose(a_x_y, ver_v_qp)
-        self.assertAllClose(a_y_a_x_y, a_y_a_x_y_qp)
-        self.assertAllClose(nabla_x_v, nabla_x_v_qp)
-        self.assertAllClose(a_x_a_y_a_x_y, a_x_a_y_a_x_y_qp)
-        self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp)
-
-    def test_kendall_curvature_derivative_bianchi_identity(self):
+    def test_kendall_curvature_derivative_bianchi_identity(
+        self, k_landmarks, m_ambient, hor_x, hor_y, hor_z, hor_h, base_point
+    ):
         r"""2nd Bianchi identity on curvature derivative in kendall space.
 
         For any 3 tangent vectors horizontally lifted from kendall shape
         space to Kendall pre-shape space, :math:`(\nabla_X R)(Y, Z)
         + (\nabla_Y R)(Z,X) + (\nabla_Z R)(X, Y) = 0`.
         """
-        term_x = self.shape_metric.curvature_derivative(
-            self.hor_x, self.hor_y, self.hor_z, self.hor_h, self.base_point
-        )
-        term_y = self.shape_metric.curvature_derivative(
-            self.hor_y, self.hor_z, self.hor_x, self.hor_h, self.base_point
-        )
-        term_z = self.shape_metric.curvature_derivative(
-            self.hor_z, self.hor_x, self.hor_y, self.hor_h, self.base_point
-        )
+        metric = self.metric(k_landmarks, m_ambient)
+        term_x = metric.curvature_derivative(hor_x, hor_y, hor_z, hor_h, base_point)
+        term_y = metric.curvature_derivative(hor_y, hor_z, hor_x, hor_h, base_point)
+        term_z = metric.curvature_derivative(hor_z, hor_x, hor_y, hor_h, base_point)
 
         result = term_x + term_y + term_z
         self.assertAllClose(result, gs.zeros_like(result))
 
-    def test_curvature_derivative_is_skew_operator(self):
+    def test_curvature_derivative_is_skew_operator(
+        self, k_landmarks, m_ambient, hor_x, hor_y, hor_z, base_point
+    ):
         r"""Derivative of a skew operator is skew.
 
         For any 3 tangent vectors horizontally lifted from kendall shape space
         to Kendall pre-shape space, :math:`(\nabla_X R)(Y,Y)Z = 0`.
         """
-        result = self.shape_metric.curvature_derivative(
-            self.hor_x, self.hor_y, self.hor_y, self.hor_z, self.base_point
-        )
+        metric = self.metric(k_landmarks, m_ambient)
+        result = metric.curvature_derivative(hor_x, hor_y, hor_y, hor_z, base_point)
         self.assertAllClose(result, gs.zeros_like(result))
 
-    def test_directional_curvature_derivative(self):
+    def test_directional_curvature_derivative(
+        self, k_landmarks, m_ambient, hor_x, hor_y, base_point
+    ):
         """Test equality of directional curvature derivative implementations.
 
         General formula based on curvature derivative, optimized method of
         KendallShapeMetric class, method from the QuotientMetric class and
         method from the Connection class have to give identical results.
         """
-        metric = self.shape_metric
+        metric = self.metric(k_landmarks, m_ambient)
 
         # General formula based on curvature derivative
-        expected = metric.curvature_derivative(
-            self.hor_x, self.hor_y, self.hor_x, self.hor_y, self.base_point
-        )
+        expected = metric.curvature_derivative(hor_x, hor_y, hor_x, hor_y, base_point)
 
         # Optimized method of KendallShapeMetric class
         result_kendall_shape_metric = metric.directional_curvature_derivative(
-            self.hor_x, self.hor_y, self.base_point
+            hor_x, hor_y, base_point
         )
         self.assertAllClose(result_kendall_shape_metric, expected)
 
         # Method from the QuotientMetric class
         result_quotient_metric = super(
             KendallShapeMetric, metric
-        ).directional_curvature_derivative(self.hor_x, self.hor_y, self.base_point)
+        ).directional_curvature_derivative(hor_x, hor_y, base_point)
         self.assertAllClose(result_quotient_metric, expected)
 
         # Method from the Connection class
-        from geomstats.geometry.quotient_metric import QuotientMetric
 
         result_connection = super(
             QuotientMetric, metric
-        ).directional_curvature_derivative(self.hor_x, self.hor_y, self.base_point)
+        ).directional_curvature_derivative(hor_x, hor_y, base_point)
         self.assertAllClose(result_connection, expected)
 
-    def test_directional_curvature_derivative_is_quadratic(self):
+    def test_directional_curvature_derivative_is_quadratic(
+        self, k_landmarks, m_ambient, coef_x, coef_y, hor_x, hor_y, base_point
+    ):
         """Directional curvature derivative is quadratic in both variables."""
+        metric = self.metric(k_landmarks, m_ambient)
         coef_x = -2.5
         coef_y = 1.5
-        result = self.shape_metric.directional_curvature_derivative(
-            coef_x * self.hor_x, coef_y * self.hor_y, self.base_point
+        result = metric.directional_curvature_derivative(
+            coef_x * hor_x, coef_y * hor_y, base_point
         )
         expected = (
             coef_x**2
             * coef_y**2
-            * self.shape_metric.directional_curvature_derivative(
-                self.hor_x, self.hor_y, self.base_point
-            )
+            * metric.directional_curvature_derivative(hor_x, hor_y, base_point)
         )
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol * 1000)
 
-    @geomstats.tests.np_autograd_and_torch_only
-    def test_parallel_transport(self):
-        space = self.space
-        metric = self.shape_metric
-        shape = (self.n_samples, self.k_landmarks, self.m_ambient)
-
-        point = space.projection(gs.eye(4)[:, :3])
-        tan_b = gs.random.rand(*shape)
-        tan_b = space.to_tangent(tan_b, point)
-        tan_b = space.horizontal_projection(tan_b, point)
-
-        # use a vector orthonormal to tan_b
-        tan_a = gs.random.rand(*shape)
-        tan_a = space.to_tangent(tan_a, point)
-        tan_a = space.horizontal_projection(tan_a, point)
+    @np_autograd_and_torch_only
+    def test_parallel_transport(
+        self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
+    ):
+        space = self.space(k_landmarks, m_ambient)
+        metric = self.metric(k_landmarks, m_ambient)
+        tan_a = space.horizontal_projection(tangent_vec_a, base_point)
+        tan_b = space.horizontal_projection(tangent_vec_b, base_point)
 
         # orthonormalize and move to base_point
         tan_a -= gs.einsum(
             "...,...ij->...ij",
-            metric.inner_product(tan_a, tan_b, point)
-            / metric.squared_norm(tan_b, point),
+            metric.inner_product(tan_a, tan_b, base_point)
+            / metric.squared_norm(tan_b, base_point),
             tan_b,
         )
-        tan_b = gs.einsum("...ij,...->...ij", tan_b, 1.0 / metric.norm(tan_b, point))
-        tan_a = gs.einsum("...ij,...->...ij", tan_a, 1.0 / metric.norm(tan_a, point))
+        tan_b = gs.einsum(
+            "...ij,...->...ij", tan_b, 1.0 / metric.norm(tan_b, base_point)
+        )
+        tan_a = gs.einsum(
+            "...ij,...->...ij", tan_a, 1.0 / metric.norm(tan_a, base_point)
+        )
 
         transported = metric.parallel_transport(
-            tan_a, point, tan_b, n_steps=150, step="rk4"
+            tan_a, base_point, tan_b, n_steps=400, step="rk4"
         )
-        end_point = metric.exp(tan_b, point)
+        end_point = metric.exp(tan_b, base_point)
         result = metric.norm(transported, end_point)
-        expected = metric.norm(tan_a, point)
+        expected = metric.norm(tan_a, base_point)
         self.assertAllClose(result, expected)
 
         is_tangent = space.is_tangent(transported, end_point)
@@ -767,6 +1088,147 @@ class TestPreShapeSpace(geomstats.tests.TestCase):
         self.assertTrue(gs.all(is_tangent))
         self.assertTrue(gs.all(is_horizontal))
 
-        transported = metric.parallel_transport(tan_a[0], point, end_point=end_point[0])
-        result = metric.norm(transported, end_point[0])
-        self.assertAllClose(result, expected[0])
+
+class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+    metric = connection = PreShapeMetric
+    space = PreShapeSpace
+    skip_test_exp_geodesic_ivp = True
+    skip_test_exp_shape = True
+    skip_test_exp_log_composition = True
+
+    class TestDataKendallShapeMetric(RiemannianMetricTestData):
+        k_landmarks_list = random.sample(range(3, 6), 2)
+        m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
+        metric_args_list = list(zip(k_landmarks_list, m_ambient_list))
+
+        shape_list = metric_args_list
+        space_list = [PreShapeSpace(k, m) for k, m in metric_args_list]
+        n_points_list = random.sample(range(1, 7), 2)
+        n_samples_list = random.sample(range(1, 7), 2)
+        n_points_a_list = random.sample(range(1, 7), 2)
+        n_points_b_list = [1]
+        batch_size_list = random.sample(range(2, 7), 2)
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
+
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
+            )
+
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
+            )
+
+        def squared_dist_is_symmetric_data(self):
+            return self._squared_dist_is_symmetric_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
+
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=1e-4,
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=1e-2,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=gs.rtol * 10000,
+                atol=gs.atol * 10000,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+    testing_data = TestDataKendallShapeMetric()
