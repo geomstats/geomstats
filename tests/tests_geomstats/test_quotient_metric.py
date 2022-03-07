@@ -190,6 +190,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         expected = base_metric.inner_product(tangent_vecs[0], tangent_vecs[1], point)
         self.assertAllClose(result, expected, atol=1e-3)
 
+    @geomstats.tests.np_autograd_and_torch_only
     def test_exp(self, n, mat, vec):
         bundle = self.bundle(n)
         quotient_metric = self.metric(bundle)
