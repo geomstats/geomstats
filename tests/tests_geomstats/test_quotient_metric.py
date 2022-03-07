@@ -195,7 +195,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         quotient_metric = self.metric(bundle)
         base_metric = self.base_metric(n)
         point = bundle.riemannian_submersion(mat)
-        tangent_vec = Matrices.to_symmetric(vec) / 5
+        tangent_vec = Matrices.to_symmetric(vec) / 10
 
         result = quotient_metric.exp(tangent_vec, point)
         expected = base_metric.exp(tangent_vec, point)
@@ -226,7 +226,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
     def test_integrability_tensor(self, n, mat, vec):
         bundle = self.bundle(n)
         point = bundle.riemannian_submersion(mat)
-        tangent_vec = Matrices.to_symmetric(vec) / 5
+        tangent_vec = Matrices.to_symmetric(vec) / 10
 
         with pytest.raises(NotImplementedError):
             bundle.integrability_tensor(tangent_vec, tangent_vec, point)
