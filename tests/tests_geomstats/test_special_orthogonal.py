@@ -794,11 +794,11 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         def group_log_then_exp_with_angles_close_to_pi_data(self):
             smoke_data = []
             for angle_type in angles_close_to_pi:
-                for angle_type_base in elements.keys():
+                for angle_type_base in elements.values():
                     smoke_data += [
                         dict(
                             point=elements[angle_type],
-                            base_point=elements[angle_type_base],
+                            base_point=angle_type_base,
                         )
                     ]
             return self.generate_tests(smoke_data)
