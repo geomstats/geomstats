@@ -171,11 +171,11 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         result = bundle.is_vertical(vertical, mat, atol=1e-2)
         self.assertTrue(result)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @geomstats.tests.autograd_and_torch_only
     def test_align(self, n, point_a, point_b):
         bundle = self.bundle(n)
         aligned = bundle.align(point_a, point_b, tol=1e-10)
-        result = bundle.is_horizontal(point_b - aligned, point_b, atol=1e-3)
+        result = bundle.is_horizontal(point_b - aligned, point_b, atol=1e-2)
         self.assertTrue(result)
 
     def test_inner_product(self, n, mat, vec_a, vec_b):

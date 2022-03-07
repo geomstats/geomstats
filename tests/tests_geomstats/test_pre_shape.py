@@ -401,13 +401,13 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             tangent_vec_b, result_ab, base_point
         )
         expected = 0.0
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol * 10)
 
         horizontal_b = space.horizontal_projection(tangent_vec_b, base_point)
         horizontal_a = space.horizontal_projection(tangent_vec_a, base_point)
         result = space.integrability_tensor(horizontal_a, horizontal_b, base_point)
         expected = -space.integrability_tensor(horizontal_b, horizontal_a, base_point)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol * 10)
 
         is_vertical = space.is_vertical(result, base_point)
         self.assertTrue(is_vertical)
@@ -512,7 +512,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             + scal(nabla_x_a_y_v, hor_z)
             + scal(a_y_v, nabla_x_z)
         )
-        self.assertAllClose(result, gs.zeros_like(result))
+        self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
     def test_integrability_tensor_derivative_reverses_hor_ver(
         self,
@@ -551,7 +551,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             base_point,
         )
         result = scal(nabla_x_a_y_z, hor_h) + scal(a_y_z, nabla_x_h)
-        self.assertAllClose(result, gs.zeros_like(result))
+        self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
         nabla_x_a_y_v, a_y_v = space.integrability_tensor_derivative(
             hor_x,
@@ -562,7 +562,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             base_point,
         )
         result = scal(nabla_x_a_y_v, ver_w) + scal(a_y_v, nabla_x_w)
-        self.assertAllClose(result, gs.zeros_like(result))
+        self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
     def test_integrability_tensor_derivative_parallel(
         self, k_landmarks, m_ambient, hor_x, hor_y, hor_z, base_point
@@ -626,11 +626,11 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
         ) = space.iterated_integrability_tensor_derivative_parallel(
             hor_x, hor_y, base_point
         )
-        self.assertAllClose(a_x_y, ver_v_qp)
-        self.assertAllClose(a_y_a_x_y, a_y_a_x_y_qp)
-        self.assertAllClose(nabla_x_v, nabla_x_v_qp)
-        self.assertAllClose(a_x_a_y_a_x_y, a_x_a_y_a_x_y_qp)
-        self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp)
+        self.assertAllClose(a_x_y, ver_v_qp, atol=gs.atol * 10)
+        self.assertAllClose(a_y_a_x_y, a_y_a_x_y_qp, atol=gs.atol * 10)
+        self.assertAllClose(nabla_x_v, nabla_x_v_qp, atol=gs.atol * 10)
+        self.assertAllClose(a_x_a_y_a_x_y, a_x_a_y_a_x_y_qp, atol=gs.atol * 10)
+        self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp, atol=gs.atol * 10)
 
 
 class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
@@ -1081,7 +1081,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         end_point = metric.exp(tan_b, base_point)
         result = metric.norm(transported, end_point)
         expected = metric.norm(tan_a, base_point)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol * 10)
 
         is_tangent = space.is_tangent(transported, end_point)
         is_horizontal = space.is_horizontal(transported, end_point)
