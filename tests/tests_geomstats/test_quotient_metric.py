@@ -183,7 +183,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         quotient_metric = self.metric(bundle)
         base_metric = self.base_metric(n)
         point = bundle.riemannian_submersion(mat)
-        tangent_vecs = Matrices.to_symmetric(gs.array([vec_a, vec_b])) / 10
+        tangent_vecs = Matrices.to_symmetric(gs.array([vec_a, vec_b])) / 20
         result = quotient_metric.inner_product(
             tangent_vecs[0], tangent_vecs[1], fiber_point=mat
         )
@@ -195,7 +195,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         quotient_metric = self.metric(bundle)
         base_metric = self.base_metric(n)
         point = bundle.riemannian_submersion(mat)
-        tangent_vec = Matrices.to_symmetric(vec) / 5
+        tangent_vec = Matrices.to_symmetric(vec) / 20
 
         result = quotient_metric.exp(tangent_vec, point)
         expected = base_metric.exp(tangent_vec, point)
@@ -226,7 +226,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
     def test_integrability_tensor(self, n, mat, vec):
         bundle = self.bundle(n)
         point = bundle.riemannian_submersion(mat)
-        tangent_vec = Matrices.to_symmetric(vec) / 5
+        tangent_vec = Matrices.to_symmetric(vec) / 20
 
         with pytest.raises(NotImplementedError):
             bundle.integrability_tensor(tangent_vec, tangent_vec, point)
