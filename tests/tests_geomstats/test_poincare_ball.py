@@ -267,6 +267,36 @@ class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
+        def mobius_vectorization_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point_a=gs.array([0.5, 0.5]),
+                    point_b=gs.array([[0.5, -0.3], [0.3, 0.4]]),
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def log_vectorization_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point_a=gs.array([0.5, 0.5]),
+                    point_b=gs.array([[0.5, -0.5], [0.4, 0.4]]),
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def exp_vectorization_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point_a=gs.array([0.5, 0.5]),
+                    point_b=gs.array([[0.0, 0.0], [0.5, -0.5], [0.4, 0.4]]),
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataPoincareBallMetric()
 
     def test_mobius_out_of_the_ball(self, dim, x, y):
@@ -296,3 +326,54 @@ class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         dist_in_ball = metric.dist(gs.array(point_a), gs.array(point_b))
         dist_in_hype = Hyperboloid(dim).metric.dist(point_a_h, point_b_h)
         self.assertAllClose(dist_in_ball, dist_in_hype)
+
+    def test_mobius_vectorization(self, dim, point_a, point_b):
+        metric = self.metric(dim)
+
+        dist_a_b = metric.mobius_add(point_a, point_b)
+
+        result_vect = dist_a_b
+        result = [metric.mobius_add(point_a, point_b[i]) for i in range(len(point_b))]
+        result = gs.stack(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+        dist_a_b = metric.mobius_add(point_b, point_a)
+
+        result_vect = dist_a_b
+        result = [metric.mobius_add(point_b[i], point_a) for i in range(len(point_b))]
+        result = gs.stack(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+    def test_log_vectorization(self, dim, point_a, point_b):
+
+        metric = self.metric(dim)
+        dist_a_b = metric.log(point_a, point_b)
+
+        result_vect = dist_a_b
+        result = [metric.log(point_a, point_b[i]) for i in range(len(point_b))]
+        result = gs.stack(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+        dist_a_b = metric.log(point_b, point_a)
+
+        result_vect = dist_a_b
+        result = [metric.log(point_b[i], point_a) for i in range(len(point_b))]
+        result = gs.stack(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+    def test_exp_vectorization(self, dim, point_a, point_b):
+
+        metric = self.metric(dim)
+        dist_a_b = metric.exp(point_a, point_b)
+
+        result_vect = dist_a_b
+        result = [metric.exp(point_a, point_b[i]) for i in range(len(point_b))]
+        result = gs.stack(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+        dist_a_b = metric.exp(point_b, point_a)
+
+        result_vect = dist_a_b
+        result = [metric.exp(point_b[i], point_a) for i in range(len(point_b))]
+        result = gs.stack(result, axis=0)
+        self.assertAllClose(result_vect, result)
