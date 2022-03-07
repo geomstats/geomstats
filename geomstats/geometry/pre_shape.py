@@ -920,6 +920,24 @@ class PreShapeMetric(RiemannianMetric):
         )
         return gs.reshape(flat_transport, max_shape)
 
+    def injectivity_radius(self, base_point):
+        """Radius of the largest ball where the exponential is injective.
+
+        In the case of the sphere, it does not depend on the base point and is Pi
+        everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return gs.pi
+
 
 class KendallShapeMetric(QuotientMetric):
     """Quotient metric on the shape space.
@@ -1015,15 +1033,15 @@ class KendallShapeMetric(QuotientMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., k, m]
+        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point` to transport.
-        base_point : array-like, shape=[..., k, m]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Initial point of the geodesic to transport along.
-        direction : array-like, shape=[..., k, m]
+        direction : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector ar `base_point`, initial velocity of the geodesic to
             transport  along.
             Optional, default: None.
-        end_point : array-like, shape=[..., k, m]
+        end_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point to transport to. Unused if `tangent_vec_b` is given.
             Optional, default: None.
         n_steps : int
@@ -1036,16 +1054,16 @@ class KendallShapeMetric(QuotientMetric):
 
         Returns
         -------
-        transported :  array-like, shape=[..., k, m]
+        transported :  array-like, shape=[..., k_landmarks, m_ambient]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
 
         References
         ----------
-        [GMTP21]_   Guigui, Nicolas, Elodie Maignant, Alain Trouvé, and Xavier
-                    Pennec. “Parallel Transport on Kendall Shape Spaces.”
-                    5th conference on Geometric Science of Information,
-                    Paris 2021. Lecture Notes in Computer Science.
-                    Springer, 2021. https://hal.inria.fr/hal-03160677.
+        .. [GMTP21]   Guigui, Nicolas, Elodie Maignant, Alain Trouvé, and Xavier
+                      Pennec. “Parallel Transport on Kendall Shape Spaces.”
+                      5th conference on Geometric Science of Information,
+                      Paris 2021. Lecture Notes in Computer Science.
+                      Springer, 2021. https://hal.inria.fr/hal-03160677.
 
         See Also
         --------
