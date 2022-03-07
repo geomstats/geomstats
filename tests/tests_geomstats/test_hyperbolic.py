@@ -89,7 +89,7 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
 
         def to_tangent_is_tangent_data(self):
 
-            is_tangent_atol = gs.atol * 1000
+            is_tangent_atol = gs.atol * 10000
 
             return self._to_tangent_is_tangent_data(
                 Hyperboloid,
