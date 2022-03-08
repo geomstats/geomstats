@@ -830,10 +830,11 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         log : array-like, shape=[..., n, n]
             Riemannian logarithm.
         """
-        product = gs.matmul(base_point, point)
-        sqrt_product = gs.linalg.sqrtm(product)
+        # compute B^1/2(B^-1/2 A B^-1/2)B^-1/2 instead of sqrtm(AB^-1)
+        sqrt_bp, inv_sqrt_bp = SymmetricMatrices.powerm(base_point, [0.5, -0.5])
+        pdt = SymmetricMatrices.powerm(Matrices.mul(sqrt_bp, point, sqrt_bp), 0.5)
+        sqrt_product = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
         transp_sqrt_product = Matrices.transpose(sqrt_product)
-
         return sqrt_product + transp_sqrt_product - 2 * base_point
 
     def squared_dist(self, point_a, point_b, **kwargs):
