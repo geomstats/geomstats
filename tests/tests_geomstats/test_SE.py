@@ -223,11 +223,15 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
+                atol=gs.atol * 1000,
             )
 
         def log_exp_composition_data(self):
             return self._log_exp_composition_data(
-                SpecialEuclidean, self.space_args_list, self.n_samples_list
+                SpecialEuclidean,
+                self.space_args_list,
+                self.n_samples_list,
+                atol=gs.atol * 1000,
             )
 
         def regularize_data(self):
