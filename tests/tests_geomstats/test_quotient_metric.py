@@ -57,19 +57,19 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
 
     class TestDataQuotientMetric(TestData):
         def riemannian_submersion_data(self):
-            random_data = [dict(n=3, mat=BuresWassersteinBundle(3).random_point())]
+            random_data = [dict(n=2, mat=BuresWassersteinBundle(2).random_point())]
             return self.generate_tests([], random_data)
 
         def lift_and_riemannian_submersion_data(self):
-            random_data = [dict(n=3, mat=BuresWassersteinBundle(3).base.random_point())]
+            random_data = [dict(n=2, mat=BuresWassersteinBundle(2).base.random_point())]
             return self.generate_tests([], random_data)
 
         def tangent_riemannian_submersion_data(self):
             random_data = [
                 dict(
-                    n=3,
-                    mat=BuresWassersteinBundle(3).random_point(),
-                    vec=BuresWassersteinBundle(3).random_point(),
+                    n=2,
+                    mat=BuresWassersteinBundle(2).random_point(),
+                    vec=BuresWassersteinBundle(2).random_point(),
                 )
             ]
             return self.generate_tests([], random_data)
@@ -95,10 +95,10 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         def inner_product_data(self):
             random_data = [
                 dict(
-                    n=3,
-                    mat=BuresWassersteinBundle(3).random_point(),
-                    vec_a=BuresWassersteinBundle(3).random_point(),
-                    vec_b=BuresWassersteinBundle(3).random_point(),
+                    n=2,
+                    mat=BuresWassersteinBundle(2).random_point(),
+                    vec_a=BuresWassersteinBundle(2).random_point(),
+                    vec_b=BuresWassersteinBundle(2).random_point(),
                 )
             ]
             return self.generate_tests([], random_data)
@@ -196,7 +196,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         quotient_metric = self.metric(bundle)
         base_metric = self.base_metric(n)
         point = bundle.riemannian_submersion(mat)
-        tangent_vec = Matrices.to_symmetric(vec) / 20
+        tangent_vec = Matrices.to_symmetric(vec) / 40
 
         result = quotient_metric.exp(tangent_vec, point)
         expected = base_metric.exp(tangent_vec, point)
