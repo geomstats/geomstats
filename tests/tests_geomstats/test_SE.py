@@ -707,4 +707,22 @@ class TestSpecialEuclideanMatrixCannonicalRightMetric(
                 atol=gs.atol * 1000,
             )
 
+        def right_exp_coincides_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    point_type="vector",
+                    initial_vec=gs.array([gs.pi / 2, 1.0, 1.0]),
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataSpecialEuclideanMatrixCanonicalRightMetric()
+
+    def test_right_exp_coincides(self, initial_vec):
+        vector_group = SpecialEuclidean(n=2, point_type="vector")
+        initial_matrix_vec = self.group.lie_algebra.matrix_representation(initial_vec)
+        vector_exp = vector_group.right_canonical_metric.exp(initial_vec)
+        result = self.group.right_canonical_metric.exp(initial_matrix_vec, n_steps=25)
+        expected = vector_group.matrix_from_vector(vector_exp)
+        self.assertAllClose(result, expected, atol=1e-6)
