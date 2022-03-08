@@ -241,6 +241,10 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def regularize_shape_data(self):
+            smoke_data = [dict(n=2, point_type="vector", n_samples=3)]
+            return self.generate_tests(smoke_data)
+
         # def test_compose_point_identity_is_point(self):
         #     smoke_data = [dict(n)]
         #     return self.generate_tests(smoke_data)
@@ -248,7 +252,9 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
     testing_data = TestDataSpecialEuclidean()
 
     def test_belongs(self, n, mat, expected):
-        self.assertAllClose(SpecialEuclidean(n).belongs(mat), gs.array(expected))
+        self.assertAllClose(
+            SpecialEuclidean(n).belongs(gs.array(mat)), gs.array(expected)
+        )
 
     def test_random_point_belongs(self, n, n_samples):
         group = self.cls(n)
@@ -287,15 +293,15 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
         result = gs.shape(group.compose(gs.array(point_a), gs.array(point_b)))
         self.assertAllClose(result, expected)
 
-    # def test_regularize_shape(self, n, point_type, n_samples):
-    #     group = self.space(n, point_type)
-    #     points = group.random_point(n_samples=n_samples)
-    #     regularized_points = group.regularize(points)
+    def test_regularize_shape(self, n, point_type, n_samples):
+        group = self.space(n, point_type)
+        points = group.random_point(n_samples=n_samples)
+        regularized_points = group.regularize(points)
 
-    #     self.assertAllClose(
-    #         gs.shape(regularized_points),
-    #         (n_samples, *group.get_point_type_shape()),
-    #     )
+        self.assertAllClose(
+            gs.shape(regularized_points),
+            (n_samples, *group.get_point_type_shape()),
+        )
 
 
 class TestSpecialEuclideanMatrixLieAlgebra(
@@ -555,174 +561,174 @@ class TestSpecialEuclideanMatrixCannonicalLeftMetric(
             self.metric(group)
 
 
-class TestSpecialEuclideanMatrixCannonicalRightMetric(
-    TestCase,
-    metaclass=RiemannianMetricParametrizer,
-):
+# class TestSpecialEuclideanMatrixCannonicalRightMetric(
+#     TestCase,
+#     metaclass=RiemannianMetricParametrizer,
+# ):
 
-    metric = connection = InvariantMetric
-    skip_test_exp_geodesic_ivp = True
-    skip_test_exp_shape = np_backend()
-    skip_test_log_shape = np_backend()
-    skip_test_parallel_transport_ivp_is_isometry = True
-    skip_test_parallel_transport_bvp_is_isometry = True
-    skip_test_squared_dist_is_symmetric = True
-    skip_test_exp_log_composition = True
-    skip_test_log_exp_composition = True
+#     metric = connection = InvariantMetric
+#     skip_test_exp_geodesic_ivp = True
+#     skip_test_exp_shape = np_backend()
+#     skip_test_log_shape = np_backend()
+#     skip_test_parallel_transport_ivp_is_isometry = True
+#     skip_test_parallel_transport_bvp_is_isometry = True
+#     skip_test_squared_dist_is_symmetric = True
+#     skip_test_exp_log_composition = True
+#     skip_test_log_exp_composition = True
 
-    class TestDataSpecialEuclideanMatrixCanonicalRightMetric(RiemannianMetricTestData):
-        n_list = random.sample(range(2, 4), 2)
-        metric_args_list = [
-            (SpecialEuclidean(n), gs.eye(SpecialEuclidean(n).dim), "right")
-            for n in n_list
-        ]
-        shape_list = [(n + 1, n + 1) for n in n_list]
-        space_list = [SpecialEuclidean(n) for n in n_list]
-        n_points_list = random.sample(range(1, 7), 2)
-        n_samples_list = random.sample(range(1, 7), 2)
-        n_points_a_list = random.sample(range(1, 7), 2)
-        n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 2)
-        alpha_list = [1] * 2
-        n_rungs_list = [1] * 2
-        scheme_list = ["pole"] * 2
+#     class TestDataSpecialEuclideanMatrixCanonicalRightMetric(RiemannianMetricTestData):
+#         n_list = random.sample(range(2, 4), 2)
+#         metric_args_list = [
+#             (SpecialEuclidean(n), gs.eye(SpecialEuclidean(n).dim), "right")
+#             for n in n_list
+#         ]
+#         shape_list = [(n + 1, n + 1) for n in n_list]
+#         space_list = [SpecialEuclidean(n) for n in n_list]
+#         n_points_list = random.sample(range(1, 7), 2)
+#         n_samples_list = random.sample(range(1, 7), 2)
+#         n_points_a_list = random.sample(range(1, 7), 2)
+#         n_points_b_list = [1]
+#         batch_size_list = random.sample(range(2, 7), 2)
+#         alpha_list = [1] * 2
+#         n_rungs_list = [1] * 2
+#         scheme_list = ["pole"] * 2
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
-            )
+#         def exp_shape_data(self):
+#             return self._exp_shape_data(
+#                 self.metric_args_list,
+#                 self.space_list,
+#                 self.shape_list,
+#                 self.batch_size_list,
+#             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
-                self.metric_args_list,
-                self.space_list,
-                self.batch_size_list,
-            )
+#         def log_shape_data(self):
+#             return self._log_shape_data(
+#                 self.metric_args_list,
+#                 self.space_list,
+#                 self.batch_size_list,
+#             )
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_points_a_list,
-                self.n_points_b_list,
-                atol=gs.atol * 1000,
-            )
+#         def squared_dist_is_symmetric_data(self):
+#             return self._squared_dist_is_symmetric_data(
+#                 self.metric_args_list,
+#                 self.space_list,
+#                 self.n_points_a_list,
+#                 self.n_points_b_list,
+#                 atol=gs.atol * 1000,
+#             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.n_samples_list,
-                belongs_atol=gs.atol * 1000,
-            )
+#         def exp_belongs_data(self):
+#             return self._exp_belongs_data(
+#                 self.metric_args_list,
+#                 self.space_list,
+#                 self.shape_list,
+#                 self.n_samples_list,
+#                 belongs_atol=gs.atol * 1000,
+#             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_samples_list,
-                is_tangent_atol=gs.atol * 1000,
-            )
+#         def log_is_tangent_data(self):
+#             return self._log_is_tangent_data(
+#                 self.metric_args_list,
+#                 self.space_list,
+#                 self.n_samples_list,
+#                 is_tangent_atol=gs.atol * 1000,
+#             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.n_points_list,
-                belongs_atol=gs.atol * 100,
-            )
+#         def geodesic_ivp_belongs_data(self):
+#             return self._geodesic_ivp_belongs_data(
+#                 self.metric_args_list,
+#                 self.space_list,
+#                 self.shape_list,
+#                 self.n_points_list,
+#                 belongs_atol=gs.atol * 100,
+#             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_points_list,
-                belongs_atol=gs.atol * 100,
-            )
+#         def geodesic_bvp_belongs_data(self):
+#             return self._geodesic_bvp_belongs_data(
+#                 self.metric_args_list,
+#                 self.space_list,
+#                 self.n_points_list,
+#                 belongs_atol=gs.atol * 100,
+#             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_samples_list,
-                rtol=gs.rtol * 10000,
-                atol=gs.atol * 10000,
-            )
+#         def log_exp_composition_data(self):
+#             return self._log_exp_composition_data(
+#                 self.metric_args_list,
+#                 self.space_list,
+#                 self.n_samples_list,
+#                 rtol=gs.rtol * 10000,
+#                 atol=gs.atol * 10000,
+#             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.n_samples_list,
-                amplitude=10.0,
-                rtol=gs.rtol * 10000,
-                atol=gs.atol * 10000,
-            )
+#         def exp_log_composition_data(self):
+#             return self._exp_log_composition_data(
+#                 self.metric_args_list,
+#                 self.space_list,
+#                 self.shape_list,
+#                 self.n_samples_list,
+#                 amplitude=10.0,
+#                 rtol=gs.rtol * 10000,
+#                 atol=gs.atol * 10000,
+#             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.n_samples_list,
-                self.n_rungs_list,
-                self.alpha_list,
-                self.scheme_list,
-            )
+#         def exp_ladder_parallel_transport_data(self):
+#             return self._exp_ladder_parallel_transport_data(
+#                 self.metric_args_list,
+#                 self.space_list,
+#                 self.shape_list,
+#                 self.n_samples_list,
+#                 self.n_rungs_list,
+#                 self.alpha_list,
+#                 self.scheme_list,
+#             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.n_samples_list,
-                self.n_points_list,
-                rtol=gs.rtol * 100,
-                atol=gs.atol * 100,
-            )
+#         def exp_geodesic_ivp_data(self):
+#             return self._exp_geodesic_ivp_data(
+#                 self.metric_args_list,
+#                 self.space_list,
+#                 self.shape_list,
+#                 self.n_samples_list,
+#                 self.n_points_list,
+#                 rtol=gs.rtol * 100,
+#                 atol=gs.atol * 100,
+#             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.n_samples_list,
-                is_tangent_atol=gs.atol * 1000,
-                atol=gs.atol * 1000,
-            )
+#         def parallel_transport_ivp_is_isometry_data(self):
+#             return self._parallel_transport_ivp_is_isometry_data(
+#                 self.metric_args_list,
+#                 self.space_list,
+#                 self.shape_list,
+#                 self.n_samples_list,
+#                 is_tangent_atol=gs.atol * 1000,
+#                 atol=gs.atol * 1000,
+#             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.n_samples_list,
-                is_tangent_atol=gs.atol * 1000,
-                atol=gs.atol * 1000,
-            )
+#         def parallel_transport_bvp_is_isometry_data(self):
+#             return self._parallel_transport_bvp_is_isometry_data(
+#                 self.metric_args_list,
+#                 self.space_list,
+#                 self.shape_list,
+#                 self.n_samples_list,
+#                 is_tangent_atol=gs.atol * 1000,
+#                 atol=gs.atol * 1000,
+#             )
 
-        def right_exp_coincides_data(self):
-            smoke_data = [
-                dict(
-                    n=2,
-                    point_type="vector",
-                    initial_vec=gs.array([gs.pi / 2, 1.0, 1.0]),
-                )
-            ]
-            return self.generate_tests(smoke_data)
+#         def right_exp_coincides_data(self):
+#             smoke_data = [
+#                 dict(
+#                     n=2,
+#                     point_type="vector",
+#                     initial_vec=gs.array([gs.pi / 2, 1.0, 1.0]),
+#                 )
+#             ]
+#             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataSpecialEuclideanMatrixCanonicalRightMetric()
+#     testing_data = TestDataSpecialEuclideanMatrixCanonicalRightMetric()
 
-    def test_right_exp_coincides(self, initial_vec):
-        vector_group = SpecialEuclidean(n=2, point_type="vector")
-        initial_matrix_vec = self.group.lie_algebra.matrix_representation(initial_vec)
-        vector_exp = vector_group.right_canonical_metric.exp(initial_vec)
-        result = self.group.right_canonical_metric.exp(initial_matrix_vec, n_steps=25)
-        expected = vector_group.matrix_from_vector(vector_exp)
-        self.assertAllClose(result, expected, atol=1e-6)
+#     def test_right_exp_coincides(self, initial_vec):
+#         vector_group = SpecialEuclidean(n=2, point_type="vector")
+#         initial_matrix_vec = self.group.lie_algebra.matrix_representation(initial_vec)
+#         vector_exp = vector_group.right_canonical_metric.exp(initial_vec)
+#         result = self.group.right_canonical_metric.exp(initial_matrix_vec, n_steps=25)
+#         expected = vector_group.matrix_from_vector(vector_exp)
+#         self.assertAllClose(result, expected, atol=1e-6)
