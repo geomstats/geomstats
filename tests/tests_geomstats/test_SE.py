@@ -139,8 +139,8 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def test_metrics_default_point_type_data(self):
-            n_list = random.sample(range(2, 50), 10)
+        def metrics_default_point_type_data(self):
+            n_list = random.sample(range(2, 5), 2)
             metric_str_list = [
                 "left_canonical_metric",
                 "right_canonical_metric",
@@ -280,9 +280,9 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
     #     result = group.lie_algebra.basis_representation(tangent_vec)
     #     self.assertAllClose(result, vec)
 
-    # def test_metrics_default_point_type(self, n, point_type, metric_str):
-    #     group = self.cls(n, point_type)
-    #     self.assertTrue(getattr(group, metric_str).default_point_type == "matrix")
+    def test_metrics_default_point_type(self, n, metric_str):
+        group = self.space(n)
+        self.assertTrue(getattr(group, metric_str).default_point_type == "matrix")
 
     def test_inverse_shape(self, n, points, expected):
         group = self.space(n)
