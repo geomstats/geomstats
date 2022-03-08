@@ -7,6 +7,7 @@ from contextlib import nullcontext as does_not_raise
 import pytest
 
 import geomstats.backend as gs
+from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.special_euclidean import (
     SpecialEuclidean,
     SpecialEuclideanMatrixCannonicalLeftMetric,
@@ -14,7 +15,7 @@ from geomstats.geometry.special_euclidean import (
 )
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.tests import tf_backend
-from tests.conftest import TestCase
+from tests.conftest import TestCase, np_backend
 from tests.data_generation import (
     LieGroupTestData,
     MatrixLieAlgebraTestData,
@@ -552,3 +553,158 @@ class TestSpecialEuclideanMatrixCannonicalLeftMetric(
     def test_left_metric_wrong_group(self, group, expected):
         with expected:
             self.metric(group)
+
+
+class TestSpecialEuclideanMatrixCannonicalRightMetric(
+    TestCase,
+    metaclass=RiemannianMetricParametrizer,
+):
+
+    metric = connection = InvariantMetric
+    skip_test_exp_geodesic_ivp = True
+    skip_test_exp_shape = np_backend()
+    skip_test_log_shape = np_backend()
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_squared_dist_is_symmetric = True
+    skip_test_exp_log_composition = True
+    skip_test_log_exp_composition = True
+
+    class TestDataSpecialEuclideanMatrixCanonicalRightMetric(RiemannianMetricTestData):
+        n_list = random.sample(range(2, 4), 2)
+        metric_args_list = [
+            (SpecialEuclidean(n), gs.eye(SpecialEuclidean(n).dim), "right")
+            for n in n_list
+        ]
+        shape_list = [(n + 1, n + 1) for n in n_list]
+        space_list = [SpecialEuclidean(n) for n in n_list]
+        n_points_list = random.sample(range(1, 7), 2)
+        n_samples_list = random.sample(range(1, 7), 2)
+        n_points_a_list = random.sample(range(1, 7), 2)
+        n_points_b_list = [1]
+        batch_size_list = random.sample(range(2, 7), 2)
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
+
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
+            )
+
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
+            )
+
+        def squared_dist_is_symmetric_data(self):
+            return self._squared_dist_is_symmetric_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
+
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 100,
+            )
+
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 100,
+            )
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 10000,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                amplitude=10.0,
+                rtol=gs.rtol * 10000,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 100,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+    testing_data = TestDataSpecialEuclideanMatrixCanonicalRightMetric()
