@@ -25,7 +25,7 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
 
     class TestDataHyperbolic(LevelSetTestData):
 
-        dim_list = random.sample(range(2, 5), 2)
+        dim_list = random.sample(range(2, 4), 2)
         space_args_list = [(dim,) for dim in dim_list]
         shape_list = [(dim + 1,) for dim in dim_list]
         n_samples_list = random.sample(range(2, 5), 2)
