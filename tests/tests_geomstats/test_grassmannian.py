@@ -167,7 +167,7 @@ class TestGrassmannianCanonicalMetric(TestCase, metaclass=RiemannianMetricParame
                 self.space_list,
                 self.shape_list,
                 self.n_points_list,
-                belongs_atol=gs.atol * 1000,
+                belongs_atol=gs.atol * 10000,
             )
 
         def geodesic_bvp_belongs_data(self):
@@ -175,7 +175,7 @@ class TestGrassmannianCanonicalMetric(TestCase, metaclass=RiemannianMetricParame
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
-                belongs_atol=gs.atol * 1000,
+                belongs_atol=gs.atol * 10000,
             )
 
         def log_exp_composition_data(self):
