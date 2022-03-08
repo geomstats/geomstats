@@ -37,12 +37,12 @@ class TestSPDMatrices(TestCase, metaclass=OpenSetParametrizer):
 
         smoke_space_args_list = [(2,), (3,), (4,), (5,)]
         smoke_n_points_list = [1, 2, 1, 2]
-        n_list = random.sample(range(2, 10), 5)
+        n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
-        n_points_list = random.sample(range(1, 10), 5)
+        n_points_list = random.sample(range(1, 5), 2)
         shape_list = [(n, n) for n in n_list]
-        n_vecs_list = random.sample(range(1, 10), 5)
-        n_samples_list = random.sample(range(1, 10), 5)
+        n_vecs_list = random.sample(range(1, 10), 2)
+        n_samples_list = random.sample(range(1, 10), 2)
 
         def belongs_data(self):
             smoke_data = [
@@ -320,8 +320,6 @@ class TestSPDMetricAffine(
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
-    skip_test_log_exp_composition = True
-    skip_test_exp_log_composition = True
     skip_test_exp_ladder_parallel_transport = True
 
     class TestDataSPDMetricAffine(RiemannianMetricTestData):
@@ -330,11 +328,11 @@ class TestSPDMetricAffine(
         metric_args_list = list(zip(n_list, power_affine_list))
         shape_list = [(n, n) for n in n_list]
         space_list = [SPDMatrices(n) for n in n_list]
-        n_points_list = random.sample(range(1, 7), 2)
-        n_samples_list = random.sample(range(1, 7), 2)
-        n_points_a_list = random.sample(range(1, 7), 2)
+        n_points_list = random.sample(range(1, 5), 2)
+        n_samples_list = random.sample(range(1, 5), 2)
+        n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 2)
+        batch_size_list = random.sample(range(2, 5), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
@@ -449,6 +447,7 @@ class TestSPDMetricAffine(
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
+                amplitude=10,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -524,22 +523,20 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
-    skip_test_log_exp_composition = True
-    skip_test_exp_log_composition = True
 
     class TestDataSPDMetricBuresWasserstein(RiemannianMetricTestData):
-        n_list = random.sample(range(2, 7), 5)
+        n_list = random.sample(range(2, 5), 2)
         metric_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
         space_list = [SPDMatrices(n) for n in n_list]
-        n_points_list = random.sample(range(1, 7), 5)
-        n_samples_list = random.sample(range(1, 7), 5)
-        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_list = random.sample(range(1, 5), 2)
+        n_samples_list = random.sample(range(1, 5), 2)
+        n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 5)
-        alpha_list = [1] * 5
-        n_rungs_list = [1] * 5
-        scheme_list = ["pole"] * 5
+        batch_size_list = random.sample(range(2, 5), 2)
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
 
         def inner_product_data(self):
             smoke_data = [
@@ -649,8 +646,8 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
-                rtol=gs.rtol * 100,
-                atol=gs.atol * 10000,
+                rtol=gs.rtol * 10,
+                atol=gs.atol * 10,
             )
 
         def exp_log_composition_data(self):
@@ -659,8 +656,9 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                rtol=gs.rtol * 100,
-                atol=gs.atol * 10000,
+                amplitude=7.0,
+                rtol=gs.rtol * 10,
+                atol=gs.atol * 10,
             )
 
         def exp_ladder_parallel_transport_data(self):
@@ -733,20 +731,20 @@ class TestSPDMetricEuclidean(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_exp_log_composition = True
 
     class TestDataSPDMetricEuclidean(RiemannianMetricTestData):
-        n_list = random.sample(range(2, 7), 5)
+        n_list = random.sample(range(2, 5), 2)
         power_euclidean_list = [1.0, -0.5, 0.5, 1.0, 1.0]
         metric_args_list = list(zip(n_list, power_euclidean_list))
         one_metric_args_list = list(zip(n_list, [1.0] * 5))
         shape_list = [(n, n) for n in n_list]
         space_list = [SPDMatrices(n) for n in n_list]
-        n_points_list = random.sample(range(1, 7), 5)
-        n_samples_list = random.sample(range(1, 7), 5)
-        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_list = random.sample(range(1, 5), 2)
+        n_samples_list = random.sample(range(1, 5), 2)
+        n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 5)
-        alpha_list = [1] * 5
-        n_rungs_list = [1] * 5
-        scheme_list = ["pole"] * 5
+        batch_size_list = random.sample(range(2, 5), 2)
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
 
         def inner_product_data(self):
             smoke_data = [
@@ -882,6 +880,7 @@ class TestSPDMetricEuclidean(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
+                amplitude=10,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -986,15 +985,15 @@ class TestSPDMetricLogEuclidean(
 
     class TestDataSPDMetricLogEuclidean(RiemannianMetricTestData):
 
-        n_list = random.sample(range(2, 5), 2)
+        n_list = random.sample(range(2, 4), 2)
         metric_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
         space_list = [SPDMatrices(n) for n in n_list]
-        n_points_list = random.sample(range(1, 5), 2)
-        n_samples_list = random.sample(range(1, 5), 2)
-        n_points_a_list = random.sample(range(1, 5), 2)
+        n_points_list = random.sample(range(1, 4), 2)
+        n_samples_list = random.sample(range(1, 4), 2)
+        n_points_a_list = random.sample(range(1, 4), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 5), 2)
+        batch_size_list = random.sample(range(2, 4), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
@@ -1106,6 +1105,7 @@ class TestSPDMetricLogEuclidean(
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
+                amplitude=10,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
