@@ -447,6 +447,7 @@ class TestSPDMetricAffine(
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
+                amplitude=10,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -879,6 +880,7 @@ class TestSPDMetricEuclidean(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
+                amplitude=10,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -1103,6 +1105,7 @@ class TestSPDMetricLogEuclidean(
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
+                amplitude=10,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
