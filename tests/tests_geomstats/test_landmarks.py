@@ -196,6 +196,7 @@ class TestL2Metric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
+                amplitude=30,
                 rtol=gs.rtol * 10000,
                 atol=gs.atol * 100000,
             )
