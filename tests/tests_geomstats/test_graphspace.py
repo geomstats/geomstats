@@ -11,7 +11,7 @@ class TestGraphSpace(TestCase, metaclass=Parametrizer):
     space = GraphSpace
 
     class GraphSpaceTestData(TestData):
-        def belongs_data(self):
+        def belongs_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -24,11 +24,11 @@ class TestGraphSpace(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             smoke_data = [dict(n=2, n_points=1), dict(n=2, n_points=10)]
             return self.generate_tests(smoke_data)
 
-        def permute_data(self):
+        def permute_test_data(self):
             smoke_data = [
                 dict(
                     n=2,

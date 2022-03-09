@@ -34,7 +34,7 @@ class TestFullRankCorrelationMatrices(TestCase, metaclass=LevelSetParametrizer):
         def random_point_belongs_test_data(self):
             smoke_space_args_list = [(2,), (3,)]
             smoke_n_points_list = [1, 2]
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
@@ -42,12 +42,12 @@ class TestFullRankCorrelationMatrices(TestCase, metaclass=LevelSetParametrizer):
             )
 
         def projection_belongs_test_data(self):
-            return self._projection_belongs_data(
+            return self._projection_belongs_test_data(
                 self.space_args_list, self.shape_list, self.n_samples_list
             )
 
         def to_tangent_is_tangent_test_data(self):
-            return self._to_tangent_is_tangent_data(
+            return self._to_tangent_is_tangent_test_data(
                 FullRankCorrelationMatrices,
                 self.space_args_list,
                 self.shape_list,
