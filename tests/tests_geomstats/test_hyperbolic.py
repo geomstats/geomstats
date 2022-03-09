@@ -25,7 +25,7 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
 
     class TestDataHyperbolic(LevelSetTestData):
 
-        dim_list = random.sample(range(2, 5), 2)
+        dim_list = random.sample(range(2, 4), 2)
         space_args_list = [(dim,) for dim in dim_list]
         shape_list = [(dim + 1,) for dim in dim_list]
         n_samples_list = random.sample(range(2, 5), 2)
@@ -89,7 +89,7 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
 
         def to_tangent_is_tangent_data(self):
 
-            is_tangent_atol = gs.atol * 1000
+            is_tangent_atol = gs.atol * 100000
 
             return self._to_tangent_is_tangent_data(
                 Hyperboloid,
@@ -104,7 +104,7 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
-                belongs_atol=gs.atol * 10000,
+                belongs_atol=gs.atol * 100000,
             )
 
         def extrinsic_intrinsic_composition_data(self):
