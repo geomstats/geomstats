@@ -419,7 +419,7 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             return self.generate_tests(smoke_data)
 
         def integrated_parallel_transport_data(self):
-            smoke_data = [dict(group=self.matrix_se3, n=3, n_samples=2)]
+            smoke_data = [dict(group=self.matrix_se3, n=3, n_samples=20)]
             return self.generate_tests(smoke_data)
 
         def exp_shape_data(self):
@@ -644,7 +644,9 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         self, group, tangent_vec_a, tangent_vec_b, tangent_vec_c, expected
     ):
         metric = InvariantMetric(group)
-        result = metric.curvature(tangent_vec_a, tangent_vec_b, tangent_vec_c)
+        result = metric.curvature(
+            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point=None
+        )
         self.assertAllClose(result, expected)
 
     def test_curvature_translation_point(
@@ -764,8 +766,8 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         )
         expected_end_point = metric.exp(tan_b, point, n_steps=20)
 
-        self.assertAllClose(end_point_result, expected_end_point)
-        self.assertAllClose(expected, result)
+        self.assertAllClose(end_point_result, expected_end_point, atol=gs.atol * 100)
+        self.assertAllClose(expected, result, atol=gs.atol * 100)
 
     def test_log_antipodals(self, group, rotation_mat1, rotation_mat2, expected):
         with expected:
