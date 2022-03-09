@@ -521,8 +521,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.
 
-        This is the largest radius r for which the exponential map is a
-        injective on the open ball of radius r and centered at the base point.
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
         In this case the exact injectivity radius is not known, and we use here a
         lower bound given by [Rentmeesters2015]_.
 

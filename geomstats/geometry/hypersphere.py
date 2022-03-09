@@ -1086,8 +1086,11 @@ class HypersphereMetric(RiemannianMetric):
         return gs.zeros_like(tangent_vec_a)
 
     def injectivity_radius(self, base_point):
-        """Radius of the largest ball where the exponential is injective.
+        """Compute the radius of the injectivity domain.
 
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
         In the case of the sphere, it does not depend on the base point and is Pi
         everywhere.
 

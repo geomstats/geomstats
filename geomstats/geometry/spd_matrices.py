@@ -896,7 +896,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
             Injectivity radius.
         """
         eigen_values = gs.linalg.eigvalsh(base_point)
-        return eigen_values[..., 0]
+        return eigen_values[..., 0] ** 0.5
 
 
 class SPDMetricEuclidean(RiemannianMetric):
