@@ -50,7 +50,7 @@ class TestData:
         return tests
 
 
-class ManifoldTestData(TestData):
+class _ManifoldTestData(TestData):
     """Class for ManifoldTestData: data to test manifold properties."""
 
     def _random_point_belongs_data(
@@ -154,7 +154,7 @@ class ManifoldTestData(TestData):
         return self.generate_tests([], random_data)
 
 
-class OpenSetTestData(ManifoldTestData):
+class OpenSetTestData(_ManifoldTestData):
     def _to_tangent_is_tangent_in_ambient_space_data(
         self, space_cls, space_args_list, shape_list, is_tangent_atol=gs.atol
     ):
@@ -181,7 +181,7 @@ class OpenSetTestData(ManifoldTestData):
         return self.generate_tests([], random_data)
 
 
-class LevelSetTestData(ManifoldTestData):
+class LevelSetTestData(_ManifoldTestData):
     def _extrinsic_intrinsic_composition_data(
         self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):
@@ -251,7 +251,7 @@ class LevelSetTestData(ManifoldTestData):
         return self.generate_tests([], random_data)
 
 
-class LieGroupTestData(ManifoldTestData):
+class LieGroupTestData(_ManifoldTestData):
     def _exp_log_composition_data(
         self,
         group_cls,
@@ -328,7 +328,7 @@ class LieGroupTestData(ManifoldTestData):
         return self.generate_tests([], random_data)
 
 
-class VectorSpaceTestData(ManifoldTestData):
+class _VectorSpaceTestData(_ManifoldTestData):
     def _basis_belongs_data(self, space_args_list, belongs_atol=gs.atol):
         """Generate data to check that basis elements belong to vector space.
 
@@ -357,7 +357,7 @@ class VectorSpaceTestData(ManifoldTestData):
         return self.generate_tests([], random_data)
 
 
-class MatrixLieAlgebraTestData(VectorSpaceTestData):
+class MatrixLieAlgebraTestData(_VectorSpaceTestData):
     def _basis_representation_matrix_representation_composition_data(
         self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):

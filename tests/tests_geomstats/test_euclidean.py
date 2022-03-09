@@ -5,7 +5,7 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from tests.conftest import TestCase
-from tests.data_generation import RiemannianMetricTestData, VectorSpaceTestData
+from tests.data_generation import RiemannianMetricTestData, _VectorSpaceTestData
 from tests.parametrizers import RiemannianMetricParametrizer, VectorSpaceParametrizer
 
 SQRT_2 = math.sqrt(2)
@@ -17,7 +17,7 @@ class TestEuclidean(TestCase, metaclass=VectorSpaceParametrizer):
     skip_test_basis_belongs = True
     skip_test_basis_cardinality = True
 
-    class TestDataEuclidean(VectorSpaceTestData):
+    class EuclideanTestData(_VectorSpaceTestData):
 
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
@@ -62,7 +62,7 @@ class TestEuclidean(TestCase, metaclass=VectorSpaceParametrizer):
                 self.n_vecs_list,
             )
 
-    testing_data = TestDataEuclidean()
+    testing_data = EuclideanTestData()
 
     def test_belongs(self, dim, vec, expected):
         self.assertAllClose(self.space(dim).belongs(gs.array(vec)), gs.array(expected))
@@ -74,7 +74,7 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
-    class TestDataEuclideanMetric(RiemannianMetricTestData):
+    class EuclideanMetricTestData(RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
         metric_args_list = [(n,) for n in n_list]
         shape_list = metric_args_list
@@ -408,7 +408,7 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataEuclideanMetric()
+    testing_data = EuclideanMetricTestData()
 
     def test_exp(self, dim, tangent_vec, base_point, expected):
         metric = EuclideanMetric(dim)
