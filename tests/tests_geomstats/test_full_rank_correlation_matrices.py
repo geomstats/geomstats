@@ -24,7 +24,7 @@ class TestFullRankCorrelationMatrices(TestCase, metaclass=LevelSetParametrizer):
 
     class TestDataRankFullRankCorrelationMatrices(LevelSetTestData):
 
-        n_list = random.sample(range(2, 5), 2)
+        n_list = random.sample(range(2, 4), 2)
         space_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
         n_samples_list = random.sample(range(2, 5), 2)
@@ -213,7 +213,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
         bundle = self.space(n)
         horizontal = bundle.horizontal_lift(gs.array(tangent_vec), gs.array(mat))
         result = bundle.tangent_riemannian_submersion(horizontal, gs.array(mat))
-        self.assertAllClose(result, tangent_vec)
+        self.assertAllClose(result, tangent_vec, atol=gs.atol * 100)
 
 
 class TestFullRankCorrelationAffineQuotientMetric(TestCase, metaclass=Parametrizer):

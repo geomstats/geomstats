@@ -89,7 +89,7 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
 
         def to_tangent_is_tangent_data(self):
 
-            is_tangent_atol = gs.atol * 1000
+            is_tangent_atol = gs.atol * 100000
 
             return self._to_tangent_is_tangent_data(
                 Hyperboloid,
@@ -104,7 +104,7 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
-                belongs_atol=gs.atol * 10000,
+                belongs_atol=gs.atol * 100000,
             )
 
         def extrinsic_intrinsic_composition_data(self):
@@ -317,6 +317,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
+                amplitude=10.0,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 100000,
             )
