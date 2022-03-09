@@ -57,19 +57,19 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
 
     class TestDataQuotientMetric(TestData):
         def riemannian_submersion_data(self):
-            random_data = [dict(n=3, mat=BuresWassersteinBundle(3).random_point())]
+            random_data = [dict(n=2, mat=BuresWassersteinBundle(2).random_point())]
             return self.generate_tests([], random_data)
 
         def lift_and_riemannian_submersion_data(self):
-            random_data = [dict(n=3, mat=BuresWassersteinBundle(3).base.random_point())]
+            random_data = [dict(n=2, mat=BuresWassersteinBundle(2).base.random_point())]
             return self.generate_tests([], random_data)
 
         def tangent_riemannian_submersion_data(self):
             random_data = [
                 dict(
-                    n=3,
-                    mat=BuresWassersteinBundle(3).random_point(),
-                    vec=BuresWassersteinBundle(3).random_point(),
+                    n=2,
+                    mat=BuresWassersteinBundle(2).random_point(),
+                    vec=BuresWassersteinBundle(2).random_point(),
                 )
             ]
             return self.generate_tests([], random_data)
@@ -95,10 +95,10 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         def inner_product_data(self):
             random_data = [
                 dict(
-                    n=3,
-                    mat=BuresWassersteinBundle(3).random_point(),
-                    vec_a=BuresWassersteinBundle(3).random_point(),
-                    vec_b=BuresWassersteinBundle(3).random_point(),
+                    n=2,
+                    mat=BuresWassersteinBundle(2).random_point(),
+                    vec_a=BuresWassersteinBundle(2).random_point(),
+                    vec_b=BuresWassersteinBundle(2).random_point(),
                 )
             ]
             return self.generate_tests([], random_data)
@@ -156,7 +156,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         tangent_vec = Matrices.to_symmetric(vec)
         horizontal = bundle.horizontal_lift(tangent_vec, fiber_point=mat)
         result = bundle.tangent_riemannian_submersion(horizontal, mat)
-        self.assertAllClose(result, tangent_vec, atol=1e-3)
+        self.assertAllClose(result, tangent_vec, atol=1e-2)
 
     def test_is_horizontal(self, n, mat, vec):
         bundle = self.bundle(n)
