@@ -12,14 +12,14 @@ from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpaceMetric,
 )
 from tests.conftest import TestCase, np_and_autograd_only
-from tests.data_generation import OpenSetTestData, RiemannianMetricTestData
+from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
 
 
 class TestPoincareHalfSpace(TestCase, metaclass=OpenSetParametrizer):
     space = PoincareHalfSpace
 
-    class TestDataPoincareHalfSpace(OpenSetTestData):
+    class PoincareHalfSpaceTestData(_OpenSetTestData):
         dim_list = random.sample(range(2, 5), 2)
         space_args_list = [(dim,) for dim in dim_list]
         shape_list = [(dim,) for dim in dim_list]
@@ -95,7 +95,7 @@ class TestPoincareHalfSpace(TestCase, metaclass=OpenSetParametrizer):
                 PoincareHalfSpace, self.space_args_list, self.shape_list
             )
 
-    testing_data = TestDataPoincareHalfSpace()
+    testing_data = PoincareHalfSpaceTestData()
 
     def test_belongs(self, dim, vec, expected):
         space = self.space(dim)
@@ -138,7 +138,7 @@ class TestPoincareHalfSpaceMetric(TestCase, metaclass=RiemannianMetricParametriz
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_belongs = True
 
-    class TestDataPoincareHalfSpaceMetric(RiemannianMetricTestData):
+    class PoincareHalfSpaceMetricTestData(_RiemannianMetricTestData):
         dim_list = random.sample(range(2, 5), 2)
         metric_args_list = [(dim,) for dim in dim_list]
         shape_list = [(dim,) for dim in dim_list]
@@ -346,7 +346,7 @@ class TestPoincareHalfSpaceMetric(TestCase, metaclass=RiemannianMetricParametriz
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataPoincareHalfSpaceMetric()
+    testing_data = PoincareHalfSpaceMetricTestData()
 
     def test_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point, expected

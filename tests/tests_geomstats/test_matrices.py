@@ -6,7 +6,7 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from tests.conftest import TestCase
-from tests.data_generation import RiemannianMetricTestData, VectorSpaceTestData
+from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
 from tests.parametrizers import RiemannianMetricParametrizer, VectorSpaceParametrizer
 
 SQRT_2 = math.sqrt(2)
@@ -29,7 +29,7 @@ MAT8_33 = [[0.0, 3.0, 4.0], [0.0, 0.0, 6.0], [0.0, 0.0, 0.0]]
 class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
     space = Matrices
 
-    class TestDataMatrices(VectorSpaceTestData):
+    class MatricesTestData(_VectorSpaceTestData):
         m_list = random.sample(range(3, 5), 2)
         n_list = random.sample(range(3, 5), 2)
         space_args_list = list(zip(m_list, n_list))
@@ -520,7 +520,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataMatrices()
+    testing_data = MatricesTestData()
 
     def test_belongs(self, m, n, mat, expected):
         self.assertAllClose(Matrices(m, n).belongs(gs.array(mat)), gs.array(expected))

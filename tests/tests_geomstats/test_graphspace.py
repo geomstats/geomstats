@@ -10,7 +10,7 @@ from tests.parametrizers import Parametrizer
 class TestGraphSpace(TestCase, metaclass=Parametrizer):
     space = GraphSpace
 
-    class TestDataGraphSpace(TestData):
+    class GraphSpaceTestData(TestData):
         def belongs_data(self):
             smoke_data = [
                 dict(
@@ -39,7 +39,7 @@ class TestGraphSpace(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataGraphSpace()
+    testing_data = GraphSpaceTestData()
 
     def test_random_point_belongs(self, n, n_points):
         space = self.space(n)
@@ -60,7 +60,7 @@ class TestGraphSpace(TestCase, metaclass=Parametrizer):
 class TestGraphSpaceMetric(TestCase, metaclass=Parametrizer):
     metric = GraphSpaceMetric
 
-    class TestDataGraphSpaceMetric(TestData):
+    class GraphSpaceMetricTestData(TestData):
         def matchers_data(self):
             smoke_data = [
                 dict(
@@ -72,7 +72,7 @@ class TestGraphSpaceMetric(TestCase, metaclass=Parametrizer):
 
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataGraphSpaceMetric()
+    testing_data = GraphSpaceMetricTestData()
 
     def test_matchers(self, n, set1, set2):
         metric = self.metric(n)

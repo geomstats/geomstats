@@ -6,7 +6,7 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
 from tests.conftest import TestCase
-from tests.data_generation import RiemannianMetricTestData, VectorSpaceTestData
+from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
 from tests.parametrizers import RiemannianMetricParametrizer, VectorSpaceParametrizer
 
 
@@ -15,7 +15,7 @@ class TestMinkowski(TestCase, metaclass=VectorSpaceParametrizer):
     skip_test_basis_belongs = True
     skip_test_basis_cardinality = True
 
-    class TestDataMinkowski(VectorSpaceTestData):
+    class MinkowskiTestData(_VectorSpaceTestData):
         n_list = random.sample(range(2, 8), 2)
         space_args_list = [(n,) for n in n_list]
         shape_list = space_args_list
@@ -56,7 +56,7 @@ class TestMinkowski(TestCase, metaclass=VectorSpaceParametrizer):
                 self.n_vecs_list,
             )
 
-    testing_data = TestDataMinkowski()
+    testing_data = MinkowskiTestData()
 
     def test_belongs(self, dim, point, expected):
         self.assertAllClose(
@@ -70,7 +70,7 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
-    class TestDataMinkowskiMetric(RiemannianMetricTestData):
+    class MinkowskiMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
         metric_args_list = [(n,) for n in n_list]
         shape_list = metric_args_list
@@ -260,7 +260,7 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataMinkowskiMetric()
+    testing_data = MinkowskiMetricTestData()
 
     def test_metric_matrix(self, dim, expected):
         metric = self.metric(dim)

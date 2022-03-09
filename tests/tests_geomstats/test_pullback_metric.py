@@ -54,7 +54,7 @@ expected_jacobian_immersion = _expected_jacobian_immersion
 
 @geomstats.tests.autograd_tf_and_torch_only
 class TestPullbackMetric(TestCase, metaclass=Parametrizer):
-    class TestDataPullbackMetric(TestData):
+    class PullbackMetricTestData(TestData):
         def immersion_data(self):
             smoke_data = [
                 dict(
@@ -178,7 +178,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataPullbackMetric()
+    testing_data = PullbackMetricTestData()
 
     def test_immersion(self, spherical_coords, expected):
         result = immersion(spherical_coords)

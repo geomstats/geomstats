@@ -55,7 +55,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
     bundle = BuresWassersteinBundle
     base_metric = SPDMetricBuresWasserstein
 
-    class TestDataQuotientMetric(TestData):
+    class QuotientMetricTestData(TestData):
         def riemannian_submersion_data(self):
             random_data = [dict(n=3, mat=BuresWassersteinBundle(3).random_point())]
             return self.generate_tests([], random_data)
@@ -115,7 +115,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         def integrability_tensor_data(self):
             return self.tangent_riemannian_submersion_data()
 
-    testing_data = TestDataQuotientMetric()
+    testing_data = QuotientMetricTestData()
 
     def test_riemannian_submersion(self, n, mat):
         bundle = self.bundle(n)

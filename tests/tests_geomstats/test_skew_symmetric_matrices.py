@@ -4,7 +4,7 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from tests.conftest import TestCase
-from tests.data_generation import MatrixLieAlgebraTestData
+from tests.data_generation import _MatrixLieAlgebraTestData
 from tests.parametrizers import MatrixLieAlgebraParametrizer
 
 
@@ -12,7 +12,7 @@ class TestSkewSymmetricMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer
 
     space = algebra = SkewSymmetricMatrices
 
-    class TestDataSkewSymmetricMatrices(MatrixLieAlgebraTestData):
+    class SkewSymmetricMatricesTestData(_MatrixLieAlgebraTestData):
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
@@ -98,7 +98,7 @@ class TestSkewSymmetricMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer
                 self.n_vecs_list,
             )
 
-    testing_data = TestDataSkewSymmetricMatrices()
+    testing_data = SkewSymmetricMatricesTestData()
 
     def test_belongs(self, n, mat, expected):
         skew = self.space(n)

@@ -12,7 +12,7 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from tests.conftest import TestCase, autograd_tf_and_torch_only
-from tests.data_generation import LevelSetTestData, TestData
+from tests.data_generation import TestData, _LevelSetTestData
 from tests.parametrizers import LevelSetParametrizer, Parametrizer
 
 
@@ -22,7 +22,7 @@ class TestFullRankCorrelationMatrices(TestCase, metaclass=LevelSetParametrizer):
     skip_test_extrinsic_intrinsic_composition = True
     skip_test_intrinsic_extrinsic_composition = True
 
-    class TestDataRankFullRankCorrelationMatrices(LevelSetTestData):
+    class RankFullRankCorrelationMatricesTestData(_LevelSetTestData):
 
         n_list = random.sample(range(2, 4), 2)
         space_args_list = [(n,) for n in n_list]
@@ -54,13 +54,13 @@ class TestFullRankCorrelationMatrices(TestCase, metaclass=LevelSetParametrizer):
                 self.n_vecs_list,
             )
 
-    testing_data = TestDataRankFullRankCorrelationMatrices()
+    testing_data = RankFullRankCorrelationMatricesTestData()
 
 
 class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
     space = CorrelationMatricesBundle
 
-    class TestDataCorrelationMatricesBundle(TestData):
+    class CorrelationMatricesBundleTestData(TestData):
         n_list = random.sample(range(2, 3), 1)
         n_samples_list = random.sample(range(1, 3), 1)
 
@@ -148,7 +148,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
                 random_data.append(dict(n=n, point_a=point[0], point_b=point[1]))
             return self.generate_tests([], random_data)
 
-    testing_data = TestDataCorrelationMatricesBundle()
+    testing_data = CorrelationMatricesBundleTestData()
 
     def test_riemannian_submersion_belongs_to_base(self, n, point):
         bundle = self.space(n)
@@ -219,7 +219,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
 class TestFullRankCorrelationAffineQuotientMetric(TestCase, metaclass=Parametrizer):
     metric = connection = FullRankCorrelationAffineQuotientMetric
 
-    class TestDataFullRankcorrelationAffineQuotientMetric(TestData):
+    class FullRankcorrelationAffineQuotientMetricTestData(TestData):
         def exp_log_composition_data(self):
             bundle = CorrelationMatricesBundle(3)
             point = bundle.riemannian_submersion(bundle.random_point(2))
@@ -234,7 +234,7 @@ class TestFullRankCorrelationAffineQuotientMetric(TestCase, metaclass=Parametriz
             smoke_data = [dict(dim=3, tangent_vec=tangent_vec, base_point=base_point)]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataFullRankcorrelationAffineQuotientMetric()
+    testing_data = FullRankcorrelationAffineQuotientMetricTestData()
 
     @autograd_tf_and_torch_only
     def test_exp_log_composition(self, dim, point):

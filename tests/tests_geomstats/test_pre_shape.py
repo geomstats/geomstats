@@ -13,7 +13,7 @@ from geomstats.geometry.pre_shape import (
 )
 from geomstats.geometry.quotient_metric import QuotientMetric
 from tests.conftest import TestCase, np_autograd_and_torch_only
-from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
+from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
 from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
 
 smoke_space = PreShapeSpace(4, 3)
@@ -60,7 +60,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
     skip_test_extrinsic_intrinsic_composition = True
     skip_test_intrinsic_extrinsic_composition = True
 
-    class TestDataPreShapeSpace(LevelSetTestData):
+    class PreShapeSpaceTestData(_LevelSetTestData):
         k_landmarks_list = random.sample(range(3, 6), 2)
         m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
         space_args_list = list(zip(k_landmarks_list, m_ambient_list))
@@ -330,7 +330,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
                 PreShapeSpace, space_args_list, self.n_samples_list
             )
 
-    testing_data = TestDataPreShapeSpace()
+    testing_data = PreShapeSpaceTestData()
 
     def test_belongs(self, k_landmarks, m_ambient, mat, expected):
         space = self.space(k_landmarks, m_ambient)
@@ -645,7 +645,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_log_exp_composition = True
     skip_test_exp_log_composition = True
 
-    class TestDataKendallShapeMetric(RiemannianMetricTestData):
+    class KendallShapeMetricTestData(_RiemannianMetricTestData):
         k_landmarks_list = random.sample(range(3, 6), 2)
         m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
         metric_args_list = list(zip(k_landmarks_list, m_ambient_list))
@@ -902,7 +902,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataKendallShapeMetric()
+    testing_data = KendallShapeMetricTestData()
 
     def test_curvature_is_skew_operator(self, k_landmarks, m_ambient, vec, base_point):
         metric = self.metric(k_landmarks, m_ambient)
@@ -1100,7 +1100,7 @@ class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_exp_shape = True
     skip_test_exp_log_composition = True
 
-    class TestDataKendallShapeMetric(RiemannianMetricTestData):
+    class KendallShapeMetricTestData(_RiemannianMetricTestData):
         k_landmarks_list = random.sample(range(3, 6), 2)
         m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
         metric_args_list = list(zip(k_landmarks_list, m_ambient_list))
@@ -1235,4 +1235,4 @@ class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataKendallShapeMetric()
+    testing_data = KendallShapeMetricTestData()

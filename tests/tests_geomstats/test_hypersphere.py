@@ -11,7 +11,7 @@ import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
 from geomstats.learning.frechet_mean import FrechetMean
 from tests.conftest import TestCase
-from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
+from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
 from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
 
 MEAN_ESTIMATION_TOL = 1e-1
@@ -22,7 +22,7 @@ ONLINE_KMEANS_TOL = 1e-1
 class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
     space = Hypersphere
 
-    class TestDataHypersphere(LevelSetTestData):
+    class HypersphereTestData(_LevelSetTestData):
 
         dim_list = random.sample(range(1, 4), 2)
         space_args_list = [(dim,) for dim in dim_list]
@@ -268,7 +268,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
                 Hypersphere, space_args_list, self.n_samples_list, atol=gs.atol * 100
             )
 
-    testing_data = TestDataHypersphere()
+    testing_data = HypersphereTestData()
 
     def test_replace_values(self, dim, points, new_points, indcs, expected):
         space = self.space(dim)
@@ -398,7 +398,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     metric = connection = HypersphereMetric
     skip_test_exp_geodesic_ivp = True
 
-    class TestDataHypersphereMetric(RiemannianMetricTestData):
+    class HypersphereMetricTestData(_RiemannianMetricTestData):
         dim_list = random.sample(range(2, 5), 2)
         metric_args_list = [(n,) for n in dim_list]
         shape_list = [(dim + 1,) for dim in dim_list]
@@ -650,7 +650,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataHypersphereMetric()
+    testing_data = HypersphereMetricTestData()
 
     def test_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point, expected

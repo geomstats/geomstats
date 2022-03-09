@@ -4,7 +4,7 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from tests.conftest import TestCase
-from tests.data_generation import OpenSetTestData
+from tests.data_generation import _OpenSetTestData
 from tests.parametrizers import OpenSetParametrizer
 
 
@@ -12,7 +12,7 @@ class TestFullRankMatrices(TestCase, metaclass=OpenSetParametrizer):
 
     space = FullRankMatrices
 
-    class TestDataFullRankMatrices(OpenSetTestData):
+    class FullRankMatricesTestData(_OpenSetTestData):
         m_list = random.sample(range(3, 5), 2)
         n_list = random.sample(range(3, 5), 2)
         space_args_list = list(zip(m_list, n_list))
@@ -67,7 +67,7 @@ class TestFullRankMatrices(TestCase, metaclass=OpenSetParametrizer):
                 FullRankMatrices, self.space_args_list, self.shape_list
             )
 
-    testing_data = TestDataFullRankMatrices()
+    testing_data = FullRankMatricesTestData()
 
     def test_belongs(self, m, n, mat, expected):
         self.assertAllClose(self.space(m, n).belongs(gs.array(mat)), gs.array(expected))

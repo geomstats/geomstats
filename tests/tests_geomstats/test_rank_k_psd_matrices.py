@@ -5,14 +5,14 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.rank_k_psd_matrices import PSDMatrices
 from tests.conftest import TestCase
-from tests.data_generation import ManifoldTestData
+from tests.data_generation import _ManifoldTestData
 from tests.parametrizers import ManifoldParametrizer
 
 
 class TestPSDMatrices(TestCase, metaclass=ManifoldParametrizer):
     space = PSDMatrices
 
-    class TestDataPSDMatrices(ManifoldTestData):
+    class PSDMatricesTestData(_ManifoldTestData):
         n_list = random.sample(range(3, 5), 2)
         k_list = n_list
         space_args_list = list(zip(n_list, k_list))
@@ -70,7 +70,7 @@ class TestPSDMatrices(TestCase, metaclass=ManifoldParametrizer):
                 is_tangent_atol,
             )
 
-    testing_data = TestDataPSDMatrices()
+    testing_data = PSDMatricesTestData()
 
     def test_belongs(self, n, k, mat, expected):
         space = self.space(n, k)

@@ -9,7 +9,7 @@ from geomstats.geometry.hyperboloid import Hyperboloid, HyperboloidMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.poincare_ball import PoincareBall
 from tests.conftest import TestCase
-from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
+from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
 from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
@@ -23,7 +23,7 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
     space = Hyperboloid
     skip_test_intrinsic_extrinsic_composition = True
 
-    class TestDataHyperbolic(LevelSetTestData):
+    class HyperbolicTestData(_LevelSetTestData):
 
         dim_list = random.sample(range(2, 4), 2)
         space_args_list = [(dim,) for dim in dim_list]
@@ -131,7 +131,7 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
             smoke_data = [dict(dim=2, x_ball=gs.array([0.5, 0.2]))]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataHyperbolic()
+    testing_data = HyperbolicTestData()
 
     def test_belongs(self, dim, coords_type, vec, expected):
         space = self.space(dim, coords_type=coords_type)
@@ -178,7 +178,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
-    class TestDataHyperboloidMetric(RiemannianMetricTestData):
+    class HyperboloidMetricTestData(_RiemannianMetricTestData):
 
         dim_list = random.sample(range(2, 5), 2)
         metric_args_list = [(dim,) for dim in dim_list]
@@ -398,7 +398,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataHyperboloidMetric()
+    testing_data = HyperboloidMetricTestData()
 
     def test_inner_product_is_minkowski_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point

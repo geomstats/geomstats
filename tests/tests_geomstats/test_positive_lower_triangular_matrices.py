@@ -12,7 +12,7 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
 )
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from tests.conftest import TestCase
-from tests.data_generation import OpenSetTestData, RiemannianMetricTestData
+from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
 
 EULER = gs.exp(1.0)
@@ -24,7 +24,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=OpenSetParametrize
 
     space = PositiveLowerTriangularMatrices
 
-    class TestDataPositiveLowerTriangularMatrices(OpenSetTestData):
+    class PositiveLowerTriangularMatricesTestData(_OpenSetTestData):
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
@@ -178,7 +178,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=OpenSetParametrize
                 PositiveLowerTriangularMatrices, self.space_args_list, self.shape_list
             )
 
-    testing_data = TestDataPositiveLowerTriangularMatrices()
+    testing_data = PositiveLowerTriangularMatricesTestData()
 
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(self.space(n).belongs(gs.array(mat)), gs.array(expected))

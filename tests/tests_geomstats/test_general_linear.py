@@ -5,7 +5,7 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear, SquareMatrices
 from tests.conftest import TestCase
-from tests.data_generation import LieGroupTestData, MatrixLieAlgebraTestData
+from tests.data_generation import _LieGroupTestData, _MatrixLieAlgebraTestData
 from tests.parametrizers import LieGroupParametrizer, MatrixLieAlgebraParametrizer
 
 
@@ -14,7 +14,7 @@ class TestGeneralLinear(TestCase, metaclass=LieGroupParametrizer):
     skip_test_exp_log_composition = True
     skip_test_log_exp_composition = True
 
-    class TestDataGeneralLinear(LieGroupTestData):
+    class GeneralLinearTestData(_LieGroupTestData):
         n_list = random.sample(range(2, 5), 2)
         positive_det_list = [True, False]
         space_args_list = list(zip(n_list, positive_det_list))
@@ -177,7 +177,7 @@ class TestGeneralLinear(TestCase, metaclass=LieGroupParametrizer):
                 GeneralLinear, self.space_args_list, self.n_samples_list
             )
 
-    testing_data = TestDataGeneralLinear()
+    testing_data = GeneralLinearTestData()
 
     def test_belongs(self, n, point, expected):
         group = self.space(n)
@@ -220,7 +220,7 @@ class TestGeneralLinear(TestCase, metaclass=LieGroupParametrizer):
 class TestSquareMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer):
     space = algebra = SquareMatrices
 
-    class TestDataSquareMatrices(MatrixLieAlgebraTestData):
+    class SquareMatricesTestData(_MatrixLieAlgebraTestData):
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
@@ -275,7 +275,7 @@ class TestSquareMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer):
                 self.n_vecs_list,
             )
 
-    testing_data = TestDataSquareMatrices()
+    testing_data = SquareMatricesTestData()
 
     def test_belongs(self, n, mat, expected):
         space = self.space(n)

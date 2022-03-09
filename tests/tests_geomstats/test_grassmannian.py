@@ -5,7 +5,7 @@ import geomstats.backend as gs
 from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
 from geomstats.geometry.matrices import Matrices
 from tests.conftest import TestCase
-from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
+from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
 from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
 
 p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
@@ -23,7 +23,7 @@ class TestGrassmannian(TestCase, metaclass=LevelSetParametrizer):
     skip_test_extrinsic_intrinsic_composition = True
     skip_test_intrinsic_extrinsic_composition = True
 
-    class TestDataGrassmannian(LevelSetTestData):
+    class GrassmannianTestData(_LevelSetTestData):
         n_list = random.sample(range(3, 6), 2)
         k_list = [random.sample(range(2, n), 1)[0] for n in n_list]
         space_args_list = list(zip(n_list, k_list))
@@ -70,7 +70,7 @@ class TestGrassmannian(TestCase, metaclass=LevelSetParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataGrassmannian()
+    testing_data = GrassmannianTestData()
 
     def test_belongs(self, n, k, point, expected):
         self.assertAllClose(self.space(n, k).belongs(point), gs.array(expected))
@@ -81,7 +81,7 @@ class TestGrassmannianCanonicalMetric(TestCase, metaclass=RiemannianMetricParame
     skip_test_exp_log_composition = True
     skip_test_exp_geodesic_ivp = True
 
-    class TestDataGrassmannianCanonicalMetric(RiemannianMetricTestData):
+    class GrassmannianCanonicalMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(3, 5), 2)
         k_list = [random.sample(range(2, n), 1)[0] for n in n_list]
         metric_args_list = list(zip(n_list, k_list))
@@ -240,7 +240,7 @@ class TestGrassmannianCanonicalMetric(TestCase, metaclass=RiemannianMetricParame
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataGrassmannianCanonicalMetric()
+    testing_data = GrassmannianCanonicalMetricTestData()
 
     def test_exp(self, n, k, tangent_vec, base_point, expected):
         self.assertAllClose(

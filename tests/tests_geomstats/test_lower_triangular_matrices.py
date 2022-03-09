@@ -4,7 +4,7 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from tests.conftest import TestCase
-from tests.data_generation import VectorSpaceTestData
+from tests.data_generation import _VectorSpaceTestData
 from tests.parametrizers import VectorSpaceParametrizer
 
 
@@ -14,7 +14,7 @@ class TestLowerTriangularMatrices(TestCase, metaclass=VectorSpaceParametrizer):
     space = LowerTriangularMatrices
     skip_test_basis_belongs = True
 
-    class TestDataLowerTriangularMatrices(VectorSpaceTestData):
+    class LowerTriangularMatricesTestData(_VectorSpaceTestData):
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
@@ -137,7 +137,7 @@ class TestLowerTriangularMatrices(TestCase, metaclass=VectorSpaceParametrizer):
                 self.n_vecs_list,
             )
 
-    testing_data = TestDataLowerTriangularMatrices()
+    testing_data = LowerTriangularMatricesTestData()
 
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(self.space(n).belongs(gs.array(mat)), gs.array(expected))

@@ -8,7 +8,7 @@ import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.poincare_ball import PoincareBall, PoincareBallMetric
 from tests.conftest import TestCase
-from tests.data_generation import OpenSetTestData, RiemannianMetricTestData
+from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
 
 
@@ -16,7 +16,7 @@ class TestPoincareBall(TestCase, metaclass=OpenSetParametrizer):
     space = PoincareBall
     skip_test_projection_belongs = True
 
-    class TestDataPoincareBall(OpenSetTestData):
+    class PoincareBallTestData(_OpenSetTestData):
         smoke_space_args_list = [(2,), (3,), (4,), (5,)]
         smoke_n_points_list = [1, 2, 1, 2]
         n_list = random.sample(range(2, 10), 5)
@@ -69,7 +69,7 @@ class TestPoincareBall(TestCase, metaclass=OpenSetParametrizer):
                 PoincareBall, self.space_args_list, self.shape_list
             )
 
-    testing_data = TestDataPoincareBall()
+    testing_data = PoincareBallTestData()
 
     def test_belongs(self, dim, point, expected):
         space = self.space(dim)

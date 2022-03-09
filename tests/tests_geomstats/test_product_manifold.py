@@ -15,7 +15,7 @@ from geomstats.geometry.product_manifold import (
 from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.conftest import TestCase
-from tests.data_generation import ManifoldTestData, RiemannianMetricTestData
+from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
 from tests.parametrizers import ManifoldParametrizer, RiemannianMetricParametrizer
 
 smoke_manifolds_1 = [Hypersphere(dim=2), Hyperboloid(dim=2)]
@@ -28,7 +28,7 @@ smoke_metrics_2 = [Euclidean(3).metric, Minkowski(3).metric]
 class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
     space = ProductManifold
 
-    class TestDataProductManifold(ManifoldTestData):
+    class ProductManifoldTestData(_ManifoldTestData):
 
         n_list = random.sample(range(2, 4), 2)
         default_point_list = ["vector", "matrix"]
@@ -108,7 +108,7 @@ class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
                 self.n_vecs_list,
             )
 
-    testing_data = TestDataProductManifold()
+    testing_data = ProductManifoldTestData()
 
     def test_dimension(self, manifolds, default_point_type, expected):
         space = self.space(manifolds, default_point_type=default_point_type)
@@ -128,7 +128,7 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
     skip_test_exp_shape = True
     skip_test_log_shape = True
 
-    class TestDataProductRiemannianMetric(RiemannianMetricTestData):
+    class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 3), 1)
         default_point_list = ["vector", "matrix"]
         manifolds_list = [[Hypersphere(dim=n), Hyperboloid(dim=n)] for n in n_list]
@@ -326,7 +326,7 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataProductRiemannianMetric()
+    testing_data = ProductRiemannianMetricTestData()
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_inner_product_matrix(
@@ -373,7 +373,7 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
 class TestNFoldManifold(TestCase, metaclass=ManifoldParametrizer):
     space = NFoldManifold
 
-    class TestDataNFoldManifold(ManifoldTestData):
+    class NFoldManifoldTestData(_ManifoldTestData):
         n_list = random.sample(range(2, 4), 2)
         base_list = [SpecialOrthogonal(n) for n in n_list]
         power_list = random.sample(range(2, 4), 2)
@@ -441,7 +441,7 @@ class TestNFoldManifold(TestCase, metaclass=ManifoldParametrizer):
         space = self.space(base, power)
         self.assertAllClose(space.shape, expected)
 
-    testing_data = TestDataNFoldManifold()
+    testing_data = NFoldManifoldTestData()
 
 
 class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
@@ -454,7 +454,7 @@ class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_log_is_tangent = True
     skip_test_squared_dist_is_symmetric = True
 
-    class TestDataNFoldMetric(RiemannianMetricTestData):
+    class NFoldMetricTestData(_RiemannianMetricTestData):
 
         n_list = random.sample(range(3, 5), 2)
         power_list = random.sample(range(2, 5), 2)
@@ -603,7 +603,7 @@ class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataNFoldMetric()
+    testing_data = NFoldMetricTestData()
 
     def test_inner_product_shape(self, space, n_samples, point, tangent_vec):
         result = space.metric.inner_product(tangent_vec, tangent_vec, point)

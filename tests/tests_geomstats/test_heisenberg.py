@@ -5,14 +5,14 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.heisenberg import HeisenbergVectors
 from tests.conftest import TestCase
-from tests.data_generation import LieGroupTestData
+from tests.data_generation import _LieGroupTestData
 from tests.parametrizers import LieGroupParametrizer
 
 
 class TestHeisenbergVectors(TestCase, metaclass=LieGroupParametrizer):
     space = group = HeisenbergVectors
 
-    class TestDataHeisenbergVectors(LieGroupTestData):
+    class HeisenbergVectorsTestData(_LieGroupTestData):
         space_args_list = [()] * 3
         shape_list = [(3,)] * 3
         n_samples_list = random.sample(range(2, 5), 2)
@@ -90,7 +90,7 @@ class TestHeisenbergVectors(TestCase, metaclass=LieGroupParametrizer):
                 HeisenbergVectors, self.space_args_list, self.n_samples_list
             )
 
-    testing_data = TestDataHeisenbergVectors()
+    testing_data = HeisenbergVectorsTestData()
 
     def test_dimension(self, expected):
         self.assertAllClose(self.space().dim, expected)
