@@ -128,8 +128,11 @@ class MinkowskiMetric(RiemannianMetric):
         return log
 
     def injectivity_radius(self, base_point):
-        """Radius of the largest ball where the exponential is injective.
+        """Compute the radius of the injectivity domain.
 
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
         In the case of the Minkowski space, it does not depend on the base point and
         is infinite everywhere, because of the flat curvature.
 
