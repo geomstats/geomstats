@@ -5,7 +5,7 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from tests.conftest import TestCase
-from tests.data_generation import RiemannianMetricTestData, _VectorSpaceTestData
+from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
 from tests.parametrizers import RiemannianMetricParametrizer, VectorSpaceParametrizer
 
 SQRT_2 = math.sqrt(2)
@@ -74,7 +74,7 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
-    class EuclideanMetricTestData(RiemannianMetricTestData):
+    class EuclideanMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
         metric_args_list = [(n,) for n in n_list]
         shape_list = metric_args_list

@@ -524,7 +524,7 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
-    class TestDataSPDMetricBuresWasserstein(RiemannianMetricTestData):
+    class SPDMetricBuresWassersteinTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 5), 2)
         metric_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
@@ -703,7 +703,7 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataSPDMetricBuresWasserstein()
+    testing_data = SPDMetricBuresWassersteinTestData()
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
         metric = SPDMetricBuresWasserstein(n)
@@ -730,7 +730,7 @@ class TestSPDMetricEuclidean(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_exp_belongs = True
     skip_test_exp_log_composition = True
 
-    class TestDataSPDMetricEuclidean(RiemannianMetricTestData):
+    class SPDMetricEuclideanTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 5), 2)
         power_euclidean_list = [1.0, -0.5, 0.5, 1.0, 1.0]
         metric_args_list = list(zip(n_list, power_euclidean_list))
@@ -927,7 +927,7 @@ class TestSPDMetricEuclidean(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataSPDMetricEuclidean()
+    testing_data = SPDMetricEuclideanTestData()
 
     def test_inner_product(
         self, n, power_euclidean, tangent_vec_a, tangent_vec_b, base_point, expected
@@ -983,7 +983,7 @@ class TestSPDMetricLogEuclidean(
     skip_test_exp_ladder_parallel_transport = True
     skip_test_exp_belongs = True
 
-    class TestDataSPDMetricLogEuclidean(RiemannianMetricTestData):
+    class SPDMetricLogEuclideanTestData(_RiemannianMetricTestData):
 
         n_list = random.sample(range(2, 4), 2)
         metric_args_list = [(n,) for n in n_list]
@@ -1152,7 +1152,7 @@ class TestSPDMetricLogEuclidean(
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataSPDMetricLogEuclidean()
+    testing_data = SPDMetricLogEuclideanTestData()
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
         metric = SPDMetricLogEuclidean(n)
