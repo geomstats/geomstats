@@ -766,8 +766,8 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         )
         expected_end_point = metric.exp(tan_b, point, n_steps=20)
 
-        self.assertAllClose(end_point_result, expected_end_point, atol=gs.atol * 100)
-        self.assertAllClose(expected, result, atol=gs.atol * 100)
+        self.assertAllClose(end_point_result, expected_end_point, atol=gs.atol * 1000)
+        self.assertAllClose(expected, result, atol=gs.atol * 1000)
 
     def test_log_antipodals(self, group, rotation_mat1, rotation_mat2, expected):
         with expected:
