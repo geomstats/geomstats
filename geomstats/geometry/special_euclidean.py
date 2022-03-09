@@ -333,7 +333,13 @@ class _SpecialEuclideanVectors(LieGroup):
 
     def __init__(self, n, epsilon=0.0):
         dim = n * (n + 1) // 2
-        LieGroup.__init__(self, dim=dim, shape=(dim,), default_point_type="vector")
+        LieGroup.__init__(
+            self,
+            dim=dim,
+            shape=(dim,),
+            default_point_type="vector",
+            lie_algebra=Euclidean(dim),
+        )
 
         self.n = n
         self.epsilon = epsilon
