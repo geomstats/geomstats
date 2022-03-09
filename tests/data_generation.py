@@ -154,7 +154,7 @@ class _ManifoldTestData(TestData):
         return self.generate_tests([], random_data)
 
 
-class OpenSetTestData(_ManifoldTestData):
+class _OpenSetTestData(_ManifoldTestData):
     def _to_tangent_is_tangent_in_ambient_space_data(
         self, space_cls, space_args_list, shape_list, is_tangent_atol=gs.atol
     ):
@@ -181,7 +181,7 @@ class OpenSetTestData(_ManifoldTestData):
         return self.generate_tests([], random_data)
 
 
-class LevelSetTestData(_ManifoldTestData):
+class _LevelSetTestData(_ManifoldTestData):
     def _extrinsic_intrinsic_composition_data(
         self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):
@@ -251,7 +251,7 @@ class LevelSetTestData(_ManifoldTestData):
         return self.generate_tests([], random_data)
 
 
-class LieGroupTestData(_ManifoldTestData):
+class _LieGroupTestData(_ManifoldTestData):
     def _exp_log_composition_data(
         self,
         group_cls,
@@ -357,7 +357,7 @@ class _VectorSpaceTestData(_ManifoldTestData):
         return self.generate_tests([], random_data)
 
 
-class MatrixLieAlgebraTestData(_VectorSpaceTestData):
+class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
     def _basis_representation_matrix_representation_composition_data(
         self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):
@@ -411,7 +411,7 @@ class MatrixLieAlgebraTestData(_VectorSpaceTestData):
         return self.generate_tests([], random_data)
 
 
-class ConnectionTestData(TestData):
+class _ConnectionTestData(TestData):
     def _exp_shape_data(
         self, connection_args_list, space_list, shape_list, n_samples_list
     ):
@@ -843,7 +843,7 @@ class ConnectionTestData(TestData):
         return self.generate_tests([], random_data)
 
 
-class RiemannianMetricTestData(ConnectionTestData):
+class _RiemannianMetricTestData(_ConnectionTestData):
     def _squared_dist_is_symmetric_data(
         self,
         metric_args_list,
