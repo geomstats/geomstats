@@ -73,7 +73,7 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
     class TestDataSpecialEuclidean(LieGroupTestData):
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list] + [(2, "vector"), (3, "vector")]
-        shape_list = [(n + 1, n + 1) for n in n_list]
+        shape_list = [(n + 1, n + 1) for n in n_list] + [(3,)] + [(6,)]
         n_samples_list = random.sample(range(2, 10), 4)
         n_points_list = random.sample(range(2, 10), 4)
         n_vecs_list = random.sample(range(2, 10), 4)

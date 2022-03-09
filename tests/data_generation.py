@@ -273,11 +273,14 @@ class LieGroupTestData(ManifoldTestData):
             List of number of points and tangent vectors to generate.
         """
         random_data = []
+        print(group_args_list)
+        print(shape_list)
         for group_args, shape, n_samples in zip(
             group_args_list, shape_list, n_samples_list
         ):
             group = group_cls(*group_args)
             for base_point in [group.random_point(), group.identity]:
+
                 tangent_vec = group.to_tangent(
                     gs.random.normal(size=(n_samples,) + shape), base_point
                 )
