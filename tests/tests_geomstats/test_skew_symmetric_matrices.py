@@ -20,14 +20,14 @@ class TestSkewSymmetricMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
-        def belongs_data(self):
+        def belongs_test_data(self):
             smoke_data = [
                 dict(n=2, mat=[[0.0, -1.0], [1.0, 0.0]], expected=True),
                 dict(n=3, mat=[[0.0, -1.0], [1.0, 0.0]], expected=False),
             ]
             return self.generate_tests(smoke_data)
 
-        def baker_campbell_hausdorff_data(self):
+        def baker_campbell_hausdorff_test_data(self):
             n_list = range(3, 10)
             smoke_data = []
             for n in n_list:
@@ -59,39 +59,43 @@ class TestSkewSymmetricMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer
 
             return self.generate_tests(smoke_data)
 
-        def basis_representation_matrix_representation_composition_data(self):
-            return self._basis_representation_matrix_representation_composition_data(
-                SkewSymmetricMatrices, self.space_args_list, self.n_samples_list
+        def basis_representation_matrix_representation_composition_test_data(self):
+            return (
+                self._basis_representation_matrix_representation_composition_test_data(
+                    SkewSymmetricMatrices, self.space_args_list, self.n_samples_list
+                )
             )
 
-        def matrix_representation_basis_representation_composition_data(self):
-            return self._matrix_representation_basis_representation_composition_data(
-                SkewSymmetricMatrices, self.space_args_list, self.n_samples_list
+        def matrix_representation_basis_representation_composition_test_data(self):
+            return (
+                self._matrix_representation_basis_representation_composition_test_data(
+                    SkewSymmetricMatrices, self.space_args_list, self.n_samples_list
+                )
             )
 
-        def basis_belongs_data(self):
-            return self._basis_belongs_data(self.space_args_list)
+        def basis_belongs_test_data(self):
+            return self._basis_belongs_test_data(self.space_args_list)
 
-        def basis_cardinality_data(self):
-            return self._basis_cardinality_data(self.space_args_list)
+        def basis_cardinality_test_data(self):
+            return self._basis_cardinality_test_data(self.space_args_list)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             smoke_space_args_list = [(2,), (3,)]
             smoke_n_points_list = [1, 2]
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
                 self.n_points_list,
             )
 
-        def projection_belongs_data(self):
-            return self._projection_belongs_data(
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
                 self.space_args_list, self.shape_list, self.n_samples_list
             )
 
-        def to_tangent_is_tangent_data(self):
-            return self._to_tangent_is_tangent_data(
+        def to_tangent_is_tangent_test_data(self):
+            return self._to_tangent_is_tangent_test_data(
                 SkewSymmetricMatrices,
                 self.space_args_list,
                 self.shape_list,

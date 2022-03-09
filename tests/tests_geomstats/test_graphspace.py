@@ -61,7 +61,7 @@ class TestGraphSpaceMetric(TestCase, metaclass=Parametrizer):
     metric = GraphSpaceMetric
 
     class GraphSpaceMetricTestData(TestData):
-        def matchers_data(self):
+        def matchers_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
