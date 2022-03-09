@@ -91,7 +91,7 @@ class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_exp_belongs = True
     skip_test_geodesic_ivp_belongs = True
 
-    class TestDataPoincareBallMetric(RiemannianMetricTestData):
+    class TestDataPoincareBallMetric(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 5), 2)
         metric_args_list = [(n,) for n in n_list]
         shape_list = [(n,) for n in n_list]

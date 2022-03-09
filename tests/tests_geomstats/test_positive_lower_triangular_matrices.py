@@ -224,7 +224,7 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
-    class TestDataCholeskyMetric(RiemannianMetricTestData):
+    class CholeskyMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
         metric_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
@@ -465,7 +465,7 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataCholeskyMetric()
+    testing_data = CholeskyMetricTestData()
 
     def test_diag_inner_product(
         self, n, tangent_vec_a, tangent_vec_b, base_point, expected

@@ -666,7 +666,7 @@ class TestMatricesMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
-    class TestDataMatricesMetric(RiemannianMetricTestData):
+    class MatricesMetricTestData(_RiemannianMetricTestData):
         m_list = random.sample(range(3, 5), 2)
         n_list = random.sample(range(3, 5), 2)
         metric_args_list = list(zip(m_list, n_list))
@@ -845,7 +845,7 @@ class TestMatricesMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataMatricesMetric()
+    testing_data = MatricesMetricTestData()
 
     def test_inner_product(self, m, n, tangent_vec_a, tangent_vec_b, expected):
         self.assertAllClose(
