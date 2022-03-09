@@ -18,7 +18,7 @@ from geomstats.geometry.spd_matrices import (
     SPDMetricLogEuclidean,
 )
 from tests.conftest import TestCase
-from tests.data_generation import OpenSetTestData, RiemannianMetricTestData
+from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
 
 SQRT_2 = math.sqrt(2.0)
@@ -33,7 +33,7 @@ class TestSPDMatrices(TestCase, metaclass=OpenSetParametrizer):
 
     space = SPDMatrices
 
-    class TestDataSPDMatrices(OpenSetTestData):
+    class SPDMatricesTestData(_OpenSetTestData):
 
         smoke_space_args_list = [(2,), (3,), (4,), (5,)]
         smoke_n_points_list = [1, 2, 1, 2]
@@ -239,7 +239,7 @@ class TestSPDMatrices(TestCase, metaclass=OpenSetParametrizer):
                 SPDMatrices, self.space_args_list, self.shape_list
             )
 
-    testing_data = TestDataSPDMatrices()
+    testing_data = SPDMatricesTestData()
 
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(SPDMatrices(n).belongs(gs.array(mat)), gs.array(expected))
@@ -322,7 +322,7 @@ class TestSPDMetricAffine(
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
 
-    class TestDataSPDMetricAffine(RiemannianMetricTestData):
+    class SPDMetricAffineTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 5), 2)
         power_affine_list = [1.0, -0.5]
         metric_args_list = list(zip(n_list, power_affine_list))
@@ -494,7 +494,7 @@ class TestSPDMetricAffine(
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataSPDMetricAffine()
+    testing_data = SPDMetricAffineTestData()
 
     def test_inner_product(
         self, n, power_affine, tangent_vec_a, tangent_vec_b, base_point, expected

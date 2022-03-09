@@ -5,7 +5,7 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from tests.conftest import TestCase
-from tests.data_generation import VectorSpaceTestData
+from tests.data_generation import _VectorSpaceTestData
 from tests.parametrizers import VectorSpaceParametrizer
 
 
@@ -14,7 +14,7 @@ class TestSymmetricMatrices(TestCase, metaclass=VectorSpaceParametrizer):
 
     space = SymmetricMatrices
 
-    class TestDataSymmetricMatrices(VectorSpaceTestData):
+    class SymmetricMatricesTestData(_VectorSpaceTestData):
         """Data class for Testing Symmetric Matrices"""
 
         def belongs_data(self):
@@ -159,7 +159,7 @@ class TestSymmetricMatrices(TestCase, metaclass=VectorSpaceParametrizer):
                 gs.atol * 1000,
             )
 
-    testing_data = TestDataSymmetricMatrices()
+    testing_data = SymmetricMatricesTestData()
 
     def test_belongs(self, n, mat, expected):
         result = SymmetricMatrices(n).belongs(gs.array(mat))

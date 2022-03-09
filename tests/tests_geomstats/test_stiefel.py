@@ -9,7 +9,7 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
 from tests.conftest import TestCase, np_autograd_and_tf_only
-from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
+from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
 from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
 
 p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
@@ -34,7 +34,7 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
     skip_test_intrinsic_extrinsic_composition = True
     skip_test_to_tangent_is_tangent = True
 
-    class TestDataStiefel(LevelSetTestData):
+    class StiefelTestData(_LevelSetTestData):
         def random_point_belongs_data(self):
             smoke_space_args_list = [(2, 2), (3, 3), (4, 3), (3, 2)]
             smoke_n_points_list = [1, 2, 1, 2]
@@ -91,7 +91,7 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataStiefel()
+    testing_data = StiefelTestData()
 
     def test_to_grassmannian(self, point, expected):
         self.assertAllClose(
@@ -113,7 +113,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
     skip_test_log_shape = True
     skip_exp_ladder_parallel_transport = True
 
-    class TestDataStiefelCanonicalMetric(RiemannianMetricTestData):
+    class StiefelCanonicalMetricTestData(_RiemannianMetricTestData):
 
         n_list = random.sample(range(3, 5), 2)
         p_list = [random.sample(range(2, n), 1)[0] for n in n_list]
@@ -278,7 +278,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
         def lifting_shape_data(self):
             return self.log_shape_data()
 
-    testing_data = TestDataStiefelCanonicalMetric()
+    testing_data = StiefelCanonicalMetricTestData()
 
     def test_log_two_sheets_error(self, n, p, point, base_point, expected):
         metric = self.metric(n, p)
