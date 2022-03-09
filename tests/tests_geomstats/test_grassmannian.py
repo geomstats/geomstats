@@ -40,7 +40,6 @@ class TestGrassmannian(TestCase, metaclass=LevelSetParametrizer):
             return self.generate_tests(smoke_data)
 
         def random_point_belongs_test_data(self):
-            belongs_atol = gs.atol * 10000
             smoke_space_args_list = [(3, 2), (4, 2)]
             smoke_n_points_list = [1, 2]
             return self._random_point_belongs_test_data(
@@ -48,7 +47,7 @@ class TestGrassmannian(TestCase, metaclass=LevelSetParametrizer):
                 smoke_n_points_list,
                 self.space_args_list,
                 self.n_points_list,
-                belongs_atol,
+                belongs_ato=1e-3,
             )
 
         def to_tangent_is_tangent_test_data(self):
@@ -168,7 +167,7 @@ class TestGrassmannianCanonicalMetric(TestCase, metaclass=RiemannianMetricParame
                 self.space_list,
                 self.shape_list,
                 self.n_points_list,
-                belongs_atol=gs.atol * 1000,
+                belongs_atol=gs.atol * 10000,
             )
 
         def geodesic_bvp_belongs_test_data(self):
@@ -176,7 +175,7 @@ class TestGrassmannianCanonicalMetric(TestCase, metaclass=RiemannianMetricParame
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
-                belongs_atol=gs.atol * 1000,
+                belongs_atol=gs.atol * 10000,
             )
 
         def log_exp_composition_test_data(self):
