@@ -15,7 +15,7 @@ from tests.parametrizers import Parametrizer
 
 
 class TestConnection(TestCase, metaclass=Parametrizer):
-    class TestDataConnection(TestData):
+    class ConnectionTestData(TestData):
         def metric_matrix_test_data(self):
             smoke_data = [
                 dict(
@@ -93,7 +93,7 @@ class TestConnection(TestCase, metaclass=Parametrizer):
             smoke_data = [dict(dim=2, n_samples=2)]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataConnection()
+    testing_data = ConnectionTestData()
 
     def test_metric_matrix(self, metric, point, expected):
         self.assertAllClose(metric.metric_matrix(point), expected)
