@@ -183,12 +183,12 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         quotient_metric = self.metric(bundle)
         base_metric = self.base_metric(n)
         point = bundle.riemannian_submersion(mat)
-        tangent_vecs = Matrices.to_symmetric(gs.array([vec_a, vec_b])) / 10
+        tangent_vecs = Matrices.to_symmetric(gs.array([vec_a, vec_b])) / 20
         result = quotient_metric.inner_product(
             tangent_vecs[0], tangent_vecs[1], fiber_point=mat
         )
         expected = base_metric.inner_product(tangent_vecs[0], tangent_vecs[1], point)
-        self.assertAllClose(result, expected, atol=1e-3)
+        self.assertAllClose(result, expected, atol=1e-2)
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_exp(self, n, mat, vec):
@@ -196,7 +196,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         quotient_metric = self.metric(bundle)
         base_metric = self.base_metric(n)
         point = bundle.riemannian_submersion(mat)
-        tangent_vec = Matrices.to_symmetric(vec) / 10
+        tangent_vec = Matrices.to_symmetric(vec) / 40
 
         result = quotient_metric.exp(tangent_vec, point)
         expected = base_metric.exp(tangent_vec, point)
@@ -211,7 +211,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
 
         result = quotient_metric.log(points[1], points[0])
         expected = base_metric.log(points[1], points[0])
-        self.assertAllClose(result, expected, atol=1e-3)
+        self.assertAllClose(result, expected, atol=1e-2)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_squared_dist(self, n, mat_a, mat_b):
@@ -222,12 +222,12 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
 
         result = quotient_metric.squared_dist(points[1], points[0], tol=1e-10)
         expected = base_metric.squared_dist(points[1], points[0])
-        self.assertAllClose(result, expected, atol=1e-3)
+        self.assertAllClose(result, expected, atol=1e-2)
 
     def test_integrability_tensor(self, n, mat, vec):
         bundle = self.bundle(n)
         point = bundle.riemannian_submersion(mat)
-        tangent_vec = Matrices.to_symmetric(vec) / 10
+        tangent_vec = Matrices.to_symmetric(vec) / 20
 
         with pytest.raises(NotImplementedError):
             bundle.integrability_tensor(tangent_vec, tangent_vec, point)
