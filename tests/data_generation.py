@@ -258,6 +258,8 @@ class _LieGroupTestData(_ManifoldTestData):
         group_args_list,
         shape_list,
         n_samples_list,
+        smoke_data=None,
+        amplitude=1.0,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
@@ -279,7 +281,7 @@ class _LieGroupTestData(_ManifoldTestData):
             group = group_cls(*group_args)
             for base_point in [group.random_point(), group.identity]:
                 tangent_vec = group.to_tangent(
-                    gs.random.normal(size=(n_samples,) + shape), base_point
+                    gs.random.normal(size=(n_samples,) + shape) / amplitude, base_point
                 )
                 random_data.append(
                     dict(
@@ -290,13 +292,17 @@ class _LieGroupTestData(_ManifoldTestData):
                         atol=atol,
                     )
                 )
-        return self.generate_tests([], random_data)
+
+        if smoke_data is None:
+            smoke_data = []
+        return self.generate_tests(smoke_data, random_data)
 
     def _log_exp_composition_test_data(
         self,
         group_cls,
         group_args_list,
         n_samples_list,
+        smoke_data=None,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
@@ -325,7 +331,9 @@ class _LieGroupTestData(_ManifoldTestData):
                         atol=atol,
                     )
                 )
-        return self.generate_tests([], random_data)
+        if smoke_data is None:
+            smoke_data = []
+        return self.generate_tests(smoke_data, random_data)
 
 
 class _VectorSpaceTestData(_ManifoldTestData):

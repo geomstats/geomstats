@@ -992,7 +992,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         term_z = metric.curvature_derivative(hor_z, hor_x, hor_y, hor_h, base_point)
 
         result = term_x + term_y + term_z
-        self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
+        self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 100)
 
     def test_curvature_derivative_is_skew_operator(
         self, k_landmarks, m_ambient, hor_x, hor_y, hor_z, base_point

@@ -431,6 +431,7 @@ class TestNFoldManifold(TestCase, metaclass=ManifoldParametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
+                is_tangent_atol=gs.atol * 1000,
             )
 
     def test_belongs(self, base, power, point, expected):
@@ -520,7 +521,7 @@ class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_points_list,
-                belongs_atol=gs.atol * 1000,
+                belongs_atol=gs.atol * 100000,
             )
 
         def geodesic_bvp_belongs_test_data(self):
@@ -528,7 +529,7 @@ class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
-                belongs_atol=gs.atol * 1000,
+                belongs_atol=gs.atol * 100000,
             )
 
         def log_exp_composition_test_data(self):
@@ -536,8 +537,8 @@ class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
-                rtol=gs.rtol * 100,
-                atol=1e-3,
+                rtol=gs.rtol * 10000,
+                atol=1e-1,
             )
 
         def exp_log_composition_test_data(self):
@@ -546,8 +547,9 @@ class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                rtol=gs.rtol * 100,
-                atol=1e-3,
+                amplitude=10.0,
+                rtol=gs.rtol * 10000,
+                atol=1e-1,
             )
 
         def exp_ladder_parallel_transport_test_data(self):
