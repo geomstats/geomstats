@@ -97,7 +97,7 @@ class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
-                belongs_atol=1e-2,
+                belongs_atol=1e-1,
             )
 
         def to_tangent_is_tangent_data(self):
@@ -251,6 +251,7 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
+                amplitude=10,
                 rtol=gs.rtol * 1000,
                 atol=1e-1,
             )
