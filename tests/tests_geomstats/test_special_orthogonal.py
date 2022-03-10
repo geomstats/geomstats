@@ -422,7 +422,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
         def projection_belongs_data(self):
             space_args_list = list(zip(self.n_list))
             shape_list = [(n, n) for n in self.n_list]
-            n_samples_list = random.sample(range(2, 5), 2)
+            n_samples_list = random.sample(range(2, 4), 2)
             return self._projection_belongs_data(
                 space_args_list, shape_list, n_samples_list, gs.atol * 10000
             )
