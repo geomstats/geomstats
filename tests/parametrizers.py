@@ -437,6 +437,25 @@ class LevelSetParametrizer(ManifoldParametrizer):
         return super(LevelSetParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
+# class FiberBundleParametrizer(Parametrizer):
+# def test_riemannian_submersion_belongs_to_base(self, bundle_args, ):
+
+
+# def test_lift_riemannian_submersion_composition(self, bundle_args,):
+
+
+# def test_riemannian_submersion_is_tangent_in_base(self, bundle_args):
+
+
+# def test_vertical_projection_is_kernel_of_riemannian_submersion(self, bundle_args):
+
+
+# def test_vertical_projection_is_vertical(self, bundle_args):
+
+
+# def test_horizontal_projection_is_horizontal(self, bundle_args):
+
+
 class ConnectionParametrizer(Parametrizer):
     def __new__(cls, name, bases, attrs):
         def test_exp_shape(self, connection_args, tangent_vec, base_point, expected):
