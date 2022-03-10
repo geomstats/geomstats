@@ -30,30 +30,26 @@ def sample_algebra_matrix(theta, mul=1.0):
     return mul * gs.array([[0.0, -theta], [theta, 0.0]])
 
 
-with_angle_0 = gs.zeros(3)
-with_angle_close_0 = 1e-10 * gs.array([1.0, -1.0, 1.0])
-with_angle_close_pi_low = (gs.pi - 1e-9) / gs.sqrt(2.0) * gs.array([0.0, 1.0, -1.0])
-with_angle_pi = gs.pi * gs.array([1.0, 0, 0])
-with_angle_close_pi_high = (gs.pi + 1e-9) / gs.sqrt(3.0) * gs.array([-1.0, 1.0, -1])
-with_angle_in_pi_2pi = (gs.pi + 0.3) / gs.sqrt(5.0) * gs.array([-2.0, 1.0, 0.0])
-with_angle_close_2pi_low = (
-    (2.0 * gs.pi - 1e-9) / gs.sqrt(6.0) * gs.array([2.0, 1.0, -1])
-)
-with_angle_2pi = 2.0 * gs.pi / gs.sqrt(3.0) * gs.array([1.0, 1.0, -1.0])
-with_angle_close_2pi_high = (
-    (2.0 * gs.pi + 1e-9) / gs.sqrt(2.0) * gs.array([1.0, 0.0, -1.0])
-)
+angle_0 = gs.zeros(3)
+angle_close_0 = 1e-10 * gs.array([1.0, -1.0, 1.0])
+angle_close_pi_low = (gs.pi - 1e-9) / gs.sqrt(2.0) * gs.array([0.0, 1.0, -1.0])
+angle_pi = gs.pi * gs.array([1.0, 0, 0])
+angle_close_pi_high = (gs.pi + 1e-9) / gs.sqrt(3.0) * gs.array([-1.0, 1.0, -1])
+angle_in_pi_2pi = (gs.pi + 0.3) / gs.sqrt(5.0) * gs.array([-2.0, 1.0, 0.0])
+angle_close_2pi_low = (2.0 * gs.pi - 1e-9) / gs.sqrt(6.0) * gs.array([2.0, 1.0, -1])
+angle_2pi = 2.0 * gs.pi / gs.sqrt(3.0) * gs.array([1.0, 1.0, -1.0])
+angle_close_2pi_high = (2.0 * gs.pi + 1e-9) / gs.sqrt(2.0) * gs.array([1.0, 0.0, -1.0])
 
 elements_all = {
-    "with_angle_0": with_angle_0,
-    "with_angle_close_0": with_angle_close_0,
-    "with_angle_close_pi_low": with_angle_close_pi_low,
-    "with_angle_pi": with_angle_pi,
-    "with_angle_close_pi_high": with_angle_close_pi_high,
-    "with_angle_in_pi_2pi": with_angle_in_pi_2pi,
-    "with_angle_close_2pi_low": with_angle_close_2pi_low,
-    "with_angle_2pi": with_angle_2pi,
-    "with_angle_close_2pi_high": with_angle_close_2pi_high,
+    "angle_0": angle_0,
+    "angle_close_0": angle_close_0,
+    "angle_close_pi_low": angle_close_pi_low,
+    "angle_pi": angle_pi,
+    "angle_close_pi_high": angle_close_pi_high,
+    "angle_in_pi_2pi": angle_in_pi_2pi,
+    "angle_close_2pi_low": angle_close_2pi_low,
+    "angle_2pi": angle_2pi,
+    "angle_close_2pi_high": angle_close_2pi_high,
 }
 
 
@@ -61,8 +57,8 @@ elements = elements_all
 if tf_backend():
     # Tf is extremely slow
     elements = {
-        "with_angle_in_pi_2pi": with_angle_in_pi_2pi,
-        "with_angle_close_pi_low": with_angle_close_pi_low,
+        "angle_in_pi_2pi": angle_in_pi_2pi,
+        "angle_close_pi_low": angle_close_pi_low,
     }
 
 
@@ -76,15 +72,15 @@ cos_angle_pi_12 = gs.cos(angle_pi_6 / 2)
 sin_angle_pi_12 = gs.sin(angle_pi_6 / 2)
 
 angles_close_to_pi_all = [
-    "with_angle_close_pi_low",
-    "with_angle_pi",
-    "with_angle_close_pi_high",
+    "angle_close_pi_low",
+    "angle_pi",
+    "angle_close_pi_high",
 ]
 
 angles_close_to_pi = angles_close_to_pi_all
 
 if tf_backend():
-    angles_close_to_pi = ["with_angle_close_pi_low"]
+    angles_close_to_pi = ["angle_close_pi_low"]
 
 
 class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
@@ -627,19 +623,11 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
         self.assertAllClose(result, expected)
 
     def test_exp(self, n, point_type, tangent_vec, base_point, expected):
-        """
-        The Riemannian exp and log are inverse functions of each other.
-        This test is the inverse of test_log's.
-        """
         group = self.space(n, point_type)
         result = group.exp(tangent_vec, base_point)
         self.assertAllClose(result, expected)
 
     def test_log(self, n, point_type, point, base_point, expected):
-        """
-        The Riemannian exp and log are inverse functions of each other.
-        This test is the inverse of test_exp's.
-        """
         group = self.space(n, point_type)
         result = group.log(point=point, base_point=base_point)
         self.assertAllClose(result, expected)
@@ -828,10 +816,10 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
                 point = elements[angle_type]
                 angle = gs.linalg.norm(SpecialOrthogonal(3, "vector").regularize(point))
                 if angle_type in [
-                    "with_angle_0",
-                    "with_angle_close_0",
-                    "with_angle_2pi",
-                    "with_angle_close_2pi_high",
+                    "angle_0",
+                    "angle_close_0",
+                    "angle_2pi",
+                    "angle_close_2pi_high",
                 ]:
                     expected = 1.0 + angle**2 / 12.0 + angle**4 / 240.0
                 else:
@@ -869,10 +857,10 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         def regularize_extreme_cases_data(self):
             smoke_data = []
             for angle_type in [
-                "with_angle_close_0",
-                "with_angle_close_pi_low",
-                "with_angle_pi",
-                "with_angle_0",
+                "angle_close_0",
+                "angle_close_pi_low",
+                "angle_pi",
+                "angle_0",
             ]:
                 smoke_data += [
                     dict(
@@ -880,13 +868,13 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
                         expected=elements_all[angle_type],
                     )
                 ]
-            point = elements_all["with_angle_close_pi_high"]
+            point = elements_all["angle_close_pi_high"]
             norm = gs.linalg.norm(point)
             smoke_data += [
                 dict(point=point, expected=point / norm * (norm - 2 * gs.pi))
             ]
 
-            for angle_type in ["with_angle_in_pi_2pi", "with_angle_close_2pi_low"]:
+            for angle_type in ["angle_in_pi_2pi", "angle_close_2pi_low"]:
                 point = elements_all[angle_type]
                 angle = gs.linalg.norm(point)
                 new_angle = gs.pi - (angle - gs.pi)
@@ -897,11 +885,11 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
 
             smoke_data += [
                 dict(
-                    point=elements_all["with_angle_2pi"],
+                    point=elements_all["angle_2pi"],
                     expected=gs.array([0.0, 0.0, 0.0]),
                 )
             ]
-            point = elements_all["with_angle_close_2pi_high"]
+            point = elements_all["angle_close_2pi_high"]
             angle = gs.linalg.norm(point)
             new_angle = angle - 2 * gs.pi
             expected = new_angle * point / angle
