@@ -38,10 +38,10 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
         def random_point_belongs_data(self):
             smoke_space_args_list = [(2, 2), (3, 3), (4, 3), (3, 2)]
             smoke_n_points_list = [1, 2, 1, 2]
-            n_list = random.sample(range(2, 7), 5)
+            n_list = random.sample(range(2, 4), 2)
             p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
             space_args_list = list(zip(n_list, p_list))
-            n_points_list = random.sample(range(1, 10), 5)
+            n_points_list = random.sample(range(1, 10), 2)
 
             belongs_atol = gs.atol * 100000
             return self._random_point_belongs_data(
