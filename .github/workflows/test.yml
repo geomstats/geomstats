@@ -29,7 +29,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-18.04]
-        python-version: [3.8]
+        python-version: [3.7]
         geomstats-backend : ['autograd','numpy','pytorch','tensorflow']
         test-folder : ['tests/tests_geomstats/' , 'tests/test_notebooks.py']
       fail-fast: false
