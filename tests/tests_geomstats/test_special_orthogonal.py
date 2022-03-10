@@ -458,7 +458,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
                 atol=gs.atol * 100000,
             )
 
-        def compose_point_inverse_is_identity_data(self):
+        def compose_with_inverse_is_identity_data(self):
             smoke_data = []
             for space_args in list(zip(self.n_list)):
                 smoke_data += [dict(space_args=space_args)]
@@ -600,12 +600,12 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             group.rotation_vector_from_matrix(rot_mat),
         )
 
-    def test_matrix_from_rotation_vector(self, dim, rot_vec, expected):
-        group = SpecialOrthogonal(dim)
+    def test_matrix_from_rotation_vector(self, n, rot_vec, expected):
+        group = SpecialOrthogonal(n)
         result = group.matrix_from_rotation_vector(rot_vec)
         self.assertAllClose(result, expected)
 
-    def test_compose_point_inverse_is_identity(self, space_args):
+    def test_compose_with_inverse_is_identity(self, space_args):
         group = SpecialOrthogonal(*space_args)
         point = gs.squeeze(group.random_point())
         inv_point = group.inverse(point)
@@ -614,7 +614,6 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
     def test_compose(self, n, point_type, point_a, point_b, expected):
         group = SpecialOrthogonal(n, point_type)
         result = group.compose(point_a, point_b)
-        expected = group.regularize(expected)
         self.assertAllClose(result, expected)
 
     def test_regularize(self, n, point_type, angle, expected):
