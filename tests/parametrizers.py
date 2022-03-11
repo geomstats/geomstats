@@ -226,6 +226,86 @@ class OpenSetParametrizer(ManifoldParametrizer):
 
 class LieGroupParametrizer(ManifoldParametrizer):
     def __new__(cls, name, bases, attrs):
+        def test_compose_point_inv_point_is_identity(
+            self, group_args, point, rtol, atol
+        ):
+            """Check that composition of point and inverse is identity.
+
+            Parameters
+            ----------
+            group_args : tuple
+                Arguments to pass to constructor of the group.
+            point : array-like
+                Point on the group.
+            rtol : float
+                Relative tolerance to test this property.
+            atol : float
+                Absolute tolerance to test this property.
+            """
+            group = self.group(*group_args)
+            result = group.compose(group.inverse(point), point)
+            self.assertAllClose(result, group.identity, rtol=rtol, atol=atol)
+
+        def test_compose_inv_point_point_is_identity(
+            self, group_args, point, rtol, atol
+        ):
+            """Check that composition of inverse and point is identity.
+
+            Parameters
+            ----------
+            group_args : tuple
+                Arguments to pass to constructor of the group.
+            point : array-like
+                Point on the group.
+            rtol : float
+                Relative tolerance to test this property.
+            atol : float
+                Absolute tolerance to test this property.
+            """
+            group = self.group(*group_args)
+            result = group.compose(point, group.inverse(point))
+            self.assertAllClose(result, group.identity, rtol=rtol, atol=atol)
+
+        def test_compose_point_identity_is_identity(
+            self, group_args, point, rtol, atol
+        ):
+            """Check that composition of point and identity is identity.
+
+            Parameters
+            ----------
+            group_args : tuple
+                Arguments to pass to constructor of the group.
+            point : array-like
+                Point on the group.
+            rtol : float
+                Relative tolerance to test this property.
+            atol : float
+                Absolute tolerance to test this property.
+            """
+            group = self.group(*group_args)
+            result = group.compose(point, group.identity)
+            self.assertAllClose(result, group.identity, rtol=rtol, atol=atol)
+
+        def test_compose_identity_point_is_identity(
+            self, group_args, point, rtol, atol
+        ):
+            """Check that composition of identity and point is identity.
+
+            Parameters
+            ----------
+            group_args : tuple
+                Arguments to pass to constructor of the group.
+            point : array-like
+                Point on the group.
+            rtol : float
+                Relative tolerance to test this property.
+            atol : float
+                Absolute tolerance to test this property.
+            """
+            group = self.group(*group_args)
+            result = group.compose(group.identity, point)
+            self.assertAllClose(result, group.identity, rtol=rtol, atol=atol)
+
         def test_exp_log_composition(
             self, group_args, tangent_vec, base_point, rtol, atol
         ):
@@ -274,6 +354,18 @@ class LieGroupParametrizer(ManifoldParametrizer):
             exp_point = group.exp(log_vec, gs.array(base_point))
             self.assertAllClose(exp_point, gs.array(point), rtol, atol)
 
+        attrs[
+            test_compose_point_inv_point_is_identity.__name__
+        ] = test_compose_point_inv_point_is_identity
+        attrs[
+            test_compose_inv_point_point_is_identity.__name__
+        ] = test_compose_inv_point_point_is_identity
+        attrs[
+            test_compose_point_identity_is_identity.__name__
+        ] = test_compose_point_identity_is_identity
+        attrs[
+            test_compose_identity_point_is_identity.__name__
+        ] = test_compose_identity_point_is_identity
         attrs[test_exp_log_composition.__name__] = test_exp_log_composition
         attrs[test_log_exp_composition.__name__] = test_log_exp_composition
         return super(LieGroupParametrizer, cls).__new__(cls, name, bases, attrs)
@@ -307,8 +399,51 @@ class VectorSpaceParametrizer(ManifoldParametrizer):
             basis = space.basis
             self.assertAllClose(len(basis), space.dim)
 
+        def test_random_point_is_tangent(self, space_args, n_points, is_tangent_atol):
+            """Check that the random point is tangent.
+
+            Parameters
+            ----------
+            space_args : tuple
+                Arguments to pass to constructor of the vector space.
+            n_points : array-like
+                Number of random points to sample.
+            is_tangent_atol : float
+                Absolute tolerance for the is_tangent function.
+            """
+            space = self.space(*space_args)
+            points = space.random_point(n_points)
+            base_point = space.random_point()
+            result = space.is_tangent(points, base_point, is_tangent_atol)
+            self.assertAllClose(gs.all(result), gs.array(True))
+
+        def test_to_tangent_is_projection(
+            self, space_args, vector, base_point, rtol, atol
+        ):
+            """Check that to_tangent is same as projection.
+
+            Parameters
+            ----------
+            space_args : tuple
+                Arguments to pass to constructor of the vector space.
+            vector : array-like
+                Vector to be projected on the tangent space at base_point.
+            base_point : array-like
+                Point on the manifold.
+            rtol : float
+                Relative tolerance to test this property.
+            atol : float
+                Absolute tolerance to test this property.
+            """
+            space = self.space(*space_args)
+            result = space.to_tangent(vector, base_point)
+            expected = space.projection(vector)
+            self.assertAllClose(result, expected, rtol=rtol, atol=atol)
+
         attrs[test_basis_belongs.__name__] = test_basis_belongs
         attrs[test_basis_cardinality.__name__] = test_basis_cardinality
+        attrs[test_random_point_is_tangent.__name__] = test_random_point_is_tangent
+        attrs[test_to_tangent_is_projection.__name__] = test_to_tangent_is_projection
         return super(VectorSpaceParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
