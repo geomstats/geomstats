@@ -1,4 +1,4 @@
 autograd>=1.3
 tensorflow>=2.2
 tensorflow-probability>=0.9
-torch>=1.8.1
+torch==1.9.1
