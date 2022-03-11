@@ -437,6 +437,69 @@ class LevelSetParametrizer(ManifoldParametrizer):
         return super(LevelSetParametrizer, cls).__new__(cls, name, bases, attrs)
 
 
+class FiberBundleParametrizer(ManifoldParametrizer):
+    def __new__(cls, name, bases, attrs):
+        def test_riemannian_submersion_belongs_to_base(
+            self, bundle_args, point, belongs_atol
+        ):
+            bundle = self.bundle(*bundle_args)
+            base = bundle.base
+            result = base.belongs(bundle.riemannian_submersion(point), belongs_atol)
+            self.assertTrue(gs.all(result))
+
+        def test_lift_riemannian_submersion_composition(
+            self, bundle_args, point, rtol, atol
+        ):
+            bundle = self.bundle(*bundle_args)
+            result = bundle.riemannian_submersion(bundle.lift(point))
+            self.assertAllClose(result, point, rtol=rtol, atol=atol)
+
+        def test_tangent_riemannian_submersion_is_tangent_in_base(
+            self, bundle_args, tangent_vec, base_point, is_tangent_atol
+        ):
+            bundle = self.bundle(*bundle_args)
+            base = bundle.base
+            base_tangent_vec = bundle.tangent_riemannian_submersion(
+                tangent_vec, base_point
+            )
+            result = base.is_tangent(base_tangent_vec, is_tangent_atol)
+            self.assertTrue(gs.all(result))
+
+        def test_vertical_projection_is_kernel_of_riemannian_submersion(
+            self, bundle_args, tangent_vec, base_point, rtol, atol
+        ):
+            bundle = self.bundle(*bundle_args)
+            proj = bundle.vertical_projection(tangent_vec, base_point)
+            result = bundle.tangent_riemannian_submersion(proj, base_point)
+            expected = gs.zeros_like(tangent_vec)
+            self.assertAllClose(result, gs.array(expected), rtol=rtol, atol=atol)
+
+        def test_vertical_projection_is_vertical(
+            self, bundle_args, tangent_vec, base_point
+        ):
+            bundle = self.bundle(*bundle_args)
+            proj = bundle.vertical_projection(tangent_vec, base_point)
+            result = bundle.is_vertical(proj, base_point)
+            self.assertTrue(gs.all(result), gs.array(True))
+
+        def test_horizontal_projection_is_horizontal(
+            self, bundle_args, tangent_vec, base_point
+        ):
+            bundle = self.bundle(*bundle_args)
+            proj = bundle.horizontal_projection(tangent_vec, base_point)
+            result = bundle.is_horizontal(proj, base_point)
+            self.assertTrue(gs.all(result), gs.array(True))
+
+        def test_log_after_is_horizontal(
+            self, bundle_args, point_a, point_b, is_horizontal_atol
+        ):
+            bundle = self.bundle(*bundle_args)
+            aligned = bundle.align(point_a, point_b)
+            log = bundle.ambient_metric.log(aligned, point_b)
+            result = bundle.is_horizontal(log, point_b, atol=is_horizontal_atol)
+            self.assertAllClose(gs.all(result), gs.array(True))
+
+
 class ConnectionParametrizer(Parametrizer):
     def __new__(cls, name, bases, attrs):
         def test_exp_shape(self, connection_args, tangent_vec, base_point, expected):
