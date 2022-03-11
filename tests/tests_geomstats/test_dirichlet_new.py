@@ -493,6 +493,16 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def exp_and_log_composition_data(self):
+            random_data = [
+                dict(
+                    dim=3,
+                    base_point=self.space(3).random_point(),
+                    point=self.space(3).random_point(),
+                )
+            ]
+            return self.generate_tests([], random_data)
+
     testing_data = TestDataDirichletMetric()
 
     @geomstats.tests.np_autograd_and_torch_only
@@ -612,3 +622,10 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     def test_polynomial_init(self, dim, point_a, point_b, expected):
         result = self.metric(dim).dist(point_a, point_b, init="polynomial")
         self.assertAllClose(expected, result, atol=0, rtol=1e-1)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_exp_and_log_composition(self, dim, base_point, point):
+        log = self.metric(dim).log(point, base_point, n_steps=500)
+        expected = point
+        result = self.metric(dim).exp(tangent_vec=log, base_point=base_point)
+        self.assertAllClose(result, expected, rtol=1e-2)
