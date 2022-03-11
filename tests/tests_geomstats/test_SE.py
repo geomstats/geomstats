@@ -658,8 +658,11 @@ class TestInvariantMetricOnSE(
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_squared_dist_is_symmetric = True
-    skip_test_exp_log_composition = True
-    skip_test_log_exp_composition = True
+    # skip_test_exp_log_composition = True
+    # skip_test_log_exp_composition = True
+    skip_test_log_is_tangent = np_backend()
+    skip_test_geodesic_bvp_belongs = np_backend()
+    skip_test_test_exp_ladder_parallel_transport = np_backend()
 
     class TestDataSpecialEuclideanMatrixCanonicalRightMetric(RiemannianMetricTestData):
         n_list = random.sample(range(2, 4), 2)
@@ -751,9 +754,9 @@ class TestInvariantMetricOnSE(
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                amplitude=10.0,
-                rtol=gs.rtol * 10000,
-                atol=gs.atol * 10000,
+                amplitude=100.0,
+                rtol=gs.rtol * 1000,
+                atol=gs.atol * 1000,
             )
 
         def exp_ladder_parallel_transport_data(self):
@@ -811,8 +814,8 @@ class TestInvariantMetricOnSE(
 
     def test_right_exp_coincides(self, n, initial_vec):
         vector_group = SpecialEuclidean(n=n, point_type="vector")
-        initial_matrix_vec = self.group.lie_algebra.matrix_representation(initial_vec)
+        initial_matrix_vec = vector_group.lie_algebra.matrix_representation(initial_vec)
         vector_exp = vector_group.right_canonical_metric.exp(initial_vec)
-        result = self.group.right_canonical_metric.exp(initial_matrix_vec, n_steps=25)
+        result = vector_group.right_canonical_metric.exp(initial_matrix_vec, n_steps=25)
         expected = vector_group.matrix_from_vector(vector_exp)
         self.assertAllClose(result, expected, atol=1e-6)
