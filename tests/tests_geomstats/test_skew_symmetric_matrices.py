@@ -1,87 +1,112 @@
 """Unit tests for the skew symmetric matrices."""
+import random
 
 import geomstats.backend as gs
-import geomstats.tests
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
+from tests.conftest import TestCase
+from tests.data_generation import MatrixLieAlgebraTestData
+from tests.parametrizers import MatrixLieAlgebraParametrizer
 
 
-class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
-    def setup_method(self):
-        self.n_seq = [2, 3, 4, 5, 6, 7, 8, 9, 10]
-        self.skew = {n: SkewSymmetricMatrices(n=n) for n in self.n_seq}
+class TestSkewSymmetricMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer):
 
-    def test_basis_is_skew_symmetric(self):
-        result = []
-        for n in self.n_seq:
-            skew = self.skew[n]
-            result.append(gs.all(skew.belongs(skew.basis)))
-        result = gs.stack(result)
-        expected = gs.array([True] * len(self.n_seq))
-        self.assertAllClose(result, expected)
+    space = algebra = SkewSymmetricMatrices
 
-    def test_basis_has_the_right_dimension(self):
-        for n in self.n_seq:
-            skew = self.skew[n]
-            self.assertEqual(int(n * (n - 1) / 2), skew.dim)
+    class TestDataSkewSymmetricMatrices(MatrixLieAlgebraTestData):
+        n_list = random.sample(range(2, 5), 2)
+        space_args_list = [(n,) for n in n_list]
+        shape_list = [(n, n) for n in n_list]
+        n_samples_list = random.sample(range(2, 5), 2)
+        n_points_list = random.sample(range(2, 5), 2)
+        n_vecs_list = random.sample(range(2, 5), 2)
 
-    def test_bch_up_to_fourth_order_works(self):
-        for n in self.n_seq[1:]:
-            skew = self.skew[n]
-            first_base = skew.basis[0]
-            second_base = skew.basis[1]
+        def belongs_data(self):
+            smoke_data = [
+                dict(n=2, mat=[[0.0, -1.0], [1.0, 0.0]], expected=True),
+                dict(n=3, mat=[[0.0, -1.0], [1.0, 0.0]], expected=False),
+            ]
+            return self.generate_tests(smoke_data)
 
-            expected = first_base + second_base
-            result = skew.baker_campbell_hausdorff(first_base, second_base, order=1)
-            self.assertAllClose(expected, result)
+        def baker_campbell_hausdorff_data(self):
+            n_list = range(3, 10)
+            smoke_data = []
+            for n in n_list:
+                space = SkewSymmetricMatrices(n)
+                fb = space.basis[0]
+                sb = space.basis[1]
+                fb_sb_bracket = space.bracket(fb, sb)
+                expected1 = fb + sb
+                expected2 = expected1 + 0.5 * fb_sb_bracket
+                expected3 = (
+                    expected2
+                    + 1.0 / 12.0 * space.bracket(fb, fb_sb_bracket)
+                    - 1.0 / 12.0 * space.bracket(sb, fb_sb_bracket)
+                )
+                expected4 = expected3 - 1.0 / 24.0 * space.bracket(
+                    sb, space.bracket(fb, fb_sb_bracket)
+                )
+                expected = [expected1, expected2, expected3, expected4]
+                for order in range(1, 5):
+                    smoke_data.append(
+                        dict(
+                            n=n,
+                            matrix_a=fb,
+                            matrix_b=sb,
+                            order=order,
+                            expected=expected[order - 1],
+                        )
+                    )
 
-            lb_first_second = skew.bracket(first_base, second_base)
-            expected = expected + 0.5 * lb_first_second
-            result = skew.baker_campbell_hausdorff(first_base, second_base, order=2)
-            self.assertAllClose(expected, result)
+            return self.generate_tests(smoke_data)
 
-            expected = (
-                expected
-                + 1.0 / 12.0 * skew.bracket(first_base, lb_first_second)
-                - 1.0 / 12.0 * skew.bracket(second_base, lb_first_second)
+        def basis_representation_matrix_representation_composition_data(self):
+            return self._basis_representation_matrix_representation_composition_data(
+                SkewSymmetricMatrices, self.space_args_list, self.n_samples_list
             )
-            result = skew.baker_campbell_hausdorff(first_base, second_base, order=3)
-            self.assertAllClose(expected, result)
 
-            expected = expected - 1.0 / 24.0 * skew.bracket(
-                second_base, skew.bracket(first_base, lb_first_second)
+        def matrix_representation_basis_representation_composition_data(self):
+            return self._matrix_representation_basis_representation_composition_data(
+                SkewSymmetricMatrices, self.space_args_list, self.n_samples_list
             )
-            result = skew.baker_campbell_hausdorff(first_base, second_base, order=4)
-            self.assertAllClose(expected, result)
 
-    def test_basis_representation_is_correctly_vectorized(self):
-        for n in self.n_seq:
-            skew = self.skew[n]
-            shape = gs.shape(skew.basis_representation(skew.basis))
-            dim = int(n * (n - 1) / 2)
-            self.assertAllClose(shape, (dim, dim))
+        def basis_belongs_data(self):
+            return self._basis_belongs_data(self.space_args_list)
 
-    def test_matrix_and_basis_representation(self):
-        for n in self.n_seq:
-            skew = self.skew[n]
-            vec = gs.random.rand(skew.dim)
-            mat = skew.matrix_representation(vec)
-            result = skew.basis_representation(mat)
-            self.assertAllClose(result, vec)
+        def basis_cardinality_data(self):
+            return self._basis_cardinality_data(self.space_args_list)
 
-    def test_belongs(self):
-        mat = gs.array([[0.0, -1.0], [1.0, 0.0]])
-        result = self.skew[2].belongs(mat)
-        self.assertTrue(result)
+        def random_point_belongs_data(self):
+            smoke_space_args_list = [(2,), (3,)]
+            smoke_n_points_list = [1, 2]
+            return self._random_point_belongs_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+            )
 
-        mat = gs.array([[0.0, -1.0], [1.0, 0.0], [0.0, 0.0]])
-        result = self.skew[2].belongs(mat)
-        self.assertFalse(result)
+        def projection_belongs_data(self):
+            return self._projection_belongs_data(
+                self.space_args_list, self.shape_list, self.n_samples_list
+            )
 
-        result = self.skew[3].belongs(mat)
-        self.assertFalse(result)
+        def to_tangent_is_tangent_data(self):
+            return self._to_tangent_is_tangent_data(
+                SkewSymmetricMatrices,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
 
-    def test_random_point_and_belongs(self):
-        skew = self.skew[3]
-        matrices = skew.random_point(4)
-        result = skew.belongs(matrices)
-        self.assertTrue(gs.all(result))
+    testing_data = TestDataSkewSymmetricMatrices()
+
+    def test_belongs(self, n, mat, expected):
+        skew = self.space(n)
+        self.assertAllClose(skew.belongs(gs.array(mat)), gs.array(expected))
+
+    def test_baker_campbell_hausdorff(self, n, matrix_a, matrix_b, order, expected):
+        skew = SkewSymmetricMatrices(n)
+        result = skew.baker_campbell_hausdorff(
+            gs.array(matrix_a), gs.array(matrix_b), order=order
+        )
+        self.assertAllClose(result, gs.array(expected))

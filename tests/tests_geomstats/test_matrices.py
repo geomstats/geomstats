@@ -6,8 +6,8 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from tests.conftest import TestCase
-from tests.data_generation import TestData
-from tests.parametrizers import Parametrizer
+from tests.data_generation import RiemannianMetricTestData, VectorSpaceTestData
+from tests.parametrizers import RiemannianMetricParametrizer, VectorSpaceParametrizer
 
 SQRT_2 = math.sqrt(2)
 
@@ -26,8 +26,18 @@ MAT7_33 = [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [8.0, -1.0, 0.0]]
 MAT8_33 = [[0.0, 3.0, 4.0], [0.0, 0.0, 6.0], [0.0, 0.0, 0.0]]
 
 
-class TestMatrices(TestCase, metaclass=Parametrizer):
-    class TestDataMatrices(TestData):
+class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
+    space = Matrices
+
+    class TestDataMatrices(VectorSpaceTestData):
+        m_list = random.sample(range(3, 5), 2)
+        n_list = random.sample(range(3, 5), 2)
+        space_args_list = list(zip(m_list, n_list))
+        shape_list = space_args_list
+        n_samples_list = random.sample(range(2, 5), 2)
+        n_points_list = random.sample(range(2, 5), 2)
+        n_vecs_list = random.sample(range(2, 5), 2)
+
         def belongs_data(self):
             sq_mat = EYE_2
             smoke_data = [
@@ -440,7 +450,7 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
                 "strictly_lower_triangular",
                 "strictly_upper_triangular",
             ]
-            list_n = random.sample(range(1, 200), 50)
+            list_n = random.sample(range(1, 100), 50)
             n_samples = 50
             random_data = []
             for matrix_type in matrix_types:
@@ -448,6 +458,67 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
                     mat = gs.random.normal(size=(n_samples, n, n))
                     random_data += [dict(m=n, n=n, matrix_type=matrix_type, mat=mat)]
             return self.generate_tests([], random_data)
+
+        def basis_belongs_data(self):
+            return self._basis_belongs_data(self.space_args_list)
+
+        def basis_cardinality_data(self):
+            return self._basis_cardinality_data(self.space_args_list)
+
+        def random_point_belongs_data(self):
+            smoke_space_args_list = [(2, 2), (3, 2)]
+            smoke_n_points_list = [1, 2]
+            belongs_atol = gs.atol * 10000
+            return self._random_point_belongs_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+                belongs_atol,
+            )
+
+        def projection_belongs_data(self):
+            belongs_atol = gs.atol * 1000
+            return self._projection_belongs_data(
+                self.space_args_list, self.shape_list, self.n_samples_list, belongs_atol
+            )
+
+        def to_tangent_is_tangent_data(self):
+            is_tangent_atol = gs.atol * 1000
+            return self._to_tangent_is_tangent_data(
+                Matrices,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+                is_tangent_atol,
+            )
+
+        def basis_data(self):
+            smoke_data = [
+                dict(
+                    n=2,
+                    m=2,
+                    expected=gs.array(
+                        [
+                            gs.array_from_sparse([(i, j)], [1], (2, 2))
+                            for i in range(2)
+                            for j in range(2)
+                        ]
+                    ),
+                ),
+                dict(
+                    n=2,
+                    m=3,
+                    expected=gs.array(
+                        [
+                            gs.array_from_sparse([(i, j)], [1], (2, 3))
+                            for i in range(2)
+                            for j in range(3)
+                        ]
+                    ),
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
     testing_data = TestDataMatrices()
 
@@ -584,11 +655,33 @@ class TestMatrices(TestCase, metaclass=Parametrizer):
         is_function = getattr(cls_mn, "is_" + matrix_type)
         self.assertAllClose(gs.all(is_function(to_function(gs.array(mat)))), True)
 
+    def test_basis(self, m, n, expected):
+        result = Matrices(m, n).basis
+        self.assertAllClose(result, expected)
 
-class TestMatricesMetric(TestCase, metaclass=Parametrizer):
-    cls = MatricesMetric
 
-    class TestDataMatricesMetric(TestData):
+class TestMatricesMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+    metric = connection = MatricesMetric
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_exp_geodesic_ivp = True
+
+    class TestDataMatricesMetric(RiemannianMetricTestData):
+        m_list = random.sample(range(3, 5), 2)
+        n_list = random.sample(range(3, 5), 2)
+        metric_args_list = list(zip(m_list, n_list))
+        space_args_list = metric_args_list
+        shape_list = space_args_list
+        space_list = [Matrices(m, n) for m, n in metric_args_list]
+        n_points_list = random.sample(range(1, 7), 5)
+        n_samples_list = random.sample(range(1, 7), 5)
+        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_b_list = [1]
+        batch_size_list = random.sample(range(2, 7), 5)
+        alpha_list = [1] * 5
+        n_rungs_list = [1] * 5
+        scheme_list = ["pole"] * 5
+
         def inner_product_data(self):
             smoke_data = [
                 dict(
@@ -633,21 +726,142 @@ class TestMatricesMetric(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
+            )
+
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
+            )
+
+        def squared_dist_is_symmetric_data(self):
+            return self._squared_dist_is_symmetric_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
+
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=gs.rtol * 100000,
+                atol=gs.atol * 100000,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
     testing_data = TestDataMatricesMetric()
 
     def test_inner_product(self, m, n, tangent_vec_a, tangent_vec_b, expected):
         self.assertAllClose(
-            self.cls(m, n).inner_product(
+            self.metric(m, n).inner_product(
                 gs.array(tangent_vec_a), gs.array(tangent_vec_b)
             ),
             gs.array(expected),
         )
 
     def test_norm(self, m, n, vector, expected):
-        self.assertAllClose(self.cls(m, n).norm(gs.array(vector)), gs.array(expected))
+        self.assertAllClose(
+            self.metric(m, n).norm(gs.array(vector)), gs.array(expected)
+        )
 
     def test_inner_product_norm(self, m, n, mat):
         self.assertAllClose(
-            self.cls(m, n).inner_product(mat, mat),
-            gs.power(self.cls(m, n).norm(mat), 2),
+            self.metric(m, n).inner_product(mat, mat),
+            gs.power(self.metric(m, n).norm(mat), 2),
         )

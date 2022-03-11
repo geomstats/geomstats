@@ -1,17 +1,26 @@
 """Unit tests for full rank matrices."""
+import random
 
 import geomstats.backend as gs
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from tests.conftest import TestCase
-from tests.data_generation import TemporaryTestData
-from tests.parametrizers import Parametrizer
+from tests.data_generation import OpenSetTestData
+from tests.parametrizers import OpenSetParametrizer
 
 
-class TestFullRankMatrices(TestCase, metaclass=Parametrizer):
+class TestFullRankMatrices(TestCase, metaclass=OpenSetParametrizer):
 
-    cls = FullRankMatrices
+    space = FullRankMatrices
 
-    class TestDataFullRankMatrices(TemporaryTestData):
+    class TestDataFullRankMatrices(OpenSetTestData):
+        m_list = random.sample(range(3, 5), 2)
+        n_list = random.sample(range(3, 5), 2)
+        space_args_list = list(zip(m_list, n_list))
+        shape_list = space_args_list
+        n_samples_list = random.sample(range(2, 5), 2)
+        n_points_list = random.sample(range(2, 5), 2)
+        n_vecs_list = random.sample(range(2, 5), 2)
+
         def belongs_data(self):
             smoke_data = [
                 dict(
@@ -30,36 +39,35 @@ class TestFullRankMatrices(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def random_and_belongs_data(self):
-            smoke_data = [
-                dict(m=1, n=1, n_points=1),
-                dict(m=1, n=1, n_points=1000),
-                dict(m=2, n=2, n_points=1),
-                dict(m=2, n=2, n_points=100),
-                dict(m=10, n=5, n_points=100),
-            ]
-            return self.generate_tests(smoke_data)
+        def random_point_belongs_data(self):
+            smoke_space_args_list = [(2, 2), (3, 2)]
+            smoke_n_points_list = [1, 2]
+            return self._random_point_belongs_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+            )
 
-        def projection_and_belongs_data(self):
-            shapes = [(1, 1), (1, 1), (1, 10), (2, 2), (10, 5), (15, 15)]
-            sizes = [1, 10, 1, 1, 100, 10]
-            random_data = [
-                dict(m=m, n=n, mats=gs.random.normal(size=(size, m, n)))
-                for (m, n), size in zip(shapes, sizes)
-            ]
+        def projection_belongs_data(self):
+            return self._projection_belongs_data(
+                self.space_args_list, self.shape_list, self.n_samples_list
+            )
 
-            return self.generate_tests([], random_data)
+        def to_tangent_is_tangent_data(self):
+            return self._to_tangent_is_tangent_data(
+                FullRankMatrices,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
+
+        def to_tangent_is_tangent_in_ambient_space_data(self):
+            return self._to_tangent_is_tangent_in_ambient_space_data(
+                FullRankMatrices, self.space_args_list, self.shape_list
+            )
 
     testing_data = TestDataFullRankMatrices()
 
     def test_belongs(self, m, n, mat, expected):
-        self.assertAllClose(self.cls(m, n).belongs(gs.array(mat)), gs.array(expected))
-
-    def test_random_and_belongs(self, m, n, n_points):
-        cls = self.cls(m, n)
-        self.assertAllClose(
-            gs.all(cls.belongs(cls.random_point(n_points))), gs.array(True)
-        )
-
-    def test_projection_and_belongs(self, m, n, mat):
-        self.assertAllClose(gs.all(self.cls(m, n).belongs(mat)), True)
+        self.assertAllClose(self.space(m, n).belongs(gs.array(mat)), gs.array(expected))
