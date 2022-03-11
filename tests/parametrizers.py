@@ -499,6 +499,26 @@ class FiberBundleParametrizer(ManifoldParametrizer):
             result = bundle.is_horizontal(log, point_b, atol=is_horizontal_atol)
             self.assertAllClose(gs.all(result), gs.array(True))
 
+        attrs[
+            test_riemannian_submersion_belongs_to_base.__name__
+        ] = test_riemannian_submersion_belongs_to_base
+        attrs[
+            test_lift_riemannian_submersion_composition.__name__
+        ] = test_lift_riemannian_submersion_composition
+        attrs[
+            test_tangent_riemannian_submersion_is_tangent_in_base.__name__
+        ] = test_tangent_riemannian_submersion_is_tangent_in_base
+        attrs[
+            test_vertical_projection_is_kernel_of_riemannian_submersion.__name__
+        ] = test_vertical_projection_is_kernel_of_riemannian_submersion
+        attrs[
+            test_vertical_projection_is_vertical.__name__
+        ] = test_vertical_projection_is_vertical
+        attrs[
+            test_horizontal_projection_is_horizontal.__name__
+        ] = test_horizontal_projection_is_horizontal
+        attrs[test_log_after_is_horizontal.__name__] = test_log_after_is_horizontal
+
 
 class ConnectionParametrizer(Parametrizer):
     def __new__(cls, name, bases, attrs):
