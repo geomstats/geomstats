@@ -1,10 +1,12 @@
 """Unit tests for the Grassmannian."""
+import random
 
 import geomstats.backend as gs
-import geomstats.tests
-import tests.helper as helper
 from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
 from geomstats.geometry.matrices import Matrices
+from tests.conftest import TestCase
+from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
+from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
 
 p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
 p_yz = gs.array([[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
@@ -16,101 +18,231 @@ pi_2 = gs.pi / 2
 pi_4 = gs.pi / 4
 
 
-class TestGrassmannian(geomstats.tests.TestCase):
-    def setup_method(self):
-        gs.random.seed(1234)
+class TestGrassmannian(TestCase, metaclass=LevelSetParametrizer):
+    space = Grassmannian
+    skip_test_extrinsic_intrinsic_composition = True
+    skip_test_intrinsic_extrinsic_composition = True
 
-        self.n = 3
-        self.k = 2
-        self.space = Grassmannian(self.n, self.k)
-        self.metric = GrassmannianCanonicalMetric(self.n, self.k)
+    class TestDataGrassmannian(LevelSetTestData):
+        n_list = random.sample(range(3, 6), 2)
+        k_list = [random.sample(range(2, n), 1)[0] for n in n_list]
+        space_args_list = list(zip(n_list, k_list))
+        n_points_list = random.sample(range(1, 5), 2)
+        shape_list = [(n, n) for n in n_list]
+        n_vecs_list = random.sample(range(1, 5), 2)
+        n_samples_list = random.sample(range(1, 5), 2)
 
-    def test_exp_np(self):
-        vec = Matrices.bracket(pi_2 * r_y, gs.array([p_xy, p_yz]))
-        result = self.metric.exp(vec, gs.array([p_xy, p_yz]))
-        expected = gs.array([p_yz, p_xy])
-        self.assertAllClose(result, expected)
+        def belongs_data(self):
+            smoke_data = [
+                dict(n=3, k=2, point=p_xy, expected=True),
+                dict(n=3, k=2, point=gs.array([p_yz, p_xz]), expected=[True, True]),
+            ]
+            return self.generate_tests(smoke_data)
 
-        vec = Matrices.bracket(pi_2 * gs.array([r_y, r_z]), gs.array([p_xy, p_yz]))
-        result = self.metric.exp(vec, gs.array([p_xy, p_yz]))
-        expected = gs.array([p_yz, p_xz])
-        self.assertAllClose(result, expected)
+        def random_point_belongs_data(self):
+            smoke_space_args_list = [(3, 2), (4, 2)]
+            smoke_n_points_list = [1, 2]
+            return self._random_point_belongs_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+                1e-3,
+            )
 
-    def test_log(self):
-        expected = Matrices.bracket(pi_4 * r_y, p_xy)
-        result = self.metric.log(self.metric.exp(expected, p_xy), p_xy)
-        self.assertTrue(self.space.is_tangent(result, p_xy))
-        self.assertAllClose(result, expected)
+        def to_tangent_is_tangent_data(self):
 
-    def test_log_vectorized(self):
-        tangent_vecs = pi_4 * gs.array([r_y, r_z])
-        base_points = gs.array([p_xy, p_xz])
-        points = self.metric.exp(tangent_vecs, base_points)
-        result = self.metric.log(points, base_points)
-        expected = tangent_vecs
-        self.assertAllClose(result, expected)
+            is_tangent_atol = gs.atol * 1000
+            return self._to_tangent_is_tangent_data(
+                Grassmannian,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+                is_tangent_atol,
+            )
 
-    def test_belongs(self):
-        point = p_xy
-        result = self.space.belongs(point)
-        self.assertTrue(result)
+        def projection_belongs_data(self):
+            return self._projection_belongs_data(
+                self.space_args_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
+            )
 
-        point = gs.array([p_yz, p_xz])
-        result = self.space.belongs(point)
-        self.assertTrue(gs.all(result))
+    testing_data = TestDataGrassmannian()
 
-        not_a_point = gs.random.rand(3, 2)
-        result = self.space.belongs(not_a_point)
-        self.assertTrue(~result)
+    def test_belongs(self, n, k, point, expected):
+        self.assertAllClose(self.space(n, k).belongs(point), gs.array(expected))
 
-        not_a_point = gs.random.rand(3, 3)
-        result = self.space.belongs(not_a_point)
-        self.assertTrue(~result)
 
-        point = gs.array([p_xy, not_a_point])
-        result = self.space.belongs(point)
-        expected = gs.array([True, False])
-        self.assertAllClose(result, expected)
+class TestGrassmannianCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+    metric = connection = GrassmannianCanonicalMetric
+    skip_test_exp_log_composition = True
+    skip_test_exp_geodesic_ivp = True
 
-    def test_random_and_belongs(self):
-        point = self.space.random_uniform()
-        result = self.space.belongs(point)
-        self.assertTrue(result)
+    class TestDataGrassmannianCanonicalMetric(RiemannianMetricTestData):
+        n_list = random.sample(range(3, 5), 2)
+        k_list = [random.sample(range(2, n), 1)[0] for n in n_list]
+        metric_args_list = list(zip(n_list, k_list))
+        shape_list = [(n, n) for n in n_list]
+        space_list = [Grassmannian(n, p) for n, p in metric_args_list]
+        n_points_list = random.sample(range(1, 5), 2)
+        n_points_a_list = random.sample(range(1, 5), 2)
+        n_points_b_list = [1]
+        n_tangent_vecs_list = random.sample(range(1, 5), 2)
+        n_directions_list = random.sample(range(1, 5), 2)
+        n_end_points_list = random.sample(range(1, 5), 2)
+        n_t_list = random.sample(range(1, 5), 2)
+        batch_size_list = random.sample(range(2, 5), 2)
+        n_samples_list = random.sample(range(2, 5), 2)
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
 
-        expected = (self.n,) * 2
-        result_shape = point.shape
-        self.assertAllClose(result_shape, expected)
+        def exp_data(self):
+            smoke_data = [
+                dict(
+                    n=3,
+                    k=2,
+                    tangent_vec=Matrices.bracket(pi_2 * r_y, gs.array([p_xy, p_yz])),
+                    base_point=gs.array([p_xy, p_yz]),
+                    expected=gs.array([p_yz, p_xy]),
+                ),
+                dict(
+                    n=3,
+                    k=2,
+                    tangent_vec=Matrices.bracket(
+                        pi_2 * gs.array([r_y, r_z]), gs.array([p_xy, p_yz])
+                    ),
+                    base_point=gs.array([p_xy, p_yz]),
+                    expected=gs.array([p_yz, p_xz]),
+                ),
+            ]
+            return self.generate_tests(smoke_data)
 
-        n_samples = 5
-        points = self.space.random_uniform(n_samples)
-        result = gs.all(self.space.belongs(points))
-        self.assertTrue(result)
+        def exp_shape_data(self):
+            return self._exp_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.batch_size_list,
+            )
 
-        expected = (n_samples,) + (self.n,) * 2
-        result_shape = points.shape
-        self.assertAllClose(result_shape, expected)
+        def log_shape_data(self):
+            return self._log_shape_data(
+                self.metric_args_list,
+                self.space_list,
+                self.batch_size_list,
+            )
 
-    def test_is_to_tangent(self):
-        base_point = self.space.random_uniform()
-        vector = gs.random.rand(self.n, self.n)
-        tangent_vec = self.space.to_tangent(vector, base_point)
-        result = self.space.is_tangent(tangent_vec, base_point)
-        self.assertTrue(result)
+        def squared_dist_is_symmetric_data(self):
+            return self._squared_dist_is_symmetric_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
 
-        reprojected = self.space.to_tangent(tangent_vec, base_point)
-        self.assertAllClose(tangent_vec, reprojected)
+        def exp_belongs_data(self):
+            return self._exp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
+            )
 
-    def test_projection_and_belongs(self):
-        shape = (2, self.n, self.n)
-        result = helper.test_projection_and_belongs(self.space, shape)
-        for res in result:
-            self.assertTrue(res)
+        def log_is_tangent_data(self):
+            return self._log_is_tangent_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
 
-    def test_parallel_transport(self):
-        space = self.space
-        metric = self.metric
-        shape = (2, space.n, space.n)
+        def geodesic_ivp_belongs_data(self):
+            return self._geodesic_ivp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 10000,
+            )
 
-        result = helper.test_parallel_transport(space, metric, shape)
-        for res in result:
-            self.assertTrue(res)
+        def geodesic_bvp_belongs_data(self):
+            return self._geodesic_bvp_belongs_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 10000,
+            )
+
+        def log_exp_composition_data(self):
+            return self._log_exp_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_log_composition_data(self):
+            return self._exp_log_composition_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_ladder_parallel_transport_data(self):
+            return self._exp_ladder_parallel_transport_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_data(self):
+            return self._exp_geodesic_ivp_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                self.n_points_list,
+                rtol=gs.rtol * 10000,
+                atol=gs.atol * 10000,
+            )
+
+        def parallel_transport_ivp_is_isometry_data(self):
+            return self._parallel_transport_ivp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_data(self):
+            return self._parallel_transport_bvp_is_isometry_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_samples_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+    testing_data = TestDataGrassmannianCanonicalMetric()
+
+    def test_exp(self, n, k, tangent_vec, base_point, expected):
+        self.assertAllClose(
+            self.metric(n, k).exp(gs.array(tangent_vec), gs.array(base_point)),
+            gs.array(expected),
+        )

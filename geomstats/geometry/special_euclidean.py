@@ -333,7 +333,13 @@ class _SpecialEuclideanVectors(LieGroup):
 
     def __init__(self, n, epsilon=0.0):
         dim = n * (n + 1) // 2
-        LieGroup.__init__(self, dim=dim, shape=(dim,), default_point_type="vector")
+        LieGroup.__init__(
+            self,
+            dim=dim,
+            shape=(dim,),
+            default_point_type="vector",
+            lie_algebra=Euclidean(dim),
+        )
 
         self.n = n
         self.epsilon = epsilon
@@ -369,7 +375,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dimension]
+        point : array-like, shape=[..., dim]
             Point to check.
 
         Returns
@@ -385,23 +391,40 @@ class _SpecialEuclideanVectors(LieGroup):
         )
         return belongs
 
+    def projection(self, point):
+        """Project a point to the group.
+
+        The point is regularized, so that the norm of the rotation part lie in [0, pi).
+
+        Parameters
+        ----------
+        point: array-like, shape[..., dim]
+            Point.
+
+        Returns
+        -------
+        projected: array-like, shape[..., dim]
+            Regularized point.
+        """
+        return self.regularize(point)
+
     def regularize(self, point):
         """Regularize a point to the default representation for SE(n).
 
         Parameters
         ----------
-        point : array-like, shape=[..., 3]
+        point : array-like, shape=[..., dim]
             Point to regularize.
 
         Returns
         -------
-        point : array-like, shape=[..., 3]
+        point : array-like, shape=[..., dim]
             Regularized point.
         """
         rotations = self.rotations
         dim_rotations = rotations.dim
 
-        regularized_point = point
+        regularized_point = gs.copy(point)
         rot_vec = regularized_point[..., :dim_rotations]
         regularized_rot_vec = rotations.regularize(rot_vec)
 
@@ -415,7 +438,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[..., 3]
+        tangent_vec: array-like, shape=[..., dim]
             Tangent vector at base point.
         metric : RiemannianMetric
             Metric.
@@ -423,7 +446,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Returns
         -------
-        regularized_vec : array-like, shape=[..., 3]
+        regularized_vec : array-like, shape=[..., dim]
             Regularized vector.
         """
         return self.regularize_tangent_vec(tangent_vec, self.identity, metric)
@@ -434,7 +457,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Parameters
         ----------
-        vec : array-like, shape=[..., dimension]
+        vec : array-like, shape=[..., dim]
             Vector.
 
         Returns
@@ -461,9 +484,9 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Parameters
         ----------
-        point_a : array-like, shape=[..., dimension]
+        point_a : array-like, shape=[..., dim]
             Point of the group.
-        point_b : array-like, shape=[..., dimension]
+        point_b : array-like, shape=[..., dim]
             Point of the group.
 
         Equation
@@ -472,7 +495,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Returns
         -------
-        composition : array-like, shape=[..., dimension]
+        composition : array-like, shape=[..., dim]
             Composition of point_a and point_b.
         """
         rotations = self.rotations
@@ -508,12 +531,12 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Parameters
         ----------
-        point: array-like, shape=[..., dimension]
+        point: array-like, shape=[..., dim]
             Point.
 
         Returns
         -------
-        inverse_point : array-like, shape=[..., dimension]
+        inverse_point : array-like, shape=[..., dim]
             Inverted point.
 
         Notes
@@ -612,7 +635,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Returns
         -------
-        random_point : array-like, shape=[..., dimension]
+        random_point : array-like, shape=[..., dim]
             Sample.
         """
         random_translation = self.translations.random_point(n_samples, bound)
@@ -1287,6 +1310,10 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
         super(SpecialEuclideanMatrixLieAlgebra, self).__init__(dim, n)
 
         self.skew = SkewSymmetricMatrices(n)
+
+    def _create_basis(self):
+        """Create the canonical basis."""
+        n = self.n
         basis = homogeneous_representation(
             self.skew.basis,
             gs.zeros((self.skew.dim, n)),
@@ -1297,7 +1324,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
 
         for row in gs.arange(n):
             basis.append(gs.array_from_sparse([(row, n)], [1.0], (n + 1, n + 1)))
-        self.basis = gs.stack(basis)
+        return gs.stack(basis)
 
     def belongs(self, mat, atol=ATOL):
         """Evaluate if the rotation part of mat is a skew-symmetric matrix.

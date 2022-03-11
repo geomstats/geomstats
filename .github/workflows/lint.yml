@@ -7,7 +7,7 @@ on:
     branches: [master]
 
 jobs:
-  build:
+  lint:
 
     runs-on: ${{matrix.os}}
     strategy:
@@ -31,11 +31,14 @@ jobs:
           done
           pip install -e .
 
+      - name: Setup flake8 annotations
+        uses: rbialon/flake8-annotations@v1
+      
+      - name: linting [flake8]
+        run: |
+          flake8 geomstats/ tests/
+
       - name : linting [black and isort]
         run: |
           black . --check
           isort --profile black --check .
-
-      - name: linting [flake8]
-        run: |
-          flake8 geomstats/ tests/

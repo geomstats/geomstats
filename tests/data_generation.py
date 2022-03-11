@@ -138,6 +138,7 @@ class ManifoldTestData(TestData):
             Absolute tolerance for the is_tangent function.
         """
         random_data = []
+
         for space_args, shape, n_vecs in zip(space_args_list, shape_list, n_vecs_list):
             space = space_cls(*space_args)
             vec = gs.random.normal(size=(n_vecs,) + shape)
@@ -182,7 +183,7 @@ class OpenSetTestData(ManifoldTestData):
 
 class LevelSetTestData(ManifoldTestData):
     def _extrinsic_intrinsic_composition_data(
-        self, space_cls, space_args_list, n_samples_list
+        self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinate system twice gives back the point.
 
@@ -196,40 +197,72 @@ class LevelSetTestData(ManifoldTestData):
             Arguments to pass to constructor of the manifold.
         n_samples_list : list
             List of number of extrinsic points to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
         """
         random_data = [
             dict(
                 space_args=space_args,
-                point_extrinsic=space_cls(*space_args).random_point(n_samples),
+                point_extrinsic=space_cls(
+                    *space_args, default_coords_type="extrinsic"
+                ).random_point(n_samples),
+                rtol=rtol,
+                atol=atol,
             )
             for space_args, n_samples in zip(space_args_list, n_samples_list)
         ]
         return self.generate_tests([], random_data)
 
-    def _intrinsic_extrinsic_composition_data(self, space_args_list, n_samples_list):
+    def _intrinsic_extrinsic_composition_data(
+        self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
+    ):
         """Generate data to check that changing coordinate system twice gives back the point.
 
         Assumes that the first elements in space_args is the dimension of the space.
 
         Parameters
         ----------
+        space_cls : Manifold
+            Class of the space, i.e. a child class of Manifold.
         space_args_list : list
             Arguments to pass to constructor of the manifold.
         n_samples_list : list
             List of number of intrinsic points to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
         """
-        random_data = [
-            dict(
-                space_args=space_args,
-                point_intrinsic=gs.random.normal(size=(n_samples,) + space_args[0]),
+        random_data = []
+        for space_args, n_samples in zip(space_args_list, n_samples_list):
+
+            space = space_cls(*space_args, default_coords_type="intrinsic")
+            point_intrinic = space.random_point(n_samples)
+            random_data.append(
+                dict(
+                    space_args=space_args,
+                    point_intrinic=point_intrinic,
+                    rtol=rtol,
+                    atol=atol,
+                )
             )
-            for space_args, n_samples in zip(space_args_list, n_samples_list)
-        ]
         return self.generate_tests([], random_data)
 
 
 class LieGroupTestData(ManifoldTestData):
-    def _exp_log_composition_data(self, group_cls, group_args_list, n_samples_list):
+    def _exp_log_composition_data(
+        self,
+        group_cls,
+        group_args_list,
+        shape_list,
+        n_samples_list,
+        smoke_data=None,
+        amplitude=1.0,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
         """Generate data to check that group exponential and logarithm are inverse.
 
         Parameters
@@ -241,17 +274,38 @@ class LieGroupTestData(ManifoldTestData):
         n_samples_list : list
             List of number of points and tangent vectors to generate.
         """
-        random_data = [
-            dict(
-                group_args=group_args,
-                tangent_vec=group_cls(*group_args).random_tangent_vec(n_samples),
-                base_point=group_cls(*group_args).random_point(n_samples),
-            )
-            for group_args, n_samples in zip(group_args_list, n_samples_list)
-        ]
-        return self.generate_tests([], random_data)
+        random_data = []
+        for group_args, shape, n_samples in zip(
+            group_args_list, shape_list, n_samples_list
+        ):
+            group = group_cls(*group_args)
+            for base_point in [group.random_point(), group.identity]:
+                tangent_vec = group.to_tangent(
+                    gs.random.normal(size=(n_samples,) + shape) / amplitude, base_point
+                )
+                random_data.append(
+                    dict(
+                        group_args=group_args,
+                        tangent_vec=tangent_vec,
+                        base_point=base_point,
+                        rtol=rtol,
+                        atol=atol,
+                    )
+                )
 
-    def _log_exp_composition_data(self, group_cls, group_args_list, n_samples_list):
+        if smoke_data is None:
+            smoke_data = []
+        return self.generate_tests(smoke_data, random_data)
+
+    def _log_exp_composition_data(
+        self,
+        group_cls,
+        group_args_list,
+        n_samples_list,
+        smoke_data=None,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
         """Generate data to check that group logarithm and exponential are inverse.
 
         Parameters
@@ -263,15 +317,23 @@ class LieGroupTestData(ManifoldTestData):
         n_samples_list : list
             List of number of points and tangent vectors to generate.
         """
-        random_data = [
-            dict(
-                group_args=group_args,
-                tangent_vec=group_cls(group_args).random_tangent_vec(n_samples),
-                base_point=group_cls(group_args).random_point(n_samples),
-            )
-            for group_args, n_samples in zip(group_args_list, n_samples_list)
-        ]
-        return self.generate_tests([], random_data)
+        random_data = []
+        for group_args, n_samples in zip(group_args_list, n_samples_list):
+            group = group_cls(*group_args)
+            for base_point in [group.random_point(), group.identity]:
+                point = group.random_point(n_samples)
+                random_data.append(
+                    dict(
+                        group_args=group_args,
+                        point=point,
+                        base_point=base_point,
+                        rtol=rtol,
+                        atol=atol,
+                    )
+                )
+        if smoke_data is None:
+            smoke_data = []
+        return self.generate_tests(smoke_data, random_data)
 
 
 class VectorSpaceTestData(ManifoldTestData):
@@ -590,6 +652,7 @@ class ConnectionTestData(TestData):
         connection_args_list,
         space_list,
         n_samples_list,
+        smoke_data=None,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
@@ -619,7 +682,9 @@ class ConnectionTestData(TestData):
                     atol=atol,
                 )
             )
-        return self.generate_tests([], random_data)
+        if smoke_data is None:
+            smoke_data = []
+        return self.generate_tests(smoke_data, random_data)
 
     def _exp_log_composition_data(
         self,
@@ -627,6 +692,8 @@ class ConnectionTestData(TestData):
         space_list,
         shape_list,
         n_samples_list,
+        smoke_data=None,
+        amplitude=1.0,
         rtol=gs.rtol,
         atol=gs.atol,
     ):
@@ -642,6 +709,9 @@ class ConnectionTestData(TestData):
             List of shapes for random data to generate.
         n_samples_list : list
             List of number of random data to generate.
+        amplitude : float
+            Factor to scale the amplitude of a tangent vector to stay in the
+            injectivity domain of the exponential map.
         """
         random_data = []
         for connection_args, space, shape, n_samples in zip(
@@ -649,7 +719,7 @@ class ConnectionTestData(TestData):
         ):
             base_point = space.random_point()
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_samples,) + shape), base_point
+                gs.random.normal(size=(n_samples,) + shape) / amplitude, base_point
             )
             random_data.append(
                 dict(
@@ -660,7 +730,9 @@ class ConnectionTestData(TestData):
                     atol=atol,
                 )
             )
-        return self.generate_tests([], random_data)
+        if smoke_data is None:
+            smoke_data = []
+        return self.generate_tests(smoke_data, random_data)
 
     def _exp_ladder_parallel_transport_data(
         self,
