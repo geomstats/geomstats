@@ -13,17 +13,17 @@ from tests.parametrizers import Parametrizer
 
 class TestLieAlgebra(TestCase, metaclass=Parametrizer):
     class TestDataLieAlgebra(TestData):
-        def dimension_data(self):
+        def dimension_test_data(self):
             smoke_data = [dict(algebra=SkewSymmetricMatrices(4), expected=6)]
             return self.generate_tests(smoke_data)
 
-        def matrix_representation_and_belongs_data(self):
+        def matrix_representation_and_belongs_test_data(self):
             smoke_data = [
                 dict(algebra=SkewSymmetricMatrices(4), point=gs.random.rand(2, 6))
             ]
             return self.generate_tests(smoke_data)
 
-        def orthonormal_basis_data(self):
+        def orthonormal_basis_test_data(self):
             smoke_data = [
                 dict(group=SpecialOrthogonal(3), metric_mat_at_identity=None),
                 dict(
@@ -35,7 +35,7 @@ class TestLieAlgebra(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def orthonormal_basis_se3_data(self):
+        def orthonormal_basis_se3_test_data(self):
             smoke_data = [
                 dict(group=SpecialEuclidean(3), metric_mat_at_identity=None),
                 dict(

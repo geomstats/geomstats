@@ -55,16 +55,16 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
     bundle = BuresWassersteinBundle
     base_metric = SPDMetricBuresWasserstein
 
-    class TestDataQuotientMetric(TestData):
-        def riemannian_submersion_data(self):
+    class QuotientMetricTestData(TestData):
+        def riemannian_submersion_test_data(self):
             random_data = [dict(n=2, mat=BuresWassersteinBundle(2).random_point())]
             return self.generate_tests([], random_data)
 
-        def lift_and_riemannian_submersion_data(self):
+        def lift_and_riemannian_submersion_test_data(self):
             random_data = [dict(n=2, mat=BuresWassersteinBundle(2).base.random_point())]
             return self.generate_tests([], random_data)
 
-        def tangent_riemannian_submersion_data(self):
+        def tangent_riemannian_submersion_test_data(self):
             random_data = [
                 dict(
                     n=2,
@@ -74,25 +74,25 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def horizontal_projection_data(self):
-            return self.tangent_riemannian_submersion_data()
+        def horizontal_projection_test_data(self):
+            return self.tangent_riemannian_submersion_test_data()
 
-        def vertical_projection_data(self):
-            return self.tangent_riemannian_submersion_data()
+        def vertical_projection_test_data(self):
+            return self.tangent_riemannian_submersion_test_data()
 
-        def horizontal_lift_and_tangent_riemannian_submersion_data(self):
-            return self.tangent_riemannian_submersion_data()
+        def horizontal_lift_and_tangent_riemannian_submersion_test_data(self):
+            return self.tangent_riemannian_submersion_test_data()
 
-        def is_horizontal_data(self):
-            return self.tangent_riemannian_submersion_data()
+        def is_horizontal_test_data(self):
+            return self.tangent_riemannian_submersion_test_data()
 
-        def is_vertical_data(self):
-            return self.tangent_riemannian_submersion_data()
+        def is_vertical_test_data(self):
+            return self.tangent_riemannian_submersion_test_data()
 
-        def align_data(self):
-            return self.tangent_riemannian_submersion_data()
+        def align_test_data(self):
+            return self.tangent_riemannian_submersion_test_data()
 
-        def inner_product_data(self):
+        def inner_product_test_data(self):
             random_data = [
                 dict(
                     n=2,
@@ -103,19 +103,19 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def exp_data(self):
-            return self.tangent_riemannian_submersion_data()
+        def exp_test_data(self):
+            return self.tangent_riemannian_submersion_test_data()
 
-        def log_data(self):
-            return self.tangent_riemannian_submersion_data()
+        def log_test_data(self):
+            return self.tangent_riemannian_submersion_test_data()
 
-        def squared_dist_data(self):
-            return self.tangent_riemannian_submersion_data()
+        def squared_dist_test_data(self):
+            return self.tangent_riemannian_submersion_test_data()
 
-        def integrability_tensor_data(self):
-            return self.tangent_riemannian_submersion_data()
+        def integrability_tensor_test_data(self):
+            return self.tangent_riemannian_submersion_test_data()
 
-    testing_data = TestDataQuotientMetric()
+    testing_data = QuotientMetricTestData()
 
     def test_riemannian_submersion(self, n, mat):
         bundle = self.bundle(n)

@@ -50,10 +50,10 @@ class TestData:
         return tests
 
 
-class ManifoldTestData(TestData):
+class _ManifoldTestData(TestData):
     """Class for ManifoldTestData: data to test manifold properties."""
 
-    def _random_point_belongs_data(
+    def _random_point_belongs_test_data(
         self,
         smoke_space_args_list,
         smoke_n_points_list,
@@ -86,7 +86,7 @@ class ManifoldTestData(TestData):
         ]
         return self.generate_tests(smoke_data, random_data)
 
-    def _projection_belongs_data(
+    def _projection_belongs_test_data(
         self, space_args_list, shape_list, n_samples_list, belongs_atol=gs.atol
     ):
         """Generate data to check that a point projected on a manifold belongs to the manifold.
@@ -114,7 +114,7 @@ class ManifoldTestData(TestData):
         ]
         return self.generate_tests([], random_data)
 
-    def _to_tangent_is_tangent_data(
+    def _to_tangent_is_tangent_test_data(
         self,
         space_cls,
         space_args_list,
@@ -154,8 +154,8 @@ class ManifoldTestData(TestData):
         return self.generate_tests([], random_data)
 
 
-class OpenSetTestData(ManifoldTestData):
-    def _to_tangent_is_tangent_in_ambient_space_data(
+class _OpenSetTestData(_ManifoldTestData):
+    def _to_tangent_is_tangent_in_ambient_space_test_data(
         self, space_cls, space_args_list, shape_list, is_tangent_atol=gs.atol
     ):
         """Generate data to check that tangent vectors are in ambient space's tangent space.
@@ -181,8 +181,8 @@ class OpenSetTestData(ManifoldTestData):
         return self.generate_tests([], random_data)
 
 
-class LevelSetTestData(ManifoldTestData):
-    def _extrinsic_intrinsic_composition_data(
+class _LevelSetTestData(_ManifoldTestData):
+    def _extrinsic_intrinsic_composition_test_data(
         self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinate system twice gives back the point.
@@ -215,7 +215,7 @@ class LevelSetTestData(ManifoldTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def _intrinsic_extrinsic_composition_data(
+    def _intrinsic_extrinsic_composition_test_data(
         self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinate system twice gives back the point.
@@ -251,8 +251,8 @@ class LevelSetTestData(ManifoldTestData):
         return self.generate_tests([], random_data)
 
 
-class LieGroupTestData(ManifoldTestData):
-    def _exp_log_composition_data(
+class _LieGroupTestData(_ManifoldTestData):
+    def _exp_log_composition_test_data(
         self,
         group_cls,
         group_args_list,
@@ -297,7 +297,7 @@ class LieGroupTestData(ManifoldTestData):
             smoke_data = []
         return self.generate_tests(smoke_data, random_data)
 
-    def _log_exp_composition_data(
+    def _log_exp_composition_test_data(
         self,
         group_cls,
         group_args_list,
@@ -336,8 +336,8 @@ class LieGroupTestData(ManifoldTestData):
         return self.generate_tests(smoke_data, random_data)
 
 
-class VectorSpaceTestData(ManifoldTestData):
-    def _basis_belongs_data(self, space_args_list, belongs_atol=gs.atol):
+class _VectorSpaceTestData(_ManifoldTestData):
+    def _basis_belongs_test_data(self, space_args_list, belongs_atol=gs.atol):
         """Generate data to check that basis elements belong to vector space.
 
         Parameters
@@ -353,7 +353,7 @@ class VectorSpaceTestData(ManifoldTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def _basis_cardinality_data(self, space_args_list):
+    def _basis_cardinality_test_data(self, space_args_list):
         """Generate data to check that the number of basis elements is the dimension.
 
         Parameters
@@ -365,8 +365,8 @@ class VectorSpaceTestData(ManifoldTestData):
         return self.generate_tests([], random_data)
 
 
-class MatrixLieAlgebraTestData(VectorSpaceTestData):
-    def _basis_representation_matrix_representation_composition_data(
+class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
+    def _basis_representation_matrix_representation_composition_test_data(
         self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinates twice gives back the point.
@@ -391,7 +391,7 @@ class MatrixLieAlgebraTestData(VectorSpaceTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def _matrix_representation_basis_representation_composition_data(
+    def _matrix_representation_basis_representation_composition_test_data(
         self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinates twice gives back the point.
@@ -419,8 +419,8 @@ class MatrixLieAlgebraTestData(VectorSpaceTestData):
         return self.generate_tests([], random_data)
 
 
-class ConnectionTestData(TestData):
-    def _exp_shape_data(
+class _ConnectionTestData(TestData):
+    def _exp_shape_test_data(
         self, connection_args_list, space_list, shape_list, n_samples_list
     ):
         """Generate data to check that exp returns an array of the expected shape.
@@ -459,7 +459,7 @@ class ConnectionTestData(TestData):
                 )
         return self.generate_tests([], random_data)
 
-    def _log_shape_data(self, connection_args_list, space_list, n_samples_list):
+    def _log_shape_test_data(self, connection_args_list, space_list, n_samples_list):
         """Generate data to check that log returns an array of the expected shape.
 
         Parameters
@@ -493,7 +493,7 @@ class ConnectionTestData(TestData):
                 )
         return self.generate_tests([], random_data)
 
-    def _exp_belongs_data(
+    def _exp_belongs_test_data(
         self,
         connection_args_list,
         space_list,
@@ -533,7 +533,7 @@ class ConnectionTestData(TestData):
             )
         return self.generate_tests([], random_data)
 
-    def _log_is_tangent_data(
+    def _log_is_tangent_test_data(
         self, connection_args_list, space_list, n_samples_list, is_tangent_atol=gs.atol
     ):
         """Generate data to check that log gives a tangent vector.
@@ -564,7 +564,7 @@ class ConnectionTestData(TestData):
             )
         return self.generate_tests([], random_data)
 
-    def _geodesic_ivp_belongs_data(
+    def _geodesic_ivp_belongs_test_data(
         self,
         connection_args_list,
         space_list,
@@ -607,7 +607,7 @@ class ConnectionTestData(TestData):
             )
         return self.generate_tests([], random_data)
 
-    def _geodesic_bvp_belongs_data(
+    def _geodesic_bvp_belongs_test_data(
         self,
         connection_args_list,
         space_list,
@@ -647,7 +647,7 @@ class ConnectionTestData(TestData):
             )
         return self.generate_tests([], random_data)
 
-    def _log_exp_composition_data(
+    def _log_exp_composition_test_data(
         self,
         connection_args_list,
         space_list,
@@ -686,7 +686,7 @@ class ConnectionTestData(TestData):
             smoke_data = []
         return self.generate_tests(smoke_data, random_data)
 
-    def _exp_log_composition_data(
+    def _exp_log_composition_test_data(
         self,
         connection_args_list,
         space_list,
@@ -734,7 +734,7 @@ class ConnectionTestData(TestData):
             smoke_data = []
         return self.generate_tests(smoke_data, random_data)
 
-    def _exp_ladder_parallel_transport_data(
+    def _exp_ladder_parallel_transport_test_data(
         self,
         connection_args_list,
         space_list,
@@ -799,7 +799,7 @@ class ConnectionTestData(TestData):
 
         return self.generate_tests([], random_data)
 
-    def _exp_geodesic_ivp_data(
+    def _exp_geodesic_ivp_test_data(
         self,
         connection_args_list,
         space_list,
@@ -851,8 +851,8 @@ class ConnectionTestData(TestData):
         return self.generate_tests([], random_data)
 
 
-class RiemannianMetricTestData(ConnectionTestData):
-    def _squared_dist_is_symmetric_data(
+class _RiemannianMetricTestData(_ConnectionTestData):
+    def _squared_dist_is_symmetric_test_data(
         self,
         metric_args_list,
         space_list,
@@ -895,7 +895,7 @@ class RiemannianMetricTestData(ConnectionTestData):
             )
         return self.generate_tests([], random_data)
 
-    def _parallel_transport_ivp_is_isometry_data(
+    def _parallel_transport_ivp_is_isometry_test_data(
         self,
         metric_args_list,
         space_list,
@@ -947,7 +947,7 @@ class RiemannianMetricTestData(ConnectionTestData):
 
         return self.generate_tests([], random_data)
 
-    def _parallel_transport_bvp_is_isometry_data(
+    def _parallel_transport_bvp_is_isometry_test_data(
         self,
         metric_args_list,
         space_list,

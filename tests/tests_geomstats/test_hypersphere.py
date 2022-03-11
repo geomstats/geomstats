@@ -11,7 +11,7 @@ import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
 from geomstats.learning.frechet_mean import FrechetMean
 from tests.conftest import TestCase
-from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
+from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
 from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
 
 MEAN_ESTIMATION_TOL = 1e-1
@@ -22,7 +22,7 @@ ONLINE_KMEANS_TOL = 1e-1
 class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
     space = Hypersphere
 
-    class TestDataHypersphere(LevelSetTestData):
+    class HypersphereTestData(_LevelSetTestData):
 
         dim_list = random.sample(range(1, 4), 2)
         space_args_list = [(dim,) for dim in dim_list]
@@ -31,7 +31,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
         n_vecs_list = random.sample(range(1, 5), 2)
         n_samples_list = random.sample(range(1, 5), 2)
 
-        def replace_values_data(self):
+        def replace_values_test_data(self):
             smoke_data = [
                 dict(
                     dim=4,
@@ -43,7 +43,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def angle_to_extrinsic_data(self):
+        def angle_to_extrinsic_test_data(self):
             smoke_data = [
                 dict(
                     dim=1, point=gs.pi / 4, expected=gs.array([1.0, 1.0]) / gs.sqrt(2.0)
@@ -56,7 +56,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def extrinsic_to_angle_data(self):
+        def extrinsic_to_angle_test_data(self):
             smoke_data = [
                 dict(
                     dim=1, point=gs.array([1.0, 1.0]) / gs.sqrt(2.0), expected=gs.pi / 4
@@ -69,7 +69,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def spherical_to_extrinsic_data(self):
+        def spherical_to_extrinsic_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -93,7 +93,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def extrinsic_to_spherical_data(self):
+        def extrinsic_to_spherical_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -117,7 +117,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def random_von_mises_fisher_belongs_data(self):
+        def random_von_mises_fisher_belongs_test_data(self):
             dim_list = random.sample(range(2, 8), 5)
             n_samples_list = random.sample(range(1, 10), 5)
             random_data = [
@@ -126,7 +126,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def random_von_mises_fisher_mean_data(self):
+        def random_von_mises_fisher_mean_test_data(self):
             dim_list = random.sample(range(2, 8), 5)
             smoke_data = [
                 dict(
@@ -140,7 +140,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def tangent_extrinsic_to_spherical_raises_data(self):
+        def tangent_extrinsic_to_spherical_raises_test_data(self):
             smoke_data = []
             dim_list = [2, 3]
             for dim in dim_list:
@@ -172,7 +172,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
 
             return self.generate_tests(smoke_data)
 
-        def tangent_spherical_to_extrinsic_data(self):
+        def tangent_spherical_to_extrinsic_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -183,7 +183,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def tangent_extrinsic_to_spherical_data(self):
+        def tangent_extrinsic_to_spherical_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -202,15 +202,15 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def riemannian_normal_frechet_mean_data(self):
+        def riemannian_normal_frechet_mean_test_data(self):
             smoke_data = [dict(dim=3), dict(dim=4)]
             return self.generate_tests(smoke_data)
 
-        def riemannian_normal_and_belongs_data(self):
+        def riemannian_normal_and_belongs_test_data(self):
             smoke_data = [dict(dim=3, n_points=1), dict(dim=4, n_points=10)]
             return self.generate_tests(smoke_data)
 
-        def sample_von_mises_fisher_mean_data(self):
+        def sample_von_mises_fisher_mean_test_data(self):
             dim_list = random.sample(range(2, 10), 5)
             smoke_data = [
                 dict(
@@ -223,16 +223,16 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def sample_random_von_mises_fisher_kappa_data(self):
+        def sample_random_von_mises_fisher_kappa_test_data(self):
             dim_list = random.sample(range(2, 8), 5)
             smoke_data = [dict(dim=dim, kappa=1.0, n_points=50000) for dim in dim_list]
             return self.generate_tests(smoke_data)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             belongs_atol = gs.atol * 10000
             smoke_space_args_list = [(2,), (3,), (4,)]
             smoke_n_points_list = [1, 2, 1]
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
@@ -240,10 +240,10 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
                 belongs_atol,
             )
 
-        def to_tangent_is_tangent_data(self):
+        def to_tangent_is_tangent_test_data(self):
 
             is_tangent_atol = gs.atol * 1000
-            return self._to_tangent_is_tangent_data(
+            return self._to_tangent_is_tangent_test_data(
                 Hypersphere,
                 self.space_args_list,
                 self.shape_list,
@@ -251,24 +251,24 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
                 is_tangent_atol,
             )
 
-        def projection_belongs_data(self):
-            return self._projection_belongs_data(
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
                 self.space_args_list, self.shape_list, self.n_samples_list
             )
 
-        def extrinsic_intrinsic_composition_data(self):
+        def extrinsic_intrinsic_composition_test_data(self):
             space_args_list = [(1,), (2,)]
-            return self._extrinsic_intrinsic_composition_data(
+            return self._extrinsic_intrinsic_composition_test_data(
                 Hypersphere, space_args_list, self.n_samples_list, atol=gs.atol * 100
             )
 
-        def intrinsic_extrinsic_composition_data(self):
+        def intrinsic_extrinsic_composition_test_data(self):
             space_args_list = [(1,), (2,)]
-            return self._intrinsic_extrinsic_composition_data(
+            return self._intrinsic_extrinsic_composition_test_data(
                 Hypersphere, space_args_list, self.n_samples_list, atol=gs.atol * 100
             )
 
-    testing_data = TestDataHypersphere()
+    testing_data = HypersphereTestData()
 
     def test_replace_values(self, dim, points, new_points, indcs, expected):
         space = self.space(dim)
@@ -398,7 +398,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     metric = connection = HypersphereMetric
     skip_test_exp_geodesic_ivp = True
 
-    class TestDataHypersphereMetric(RiemannianMetricTestData):
+    class HypersphereMetricTestData(_RiemannianMetricTestData):
         dim_list = random.sample(range(2, 5), 2)
         metric_args_list = [(n,) for n in dim_list]
         shape_list = [(dim + 1,) for dim in dim_list]
@@ -412,7 +412,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
 
-        def inner_product_data(self):
+        def inner_product_test_data(self):
             smoke_data = [
                 dict(
                     dim=4,
@@ -424,7 +424,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def dist_data(self):
+        def dist_test_data(self):
             # smoke data is currently testing points at orthogonal
             point_a = gs.array([10.0, -2.0, -0.5, 0.0, 0.0])
             point_a = point_a / gs.linalg.norm(point_a)
@@ -435,7 +435,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def diameter_data(self):
+        def diameter_test_data(self):
             point_a = gs.array([[0.0, 0.0, 1.0]])
             point_b = gs.array([[1.0, 0.0, 0.0]])
             point_c = gs.array([[0.0, 0.0, -1.0]])
@@ -446,12 +446,12 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def christoffels_shape_data(self):
+        def christoffels_shape_test_data(self):
             point = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
             smoke_data = [dict(dim=2, point=point, expected=[2, 2, 2, 2])]
             return self.generate_tests(smoke_data)
 
-        def sectional_curvature_data(self):
+        def sectional_curvature_test_data(self):
             dim_list = [4]
             n_samples_list = random.sample(range(1, 4), 2)
             random_data = []
@@ -476,7 +476,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 )
             return self.generate_tests(random_data)
 
-        def dist_pairwise_data(self):
+        def dist_pairwise_test_data(self):
             smoke_data = [
                 dict(
                     dim=4,
@@ -490,23 +490,23 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
                 self.batch_size_list,
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.batch_size_list,
             )
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -514,8 +514,8 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -523,16 +523,16 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -540,15 +540,15 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_data(self):
+        def log_exp_composition_test_data(self):
             # edge case: two very close points, base_point_2 and point_2,
             # form an angle < epsilon
             base_point = gs.array([1.0, 2.0, 3.0, 4.0, 6.0])
@@ -564,7 +564,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                     atol=gs.atol,
                 )
             ]
-            return self._log_exp_composition_data(
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -572,7 +572,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=1e-3,
             )
 
-        def exp_log_composition_data(self):
+        def exp_log_composition_test_data(self):
             base_point = gs.array([1.0, 0.0, 0.0, 0.0])
             tangent_vec = gs.array([0.0, 0.0, gs.pi / 6, 0.0])
 
@@ -585,7 +585,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                     atol=gs.atol,
                 )
             ]
-            return self._exp_log_composition_data(
+            return self._exp_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -596,8 +596,8 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -607,8 +607,8 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.scheme_list,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -618,8 +618,8 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=1e-3,
             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -628,8 +628,8 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -638,7 +638,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def exp_and_dist_and_projection_to_tangent_space_data(self):
+        def exp_and_dist_and_projection_to_tangent_space_test_data(self):
             unnorm_base_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
             base_point = unnorm_base_point / gs.linalg.norm(unnorm_base_point)
             smoke_data = [
@@ -650,7 +650,7 @@ class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataHypersphereMetric()
+    testing_data = HypersphereMetricTestData()
 
     def test_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
