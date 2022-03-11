@@ -266,8 +266,8 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.space_list,
                 self.n_points_list,
                 self.n_points_list,
-                0.05,
-                0.05,
+                0.1,
+                0.1,
             )
 
         def metric_matrix_shape_data(self):
