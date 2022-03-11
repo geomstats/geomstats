@@ -15,8 +15,8 @@ from tests.parametrizers import Parametrizer
 
 
 class TestConnection(TestCase, metaclass=Parametrizer):
-    class TestDataConnection(TestData):
-        def metric_matrix_data(self):
+    class ConnectionTestData(TestData):
+        def metric_matrix_test_data(self):
             smoke_data = [
                 dict(
                     metric=EuclideanMetric(dim=4),
@@ -26,15 +26,15 @@ class TestConnection(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def parallel_transport_data(self):
+        def parallel_transport_test_data(self):
             smoke_data = [dict(dim=2, n_sample=2)]
             return self.generate_tests(smoke_data)
 
-        def parallel_transport_trajectory_data(self):
+        def parallel_transport_trajectory_test_data(self):
             smoke_data = [dict(dim=2, n_sample=2)]
             return self.generate_tests(smoke_data)
 
-        def exp_connection_metric_data(self):
+        def exp_connection_metric_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -49,7 +49,7 @@ class TestConnection(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log_connection_metric_data(self):
+        def log_connection_metric_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -66,7 +66,7 @@ class TestConnection(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def geodesic_and_coincides_exp_data(self):
+        def geodesic_and_coincides_exp_test_data(self):
             smoke_data = [
                 dict(
                     space=Hypersphere(2),
@@ -81,19 +81,19 @@ class TestConnection(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def geodesic_invalid_initial_conditions_data(self):
+        def geodesic_invalid_initial_conditions_test_data(self):
             smoke_data = [dict(space=SpecialOrthogonal(n=4))]
             return self.generate_tests(smoke_data)
 
-        def geodesic_data(self):
+        def geodesic_test_data(self):
             smoke_data = [dict(space=Hypersphere(2))]
             return self.generate_tests(smoke_data)
 
-        def ladder_alpha_data(self):
+        def ladder_alpha_test_data(self):
             smoke_data = [dict(dim=2, n_samples=2)]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataConnection()
+    testing_data = ConnectionTestData()
 
     def test_metric_matrix(self, metric, point, expected):
         self.assertAllClose(metric.metric_matrix(point), expected)

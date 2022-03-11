@@ -6,7 +6,7 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
 from tests.conftest import TestCase
-from tests.data_generation import RiemannianMetricTestData, VectorSpaceTestData
+from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
 from tests.parametrizers import RiemannianMetricParametrizer, VectorSpaceParametrizer
 
 
@@ -15,7 +15,7 @@ class TestMinkowski(TestCase, metaclass=VectorSpaceParametrizer):
     skip_test_basis_belongs = True
     skip_test_basis_cardinality = True
 
-    class TestDataMinkowski(VectorSpaceTestData):
+    class MinkowskiTestData(_VectorSpaceTestData):
         n_list = random.sample(range(2, 8), 2)
         space_args_list = [(n,) for n in n_list]
         shape_list = space_args_list
@@ -23,40 +23,40 @@ class TestMinkowski(TestCase, metaclass=VectorSpaceParametrizer):
         n_points_list = random.sample(range(2, 8), 2)
         n_vecs_list = random.sample(range(2, 8), 2)
 
-        def belongs_data(self):
+        def belongs_test_data(self):
             smoke_data = [dict(dim=2, point=[-1.0, 3.0], expected=True)]
             return self.generate_tests(smoke_data)
 
-        def basis_belongs_data(self):
+        def basis_belongs_test_data(self):
             return self._basis_belongs_data(self.space_args_list)
 
-        def basis_cardinality_data(self):
+        def basis_cardinality_test_data(self):
             return self._basis_cardinality_data(self.space_args_list)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             smoke_space_args_list = [(2,), (3,)]
             smoke_n_points_list = [1, 2]
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
                 self.n_points_list,
             )
 
-        def projection_belongs_data(self):
-            return self._projection_belongs_data(
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
                 self.space_args_list, self.shape_list, self.n_samples_list
             )
 
-        def to_tangent_is_tangent_data(self):
-            return self._to_tangent_is_tangent_data(
+        def to_tangent_is_tangent_test_data(self):
+            return self._to_tangent_is_tangent_test_data(
                 Minkowski,
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
             )
 
-    testing_data = TestDataMinkowski()
+    testing_data = MinkowskiTestData()
 
     def test_belongs(self, dim, point, expected):
         self.assertAllClose(
@@ -70,7 +70,7 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
-    class TestDataMinkowskiMetric(RiemannianMetricTestData):
+    class MinkowskiMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
         metric_args_list = [(n,) for n in n_list]
         shape_list = metric_args_list
@@ -84,11 +84,11 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         n_rungs_list = [1] * 5
         scheme_list = ["pole"] * 5
 
-        def metric_matrix_data(self):
+        def metric_matrix_test_data(self):
             smoke_data = [dict(dim=2, expected=[[-1.0, 0.0], [0.0, 1.0]])]
             return self.generate_tests(smoke_data)
 
-        def inner_product_data(self):
+        def inner_product_test_data(self):
             smoke_data = [
                 dict(dim=2, point_a=[0.0, 1.0], point_b=[2.0, 10.0], expected=10.0),
                 dict(
@@ -104,11 +104,11 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def squared_norm_data(self):
+        def squared_norm_test_data(self):
             smoke_data = [dict(dim=2, vector=[-2.0, 4.0], expected=12.0)]
             return self.generate_tests(smoke_data)
 
-        def squared_dist_data(self):
+        def squared_dist_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -119,7 +119,7 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_data(self):
+        def exp_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -130,7 +130,7 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log_data(self):
+        def log_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -141,23 +141,23 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
                 self.batch_size_list,
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.batch_size_list,
             )
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -165,8 +165,8 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -174,16 +174,16 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -191,16 +191,16 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -208,8 +208,8 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_log_composition_test_data(self):
+            return self._exp_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -218,8 +218,8 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -229,8 +229,8 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.scheme_list,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -240,8 +240,8 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -250,8 +250,8 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -260,7 +260,7 @@ class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataMinkowskiMetric()
+    testing_data = MinkowskiMetricTestData()
 
     def test_metric_matrix(self, dim, expected):
         metric = self.metric(dim)

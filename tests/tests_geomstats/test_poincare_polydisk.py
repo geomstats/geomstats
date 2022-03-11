@@ -9,7 +9,7 @@ from geomstats.geometry.poincare_polydisk import (
     PoincarePolydiskMetric,
 )
 from tests.conftest import TestCase
-from tests.data_generation import OpenSetTestData, TestData
+from tests.data_generation import TestData, _OpenSetTestData
 from tests.parametrizers import OpenSetParametrizer, Parametrizer
 
 
@@ -18,7 +18,7 @@ class TestPoincarePolydisk(TestCase, metaclass=OpenSetParametrizer):
     skip_test_to_tangent_is_tangent = True
     skip_test_to_tangent_is_tangent_in_ambient_space = True
 
-    class TestDataPoincarePolydisk(OpenSetTestData):
+    class PoincarePolydiskTestData(_OpenSetTestData):
 
         n_disks_list = random.sample(range(2, 4), 2)
         space_args_list = [(n_disks,) for n_disks in n_disks_list]
@@ -27,14 +27,14 @@ class TestPoincarePolydisk(TestCase, metaclass=OpenSetParametrizer):
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
-        def dimension_data(self):
+        def dimension_test_data(self):
             smoke_data = [dict(n_disks=2, expected=4), dict(n_disks=3, expected=6)]
             return self.generate_tests(smoke_data)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             smoke_space_args_list = [(2,), (3,)]
             smoke_n_points_list = [1, 2]
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
@@ -42,16 +42,16 @@ class TestPoincarePolydisk(TestCase, metaclass=OpenSetParametrizer):
                 belongs_atol=1e-3,
             )
 
-        def projection_belongs_data(self):
-            return self._projection_belongs_data(
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
                 belongs_atol=1e-1,
             )
 
-        def to_tangent_is_tangent_data(self):
-            return self._to_tangent_is_tangent_data(
+        def to_tangent_is_tangent_test_data(self):
+            return self._to_tangent_is_tangent_test_data(
                 PoincarePolydisk,
                 self.space_args_list,
                 self.shape_list,
@@ -59,12 +59,12 @@ class TestPoincarePolydisk(TestCase, metaclass=OpenSetParametrizer):
                 is_tangent_atol=1e-3,
             )
 
-        def to_tangent_is_tangent_in_ambient_space_data(self):
-            return self._to_tangent_is_tangent_in_ambient_space_data(
+        def to_tangent_is_tangent_in_ambient_space_test_data(self):
+            return self._to_tangent_is_tangent_in_ambient_space_test_data(
                 PoincarePolydisk, self.space_args_list, self.shape_list
             )
 
-    testing_data = TestDataPoincarePolydisk()
+    testing_data = PoincarePolydiskTestData()
 
     def test_dimension(self, n_disks, expected):
         space = PoincarePolydisk(n_disks)
@@ -74,7 +74,7 @@ class TestPoincarePolydisk(TestCase, metaclass=OpenSetParametrizer):
 class TestPoincarePolydiskMetric(TestCase, metaclass=Parametrizer):
     metric = connection = PoincarePolydiskMetric
 
-    class TestDataPoincarePolydiskMetric(TestData):
+    class PoincarePolydiskMetricTestData(TestData):
 
         n_disks_list = random.sample(range(2, 5), 2)
         metric_args_list = [(n_disks,) for n_disks in n_disks_list]
@@ -89,14 +89,14 @@ class TestPoincarePolydiskMetric(TestCase, metaclass=Parametrizer):
         n_rungs_list = [1] * 5
         scheme_list = ["pole"] * 5
 
-        def signature_data(self):
+        def signature_test_data(self):
             smoke_data = [
                 dict(n_disks=2, expected=(4, 0)),
                 dict(n_disks=4, expected=(8, 0)),
             ]
             return self.generate_tests(smoke_data)
 
-        def product_distance_extrinsic_representation_data(self):
+        def product_distance_extrinsic_representation_test_data(self):
             point_a_intrinsic = gs.array([0.01, 0.0])
             point_b_intrinsic = gs.array([0.0, 0.0])
             hyperbolic_space = Hyperboloid(dim=2)
@@ -115,7 +115,7 @@ class TestPoincarePolydiskMetric(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataPoincarePolydiskMetric()
+    testing_data = PoincarePolydiskMetricTestData()
 
     def test_signature(self, n_disks, expected):
         metric = PoincarePolydiskMetric(n_disks)
