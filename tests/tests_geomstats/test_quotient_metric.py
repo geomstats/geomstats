@@ -56,11 +56,11 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
     base_metric = SPDMetricBuresWasserstein
 
     class QuotientMetricTestData(TestData):
-        def riemannian_submersion_data(self):
+        def riemannian_submersion_test_data(self):
             random_data = [dict(n=2, mat=BuresWassersteinBundle(2).random_point())]
             return self.generate_tests([], random_data)
 
-        def lift_and_riemannian_submersion_data(self):
+        def lift_and_riemannian_submersion_test_data(self):
             random_data = [dict(n=2, mat=BuresWassersteinBundle(2).base.random_point())]
             return self.generate_tests([], random_data)
 

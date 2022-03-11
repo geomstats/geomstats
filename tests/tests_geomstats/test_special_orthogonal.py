@@ -95,7 +95,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
         n_points_list = random.sample(range(2, 10), 4)
         n_vecs_list = random.sample(range(2, 10), 4)
 
-        def belongs_data(self):
+        def belongs_test_data(self):
             theta = gs.pi / 3
             smoke_data = [
                 dict(n=2, mat=sample_matrix(theta, mul=-1.0), expected=True),
@@ -116,7 +116,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def dim_data(self):
+        def dim_test_data(self):
             smoke_data = [
                 dict(n=2, expected=1),
                 dict(n=3, expected=3),
@@ -124,7 +124,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def identity_data(self):
+        def identity_test_data(self):
             smoke_data = [
                 dict(n=2, point_type="matrix", expected=gs.eye(2)),
                 dict(n=3, point_type="matrix", expected=gs.eye(3)),
@@ -133,7 +133,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def is_tangent_data(self):
+        def is_tangent_test_data(self):
             theta = gs.pi / 3
             point = SpecialOrthogonal(2).random_uniform()
             vec_1 = gs.array([[0.0, -theta], [theta, 0.0]])
@@ -157,7 +157,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def is_tangent_compose_data(self):
+        def is_tangent_compose_test_data(self):
             point = SpecialOrthogonal(2).random_uniform()
             theta = 1.0
             vec_1 = gs.array([[0.0, -theta], [theta, 0.0]])
@@ -188,7 +188,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def to_tangent_data(self):
+        def to_tangent_test_data(self):
             theta = 1.0
             smoke_data = [
                 dict(
@@ -209,7 +209,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def skew_to_vector_and_vector_to_skew_data(self):
+        def skew_to_vector_and_vector_to_skew_test_data(self):
             random_data = []
             random_data += [
                 dict(
@@ -227,7 +227,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def are_antipodals_data(self):
+        def are_antipodals_test_data(self):
             mat1 = gs.eye(3)
             mat2 = gs.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
             smoke_data = [
@@ -241,7 +241,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log_at_antipodals_value_error_data(self):
+        def log_at_antipodals_value_error_test_data(self):
             smoke_data = [
                 dict(
                     n=3,
@@ -260,7 +260,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def from_vector_from_matrix_data(self):
+        def from_vector_from_matrix_test_data(self):
             n_list = [2, 3]
             n_samples_list = random.sample(range(1, 20), 10)
             random_data = [
@@ -269,7 +269,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def rotation_vector_from_matrix_data(self):
+        def rotation_vector_from_matrix_test_data(self):
             angle = 0.12
             smoke_data = [
                 dict(
@@ -296,7 +296,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def distance_broadcast_shape_data(self):
+        def distance_broadcast_shape_test_data(self):
             n_list = [2, 3]
             n_samples_list = random.sample(range(1, 20), 2)
             smoke_data = [
@@ -305,7 +305,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def projection_data(self):
+        def projection_test_data(self):
             n_list = [2, 3]
             smoke_data = [
                 dict(
@@ -318,7 +318,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def projection_shape_data(self):
+        def projection_shape_test_data(self):
             n_list = [2, 3]
             n_samples_list = random.sample(range(2, 20), 2)
             random_data = [
@@ -332,11 +332,11 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def skew_matrix_from_vector_data(self):
+        def skew_matrix_from_vector_test_data(self):
             smoke_data = [dict(n=2, mat=[0.9], expected=[[0.0, -0.9], [0.9, 0.0]])]
             return self.generate_tests(smoke_data)
 
-        def rotation_vector_rotation_matrix_regularize_data(self):
+        def rotation_vector_rotation_matrix_regularize_test_data(self):
             n_list = [2, 3]
             random_data = [
                 dict(
@@ -347,7 +347,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def parallel_transport_data(self):
+        def parallel_transport_test_data(self):
             n_list = random.sample(range(2, 10), 5)
             n_samples_list = random.sample(range(2, 10), 5)
             random_data = [
@@ -356,7 +356,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def matrix_from_rotation_vector_data(self):
+        def matrix_from_rotation_vector_test_data(self):
 
             rot_vec_3 = 1e-11 * gs.array([12.0, 1.0, -81.0])
             angle = gs.linalg.norm(rot_vec_3)
@@ -409,37 +409,37 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             smoke_space_args_list = [(2, True), (3, True), (2, False)]
             smoke_n_points_list = [1, 2, 1]
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
                 self.n_points_list,
             )
 
-        def projection_belongs_data(self):
+        def projection_belongs_test_data(self):
             space_args_list = list(zip(self.n_list))
             shape_list = [(n, n) for n in self.n_list]
             n_samples_list = random.sample(range(2, 4), 2)
-            return self._projection_belongs_data(
+            return self._projection_belongs_test_data(
                 space_args_list, shape_list, n_samples_list, gs.atol * 10000
             )
 
-        def to_tangent_is_tangent_data(self):
+        def to_tangent_is_tangent_test_data(self):
             space_args_list = list(zip(self.n_list))
             shape_list = [(n, n) for n in self.n_list]
             n_vecs_list = random.sample(range(2, 10), 2)
-            return self._to_tangent_is_tangent_data(
+            return self._to_tangent_is_tangent_test_data(
                 SpecialOrthogonal,
                 space_args_list,
                 shape_list,
                 n_vecs_list,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_log_composition_test_data(self):
+            return self._exp_log_composition_test_data(
                 SpecialOrthogonal,
                 self.space_args_list,
                 self.shape_list,
@@ -449,8 +449,8 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 SpecialOrthogonal,
                 self.space_args_list,
                 self.n_samples_list,
@@ -458,13 +458,13 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
                 atol=gs.atol * 100000,
             )
 
-        def compose_with_inverse_is_identity_data(self):
+        def compose_with_inverse_is_identity_test_data(self):
             smoke_data = []
             for space_args in list(zip(self.n_list)):
                 smoke_data += [dict(space_args=space_args)]
             return self.generate_tests(smoke_data)
 
-        def compose_data(self):
+        def compose_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -476,7 +476,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log_data(self):
+        def log_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -488,7 +488,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_data(self):
+        def exp_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -500,7 +500,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def compose_shape_data(self):
+        def compose_shape_test_data(self):
             smoke_data = [
                 dict(n=3, point_type="vector", n_samples=4),
                 dict(n=2, point_type="matrix", n_samples=4),
@@ -509,7 +509,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def rotation_vector_and_rotation_matrix_data(self):
+        def rotation_vector_and_rotation_matrix_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -520,7 +520,7 @@ class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def regularize_data(self):
+        def regularize_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -658,7 +658,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
     space = group = SpecialOrthogonal
 
     class SpecialOrthogonal3TestData(TestData):
-        def tait_bryan_angles_matrix_data(self):
+        def tait_bryan_angles_matrix_test_data(self):
             xyz = gs.array(
                 [
                     [
@@ -695,7 +695,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
                 ]
             return self.generate_tests(smoke_data)
 
-        def tait_bryan_angles_quaternion_data(self):
+        def tait_bryan_angles_quaternion_test_data(self):
             xyz = gs.array(
                 [
                     [cos_angle_pi_12, 0.0, 0.0, sin_angle_pi_12],
@@ -719,7 +719,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
                 smoke_data += [dict(coord=coord, order=order, vec=gs.zeros(3), quat=e1)]
             return self.generate_tests(smoke_data)
 
-        def quaternion_from_rotation_vector_tait_bryan_angles_data(self):
+        def quaternion_from_rotation_vector_tait_bryan_angles_test_data(self):
             smoke_data = []
             for coord, order in itertools.product(coords, orders):
                 for angle_type in elements:
@@ -729,7 +729,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
 
             return self.generate_tests(smoke_data)
 
-        def tait_bryan_angles_rotation_vector_data(self):
+        def tait_bryan_angles_rotation_vector_test_data(self):
             smoke_data = []
             for coord, order in itertools.product(coords, orders):
                 for angle_type in elements:
@@ -739,7 +739,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
 
             return self.generate_tests(smoke_data)
 
-        def quaternion_and_rotation_vector_with_angles_close_to_pi_data(self):
+        def quaternion_and_rotation_vector_with_angles_close_to_pi_test_data(self):
             smoke_data = []
             angle_types = angles_close_to_pi
             for angle_type in angle_types:
@@ -748,7 +748,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
 
             return self.generate_tests(smoke_data)
 
-        def quaternion_and_matrix_with_angles_close_to_pi_data(self):
+        def quaternion_and_matrix_with_angles_close_to_pi_test_data(self):
             smoke_data = []
             angle_types = angles_close_to_pi
             for angle_type in angle_types:
@@ -757,7 +757,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
 
             return self.generate_tests(smoke_data)
 
-        def rotation_vector_and_rotation_matrix_with_angles_close_to_pi_data(self):
+        def rotation_vector_and_rotation_matrix_with_angles_close_to_pi_test_data(self):
             smoke_data = []
             angle_types = angles_close_to_pi
             for angle_type in angle_types:
@@ -766,7 +766,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
 
             return self.generate_tests(smoke_data)
 
-        def lie_bracket_data(self):
+        def lie_bracket_test_data(self):
             group = SpecialOrthogonal(3, point_type="vector")
             smoke_data = [
                 dict(
@@ -790,7 +790,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def group_log_then_exp_with_angles_close_to_pi_data(self):
+        def group_log_then_exp_with_angles_close_to_pi_test_data(self):
             smoke_data = []
             for angle_type in angles_close_to_pi:
                 for angle_type_base in elements.values():
@@ -802,14 +802,14 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
                     ]
             return self.generate_tests(smoke_data)
 
-        def group_exp_then_log_with_angles_close_to_pi_data(self):
-            return self.group_log_then_exp_with_angles_close_to_pi_data()
+        def group_exp_then_log_with_angles_close_to_pi_test_data(self):
+            return self.group_log_then_exp_with_angles_close_to_pi_test_data()
 
-        def left_jacobian_vectorization_data(self):
+        def left_jacobian_vectorization_test_data(self):
             smoke_data = [dict(n_samples=3)]
             return self.generate_tests(smoke_data)
 
-        def left_jacobian_through_its_determinant_data(self):
+        def left_jacobian_through_its_determinant_test_data(self):
             smoke_data = []
             for angle_type in elements:
                 point = elements[angle_type]
@@ -827,17 +827,17 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
 
             return self.generate_tests(smoke_data)
 
-        def inverse_data(self):
+        def inverse_test_data(self):
             smoke_data = [dict(n_samples=3)]
             return self.generate_tests(smoke_data)
 
-        def compose_and_inverse_data(self):
+        def compose_and_inverse_test_data(self):
             smoke_data = []
             for point in elements.values():
                 smoke_data += [dict(point=point)]
             return self.generate_tests(smoke_data)
 
-        def compose_regularize_data(self):
+        def compose_regularize_test_data(self):
             smoke_data = []
             for element_type in elements:
                 point = elements[element_type]
@@ -845,7 +845,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
                     smoke_data += [dict(point=point)]
             return self.generate_tests(smoke_data)
 
-        def compose_regularize_angles_close_to_pi_data(self):
+        def compose_regularize_angles_close_to_pi_test_data(self):
             smoke_data = []
             for element_type in elements:
                 point = elements[element_type]
@@ -853,7 +853,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
                     smoke_data += [dict(point=point)]
             return self.generate_tests(smoke_data)
 
-        def regularize_extreme_cases_data(self):
+        def regularize_extreme_cases_test_data(self):
             smoke_data = []
             for angle_type in [
                 "angle_close_0",
@@ -895,7 +895,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
             smoke_data += [dict(point=point, expected=expected)]
             return self.generate_tests(smoke_data)
 
-        def regularize_data(self):
+        def regularize_test_data(self):
             point = (gs.pi + 1e-6) * gs.array(
                 [[1.0, 0.0, 0.0], [2, 0.5, 0.0], [0.0, 0.0, 0.0], [0.5, 0.0, 0.0]]
             )
@@ -1109,23 +1109,23 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
                 self.batch_size_list,
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.batch_size_list,
             )
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -1133,8 +1133,8 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1142,16 +1142,16 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1159,16 +1159,16 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -1176,8 +1176,8 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_log_composition_test_data(self):
+            return self._exp_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1186,8 +1186,8 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1197,8 +1197,8 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.scheme_list,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1208,8 +1208,8 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 100,
             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1219,8 +1219,8 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1230,7 +1230,7 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def log_exp_intrinsic_ball_extrinsic_data(self):
+        def log_exp_intrinsic_ball_extrinsic_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -1240,7 +1240,7 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def squared_dist_is_less_than_squared_pi_data(self):
+        def squared_dist_is_less_than_squared_pi_test_data(self):
             smoke_data = []
             for angle_type_1, angle_type_2 in zip(elements, elements):
                 smoke_data += [
@@ -1248,7 +1248,7 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 ]
             return self.generate_tests(smoke_data)
 
-        def exp_data(self):
+        def exp_test_data(self):
             theta = gs.pi / 5.0
             rot_vec_base_point = theta / gs.sqrt(3.0) * gs.array([1.0, 1.0, 1.0])
             rot_vec_2 = gs.pi / 4 * gs.array([1.0, 0.0, 0.0])
@@ -1278,7 +1278,7 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log_data(self):
+        def log_test_data(self):
             theta = gs.pi / 5.0
             rot_vec_base_point = theta / gs.sqrt(3.0) * gs.array([1.0, 1.0, 1.0])
             # Note: the rotation vector for the reference point
@@ -1314,7 +1314,7 @@ class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def distance_broadcast_data(self):
+        def distance_broadcast_test_data(self):
             smoke_data = [dict(n=2)]
             return self.generate_tests(smoke_data)
 
@@ -1364,7 +1364,7 @@ class TestInvariantMetricOnSO3(TestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
 
     class InvariantMetricTestData(TestData):
-        def squared_dist_is_symmetric_data(self):
+        def squared_dist_is_symmetric_test_data(self):
             smoke_data = []
             for angle_type_1, angle_type_2, left_or_right in zip(
                 elements, elements, ["left", "right"]
