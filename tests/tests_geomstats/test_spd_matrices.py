@@ -321,6 +321,7 @@ class TestSPDMetricAffine(
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
+    skip_test_geodesic_ivp_belongs = True
 
     class SPDMetricAffineTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 5), 2)

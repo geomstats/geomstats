@@ -5,6 +5,7 @@ import random
 import pytest
 
 import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.pre_shape import (
     KendallShapeMetric,
@@ -383,7 +384,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
         result = gs.all(Matrices.is_symmetric(alignment))
         self.assertAllClose(result, gs.array(True))
 
-    @pytest.mark.skip("keeps throwing error")
+    @geomstats.tests.np_and_autograd_only
     def test_integrability_tensor(
         self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
     ):
@@ -469,6 +470,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
         self.assertAllClose(a_y_z + a_z_y, gs.zeros_like(result), atol=gs.atol * 10)
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
+    @geomstats.tests.np_and_autograd_only
     def test_integrability_tensor_derivative_is_skew_symmetric(
         self,
         k_landmarks,
@@ -567,6 +569,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
         result = scal(nabla_x_a_y_v, ver_w) + scal(a_y_v, nabla_x_w)
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
+    @geomstats.tests.np_and_autograd_only
     def test_integrability_tensor_derivative_parallel(
         self, k_landmarks, m_ambient, hor_x, hor_y, hor_z, base_point
     ):
@@ -590,6 +593,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
         self.assertAllClose(a_y_z, a_y_z_qp, atol=gs.atol * 10)
         self.assertAllClose(nabla_x_a_y_z, nabla_x_a_y_z_qp, atol=gs.atol * 10)
 
+    @geomstats.tests.np_and_autograd_only
     def test_iterated_integrability_tensor_derivative_parallel(
         self, k_landmarks, m_ambient, hor_x, hor_y, base_point
     ):
@@ -916,6 +920,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         expected = gs.zeros_like(result)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_autograd_only
     def test_curvature_bianchi_identity(
         self,
         k_landmarks,
@@ -977,6 +982,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         result = kappa > 1.0 - 1e-10
         self.assertTrue(gs.all(result))
 
+    @geomstats.tests.np_and_autograd_only
     def test_kendall_curvature_derivative_bianchi_identity(
         self, k_landmarks, m_ambient, hor_x, hor_y, hor_z, hor_h, base_point
     ):
@@ -1006,6 +1012,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         result = metric.curvature_derivative(hor_x, hor_y, hor_y, hor_z, base_point)
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
+    @geomstats.tests.np_and_autograd_only
     def test_directional_curvature_derivative(
         self, k_landmarks, m_ambient, hor_x, hor_y, base_point
     ):
@@ -1039,6 +1046,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         ).directional_curvature_derivative(hor_x, hor_y, base_point)
         self.assertAllClose(result_connection, expected, atol=gs.atol * 10)
 
+    @geomstats.tests.np_and_autograd_only
     def test_directional_curvature_derivative_is_quadratic(
         self, k_landmarks, m_ambient, coef_x, coef_y, hor_x, hor_y, base_point
     ):
