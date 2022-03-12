@@ -28,7 +28,7 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
         n_points_list = random.sample(range(1, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
-        def belongs_data(self):
+        def belongs_test_data(self):
             smoke_data = [
                 dict(dim=3, vec=[0.1, 1.0, 0.3], expected=True),
                 dict(dim=3, vec=[0.1, 1.0], expected=False),
@@ -37,44 +37,44 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def random_point_data(self):
+        def random_point_test_data(self):
             random_data = [
                 dict(point=self.space(2).random_point(1), expected=(2,)),
                 dict(point=self.space(3).random_point(5), expected=(5, 3)),
             ]
             return self.generate_tests([], random_data)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             smoke_space_args_list = [(2,), (3,)]
             smoke_n_points_list = [1, 2]
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
                 self.n_points_list,
             )
 
-        def projection_belongs_data(self):
-            return self._projection_belongs_data(
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
                 self.space_args_list, self.shape_list, self.n_samples_list
             )
 
-        def to_tangent_is_tangent_data(self):
-            return self._to_tangent_is_tangent_data(
+        def to_tangent_is_tangent_test_data(self):
+            return self._to_tangent_is_tangent_test_data(
                 self.space,
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
             )
 
-        def to_tangent_is_tangent_in_ambient_space_data(self):
-            return self._to_tangent_is_tangent_in_ambient_space_data(
+        def to_tangent_is_tangent_in_ambient_space_test_data(self):
+            return self._to_tangent_is_tangent_in_ambient_space_test_data(
                 self.space,
                 self.space_args_list,
                 self.shape_list,
             )
 
-        def sample_data(self):
+        def sample_test_data(self):
             smoke_data = [
                 dict(dim=2, point=gs.array([1.0, 1.0]), n_samples=1, expected=(1, 2)),
                 dict(
@@ -83,7 +83,7 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def sample_belongs_data(self):
+        def sample_belongs_test_data(self):
             random_data = [
                 dict(
                     dim=2,
@@ -106,7 +106,7 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def point_to_pdf_data(self):
+        def point_to_pdf_test_data(self):
             random_data = [
                 dict(
                     dim=2,
@@ -198,7 +198,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         n_points_list = random.sample(range(1, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
-        def exp_shape_data(self):
+        def exp_shape_test_data(self):
             return self._exp_shape_data(
                 self.metric_args_list,
                 self.space_list,
@@ -206,29 +206,29 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.n_samples_list,
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
             )
 
-        def exp_diagonal_data(self):
+        def exp_diagonal_test_data(self):
             param_list = [0.8, 1.2, 2.5]
             smoke_data = [
                 dict(dim=dim, param=param, param_list=param_list)
@@ -237,7 +237,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_subspace_data(self):
+        def exp_subspace_test_data(self):
             smoke_data = [
                 dict(
                     dim=3,
@@ -260,8 +260,8 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -270,7 +270,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 0.1,
             )
 
-        def metric_matrix_shape_data(self):
+        def metric_matrix_shape_test_data(self):
             random_data = [
                 dict(dim=2, point=self.space(2).random_point(1), expected=(2, 2)),
                 dict(dim=2, point=self.space(2).random_point(3), expected=(3, 2, 2)),
@@ -278,14 +278,14 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def metric_matrix_dim_2_data(self):
+        def metric_matrix_dim_2_test_data(self):
             random_data = [
                 dict(point=self.space(2).random_point(n_points))
                 for n_points in self.n_points_list
             ]
             return self.generate_tests([], random_data)
 
-        def christoffels_vectorization_data(self):
+        def christoffels_vectorization_test_data(self):
             n_points = 2
             dim = 3
             points = self.space(dim).random_point(n_points)
@@ -295,7 +295,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             random_data = [dict(dim=dim, point=points, expected=expected)]
             return self.generate_tests([], random_data)
 
-        def christoffels_shape_data(self):
+        def christoffels_shape_test_data(self):
             random_data = [
                 dict(dim=2, point=self.space(2).random_point(1), expected=(2, 2, 2)),
                 dict(dim=2, point=self.space(2).random_point(3), expected=(3, 2, 2, 2)),
@@ -303,7 +303,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def christoffels_dim_2_data(self):
+        def christoffels_dim_2_test_data(self):
             def coefficients(param_a, param_b):
                 """Christoffel coefficients for the beta distributions."""
                 poly1a = gs.polygamma(1, param_a)
@@ -334,8 +334,8 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -343,8 +343,8 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=0.0,
             )
 
-        def exp_log_composition_data(self):
-            return self._log_exp_composition_data(
+        def exp_log_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -352,7 +352,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=0.0,
             )
 
-        def geodesic_ivp_shape_data(self):
+        def geodesic_ivp_shape_test_data(self):
             random_data = [
                 dict(
                     dim=2,
@@ -378,7 +378,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def geodesic_bvp_shape_data(self):
+        def geodesic_bvp_shape_test_data(self):
             random_data = [
                 dict(
                     dim=2,
@@ -404,7 +404,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def geodesic_data(self):
+        def geodesic_test_data(self):
             random_data = [
                 dict(
                     dim=2,
@@ -419,7 +419,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def geodesic_shape_data(self):
+        def geodesic_shape_test_data(self):
             random_data = [
                 dict(
                     dim=2,
@@ -445,14 +445,14 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def jacobian_christoffels_data(self):
+        def jacobian_christoffels_test_data(self):
             random_data = [
                 dict(dim=2, point=self.space(2).random_point(2)),
                 dict(dim=4, point=self.space(4).random_point(2)),
             ]
             return self.generate_tests([], random_data)
 
-        def jacobian_in_geodesic_bvp_data(self):
+        def jacobian_in_geodesic_bvp_test_data(self):
             random_data = [
                 dict(
                     dim=2,
@@ -467,7 +467,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def approx_geodesic_bvp_data(self):
+        def approx_geodesic_bvp_test_data(self):
             random_data = [
                 dict(
                     dim=2,
@@ -482,7 +482,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def polynomial_init_data(self):
+        def polynomial_init_test_data(self):
             smoke_data = [
                 dict(
                     dim=3,
@@ -493,7 +493,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_and_log_composition_data(self):
+        def exp_and_log_composition_test_data(self):
             random_data = [
                 dict(
                     dim=3,
