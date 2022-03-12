@@ -12,14 +12,14 @@ from geomstats.information_geometry.dirichlet import (
     DirichletMetric,
 )
 from tests.conftest import TestCase
-from tests.data_generation import OpenSetTestData, RiemannianMetricTestData
+from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
 
 
 class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
     space = DirichletDistributions
 
-    class TestDataDirichlet(OpenSetTestData):
+    class TestDataDirichlet(_OpenSetTestData):
         space = DirichletDistributions
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
@@ -182,7 +182,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
 
-    class TestDataDirichletMetric(RiemannianMetricTestData):
+    class TestDataDirichletMetric(_RiemannianMetricTestData):
         space = DirichletDistributions
         metric = DirichletMetric
         n_list = random.sample(range(2, 5), 2)
