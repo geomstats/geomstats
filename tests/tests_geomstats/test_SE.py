@@ -388,6 +388,55 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
         result = group.log(base_point=group.identity, point=point)
         self.assertAllClose(result, expected)
 
+    def log_then_exp_right_with_angles_close_to_pi_test_data(self):
+        group = self.space(3, "vector")
+        smoke_data = []
+        for metric in [
+            self.metrics_all["right_canonical"],
+            self.metrics_all["right_diag"],
+        ]:
+        for base_point in self.element.values():
+            for element_type in self.angles_close_to_pi:
+                point = self.elements_all[element_type]
+                smoke_data.append([dict(point=point, base_point=base_point, expected=group.regularize(point))])
+        return self.generate_tests(smoke_data)
+
+
+
+    @geomstats.tests.np_and_autograd_only
+    def test_log_then_exp_right_with_angles_close_to_pi(self):
+        """
+        Test that the Riemannian right exponential and the
+        Riemannian right logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+
+
+        angle_types = self.angles_close_to_pi
+        # Canonical inner product on the lie algebra
+        for metric in [
+            self.metrics_all["right_canonical"],
+            self.metrics_all["right_diag"],
+        ]:
+            for base_point in self.elements.values():
+                for element_type in angle_types:
+                    point = self.elements_all[element_type]
+                    result = metric.exp(metric.log(point, base_point), base_point)
+                    expected = self.group.regularize(point)
+
+                    inv_expected = gs.concatenate([-expected[:3], expected[3:6]])
+
+                    norm = gs.linalg.norm(expected)
+                    atol = ATOL
+                    if norm != 0:
+                        atol = ATOL * norm
+
+                    self.assertTrue(
+                        gs.allclose(result, expected, atol=atol)
+                        or gs.allclose(result, inv_expected, atol=atol)
+                    )
+
+
 
 class TestSpecialEuclideanMatrixLieAlgebra(
     TestCase, metaclass=MatrixLieAlgebraParametrizer
@@ -748,8 +797,8 @@ class TestInvariantMetricOnSE(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
-                rtol=gs.rtol * 10000,
-                atol=gs.atol * 10000,
+                rtol=gs.rtol * 100000,
+                atol=gs.atol * 100000,
             )
 
         def exp_log_composition_test_data(self):
@@ -759,8 +808,8 @@ class TestInvariantMetricOnSE(
                 self.shape_list,
                 self.n_samples_list,
                 amplitude=100.0,
-                rtol=gs.rtol * 1000,
-                atol=gs.atol * 1000,
+                rtol=gs.rtol * 10000,
+                atol=gs.atol * 100000,
             )
 
         def exp_ladder_parallel_transport_test_data(self):
@@ -823,3 +872,40 @@ class TestInvariantMetricOnSE(
         result = vector_group.right_canonical_metric.exp(initial_matrix_vec, n_steps=25)
         expected = vector_group.matrix_from_vector(vector_exp)
         self.assertAllClose(result, expected, atol=1e-6)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_log_then_exp_right_with_angles_close_to_pi(self):
+        """
+        Test that the Riemannian right exponential and the
+        Riemannian right logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        angle_types = self.angles_close_to_pi
+        # Canonical inner product on the lie algebra
+        for metric in [
+            self.metrics_all["right_canonical"],
+            self.metrics_all["right_diag"],
+        ]:
+            for base_point in self.elements.values():
+                for element_type in angle_types:
+                    point = self.elements_all[element_type]
+                    result = helper.log_then_exp(
+                        metric=metric, point=point, base_point=base_point
+                    )
+
+                    expected = self.group.regularize(point)
+
+                    inv_expected = gs.concatenate([-expected[:3], expected[3:6]])
+
+                    norm = gs.linalg.norm(expected)
+                    atol = ATOL
+                    if norm != 0:
+                        atol = ATOL * norm
+
+                    self.assertTrue(
+                        gs.allclose(result, expected, atol=atol)
+                        or gs.allclose(result, inv_expected, atol=atol)
+                    )
+
+                    if geomstats.tests.tf_backend():
+                        break
