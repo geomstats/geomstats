@@ -503,6 +503,16 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests([], random_data)
 
+        def exp_vectorization_test_data(self):
+            dim = 3
+            point = self.space(dim).random_point()
+            tangent_vec = gs.array([1.0, 0.5, 2.0])
+            n_tangent_vecs = 10
+            t = gs.linspace(0.0, 1.0, n_tangent_vecs)
+            tangent_vecs = gs.einsum("i,...k->...ik", t, tangent_vec)
+            random_data = [dict(dim=dim, point=point, tangent_vecs=tangent_vecs)]
+            return self.generate_tests([], random_data)
+
     testing_data = TestDataDirichletMetric()
 
     @geomstats.tests.np_autograd_and_torch_only
@@ -629,3 +639,11 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         expected = point
         result = self.metric(dim).exp(tangent_vec=log, base_point=base_point)
         self.assertAllClose(result, expected, rtol=1e-2)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_exp_vectorization(self, dim, point, tangent_vecs):
+        """Test the case with one initial point and several tangent vectors."""
+        end_points = self.metric(dim).exp(tangent_vec=tangent_vecs, base_point=point)
+        result = end_points.shape
+        expected = (tangent_vecs.shape[0], dim)
+        self.assertAllClose(result, expected)
