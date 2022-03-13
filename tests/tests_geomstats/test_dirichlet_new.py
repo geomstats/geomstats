@@ -228,37 +228,23 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.n_samples_list,
             )
 
-        def exp_diagonal_test_data(self):
-            param_list = [0.8, 1.2, 2.5]
-            smoke_data = [
-                dict(dim=dim, param=param, param_list=param_list)
-                for dim in self.n_list
-                for param in param_list
-            ]
-            return self.generate_tests(smoke_data)
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=0.1,
+                atol=0.0,
+            )
 
-        def exp_subspace_test_data(self):
-            smoke_data = [
-                dict(
-                    dim=3,
-                    point=[0.1, 0.1, 0.5],
-                    vec=[1.3, 1.3, 2.2],
-                    expected=[True, True, False],
-                ),
-                dict(
-                    dim=3,
-                    point=[3.5, 0.1, 3.5],
-                    vec=[0.8, 0.1, 0.8],
-                    expected=[True, False, True],
-                ),
-                dict(
-                    dim=4,
-                    point=[1.1, 1.1, 2.3, 1.1],
-                    vec=[0.6, 0.6, 2.1, 0.6],
-                    expected=[True, True, False, True],
-                ),
-            ]
-            return self.generate_tests(smoke_data)
+        def exp_log_composition_test_data(self):
+            return self._log_exp_composition_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_samples_list,
+                rtol=0.1,
+                atol=0.0,
+            )
 
         def squared_dist_is_symmetric_test_data(self):
             return self._squared_dist_is_symmetric_test_data(
@@ -334,23 +320,57 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def log_exp_composition_test_data(self):
-            return self._log_exp_composition_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_samples_list,
-                rtol=0.1,
-                atol=0.0,
-            )
+        def exp_vectorization_test_data(self):
+            dim = 3
+            point = self.space(dim).random_point()
+            tangent_vec = gs.array([1.0, 0.5, 2.0])
+            n_tangent_vecs = 10
+            t = gs.linspace(0.0, 1.0, n_tangent_vecs)
+            tangent_vecs = gs.einsum("i,...k->...ik", t, tangent_vec)
+            random_data = [dict(dim=dim, point=point, tangent_vecs=tangent_vecs)]
+            return self.generate_tests([], random_data)
 
-        def exp_log_composition_test_data(self):
-            return self._log_exp_composition_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_samples_list,
-                rtol=0.1,
-                atol=0.0,
-            )
+        def exp_diagonal_test_data(self):
+            param_list = [0.8, 1.2, 2.5]
+            smoke_data = [
+                dict(dim=dim, param=param, param_list=param_list)
+                for dim in self.n_list
+                for param in param_list
+            ]
+            return self.generate_tests(smoke_data)
+
+        def exp_subspace_test_data(self):
+            smoke_data = [
+                dict(
+                    dim=3,
+                    point=[0.1, 0.1, 0.5],
+                    vec=[1.3, 1.3, 2.2],
+                    expected=[True, True, False],
+                ),
+                dict(
+                    dim=3,
+                    point=[3.5, 0.1, 3.5],
+                    vec=[0.8, 0.1, 0.8],
+                    expected=[True, False, True],
+                ),
+                dict(
+                    dim=4,
+                    point=[1.1, 1.1, 2.3, 1.1],
+                    vec=[0.6, 0.6, 2.1, 0.6],
+                    expected=[True, True, False, True],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def exp_and_log_composition_test_data(self):
+            random_data = [
+                dict(
+                    dim=3,
+                    base_point=self.space(3).random_point(),
+                    point=self.space(3).random_point(),
+                )
+            ]
+            return self.generate_tests([], random_data)
 
         def geodesic_ivp_shape_test_data(self):
             random_data = [
@@ -493,26 +513,6 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_and_log_composition_test_data(self):
-            random_data = [
-                dict(
-                    dim=3,
-                    base_point=self.space(3).random_point(),
-                    point=self.space(3).random_point(),
-                )
-            ]
-            return self.generate_tests([], random_data)
-
-        def exp_vectorization_test_data(self):
-            dim = 3
-            point = self.space(dim).random_point()
-            tangent_vec = gs.array([1.0, 0.5, 2.0])
-            n_tangent_vecs = 10
-            t = gs.linspace(0.0, 1.0, n_tangent_vecs)
-            tangent_vecs = gs.einsum("i,...k->...ik", t, tangent_vec)
-            random_data = [dict(dim=dim, point=point, tangent_vecs=tangent_vecs)]
-            return self.generate_tests([], random_data)
-
     testing_data = TestDataDirichletMetric()
 
     @geomstats.tests.np_autograd_and_torch_only
@@ -563,6 +563,21 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         end_point = self.metric(dim).exp(vec, point)
         result = gs.isclose(end_point - end_point[0], 0)
         return self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_exp_vectorization(self, dim, point, tangent_vecs):
+        """Test the case with one initial point and several tangent vectors."""
+        end_points = self.metric(dim).exp(tangent_vec=tangent_vecs, base_point=point)
+        result = end_points.shape
+        expected = (tangent_vecs.shape[0], dim)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_exp_and_log_composition(self, dim, base_point, point):
+        log = self.metric(dim).log(point, base_point, n_steps=500)
+        expected = point
+        result = self.metric(dim).exp(tangent_vec=log, base_point=base_point)
+        self.assertAllClose(result, expected, rtol=1e-2)
 
     @geomstats.tests.np_and_autograd_only
     def test_geodesic_ivp_shape(self, dim, point, vec, n_steps, expected):
@@ -632,18 +647,3 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     def test_polynomial_init(self, dim, point_a, point_b, expected):
         result = self.metric(dim).dist(point_a, point_b, init="polynomial")
         self.assertAllClose(expected, result, atol=0, rtol=1e-1)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_exp_and_log_composition(self, dim, base_point, point):
-        log = self.metric(dim).log(point, base_point, n_steps=500)
-        expected = point
-        result = self.metric(dim).exp(tangent_vec=log, base_point=base_point)
-        self.assertAllClose(result, expected, rtol=1e-2)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_exp_vectorization(self, dim, point, tangent_vecs):
-        """Test the case with one initial point and several tangent vectors."""
-        end_points = self.metric(dim).exp(tangent_vec=tangent_vecs, base_point=point)
-        result = end_points.shape
-        expected = (tangent_vecs.shape[0], dim)
-        self.assertAllClose(result, expected)
