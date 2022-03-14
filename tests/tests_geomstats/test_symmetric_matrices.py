@@ -158,7 +158,6 @@ class TestSymmetricMatrices(TestCase, metaclass=VectorSpaceParametrizer):
                 n_points_list,
                 gs.atol * 1000,
             )
-            return None
 
     testing_data = SymmetricMatricesTestData()
 
