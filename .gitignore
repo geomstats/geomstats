@@ -140,3 +140,6 @@ notebooks/*.svg
 
 # Python virtual environment
 venv/
+
+#air speed velocity
+.asv/
