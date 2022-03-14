@@ -4,8 +4,9 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from tests.conftest import Parametrizer
 from tests.data_generation import _VectorSpaceTestData
-from tests.parametrizers import Parametrizer, VectorSpaceTestCase
+from tests.geometry_test_cases import VectorSpaceTestCase
 
 
 class TestSymmetricMatrices(VectorSpaceTestCase, metaclass=Parametrizer):

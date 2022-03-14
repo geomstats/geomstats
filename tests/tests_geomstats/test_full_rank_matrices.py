@@ -3,12 +3,12 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _OpenSetTestData
-from tests.parametrizers import OpenSetParametrizer
+from tests.geometry_test_cases import OpenSetTestCase
 
 
-class TestFullRankMatrices(TestCase, metaclass=OpenSetParametrizer):
+class TestFullRankMatrices(OpenSetTestCase, metaclass=Parametrizer):
 
     space = FullRankMatrices
 

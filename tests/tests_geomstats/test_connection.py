@@ -9,9 +9,8 @@ from geomstats.geometry.connection import Connection
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer, TestCase
 from tests.data_generation import TestData
-from tests.parametrizers import Parametrizer
 
 
 class TestConnection(TestCase, metaclass=Parametrizer):

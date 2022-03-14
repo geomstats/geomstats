@@ -6,9 +6,8 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.pullback_metric import PullbackMetric
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer, TestCase
 from tests.data_generation import TestData
-from tests.parametrizers import Parametrizer
 
 
 def _sphere_immersion(spherical_coords):

@@ -4,12 +4,12 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear, SquareMatrices
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _LieGroupTestData, _MatrixLieAlgebraTestData
-from tests.parametrizers import LieGroupParametrizer, MatrixLieAlgebraParametrizer
+from tests.geometry_test_cases import LieGroupTestCase, MatrixLieAlgebraTestCase
 
 
-class TestGeneralLinear(TestCase, metaclass=LieGroupParametrizer):
+class TestGeneralLinear(LieGroupTestCase, metaclass=Parametrizer):
     space = group = GeneralLinear
     skip_test_exp_log_composition = True
     skip_test_log_exp_composition = True
@@ -217,7 +217,7 @@ class TestGeneralLinear(TestCase, metaclass=LieGroupParametrizer):
         self.assertAllClose(result, gs.array(expected))
 
 
-class TestSquareMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer):
+class TestSquareMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer):
     space = algebra = SquareMatrices
 
     class SquareMatricesTestData(_MatrixLieAlgebraTestData):

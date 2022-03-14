@@ -8,9 +8,9 @@ from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid, HyperboloidMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.poincare_ball import PoincareBall
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
-from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
+from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
 # of the vector, as opposed to the standard behavior of gs.allclose
@@ -19,7 +19,7 @@ from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametriz
 RTOL = 1e-6
 
 
-class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
+class TestHyperbolic(LevelSetTestCase, metaclass=Parametrizer):
     space = Hyperboloid
     skip_test_intrinsic_extrinsic_composition = True
 
@@ -171,7 +171,7 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
         self.assertAllClose(x, x2)
 
 
-class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     connection = metric = HyperboloidMetric
 
     skip_test_parallel_transport_ivp_is_isometry = True

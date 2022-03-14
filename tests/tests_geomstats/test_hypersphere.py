@@ -10,16 +10,16 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
 from geomstats.learning.frechet_mean import FrechetMean
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
-from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
+from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
 MEAN_ESTIMATION_TOL = 1e-1
 KAPPA_ESTIMATION_TOL = 1e-1
 ONLINE_KMEANS_TOL = 1e-1
 
 
-class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
+class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
     space = Hypersphere
 
     class HypersphereTestData(_LevelSetTestData):
@@ -394,7 +394,7 @@ class TestHypersphere(TestCase, metaclass=LevelSetParametrizer):
         self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
 
 
-class TestHypersphereMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = HypersphereMetric
     skip_test_exp_geodesic_ivp = True
 

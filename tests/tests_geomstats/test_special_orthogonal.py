@@ -9,13 +9,9 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import BiInvariantMetric, InvariantMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from tests.conftest import TestCase, pytorch_backend, tf_backend
+from tests.conftest import Parametrizer, TestCase, pytorch_backend, tf_backend
 from tests.data_generation import TestData, _LieGroupTestData, _RiemannianMetricTestData
-from tests.parametrizers import (
-    LieGroupParametrizer,
-    Parametrizer,
-    RiemannianMetricParametrizer,
-)
+from tests.geometry_test_cases import LieGroupTestCase, RiemannianMetricTestCase
 
 EPSILON = 1e-5
 
@@ -83,7 +79,7 @@ if tf_backend():
     angles_close_to_pi = ["angle_close_pi_low"]
 
 
-class TestSpecialOrthogonal(TestCase, metaclass=LieGroupParametrizer):
+class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
     space = group = SpecialOrthogonal
     skip_test_log_exp_composition = pytorch_backend()
 
@@ -1091,7 +1087,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
 
-class TestBiInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = BiInvariantMetric
     skip_test_exp_geodesic_ivp = True
 

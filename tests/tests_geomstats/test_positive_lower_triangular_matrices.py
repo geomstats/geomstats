@@ -11,15 +11,15 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
-from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
+from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 EULER = gs.exp(1.0)
 SQRT_2 = math.sqrt(2)
 
 
-class TestPositiveLowerTriangularMatrices(TestCase, metaclass=OpenSetParametrizer):
+class TestPositiveLowerTriangularMatrices(OpenSetTestCase, metaclass=Parametrizer):
     """Test of Cholesky methods."""
 
     space = PositiveLowerTriangularMatrices
@@ -216,7 +216,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=OpenSetParametrize
         self.assertAllClose(gs.all(self.space(n).ambient_space.belongs(result)), True)
 
 
-class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestCholeskyMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = CholeskyMetric
     space = PositiveLowerTriangularMatrices
 

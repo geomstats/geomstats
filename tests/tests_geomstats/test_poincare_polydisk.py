@@ -8,12 +8,12 @@ from geomstats.geometry.poincare_polydisk import (
     PoincarePolydisk,
     PoincarePolydiskMetric,
 )
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer, TestCase
 from tests.data_generation import TestData, _OpenSetTestData
-from tests.parametrizers import OpenSetParametrizer, Parametrizer
+from tests.geometry_test_cases import OpenSetTestCase
 
 
-class TestPoincarePolydisk(TestCase, metaclass=OpenSetParametrizer):
+class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
     space = PoincarePolydisk
     skip_test_to_tangent_is_tangent = True
     skip_test_to_tangent_is_tangent_in_ambient_space = True

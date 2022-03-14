@@ -8,9 +8,9 @@ import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
-from tests.conftest import np_autograd_and_tf_only
+from tests.conftest import Parametrizer, np_autograd_and_tf_only
 from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
-from tests.parametrizers import LevelSetTestCase, Parametrizer, RiemannianMetricTestCase
+from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
 p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
 r_z = gs.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]])

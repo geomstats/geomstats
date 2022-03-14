@@ -3,12 +3,12 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _MatrixLieAlgebraTestData
-from tests.parametrizers import MatrixLieAlgebraParametrizer
+from tests.geometry_test_cases import MatrixLieAlgebraTestCase
 
 
-class TestSkewSymmetricMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer):
+class TestSkewSymmetricMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer):
 
     space = algebra = SkewSymmetricMatrices
 

@@ -4,9 +4,8 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.sub_riemannian_metric import SubRiemannianMetric
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer, TestCase
 from tests.data_generation import TestData
-from tests.parametrizers import Parametrizer
 
 
 class ExampleMetric(SubRiemannianMetric):
