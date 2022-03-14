@@ -113,7 +113,7 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
         def is_tangent_test_data(self):
             theta = gs.pi / 3
             vec_1 = gs.array([[0.0, -theta, 2.0], [theta, 0.0, 3.0], [0.0, 0.0, 0.0]])
-            vec_2 = gs.array([[0.0, -theta, 2.0], [theta, 0.0, 3.0], [0.0, 0.0, 0.0]])
+            vec_2 = gs.array([[0.0, -theta, 2.0], [theta, 0.0, 3.0], [0.0, 0.0, 1.0]])
             point = group_useful_matrix(theta)
             smoke_data = [
                 dict(n=2, tangent_vec=point @ vec_1, base_point=point, expected=True),
@@ -202,7 +202,10 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
 
         def projection_belongs_test_data(self):
             return self._projection_belongs_test_data(
-                self.space_args_list, self.shape_list, self.n_samples_list
+                self.space_args_list,
+                self.shape_list,
+                self.n_samples_list,
+                belongs_atol=gs.atol * 1000,
             )
 
         def to_tangent_is_tangent_test_data(self):
@@ -666,12 +669,15 @@ class TestInvariantMetricOnSE(
     skip_test_log_shape = np_backend()
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
-    skip_test_squared_dist_is_symmetric = True
-    # skip_test_exp_log_composition = True
-    # skip_test_log_exp_composition = True
+    skip_test_squared_dist_is_symmetric = np_backend()
+    skip_test_exp_log_composition = True
+    skip_test_log_exp_composition = True
     skip_test_log_is_tangent = np_backend()
     skip_test_geodesic_bvp_belongs = np_backend()
-    skip_test_test_exp_ladder_parallel_transport = np_backend()
+    skip_test_exp_ladder_parallel_transport = np_backend()
+    skip_test_geodesic_ivp_belongs = True
+    skip_test_exp_belongs = np_backend()
+    skip_test_squared_dist_is_symmetric = not np_backend()
 
     class SpecialEuclideanMatrixCanonicalRightMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 4), 2)
@@ -720,7 +726,7 @@ class TestInvariantMetricOnSE(
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                belongs_atol=gs.atol * 1000,
+                belongs_atol=gs.atol * 10000,
             )
 
         def log_is_tangent_test_data(self):
@@ -822,10 +828,11 @@ class TestInvariantMetricOnSE(
     testing_data = SpecialEuclideanMatrixCanonicalRightMetricTestData()
 
     def test_right_exp_coincides(self, n, initial_vec):
+        group = SpecialEuclidean(n=n)
         vector_group = SpecialEuclidean(n=n, point_type="vector")
-        initial_matrix_vec = vector_group.lie_algebra.matrix_representation(initial_vec)
+        initial_matrix_vec = group.lie_algebra.matrix_representation(initial_vec)
         vector_exp = vector_group.right_canonical_metric.exp(initial_vec)
-        result = vector_group.right_canonical_metric.exp(initial_matrix_vec, n_steps=25)
+        result = group.right_canonical_metric.exp(initial_matrix_vec, n_steps=25)
         expected = vector_group.matrix_from_vector(vector_exp)
         self.assertAllClose(result, expected, atol=1e-6)
 
@@ -887,7 +894,11 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
         elements = elements_all
         if geomstats.tests.tf_backend():
             # Tf is extremely slow
-            elements = {"point_1": point_1, "point_2": point_2}
+            elements = {
+                "point_1": point_1,
+                "point_2": point_2,
+                "angle_close_pi_low": angle_close_pi_low,
+            }
 
         # Metrics - only diagonals
         diag_mat_at_identity = gs.eye(6) * gs.array([2.0, 2.0, 2.0, 3.0, 3.0, 3.0])
@@ -923,14 +934,14 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
         ]
         angles_close_to_pi = angles_close_to_pi_all
         if geomstats.tests.tf_backend():
-            angles_close_to_pi = ["with_angle_close_pi_low"]
+            angles_close_to_pi = ["angle_close_pi_low"]
 
         def log_then_exp_right_with_angles_close_to_pi_test_data(self):
             smoke_data = []
             for metric in list(self.metrics.values()) + [SpecialEuclidean(3, "vector")]:
                 for base_point in self.elements.values():
                     for element_type in self.angles_close_to_pi:
-                        point = self.elements_all[element_type]
+                        point = self.elements[element_type]
                         smoke_data.append(
                             dict(
                                 metric=metric,
@@ -1112,7 +1123,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
                 expected_trans = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
                 expected = expected_rot + expected_trans
                 smoke_data += [dict(point=point, expected=expected)]
-                return self.generate_tests(smoke_data)
+            return self.generate_tests(smoke_data)
 
     testing_data = TestDataSpecialEuclidean3Vectors()
 
