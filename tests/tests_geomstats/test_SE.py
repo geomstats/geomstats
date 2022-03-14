@@ -991,6 +991,45 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
                         )
             return self.generate_tests(smoke_data)
 
+        def exp_data(self):
+            rot_vec_base_point = gs.array([0.0, 0.0, 0.0])
+            translation_base_point = gs.array([4.0, -1.0, 10000.0])
+            transfo_base_point = gs.concatenate(
+                [rot_vec_base_point, translation_base_point], axis=0
+            )
+
+            # Tangent vector is a translation (no infinitesimal rotational part)
+            # Expect the sum of the translation
+            # with the translation of the reference point
+            rot_vec = gs.array([0.0, 0.0, 0.0])
+            translation = gs.array([1.0, 0.0, -3.0])
+            tangent_vec = gs.concatenate([rot_vec, translation], axis=0)
+            expected = gs.concatenate(
+                [gs.array([0.0, 0.0, 0.0]), gs.array([5.0, -1.0, 9997.0])], axis=0
+            )
+            smoke_data = [dict(metric=self.metrics_all["left_canonical"], tangent_vec=tangent_vec, base_point=transfo_base_point, expected= expected)]
+            return self.generate_tests(smoke_data)
+
+        def log_data(self):
+            rot_vec_base_point = gs.array([0.0, 0.0, 0.0])
+            translation_base_point = gs.array([4.0, 0.0, 0.0])
+            transfo_base_point = gs.concatenate(
+                [rot_vec_base_point, translation_base_point], axis=0
+            )
+
+            # Point is a translation (no rotational part)
+            # Expect the difference of the translation
+            # by the translation of the reference point
+            rot_vec = gs.array([0.0, 0.0, 0.0])
+            translation = gs.array([-1.0, -1.0, -1.2])
+            point = gs.concatenate([rot_vec, translation], axis=0)
+
+            expected = gs.concatenate(
+                [gs.array([0.0, 0.0, 0.0]), gs.array([-5.0, -1.0, -1.2])], axis=0
+            )
+            smoke_data = [dict(metric=self.metrics_all["left_canonical"], point=point, base_point=transfo_base_point, expected=expected)]
+            return self.generate_tests(smoke_data)
+
     testing_data = TestDataSpecialEuclidean3Vectors()
 
     @geomstats.tests.np_and_autograd_only
@@ -1078,54 +1117,14 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
             atol = ATOL * norm
         self.assertAllClose(result, expected, atol=atol)
 
-    # @geomstats.tests.np_and_autograd_only
-    # def test_exp_left(self):
-    #     # Reference point is a translation (no rotational part)
-    #     # so that the jacobian of the left-translation of the Lie group
-    #     # is the 6x6 identity matrix
-    #     metric = self.metrics_all["left_canonical"]
-    #     rot_vec_base_point = gs.array([0.0, 0.0, 0.0])
-    #     translation_base_point = gs.array([4.0, -1.0, 10000.0])
-    #     transfo_base_point = gs.concatenate(
-    #         [rot_vec_base_point, translation_base_point], axis=0
-    #     )
+    
 
-    #     # Tangent vector is a translation (no infinitesimal rotational part)
-    #     # Expect the sum of the translation
-    #     # with the translation of the reference point
-    #     rot_vec = gs.array([0.0, 0.0, 0.0])
-    #     translation = gs.array([1.0, 0.0, -3.0])
-    #     tangent_vec = gs.concatenate([rot_vec, translation], axis=0)
+    @geomstats.tests.np_and_autograd_only
+    def test_exp(self, metric, base_point, tangent_vec, expected):
+        result = metric.exp(base_point=base_point, tangent_vec=tangent_vec)
+        self.assertAllClose(result, expected)
 
-    #     result = metric.exp(base_point=transfo_base_point, tangent_vec=tangent_vec)
-    #     expected = gs.concatenate(
-    #         [gs.array([0.0, 0.0, 0.0]), gs.array([5.0, -1.0, 9997.0])], axis=0
-    #     )
-    #     self.assertAllClose(result, expected)
-
-    # @geomstats.tests.np_and_autograd_only
-    # def test_log_left(self):
-    #     # Reference point is a translation (no rotational part)
-    #     # so that the jacobian of the left-translation of the Lie group
-    #     # is the 6x6 identity matrix
-    #     metric = self.metrics_all["left_canonical"]
-    #     rot_vec_base_point = gs.array([0.0, 0.0, 0.0])
-    #     translation_base_point = gs.array([4.0, 0.0, 0.0])
-    #     transfo_base_point = gs.concatenate(
-    #         [rot_vec_base_point, translation_base_point], axis=0
-    #     )
-
-    #     # Point is a translation (no rotational part)
-    #     # Expect the difference of the translation
-    #     # by the translation of the reference point
-    #     rot_vec = gs.array([0.0, 0.0, 0.0])
-    #     translation = gs.array([-1.0, -1.0, -1.2])
-    #     point = gs.concatenate([rot_vec, translation], axis=0)
-
-    #     expected = gs.concatenate(
-    #         [gs.array([0.0, 0.0, 0.0]), gs.array([-5.0, -1.0, -1.2])], axis=0
-    #     )
-
-    #     result = metric.log(base_point=transfo_base_point, point=point)
-
-    #     self.assertAllClose(result, expected)
+    @geomstats.tests.np_and_autograd_only
+    def test_log(self, metric, point, base_point, expected):
+        result = metric.log(point, base_point)
+        self.assertAllClose(result, expected)
