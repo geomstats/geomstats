@@ -117,9 +117,27 @@ class Parametrizer(type):
                 if ("skip_" + attr_name, True) not in locals()["attrs"].items():
                     args_str = ", ".join(inspect.getfullargspec(attr_value)[0][1:])
                     data_fn_str = attr_name[5:] + "_test_data"
+                    if "testing_data" not in locals()["attrs"]:
+                        raise Exception(
+                            "Testing class class doesn't have class attribute"
+                            " named 'testing_data'"
+                        )
+                    if not hasattr(locals()["attrs"]["testing_data"], data_fn_str):
+                        raise Exception(
+                            "testing_data object doesn't have '{}' function for "
+                            "pairing with '{}'".format(data_fn_str, attr_name)
+                        )
+                    test_data = getattr(
+                        locals()["attrs"]["testing_data"], data_fn_str
+                    )()
+                    if test_data is None:
+                        raise Exception(
+                            "'{}' returned None. should be list".format(data_fn_str)
+                        )
+
                     attrs[attr_name] = pytest.mark.parametrize(
                         args_str,
-                        getattr(locals()["attrs"]["testing_data"], data_fn_str)(),
+                        test_data,
                     )(attr_value)
                 else:
                     del attrs[attr_name]
