@@ -70,6 +70,7 @@ elements_matrices = elements_matrices_all
 
 ATOL = 1e-5
 
+
 class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
 
     space = group = SpecialEuclidean
