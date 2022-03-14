@@ -8,9 +8,9 @@ import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
-from tests.conftest import TestCase, np_autograd_and_tf_only
+from tests.conftest import np_autograd_and_tf_only
 from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
-from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
+from tests.parametrizers import LevelSetTestCase, Parametrizer, RiemannianMetricTestCase
 
 p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
 r_z = gs.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
@@ -28,7 +28,7 @@ point_b = gs.array(
 )
 
 
-class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
+class TestStiefel(LevelSetTestCase, metaclass=Parametrizer):
     space = Stiefel
     skip_test_extrinsic_intrinsic_composition = True
     skip_test_intrinsic_extrinsic_composition = True
@@ -99,7 +99,7 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
         )
 
 
-class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = StiefelCanonicalMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True

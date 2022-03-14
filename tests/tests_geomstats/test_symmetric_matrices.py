@@ -4,12 +4,11 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from tests.conftest import TestCase
 from tests.data_generation import _VectorSpaceTestData
-from tests.parametrizers import ManifoldTestCase, Parametrizer, VectorSpaceParametrizer
+from tests.parametrizers import Parametrizer, VectorSpaceTestCase
 
 
-class TestSymmetricMatrices(ManifoldTestCase, metaclass=Parametrizer):
+class TestSymmetricMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
     """Test of SymmetricMatrices methods."""
 
     space = SymmetricMatrices
@@ -73,9 +72,7 @@ class TestSymmetricMatrices(ManifoldTestCase, metaclass=Parametrizer):
 
             smoke_data = [dict(n=1, dim=1), dict(n=2, dim=3), dict(n=5, dim=15)]
 
-            random_n = random.sample(range(1, 1000), 500)
-            rt_data = [(n, (n * (n + 1)) // 2) for n in random_n]
-            return self.generate_tests(smoke_data, rt_data)
+            return self.generate_tests(smoke_data, [])
 
         def to_vector_test_data(self):
             smoke_data = [
