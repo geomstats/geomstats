@@ -991,7 +991,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
                         )
             return self.generate_tests(smoke_data)
 
-        def exp_data(self):
+        def exp_test_data(self):
             rot_vec_base_point = gs.array([0.0, 0.0, 0.0])
             translation_base_point = gs.array([4.0, -1.0, 10000.0])
             transfo_base_point = gs.concatenate(
@@ -1007,10 +1007,24 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
             expected = gs.concatenate(
                 [gs.array([0.0, 0.0, 0.0]), gs.array([5.0, -1.0, 9997.0])], axis=0
             )
-            smoke_data = [dict(metric=self.metrics_all["left_canonical"], tangent_vec=tangent_vec, base_point=transfo_base_point, expected= expected)]
+            smoke_data = [
+                dict(
+                    metric=self.metrics_all["left_canonical"],
+                    tangent_vec=tangent_vec,
+                    base_point=transfo_base_point,
+                    expected=expected,
+                ),
+                dict(
+                    metric=self.group,
+                    tangent_vec=self.elements_all["translation_small"],
+                    base_point=self.elements_all["translation_large"],
+                    expected=self.elements_all["translation_large"]
+                    + self.elements_all["translation_small"],
+                ),
+            ]
             return self.generate_tests(smoke_data)
 
-        def log_data(self):
+        def log_test_data(self):
             rot_vec_base_point = gs.array([0.0, 0.0, 0.0])
             translation_base_point = gs.array([4.0, 0.0, 0.0])
             transfo_base_point = gs.concatenate(
@@ -1027,8 +1041,77 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
             expected = gs.concatenate(
                 [gs.array([0.0, 0.0, 0.0]), gs.array([-5.0, -1.0, -1.2])], axis=0
             )
-            smoke_data = [dict(metric=self.metrics_all["left_canonical"], point=point, base_point=transfo_base_point, expected=expected)]
+            smoke_data = [
+                dict(
+                    metric=self.metrics_all["left_canonical"],
+                    point=point,
+                    base_point=transfo_base_point,
+                    expected=expected,
+                ),
+                dict(
+                    metric=self.group,
+                    point=self.elements_all["translation_large"],
+                    base_point=self.elements_all["translation_small"],
+                    expected=self.elements_all["translation_large"]
+                    - self.elements_all["translation_small"],
+                ),
+            ]
             return self.generate_tests(smoke_data)
+
+        def regularize_extreme_cases_test_data(self):
+            smoke_data = []
+            for angle_type in ["angle_close_0", "angle_close_pi_low", "angle_0"]:
+                point = self.elements_all[angle_type]
+                smoke_data += [dict(point=point, expected=point)]
+
+            if not geomstats.tests.tf_backend():
+                angle_type = "angle_pi"
+                point = self.elements_all[angle_type]
+                smoke_data += [dict(point=point, expected=point)]
+
+                angle_type = "angle_close_pi_high"
+                point = self.elements_all[angle_type]
+
+                norm = gs.linalg.norm(point[:3])
+                expected_rot = gs.concatenate(
+                    [point[:3] / norm * (norm - 2 * gs.pi), gs.zeros(3)], axis=0
+                )
+                expected_trans = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
+                expected = expected_rot + expected_trans
+                smoke_data += [dict(point=point, expected=expected)]
+
+                in_pi_2pi = ["angle_in_pi_2pi", "angle_close_2pi_low"]
+
+                for angle_type in in_pi_2pi:
+                    point = self.elements_all[angle_type]
+                    angle = gs.linalg.norm(point[:3])
+                    new_angle = gs.pi - (angle - gs.pi)
+
+                    expected_rot = gs.concatenate(
+                        [-new_angle * (point[:3] / angle), gs.zeros(3)], axis=0
+                    )
+                    expected_trans = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
+                    expected = expected_rot + expected_trans
+                    smoke_data += [dict(point=point, expected=expected)]
+
+                angle_type = "angle_2pi"
+                point = self.elements_all[angle_type]
+
+                expected = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
+                smoke_data += [dict(point=point, expected=expected)]
+
+                angle_type = "angle_close_2pi_high"
+                point = self.elements_all[angle_type]
+                angle = gs.linalg.norm(point[:3])
+                new_angle = angle - 2 * gs.pi
+
+                expected_rot = gs.concatenate(
+                    [new_angle * point[:3] / angle, gs.zeros(3)], axis=0
+                )
+                expected_trans = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
+                expected = expected_rot + expected_trans
+                smoke_data += [dict(point=point, expected=expected)]
+                return self.generate_tests(smoke_data)
 
     testing_data = TestDataSpecialEuclidean3Vectors()
 
@@ -1117,8 +1200,6 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
             atol = ATOL * norm
         self.assertAllClose(result, expected, atol=atol)
 
-    
-
     @geomstats.tests.np_and_autograd_only
     def test_exp(self, metric, base_point, tangent_vec, expected):
         result = metric.exp(base_point=base_point, tangent_vec=tangent_vec)
@@ -1127,4 +1208,10 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
     @geomstats.tests.np_and_autograd_only
     def test_log(self, metric, point, base_point, expected):
         result = metric.log(point, base_point)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_regularize_extreme_cases(self, point, expected):
+        group = SpecialEuclidean(3, "vector")
+        result = group.regularize(point)
         self.assertAllClose(result, expected)
