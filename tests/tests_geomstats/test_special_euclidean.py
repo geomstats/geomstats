@@ -142,7 +142,7 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
                 "right_canonical_metric",
                 "metric",
             ]
-            random_data = [arg for arg in itertools.product(n_list, metric_str_list)]
+            random_data = itertools.product(n_list, metric_str_list)
             return self.generate_tests([], random_data)
 
         def inverse_shape_test_data(self):
