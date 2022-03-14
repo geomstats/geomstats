@@ -6,6 +6,7 @@ import types
 import pytest
 
 import geomstats.backend as gs
+from tests.conftest import TestCase
 
 
 def _is_isometry(
@@ -124,6 +125,64 @@ class Parametrizer(type):
                     del attrs[attr_name]
 
         return super(Parametrizer, cls).__new__(cls, name, bases, attrs)
+
+
+class ManifoldTestCase(TestCase):
+    def test_random_point_belongs(self, space_args, n_points, belongs_atol):
+        """Check that a random point belongs to the manifold.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the manifold.
+        n_points : array-like
+            Number of random points to sample.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
+        space = self.space(*space_args)
+        random_point = space.random_point(n_points)
+        result = gs.all(space.belongs(random_point, atol=belongs_atol))
+        self.assertAllClose(result, True)
+
+    def test_projection_belongs(self, space_args, point, belongs_atol):
+        """Check that a point projected on a manifold belongs to the manifold.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the manifold.
+        point : array-like
+            Point to be projected on the manifold.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
+        space = self.space(*space_args)
+        belongs = space.belongs(space.projection(gs.array(point)), belongs_atol)
+        self.assertAllClose(gs.all(belongs), gs.array(True))
+
+    def test_to_tangent_is_tangent(
+        self, space_args, vector, base_point, is_tangent_atol
+    ):
+        """Check that to_tangent returns a tangent vector.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the manifold.
+        vector : array-like
+            Vector to be projected on the tangent space at base_point.
+        base_point : array-like
+            Point on the manifold.
+        is_tangent_atol : float
+            Absolute tolerance for the is_tangent function.
+        """
+        space = self.space(*space_args)
+        tangent = space.to_tangent(gs.array(vector), gs.array(base_point))
+        result = gs.all(
+            space.is_tangent(tangent, gs.array(base_point), is_tangent_atol)
+        )
+        self.assertAllClose(result, gs.array(True))
 
 
 class ManifoldParametrizer(Parametrizer):
