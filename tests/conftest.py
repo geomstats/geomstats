@@ -183,7 +183,7 @@ class Parametrizer(type):
                     data_fn_str = attr_name[5:] + "_test_data"
                     if "testing_data" not in locals()["attrs"]:
                         raise Exception(
-                            "Testing class class doesn't have class attribute"
+                            "Testing class doesn't have class object"
                             " named 'testing_data'"
                         )
                     if not hasattr(locals()["attrs"]["testing_data"], data_fn_str):
