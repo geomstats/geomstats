@@ -222,7 +222,8 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
-                atol=gs.atol * 1000,
+                amplitude=100,
+                atol=gs.atol * 10000,
             )
 
         def log_exp_composition_test_data(self):
@@ -230,7 +231,7 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
                 SpecialEuclidean,
                 self.space_args_list,
                 self.n_samples_list,
-                atol=gs.atol * 1000,
+                atol=gs.atol * 10000,
             )
 
         def regularize_test_data(self):
@@ -401,9 +402,6 @@ class TestSpecialEuclideanMatrixLieAlgebra(
     TestCase, metaclass=MatrixLieAlgebraParametrizer
 ):
     space = algebra = SpecialEuclideanMatrixLieAlgebra
-    skip_test_basis_representation_matrix_representation_composition = True
-    skip_test_matrix_representation_basis_representation_composition = True
-    skip_test_random_point_belongs = True
 
     class SpecialEuclideanMatrixLieAlgebraTestData(_MatrixLieAlgebraTestData):
         n_list = random.sample(range(2, 5), 2)
@@ -677,7 +675,7 @@ class TestInvariantMetricOnSE(
     skip_test_exp_ladder_parallel_transport = np_backend()
     skip_test_geodesic_ivp_belongs = True
     skip_test_exp_belongs = np_backend()
-    skip_test_squared_dist_is_symmetric = not np_backend()
+    skip_test_squared_dist_is_symmetric = np_backend()
 
     class SpecialEuclideanMatrixCanonicalRightMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 4), 2)
