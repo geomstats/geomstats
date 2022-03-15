@@ -370,7 +370,7 @@ class _SpecialEuclideanVectors(LieGroup):
         """Get the shape of the instance given the default_point_style."""
         return self.get_identity(point_type).shape
 
-    def belongs(self, point, atol=ATOL):
+    def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to SE(2) or SE(3).
 
         Parameters

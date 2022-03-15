@@ -497,7 +497,7 @@ class TestSpecialEuclideanMatrixLieAlgebra(
         self.assertAllClose(algebra.belongs(gs.array(vec)), gs.array(expected))
 
 
-class TestSpecialEuclideanMatrixCannonicalLeftMetric(
+class TestSpecialEuclideanMatrixCanonicalLeftMetric(
     TestCase,
     metaclass=RiemannianMetricParametrizer,
 ):
@@ -659,7 +659,7 @@ class TestSpecialEuclideanMatrixCannonicalLeftMetric(
             self.metric(group)
 
 
-class TestInvariantMetricOnSE(
+class TestSpecialEuclideanMatrixCanonicalRightMetric(
     TestCase,
     metaclass=RiemannianMetricParametrizer,
 ):
@@ -841,7 +841,7 @@ class TestInvariantMetricOnSE(
 class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
     space = SpecialEuclidean
 
-    class TestDataSpecialEuclidean3Vectors(TestData):
+    class SpecialEuclidean3VectorsTestData(TestData):
         group = SpecialEuclidean(n=3, point_type="vector")
         angle_0 = gs.zeros(6)
         angle_close_0 = 1e-10 * gs.array([1.0, -1.0, 1.0, 0.0, 0.0, 0.0]) + gs.array(
@@ -1126,7 +1126,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
                 smoke_data += [dict(point=point, expected=expected)]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataSpecialEuclidean3Vectors()
+    testing_data = SpecialEuclidean3VectorsTestData()
 
     @geomstats.tests.np_and_autograd_only
     def test_log_then_exp(self, metric, point, base_point):
