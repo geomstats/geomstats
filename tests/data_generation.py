@@ -97,8 +97,8 @@ class _ManifoldTestData(TestData):
             List of spaces' args on which tests will run.
         shape_list : list
             List of shapes of the random data that is generated, and projected.
-        n_samples_list : list
-            List of integers for the number of random data is generated, and projected.
+        n_points_list : list
+            List of number of points on manifold to generate.
         belongs_atol : float
             Absolute tolerance for the belongs function.
         """
@@ -195,8 +195,8 @@ class _LevelSetTestData(_ManifoldTestData):
             Class of the space, i.e. a child class of Manifold.
         space_args_list : list
             Arguments to pass to constructor of the manifold.
-        n_samples_list : list
-            List of number of extrinsic points to generate.
+        n_points_list : list
+            List of number of points on manifold to generate.
         rtol : float
             Relative tolerance to test this property.
         atol : float
@@ -228,8 +228,8 @@ class _LevelSetTestData(_ManifoldTestData):
             Class of the space, i.e. a child class of Manifold.
         space_args_list : list
             Arguments to pass to constructor of the manifold.
-        n_samples_list : list
-            List of number of intrinsic points to generate.
+        n_points_list : list
+            List of number of points on manifold to generate.
         rtol : float
             Relative tolerance to test this property.
         atol : float
@@ -315,8 +315,8 @@ class _LieGroupTestData(_ManifoldTestData):
             Class of the group, i.e. a child class of LieGroup.
         group_args_list : list
             List of arguments to pass to constructor of the Lie group.
-        n_samples_list : list
-            List of number of points and tangent vectors to generate.
+        n_points_list : list
+            List of number of points on manifold to generate.
         """
         random_data = []
         for group_args, n_points in zip(group_args_list, n_points_list):
@@ -378,8 +378,8 @@ class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
             Class of the space, i.e. a child class of LieAlgebra.
         space_args_list : list
             Arguments to pass to constructor of the manifold.
-        n_samples_list : list
-            List of numbers of samples to generate.
+        n_points_list : list
+            List of number of points on manifold to generate.
         """
         random_data = [
             dict(
@@ -403,8 +403,8 @@ class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
             Class of the space, i.e. a child class of LieAlgebra.
         space_args_list : list
             Arguments to pass to constructor of the LieAlgebra.
-        n_samples_list : list
-            List of numbers of samples to generate.
+        n_points_list : list
+            List of number of points on manifold to generate.
         """
         random_data = [
             dict(
@@ -665,8 +665,8 @@ class _ConnectionTestData(TestData):
             List of argument to pass to constructor of the connection.
         space_list : list
             List of manifolds on which the connection is defined.
-        n_samples_list : list
-            List of number of random data to generate.
+        n_points_list : list
+            List of number of points on manifold to generate.
         """
         random_data = []
         for connection_args, space, n_points in zip(
