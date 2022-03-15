@@ -280,6 +280,7 @@ class _LieGroupTestData(_ManifoldTestData):
         ):
             group = group_cls(*group_args)
             for base_point in [group.random_point(), group.identity]:
+
                 tangent_vec = group.to_tangent(
                     gs.random.normal(size=(n_tangent_vecs,) + shape) / amplitude,
                     base_point,
