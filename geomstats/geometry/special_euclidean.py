@@ -1358,7 +1358,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
         return belongs
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in the vector space with a uniform distribution in a box.
+        """Sample in the lie algebra with a uniform distribution in a box.
 
         Parameters
         ----------
@@ -1371,7 +1371,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
 
         Returns
         -------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., n + 1, n + 1]
            Sample.
         """
         point = super(SpecialEuclideanMatrixLieAlgebra, self).random_point(
