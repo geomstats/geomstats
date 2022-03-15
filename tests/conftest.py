@@ -171,7 +171,7 @@ class Parametrizer(type):
     def __new__(cls, name, bases, attrs):
         """Decorate the test class' methods with pytest."""
         for base in bases:
-            test_fn_list = [fn for fn in dir(base) if fn.startswith("test") is True]
+            test_fn_list = [fn for fn in dir(base) if fn.startswith("test")]
             for test_fn in test_fn_list:
                 attrs[test_fn] = copy_func(getattr(base, test_fn))
 
