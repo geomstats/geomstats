@@ -205,6 +205,12 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             algebra = SpecialEuclideanMatrixLieAlgebra(n)
             self.assertEqual(int(n * (n + 1) / 2), algebra.dim)
 
+    def test_random_and_belongs_lie_algerba(self):
+        algebra = self.group.lie_algebra
+        point = algebra.random_point(2)
+        results = algebra.belongs(point)
+        self.assertTrue(gs.all(results))
+
     def test_belongs_lie_algebra(self):
         theta = gs.pi / 3
         vec_1 = gs.array([[0.0, -theta, 2.0], [theta, 0.0, 3.0], [0.0, 0.0, 0.0]])
