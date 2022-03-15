@@ -603,6 +603,7 @@ class TestSpecialEuclideanMatrixCannonicalLeftMetric(
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
+                amplitude=10,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 100,
             )
@@ -724,7 +725,7 @@ class TestInvariantMetricOnSE(
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                belongs_atol=gs.atol * 10000,
+                belongs_atol=1e-3,
             )
 
         def log_is_tangent_test_data(self):
@@ -741,7 +742,7 @@ class TestInvariantMetricOnSE(
                 self.space_list,
                 self.shape_list,
                 self.n_points_list,
-                belongs_atol=gs.atol * 100,
+                belongs_atol=1e-3,
             )
 
         def geodesic_bvp_belongs_test_data(self):
@@ -749,7 +750,7 @@ class TestInvariantMetricOnSE(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
-                belongs_atol=gs.atol * 100,
+                belongs_atol=1e-3,
             )
 
         def log_exp_composition_test_data(self):
