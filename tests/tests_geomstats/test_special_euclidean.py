@@ -74,8 +74,8 @@ ATOL = 1e-5
 class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
 
     space = group = SpecialEuclidean
-    skip_test_exp_log_composition_test = tf_backend()
-    skip_test_log_exp_composition_test = tf_backend()
+    skip_test_exp_log_composition = tf_backend()
+    skip_test_log_exp_composition = tf_backend()
 
     class SpecialEuclideanTestData(_LieGroupTestData):
         n_list = random.sample(range(2, 4), 2)
