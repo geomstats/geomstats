@@ -1307,9 +1307,10 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
 
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
-        super(SpecialEuclideanMatrixLieAlgebra, self).__init__(dim, n)
+        super(SpecialEuclideanMatrixLieAlgebra, self).__init__(dim, n + 1)
 
         self.skew = SkewSymmetricMatrices(n)
+        self.n = n
 
     def _create_basis(self):
         """Create the canonical basis."""
@@ -1355,6 +1356,28 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
 
         belongs = gs.logical_and(belongs, all_zeros)
         return belongs
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample in the lie algebra with a uniform distribution in a box.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Side of hypercube support of the uniform distribution.
+            Optional, default: 1.0
+
+        Returns
+        -------
+        point : array-like, shape=[..., n + 1, n + 1]
+           Sample.
+        """
+        point = super(SpecialEuclideanMatrixLieAlgebra, self).random_point(
+            n_samples, bound
+        )
+        return self.projection(point)
 
     def projection(self, mat):
         """Project a matrix to the Lie Algebra.
