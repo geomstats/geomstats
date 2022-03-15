@@ -22,6 +22,7 @@ RTOL = 1e-6
 class TestHyperbolic(LevelSetTestCase, metaclass=Parametrizer):
     space = Hyperboloid
     skip_test_intrinsic_extrinsic_composition = True
+    skip_test_projection_belongs = True
 
     class HyperbolicTestData(_LevelSetTestData):
 
