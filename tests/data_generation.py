@@ -87,7 +87,7 @@ class _ManifoldTestData(TestData):
         return self.generate_tests(smoke_data, random_data)
 
     def _projection_belongs_test_data(
-        self, space_args_list, shape_list, n_samples_list, belongs_atol=gs.atol
+        self, space_args_list, shape_list, n_points_list, belongs_atol=gs.atol
     ):
         """Generate data to check that a point projected on a manifold belongs to the manifold.
 
@@ -97,19 +97,19 @@ class _ManifoldTestData(TestData):
             List of spaces' args on which tests will run.
         shape_list : list
             List of shapes of the random data that is generated, and projected.
-        n_samples_list : list
-            List of integers for the number of random data is generated, and projected.
+        n_points_list : list
+            List of number of points on manifold to generate.
         belongs_atol : float
             Absolute tolerance for the belongs function.
         """
         random_data = [
             dict(
                 space_args=space_args,
-                data=gs.random.normal(size=(n_samples,) + shape),
+                data=gs.random.normal(size=(n_points,) + shape),
                 belongs_atol=belongs_atol,
             )
-            for space_args, shape, n_samples in zip(
-                space_args_list, shape_list, n_samples_list
+            for space_args, shape, n_points in zip(
+                space_args_list, shape_list, n_points_list
             )
         ]
         return self.generate_tests([], random_data)
@@ -183,7 +183,7 @@ class _OpenSetTestData(_ManifoldTestData):
 
 class _LevelSetTestData(_ManifoldTestData):
     def _extrinsic_intrinsic_composition_test_data(
-        self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
+        self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinate system twice gives back the point.
 
@@ -195,8 +195,8 @@ class _LevelSetTestData(_ManifoldTestData):
             Class of the space, i.e. a child class of Manifold.
         space_args_list : list
             Arguments to pass to constructor of the manifold.
-        n_samples_list : list
-            List of number of extrinsic points to generate.
+        n_points_list : list
+            List of number of points on manifold to generate.
         rtol : float
             Relative tolerance to test this property.
         atol : float
@@ -207,16 +207,16 @@ class _LevelSetTestData(_ManifoldTestData):
                 space_args=space_args,
                 point_extrinsic=space_cls(
                     *space_args, default_coords_type="extrinsic"
-                ).random_point(n_samples),
+                ).random_point(n_points),
                 rtol=rtol,
                 atol=atol,
             )
-            for space_args, n_samples in zip(space_args_list, n_samples_list)
+            for space_args, n_points in zip(space_args_list, n_points_list)
         ]
         return self.generate_tests([], random_data)
 
     def _intrinsic_extrinsic_composition_test_data(
-        self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
+        self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinate system twice gives back the point.
 
@@ -228,18 +228,18 @@ class _LevelSetTestData(_ManifoldTestData):
             Class of the space, i.e. a child class of Manifold.
         space_args_list : list
             Arguments to pass to constructor of the manifold.
-        n_samples_list : list
-            List of number of intrinsic points to generate.
+        n_points_list : list
+            List of number of points on manifold to generate.
         rtol : float
             Relative tolerance to test this property.
         atol : float
             Absolute tolerance to test this property.
         """
         random_data = []
-        for space_args, n_samples in zip(space_args_list, n_samples_list):
+        for space_args, n_points in zip(space_args_list, n_points_list):
 
             space = space_cls(*space_args, default_coords_type="intrinsic")
-            point_intrinic = space.random_point(n_samples)
+            point_intrinic = space.random_point(n_points)
             random_data.append(
                 dict(
                     space_args=space_args,
@@ -257,7 +257,7 @@ class _LieGroupTestData(_ManifoldTestData):
         group_cls,
         group_args_list,
         shape_list,
-        n_samples_list,
+        n_tangent_vecs_list,
         smoke_data=None,
         amplitude=1.0,
         rtol=gs.rtol,
@@ -271,17 +271,18 @@ class _LieGroupTestData(_ManifoldTestData):
             Class of the group, i.e. a child class of LieGroup.
         group_args_list : list
             Arguments to pass to constructor of the Lie group.
-        n_samples_list : list
-            List of number of points and tangent vectors to generate.
+        n_tangent_vecs_list : list
+            List of number of random tangent vectors to generate.
         """
         random_data = []
-        for group_args, shape, n_samples in zip(
-            group_args_list, shape_list, n_samples_list
+        for group_args, shape, n_tangent_vecs in zip(
+            group_args_list, shape_list, n_tangent_vecs_list
         ):
             group = group_cls(*group_args)
             for base_point in [group.random_point(), group.identity]:
                 tangent_vec = group.to_tangent(
-                    gs.random.normal(size=(n_samples,) + shape) / amplitude, base_point
+                    gs.random.normal(size=(n_tangent_vecs,) + shape) / amplitude,
+                    base_point,
                 )
                 random_data.append(
                     dict(
@@ -301,7 +302,7 @@ class _LieGroupTestData(_ManifoldTestData):
         self,
         group_cls,
         group_args_list,
-        n_samples_list,
+        n_points_list,
         smoke_data=None,
         rtol=gs.rtol,
         atol=gs.atol,
@@ -314,14 +315,14 @@ class _LieGroupTestData(_ManifoldTestData):
             Class of the group, i.e. a child class of LieGroup.
         group_args_list : list
             List of arguments to pass to constructor of the Lie group.
-        n_samples_list : list
-            List of number of points and tangent vectors to generate.
+        n_points_list : list
+            List of number of points on manifold to generate.
         """
         random_data = []
-        for group_args, n_samples in zip(group_args_list, n_samples_list):
+        for group_args, n_points in zip(group_args_list, n_points_list):
             group = group_cls(*group_args)
             for base_point in [group.random_point(), group.identity]:
-                point = group.random_point(n_samples)
+                point = group.random_point(n_points)
                 random_data.append(
                     dict(
                         group_args=group_args,
@@ -367,7 +368,7 @@ class _VectorSpaceTestData(_ManifoldTestData):
 
 class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
     def _basis_representation_matrix_representation_composition_test_data(
-        self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
+        self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinates twice gives back the point.
 
@@ -377,22 +378,22 @@ class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
             Class of the space, i.e. a child class of LieAlgebra.
         space_args_list : list
             Arguments to pass to constructor of the manifold.
-        n_samples_list : list
-            List of numbers of samples to generate.
+        n_points_list : list
+            List of number of points on manifold to generate.
         """
         random_data = [
             dict(
                 space_args=space_args,
-                matrix_rep=space_cls(*space_args).random_point(n_samples),
+                matrix_rep=space_cls(*space_args).random_point(n_points),
                 rtol=rtol,
                 atol=atol,
             )
-            for space_args, n_samples in zip(space_args_list, n_samples_list)
+            for space_args, n_points in zip(space_args_list, n_points_list)
         ]
         return self.generate_tests([], random_data)
 
     def _matrix_representation_basis_representation_composition_test_data(
-        self, space_cls, space_args_list, n_samples_list, rtol=gs.rtol, atol=gs.atol
+        self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinates twice gives back the point.
 
@@ -402,19 +403,19 @@ class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
             Class of the space, i.e. a child class of LieAlgebra.
         space_args_list : list
             Arguments to pass to constructor of the LieAlgebra.
-        n_samples_list : list
-            List of numbers of samples to generate.
+        n_points_list : list
+            List of number of points on manifold to generate.
         """
         random_data = [
             dict(
                 space_args=space_args,
                 basis_rep=space_cls(*space_args).basis_representation(
-                    space_cls(*space_args).random_point(n_samples)
+                    space_cls(*space_args).random_point(n_points)
                 ),
                 rtol=rtol,
                 atol=atol,
             )
-            for space_args, n_samples in zip(space_args_list, n_samples_list)
+            for space_args, n_points in zip(space_args_list, n_points_list)
         ]
         return self.generate_tests([], random_data)
 
@@ -498,7 +499,7 @@ class _ConnectionTestData(TestData):
         connection_args_list,
         space_list,
         shape_list,
-        n_samples_list,
+        n_tangent_vecs_list,
         belongs_atol=gs.atol,
     ):
         """Generate data to check that exp gives a point on the manifold.
@@ -511,12 +512,12 @@ class _ConnectionTestData(TestData):
             List of manifolds on which the connection is defined.
         shape_list : list
             List of shapes for random data to generate.
-        n_samples_list : list
-            List of number of random data to generate.
+        n_tangent_vecs_list : list
+            List of number of random tangent vectors to generate.
         """
         random_data = []
         for connection_args, space, shape, n_tangent_vecs in zip(
-            connection_args_list, space_list, shape_list, n_samples_list
+            connection_args_list, space_list, shape_list, n_tangent_vecs_list
         ):
             base_point = space.random_point()
             tangent_vec = space.to_tangent(
@@ -534,7 +535,7 @@ class _ConnectionTestData(TestData):
         return self.generate_tests([], random_data)
 
     def _log_is_tangent_test_data(
-        self, connection_args_list, space_list, n_samples_list, is_tangent_atol=gs.atol
+        self, connection_args_list, space_list, n_points_list, is_tangent_atol=gs.atol
     ):
         """Generate data to check that log gives a tangent vector.
 
@@ -548,10 +549,10 @@ class _ConnectionTestData(TestData):
             List of number of random data to generate.
         """
         random_data = []
-        for connection_args, space, n_samples in zip(
-            connection_args_list, space_list, n_samples_list
+        for connection_args, space, n_points in zip(
+            connection_args_list, space_list, n_points_list
         ):
-            point = space.random_point(n_samples)
+            point = space.random_point(n_points)
             base_point = space.random_point()
             random_data.append(
                 dict(
@@ -651,7 +652,7 @@ class _ConnectionTestData(TestData):
         self,
         connection_args_list,
         space_list,
-        n_samples_list,
+        n_points_list,
         smoke_data=None,
         rtol=gs.rtol,
         atol=gs.atol,
@@ -664,14 +665,14 @@ class _ConnectionTestData(TestData):
             List of argument to pass to constructor of the connection.
         space_list : list
             List of manifolds on which the connection is defined.
-        n_samples_list : list
-            List of number of random data to generate.
+        n_points_list : list
+            List of number of points on manifold to generate.
         """
         random_data = []
-        for connection_args, space, n_samples in zip(
-            connection_args_list, space_list, n_samples_list
+        for connection_args, space, n_points in zip(
+            connection_args_list, space_list, n_points_list
         ):
-            point = space.random_point(n_samples)
+            point = space.random_point(n_points)
             base_point = space.random_point()
             random_data.append(
                 dict(
@@ -691,7 +692,7 @@ class _ConnectionTestData(TestData):
         connection_args_list,
         space_list,
         shape_list,
-        n_samples_list,
+        n_tangent_vecs_list,
         smoke_data=None,
         amplitude=1.0,
         rtol=gs.rtol,
@@ -707,6 +708,8 @@ class _ConnectionTestData(TestData):
             List of manifolds on which the connection is defined.
         shape_list : list
             List of shapes for random data to generate.
+        n_tangent_vecs_list : list
+            List of number of random tangent vectors to generate.
         n_samples_list : list
             List of number of random data to generate.
         amplitude : float
@@ -714,12 +717,12 @@ class _ConnectionTestData(TestData):
             injectivity domain of the exponential map.
         """
         random_data = []
-        for connection_args, space, shape, n_samples in zip(
-            connection_args_list, space_list, shape_list, n_samples_list
+        for connection_args, space, shape, n_tangent_vecs in zip(
+            connection_args_list, space_list, shape_list, n_tangent_vecs_list
         ):
             base_point = space.random_point()
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_samples,) + shape) / amplitude, base_point
+                gs.random.normal(size=(n_tangent_vecs,) + shape) / amplitude, base_point
             )
             random_data.append(
                 dict(
@@ -739,7 +742,7 @@ class _ConnectionTestData(TestData):
         connection_args_list,
         space_list,
         shape_list,
-        n_samples_list,
+        n_tangent_vecs_list,
         n_rungs_list,
         alpha_list,
         scheme_list,
@@ -756,6 +759,8 @@ class _ConnectionTestData(TestData):
             List of manifolds on which the connection is defined.
         shape_list : list
             List of shapes for random data to generate.
+        n_tangent_vecs_list : list
+            List of number of random tangent vectors to generate.
         n_rungs_list : list
             List of number of rungs for the ladder.
         alpha_list : list
@@ -768,11 +773,19 @@ class _ConnectionTestData(TestData):
             Absolute tolerance to test this property.
         """
         random_data = []
-        for (connection_args, space, shape, n_samples, n_rungs, alpha, scheme,) in zip(
+        for (
+            connection_args,
+            space,
+            shape,
+            n_tangent_vecs,
+            n_rungs,
+            alpha,
+            scheme,
+        ) in zip(
             connection_args_list,
             space_list,
             shape_list,
-            n_samples_list,
+            n_tangent_vecs_list,
             n_rungs_list,
             alpha_list,
             scheme_list,
@@ -780,7 +793,7 @@ class _ConnectionTestData(TestData):
             base_point = space.random_point()
 
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_samples,) + shape), base_point
+                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
             )
             direction = space.to_tangent(gs.random.normal(size=shape), base_point)
             random_data.append(
@@ -804,7 +817,7 @@ class _ConnectionTestData(TestData):
         connection_args_list,
         space_list,
         shape_list,
-        n_samples_list,
+        n_tangent_vecs_list,
         n_points_list,
         rtol=gs.rtol,
         atol=gs.atol,
@@ -819,24 +832,24 @@ class _ConnectionTestData(TestData):
             List of manifolds on which the connection is defined.
         shape_list : list
             List of shapes for random data to generate.
-        n_samples_list : list
-            List of number of random data to generate.
+        n_tangent_vecs_list : list
+            List of number of random tangent vectors to generate.
         n_points_list : list
             List of number of times on the geodesics.
         belongs_atol : float
             Absolute tolerance for the belongs function.
         """
         random_data = []
-        for connection_args, space, shape, n_samples, n_points in zip(
+        for connection_args, space, shape, n_tangent_vecs, n_points in zip(
             connection_args_list,
             space_list,
             shape_list,
-            n_samples_list,
+            n_tangent_vecs_list,
             n_points_list,
         ):
             base_point = space.random_point()
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_samples,) + shape), base_point
+                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
             )
             random_data.append(
                 dict(
@@ -900,7 +913,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         metric_args_list,
         space_list,
         shape_list,
-        n_samples_list,
+        n_tangent_vecs_list,
         is_tangent_atol=gs.atol,
         rtol=gs.rtol,
         atol=gs.atol,
@@ -915,21 +928,21 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             List of spaces on which the metric is defined.
         shape_list : list
             List of shapes for random data to generate.
-        n_samples_list : list
-            List of number of random data to generate.
+        n_tangent_vecs_list : list
+            List of number of random tangent vectors to generate.
         rtol : float
             Relative tolerance to test this property.
         atol : float
             Absolute tolerance to test this property.
         """
         random_data = []
-        for metric_args, space, shape, n_samples in zip(
-            metric_args_list, space_list, shape_list, n_samples_list
+        for metric_args, space, shape, n_tangent_vecs in zip(
+            metric_args_list, space_list, shape_list, n_tangent_vecs_list
         ):
             base_point = space.random_point()
 
             tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_samples,) + shape), base_point
+                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
             )
             direction = space.to_tangent(gs.random.normal(size=shape), base_point)
             random_data.append(
@@ -952,7 +965,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         metric_args_list,
         space_list,
         shape_list,
-        n_samples_list,
+        n_tangent_vecs_list,
         is_tangent_atol=gs.atol,
         rtol=gs.rtol,
         atol=gs.atol,
@@ -967,8 +980,8 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             List of spaces on which the metric is defined.
         shape_list : list
             List of shapes for random data to generate.
-        n_samples_list : list
-            List of number of random data to generate.
+        n_tangent_vecs_list : list
+            List of number of random tangent vectors to generate.
         is_tangent_atol: float
             Asbolute tolerance for the is_tangent function.
         rtol : float
@@ -978,7 +991,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         """
         random_data = []
         for metric_args, space, tangent_shape, n_tangent_vecs in zip(
-            metric_args_list, space_list, shape_list, n_samples_list
+            metric_args_list, space_list, shape_list, n_tangent_vecs_list
         ):
             base_point = space.random_point()
 
