@@ -207,7 +207,7 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
-                belongs_atol=gs.atol * 1000,
+                belongs_atol=1e-2,
             )
 
         def to_tangent_is_tangent_test_data(self):
