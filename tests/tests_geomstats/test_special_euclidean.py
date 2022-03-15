@@ -675,7 +675,7 @@ class TestInvariantMetricOnSE(
     skip_test_exp_ladder_parallel_transport = np_backend()
     skip_test_geodesic_ivp_belongs = True
     skip_test_exp_belongs = np_backend()
-    skip_test_squared_dist_is_symmetric = np_backend()
+    skip_test_squared_dist_is_symmetric = True
 
     class SpecialEuclideanMatrixCanonicalRightMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 4), 2)
