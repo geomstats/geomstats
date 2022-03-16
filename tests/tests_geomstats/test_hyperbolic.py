@@ -29,7 +29,6 @@ class TestHyperbolic(LevelSetTestCase, metaclass=Parametrizer):
         dim_list = random.sample(range(2, 4), 2)
         space_args_list = [(dim,) for dim in dim_list]
         shape_list = [(dim + 1,) for dim in dim_list]
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
@@ -104,18 +103,18 @@ class TestHyperbolic(LevelSetTestCase, metaclass=Parametrizer):
             return self._projection_belongs_test_data(
                 self.space_args_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_points_list,
                 belongs_atol=gs.atol * 100000,
             )
 
         def extrinsic_intrinsic_composition_test_data(self):
             return self._extrinsic_intrinsic_composition_test_data(
-                Hyperbolic, self.space_args_list, self.n_samples_list
+                Hyperbolic, self.space_args_list, self.n_points_list
             )
 
         def intrinsic_extrinsic_composition_test_data(self):
             return self._intrinsic_extrinsic_composition_test_data(
-                Hyperbolic, self.space_args_list, self.n_samples_list
+                Hyperbolic, self.space_args_list, self.n_points_list
             )
 
         def extrinsic_ball_extrinsic_composition_test_data(self):
@@ -186,7 +185,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         shape_list = [(dim + 1,) for dim in dim_list]
         space_list = [Hyperboloid(dim) for dim in dim_list]
         n_points_list = random.sample(range(1, 5), 2)
-        n_samples_list = random.sample(range(1, 5), 2)
+        n_tangent_vecs_list = random.sample(range(1, 5), 2)
         n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
         batch_size_list = random.sample(range(2, 5), 2)
@@ -274,7 +273,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=1e-2,
             )
 
@@ -282,7 +281,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=1e-2,
             )
 
@@ -307,7 +306,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 100000,
             )
@@ -317,7 +316,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 amplitude=10.0,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 100000,
@@ -328,7 +327,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
@@ -339,7 +338,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 10000,
                 atol=gs.atol * 10000,
@@ -350,7 +349,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 10000,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
@@ -361,7 +360,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 10000,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
