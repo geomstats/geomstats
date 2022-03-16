@@ -7,7 +7,7 @@ import numpy as np
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.stratified_geometry.metric_spaces import LengthSpace, Point
+from geomstats.stratified_geometry.stratified_spaces import LengthSpace, Point
 
 
 class TriPoint(Point):
