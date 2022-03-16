@@ -54,11 +54,10 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         ]
         shape_list = [metric_args[0].shape for metric_args in metric_args_list]
         space_list = [metric_args[0] for metric_args in metric_args_list]
-        n_points_list = random.sample(range(1, 10), 6)
-        n_samples_list = random.sample(range(1, 10), 6)
-        n_points_a_list = random.sample(range(1, 10), 6)
+        n_points_list = random.sample(range(1, 7), 6)
+        n_tangent_vecs_list = random.sample(range(1, 7), 6)
+        n_points_a_list = random.sample(range(1, 7), 6)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 10), 6)
         alpha_list = [1] * 6
         n_rungs_list = [1] * 6
         scheme_list = ["pole"] * 6
@@ -424,16 +423,11 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         def exp_shape_test_data(self):
             return self._exp_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
+                self.metric_args_list, self.space_list, self.shape_list
             )
 
         def log_shape_test_data(self):
-            return self._log_shape_test_data(
-                self.metric_args_list, self.space_list, self.batch_size_list
-            )
+            return self._log_shape_test_data(self.metric_args_list, self.space_list)
 
         def squared_dist_is_symmetric_test_data(self):
             return self._squared_dist_is_symmetric_test_data(
@@ -449,7 +443,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=1e-2,
             )
 
@@ -457,7 +451,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=1e-2,
             )
 
@@ -482,7 +476,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -492,7 +486,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -502,7 +496,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
@@ -513,7 +507,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 100000,
                 atol=gs.atol * 100000,
@@ -524,7 +518,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
@@ -534,7 +528,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
