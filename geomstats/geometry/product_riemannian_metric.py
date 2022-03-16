@@ -236,7 +236,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         exp = gs.stack(
             [
-                self.metrics[i].exp(tangent_vec[:, i], base_point[:, i])
+                self.metrics[i].exp(tangent_vec[..., i, :], base_point[..., i, :])
                 for i in range(self.n_metrics)
             ],
             axis=-2,
