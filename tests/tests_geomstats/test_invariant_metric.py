@@ -487,6 +487,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_tangent_vecs_list,
+                amplitude=100,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -523,8 +524,8 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -536,27 +537,29 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         def exp_log_composition_at_identity_test_data(self):
             smoke_data = []
             for metric_args in self.metric_args_list[:4]:
-                for point in [self.point1, self.point_small]:
+                for tangent_vec in [self.point_1, self.point_small]:
                     smoke_data += [
-                        dict(metric_args=metric_args, tangent_vec=self.point1),
-                        dict(
-                            group_args=(self.group, None, "right"),
-                            tangent_vec=self.point1,
-                        ),
+                        dict(metric_args=metric_args, tangent_vec=tangent_vec)
                     ]
             return self.generate_tests(smoke_data)
 
         def log_exp_composition_at_identity_test_data(self):
             smoke_data = []
             for metric_args in self.metric_args_list[:4]:
-                for point in [self.point1, self.point_small]:
-                    smoke_data += [
-                        dict(metric_args=metric_args, tangent_vec=self.point1),
-                        dict(
-                            group_args=(self.group, None, "right"),
-                            tangent_vec=self.point1,
-                        ),
-                    ]
+                for point in [self.point_1, self.point_small]:
+                    smoke_data += [dict(metric_args=metric_args, point=point)]
+            return self.generate_tests(smoke_data)
+
+        def left_exp_and_exp_from_identity_left_diag_metrics_test_data(self):
+            smoke_data = [
+                dict(metric_args=self.metric_args_list[0], point=self.point_1)
+            ]
+            return self.generate_tests(smoke_data)
+
+        def left_log_and_log_from_identity_left_diag_metrics_test_data(self):
+            smoke_data = [
+                dict(metric_args=self.metric_args_list[0], point=self.point_1)
+            ]
             return self.generate_tests(smoke_data)
 
     testing_data = InvariantMetricTestData()
@@ -792,16 +795,18 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             group.bi_invariant_metric.log(rotation_mat1, rotation_mat2)
 
     @geomstats.tests.np_autograd_and_tf_only
-    def test_left_exp_and_exp_from_identity_left_diag_metrics(self):
-        left_exp_from_id = self.left_diag_metric.left_exp_from_identity(self.point_1)
-        exp_from_id = self.left_diag_metric.exp_from_identity(self.point_1)
+    def test_left_exp_and_exp_from_identity_left_diag_metrics(self, metric_args, point):
+        metric = self.metric(*metric_args)
+        left_exp_from_id = metric.left_exp_from_identity(point)
+        exp_from_id = metric.exp_from_identity(point)
 
         self.assertAllClose(left_exp_from_id, exp_from_id)
 
     @geomstats.tests.np_autograd_and_tf_only
-    def test_left_log_and_log_from_identity_left_diag_metrics(self):
-        left_log_from_id = self.left_diag_metric.left_log_from_identity(self.point_1)
-        log_from_id = self.left_diag_metric.log_from_identity(self.point_1)
+    def test_left_log_and_log_from_identity_left_diag_metrics(self, metric_args, point):
+        metric = self.metric(*metric_args)
+        left_log_from_id = metric.left_log_from_identity(point)
+        log_from_id = metric.log_from_identity(point)
 
         self.assertAllClose(left_log_from_id, log_from_id)
 
