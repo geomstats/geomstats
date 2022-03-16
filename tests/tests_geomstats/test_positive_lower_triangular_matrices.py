@@ -11,20 +11,20 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from tests.conftest import TestCase
-from tests.data_generation import OpenSetTestData, RiemannianMetricTestData
-from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
+from tests.conftest import Parametrizer
+from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
+from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 EULER = gs.exp(1.0)
 SQRT_2 = math.sqrt(2)
 
 
-class TestPositiveLowerTriangularMatrices(TestCase, metaclass=OpenSetParametrizer):
+class TestPositiveLowerTriangularMatrices(OpenSetTestCase, metaclass=Parametrizer):
     """Test of Cholesky methods."""
 
     space = PositiveLowerTriangularMatrices
 
-    class TestDataPositiveLowerTriangularMatrices(OpenSetTestData):
+    class PositiveLowerTriangularMatricesTestData(_OpenSetTestData):
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
@@ -32,7 +32,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=OpenSetParametrize
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
-        def belongs_data(self):
+        def belongs_test_data(self):
             smoke_data = [
                 dict(n=2, mat=[[1.0, 0.0], [-1.0, 3.0]], expected=True),
                 dict(n=2, mat=[[1.0, -1.0], [-1.0, 3.0]], expected=False),
@@ -61,7 +61,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=OpenSetParametrize
             ]
             return self.generate_tests(smoke_data)
 
-        def random_point_and_belongs_data(self):
+        def random_point_and_belongs_test_data(self):
             smoke_data = [
                 dict(n=1, n_samples=1),
                 dict(n=2, n_samples=2),
@@ -70,7 +70,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=OpenSetParametrize
             ]
             return self.generate_tests(smoke_data)
 
-        def gram_data(self):
+        def gram_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -85,7 +85,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=OpenSetParametrize
             ]
             return self.generate_tests(smoke_data)
 
-        def differential_gram_data(self):
+        def differential_gram_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -105,7 +105,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=OpenSetParametrize
             ]
             return self.generate_tests(smoke_data)
 
-        def inverse_differential_gram_data(self):
+        def inverse_differential_gram_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -122,7 +122,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=OpenSetParametrize
             ]
             return self.generate_tests(smoke_data)
 
-        def differential_gram_belongs_data(self):
+        def differential_gram_belongs_test_data(self):
             n_list = [1, 2, 2, 3, 10]
             n_samples_list = [1, 1, 2, 10, 5]
             space = PositiveLowerTriangularMatrices
@@ -136,7 +136,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=OpenSetParametrize
             ]
             return self.generate_tests([], random_data)
 
-        def inverse_differential_gram_belongs_data(self):
+        def inverse_differential_gram_belongs_test_data(self):
             n_list = [1, 2, 2, 3, 10]
             n_samples_list = [1, 1, 2, 10, 5]
             space = PositiveLowerTriangularMatrices
@@ -150,35 +150,35 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=OpenSetParametrize
             ]
             return self.generate_tests([], random_data)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             smoke_space_args_list = [(2,), (3,)]
             smoke_n_points_list = [1, 2]
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
                 self.n_points_list,
             )
 
-        def projection_belongs_data(self):
-            return self._projection_belongs_data(
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
                 self.space_args_list, self.shape_list, self.n_samples_list
             )
 
-        def to_tangent_is_tangent_data(self):
-            return self._to_tangent_is_tangent_data(
+        def to_tangent_is_tangent_test_data(self):
+            return self._to_tangent_is_tangent_test_data(
                 PositiveLowerTriangularMatrices,
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
             )
 
-        def to_tangent_is_tangent_in_ambient_space_data(self):
-            return self._to_tangent_is_tangent_in_ambient_space_data(
+        def to_tangent_is_tangent_in_ambient_space_test_data(self):
+            return self._to_tangent_is_tangent_in_ambient_space_test_data(
                 PositiveLowerTriangularMatrices, self.space_args_list, self.shape_list
             )
 
-    testing_data = TestDataPositiveLowerTriangularMatrices()
+    testing_data = PositiveLowerTriangularMatricesTestData()
 
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(self.space(n).belongs(gs.array(mat)), gs.array(expected))
@@ -216,7 +216,7 @@ class TestPositiveLowerTriangularMatrices(TestCase, metaclass=OpenSetParametrize
         self.assertAllClose(gs.all(self.space(n).ambient_space.belongs(result)), True)
 
 
-class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestCholeskyMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = CholeskyMetric
     space = PositiveLowerTriangularMatrices
 
@@ -224,7 +224,7 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
-    class TestDataCholeskyMetric(RiemannianMetricTestData):
+    class CholeskyMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
         metric_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
@@ -238,7 +238,7 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         n_rungs_list = [1] * 5
         scheme_list = ["pole"] * 5
 
-        def diag_inner_product_data(self):
+        def diag_inner_product_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -250,7 +250,7 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def strictly_lower_inner_product_data(self):
+        def strictly_lower_inner_product_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -261,7 +261,7 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def inner_product_data(self):
+        def inner_product_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -283,7 +283,7 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_data(self):
+        def exp_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -303,7 +303,7 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log_data(self):
+        def log_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -323,7 +323,7 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def squared_dist_data(self):
+        def squared_dist_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -346,23 +346,23 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
                 self.batch_size_list,
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.batch_size_list,
             )
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -370,8 +370,8 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -379,16 +379,16 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -396,16 +396,16 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -413,8 +413,8 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_log_composition_test_data(self):
+            return self._exp_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -423,8 +423,8 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -434,8 +434,8 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.scheme_list,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -445,8 +445,8 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 100000,
             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -455,8 +455,8 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -465,7 +465,7 @@ class TestCholeskyMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataCholeskyMetric()
+    testing_data = CholeskyMetricTestData()
 
     def test_diag_inner_product(
         self, n, tangent_vec_a, tangent_vec_b, base_point, expected

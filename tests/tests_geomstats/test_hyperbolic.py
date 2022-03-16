@@ -8,9 +8,9 @@ from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid, HyperboloidMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.poincare_ball import PoincareBall
-from tests.conftest import TestCase
-from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
-from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
+from tests.conftest import Parametrizer
+from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
+from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
 # of the vector, as opposed to the standard behavior of gs.allclose
@@ -19,11 +19,12 @@ from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametriz
 RTOL = 1e-6
 
 
-class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
+class TestHyperbolic(LevelSetTestCase, metaclass=Parametrizer):
     space = Hyperboloid
     skip_test_intrinsic_extrinsic_composition = True
+    skip_test_projection_belongs = True
 
-    class TestDataHyperbolic(LevelSetTestData):
+    class HyperbolicTestData(_LevelSetTestData):
 
         dim_list = random.sample(range(2, 4), 2)
         space_args_list = [(dim,) for dim in dim_list]
@@ -32,7 +33,7 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
-        def belongs_data(self):
+        def belongs_test_data(self):
             smoke_data = [
                 dict(
                     dim=3,
@@ -55,7 +56,7 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def regularize_raises_data(self):
+        def regularize_raises_test_data(self):
             smoke_data = [
                 dict(
                     dim=3,
@@ -65,7 +66,7 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def extrinsic_to_intrinsic_coords_rasises_data(self):
+        def extrinsic_to_intrinsic_coords_rasises_test_data(self):
             smoke_data = [
                 dict(
                     dim=3,
@@ -75,11 +76,11 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             smoke_space_args_list = [(2,), (3,)]
             smoke_n_points_list = [1, 2]
             belongs_atol = gs.atol * 100000
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
@@ -87,11 +88,11 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
                 belongs_atol,
             )
 
-        def to_tangent_is_tangent_data(self):
+        def to_tangent_is_tangent_test_data(self):
 
             is_tangent_atol = gs.atol * 100000
 
-            return self._to_tangent_is_tangent_data(
+            return self._to_tangent_is_tangent_test_data(
                 Hyperboloid,
                 self.space_args_list,
                 self.shape_list,
@@ -99,39 +100,39 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
                 is_tangent_atol,
             )
 
-        def projection_belongs_data(self):
-            return self._projection_belongs_data(
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
                 belongs_atol=gs.atol * 100000,
             )
 
-        def extrinsic_intrinsic_composition_data(self):
-            return self._extrinsic_intrinsic_composition_data(
+        def extrinsic_intrinsic_composition_test_data(self):
+            return self._extrinsic_intrinsic_composition_test_data(
                 Hyperbolic, self.space_args_list, self.n_samples_list
             )
 
-        def intrinsic_extrinsic_composition_data(self):
-            return self._intrinsic_extrinsic_composition_data(
+        def intrinsic_extrinsic_composition_test_data(self):
+            return self._intrinsic_extrinsic_composition_test_data(
                 Hyperbolic, self.space_args_list, self.n_samples_list
             )
 
-        def extrinsic_ball_extrinsic_composition_data(self):
+        def extrinsic_ball_extrinsic_composition_test_data(self):
             smoke_data = [dict(dim=2, point_intrinsic=gs.array([0.5, 7]))]
             return self.generate_tests(smoke_data)
 
-        def extrinsic_half_plane_extrinsic_composition_data(self):
+        def extrinsic_half_plane_extrinsic_composition_test_data(self):
             smoke_data = [
                 dict(dim=2, point_intrinsic=gs.array([0.5, 7], dtype=gs.float64))
             ]
             return self.generate_tests(smoke_data)
 
-        def ball_extrinsic_ball_data(self):
+        def ball_extrinsic_ball_test_data(self):
             smoke_data = [dict(dim=2, x_ball=gs.array([0.5, 0.2]))]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataHyperbolic()
+    testing_data = HyperbolicTestData()
 
     def test_belongs(self, dim, coords_type, vec, expected):
         space = self.space(dim, coords_type=coords_type)
@@ -171,14 +172,14 @@ class TestHyperbolic(TestCase, metaclass=LevelSetParametrizer):
         self.assertAllClose(x, x2)
 
 
-class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     connection = metric = HyperboloidMetric
 
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
-    class TestDataHyperboloidMetric(RiemannianMetricTestData):
+    class HyperboloidMetricTestData(_RiemannianMetricTestData):
 
         dim_list = random.sample(range(2, 4), 2)
         metric_args_list = [(dim,) for dim in dim_list]
@@ -193,7 +194,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
 
-        def inner_product_is_minkowski_inner_product_data(self):
+        def inner_product_is_minkowski_inner_product_test_data(self):
             space = Hyperboloid(dim=3)
             base_point = gs.array([1.16563816, 0.36381045, -0.47000603, 0.07381469])
             tangent_vec_a = space.to_tangent(
@@ -212,7 +213,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def scaled_inner_product_data(self):
+        def scaled_inner_product_test_data(self):
             space = Hyperboloid(3)
             base_point = space.from_coordinates(gs.array([1.0, 1.0, 1.0]), "intrinsic")
             tangent_vec_a = space.to_tangent(gs.array([1.0, 2.0, 3.0, 4.0]), base_point)
@@ -228,7 +229,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def scaled_squared_norm_data(self):
+        def scaled_squared_norm_test_data(self):
             space = Hyperboloid(3)
             base_point = space.from_coordinates(gs.array([1.0, 1.0, 1.0]), "intrinsic")
             tangent_vec = space.to_tangent(gs.array([1.0, 2.0, 3.0, 4.0]), base_point)
@@ -237,30 +238,30 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def scaled_dist_data(self):
+        def scaled_dist_test_data(self):
             space = Hyperboloid(3)
             point_a = space.from_coordinates(gs.array([1.0, 2.0, 3.0]), "intrinsic")
             point_b = space.from_coordinates(gs.array([4.0, 5.0, 6.0]), "intrinsic")
             smoke_data = [dict(dim=3, scale=2, point_a=point_a, point_b=point_b)]
             return self.generate_tests(smoke_data)
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
                 self.batch_size_list,
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.batch_size_list,
             )
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -268,8 +269,8 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -277,16 +278,16 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=1e-2,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
                 is_tangent_atol=1e-2,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -294,16 +295,16 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -311,8 +312,8 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 100000,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_log_composition_test_data(self):
+            return self._exp_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -322,8 +323,8 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 100000,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -333,8 +334,8 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.scheme_list,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -344,8 +345,8 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -355,8 +356,8 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -366,7 +367,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def log_exp_intrinsic_ball_extrinsic_data(self):
+        def log_exp_intrinsic_ball_extrinsic_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -376,14 +377,14 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def distance_ball_extrinsic_from_ball_data(self):
+        def distance_ball_extrinsic_from_ball_test_data(self):
 
             smoke_data = [
                 dict(dim=2, x_ball=gs.array([0.7, 0.2]), y_ball=gs.array([0.2, 0.2]))
             ]
             return self.generate_tests(smoke_data)
 
-        def distance_ball_extrinsic_intrinsic_data(self):
+        def distance_ball_extrinsic_intrinsic_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -398,7 +399,7 @@ class TestHyperboloidMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataHyperboloidMetric()
+    testing_data = HyperboloidMetricTestData()
 
     def test_inner_product_is_minkowski_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point

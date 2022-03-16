@@ -5,6 +5,7 @@ import random
 import pytest
 
 import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.pre_shape import (
     KendallShapeMetric,
@@ -12,9 +13,9 @@ from geomstats.geometry.pre_shape import (
     PreShapeSpace,
 )
 from geomstats.geometry.quotient_metric import QuotientMetric
-from tests.conftest import TestCase, np_autograd_and_torch_only
-from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
-from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
+from tests.conftest import Parametrizer, np_autograd_and_torch_only
+from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
+from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
 smoke_space = PreShapeSpace(4, 3)
 vector = gs.random.rand(11, 4, 3)
@@ -55,12 +56,12 @@ a_x_h = smoke_space.integrability_tensor(hor_x, hor_h, base_point)
 nabla_x_h = hor_dh + a_x_h
 
 
-class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
+class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
     space = PreShapeSpace
     skip_test_extrinsic_intrinsic_composition = True
     skip_test_intrinsic_extrinsic_composition = True
 
-    class TestDataPreShapeSpace(LevelSetTestData):
+    class PreShapeSpaceTestData(_LevelSetTestData):
         k_landmarks_list = random.sample(range(3, 6), 2)
         m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
         space_args_list = list(zip(k_landmarks_list, m_ambient_list))
@@ -69,7 +70,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
         n_vecs_list = random.sample(range(1, 5), 2)
         n_samples_list = random.sample(range(1, 5), 2)
 
-        def belongs_data(self):
+        def belongs_test_data(self):
             random_data = [
                 dict(
                     k_landmarks=4,
@@ -86,7 +87,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def is_centered_data(self):
+        def is_centered_test_data(self):
             random_data = [
                 dict(
                     k_landmarks=4,
@@ -103,14 +104,14 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def to_center_is_center_data(self):
+        def to_center_is_center_test_data(self):
             smoke_data = [
                 dict(k_landmarks=4, m_ambient=3, point=gs.ones((4, 3))),
                 dict(k_landmarks=4, m_ambient=3, point=gs.ones((10, 4, 3))),
             ]
             return self.generate_tests(smoke_data)
 
-        def vertical_projection_data(self):
+        def vertical_projection_test_data(self):
             vector = gs.random.rand(10, 4, 3)
             space = PreShapeSpace(4, 3)
             point = space.random_point()
@@ -130,7 +131,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def horizontal_projection_data(self):
+        def horizontal_projection_test_data(self):
             vector = gs.random.rand(10, 4, 3)
             space = PreShapeSpace(4, 3)
             point = space.random_point()
@@ -150,7 +151,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def horizontal_and_is_tangent_data(self):
+        def horizontal_and_is_tangent_test_data(self):
             vector = gs.random.rand(10, 4, 3)
             space = PreShapeSpace(4, 3)
             point = space.random_point()
@@ -170,7 +171,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def alignment_is_symmetric_data(self):
+        def alignment_is_symmetric_test_data(self):
             space = PreShapeSpace(4, 3)
             random_data = [
                 dict(
@@ -194,7 +195,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def integrability_tensor_data(self):
+        def integrability_tensor_test_data(self):
             space = PreShapeSpace(4, 3)
             vector = gs.random.rand(2, 4, 3)
             base_point = space.random_point()
@@ -209,10 +210,10 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(random_data)
 
-        def integrability_tensor_old_data(self):
-            return self.integrability_tensor_data()
+        def integrability_tensor_old_test_data(self):
+            return self.integrability_tensor_test_data()
 
-        def integrability_tensor_derivative_is_alternate_data(self):
+        def integrability_tensor_derivative_is_alternate_test_data(self):
             smoke_data = [
                 dict(
                     k_landmarks=4,
@@ -227,7 +228,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def integrability_tensor_derivative_is_skew_symmetric_data(self):
+        def integrability_tensor_derivative_is_skew_symmetric_test_data(self):
             smoke_data = [
                 dict(
                     k_landmarks=4,
@@ -244,7 +245,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def integrability_tensor_derivative_reverses_hor_ver_data(self):
+        def integrability_tensor_derivative_reverses_hor_ver_test_data(self):
             smoke_data = [
                 dict(
                     k_landmarks=4,
@@ -265,7 +266,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def integrability_tensor_derivative_parallel_data(self):
+        def integrability_tensor_derivative_parallel_test_data(self):
             smoke_data = [
                 dict(
                     k_landmarks=4,
@@ -278,7 +279,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def iterated_integrability_tensor_derivative_parallel_data(self):
+        def iterated_integrability_tensor_derivative_parallel_test_data(self):
             smoke_data = [
                 dict(
                     k_landmarks=4,
@@ -290,11 +291,11 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             belongs_atol = gs.atol * 100
             smoke_space_args_list = [(2, 2), (3, 2), (4, 3)]
             smoke_n_points_list = [1, 2, 1]
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
@@ -302,10 +303,10 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
                 belongs_atol,
             )
 
-        def to_tangent_is_tangent_data(self):
+        def to_tangent_is_tangent_test_data(self):
 
             is_tangent_atol = gs.atol * 100
-            return self._to_tangent_is_tangent_data(
+            return self._to_tangent_is_tangent_test_data(
                 PreShapeSpace,
                 self.space_args_list,
                 self.shape_list,
@@ -313,24 +314,24 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
                 is_tangent_atol,
             )
 
-        def projection_belongs_data(self):
-            return self._projection_belongs_data(
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
                 self.space_args_list, self.shape_list, self.n_samples_list
             )
 
-        def extrinsic_intrinsic_composition_data(self):
+        def extrinsic_intrinsic_composition_test_data(self):
             space_args_list = [(1,), (2,)]
-            return self._extrinsic_intrinsic_composition_data(
+            return self._extrinsic_intrinsic_composition_test_data(
                 PreShapeSpace, space_args_list, self.n_samples_list
             )
 
-        def intrinsic_extrinsic_composition_data(self):
+        def intrinsic_extrinsic_composition_test_data(self):
             space_args_list = [(1,), (2,)]
-            return self._intrinsic_extrinsic_composition_data(
+            return self._intrinsic_extrinsic_composition_test_data(
                 PreShapeSpace, space_args_list, self.n_samples_list
             )
 
-    testing_data = TestDataPreShapeSpace()
+    testing_data = PreShapeSpaceTestData()
 
     def test_belongs(self, k_landmarks, m_ambient, mat, expected):
         space = self.space(k_landmarks, m_ambient)
@@ -383,7 +384,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
         result = gs.all(Matrices.is_symmetric(alignment))
         self.assertAllClose(result, gs.array(True))
 
-    @pytest.mark.skip("keeps throwing error")
+    @geomstats.tests.np_and_autograd_only
     def test_integrability_tensor(
         self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
     ):
@@ -469,6 +470,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
         self.assertAllClose(a_y_z + a_z_y, gs.zeros_like(result), atol=gs.atol * 10)
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
+    @geomstats.tests.np_and_autograd_only
     def test_integrability_tensor_derivative_is_skew_symmetric(
         self,
         k_landmarks,
@@ -567,6 +569,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
         result = scal(nabla_x_a_y_v, ver_w) + scal(a_y_v, nabla_x_w)
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
+    @geomstats.tests.np_and_autograd_only
     def test_integrability_tensor_derivative_parallel(
         self, k_landmarks, m_ambient, hor_x, hor_y, hor_z, base_point
     ):
@@ -590,6 +593,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
         self.assertAllClose(a_y_z, a_y_z_qp, atol=gs.atol * 10)
         self.assertAllClose(nabla_x_a_y_z, nabla_x_a_y_z_qp, atol=gs.atol * 10)
 
+    @geomstats.tests.np_and_autograd_only
     def test_iterated_integrability_tensor_derivative_parallel(
         self, k_landmarks, m_ambient, hor_x, hor_y, base_point
     ):
@@ -636,7 +640,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
         self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp, atol=gs.atol * 10)
 
 
-class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = KendallShapeMetric
     space = PreShapeSpace
     skip_test_exp_geodesic_ivp = True
@@ -645,7 +649,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_log_exp_composition = True
     skip_test_exp_log_composition = True
 
-    class TestDataKendallShapeMetric(RiemannianMetricTestData):
+    class KendallShapeMetricTestData(_RiemannianMetricTestData):
         k_landmarks_list = random.sample(range(3, 6), 2)
         m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
         metric_args_list = list(zip(k_landmarks_list, m_ambient_list))
@@ -661,7 +665,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
 
-        def curvature_is_skew_operator_data(self):
+        def curvature_is_skew_operator_test_data(self):
             base_point = smoke_space.random_point(2)
             vec = gs.random.rand(4, 4, 3)
             smoke_data = [
@@ -669,7 +673,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def curvature_bianchi_identity_data(self):
+        def curvature_bianchi_identity_test_data(self):
             smoke_data = [
                 dict(
                     k_landmarks=4,
@@ -682,7 +686,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def kendall_sectional_curvature_data(self):
+        def kendall_sectional_curvature_test_data(self):
             k_landmarks = 4
             m_ambient = 3
             space = smoke_space
@@ -706,7 +710,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def kendall_curvature_derivative_bianchi_identity_data(self):
+        def kendall_curvature_derivative_bianchi_identity_test_data(self):
             smoke_data = [
                 dict(
                     k_landmarks=4,
@@ -720,7 +724,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def curvature_derivative_is_skew_operator_data(self):
+        def curvature_derivative_is_skew_operator_test_data(self):
             smoke_data = [
                 dict(
                     k_landmarks=4,
@@ -733,7 +737,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def directional_curvature_derivative_data(self):
+        def directional_curvature_derivative_test_data(self):
             smoke_data = [
                 dict(
                     k_landmarks=4,
@@ -745,7 +749,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def directional_curvature_derivative_is_quadratic_data(self):
+        def directional_curvature_derivative_is_quadratic_test_data(self):
             coef_x = -2.5
             coef_y = 1.5
             smoke_data = [
@@ -761,7 +765,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def parallel_transport_data(self):
+        def parallel_transport_test_data(self):
             k_landmarks = 4
             m_ambient = 3
             n_samples = 10
@@ -783,23 +787,23 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
                 self.batch_size_list,
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.batch_size_list,
             )
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -807,8 +811,8 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -816,16 +820,16 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -833,16 +837,16 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -850,8 +854,8 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_log_composition_test_data(self):
+            return self._exp_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -860,8 +864,8 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -871,8 +875,8 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.scheme_list,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -882,8 +886,8 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -892,8 +896,8 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -902,7 +906,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataKendallShapeMetric()
+    testing_data = KendallShapeMetricTestData()
 
     def test_curvature_is_skew_operator(self, k_landmarks, m_ambient, vec, base_point):
         metric = self.metric(k_landmarks, m_ambient)
@@ -916,6 +920,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         expected = gs.zeros_like(result)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_autograd_only
     def test_curvature_bianchi_identity(
         self,
         k_landmarks,
@@ -977,6 +982,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         result = kappa > 1.0 - 1e-10
         self.assertTrue(gs.all(result))
 
+    @geomstats.tests.np_and_autograd_only
     def test_kendall_curvature_derivative_bianchi_identity(
         self, k_landmarks, m_ambient, hor_x, hor_y, hor_z, hor_h, base_point
     ):
@@ -1006,6 +1012,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         result = metric.curvature_derivative(hor_x, hor_y, hor_y, hor_z, base_point)
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
+    @geomstats.tests.np_and_autograd_only
     def test_directional_curvature_derivative(
         self, k_landmarks, m_ambient, hor_x, hor_y, base_point
     ):
@@ -1039,6 +1046,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         ).directional_curvature_derivative(hor_x, hor_y, base_point)
         self.assertAllClose(result_connection, expected, atol=gs.atol * 10)
 
+    @geomstats.tests.np_and_autograd_only
     def test_directional_curvature_derivative_is_quadratic(
         self, k_landmarks, m_ambient, coef_x, coef_y, hor_x, hor_y, base_point
     ):
@@ -1093,14 +1101,14 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         self.assertTrue(gs.all(is_horizontal))
 
 
-class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestPreShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = PreShapeMetric
     space = PreShapeSpace
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_shape = True
     skip_test_exp_log_composition = True
 
-    class TestDataKendallShapeMetric(RiemannianMetricTestData):
+    class KendallShapeMetricTestData(_RiemannianMetricTestData):
         k_landmarks_list = random.sample(range(3, 6), 2)
         m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
         metric_args_list = list(zip(k_landmarks_list, m_ambient_list))
@@ -1116,23 +1124,23 @@ class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
                 self.batch_size_list,
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.batch_size_list,
             )
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -1140,8 +1148,8 @@ class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1149,16 +1157,16 @@ class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1166,16 +1174,16 @@ class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -1183,8 +1191,8 @@ class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=1e-4,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_log_composition_test_data(self):
+            return self._exp_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1193,8 +1201,8 @@ class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=1e-2,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1204,8 +1212,8 @@ class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.scheme_list,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1215,8 +1223,8 @@ class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1225,8 +1233,8 @@ class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1235,4 +1243,4 @@ class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataKendallShapeMetric()
+    testing_data = KendallShapeMetricTestData()
