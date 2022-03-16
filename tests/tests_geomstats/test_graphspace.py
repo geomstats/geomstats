@@ -2,9 +2,8 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.graphspace import GraphSpace, GraphSpaceMetric
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer, TestCase
 from tests.data_generation import TestData
-from tests.parametrizers import Parametrizer
 
 
 class TestGraphSpace(TestCase, metaclass=Parametrizer):

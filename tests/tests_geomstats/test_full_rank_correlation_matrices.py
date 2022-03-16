@@ -11,12 +11,12 @@ from geomstats.geometry.full_rank_correlation_matrices import (
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from tests.conftest import TestCase, autograd_tf_and_torch_only
+from tests.conftest import Parametrizer, TestCase, autograd_tf_and_torch_only
 from tests.data_generation import TestData, _LevelSetTestData
-from tests.parametrizers import LevelSetParametrizer, Parametrizer
+from tests.geometry_test_cases import LevelSetTestCase
 
 
-class TestFullRankCorrelationMatrices(TestCase, metaclass=LevelSetParametrizer):
+class TestFullRankCorrelationMatrices(LevelSetTestCase, metaclass=Parametrizer):
 
     space = FullRankCorrelationMatrices
     skip_test_extrinsic_intrinsic_composition = True

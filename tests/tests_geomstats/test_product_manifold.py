@@ -14,9 +14,9 @@ from geomstats.geometry.product_manifold import (
 )
 from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
-from tests.parametrizers import ManifoldParametrizer, RiemannianMetricParametrizer
+from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 smoke_manifolds_1 = [Hypersphere(dim=2), Hyperboloid(dim=2)]
 smoke_metrics_1 = [Hypersphere(dim=2).metric, Hyperboloid(dim=2).metric]
@@ -25,7 +25,7 @@ smoke_manifolds_2 = [Euclidean(3), Minkowski(3)]
 smoke_metrics_2 = [Euclidean(3).metric, Minkowski(3).metric]
 
 
-class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
+class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
     space = ProductManifold
 
     class ProductManifoldTestData(_ManifoldTestData):
@@ -120,7 +120,7 @@ class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
         self.assertAllClose(result, point)
 
 
-class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = ProductRiemannianMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
@@ -370,7 +370,7 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
         self.assertAllClose(result, expected)
 
 
-class TestNFoldManifold(TestCase, metaclass=ManifoldParametrizer):
+class TestNFoldManifold(ManifoldTestCase, metaclass=Parametrizer):
     space = NFoldManifold
 
     class NFoldManifoldTestData(_ManifoldTestData):
@@ -445,7 +445,7 @@ class TestNFoldManifold(TestCase, metaclass=ManifoldParametrizer):
     testing_data = NFoldManifoldTestData()
 
 
-class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = NFoldMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True

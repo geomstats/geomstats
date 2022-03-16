@@ -4,15 +4,15 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
-from tests.parametrizers import RiemannianMetricParametrizer, VectorSpaceParametrizer
+from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
 
 SQRT_2 = math.sqrt(2)
 SQRT_5 = math.sqrt(5)
 
 
-class TestEuclidean(TestCase, metaclass=VectorSpaceParametrizer):
+class TestEuclidean(VectorSpaceTestCase, metaclass=Parametrizer):
     space = Euclidean
     skip_test_basis_belongs = True
     skip_test_basis_cardinality = True
@@ -68,7 +68,7 @@ class TestEuclidean(TestCase, metaclass=VectorSpaceParametrizer):
         self.assertAllClose(self.space(dim).belongs(gs.array(vec)), gs.array(expected))
 
 
-class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestEuclideanMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = EuclideanMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True

@@ -16,18 +16,17 @@ from geomstats.geometry.special_euclidean import (
 )
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.tests import tf_backend
-from tests.conftest import TestCase, np_backend
+from tests.conftest import Parametrizer, TestCase, np_backend
 from tests.data_generation import (
     TestData,
     _LieGroupTestData,
     _MatrixLieAlgebraTestData,
     _RiemannianMetricTestData,
 )
-from tests.parametrizers import (
-    LieGroupParametrizer,
-    MatrixLieAlgebraParametrizer,
-    Parametrizer,
-    RiemannianMetricParametrizer,
+from tests.geometry_test_cases import (
+    LieGroupTestCase,
+    MatrixLieAlgebraTestCase,
+    RiemannianMetricTestCase,
 )
 
 
@@ -71,7 +70,7 @@ elements_matrices = elements_matrices_all
 ATOL = 1e-5
 
 
-class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
+class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
 
     space = group = SpecialEuclidean
     skip_test_exp_log_composition = tf_backend()
@@ -401,7 +400,7 @@ class TestSpecialEuclidean(TestCase, metaclass=LieGroupParametrizer):
 
 
 class TestSpecialEuclideanMatrixLieAlgebra(
-    TestCase, metaclass=MatrixLieAlgebraParametrizer
+    MatrixLieAlgebraTestCase, metaclass=Parametrizer
 ):
     space = algebra = SpecialEuclideanMatrixLieAlgebra
 
@@ -498,8 +497,8 @@ class TestSpecialEuclideanMatrixLieAlgebra(
 
 
 class TestSpecialEuclideanMatrixCanonicalLeftMetric(
-    TestCase,
-    metaclass=RiemannianMetricParametrizer,
+    RiemannianMetricTestCase,
+    metaclass=Parametrizer,
 ):
 
     metric = connection = SpecialEuclideanMatrixCannonicalLeftMetric
@@ -660,8 +659,8 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
 
 
 class TestSpecialEuclideanMatrixCanonicalRightMetric(
-    TestCase,
-    metaclass=RiemannianMetricParametrizer,
+    RiemannianMetricTestCase,
+    metaclass=Parametrizer,
 ):
 
     metric = connection = InvariantMetric

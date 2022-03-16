@@ -3,12 +3,12 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _VectorSpaceTestData
-from tests.parametrizers import VectorSpaceParametrizer
+from tests.geometry_test_cases import VectorSpaceTestCase
 
 
-class TestLowerTriangularMatrices(TestCase, metaclass=VectorSpaceParametrizer):
+class TestLowerTriangularMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
     """Test of LowerTriangularMatrices methods."""
 
     space = LowerTriangularMatrices

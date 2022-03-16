@@ -10,9 +10,8 @@ from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricBuresWasserstein
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer, TestCase
 from tests.data_generation import TestData
-from tests.parametrizers import Parametrizer
 
 
 class BuresWassersteinBundle(GeneralLinear, FiberBundle):

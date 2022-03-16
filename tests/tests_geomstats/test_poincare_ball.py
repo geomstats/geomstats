@@ -7,12 +7,12 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.poincare_ball import PoincareBall, PoincareBallMetric
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
-from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
+from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 
-class TestPoincareBall(TestCase, metaclass=OpenSetParametrizer):
+class TestPoincareBall(OpenSetTestCase, metaclass=Parametrizer):
     space = PoincareBall
     skip_test_projection_belongs = True
 
@@ -83,7 +83,7 @@ class TestPoincareBall(TestCase, metaclass=OpenSetParametrizer):
         self.assertTrue(result)
 
 
-class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = PoincareBallMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True

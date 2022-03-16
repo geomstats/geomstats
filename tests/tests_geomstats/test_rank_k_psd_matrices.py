@@ -4,12 +4,12 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.rank_k_psd_matrices import PSDMatrices
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _ManifoldTestData
-from tests.parametrizers import ManifoldParametrizer
+from tests.geometry_test_cases import ManifoldTestCase
 
 
-class TestPSDMatrices(TestCase, metaclass=ManifoldParametrizer):
+class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
     space = PSDMatrices
 
     class PSDMatricesTestData(_ManifoldTestData):

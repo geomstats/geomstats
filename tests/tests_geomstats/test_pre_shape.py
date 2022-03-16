@@ -13,9 +13,9 @@ from geomstats.geometry.pre_shape import (
     PreShapeSpace,
 )
 from geomstats.geometry.quotient_metric import QuotientMetric
-from tests.conftest import TestCase, np_autograd_and_torch_only
+from tests.conftest import Parametrizer, np_autograd_and_torch_only
 from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
-from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
+from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
 smoke_space = PreShapeSpace(4, 3)
 vector = gs.random.rand(11, 4, 3)
@@ -56,7 +56,7 @@ a_x_h = smoke_space.integrability_tensor(hor_x, hor_h, base_point)
 nabla_x_h = hor_dh + a_x_h
 
 
-class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
+class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
     space = PreShapeSpace
     skip_test_extrinsic_intrinsic_composition = True
     skip_test_intrinsic_extrinsic_composition = True
@@ -640,7 +640,7 @@ class TestPreShapeSpace(TestCase, metaclass=LevelSetParametrizer):
         self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp, atol=gs.atol * 10)
 
 
-class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = KendallShapeMetric
     space = PreShapeSpace
     skip_test_exp_geodesic_ivp = True
@@ -1101,7 +1101,7 @@ class TestKendasllShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         self.assertTrue(gs.all(is_horizontal))
 
 
-class TestPreShapeMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestPreShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = PreShapeMetric
     space = PreShapeSpace
     skip_test_exp_geodesic_ivp = True

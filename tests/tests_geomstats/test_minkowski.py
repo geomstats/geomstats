@@ -5,12 +5,12 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
-from tests.parametrizers import RiemannianMetricParametrizer, VectorSpaceParametrizer
+from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
 
 
-class TestMinkowski(TestCase, metaclass=VectorSpaceParametrizer):
+class TestMinkowski(VectorSpaceTestCase, metaclass=Parametrizer):
     space = Minkowski
     skip_test_basis_belongs = True
     skip_test_basis_cardinality = True
@@ -64,7 +64,7 @@ class TestMinkowski(TestCase, metaclass=VectorSpaceParametrizer):
         )
 
 
-class TestMinkowskiMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestMinkowskiMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     connection = metric = MinkowskiMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True

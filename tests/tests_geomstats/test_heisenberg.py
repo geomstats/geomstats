@@ -4,12 +4,12 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.heisenberg import HeisenbergVectors
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _LieGroupTestData
-from tests.parametrizers import LieGroupParametrizer
+from tests.geometry_test_cases import LieGroupTestCase
 
 
-class TestHeisenbergVectors(TestCase, metaclass=LieGroupParametrizer):
+class TestHeisenbergVectors(LieGroupTestCase, metaclass=Parametrizer):
     space = group = HeisenbergVectors
 
     class HeisenbergVectorsTestData(_LieGroupTestData):

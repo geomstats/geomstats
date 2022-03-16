@@ -11,12 +11,12 @@ from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
 )
-from tests.conftest import TestCase, np_and_autograd_only
+from tests.conftest import Parametrizer, np_and_autograd_only
 from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
-from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
+from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 
-class TestPoincareHalfSpace(TestCase, metaclass=OpenSetParametrizer):
+class TestPoincareHalfSpace(OpenSetTestCase, metaclass=Parametrizer):
     space = PoincareHalfSpace
 
     class PoincareHalfSpaceTestData(_OpenSetTestData):
@@ -127,7 +127,7 @@ class TestPoincareHalfSpace(TestCase, metaclass=OpenSetParametrizer):
         self.assertAllClose(point_half_space, point_half_space_expected)
 
 
-class TestPoincareHalfSpaceMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = PoincareHalfSpaceMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True

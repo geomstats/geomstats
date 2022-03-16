@@ -5,9 +5,9 @@ import random
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
-from tests.parametrizers import RiemannianMetricParametrizer, VectorSpaceParametrizer
+from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
 
 SQRT_2 = math.sqrt(2)
 
@@ -26,7 +26,7 @@ MAT7_33 = [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [8.0, -1.0, 0.0]]
 MAT8_33 = [[0.0, 3.0, 4.0], [0.0, 0.0, 6.0], [0.0, 0.0, 0.0]]
 
 
-class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
+class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
     space = Matrices
 
     class MatricesTestData(_VectorSpaceTestData):
@@ -660,7 +660,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
         self.assertAllClose(result, expected)
 
 
-class TestMatricesMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = MatricesMetric
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_parallel_transport_ivp_is_isometry = True

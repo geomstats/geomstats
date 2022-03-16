@@ -17,9 +17,9 @@ from geomstats.geometry.spd_matrices import (
     SPDMetricEuclidean,
     SPDMetricLogEuclidean,
 )
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
-from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
+from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 SQRT_2 = math.sqrt(2.0)
 LN_2 = math.log(2.0)
@@ -28,7 +28,7 @@ EXP_2 = math.exp(2.0)
 SINH_1 = math.sinh(1.0)
 
 
-class TestSPDMatrices(TestCase, metaclass=OpenSetParametrizer):
+class TestSPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
     """Test of SPDMatrices methods."""
 
     space = SPDMatrices
@@ -313,9 +313,7 @@ class TestSPDMatrices(TestCase, metaclass=OpenSetParametrizer):
         )
 
 
-class TestSPDMetricAffine(
-    geomstats.tests.TestCase, metaclass=RiemannianMetricParametrizer
-):
+class TestSPDMetricAffine(RiemannianMetricTestCase, metaclass=Parametrizer):
     connection = metric = SPDMetricAffine
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
@@ -519,7 +517,7 @@ class TestSPDMetricAffine(
         )
 
 
-class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = SPDMetricBuresWasserstein
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
@@ -724,7 +722,7 @@ class TestSPDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
         self.assertAllClose(result, expected)
 
 
-class TestSPDMetricEuclidean(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
     connection = metric = SPDMetricEuclidean
     skip_test_exp_geodesic_ivp = True
     skip_test_geodesic_ivp_belongs = True
@@ -972,9 +970,7 @@ class TestSPDMetricEuclidean(TestCase, metaclass=RiemannianMetricParametrizer):
         self.assertAllClose(result, tangent_vec_a)
 
 
-class TestSPDMetricLogEuclidean(
-    geomstats.tests.TestCase, metaclass=RiemannianMetricParametrizer
-):
+class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
     connection = metric = SPDMetricLogEuclidean
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True

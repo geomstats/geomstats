@@ -7,12 +7,12 @@ import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import L2Metric, Landmarks
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
-from tests.parametrizers import ManifoldParametrizer, RiemannianMetricParametrizer
+from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 
-class TestLandmarks(TestCase, metaclass=ManifoldParametrizer):
+class TestLandmarks(ManifoldTestCase, metaclass=Parametrizer):
     space = Landmarks
     skip_test_random_point_belongs = True
 
@@ -59,7 +59,7 @@ class TestLandmarks(TestCase, metaclass=ManifoldParametrizer):
     testing_data = TestDataLandmarks()
 
 
-class TestL2Metric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = L2Metric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True

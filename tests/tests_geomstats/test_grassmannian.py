@@ -4,9 +4,9 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
 from geomstats.geometry.matrices import Matrices
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
-from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
+from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
 p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
 p_yz = gs.array([[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
@@ -18,7 +18,7 @@ pi_2 = gs.pi / 2
 pi_4 = gs.pi / 4
 
 
-class TestGrassmannian(TestCase, metaclass=LevelSetParametrizer):
+class TestGrassmannian(LevelSetTestCase, metaclass=Parametrizer):
     space = Grassmannian
     skip_test_extrinsic_intrinsic_composition = True
     skip_test_intrinsic_extrinsic_composition = True
@@ -75,7 +75,7 @@ class TestGrassmannian(TestCase, metaclass=LevelSetParametrizer):
         self.assertAllClose(self.space(n, k).belongs(point), gs.array(expected))
 
 
-class TestGrassmannianCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = GrassmannianCanonicalMetric
     skip_test_exp_log_composition = True
     skip_test_exp_geodesic_ivp = True
