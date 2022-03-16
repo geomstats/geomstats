@@ -24,7 +24,6 @@ class TestPoincareBall(OpenSetTestCase, metaclass=Parametrizer):
         n_points_list = random.sample(range(1, 10), 5)
         shape_list = [(n,) for n in n_list]
         n_vecs_list = random.sample(range(1, 10), 5)
-        n_samples_list = random.sample(range(1, 10), 5)
 
         def belongs_test_data(self):
             smoke_data = [
@@ -61,7 +60,7 @@ class TestPoincareBall(OpenSetTestCase, metaclass=Parametrizer):
 
         def projection_belongs_test_data(self):
             return self._projection_belongs_test_data(
-                self.space_args_list, self.shape_list, self.n_samples_list
+                self.space_args_list, self.shape_list, self.n_points_list
             )
 
         def to_tangent_is_tangent_in_ambient_space_test_data(self):
@@ -97,10 +96,9 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         shape_list = [(n,) for n in n_list]
         space_list = [PoincareBall(n) for n in n_list]
         n_points_list = random.sample(range(1, 5), 2)
-        n_samples_list = random.sample(range(1, 5), 2)
+        n_tangent_vecs_list = random.sample(range(1, 5), 2)
         n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 5), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
@@ -151,18 +149,11 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         def exp_shape_test_data(self):
             return self._exp_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
+                self.metric_args_list, self.space_list, self.shape_list
             )
 
         def log_shape_test_data(self):
-            return self._log_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.batch_size_list,
-            )
+            return self._log_shape_test_data(self.metric_args_list, self.space_list)
 
         def squared_dist_is_symmetric_test_data(self):
             return self._squared_dist_is_symmetric_test_data(
@@ -178,7 +169,7 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=gs.atol * 100000,
             )
 
@@ -186,7 +177,7 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
@@ -211,7 +202,7 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -221,7 +212,7 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -231,7 +222,7 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
@@ -242,7 +233,7 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 10000,
                 atol=gs.atol * 10000,
@@ -253,7 +244,7 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
@@ -263,7 +254,7 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )

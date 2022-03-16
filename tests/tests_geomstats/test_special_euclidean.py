@@ -80,9 +80,9 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
         n_list = random.sample(range(2, 4), 2)
         space_args_list = [(n,) for n in n_list] + [(2, "vector"), (3, "vector")]
         shape_list = [(n + 1, n + 1) for n in n_list] + [(3,)] + [(6,)]
-        n_samples_list = random.sample(range(2, 10), 4)
-        n_points_list = random.sample(range(2, 10), 4)
-        n_vecs_list = random.sample(range(2, 10), 4)
+        n_tangent_vecs_list = random.sample(range(2, 6), 4)
+        n_points_list = random.sample(range(2, 6), 4)
+        n_vecs_list = random.sample(range(2, 6), 4)
 
         def belongs_test_data(self):
             smoke_data = [
@@ -205,7 +205,7 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
             return self._projection_belongs_test_data(
                 self.space_args_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_points_list,
                 belongs_atol=1e-2,
             )
 
@@ -222,7 +222,7 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
                 SpecialEuclidean,
                 self.space_args_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 amplitude=100,
                 atol=gs.atol * 10000,
             )
@@ -231,7 +231,7 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
             return self._log_exp_composition_test_data(
                 SpecialEuclidean,
                 self.space_args_list,
-                self.n_samples_list,
+                self.n_points_list,
                 atol=gs.atol * 10000,
             )
 
@@ -408,7 +408,6 @@ class TestSpecialEuclideanMatrixLieAlgebra(
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
         shape_list = [(n + 1, n + 1) for n in n_list]
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
@@ -443,7 +442,7 @@ class TestSpecialEuclideanMatrixLieAlgebra(
                 self._basis_representation_matrix_representation_composition_test_data(
                     SpecialEuclideanMatrixLieAlgebra,
                     self.space_args_list,
-                    self.n_samples_list,
+                    self.n_points_list,
                 )
             )
 
@@ -452,7 +451,7 @@ class TestSpecialEuclideanMatrixLieAlgebra(
                 self._matrix_representation_basis_representation_composition_test_data(
                     SpecialEuclideanMatrixLieAlgebra,
                     self.space_args_list,
-                    self.n_samples_list,
+                    self.n_points_list,
                 )
             )
 
@@ -474,7 +473,7 @@ class TestSpecialEuclideanMatrixLieAlgebra(
 
         def projection_belongs_test_data(self):
             return self._projection_belongs_test_data(
-                self.space_args_list, self.shape_list, self.n_samples_list
+                self.space_args_list, self.shape_list, self.n_points_list
             )
 
         def to_tangent_is_tangent_test_data(self):
@@ -510,11 +509,10 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
         metric_args_list = [(SpecialEuclidean(n),) for n in n_list]
         shape_list = [(n + 1, n + 1) for n in n_list]
         space_list = [SpecialEuclidean(n) for n in n_list]
-        n_points_list = random.sample(range(1, 7), 2)
-        n_samples_list = random.sample(range(1, 7), 2)
-        n_points_a_list = random.sample(range(1, 7), 2)
+        n_points_list = random.sample(range(1, 4), 2)
+        n_tangent_vecs_list = random.sample(range(1, 4), 2)
+        n_points_a_list = random.sample(range(1, 4), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
@@ -533,17 +531,13 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
 
         def exp_shape_test_data(self):
             return self._exp_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
+                self.metric_args_list, self.space_list, self.shape_list
             )
 
         def log_shape_test_data(self):
             return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.batch_size_list,
             )
 
         def squared_dist_is_symmetric_test_data(self):
@@ -560,7 +554,7 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=gs.atol * 1000,
             )
 
@@ -568,7 +562,7 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
             return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
@@ -593,7 +587,7 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
             return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 100,
             )
@@ -603,7 +597,7 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 amplitude=10,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 100,
@@ -614,7 +608,7 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
@@ -625,7 +619,7 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 100,
@@ -636,7 +630,7 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
@@ -646,7 +640,7 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
@@ -687,28 +681,23 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
         ]
         shape_list = [(n + 1, n + 1) for n in n_list]
         space_list = [SpecialEuclidean(n) for n in n_list]
-        n_points_list = random.sample(range(1, 7), 2)
-        n_samples_list = random.sample(range(1, 7), 2)
-        n_points_a_list = random.sample(range(1, 7), 2)
+        n_points_list = random.sample(range(1, 4), 2)
+        n_tangent_vecs_list = random.sample(range(1, 4), 2)
+        n_points_a_list = random.sample(range(1, 4), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
 
         def exp_shape_test_data(self):
             return self._exp_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
+                self.metric_args_list, self.space_list, self.shape_list
             )
 
         def log_shape_test_data(self):
             return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.batch_size_list,
             )
 
         def squared_dist_is_symmetric_test_data(self):
@@ -725,7 +714,7 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=1e-3,
             )
 
@@ -733,7 +722,7 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
             return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
@@ -758,7 +747,7 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
             return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100000,
                 atol=gs.atol * 100000,
             )
@@ -768,7 +757,7 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 amplitude=100.0,
                 rtol=gs.rtol * 10000,
                 atol=gs.atol * 100000,
@@ -779,7 +768,7 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
@@ -790,7 +779,7 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 100,
@@ -801,7 +790,7 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
@@ -811,7 +800,7 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )

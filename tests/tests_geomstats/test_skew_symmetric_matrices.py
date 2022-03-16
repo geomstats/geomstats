@@ -16,7 +16,6 @@ class TestSkewSymmetricMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
@@ -62,14 +61,14 @@ class TestSkewSymmetricMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer
         def basis_representation_matrix_representation_composition_test_data(self):
             return (
                 self._basis_representation_matrix_representation_composition_test_data(
-                    SkewSymmetricMatrices, self.space_args_list, self.n_samples_list
+                    SkewSymmetricMatrices, self.space_args_list, self.n_points_list
                 )
             )
 
         def matrix_representation_basis_representation_composition_test_data(self):
             return (
                 self._matrix_representation_basis_representation_composition_test_data(
-                    SkewSymmetricMatrices, self.space_args_list, self.n_samples_list
+                    SkewSymmetricMatrices, self.space_args_list, self.n_points_list
                 )
             )
 
@@ -91,7 +90,7 @@ class TestSkewSymmetricMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer
 
         def projection_belongs_test_data(self):
             return self._projection_belongs_test_data(
-                self.space_args_list, self.shape_list, self.n_samples_list
+                self.space_args_list, self.shape_list, self.n_points_list
             )
 
         def to_tangent_is_tangent_test_data(self):

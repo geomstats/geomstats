@@ -87,7 +87,7 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
         n_list = random.sample(range(2, 4), 2)
         space_args_list = list(zip(n_list)) + [(2, "vector"), (3, "vector")]
         shape_list = [(n, n) for n in n_list] + [(1,), (3,)]
-        n_samples_list = random.sample(range(2, 10), 4)
+        n_tangent_vecs_list = random.sample(range(2, 10), 4)
         n_points_list = random.sample(range(2, 10), 4)
         n_vecs_list = random.sample(range(2, 10), 4)
 
@@ -418,20 +418,20 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
         def projection_belongs_test_data(self):
             space_args_list = list(zip(self.n_list))
             shape_list = [(n, n) for n in self.n_list]
-            n_samples_list = random.sample(range(2, 4), 2)
+            n_points_list = random.sample(range(2, 4), 2)
             return self._projection_belongs_test_data(
-                space_args_list, shape_list, n_samples_list, gs.atol * 10000
+                space_args_list, shape_list, n_points_list, gs.atol * 10000
             )
 
         def to_tangent_is_tangent_test_data(self):
             space_args_list = list(zip(self.n_list))
             shape_list = [(n, n) for n in self.n_list]
-            n_vecs_list = random.sample(range(2, 10), 2)
+            n_points_list = random.sample(range(2, 10), 2)
             return self._to_tangent_is_tangent_test_data(
                 SpecialOrthogonal,
                 space_args_list,
                 shape_list,
-                n_vecs_list,
+                n_points_list,
             )
 
         def exp_log_composition_test_data(self):
@@ -439,7 +439,7 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
                 SpecialOrthogonal,
                 self.space_args_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 amplitude=100.0,
                 rtol=gs.rtol * 10000,
                 atol=gs.atol * 10000,
@@ -449,7 +449,7 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
             return self._log_exp_composition_test_data(
                 SpecialOrthogonal,
                 self.space_args_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100000,
                 atol=gs.atol * 100000,
             )
@@ -1096,11 +1096,11 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         metric_args_list = [(SpecialOrthogonal(dim),) for dim in dim_list]
         shape_list = [(dim, dim) for dim in dim_list]
         space_list = [SpecialOrthogonal(dim) for dim in dim_list]
-        n_points_list = random.sample(range(1, 10), 2)
-        n_samples_list = random.sample(range(1, 10), 2)
-        n_points_a_list = random.sample(range(1, 10), 2)
+        n_points_list = random.sample(range(1, 4), 2)
+        n_tangent_vecs_list = random.sample(range(1, 4), 2)
+        n_points_a_list = random.sample(range(1, 4), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 10), 2)
+        batch_size_list = random.sample(range(2, 4), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
@@ -1110,14 +1110,12 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.batch_size_list,
             )
 
         def log_shape_test_data(self):
             return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.batch_size_list,
             )
 
         def squared_dist_is_symmetric_test_data(self):
@@ -1134,7 +1132,7 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=gs.atol * 1000,
             )
 
@@ -1142,7 +1140,7 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
@@ -1167,7 +1165,7 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 10000,
                 atol=gs.atol * 10000,
             )
@@ -1177,7 +1175,7 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 rtol=gs.rtol * 10000,
                 atol=gs.atol * 10000,
             )
@@ -1187,7 +1185,7 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
@@ -1198,7 +1196,7 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 100,
@@ -1209,7 +1207,7 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 rtol=gs.rtol * 1000,
                 atol=gs.atol * 1000,
@@ -1220,7 +1218,7 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 rtol=gs.rtol * 1000,
                 atol=gs.atol * 1000,

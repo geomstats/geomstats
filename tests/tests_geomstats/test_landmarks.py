@@ -29,8 +29,7 @@ class TestLandmarks(ManifoldTestCase, metaclass=Parametrizer):
         shape_list = [
             (n_landmark, dim + 1) for dim, n_landmark in zip(dim_list, n_landmarks_list)
         ] * 2
-        n_points_list = random.sample(range(1, 7), 4)
-        n_samples_list = random.sample(range(1, 7), 4)
+        n_points_list = random.sample(range(1, 5), 4)
         n_vecs_list = random.sample(range(2, 5), 2)
 
         def random_point_belongs_test_data(self):
@@ -45,7 +44,7 @@ class TestLandmarks(ManifoldTestCase, metaclass=Parametrizer):
 
         def projection_belongs_test_data(self):
             return self._projection_belongs_test_data(
-                self.space_args_list, self.shape_list, self.n_samples_list
+                self.space_args_list, self.shape_list, self.n_points_list
             )
 
         def to_tangent_is_tangent_test_data(self):
@@ -84,10 +83,9 @@ class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
             (n_landmark, dim + 1) for dim, n_landmark in zip(dim_list, n_landmarks_list)
         ] * 2
         n_points_list = random.sample(range(2, 5), 2)
-        n_samples_list = random.sample(range(2, 5), 2)
+        n_tangent_vecs_list = random.sample(range(2, 5), 2)
         n_points_a_list = random.sample(range(2, 5), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 5), 2)
         alpha_list = [1] * 4
         n_rungs_list = [1] * 4
         scheme_list = ["pole"] * 4
@@ -125,18 +123,11 @@ class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         def exp_shape_test_data(self):
             return self._exp_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
+                self.metric_args_list, self.space_list, self.shape_list
             )
 
         def log_shape_test_data(self):
-            return self._log_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.batch_size_list,
-            )
+            return self._log_shape_test_data(self.metric_args_list, self.space_list)
 
         def squared_dist_is_symmetric_test_data(self):
             return self._squared_dist_is_symmetric_test_data(
@@ -152,7 +143,7 @@ class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=gs.atol * 10000,
             )
 
@@ -160,7 +151,7 @@ class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
@@ -185,7 +176,7 @@ class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 rtol=gs.rtol * 1000,
                 atol=gs.atol * 1000,
             )
@@ -195,7 +186,7 @@ class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_points_list,
                 amplitude=30,
                 rtol=gs.rtol * 10000,
                 atol=gs.atol * 100000,
@@ -206,7 +197,7 @@ class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
@@ -217,7 +208,7 @@ class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 10000,
                 atol=gs.atol * 10000,
@@ -228,7 +219,7 @@ class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 100,
             )
@@ -238,7 +229,7 @@ class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 100,
                 atol=gs.atol * 100,
             )
