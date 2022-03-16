@@ -125,8 +125,6 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
-    skip_test_exp_shape = True
-    skip_test_log_shape = True
 
     class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 3), 1)
