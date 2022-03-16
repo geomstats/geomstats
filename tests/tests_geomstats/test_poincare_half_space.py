@@ -23,7 +23,6 @@ class TestPoincareHalfSpace(OpenSetTestCase, metaclass=Parametrizer):
         dim_list = random.sample(range(2, 5), 2)
         space_args_list = [(dim,) for dim in dim_list]
         shape_list = [(dim,) for dim in dim_list]
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
@@ -75,7 +74,7 @@ class TestPoincareHalfSpace(OpenSetTestCase, metaclass=Parametrizer):
 
         def projection_belongs_test_data(self):
             return self._projection_belongs_test_data(
-                self.space_args_list, self.shape_list, self.n_samples_list
+                self.space_args_list, self.shape_list, self.n_points_list
             )
 
         def to_tangent_is_tangent_test_data(self):
@@ -140,10 +139,9 @@ class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametriz
         shape_list = [(dim,) for dim in dim_list]
         space_list = [PoincareHalfSpace(dim) for dim in dim_list]
         n_points_list = random.sample(range(1, 5), 2)
-        n_samples_list = random.sample(range(1, 5), 2)
+        n_tangent_vecs_list = random.sample(range(1, 5), 2)
         n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 5), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
@@ -225,17 +223,13 @@ class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
         def exp_shape_test_data(self):
             return self._exp_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
+                self.metric_args_list, self.space_list, self.shape_list
             )
 
         def log_shape_test_data(self):
             return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.batch_size_list,
             )
 
         def squared_dist_is_symmetric_test_data(self):
@@ -252,7 +246,7 @@ class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=gs.atol * 10000,
             )
 
@@ -260,7 +254,7 @@ class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametriz
             return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 10900,
             )
 
@@ -285,7 +279,7 @@ class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametriz
             return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -295,7 +289,7 @@ class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -305,7 +299,7 @@ class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
@@ -316,7 +310,7 @@ class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 100000,
                 atol=gs.atol * 100000,
@@ -327,7 +321,7 @@ class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
@@ -337,7 +331,7 @@ class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )

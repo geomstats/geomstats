@@ -188,7 +188,6 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         n_tangent_vecs_list = random.sample(range(1, 5), 2)
         n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 5), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
@@ -246,18 +245,11 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         def exp_shape_test_data(self):
             return self._exp_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
+                self.metric_args_list, self.space_list, self.shape_list
             )
 
         def log_shape_test_data(self):
-            return self._log_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.batch_size_list,
-            )
+            return self._log_shape_test_data(self.metric_args_list, self.space_list)
 
         def squared_dist_is_symmetric_test_data(self):
             return self._squared_dist_is_symmetric_test_data(
@@ -274,7 +266,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_tangent_vecs_list,
-                belongs_atol=1e-2,
+                belongs_atol=gs.atol * 10000,
             )
 
         def log_is_tangent_test_data(self):
@@ -282,7 +274,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
-                is_tangent_atol=1e-2,
+                is_tangent_atol=gs.atol * 1000,
             )
 
         def geodesic_ivp_belongs_test_data(self):

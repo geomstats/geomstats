@@ -34,7 +34,6 @@ class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
         n_list = random.sample(range(3, 5), 2)
         space_args_list = list(zip(m_list, n_list))
         shape_list = space_args_list
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
@@ -480,7 +479,7 @@ class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
         def projection_belongs_test_data(self):
             belongs_atol = gs.atol * 1000
             return self._projection_belongs_test_data(
-                self.space_args_list, self.shape_list, self.n_samples_list, belongs_atol
+                self.space_args_list, self.shape_list, self.n_points_list, belongs_atol
             )
 
         def to_tangent_is_tangent_test_data(self):
@@ -674,10 +673,9 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         shape_list = space_args_list
         space_list = [Matrices(m, n) for m, n in metric_args_list]
         n_points_list = random.sample(range(1, 7), 5)
-        n_samples_list = random.sample(range(1, 7), 5)
+        n_tangent_vecs_list = random.sample(range(1, 7), 5)
         n_points_a_list = random.sample(range(1, 7), 5)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 5)
         alpha_list = [1] * 5
         n_rungs_list = [1] * 5
         scheme_list = ["pole"] * 5
@@ -731,14 +729,12 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.batch_size_list,
             )
 
         def log_shape_test_data(self):
             return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.batch_size_list,
             )
 
         def squared_dist_is_symmetric_test_data(self):
@@ -755,7 +751,7 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=gs.atol * 1000,
             )
 
@@ -763,7 +759,7 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
@@ -788,7 +784,7 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -798,7 +794,7 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -808,7 +804,7 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
@@ -819,7 +815,7 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 100000,
                 atol=gs.atol * 100000,
@@ -830,7 +826,7 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
@@ -840,7 +836,7 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )

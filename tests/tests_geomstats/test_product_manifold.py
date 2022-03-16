@@ -41,7 +41,6 @@ class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
             (n + 1, n + 1) if default_point == "matrix" else (2 * (n + 1),)
             for n, default_point in zip(n_list, default_point_list)
         ]
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
@@ -96,7 +95,7 @@ class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
             return self._projection_belongs_test_data(
                 self.space_args_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_points_list,
                 belongs_atol=1e-1,
             )
 
@@ -125,8 +124,6 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
-    skip_test_exp_shape = True
-    skip_test_log_shape = True
 
     class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 3), 1)
@@ -145,10 +142,9 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
             for manifolds, default_point_type in zip(manifolds_list, default_point_list)
         ]
         n_points_list = random.sample(range(2, 5), 1)
-        n_samples_list = random.sample(range(2, 5), 1)
+        n_tangent_vecs_list = random.sample(range(2, 5), 1)
         n_points_a_list = random.sample(range(2, 5), 1)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 5), 1)
         alpha_list = [1] * 1
         n_rungs_list = [1] * 1
         scheme_list = ["pole"] * 1
@@ -180,18 +176,11 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
         def exp_shape_test_data(self):
             return self._exp_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
+                self.metric_args_list, self.space_list, self.shape_list
             )
 
         def log_shape_test_data(self):
-            return self._log_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.batch_size_list,
-            )
+            return self._log_shape_test_data(self.metric_args_list, self.space_list)
 
         def squared_dist_is_symmetric_test_data(self):
             return self._squared_dist_is_symmetric_test_data(
@@ -207,7 +196,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=gs.atol * 1000,
             )
 
@@ -215,7 +204,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
             return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=1e-1,
             )
 
@@ -240,7 +229,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
             return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 1000,
                 atol=1e-1,
             )
@@ -250,7 +239,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 amplitude=10,
                 rtol=gs.rtol * 1000,
                 atol=1e-1,
@@ -261,7 +250,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
@@ -272,7 +261,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 100000,
                 atol=gs.atol * 100000,
@@ -283,7 +272,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
@@ -293,7 +282,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
@@ -379,7 +368,6 @@ class TestNFoldManifold(ManifoldTestCase, metaclass=Parametrizer):
         power_list = random.sample(range(2, 4), 2)
         space_args_list = list(zip(base_list, power_list))
         shape_list = [(power, n, n) for n, power in zip(n_list, power_list)]
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
@@ -421,7 +409,7 @@ class TestNFoldManifold(ManifoldTestCase, metaclass=Parametrizer):
             return self._projection_belongs_test_data(
                 self.space_args_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_points_list,
                 belongs_atol=1e-1,
             )
 
@@ -466,28 +454,20 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             NFoldManifold(base, power) for base, power in zip(base_list, power_list)
         ]
         n_points_list = random.sample(range(2, 5), 2)
-        n_samples_list = random.sample(range(2, 5), 2)
+        n_tangent_vecs_list = random.sample(range(2, 5), 2)
         n_points_a_list = random.sample(range(2, 5), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 5), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
 
         def exp_shape_test_data(self):
             return self._exp_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
+                self.metric_args_list, self.space_list, self.shape_list
             )
 
         def log_shape_test_data(self):
-            return self._log_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.batch_size_list,
-            )
+            return self._log_shape_test_data(self.metric_args_list, self.space_list)
 
         def squared_dist_is_symmetric_test_data(self):
             return self._squared_dist_is_symmetric_test_data(
@@ -503,7 +483,7 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=gs.atol * 1000,
             )
 
@@ -511,7 +491,7 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=1e-1,
             )
 
@@ -536,7 +516,7 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 10000,
                 atol=1e-1,
             )
@@ -546,7 +526,7 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 amplitude=10.0,
                 rtol=gs.rtol * 10000,
                 atol=1e-1,
@@ -557,7 +537,7 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
@@ -568,7 +548,7 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 100000,
                 atol=gs.atol * 100000,
@@ -579,7 +559,7 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
@@ -589,7 +569,7 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
