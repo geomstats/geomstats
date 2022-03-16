@@ -11,27 +11,27 @@ from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from tests.conftest import TestCase
-from tests.data_generation import RiemannianMetricTestData
-from tests.parametrizers import RiemannianMetricParametrizer
+from tests.conftest import Parametrizer, np_backend
+from tests.data_generation import _RiemannianMetricTestData
+from tests.geometry_test_cases import RiemannianMetricTestCase
 
 
-class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = InvariantMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
-    skip_test_exp_shape = True
-    skip_test_exp_belongs = True
+    skip_test_exp_shape = np_backend()
+    # skip_test_exp_belongs = True
     skip_test_geodesic_ivp_belongs = True
-    skip_test_exp_log_composition = True
-    skip_test_exp_ladder_parallel_transport = True
-    skip_test_log_is_tangent = True
-    skip_test_log_shape = True
-    skip_test_geodesic_bvp_belongs = True
-    skip_test_log_exp_composition = True
+    skip_test_exp_log_composition = np_backend()
+    skip_test_exp_ladder_parallel_transport = np_backend()
+    skip_test_log_is_tangent = np_backend()
+    skip_test_log_shape = np_backend()
+    skip_test_geodesic_bvp_belongs = np_backend()
+    skip_test_log_exp_composition = np_backend()
 
-    class TestDataInvariantMetric(RiemannianMetricTestData):
+    class InvariantMetricTestData(_RiemannianMetricTestData):
         group = SpecialEuclidean(n=3, point_type="vector")
         matrix_se3 = SpecialEuclidean(n=3)
         matrix_so3 = SpecialOrthogonal(n=3)
@@ -63,7 +63,7 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         n_rungs_list = [1] * 6
         scheme_list = ["pole"] * 6
 
-        def inner_product_mat_at_identity_shape_data(self):
+        def inner_product_mat_at_identity_shape_test_data(self):
             group = SpecialEuclidean(n=3, point_type="vector")
             sym_mat_at_identity = gs.eye(group.dim)
             smoke_data = [
@@ -75,7 +75,7 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def inner_product_matrix_shape_data(self):
+        def inner_product_matrix_shape_test_data(self):
             group = SpecialEuclidean(n=3, point_type="vector")
             sym_mat_at_identity = gs.eye(group.dim)
             smoke_data = [
@@ -94,14 +94,14 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def inner_product_matrix_and_its_inverse_data(self):
+        def inner_product_matrix_and_its_inverse_test_data(self):
             group = SpecialEuclidean(n=3, point_type="vector")
             smoke_data = [
                 dict(group=group, metric_mat_at_identity=None, left_or_right="left")
             ]
             return self.generate_tests(smoke_data)
 
-        def inner_product_data(self):
+        def inner_product_test_data(self):
             group = SpecialOrthogonal(n=3)
             algebra = group.lie_algebra
             tangent_vec_a = algebra.matrix_representation(gs.array([1.0, 0, 2.0]))
@@ -167,7 +167,7 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log_antipodals_data(self):
+        def log_antipodals_test_data(self):
             group = self.matrix_so3
             smoke_data = [
                 dict(
@@ -181,7 +181,7 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def structure_constant_data(self):
+        def structure_constant_test_data(self):
             group = self.matrix_so3
             metric = InvariantMetric(group)
             x, y, z = metric.normal_basis(group.lie_algebra.basis)
@@ -254,7 +254,7 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
 
             return self.generate_tests(smoke_data)
 
-        def dual_adjoint_structure_constant_data(self):
+        def dual_adjoint_structure_constant_test_data(self):
             group = self.matrix_so3
             metric = InvariantMetric(group)
             x, y, z = metric.normal_basis(group.lie_algebra.basis)
@@ -271,7 +271,7 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
 
             return self.generate_tests(smoke_data)
 
-        def connection_data(self):
+        def connection_test_data(self):
             group = self.matrix_so3
             metric = InvariantMetric(group)
             x, y, z = metric.normal_basis(group.lie_algebra.basis)
@@ -285,7 +285,7 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def connection_translation_map_data(self):
+        def connection_translation_map_test_data(self):
             group = self.matrix_so3
             metric = InvariantMetric(group)
             x, y, z = metric.normal_basis(group.lie_algebra.basis)
@@ -300,7 +300,7 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def sectional_curvature_data(self):
+        def sectional_curvature_test_data(self):
             group = self.matrix_so3
             metric = InvariantMetric(group)
 
@@ -317,10 +317,10 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def sectional_curvature_translation_point_data(self):
-            return self.connection_translation_map_data()
+        def sectional_curvature_translation_point_test_data(self):
+            return self.connection_translation_map_test_data()
 
-        def curvature_data(self):
+        def curvature_test_data(self):
             group = self.matrix_so3
             metric = InvariantMetric(group)
             x, y, z = metric.normal_basis(group.lie_algebra.basis)
@@ -349,7 +349,7 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def curvature_translation_point_data(self):
+        def curvature_translation_point_test_data(self):
             group = self.matrix_so3
             metric = InvariantMetric(group)
             x, y, _ = metric.normal_basis(group.lie_algebra.basis)
@@ -366,7 +366,7 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def curvature_derivative_at_identity_data(self):
+        def curvature_derivative_at_identity_test_data(self):
             group = self.matrix_so3
             metric = InvariantMetric(group)
             basis = metric.normal_basis(group.lie_algebra.basis)
@@ -388,7 +388,7 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
 
             return self.generate_tests(smoke_data)
 
-        def curvature_derivative_tangent_translation_map_data(self):
+        def curvature_derivative_tangent_translation_map_test_data(self):
             group = self.matrix_so3
             metric = InvariantMetric(group=group)
             x, y, z = metric.normal_basis(group.lie_algebra.basis)
@@ -405,40 +405,38 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def integrated_exp_at_id_data(self):
+        def integrated_exp_at_id_test_data(self):
 
             smoke_data = [dict(group=self.matrix_so3)]
             return self.generate_tests(smoke_data)
 
-        def integrated_se3_exp_at_id_data(self):
+        def integrated_se3_exp_at_id_test_data(self):
             smoke_data = [dict(group=self.matrix_se3)]
             return self.generate_tests(smoke_data)
 
-        def integrated_exp_and_log_at_id_data(self):
+        def integrated_exp_and_log_at_id_test_data(self):
             smoke_data = [dict(group=self.matrix_so3)]
             return self.generate_tests(smoke_data)
 
-        def integrated_parallel_transport_data(self):
+        def integrated_parallel_transport_test_data(self):
             smoke_data = [dict(group=self.matrix_se3, n=3, n_samples=20)]
             return self.generate_tests(smoke_data)
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
                 self.batch_size_list,
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
-                self.metric_args_list,
-                self.space_list,
-                self.batch_size_list,
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(
+                self.metric_args_list, self.space_list, self.batch_size_list
             )
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -446,25 +444,25 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
                 self.n_samples_list,
-                belongs_atol=gs.atol * 1000,
+                belongs_atol=1e-2,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
-                is_tangent_atol=gs.atol * 1000,
+                is_tangent_atol=1e-2,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -472,16 +470,16 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -489,8 +487,8 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_log_composition_test_data(self):
+            return self._exp_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -499,8 +497,8 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -510,8 +508,8 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.scheme_list,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -521,8 +519,8 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 100000,
             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -541,7 +539,7 @@ class TestInvariantMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataInvariantMetric()
+    testing_data = InvariantMetricTestData()
 
     def test_inner_product_mat_at_identity_shape(
         self, group, metric_mat_at_identity, left_or_right
