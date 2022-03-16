@@ -27,10 +27,9 @@ class TestGrassmannian(LevelSetTestCase, metaclass=Parametrizer):
         n_list = random.sample(range(3, 6), 2)
         k_list = [random.sample(range(2, n), 1)[0] for n in n_list]
         space_args_list = list(zip(n_list, k_list))
-        n_points_list = random.sample(range(1, 5), 2)
         shape_list = [(n, n) for n in n_list]
         n_vecs_list = random.sample(range(1, 5), 2)
-        n_samples_list = random.sample(range(1, 5), 2)
+        n_points_list = random.sample(range(1, 5), 2)
 
         def belongs_test_data(self):
             smoke_data = [
@@ -65,7 +64,7 @@ class TestGrassmannian(LevelSetTestCase, metaclass=Parametrizer):
             return self._projection_belongs_test_data(
                 self.space_args_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
@@ -90,11 +89,6 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
         n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
         n_tangent_vecs_list = random.sample(range(1, 5), 2)
-        n_directions_list = random.sample(range(1, 5), 2)
-        n_end_points_list = random.sample(range(1, 5), 2)
-        n_t_list = random.sample(range(1, 5), 2)
-        batch_size_list = random.sample(range(2, 5), 2)
-        n_samples_list = random.sample(range(2, 5), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
@@ -122,17 +116,13 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
 
         def exp_shape_test_data(self):
             return self._exp_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
+                self.metric_args_list, self.space_list, self.shape_list
             )
 
         def log_shape_test_data(self):
             return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.batch_size_list,
             )
 
         def squared_dist_is_symmetric_test_data(self):
@@ -149,7 +139,7 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=gs.atol * 1000,
             )
 
@@ -157,7 +147,7 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
             return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
@@ -182,7 +172,7 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
             return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -192,7 +182,7 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -202,7 +192,7 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
@@ -213,7 +203,7 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 10000,
                 atol=gs.atol * 10000,
@@ -224,7 +214,7 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
@@ -234,7 +224,7 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )

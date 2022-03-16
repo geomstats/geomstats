@@ -23,7 +23,6 @@ class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
         n_disks_list = random.sample(range(2, 4), 2)
         space_args_list = [(n_disks,) for n_disks in n_disks_list]
         shape_list = [(n_disks, 3) for n_disks in n_disks_list]
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
@@ -46,7 +45,7 @@ class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
             return self._projection_belongs_test_data(
                 self.space_args_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_points_list,
                 belongs_atol=1e-1,
             )
 
@@ -76,18 +75,17 @@ class TestPoincarePolydiskMetric(TestCase, metaclass=Parametrizer):
 
     class PoincarePolydiskMetricTestData(TestData):
 
-        n_disks_list = random.sample(range(2, 5), 2)
+        n_disks_list = random.sample(range(2, 4), 2)
         metric_args_list = [(n_disks,) for n_disks in n_disks_list]
         shape_list = [(n_disks, 3) for n_disks in n_disks_list]
         space_list = [PoincarePolydisk(n_disks) for n_disks in n_disks_list]
-        n_points_list = random.sample(range(1, 7), 5)
-        n_samples_list = random.sample(range(1, 7), 5)
-        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_list = random.sample(range(1, 4), 2)
+        n_tangent_vecs_list = random.sample(range(1, 4), 2)
+        n_points_a_list = random.sample(range(1, 4), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 5)
-        alpha_list = [1] * 5
-        n_rungs_list = [1] * 5
-        scheme_list = ["pole"] * 5
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
 
         def signature_test_data(self):
             smoke_data = [

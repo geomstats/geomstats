@@ -35,47 +35,40 @@ class TestStiefel(LevelSetTestCase, metaclass=Parametrizer):
     skip_test_to_tangent_is_tangent = True
 
     class StiefelTestData(_LevelSetTestData):
+        n_list = random.sample(range(2, 4), 2)
+        p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
+        space_args_list = list(zip(n_list, p_list))
+        shape_list = space_args_list
+        n_points_list = random.sample(range(1, 5), 2)
+        n_vecs_list = random.sample(range(1, 5), 2)
+
         def random_point_belongs_test_data(self):
             smoke_space_args_list = [(2, 2), (3, 3), (4, 3), (3, 2)]
             smoke_n_points_list = [1, 2, 1, 2]
-            n_list = random.sample(range(2, 4), 2)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            space_args_list = list(zip(n_list, p_list))
-            n_points_list = random.sample(range(1, 10), 2)
 
             belongs_atol = gs.atol * 100000
             return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
-                space_args_list,
-                n_points_list,
+                self.space_args_list,
+                self.n_points_list,
                 belongs_atol,
             )
 
         def to_tangent_is_tangent_test_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            space_args_list = list(zip(n_list, p_list))
-            tangent_shapes_list = space_args_list
-            n_vecs_list = random.sample(range(1, 10), 5)
             is_tangent_atol = gs.atol * 1000
 
             return self._to_tangent_is_tangent_test_data(
                 Stiefel,
-                space_args_list,
-                tangent_shapes_list,
-                n_vecs_list,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
                 is_tangent_atol,
             )
 
         def projection_belongs_test_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            space_args_list = list(zip(n_list, p_list))
-            shapes_list = space_args_list
-            n_samples_list = random.sample(range(1, 10), 5)
             return self._projection_belongs_test_data(
-                space_args_list, shapes_list, n_samples_list, gs.atol * 100
+                self.space_args_list, self.shape_list, self.n_points_list, gs.atol * 100
             )
 
         def to_grassmannian_test_data(self):
@@ -124,11 +117,6 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
         n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
         n_tangent_vecs_list = random.sample(range(1, 5), 2)
-        n_directions_list = random.sample(range(1, 5), 2)
-        n_end_points_list = random.sample(range(1, 5), 2)
-        n_t_list = random.sample(range(1, 5), 2)
-        batch_size_list = random.sample(range(2, 5), 2)
-        n_samples_list = random.sample(range(2, 5), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
@@ -158,14 +146,12 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.batch_size_list,
             )
 
         def log_shape_test_data(self):
             return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.batch_size_list,
             )
 
         def squared_dist_is_symmetric_test_data(self):
@@ -199,7 +185,7 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_t_list,
+                self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
@@ -207,7 +193,7 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
             return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_t_list,
+                self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
@@ -215,7 +201,7 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
             return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -225,7 +211,7 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -258,7 +244,7 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
@@ -267,7 +253,7 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
             return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
