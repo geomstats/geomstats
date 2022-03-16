@@ -533,6 +533,32 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 1000,
             )
 
+        def exp_log_composition_at_identity_test_data(self):
+            smoke_data = []
+            for metric_args in self.metric_args_list[:4]:
+                for point in [self.point1, self.point_small]:
+                    smoke_data += [
+                        dict(metric_args=metric_args, tangent_vec=self.point1),
+                        dict(
+                            group_args=(self.group, None, "right"),
+                            tangent_vec=self.point1,
+                        ),
+                    ]
+            return self.generate_tests(smoke_data)
+
+        def log_exp_composition_at_identity_test_data(self):
+            smoke_data = []
+            for metric_args in self.metric_args_list[:4]:
+                for point in [self.point1, self.point_small]:
+                    smoke_data += [
+                        dict(metric_args=metric_args, tangent_vec=self.point1),
+                        dict(
+                            group_args=(self.group, None, "right"),
+                            tangent_vec=self.point1,
+                        ),
+                    ]
+            return self.generate_tests(smoke_data)
+
     testing_data = InvariantMetricTestData()
 
     def test_inner_product_mat_at_identity_shape(
@@ -764,3 +790,33 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_log_antipodals(self, group, rotation_mat1, rotation_mat2, expected):
         with expected:
             group.bi_invariant_metric.log(rotation_mat1, rotation_mat2)
+
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_left_exp_and_exp_from_identity_left_diag_metrics(self):
+        left_exp_from_id = self.left_diag_metric.left_exp_from_identity(self.point_1)
+        exp_from_id = self.left_diag_metric.exp_from_identity(self.point_1)
+
+        self.assertAllClose(left_exp_from_id, exp_from_id)
+
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_left_log_and_log_from_identity_left_diag_metrics(self):
+        left_log_from_id = self.left_diag_metric.left_log_from_identity(self.point_1)
+        log_from_id = self.left_diag_metric.log_from_identity(self.point_1)
+
+        self.assertAllClose(left_log_from_id, log_from_id)
+
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_exp_log_composition_at_identity(self, metric_args, tangent_vec):
+        metric = self.metric(*metric_args)
+        result = metric.left_log_from_identity(
+            point=metric.left_exp_from_identity(tangent_vec=tangent_vec)
+        )
+        self.assertAllClose(result, tangent_vec)
+
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_log_exp_composition_at_identity(self, metric_args, point):
+        metric = self.metric(*metric_args)
+        result = metric.left_exp_from_identity(
+            tangent_vec=metric.left_log_from_identity(point=point)
+        )
+        self.assertAllClose(result, point)
