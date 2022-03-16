@@ -229,21 +229,17 @@ class ProductRiemannianMetric(RiemannianMetric):
         )
 
         if point_type == "vector":
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-            base_point = gs.to_ndarray(base_point, to_ndim=2)
             intrinsic = self.is_intrinsic(base_point)
             args = {"tangent_vec": tangent_vec, "base_point": base_point}
             exp = self._iterate_over_metrics("exp", args, intrinsic)
-            return gs.hstack(exp)
+            return gs.concatenate(exp, -1)
 
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
         exp = gs.stack(
             [
                 self.metrics[i].exp(tangent_vec[:, i], base_point[:, i])
                 for i in range(self.n_metrics)
             ],
-            axis=1,
+            axis=-2,
         )
         return exp[0] if len(tangent_vec) == 1 else exp
 
