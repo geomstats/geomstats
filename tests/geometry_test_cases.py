@@ -362,7 +362,7 @@ class FiberBundleTestCase(ManifoldTestCase):
         result = bundle.is_horizontal(proj, base_point)
         self.assertTrue(gs.all(result), gs.array(True))
 
-    def test_log_after_is_horizontal(
+    def test_log_after_align_is_horizontal(
         self, bundle_args, point_a, point_b, is_horizontal_atol
     ):
         bundle = self.bundle(*bundle_args)
