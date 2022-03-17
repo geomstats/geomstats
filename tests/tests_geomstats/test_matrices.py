@@ -780,8 +780,8 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_test_data(self):
-            return self._log_exp_composition_test_data(
+        def log_then_exp_composition_test_data(self):
+            return self._log_then_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -789,8 +789,8 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_log_composition_test_data(self):
-            return self._exp_log_composition_test_data(
+        def exp_then_log_composition_test_data(self):
+            return self._exp_then_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,

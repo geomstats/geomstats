@@ -30,8 +30,8 @@ point_b = gs.array(
 
 class TestStiefel(LevelSetTestCase, metaclass=Parametrizer):
     space = Stiefel
-    skip_test_extrinsic_intrinsic_composition = True
-    skip_test_intrinsic_extrinsic_composition = True
+    skip_test_extrinsic_then_intrinsic_composition = True
+    skip_test_intrinsic_then_extrinsic_composition = True
     skip_test_to_tangent_is_tangent = True
 
     class StiefelTestData(_LevelSetTestData):
@@ -97,8 +97,8 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
-    skip_test_log_exp_composition = True
-    skip_test_exp_log_composition = True
+    skip_test_log_then_exp_composition = True
+    skip_test_exp_then_log_composition = True
     skip_test_log_is_tangent = True
     skip_test_geodesic_bvp_belongs = True
     skip_test_squared_dist_is_symmetric = True

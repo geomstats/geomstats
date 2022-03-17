@@ -130,7 +130,9 @@ class OpenSetTestCase(ManifoldTestCase):
 
 
 class LieGroupTestCase(ManifoldTestCase):
-    def test_exp_log_composition(self, group_args, tangent_vec, base_point, rtol, atol):
+    def test_exp_then_log_composition(
+        self, group_args, tangent_vec, base_point, rtol, atol
+    ):
         """Check that group exponential and logarithm are inverse.
 
         This is calling group exponential first, then group logarithm.
@@ -153,7 +155,7 @@ class LieGroupTestCase(ManifoldTestCase):
         log_vec = group.log(exp_point, gs.array(base_point))
         self.assertAllClose(log_vec, gs.array(tangent_vec), rtol, atol)
 
-    def test_log_exp_composition(self, group_args, point, base_point, rtol, atol):
+    def test_log_then_exp_composition(self, group_args, point, base_point, rtol, atol):
         """Check that group exponential and logarithm are inverse.
 
         This is calling group logarithm first, then group exponential.
@@ -206,7 +208,7 @@ class VectorSpaceTestCase(ManifoldTestCase):
 
 
 class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
-    def test_basis_representation_matrix_representation_composition(
+    def test_basis_representation_then_matrix_representation_composition(
         self, algebra_args, matrix_rep, rtol, atol
     ):
         """Check that changing coordinate system twice gives back the point.
@@ -230,7 +232,7 @@ class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
         result = algebra.matrix_representation(basis_rep)
         self.assertAllClose(result, gs.array(matrix_rep), rtol, atol)
 
-    def test_matrix_representation_basis_representation_composition(
+    def test_matrix_representation_then_basis_representation_composition(
         self,
         algebra_args,
         basis_rep,
@@ -260,7 +262,7 @@ class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
 
 
 class LevelSetTestCase(ManifoldTestCase):
-    def test_extrinsic_intrinsic_composition(
+    def test_extrinsic_then_intrinsic_composition(
         self, space_args, point_extrinsic, rtol, atol
     ):
         """Check that changing coordinate system twice gives back the point.
@@ -285,7 +287,7 @@ class LevelSetTestCase(ManifoldTestCase):
         expected = point_extrinsic
         self.assertAllClose(result, expected, rtol, atol)
 
-    def test_intrinsic_extrinsic_composition(
+    def test_intrinsic_then_extrinsic_composition(
         self, space_args, point_intrinsic, rtol, atol
     ):
         """Check that changing coordinate system twice gives back the point.

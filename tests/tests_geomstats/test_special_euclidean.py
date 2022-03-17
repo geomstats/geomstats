@@ -73,8 +73,8 @@ ATOL = 1e-5
 class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
 
     space = group = SpecialEuclidean
-    skip_test_exp_log_composition = tf_backend()
-    skip_test_log_exp_composition = tf_backend()
+    skip_test_exp_then_log_composition = tf_backend()
+    skip_test_log_then_exp_composition = tf_backend()
 
     class SpecialEuclideanTestData(_LieGroupTestData):
         n_list = random.sample(range(2, 4), 2)
@@ -217,8 +217,8 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
                 self.n_vecs_list,
             )
 
-        def exp_log_composition_test_data(self):
-            return self._exp_log_composition_test_data(
+        def exp_then_log_composition_test_data(self):
+            return self._exp_then_log_composition_test_data(
                 SpecialEuclidean,
                 self.space_args_list,
                 self.shape_list,
@@ -227,8 +227,8 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def log_exp_composition_test_data(self):
-            return self._log_exp_composition_test_data(
+        def log_then_exp_composition_test_data(self):
+            return self._log_then_exp_composition_test_data(
                 SpecialEuclidean,
                 self.space_args_list,
                 self.n_points_list,
@@ -437,22 +437,18 @@ class TestSpecialEuclideanMatrixLieAlgebra(
             ]
             return self.generate_tests(smoke_data)
 
-        def basis_representation_matrix_representation_composition_test_data(self):
-            return (
-                self._basis_representation_matrix_representation_composition_test_data(
-                    SpecialEuclideanMatrixLieAlgebra,
-                    self.space_args_list,
-                    self.n_points_list,
-                )
+        def basis_representation_then_matrix_representation_composition_test_data(self):
+            return self._basis_representation_then_matrix_representation_composition_test_data(
+                SpecialEuclideanMatrixLieAlgebra,
+                self.space_args_list,
+                self.n_points_list,
             )
 
-        def matrix_representation_basis_representation_composition_test_data(self):
-            return (
-                self._matrix_representation_basis_representation_composition_test_data(
-                    SpecialEuclideanMatrixLieAlgebra,
-                    self.space_args_list,
-                    self.n_points_list,
-                )
+        def matrix_representation_then_basis_representation_composition_test_data(self):
+            return self._matrix_representation_then_basis_representation_composition_test_data(
+                SpecialEuclideanMatrixLieAlgebra,
+                self.space_args_list,
+                self.n_points_list,
             )
 
         def basis_belongs_test_data(self):
@@ -583,8 +579,8 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 belongs_atol=gs.atol * 100,
             )
 
-        def log_exp_composition_test_data(self):
-            return self._log_exp_composition_test_data(
+        def log_then_exp_composition_test_data(self):
+            return self._log_then_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -592,8 +588,8 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 atol=gs.atol * 100,
             )
 
-        def exp_log_composition_test_data(self):
-            return self._exp_log_composition_test_data(
+        def exp_then_log_composition_test_data(self):
+            return self._exp_then_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -664,8 +660,8 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_squared_dist_is_symmetric = np_backend()
-    skip_test_exp_log_composition = True
-    skip_test_log_exp_composition = True
+    skip_test_exp_then_log_composition = True
+    skip_test_log_then_exp_composition = True
     skip_test_log_is_tangent = np_backend()
     skip_test_geodesic_bvp_belongs = np_backend()
     skip_test_exp_ladder_parallel_transport = np_backend()
@@ -743,8 +739,8 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 belongs_atol=1e-3,
             )
 
-        def log_exp_composition_test_data(self):
-            return self._log_exp_composition_test_data(
+        def log_then_exp_composition_test_data(self):
+            return self._log_then_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -752,8 +748,8 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 atol=gs.atol * 100000,
             )
 
-        def exp_log_composition_test_data(self):
-            return self._exp_log_composition_test_data(
+        def exp_then_log_composition_test_data(self):
+            return self._exp_then_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,

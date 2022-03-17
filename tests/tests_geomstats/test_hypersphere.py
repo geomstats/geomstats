@@ -255,15 +255,15 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
                 self.space_args_list, self.shape_list, self.n_points_list
             )
 
-        def extrinsic_intrinsic_composition_test_data(self):
+        def extrinsic_then_intrinsic_composition_test_data(self):
             space_args_list = [(1,), (2,)]
-            return self._extrinsic_intrinsic_composition_test_data(
+            return self._extrinsic_then_intrinsic_composition_test_data(
                 Hypersphere, space_args_list, self.n_points_list, atol=gs.atol * 100
             )
 
-        def intrinsic_extrinsic_composition_test_data(self):
+        def intrinsic_then_extrinsic_composition_test_data(self):
             space_args_list = [(1,), (2,)]
-            return self._intrinsic_extrinsic_composition_test_data(
+            return self._intrinsic_then_extrinsic_composition_test_data(
                 Hypersphere, space_args_list, self.n_points_list, atol=gs.atol * 100
             )
 
@@ -539,7 +539,7 @@ class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_test_data(self):
+        def log_then_exp_composition_test_data(self):
             # edge case: two very close points, base_point_2 and point_2,
             # form an angle < epsilon
             base_point = gs.array([1.0, 2.0, 3.0, 4.0, 6.0])
@@ -555,7 +555,7 @@ class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                     atol=gs.atol,
                 )
             ]
-            return self._log_exp_composition_test_data(
+            return self._log_then_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -563,7 +563,7 @@ class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=1e-3,
             )
 
-        def exp_log_composition_test_data(self):
+        def exp_then_log_composition_test_data(self):
             base_point = gs.array([1.0, 0.0, 0.0, 0.0])
             tangent_vec = gs.array([0.0, 0.0, gs.pi / 6, 0.0])
 
@@ -576,7 +576,7 @@ class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                     atol=gs.atol,
                 )
             ]
-            return self._exp_log_composition_test_data(
+            return self._exp_then_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,

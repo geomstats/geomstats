@@ -11,8 +11,8 @@ from tests.geometry_test_cases import LieGroupTestCase, MatrixLieAlgebraTestCase
 
 class TestGeneralLinear(LieGroupTestCase, metaclass=Parametrizer):
     space = group = GeneralLinear
-    skip_test_exp_log_composition = True
-    skip_test_log_exp_composition = True
+    skip_test_exp_then_log_composition = True
+    skip_test_log_then_exp_composition = True
 
     class GeneralLinearTestData(_LieGroupTestData):
         n_list = random.sample(range(2, 5), 2)
@@ -164,16 +164,16 @@ class TestGeneralLinear(LieGroupTestCase, metaclass=Parametrizer):
                 self.n_vecs_list,
             )
 
-        def exp_log_composition_test_data(self):
-            return self._exp_log_composition_test_data(
+        def exp_then_log_composition_test_data(self):
+            return self._exp_then_log_composition_test_data(
                 GeneralLinear,
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
             )
 
-        def log_exp_composition_test_data(self):
-            return self._log_exp_composition_test_data(
+        def log_then_exp_composition_test_data(self):
+            return self._log_then_exp_composition_test_data(
                 GeneralLinear, self.space_args_list, self.n_samples_list
             )
 
@@ -236,18 +236,14 @@ class TestSquareMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def basis_representation_matrix_representation_composition_test_data(self):
-            return (
-                self._basis_representation_matrix_representation_composition_test_data(
-                    SquareMatrices, self.space_args_list, self.n_samples_list
-                )
+        def basis_representation_then_matrix_representation_composition_test_data(self):
+            return self._basis_representation_then_matrix_representation_composition_test_data(
+                SquareMatrices, self.space_args_list, self.n_samples_list
             )
 
-        def matrix_representation_basis_representation_composition_test_data(self):
-            return (
-                self._matrix_representation_basis_representation_composition_test_data(
-                    SquareMatrices, self.space_args_list, self.n_samples_list
-                )
+        def matrix_representation_then_basis_representation_composition_test_data(self):
+            return self._matrix_representation_then_basis_representation_composition_test_data(
+                SquareMatrices, self.space_args_list, self.n_samples_list
             )
 
         def basis_belongs_test_data(self):
