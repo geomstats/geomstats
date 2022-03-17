@@ -5,16 +5,23 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear, SquareMatrices
 from tests.conftest import Parametrizer
-from tests.data_generation import _LieGroupTestData, _MatrixLieAlgebraTestData
-from tests.geometry_test_cases import LieGroupTestCase, MatrixLieAlgebraTestCase
+from tests.data_generation import (
+    _LieGroupTestData,
+    _MatrixLieAlgebraTestData,
+    _OpenSetTestData,
+)
+from tests.geometry_test_cases import (
+    LieGroupTestCase,
+    MatrixLieAlgebraTestCase,
+    OpenSetTestCase,
+)
 
 
-class TestGeneralLinear(LieGroupTestCase, metaclass=Parametrizer):
+class TestGeneralLinear(LieGroupTestCase, OpenSetTestCase, metaclass=Parametrizer):
     space = group = GeneralLinear
-    skip_test_exp_log_composition = True
     skip_test_log_exp_composition = True
 
-    class GeneralLinearTestData(_LieGroupTestData):
+    class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
         n_list = random.sample(range(2, 5), 2)
         positive_det_list = [True, False]
         space_args_list = list(zip(n_list, positive_det_list))
@@ -170,11 +177,22 @@ class TestGeneralLinear(LieGroupTestCase, metaclass=Parametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_samples_list,
+                atol=gs.atol * 100,
             )
 
         def log_exp_composition_test_data(self):
             return self._log_exp_composition_test_data(
-                GeneralLinear, self.space_args_list, self.n_samples_list
+                GeneralLinear,
+                self.space_args_list,
+                self.n_samples_list,
+                atol=gs.atol * 100,
+            )
+
+        def to_tangent_is_tangent_in_ambient_space_test_data(self):
+            return self._to_tangent_is_tangent_in_ambient_space_test_data(
+                GeneralLinear,
+                self.space_args_list,
+                self.shape_list,
             )
 
     testing_data = GeneralLinearTestData()
