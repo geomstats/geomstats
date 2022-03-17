@@ -17,7 +17,6 @@ class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
         k_list = n_list
         space_args_list = list(zip(n_list, k_list))
         shape_list = [(n, n) for n in n_list]
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
@@ -57,7 +56,7 @@ class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
         def projection_belongs_test_data(self):
             belongs_atol = gs.atol * 100000
             return self._projection_belongs_test_data(
-                self.space_args_list, self.shape_list, self.n_samples_list, belongs_atol
+                self.space_args_list, self.shape_list, self.n_points_list, belongs_atol
             )
 
         def to_tangent_is_tangent_test_data(self):

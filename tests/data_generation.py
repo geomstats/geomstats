@@ -422,9 +422,7 @@ class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
 
 
 class _ConnectionTestData(TestData):
-    def _exp_shape_test_data(
-        self, connection_args_list, space_list, shape_list, n_samples_list
-    ):
+    def _exp_shape_test_data(self, connection_args_list, space_list, shape_list):
         """Generate data to check that exp returns an array of the expected shape.
 
         Parameters
@@ -435,9 +433,8 @@ class _ConnectionTestData(TestData):
             List of manifolds on which the connection is defined.
         shape_list : list
             List of shapes for random data to generate.
-        n_samples_list : list
-            List of number of random data to generate.
         """
+        n_samples_list = [3] * len(connection_args_list)
         random_data = []
         for connection_args, space, tangent_shape, n_samples in zip(
             connection_args_list, space_list, shape_list, n_samples_list
@@ -461,7 +458,7 @@ class _ConnectionTestData(TestData):
                 )
         return self.generate_tests([], random_data)
 
-    def _log_shape_test_data(self, connection_args_list, space_list, n_samples_list):
+    def _log_shape_test_data(self, connection_args_list, space_list):
         """Generate data to check that log returns an array of the expected shape.
 
         Parameters
@@ -473,6 +470,7 @@ class _ConnectionTestData(TestData):
         n_samples_list : list
             List of number of random data to generate.
         """
+        n_samples_list = [3] * len(connection_args_list)
         random_data = []
         for connection_args, space, n_samples in zip(
             connection_args_list, space_list, n_samples_list

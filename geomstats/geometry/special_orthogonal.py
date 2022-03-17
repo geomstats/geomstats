@@ -391,7 +391,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         return -self.regularize(point)
 
     def random_point(self, n_samples=1, bound=1.0):
-        return gs.random.rand(n_samples, 3)
+        return gs.squeeze(gs.random.rand(n_samples, 3))
 
     def exp_from_identity(self, tangent_vec):
         """Compute the group exponential of the tangent vector at the identity.
