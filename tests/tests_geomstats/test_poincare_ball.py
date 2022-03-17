@@ -7,16 +7,16 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.poincare_ball import PoincareBall, PoincareBallMetric
-from tests.conftest import TestCase
-from tests.data_generation import OpenSetTestData, RiemannianMetricTestData
-from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
+from tests.conftest import Parametrizer
+from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
+from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 
-class TestPoincareBall(TestCase, metaclass=OpenSetParametrizer):
+class TestPoincareBall(OpenSetTestCase, metaclass=Parametrizer):
     space = PoincareBall
     skip_test_projection_belongs = True
 
-    class TestDataPoincareBall(OpenSetTestData):
+    class PoincareBallTestData(_OpenSetTestData):
         smoke_space_args_list = [(2,), (3,), (4,), (5,)]
         smoke_n_points_list = [1, 2, 1, 2]
         n_list = random.sample(range(2, 10), 5)
@@ -24,22 +24,21 @@ class TestPoincareBall(TestCase, metaclass=OpenSetParametrizer):
         n_points_list = random.sample(range(1, 10), 5)
         shape_list = [(n,) for n in n_list]
         n_vecs_list = random.sample(range(1, 10), 5)
-        n_samples_list = random.sample(range(1, 10), 5)
 
-        def belongs_data(self):
+        def belongs_test_data(self):
             smoke_data = [
                 dict(dim=2, point=[0.3, 0.5], expected=True),
                 dict(dim=2, point=[1.2, 0.5], expected=False),
             ]
             return self.generate_tests(smoke_data)
 
-        def projection_norm_lessthan_1_data(self):
+        def projection_norm_lessthan_1_test_data(self):
             smoke_data = [dict(dim=2, point=[1.2, 0.5])]
             return self.generate_tests(smoke_data)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             belongs_atol = gs.atol * 100000
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 self.smoke_space_args_list,
                 self.smoke_n_points_list,
                 self.space_args_list,
@@ -47,11 +46,11 @@ class TestPoincareBall(TestCase, metaclass=OpenSetParametrizer):
                 belongs_atol,
             )
 
-        def to_tangent_is_tangent_data(self):
+        def to_tangent_is_tangent_test_data(self):
 
             is_tangent_atol = gs.atol * 1000
 
-            return self._to_tangent_is_tangent_data(
+            return self._to_tangent_is_tangent_test_data(
                 PoincareBall,
                 self.space_args_list,
                 self.shape_list,
@@ -59,17 +58,17 @@ class TestPoincareBall(TestCase, metaclass=OpenSetParametrizer):
                 is_tangent_atol,
             )
 
-        def projection_belongs_data(self):
-            return self._projection_belongs_data(
-                self.space_args_list, self.shape_list, self.n_samples_list
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
+                self.space_args_list, self.shape_list, self.n_points_list
             )
 
-        def to_tangent_is_tangent_in_ambient_space_data(self):
-            return self._to_tangent_is_tangent_in_ambient_space_data(
+        def to_tangent_is_tangent_in_ambient_space_test_data(self):
+            return self._to_tangent_is_tangent_in_ambient_space_test_data(
                 PoincareBall, self.space_args_list, self.shape_list
             )
 
-    testing_data = TestDataPoincareBall()
+    testing_data = PoincareBallTestData()
 
     def test_belongs(self, dim, point, expected):
         space = self.space(dim)
@@ -83,7 +82,7 @@ class TestPoincareBall(TestCase, metaclass=OpenSetParametrizer):
         self.assertTrue(result)
 
 
-class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = PoincareBallMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
@@ -91,25 +90,24 @@ class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_exp_belongs = True
     skip_test_geodesic_ivp_belongs = True
 
-    class TestDataPoincareBallMetric(RiemannianMetricTestData):
+    class TestDataPoincareBallMetric(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 5), 2)
         metric_args_list = [(n,) for n in n_list]
         shape_list = [(n,) for n in n_list]
         space_list = [PoincareBall(n) for n in n_list]
         n_points_list = random.sample(range(1, 5), 2)
-        n_samples_list = random.sample(range(1, 5), 2)
+        n_tangent_vecs_list = random.sample(range(1, 5), 2)
         n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 5), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
 
-        def mobius_out_of_the_ball_data(self):
+        def mobius_out_of_the_ball_test_data(self):
             smoke_data = [dict(dim=2, x=[0.7, 0.9], y=[0.2, 0.2])]
             return self.generate_tests(smoke_data)
 
-        def log_data(self):
+        def log_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -120,7 +118,7 @@ class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def dist_pairwise_data(self):
+        def dist_pairwise_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -134,7 +132,7 @@ class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def dist_data(self):
+        def dist_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -145,27 +143,20 @@ class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def coordinate_data(self):
+        def coordinate_test_data(self):
             smoke_data = [dict(dim=2, point_a=[-0.3, 0.7], point_b=[0.2, 0.5])]
             return self.generate_tests(smoke_data)
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
+                self.metric_args_list, self.space_list, self.shape_list
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
-                self.metric_args_list,
-                self.space_list,
-                self.batch_size_list,
-            )
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(self.metric_args_list, self.space_list)
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -173,25 +164,25 @@ class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=gs.atol * 100000,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -199,76 +190,76 @@ class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 10000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 belongs_atol=gs.atol * 10000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_log_composition_test_data(self):
+            return self._exp_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 10000,
                 atol=gs.atol * 10000,
             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
 
-        def mobius_vectorization_data(self):
+        def mobius_vectorization_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -278,7 +269,7 @@ class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log_vectorization_data(self):
+        def log_vectorization_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -288,7 +279,7 @@ class TestPoincareBallMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_vectorization_data(self):
+        def exp_vectorization_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,

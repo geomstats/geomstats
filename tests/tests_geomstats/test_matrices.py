@@ -5,9 +5,9 @@ import random
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from tests.conftest import TestCase
-from tests.data_generation import RiemannianMetricTestData, VectorSpaceTestData
-from tests.parametrizers import RiemannianMetricParametrizer, VectorSpaceParametrizer
+from tests.conftest import Parametrizer
+from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
+from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
 
 SQRT_2 = math.sqrt(2)
 
@@ -26,19 +26,18 @@ MAT7_33 = [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [8.0, -1.0, 0.0]]
 MAT8_33 = [[0.0, 3.0, 4.0], [0.0, 0.0, 6.0], [0.0, 0.0, 0.0]]
 
 
-class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
+class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
     space = Matrices
 
-    class TestDataMatrices(VectorSpaceTestData):
+    class MatricesTestData(_VectorSpaceTestData):
         m_list = random.sample(range(3, 5), 2)
         n_list = random.sample(range(3, 5), 2)
         space_args_list = list(zip(m_list, n_list))
         shape_list = space_args_list
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
-        def belongs_data(self):
+        def belongs_test_data(self):
             sq_mat = EYE_2
             smoke_data = [
                 dict(m=2, n=2, mat=sq_mat, expected=True),
@@ -54,7 +53,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def equal_data(self):
+        def equal_test_data(self):
 
             smoke_data = [
                 dict(m=2, n=2, mat_1=EYE_2, mat_2=EYE_2, expected=True),
@@ -62,7 +61,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def mul_data(self):
+        def mul_test_data(self):
             mats_1 = (
                 [[1.0, 2.0], [3.0, 4.0]],
                 [[-1.0, 2.0], [-3.0, 4.0]],
@@ -76,7 +75,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def bracket_data(self):
+        def bracket_test_data(self):
             smoke_data = [
                 dict(
                     mat_a=([[1.0, 2.0], [3.0, 4.0]]),
@@ -91,7 +90,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def congruent_data(self):
+        def congruent_test_data(self):
             smoke_data = [
                 dict(
                     mat_1=[[1.0, 0.0], [2.0, -2]],
@@ -109,7 +108,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def frobenius_product_data(self):
+        def frobenius_product_test_data(self):
             smoke_data = [
                 dict(
                     mat_a=[[[1.0, -2.0], [1.0, 4.0]], [[1.0, 2.0], [0.0, -3.0]]],
@@ -124,7 +123,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def trace_product_data(self):
+        def trace_product_test_data(self):
             smoke_data = [
                 dict(
                     mat_a=[[-2.0, 0.0], [1.0, 2.0]],
@@ -139,7 +138,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def flatten_data(self):
+        def flatten_test_data(self):
             smoke_data = [
                 dict(m=1, n=1, mat=[[1.0]], expected=[1.0]),
                 dict(m=2, n=2, mat=EYE_2, expected=[1.0, 0.0, 0.0, 1.0]),
@@ -153,7 +152,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def flatten_reshape_data(self):
+        def flatten_reshape_test_data(self):
             random_data = [
                 dict(m=1, n=1, mat=Matrices(1, 1).random_point(10000)),
                 dict(m=2, n=2, mat=Matrices(2, 2).random_point(1000)),
@@ -162,7 +161,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests([], random_data)
 
-        def diagonal_data(self):
+        def diagonal_test_data(self):
             smoke_data = [
                 dict(m=2, n=2, mat=EYE_2, expected=[1.0, 1.0]),
                 dict(
@@ -174,7 +173,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def transpose_data(self):
+        def transpose_test_data(self):
             transpose_MAT3_33 = [[0.0, -1.0, 2.0], [1.0, 0.0, 3.0], [-2.0, -3.0, 0.0]]
             smoke_data = [
                 dict(m=3, n=3, mat=EYE_3, expected=EYE_3),
@@ -187,7 +186,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def is_diagonal_data(self):
+        def is_diagonal_test_data(self):
             smoke_data = [
                 dict(m=1, n=1, mat=[[-1.0]], expected=True),
                 dict(m=2, n=2, mat=EYE_2, expected=True),
@@ -201,7 +200,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def is_symmetric_data(self):
+        def is_symmetric_test_data(self):
             smoke_data = [
                 dict(m=1, n=1, mat=[[-1.0]], expected=True),
                 dict(m=2, n=2, mat=EYE_2, expected=True),
@@ -215,7 +214,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def is_skew_symmetric_data(self):
+        def is_skew_symmetric_test_data(self):
             smoke_data = [
                 dict(m=2, n=2, mat=EYE_2, expected=False),
                 dict(m=2, n=3, mat=MAT1_23, expected=False),
@@ -224,7 +223,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def is_pd_data(self):
+        def is_pd_test_data(self):
             smoke_data = [
                 dict(m=2, n=2, mat=EYE_2, expected=True),
                 dict(m=2, n=3, mat=MAT1_23, expected=False),
@@ -234,7 +233,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def is_spd_data(self):
+        def is_spd_test_data(self):
             smoke_data = [
                 dict(m=3, n=2, mat=EYE_2, expected=True),
                 dict(m=3, n=3, mat=MAT4_33, expected=True),
@@ -254,7 +253,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def is_upper_triangular_data(self):
+        def is_upper_triangular_test_data(self):
             smoke_data = [
                 dict(m=2, n=2, mat=EYE_2, expected=True),
                 dict(m=2, n=3, mat=MAT1_23, expected=False),
@@ -268,7 +267,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def is_lower_triangular_data(self):
+        def is_lower_triangular_test_data(self):
             smoke_data = [
                 dict(m=2, n=2, mat=EYE_2, expected=True),
                 dict(m=2, n=3, mat=MAT1_23, expected=False),
@@ -282,7 +281,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def is_strictly_lower_triangular_data(self):
+        def is_strictly_lower_triangular_test_data(self):
             smoke_data = [
                 dict(m=2, n=2, mat=EYE_2, expected=False),
                 dict(m=2, n=3, mat=MAT1_23, expected=False),
@@ -296,7 +295,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def is_strictly_upper_triangular_data(self):
+        def is_strictly_upper_triangular_test_data(self):
             smoke_data = [
                 dict(m=2, n=2, mat=EYE_2, expected=False),
                 dict(m=2, n=3, mat=MAT1_23, expected=False),
@@ -310,7 +309,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def to_diagonal_data(self):
+        def to_diagonal_test_data(self):
             smoke_data = [
                 dict(
                     m=2,
@@ -327,7 +326,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def to_symmetric_data(self):
+        def to_symmetric_test_data(self):
             res = 0.5 * (1e100 + 1e-100)
             smoke_data = [
                 dict(
@@ -355,7 +354,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def to_lower_triangular_data(self):
+        def to_lower_triangular_test_data(self):
             smoke_data = [
                 dict(
                     m=2,
@@ -372,7 +371,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def to_upper_triangular_data(self):
+        def to_upper_triangular_test_data(self):
             smoke_data = [
                 dict(
                     m=2,
@@ -389,7 +388,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def to_strictly_lower_triangular_data(self):
+        def to_strictly_lower_triangular_test_data(self):
             smoke_data = [
                 dict(
                     m=2,
@@ -406,7 +405,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def to_strictly_upper_triangular_data(self):
+        def to_strictly_upper_triangular_test_data(self):
             smoke_data = [
                 dict(
                     m=2,
@@ -423,7 +422,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def to_lower_triangular_diagonal_scaled_data(self):
+        def to_lower_triangular_diagonal_scaled_test_data(self):
             smoke_data = [
                 dict(
                     m=2,
@@ -440,7 +439,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def to_matrix_type_is_matrix_type_data(self):
+        def to_matrix_type_is_matrix_type_test_data(self):
             matrix_types = [
                 "diagonal",
                 "symmetric",
@@ -459,17 +458,17 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
                     random_data += [dict(m=n, n=n, matrix_type=matrix_type, mat=mat)]
             return self.generate_tests([], random_data)
 
-        def basis_belongs_data(self):
-            return self._basis_belongs_data(self.space_args_list)
+        def basis_belongs_test_data(self):
+            return self._basis_belongs_test_data(self.space_args_list)
 
-        def basis_cardinality_data(self):
-            return self._basis_cardinality_data(self.space_args_list)
+        def basis_cardinality_test_data(self):
+            return self._basis_cardinality_test_data(self.space_args_list)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             smoke_space_args_list = [(2, 2), (3, 2)]
             smoke_n_points_list = [1, 2]
             belongs_atol = gs.atol * 10000
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
@@ -477,15 +476,15 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
                 belongs_atol,
             )
 
-        def projection_belongs_data(self):
+        def projection_belongs_test_data(self):
             belongs_atol = gs.atol * 1000
-            return self._projection_belongs_data(
-                self.space_args_list, self.shape_list, self.n_samples_list, belongs_atol
+            return self._projection_belongs_test_data(
+                self.space_args_list, self.shape_list, self.n_points_list, belongs_atol
             )
 
-        def to_tangent_is_tangent_data(self):
+        def to_tangent_is_tangent_test_data(self):
             is_tangent_atol = gs.atol * 1000
-            return self._to_tangent_is_tangent_data(
+            return self._to_tangent_is_tangent_test_data(
                 Matrices,
                 self.space_args_list,
                 self.shape_list,
@@ -493,7 +492,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
                 is_tangent_atol,
             )
 
-        def basis_data(self):
+        def basis_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -520,7 +519,7 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataMatrices()
+    testing_data = MatricesTestData()
 
     def test_belongs(self, m, n, mat, expected):
         self.assertAllClose(Matrices(m, n).belongs(gs.array(mat)), gs.array(expected))
@@ -660,13 +659,13 @@ class TestMatrices(TestCase, metaclass=VectorSpaceParametrizer):
         self.assertAllClose(result, expected)
 
 
-class TestMatricesMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = MatricesMetric
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
-    class TestDataMatricesMetric(RiemannianMetricTestData):
+    class MatricesMetricTestData(_RiemannianMetricTestData):
         m_list = random.sample(range(3, 5), 2)
         n_list = random.sample(range(3, 5), 2)
         metric_args_list = list(zip(m_list, n_list))
@@ -674,15 +673,14 @@ class TestMatricesMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         shape_list = space_args_list
         space_list = [Matrices(m, n) for m, n in metric_args_list]
         n_points_list = random.sample(range(1, 7), 5)
-        n_samples_list = random.sample(range(1, 7), 5)
+        n_tangent_vecs_list = random.sample(range(1, 7), 5)
         n_points_a_list = random.sample(range(1, 7), 5)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 5)
         alpha_list = [1] * 5
         n_rungs_list = [1] * 5
         scheme_list = ["pole"] * 5
 
-        def inner_product_data(self):
+        def inner_product_test_data(self):
             smoke_data = [
                 dict(
                     m=2,
@@ -707,7 +705,7 @@ class TestMatricesMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def norm_data(self):
+        def norm_test_data(self):
             smoke_data = [
                 dict(m=2, n=2, vector=[[1.0, 0.0], [0.0, 1.0]], expected=SQRT_2),
                 dict(
@@ -719,30 +717,28 @@ class TestMatricesMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def inner_product_norm_data(self):
+        def inner_product_norm_test_data(self):
             smoke_data = [
                 dict(m=5, n=5, mat=Matrices(5, 5).random_point(100)),
                 dict(m=10, n=10, mat=Matrices(5, 5).random_point(100)),
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.batch_size_list,
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.batch_size_list,
             )
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -750,25 +746,25 @@ class TestMatricesMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -776,76 +772,76 @@ class TestMatricesMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_log_composition_test_data(self):
+            return self._exp_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 100000,
                 atol=gs.atol * 100000,
             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataMatricesMetric()
+    testing_data = MatricesMetricTestData()
 
     def test_inner_product(self, m, n, tangent_vec_a, tangent_vec_b, expected):
         self.assertAllClose(

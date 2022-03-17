@@ -4,9 +4,8 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.sub_riemannian_metric import SubRiemannianMetric
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer, TestCase
 from tests.data_generation import TestData
-from tests.parametrizers import Parametrizer
 
 
 class ExampleMetric(SubRiemannianMetric):
@@ -23,7 +22,7 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
     class TestDataSubRiemannianMetric(TestData):
         sub_metric = ExampleMetric(dim=3, dist_dim=2)
 
-        def inner_coproduct_data(self):
+        def inner_coproduct_test_data(self):
             smoke_data = [
                 dict(
                     metric=self.sub_metric,
@@ -35,7 +34,7 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def hamiltonian_data(self):
+        def hamiltonian_test_data(self):
             smoke_data = [
                 dict(
                     metric=self.sub_metric,
@@ -46,7 +45,7 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def symp_grad_data(self):
+        def symp_grad_test_data(self):
             smoke_data = [
                 dict(
                     metric=self.sub_metric,
@@ -56,7 +55,7 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def symp_euler_data(self):
+        def symp_euler_test_data(self):
             smoke_data = [
                 dict(
                     metric=self.sub_metric,
@@ -67,7 +66,7 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def iterate_data(self):
+        def iterate_test_data(self):
             smoke_data = [
                 dict(
                     metric=self.sub_metric,
@@ -79,7 +78,7 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_data(self):
+        def exp_test_data(self):
             smoke_data = [
                 dict(
                     metric=self.sub_metric,
@@ -90,7 +89,7 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def symp_flow_data(self):
+        def symp_flow_test_data(self):
             smoke_data = [
                 dict(
                     metric=self.sub_metric,

@@ -4,91 +4,89 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
-from tests.conftest import TestCase
-from tests.data_generation import RiemannianMetricTestData, VectorSpaceTestData
-from tests.parametrizers import RiemannianMetricParametrizer, VectorSpaceParametrizer
+from tests.conftest import Parametrizer
+from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
+from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
 
 SQRT_2 = math.sqrt(2)
 SQRT_5 = math.sqrt(5)
 
 
-class TestEuclidean(TestCase, metaclass=VectorSpaceParametrizer):
+class TestEuclidean(VectorSpaceTestCase, metaclass=Parametrizer):
     space = Euclidean
     skip_test_basis_belongs = True
     skip_test_basis_cardinality = True
 
-    class TestDataEuclidean(VectorSpaceTestData):
+    class EuclideanTestData(_VectorSpaceTestData):
 
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
-        def belongs_data(self):
+        def belongs_test_data(self):
             smoke_data = [
                 dict(dim=2, vec=[0.0, 1.0], expected=True),
                 dict(dim=2, vec=[1.0, 0.0, 1.0], expected=False),
             ]
             return self.generate_tests(smoke_data)
 
-        def basis_belongs_data(self):
-            return self._basis_belongs_data(self.space_args_list)
+        def basis_belongs_test_data(self):
+            return self._basis_belongs_test_data(self.space_args_list)
 
-        def basis_cardinality_data(self):
-            return self._basis_cardinality_data(self.space_args_list)
+        def basis_cardinality_test_data(self):
+            return self._basis_cardinality_test_data(self.space_args_list)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             smoke_space_args_list = [(2,), (3,)]
             smoke_n_points_list = [1, 2]
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
                 self.n_points_list,
             )
 
-        def projection_belongs_data(self):
-            return self._projection_belongs_data(
-                self.space_args_list, self.shape_list, self.n_samples_list
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
+                self.space_args_list, self.shape_list, self.n_points_list
             )
 
-        def to_tangent_is_tangent_data(self):
-            return self._to_tangent_is_tangent_data(
+        def to_tangent_is_tangent_test_data(self):
+            return self._to_tangent_is_tangent_test_data(
                 Euclidean,
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
             )
 
-    testing_data = TestDataEuclidean()
+    testing_data = EuclideanTestData()
 
     def test_belongs(self, dim, vec, expected):
         self.assertAllClose(self.space(dim).belongs(gs.array(vec)), gs.array(expected))
 
 
-class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestEuclideanMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = EuclideanMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
-    class TestDataEuclideanMetric(RiemannianMetricTestData):
+    class EuclideanMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
         metric_args_list = [(n,) for n in n_list]
         shape_list = metric_args_list
         space_list = [Euclidean(n) for n in n_list]
         n_points_list = random.sample(range(1, 7), 5)
-        n_samples_list = random.sample(range(1, 7), 5)
+        n_tangent_vecs_list = random.sample(range(1, 7), 5)
         n_points_a_list = random.sample(range(1, 7), 5)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 5)
         alpha_list = [1] * 5
         n_rungs_list = [1] * 5
         scheme_list = ["pole"] * 5
 
-        def exp_data(self):
+        def exp_test_data(self):
 
             one_tangent_vec = gs.array([0.0, 1.0])
             one_base_point = gs.array([2.0, 10.0])
@@ -128,7 +126,7 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def log_data(self):
+        def log_test_data(self):
             one_p = gs.array([0.0, 1.0])
             one_bp = gs.array([2.0, 10.0])
             n_ps = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
@@ -144,7 +142,7 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def inner_product_data(self):
+        def inner_product_test_data(self):
             n_tangent_vecs_1 = [[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]]
             n_tangent_vecs_2 = [[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]]
             tangent_vec_3 = [0.0, 1.0]
@@ -177,7 +175,7 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def squared_norm_data(self):
+        def squared_norm_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -192,7 +190,7 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def norm_data(self):
+        def norm_test_data(self):
             smoke_data = [
                 dict(dim=2, vec=[4.0, 3.0], expected=5.0),
                 dict(dim=4, vec=[4.0, 3.0, 4.0, 3.0], expected=5.0 * SQRT_2),
@@ -204,7 +202,7 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def metric_matrix_data(self):
+        def metric_matrix_test_data(self):
             smoke_data = [
                 dict(dim=1, expected=gs.eye(1)),
                 dict(dim=2, expected=gs.eye(2)),
@@ -212,7 +210,7 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def squared_dist_data(self):
+        def squared_dist_test_data(self):
             one_point_a = gs.array([0.0, 1.0])
             one_point_b = gs.array([2.0, 10.0])
             n_points_a = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
@@ -248,7 +246,7 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
 
             return self.generate_tests(smoke_data)
 
-        def dist_data(self):
+        def dist_test_data(self):
             one_point_a = gs.array([0.0, 1.0])
             one_point_b = gs.array([2.0, 10.0])
             n_points_a = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
@@ -289,23 +287,16 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
 
             return self.generate_tests(smoke_data)
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
+                self.metric_args_list, self.space_list, self.shape_list
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
-                self.metric_args_list,
-                self.space_list,
-                self.batch_size_list,
-            )
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(self.metric_args_list, self.space_list)
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -313,25 +304,25 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -339,76 +330,76 @@ class TestEuclideanMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_log_composition_test_data(self):
+            return self._exp_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 1000,
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
 
-    testing_data = TestDataEuclideanMetric()
+    testing_data = EuclideanMetricTestData()
 
     def test_exp(self, dim, tangent_vec, base_point, expected):
         metric = EuclideanMetric(dim)

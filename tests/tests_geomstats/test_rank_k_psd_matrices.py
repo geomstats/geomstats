@@ -4,24 +4,23 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.rank_k_psd_matrices import PSDMatrices
-from tests.conftest import TestCase
-from tests.data_generation import ManifoldTestData
-from tests.parametrizers import ManifoldParametrizer
+from tests.conftest import Parametrizer
+from tests.data_generation import _ManifoldTestData
+from tests.geometry_test_cases import ManifoldTestCase
 
 
-class TestPSDMatrices(TestCase, metaclass=ManifoldParametrizer):
+class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
     space = PSDMatrices
 
-    class TestDataPSDMatrices(ManifoldTestData):
+    class PSDMatricesTestData(_ManifoldTestData):
         n_list = random.sample(range(3, 5), 2)
         k_list = n_list
         space_args_list = list(zip(n_list, k_list))
         shape_list = [(n, n) for n in n_list]
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
-        def belongs_data(self):
+        def belongs_test_data(self):
             smoke_data = [
                 dict(
                     n=3,
@@ -42,11 +41,11 @@ class TestPSDMatrices(TestCase, metaclass=ManifoldParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             smoke_space_args_list = [(2, 2), (3, 2)]
             smoke_n_points_list = [1, 2]
             belongs_atol = gs.atol * 100000
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
@@ -54,15 +53,15 @@ class TestPSDMatrices(TestCase, metaclass=ManifoldParametrizer):
                 belongs_atol,
             )
 
-        def projection_belongs_data(self):
+        def projection_belongs_test_data(self):
             belongs_atol = gs.atol * 100000
-            return self._projection_belongs_data(
-                self.space_args_list, self.shape_list, self.n_samples_list, belongs_atol
+            return self._projection_belongs_test_data(
+                self.space_args_list, self.shape_list, self.n_points_list, belongs_atol
             )
 
-        def to_tangent_is_tangent_data(self):
+        def to_tangent_is_tangent_test_data(self):
             is_tangent_atol = gs.atol * 100000
-            return self._to_tangent_is_tangent_data(
+            return self._to_tangent_is_tangent_test_data(
                 PSDMatrices,
                 self.space_args_list,
                 self.shape_list,
@@ -70,7 +69,7 @@ class TestPSDMatrices(TestCase, metaclass=ManifoldParametrizer):
                 is_tangent_atol,
             )
 
-    testing_data = TestDataPSDMatrices()
+    testing_data = PSDMatricesTestData()
 
     def test_belongs(self, n, k, mat, expected):
         space = self.space(n, k)
