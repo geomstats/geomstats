@@ -478,7 +478,9 @@ class ConnectionTestCase(TestCase):
 
         self.assertAllClose(result, expected)
 
-    def test_log_exp_composition(self, connection_args, point, base_point, rtol, atol):
+    def test_log_then_exp_composition(
+        self, connection_args, point, base_point, rtol, atol
+    ):
         """Check that connection logarithm and exponential are inverse.
 
         This is calling connection logarithm first, then connection exponential.
@@ -501,7 +503,7 @@ class ConnectionTestCase(TestCase):
         result = connection.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point, rtol=rtol, atol=atol)
 
-    def test_exp_log_composition(
+    def test_exp_then_log_composition(
         self, connection_args, tangent_vec, base_point, rtol, atol
     ):
         """Check that connection exponential and logarithm are inverse.

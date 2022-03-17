@@ -252,7 +252,7 @@ class _LevelSetTestData(_ManifoldTestData):
 
 
 class _LieGroupTestData(_ManifoldTestData):
-    def _exp_log_composition_test_data(
+    def _exp_then_log_composition_test_data(
         self,
         group_cls,
         group_args_list,
@@ -299,7 +299,7 @@ class _LieGroupTestData(_ManifoldTestData):
             smoke_data = []
         return self.generate_tests(smoke_data, random_data)
 
-    def _log_exp_composition_test_data(
+    def _log_then_exp_composition_test_data(
         self,
         group_cls,
         group_args_list,
@@ -649,7 +649,7 @@ class _ConnectionTestData(TestData):
             )
         return self.generate_tests([], random_data)
 
-    def _log_exp_composition_test_data(
+    def _log_then_exp_composition_test_data(
         self,
         connection_args_list,
         space_list,
@@ -688,7 +688,7 @@ class _ConnectionTestData(TestData):
             smoke_data = []
         return self.generate_tests(smoke_data, random_data)
 
-    def _exp_log_composition_test_data(
+    def _exp_then_log_composition_test_data(
         self,
         connection_args_list,
         space_list,
