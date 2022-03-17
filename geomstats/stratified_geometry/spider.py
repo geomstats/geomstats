@@ -3,11 +3,14 @@
 Lead authors: Anna Calissano & Jonas Lueg
 """
 
-import numpy as np
-
 import geomstats.backend as gs
+import geomstats.stratified_geometry.stratified_spaces
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.stratified_geometry.stratified_spaces import LengthSpace, Point, PointSet
+from geomstats.stratified_geometry.stratified_spaces import (
+    Point,
+    PointSet,
+    PointSetGeometry,
+)
 
 
 class SpiderPoint(Point):
@@ -32,7 +35,7 @@ class SpiderPoint(Point):
 
     def __repr__(self):
         """Return a readable representation of the instance."""
-        return f"s{self.s}: {np.round(self.x, 5)}"
+        return f"s{self.s}: {gs.round(self.x, 5)}"
 
     def __hash__(self):
         """Return the hash of the instance."""
@@ -40,7 +43,7 @@ class SpiderPoint(Point):
 
     def to_array(self):
         """Return the hash of the instance."""
-        return np.array([self.s, self.x])
+        return gs.array([self.s, self.x])
 
 
 class Spider(PointSet):
@@ -71,13 +74,15 @@ class Spider(PointSet):
         samples : SpiderPoint-like, shape=[...,n_sample]
             List of SpiderPoints.
         """
-        s = gs.random.randint(low=0, high=self.rays, size=n_samples)
-        x = gs.abs(gs.random.normal(loc=10, scale=1, size=n_samples))
-        x[s == 0] = 0
-        if n_samples == 1:
-            return SpiderPoint(s=s[0], x=x[0])
-        return [SpiderPoint(s=s[k][0], x=x[k][0]) for k in range(len(x))]
+        if self.rays != 0:
+            s = gs.random.randint(low=0, high=self.rays, size=n_samples)
+            x = gs.abs(gs.random.normal(loc=10, scale=1, size=n_samples))
+            x[s == 0] = 0
+            return [SpiderPoint(s=s[k], x=x[k]) for k in range(n_samples)]
+        else:
+            return [SpiderPoint(s=0, x=0)] * n_samples
 
+    @geomstats.stratified_geometry.stratified_spaces.list_vectorize
     def belongs(self, point):
         r"""Check if a random point belongs to the spider set.
 
@@ -91,15 +96,66 @@ class Spider(PointSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if the SpiderPoint belongs to the Spider Set.
         """
-        if point.s not in list(range(self.rays + 1)):
-            raise ValueError(
-                "Number of the stratum must be between 0 and " + str(self.rays)
-            )
-        if point.s == 0 and point.x != 0:
-            raise ValueError("If the stratum is zero, x must be zero.")
-        if point.s != 0 and point.x <= 0:
-            raise ValueError("If the stratum is 1, 2 or 3, then x must be positive.")
-        return type(point) == SpiderPoint
+        results = []
+        for single_point in point:
+            results += [
+                self.value_check(single_point)
+                and self.rays_check(single_point)
+                and self.zero_check(single_point)
+                and type(single_point) == SpiderPoint
+            ]
+        return gs.array(results)
+
+    def rays_check(self, single_point):
+        r"""Check if a random point has the correct number of rays.
+
+        Parameters
+        ----------
+        point : SpiderPoint
+             Point to be checked.
+
+        Returns
+        -------
+        belongs : boolean
+            Boolean denoting if the point has a ray in the rays set.
+        """
+        if single_point.s not in list(range(self.rays + 1)):
+            return False
+        return True
+
+    def zero_check(self, single_point):
+        r"""Check if a random point satisfy the zero condition.
+
+        Parameters
+        ----------
+        point : SpiderPoint
+             Point to be checked.
+
+        Returns
+        -------
+        belongs : boolean
+            Boolean denoting if the point has zero length when it has zero ray.
+        """
+        if single_point.s == 0 and single_point.x != 0:
+            return False
+        return True
+
+    def value_check(self, single_point):
+        r"""Check if a random point has the correct length.
+
+        Parameters
+        ----------
+        point : SpiderPoint
+             Point to be checked.
+
+        Returns
+        -------
+        belongs : boolean
+            Boolean denoting if the point has a positive length when on non-zero ray.
+        """
+        if single_point.s != 0 and single_point.x <= 0:
+            return False
+        return True
 
     def set_to_array(self, point):
         r"""Turn a point into an array compatible with the dimension of the space.
@@ -119,7 +175,7 @@ class Spider(PointSet):
         return point_to_array
 
 
-class SpiderGeometry(LengthSpace, Spider):
+class SpiderGeometry(PointSetGeometry, Spider):
     """Geometry on the Spider, induced by the Euclidean Geometry along the rays."""
 
     def __init__(self):

@@ -7,6 +7,18 @@ from abc import ABC, abstractmethod
 from typing import TypeVar
 
 
+def list_vectorize(fun):
+    r"""Decoretor to vectorize the functions acting on Point as lists."""
+
+    def wrapped(*args):
+        if type(args[1]) is list:
+            return fun(args[0], point=args[1])
+        else:
+            return fun(args[0], point=[args[1]])
+
+    return wrapped
+
+
 class Point(ABC):
     r"""Class for points of a set."""
 
@@ -106,7 +118,7 @@ class PointSet(ABC):
         """
 
 
-class LengthSpace(PointSet, ABC):
+class PointSetGeometry(PointSet, ABC):
     r"""Class for the lenght spaces.
 
     Parameters
@@ -122,7 +134,7 @@ class LengthSpace(PointSet, ABC):
     """
 
     def __init__(self):
-        super(LengthSpace, self).__init__()
+        super(PointSetGeometry, self).__init__()
 
     @abstractmethod
     def dist(self, point_a, point_b, **kwargs):
