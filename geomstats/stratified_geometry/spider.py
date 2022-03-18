@@ -2,10 +2,11 @@
 
 Lead authors: Anna Calissano & Jonas Lueg
 """
+import itertools
 
 import geomstats.backend as gs
 import geomstats.stratified_geometry.stratified_spaces
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.stratified_geometry.stratified_spaces import (
     Point,
     PointSet,
@@ -35,7 +36,7 @@ class SpiderPoint(Point):
 
     def __repr__(self):
         """Return a readable representation of the instance."""
-        return f"s{self.s}: {gs.round(self.x, 5)}"
+        return f"s{self.s}: {self.x}"
 
     def __hash__(self):
         """Return the hash of the instance."""
@@ -71,8 +72,8 @@ class Spider(PointSet):
 
         Returns
         -------
-        samples : SpiderPoint-like, shape=[...,n_sample]
-            List of SpiderPoints.
+        samples : list of SpiderPoint, shape=[...,n_sample]
+            List of SpiderPoints randomly sampled from the Spider.
         """
         if self.rays != 0:
             s = gs.random.randint(low=0, high=self.rays, size=n_samples)
@@ -82,18 +83,18 @@ class Spider(PointSet):
         else:
             return [SpiderPoint(s=0, x=0)] * n_samples
 
-    @geomstats.stratified_geometry.stratified_spaces.list_vectorize
+    @geomstats.stratified_geometry.stratified_spaces.belongs_vectorize
     def belongs(self, point):
         r"""Check if a random point belongs to the spider set.
 
         Parameters
         ----------
-        point : SpiderPoint
+        point : List of SpiderPoint, shape=[...,n]
              Point to be checked.
 
         Returns
         -------
-        belongs : array-like, shape=[...,]
+        belongs : array-like, shape=[...,n]
             Boolean denoting if the SpiderPoint belongs to the Spider Set.
         """
         results = []
@@ -178,24 +179,50 @@ class Spider(PointSet):
 class SpiderGeometry(PointSetGeometry, Spider):
     """Geometry on the Spider, induced by the Euclidean Geometry along the rays."""
 
-    def __init__(self):
+    def __init__(self, space, ambient_metric=EuclideanMetric(1)):
         super(SpiderGeometry)
-        self.rays_geometry = Euclidean.metric
+        self.rays_geometry = ambient_metric
+        self.rays = space.rays
 
-    def dist(self, point_a, point_b, **kwargs):
-        """Compute the distance between two points."""
-        if point_a.s == point_b.s or point_a.s == 0 or point_b.s == 0:
-            return self.rays_geometry.dist(point_a.x, point_b.x)
-        return point_a.x + point_b.x
+    @geomstats.stratified_geometry.stratified_spaces.dist_vectorize
+    def dist(self, a, b):
+        """Compute the distance between two points.
 
-    def geodesic(self, point_a, point_b, **kwargs):
+        Parameters
+        ----------
+        a : List of SpiderPoint, shape=[...,n]
+             Point in the Spider.
+        b : List of SpiderPoint, shape=[...,n]
+             Point in the Spider.
+
+        Returns
+        -------
+        point_array : array-like, shape=[...,rays]
+            An array with the distance.
+        """
+        result = []
+        if len(a) == 1:
+            values = itertools.zip_longest(a, b, fillvalue=a[0])
+        elif len(b) == 1:
+            values = itertools.zip_longest(a, b, fillvalue=b[0])
+        else:
+            values = itertools.zip_longest(a, b)
+        for point_a, point_b in values:
+            if point_a.s == point_b.s or point_a.s == 0 or point_b.s == 0:
+                result += [self.rays_geometry.norm(gs.array([point_a.x - point_b.x]))]
+            else:
+                result += [point_a.x + point_b.x]
+        return gs.array(result)
+
+    @geomstats.stratified_geometry.stratified_spaces.dist_vectorize
+    def geodesic(self, a, b, t=0.5):
         """Compute points on the geodesic between two points.
 
         Parameters
         ----------
-        point_a : SpiderPoint
+        a : List of SpiderPoint, shape=[...,n]
              Point in the Spider.
-        point_b : SpiderPoint
+        b : List of SpiderPoint shape=[...,n]
              Point in the Spider.
         t : float between 0 and 1
             The portion of time of the returned point.
@@ -203,22 +230,30 @@ class SpiderGeometry(PointSetGeometry, Spider):
 
         Returns
         -------
-        point_array : array-like, shape=[...,rays]
-            An array with the x parameter in the s position.
+        geodesic : List of Spider Points, shape=[...,n]
+            A set of spider points along the geodesics sampled at t.
         """
-        t = kwargs["t"] if "t" in kwargs else 0.5
-        if point_a.s == point_b.s or point_a.s == 0 or point_b.s == 0:
-            s = point_a.s if point_b.s == 0 else point_a.s
+        result_geo = []
+        if len(a) == 1:
+            values = itertools.zip_longest(a, b, fillvalue=a[0])
+        if len(b) == 1:
+            values = itertools.zip_longest(a, b, fillvalue=b[0])
+        else:
+            values = zip(a, b)
+        for point_a, point_b in values:
+            if point_a.s == point_b.s or point_a.s == 0 or point_b.s == 0:
+                s = point_a.s if point_b.s == 0 else point_a.s
+                g = self.rays_geometry.geodesic(
+                    initial_point=gs.array([point_a.x]), end_point=gs.array([point_b.x])
+                )
+                result_geo += [SpiderPoint(s=s, x=float(g(t)))]
             g = self.rays_geometry.geodesic(
-                initial_point=gs.array([point_a.x]), end_point=gs.array([point_b.x])
+                initial_point=gs.array([-point_a.x]), end_point=gs.array([point_b.x])
             )
-            return SpiderPoint(s=s, x=float(g(t)))
-        g = self.rays_geometry.geodesic(
-            initial_point=gs.array([-point_a.x]), end_point=gs.array([point_b.x])
-        )
-        x = float(g(t))
-        if x < 0:
-            return SpiderPoint(s=point_a.s, x=-x)
-        if x > 0:
-            return SpiderPoint(s=point_b.s, x=x)
-        return SpiderPoint(s=0, x=0.0)
+            x = float(g(t))
+            if x < 0:
+                result_geo += [SpiderPoint(s=point_a.s, x=-x)]
+            if x > 0:
+                result_geo += [SpiderPoint(s=point_b.s, x=x)]
+            result_geo += [SpiderPoint(s=0, x=0.0)]
+            return result_geo

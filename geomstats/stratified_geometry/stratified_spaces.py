@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from typing import TypeVar
 
 
-def list_vectorize(fun):
+def belongs_vectorize(fun):
     r"""Decoretor to vectorize the functions acting on Point as lists."""
 
     def wrapped(*args):
@@ -15,6 +15,21 @@ def list_vectorize(fun):
             return fun(args[0], point=args[1])
         else:
             return fun(args[0], point=[args[1]])
+
+    return wrapped
+
+
+def dist_vectorize(fun):
+    r"""Decoretor to vectorize the functions acting on Point as lists."""
+
+    def wrapped(*args):
+        if type(args[1]) is list and type(args[2]) is list:
+            return fun(*args)
+        elif type(args[1]) is not list and type(args[2]) is not list:
+            return fun(args[0], a=[args[1]], b=[args[2]])
+        elif type(args[1]) is not list:
+            return fun(args[0], a=[args[1]], b=args[2])
+        return fun(args[0], a=args[1], b=[args[2]])
 
     return wrapped
 

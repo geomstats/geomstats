@@ -1,6 +1,6 @@
 r"""Unit tests for the Spider."""
 import geomstats.tests
-from geomstats.stratified_geometry.spider import Spider, SpiderPoint
+from geomstats.stratified_geometry.spider import Spider, SpiderGeometry, SpiderPoint
 
 
 class TestSpider(geomstats.tests.TestCase):
@@ -25,3 +25,20 @@ class TestSpider(geomstats.tests.TestCase):
             p = spid.random_point(n_samples=5)
             results += [spid.belongs(p)]
         return self.assertAllClose(True, results)
+
+    @geomstats.tests.np_only
+    def test_dist(self):
+        a = [SpiderPoint(10, 1), SpiderPoint(10, 2), SpiderPoint(3, 1)]
+        b = [SpiderPoint(10, 31), SpiderPoint(10, 2), SpiderPoint(1, 4)]
+        geom = SpiderGeometry(self.space(12))
+        result = geom.dist(a, b)
+        expected = [30, 0, 5]
+        return self.assertAllClose(result, expected)
+
+    def test_geo(self):
+        a = [SpiderPoint(10, 1), SpiderPoint(10, 2), SpiderPoint(3, 1)]
+        b = [SpiderPoint(10, 31), SpiderPoint(10, 2), SpiderPoint(1, 4)]
+        t = [0.2]
+        geom = SpiderGeometry(self.space(12))
+        result = [type(point) is SpiderPoint for point in geom.geodesic(a, b, t)]
+        return self.assertTrue(result)
