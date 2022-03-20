@@ -85,7 +85,7 @@ Proposed Budget
 ===============
 
 .. list-table::
-   :header-rows: 0
+   :header-rows: 1
 
    * - **Budget Item**
      - **Amount**
@@ -106,6 +106,7 @@ Proposed Budget
    * - **Total**
      -
      - **14,500.00**
+     -
 
 Additional information
 ======================
