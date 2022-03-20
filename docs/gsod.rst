@@ -79,3 +79,38 @@ We would consider the project successful if, after publication of the new docume
 - The number of new contributors with >2 merged pull requests increases by 10% (beginning the quarter after the documentation is published).
 - The standard metrics increase by 10% on average.
 - The number of GitHub forks and stars increases by 10%.
+
+
+Proposed Budget
+===============
+
+.. list-table::
+   :header-rows: 1
+
+   * - **Budget Item**
+     - **Amount**
+     - **Running Total**
+     - **Notes**
+   * - Technical writer
+     - 10,000.00
+     - 10,000.00
+     - One technical writer for 6 months.
+   * - Volunteer stipends
+     - 500.00
+     - 13,000.00
+     - Six volunteers stipends.
+   * - Project T-shirts and stickers
+     - 150.00
+     - 14,500.00
+     - Ten project T-shirts, ten stickers.
+   * - **Total**
+     -
+     - **14,500.00**
+     -
+
+Additional information
+======================
+
+Nina Miolane, principal administrator, has been working with a master student to create the original Geomstats documentation website. She has worked with two engineers to update the documentation website in 2021.
+
+Nina Miolane has been a mentor for `Outreachy <https://www.outreachy.org/>`_ and is a mentor + member of the steering committee of the MIT's `Summer Geometry Initiative <https://sgi.mit.edu/>`_, two programs that are similar to Google Summer of Code and Google Season of Docs. Nina Miolane has co-organized `hackathons <https://github.com/geomstats/geomstats#contributing>`_ , `coding challenges <https://github.com/geomstats/challenge-iclr-2021>`_, and `international workshops <https://www.ninamiolane.com/pagecv>`_.
