@@ -19,7 +19,10 @@ Geomstats
 
 **NEWS**:
 
-- Geomstats is recruiting an engineer for a start early 2022! If interested, details can be found `here  <https://gstats.inria.fr/files/2021/10/Research_engineer_gs-1.pdf>`_.
+- Google's Season of Docs (SoD) 2022: Geomstats is applying! Interested?
+   - Find details about being a Google SoD's writer `here <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_ and details about Geomstats' project proposal `here  <https://geomstats.github.io/gsod.html>`_. 
+   - Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_. 
+   - Deadline May 16th, at 18:00 UTC, but we recommend getting in touch with us before the end of April.
 
 - The white paper summarizing the findings from our `ICLR 2021 challenge of computational differential geometry and topology <https://gt-rl.github.io/challenge>`__ is out. `Read it here <https://arxiv.org/abs/2108.09810>`__.
 
@@ -216,8 +219,12 @@ Interested? Contact us and join the next hackathons. Previous Geomstats events i
 -  April 2020: remote online hackathon
 -  March - April 2021: hackathon, hybrid at Inria Sophia-Antipolis / remotely with contributors from around the world
 -  July 2021: hackathon at the Geometric Science of Information (GSI) conference, Paris, France
--  August 2021: International Coding Challenge at the International Conference on Learning Representations (ICLR), remotely
--  December 2021: Fixit hackathon at the Sorbonne Center for Artificial Intelligence, Paris, France.
+-  August 2021: international Coding Challenge at the International Conference on Learning Representations (ICLR), remotely
+-  December 2021: fixit hackathon at the Sorbonne Center for Artificial Intelligence, Paris, France.
+-  February 2022: hackathon, hybrid at Inria Sophia-Antipolis / remotely with contributors from around the world
+-  April 2022: in-person hackathon at the Villa Cynthia, Saint Raphael, France.
+-  August 2022: international Coding Challenge at the International Conference on Learning Representations (ICLR), remotely
+
 
 Acknowledgements
 ----------------
