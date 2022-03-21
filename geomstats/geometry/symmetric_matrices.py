@@ -201,7 +201,7 @@ class SymmetricMatrices(VectorSpace):
             def power_(ev):
                 return gs.power(ev, power)
 
-        return cls.apply_func_to_eigvals(mat, power_, check_positive=True)
+        return cls.apply_func_to_eigvals(mat, power_, check_positive=False)
 
     @staticmethod
     def apply_func_to_eigvals(mat, function, check_positive=False):
