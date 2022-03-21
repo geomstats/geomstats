@@ -17,6 +17,11 @@ class TestSymmetricMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
     class SymmetricMatricesTestData(_VectorSpaceTestData):
         """Data class for Testing Symmetric Matrices"""
 
+        space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
+        n_points_list = random.sample(range(1, 10), 5)
+        shape_list = [(n, n) for (n,), in zip(space_args_list)]
+        n_vecs_list = random.sample(range(1, 10), 5)
+
         def belongs_test_data(self):
             smoke_data = [
                 dict(n=2, mat=[[1.0, 2.0], [2.0, 1.0]], expected=True),
@@ -120,40 +125,34 @@ class TestSymmetricMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def basis_belongs_test_data(self):
-            space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
-            return self._basis_belongs_test_data(space_args_list)
+
+            return self._basis_belongs_test_data(self.space_args_list)
 
         def basis_cardinality_test_data(self):
-            space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
-            return self._basis_cardinality_test_data(space_args_list)
+            return self._basis_cardinality_test_data(self.space_args_list)
 
         def projection_belongs_test_data(self):
-            space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
-            n_samples_list = random.sample(range(1, 10), 5)
-            shapes = [(n, n) for (n,), in zip(space_args_list)]
             return self._projection_belongs_test_data(
-                space_args_list, shapes, n_samples_list
+                self.space_args_list, self.shape_list, self.n_points_list
             )
 
         def to_tangent_is_tangent_test_data(self):
-            space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
-            tangent_shapes_list = [(n, n) for (n,) in space_args_list]
-            n_vecs_list = random.sample(range(1, 10), 5)
             return self._to_tangent_is_tangent_test_data(
-                SymmetricMatrices, space_args_list, tangent_shapes_list, n_vecs_list
+                SymmetricMatrices,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
             )
 
         def random_point_belongs_test_data(self):
             smoke_space_args_list = [(1,), (2,), (3,)]
             smoke_n_points_list = [1, 1, 10]
-            space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
-            n_points_list = random.sample(range(1, 100), 5)
 
             return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
-                space_args_list,
-                n_points_list,
+                self.space_args_list,
+                self.n_points_list,
                 gs.atol * 1000,
             )
 

@@ -17,9 +17,9 @@ class TestHeisenbergVectors(
     class HeisenbergVectorsTestData(_LieGroupTestData, _VectorSpaceTestData):
         space_args_list = [()] * 3
         shape_list = [(3,)] * 3
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
+        n_tangent_vecs_list = random.sample(range(2, 5), 2)
 
         def dimension_test_data(self):
             smoke_data = [dict(expected=3)]
@@ -68,7 +68,7 @@ class TestHeisenbergVectors(
 
         def projection_belongs_test_data(self):
             return self._projection_belongs_test_data(
-                self.space_args_list, self.shape_list, self.n_samples_list
+                self.space_args_list, self.shape_list, self.n_points_list
             )
 
         def to_tangent_is_tangent_test_data(self):
@@ -84,12 +84,12 @@ class TestHeisenbergVectors(
                 HeisenbergVectors,
                 self.space_args_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
             )
 
         def log_exp_composition_test_data(self):
             return self._log_exp_composition_test_data(
-                HeisenbergVectors, self.space_args_list, self.n_samples_list
+                HeisenbergVectors, self.space_args_list, self.n_points_list
             )
 
         def basis_belongs_test_data(self):
