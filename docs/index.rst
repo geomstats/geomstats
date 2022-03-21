@@ -54,6 +54,7 @@ To contribute to `geomstats` visit the page :ref:`contributing`.
    examples.rst
    api-reference.rst
    contributing.rst
+   gsod.rst
 
 .. nbgallery::
    :maxdepth: 1
