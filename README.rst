@@ -20,7 +20,7 @@ Geomstats
 **NEWS**:
 
 - Google's Season of Docs (SoD) 2022: Geomstats is applying! Interested?
-   - Find details about being a Google SoD's writer `here <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_ and details about Geomstats' project proposal `here  <https://geomstats.github.io/gsod.html>`_. 
+   - Find details about being a Google SoD's writer `here <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_ and details about Geomstats' proposal `here  <https://geomstats.github.io/gsod.html>`_. 
    - Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_. 
    - Deadline May 16th, at 18:00 UTC, but we recommend getting in touch with us before the end of April.
 
