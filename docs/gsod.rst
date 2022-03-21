@@ -114,3 +114,10 @@ Additional information
 Nina Miolane, principal administrator, has been working with a master student to create the original Geomstats documentation website. She has worked with two engineers to update the documentation website in 2021.
 
 Nina Miolane has been a mentor for `Outreachy <https://www.outreachy.org/>`_ and is a mentor + member of the steering committee of the MIT's `Summer Geometry Initiative <https://sgi.mit.edu/>`_, two programs that are similar to Google Summer of Code and Google Season of Docs. Nina Miolane has co-organized `hackathons <https://github.com/geomstats/geomstats#contributing>`_ , `coding challenges <https://github.com/geomstats/challenge-iclr-2021>`_, and `international workshops <https://www.ninamiolane.com/pagecv>`_.
+
+Important links for technical writers
+=====================================
+
+- Find details about being a Google SoD's writer `here <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_.
+- Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_. 
+- Deadline May 16th, at 18:00 UTC, but we recommend getting in touch with us before the end of April.
