@@ -477,8 +477,8 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
-                rtol=gs.rtol * 100,
-                atol=gs.atol * 10000,
+                rtol=gs.rtol * 1000,
+                atol=gs.atol * 100000,
             )
 
         def exp_log_composition_test_data(self):
@@ -488,8 +488,8 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.shape_list,
                 self.n_tangent_vecs_list,
                 amplitude=100,
-                rtol=gs.rtol * 100,
-                atol=gs.atol * 10000,
+                rtol=gs.rtol * 1000,
+                atol=gs.atol * 100000,
             )
 
         def exp_ladder_parallel_transport_test_data(self):
