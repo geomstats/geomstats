@@ -27,6 +27,7 @@ smoke_metrics_2 = [Euclidean(3).metric, Minkowski(3).metric]
 
 class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
     space = ProductManifold
+    skip_test_random_tangent_vec_is_tangent = True
 
     class ProductManifoldTestData(_ManifoldTestData):
 
@@ -105,6 +106,14 @@ class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
+            )
+
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                ProductManifold,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
             )
 
     testing_data = ProductManifoldTestData()
@@ -361,6 +370,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
 class TestNFoldManifold(ManifoldTestCase, metaclass=Parametrizer):
     space = NFoldManifold
+    skip_test_random_tangent_vec_is_tangent = True
 
     class NFoldManifoldTestData(_ManifoldTestData):
         n_list = random.sample(range(2, 4), 2)
@@ -420,6 +430,14 @@ class TestNFoldManifold(ManifoldTestCase, metaclass=Parametrizer):
                 self.shape_list,
                 self.n_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
+            )
+
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                NFoldManifold,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
             )
 
     def test_belongs(self, base, power, point, expected):

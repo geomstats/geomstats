@@ -103,7 +103,7 @@ class ManifoldTestCase(TestCase):
         self.assertAllClose(result, gs.array(True))
 
     def test_random_tangent_vec_is_tangent(
-        self, space_args, n_samples, base_point, amplitude, is_tangent_atol
+        self, space_args, n_samples, base_point, is_tangent_atol
     ):
         """Check that to_tangent returns a tangent vector.
 
@@ -119,7 +119,7 @@ class ManifoldTestCase(TestCase):
             Absolute tolerance for the is_tangent function.
         """
         space = self.space(*space_args)
-        tangent_vec = space.random_tangent_vec(n_samples, base_point, amplitude)
+        tangent_vec = space.random_tangent_vec(n_samples, base_point)
         result = space.is_tangent(tangent_vec, base_point, is_tangent_atol)
         self.assertAllClose(result, gs.array(True))
 

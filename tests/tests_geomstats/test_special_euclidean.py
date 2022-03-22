@@ -222,7 +222,6 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
                 SpecialEuclidean,
                 self.space_args_list,
                 self.n_vecs_list,
-                amplitude=10,
                 is_tangent_atol=gs.atol * 100,
             )
 
