@@ -144,6 +144,13 @@ class TestSymmetricMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
                 self.n_vecs_list,
             )
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                SymmetricMatrices,
+                self.space_args_list,
+                self.n_vecs_list,
+            )
+
         def random_point_belongs_test_data(self):
             smoke_space_args_list = [(1,), (2,), (3,)]
             smoke_n_points_list = [1, 1, 10]

@@ -102,6 +102,27 @@ class ManifoldTestCase(TestCase):
         )
         self.assertAllClose(result, gs.array(True))
 
+    def test_random_tangent_vec_is_tangent(
+        self, space_args, n_samples, base_point, is_tangent_atol
+    ):
+        """Check that to_tangent returns a tangent vector.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the manifold.
+        n_samples : int
+            Vector to be projected on the tangent space at base_point.
+        base_point : array-like
+            Point on the manifold.
+        is_tangent_atol : float
+            Absolute tolerance for the is_tangent function.
+        """
+        space = self.space(*space_args)
+        tangent_vec = space.random_tangent_vec(n_samples, base_point)
+        result = space.is_tangent(tangent_vec, is_tangent_atol)
+        self.assertAllClose(result, gs.array(True))
+
 
 class OpenSetTestCase(ManifoldTestCase):
     def test_to_tangent_is_tangent_in_ambient_space(

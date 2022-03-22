@@ -184,6 +184,8 @@ class Manifold(abc.ABC):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vec at base point.
         """
-        gs.squeeze(
-            self.to_tangent(gs.random.normal(n_samples, *self.shape), base_point)
+        return gs.squeeze(
+            self.to_tangent(
+                gs.random.normal(size=(n_samples,) + self.shape), base_point
+            )
         )
