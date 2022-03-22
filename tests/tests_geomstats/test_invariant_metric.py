@@ -461,7 +461,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_points_list,
-                belongs_atol=gs.atol * 1000,
+                belongs_atol=gs.atol * 100000,
             )
 
         def geodesic_bvp_belongs_test_data(self):
@@ -469,7 +469,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
-                belongs_atol=gs.atol * 1000,
+                belongs_atol=gs.atol * 100000,
             )
 
         def log_exp_composition_test_data(self):
