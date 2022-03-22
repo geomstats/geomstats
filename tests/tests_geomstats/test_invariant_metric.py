@@ -30,6 +30,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_log_shape = np_backend()
     skip_test_geodesic_bvp_belongs = np_backend()
     skip_test_log_exp_composition = np_backend()
+    skip_test_geodesic_bvp_belongs = True
 
     class InvariantMetricTestData(_RiemannianMetricTestData):
         group = SpecialEuclidean(n=3, point_type="vector")
@@ -478,7 +479,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.space_list,
                 self.n_points_list,
                 rtol=gs.rtol * 1000,
-                atol=gs.atol * 100000,
+                atol=1e-1,
             )
 
         def exp_log_composition_test_data(self):
@@ -489,7 +490,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
                 amplitude=100,
                 rtol=gs.rtol * 1000,
-                atol=gs.atol * 100000,
+                atol=1e-1,
             )
 
         def exp_ladder_parallel_transport_test_data(self):
