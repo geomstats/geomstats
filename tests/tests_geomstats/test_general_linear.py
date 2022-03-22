@@ -178,7 +178,7 @@ class TestGeneralLinear(LieGroupTestCase, OpenSetTestCase, metaclass=Parametrize
                 self.shape_list,
                 self.n_samples_list,
                 amplitude=10,
-                atol=gs.atol * 10090,
+                atol=gs.atol * 10000,
             )
 
         def log_exp_composition_test_data(self):
