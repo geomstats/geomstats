@@ -196,6 +196,14 @@ class TestGeneralLinear(LieGroupTestCase, OpenSetTestCase, metaclass=Parametrize
                 self.shape_list,
             )
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                GeneralLinear,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
+            )
+
     testing_data = GeneralLinearTestData()
 
     def test_belongs(self, n, point, expected):
@@ -296,6 +304,14 @@ class TestSquareMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
+            )
+
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                SquareMatrices,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
             )
 
     testing_data = SquareMatricesTestData()

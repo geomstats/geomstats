@@ -15,6 +15,7 @@ from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 class TestLandmarks(ManifoldTestCase, metaclass=Parametrizer):
     space = Landmarks
     skip_test_random_point_belongs = True
+    skip_test_random_tangent_vec_is_tangent = True
 
     class TestDataLandmarks(_ManifoldTestData):
         dim_list = random.sample(range(2, 4), 2)
@@ -53,6 +54,14 @@ class TestLandmarks(ManifoldTestCase, metaclass=Parametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
+            )
+
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                Landmarks,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
             )
 
     testing_data = TestDataLandmarks()

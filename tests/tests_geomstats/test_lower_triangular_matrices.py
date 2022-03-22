@@ -136,6 +136,14 @@ class TestLowerTriangularMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
                 self.n_vecs_list,
             )
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                LowerTriangularMatrices,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
+            )
+
     testing_data = LowerTriangularMatricesTestData()
 
     def test_belongs(self, n, mat, expected):

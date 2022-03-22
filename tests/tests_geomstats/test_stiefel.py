@@ -84,6 +84,15 @@ class TestStiefel(LevelSetTestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                Stiefel,
+                self.space_args_list,
+                self.n_vecs_list,
+                amplitude=10,
+                is_tangent_atol=gs.atol * 100,
+            )
+
     testing_data = StiefelTestData()
 
     def test_to_grassmannian(self, point, expected):

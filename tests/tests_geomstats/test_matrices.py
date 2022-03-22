@@ -519,6 +519,14 @@ class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                Matrices,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
+            )
+
     testing_data = MatricesTestData()
 
     def test_belongs(self, m, n, mat, expected):

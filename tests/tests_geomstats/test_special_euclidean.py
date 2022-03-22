@@ -217,6 +217,15 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
                 self.n_vecs_list,
             )
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                SpecialEuclidean,
+                self.space_args_list,
+                self.n_vecs_list,
+                amplitude=10,
+                is_tangent_atol=gs.atol * 100,
+            )
+
         def exp_log_composition_test_data(self):
             return self._exp_log_composition_test_data(
                 SpecialEuclidean,
@@ -482,6 +491,14 @@ class TestSpecialEuclideanMatrixLieAlgebra(
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
+            )
+
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                SpecialEuclideanMatrixLieAlgebra,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
             )
 
     testing_data = SpecialEuclideanMatrixLieAlgebraTestData()

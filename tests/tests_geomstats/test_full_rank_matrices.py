@@ -66,6 +66,14 @@ class TestFullRankMatrices(OpenSetTestCase, metaclass=Parametrizer):
                 FullRankMatrices, self.space_args_list, self.shape_list
             )
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                FullRankMatrices,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
+            )
+
     testing_data = FullRankMatricesTestData()
 
     def test_belongs(self, m, n, mat, expected):

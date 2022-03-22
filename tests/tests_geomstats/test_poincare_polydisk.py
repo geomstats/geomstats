@@ -17,6 +17,7 @@ class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
     space = PoincarePolydisk
     skip_test_to_tangent_is_tangent = True
     skip_test_to_tangent_is_tangent_in_ambient_space = True
+    skip_test_random_tangent_vec_is_tangent = True
 
     class PoincarePolydiskTestData(_OpenSetTestData):
 
@@ -61,6 +62,14 @@ class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
         def to_tangent_is_tangent_in_ambient_space_test_data(self):
             return self._to_tangent_is_tangent_in_ambient_space_test_data(
                 PoincarePolydisk, self.space_args_list, self.shape_list
+            )
+
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                PoincarePolydisk,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
             )
 
     testing_data = PoincarePolydiskTestData()

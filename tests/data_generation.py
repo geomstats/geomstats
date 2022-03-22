@@ -170,6 +170,10 @@ class _ManifoldTestData(TestData):
             List of spaces' args on which tests will run.
         n_tangent_vecs_list : list
             List of integers for the number of tangent vectors to generated.
+        amplitude : int
+            Scaling factor.
+            Optional, default
+
         is_tangent_atol : float
             Absolute tolerance for the is_tangent function.
         """
@@ -178,11 +182,10 @@ class _ManifoldTestData(TestData):
         for space_args, n_tangent_vec in zip(space_args_list, n_tangent_vecs_list):
             space = space_cls(*space_args)
             base_point = space.random_point()
-            tangent_vec = space.random_tangent_vec(n_tangent_vec, base_point)
             random_data.append(
                 dict(
                     space_args=space_args,
-                    tangent_vec=tangent_vec,
+                    tangent_vec=n_tangent_vec,
                     base_point=base_point,
                     is_tangent_atol=is_tangent_atol,
                 )
