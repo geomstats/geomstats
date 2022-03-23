@@ -68,6 +68,14 @@ class TestGrassmannian(LevelSetTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                Grassmannian,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
+            )
+
     testing_data = GrassmannianTestData()
 
     def test_belongs(self, n, k, point, expected):

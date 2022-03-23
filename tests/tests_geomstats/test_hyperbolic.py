@@ -131,6 +131,11 @@ class TestHyperbolic(LevelSetTestCase, metaclass=Parametrizer):
             smoke_data = [dict(dim=2, x_ball=gs.array([0.5, 0.2]))]
             return self.generate_tests(smoke_data)
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                Hyperbolic, self.space_args_list, self.n_vecs_list
+            )
+
     testing_data = HyperbolicTestData()
 
     def test_belongs(self, dim, coords_type, vec, expected):

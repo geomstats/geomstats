@@ -267,6 +267,11 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
                 Hypersphere, space_args_list, self.n_points_list, atol=gs.atol * 100
             )
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                Hypersphere, self.space_args_list, self.n_vecs_list
+            )
+
     testing_data = HypersphereTestData()
 
     def test_replace_values(self, dim, points, new_points, indcs, expected):
@@ -340,11 +345,11 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
         space = self.space(dim)
         mean = space.random_uniform()
         precision = gs.eye(space.dim) * 10
-        sample = space.random_riemannian_normal(mean, precision, 10000)
+        sample = space.random_riemannian_normal(mean, precision, 30000)
         estimator = FrechetMean(space.metric, method="adaptive")
         estimator.fit(sample)
         estimate = estimator.estimate_
-        self.assertAllClose(estimate, mean, atol=1e-2)
+        self.assertAllClose(estimate, mean, atol=1e-1)
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_riemannian_normal_and_belongs(self, dim, n_points):

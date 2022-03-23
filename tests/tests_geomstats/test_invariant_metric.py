@@ -22,7 +22,6 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_shape = np_backend()
-    # skip_test_exp_belongs = True
     skip_test_geodesic_ivp_belongs = True
     skip_test_exp_log_composition = np_backend()
     skip_test_exp_ladder_parallel_transport = np_backend()
@@ -31,6 +30,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_geodesic_bvp_belongs = np_backend()
     skip_test_log_exp_composition = np_backend()
     skip_test_geodesic_bvp_belongs = True
+    skip_test_exp_log_composition = True
 
     class InvariantMetricTestData(_RiemannianMetricTestData):
         group = SpecialEuclidean(n=3, point_type="vector")
@@ -488,7 +488,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_tangent_vecs_list,
-                amplitude=100,
+                amplitude=1000,
                 rtol=gs.rtol * 1000,
                 atol=1e-1,
             )
