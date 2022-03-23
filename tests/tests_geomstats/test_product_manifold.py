@@ -28,6 +28,7 @@ smoke_metrics_2 = [Euclidean(3).metric, Minkowski(3).metric]
 class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
     space = ProductManifold
     skip_test_random_tangent_vec_is_tangent = True
+    skip_test_projection_belongs = True
 
     class ProductManifoldTestData(_ManifoldTestData):
 
