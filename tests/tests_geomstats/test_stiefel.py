@@ -8,9 +8,9 @@ import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
-from tests.conftest import TestCase, np_autograd_and_tf_only
-from tests.data_generation import LevelSetTestData, RiemannianMetricTestData
-from tests.parametrizers import LevelSetParametrizer, RiemannianMetricParametrizer
+from tests.conftest import Parametrizer, np_autograd_and_tf_only
+from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
+from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
 p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
 r_z = gs.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
@@ -28,57 +28,50 @@ point_b = gs.array(
 )
 
 
-class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
+class TestStiefel(LevelSetTestCase, metaclass=Parametrizer):
     space = Stiefel
     skip_test_extrinsic_intrinsic_composition = True
     skip_test_intrinsic_extrinsic_composition = True
     skip_test_to_tangent_is_tangent = True
 
-    class TestDataStiefel(LevelSetTestData):
-        def random_point_belongs_data(self):
+    class StiefelTestData(_LevelSetTestData):
+        n_list = random.sample(range(2, 4), 2)
+        p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
+        space_args_list = list(zip(n_list, p_list))
+        shape_list = space_args_list
+        n_points_list = random.sample(range(1, 5), 2)
+        n_vecs_list = random.sample(range(1, 5), 2)
+
+        def random_point_belongs_test_data(self):
             smoke_space_args_list = [(2, 2), (3, 3), (4, 3), (3, 2)]
             smoke_n_points_list = [1, 2, 1, 2]
-            n_list = random.sample(range(2, 4), 2)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            space_args_list = list(zip(n_list, p_list))
-            n_points_list = random.sample(range(1, 10), 2)
 
             belongs_atol = gs.atol * 100000
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
-                space_args_list,
-                n_points_list,
+                self.space_args_list,
+                self.n_points_list,
                 belongs_atol,
             )
 
-        def to_tangent_is_tangent_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            space_args_list = list(zip(n_list, p_list))
-            tangent_shapes_list = space_args_list
-            n_vecs_list = random.sample(range(1, 10), 5)
+        def to_tangent_is_tangent_test_data(self):
             is_tangent_atol = gs.atol * 1000
 
-            return self._to_tangent_is_tangent_data(
+            return self._to_tangent_is_tangent_test_data(
                 Stiefel,
-                space_args_list,
-                tangent_shapes_list,
-                n_vecs_list,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
                 is_tangent_atol,
             )
 
-        def projection_belongs_data(self):
-            n_list = random.sample(range(2, 10), 5)
-            p_list = [random.sample(range(2, n + 1), 1)[0] for n in n_list]
-            space_args_list = list(zip(n_list, p_list))
-            shapes_list = space_args_list
-            n_samples_list = random.sample(range(1, 10), 5)
-            return self._projection_belongs_data(
-                space_args_list, shapes_list, n_samples_list, gs.atol * 100
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
+                self.space_args_list, self.shape_list, self.n_points_list, gs.atol * 100
             )
 
-        def to_grassmannian_data(self):
+        def to_grassmannian_test_data(self):
 
             point1 = gs.array([[1.0, -1.0], [1.0, 1.0], [0.0, 0.0]]) / gs.sqrt(2.0)
             batch_points = Matrices.mul(
@@ -91,7 +84,15 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataStiefel()
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                Stiefel,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
+            )
+
+    testing_data = StiefelTestData()
 
     def test_to_grassmannian(self, point, expected):
         self.assertAllClose(
@@ -99,7 +100,7 @@ class TestStiefel(TestCase, metaclass=LevelSetParametrizer):
         )
 
 
-class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = StiefelCanonicalMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
@@ -113,7 +114,7 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
     skip_test_log_shape = True
     skip_test_exp_ladder_parallel_transport = True
 
-    class TestDataStiefelCanonicalMetric(RiemannianMetricTestData):
+    class StiefelCanonicalMetricTestData(_RiemannianMetricTestData):
 
         n_list = random.sample(range(3, 5), 2)
         p_list = [random.sample(range(2, n), 1)[0] for n in n_list]
@@ -124,16 +125,11 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
         n_points_a_list = random.sample(range(1, 5), 2)
         n_points_b_list = [1]
         n_tangent_vecs_list = random.sample(range(1, 5), 2)
-        n_directions_list = random.sample(range(1, 5), 2)
-        n_end_points_list = random.sample(range(1, 5), 2)
-        n_t_list = random.sample(range(1, 5), 2)
-        batch_size_list = random.sample(range(2, 5), 2)
-        n_samples_list = random.sample(range(2, 5), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
 
-        def log_two_sheets_error_data(self):
+        def log_two_sheets_error_test_data(self):
             stiefel = Stiefel(n=3, p=3)
             base_point = stiefel.random_point()
             det_base = gs.linalg.det(base_point)
@@ -153,23 +149,21 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
             ]
             return self.generate_tests([], random_data)
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.batch_size_list,
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.batch_size_list,
             )
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -177,8 +171,8 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -186,52 +180,52 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 belongs_atol=gs.atol * 10000,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_t_list,
+                self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_t_list,
+                self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_log_composition_test_data(self):
+            return self._exp_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -242,8 +236,8 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 atol=1e-1,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -253,32 +247,32 @@ class TestStiefelCanonicalMetric(TestCase, metaclass=RiemannianMetricParametrize
                 atol=gs.atol * 1000,
             )
 
-        def retraction_lifting_data(self):
-            return self._exp_log_composition_data(
+        def retraction_lifting_test_data(self):
+            return self._exp_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
 
-        def lifting_retraction_data(self):
-            return self._log_exp_composition_data(
+        def lifting_retraction_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 100,
                 atol=gs.atol * 10000,
             )
 
-        def retraction_shape_data(self):
-            return self.exp_shape_data()
+        def retraction_shape_test_data(self):
+            return self.exp_shape_test_data()
 
-        def lifting_shape_data(self):
-            return self.log_shape_data()
+        def lifting_shape_test_data(self):
+            return self.log_shape_test_data()
 
-    testing_data = TestDataStiefelCanonicalMetric()
+    testing_data = StiefelCanonicalMetricTestData()
 
     def test_log_two_sheets_error(self, n, p, point, base_point, expected):
         metric = self.metric(n, p)

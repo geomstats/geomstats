@@ -317,7 +317,7 @@ class L2CurvesMetric(RiemannianMetric):
         )
         return self.riemann_sum(inner_products, missing_last_point)
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute Riemannian exponential of tangent vector wrt to base curve.
 
         Parameters
@@ -336,7 +336,7 @@ class L2CurvesMetric(RiemannianMetric):
         l2_landmarks_metric = self.l2_landmarks_metric(n_sampling_points)
         return l2_landmarks_metric.exp(tangent_vec, base_point)
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute Riemannian logarithm of a curve wrt a base curve.
 
         Parameters
