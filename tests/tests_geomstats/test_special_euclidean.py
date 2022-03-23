@@ -75,6 +75,7 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
     space = group = SpecialEuclidean
     skip_test_exp_log_composition = tf_backend()
     skip_test_log_exp_composition = tf_backend()
+    skip_test_projection_belongs = True
 
     class SpecialEuclideanTestData(_LieGroupTestData):
         n_list = random.sample(range(2, 4), 2)
