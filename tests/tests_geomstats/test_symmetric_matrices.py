@@ -146,10 +146,7 @@ class TestSymmetricMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
 
         def random_tangent_vec_is_tangent_test_data(self):
             return self._random_tangent_vec_is_tangent_test_data(
-                SymmetricMatrices,
-                self.space_args_list,
-                self.n_vecs_list,
-                is_tangent_atol=gs.atol * 1000,
+                SymmetricMatrices, self.space_args_list, self.n_vecs_list
             )
 
         def random_point_belongs_test_data(self):
