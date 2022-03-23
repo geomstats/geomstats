@@ -230,10 +230,7 @@ class TestSPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
 
         def random_tangent_vec_is_tangent_test_data(self):
             return self._random_tangent_vec_is_tangent_test_data(
-                SPDMatrices,
-                self.space_args_list,
-                self.n_vecs_list,
-                is_tangent_atol=gs.atol * 100,
+                SPDMatrices, self.space_args_list, self.n_vecs_list
             )
 
         def projection_belongs_test_data(self):

@@ -161,7 +161,6 @@ class TestSymmetricMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
                 smoke_n_points_list,
                 self.space_args_list,
                 self.n_points_list,
-                gs.atol * 1000,
             )
 
     testing_data = SymmetricMatricesTestData()

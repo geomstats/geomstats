@@ -530,10 +530,7 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
         def random_tangent_vec_is_tangent_test_data(self):
             space_args_list = list(zip(self.n_list))
             return self._random_tangent_vec_is_tangent_test_data(
-                SpecialOrthogonal,
-                space_args_list,
-                self.n_vecs_list,
-                is_tangent_atol=gs.atol * 100,
+                SpecialOrthogonal, space_args_list, self.n_vecs_list
             )
 
     testing_data = SpecialOrthogonalTestData()

@@ -110,10 +110,7 @@ class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
 
         def random_tangent_vec_is_tangent_test_data(self):
             return self._random_tangent_vec_is_tangent_test_data(
-                ProductManifold,
-                self.space_args_list,
-                self.n_vecs_list,
-                is_tangent_atol=gs.atol * 100,
+                ProductManifold, self.space_args_list, self.n_vecs_list
             )
 
     testing_data = ProductManifoldTestData()
@@ -434,10 +431,7 @@ class TestNFoldManifold(ManifoldTestCase, metaclass=Parametrizer):
 
         def random_tangent_vec_is_tangent_test_data(self):
             return self._random_tangent_vec_is_tangent_test_data(
-                NFoldManifold,
-                self.space_args_list,
-                self.n_vecs_list,
-                is_tangent_atol=gs.atol * 100,
+                NFoldManifold, self.space_args_list, self.n_vecs_list
             )
 
     def test_belongs(self, base, power, point, expected):
