@@ -167,3 +167,25 @@ class Manifold(abc.ABC):
             if metric.dim != self.dim:
                 metric.dim = self.dim
         self._metric = metric
+
+    def random_tangent_vec(self, n_samples, base_point):
+        """Generate random tangent vec.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        base_point :  array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vec at base point.
+        """
+        return gs.squeeze(
+            self.to_tangent(
+                gs.random.normal(size=(n_samples,) + self.shape), base_point
+            )
+        )
