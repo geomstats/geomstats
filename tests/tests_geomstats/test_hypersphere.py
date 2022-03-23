@@ -349,7 +349,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
         estimator = FrechetMean(space.metric, method="adaptive")
         estimator.fit(sample)
         estimate = estimator.estimate_
-        self.assertAllClose(estimate, mean, atol=1e-2)
+        self.assertAllClose(estimate, mean, atol=1e-1)
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_riemannian_normal_and_belongs(self, dim, n_points):
