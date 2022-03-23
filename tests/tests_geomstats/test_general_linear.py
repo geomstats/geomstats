@@ -20,6 +20,7 @@ from tests.geometry_test_cases import (
 class TestGeneralLinear(LieGroupTestCase, OpenSetTestCase, metaclass=Parametrizer):
     space = group = GeneralLinear
     skip_test_log_exp_composition = True
+    skip_test_exp_log_composition = True
 
     class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
         n_list = random.sample(range(2, 5), 2)
