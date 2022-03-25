@@ -155,7 +155,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         tangent_vec = Matrices.to_symmetric(vec)
         horizontal = bundle.horizontal_lift(tangent_vec, fiber_point=mat)
         result = bundle.tangent_riemannian_submersion(horizontal, mat)
-        self.assertAllClose(result, tangent_vec, atol=1e-3)
+        self.assertAllClose(result, tangent_vec, atol=1e-2)
 
     def test_is_horizontal(self, n, mat, vec):
         bundle = self.bundle(n)

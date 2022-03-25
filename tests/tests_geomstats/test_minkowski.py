@@ -55,6 +55,11 @@ class TestMinkowski(VectorSpaceTestCase, metaclass=Parametrizer):
                 self.n_vecs_list,
             )
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                Minkowski, self.space_args_list, self.n_vecs_list
+            )
+
     testing_data = MinkowskiTestData()
 
     def test_belongs(self, dim, point, expected):

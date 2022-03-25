@@ -313,6 +313,11 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
                 is_tangent_atol,
             )
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                PreShapeSpace, self.space_args_list, self.n_vecs_list
+            )
+
         def projection_belongs_test_data(self):
             return self._projection_belongs_test_data(
                 self.space_args_list, self.shape_list, self.n_points_list

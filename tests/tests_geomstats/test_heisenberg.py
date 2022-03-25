@@ -5,14 +5,16 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.heisenberg import HeisenbergVectors
 from tests.conftest import Parametrizer
-from tests.data_generation import _LieGroupTestData
-from tests.geometry_test_cases import LieGroupTestCase
+from tests.data_generation import _LieGroupTestData, _VectorSpaceTestData
+from tests.geometry_test_cases import LieGroupTestCase, VectorSpaceTestCase
 
 
-class TestHeisenbergVectors(LieGroupTestCase, metaclass=Parametrizer):
+class TestHeisenbergVectors(
+    LieGroupTestCase, VectorSpaceTestCase, metaclass=Parametrizer
+):
     space = group = HeisenbergVectors
 
-    class HeisenbergVectorsTestData(_LieGroupTestData):
+    class HeisenbergVectorsTestData(_LieGroupTestData, _VectorSpaceTestData):
         space_args_list = [()] * 3
         shape_list = [(3,)] * 3
         n_points_list = random.sample(range(2, 5), 2)
@@ -88,6 +90,17 @@ class TestHeisenbergVectors(LieGroupTestCase, metaclass=Parametrizer):
         def log_then_exp_test_data(self):
             return self._log_then_exp_test_data(
                 HeisenbergVectors, self.space_args_list, self.n_points_list
+            )
+
+        def basis_belongs_test_data(self):
+            return self._basis_belongs_test_data(self.space_args_list)
+
+        def basis_cardinality_test_data(self):
+            return self._basis_cardinality_test_data(self.space_args_list)
+
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                HeisenbergVectors, self.space_args_list, self.n_vecs_list
             )
 
     testing_data = HeisenbergVectorsTestData()

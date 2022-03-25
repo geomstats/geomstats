@@ -55,7 +55,7 @@ The Geomstats project will:
 Work that is out-of-scope for this project:
 - This project will not create any explanation, tutorials or how-to guides.
 
-We estimate that this work will take 6 months to complete.
+We estimate that this work will take 6 months to complete. We are in contact with interested technical writers, some having already merged documentation pull requests to the repository.
 
 Measuring project’s success
 ---------------------------
@@ -119,5 +119,5 @@ Important links for technical writers
 =====================================
 
 - Find details about being a Google SoD's writer `here <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_.
-- Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_. 
+- Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_.
 - Deadline May 16th, at 18:00 UTC, but we recommend getting in touch with us before the end of April.

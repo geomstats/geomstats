@@ -17,10 +17,10 @@ class TestSymmetricMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
     class SymmetricMatricesTestData(_VectorSpaceTestData):
         """Data class for Testing Symmetric Matrices"""
 
-        space_args_list = [(n,) for n in random.sample(range(1, 10), 5)]
-        n_points_list = random.sample(range(1, 10), 5)
+        space_args_list = [(n,) for n in random.sample(range(2, 5), 2)]
+        n_points_list = random.sample(range(1, 5), 2)
         shape_list = [(n, n) for (n,), in zip(space_args_list)]
-        n_vecs_list = random.sample(range(1, 10), 5)
+        n_vecs_list = random.sample(range(1, 5), 2)
 
         def belongs_test_data(self):
             smoke_data = [
@@ -144,6 +144,11 @@ class TestSymmetricMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
                 self.n_vecs_list,
             )
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                SymmetricMatrices, self.space_args_list, self.n_vecs_list
+            )
+
         def random_point_belongs_test_data(self):
             smoke_space_args_list = [(1,), (2,), (3,)]
             smoke_n_points_list = [1, 1, 10]
@@ -153,7 +158,6 @@ class TestSymmetricMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
                 smoke_n_points_list,
                 self.space_args_list,
                 self.n_points_list,
-                gs.atol * 1000,
             )
 
     testing_data = SymmetricMatricesTestData()

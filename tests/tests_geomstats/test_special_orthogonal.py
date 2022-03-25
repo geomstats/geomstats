@@ -527,6 +527,12 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            space_args_list = list(zip(self.n_list))
+            return self._random_tangent_vec_is_tangent_test_data(
+                SpecialOrthogonal, space_args_list, self.n_vecs_list
+            )
+
     testing_data = SpecialOrthogonalTestData()
 
     def test_belongs(self, n, mat, expected):

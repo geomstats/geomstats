@@ -73,16 +73,16 @@ ATOL = 1e-5
 class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
 
     space = group = SpecialEuclidean
-    skip_test_exp_then_log_composition = tf_backend()
+    skip_test_exp_then_log = tf_backend()
     skip_test_log_then_exp = tf_backend()
 
     class SpecialEuclideanTestData(_LieGroupTestData):
         n_list = random.sample(range(2, 4), 2)
         space_args_list = [(n,) for n in n_list] + [(2, "vector"), (3, "vector")]
         shape_list = [(n + 1, n + 1) for n in n_list] + [(3,)] + [(6,)]
-        n_tangent_vecs_list = random.sample(range(2, 6), 4)
-        n_points_list = random.sample(range(2, 6), 4)
-        n_vecs_list = random.sample(range(2, 6), 4)
+        n_tangent_vecs_list = [2, 3] * 2
+        n_points_list = [2, 3] * 2
+        n_vecs_list = [2, 3] * 2
 
         def belongs_test_data(self):
             smoke_data = [
@@ -217,8 +217,16 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
                 self.n_vecs_list,
             )
 
-        def exp_then_log_composition_test_data(self):
-            return self._exp_then_log_composition_test_data(
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                SpecialEuclidean,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
+            )
+
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 SpecialEuclidean,
                 self.space_args_list,
                 self.shape_list,
@@ -480,6 +488,11 @@ class TestSpecialEuclideanMatrixLieAlgebra(
                 self.n_vecs_list,
             )
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                SpecialEuclideanMatrixLieAlgebra, self.space_args_list, self.n_vecs_list
+            )
+
     testing_data = SpecialEuclideanMatrixLieAlgebraTestData()
 
     def test_dim(self, n, expected):
@@ -505,9 +518,9 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
         metric_args_list = [(SpecialEuclidean(n),) for n in n_list]
         shape_list = [(n + 1, n + 1) for n in n_list]
         space_list = [SpecialEuclidean(n) for n in n_list]
-        n_points_list = random.sample(range(1, 4), 2)
-        n_tangent_vecs_list = random.sample(range(1, 4), 2)
-        n_points_a_list = random.sample(range(1, 4), 2)
+        n_points_list = [2, 3]
+        n_tangent_vecs_list = [2, 3]
+        n_points_a_list = [2, 3]
         n_points_b_list = [1]
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2

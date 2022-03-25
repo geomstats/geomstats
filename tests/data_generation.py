@@ -153,6 +153,45 @@ class _ManifoldTestData(TestData):
             )
         return self.generate_tests([], random_data)
 
+    def _random_tangent_vec_is_tangent_test_data(
+        self,
+        space_cls,
+        space_args_list,
+        n_tangent_vecs_list,
+        is_tangent_atol=gs.atol,
+    ):
+        """Generate data to check that random tangent vec returns a tangent vector.
+
+        Parameters
+        ----------
+        space_cls : Manifold
+            Class of the space, i.e. a child class of Manifold.
+        space_args_list : list
+            List of spaces' args on which tests will run.
+        n_tangent_vecs_list : list
+            List of integers for the number of tangent vectors to generated.
+        amplitude : int
+            Scaling factor.
+            Optional, default
+
+        is_tangent_atol : float
+            Absolute tolerance for the is_tangent function.
+        """
+        random_data = []
+
+        for space_args, n_tangent_vec in zip(space_args_list, n_tangent_vecs_list):
+            space = space_cls(*space_args)
+            base_point = space.random_point()
+            random_data.append(
+                dict(
+                    space_args=space_args,
+                    tangent_vec=n_tangent_vec,
+                    base_point=base_point,
+                    is_tangent_atol=is_tangent_atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
 
 class _OpenSetTestData(_ManifoldTestData):
     def _to_tangent_is_tangent_in_ambient_space_test_data(

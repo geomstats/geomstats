@@ -68,6 +68,11 @@ class TestPoincareBall(OpenSetTestCase, metaclass=Parametrizer):
                 PoincareBall, self.space_args_list, self.shape_list
             )
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                PoincareBall, self.space_args_list, self.n_vecs_list
+            )
+
     testing_data = PoincareBallTestData()
 
     def test_belongs(self, dim, point, expected):
