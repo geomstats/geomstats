@@ -130,9 +130,7 @@ class OpenSetTestCase(ManifoldTestCase):
 
 
 class LieGroupTestCase(ManifoldTestCase):
-    def test_exp_then_log_composition(
-        self, group_args, tangent_vec, base_point, rtol, atol
-    ):
+    def test_exp_then_log(self, group_args, tangent_vec, base_point, rtol, atol):
         """Check that group exponential and logarithm are inverse.
 
         This is calling group exponential first, then group logarithm.
@@ -155,7 +153,7 @@ class LieGroupTestCase(ManifoldTestCase):
         log_vec = group.log(exp_point, gs.array(base_point))
         self.assertAllClose(log_vec, gs.array(tangent_vec), rtol, atol)
 
-    def test_log_then_exp_composition(self, group_args, point, base_point, rtol, atol):
+    def test_log_then_exp(self, group_args, point, base_point, rtol, atol):
         """Check that group exponential and logarithm are inverse.
 
         This is calling group logarithm first, then group exponential.
@@ -208,7 +206,7 @@ class VectorSpaceTestCase(ManifoldTestCase):
 
 
 class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
-    def test_basis_representation_then_matrix_representation_composition(
+    def test_basis_representation_then_matrix_representation(
         self, algebra_args, matrix_rep, rtol, atol
     ):
         """Check that changing coordinate system twice gives back the point.
@@ -232,7 +230,7 @@ class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
         result = algebra.matrix_representation(basis_rep)
         self.assertAllClose(result, gs.array(matrix_rep), rtol, atol)
 
-    def test_matrix_representation_then_basis_representation_composition(
+    def test_matrix_representation_then_basis_representation(
         self,
         algebra_args,
         basis_rep,
@@ -262,9 +260,7 @@ class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
 
 
 class LevelSetTestCase(ManifoldTestCase):
-    def test_extrinsic_then_intrinsic_composition(
-        self, space_args, point_extrinsic, rtol, atol
-    ):
+    def test_extrinsic_then_intrinsic(self, space_args, point_extrinsic, rtol, atol):
         """Check that changing coordinate system twice gives back the point.
 
         A point written in extrinsic coordinates is converted to
@@ -287,9 +283,7 @@ class LevelSetTestCase(ManifoldTestCase):
         expected = point_extrinsic
         self.assertAllClose(result, expected, rtol, atol)
 
-    def test_intrinsic_then_extrinsic_composition(
-        self, space_args, point_intrinsic, rtol, atol
-    ):
+    def test_intrinsic_then_extrinsic(self, space_args, point_intrinsic, rtol, atol):
         """Check that changing coordinate system twice gives back the point.
 
         A point written in intrinsic coordinates is converted to
@@ -480,9 +474,7 @@ class ConnectionTestCase(TestCase):
 
         self.assertAllClose(result, expected)
 
-    def test_log_then_exp_composition(
-        self, connection_args, point, base_point, rtol, atol
-    ):
+    def test_log_then_exp(self, connection_args, point, base_point, rtol, atol):
         """Check that connection logarithm and exponential are inverse.
 
         This is calling connection logarithm first, then connection exponential.
@@ -505,9 +497,7 @@ class ConnectionTestCase(TestCase):
         result = connection.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point, rtol=rtol, atol=atol)
 
-    def test_exp_then_log_composition(
-        self, connection_args, tangent_vec, base_point, rtol, atol
-    ):
+    def test_exp_then_log(self, connection_args, tangent_vec, base_point, rtol, atol):
         """Check that connection exponential and logarithm are inverse.
 
         This is calling connection exponential first, then connection logarithm.

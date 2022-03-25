@@ -21,7 +21,7 @@ RTOL = 1e-6
 
 class TestHyperbolic(LevelSetTestCase, metaclass=Parametrizer):
     space = Hyperboloid
-    skip_test_intrinsic_then_extrinsic_composition = True
+    skip_test_intrinsic_then_extrinsic = True
     skip_test_projection_belongs = True
 
     class HyperbolicTestData(_LevelSetTestData):
@@ -107,13 +107,13 @@ class TestHyperbolic(LevelSetTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 100000,
             )
 
-        def extrinsic_then_intrinsic_composition_test_data(self):
-            return self._extrinsic_then_intrinsic_composition_test_data(
+        def extrinsic_then_intrinsic_test_data(self):
+            return self._extrinsic_then_intrinsic_test_data(
                 Hyperbolic, self.space_args_list, self.n_points_list
             )
 
-        def intrinsic_then_extrinsic_composition_test_data(self):
-            return self._intrinsic_then_extrinsic_composition_test_data(
+        def intrinsic_then_extrinsic_test_data(self):
+            return self._intrinsic_then_extrinsic_test_data(
                 Hyperbolic, self.space_args_list, self.n_points_list
             )
 
@@ -294,7 +294,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_composition_test_data(self):
+        def log_then_exp_test_data(self):
             return self._log_then_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
@@ -303,8 +303,8 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 100000,
             )
 
-        def exp_then_log_composition_test_data(self):
-            return self._exp_then_log_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,

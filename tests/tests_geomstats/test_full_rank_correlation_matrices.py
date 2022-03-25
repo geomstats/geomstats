@@ -19,8 +19,8 @@ from tests.geometry_test_cases import LevelSetTestCase
 class TestFullRankCorrelationMatrices(LevelSetTestCase, metaclass=Parametrizer):
 
     space = FullRankCorrelationMatrices
-    skip_test_extrinsic_then_intrinsic_composition = True
-    skip_test_intrinsic_then_extrinsic_composition = True
+    skip_test_extrinsic_then_intrinsic = True
+    skip_test_intrinsic_then_extrinsic = True
 
     class RankFullRankCorrelationMatricesTestData(_LevelSetTestData):
 

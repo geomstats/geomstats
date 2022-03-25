@@ -58,13 +58,13 @@ class TestSkewSymmetricMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer
 
             return self.generate_tests(smoke_data)
 
-        def basis_representation_then_matrix_representation_composition_test_data(self):
-            return self._basis_representation_then_matrix_representation_composition_test_data(
+        def basis_representation_then_matrix_representation_test_data(self):
+            return self._basis_representation_then_matrix_representation_test_data(
                 SkewSymmetricMatrices, self.space_args_list, self.n_points_list
             )
 
-        def matrix_representation_then_basis_representation_composition_test_data(self):
-            return self._matrix_representation_then_basis_representation_composition_test_data(
+        def matrix_representation_then_basis_representation_test_data(self):
+            return self._matrix_representation_then_basis_representation_test_data(
                 SkewSymmetricMatrices, self.space_args_list, self.n_points_list
             )
 

@@ -422,8 +422,8 @@ class TestSPDMetricAffine(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_composition_test_data(self):
-            return self._log_then_exp_composition_test_data(
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -431,8 +431,8 @@ class TestSPDMetricAffine(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_then_log_composition_test_data(self):
-            return self._exp_then_log_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -628,8 +628,8 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_composition_test_data(self):
-            return self._log_then_exp_composition_test_data(
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -637,8 +637,8 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
                 atol=gs.atol * 10,
             )
 
-        def exp_then_log_composition_test_data(self):
-            return self._exp_then_log_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -715,7 +715,7 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_geodesic_ivp_belongs = True
     skip_test_exp_belongs = True
-    skip_test_exp_then_log_composition = True
+    skip_test_exp_then_log = True
 
     class SPDMetricEuclideanTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 5), 2)
@@ -844,8 +844,8 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_composition_test_data(self):
-            return self._log_then_exp_composition_test_data(
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -853,8 +853,8 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_then_log_composition_test_data(self):
-            return self._exp_then_log_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -930,7 +930,7 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
-    def test_log_then_exp_composition(self, n, power_euclidean, point, base_point):
+    def test_log_then_exp(self, n, power_euclidean, point, base_point):
         metric = SPDMetricEuclidean(n, power_euclidean)
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
@@ -955,8 +955,8 @@ class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
-    skip_test_log_then_exp_composition = True
-    skip_test_exp_then_log_composition = True
+    skip_test_log_then_exp = True
+    skip_test_exp_then_log = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_exp_belongs = True
 
@@ -1059,8 +1059,8 @@ class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_composition_test_data(self):
-            return self._log_then_exp_composition_test_data(
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -1068,8 +1068,8 @@ class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer
                 atol=gs.atol * 10000,
             )
 
-        def exp_then_log_composition_test_data(self):
-            return self._exp_then_log_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,

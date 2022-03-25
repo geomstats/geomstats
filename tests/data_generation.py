@@ -182,7 +182,7 @@ class _OpenSetTestData(_ManifoldTestData):
 
 
 class _LevelSetTestData(_ManifoldTestData):
-    def _extrinsic_then_intrinsic_composition_test_data(
+    def _extrinsic_then_intrinsic_test_data(
         self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinate system twice gives back the point.
@@ -215,7 +215,7 @@ class _LevelSetTestData(_ManifoldTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def _intrinsic_then_extrinsic_composition_test_data(
+    def _intrinsic_then_extrinsic_test_data(
         self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinate system twice gives back the point.
@@ -252,7 +252,7 @@ class _LevelSetTestData(_ManifoldTestData):
 
 
 class _LieGroupTestData(_ManifoldTestData):
-    def _exp_then_log_composition_test_data(
+    def _exp_then_log_test_data(
         self,
         group_cls,
         group_args_list,
@@ -299,7 +299,7 @@ class _LieGroupTestData(_ManifoldTestData):
             smoke_data = []
         return self.generate_tests(smoke_data, random_data)
 
-    def _log_then_exp_composition_test_data(
+    def _log_then_exp_test_data(
         self,
         group_cls,
         group_args_list,
@@ -368,7 +368,7 @@ class _VectorSpaceTestData(_ManifoldTestData):
 
 
 class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
-    def _basis_representation_then_matrix_representation_composition_test_data(
+    def _basis_representation_then_matrix_representation_test_data(
         self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinates twice gives back the point.
@@ -393,7 +393,7 @@ class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def _matrix_representation_then_basis_representation_composition_test_data(
+    def _matrix_representation_then_basis_representation_test_data(
         self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinates twice gives back the point.
@@ -647,7 +647,7 @@ class _ConnectionTestData(TestData):
             )
         return self.generate_tests([], random_data)
 
-    def _log_then_exp_composition_test_data(
+    def _log_then_exp_test_data(
         self,
         connection_args_list,
         space_list,
@@ -686,7 +686,7 @@ class _ConnectionTestData(TestData):
             smoke_data = []
         return self.generate_tests(smoke_data, random_data)
 
-    def _exp_then_log_composition_test_data(
+    def _exp_then_log_test_data(
         self,
         connection_args_list,
         space_list,

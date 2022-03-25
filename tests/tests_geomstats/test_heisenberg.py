@@ -77,16 +77,16 @@ class TestHeisenbergVectors(LieGroupTestCase, metaclass=Parametrizer):
                 self.n_vecs_list,
             )
 
-        def exp_then_log_composition_test_data(self):
-            return self._exp_then_log_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 HeisenbergVectors,
                 self.space_args_list,
                 self.shape_list,
                 self.n_tangent_vecs_list,
             )
 
-        def log_then_exp_composition_test_data(self):
-            return self._log_then_exp_composition_test_data(
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
                 HeisenbergVectors, self.space_args_list, self.n_points_list
             )
 
