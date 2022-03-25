@@ -601,8 +601,8 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 atol=gs.atol * 100,
             )
 
-        def exp_then_log_composition_test_data(self):
-            return self._exp_then_log_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -673,7 +673,7 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_squared_dist_is_symmetric = np_backend()
-    skip_test_exp_then_log_composition = True
+    skip_test_exp_then_log = True
     skip_test_log_then_exp = True
     skip_test_log_is_tangent = np_backend()
     skip_test_geodesic_bvp_belongs = np_backend()
@@ -761,8 +761,8 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 atol=gs.atol * 100000,
             )
 
-        def exp_then_log_composition_test_data(self):
-            return self._exp_then_log_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,

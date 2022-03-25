@@ -172,6 +172,16 @@ class TestGeneralLinear(LieGroupTestCase, OpenSetTestCase, metaclass=Parametrize
                 self.n_vecs_list,
             )
 
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                GeneralLinear, self.space_args_list, self.n_vecs_list
+            )
+
+        def to_tangent_is_tangent_in_ambient_space_test_data(self):
+            return self._to_tangent_is_tangent_in_ambient_space_test_data(
+                GeneralLinear, self.space_args_list, self.shape_list
+            )
+
         def exp_then_log_test_data(self):
             return self._exp_then_log_test_data(
                 GeneralLinear,

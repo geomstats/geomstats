@@ -560,7 +560,7 @@ class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                     atol=gs.atol,
                 )
             ]
-            return self._log_then_exp_composition_test_data(
+            return self._log_then_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
