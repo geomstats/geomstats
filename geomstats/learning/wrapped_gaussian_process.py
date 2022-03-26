@@ -115,6 +115,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
         self.y_train_ = None
         self.tangent_y_train_ = None
+        self.y_train_shape_ = None
 
         self._euclidean_gpr = GaussianProcessRegressor(
             kernel=kernel,
@@ -137,11 +138,14 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         X : array-like of shape (n_samples, n_features) or list of object
             Feature vectors or other representations of training data.
         y : array-like of shape (n_samples,) or (n_samples, n_targets)
+        or (n_samples, n1_targets, n2_targets) for
+        matrix-valued targets.
             Target values. The target must belongs to the manifold space
 
         Returns
         -------
         tangent_y : array-like of shape (n_samples,) or (n_samples, n_targets)
+        or (n_samples, n1_targets, n2_targets)
                 Target projected on the associated (by the prior) tangent space.
         """
         base_points = self.prior(X)
@@ -161,6 +165,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         X : array-like of shape (n_samples, n_features) or list of object
             Feature vectors or other representations of training data.
         y : array-like of shape (n_samples,) or (n_samples, n_targets)
+        or (n_samples, n1_targets, n2_targets)
             Target values. The target must belongs to the manifold space
 
         Returns
@@ -173,7 +178,12 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
         # compute the tangent dataset using the prior
         tangent_y = self._get_tangent_targets(X, y)
+        self.y_train_shape_ = y.shape[
+            1:
+        ]  # this is really useful when the samples are matrices, or tensor of dim>1
+        tangent_y = gs.reshape(tangent_y, (y.shape[0], -1))  # flatten the samples.
         # fit a gpr on the tangent dataset
+
         self._euclidean_gpr.fit(X, tangent_y)
         # update the attributes of the wgpr using the new attributes of the gpr
 
@@ -224,13 +234,20 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
             Covariance of joint predictive distribution a query points
             in the tangent space.
             Only returned when `return_cov` is True.
+            In the case where the target is matrix valued,
+            return the covariance of the vectorized prediction.
         """
         if return_tangent_cov:
             tangent_means, tangent_cov = self._euclidean_gpr.predict(
                 X, return_cov=True, return_std=False
             )
-            tangent_means = gs.cast(tangent_means, dtype=X.dtype)
-            tangent_cov = gs.cast(tangent_cov, dtype=X.dtype)
+            tangent_means = gs.reshape(
+                gs.cast(tangent_means, dtype=X.dtype),
+                (X.shape[0], *self.y_train_shape_),
+            )
+            tangent_cov = gs.cast(
+                tangent_cov, dtype=X.dtype
+            )  # covariance of the vectorized predictions.
 
             base_points = self.prior(X)
             y_mean = self.metric.exp(tangent_means, base_point=base_points)
@@ -241,7 +258,10 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
                 X, return_cov=False, return_std=True
             )
             base_points = self.prior(X)
-            tangent_means = gs.cast(tangent_means, dtype=X.dtype)
+            tangent_means = gs.reshape(
+                gs.cast(tangent_means, dtype=X.dtype),
+                (X.shape[0], *self.y_train_shape_),
+            )
             tangent_std = gs.cast(tangent_std, dtype=X.dtype)
 
             y_mean = self.metric.exp(tangent_means, base_point=base_points)
@@ -252,7 +272,10 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
                 X, return_cov=False, return_std=False
             )
             base_points = self.prior(X)
-            tangent_means = gs.cast(tangent_means, dtype=X.dtype)
+            tangent_means = gs.reshape(
+                gs.cast(tangent_means, dtype=X.dtype),
+                (X.shape[0], *self.y_train_shape_),
+            )
             y_mean = self.metric.exp(tangent_means, base_point=base_points)
             result = y_mean
 
@@ -294,7 +317,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         tangent_samples = gs.cast(tangent_samples, dtype=X.dtype)
         # flatten the samples
         tangent_samples = gs.reshape(
-            gs.transpose(tangent_samples, [0, 2, 1]), (-1, tangent_samples.shape[1])
+            gs.transpose(tangent_samples, [0, 2, 1]), (-1, *self.y_train_shape_)
         )
 
         # generate the base_points
@@ -303,13 +326,13 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         base_points = gs.repeat(gs.expand_dims(base_points, 2), n_samples, axis=2)
         # flatten the base_points
         base_points = gs.reshape(
-            gs.transpose(base_points, [0, 2, 1]), (-1, tangent_samples.shape[1])
+            gs.transpose(base_points, [0, 2, 1]), (-1, *self.y_train_shape_)
         )
 
         # get the flattened samples
         y_samples = self.metric.exp(tangent_samples, base_point=base_points)
         y_samples = gs.transpose(
-            gs.reshape(y_samples, (X.shape[0], n_samples, y_samples.shape[1])),
+            gs.reshape(y_samples, (X.shape[0], n_samples, *self.y_train_shape_)),
             [0, 2, 1],
         )
 
