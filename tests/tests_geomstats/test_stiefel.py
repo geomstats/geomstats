@@ -3,6 +3,7 @@
 import random
 
 import pytest
+from matplotlib.container import StemContainer
 
 import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear
