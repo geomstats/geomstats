@@ -4,10 +4,11 @@ import numpy as np
 import pandas as pd
 
 
-def spd_manifold_params():
+def spd_manifold_params(n_samples):
     manifold = "SPDManifold"
     manifold_args = [(2,), (5,), (10,)]
     kwargs = {}
+    module = "geomstats.geometry.spd_matrices"
 
     def affine_metric_params():
         params = []
@@ -16,7 +17,9 @@ def spd_manifold_params():
         metric_args = list(product(manifold_args, power_args))
         manifold_args_re = np.repeat(manifold_args, len(power_args)).tolist()
         for i in range(len(manifold_args)):
-            params += [(manifold, metric, manifold_args_re[i], metric_args[i], kwargs)]
+            params += [
+                (manifold, metric, manifold_args_re[i], metric_args[i], kwargs, module)
+            ]
         return params
 
     def bures_wasserstein_metric_params():
@@ -179,3 +182,13 @@ def full_rank_correlation_matrices_params():
         return params
 
     return [full_rank_correlation_matrices_metric_params()]
+
+def generate_benchmark_exp_params(manifold="spd_manifold", n_samples=10):
+    params_fn = globals()[manifold+"_params"](n_samples)
+    df = pd.DataFrame(columns=["manifold", "metric", "manifold_args", "metric_args", "exp_kwargs", "module", "n_samples" ])
+
+
+
+
+
+
