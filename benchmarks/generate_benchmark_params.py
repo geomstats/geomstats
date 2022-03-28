@@ -1,3 +1,5 @@
+"""Benchmarking parameters generation file."""
+
 import argparse
 from itertools import chain, product
 
@@ -25,11 +27,23 @@ args = parser.parse_args()
 
 
 def spd_manifold_params(n_samples):
+    """Generate spd manifold benchmarking parameters.
+
+    Parameters
+    ----------
+        n_samples : int
+            Number of samples to be used.
+
+    Returns
+    -------
+        _:list.
+        List of params.
+    """
     manifold = "SPDMatrices"
     manifold_args = [(2,), (5,), (10,)]
     module = "geomstats.geometry.spd_matrices"
 
-    def affine_metric_params(kwargs={}):
+    def affine_metric_params():
         params = []
         metric = "SPDMetricAffine"
         power_args = [-0.5, 1, 0.5]
@@ -37,21 +51,23 @@ def spd_manifold_params(n_samples):
         manifold_args_re = [
             item for item in manifold_args for i in range(len(power_args))
         ]
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args_re[i], metric_args[i])]
         return params
 
-    def bures_wasserstein_metric_params(kwargs={}):
+    def bures_wasserstein_metric_params():
         params = []
         metric = "SPDMetricBuresWasserstein"
         metric_args = manifold_args
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
-    def euclidean_metric_params(kwargs={}):
+    def euclidean_metric_params():
         params = []
         metric = "SPDMetricEuclidean"
         power_args = [-0.5, 1, 0.5]
@@ -59,15 +75,17 @@ def spd_manifold_params(n_samples):
         manifold_args_re = [
             item for item in manifold_args for i in range(len(power_args))
         ]
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args_re[i], metric_args[i])]
         return params
 
-    def log_euclidean_metric_params(kwargs={}):
+    def log_euclidean_metric_params():
         params = []
         metric = "SPDMetricLogEuclidean"
         metric_args = manifold_args
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
@@ -86,14 +104,27 @@ def spd_manifold_params(n_samples):
 
 
 def stiefel_params(n_samples):
+    """Generate stiefel benchmarking parameters.
+
+    Parameters
+    ----------
+        n_samples : int
+            Number of samples to be used.
+
+    Returns
+    -------
+        _:list.
+        List of params.
+    """
     manifold = "Stiefel"
     manifold_args = [(3, 2), (4, 3)]
     module = "geomstats.geometry.stiefel"
 
-    def stiefel_canonical_metric_params(kwargs={}):
+    def stiefel_canonical_metric_params():
         params = []
         metric = "StiefelCanonicalMetric"
         metric_args = manifold_args
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
@@ -103,14 +134,27 @@ def stiefel_params(n_samples):
 
 
 def pre_shape_params(n_samples):
+    """Generate pre shape benchmarking parameters.
+
+    Parameters
+    ----------
+        n_samples : int
+            Number of samples to be used.
+
+    Returns
+    -------
+        _:list.
+        List of params.
+    """
     manifold = "PreShapeSpace"
     manifold_args = [(3, 3), (5, 5)]
     module = "geomstats.geometry.pre_shape"
 
-    def pre_shape_metric_params(kwargs={}):
+    def pre_shape_metric_params():
         params = []
         metric = "PreShapeMetric"
         metric_args = manifold_args
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
@@ -120,14 +164,27 @@ def pre_shape_params(n_samples):
 
 
 def positive_lower_triangular_matrices_params(n_samples):
+    """Generate positive lower triangular matrices benchmarking parameters.
+
+    Parameters
+    ----------
+        n_samples : int
+            Number of samples to be used.
+
+    Returns
+    -------
+        _:list.
+        List of params.
+    """
     manifold = "PositiveLowerTriangularMatrices"
     manifold_args = [(3,), (5,)]
     module = "geomstats.geometry.positive_lower_triangular_matrices"
 
-    def cholesky_metric_params(kwargs={}):
+    def cholesky_metric_params():
         params = []
         metric = "CholeskyMetric"
         metric_args = manifold_args
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
@@ -137,14 +194,27 @@ def positive_lower_triangular_matrices_params(n_samples):
 
 
 def minkowski_params(n_samples):
+    """Generate minkowski benchmarking parameters.
+
+    Parameters
+    ----------
+        n_samples : int
+            Number of samples to be used.
+
+    Returns
+    -------
+        _:list.
+        List of params.
+    """
     manifold = "Minkowski"
     manifold_args = [(3,), (5,)]
     module = "geomstats.geometry.minkowski"
 
-    def minkowski_metric_params(kwargs={}):
+    def minkowski_metric_params():
         params = []
         metric = "MinkowskiMetric"
         metric_args = manifold_args
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
@@ -154,14 +224,27 @@ def minkowski_params(n_samples):
 
 
 def matrices_params(n_samples):
+    """Generate matrices benchmarking parameters.
+
+    Parameters
+    ----------
+        n_samples : int
+            Number of samples to be used.
+
+    Returns
+    -------
+        _:list.
+        List of params.
+    """
     manifold = "Matrices"
     manifold_args = [(3, 3), (5, 5)]
     module = "geomstats.geometry.matrices"
 
-    def matrices_metric_params(kwargs={}):
+    def matrices_metric_params():
         params = []
         metric = "MatricesMetric"
         metric_args = manifold_args
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
@@ -171,14 +254,27 @@ def matrices_params(n_samples):
 
 
 def hypersphere_params(n_samples):
+    """Generate hypersphere benchmarking parameters.
+
+    Parameters
+    ----------
+        n_samples : int
+            Number of samples to be used.
+
+    Returns
+    -------
+        _:list.
+        List of params.
+    """
     manifold = "Hypersphere"
     manifold_args = [(3,), (5,)]
     module = "geomstats.geometry.hypersphere"
 
-    def hypersphere_metric_params(kwargs={}):
+    def hypersphere_metric_params():
         params = []
         metric = "HypersphereMetric"
         metric_args = manifold_args
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
@@ -188,14 +284,27 @@ def hypersphere_params(n_samples):
 
 
 def grassmanian_params(n_samples):
+    """Generate grassmanian parameters.
+
+    Parameters
+    ----------
+        n_samples : int
+            Number of samples to be used.
+
+    Returns
+    -------
+        _:list.
+        List of params.
+    """
     manifold = "Grassmannian"
     manifold_args = [(4, 3), (5, 4)]
     module = "geomstats.geometry.grassmannian"
 
-    def grassmannian_canonical_metric_params(kwargs={}):
+    def grassmannian_canonical_metric_params():
         params = []
         metric = "GrassmannianCanonicalMetric"
         metric_args = manifold_args
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
@@ -205,14 +314,27 @@ def grassmanian_params(n_samples):
 
 
 def full_rank_correlation_matrices_params(n_samples):
+    """Generate full rank correlation matrices benchmarking parameters.
+
+    Parameters
+    ----------
+        n_samples : int
+            Number of samples to be used.
+
+    Returns
+    -------
+        _:list.
+        List of params.
+    """
     manifold = "FullRankCorrelationMatrices"
     manifold_args = [(3,), (5,)]
     module = "geomstats.geometry.full_rank_correlation_matrices"
 
-    def full_rank_correlation_matrices_metric_params(kwargs={}):
+    def full_rank_correlation_matrices_metric_params():
         params = []
         metric = "FullRankCorrelationAffineQuotientMetric"
         metric_args = manifold_args
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
@@ -222,14 +344,27 @@ def full_rank_correlation_matrices_params(n_samples):
 
 
 def hyperboloid_params(n_samples):
+    """Generate hyperboloid benchmarking parameters.
+
+    Parameters
+    ----------
+        n_samples : int
+            Number of samples to be used.
+
+    Returns
+    -------
+        _:list.
+        List of params.
+    """
     manifold = "Hyperboloid"
     manifold_args = [(3,), (5,)]
     module = "geomstats.geometry.hyperboloid"
 
-    def hyperboloid_metric_params(kwargs={}):
+    def hyperboloid_metric_params():
         params = []
         metric = "HyperboloidMetric"
         metric_args = manifold_args
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
@@ -239,14 +374,27 @@ def hyperboloid_params(n_samples):
 
 
 def poincare_ball_params(n_samples):
+    """Generate poincare ball benchmarking parameters.
+
+    Parameters
+    ----------
+        n_samples : int
+            Number of samples to be used.
+
+    Returns
+    -------
+        _:list.
+        List of params.
+    """
     manifold = "PoincareBall"
     manifold_args = [(3,), (5,)]
     module = "geomstats.geometry.poincare_ball"
 
-    def poincare_ball_metric_params(kwargs={}):
+    def poincare_ball_metric_params():
         params = []
         metric = "PoincareBallMetric"
         metric_args = manifold_args
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
@@ -256,14 +404,27 @@ def poincare_ball_params(n_samples):
 
 
 def poincare_half_space_params(n_samples):
+    """Generate poincare half space benchmarking parameters.
+
+    Parameters
+    ----------
+        n_samples : int
+            Number of samples to be used.
+
+    Returns
+    -------
+        _:list.
+        List of params.
+    """
     manifold = "PoincareHalfSpace"
     manifold_args = [(3,), (5,)]
     module = "geomstats.geometry.poincare_half_space"
 
-    def poincare_half_space_metric_params(kwargs={}):
+    def poincare_half_space_metric_params():
         params = []
         metric = "PoincareHalfSpaceMetric"
         metric_args = manifold_args
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
@@ -273,15 +434,27 @@ def poincare_half_space_params(n_samples):
 
 
 def poincare_polydisk_params(n_samples):
+    """Generate poincare polydisk benchmarking parameters.
+
+    Parameters
+    ----------
+        n_samples : int
+            Number of samples to be used.
+
+    Returns
+    -------
+        _:list.
+        List of params.
+    """
     manifold = "PoincarePolydisk"
     manifold_args = [(3,), (5,)]
-    kwargs = {}
     module = "geomstats.geometry.poincare_polydisk"
 
-    def poincare_poly_disk_metric_params(kwargs={}):
+    def poincare_poly_disk_metric_params():
         params = []
         metric = "PoincarePolydiskMetric"
         metric_args = manifold_args
+        kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
         for i in range(len(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
@@ -305,7 +478,18 @@ manifolds = [
 ]
 
 
-def generate_benchmark_exp_params(manifold="all", n_samples=10):
+def generate_benchmark_params(manifold="all", n_samples=10):
+    """Generate parameters for benchmarking.
+
+    Parameters
+    ----------
+        manifold : str
+            Manifold name or all.
+            Optional, default "all".
+        n_samples : int
+            Number of samples.
+            Optional, default 10.
+    """
     params_list = []
     manifolds_list = manifolds if manifold == "all" else [manifold]
     params_list = [
@@ -329,7 +513,8 @@ def generate_benchmark_exp_params(manifold="all", n_samples=10):
 
 
 def main():
-    generate_benchmark_exp_params(args.manifold, args.n_samples)
+    """Generate Benchmark Params."""
+    generate_benchmark_params(args.manifold, args.n_samples)
 
 
 if __name__ == "__main__":
