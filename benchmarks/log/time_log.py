@@ -12,7 +12,6 @@ def read_benchmark_log_data():
     ids = []
     df = pd.read_pickle("benchmark_params.pkl")
     params = list(df.itertuples(index=False))
-    print(params)
     for (
         manifold,
         module,
@@ -44,7 +43,17 @@ benchmark_data, benchmark_ids = read_benchmark_log_data()
     "metric, log_args, log_kwargs", benchmark_data, ids=benchmark_ids
 )
 def test_benchmark_log(metric, log_args, log_kwargs, benchmark):
-    """Benchmark metric logarithm map."""
+    """Benchmark metric logarithm map.
+
+    Parameters
+    ----------
+    metric : object
+        Metric object.
+    log_args : tuple
+        Arguments to log function.
+    log_kwargs : tuple
+        Keyword argumetns to log function.
+    """
     benchmark.pedantic(
         metric.log, args=log_args, kwargs=log_kwargs, iterations=10, rounds=10
     )

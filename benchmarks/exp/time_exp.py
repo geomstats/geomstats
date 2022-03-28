@@ -12,7 +12,6 @@ def read_benchmark_exp_data():
     ids = []
     df = pd.read_pickle("./benchmark_params.pkl")
     params = list(df.itertuples(index=False))
-    print(params)
     for (
         manifold,
         module,
@@ -44,7 +43,17 @@ benchmark_data, benchmark_ids = read_benchmark_exp_data()
     "metric, exp_args, exp_kwargs", benchmark_data, ids=benchmark_ids
 )
 def test_benchmark_exp(metric, exp_args, exp_kwargs, benchmark):
-    """Benchmark metric exponential map."""
+    """Benchmark metric exponential map.
+
+    Parameters
+    ----------
+    metric : object
+        Metric object.
+    exp_args : tuple
+        Arguments to exp function.
+    exp_kwargs : tuple
+        Keyword argumetns to exp function.
+    """
     benchmark.pedantic(
         metric.exp, args=exp_args, kwargs=exp_kwargs, iterations=10, rounds=10
     )
