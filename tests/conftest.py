@@ -241,30 +241,3 @@ class TestCase:
         if tf_backend():
             return tf.test.TestCase().assertShapeEqual(a, b)
         assert a.shape == b.shape
-
-
-def pytest_addoption(parser):
-    parser.add_argument("--manifold", type=str, required=True, help="Manifold name")
-    # parser.add_argument("--metric", type=str, required=True, help="Metric name")
-    # parser.add_argument(
-    #     "--manifold_args", type=int, nargs="+", required=True, help="Manifold arguments "
-    # )
-    # parser.add_argument("--metric_args", nargs="+", type=int, required=True, help="Metric arguments")
-    # parser.add_argument(
-    #     "--module",
-    #     type=str,
-    #     required=True,
-    #     help="module path from which manifold, metric is imported",
-    # )
-    # parser.add_argument(
-    #     "--n_samples",
-    #     type=int,
-    #     default=10,
-    #     help="Number of samples to be used to generate benchmark",
-    # )
-    # parser.add_argument(
-    #     "--exp_kwargs",
-    #     type=dict,
-    #     default={},
-    #     help="kwarg arguments passed while computing exp.",
-    # )
