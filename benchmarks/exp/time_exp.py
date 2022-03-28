@@ -33,7 +33,7 @@ def read_benchmark_exp_data():
         exp_args = (tangent_vec, base_point)
         data.append((metric, exp_args, exp_kwargs))
 
-    return (data, ids)
+    return data, ids
 
 
 benchmark_data, benchmark_ids = read_benchmark_exp_data()

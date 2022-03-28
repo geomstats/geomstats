@@ -33,7 +33,7 @@ def read_benchmark_log_data():
         log_args = (point, base_point)
         data.append((metric, log_args, log_kwargs))
 
-    return (data, ids)
+    return data, ids
 
 
 benchmark_data, benchmark_ids = read_benchmark_log_data()
