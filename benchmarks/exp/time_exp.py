@@ -1,3 +1,5 @@
+"""Benchmark metric exponential."""
+
 from importlib import import_module
 
 import pandas as pd
@@ -5,6 +7,7 @@ import pytest
 
 
 def read_benchmark_exp_data():
+    """Read benchmark parameters from file benchmark_params.pkl."""
     data = []
     ids = []
     df = pd.read_pickle("./benchmark_params.pkl")
@@ -34,11 +37,14 @@ def read_benchmark_exp_data():
     return (data, ids)
 
 
-data, ids = read_benchmark_exp_data()
+benchmark_data, benchmark_ids = read_benchmark_exp_data()
 
 
-@pytest.mark.parametrize("metric, exp_args, exp_kwargs", data, ids=ids)
+@pytest.mark.parametrize(
+    "metric, exp_args, exp_kwargs", benchmark_data, ids=benchmark_ids
+)
 def test_benchmark_exp(metric, exp_args, exp_kwargs, benchmark):
+    """Benchmark metric exponential map."""
     benchmark.pedantic(
         metric.exp, args=exp_args, kwargs=exp_kwargs, iterations=10, rounds=10
     )
