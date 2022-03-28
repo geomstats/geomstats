@@ -8,8 +8,8 @@ from geomstats.geometry.rank_k_psd_matrices import (
     PSDMetricBuresWasserstein,
 )
 from tests.conftest import Parametrizer
-from tests.data_generation import _ManifoldTestData
-from tests.geometry_test_cases import ManifoldTestCase
+from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
+from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 
 class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
@@ -84,17 +84,17 @@ class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
         self.assertAllClose(space.belongs(gs.array(mat)), gs.array(expected))
 
 
-class TestPSDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestPSDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     space = PSDMatrices
     metric = connection = PSDMetricBuresWasserstein
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
-    skip_test_exp_geodesic_ivp = True
-    skip_test_log_exp_composition = True
+    # skip_test_exp_geodesic_ivp = True
+    # skip_test_log_exp_composition = True
     skip_test_exp_log_composition = True
 
-    class TestDataPSDMetricBuresWasserstein(RiemannianMetricTestData):
+    class TestDataPSDMetricBuresWasserstein(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
         metric_args_list = [(n, n) for n in n_list]
         shape_list = [(n, n) for n in n_list]
@@ -120,7 +120,7 @@ class TestPSDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_data(self):
+        def exp_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -131,7 +131,7 @@ class TestPSDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
             ]
             return self.generate_tests(smoke_data)
 
-        def log_data(self):
+        def log_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -142,7 +142,7 @@ class TestPSDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
             ]
             return self.generate_tests(smoke_data)
 
-        def squared_dist_data(self):
+        def squared_dist_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -153,23 +153,21 @@ class TestPSDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.batch_size_list,
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.batch_size_list,
             )
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -177,8 +175,8 @@ class TestPSDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -186,16 +184,16 @@ class TestPSDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
                 is_tangent_atol=gs.atol * 1000,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -203,16 +201,16 @@ class TestPSDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
                 belongs_atol=gs.atol * 1000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_exp_composition_test_data(self):
+            return self._log_exp_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -220,8 +218,8 @@ class TestPSDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
                 atol=gs.atol * 10000,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_log_composition_test_data(self):
+            return self._exp_log_composition_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -230,8 +228,8 @@ class TestPSDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
                 atol=gs.atol * 10000,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -241,8 +239,8 @@ class TestPSDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
                 self.scheme_list,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -252,8 +250,8 @@ class TestPSDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
                 atol=gs.atol * 100000,
             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -262,8 +260,8 @@ class TestPSDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -273,13 +271,6 @@ class TestPSDMetricBuresWasserstein(TestCase, metaclass=RiemannianMetricParametr
             )
 
     testing_data = TestDataPSDMetricBuresWasserstein()
-
-    def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
-        metric = PSDMetricBuresWasserstein(n, n)
-        result = metric.inner_product(
-            gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
-        )
-        self.assertAllClose(result, gs.array(expected))
 
     def test_exp(self, n, tangent_vec, base_point, expected):
         metric = PSDMetricBuresWasserstein(n, n)

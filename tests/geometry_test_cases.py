@@ -744,9 +744,14 @@ class ConnectionTestCase(TestCase):
         geodesic = connection.geodesic(
             initial_point=base_point, initial_tangent_vec=tangent_vec
         )
-        t = gs.linspace(start=0.0, stop=1.0, num=n_points)
+        t = (
+            gs.linspace(start=0.0, stop=1.0, num=n_points)
+            if n_points > 1
+            else gs.ones(1)
+        )
         points = geodesic(t)
-        result = points[:, -1]
+        multiple_inputs = tangent_vec.ndim > len(connection.shape)
+        result = points[:, -1] if multiple_inputs else points[-1]
         expected = connection.exp(tangent_vec, base_point)
         self.assertAllClose(expected, result, rtol=rtol, atol=atol)
 
