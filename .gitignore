@@ -143,3 +143,6 @@ venv/
 
 #air speed velocity
 .asv/
+
+# pick files
+*.pkl

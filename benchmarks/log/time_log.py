@@ -7,7 +7,7 @@ import pytest
 def read_benchmark_exp_data():
     data = []
     ids = []
-    df = pd.read_pickle("benchmark_exp.pkl")
+    df = pd.read_pickle("benchmark_params.pkl")
     params = list(df.itertuples(index=False))
     print(params)
     for (
@@ -15,7 +15,7 @@ def read_benchmark_exp_data():
         module,
         metric,
         n_samples,
-        exp_kwargs,
+        log_kwargs,
         manifold_args,
         metric_args,
     ) in params:
@@ -28,8 +28,8 @@ def read_benchmark_exp_data():
         metric = getattr(module, metric)(*metric_args)
         base_point = manifold.random_point(n_samples)
         point = manifold.random_point(n_samples)
-        exp_args = (point, base_point)
-        data.append((metric, exp_args, exp_kwargs))
+        log_args = (point, base_point)
+        data.append((metric, log_args, log_kwargs))
 
     return (data, ids)
 
@@ -38,7 +38,7 @@ data, ids = read_benchmark_exp_data()
 
 
 @pytest.mark.parametrize("metric, log_args, log_kwargs", data, ids=ids)
-def test_benchmark_exp(metric, exp_args, exp_kwargs, benchmark):
+def test_benchmark_log(metric, log_args, log_kwargs, benchmark):
     benchmark.pedantic(
-        metric.log, args=exp_args, kwargs=exp_kwargs, iterations=10, rounds=10
+        metric.log, args=log_args, kwargs=log_kwargs, iterations=10, rounds=10
     )

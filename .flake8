@@ -1,7 +1,7 @@
 [flake8]
 application_import_names = geomstats
 docstring-convention = numpy
-exclude = examples/*.ipynb
+exclude = examples/*.ipynb, benchmarks/*
 ignore = W503, W504
 import_order_style = smarkets
 max-line-length = 88
@@ -15,3 +15,4 @@ per-file-ignores =
     geomstats/tests.py : D101, D102
     tests/*: D100, D101, D102, D103, D106, D200, D201, D205, D400, D404, I100, I101, I201, I202
     */__init__.py: D104
+

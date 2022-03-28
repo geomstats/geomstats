@@ -7,7 +7,7 @@ import pytest
 def read_benchmark_exp_data():
     data = []
     ids = []
-    df = pd.read_pickle("benchmark_exp.pkl")
+    df = pd.read_pickle("./benchmark_params.pkl")
     params = list(df.itertuples(index=False))
     print(params)
     for (
