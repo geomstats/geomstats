@@ -52,7 +52,7 @@ def test_benchmark_exp(metric, exp_args, exp_kwargs, benchmark):
     exp_args : tuple
         Arguments to exp function.
     exp_kwargs : tuple
-        Keyword argumetns to exp function.
+        Keyword arguments to exp function.
     """
     benchmark.pedantic(
         metric.exp, args=exp_args, kwargs=exp_kwargs, iterations=10, rounds=10

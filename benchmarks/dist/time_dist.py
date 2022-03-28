@@ -52,7 +52,7 @@ def test_benchmark_dist(metric, dist_args, dist_kwargs, benchmark):
     dist_args : tuple
         Arguments to dist function.
     dist_kwargs : tuple
-        Keyword argumetns to dist function.
+        Keyword arguments to dist function.
     """
     benchmark.pedantic(
         metric.dist, args=dist_args, kwargs=dist_kwargs, iterations=10, rounds=10
