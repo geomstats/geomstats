@@ -53,7 +53,7 @@ def spd_manifold_params(n_samples):
         ]
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args_re[i], metric_args[i])]
         return params
 
@@ -63,7 +63,7 @@ def spd_manifold_params(n_samples):
         metric_args = manifold_args
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
@@ -77,7 +77,7 @@ def spd_manifold_params(n_samples):
         ]
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args_re[i], metric_args[i])]
         return params
 
@@ -87,7 +87,7 @@ def spd_manifold_params(n_samples):
         metric_args = manifold_args
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
@@ -126,7 +126,7 @@ def stiefel_params(n_samples):
         metric_args = manifold_args
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
@@ -156,7 +156,7 @@ def pre_shape_params(n_samples):
         metric_args = manifold_args
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
@@ -186,7 +186,7 @@ def positive_lower_triangular_matrices_params(n_samples):
         metric_args = manifold_args
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
@@ -216,7 +216,7 @@ def minkowski_params(n_samples):
         metric_args = manifold_args
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
@@ -246,7 +246,7 @@ def matrices_params(n_samples):
         metric_args = manifold_args
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
@@ -276,7 +276,7 @@ def hypersphere_params(n_samples):
         metric_args = manifold_args
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
@@ -306,7 +306,7 @@ def grassmanian_params(n_samples):
         metric_args = manifold_args
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
@@ -336,7 +336,7 @@ def full_rank_correlation_matrices_params(n_samples):
         metric_args = manifold_args
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
@@ -366,7 +366,7 @@ def hyperboloid_params(n_samples):
         metric_args = manifold_args
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
@@ -396,7 +396,7 @@ def poincare_ball_params(n_samples):
         metric_args = manifold_args
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
@@ -426,7 +426,7 @@ def poincare_half_space_params(n_samples):
         metric_args = manifold_args
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
@@ -456,7 +456,7 @@ def poincare_polydisk_params(n_samples):
         metric_args = manifold_args
         kwargs = {}
         common = (manifold, module, metric, n_samples, kwargs)
-        for i in range(len(manifold_args)):
+        for i in range(enumerate(manifold_args)):
             params += [common + (manifold_args[i], metric_args[i])]
         return params
 
