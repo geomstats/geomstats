@@ -52,7 +52,7 @@ def test_benchmark_log(metric, log_args, log_kwargs, benchmark):
     log_args : tuple
         Arguments to log function.
     log_kwargs : tuple
-        Keyword argumetns to log function.
+        Keyword arguments to log function.
     """
     benchmark.pedantic(
         metric.log, args=log_args, kwargs=log_kwargs, iterations=10, rounds=10
