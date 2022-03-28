@@ -1,0 +1,8 @@
+lname: General question
+description: Ask a genreal question.
+labels: question
+body:
+  - type: textarea
+    id: comment
+    attributes:
+       label: "Your question:"
