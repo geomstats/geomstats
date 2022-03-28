@@ -31,19 +31,19 @@ def spd_manifold_params(n_samples):
 
     Parameters
     ----------
-        n_samples : int
-            Number of samples to be used.
+    n_samples : int
+        Number of samples to be used.
 
     Returns
     -------
-        _:list.
+    _ : list.
         List of params.
     """
     manifold = "SPDMatrices"
     manifold_args = [(2,), (5,), (10,)]
     module = "geomstats.geometry.spd_matrices"
 
-    def affine_metric_params():
+    def spd_affine_metric_params():
         params = []
         metric = "SPDMetricAffine"
         power_args = [-0.5, 1, 0.5]
@@ -52,7 +52,7 @@ def spd_manifold_params(n_samples):
             item for item in manifold_args for i in range(len(power_args))
         ]
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args_re, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -62,7 +62,7 @@ def spd_manifold_params(n_samples):
         metric = "SPDMetricBuresWasserstein"
         metric_args = manifold_args
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -76,7 +76,7 @@ def spd_manifold_params(n_samples):
             item for item in manifold_args for i in range(len(power_args))
         ]
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args_re, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -86,7 +86,7 @@ def spd_manifold_params(n_samples):
         metric = "SPDMetricLogEuclidean"
         metric_args = manifold_args
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -95,7 +95,7 @@ def spd_manifold_params(n_samples):
         chain(
             *[
                 bures_wasserstein_metric_params(),
-                affine_metric_params(),
+                spd_affine_metric_params(),
                 euclidean_metric_params(),
                 log_euclidean_metric_params(),
             ]
@@ -108,12 +108,12 @@ def stiefel_params(n_samples):
 
     Parameters
     ----------
-        n_samples : int
-            Number of samples to be used.
+    n_samples : int
+        Number of samples to be used.
 
     Returns
     -------
-        _:list.
+    _ : list.
         List of params.
     """
     manifold = "Stiefel"
@@ -125,7 +125,7 @@ def stiefel_params(n_samples):
         metric = "StiefelCanonicalMetric"
         metric_args = manifold_args
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -138,12 +138,12 @@ def pre_shape_params(n_samples):
 
     Parameters
     ----------
-        n_samples : int
-            Number of samples to be used.
+    n_samples : int
+        Number of samples to be used.
 
     Returns
     -------
-        _:list.
+    _ : list.
         List of params.
     """
     manifold = "PreShapeSpace"
@@ -155,7 +155,7 @@ def pre_shape_params(n_samples):
         metric = "PreShapeMetric"
         metric_args = manifold_args
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -168,12 +168,12 @@ def positive_lower_triangular_matrices_params(n_samples):
 
     Parameters
     ----------
-        n_samples : int
-            Number of samples to be used.
+    n_samples : int
+        Number of samples to be used.
 
     Returns
     -------
-        _:list.
+    _ : list.
         List of params.
     """
     manifold = "PositiveLowerTriangularMatrices"
@@ -185,7 +185,7 @@ def positive_lower_triangular_matrices_params(n_samples):
         metric = "CholeskyMetric"
         metric_args = manifold_args
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -198,12 +198,12 @@ def minkowski_params(n_samples):
 
     Parameters
     ----------
-        n_samples : int
-            Number of samples to be used.
+    n_samples : int
+        Number of samples to be used.
 
     Returns
     -------
-        _:list.
+    _ : list.
         List of params.
     """
     manifold = "Minkowski"
@@ -215,7 +215,7 @@ def minkowski_params(n_samples):
         metric = "MinkowskiMetric"
         metric_args = manifold_args
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -228,12 +228,12 @@ def matrices_params(n_samples):
 
     Parameters
     ----------
-        n_samples : int
-            Number of samples to be used.
+    n_samples : int
+        Number of samples to be used.
 
     Returns
     -------
-        _:list.
+    _ : list.
         List of params.
     """
     manifold = "Matrices"
@@ -245,7 +245,7 @@ def matrices_params(n_samples):
         metric = "MatricesMetric"
         metric_args = manifold_args
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -258,12 +258,12 @@ def hypersphere_params(n_samples):
 
     Parameters
     ----------
-        n_samples : int
-            Number of samples to be used.
+    n_samples : int
+        Number of samples to be used.
 
     Returns
     -------
-        _:list.
+    _ : list.
         List of params.
     """
     manifold = "Hypersphere"
@@ -275,7 +275,7 @@ def hypersphere_params(n_samples):
         metric = "HypersphereMetric"
         metric_args = manifold_args
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -288,12 +288,12 @@ def grassmanian_params(n_samples):
 
     Parameters
     ----------
-        n_samples : int
-            Number of samples to be used.
+    n_samples : int
+        Number of samples to be used.
 
     Returns
     -------
-        _:list.
+    _ : list.
         List of params.
     """
     manifold = "Grassmannian"
@@ -305,7 +305,7 @@ def grassmanian_params(n_samples):
         metric = "GrassmannianCanonicalMetric"
         metric_args = manifold_args
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -318,29 +318,29 @@ def full_rank_correlation_matrices_params(n_samples):
 
     Parameters
     ----------
-        n_samples : int
-            Number of samples to be used.
+    n_samples : int
+        Number of samples to be used.
 
     Returns
     -------
-        _:list.
+    _ : list.
         List of params.
     """
     manifold = "FullRankCorrelationMatrices"
     manifold_args = [(3,), (5,)]
     module = "geomstats.geometry.full_rank_correlation_matrices"
 
-    def full_rank_correlation_matrices_metric_params():
+    def full_rank_correlation_affine_quotient_metric_params():
         params = []
         metric = "FullRankCorrelationAffineQuotientMetric"
         metric_args = manifold_args
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
 
-    return full_rank_correlation_matrices_metric_params()
+    return full_rank_correlation_affine_quotient_metric_params()
 
 
 def hyperboloid_params(n_samples):
@@ -348,12 +348,12 @@ def hyperboloid_params(n_samples):
 
     Parameters
     ----------
-        n_samples : int
-            Number of samples to be used.
+    n_samples : int
+        Number of samples to be used.
 
     Returns
     -------
-        _:list.
+    _ : list.
         List of params.
     """
     manifold = "Hyperboloid"
@@ -365,7 +365,7 @@ def hyperboloid_params(n_samples):
         metric = "HyperboloidMetric"
         metric_args = manifold_args
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -378,12 +378,12 @@ def poincare_ball_params(n_samples):
 
     Parameters
     ----------
-        n_samples : int
-            Number of samples to be used.
+    n_samples : int
+        Number of samples to be used.
 
     Returns
     -------
-        _:list.
+    _ : list.
         List of params.
     """
     manifold = "PoincareBall"
@@ -395,7 +395,7 @@ def poincare_ball_params(n_samples):
         metric = "PoincareBallMetric"
         metric_args = manifold_args
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -408,12 +408,12 @@ def poincare_half_space_params(n_samples):
 
     Parameters
     ----------
-        n_samples : int
-            Number of samples to be used.
+    n_samples : int
+        Number of samples to be used.
 
     Returns
     -------
-        _:list.
+    _ : list.
         List of params.
     """
     manifold = "PoincareHalfSpace"
@@ -425,7 +425,7 @@ def poincare_half_space_params(n_samples):
         metric = "PoincareHalfSpaceMetric"
         metric_args = manifold_args
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -438,12 +438,12 @@ def poincare_polydisk_params(n_samples):
 
     Parameters
     ----------
-        n_samples : int
-            Number of samples to be used.
+    n_samples : int
+        Number of samples to be used.
 
     Returns
     -------
-        _:list.
+    _ : list.
         List of params.
     """
     manifold = "PoincarePolydisk"
@@ -455,7 +455,7 @@ def poincare_polydisk_params(n_samples):
         metric = "PoincarePolydiskMetric"
         metric_args = manifold_args
         kwargs = {}
-        common = (manifold, module, metric, n_samples, kwargs)
+        common = manifold, module, metric, n_samples, kwargs
         for manifold_arg, metric_arg in zip(manifold_args, metric_args):
             params += [common + (manifold_arg, metric_arg)]
         return params
@@ -483,12 +483,12 @@ def generate_benchmark_params(manifold="all", n_samples=10):
 
     Parameters
     ----------
-        manifold : str
-            Manifold name or all.
-            Optional, default "all".
-        n_samples : int
-            Number of samples.
-            Optional, default 10.
+    manifold : str
+        Manifold name or all.
+        Optional, default "all".
+    n_samples : int
+        Number of samples.
+        Optional, default 10.
     """
     params_list = []
     manifolds_list = manifolds if manifold == "all" else [manifold]
