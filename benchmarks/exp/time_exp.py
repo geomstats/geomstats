@@ -12,22 +12,22 @@ def read_benchmark_exp_data():
     print(params)
     for (
         manifold,
+        module,
         metric,
+        n_samples,
+        exp_kwargs,
         manifold_args,
         metric_args,
-        exp_kwargs,
-        module,
-        n_samples,
     ) in params:
         ids.append(
-            metric + "metric_args= " + str(metric_args) + "samples= " + str(n_samples)
+            metric + " metric_args= " + str(metric_args) + " samples= " + str(n_samples)
         )
 
         module = import_module(module)
         manifold = getattr(module, manifold)(*manifold_args)
         metric = getattr(module, metric)(*metric_args)
         base_point = manifold.random_point(n_samples)
-        tangent_vec = manifold.random_tangent_vec(n_samples)
+        tangent_vec = manifold.random_tangent_vec(n_samples, base_point)
         exp_args = (tangent_vec, base_point)
         data.append((metric, exp_args, exp_kwargs))
 
