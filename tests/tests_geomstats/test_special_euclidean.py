@@ -683,20 +683,20 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
     skip_test_squared_dist_is_symmetric = True
 
     class SpecialEuclideanMatrixCanonicalRightMetricTestData(_RiemannianMetricTestData):
-        n_list = random.sample(range(2, 4), 2)
+        n_list = [2]
         metric_args_list = [
             (SpecialEuclidean(n), gs.eye(SpecialEuclidean(n).dim), "right")
             for n in n_list
         ]
         shape_list = [(n + 1, n + 1) for n in n_list]
         space_list = [SpecialEuclidean(n) for n in n_list]
-        n_points_list = random.sample(range(1, 4), 2)
-        n_tangent_vecs_list = random.sample(range(1, 4), 2)
-        n_points_a_list = random.sample(range(1, 4), 2)
+        n_points_list = random.sample(range(1, 4), 1)
+        n_tangent_vecs_list = random.sample(range(1, 4), 1)
+        n_points_a_list = random.sample(range(1, 4), 1)
         n_points_b_list = [1]
-        alpha_list = [1] * 2
-        n_rungs_list = [1] * 2
-        scheme_list = ["pole"] * 2
+        alpha_list = [1] * 1
+        n_rungs_list = [1] * 1
+        scheme_list = ["pole"] * 1
 
         def exp_shape_test_data(self):
             return self._exp_shape_test_data(

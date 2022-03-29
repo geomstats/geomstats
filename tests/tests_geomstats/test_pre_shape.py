@@ -425,6 +425,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         is_horizontal = space.is_horizontal(result, base_point)
         self.assertTrue(is_horizontal)
 
+    @geomstats.tests.np_and_autograd_only
     def test_integrability_tensor_old(
         self, k_landmarks, m_ambient, tangent_vec_x, tangent_vec_e, base_point
     ):
@@ -436,6 +437,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         expected = space.integrability_tensor(tangent_vec_x, tangent_vec_e, base_point)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_autograd_only
     def test_integrability_tensor_derivative_is_alternate(
         self,
         k_landmarks,
@@ -523,6 +525,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
+    @geomstats.tests.np_and_autograd_only
     def test_integrability_tensor_derivative_reverses_hor_ver(
         self,
         k_landmarks,
