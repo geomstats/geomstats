@@ -23,14 +23,13 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_shape = np_backend()
     skip_test_geodesic_ivp_belongs = True
-    skip_test_exp_log_composition = np_backend()
     skip_test_exp_ladder_parallel_transport = np_backend()
     skip_test_log_is_tangent = np_backend()
     skip_test_log_shape = np_backend()
     skip_test_geodesic_bvp_belongs = np_backend()
-    skip_test_log_exp_composition = np_backend()
+    skip_test_log_then_exp = np_backend()
     skip_test_geodesic_bvp_belongs = True
-    skip_test_exp_log_composition = True
+    skip_test_exp_then_log = True
 
     class InvariantMetricTestData(_RiemannianMetricTestData):
         group = SpecialEuclidean(n=3, point_type="vector")
@@ -473,8 +472,8 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 100000,
             )
 
-        def log_exp_composition_test_data(self):
-            return self._log_exp_composition_test_data(
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -482,8 +481,8 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=1e-1,
             )
 
-        def exp_log_composition_test_data(self):
-            return self._exp_log_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
