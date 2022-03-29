@@ -28,7 +28,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+/dist/
 downloads/
 eggs/
 .eggs/
@@ -143,3 +143,6 @@ venv/
 
 #air speed velocity
 .asv/
+
+# pick files
+*.pkl
