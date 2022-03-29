@@ -4,12 +4,21 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.rank_k_psd_matrices import (
+    BuresWassersteinBundle,
     PSDMatrices,
     PSDMetricBuresWasserstein,
 )
 from tests.conftest import Parametrizer
-from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
-from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
+from tests.data_generation import (
+    _FiberBundleTestData,
+    _ManifoldTestData,
+    _RiemannianMetricTestData,
+)
+from tests.geometry_test_cases import (
+    FiberBundleTestCase,
+    ManifoldTestCase,
+    RiemannianMetricTestCase,
+)
 
 
 class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
@@ -84,14 +93,44 @@ class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
         self.assertAllClose(space.belongs(gs.array(mat)), gs.array(expected))
 
 
+class TestBuresWassersteinBundle(FiberBundleTestCase, metaclass=Parametrizer):
+    space = BuresWassersteinBundle
+
+    class BuresWassersteinBundleTestData(_FiberBundleTestData):
+        n_list = random.sample(range(3, 5), 2)
+        k_list = [n - 1 for n in n_list]
+        space_args_list = list(zip(n_list, k_list))
+        shape_list = [(n, n) for n in n_list]
+        n_points_list = random.sample(range(2, 5), 2)
+        n_vecs_list = random.sample(range(2, 5), 2)
+
+        def is_horizontal_after_horizontal_projection_test_data(self):
+            return self._is_horizontal_after_horizontal_projection_test_data(
+                BuresWassersteinBundle,
+                self.space_args_list,
+                self.n_points_list,
+                gs.rtol,
+                gs.atol,
+            )
+
+        def is_vertical_after_vertical_projection_test_data(self):
+            return self._is_vertical_after_vertical_projection_test_data(
+                BuresWassersteinBundle,
+                self.space_args_list,
+                self.n_points_list,
+                gs.rtol,
+                gs.atol,
+            )
+
+    testing_data = BuresWassersteinBundleTestData()
+
+
 class TestPSDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     space = PSDMatrices
     metric = connection = PSDMetricBuresWasserstein
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
-    # skip_test_exp_geodesic_ivp = True
-    # skip_test_log_exp_composition = True
     skip_test_exp_log_composition = True
 
     class TestDataPSDMetricBuresWasserstein(_RiemannianMetricTestData):

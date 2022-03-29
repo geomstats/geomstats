@@ -457,6 +457,24 @@ class LevelSetTestCase(ManifoldTestCase):
         self.assertAllClose(result, expected, rtol, atol)
 
 
+class FiberBundleTestCase(TestCase):
+    def test_is_horizontal_after_horizontal_projection(
+        self, space_args, tangent_vec, base_point, rtol, atol
+    ):
+        space = self.space(*space_args)
+        horizontal = space.horizontal_projection(tangent_vec, base_point)
+        result = space.is_horizontal(horizontal, base_point, atol)
+        self.assertTrue(gs.all(result))
+
+    def test_is_vertical_after_vertical_projection(
+        self, space_args, tangent_vec, base_point, rtol, atol
+    ):
+        space = self.space(*space_args)
+        vertical = space.vertical_projection(tangent_vec, base_point)
+        result = space.is_vertical(vertical, base_point, atol)
+        self.assertTrue(gs.all(result))
+
+
 class ConnectionTestCase(TestCase):
     def test_exp_shape(self, connection_args, tangent_vec, base_point, expected):
         """Check that exp returns an array of the expected shape.
