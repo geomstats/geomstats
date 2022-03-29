@@ -20,3 +20,4 @@ python generate_benchmark_params.py
 pytest exp/time_exp.py  --benchmark-columns='min, max'  --benchmark-sort='fullname'
 pytest log/time_log.py  --benchmark-columns='min, max'  --benchmark-sort='fullname'
 pytest dist/time_dist.py --benchmark-columns='min, max'  --benchmark-sort='fullname'
+pytest inner_produuct/time_inner_product.py --benchmark-columns='min, max'  --benchmark-sort='fullname'
