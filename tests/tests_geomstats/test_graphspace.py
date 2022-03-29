@@ -2,16 +2,15 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.graphspace import GraphSpace, GraphSpaceMetric
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer, TestCase
 from tests.data_generation import TestData
-from tests.parametrizers import Parametrizer
 
 
 class TestGraphSpace(TestCase, metaclass=Parametrizer):
     space = GraphSpace
 
-    class TestDataGraphSpace(TestData):
-        def belongs_data(self):
+    class GraphSpaceTestData(TestData):
+        def belongs_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
@@ -24,11 +23,11 @@ class TestGraphSpace(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             smoke_data = [dict(n=2, n_points=1), dict(n=2, n_points=10)]
             return self.generate_tests(smoke_data)
 
-        def permute_data(self):
+        def permute_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -39,7 +38,7 @@ class TestGraphSpace(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataGraphSpace()
+    testing_data = GraphSpaceTestData()
 
     def test_random_point_belongs(self, n, n_points):
         space = self.space(n)
@@ -60,8 +59,8 @@ class TestGraphSpace(TestCase, metaclass=Parametrizer):
 class TestGraphSpaceMetric(TestCase, metaclass=Parametrizer):
     metric = GraphSpaceMetric
 
-    class TestDataGraphSpaceMetric(TestData):
-        def matchers_data(self):
+    class GraphSpaceMetricTestData(TestData):
+        def matchers_test_data(self):
             smoke_data = [
                 dict(
                     n=2,
@@ -72,7 +71,7 @@ class TestGraphSpaceMetric(TestCase, metaclass=Parametrizer):
 
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataGraphSpaceMetric()
+    testing_data = GraphSpaceMetricTestData()
 
     def test_matchers(self, n, set1, set2):
         metric = self.metric(n)

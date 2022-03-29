@@ -14,9 +14,9 @@ from geomstats.geometry.product_manifold import (
 )
 from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from tests.conftest import TestCase
-from tests.data_generation import ManifoldTestData, RiemannianMetricTestData
-from tests.parametrizers import ManifoldParametrizer, RiemannianMetricParametrizer
+from tests.conftest import Parametrizer
+from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
+from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 smoke_manifolds_1 = [Hypersphere(dim=2), Hyperboloid(dim=2)]
 smoke_metrics_1 = [Hypersphere(dim=2).metric, Hyperboloid(dim=2).metric]
@@ -25,10 +25,12 @@ smoke_manifolds_2 = [Euclidean(3), Minkowski(3)]
 smoke_metrics_2 = [Euclidean(3).metric, Minkowski(3).metric]
 
 
-class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
+class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
     space = ProductManifold
+    skip_test_random_tangent_vec_is_tangent = True
+    skip_test_projection_belongs = True
 
-    class TestDataProductManifold(ManifoldTestData):
+    class ProductManifoldTestData(_ManifoldTestData):
 
         n_list = random.sample(range(2, 4), 2)
         default_point_list = ["vector", "matrix"]
@@ -41,11 +43,10 @@ class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
             (n + 1, n + 1) if default_point == "matrix" else (2 * (n + 1),)
             for n, default_point in zip(n_list, default_point_list)
         ]
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
-        def dimension_data(self):
+        def dimension_test_data(self):
             smoke_data = [
                 dict(
                     manifold=smoke_manifolds_1,
@@ -60,7 +61,7 @@ class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def regularize_data(self):
+        def regularize_test_data(self):
             smoke_data = [
                 dict(
                     manifold=smoke_manifolds_1,
@@ -79,36 +80,45 @@ class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             smoke_space_args_list = [
                 (smoke_manifolds_1, None, "vector"),
                 (smoke_manifolds_1, None, "matrix"),
             ]
             smoke_n_points_list = [1, 2]
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
                 self.n_points_list,
             )
 
-        def projection_belongs_data(self):
-            return self._projection_belongs_data(
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
                 self.space_args_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_points_list,
                 belongs_atol=1e-1,
             )
 
-        def to_tangent_is_tangent_data(self):
-            return self._to_tangent_is_tangent_data(
+        def to_tangent_is_tangent_test_data(self):
+            return self._to_tangent_is_tangent_test_data(
                 ProductManifold,
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
             )
 
-    testing_data = TestDataProductManifold()
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                ProductManifold,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
+            )
+
+    testing_data = ProductManifoldTestData()
 
     def test_dimension(self, manifolds, default_point_type, expected):
         space = self.space(manifolds, default_point_type=default_point_type)
@@ -120,15 +130,13 @@ class TestProductManifold(TestCase, metaclass=ManifoldParametrizer):
         self.assertAllClose(result, point)
 
 
-class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = ProductRiemannianMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
-    skip_test_exp_shape = True
-    skip_test_log_shape = True
 
-    class TestDataProductRiemannianMetric(RiemannianMetricTestData):
+    class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 3), 1)
         default_point_list = ["vector", "matrix"]
         manifolds_list = [[Hypersphere(dim=n), Hyperboloid(dim=n)] for n in n_list]
@@ -145,15 +153,14 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
             for manifolds, default_point_type in zip(manifolds_list, default_point_list)
         ]
         n_points_list = random.sample(range(2, 5), 1)
-        n_samples_list = random.sample(range(2, 5), 1)
+        n_tangent_vecs_list = random.sample(range(2, 5), 1)
         n_points_a_list = random.sample(range(2, 5), 1)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 5), 1)
         alpha_list = [1] * 1
         n_rungs_list = [1] * 1
         scheme_list = ["pole"] * 1
 
-        def inner_product_matrix_data(self):
+        def inner_product_matrix_test_data(self):
             smoke_data = [
                 dict(
                     metric=smoke_metrics_2,
@@ -178,23 +185,16 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
+                self.metric_args_list, self.space_list, self.shape_list
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
-                self.metric_args_list,
-                self.space_list,
-                self.batch_size_list,
-            )
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(self.metric_args_list, self.space_list)
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -202,25 +202,25 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=1e-1,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -228,84 +228,84 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
                 belongs_atol=gs.atol * 1000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 1000,
                 atol=1e-1,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 amplitude=10,
                 rtol=gs.rtol * 1000,
                 atol=1e-1,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 100000,
                 atol=gs.atol * 100000,
             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
 
-        def inner_product_matrix_vector_data(self):
+        def inner_product_matrix_vector_test_data(self):
             random_data = [
                 dict(default_point_type="matrix"),
                 dict(default_point_type="vector"),
             ]
             return self.generate_tests([], random_data)
 
-        def dist_log_exp_norm_data(self):
+        def dist_log_then_exp_norm_test_data(self):
             smoke_data = [
                 dict(
                     space=smoke_manifolds_1,
@@ -326,7 +326,7 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataProductRiemannianMetric()
+    testing_data = ProductRiemannianMetricTestData()
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_inner_product_matrix(
@@ -350,7 +350,7 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
-    def test_dist_log_exp_norm(
+    def test_dist_log_then_exp_norm(
         self, manifolds, default_point_type, n_samples, einsum_str, expected
     ):
         space = ProductManifold(
@@ -370,20 +370,20 @@ class TestProductRiemannianMetric(TestCase, metaclass=RiemannianMetricParametriz
         self.assertAllClose(result, expected)
 
 
-class TestNFoldManifold(TestCase, metaclass=ManifoldParametrizer):
+class TestNFoldManifold(ManifoldTestCase, metaclass=Parametrizer):
     space = NFoldManifold
+    skip_test_random_tangent_vec_is_tangent = True
 
-    class TestDataNFoldManifold(ManifoldTestData):
+    class NFoldManifoldTestData(_ManifoldTestData):
         n_list = random.sample(range(2, 4), 2)
         base_list = [SpecialOrthogonal(n) for n in n_list]
         power_list = random.sample(range(2, 4), 2)
         space_args_list = list(zip(base_list, power_list))
         shape_list = [(power, n, n) for n, power in zip(n_list, power_list)]
-        n_samples_list = random.sample(range(2, 5), 2)
         n_points_list = random.sample(range(2, 5), 2)
         n_vecs_list = random.sample(range(2, 5), 2)
 
-        def belongs_data(self):
+        def belongs_test_data(self):
             smoke_data = [
                 dict(
                     base=SpecialOrthogonal(3),
@@ -400,38 +400,43 @@ class TestNFoldManifold(TestCase, metaclass=ManifoldParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def shape_data(self):
+        def shape_test_data(self):
             smoke_data = [dict(base=SpecialOrthogonal(3), power=2, shape=(2, 3, 3))]
             return self.generate_tests(smoke_data)
 
-        def random_point_belongs_data(self):
+        def random_point_belongs_test_data(self):
             smoke_space_args_list = [
                 (SpecialOrthogonal(2), 2),
                 (SpecialOrthogonal(2), 2),
             ]
             smoke_n_points_list = [1, 2]
-            return self._random_point_belongs_data(
+            return self._random_point_belongs_test_data(
                 smoke_space_args_list,
                 smoke_n_points_list,
                 self.space_args_list,
                 self.n_points_list,
             )
 
-        def projection_belongs_data(self):
-            return self._projection_belongs_data(
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
                 self.space_args_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_points_list,
                 belongs_atol=1e-1,
             )
 
-        def to_tangent_is_tangent_data(self):
-            return self._to_tangent_is_tangent_data(
+        def to_tangent_is_tangent_test_data(self):
+            return self._to_tangent_is_tangent_test_data(
                 NFoldManifold,
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
+            )
+
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                NFoldManifold, self.space_args_list, self.n_vecs_list
             )
 
     def test_belongs(self, base, power, point, expected):
@@ -442,10 +447,10 @@ class TestNFoldManifold(TestCase, metaclass=ManifoldParametrizer):
         space = self.space(base, power)
         self.assertAllClose(space.shape, expected)
 
-    testing_data = TestDataNFoldManifold()
+    testing_data = NFoldManifoldTestData()
 
 
-class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = NFoldMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
@@ -455,7 +460,7 @@ class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_log_is_tangent = True
     skip_test_squared_dist_is_symmetric = True
 
-    class TestDataNFoldMetric(RiemannianMetricTestData):
+    class NFoldMetricTestData(_RiemannianMetricTestData):
 
         n_list = random.sample(range(3, 5), 2)
         power_list = random.sample(range(2, 5), 2)
@@ -466,31 +471,23 @@ class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             NFoldManifold(base, power) for base, power in zip(base_list, power_list)
         ]
         n_points_list = random.sample(range(2, 5), 2)
-        n_samples_list = random.sample(range(2, 5), 2)
+        n_tangent_vecs_list = random.sample(range(2, 5), 2)
         n_points_a_list = random.sample(range(2, 5), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 5), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
 
-        def exp_shape_data(self):
-            return self._exp_shape_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.batch_size_list,
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
+                self.metric_args_list, self.space_list, self.shape_list
             )
 
-        def log_shape_data(self):
-            return self._log_shape_data(
-                self.metric_args_list,
-                self.space_list,
-                self.batch_size_list,
-            )
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(self.metric_args_list, self.space_list)
 
-        def squared_dist_is_symmetric_data(self):
-            return self._squared_dist_is_symmetric_data(
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
@@ -498,25 +495,25 @@ class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def exp_belongs_data(self):
-            return self._exp_belongs_data(
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_is_tangent_data(self):
-            return self._log_is_tangent_data(
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 is_tangent_atol=1e-1,
             )
 
-        def geodesic_ivp_belongs_data(self):
-            return self._geodesic_ivp_belongs_data(
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -524,77 +521,77 @@ class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 belongs_atol=gs.atol * 100000,
             )
 
-        def geodesic_bvp_belongs_data(self):
-            return self._geodesic_bvp_belongs_data(
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
                 belongs_atol=gs.atol * 100000,
             )
 
-        def log_exp_composition_data(self):
-            return self._log_exp_composition_data(
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
+                self.n_points_list,
                 rtol=gs.rtol * 10000,
                 atol=1e-1,
             )
 
-        def exp_log_composition_data(self):
-            return self._exp_log_composition_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 amplitude=10.0,
                 rtol=gs.rtol * 10000,
                 atol=1e-1,
             )
 
-        def exp_ladder_parallel_transport_data(self):
-            return self._exp_ladder_parallel_transport_data(
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_rungs_list,
                 self.alpha_list,
                 self.scheme_list,
             )
 
-        def exp_geodesic_ivp_data(self):
-            return self._exp_geodesic_ivp_data(
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 self.n_points_list,
                 rtol=gs.rtol * 100000,
                 atol=gs.atol * 100000,
             )
 
-        def parallel_transport_ivp_is_isometry_data(self):
-            return self._parallel_transport_ivp_is_isometry_data(
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
 
-        def parallel_transport_bvp_is_isometry_data(self):
-            return self._parallel_transport_bvp_is_isometry_data(
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
-                self.n_samples_list,
+                self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
 
-        def inner_product_shape_data(self):
+        def inner_product_shape_test_data(self):
             space = NFoldManifold(SpecialOrthogonal(3), 2)
             n_samples = 4
             point = gs.stack([gs.eye(3)] * space.n_copies * n_samples)
@@ -605,7 +602,7 @@ class TestNFoldMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataNFoldMetric()
+    testing_data = NFoldMetricTestData()
 
     def test_inner_product_shape(self, space, n_samples, point, tangent_vec):
         result = space.metric.inner_product(tangent_vec, tangent_vec, point)
