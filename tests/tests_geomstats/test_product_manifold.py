@@ -114,7 +114,7 @@ class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
                 ProductManifold,
                 self.space_args_list,
                 self.n_vecs_list,
-                atol=gs.atol * 100,
+                is_tangent_atol=gs.atol * 100,
             )
 
     testing_data = ProductManifoldTestData()
