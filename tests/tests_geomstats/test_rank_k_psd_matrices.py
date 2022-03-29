@@ -246,8 +246,8 @@ class TestPSDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
                 self.shape_list,
                 self.n_samples_list,
                 self.n_points_list,
-                rtol=gs.rtol * 100000,
-                atol=gs.atol * 100000,
+                rtol=gs.rtol,
+                atol=gs.atol,
             )
 
         def parallel_transport_ivp_is_isometry_test_data(self):
