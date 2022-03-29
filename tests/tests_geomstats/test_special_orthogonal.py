@@ -81,7 +81,7 @@ if tf_backend():
 
 class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
     space = group = SpecialOrthogonal
-    skip_test_log_exp_composition = pytorch_backend()
+    skip_test_log_then_exp = pytorch_backend()
 
     class SpecialOrthogonalTestData(_LieGroupTestData):
         n_list = random.sample(range(2, 4), 2)
@@ -434,8 +434,8 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
                 n_points_list,
             )
 
-        def exp_log_composition_test_data(self):
-            return self._exp_log_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 SpecialOrthogonal,
                 self.space_args_list,
                 self.shape_list,
@@ -445,8 +445,8 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def log_exp_composition_test_data(self):
-            return self._log_exp_composition_test_data(
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
                 SpecialOrthogonal,
                 self.space_args_list,
                 self.n_points_list,
@@ -1167,8 +1167,8 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_test_data(self):
-            return self._log_exp_composition_test_data(
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -1176,8 +1176,8 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_log_composition_test_data(self):
-            return self._exp_log_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1230,7 +1230,7 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def log_exp_intrinsic_ball_extrinsic_test_data(self):
+        def log_then_exp_intrinsic_ball_extrinsic_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
