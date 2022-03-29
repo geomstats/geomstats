@@ -297,6 +297,45 @@ class VectorSpaceTestCase(ManifoldTestCase):
         basis = space.basis
         self.assertAllClose(len(basis), space.dim)
 
+    def test_random_point_is_tangent(self, space_args, n_points, is_tangent_atol):
+        """Check that the random point is tangent.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the vector space.
+        n_points : array-like
+            Number of random points to sample.
+        is_tangent_atol : float
+            Absolute tolerance for the is_tangent function.
+        """
+        space = self.space(*space_args)
+        points = space.random_point(n_points)
+        base_point = space.random_point()
+        result = space.is_tangent(points, base_point, is_tangent_atol)
+        self.assertAllClose(gs.all(result), gs.array(True))
+
+    def test_to_tangent_is_projection(self, space_args, vector, base_point, rtol, atol):
+        """Check that to_tangent is same as projection.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the vector space.
+        vector : array-like
+            Vector to be projected on the tangent space at base_point.
+        base_point : array-like
+            Point on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        space = self.space(*space_args)
+        result = space.to_tangent(vector, base_point)
+        expected = space.projection(vector)
+        self.assertAllClose(result, expected, rtol=rtol, atol=atol)
+
 
 class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
     def test_basis_representation_then_matrix_representation(
@@ -781,6 +820,31 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         negative_part = gs.minimum(zeros_like, sd_a_b)
         result = gs.isclose(negative_part, zeros_like, atol=is_positive_atol)
         self.assertAllClose(result, gs.array(True))
+
+    def test_inner_product_is_symmetric(
+        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
+    ):
+        """Check that the inner product is symmetric.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        tangent_vec_a : array-like
+            Tangent vector to the manifold at base_point.
+        tangent_vec_b : array-like
+            Tangent vector to the manifold at base_point.
+        point_a : array-like
+            Point on the manifold.
+        point_b : array-like
+            Point on the manifold.
+        is_positive_atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+        ip_a_b = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        ip_b_a = metric.inner_product(tangent_vec_b, tangent_vec_a, base_point)
+        self.assertAllClose(ip_a_b, ip_b_a, rtol, atol)
 
     def test_parallel_transport_ivp_is_isometry(
         self,
