@@ -633,7 +633,7 @@ class _FiberBundleTestData(TestData):
         for space_args, n_points in zip(space_args_list, n_points_list):
             space = space_cls(*space_args)
             base_point = space.random_point(n_points)
-            tangent_vec = space.random_tangent_vec(n_points, base_point)
+            tangent_vec = space.random_tangent_vec(base_point, n_points)
             data = dict(
                 space_args=space_args,
                 base_point=base_point,
@@ -651,7 +651,7 @@ class _FiberBundleTestData(TestData):
         for space_args, n_points in zip(space_args_list, n_points_list):
             space = space_cls(*space_args)
             base_point = space.random_point(n_points)
-            tangent_vec = space.random_tangent_vec(n_points, base_point)
+            tangent_vec = space.random_tangent_vec(base_point, n_points)
             data = dict(
                 space_args=space_args,
                 base_point=base_point,
@@ -661,6 +661,29 @@ class _FiberBundleTestData(TestData):
             )
             random_data.append(data)
 
+        return self.generate_tests([], random_data)
+
+    def _is_horizontal_after_log_after_align_test_data(
+        self,
+        space_cls,
+        space_args_list,
+        n_points_list,
+        n_base_points_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        random_data = [
+            dict(
+                space_args=space_args,
+                base_point=space_cls(*space_args).random_point(n_base_points),
+                point=space_cls(*space_args).random_point(n_points),
+                rtol=rtol,
+                atol=atol,
+            )
+            for space_args, n_points, n_base_points in zip(
+                space_args_list, n_points_list, n_base_points_list
+            )
+        ]
         return self.generate_tests([], random_data)
 
 

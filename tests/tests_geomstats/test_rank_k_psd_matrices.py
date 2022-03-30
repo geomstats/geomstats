@@ -101,8 +101,9 @@ class TestBuresWassersteinBundle(FiberBundleTestCase, metaclass=Parametrizer):
         k_list = [n - 1 for n in n_list]
         space_args_list = list(zip(n_list, k_list))
         shape_list = [(n, n) for n in n_list]
-        n_points_list = random.sample(range(2, 5), 2)
-        n_vecs_list = random.sample(range(2, 5), 2)
+        n_points_list = random.sample(range(1, 5), 2) * 2
+        n_base_points_list = [1] * len(n_points_list) + n_points_list
+        n_vecs_list = random.sample(range(1, 5), 2)
 
         def is_horizontal_after_horizontal_projection_test_data(self):
             return self._is_horizontal_after_horizontal_projection_test_data(
@@ -118,6 +119,16 @@ class TestBuresWassersteinBundle(FiberBundleTestCase, metaclass=Parametrizer):
                 BuresWassersteinBundle,
                 self.space_args_list,
                 self.n_points_list,
+                gs.rtol,
+                gs.atol,
+            )
+
+        def is_horizontal_after_log_after_align_test_data(self):
+            return self._is_horizontal_after_log_after_align_test_data(
+                BuresWassersteinBundle,
+                self.space_args_list,
+                self.n_points_list,
+                self.n_base_points_list,
                 gs.rtol,
                 gs.atol,
             )

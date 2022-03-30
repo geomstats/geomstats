@@ -126,7 +126,7 @@ class ManifoldTestCase(TestCase):
             Absolute tolerance for the is_tangent function.
         """
         space = self.space(*space_args)
-        tangent_vec = space.random_tangent_vec(n_samples, base_point)
+        tangent_vec = space.random_tangent_vec(base_point, n_samples)
         result = space.is_tangent(tangent_vec, base_point, is_tangent_atol)
         self.assertAllClose(gs.all(result), gs.array(True))
 
@@ -472,6 +472,15 @@ class FiberBundleTestCase(TestCase):
         space = self.space(*space_args)
         vertical = space.vertical_projection(tangent_vec, base_point)
         result = space.is_vertical(vertical, base_point, atol)
+        self.assertTrue(gs.all(result))
+
+    def test_is_horizontal_after_log_after_align(
+        self, space_args, base_point, point, rtol, atol
+    ):
+        space = self.space(*space_args)
+        aligned = space.align(point, base_point)
+        log = space.ambient_metric.log(aligned, base_point)
+        result = space.is_horizontal(log, base_point)
         self.assertTrue(gs.all(result))
 
 
