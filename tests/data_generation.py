@@ -923,6 +923,69 @@ class _ConnectionTestData(TestData):
 
 
 class _RiemannianMetricTestData(_ConnectionTestData):
+    def _dist_is_symmetric_test_data(
+        self,
+        metric_args_list,
+        space_list,
+        n_points_a_list,
+        n_points_b_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        """Generate data to check that the squared geodesic distance is symmetric.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_a_list : list
+            List of number of points A to generate on the manifold.
+        n_points_b_list : list
+            List of number of points B to generate on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        return self._squared_dist_is_symmetric_test_data(
+            metric_args_list, space_list, n_points_a_list, n_points_b_list, rtol, atol
+        )
+
+    def _dist_is_positive_test_data(
+        self,
+        metric_args_list,
+        space_list,
+        n_points_a_list,
+        n_points_b_list,
+        is_positive_atol,
+    ):
+        """Generate data to check that the squared geodesic distance is symmetric.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_a_list : list
+            List of number of points A to generate on the manifold.
+        n_points_b_list : list
+            List of number of points B to generate on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        return self._squared_dist_is_positive_test_data(
+            metric_args_list,
+            space_list,
+            n_points_a_list,
+            n_points_b_list,
+            is_positive_atol,
+        )
+
     def _squared_dist_is_symmetric_test_data(
         self,
         metric_args_list,
@@ -960,6 +1023,104 @@ class _RiemannianMetricTestData(_ConnectionTestData):
                     metric_args=metric_args,
                     point_a=point_a,
                     point_b=point_b,
+                    rtol=rtol,
+                    atol=atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def _squared_dist_is_positive_test_data(
+        self,
+        metric_args_list,
+        space_list,
+        n_points_a_list,
+        n_points_b_list,
+        is_positive_atol,
+    ):
+        """Generate data to check that the squared geodesic distance is symmetric.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_a_list : list
+            List of number of points A to generate on the manifold.
+        n_points_b_list : list
+            List of number of points B to generate on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, n_points_a, n_points_b in zip(
+            metric_args_list, space_list, n_points_a_list, n_points_b_list
+        ):
+            point_a = space.random_point(n_points_a)
+            point_b = space.random_point(n_points_b)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    point_a=point_a,
+                    point_b=point_b,
+                    is_positive_atol=is_positive_atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def _dist_is_norm_of_log_test_data(
+        self, metric_args_list, space_list, n_points_a_list, n_points_b_list, rtol, atol
+    ):
+        """Generate data to check that the squared geodesic distance is symmetric.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_a_list : list
+            List of number of points A to generate on the manifold.
+        n_points_b_list : list
+            List of number of points B to generate on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        return self._squared_dist_is_symmetric_test_data(
+            metric_args_list, space_list, n_points_a_list, n_points_b_list, rtol, atol
+        )
+
+    def _dist_point_to_itself_is_zero_test_data(
+        self, metric_args_list, space_list, n_points_list, rtol, atol
+    ):
+        """Generate data to check that the squared geodesic distance is symmetric.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_a_list : list
+            List of number of points A to generate on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, n_points in zip(
+            metric_args_list, space_list, n_points_list
+        ):
+            point = space.random_point(n_points_list)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    point=point,
                     rtol=rtol,
                     atol=atol,
                 )
