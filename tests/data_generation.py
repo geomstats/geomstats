@@ -484,6 +484,28 @@ class _VectorSpaceTestData(_ManifoldTestData):
         random_data = [dict(space_args=space_args) for space_args in space_args_list]
         return self.generate_tests([], random_data)
 
+    def _random_point_is_tangent_data(
+        self, space_args_list, n_points_list, is_tangent_atol
+    ):
+        random_data = []
+        for space_args, n_points in zip(space_args_list, n_points_list):
+            random_data += [
+                dict(
+                    space_args=space_args,
+                    n_points=n_points,
+                    is_tangent_atol=is_tangent_atol,
+                )
+            ]
+
+        return self.generate_tests([], random_data)
+
+    def _to_tangent_is_projection_data(
+        self, space_cls, space_args_list, shape_list, n_vecs_list, rtol, atol
+    ):
+        return self._to_tangent_is_tangent_test_data(
+            space_cls, space_args_list, shape_list, n_vecs_list, rtol, atol
+        )
+
 
 class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
     def _basis_representation_then_matrix_representation_test_data(
