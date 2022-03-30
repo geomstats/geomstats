@@ -135,7 +135,7 @@ class Manifold(abc.ABC):
         Returns
         -------
         samples : array-like, shape=[..., {dim, [n, n]}]
-            Points sampled on the hypersphere.
+            Points sampled on the manifold.
         """
 
     def regularize(self, point):

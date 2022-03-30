@@ -20,8 +20,8 @@ pi_4 = gs.pi / 4
 
 class TestGrassmannian(LevelSetTestCase, metaclass=Parametrizer):
     space = Grassmannian
-    skip_test_extrinsic_intrinsic_composition = True
-    skip_test_intrinsic_extrinsic_composition = True
+    skip_test_extrinsic_then_intrinsic = True
+    skip_test_intrinsic_then_extrinsic = True
 
     class GrassmannianTestData(_LevelSetTestData):
         n_list = random.sample(range(3, 6), 2)
@@ -84,7 +84,7 @@ class TestGrassmannian(LevelSetTestCase, metaclass=Parametrizer):
 
 class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = GrassmannianCanonicalMetric
-    skip_test_exp_log_composition = True
+    skip_test_exp_then_log = True
     skip_test_exp_geodesic_ivp = True
 
     class GrassmannianCanonicalMetricTestData(_RiemannianMetricTestData):
@@ -176,8 +176,8 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
                 belongs_atol=gs.atol * 10000,
             )
 
-        def log_exp_composition_test_data(self):
-            return self._log_exp_composition_test_data(
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -185,8 +185,8 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
                 atol=gs.atol * 10000,
             )
 
-        def exp_log_composition_test_data(self):
-            return self._exp_log_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,

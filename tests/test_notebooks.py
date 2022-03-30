@@ -104,3 +104,8 @@ class TestNotebooks(geomstats.tests.TestCase):
         _exec_notebook(
             "notebooks/" "02_foundations__connection_riemannian_metric.ipynb"
         )
+
+    @staticmethod
+    @geomstats.tests.np_and_autograd_only
+    def test_a00_introduction_to_geomstats():
+        _exec_notebook("notebooks/" "a00_introduction_to_geomstats.ipynb")

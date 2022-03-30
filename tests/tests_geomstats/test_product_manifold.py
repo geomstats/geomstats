@@ -107,6 +107,7 @@ class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
+                is_tangent_atol=gs.atol * 100,
             )
 
         def random_tangent_vec_is_tangent_test_data(self):
@@ -235,8 +236,8 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_exp_composition_test_data(self):
-            return self._log_exp_composition_test_data(
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -244,8 +245,8 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 atol=1e-1,
             )
 
-        def exp_log_composition_test_data(self):
-            return self._exp_log_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -304,7 +305,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
             ]
             return self.generate_tests([], random_data)
 
-        def dist_log_exp_norm_test_data(self):
+        def dist_log_then_exp_norm_test_data(self):
             smoke_data = [
                 dict(
                     space=smoke_manifolds_1,
@@ -349,7 +350,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
-    def test_dist_log_exp_norm(
+    def test_dist_log_then_exp_norm(
         self, manifolds, default_point_type, n_samples, einsum_str, expected
     ):
         space = ProductManifold(
@@ -528,8 +529,8 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 100000,
             )
 
-        def log_exp_composition_test_data(self):
-            return self._log_exp_composition_test_data(
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -537,8 +538,8 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=1e-1,
             )
 
-        def exp_log_composition_test_data(self):
-            return self._exp_log_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
