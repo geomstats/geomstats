@@ -291,25 +291,40 @@ class _LevelSetTestData(_ManifoldTestData):
 
 
 class _LieGroupTestData(_ManifoldTestData):
-    def _compose_point_inv_point_is_identity_test_data(
-        self, group_cls, group_args_list, shape_list, n_points_list
+    def _compose_point_with_inverse_point_is_identity_test_data(
+        self, group_cls, group_args_list, n_points_list, rtol, atol
     ):
-        pass
+        random_data = []
+        for group_args, n_points in zip(group_args_list, n_points_list):
 
-    def _compose_inv_point_point_is_identity_test_data(
-        self, group_cls, group_args_list, shape_list, n_points_list
-    ):
-        pass
+            group = group_cls(*group_args)
+            point = group.random_point(n_points)
+            random_data.append(
+                dict(group_args=group_args, point=point, rtol=rtol, atol=atol)
+            )
 
-    def _compose_point_identity_is_identity_test_data(
-        self, group_cls, group_args_list, shape_list, n_points_list
-    ):
-        pass
+        return self.generate_tests([], random_data)
 
-    def _compose_identity_point_is_identity(
-        self, group_cls, group_args_list, shape_list, n_points_list
+    def _compose_inverse_point_with_point_is_identity_test_data(
+        self, group_cls, group_args_list, n_points_list, rtol, atol
     ):
-        pass
+        return self._compose_point_with_inverse_point_is_identity_test_data(
+            group_cls, group_args_list, n_points_list, rtol, atol
+        )
+
+    def _compose_point_with_identity_is_identity_test_data(
+        self, group_cls, group_args_list, n_points_list, rtol, atol
+    ):
+        return self._compose_point_with_inverse_point_is_identity_test_data(
+            group_cls, group_args_list, n_points_list, rtol, atol
+        )
+
+    def _compose_identity_with_point_is_identity_test_data(
+        self, group_cls, group_args_list, n_points_list, rtol, atol
+    ):
+        return self._compose_point_with_inverse_point_is_identity_test_data(
+            group_cls, group_args_list, n_points_list, rtol, atol
+        )
 
     def _exp_then_log_test_data(
         self,
