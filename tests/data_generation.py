@@ -291,6 +291,26 @@ class _LevelSetTestData(_ManifoldTestData):
 
 
 class _LieGroupTestData(_ManifoldTestData):
+    def _compose_point_inv_point_is_identity_test_data(
+        self, group_cls, group_args_list, shape_list, n_points_list
+    ):
+        pass
+
+    def _compose_inv_point_point_is_identity_test_data(
+        self, group_cls, group_args_list, shape_list, n_points_list
+    ):
+        pass
+
+    def _compose_point_identity_is_identity_test_data(
+        self, group_cls, group_args_list, shape_list, n_points_list
+    ):
+        pass
+
+    def _compose_identity_point_is_identity(
+        self, group_cls, group_args_list, shape_list, n_points_list
+    ):
+        pass
+
     def _exp_then_log_test_data(
         self,
         group_cls,

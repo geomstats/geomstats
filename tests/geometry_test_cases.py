@@ -151,7 +151,9 @@ class OpenSetTestCase(ManifoldTestCase):
 
 
 class LieGroupTestCase(ManifoldTestCase):
-    def test_compose_point_inv_point_is_identity(self, group_args, point, rtol, atol):
+    def test_compose_point_with_inverse_point_is_identity(
+        self, group_args, point, rtol, atol
+    ):
         """Check that composition of point and inverse is identity.
 
         Parameters
@@ -169,7 +171,9 @@ class LieGroupTestCase(ManifoldTestCase):
         result = group.compose(group.inverse(point), point)
         self.assertAllClose(result, group.identity, rtol=rtol, atol=atol)
 
-    def test_compose_inv_point_point_is_identity(self, group_args, point, rtol, atol):
+    def test_compose_inverse_point_with_point_is_identity(
+        self, group_args, point, rtol, atol
+    ):
         """Check that composition of inverse and point is identity.
 
         Parameters
@@ -187,7 +191,9 @@ class LieGroupTestCase(ManifoldTestCase):
         result = group.compose(point, group.inverse(point))
         self.assertAllClose(result, group.identity, rtol=rtol, atol=atol)
 
-    def test_compose_point_identity_is_identity(self, group_args, point, rtol, atol):
+    def test_compose_point_with_identity_is_identity(
+        self, group_args, point, rtol, atol
+    ):
         """Check that composition of point and identity is identity.
 
         Parameters
@@ -205,7 +211,9 @@ class LieGroupTestCase(ManifoldTestCase):
         result = group.compose(point, group.identity)
         self.assertAllClose(result, group.identity, rtol=rtol, atol=atol)
 
-    def test_compose_identity_point_is_identity(self, group_args, point, rtol, atol):
+    def test_compose_identity_with_point_is_identity(
+        self, group_args, point, rtol, atol
+    ):
         """Check that composition of identity and point is identity.
 
         Parameters
@@ -752,9 +760,9 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             Absolute tolerance to test this property.
         """
         metric = self.metric(*metric_args)
-        sd_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
-        sd_b_a = metric.dist(gs.array(point_b), gs.array(point_a))
-        self.assertAllClose(sd_a_b, sd_b_a, rtol=rtol, atol=atol)
+        dist_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
+        dist_b_a = metric.dist(gs.array(point_b), gs.array(point_a))
+        self.assertAllClose(dist_a_b, dist_b_a, rtol=rtol, atol=atol)
 
     def test_dist_is_positive(self, metric_args, point_a, point_b, is_positive_atol):
         """Check that the geodesic distance is positive.
@@ -772,9 +780,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         """
         metric = self.metric(*metric_args)
         sd_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
-        zeros_like = gs.zeros_like(sd_a_b)
-        negative_part = gs.minimum(zeros_like, sd_a_b)
-        result = gs.isclose(negative_part, zeros_like, atol=is_positive_atol)
+        result = sd_a_b > -1 * is_positive_atol
         self.assertAllClose(result, gs.array(True))
 
     def test_squared_dist_is_symmetric(self, metric_args, point_a, point_b, rtol, atol):
@@ -838,7 +844,9 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             Point on the manifold.
         point_b : array-like
             Point on the manifold.
-        is_positive_atol : float
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
             Absolute tolerance to test this property.
         """
         metric = self.metric(*metric_args)
