@@ -492,6 +492,19 @@ class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
                 is_tangent_atol,
             )
 
+        def to_tangent_is_projection_test_data(self):
+            return self._to_tangent_is_projection_test_data(
+                Matrices,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
+
+        def random_point_is_tangent_test_data(self):
+            return self._random_point_is_tangent_test_data(
+                self.space_args_list, self.n_points_list
+            )
+
         def basis_test_data(self):
             smoke_data = [
                 dict(
@@ -677,13 +690,13 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         space_args_list = metric_args_list
         shape_list = space_args_list
         space_list = [Matrices(m, n) for m, n in metric_args_list]
-        n_points_list = random.sample(range(1, 7), 5)
-        n_tangent_vecs_list = random.sample(range(1, 7), 5)
-        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_list = random.sample(range(1, 7), 2)
+        n_tangent_vecs_list = random.sample(range(1, 7), 2)
+        n_points_a_list = random.sample(range(1, 7), 2)
         n_points_b_list = [1]
-        alpha_list = [1] * 5
-        n_rungs_list = [1] * 5
-        scheme_list = ["pole"] * 5
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
 
         def inner_product_test_data(self):
             smoke_data = [
@@ -844,6 +857,61 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
+            )
+
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+            )
+
+        def retraction_lifting_test_data(self):
+            return self._exp_then_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
             )
 
     testing_data = MatricesMetricTestData()

@@ -822,9 +822,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         """
         metric = self.metric(*metric_args)
         sd_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
-        zeros_like = gs.zeros_like(sd_a_b)
-        negative_part = gs.minimum(zeros_like, sd_a_b)
-        result = gs.isclose(negative_part, zeros_like, atol=is_positive_atol)
+        result = sd_a_b > -1 * is_positive_atol
         self.assertAllClose(result, gs.array(True))
 
     def test_inner_product_is_symmetric(

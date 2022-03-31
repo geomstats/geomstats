@@ -485,7 +485,7 @@ class _VectorSpaceTestData(_ManifoldTestData):
         return self.generate_tests([], random_data)
 
     def _random_point_is_tangent_test_data(
-        self, space_args_list, n_points_list, is_tangent_atol
+        self, space_args_list, n_points_list, is_tangent_atol=gs.atol
     ):
         random_data = []
         for space_args, n_points in zip(space_args_list, n_points_list):
@@ -500,11 +500,31 @@ class _VectorSpaceTestData(_ManifoldTestData):
         return self.generate_tests([], random_data)
 
     def _to_tangent_is_projection_test_data(
-        self, space_cls, space_args_list, shape_list, n_vecs_list, rtol, atol
+        self,
+        space_cls,
+        space_args_list,
+        shape_list,
+        n_vecs_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
     ):
-        return self._to_tangent_is_tangent_test_data(
-            space_cls, space_args_list, shape_list, n_vecs_list, rtol, atol
-        )
+        random_data = []
+        for space_args, shape, n_vecs in zip(space_args_list, shape_list, n_vecs_list):
+            space = space_cls(*space_args)
+            vec = gs.random.normal(size=(n_vecs,) + shape)
+            base_point = space.random_point()
+
+            random_data.append(
+                dict(
+                    space_args=space_args,
+                    vec=vec,
+                    base_point=base_point,
+                    rtol=rtol,
+                    atol=atol,
+                )
+            )
+
+        return self.generate_tests([], random_data)
 
 
 class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
@@ -1040,7 +1060,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         space_list,
         n_points_a_list,
         n_points_b_list,
-        is_positive_atol,
+        is_positive_atol=gs.atol,
     ):
         """Generate data to check that the squared geodesic distance is symmetric.
 
@@ -1116,7 +1136,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         space_list,
         n_points_a_list,
         n_points_b_list,
-        is_positive_atol,
+        is_positive_atol=gs.atol,
     ):
         """Generate data to check that the squared geodesic distance is symmetric.
 
@@ -1152,7 +1172,13 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         return self.generate_tests([], random_data)
 
     def _dist_is_norm_of_log_test_data(
-        self, metric_args_list, space_list, n_points_a_list, n_points_b_list, rtol, atol
+        self,
+        metric_args_list,
+        space_list,
+        n_points_a_list,
+        n_points_b_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
     ):
         """Generate data to check that the squared geodesic distance is symmetric.
 
@@ -1175,8 +1201,40 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             metric_args_list, space_list, n_points_a_list, n_points_b_list, rtol, atol
         )
 
+    def _inner_product_is_symmetric_test_data(
+        self,
+        metric_args_list,
+        space_list,
+        shape_list,
+        n_tangent_vecs_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        random_data = []
+        for metric_args, space, shape, n_tangent_vecs in zip(
+            metric_args_list, space_list, shape_list, n_tangent_vecs_list
+        ):
+            base_point = space.random_point()
+            tangent_vec_a = space.to_tangent(
+                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
+            )
+            tangent_vec_b = space.to_tangent(
+                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
+            )
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                    rtol=rtol,
+                    atol=atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
     def _dist_point_to_itself_is_zero_test_data(
-        self, metric_args_list, space_list, n_points_list, rtol, atol
+        self, metric_args_list, space_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that the squared geodesic distance is symmetric.
 
@@ -1197,7 +1255,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         for metric_args, space, n_points in zip(
             metric_args_list, space_list, n_points_list
         ):
-            point = space.random_point(n_points_list)
+            point = space.random_point(n_points)
             random_data.append(
                 dict(
                     metric_args=metric_args,
