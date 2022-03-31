@@ -484,7 +484,7 @@ class _VectorSpaceTestData(_ManifoldTestData):
         random_data = [dict(space_args=space_args) for space_args in space_args_list]
         return self.generate_tests([], random_data)
 
-    def _random_point_is_tangent_data(
+    def _random_point_is_tangent_test_data(
         self, space_args_list, n_points_list, is_tangent_atol
     ):
         random_data = []
@@ -499,7 +499,7 @@ class _VectorSpaceTestData(_ManifoldTestData):
 
         return self.generate_tests([], random_data)
 
-    def _to_tangent_is_projection_data(
+    def _to_tangent_is_projection_test_data(
         self, space_cls, space_args_list, shape_list, n_vecs_list, rtol, atol
     ):
         return self._to_tangent_is_tangent_test_data(
