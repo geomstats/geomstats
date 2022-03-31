@@ -103,7 +103,7 @@ class SPDMatrices(OpenSet):
 
         return spd_mat
 
-    def random_tangent_vec(self, base_point, n_samples):
+    def random_tangent_vec(self, base_point, n_samples=1):
         """Sample on the tangent space of SPD(n) from the uniform distribution.
 
         Parameters
