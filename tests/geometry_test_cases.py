@@ -177,8 +177,6 @@ class LieGroupTestCase(ManifoldTestCase):
         group = self.group(*group_args)
         result = group.compose(group.inverse(point), point)
         expected = better_squeeze(gs.array([group.identity] * len(result)))
-        print("test", group.identity)
-        print("exp", expected)
         self.assertAllClose(result, expected, rtol=rtol, atol=atol)
 
     def test_compose_inverse_point_with_point_is_identity(
@@ -791,7 +789,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         """
         metric = self.metric(*metric_args)
         sd_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
-        result = sd_a_b > -1 * is_positive_atol
+        result = gs.all(sd_a_b > -1 * is_positive_atol)
         self.assertAllClose(result, gs.array(True))
 
     def test_squared_dist_is_symmetric(self, metric_args, point_a, point_b, rtol, atol):
@@ -833,7 +831,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         """
         metric = self.metric(*metric_args)
         sd_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
-        result = sd_a_b > -1 * is_positive_atol
+        result = gs.all(sd_a_b > -1 * is_positive_atol)
         self.assertAllClose(result, gs.array(True))
 
     def test_inner_product_is_symmetric(
@@ -983,6 +981,8 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
+        print("test", metric_args)
+        print("testing", self.metric)
         metric = self.metric(*metric_args)
         log = metric.norm(metric.log(point_a, point_b), point_b)
         dist = metric.dist(point_a, point_b)

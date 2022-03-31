@@ -294,6 +294,7 @@ class TestMinkowskiMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.space_list,
                 self.n_points_a_list,
                 self.n_points_b_list,
+                is_positive_atol=gs.atol * 10000,
             )
 
         def dist_is_norm_of_log_test_data(self):
