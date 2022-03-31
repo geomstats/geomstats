@@ -60,7 +60,7 @@ class ProductManifold(Manifold):
         if default_point_type == "vector":
             shape = (sum([m.shape[0] for m in manifolds]),)
         else:
-            shape = (len(manifolds), manifolds[0].shape)
+            shape = (len(manifolds), *manifolds[0].shape)
 
         super(ProductManifold, self).__init__(
             dim=dim,
