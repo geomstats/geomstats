@@ -533,6 +533,26 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
                 SpecialOrthogonal, space_args_list, self.n_vecs_list
             )
 
+        def compose_inverse_point_with_point_is_identity_test_data(self):
+            return self._compose_inverse_point_with_point_is_identity_test_data(
+                SpecialOrthogonal, self.space_args_list, self.n_points_list
+            )
+
+        def compose_point_with_inverse_point_is_identity_test_data(self):
+            return self._compose_point_with_inverse_point_is_identity_test_data(
+                SpecialOrthogonal, self.space_args_list, self.n_points_list
+            )
+
+        def compose_point_with_identity_is_point_test_data(self):
+            return self._compose_point_with_identity_is_point_test_data(
+                SpecialOrthogonal, self.space_args_list, self.n_points_list
+            )
+
+        def compose_identity_with_point_is_point_test_data(self):
+            return self._compose_identity_with_point_is_point_test_data(
+                SpecialOrthogonal, self.space_args_list, self.n_points_list
+            )
+
     testing_data = SpecialOrthogonalTestData()
 
     def test_belongs(self, n, mat, expected):
@@ -1228,6 +1248,51 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 is_tangent_atol=gs.atol * 1000,
                 rtol=gs.rtol * 1000,
                 atol=gs.atol * 1000,
+            )
+
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
             )
 
         def log_then_exp_intrinsic_ball_extrinsic_test_data(self):

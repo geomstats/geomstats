@@ -292,7 +292,7 @@ class _LevelSetTestData(_ManifoldTestData):
 
 class _LieGroupTestData(_ManifoldTestData):
     def _compose_point_with_inverse_point_is_identity_test_data(
-        self, group_cls, group_args_list, n_points_list, rtol, atol
+        self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that group exponential and logarithm are inverse.
 
@@ -317,7 +317,7 @@ class _LieGroupTestData(_ManifoldTestData):
         return self.generate_tests([], random_data)
 
     def _compose_inverse_point_with_point_is_identity_test_data(
-        self, group_cls, group_args_list, n_points_list, rtol, atol
+        self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that group exponential and logarithm are inverse.
 
@@ -334,8 +334,8 @@ class _LieGroupTestData(_ManifoldTestData):
             group_cls, group_args_list, n_points_list, rtol, atol
         )
 
-    def _compose_point_with_identity_is_identity_test_data(
-        self, group_cls, group_args_list, n_points_list, rtol, atol
+    def _compose_point_with_identity_is_point_test_data(
+        self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that group exponential and logarithm are inverse.
 
@@ -352,8 +352,8 @@ class _LieGroupTestData(_ManifoldTestData):
             group_cls, group_args_list, n_points_list, rtol, atol
         )
 
-    def _compose_identity_with_point_is_identity_test_data(
-        self, group_cls, group_args_list, n_points_list, rtol, atol
+    def _compose_identity_with_point_is_point_test_data(
+        self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that group exponential and logarithm are inverse.
 

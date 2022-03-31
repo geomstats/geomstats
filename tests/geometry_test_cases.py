@@ -4,6 +4,13 @@ import geomstats.backend as gs
 from tests.conftest import TestCase
 
 
+def better_squeeze(array):
+    """Delete possible singleton dimension on first axis."""
+    if len(array) == 1:
+        return gs.squeeze(array, axis=0)
+    return array
+
+
 def _is_isometry(
     metric,
     space,
@@ -169,7 +176,10 @@ class LieGroupTestCase(ManifoldTestCase):
         """
         group = self.group(*group_args)
         result = group.compose(group.inverse(point), point)
-        self.assertAllClose(result, group.identity, rtol=rtol, atol=atol)
+        expected = better_squeeze(gs.array([group.identity] * len(result)))
+        print("test", group.identity)
+        print("exp", expected)
+        self.assertAllClose(result, expected, rtol=rtol, atol=atol)
 
     def test_compose_inverse_point_with_point_is_identity(
         self, group_args, point, rtol, atol
@@ -189,11 +199,10 @@ class LieGroupTestCase(ManifoldTestCase):
         """
         group = self.group(*group_args)
         result = group.compose(point, group.inverse(point))
-        self.assertAllClose(result, group.identity, rtol=rtol, atol=atol)
+        expected = better_squeeze(gs.array([group.identity] * len(result)))
+        self.assertAllClose(result, expected, rtol=rtol, atol=atol)
 
-    def test_compose_point_with_identity_is_identity(
-        self, group_args, point, rtol, atol
-    ):
+    def test_compose_point_with_identity_is_point(self, group_args, point, rtol, atol):
         """Check that composition of point and identity is identity.
 
         Parameters
@@ -208,12 +217,12 @@ class LieGroupTestCase(ManifoldTestCase):
             Absolute tolerance to test this property.
         """
         group = self.group(*group_args)
-        result = group.compose(point, group.identity)
-        self.assertAllClose(result, group.identity, rtol=rtol, atol=atol)
+        result = group.compose(
+            point, better_squeeze(gs.array([group.identity] * len(point)))
+        )
+        self.assertAllClose(result, point, rtol=rtol, atol=atol)
 
-    def test_compose_identity_with_point_is_identity(
-        self, group_args, point, rtol, atol
-    ):
+    def test_compose_identity_with_point_is_point(self, group_args, point, rtol, atol):
         """Check that composition of identity and point is identity.
 
         Parameters
@@ -228,8 +237,10 @@ class LieGroupTestCase(ManifoldTestCase):
             Absolute tolerance to test this property.
         """
         group = self.group(*group_args)
-        result = group.compose(group.identity, point)
-        self.assertAllClose(result, group.identity, rtol=rtol, atol=atol)
+        result = group.compose(
+            better_squeeze(gs.array([group.identity] * len(point))), point
+        )
+        self.assertAllClose(result, point, rtol=rtol, atol=atol)
 
     def test_exp_then_log(self, group_args, tangent_vec, base_point, rtol, atol):
         """Check that group exponential and logarithm are inverse.
