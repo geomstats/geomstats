@@ -175,7 +175,7 @@ class Grassmannian(LevelSet):
         geomstats.errors.check_integer(n, "n")
         if k > n:
             raise ValueError(
-                "k <= n is required: k-dimensional subspaces in n dimensions."
+                "k < n is required: k-dimensional subspaces in n dimensions."
             )
 
         self.n = n
