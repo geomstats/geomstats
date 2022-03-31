@@ -830,6 +830,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             Absolute tolerance to test this property.
         """
         metric = self.metric(*metric_args)
+
         sd_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
         result = gs.all(sd_a_b > -1 * is_positive_atol)
         self.assertAllClose(result, gs.array(True))
@@ -981,8 +982,6 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        print("test", metric_args)
-        print("testing", self.metric)
         metric = self.metric(*metric_args)
         log = metric.norm(metric.log(point_a, point_b), point_b)
         dist = metric.dist(point_a, point_b)

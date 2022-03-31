@@ -502,15 +502,15 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_geodesic_bvp_belongs = True
     skip_test_geodesic_ivp_belongs = True
-    skip_test_log_is_tangent = True
-    skip_test_squared_dist_is_symmetric = True
 
     class NFoldMetricTestData(_RiemannianMetricTestData):
 
         n_list = random.sample(range(3, 5), 2)
         power_list = random.sample(range(2, 5), 2)
         base_list = [SpecialOrthogonal(n) for n in n_list]
-        metric_args_list = list(zip(base_list, power_list))
+        metric_args_list = [
+            (base.metric, power) for base, power in zip(base_list, power_list)
+        ]
         shape_list = [(power, n, n) for n, power in zip(n_list, power_list)]
         space_list = [
             NFoldManifold(base, power) for base, power in zip(base_list, power_list)
@@ -637,6 +637,7 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             )
 
         def dist_is_symmetric_test_data(self):
+            print()
             return self._dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
