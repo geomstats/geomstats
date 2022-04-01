@@ -4,5 +4,5 @@ flake8-docstrings
 isort
 pre-commit
 pytest
-pytest-benchmarks
+pytest-benchmarks>=3.4.1
 pytest-cov
