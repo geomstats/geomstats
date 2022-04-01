@@ -29,6 +29,7 @@ class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
     space = ProductManifold
     skip_test_random_tangent_vec_is_tangent = True
     skip_test_projection_belongs = True
+    skip_test_log_is_tangent = True
 
     class ProductManifoldTestData(_ManifoldTestData):
 
