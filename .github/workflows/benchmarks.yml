@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies [pip]
         run:  |
           pip install --upgrade pip setuptools wheel
-          for req in doc-requirements.txt opt-requirements.txt requirements.txt docs/requirements.txt; do
+          for req in ci-requirements.txt dev-requirements.txt doc-requirements.txt opt-requirements.txt requirements.txt; do
             pip install -q -r $req
           done
           pip install -e .
@@ -30,7 +30,8 @@ jobs:
       - name: Run benchmark
         run: |
           cd benchmarks
-          pytest bench.py --benchmark-json output.json
+          chmod +x script.sh
+          ./script.sh
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
