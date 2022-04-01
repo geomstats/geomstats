@@ -29,7 +29,6 @@ class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
     space = ProductManifold
     skip_test_random_tangent_vec_is_tangent = True
     skip_test_projection_belongs = True
-    skip_test_log_is_tangent = True
 
     class ProductManifoldTestData(_ManifoldTestData):
 
@@ -503,6 +502,7 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_geodesic_bvp_belongs = True
     skip_test_geodesic_ivp_belongs = True
+    skip_test_log_is_tangent = True
 
     class NFoldMetricTestData(_RiemannianMetricTestData):
 

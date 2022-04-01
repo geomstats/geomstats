@@ -5,6 +5,7 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
+from geomstats.tests import np_backend
 from tests.conftest import Parametrizer
 from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
 from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
@@ -88,6 +89,8 @@ class TestMinkowskiMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_dist_is_positive = True
     skip_test_squared_dist_is_positive = True
+    skip_test_dist_is_norm_of_log = not np_backend()
+    skip_test_dist_is_symmetric = not np_backend()
 
     class MinkowskiMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 4), 2)
