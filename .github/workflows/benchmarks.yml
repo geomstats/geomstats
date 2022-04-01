@@ -11,13 +11,22 @@ permissions:
 
 jobs:
   benchmark:
-    name: Run pytest-benchmark benchmark example
+    name: Benchmarking
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: 3.8
+
+      - name: Install dependencies [pip]
+        run:  |
+          pip install --upgrade pip setuptools wheel
+          for req in doc-requirements.txt opt-requirements.txt requirements.txt docs/requirements.txt; do
+            pip install -q -r $req
+          done
+          pip install -e .
+
       - name: Run benchmark
         run: |
           cd benchmarks
