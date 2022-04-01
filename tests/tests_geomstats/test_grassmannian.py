@@ -4,6 +4,7 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
 from geomstats.geometry.matrices import Matrices
+from geomstats.tests import np_backend
 from tests.conftest import Parametrizer
 from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
 from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
@@ -86,6 +87,7 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
     metric = connection = GrassmannianCanonicalMetric
     skip_test_exp_then_log = True
     skip_test_exp_geodesic_ivp = True
+    skip_test_log_is_tangent = not np_backend()
 
     class GrassmannianCanonicalMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(3, 5), 2)
