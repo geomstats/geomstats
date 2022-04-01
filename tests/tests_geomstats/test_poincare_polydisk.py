@@ -17,6 +17,7 @@ class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
     space = PoincarePolydisk
 
     skip_test_to_tangent_is_tangent_in_ambient_space = True
+    skip_test_to_tangent_is_tangent = True
 
     class PoincarePolydiskTestData(_OpenSetTestData):
 

@@ -401,6 +401,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
 class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = HypersphereMetric
     skip_test_exp_geodesic_ivp = True
+    skip_test_dist_point_to_itself_is_zero = True
 
     class HypersphereMetricTestData(_RiemannianMetricTestData):
         dim_list = random.sample(range(2, 5), 2)

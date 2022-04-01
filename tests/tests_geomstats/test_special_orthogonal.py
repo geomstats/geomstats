@@ -82,6 +82,7 @@ if tf_backend():
 class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
     space = group = SpecialOrthogonal
     skip_test_log_then_exp = pytorch_backend()
+    skip_test_projection_belongs = True
 
     class SpecialOrthogonalTestData(_LieGroupTestData):
         n_list = random.sample(range(2, 4), 2)
