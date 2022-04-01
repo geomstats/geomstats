@@ -29,7 +29,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_log_then_exp = np_backend()
     skip_test_geodesic_bvp_belongs = True
     skip_test_exp_then_log = True
-    skip_test_dist_point_to_itself_is_zero = np_backend()
+    skip_test_dist_point_to_itself_is_zero = True
 
     class InvariantMetricTestData(_RiemannianMetricTestData):
         group = SpecialEuclidean(n=3, point_type="vector")
