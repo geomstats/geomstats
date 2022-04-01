@@ -523,7 +523,10 @@ class TestSPDMetricAffine(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         def dist_point_to_itself_is_zero_test_data(self):
             return self._dist_point_to_itself_is_zero_test_data(
-                self.metric_args_list, self.space_list, self.n_points_list
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                atol=gs.atol * 1000,
             )
 
         def inner_product_is_symmetric_test_data(self):

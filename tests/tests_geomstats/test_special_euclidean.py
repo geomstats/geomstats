@@ -716,10 +716,10 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
     skip_test_geodesic_ivp_belongs = True
     skip_test_exp_belongs = np_backend()
     skip_test_squared_dist_is_symmetric = True
-    skip_test_dist_is_norm_of_log = np_backend()
+    skip_test_dist_is_norm_of_log = True
     skip_test_dist_is_positive = np_backend()
-    skip_test_dist_is_symmetric = np_backend()
-    skip_test_dist_point_to_itself_is_zero = np_backend()
+    skip_test_dist_is_symmetric = True
+    skip_test_dist_point_to_itself_is_zero = True
     skip_test_squared_dist_is_positive = np_backend()
 
     class SpecialEuclideanMatrixCanonicalRightMetricTestData(_RiemannianMetricTestData):
@@ -730,9 +730,9 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
         ]
         shape_list = [(n + 1, n + 1) for n in n_list]
         space_list = [SpecialEuclidean(n) for n in n_list]
-        n_points_list = random.sample(range(1, 4), 1)
-        n_tangent_vecs_list = random.sample(range(1, 4), 1)
-        n_points_a_list = random.sample(range(1, 4), 1)
+        n_points_list = random.sample(range(1, 3), 1)
+        n_tangent_vecs_list = random.sample(range(1, 3), 1)
+        n_points_a_list = random.sample(range(1, 3), 1)
         n_points_b_list = [1]
         alpha_list = [1] * 1
         n_rungs_list = [1] * 1

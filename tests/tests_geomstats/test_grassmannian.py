@@ -243,6 +243,7 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
                 self.space_list,
                 self.n_points_a_list,
                 self.n_points_b_list,
+                atol=gs.atol * 1000,
             )
 
         def dist_is_positive_test_data(self):
@@ -267,6 +268,7 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
                 self.space_list,
                 self.n_points_a_list,
                 self.n_points_b_list,
+                atol=gs.atol * 1000,
             )
 
         def dist_point_to_itself_is_zero_test_data(self):

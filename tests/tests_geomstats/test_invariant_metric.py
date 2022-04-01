@@ -1,7 +1,6 @@
 """Unit tests for the invariant metrics on Lie groups."""
 
 import itertools
-import random
 
 import pytest
 
@@ -55,9 +54,9 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         ]
         shape_list = [metric_args[0].shape for metric_args in metric_args_list]
         space_list = [metric_args[0] for metric_args in metric_args_list]
-        n_points_list = random.sample(range(1, 7), 6)
-        n_tangent_vecs_list = random.sample(range(1, 7), 6)
-        n_points_a_list = random.sample(range(1, 7), 6)
+        n_points_list = [1, 2] * 3
+        n_tangent_vecs_list = [1, 2] * 3
+        n_points_a_list = [1, 2] * 3
         n_points_b_list = [1]
         alpha_list = [1] * 6
         n_rungs_list = [1] * 6
