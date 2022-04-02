@@ -32,12 +32,20 @@ jobs:
           cd benchmarks
           chmod +x script.sh
           ./script.sh
+
+      - name: Download previous benchmark data
+        uses: actions/cache@v1
+        with:
+          path: ./cache
+          key: ${{ runner.os }}-benchmark
+
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
           name: Python Benchmark with pytest-benchmark
           tool: 'pytest'
-          output-file-path: examples/pytest/output.json
+          output-file-path: benchmarks/exp.json
+          external-data-json-path: ./cache/exp.json
           github-token: ${{ secrets.DOCUMENTATION_KEY }}
           auto-push: true
           alert-threshold: '200%'
