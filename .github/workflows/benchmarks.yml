@@ -47,7 +47,6 @@ jobs:
           output-file-path: benchmarks/exp.json
           external-data-json-path: ./cache/exp.json
           github-token: ${{ secrets.DOCUMENTATION_KEY }}
-          auto-push: true
           alert-threshold: '200%'
           comment-on-alert: true
           fail-on-alert: true
