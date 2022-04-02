@@ -18,6 +18,6 @@ echo "Operation: $operation";
 
 python generate_benchmark_params.py -m $manifold -n $n_samples
 pytest exp/time_exp.py  --benchmark-columns='min, max'  --benchmark-sort='fullname' --benchmark-json exp.json
-pytest log/time_log.py  --benchmark-columns='min, max'  --benchmark-sort='fullname' --benchmark-json log.json
-pytest dist/time_dist.py --benchmark-columns='min, max'  --benchmark-sort='fullname' --benchmark-json dist.json
-pytest inner_product/time_inner_product.py --benchmark-columns='min, max'  --benchmark-sort='fullname' --benchmark-json inner_product.json
+# pytest log/time_log.py  --benchmark-columns='min, max'  --benchmark-sort='fullname' --benchmark-json log.json
+# pytest dist/time_dist.py --benchmark-columns='min, max'  --benchmark-sort='fullname' --benchmark-json dist.json
+# pytest inner_product/time_inner_product.py --benchmark-columns='min, max'  --benchmark-sort='fullname' --benchmark-json inner_product.json
