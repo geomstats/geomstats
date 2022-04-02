@@ -49,6 +49,9 @@ jobs:
           done
           pip install -e .
 
+      - name: Add annotations [pytest]
+        run: pip install pytest-github-actions-annotate-failures
+      
       - name: unit testing [pytest]
         env:
           GEOMSTATS_BACKEND : ${{matrix.geomstats-backend}}
