@@ -5,10 +5,6 @@ on:
   pull_request:
     branches: [master]
 
-permissions:
-  contents: write
-  deployments: write
-
 jobs:
   benchmark:
     name: Benchmarking
@@ -44,9 +40,9 @@ jobs:
         with:
           name: Python Benchmark with pytest-benchmark
           tool: 'pytest'
+          github-token: ${{ secrets.DOCUMENTATION_KEY }}
           output-file-path: benchmarks/exp.json
           external-data-json-path: ./cache/exp.json
-          github-token: ${{ secrets.DOCUMENTATION_KEY }}
           alert-threshold: '200%'
           comment-on-alert: true
           fail-on-alert: true
