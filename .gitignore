@@ -146,3 +146,6 @@ venv/
 
 # pick files
 *.pkl
+
+#ignore benchmarks generated timings
+benchmarks/*.json

@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies [pip]
         run:  |
           pip install --upgrade pip setuptools wheel
-          for req in ci-requirements.txt dev-requirements.txt doc-requirements.txt opt-requirements.txt requirements.txt; do
+          for req in ci-requirements.txt dev-requirements.txt  opt-requirements.txt requirements.txt; do
             pip install -q -r $req
           done
           pip install -e .
@@ -30,9 +30,9 @@ jobs:
           ./script.sh
 
       - name: Download previous benchmark data
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
-          path: ./cache
+          path: benchmarks/*.json
           key: ${{ runner.os }}-benchmark
 
       - name: Store benchmark result
@@ -40,10 +40,11 @@ jobs:
         with:
           name: Python Benchmark with pytest-benchmark
           tool: 'pytest'
-          github-token: ${{ secrets.DOCUMENTATION_KEY }}
+          github-token : ${{ secrets.GITHUB_TOKEN }}
           output-file-path: benchmarks/exp.json
           external-data-json-path: ./cache/exp.json
           alert-threshold: '200%'
           comment-on-alert: false
           fail-on-alert: false
           alert-comment-cc-users: '@nmiolane'
+
