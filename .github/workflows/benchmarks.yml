@@ -44,6 +44,6 @@ jobs:
           output-file-path: benchmarks/exp.json
           external-data-json-path: ./cache/exp.json
           alert-threshold: '200%'
-          comment-on-alert: true
-          fail-on-alert: true
+          comment-on-alert: false
+          fail-on-alert: false
           alert-comment-cc-users: '@nmiolane'
