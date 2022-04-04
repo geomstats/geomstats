@@ -285,23 +285,6 @@ class TestMinkowskiMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_points_b_list,
             )
 
-        def dist_is_positive_test_data(self):
-            return self._dist_is_positive_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_points_a_list,
-                self.n_points_b_list,
-            )
-
-        def squared_dist_is_positive_test_data(self):
-            return self._squared_dist_is_positive_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_points_a_list,
-                self.n_points_b_list,
-                is_positive_atol=gs.atol * 10000,
-            )
-
         def dist_is_norm_of_log_test_data(self):
             return self._dist_is_norm_of_log_test_data(
                 self.metric_args_list,

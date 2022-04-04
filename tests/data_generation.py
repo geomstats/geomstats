@@ -294,16 +294,20 @@ class _LieGroupTestData(_ManifoldTestData):
     def _compose_point_with_inverse_point_is_identity_test_data(
         self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
-        """Generate data to check that group exponential and logarithm are inverse.
+        """Generate data to check composition of point, inverse is identity.
 
         Parameters
         ----------
         group_cls : LieGroup
-            Class of the group, i.e. a child class of LieGroup.
+            Class of the group, i.e. a child class of Lie group.
         group_args_list : list
             Arguments to pass to constructor of the Lie group.
         n_tangent_vecs_list : list
             List of number of random tangent vectors to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
         """
         random_data = []
         for group_args, n_points in zip(group_args_list, n_points_list):
@@ -319,7 +323,7 @@ class _LieGroupTestData(_ManifoldTestData):
     def _compose_inverse_point_with_point_is_identity_test_data(
         self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
-        """Generate data to check that group exponential and logarithm are inverse.
+        """Generate data to check composition of inverse, point is identity.
 
         Parameters
         ----------
@@ -329,6 +333,10 @@ class _LieGroupTestData(_ManifoldTestData):
             Arguments to pass to constructor of the Lie group.
         n_tangent_vecs_list : list
             List of number of random tangent vectors to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
         """
         return self._compose_point_with_inverse_point_is_identity_test_data(
             group_cls, group_args_list, n_points_list, rtol, atol
@@ -337,7 +345,7 @@ class _LieGroupTestData(_ManifoldTestData):
     def _compose_point_with_identity_is_point_test_data(
         self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
-        """Generate data to check that group exponential and logarithm are inverse.
+        """Generate data to check composition of point, identity is point.
 
         Parameters
         ----------
@@ -347,6 +355,10 @@ class _LieGroupTestData(_ManifoldTestData):
             Arguments to pass to constructor of the Lie group.
         n_tangent_vecs_list : list
             List of number of random tangent vectors to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
         """
         return self._compose_point_with_inverse_point_is_identity_test_data(
             group_cls, group_args_list, n_points_list, rtol, atol
@@ -355,7 +367,7 @@ class _LieGroupTestData(_ManifoldTestData):
     def _compose_identity_with_point_is_point_test_data(
         self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
-        """Generate data to check that group exponential and logarithm are inverse.
+        """Generate data to check composition of identity, point is point.
 
         Parameters
         ----------
@@ -365,6 +377,10 @@ class _LieGroupTestData(_ManifoldTestData):
             Arguments to pass to constructor of the Lie group.
         n_tangent_vecs_list : list
             List of number of random tangent vectors to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
         """
         return self._compose_point_with_inverse_point_is_identity_test_data(
             group_cls, group_args_list, n_points_list, rtol, atol
