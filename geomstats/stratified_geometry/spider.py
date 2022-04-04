@@ -28,7 +28,7 @@ class SpiderPoint(Point):
     """
 
     def __init__(self, s, x):
-        super(Point, self).__init__()
+        super(SpiderPoint, self).__init__()
         if s == 0 and x != 0:
             raise ValueError("If the stratum is zero, x must be zero.")
         self.s = s
@@ -111,7 +111,7 @@ class Spider(PointSet):
 
         Parameters
         ----------
-        point : SpiderPoint
+        single_point : SpiderPoint
              Point to be checked.
 
         Returns
@@ -123,12 +123,13 @@ class Spider(PointSet):
             return False
         return True
 
-    def zero_check(self, single_point):
+    @staticmethod
+    def zero_check(single_point):
         r"""Check if a random point satisfy the zero condition.
 
         Parameters
         ----------
-        point : SpiderPoint
+        single_point : SpiderPoint
              Point to be checked.
 
         Returns
@@ -140,12 +141,13 @@ class Spider(PointSet):
             return False
         return True
 
-    def value_check(self, single_point):
+    @staticmethod
+    def value_check(single_point):
         r"""Check if a random point has the correct length.
 
         Parameters
         ----------
-        point : SpiderPoint
+        single_point : SpiderPoint
              Point to be checked.
 
         Returns
