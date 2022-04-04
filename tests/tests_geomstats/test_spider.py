@@ -30,7 +30,7 @@ class TestSpider(geomstats.tests.TestCase):
     def test_dist(self):
         a = [SpiderPoint(10, 1), SpiderPoint(10, 2), SpiderPoint(3, 1)]
         b = [SpiderPoint(10, 31), SpiderPoint(10, 2), SpiderPoint(1, 4)]
-        geom = SpiderGeometry(self.space(12))
+        geom = SpiderGeometry(space=self.space(12))
         result = geom.dist(a, b)
         expected = [30, 0, 5]
         return self.assertAllClose(result, expected)
@@ -39,6 +39,6 @@ class TestSpider(geomstats.tests.TestCase):
         a = [SpiderPoint(10, 1), SpiderPoint(10, 2), SpiderPoint(3, 1)]
         b = [SpiderPoint(10, 31), SpiderPoint(10, 2), SpiderPoint(1, 4)]
         t = [0.2]
-        geom = SpiderGeometry(self.space(12))
+        geom = SpiderGeometry(space=self.space(12))
         result = [type(point) is SpiderPoint for point in geom.geodesic(a, b, t)]
         return self.assertTrue(result)

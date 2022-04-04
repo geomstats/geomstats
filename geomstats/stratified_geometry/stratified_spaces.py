@@ -8,26 +8,27 @@ from typing import TypeVar
 
 
 def belongs_vectorize(fun):
-    r"""Decoretor to vectorize the functions acting on Point as lists."""
+    r"""Vectorize the belongs acting on Point as lists."""
 
     def wrapped(*args):
+        r"""Vectorize the belongs."""
         if type(args[1]) is list:
             return fun(args[0], point=args[1])
-        else:
-            return fun(args[0], point=[args[1]])
+        return fun(args[0], point=[args[1]])
 
     return wrapped
 
 
 def dist_vectorize(fun):
-    r"""Decoretor to vectorize the functions acting on Point as lists."""
+    r"""Vectorize the distance acting on Point as lists."""
 
     def wrapped(*args):
+        r"""Vectorize the distance."""
         if type(args[1]) is list and type(args[2]) is list:
             return fun(*args)
-        elif type(args[1]) is not list and type(args[2]) is not list:
+        if type(args[1]) is not list and type(args[2]) is not list:
             return fun(args[0], a=[args[1]], b=[args[2]])
-        elif type(args[1]) is not list:
+        if type(args[1]) is not list:
             return fun(args[0], a=[args[1]], b=args[2])
         return fun(args[0], a=args[1], b=[args[2]])
 
@@ -38,7 +39,7 @@ class Point(ABC):
     r"""Class for points of a set."""
 
     def __init__(self, **kwargs):
-        super(Point, self).__init__(**kwargs)
+        super(Point)
 
     @abstractmethod
     def __repr__(self):
@@ -80,7 +81,7 @@ class PointSet(ABC):
     """
 
     def __init__(self):
-        super(PointSet, self).__init__()
+        super(PointSet)
 
     @abstractmethod
     def belongs(self, point):
@@ -133,7 +134,7 @@ class PointSet(ABC):
         """
 
 
-class PointSetGeometry(PointSet, ABC):
+class PointSetGeometry(ABC):
     r"""Class for the lenght spaces.
 
     Parameters
@@ -148,8 +149,9 @@ class PointSetGeometry(PointSet, ABC):
         Optional, default: \'intrinsic\'.
     """
 
-    def __init__(self):
-        super(PointSetGeometry, self).__init__()
+    def __init__(self, space: PointSet, **kwargs):
+        super(PointSetGeometry, self).__init__(**kwargs)
+        self.space = space
 
     @abstractmethod
     def dist(self, point_a, point_b, **kwargs):

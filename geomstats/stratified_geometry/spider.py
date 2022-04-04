@@ -58,7 +58,7 @@ class Spider(PointSet):
     """
 
     def __init__(self, rays):
-        super(Spider, self).__init__()
+        super(Spider).__init__()
         self.rays = rays
 
     def random_point(self, n_samples=1):
@@ -80,8 +80,7 @@ class Spider(PointSet):
             x = gs.abs(gs.random.normal(loc=10, scale=1, size=n_samples))
             x[s == 0] = 0
             return [SpiderPoint(s=s[k], x=x[k]) for k in range(n_samples)]
-        else:
-            return [SpiderPoint(s=0, x=0)] * n_samples
+        return [SpiderPoint(s=0, x=0)] * n_samples
 
     @geomstats.stratified_geometry.stratified_spaces.belongs_vectorize
     def belongs(self, point):
@@ -103,7 +102,7 @@ class Spider(PointSet):
                 self.value_check(single_point)
                 and self.rays_check(single_point)
                 and self.zero_check(single_point)
-                and type(single_point) == SpiderPoint
+                and type(single_point) is SpiderPoint
             ]
         return gs.array(results)
 
@@ -176,11 +175,11 @@ class Spider(PointSet):
         return point_to_array
 
 
-class SpiderGeometry(PointSetGeometry, Spider):
+class SpiderGeometry(PointSetGeometry):
     """Geometry on the Spider, induced by the Euclidean Geometry along the rays."""
 
     def __init__(self, space, ambient_metric=EuclideanMetric(1)):
-        super(SpiderGeometry)
+        super(SpiderGeometry, self).__init__(space=space)
         self.rays_geometry = ambient_metric
         self.rays = space.rays
 
@@ -242,7 +241,7 @@ class SpiderGeometry(PointSetGeometry, Spider):
             values = zip(a, b)
         for point_a, point_b in values:
             if point_a.s == point_b.s or point_a.s == 0 or point_b.s == 0:
-                s = point_a.s if point_b.s == 0 else point_a.s
+                s = gs.maximum(point_a.s, point_b.s)
                 g = self.rays_geometry.geodesic(
                     initial_point=gs.array([point_a.x]), end_point=gs.array([point_b.x])
                 )
