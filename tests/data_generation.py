@@ -302,8 +302,8 @@ class _LieGroupTestData(_ManifoldTestData):
             Class of the group, i.e. a child class of Lie group.
         group_args_list : list
             Arguments to pass to constructor of the Lie group.
-        n_tangent_vecs_list : list
-            List of number of random tangent vectors to generate.
+        n_points_list : list
+            List of number of random points to generate.
         rtol : float
             Relative tolerance to test this property.
         atol : float
@@ -331,8 +331,8 @@ class _LieGroupTestData(_ManifoldTestData):
             Class of the group, i.e. a child class of LieGroup.
         group_args_list : list
             Arguments to pass to constructor of the Lie group.
-        n_tangent_vecs_list : list
-            List of number of random tangent vectors to generate.
+        n_points_list : list
+            List of number of random points to generate.
         rtol : float
             Relative tolerance to test this property.
         atol : float
@@ -353,8 +353,8 @@ class _LieGroupTestData(_ManifoldTestData):
             Class of the group, i.e. a child class of LieGroup.
         group_args_list : list
             Arguments to pass to constructor of the Lie group.
-        n_tangent_vecs_list : list
-            List of number of random tangent vectors to generate.
+        n_points_list : list
+            List of number of random points to generate.
         rtol : float
             Relative tolerance to test this property.
         atol : float
@@ -375,8 +375,8 @@ class _LieGroupTestData(_ManifoldTestData):
             Class of the group, i.e. a child class of LieGroup.
         group_args_list : list
             Arguments to pass to constructor of the Lie group.
-        n_tangent_vecs_list : list
-            List of number of random tangent vectors to generate.
+        n_points_list : list
+            List of number of random points to generate.
         rtol : float
             Relative tolerance to test this property.
         atol : float
@@ -503,6 +503,17 @@ class _VectorSpaceTestData(_ManifoldTestData):
     def _random_point_is_tangent_test_data(
         self, space_args_list, n_points_list, is_tangent_atol=gs.atol
     ):
+        """Generate data to check that random point is tangent vector.
+
+        Parameters
+        ----------
+        space_args_list : list
+            List of spaces' args on which tests will run.
+        n_points_list : list
+            List of number of points on manifold to generate.
+        is_tangent_atol : float
+            Absolute tolerance for the is_tangent function.
+        """
         random_data = []
         for space_args, n_points in zip(space_args_list, n_points_list):
             random_data += [
@@ -524,6 +535,23 @@ class _VectorSpaceTestData(_ManifoldTestData):
         rtol=gs.rtol,
         atol=gs.atol,
     ):
+        """Generate data to check that to_tangent return projection.
+
+        Parameters
+        ----------
+        space_cls : Manifold
+            Class of the space, i.e. a child class of Manifold.
+        space_args_list : list
+            List of spaces' args on which tests will run.
+        shape_list : list
+            List of shapes of the random vectors generated, and projected.
+        n_vecs_list : list
+            List of integers for the number of random vectors generated.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
         random_data = []
         for space_args, shape, n_vecs in zip(space_args_list, shape_list, n_vecs_list):
             space = space_cls(*space_args)
@@ -643,8 +671,6 @@ class _ConnectionTestData(TestData):
             List of argument to pass to constructor of the connection.
         space_list : list
             List of manifolds on which the connection is defined.
-        n_samples_list : list
-            List of number of random data to generate.
         """
         n_samples_list = [3] * len(connection_args_list)
         random_data = []
@@ -1090,10 +1116,8 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             List of number of points A to generate on the manifold.
         n_points_b_list : list
             List of number of points B to generate on the manifold.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
+        is_positive_atol: float
+            Absolute tolerance for checking whether value is positive.
         """
         return self._squared_dist_is_positive_test_data(
             metric_args_list,
@@ -1166,10 +1190,8 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             List of number of points A to generate on the manifold.
         n_points_b_list : list
             List of number of points B to generate on the manifold.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
+        is_positive_atol: float
+            Absolute tolerance for checking whether value is positive.
         """
         random_data = []
         for metric_args, space, n_points_a, n_points_b in zip(
@@ -1226,6 +1248,23 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         rtol=gs.rtol,
         atol=gs.atol,
     ):
+        """Generate data to check that the inner product is symmetric.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        n_tangent_vecs_list : list
+            List of number of random tangent vectors to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
         random_data = []
         for metric_args, space, shape, n_tangent_vecs in zip(
             metric_args_list, space_list, shape_list, n_tangent_vecs_list
@@ -1260,8 +1299,8 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             List of arguments to pass to constructor of the metric.
         space_list : list
             List of spaces on which the metric is defined.
-        n_points_a_list : list
-            List of number of points A to generate on the manifold.
+        n_points_list : list
+            List of number of points to generate on the manifold.
         rtol : float
             Relative tolerance to test this property.
         atol : float
