@@ -1,4 +1,4 @@
-"""File for construction of sets of points and length spaces, i.e. metric spaces.
+"""Class for Stratified Spaces.
 
 Lead authors: Anna Calissano & Jonas Lueg
 """
@@ -55,7 +55,7 @@ class Point(ABC):
 
         Returns
         -------
-        array_point : array-like, shape=[...,]
+        array_point : array-like, shape=[...]
             An array representation of the Point type.
         """
 
@@ -71,25 +71,25 @@ class PointSet(ABC):
     param: int
         Parameter defining the pointset.
 
-    default_point_type : str, {\'vector\', \'matrix\'}
+    default_point_type : str, {\'vector\', \'matrix\', \'Point\'}
         Point type.
-        Optional, default: 'Point'.
+        Optional, default: \'Point\'.
 
     default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
         Coordinate type.
-        Optional, default: 'intrinsic'.
+        Optional, default: \'intrinsic\'.
     """
 
     def __init__(self):
         super(PointSet)
 
     @abstractmethod
-    def belongs(self, point):
+    def belongs(self, point, atol):
         r"""Evaluate if a point belongs to the set.
 
         Parameters
         ----------
-        point : Point-like, shape=[..., dim]
+        point : Point-like, shape=[...]
             Point to evaluate.
         atol : float
             Absolute tolerance.
@@ -97,12 +97,12 @@ class PointSet(ABC):
 
         Returns
         -------
-        belongs : array-like, shape=[...,]
+        belongs : array-like, shape=[...]
             Boolean evaluating if point belongs to the set.
         """
 
     @abstractmethod
-    def random_point(self):
+    def random_point(self, n_samples=1):
         r"""Sample random points on the PointSet.
 
         Parameters
@@ -113,24 +113,24 @@ class PointSet(ABC):
 
         Returns
         -------
-        samples : Point-like List
+        samples : List of Point
             Points sampled on the PointSet.
         """
 
     @abstractmethod
-    def set_to_array(self):
-        """Covert a set of points into an array.
+    def set_to_array(self, points):
+        """Convert a set of points into an array.
 
         Parameters
         ----------
-        points : Point-like list, shape=[n, ...]
+        points : list of Point, shape=[...]
             Number of samples of point type to turn
             into an array.
 
         Returns
         -------
-        points_array : array-like, shape=[n, ...]
-            Points sampled on the hypersphere.
+        points_array : array-like, shape=[...]
+            Points sampled on the PointSet.
         """
 
 
@@ -141,9 +141,9 @@ class PointSetGeometry(ABC):
     ----------
     Set : PointSet
         Underling PointSet.
-    default_point_type : str, {\'vector\', \'matrix\'}
+    default_point_type : str, {\'vector\', \'matrix\', \'Point\' }
         Point type.
-        Optional, default: \'PointType\'.
+        Optional, default: \'Point\'.
     default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
         Coordinate type.
         Optional, default: \'intrinsic\'.
@@ -159,26 +159,26 @@ class PointSetGeometry(ABC):
 
         Parameters
         ----------
-        point_a: Point-like, shape=[..., ]
+        point_a: Point or List of Point, shape=[...]
             Point in the PointSet.
-        point_b: Point-like, shape=[..., ]
+        point_b: Point or List of Point, shape=[...]
             Point in the PointSet.
 
         Returns
         -------
-        distance : array-like, shape=[...,]
+        distance : array-like, shape=[...]
             Distance.
         """
 
     @abstractmethod
     def geodesic(self, point_a, point_b, **kwargs):
-        """Compute the geodesic in the length space.
+        """Compute the geodesic in the PointSet.
 
         Parameters
         ----------
-        point_a: Point-like, shape=[..., ]
+        point_a: Point or List of Points, shape=[...]
             Point in the PointSet.
-        point_b: Point-like, shape=[..., ]
+        point_b: Point or List of Points, shape=[...]
             Point in the PointSet.
 
         Returns
