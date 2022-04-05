@@ -94,6 +94,12 @@ Contributing: Code Workflow
   the `issue tracker <https://github.com/geomstats/geomstats/issues>`_
   to get some feedbacks from core developers.
 
+
+Contributing: Adding a new geometry or manifold
+-----------------------------------------------
+
+  Get used to the code design of geomstats' classes by having a look at the `template manifold <https://github.com/geomstats/geomstats/tree/master/geomstats/geometry/_my_manifold.py>`__ and `template unit-tests <https://github.com/geomstats/geomstats/blob/master/tests/tests_geomstats/test__my_manifold.py>`__ implementations.
+
 Contributing: GitHub Workflow
 =============================
 
@@ -161,12 +167,20 @@ modifying code and submitting a PR:
    mailing list hi@geomstats.ai for more visibility.
 
 It is often helpful to keep your local feature branch synchronized with the
-latest changes of the main geomstats repository::
+latest changes of the main geomstats repository. If there are only a few new
+commits in the master branch, use::
 
     $ git fetch upstream
     $ git rebase upstream/master
 
-Subsequently, you might need to solve potential conflicts. Refer to the
+Subsequently, you might need to solve potential conflicts.
+If it's been a while since you've last updated your branch, it might be easier
+to merge the master branch into yours::
+
+    $ git fetch upstream
+    $ git merge upstream/master
+
+Refer to the
 `Git documentation related to resolving merge conflict using the command
 line
 <https://help.github.com/articles/resolving-a-merge-conflict-using-the-command-line/>`_.
@@ -187,7 +201,9 @@ complies with the following rules. The **bolded** ones are especially important:
    good title.
 
 2. **Make sure that your code is** `vectorized
-   <https://www.geeksforgeeks.org/vectorization-in-python/>`_.
+   <https://www.geeksforgeeks.org/vectorization-in-python/>`_. For vectorized matrix operations we recommend using the
+   methods of the  `Matrices <https://github.com/geomstats/geomstats/blob/master/geomstats/geometry/matrices.py>`_
+   class instead of lower level backend functions, as they are automatically vectorized.
 
 3. **Submit your code with associated unit tests**. High-quality
    `unit testing <https://en.wikipedia.org/wiki/Unit_testing>`_
@@ -203,30 +219,31 @@ complies with the following rules. The **bolded** ones are especially important:
 
 4. **Make sure your code passes all unit tests**. First,
    run the tests related to your changes. For example, if you changed
-   something in `geomstats/spd_matrices_space.py`:
+   something in `geomstats/spd_matrices_space.py`::
 
-   `nose2 --verbose tests.test_spd_matrices_space`
+        $ pytest tests/tests_geomstats/test_spd_matrices.py
 
    and then run the tests of the whole codebase to check that your feature is
-   not breaking any of them:
+   not breaking any of them::
 
-   `nose2`
+        $ pytest tests/
 
    This way, further modifications on the code base are granted
    to be consistent with the desired behavior. Merging your PR should not break
    any test in any backend (numpy, tensorflow or pytorch).
 
 5. **Make sure that your PR follows Python international style guidelines**,
-   `PEP8 <https://www.python.org/dev/peps/pep-0008>`_, which you should read.
-   The `flake8` package automatically checks for style violations when you
+   `PEP8 <https://www.python.org/dev/peps/pep-0008>`_. The `flake8` package
+   automatically checks for style violations when you
    submit your PR. We recommend installing flake8 with its plugins on your
-   machine by running
+   machine by running::
 
-   `pip3 install -r dev-requirements.txt`
+    $ pip3 install -r dev-requirements.txt
 
-   Then you can run
+   Then you can run the following two commands::
 
-   `flake8 geomstats tests examples`
+    $ flake8 --ignore=D,W503,W504 geomstats examples tests
+    $ flake8 geomstats/geometry geomstats/learning
 
    To prevent adding commits which fail to adhere to the PEP8 guidelines, we
    include a `pre-commit <https://pre-commit.com/>` config, which immediately
@@ -275,7 +292,7 @@ complies with the following rules. The **bolded** ones are especially important:
     large number of samples > 100000, but does not scale in dimensionality:
     n_features is expected to be lower than 100".
 
-11. **Each PR needs to be accepted by two core developpers** before
+11. **Each PR needs to be accepted by a core developer** before
     being merged.
 
 You can also check our :ref:`code_review` to get an idea of what reviewers
@@ -448,7 +465,7 @@ Docstring Examples
 ^^^^^^^^^^^^^^^^^^
 Here's a generic docstring template::
 
-   def my_method(self, my_param_1, my_param_2='vector'):
+   def my_method(self, my_param_1, my_param_2="vector"):
       """Write a one-line summary for the method.
 
       Write a description of the method, including "big O"
@@ -458,9 +475,9 @@ Here's a generic docstring template::
       ----------
       my_param_1 : array-like, shape=[..., dim]
          Write a short description of parameter my_param_1.
-      my_param_2 : str, {'vector', 'matrix'}
+      my_param_2 : str, {"vector", "matrix"}
          Write a short description of parameter my_param_2.
-         Optional, default: 'vector'.
+         Optional, default: "vector".
 
       Returns
       -------
@@ -518,7 +535,7 @@ In general, have the following in mind:
       ``array-like, shape=[dimension[:axis], n, dimension[axis:]]``
 
    4. For strings with multiple options, use brackets:
-      ``input: str, {'log', 'squared', 'multinomial'}``
+      ``input: str, {"log", "squared", "multinomial"}``
 
    5. 1D or 2D data can be a subset of
       ``{array-like, ndarray, sparse matrix, dataframe}``. Note that
@@ -595,15 +612,17 @@ guidelines:
    to check if you are using the original module's method or if you have
    overwritten it.
 
-9. Use single quotes ' and not double quotes " for strings.
+9. Use double quotes " and not single quotes ' for strings.
 
-10. If you need several lines for a function call, use the syntax
-::
+10. If you need several lines for a function call,
+
+use the syntax::
+
    my_function_with_a_very_long_name(
       my_param_1=value_1, my_param_2=value_2)
 
-and not
-::
+and not::
+
    my_function_with_a_very_long_name(my_param_1=value_1,
                                      my_param_2=value_2)
 

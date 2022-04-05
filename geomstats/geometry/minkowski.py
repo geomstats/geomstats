@@ -1,12 +1,21 @@
-"""Minkowski space."""
+"""Minkowski space.
+
+Lead author: Nina Miolane.
+"""
+
+import math
 
 import geomstats.backend as gs
-from geomstats.geometry.manifold import Manifold
+from geomstats.algebra_utils import from_vector_to_diagonal_matrix
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class Minkowski(Manifold):
+class Minkowski(Euclidean):
     """Class for Minkowski space.
+
+    This is the Euclidean space endowed with the inner-product of signature (
+    dim-1, 1).
 
     Parameters
     ----------
@@ -14,53 +23,15 @@ class Minkowski(Manifold):
        Dimension of Minkowski space.
     """
 
-    def __init__(self, dim):
-        super(Minkowski, self).__init__(dim=dim)
-        self.metric = MinkowskiMetric(dim)
+    def __new__(cls, dim, **kwargs):
+        """Instantiate a Minkowski space.
 
-    def belongs(self, point):
-        """Evaluate if a point belongs to the Minkowski space.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point to evaluate.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the Minkowski space.
+        This is an instance of the `Euclidean` class endowed with the
+        `MinkowskiMetric`.
         """
-        point_dim = point.shape[-1]
-        belongs = point_dim == self.dim
-        if gs.ndim(point) == 2:
-            belongs = gs.tile([belongs], (point.shape[0],))
-
-        return belongs
-
-    def random_uniform(self, n_samples=1, bound=1.):
-        """Sample in the Minkowski space from the uniform distribution.
-
-        Parameters
-        ----------
-        n_samples: int
-            Number of samples.
-            Optional, default: 1
-        bound : float
-            Side of hypercube support of the uniform distribution.
-            Optional, default: 1
-
-        Returns
-        -------
-        points : array-like, shape=[..., dim]
-            Sample.
-        """
-        size = (self.dim,)
-        if n_samples != 1:
-            size = (n_samples, self.dim)
-        point = bound * gs.random.rand(*size) * 2 - 1
-
-        return point
+        space = Euclidean(dim)
+        space.metric = MinkowskiMetric(dim)
+        return space
 
 
 class MinkowskiMetric(RiemannianMetric):
@@ -75,9 +46,7 @@ class MinkowskiMetric(RiemannianMetric):
     """
 
     def __init__(self, dim):
-        super(MinkowskiMetric, self).__init__(
-            dim=dim,
-            signature=(dim - 1, 1, 0))
+        super(MinkowskiMetric, self).__init__(dim=dim, signature=(dim - 1, 1))
 
     def metric_matrix(self, base_point=None):
         """Compute the inner product matrix, independent of the base point.
@@ -92,19 +61,33 @@ class MinkowskiMetric(RiemannianMetric):
         inner_prod_mat : array-like, shape=[..., dim, dim]
             Inner-product matrix.
         """
-        inner_prod_mat = gs.eye(self.dim - 1, self.dim - 1)
-        first_row = gs.array([0.] * (self.dim - 1))
-        first_row = gs.to_ndarray(first_row, to_ndim=2, axis=1)
-        inner_prod_mat = gs.vstack(
-            [gs.transpose(first_row), inner_prod_mat])
+        q, p = self.signature
+        diagonal = gs.array([-1.0] * p + [1.0] * q)
+        return from_vector_to_diagonal_matrix(diagonal)
 
-        first_column = gs.array([-1.] + [0.] * (self.dim - 1))
-        first_column = gs.to_ndarray(first_column, to_ndim=2, axis=1)
-        inner_prod_mat = gs.hstack([first_column, inner_prod_mat])
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Inner product between two tangent vectors at a base point.
 
-        return inner_prod_mat
+        Parameters
+        ----------
+        tangent_vec_a: array-like, shape=[..., dim]
+            Tangent vector at base point.
+        tangent_vec_b: array-like, shape=[..., dim]
+            Tangent vector at base point.
+        base_point: array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
 
-    def exp(self, tangent_vec, base_point):
+        Returns
+        -------
+        inner_product : array-like, shape=[...,]
+            Inner-product.
+        """
+        q, p = self.signature
+        diagonal = gs.array([-1.0] * p + [1.0] * q, dtype=tangent_vec_a.dtype)
+        return gs.einsum("...i,...i->...", diagonal * tangent_vec_a, tangent_vec_b)
+
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of `tangent_vec` at `base_point`.
 
         The Riemannian exponential is the addition in the Minkowski space.
@@ -124,7 +107,7 @@ class MinkowskiMetric(RiemannianMetric):
         exp = base_point + tangent_vec
         return exp
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of `point` at `base_point`.
 
         The Riemannian logarithm is the subtraction in the Minkowski space.
@@ -143,3 +126,24 @@ class MinkowskiMetric(RiemannianMetric):
         """
         log = point - base_point
         return log
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In the case of the Minkowski space, it does not depend on the base point and
+        is infinite everywhere, because of the flat curvature.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return math.inf

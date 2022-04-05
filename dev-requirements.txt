@@ -1,5 +1,7 @@
+black
 flake8
 flake8-docstrings
-flake8-import-order
-nose2
+isort
 pre-commit
+pytest
+pytest-cov

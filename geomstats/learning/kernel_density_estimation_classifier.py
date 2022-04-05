@@ -1,10 +1,25 @@
-"""The kernel density estimation classifier on manifolds."""
+"""The kernel density estimation classifier on manifolds.
+
+Lead author: Yann Cabanes.
+"""
 
 import math
 
 from sklearn.neighbors import RadiusNeighborsClassifier
 
 import geomstats.backend as gs
+
+
+def wrap(function):
+    """Wrap a function to first convert args to arrays."""
+
+    def wrapped_function(*args, **kwargs):
+        new_args = ()
+        for array in args:
+            new_args += (gs.array(array),)
+        return function(*new_args, **kwargs)
+
+    return wrapped_function
 
 
 class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
@@ -101,40 +116,49 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
     sklearn.neighbors.RadiusNeighborsClassifier.html
     """
 
-    def __init__(self, radius=math.inf,
-                 kernel='distance',
-                 bandwidth=1.0,
-                 p=2,
-                 distance='minkowski',
-                 distance_params=None,
-                 n_jobs=None,
-                 **kwargs):
+    def __init__(
+        self,
+        radius=math.inf,
+        kernel="distance",
+        bandwidth=1.0,
+        p=2,
+        distance="minkowski",
+        distance_params=None,
+        n_jobs=None,
+        **kwargs
+    ):
 
         self.bandwidth = bandwidth
 
         if isinstance(kernel, str):
             weights = kernel
         else:
+
             def weights(distance_matrix):
                 n_samples = distance_matrix.shape[0]
                 weights_list = []
                 for i_sample in range(n_samples):
                     weights_list.append(
                         kernel(
-                            distance=distance_matrix[i_sample],
-                            bandwidth=self.bandwidth))
+                            distance=distance_matrix[i_sample], bandwidth=self.bandwidth
+                        )
+                    )
                 weights_matrix = gs.array(weights_list)
                 return weights_matrix
+
+        if callable(distance):
+            distance = wrap(distance)
 
         super().__init__(
             radius=radius,
             weights=weights,
-            algorithm='brute',
+            algorithm="brute",
             p=p,
             metric=distance,
             metric_params=distance_params,
             n_jobs=n_jobs,
-            **kwargs)
+            **kwargs
+        )
 
     def fit(self, X, y):
         """Fit the model using X as training data and y as target values.
@@ -194,6 +218,5 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         if len(data_shape) == 1:
             n_samples = data_shape[0]
             X = gs.reshape(X, (n_samples, 1))
-        probabilities = super(
-            KernelDensityEstimationClassifier, self).predict_proba(X)
+        probabilities = super(KernelDensityEstimationClassifier, self).predict_proba(X)
         return probabilities

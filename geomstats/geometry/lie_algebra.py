@@ -5,14 +5,21 @@ implemented here. The first one is as a matrix, as elements of R^(n x n).
 The second is by choosing a base and remembering the coefficients of an element
 in that base. This base will be provided in child classes
 (e.g. SkewSymmetricMatrices).
+
+Lead author: Stefan Heyder.
 """
+
+import abc
+
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.matrices import Matrices
+
 from ._bch_coefficients import BCH_COEFFICIENTS
 
 
-class MatrixLieAlgebra(Matrices):
+class MatrixLieAlgebra(VectorSpace, abc.ABC):
     """Class implementing matrix Lie algebra related functions.
 
     Parameters
@@ -25,11 +32,13 @@ class MatrixLieAlgebra(Matrices):
     """
 
     def __init__(self, dim, n, **kwargs):
-        super(MatrixLieAlgebra, self).__init__(m=n, n=n, **kwargs)
-        geomstats.errors.check_integer(dim, 'dim')
-        geomstats.errors.check_integer(n, 'n')
+        super(MatrixLieAlgebra, self).__init__(shape=(n, n), **kwargs)
+        geomstats.errors.check_integer(dim, "dim")
+        geomstats.errors.check_integer(n, "n")
         self.dim = dim
-        self.basis = None
+        self.n = n
+
+    bracket = Matrices.bracket
 
     def baker_campbell_hausdorff(self, matrix_a, matrix_b, order=2):
         """Calculate the Baker-Campbell-Hausdorff approximation of given order.
@@ -63,7 +72,8 @@ class MatrixLieAlgebra(Matrices):
             raise NotImplementedError("BCH is not implemented for order > 15.")
 
         number_of_hom_degree = gs.array(
-            [2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630, 1161, 2182])
+            [2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630, 1161, 2182]
+        )
         n_terms = gs.sum(number_of_hom_degree[:order])
 
         el = [matrix_a, matrix_b]
@@ -74,11 +84,12 @@ class MatrixLieAlgebra(Matrices):
             i_pp = BCH_COEFFICIENTS[i, 2] - 1
 
             el.append(self.bracket(el[i_p], el[i_pp]))
-            result += (float(BCH_COEFFICIENTS[i, 3]) /
-                       float(BCH_COEFFICIENTS[i, 4]) *
-                       el[i])
+            result += (
+                float(BCH_COEFFICIENTS[i, 3]) / float(BCH_COEFFICIENTS[i, 4]) * el[i]
+            )
         return result
 
+    @abc.abstractmethod
     def basis_representation(self, matrix_representation):
         """Compute the coefficients of matrices in the given basis.
 
@@ -97,7 +108,7 @@ class MatrixLieAlgebra(Matrices):
     def matrix_representation(self, basis_representation):
         """Compute the matrix representation for the given basis coefficients.
 
-        Sums the basis elements according to the coefficents given in
+        Sums the basis elements according to the coefficients given in
         basis_representation.
 
         Parameters
@@ -114,19 +125,3 @@ class MatrixLieAlgebra(Matrices):
             raise NotImplementedError("basis not implemented")
 
         return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)
-
-    def projection(self, mat):
-        """Project a matrix to the Lie Algebra.
-
-        Parameters
-        ----------
-        mat : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        projected : array-like, shape=[..., n, n]
-            Matrix belonging to Lie Algebra.
-        """
-        raise NotImplementedError('Projection to Lie Algebra is not '
-                                  'implemented.')

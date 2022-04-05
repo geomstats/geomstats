@@ -2,21 +2,31 @@
 
 In other words, a topological space that locally resembles
 Euclidean space near each point.
+
+Lead author: Nina Miolane.
 """
 
+import abc
+
+import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.riemannian_metric import RiemannianMetric
+
+POINT_TYPES = {1: "vector", 2: "matrix"}
 
 
-ATOL = 1e-6
-
-
-class Manifold:
+class Manifold(abc.ABC):
     r"""Class for manifolds.
 
     Parameters
     ----------
     dim : int
         Dimension of the manifold.
+    shape : tuple of int
+        Shape of one element of the manifold.
+        Optional, default : None.
+    metric : RiemannianMetric
+        Metric object to use on the manifold.
     default_point_type : str, {\'vector\', \'matrix\'}
         Point type.
         Optional, default: 'vector'.
@@ -26,18 +36,34 @@ class Manifold:
     """
 
     def __init__(
-            self, dim, default_point_type='vector',
-            default_coords_type='intrinsic', **kwargs):
+        self,
+        dim,
+        shape,
+        metric=None,
+        default_point_type=None,
+        default_coords_type="intrinsic",
+        **kwargs
+    ):
         super(Manifold, self).__init__(**kwargs)
-        geomstats.errors.check_integer(dim, 'dim')
+        geomstats.errors.check_integer(dim, "dim")
+
+        if not isinstance(shape, tuple):
+            raise ValueError("Expected a tuple for the shape argument.")
+        if default_point_type is None:
+            default_point_type = POINT_TYPES[len(shape)]
+
         geomstats.errors.check_parameter_accepted_values(
-            default_point_type, 'default_point_type', ['vector', 'matrix'])
+            default_point_type, "default_point_type", ["vector", "matrix"]
+        )
 
         self.dim = dim
+        self.shape = shape
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
+        self.metric = metric
 
-    def belongs(self, point, atol=ATOL):
+    @abc.abstractmethod
+    def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold.
 
         Parameters
@@ -46,16 +72,16 @@ class Manifold:
             Point to evaluate.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the manifold.
         """
-        raise NotImplementedError('belongs is not implemented.')
 
-    def is_tangent(self, vector, base_point=None, atol=ATOL):
+    @abc.abstractmethod
+    def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters
@@ -64,20 +90,18 @@ class Manifold:
             Vector.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
-            Optional, default: none.
         atol : float
             Absolute tolerance.
-            Optional, default: 1e-6.
+            Optional, default: backend atol.
 
         Returns
         -------
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        raise NotImplementedError(
-            'is_tangent is not implemented.')
 
-    def to_tangent(self, vector, base_point=None):
+    @abc.abstractmethod
+    def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
 
         Parameters
@@ -92,8 +116,27 @@ class Manifold:
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point.
         """
-        raise NotImplementedError(
-            'to_tangent is not implemented.')
+
+    @abc.abstractmethod
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample random points on the manifold.
+
+        If the manifold is compact, a uniform distribution is used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact manifolds.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., {dim, [n, n]}]
+            Points sampled on the manifold.
+        """
 
     def regularize(self, point):
         """Regularize a point to the canonical representation for the manifold.
@@ -110,3 +153,39 @@ class Manifold:
         """
         regularized_point = point
         return regularized_point
+
+    @property
+    def metric(self):
+        """Riemannian Metric associated to the Manifold."""
+        return self._metric
+
+    @metric.setter
+    def metric(self, metric):
+        if metric is not None:
+            if not isinstance(metric, RiemannianMetric):
+                raise ValueError("The argument must be a RiemannianMetric object")
+            if metric.dim != self.dim:
+                metric.dim = self.dim
+        self._metric = metric
+
+    def random_tangent_vec(self, n_samples, base_point):
+        """Generate random tangent vec.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        base_point :  array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vec at base point.
+        """
+        return gs.squeeze(
+            self.to_tangent(
+                gs.random.normal(size=(n_samples,) + self.shape), base_point
+            )
+        )

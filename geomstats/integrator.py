@@ -1,34 +1,41 @@
 r"""Integrator functions used when no closed forms are available.
 
-These are designed for second order ODE written as a first order ODE of two
-variables (x,v):
+Lead author: Nicolas Guigui.
+
+These are designed for first order ODE written of a variable x and a time
+variable t:
 .. math::
 
-                    \frac{dx}{dt} = force_1(x, v)
-                    \frac{dv}{dt} = force_2(x, v)
+                    \frac{dx}{dt} = force(x, t)
 
-where :math: `x` is called the position variable, :math: `v` the velocity
-variable, and :math: `(x, v)` the state.
+where :math: `x` is called the state variable. It may represent many
+variables by stacking arrays, e.g. position and velocity in a geodesic
+equation.
 """
 
 from geomstats.errors import check_parameter_accepted_values
 
+STEP_FUNCTIONS = {
+    "euler": "euler_step",
+    "symp_euler": "symplectic_euler_step",
+    "leapfrog": "leapfrog_step",
+    "rk4": "rk4_step",
+    "rk2": "rk2_step",
+}
 
-STEP_FUNCTIONS = {'euler': 'euler_step',
-                  'rk4': 'rk4_step',
-                  'rk2': 'rk2_step'}
 
-
-def euler_step(state, force, dt):
+def euler_step(force, state, time, dt):
     """Compute one step of the euler approximation.
 
     Parameters
     ----------
+    force : callable
+        Vector field that is being integrated.
     state : array-like, shape=[2, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
-    force : callable
-        Vector field that is being integrated.
+    time : float
+        Time variable.
     dt : float
         Time-step in the integration.
 
@@ -39,23 +46,73 @@ def euler_step(state, force, dt):
     vector_new : array-like, shape=[,,,, {dim, [n, n]}]
         Second variable at time t + dt.
     """
-    point, vector = state
-    velocity, acceleration = force(point, vector)
-    point_new = point + velocity * dt
-    vector_new = vector + acceleration * dt
-    return point_new, vector_new
+    derivatives = force(state, time)
+    new_state = state + derivatives * dt
+    return new_state
 
 
-def rk2_step(state, force, dt):
+def symplectic_euler_step(force, state, time, dt):
+    """Compute one step of the symplectic euler approximation.
+
+    Parameters
+    ----------
+    state : array-like, shape=[2, dim]
+        State at time t, corresponds to position and velocity variables at
+        time t.
+    force : callable
+        Vector field that is being integrated.
+    time : float
+        Time variable.
+    dt : float
+        Time-step in the integration.
+
+    Returns
+    -------
+    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+        First variable at time t + dt.
+    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+        Second variable at time t + dt.
+    """
+    raise NotImplementedError
+
+
+def leapfrog_step(force, state, time, dt):
+    """Compute one step of the leapfrog approximation.
+
+    Parameters
+    ----------
+    state : array-like, shape=[2, dim]
+        State at time t, corresponds to position and velocity variables at
+        time t.
+    force : callable
+        Vector field that is being integrated.
+    time : float
+        Time variable.
+    dt : float
+        Time-step in the integration.
+
+    Returns
+    -------
+    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+        First variable at time t + dt.
+    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+        Second variable at time t + dt.
+    """
+    raise NotImplementedError
+
+
+def rk2_step(force, state, time, dt):
     """Compute one step of the rk2 approximation.
 
     Parameters
     ----------
+    force : callable
+        Vector field that is being integrated.
     state : array-like, shape=[2, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
-    force : callable
-        Vector field that is being integrated.
+    time : float
+        Time variable.
     dt : float
         Time-step in the integration.
 
@@ -70,24 +127,24 @@ def rk2_step(state, force, dt):
     --------
     https://en.wikipedia.org/wiki/Runge–Kutta_methods
     """
-    point, vector = state
-    k1, l1 = force(point, vector)
-    k2, l2 = force(point + dt / 2 * k1, vector + dt / 2 * l1)
-    point_new = point + dt * k2
-    vector_new = vector + dt * l2
-    return point_new, vector_new
+    k1 = force(state, time)
+    k2 = force(state + dt / 2 * k1, time + dt / 2)
+    new_state = state + dt * k2
+    return new_state
 
 
-def rk4_step(state, force, dt):
+def rk4_step(force, state, time, dt):
     """Compute one step of the rk4 approximation.
 
     Parameters
     ----------
+    force : callable
+        Vector field that is being integrated.
     state : array-like, shape=[2, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
-    force : callable
-        Vector field that is being integrated.
+    time : float
+        Time variable.
     dt : float
         Time-step in the integration.
 
@@ -102,19 +159,15 @@ def rk4_step(state, force, dt):
     --------
     https://en.wikipedia.org/wiki/Runge–Kutta_methods
     """
-    point, vector = state
-    k1, l1 = force(point, vector)
-    k2, l2 = force(point + dt / 2 * k1, vector + dt / 2 * l1)
-    k3, l3 = force(
-        point + dt / 2 * k2, vector + dt / 2 * l2)
-    k4, l4 = force(point + dt * k3, vector + dt * l3)
-    point_new = point + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
-    vector_new = vector + dt / 6 * (l1 + 2 * l2 + 2 * l3 + l4)
-    return point_new, vector_new
+    k1 = force(state, time)
+    k2 = force(state + dt / 2 * k1, time + dt / 2)
+    k3 = force(state + dt / 2 * k2, time + dt / 2)
+    k4 = force(state + dt * k3, time + dt)
+    new_state = state + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+    return new_state
 
 
-def integrate(
-        function, initial_state, end_time=1.0, n_steps=10, step='euler'):
+def integrate(function, initial_state, end_time=1.0, n_steps=10, step="euler"):
     """Compute the flow under the vector field using symplectic euler.
 
     Integration function to compute flows of vector fields
@@ -143,18 +196,17 @@ def integrate(
         element of the sequence is the same as the vectors passed in
         initial_state.
     """
-    check_parameter_accepted_values(step, 'step', STEP_FUNCTIONS)
+    check_parameter_accepted_values(step, "step", STEP_FUNCTIONS)
 
     dt = end_time / n_steps
-    positions = [initial_state[0]]
-    velocities = [initial_state[1]]
-    current_state = (positions[0], velocities[0])
+    states = [initial_state]
+    current_state = initial_state
 
     step_function = globals()[STEP_FUNCTIONS[step]]
 
-    for _ in range(n_steps):
+    for i in range(n_steps):
         current_state = step_function(
-            state=current_state, force=function, dt=dt)
-        positions.append(current_state[0])
-        velocities.append(current_state[1])
-    return positions, velocities
+            state=current_state, force=function, time=i * dt, dt=dt
+        )
+        states.append(current_state)
+    return states

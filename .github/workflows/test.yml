@@ -1,0 +1,64 @@
+name: "Testing"
+
+on:
+  push:
+    branches: [master,github-actions-test]
+    paths-ignore:
+    - 'docs/**'
+    - 'README.rst'
+    - 'LICENSE.md'
+    - '.github/workflows/docs.yml'
+    - '.deepsource.toml'
+    - '.gitignore'
+
+  pull_request:
+    branches: [master]
+    paths-ignore:
+    - 'docs/**'
+    - 'README.rst'
+    - '.github/workflows/docs.yml'
+    - 'LICENSE.md'
+    - '.deepsource.toml'
+    - '.gitignore'
+
+
+jobs:
+  build:
+
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        python-version: [3.8]
+        geomstats-backend : ['autograd','numpy','pytorch','tensorflow']
+        test-folder : ['tests/tests_geomstats/' , 'tests/test_notebooks.py']
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build using Python ${{matrix.python-version}} and Backend ${{matrix.geomstats-backend}}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{matrix.python-version}}
+
+      - name: install dependencies [pip]
+        run:  |
+          pip install --upgrade pip setuptools wheel
+          for req in ci-requirements.txt dev-requirements.txt doc-requirements.txt opt-requirements.txt requirements.txt; do
+            pip install -q -r $req
+          done
+          pip install -e .
+
+      - name: Add annotations [pytest]
+        run: pip install pytest-github-actions-annotate-failures
+      
+      - name: unit testing [pytest]
+        env:
+          GEOMSTATS_BACKEND : ${{matrix.geomstats-backend}}
+        run: |
+          pytest --cov-report term --cov=geomstats ${{matrix.test-folder}}
+
+      - name: uploading code coverage [codecov]
+        if: ${{matrix.python-version == 3.8 && matrix.test-folder == 'tests/tests_geomstats/'}}
+        run: |
+          bash <(curl -s https://codecov.io/bash) -c -F ${{matrix.geomstats-backend}}

@@ -4,3 +4,15 @@ docstring-convention = numpy
 exclude = examples/*.ipynb
 ignore = W503, W504
 import_order_style = smarkets
+max-line-length = 88
+extend-ignore = E203
+per-file-ignores =
+    geomstats/_backend/autograd/*:F401, D103
+    geomstats/_backend/numpy/*:F401, D103
+    geomstats/_backend/pytorch/*:F401, D103
+    geomstats/_backend/tensorflow/*:F401, D103
+    geomstats/visualization.py: D101, D102
+    geomstats/tests.py : D101, D102
+    tests/*: D100, D101, D102, D103, D106, D200, D201, D205, D400, D404, I100, I101, I201, I202
+    */__init__.py: D104
+

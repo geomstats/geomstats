@@ -1,74 +1,87 @@
 """Module exposing the GeneralLinear group class."""
 
-from itertools import product
-
+import geomstats.algebra_utils as utils
 import geomstats.backend as gs
+from geomstats.geometry.base import OpenSet
+from geomstats.geometry.lie_algebra import MatrixLieAlgebra
+from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.matrices import Matrices
 
 
-class GeneralLinear(Matrices):
-    """Class for the general linear group GL(n).
+class GeneralLinear(MatrixLieGroup, OpenSet):
+    """Class for the general linear group GL(n) and its identity component.
+
+    If `positive_det=True`, this is the connected component of the identity,
+    i.e. the space of matrices with positive determinant.
 
     Parameters
     ----------
     n : int
         Integer representing the shape of the matrices: n x n.
+    positive_det : bool
+        Whether to restrict to the identity connected component of the
+        general linear group, i.e. matrices with positive determinant.
+        Optional, default: False.
     """
 
-    def __init__(self, n, **kwargs):
-        super(GeneralLinear, self).__init__(n=n, m=n, **kwargs)
-        self.n = n
+    def __init__(self, n, positive_det=False, **kwargs):
+        if "dim" not in kwargs.keys():
+            kwargs["dim"] = n**2
+        super(GeneralLinear, self).__init__(
+            ambient_space=Matrices(n, n), n=n, lie_algebra=SquareMatrices(n), **kwargs
+        )
+        self.positive_det = positive_det
 
-    def belongs(self, point):
+    def projection(self, point):
+        r"""Project a matrix to the general linear group.
+
+        As GL(n) is dense in the space of matrices, this is not a projection
+        per se, but a regularization if the matrix is not already invertible:
+        :math:`X + \epsilon I_n` is returned where :math:`\epsilon=gs.atol`
+        is returned for an input X.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim_embedding]
+            Point in embedding manifold.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., dim_embedding]
+            Projected point.
+        """
+        belongs = self.belongs(point)
+        regularization = gs.einsum(
+            "...,ij->...ij", gs.where(~belongs, gs.atol, 0.0), self.identity
+        )
+        projected = point + regularization
+        if self.positive_det:
+            det = gs.linalg.det(point)
+            return utils.flip_determinant(projected, det)
+        return projected
+
+    def belongs(self, point, atol=gs.atol):
         """Check if a matrix is invertible and of the right shape.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
             Matrix to be checked.
+        atol : float
+            Tolerance threshold for the determinant.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
             Boolean denoting if point is in GL(n).
         """
-        point_shape = point.shape
-        mat_dim_1, mat_dim_2 = point_shape[-2], point_shape[-1]
-        det = gs.linalg.det(point)
-        return gs.logical_and(
-            mat_dim_1 == self.n and mat_dim_2 == self.n,
-            det != 0.)
+        has_right_size = self.ambient_space.belongs(point)
+        if gs.all(has_right_size):
+            det = gs.linalg.det(point)
+            return det > atol if self.positive_det else gs.abs(det) > atol
+        return has_right_size
 
-    def get_identity(self):
-        """Return the identity matrix."""
-        return gs.eye(self.n, self.n)
-    identity = property(get_identity)
-
-    @classmethod
-    def compose(cls, *args):
-        """Return the product of a collection of matrices."""
-        return cls.mul(*args)
-
-    @staticmethod
-    def inverse(point):
-        """Return the inverse of a matrix.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Matrix to be inverted.
-        """
-        return gs.linalg.inv(point)
-
-    def _replace_values(self, samples, new_samples, indcs):
-        """Replace samples with new samples at specific indices."""
-        replaced_indices = [
-            i for i, is_replaced in enumerate(indcs) if is_replaced]
-        value_indices = list(
-            product(replaced_indices, range(self.n), range(self.n)))
-        return gs.assignment(samples, gs.flatten(new_samples), value_indices)
-
-    def random_uniform(self, n_samples=1, tol=1e-6):
+    def random_point(self, n_samples=1, bound=1.0, n_iter=100):
         """Sample in GL(n) from the uniform distribution.
 
         Parameters
@@ -76,101 +89,33 @@ class GeneralLinear(Matrices):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        tol: float
-            Threshold for the absolute value of the determinant of the
-            returned matrix.
-            Optional, default: 1e-6.
+        bound: float
+            Bound of the interval in which to sample each matrix entry.
+            Optional, default: 1.
+        n_iter : int
+            Maximum number of trials to sample a matrix with positive det.
+            Optional, default: 100.
 
         Returns
         -------
         samples : array-like, shape=[..., n, n]
             Point sampled on GL(n).
         """
-        samples = gs.random.normal(size=(n_samples, self.n, self.n))
-        while True:
-            dets = gs.linalg.det(samples)
-            indcs = gs.isclose(dets, 0.0, atol=tol)
-            num_bad_samples = gs.sum(indcs)
-            if num_bad_samples == 0:
-                break
-            new_samples = gs.random.normal(
-                size=(num_bad_samples, self.n, self.n))
-            samples = self._replace_values(samples, new_samples, indcs)
+        n = self.n
+        sample = []
+        n_accepted, iteration = 0, 0
+        criterion_func = (lambda x: x) if self.positive_det else gs.abs
+        while n_accepted < n_samples and iteration < n_iter:
+            raw_samples = gs.random.normal(size=(n_samples - n_accepted, n, n))
+            dets = gs.linalg.det(raw_samples)
+            criterion = criterion_func(dets) > gs.atol
+            if gs.any(criterion):
+                sample.append(raw_samples[criterion])
+                n_accepted += gs.sum(criterion)
+            iteration += 1
         if n_samples == 1:
-            samples = gs.squeeze(samples, axis=0)
-        return samples
-
-    @classmethod
-    def exp(cls, tangent_vec, base_point=None):
-        r"""
-        Exponentiate a left-invariant vector field from a base point.
-
-        The vector input is not an element of the Lie algebra, but of the
-        tangent space at base_point: if :math:`g` denotes `base_point`,
-        :math:`v` the tangent vector, and :math:'V = g^{-1} v' the associated
-        Lie algebra vector, then
-
-        .. math::
-
-            \exp(v, g) = mul(g, \exp(V))
-
-        Therefore, the Lie exponential is obtained when base_point is None, or
-        the identity.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-            Optional, defaults to identity if None.
-
-        Returns
-        -------
-        point : array-like, shape=[..., n, n]
-            Left multiplication of `exp(algebra_mat)` with `base_point`.
-        """
-        expm = gs.linalg.expm
-        if base_point is None:
-            return expm(tangent_vec)
-        lie_algebra_vec = cls.mul(cls.inverse(base_point), tangent_vec)
-        return cls.mul(base_point, cls.exp(lie_algebra_vec))
-
-    @classmethod
-    def log(cls, point, base_point=None):
-        r"""
-        Compute a left-invariant vector field bringing base_point to point.
-
-        The output is a vector of the tangent space at base_point, so not a Lie
-        algebra element if it is not the identity.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-            Optional, defaults to identity if None.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., n, n]
-            Matrix such that `exp(tangent_vec, base_point) = point`.
-
-        Notes
-        -----
-        Denoting `point` by :math:`g` and `base_point` by :math:`h`,
-        the output satisfies:
-
-        .. math::
-
-            g = \exp(\log(g, h), h)
-        """
-        logm = gs.linalg.logm
-        if base_point is None:
-            return logm(point)
-        lie_algebra_vec = logm(cls.mul(cls.inverse(base_point), point))
-        return cls.mul(base_point, lie_algebra_vec)
+            return sample[0][0]
+        return gs.concatenate(sample)
 
     @classmethod
     def orbit(cls, point, base_point=None):
@@ -199,7 +144,7 @@ class GeneralLinear(Matrices):
         .. math::
 
             \gamma(t) = {\mathrm e}^{t X} \cdot h \\
-            \quad {\mathrm with} \quad\\
+            \quad \text{with} \quad\\
             {\mathrm e}^{X} = g h^{-1}
 
         The path is not uniquely defined and depends on the choice of :math:`V`
@@ -210,10 +155,64 @@ class GeneralLinear(Matrices):
         Return a collection of trajectories (4-D array)
         from a collection of input matrices (3-D array).
         """
-        # TODO (nina): Will work when expm gets properly 4-D vectorized.
         tangent_vec = cls.log(point, base_point)
 
         def path(time):
-            vecs = gs.einsum('t,...ij->...tij', time, tangent_vec)
+            vecs = gs.einsum("t,...ij->...tij", time, tangent_vec)
             return cls.exp(vecs, base_point)
+
         return path
+
+
+class SquareMatrices(MatrixLieAlgebra):
+    """Lie algebra of the general linear group.
+
+    This is the space of matrices.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
+    """
+
+    def __init__(self, n):
+        super(SquareMatrices, self).__init__(n=n, dim=n**2)
+        self.mat_space = Matrices(n, n)
+
+    def _create_basis(self):
+        """Create the canonical basis of the space of matrices."""
+        return self.mat_space.basis
+
+    def basis_representation(self, matrix_representation):
+        """Compute the coefficient in the usual matrix basis.
+
+        This simply flattens the input.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., dim]
+            Representation in the basis.
+        """
+        return self.mat_space.flatten(matrix_representation)
+
+    def matrix_representation(self, basis_representation):
+        """Compute the matrix representation for the given basis coefficients.
+
+        This simply reshapes the input into a square matrix.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis.
+
+        Returns
+        -------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+        """
+        return self.mat_space.reshape(basis_representation)

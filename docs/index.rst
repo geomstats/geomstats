@@ -48,14 +48,32 @@ To contribute to `geomstats` visit the page :ref:`contributing`.
 
 .. toctree::
    :maxdepth: 1
-   :caption: Getting Started
+   :caption: Getting started
 
    first-steps.rst
    examples.rst
    api-reference.rst
    contributing.rst
-   01_data_on_manifolds.rst
-   02_from_vector_spaces_to_manifolds.rst
-   03_simple_machine_learning_tangent_spaces.rst
-   04_frechet_mean_and_tangent_pca.rst
-   05_embedding_graph_structured_data_h2.rst
+   gsod.rst
+
+.. nbgallery::
+   :maxdepth: 1
+   :caption: Tutorials
+
+
+   notebooks/00_foundations__introduction_to_geomstats.ipynb
+   notebooks/01_foundations__manifolds.ipynb
+   notebooks/03_practical_methods__data_on_manifolds.ipynb
+   notebooks/04_practical_methods__from_vector_spaces_to_manifolds.ipynb
+   notebooks/05_practical_methods__simple_machine_learning_on_tangent_spaces.ipynb
+   notebooks/06_practical_methods__riemannian_frechet_mean_and_tangent_pca.ipynb
+   notebooks/07_practical_methods__riemannian_kmeans.ipynb
+   notebooks/08_practical_methods__information_geometry.ipynb
+   notebooks/09_practical_methods__implement_your_own_riemannian_geometry.ipynb
+   notebooks/10_practical_methods__shape_analysis.ipynb
+   notebooks/11_real_world_applications__cell_shapes_analysis.ipynb
+   notebooks/12_real_world_applications__emg_sign_classification_in_spd_manifold.ipynb
+   notebooks/13_real_world_applications__graph_embedding_and_clustering_in_hyperbolic_space.ipynb
+   notebooks/14_real_world_applications__hand_poses_analysis_in_kendall_shape_space.ipynb
+   notebooks/15_real_world_applications__optic_nerve_heads_analysis_in_kendall_shape_space.ipynb
+   notebooks/16_real_world_applications__visualizations_in_kendall_shape_spaces.ipynb

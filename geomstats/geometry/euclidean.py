@@ -1,11 +1,11 @@
 """Euclidean space."""
 
 import geomstats.backend as gs
-from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class Euclidean(Manifold):
+class Euclidean(VectorSpace):
     """Class for Euclidean spaces.
 
     By definition, a Euclidean space is a vector space of a given
@@ -18,10 +18,13 @@ class Euclidean(Manifold):
     """
 
     def __init__(self, dim):
-        super(Euclidean, self).__init__(dim=dim)
-        self.metric = EuclideanMetric(dim)
+        super(Euclidean, self).__init__(
+            shape=(dim,),
+            default_point_type="vector",
+            metric=EuclideanMetric(dim, shape=(dim,)),
+        )
 
-    def get_identity(self, point_type=None):
+    def get_identity(self):
         """Get the identity of the group.
 
         Parameters
@@ -36,51 +39,12 @@ class Euclidean(Manifold):
         """
         identity = gs.zeros(self.dim)
         return identity
+
     identity = property(get_identity)
 
-    def belongs(self, point):
-        """Evaluate if a point belongs to the Euclidean space.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point to evaluate.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the Euclidean space.
-        """
-        point_dim = point.shape[-1]
-        belongs = point_dim == self.dim
-        if gs.ndim(point) == 2:
-            belongs = gs.tile([belongs], (point.shape[0],))
-
-        return belongs
-
-    def random_uniform(self, n_samples=1, bound=1.):
-        """Sample in the Euclidean space with the uniform distribution.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0
-
-        Returns
-        -------
-        point : array-like, shape=[..., dim]
-           Sample.
-        """
-        size = (self.dim,)
-        if n_samples != 1:
-            size = (n_samples, self.dim)
-        point = bound * (gs.random.rand(*size) - 0.5) * 2
-
-        return point
+    def _create_basis(self):
+        """Create the canonical basis."""
+        return gs.eye(self.dim)
 
     def exp(self, tangent_vec, base_point=None):
         """Compute the group exponential, which is simply the addition.
@@ -98,7 +62,7 @@ class Euclidean(Manifold):
             Group exponential.
         """
         if not self.belongs(tangent_vec):
-            raise ValueError('The update must be of the same dimension')
+            raise ValueError("The update must be of the same dimension")
         return tangent_vec + base_point
 
 
@@ -116,10 +80,12 @@ class EuclideanMetric(RiemannianMetric):
         Dimension of the Euclidean space.
     """
 
-    def __init__(self, dim, default_point_type='vector'):
+    def __init__(self, dim, shape=None):
         super(EuclideanMetric, self).__init__(
-            dim=dim, signature=(dim, 0, 0),
-            default_point_type=default_point_type)
+            dim=dim,
+            shape=shape,
+            signature=(dim, 0),
+        )
 
     def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix, independent of the base point.
@@ -138,7 +104,51 @@ class EuclideanMetric(RiemannianMetric):
         mat = gs.eye(self.dim)
         return mat
 
-    def exp(self, tangent_vec, base_point):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Inner product between two tangent vectors at a base point.
+
+        Parameters
+        ----------
+        tangent_vec_a: array-like, shape=[..., dim]
+            Tangent vector at base point.
+        tangent_vec_b: array-like, shape=[..., dim]
+            Tangent vector at base point.
+        base_point: array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        inner_product : array-like, shape=[...,]
+            Inner-product.
+        """
+        return gs.einsum("...i,...i->...", tangent_vec_a, tangent_vec_b)
+
+    def norm(self, vector, base_point=None):
+        """Compute norm of a vector.
+
+        Norm of a vector associated to the inner product
+        at the tangent space at a base point.
+
+        Note: This only works for positive-definite
+        Riemannian metrics and inner products.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        norm : array-like, shape=[...,]
+            Norm.
+        """
+        return gs.linalg.norm(vector, axis=-1)
+
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute exp map of a base point in tangent vector direction.
 
         The Riemannian exponential is vector addition in the Euclidean space.
@@ -158,7 +168,7 @@ class EuclideanMetric(RiemannianMetric):
         exp = base_point + tangent_vec
         return exp
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute log map using a base point and other point.
 
         The Riemannian logarithm is the subtraction in the Euclidean space.

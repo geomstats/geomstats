@@ -7,7 +7,6 @@
 
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
-*.ipynb
 
 # IPython
 profile_default/
@@ -29,7 +28,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+/dist/
 downloads/
 eggs/
 .eggs/
@@ -135,3 +134,15 @@ dmypy.json
 # Miscellaneous
 out.mp4
 examples/out.mp4
+notebooks/*.mp4
+notebooks/*.png
+notebooks/*.svg
+
+# Python virtual environment
+venv/
+
+#air speed velocity
+.asv/
+
+# pick files
+*.pkl

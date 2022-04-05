@@ -16,6 +16,19 @@ coverage:
         if_ci_failed: error
         informational: False
         only_pulls: false
+
+      numpy:
+        flags:
+          - numpy
+      autograd:
+        flags:
+          - autograd
+      pytorch:
+        flags:
+          - pytorch
+      tensorflow:
+        flags:
+          - tensorflow
     patch:
       default:
         # basic
@@ -32,7 +45,47 @@ coverage:
         if_ci_failed: error
         only_pulls: false
 
+      numpy:
+        flags:
+          - numpy
+      autograd:
+        flags:
+          - autograd
+      pytorch:
+        flags:
+          - pytorch
+      tensorflow:
+        flags:
+          - tensorflow
+
+
 # Files to ignore
 ignore:
+  - "geomstats/datasets/data"
   - "examples/data"
   - "examples/imgs"
+
+flags:
+  autograd:
+    ignore:
+      - geomstats/_backend/numpy
+      - geomstats/_backend/pytorch
+      - geomstats/_backend/tensorflow
+
+  numpy:
+    ignore:
+      - geomstats/_backend/autograd
+      - geomstats/_backend/pytorch
+      - geomstats/_backend/tensorflow
+
+  pytorch:
+    ignore:
+      - geomstats/_backend/autograd
+      - geomstats/_backend/numpy
+      - geomstats/_backend/tensorflow
+
+  tensorflow:
+    ignore:
+      - geomstats/_backend/autograd
+      - geomstats/_backend/numpy
+      - geomstats/_backend/pytorch
