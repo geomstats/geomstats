@@ -183,6 +183,6 @@ class PointSetGeometry(ABC):
 
         Returns
         -------
-        geodesic : array-like, shape=[...,]
-            Geodesic.
+        path : callable
+            Time parameterized geodesic curve.
         """
