@@ -249,6 +249,7 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
+                self.n_vecs_list,
                 rtol=0.1,
                 atol=0.0,
             )
@@ -368,16 +369,6 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 ),
             ]
             return self.generate_tests(smoke_data)
-
-        # def exp_then_log_test_data(self):
-        #     random_data = [
-        #         dict(
-        #             dim=3,
-        #             base_point=self.space(3).random_point(),
-        #             point=self.space(3).random_point(),
-        #         )
-        #     ]
-        #     return self.generate_tests([], random_data)
 
         def geodesic_ivp_shape_test_data(self):
             random_data = [
