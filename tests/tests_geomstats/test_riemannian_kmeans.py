@@ -66,7 +66,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         )
         self.assertAllClose(expected, result)
 
-    def test_initialization(self):
+    def test_hypersphere_kmeans_initialization(self):
         gs.random.seed(55)
 
         manifold = hypersphere.Hypersphere(2)
