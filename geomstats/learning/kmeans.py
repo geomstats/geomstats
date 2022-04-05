@@ -77,6 +77,8 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         self.centroids = None
         self.init_centroids = None
+        self.labels = None
+        self.inertia = None
 
     def fit(self, X):
         """Provide clusters centroids and data labels.
@@ -127,9 +129,8 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             for i in range(self.n_clusters)
         ]
         dists = gs.hstack(dists)
-        belongs = gs.argmin(dists, 1)
+        self.labels = gs.argmin(dists, 1)
         index = 0
-        variance = None
         while index < self.max_iter:
             index += 1
             if self.verbose > 0:
@@ -137,7 +138,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
             old_centroids = gs.copy(self.centroids)
             for i in range(self.n_clusters):
-                fold = gs.squeeze(X[belongs == i])
+                fold = gs.squeeze(X[self.labels == i])
 
                 if len(fold) > 0:
 
@@ -159,9 +160,9 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                 for i in range(self.n_clusters)
             ]
             dists = gs.hstack(dists)
-            belongs = gs.argmin(dists, 1)
+            self.labels = gs.argmin(dists, 1)
             dists_to_closest_centroid = gs.amin(dists, 1)
-            variance = gs.sum(dists_to_closest_centroid**2)
+            self.inertia = gs.sum(dists_to_closest_centroid**2)
             centroids_distances = self.metric.dist(old_centroids, self.centroids)
             if self.verbose > 0:
                 logging.info(
@@ -176,7 +177,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                 if self.n_clusters == 1:
                     self.centroids = gs.squeeze(self.centroids, axis=0)
 
-                return belongs, variance  # gs.copy(self.centroids)
+                return gs.copy(self.centroids)
 
         if index == self.max_iter:
             logging.warning(
@@ -186,7 +187,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         if self.n_clusters == 1:
             self.centroids = gs.squeeze(self.centroids, axis=0)
-        return belongs, variance  # gs.copy(self.centroids)
+        return gs.copy(self.centroids)
 
     def predict(self, X):
         """Predict the labels for each data point.
@@ -211,6 +212,6 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         )
         dists = gs.squeeze(dists)
 
-        belongs = gs.argmin(dists, -1)
+        labels = gs.argmin(dists, -1)
 
-        return belongs
+        return labels
