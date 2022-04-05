@@ -11,12 +11,12 @@ from geomstats.information_geometry.dirichlet import (
     DirichletDistributions,
     DirichletMetric,
 )
-from tests.conftest import TestCase
+from tests.conftest import Parametrizer
 from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
-from tests.parametrizers import OpenSetParametrizer, RiemannianMetricParametrizer
+from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 
-class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
+class TestDirichlet(OpenSetTestCase, metaclass=Parametrizer):
     space = DirichletDistributions
 
     class TestDataDirichlet(_OpenSetTestData):
@@ -72,6 +72,14 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
                 self.space,
                 self.space_args_list,
                 self.shape_list,
+            )
+
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                self.space,
+                self.space_args_list,
+                self.n_vecs_list,
+                is_tangent_atol=gs.atol,
             )
 
         def sample_test_data(self):
@@ -157,7 +165,7 @@ class TestDirichlet(TestCase, metaclass=OpenSetParametrizer):
         self.assertAllClose(result, expected)
 
 
-class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
+class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     space = DirichletDistributions
     connection = metric = DirichletMetric
     skip_test_exp_shape = True  # because several base points for one vector
@@ -173,8 +181,8 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
     skip_test_squared_dist_is_symmetric = (
         geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
     )
-    skip_test_log_exp_composition = True
-    skip_test_exp_log_composition = True
+    skip_test_log_then_exp = True
+    skip_test_exp_then_log = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_geodesic_ivp_belongs = True
@@ -210,7 +218,6 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             return self._log_shape_test_data(
                 self.metric_args_list,
                 self.space_list,
-                self.n_samples_list,
             )
 
         def exp_belongs_test_data(self):
@@ -228,8 +235,8 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 self.n_samples_list,
             )
 
-        def log_exp_composition_test_data(self):
-            return self._log_exp_composition_test_data(
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -237,8 +244,8 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
                 atol=0.0,
             )
 
-        def exp_log_composition_test_data(self):
-            return self._log_exp_composition_test_data(
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -362,15 +369,15 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def exp_and_log_composition_test_data(self):
-            random_data = [
-                dict(
-                    dim=3,
-                    base_point=self.space(3).random_point(),
-                    point=self.space(3).random_point(),
-                )
-            ]
-            return self.generate_tests([], random_data)
+        # def exp_then_log_test_data(self):
+        #     random_data = [
+        #         dict(
+        #             dim=3,
+        #             base_point=self.space(3).random_point(),
+        #             point=self.space(3).random_point(),
+        #         )
+        #     ]
+        #     return self.generate_tests([], random_data)
 
         def geodesic_ivp_shape_test_data(self):
             random_data = [
@@ -573,7 +580,7 @@ class TestDirichletMetric(TestCase, metaclass=RiemannianMetricParametrizer):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
-    def test_exp_and_log_composition(self, dim, base_point, point):
+    def test_exp_then_log(self, dim, base_point, point):
         log = self.metric(dim).log(point, base_point, n_steps=500)
         expected = point
         result = self.metric(dim).exp(tangent_vec=log, base_point=base_point)
