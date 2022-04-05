@@ -848,10 +848,8 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             Tangent vector to the manifold at base_point.
         tangent_vec_b : array-like
             Tangent vector to the manifold at base_point.
-        point_a : array-like
-            Point on the manifold.
-        point_b : array-like
-            Point on the manifold.
+        base_point : array-like
+            Point on manifold.
         rtol : float
             Relative tolerance to test this property.
         atol : float
