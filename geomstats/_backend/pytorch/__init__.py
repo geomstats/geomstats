@@ -831,5 +831,5 @@ def sort(a, axis=-1):
 
 
 def amin(a, axis=-1):
-    (values, indices) = torch.min(a, dim=axis)
+    (values, _) = torch.min(a, dim=axis)
     return values
