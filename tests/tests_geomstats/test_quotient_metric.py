@@ -157,6 +157,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         result = bundle.tangent_riemannian_submersion(horizontal, mat)
         self.assertAllClose(result, tangent_vec, atol=1e-2)
 
+    @geomstats.tests.np_and_autograd_only
     def test_is_horizontal(self, n, mat, vec):
         bundle = self.bundle(n)
         tangent_vec = Matrices.to_symmetric(vec)
@@ -164,6 +165,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         result = bundle.is_horizontal(horizontal, mat, atol=1e-2)
         self.assertTrue(result)
 
+    @geomstats.tests.np_and_autograd_only
     def test_is_vertical(self, n, mat, vec):
         bundle = self.bundle(n)
         vertical = bundle.vertical_projection(vec, mat)
