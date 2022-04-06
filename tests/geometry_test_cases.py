@@ -4,6 +4,13 @@ import geomstats.backend as gs
 from tests.conftest import TestCase
 
 
+def better_squeeze(array):
+    """Delete possible singleton dimension on first axis."""
+    if len(array) == 1:
+        return gs.squeeze(array, axis=0)
+    return array
+
+
 def _is_isometry(
     metric,
     space,
@@ -151,6 +158,88 @@ class OpenSetTestCase(ManifoldTestCase):
 
 
 class LieGroupTestCase(ManifoldTestCase):
+    def test_compose_point_with_inverse_point_is_identity(
+        self, group_args, point, rtol, atol
+    ):
+        """Check that composition of point and inverse is identity.
+
+        Parameters
+        ----------
+        group_args : tuple
+            Arguments to pass to constructor of the group.
+        point : array-like
+            Point on the group.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        group = self.group(*group_args)
+        result = group.compose(group.inverse(point), point)
+        expected = better_squeeze(gs.array([group.identity] * len(result)))
+        self.assertAllClose(result, expected, rtol=rtol, atol=atol)
+
+    def test_compose_inverse_point_with_point_is_identity(
+        self, group_args, point, rtol, atol
+    ):
+        """Check that composition of inverse and point is identity.
+
+        Parameters
+        ----------
+        group_args : tuple
+            Arguments to pass to constructor of the group.
+        point : array-like
+            Point on the group.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        group = self.group(*group_args)
+        result = group.compose(point, group.inverse(point))
+        expected = better_squeeze(gs.array([group.identity] * len(result)))
+        self.assertAllClose(result, expected, rtol=rtol, atol=atol)
+
+    def test_compose_point_with_identity_is_point(self, group_args, point, rtol, atol):
+        """Check that composition of point and identity is identity.
+
+        Parameters
+        ----------
+        group_args : tuple
+            Arguments to pass to constructor of the group.
+        point : array-like
+            Point on the group.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        group = self.group(*group_args)
+        result = group.compose(
+            point, better_squeeze(gs.array([group.identity] * len(point)))
+        )
+        self.assertAllClose(result, point, rtol=rtol, atol=atol)
+
+    def test_compose_identity_with_point_is_point(self, group_args, point, rtol, atol):
+        """Check that composition of identity and point is identity.
+
+        Parameters
+        ----------
+        group_args : tuple
+            Arguments to pass to constructor of the group.
+        point : array-like
+            Point on the group.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        group = self.group(*group_args)
+        result = group.compose(
+            better_squeeze(gs.array([group.identity] * len(point))), point
+        )
+        self.assertAllClose(result, point, rtol=rtol, atol=atol)
+
     def test_exp_then_log(self, group_args, tangent_vec, base_point, rtol, atol):
         """Check that group exponential and logarithm are inverse.
 
@@ -224,6 +313,45 @@ class VectorSpaceTestCase(ManifoldTestCase):
         space = self.space(*space_args)
         basis = space.basis
         self.assertAllClose(len(basis), space.dim)
+
+    def test_random_point_is_tangent(self, space_args, n_points, is_tangent_atol):
+        """Check that the random point is tangent.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the vector space.
+        n_points : array-like
+            Number of random points to sample.
+        is_tangent_atol : float
+            Absolute tolerance for the is_tangent function.
+        """
+        space = self.space(*space_args)
+        points = space.random_point(n_points)
+        base_point = space.random_point()
+        result = space.is_tangent(points, base_point, is_tangent_atol)
+        self.assertAllClose(gs.all(result), gs.array(True))
+
+    def test_to_tangent_is_projection(self, space_args, vector, base_point, rtol, atol):
+        """Check that to_tangent is same as projection.
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the vector space.
+        vector : array-like
+            Vector to be projected on the tangent space at base_point.
+        base_point : array-like
+            Point on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        space = self.space(*space_args)
+        result = space.to_tangent(vector, base_point)
+        expected = space.projection(vector)
+        self.assertAllClose(result, expected, rtol=rtol, atol=atol)
 
 
 class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
@@ -624,6 +752,46 @@ class ConnectionTestCase(TestCase):
 
 
 class RiemannianMetricTestCase(ConnectionTestCase):
+    def test_dist_is_symmetric(self, metric_args, point_a, point_b, rtol, atol):
+        """Check that the geodesic distance is symmetric.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        point_a : array-like
+            Point on the manifold.
+        point_b : array-like
+            Point on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+        dist_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
+        dist_b_a = metric.dist(gs.array(point_b), gs.array(point_a))
+        self.assertAllClose(dist_a_b, dist_b_a, rtol=rtol, atol=atol)
+
+    def test_dist_is_positive(self, metric_args, point_a, point_b, is_positive_atol):
+        """Check that the geodesic distance is positive.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        point_a : array-like
+            Point on the manifold.
+        point_b : array-like
+            Point on the manifold.
+        is_positive_atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+        sd_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
+        result = gs.all(sd_a_b > -1 * is_positive_atol)
+        self.assertAllClose(result, gs.array(True))
+
     def test_squared_dist_is_symmetric(self, metric_args, point_a, point_b, rtol, atol):
         """Check that the squared geodesic distance is symmetric.
 
@@ -644,6 +812,53 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
         sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
         self.assertAllClose(sd_a_b, sd_b_a, rtol=rtol, atol=atol)
+
+    def test_squared_dist_is_positive(
+        self, metric_args, point_a, point_b, is_positive_atol
+    ):
+        """Check that the squared geodesic distance is positive.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        point_a : array-like
+            Point on the manifold.
+        point_b : array-like
+            Point on the manifold.
+        is_positive_atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+
+        sd_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
+        result = gs.all(sd_a_b > -1 * is_positive_atol)
+        self.assertAllClose(result, gs.array(True))
+
+    def test_inner_product_is_symmetric(
+        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
+    ):
+        """Check that the inner product is symmetric.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        tangent_vec_a : array-like
+            Tangent vector to the manifold at base_point.
+        tangent_vec_b : array-like
+            Tangent vector to the manifold at base_point.
+        base_point : array-like
+            Point on manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+        ip_a_b = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        ip_b_a = metric.inner_product(tangent_vec_b, tangent_vec_a, base_point)
+        self.assertAllClose(ip_a_b, ip_b_a, rtol, atol)
 
     def test_parallel_transport_ivp_is_isometry(
         self,
@@ -748,3 +963,43 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         )
         expected = gs.array(len(result) * [True])
         self.assertAllClose(result, expected)
+
+    def test_dist_is_norm_of_log(self, metric_args, point_a, point_b, rtol, atol):
+        """Check that distance is norm of log.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        point_a : array-like
+            Point on the manifold.
+        point_b : array-like
+            Point on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+        log = metric.norm(metric.log(point_a, point_b), point_b)
+        dist = metric.dist(point_a, point_b)
+        self.assertAllClose(log, dist, rtol, atol)
+
+    def test_dist_point_to_itself_is_zero(self, metric_args, point, rtol, atol):
+        """Check that distance is norm of log.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        point : array-like
+            Point on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+        dist = metric.dist(point, point)
+        expected = gs.zeros_like(dist)
+        self.assertAllClose(dist, expected, rtol, atol)

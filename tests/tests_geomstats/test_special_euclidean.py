@@ -258,33 +258,25 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
             smoke_data = [dict(n=2, point_type="vector", n_samples=3)]
             return self.generate_tests(smoke_data)
 
-        def compose_point_invpoint_is_identity_test_data(self):
-            n_list = random.sample(range(2, 5), 2)
-            random_data = [
-                dict(n=n, point_type="matrix", point=SpecialEuclidean(n).random_point())
-                for n in n_list
-            ]
-            random_data += [
-                dict(
-                    n=2,
-                    point_type="vector",
-                    point=SpecialEuclidean(2, "vector").random_point(),
-                )
-            ]
-            random_data += [
-                dict(
-                    n=3,
-                    point_type="vector",
-                    point=SpecialEuclidean(3, "vector").random_point(),
-                )
-            ]
-            return self.generate_tests([], random_data)
+        def compose_inverse_point_with_point_is_identity_test_data(self):
+            return self._compose_inverse_point_with_point_is_identity_test_data(
+                SpecialEuclidean, self.space_args_list, self.n_points_list
+            )
 
-        def compose_point_identity_is_point_test_data(self):
-            return self.compose_point_invpoint_is_identity_test_data()
+        def compose_point_with_inverse_point_is_identity_test_data(self):
+            return self._compose_point_with_inverse_point_is_identity_test_data(
+                SpecialEuclidean, self.space_args_list, self.n_points_list
+            )
 
-        def compose_identity_point_is_point_test_data(self):
-            return self.compose_point_invpoint_is_identity_test_data()
+        def compose_point_with_identity_is_point_test_data(self):
+            return self._compose_point_with_identity_is_point_test_data(
+                SpecialEuclidean, self.space_args_list, self.n_points_list
+            )
+
+        def compose_identity_with_point_is_point_test_data(self):
+            return self._compose_identity_with_point_is_point_test_data(
+                SpecialEuclidean, self.space_args_list, self.n_points_list
+            )
 
         def compose_test_data(self):
             smoke_data = [
@@ -352,21 +344,6 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
-
-    def test_compose_point_invpoint_is_identity(self, n, point_type, point):
-        group = self.space(n, point_type)
-        result = group.compose(gs.array(point), group.inverse(gs.array(point)))
-        self.assertAllClose(result, group.identity)
-
-    def test_compose_point_identity_is_point(self, n, point_type, point):
-        group = self.space(n, point_type)
-        result = group.compose(gs.array(point), group.identity)
-        self.assertAllClose(result, point)
-
-    def test_compose_identity_point_is_point(self, n, point_type, point):
-        group = self.space(n, point_type)
-        result = group.compose(group.identity, gs.array(point))
-        self.assertAllClose(result, point)
 
     def test_metrics_default_point_type(self, n, metric_str):
         group = self.space(n)
@@ -491,6 +468,19 @@ class TestSpecialEuclideanMatrixLieAlgebra(
         def random_tangent_vec_is_tangent_test_data(self):
             return self._random_tangent_vec_is_tangent_test_data(
                 SpecialEuclideanMatrixLieAlgebra, self.space_args_list, self.n_vecs_list
+            )
+
+        def to_tangent_is_projection_test_data(self):
+            return self._to_tangent_is_projection_test_data(
+                SpecialEuclideanMatrixLieAlgebra,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
+
+        def random_point_is_tangent_test_data(self):
+            return self._random_point_is_tangent_test_data(
+                self.space_args_list, self.n_points_list
             )
 
     testing_data = SpecialEuclideanMatrixLieAlgebraTestData()
@@ -654,6 +644,51 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 atol=gs.atol * 1000,
             )
 
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+            )
+
     testing_data = SpecialEuclideanMatrixCanonicalLeftMetricTestData()
 
     def test_left_metric_wrong_group(self, group, expected):
@@ -681,6 +716,11 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
     skip_test_geodesic_ivp_belongs = True
     skip_test_exp_belongs = np_backend()
     skip_test_squared_dist_is_symmetric = True
+    skip_test_dist_is_norm_of_log = True
+    skip_test_dist_is_positive = np_backend()
+    skip_test_dist_is_symmetric = True
+    skip_test_dist_point_to_itself_is_zero = True
+    skip_test_squared_dist_is_positive = np_backend()
 
     class SpecialEuclideanMatrixCanonicalRightMetricTestData(_RiemannianMetricTestData):
         n_list = [2]
@@ -690,9 +730,9 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
         ]
         shape_list = [(n + 1, n + 1) for n in n_list]
         space_list = [SpecialEuclidean(n) for n in n_list]
-        n_points_list = random.sample(range(1, 4), 1)
-        n_tangent_vecs_list = random.sample(range(1, 4), 1)
-        n_points_a_list = random.sample(range(1, 4), 1)
+        n_points_list = random.sample(range(1, 3), 1)
+        n_tangent_vecs_list = random.sample(range(1, 3), 1)
+        n_points_a_list = random.sample(range(1, 3), 1)
         n_points_b_list = [1]
         alpha_list = [1] * 1
         n_rungs_list = [1] * 1
@@ -812,6 +852,51 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
+            )
+
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
             )
 
         def right_exp_coincides_test_data(self):

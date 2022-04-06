@@ -103,6 +103,39 @@ class TestHeisenbergVectors(
                 HeisenbergVectors, self.space_args_list, self.n_vecs_list
             )
 
+        def to_tangent_is_projection_test_data(self):
+            return self._to_tangent_is_projection_test_data(
+                HeisenbergVectors,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
+
+        def random_point_is_tangent_test_data(self):
+            return self._random_point_is_tangent_test_data(
+                self.space_args_list, self.n_points_list
+            )
+
+        def compose_inverse_point_with_point_is_identity_test_data(self):
+            return self._compose_inverse_point_with_point_is_identity_test_data(
+                HeisenbergVectors, self.space_args_list, self.n_points_list
+            )
+
+        def compose_point_with_inverse_point_is_identity_test_data(self):
+            return self._compose_point_with_inverse_point_is_identity_test_data(
+                HeisenbergVectors, self.space_args_list, self.n_points_list
+            )
+
+        def compose_point_with_identity_is_point_test_data(self):
+            return self._compose_point_with_identity_is_point_test_data(
+                HeisenbergVectors, self.space_args_list, self.n_points_list
+            )
+
+        def compose_identity_with_point_is_point_test_data(self):
+            return self._compose_identity_with_point_is_point_test_data(
+                HeisenbergVectors, self.space_args_list, self.n_points_list
+            )
+
     testing_data = HeisenbergVectorsTestData()
 
     def test_dimension(self, expected):
