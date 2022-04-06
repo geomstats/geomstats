@@ -15,6 +15,7 @@ from torch import (
     complex32,
     complex64,
     complex128,
+    conj,
     cos,
     cosh,
     cross,
