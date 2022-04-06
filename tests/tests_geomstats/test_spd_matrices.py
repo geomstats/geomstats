@@ -812,7 +812,7 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @geomstats.tests.np_and_autograd_only
     def test_parallel_transport(self, n):
         space = SPDMatrices(*n)
         metric = self.metric(*n)
