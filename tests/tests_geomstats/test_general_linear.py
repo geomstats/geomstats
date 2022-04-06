@@ -182,8 +182,8 @@ class TestGeneralLinear(LieGroupTestCase, OpenSetTestCase, metaclass=Parametrize
                 GeneralLinear, self.space_args_list, self.shape_list
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 GeneralLinear,
                 self.space_args_list,
                 self.shape_list,
@@ -192,8 +192,8 @@ class TestGeneralLinear(LieGroupTestCase, OpenSetTestCase, metaclass=Parametrize
                 atol=gs.atol * 100000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 GeneralLinear, self.space_args_list, self.n_samples_list, atol=1e-2
             )
 

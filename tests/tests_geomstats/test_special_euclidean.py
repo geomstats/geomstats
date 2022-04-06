@@ -225,8 +225,8 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
                 is_tangent_atol=gs.atol * 100,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 SpecialEuclidean,
                 self.space_args_list,
                 self.shape_list,
@@ -235,8 +235,8 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 SpecialEuclidean,
                 self.space_args_list,
                 self.n_points_list,
@@ -582,8 +582,8 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 belongs_atol=gs.atol * 100,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -591,8 +591,8 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 atol=gs.atol * 100,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -792,8 +792,8 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 belongs_atol=1e-3,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -801,8 +801,8 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 atol=gs.atol * 100000,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1034,7 +1034,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
                         )
             return self.generate_tests(smoke_data)
 
-        def log_then_exp_test_data(self):
+        def exp_after_log_test_data(self):
             smoke_data = []
             for metric in list(self.metrics.values()) + [SpecialEuclidean(3, "vector")]:
                 for base_point in self.elements.values():
@@ -1066,7 +1066,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
                         )
             return self.generate_tests(smoke_data)
 
-        def exp_then_log_test_data(self):
+        def log_after_exp_test_data(self):
             smoke_data = []
             for metric in [
                 self.metrics_all["left_canonical"],
