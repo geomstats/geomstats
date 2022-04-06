@@ -1,7 +1,7 @@
 """Unit tests for the graphspace quotient space."""
 
 import geomstats.backend as gs
-from geomstats.geometry.graphspace import GraphSpace, GraphSpaceMetric
+from geomstats.stratified_geometry.graphspace import GraphSpace, GraphSpaceMetric
 from tests.conftest import Parametrizer, TestCase
 from tests.data_generation import TestData
 
