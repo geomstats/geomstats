@@ -36,11 +36,21 @@ class TestSpider(geomstats.tests.TestCase):
         return self.assertAllClose(result, expected)
 
     def test_geo(self):
-        a = [SpiderPoint(10, 1), SpiderPoint(10, 2), SpiderPoint(3, 1)]
-        b = [SpiderPoint(10, 31), SpiderPoint(10, 2), SpiderPoint(1, 4)]
-        t = [0.2]
-
+        result = []
+        a = [SpiderPoint(10, 1.0), SpiderPoint(10, 2.0), SpiderPoint(3, 1.0)]
+        b = [SpiderPoint(10, 31.0), SpiderPoint(10, 2.0), SpiderPoint(1, 4.0)]
+        t = [0.2, 0.7, 2.0]
         geom = SpiderGeometry(space=self.space(12))
+        # two input points
         geo = geom.geodesic([a[0]], [b[0]])
-
-        return self.assertTrue((type(geo(t)) is SpiderPoint))
+        # three outputs
+        result += [geo(t)]
+        # one initial and multiple end
+        geo = geom.geodesic([a[0]], b)
+        # three times three outputs
+        result += [geo(t)]
+        # three initial and three end
+        geo = geom.geodesic(a, b)
+        # three times three outputs
+        result += [geo(t)]
+        return self.assertTrue((type(result) is SpiderPoint))

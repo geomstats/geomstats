@@ -1,4 +1,4 @@
-"""Class for the tripod or three-spider.
+"""Class for the spider.
 
 Lead authors: Anna Calissano & Jonas Lueg
 """
@@ -72,7 +72,7 @@ class Spider(PointSet):
 
         Returns
         -------
-        samples : list of SpiderPoint, shape=[...,n_sample]
+        samples : list of SpiderPoint, shape=[...]
             List of SpiderPoints randomly sampled from the Spider.
         """
         if self.rays != 0:
@@ -88,25 +88,25 @@ class Spider(PointSet):
 
         Parameters
         ----------
-        point : List of SpiderPoint, shape=[...,n]
+        point : List of SpiderPoint, shape=[...]
              Point to be checked.
 
         Returns
         -------
-        belongs : array-like, shape=[...,n]
+        belongs : array-like, shape=[...]
             Boolean denoting if the SpiderPoint belongs to the Spider Set.
         """
         results = []
         for single_point in point:
             results += [
-                self.value_check(single_point)
-                and self.rays_check(single_point)
-                and self.zero_check(single_point)
+                self._value_check(single_point)
+                and self._rays_check(single_point)
+                and self._zero_check(single_point)
                 and type(single_point) is SpiderPoint
             ]
         return gs.array(results)
 
-    def rays_check(self, single_point):
+    def _rays_check(self, single_point):
         r"""Check if a random point has the correct number of rays.
 
         Parameters
@@ -124,7 +124,7 @@ class Spider(PointSet):
         return True
 
     @staticmethod
-    def zero_check(single_point):
+    def _zero_check(single_point):
         r"""Check if a random point satisfy the zero condition.
 
         Parameters
@@ -142,7 +142,7 @@ class Spider(PointSet):
         return True
 
     @staticmethod
-    def value_check(single_point):
+    def _value_check(single_point):
         r"""Check if a random point has the correct length.
 
         Parameters
@@ -178,7 +178,7 @@ class Spider(PointSet):
 
 
 class SpiderGeometry(PointSetGeometry):
-    """Geometry on the Spider, induced by the Euclidean Geometry along the rays."""
+    """Geometry on the Spider, induced by the rays Geometry."""
 
     def __init__(self, space, ambient_metric=EuclideanMetric(1)):
         super(SpiderGeometry, self).__init__(space=space)
@@ -187,18 +187,18 @@ class SpiderGeometry(PointSetGeometry):
 
     @geomstats.stratified_geometry.stratified_spaces.dist_vectorize
     def dist(self, a, b):
-        """Compute the distance between two points.
+        """Compute the distance between two points on the Spider using the ray geometry.
 
         Parameters
         ----------
-        a : List of SpiderPoint, shape=[...,n]
+        a : List of SpiderPoint, shape=[...]
              Point in the Spider.
-        b : List of SpiderPoint, shape=[...,n]
+        b : List of SpiderPoint, shape=[...]
              Point in the Spider.
 
         Returns
         -------
-        point_array : array-like, shape=[...,rays]
+        point_array : array-like, shape=[...]
             An array with the distance.
         """
         result = []
@@ -215,21 +215,56 @@ class SpiderGeometry(PointSetGeometry):
                 result += [point_a.x + point_b.x]
         return gs.array(result)
 
-    # call it initial and end
-    def point_geodesic(self, point_a, point_b):
-        """Compute the distance between two points.
+    @geomstats.stratified_geometry.stratified_spaces.dist_vectorize
+    def geodesic(self, initial_point, end_point):
+        """Return the geodesic between two lists of Spider points.
 
         Parameters
         ----------
-        point_a : List of SpiderPoint, shape=[...,n]
+        initial_point : List of SpiderPoint, shape=[...]
              Point in the Spider.
-        point_b : List of SpiderPoint, shape=[...,n]
+        end_point : List of SpiderPoint, shape=[...]
              Point in the Spider.
 
         Returns
         -------
-        point_array : array-like, shape=[...,rays]
-            An array with the distance.
+        geo : function
+            Return a vectorized geodesic function.
+        """
+
+        def _vec(t, fncs):
+            if type(t) is not list:
+                t = [t]
+
+            out = []
+            for tt in t:
+                out.append([fnc(tt) for fnc in fncs])
+
+            return out
+
+        if len(initial_point) == 1 and len(end_point) != 1:
+            values = itertools.zip_longest(
+                initial_point, end_point, fillvalue=initial_point[0]
+            )
+        else:
+            values = zip(initial_point, end_point)
+        fncs = [self._point_geodesic(pt_a, pt_b) for (pt_a, pt_b) in values]
+        return lambda t: _vec(t, fncs=fncs)
+
+    def _point_geodesic(self, point_a, point_b):
+        """Compute the distance between two Spider points.
+
+        Parameters
+        ----------
+        point_a : SpiderPoint
+             Point in the Spider.
+        point_b : SpiderPoint
+             Point in the Spider.
+
+        Returns
+        -------
+        geo: function
+            Geodesic between two Spider Points.
         """
         if point_a.s == point_b.s or point_a.s == 0 or point_b.s == 0:
             s = gs.maximum(point_a.s, point_b.s)
@@ -253,4 +288,5 @@ class SpiderGeometry(PointSetGeometry):
                 return SpiderPoint(s=point_a.s, x=-x)
             if x > 0:
                 return SpiderPoint(s=point_b.s, x=x)
-            return ray_geo
+
+        return ray_geo
