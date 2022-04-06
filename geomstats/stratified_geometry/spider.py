@@ -215,41 +215,26 @@ class SpiderGeometry(PointSetGeometry):
                 result += [point_a.x + point_b.x]
         return gs.array(result)
 
-    @geomstats.stratified_geometry.stratified_spaces.dist_vectorize
-    def geodesic(self, a, b):
-        """Compute points on the geodesic between two points.
+    # call it initial and end
+    def point_geodesic(self, point_a, point_b):
+        """Compute the distance between two points.
 
         Parameters
         ----------
-        a : List of SpiderPoint, shape=[...,n]
+        point_a : List of SpiderPoint, shape=[...,n]
              Point in the Spider.
-        b : List of SpiderPoint shape=[...,n]
+        point_b : List of SpiderPoint, shape=[...,n]
              Point in the Spider.
-        t : float between 0 and 1
-            The portion of time of the returned point.
-            Default 0.5.
 
         Returns
         -------
-        geodesic : List of Spider Points, shape=[...,n]
-            A set of spider points along the geodesics sampled at t.
+        point_array : array-like, shape=[...,rays]
+            An array with the distance.
         """
-        # result_geo = []
-        # if len(a) == 1:
-        #    values = itertools.zip_longest(a, b, fillvalue=a[0])
-        # if len(b) == 1:
-        #    values = itertools.zip_longest(a, b, fillvalue=b[0])
-        # else:
-        #    values = zip(a, b)
-
-        # for point_a, point_b in values:
-        point_a = a[0]
-        point_b = b[0]
-
         if point_a.s == point_b.s or point_a.s == 0 or point_b.s == 0:
             s = gs.maximum(point_a.s, point_b.s)
 
-            def rays_geo(t):
+            def ray_geo(t):
                 g = self.rays_geometry.geodesic(
                     initial_point=gs.array([gs.amin([point_a.x, point_b.x])]),
                     end_point=gs.array(gs.maximum(point_a.x, point_b.x)),
@@ -257,9 +242,9 @@ class SpiderGeometry(PointSetGeometry):
 
                 return SpiderPoint(s=s, x=float(g(t)))
 
-            return rays_geo
+            return ray_geo
 
-        def rays_geo(t):
+        def ray_geo(t):
             g = self.rays_geometry.geodesic(
                 initial_point=gs.array([-point_a.x]), end_point=gs.array([point_b.x])
             )
@@ -268,6 +253,4 @@ class SpiderGeometry(PointSetGeometry):
                 return SpiderPoint(s=point_a.s, x=-x)
             if x > 0:
                 return SpiderPoint(s=point_b.s, x=x)
-            return SpiderPoint(s=0, x=0.0)
-
-        return rays_geo
+            return ray_geo
