@@ -65,3 +65,21 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
             [int(metric.closest_neighbor_index(x_i, centroids)) for x_i in x]
         )
         self.assertAllClose(expected, result)
+
+    def test_hypersphere_kmeans_initialization(self):
+        gs.random.seed(55)
+
+        manifold = hypersphere.Hypersphere(2)
+        metric = hypersphere.HypersphereMetric(2)
+
+        x = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
+
+        n_clusters = 3
+        kmeans = RiemannianKMeans(
+            metric, n_clusters, init_step_size=1.0, tol=1e-3, init="kmeans++"
+        )
+        kmeans.fit(x)
+        centroids = kmeans.centroids
+        result = centroids.shape
+        expected = (n_clusters, 3)
+        self.assertAllClose(expected, result)
