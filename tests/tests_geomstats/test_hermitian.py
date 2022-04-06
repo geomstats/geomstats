@@ -66,6 +66,19 @@ class TestHermitian(VectorSpaceTestCase, metaclass=Parametrizer):
                 Hermitian, self.space_args_list, self.n_vecs_list
             )
 
+        def to_tangent_is_projection_test_data(self):
+            return self._to_tangent_is_projection_test_data(
+                Hermitian,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
+
+        def random_point_is_tangent_test_data(self):
+            return self._random_point_is_tangent_test_data(
+                self.space_args_list, self.n_points_list
+            )
+
     testing_data = HermitianTestData()
 
     def test_belongs(self, dim, vec, expected):
@@ -430,6 +443,52 @@ class TestHermitianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
             )
+
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+            )
+
 
     testing_data = HermitianMetricTestData()
 
