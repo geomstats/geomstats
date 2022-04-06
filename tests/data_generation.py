@@ -686,6 +686,25 @@ class _FiberBundleTestData(TestData):
         ]
         return self.generate_tests([], random_data)
 
+    def _riemannian_submersion_after_lift_test_data(
+        self,
+        space_cls,
+        space_args_list,
+        n_base_points_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        random_data = [
+            dict(
+                space_args=space_args,
+                base_point=space_cls(*space_args).base.random_point(n_points),
+                rtol=rtol,
+                atol=atol,
+            )
+            for space_args, n_points in zip(space_args_list, n_base_points_list)
+        ]
+        return self.generate_tests([], random_data)
+
 
 class _ConnectionTestData(TestData):
     def _exp_shape_test_data(self, connection_args_list, space_list, shape_list):

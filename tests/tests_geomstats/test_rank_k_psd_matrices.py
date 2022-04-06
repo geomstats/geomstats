@@ -133,6 +133,15 @@ class TestBuresWassersteinBundle(FiberBundleTestCase, metaclass=Parametrizer):
                 gs.atol,
             )
 
+        def riemannian_submersion_after_lift_test_data(self):
+            return self._riemannian_submersion_after_lift_test_data(
+                BuresWassersteinBundle,
+                self.space_args_list,
+                self.n_base_points_list,
+                gs.rtol,
+                gs.atol,
+            )
+
     testing_data = BuresWassersteinBundleTestData()
 
 

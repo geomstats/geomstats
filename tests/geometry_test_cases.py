@@ -483,6 +483,12 @@ class FiberBundleTestCase(TestCase):
         result = space.is_horizontal(log, base_point)
         self.assertTrue(gs.all(result))
 
+    def test_riemannian_submersion_after_lift(self, space_args, base_point, rtol, atol):
+        space = self.space(*space_args)
+        lift = space.lift(base_point)
+        result = space.riemannian_submersion(lift)
+        self.assertAllClose(result, base_point, rtol, atol)
+
 
 class ConnectionTestCase(TestCase):
     def test_exp_shape(self, connection_args, tangent_vec, base_point, expected):
