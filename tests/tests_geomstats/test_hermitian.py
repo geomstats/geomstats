@@ -489,7 +489,6 @@ class TestHermitianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
             )
 
-
     testing_data = HermitianMetricTestData()
 
     def test_exp(self, dim, tangent_vec, base_point, expected):
