@@ -3,19 +3,19 @@
 Lead author: Anna Calissano.
 """
 
+import networkx as nx
+
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.stratified_geometry.stratified_spaces import (
+    Point,
+    PointSet,
+    PointSetGeometry,
+)
 
 
-class _GraphSpace:
-    r"""Class for the Graph Space.
-
-    Graph Space to analyse populations of labelled and unlabelled graphs.
-    The space focuses on graphs with scalar euclidean attributes on nodes and edges,
-    with a finite number of nodes and both directed and undirected edges.
-    For undirected graphs, use symmeric adjacency matrices. The space is a quotient
-    space obtained by applying the permutation action of nodes to the space
-    of adjacency matrices.
+class Graph(Point):
+    r"""Class for the Graph.
 
     Points are represented by :math:`nodes \times nodes` adjacency matrices.
 
@@ -35,11 +35,80 @@ class _GraphSpace:
               https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
     """
 
-    def __init__(self, nodes, p=None):
-        self.nodes = nodes
+    def __init__(self, adj, p=None):
+        super(Graph).__init__()
+        self.adj = adj
         self.p = p
-        self.adjmat = Matrices(self.nodes, self.nodes)
 
+    def __repr__(self):
+        """Return a readable representation of the instance."""
+        return f"Adjacency: {self.adj} Parameter: {self.p}"
+
+    def __hash__(self):
+        """Return the hash of the instance."""
+        return hash((self.adj, self.p))
+
+    def to_array(self):
+        """Return the hash of the instance."""
+        return gs.array([self.adj, self.p])
+
+    def to_networkx(self):
+        """Turn the graph into a networkx format."""
+        return nx.from_numpy_matrix(self.adj)
+
+
+def graph_vectorize(fun):
+    r"""Vectorize the input Graph Point to an array."""
+
+    def wrapped(*args, **kwargs):
+        r"""Vectorize the belongs."""
+        args = list(args)
+        if type(args[1]) not in [list, Graph]:
+            return fun(*args, **kwargs)
+        if type(args[1]) is Graph:
+            args[1] = args[1].adj
+            return fun(*args, **kwargs)
+        args[1] = gs.array([graph.adj for graph in args[1]])
+        return fun(*args, **kwargs)
+
+    return wrapped
+
+
+class GraphSpace(PointSet):
+    r"""Class for the Graph Space.
+
+    Graph Space to analyse populations of labelled and unlabelled graphs.
+    The space focuses on graphs with scalar euclidean attributes on nodes and edges,
+    with a finite number of nodes and both directed and undirected edges.
+    For undirected graphs, use symmeric adjacency matrices. The space is a quotient
+    space obtained by applying the permutation action of nodes to the space
+    of adjacency matrices. Notice that for computation reasons the module works with
+    both the gs.array representation of graph and the Graph(Point) representation.
+
+    Points are represented by :math:`nodes \times nodes` adjacency matrices.
+
+    Parameters
+    ----------
+    nodes : int
+        Number of graph nodes
+    total_space : space
+        Total Space before applying the permutation action. Default: Adjacency Matrices.
+
+    References
+    ----------
+    ..[Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+              “Graph Space: Geodesic Principal Components for a Population of
+              Network-valued Data.”
+              Mox report 14, 2020.
+              https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+    """
+
+    def __init__(self, nodes, total_space=Matrices):
+        super(GraphSpace).__init__()
+        self.nodes = nodes
+        self.total_space = total_space(self.nodes, self.nodes)
+
+    @graph_vectorize
     def belongs(self, graph, atol=gs.atol):
         r"""Check if the matrix is an adjacency matrix.
 
@@ -59,7 +128,7 @@ class _GraphSpace:
         belongs : array-like, shape=[...,n]
             Boolean denoting if graph belongs to the space.
         """
-        return self.adjmat.belongs(graph, atol=atol)
+        return self.total_space.belongs(graph, atol=atol)
 
     def random_point(self, n_samples=1, bound=1.0):
         r"""Sample in Graph Space.
@@ -78,8 +147,28 @@ class _GraphSpace:
         graph_samples : array-like, shape=[..., n, n]
             Points sampled in GraphSpace(n).
         """
-        return self.adjmat.random_point(n_samples=n_samples, bound=bound)
+        return self.total_space.random_point(n_samples=n_samples, bound=bound)
 
+    def set_to_array(self, points):
+        r"""Sample in Graph Space.
+
+        Parameters
+        ----------
+        points : Graph type array.
+
+        Returns
+        -------
+        graph_array : array-like, shape=[..., nodes, nodes]
+                An array containing all the Graphs.
+        """
+        # if self.belongs(points):
+        #    return points[0]
+        # k = points.shape[0]
+        # if k > self.nodes:
+        #    return points[:][0:k][0:k]
+        return 0
+
+    @graph_vectorize
     def permute(self, graph_to_permute, permutation):
         r"""Permutation action applied to graph observation.
 
@@ -113,7 +202,7 @@ class _GraphSpace:
                     target_shape=(nodes, nodes),
                 )
                 result.append(
-                    self.adjmat.mul(
+                    self.total_space.mul(
                         permutation_matrix,
                         graph_to_permute[i],
                         gs.transpose(permutation_matrix),
@@ -122,7 +211,7 @@ class _GraphSpace:
         return result[0] if single_graph else gs.array(result)
 
 
-class GraphSpaceMetric:
+class GraphSpaceMetric(PointSetGeometry):
     """Quotient metric on the graph space.
 
     Parameters
@@ -131,10 +220,10 @@ class GraphSpaceMetric:
         Number of nodes
     """
 
-    def __init__(self, nodes):
-        self.total_space_metric = MatricesMetric(nodes, nodes)
+    def __init__(self, nodes, total_space_metric=MatricesMetric, space=GraphSpace):
         self.nodes = nodes
-        self.space = _GraphSpace(nodes)
+        self.total_space_metric = total_space_metric(self.nodes, self.nodes)
+        self.space = space(self.nodes)
 
     def dist(self, base_graph, graph_to_permute, matcher="ID"):
         """Compute distance between two equivalence classes.
@@ -249,25 +338,3 @@ class GraphSpaceMetric:
                 "but the single graphs should be passed as base_graph"
             )
         )
-
-
-class GraphSpace(_GraphSpace):
-    """Class for Graph Space.
-
-    Graphs are represented as adjacency matrices. The total space
-    is an Euclidean space. The group action is the permutation
-    node action applied to the total space to analyse set of
-    node unlabelled graphs
-
-    Parameters
-    ----------
-    nodes : int
-        Number of nodes.
-
-    p : int
-        Dimension of the graph label or regressor.
-    """
-
-    def __init__(self, nodes, p=None):
-        super(GraphSpace, self).__init__(nodes, p)
-        self.metric = GraphSpaceMetric(nodes)
