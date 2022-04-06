@@ -894,7 +894,8 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
         Approximation of the solution of the parallel transport of a tangent
         vector a along the geodesic defined by :math:`t \mapsto exp_(
-        base_point)(t* tangent_vec_b)`.
+        base_point)(t* tangent_vec_b)`. The parallel transport equation is formulated
+        in this case in [TP2021]_.
 
         Parameters
         ----------
@@ -905,6 +906,9 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
             transport  along.
         base_point : array-like, shape=[..., n, n]
             Initial point of the geodesic.
+        end_point : array-like, shape=[..., n, n]
+            Point to transport to.
+            Optional, default: None.
         n_steps : int
             Number of steps to use to approximate the solution of the
             ordinary differential equation.
@@ -920,6 +924,8 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
         References
         ----------
+        ..[TP2021]      Yann Thanwerdas, Xavier Pennec. O(n)-invariant Riemannian /
+        metrics on SPD matrices. 2021. ⟨hal-03338601v2⟩
 
         See Also
         --------
@@ -949,7 +955,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
             geodesic_t = (
                 (1 - time) ** 2 * base_point
                 + time * (1 - time) * partial_horizontal_velocity
-                + time ** 2 * end_point
+                + time**2 * end_point
             )
 
             align = Matrices.mul(

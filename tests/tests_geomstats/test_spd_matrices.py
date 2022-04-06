@@ -838,9 +838,20 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
         tan_a = gs.einsum("...ij,...->...ij", tan_a, 1.0 / metric.norm(tan_a, point))
 
         transported = metric.parallel_transport(
-            tan_a, tan_b, point, end_point=end_point, n_steps=15, step="rk4"
+            tan_a, point, end_point=end_point, n_steps=15, step="rk4"
         )
-        # end_point = metric.exp(tan_b, point)
+        result = metric.norm(transported, end_point)
+        expected = metric.norm(tan_a, point)
+        self.assertAllClose(result, expected)
+
+        is_tangent = space.is_tangent(transported, end_point)
+        self.assertTrue(gs.all(is_tangent))
+
+        transported = metric.parallel_transport(
+            tan_a, point, tan_b, n_steps=15, step="rk4"
+        )
+
+        end_point = metric.exp(tan_b, point)
         result = metric.norm(transported, end_point)
         expected = metric.norm(tan_a, point)
         self.assertAllClose(result, expected)
