@@ -19,7 +19,7 @@ from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 class TestDirichlet(OpenSetTestCase, metaclass=Parametrizer):
     space = DirichletDistributions
 
-    class TestDataDirichlet(_OpenSetTestData):
+    class DirichletTestData(_OpenSetTestData):
         space = DirichletDistributions
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
@@ -134,7 +134,7 @@ class TestDirichlet(OpenSetTestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests([], random_data)
 
-    testing_data = TestDataDirichlet()
+    testing_data = DirichletTestData()
 
     def test_belongs(self, dim, vec, expected):
         self.assertAllClose(self.space(dim).belongs(gs.array(vec)), expected)
@@ -190,7 +190,7 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
 
-    class TestDataDirichletMetric(_RiemannianMetricTestData):
+    class DirichletMetricTestData(_RiemannianMetricTestData):
         space = DirichletDistributions
         metric = DirichletMetric
         n_list = random.sample(range(2, 5), 2)
@@ -511,7 +511,7 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-    testing_data = TestDataDirichletMetric()
+    testing_data = DirichletMetricTestData()
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_metric_matrix_shape(self, dim, point, expected):
