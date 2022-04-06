@@ -663,11 +663,12 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         shape_list = metric_args_list
         space_list = [PreShapeSpace(k, m) for k, m in metric_args_list]
-        n_points_list = random.sample(range(1, 7), 2)
-        n_samples_list = random.sample(range(1, 7), 2)
-        n_points_a_list = random.sample(range(1, 7), 2)
+        n_points_list = random.sample(range(1, 4), 2)
+        n_samples_list = random.sample(range(1, 4), 2)
+        n_points_a_list = random.sample(range(1, 4), 2)
         n_points_b_list = [1]
-        batch_size_list = random.sample(range(2, 7), 2)
+        n_tangent_vecs_list = random.sample(range(1, 4), 2)
+        batch_size_list = random.sample(range(2, 4), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
@@ -906,6 +907,51 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 1000,
             )
 
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+            )
+
     testing_data = KendallShapeMetricTestData()
 
     def test_curvature_is_skew_operator(self, k_landmarks, m_ambient, vec, base_point):
@@ -1120,6 +1166,7 @@ class TestPreShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         n_points_a_list = random.sample(range(1, 7), 2)
         n_points_b_list = [1]
         batch_size_list = random.sample(range(2, 7), 2)
+        n_tangent_vecs_list = random.sample(range(2, 7), 2)
         alpha_list = [1] * 2
         n_rungs_list = [1] * 2
         scheme_list = ["pole"] * 2
@@ -1234,6 +1281,51 @@ class TestPreShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_samples_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
+            )
+
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
             )
 
     testing_data = KendallShapeMetricTestData()

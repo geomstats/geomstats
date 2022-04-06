@@ -113,6 +113,8 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
     skip_test_exp_shape = True
     skip_test_log_shape = True
     skip_test_exp_ladder_parallel_transport = True
+    skip_test_dist_is_symmetric = True
+    skip_test_dist_is_norm_of_log = True
 
     class StiefelCanonicalMetricTestData(_RiemannianMetricTestData):
 
@@ -245,6 +247,52 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
                 self.n_points_list,
                 rtol=gs.rtol * 1000,
                 atol=gs.atol * 1000,
+            )
+
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
             )
 
         def retraction_lifting_test_data(self):

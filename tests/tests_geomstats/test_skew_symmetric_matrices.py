@@ -102,6 +102,19 @@ class TestSkewSymmetricMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer
                 SkewSymmetricMatrices, self.space_args_list, self.n_vecs_list
             )
 
+        def to_tangent_is_projection_test_data(self):
+            return self._to_tangent_is_projection_test_data(
+                SkewSymmetricMatrices,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
+
+        def random_point_is_tangent_test_data(self):
+            return self._random_point_is_tangent_test_data(
+                self.space_args_list, self.n_points_list
+            )
+
     testing_data = SkewSymmetricMatricesTestData()
 
     def test_belongs(self, n, mat, expected):

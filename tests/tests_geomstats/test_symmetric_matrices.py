@@ -160,6 +160,19 @@ class TestSymmetricMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
                 self.n_points_list,
             )
 
+        def to_tangent_is_projection_test_data(self):
+            return self._to_tangent_is_projection_test_data(
+                SymmetricMatrices,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
+
+        def random_point_is_tangent_test_data(self):
+            return self._random_point_is_tangent_test_data(
+                self.space_args_list, self.n_points_list
+            )
+
     testing_data = SymmetricMatricesTestData()
 
     def test_belongs(self, n, mat, expected):
