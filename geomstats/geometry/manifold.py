@@ -168,7 +168,7 @@ class Manifold(abc.ABC):
                 metric.dim = self.dim
         self._metric = metric
 
-    def random_tangent_vec(self, n_samples, base_point):
+    def random_tangent_vec(self, base_point, n_samples=1):
         """Generate random tangent vec.
 
         Parameters
@@ -184,6 +184,15 @@ class Manifold(abc.ABC):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vec at base point.
         """
+        if (
+            n_samples > 1
+            and base_point.ndim > len(self.shape)
+            and n_samples != len(base_point)
+        ):
+            raise ValueError(
+                "The number of base points must be the same as the "
+                "number of samples, when different from 1."
+            )
         return gs.squeeze(
             self.to_tangent(
                 gs.random.normal(size=(n_samples,) + self.shape), base_point
