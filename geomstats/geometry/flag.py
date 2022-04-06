@@ -1,6 +1,7 @@
 import numpy as np
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
 
@@ -75,7 +76,38 @@ class Flag(Manifold):
         pass
 
     def random_point(self, n_samples=1, bound=1.0):
-        pass
+        """Sample random points from a uniform distribution.
+        We use the same trick as for Grassmannian class for the random uniform projection matrix sampling and iterate
+        over the reduced projection coordinates with the constraint that the randomly generated projection matrix needs
+        to be in the orthogonal of the previous indexes' vector spaces (cf [Ye2021] Proposition 21).
+
+        Parameters
+        ----------
+        n_samples : int
+            The number of points to sample
+            Optional. default: 1.
+
+        Returns
+        -------
+        projectors : array-like, shape=[..., n, n]
+            Points following a uniform distribution.
+
+        References
+        ----------
+        .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
+        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
+        .. [Ye2021] Ye, K., Wong, K.S.-W., Lim, L.-H.: Optimization on flag manifolds.
+        Preprint, arXiv:1907.00949 [math.OC] (2019)
+        """
+        for i in range(1, self.d+1):
+            dim_proj = self.extended_index[i] - self.extended_index[i - 1]
+            points = gs.random.normal(size=(n_samples, self.n, dim_proj))
+            full_rank = Matrices.mul(Matrices.transpose(points), points)
+            projector = Matrices.mul(
+                points, GeneralLinear.inverse(full_rank), Matrices.transpose(points)
+            )
+            # randomly sample on the orthogonal characterized by the matrix P (1-D) P.T, with dim = dim_proj
+        return projector[0] if n_samples == 1 else projector
 
 
 if __name__ == "__main__":
