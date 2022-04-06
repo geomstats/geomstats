@@ -126,7 +126,7 @@ class ManifoldTestCase(TestCase):
             Absolute tolerance for the is_tangent function.
         """
         space = self.space(*space_args)
-        tangent_vec = space.random_tangent_vec(n_samples, base_point)
+        tangent_vec = space.random_tangent_vec(base_point, n_samples)
         result = space.is_tangent(tangent_vec, base_point, is_tangent_atol)
         self.assertAllClose(gs.all(result), gs.array(True))
 
@@ -457,6 +457,39 @@ class LevelSetTestCase(ManifoldTestCase):
         self.assertAllClose(result, expected, rtol, atol)
 
 
+class FiberBundleTestCase(TestCase):
+    def test_is_horizontal_after_horizontal_projection(
+        self, space_args, tangent_vec, base_point, rtol, atol
+    ):
+        space = self.space(*space_args)
+        horizontal = space.horizontal_projection(tangent_vec, base_point)
+        result = space.is_horizontal(horizontal, base_point, atol)
+        self.assertTrue(gs.all(result))
+
+    def test_is_vertical_after_vertical_projection(
+        self, space_args, tangent_vec, base_point, rtol, atol
+    ):
+        space = self.space(*space_args)
+        vertical = space.vertical_projection(tangent_vec, base_point)
+        result = space.is_vertical(vertical, base_point, atol)
+        self.assertTrue(gs.all(result))
+
+    def test_is_horizontal_after_log_after_align(
+        self, space_args, base_point, point, rtol, atol
+    ):
+        space = self.space(*space_args)
+        aligned = space.align(point, base_point)
+        log = space.ambient_metric.log(aligned, base_point)
+        result = space.is_horizontal(log, base_point)
+        self.assertTrue(gs.all(result))
+
+    def test_riemannian_submersion_after_lift(self, space_args, base_point, rtol, atol):
+        space = self.space(*space_args)
+        lift = space.lift(base_point)
+        result = space.riemannian_submersion(lift)
+        self.assertAllClose(result, base_point, rtol, atol)
+
+
 class ConnectionTestCase(TestCase):
     def test_exp_shape(self, connection_args, tangent_vec, base_point, expected):
         """Check that exp returns an array of the expected shape.
@@ -744,9 +777,14 @@ class ConnectionTestCase(TestCase):
         geodesic = connection.geodesic(
             initial_point=base_point, initial_tangent_vec=tangent_vec
         )
-        t = gs.linspace(start=0.0, stop=1.0, num=n_points)
+        t = (
+            gs.linspace(start=0.0, stop=1.0, num=n_points)
+            if n_points > 1
+            else gs.ones(1)
+        )
         points = geodesic(t)
-        result = points[:, -1]
+        multiple_inputs = tangent_vec.ndim > len(connection.shape)
+        result = points[:, -1] if multiple_inputs else points[-1]
         expected = connection.exp(tangent_vec, base_point)
         self.assertAllClose(expected, result, rtol=rtol, atol=atol)
 
