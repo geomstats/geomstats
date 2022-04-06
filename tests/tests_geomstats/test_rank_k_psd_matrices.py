@@ -161,6 +161,7 @@ class TestPSDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
         n_points_list = random.sample(range(1, 7), 5)
         n_samples_list = random.sample(range(1, 7), 5)
         n_points_a_list = random.sample(range(1, 7), 5)
+        n_tangent_vecs_list = random.sample(range(1, 7), 3)
         n_points_b_list = [1]
         batch_size_list = random.sample(range(2, 7), 5)
         alpha_list = [1] * 5
@@ -225,13 +226,68 @@ class TestPSDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
                 self.space_list,
             )
 
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                rtol=gs.rtol,
+                atol=gs.atol,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                is_positive_atol=gs.atol,
+            )
+
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                atol=gs.atol * 10,
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+                rtol=gs.rtol,
+                atol=gs.atol,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                is_positive_atol=gs.atol,
+            )
+
         def squared_dist_is_symmetric_test_data(self):
             return self._squared_dist_is_symmetric_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_a_list,
                 self.n_points_b_list,
-                atol=gs.atol * 1000,
+                atol=gs.atol,
             )
 
         def exp_belongs_test_data(self):
