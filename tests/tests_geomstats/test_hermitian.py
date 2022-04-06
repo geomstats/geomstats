@@ -93,16 +93,28 @@ class TestHermitianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         def exp_test_data(self):
 
-            one_tangent_vec = gs.array([0.0, 1.0])
-            one_base_point = gs.array([2.0, 10.0])
-            n_tangent_vecs = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
-            n_base_points = gs.array([[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]])
+            one_tangent_vec = gs.array([0.0 + 0.0j, 1.0 + 1.0j])
+            one_base_point = gs.array([2.0 + 2.0j, 10.0 + 10.0j])
+            n_tangent_vecs = gs.array(
+                [
+                    [2.0 + 2.0j, 1.0 + 1.0j],
+                    [-2.0 - 2.0j, -4.0 - 4.0j],
+                    [-5.0 - 5.0j, 1.0 + 1.0j],
+                ]
+            )
+            n_base_points = gs.array(
+                [
+                    [2.0 + 2.0j, 10.0 + 10.0j],
+                    [8.0 + 8.0j, -1.0 - 1.0j],
+                    [-3.0 - 3.0j, 6.0 + 6.0j],
+                ]
+            )
             smoke_data = [
                 dict(
                     dim=2,
-                    tangent_vec=[0.0, 1.0],
-                    base_point=[2.0, 10.0],
-                    expected=[2.0, 11.0],
+                    tangent_vec=[0.0 + 0.0j, 1.0 + 1.0j],
+                    base_point=[2.0 + 2.0j, 10.0 + 10.0j],
+                    expected=[2.0 + 2.0j, 11.0 + 11.0j],
                 ),
                 dict(
                     dim=2,
@@ -132,13 +144,28 @@ class TestHermitianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def log_test_data(self):
-            one_p = gs.array([0.0, 1.0])
-            one_bp = gs.array([2.0, 10.0])
-            n_ps = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
-            n_bps = gs.array([[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]])
+            one_p = gs.array([0.0 + 0.0j, 1.0 + 1.0j])
+            one_bp = gs.array([2.0 + 2.0j, 10.0 + 10.0j])
+            n_ps = gs.array(
+                [
+                    [2.0 + 2.0j, 1.0 + 1.0j],
+                    [-2.0 - 2.0j, -4.0 - 4.0j],
+                    [-5.0 - 5.0, 1.0 + 1.0],
+                ]
+            )
+            n_bps = gs.array(
+                [
+                    [2.0 + 2.0, 10.0 + 10.0],
+                    [8.0 + 8.0, -1.0 - 1.0],
+                    [-3.0 - 3.0, 6.0 + 6.0],
+                ]
+            )
             smoke_data = [
                 dict(
-                    dim=2, point=[2.0, 10.0], base_point=[0.0, 1.0], expected=[2.0, 9.0]
+                    dim=2,
+                    point=[2.0 + 2.0j, 10.0 + 10.0j],
+                    base_point=[0.0 + 0.0j, 1.0 + 1.0j],
+                    expected=[2.0 + 2.0j, 9.0 + 9.0j],
                 ),
                 dict(dim=2, point=one_p, base_point=one_bp, expected=one_p - one_bp),
                 dict(dim=2, point=one_p, base_point=n_bps, expected=one_p - n_bps),
