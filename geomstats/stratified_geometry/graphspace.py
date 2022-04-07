@@ -117,8 +117,8 @@ class GraphSpace(PointSet):
 
         Parameters
         ----------
-        graph : array-like, shape=[..., n, n]
-            Matrix to be checked.
+        points : List of Graph type or array-like Adjecency Matrices.
+                Points to be checked.
         atol : float
             Tolerance.
             Optional, default: backend atol.
@@ -149,24 +149,35 @@ class GraphSpace(PointSet):
         """
         return self.total_space.random_point(n_samples=n_samples, bound=bound)
 
+    @graph_vectorize
     def set_to_array(self, points):
         r"""Sample in Graph Space.
 
         Parameters
         ----------
-        points : Graph type array.
-
+        points : List of Graph type or array-like Adjacency Matrices.
+                Points to be turned into an array
         Returns
         -------
         graph_array : array-like, shape=[..., nodes, nodes]
                 An array containing all the Graphs.
         """
-        # if self.belongs(points):
-        #    return points[0]
-        # k = points.shape[0]
-        # if k > self.nodes:
-        #    return points[:][0:k][0:k]
-        return 0
+        return points
+
+    @graph_vectorize
+    def to_networkx(self, points):
+        r"""Turn point into a networkx object.
+
+        Parameters
+        ----------
+        points : List of Graph type or array-like Adjacency Matrices.
+
+        Returns
+        -------
+        nx_list : list of Networkx object
+                An array containing all the Graphs.
+        """
+        return [nx.from_numpy_matrix(point) for point in points]
 
     @graph_vectorize
     def permute(self, graph_to_permute, permutation):
