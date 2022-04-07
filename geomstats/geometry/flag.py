@@ -1,30 +1,6 @@
-r"""
-Manifold of flags.
-
-The flag manifold :math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)` is a smooth manifold whose elements are
-flags in a vector space of dimension n, i.e. nested sequences of linear subspaces with increasing
-dimensions :math:`n_0:=0 < n_1 < n_2 < \dots < n_d < n_{d+1}:=n`.
+"""The flag manifold.
 
 Lead author: Tom Szwagier.
-
-:math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)` is represented by
-:math:`nd \times nd` block diagonal matrices, where each block :math:`i \in \{1, \dots, d\}` corresponds to a
-:math:`n \times n` matrix :math:`R_i` of rank :math:`n_i-n_{i-1}` satisfying :math:`{R_i}^2 = R_i = {R_i}^\top` and
-:math:`R_i R_j = 0` for j < i. The mapping is diffeomorphic (cf. [Ye2021] Proposition 21).
-Each :math:`R_i \in \operatorname{Flag}(n_1, n_2 \dots, n_d; n)` is thus identified with the unique orthogonal projector
-onto :math:`{\rm Im}(R_i)`, with the constraint that the related subspaces must be orthogonal one to another.
-
-:math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)` can also be seen as a matrix homogeneous space:
-
-.. math::
-
-    \operatorname{Flag}(n_1, n_2 \dots, n_d; n) \simeq \frac {O(n)} {O(n_1) \times O(n_2 - n_1) \times \dots \times
-    O(n-n_d)}
-
-References
-----------
-.. [Ye2021] Ye, K., Wong, K.S.-W., Lim, L.-H.: Optimization on flag manifolds.
-Preprint, arXiv:1907.00949 [math.OC] (2019)
 """
 
 import numpy as np
@@ -35,8 +11,28 @@ from geomstats.geometry.matrices import Matrices
 
 
 class Flag(Manifold):
-    """ Class for flag manifolds :math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)`.
+    r""" Class for flag manifolds.
+
     Representation, notations and formulas inspired from [Ye2021].
+
+    The flag manifold :math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)` is a smooth manifold whose elements are
+    flags in a vector space of dimension n, i.e. nested sequences of linear subspaces with increasing
+    dimensions :math:`n_0:=0 < n_1 < n_2 < \dots < n_d < n_{d+1}:=n`.
+
+    :math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)` is represented by
+    :math:`nd \times nd` block diagonal matrices, where each block :math:`i \in \{1, \dots, d\}` corresponds to a
+    :math:`n \times n` matrix :math:`R_i` of rank :math:`n_i-n_{i-1}` satisfying :math:`{R_i}^2 = R_i = {R_i}^\top` and
+    :math:`R_i R_j = 0` for j < i. The mapping is diffeomorphic (cf. [Ye2021] Proposition 21).
+    Each :math:`R_i \in \operatorname{Flag}(n_1, n_2 \dots, n_d; n)` is thus identified with the unique orthogonal
+    projector onto :math:`{\rm Im}(R_i)`, with the constraint that the related subspaces must be orthogonal one to
+    another.
+
+    :math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)` can also be seen as a matrix homogeneous space:
+
+    .. math::
+
+        \operatorname{Flag}(n_1, n_2 \dots, n_d; n) \simeq \frac {O(n)} {O(n_1) \times O(n_2 - n_1) \times \dots \times
+        O(n-n_d)}
 
     References
     ----------
@@ -77,7 +73,6 @@ class Flag(Manifold):
         ----------
         .. [Ye2021] Ye, K., Wong, K.S.-W., Lim, L.-H.: Optimization on flag manifolds.
         Preprint, arXiv:1907.00949 [math.OC] (2019)
-
 
         Parameters
         ----------
