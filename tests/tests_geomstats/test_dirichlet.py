@@ -196,8 +196,8 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_dist_point_to_itself_is_zero = (
         geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
     )
-    skip_test_log_then_exp = True
-    skip_test_exp_then_log = True
+    skip_test_log_after_exp = True
+    skip_test_exp_after_log = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_geodesic_ivp_belongs = True
@@ -250,8 +250,8 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_samples_list,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -259,8 +259,8 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=0.0,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -643,7 +643,7 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
-    def test_exp_then_log(self, dim, base_point, point):
+    def test_exp_after_log(self, dim, base_point, point):
         log = self.metric(dim).log(point, base_point, n_steps=500)
         expected = point
         result = self.metric(dim).exp(tangent_vec=log, base_point=base_point)
