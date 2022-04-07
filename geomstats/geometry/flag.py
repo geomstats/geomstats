@@ -69,7 +69,7 @@ class Flag(Manifold):
         The flag manifold :math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)` is diffeomorphic to
         .. math::
             \left\{\R = \operatorname{diag}\left(R_1, \dots, R_d\right) \in \mathbb{R}^{nd \times nd} :
-            {R_i}^2 = R_i = {R_i}^\top, \operatorname[{tr}(R_i)=n_i-n_{i-1}, R_i R_j = 0, j < i right\}
+            {R_i}^2 = R_i = {R_i}^\top, \operatorname[{tr}(R_i)=n_i-n_{i-1}, R_i R_j = 0, i < j right\}
 
 
         Parameters
@@ -85,6 +85,7 @@ class Flag(Manifold):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the manifold.
         """
+
         def each_belongs(pt):
             for i in range(1, self.d + 1):
                 R_i = pt[i - 1]
@@ -110,6 +111,32 @@ class Flag(Manifold):
         return each_belongs(point)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):  # characterization from [Ye2021] Proposition 22
+        """Check whether the vector is tangent at base_point.
+
+        Characterization based on reduced projection coordinates from [Ye2021], Proposition 22:
+        **Proposition 22**
+        Let :math:`\R = \operatorname{diag}\left(R_1, \dots, R_d\right) \in \operatorname{Flag}(n_1, n_2 \dots, n_d; n)`.
+         Then the tangent space is given by
+
+        .. math::
+            T_R \operatorname{Flag}(n_1, n_2 \dots, n_d; n) = \left\{Z = \operatorname{diag}\left(Z_1, \dots, Z_d\right) \in \mathbb{R}^{nd \times nd} :
+            R_i Z_i + Z_i R_i = Z_i = {Z_i}^\top, \operatorname[{tr}(Z_i)=0, Z_i R_j + R_i Z_j= 0, i < j right\}
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
 
         for i in range(1, self.d + 1):
             R_i = base_point[i - 1]  # the length of point is d while the length of extended indexes is d+1
