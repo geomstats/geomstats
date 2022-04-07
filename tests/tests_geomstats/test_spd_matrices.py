@@ -427,8 +427,8 @@ class TestSPDMetricAffine(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -436,8 +436,8 @@ class TestSPDMetricAffine(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -489,6 +489,54 @@ class TestSPDMetricAffine(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 1000,
             )
 
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                atol=gs.atol * 1000,
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+            )
+
     testing_data = SPDMetricAffineTestData()
 
     def test_inner_product(
@@ -518,6 +566,7 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
+    skip_test_dist_point_to_itself_is_zero = True
 
     class SPDMetricBuresWassersteinTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 5), 2)
@@ -633,8 +682,8 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -642,8 +691,8 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
                 atol=gs.atol * 10,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -695,6 +744,51 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
                 atol=gs.atol * 1000,
             )
 
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+            )
+
     testing_data = SPDMetricBuresWassersteinTestData()
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
@@ -720,7 +814,7 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_geodesic_ivp_belongs = True
     skip_test_exp_belongs = True
-    skip_test_exp_then_log = True
+    skip_test_log_after_exp = True
 
     class SPDMetricEuclideanTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 5), 2)
@@ -849,8 +943,8 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -858,8 +952,8 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -911,6 +1005,51 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 1000,
             )
 
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+            )
+
     testing_data = SPDMetricEuclideanTestData()
 
     def test_inner_product(
@@ -935,7 +1074,7 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
-    def test_log_then_exp(self, n, power_euclidean, point, base_point):
+    def test_exp_after_log(self, n, power_euclidean, point, base_point):
         metric = SPDMetricEuclidean(n, power_euclidean)
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
@@ -960,8 +1099,8 @@ class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
-    skip_test_log_then_exp = True
-    skip_test_exp_then_log = True
+    skip_test_exp_after_log = True
+    skip_test_log_after_exp = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_exp_belongs = True
 
@@ -973,6 +1112,7 @@ class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer
         space_list = [SPDMatrices(n) for n in n_list]
         n_points_list = random.sample(range(1, 4), 2)
         n_samples_list = random.sample(range(1, 4), 2)
+        n_tangent_vecs_list = random.sample(range(1, 5), 2)
         n_points_a_list = random.sample(range(1, 4), 2)
         n_points_b_list = [1]
         alpha_list = [1] * 2
@@ -1064,8 +1204,8 @@ class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -1073,8 +1213,8 @@ class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer
                 atol=gs.atol * 10000,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1124,6 +1264,52 @@ class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer
                 self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
+            )
+
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                is_positive_atol=gs.atol * 1000,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
             )
 
     testing_data = SPDMetricLogEuclideanTestData()

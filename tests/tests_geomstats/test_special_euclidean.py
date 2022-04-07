@@ -73,8 +73,8 @@ ATOL = 1e-5
 class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
 
     space = group = SpecialEuclidean
-    skip_test_exp_then_log = tf_backend()
-    skip_test_log_then_exp = tf_backend()
+    skip_test_log_after_exp = tf_backend()
+    skip_test_exp_after_log = tf_backend()
 
     class SpecialEuclideanTestData(_LieGroupTestData):
         n_list = random.sample(range(2, 4), 2)
@@ -225,8 +225,8 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
                 is_tangent_atol=gs.atol * 100,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 SpecialEuclidean,
                 self.space_args_list,
                 self.shape_list,
@@ -235,8 +235,8 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 SpecialEuclidean,
                 self.space_args_list,
                 self.n_points_list,
@@ -258,33 +258,25 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
             smoke_data = [dict(n=2, point_type="vector", n_samples=3)]
             return self.generate_tests(smoke_data)
 
-        def compose_point_invpoint_is_identity_test_data(self):
-            n_list = random.sample(range(2, 5), 2)
-            random_data = [
-                dict(n=n, point_type="matrix", point=SpecialEuclidean(n).random_point())
-                for n in n_list
-            ]
-            random_data += [
-                dict(
-                    n=2,
-                    point_type="vector",
-                    point=SpecialEuclidean(2, "vector").random_point(),
-                )
-            ]
-            random_data += [
-                dict(
-                    n=3,
-                    point_type="vector",
-                    point=SpecialEuclidean(3, "vector").random_point(),
-                )
-            ]
-            return self.generate_tests([], random_data)
+        def compose_inverse_point_with_point_is_identity_test_data(self):
+            return self._compose_inverse_point_with_point_is_identity_test_data(
+                SpecialEuclidean, self.space_args_list, self.n_points_list
+            )
 
-        def compose_point_identity_is_point_test_data(self):
-            return self.compose_point_invpoint_is_identity_test_data()
+        def compose_point_with_inverse_point_is_identity_test_data(self):
+            return self._compose_point_with_inverse_point_is_identity_test_data(
+                SpecialEuclidean, self.space_args_list, self.n_points_list
+            )
 
-        def compose_identity_point_is_point_test_data(self):
-            return self.compose_point_invpoint_is_identity_test_data()
+        def compose_point_with_identity_is_point_test_data(self):
+            return self._compose_point_with_identity_is_point_test_data(
+                SpecialEuclidean, self.space_args_list, self.n_points_list
+            )
+
+        def compose_identity_with_point_is_point_test_data(self):
+            return self._compose_identity_with_point_is_point_test_data(
+                SpecialEuclidean, self.space_args_list, self.n_points_list
+            )
 
         def compose_test_data(self):
             smoke_data = [
@@ -352,21 +344,6 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
-
-    def test_compose_point_invpoint_is_identity(self, n, point_type, point):
-        group = self.space(n, point_type)
-        result = group.compose(gs.array(point), group.inverse(gs.array(point)))
-        self.assertAllClose(result, group.identity)
-
-    def test_compose_point_identity_is_point(self, n, point_type, point):
-        group = self.space(n, point_type)
-        result = group.compose(gs.array(point), group.identity)
-        self.assertAllClose(result, point)
-
-    def test_compose_identity_point_is_point(self, n, point_type, point):
-        group = self.space(n, point_type)
-        result = group.compose(group.identity, gs.array(point))
-        self.assertAllClose(result, point)
 
     def test_metrics_default_point_type(self, n, metric_str):
         group = self.space(n)
@@ -445,15 +422,15 @@ class TestSpecialEuclideanMatrixLieAlgebra(
             ]
             return self.generate_tests(smoke_data)
 
-        def basis_representation_then_matrix_representation_test_data(self):
-            return self._basis_representation_then_matrix_representation_test_data(
+        def matrix_representation_after_basis_representation_test_data(self):
+            return self._matrix_representation_after_basis_representation_test_data(
                 SpecialEuclideanMatrixLieAlgebra,
                 self.space_args_list,
                 self.n_points_list,
             )
 
-        def matrix_representation_then_basis_representation_test_data(self):
-            return self._matrix_representation_then_basis_representation_test_data(
+        def basis_representation_after_matrix_representation_test_data(self):
+            return self._basis_representation_after_matrix_representation_test_data(
                 SpecialEuclideanMatrixLieAlgebra,
                 self.space_args_list,
                 self.n_points_list,
@@ -491,6 +468,19 @@ class TestSpecialEuclideanMatrixLieAlgebra(
         def random_tangent_vec_is_tangent_test_data(self):
             return self._random_tangent_vec_is_tangent_test_data(
                 SpecialEuclideanMatrixLieAlgebra, self.space_args_list, self.n_vecs_list
+            )
+
+        def to_tangent_is_projection_test_data(self):
+            return self._to_tangent_is_projection_test_data(
+                SpecialEuclideanMatrixLieAlgebra,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
+
+        def random_point_is_tangent_test_data(self):
+            return self._random_point_is_tangent_test_data(
+                self.space_args_list, self.n_points_list
             )
 
     testing_data = SpecialEuclideanMatrixLieAlgebraTestData()
@@ -592,8 +582,8 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 belongs_atol=gs.atol * 100,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -601,8 +591,8 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 atol=gs.atol * 100,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -654,6 +644,51 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 atol=gs.atol * 1000,
             )
 
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+            )
+
     testing_data = SpecialEuclideanMatrixCanonicalLeftMetricTestData()
 
     def test_left_metric_wrong_group(self, group, expected):
@@ -673,14 +708,19 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_squared_dist_is_symmetric = np_backend()
-    skip_test_exp_then_log = True
-    skip_test_log_then_exp = True
+    skip_test_log_after_exp = True
+    skip_test_exp_after_log = True
     skip_test_log_is_tangent = np_backend()
     skip_test_geodesic_bvp_belongs = np_backend()
     skip_test_exp_ladder_parallel_transport = np_backend()
     skip_test_geodesic_ivp_belongs = True
     skip_test_exp_belongs = np_backend()
     skip_test_squared_dist_is_symmetric = True
+    skip_test_dist_is_norm_of_log = True
+    skip_test_dist_is_positive = np_backend()
+    skip_test_dist_is_symmetric = True
+    skip_test_dist_point_to_itself_is_zero = True
+    skip_test_squared_dist_is_positive = np_backend()
 
     class SpecialEuclideanMatrixCanonicalRightMetricTestData(_RiemannianMetricTestData):
         n_list = [2]
@@ -690,9 +730,9 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
         ]
         shape_list = [(n + 1, n + 1) for n in n_list]
         space_list = [SpecialEuclidean(n) for n in n_list]
-        n_points_list = random.sample(range(1, 4), 1)
-        n_tangent_vecs_list = random.sample(range(1, 4), 1)
-        n_points_a_list = random.sample(range(1, 4), 1)
+        n_points_list = random.sample(range(1, 3), 1)
+        n_tangent_vecs_list = random.sample(range(1, 3), 1)
+        n_points_a_list = random.sample(range(1, 3), 1)
         n_points_b_list = [1]
         alpha_list = [1] * 1
         n_rungs_list = [1] * 1
@@ -752,8 +792,8 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 belongs_atol=1e-3,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -761,8 +801,8 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 atol=gs.atol * 100000,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -812,6 +852,51 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 self.n_points_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
+            )
+
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
             )
 
         def right_exp_coincides_test_data(self):
@@ -934,7 +1019,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
         if geomstats.tests.tf_backend():
             angles_close_to_pi = ["angle_close_pi_low"]
 
-        def log_then_exp_right_with_angles_close_to_pi_test_data(self):
+        def exp_after_log_right_with_angles_close_to_pi_test_data(self):
             smoke_data = []
             for metric in list(self.metrics.values()) + [SpecialEuclidean(3, "vector")]:
                 for base_point in self.elements.values():
@@ -949,7 +1034,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
                         )
             return self.generate_tests(smoke_data)
 
-        def log_then_exp_test_data(self):
+        def exp_after_log_test_data(self):
             smoke_data = []
             for metric in list(self.metrics.values()) + [SpecialEuclidean(3, "vector")]:
                 for base_point in self.elements.values():
@@ -966,7 +1051,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
                         )
             return self.generate_tests(smoke_data)
 
-        def exp_then_log_with_angles_close_to_pi_test_data(self):
+        def log_after_exp_with_angles_close_to_pi_test_data(self):
             smoke_data = []
             for metric in self.metrics_all.values():
                 for base_point in self.elements.values():
@@ -981,7 +1066,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
                         )
             return self.generate_tests(smoke_data)
 
-        def exp_then_log_test_data(self):
+        def log_after_exp_test_data(self):
             smoke_data = []
             for metric in [
                 self.metrics_all["left_canonical"],
@@ -1126,7 +1211,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
     testing_data = SpecialEuclidean3VectorsTestData()
 
     @geomstats.tests.np_and_autograd_only
-    def test_log_then_exp(self, metric, point, base_point):
+    def test_exp_after_log(self, metric, point, base_point):
         """
         Test that the Riemannian right exponential and the
         Riemannian right logarithm are inverse.
@@ -1143,7 +1228,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, atol=atol)
 
     @geomstats.tests.np_and_autograd_only
-    def test_log_then_exp_right_with_angles_close_to_pi(
+    def test_exp_after_log_right_with_angles_close_to_pi(
         self, metric, point, base_point
     ):
         group = SpecialEuclidean(3, "vector")
@@ -1163,7 +1248,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
         )
 
     @geomstats.tests.np_and_autograd_only
-    def test_exp_then_log_with_angles_close_to_pi(
+    def test_log_after_exp_with_angles_close_to_pi(
         self, metric, tangent_vec, base_point
     ):
         """
@@ -1191,7 +1276,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
         )
 
     @geomstats.tests.np_and_autograd_only
-    def test_exp_then_log(self, metric, tangent_vec, base_point):
+    def test_log_after_exp(self, metric, tangent_vec, base_point):
         """
         Test that the Riemannian left exponential and the
         Riemannian left logarithm are inverse.

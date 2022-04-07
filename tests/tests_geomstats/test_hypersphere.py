@@ -255,15 +255,15 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
                 self.space_args_list, self.shape_list, self.n_points_list
             )
 
-        def extrinsic_then_intrinsic_test_data(self):
+        def intrinsic_after_extrinsic_test_data(self):
             space_args_list = [(1,), (2,)]
-            return self._extrinsic_then_intrinsic_test_data(
+            return self._intrinsic_after_extrinsic_test_data(
                 Hypersphere, space_args_list, self.n_points_list, atol=gs.atol * 100
             )
 
-        def intrinsic_then_extrinsic_test_data(self):
+        def extrinsic_after_intrinsic_test_data(self):
             space_args_list = [(1,), (2,)]
-            return self._intrinsic_then_extrinsic_test_data(
+            return self._extrinsic_after_intrinsic_test_data(
                 Hypersphere, space_args_list, self.n_points_list, atol=gs.atol * 100
             )
 
@@ -401,6 +401,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
 class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = HypersphereMetric
     skip_test_exp_geodesic_ivp = True
+    skip_test_dist_point_to_itself_is_zero = True
 
     class HypersphereMetricTestData(_RiemannianMetricTestData):
         dim_list = random.sample(range(2, 5), 2)
@@ -544,7 +545,7 @@ class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_test_data(self):
+        def exp_after_log_test_data(self):
             # edge case: two very close points, base_point_2 and point_2,
             # form an angle < epsilon
             base_point = gs.array([1.0, 2.0, 3.0, 4.0, 6.0])
@@ -560,7 +561,7 @@ class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                     atol=gs.atol,
                 )
             ]
-            return self._log_then_exp_test_data(
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -568,7 +569,7 @@ class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=1e-3,
             )
 
-        def exp_then_log_test_data(self):
+        def log_after_exp_test_data(self):
             base_point = gs.array([1.0, 0.0, 0.0, 0.0])
             tangent_vec = gs.array([0.0, 0.0, gs.pi / 6, 0.0])
 
@@ -581,7 +582,7 @@ class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                     atol=gs.atol,
                 )
             ]
-            return self._exp_then_log_test_data(
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -632,6 +633,54 @@ class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
+            )
+
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                atol=gs.atol * 10000,
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
             )
 
         def exp_and_dist_and_projection_to_tangent_space_test_data(self):

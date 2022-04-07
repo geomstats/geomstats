@@ -12,9 +12,9 @@ from torch import broadcast_tensors as broadcast_arrays
 from torch import (
     ceil,
     clip,
-    complex32,
     complex64,
     complex128,
+    conj,
     cos,
     cosh,
     cross,
@@ -32,9 +32,7 @@ from torch import (
 from torch import fmod as mod
 from torch import greater, hstack, imag, int32, int64, isnan, less, log, logical_or
 from torch import max as amax
-from torch import mean, meshgrid
-from torch import min as amin
-from torch import nonzero, ones, ones_like, outer, polygamma
+from torch import mean, meshgrid, nonzero, ones, ones_like, outer, polygamma
 from torch import pow as power
 from torch import real
 from torch import repeat_interleave as repeat
@@ -210,7 +208,15 @@ def concatenate(seq, axis=0, out=None):
 
 
 def _get_largest_dtype(seq):
-    dtype_dict = {0: t_bool, 1: uint8, 2: int32, 3: int64, 4: float32, 5: float64}
+    dtype_dict = {
+        0: t_bool,
+        1: uint8,
+        2: int32,
+        3: int64,
+        4: float32,
+        5: float64,
+        6: complex128,
+    }
     reverse_dict = {dtype_dict[key]: key for key in dtype_dict}
     dtype_code_set = {reverse_dict[t.dtype] for t in seq}
     return dtype_dict[max(dtype_code_set)]
@@ -830,3 +836,8 @@ def ravel_tril_indices(n, k=0, m=None):
 def sort(a, axis=-1):
     sorted_a, _ = torch.sort(a, dim=axis)
     return sorted_a
+
+
+def amin(a, axis=-1):
+    (values, _) = torch.min(a, dim=axis)
+    return values

@@ -236,8 +236,8 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -245,8 +245,8 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 atol=1e-1,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -298,6 +298,51 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
                 atol=gs.atol * 1000,
             )
 
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+            )
+
         def inner_product_matrix_vector_test_data(self):
             random_data = [
                 dict(default_point_type="matrix"),
@@ -305,7 +350,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
             ]
             return self.generate_tests([], random_data)
 
-        def dist_log_then_exp_norm_test_data(self):
+        def dist_exp_after_log_norm_test_data(self):
             smoke_data = [
                 dict(
                     space=smoke_manifolds_1,
@@ -350,7 +395,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
-    def test_dist_log_then_exp_norm(
+    def test_dist_exp_after_log_norm(
         self, manifolds, default_point_type, n_samples, einsum_str, expected
     ):
         space = ProductManifold(
@@ -458,14 +503,15 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_geodesic_bvp_belongs = True
     skip_test_geodesic_ivp_belongs = True
     skip_test_log_is_tangent = True
-    skip_test_squared_dist_is_symmetric = True
 
     class NFoldMetricTestData(_RiemannianMetricTestData):
 
         n_list = random.sample(range(3, 5), 2)
         power_list = random.sample(range(2, 5), 2)
         base_list = [SpecialOrthogonal(n) for n in n_list]
-        metric_args_list = list(zip(base_list, power_list))
+        metric_args_list = [
+            (base.metric, power) for base, power in zip(base_list, power_list)
+        ]
         shape_list = [(power, n, n) for n, power in zip(n_list, power_list)]
         space_list = [
             NFoldManifold(base, power) for base, power in zip(base_list, power_list)
@@ -529,8 +575,8 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 100000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -538,8 +584,8 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=1e-1,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -589,6 +635,52 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
+            )
+
+        def dist_is_symmetric_test_data(self):
+            print()
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
             )
 
         def inner_product_shape_test_data(self):

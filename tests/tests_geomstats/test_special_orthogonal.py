@@ -81,7 +81,8 @@ if tf_backend():
 
 class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
     space = group = SpecialOrthogonal
-    skip_test_log_then_exp = pytorch_backend()
+    skip_test_exp_after_log = pytorch_backend()
+    skip_test_projection_belongs = True
 
     class SpecialOrthogonalTestData(_LieGroupTestData):
         n_list = random.sample(range(2, 4), 2)
@@ -434,8 +435,8 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
                 n_points_list,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 SpecialOrthogonal,
                 self.space_args_list,
                 self.shape_list,
@@ -445,8 +446,8 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 SpecialOrthogonal,
                 self.space_args_list,
                 self.n_points_list,
@@ -531,6 +532,26 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
             space_args_list = list(zip(self.n_list))
             return self._random_tangent_vec_is_tangent_test_data(
                 SpecialOrthogonal, space_args_list, self.n_vecs_list
+            )
+
+        def compose_inverse_point_with_point_is_identity_test_data(self):
+            return self._compose_inverse_point_with_point_is_identity_test_data(
+                SpecialOrthogonal, self.space_args_list, self.n_points_list
+            )
+
+        def compose_point_with_inverse_point_is_identity_test_data(self):
+            return self._compose_point_with_inverse_point_is_identity_test_data(
+                SpecialOrthogonal, self.space_args_list, self.n_points_list
+            )
+
+        def compose_point_with_identity_is_point_test_data(self):
+            return self._compose_point_with_identity_is_point_test_data(
+                SpecialOrthogonal, self.space_args_list, self.n_points_list
+            )
+
+        def compose_identity_with_point_is_point_test_data(self):
+            return self._compose_identity_with_point_is_point_test_data(
+                SpecialOrthogonal, self.space_args_list, self.n_points_list
             )
 
     testing_data = SpecialOrthogonalTestData()
@@ -792,7 +813,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def group_log_then_exp_with_angles_close_to_pi_test_data(self):
+        def group_exp_after_log_with_angles_close_to_pi_test_data(self):
             smoke_data = []
             for angle_type in angles_close_to_pi:
                 for angle_type_base in elements.values():
@@ -804,8 +825,8 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
                     ]
             return self.generate_tests(smoke_data)
 
-        def group_exp_then_log_with_angles_close_to_pi_test_data(self):
-            return self.group_log_then_exp_with_angles_close_to_pi_test_data()
+        def group_log_after_exp_with_angles_close_to_pi_test_data(self):
+            return self.group_exp_after_log_with_angles_close_to_pi_test_data()
 
         def left_jacobian_vectorization_test_data(self):
             smoke_data = [dict(n_samples=3)]
@@ -993,7 +1014,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_autograd_and_torch_only
-    def test_group_log_then_exp_with_angles_close_to_pi(self, point, base_point):
+    def test_group_exp_after_log_with_angles_close_to_pi(self, point, base_point):
         """
         This tests that the composition of
         log and exp gives identity.
@@ -1009,7 +1030,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
             or gs.allclose(result, inv_expected, atol=5e-3)
         )
 
-    def test_group_exp_then_log_with_angles_close_to_pi(self, tangent_vec, base_point):
+    def test_group_log_after_exp_with_angles_close_to_pi(self, tangent_vec, base_point):
         """
         This tests that the composition of
         log and exp gives identity.
@@ -1167,8 +1188,8 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -1176,8 +1197,8 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1230,7 +1251,52 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 1000,
             )
 
-        def log_then_exp_intrinsic_ball_extrinsic_test_data(self):
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+            )
+
+        def exp_after_log_intrinsic_ball_extrinsic_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,

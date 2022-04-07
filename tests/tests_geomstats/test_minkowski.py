@@ -5,6 +5,7 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
+from geomstats.tests import np_backend
 from tests.conftest import Parametrizer
 from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
 from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
@@ -60,6 +61,19 @@ class TestMinkowski(VectorSpaceTestCase, metaclass=Parametrizer):
                 Minkowski, self.space_args_list, self.n_vecs_list
             )
 
+        def to_tangent_is_projection_test_data(self):
+            return self._to_tangent_is_projection_test_data(
+                Minkowski,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
+
+        def random_point_is_tangent_test_data(self):
+            return self._random_point_is_tangent_test_data(
+                self.space_args_list, self.n_points_list
+            )
+
     testing_data = MinkowskiTestData()
 
     def test_belongs(self, dim, point, expected):
@@ -73,19 +87,23 @@ class TestMinkowskiMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
+    skip_test_dist_is_positive = True
+    skip_test_squared_dist_is_positive = True
+    skip_test_dist_is_norm_of_log = not np_backend()
+    skip_test_dist_is_symmetric = not np_backend()
 
     class MinkowskiMetricTestData(_RiemannianMetricTestData):
-        n_list = random.sample(range(2, 7), 5)
+        n_list = random.sample(range(2, 4), 2)
         metric_args_list = [(n,) for n in n_list]
         shape_list = metric_args_list
         space_list = [Minkowski(n) for n in n_list]
-        n_points_list = random.sample(range(1, 7), 5)
-        n_tangent_vecs_list = random.sample(range(1, 7), 5)
-        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_list = random.sample(range(1, 3), 2)
+        n_tangent_vecs_list = random.sample(range(1, 3), 2)
+        n_points_a_list = random.sample(range(1, 3), 2)
         n_points_b_list = [1]
-        alpha_list = [1] * 5
-        n_rungs_list = [1] * 5
-        scheme_list = ["pole"] * 5
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
 
         def metric_matrix_test_data(self):
             smoke_data = [dict(dim=2, expected=[[-1.0, 0.0], [0.0, 1.0]])]
@@ -198,8 +216,8 @@ class TestMinkowskiMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -207,8 +225,8 @@ class TestMinkowskiMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -257,6 +275,35 @@ class TestMinkowskiMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
+            )
+
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
             )
 
     testing_data = MinkowskiMetricTestData()

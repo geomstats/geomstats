@@ -4,6 +4,7 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
 from geomstats.geometry.matrices import Matrices
+from geomstats.tests import np_backend
 from tests.conftest import Parametrizer
 from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
 from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
@@ -20,8 +21,8 @@ pi_4 = gs.pi / 4
 
 class TestGrassmannian(LevelSetTestCase, metaclass=Parametrizer):
     space = Grassmannian
-    skip_test_extrinsic_then_intrinsic = True
-    skip_test_intrinsic_then_extrinsic = True
+    skip_test_intrinsic_after_extrinsic = True
+    skip_test_extrinsic_after_intrinsic = True
 
     class GrassmannianTestData(_LevelSetTestData):
         n_list = random.sample(range(3, 6), 2)
@@ -84,8 +85,9 @@ class TestGrassmannian(LevelSetTestCase, metaclass=Parametrizer):
 
 class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = GrassmannianCanonicalMetric
-    skip_test_exp_then_log = True
+    skip_test_log_after_exp = True
     skip_test_exp_geodesic_ivp = True
+    skip_test_log_is_tangent = not np_backend()
 
     class GrassmannianCanonicalMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(3, 5), 2)
@@ -176,8 +178,8 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
                 belongs_atol=gs.atol * 10000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -185,8 +187,8 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
                 atol=gs.atol * 10000,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -235,6 +237,53 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
                 self.n_tangent_vecs_list,
                 is_tangent_atol=gs.atol * 1000,
                 atol=gs.atol * 1000,
+            )
+
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
             )
 
     testing_data = GrassmannianCanonicalMetricTestData()

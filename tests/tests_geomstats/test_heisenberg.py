@@ -79,16 +79,16 @@ class TestHeisenbergVectors(
                 self.n_vecs_list,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 HeisenbergVectors,
                 self.space_args_list,
                 self.shape_list,
                 self.n_tangent_vecs_list,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 HeisenbergVectors, self.space_args_list, self.n_points_list
             )
 
@@ -101,6 +101,39 @@ class TestHeisenbergVectors(
         def random_tangent_vec_is_tangent_test_data(self):
             return self._random_tangent_vec_is_tangent_test_data(
                 HeisenbergVectors, self.space_args_list, self.n_vecs_list
+            )
+
+        def to_tangent_is_projection_test_data(self):
+            return self._to_tangent_is_projection_test_data(
+                HeisenbergVectors,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
+
+        def random_point_is_tangent_test_data(self):
+            return self._random_point_is_tangent_test_data(
+                self.space_args_list, self.n_points_list
+            )
+
+        def compose_inverse_point_with_point_is_identity_test_data(self):
+            return self._compose_inverse_point_with_point_is_identity_test_data(
+                HeisenbergVectors, self.space_args_list, self.n_points_list
+            )
+
+        def compose_point_with_inverse_point_is_identity_test_data(self):
+            return self._compose_point_with_inverse_point_is_identity_test_data(
+                HeisenbergVectors, self.space_args_list, self.n_points_list
+            )
+
+        def compose_point_with_identity_is_point_test_data(self):
+            return self._compose_point_with_identity_is_point_test_data(
+                HeisenbergVectors, self.space_args_list, self.n_points_list
+            )
+
+        def compose_identity_with_point_is_point_test_data(self):
+            return self._compose_identity_with_point_is_point_test_data(
+                HeisenbergVectors, self.space_args_list, self.n_points_list
             )
 
     testing_data = HeisenbergVectorsTestData()

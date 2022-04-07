@@ -221,7 +221,7 @@ class _OpenSetTestData(_ManifoldTestData):
 
 
 class _LevelSetTestData(_ManifoldTestData):
-    def _extrinsic_then_intrinsic_test_data(
+    def _intrinsic_after_extrinsic_test_data(
         self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinate system twice gives back the point.
@@ -254,7 +254,7 @@ class _LevelSetTestData(_ManifoldTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def _intrinsic_then_extrinsic_test_data(
+    def _extrinsic_after_intrinsic_test_data(
         self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinate system twice gives back the point.
@@ -291,7 +291,102 @@ class _LevelSetTestData(_ManifoldTestData):
 
 
 class _LieGroupTestData(_ManifoldTestData):
-    def _exp_then_log_test_data(
+    def _compose_point_with_inverse_point_is_identity_test_data(
+        self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
+    ):
+        """Generate data to check composition of point, inverse is identity.
+
+        Parameters
+        ----------
+        group_cls : LieGroup
+            Class of the group, i.e. a child class of Lie group.
+        group_args_list : list
+            Arguments to pass to constructor of the Lie group.
+        n_points_list : list
+            List of number of random points to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for group_args, n_points in zip(group_args_list, n_points_list):
+
+            group = group_cls(*group_args)
+            point = group.random_point(n_points)
+            random_data.append(
+                dict(group_args=group_args, point=point, rtol=rtol, atol=atol)
+            )
+
+        return self.generate_tests([], random_data)
+
+    def _compose_inverse_point_with_point_is_identity_test_data(
+        self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
+    ):
+        """Generate data to check composition of inverse, point is identity.
+
+        Parameters
+        ----------
+        group_cls : LieGroup
+            Class of the group, i.e. a child class of LieGroup.
+        group_args_list : list
+            Arguments to pass to constructor of the Lie group.
+        n_points_list : list
+            List of number of random points to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        return self._compose_point_with_inverse_point_is_identity_test_data(
+            group_cls, group_args_list, n_points_list, rtol, atol
+        )
+
+    def _compose_point_with_identity_is_point_test_data(
+        self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
+    ):
+        """Generate data to check composition of point, identity is point.
+
+        Parameters
+        ----------
+        group_cls : LieGroup
+            Class of the group, i.e. a child class of LieGroup.
+        group_args_list : list
+            Arguments to pass to constructor of the Lie group.
+        n_points_list : list
+            List of number of random points to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        return self._compose_point_with_inverse_point_is_identity_test_data(
+            group_cls, group_args_list, n_points_list, rtol, atol
+        )
+
+    def _compose_identity_with_point_is_point_test_data(
+        self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
+    ):
+        """Generate data to check composition of identity, point is point.
+
+        Parameters
+        ----------
+        group_cls : LieGroup
+            Class of the group, i.e. a child class of LieGroup.
+        group_args_list : list
+            Arguments to pass to constructor of the Lie group.
+        n_points_list : list
+            List of number of random points to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        return self._compose_point_with_inverse_point_is_identity_test_data(
+            group_cls, group_args_list, n_points_list, rtol, atol
+        )
+
+    def _log_after_exp_test_data(
         self,
         group_cls,
         group_args_list,
@@ -338,7 +433,7 @@ class _LieGroupTestData(_ManifoldTestData):
             smoke_data = []
         return self.generate_tests(smoke_data, random_data)
 
-    def _log_then_exp_test_data(
+    def _exp_after_log_test_data(
         self,
         group_cls,
         group_args_list,
@@ -405,9 +500,79 @@ class _VectorSpaceTestData(_ManifoldTestData):
         random_data = [dict(space_args=space_args) for space_args in space_args_list]
         return self.generate_tests([], random_data)
 
+    def _random_point_is_tangent_test_data(
+        self, space_args_list, n_points_list, is_tangent_atol=gs.atol
+    ):
+        """Generate data to check that random point is tangent vector.
+
+        Parameters
+        ----------
+        space_args_list : list
+            List of spaces' args on which tests will run.
+        n_points_list : list
+            List of number of points on manifold to generate.
+        is_tangent_atol : float
+            Absolute tolerance for the is_tangent function.
+        """
+        random_data = []
+        for space_args, n_points in zip(space_args_list, n_points_list):
+            random_data += [
+                dict(
+                    space_args=space_args,
+                    n_points=n_points,
+                    is_tangent_atol=is_tangent_atol,
+                )
+            ]
+
+        return self.generate_tests([], random_data)
+
+    def _to_tangent_is_projection_test_data(
+        self,
+        space_cls,
+        space_args_list,
+        shape_list,
+        n_vecs_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        """Generate data to check that to_tangent return projection.
+
+        Parameters
+        ----------
+        space_cls : Manifold
+            Class of the space, i.e. a child class of Manifold.
+        space_args_list : list
+            List of spaces' args on which tests will run.
+        shape_list : list
+            List of shapes of the random vectors generated, and projected.
+        n_vecs_list : list
+            List of integers for the number of random vectors generated.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for space_args, shape, n_vecs in zip(space_args_list, shape_list, n_vecs_list):
+            space = space_cls(*space_args)
+            vec = gs.random.normal(size=(n_vecs,) + shape)
+            base_point = space.random_point()
+
+            random_data.append(
+                dict(
+                    space_args=space_args,
+                    vec=vec,
+                    base_point=base_point,
+                    rtol=rtol,
+                    atol=atol,
+                )
+            )
+
+        return self.generate_tests([], random_data)
+
 
 class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
-    def _basis_representation_then_matrix_representation_test_data(
+    def _matrix_representation_after_basis_representation_test_data(
         self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinates twice gives back the point.
@@ -432,7 +597,7 @@ class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def _matrix_representation_then_basis_representation_test_data(
+    def _basis_representation_after_matrix_representation_test_data(
         self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
     ):
         """Generate data to check that changing coordinates twice gives back the point.
@@ -456,6 +621,87 @@ class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
                 atol=atol,
             )
             for space_args, n_points in zip(space_args_list, n_points_list)
+        ]
+        return self.generate_tests([], random_data)
+
+
+class _FiberBundleTestData(TestData):
+    def _is_horizontal_after_horizontal_projection_test_data(
+        self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
+    ):
+        random_data = []
+        for space_args, n_points in zip(space_args_list, n_points_list):
+            space = space_cls(*space_args)
+            base_point = space.random_point(n_points)
+            tangent_vec = space.random_tangent_vec(base_point, n_points)
+            data = dict(
+                space_args=space_args,
+                base_point=base_point,
+                tangent_vec=tangent_vec,
+                rtol=rtol,
+                atol=atol,
+            )
+            random_data.append(data)
+        return self.generate_tests([], random_data)
+
+    def _is_vertical_after_vertical_projection_test_data(
+        self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
+    ):
+        random_data = []
+        for space_args, n_points in zip(space_args_list, n_points_list):
+            space = space_cls(*space_args)
+            base_point = space.random_point(n_points)
+            tangent_vec = space.random_tangent_vec(base_point, n_points)
+            data = dict(
+                space_args=space_args,
+                base_point=base_point,
+                tangent_vec=tangent_vec,
+                rtol=rtol,
+                atol=atol,
+            )
+            random_data.append(data)
+
+        return self.generate_tests([], random_data)
+
+    def _is_horizontal_after_log_after_align_test_data(
+        self,
+        space_cls,
+        space_args_list,
+        n_points_list,
+        n_base_points_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        random_data = [
+            dict(
+                space_args=space_args,
+                base_point=space_cls(*space_args).random_point(n_base_points),
+                point=space_cls(*space_args).random_point(n_points),
+                rtol=rtol,
+                atol=atol,
+            )
+            for space_args, n_points, n_base_points in zip(
+                space_args_list, n_points_list, n_base_points_list
+            )
+        ]
+        return self.generate_tests([], random_data)
+
+    def _riemannian_submersion_after_lift_test_data(
+        self,
+        space_cls,
+        space_args_list,
+        n_base_points_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        random_data = [
+            dict(
+                space_args=space_args,
+                base_point=space_cls(*space_args).base.random_point(n_points),
+                rtol=rtol,
+                atol=atol,
+            )
+            for space_args, n_points in zip(space_args_list, n_base_points_list)
         ]
         return self.generate_tests([], random_data)
 
@@ -506,8 +752,6 @@ class _ConnectionTestData(TestData):
             List of argument to pass to constructor of the connection.
         space_list : list
             List of manifolds on which the connection is defined.
-        n_samples_list : list
-            List of number of random data to generate.
         """
         n_samples_list = [3] * len(connection_args_list)
         random_data = []
@@ -686,7 +930,7 @@ class _ConnectionTestData(TestData):
             )
         return self.generate_tests([], random_data)
 
-    def _log_then_exp_test_data(
+    def _exp_after_log_test_data(
         self,
         connection_args_list,
         space_list,
@@ -725,7 +969,7 @@ class _ConnectionTestData(TestData):
             smoke_data = []
         return self.generate_tests(smoke_data, random_data)
 
-    def _exp_then_log_test_data(
+    def _log_after_exp_test_data(
         self,
         connection_args_list,
         space_list,
@@ -886,8 +1130,10 @@ class _ConnectionTestData(TestData):
             n_points_list,
         ):
             base_point = space.random_point()
-            tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
+            tangent_vec = gs.squeeze(
+                space.to_tangent(
+                    gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
+                )
             )
             random_data.append(
                 dict(
@@ -903,6 +1149,67 @@ class _ConnectionTestData(TestData):
 
 
 class _RiemannianMetricTestData(_ConnectionTestData):
+    def _dist_is_symmetric_test_data(
+        self,
+        metric_args_list,
+        space_list,
+        n_points_a_list,
+        n_points_b_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        """Generate data to check that the squared geodesic distance is symmetric.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_a_list : list
+            List of number of points A to generate on the manifold.
+        n_points_b_list : list
+            List of number of points B to generate on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        return self._squared_dist_is_symmetric_test_data(
+            metric_args_list, space_list, n_points_a_list, n_points_b_list, rtol, atol
+        )
+
+    def _dist_is_positive_test_data(
+        self,
+        metric_args_list,
+        space_list,
+        n_points_a_list,
+        n_points_b_list,
+        is_positive_atol=gs.atol,
+    ):
+        """Generate data to check that the squared geodesic distance is symmetric.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_a_list : list
+            List of number of points A to generate on the manifold.
+        n_points_b_list : list
+            List of number of points B to generate on the manifold.
+        is_positive_atol: float
+            Absolute tolerance for checking whether value is positive.
+        """
+        return self._squared_dist_is_positive_test_data(
+            metric_args_list,
+            space_list,
+            n_points_a_list,
+            n_points_b_list,
+            is_positive_atol,
+        )
+
     def _squared_dist_is_symmetric_test_data(
         self,
         metric_args_list,
@@ -940,6 +1247,157 @@ class _RiemannianMetricTestData(_ConnectionTestData):
                     metric_args=metric_args,
                     point_a=point_a,
                     point_b=point_b,
+                    rtol=rtol,
+                    atol=atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def _squared_dist_is_positive_test_data(
+        self,
+        metric_args_list,
+        space_list,
+        n_points_a_list,
+        n_points_b_list,
+        is_positive_atol=gs.atol,
+    ):
+        """Generate data to check that the squared geodesic distance is symmetric.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_a_list : list
+            List of number of points A to generate on the manifold.
+        n_points_b_list : list
+            List of number of points B to generate on the manifold.
+        is_positive_atol: float
+            Absolute tolerance for checking whether value is positive.
+        """
+        random_data = []
+        for metric_args, space, n_points_a, n_points_b in zip(
+            metric_args_list, space_list, n_points_a_list, n_points_b_list
+        ):
+            point_a = space.random_point(n_points_a)
+            point_b = space.random_point(n_points_b)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    point_a=point_a,
+                    point_b=point_b,
+                    is_positive_atol=is_positive_atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def _dist_is_norm_of_log_test_data(
+        self,
+        metric_args_list,
+        space_list,
+        n_points_a_list,
+        n_points_b_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        """Generate data to check that the squared geodesic distance is symmetric.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_a_list : list
+            List of number of points A to generate on the manifold.
+        n_points_b_list : list
+            List of number of points B to generate on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        return self._squared_dist_is_symmetric_test_data(
+            metric_args_list, space_list, n_points_a_list, n_points_b_list, rtol, atol
+        )
+
+    def _inner_product_is_symmetric_test_data(
+        self,
+        metric_args_list,
+        space_list,
+        shape_list,
+        n_tangent_vecs_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        """Generate data to check that the inner product is symmetric.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        n_tangent_vecs_list : list
+            List of number of random tangent vectors to generate.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, shape, n_tangent_vecs in zip(
+            metric_args_list, space_list, shape_list, n_tangent_vecs_list
+        ):
+            base_point = space.random_point()
+            tangent_vec_a = space.to_tangent(
+                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
+            )
+            tangent_vec_b = space.to_tangent(
+                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
+            )
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                    rtol=rtol,
+                    atol=atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def _dist_point_to_itself_is_zero_test_data(
+        self, metric_args_list, space_list, n_points_list, rtol=gs.rtol, atol=gs.atol
+    ):
+        """Generate data to check that the squared geodesic distance is symmetric.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_list : list
+            List of number of points to generate on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, n_points in zip(
+            metric_args_list, space_list, n_points_list
+        ):
+            point = space.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    point=point,
                     rtol=rtol,
                     atol=atol,
                 )

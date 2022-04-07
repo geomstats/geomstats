@@ -3,10 +3,7 @@
 Lead authors: Elodie Maignant and Nicolas Guigui.
 """
 
-import logging
-
 import geomstats.backend as gs
-from geomstats.algebra_utils import flip_determinant
 from geomstats.errors import check_tf_error
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
@@ -262,22 +259,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
         aligned : array-like, shape=[..., k_landmarks, m_ambient]
             R.point.
         """
-        mat = gs.matmul(Matrices.transpose(point), base_point)
-        left, singular_values, right = gs.linalg.svd(mat)
-        det = gs.linalg.det(mat)
-        conditioning = (
-            singular_values[..., -2] + gs.sign(det) * singular_values[..., -1]
-        ) / singular_values[..., 0]
-        if gs.any(conditioning < gs.atol):
-            logging.warning(
-                f"Singularity close, ill-conditioned matrix "
-                f"encountered: "
-                f"{conditioning[conditioning < 1e-10]}"
-            )
-        if gs.any(gs.isclose(conditioning, 0.0)):
-            logging.warning("Alignment matrix is not unique.")
-        flipped = flip_determinant(Matrices.transpose(right), det)
-        return Matrices.mul(point, left, Matrices.transpose(flipped))
+        return Matrices.align_matrices(point, base_point)
 
     def integrability_tensor_old(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the fundamental tensor A of the submersion (old).
