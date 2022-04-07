@@ -1,6 +1,4 @@
 
-import geomstats.backend as gs
-
 from geomstats.stratified_geometry.spider import (
     Spider,
     SpiderPoint,
