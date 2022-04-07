@@ -1,9 +1,12 @@
-"""Unit tests for the Euclidean space."""
+"""Unit tests for the Hermitian space."""
+
 import math
 import random
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
+import geomstats.tests
+from geomstats.geometry.hermitian import Hermitian, HermitianMetric
+from geomstats.tests import tf_backend
 from tests.conftest import Parametrizer
 from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
 from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
@@ -12,12 +15,13 @@ SQRT_2 = math.sqrt(2)
 SQRT_5 = math.sqrt(5)
 
 
-class TestEuclidean(VectorSpaceTestCase, metaclass=Parametrizer):
-    space = Euclidean
+class TestHermitian(VectorSpaceTestCase, metaclass=Parametrizer):
+    space = Hermitian
     skip_test_basis_belongs = True
     skip_test_basis_cardinality = True
+    skip_test_belongs = tf_backend()
 
-    class EuclideanTestData(_VectorSpaceTestData):
+    class HermitianTestData(_VectorSpaceTestData):
 
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
@@ -55,7 +59,7 @@ class TestEuclidean(VectorSpaceTestCase, metaclass=Parametrizer):
 
         def to_tangent_is_tangent_test_data(self):
             return self._to_tangent_is_tangent_test_data(
-                Euclidean,
+                Hermitian,
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
@@ -63,12 +67,12 @@ class TestEuclidean(VectorSpaceTestCase, metaclass=Parametrizer):
 
         def random_tangent_vec_is_tangent_test_data(self):
             return self._random_tangent_vec_is_tangent_test_data(
-                Euclidean, self.space_args_list, self.n_vecs_list
+                Hermitian, self.space_args_list, self.n_vecs_list
             )
 
         def to_tangent_is_projection_test_data(self):
             return self._to_tangent_is_projection_test_data(
-                Euclidean,
+                Hermitian,
                 self.space_args_list,
                 self.shape_list,
                 self.n_vecs_list,
@@ -79,23 +83,27 @@ class TestEuclidean(VectorSpaceTestCase, metaclass=Parametrizer):
                 self.space_args_list, self.n_points_list
             )
 
-    testing_data = EuclideanTestData()
+    testing_data = HermitianTestData()
 
     def test_belongs(self, dim, vec, expected):
         self.assertAllClose(self.space(dim).belongs(gs.array(vec)), gs.array(expected))
 
 
-class TestEuclideanMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = EuclideanMetric
+class TestHermitianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+    metric = connection = HermitianMetric
+    skip_test_exp = tf_backend()
+    skip_test_log = tf_backend()
+    skip_test_inner_product = tf_backend()
+    skip_test_dist = geomstats.tests.tf_backend()
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
-    class EuclideanMetricTestData(_RiemannianMetricTestData):
+    class HermitianMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
         metric_args_list = [(n,) for n in n_list]
         shape_list = metric_args_list
-        space_list = [Euclidean(n) for n in n_list]
+        space_list = [Hermitian(n) for n in n_list]
         n_points_list = random.sample(range(1, 7), 5)
         n_tangent_vecs_list = random.sample(range(1, 7), 5)
         n_points_a_list = random.sample(range(1, 7), 5)
@@ -106,16 +114,28 @@ class TestEuclideanMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         def exp_test_data(self):
 
-            one_tangent_vec = gs.array([0.0, 1.0])
-            one_base_point = gs.array([2.0, 10.0])
-            n_tangent_vecs = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
-            n_base_points = gs.array([[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]])
+            one_tangent_vec = gs.array([0.0 + 0.0j, 1.0 + 1.0j])
+            one_base_point = gs.array([2.0 + 2.0j, 10.0 + 10.0j])
+            n_tangent_vecs = gs.array(
+                [
+                    [2.0 + 2.0j, 1.0 + 1.0j],
+                    [-2.0 - 2.0j, -4.0 - 4.0j],
+                    [-5.0 - 5.0j, 1.0 + 1.0j],
+                ]
+            )
+            n_base_points = gs.array(
+                [
+                    [2.0 + 2.0j, 10.0 + 10.0j],
+                    [8.0 + 8.0j, -1.0 - 1.0j],
+                    [-3.0 - 3.0j, 6.0 + 6.0j],
+                ]
+            )
             smoke_data = [
                 dict(
                     dim=2,
-                    tangent_vec=[0.0, 1.0],
-                    base_point=[2.0, 10.0],
-                    expected=[2.0, 11.0],
+                    tangent_vec=[0.0 + 0.0j, 1.0 + 1.0j],
+                    base_point=[2.0 + 2.0j, 10.0 + 10.0j],
+                    expected=[2.0 + 2.0j, 11.0 + 11.0j],
                 ),
                 dict(
                     dim=2,
@@ -145,13 +165,28 @@ class TestEuclideanMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def log_test_data(self):
-            one_p = gs.array([0.0, 1.0])
-            one_bp = gs.array([2.0, 10.0])
-            n_ps = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
-            n_bps = gs.array([[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]])
+            one_p = gs.array([0.0 + 0.0j, 1.0 + 1.0j])
+            one_bp = gs.array([2.0 + 2.0j, 10.0 + 10.0j])
+            n_ps = gs.array(
+                [
+                    [2.0 + 2.0j, 1.0 + 1.0j],
+                    [-2.0 - 2.0j, -4.0 - 4.0j],
+                    [-5.0 - 5.0, 1.0 + 1.0],
+                ]
+            )
+            n_bps = gs.array(
+                [
+                    [2.0 + 2.0, 10.0 + 10.0],
+                    [8.0 + 8.0, -1.0 - 1.0],
+                    [-3.0 - 3.0, 6.0 + 6.0],
+                ]
+            )
             smoke_data = [
                 dict(
-                    dim=2, point=[2.0, 10.0], base_point=[0.0, 1.0], expected=[2.0, 9.0]
+                    dim=2,
+                    point=[2.0 + 2.0j, 10.0 + 10.0j],
+                    base_point=[0.0 + 0.0j, 1.0 + 1.0j],
+                    expected=[2.0 + 2.0j, 9.0 + 9.0j],
                 ),
                 dict(dim=2, point=one_p, base_point=one_bp, expected=one_p - one_bp),
                 dict(dim=2, point=one_p, base_point=n_bps, expected=one_p - n_bps),
@@ -462,44 +497,44 @@ class TestEuclideanMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
             )
 
-    testing_data = EuclideanMetricTestData()
+    testing_data = HermitianMetricTestData()
 
     def test_exp(self, dim, tangent_vec, base_point, expected):
-        metric = EuclideanMetric(dim)
+        metric = HermitianMetric(dim)
         self.assertAllClose(
             metric.exp(gs.array(tangent_vec), gs.array(base_point)), gs.array(expected)
         )
 
     def test_log(self, dim, point, base_point, expected):
-        metric = EuclideanMetric(dim)
+        metric = HermitianMetric(dim)
         self.assertAllClose(
             metric.log(gs.array(point), gs.array(base_point)), gs.array(expected)
         )
 
     def test_inner_product(self, dim, tangent_vec_a, tangent_vec_b, expected):
-        metric = EuclideanMetric(dim)
+        metric = HermitianMetric(dim)
         self.assertAllClose(
             metric.inner_product(gs.array(tangent_vec_a), gs.array(tangent_vec_b)),
             gs.array(expected),
         )
 
     def test_squared_norm(self, dim, vec, expected):
-        metric = EuclideanMetric(dim)
+        metric = HermitianMetric(dim)
         self.assertAllClose(metric.squared_norm(gs.array(vec)), gs.array(expected))
 
     def test_norm(self, dim, vec, expected):
-        metric = EuclideanMetric(dim)
+        metric = HermitianMetric(dim)
         self.assertAllClose(metric.norm(gs.array(vec)), gs.array(expected))
 
     def test_metric_matrix(self, dim, expected):
-        self.assertAllClose(EuclideanMetric(dim).metric_matrix(), gs.array(expected))
+        self.assertAllClose(HermitianMetric(dim).metric_matrix(), gs.array(expected))
 
     def test_squared_dist(self, dim, point_a, point_b, expected):
-        metric = EuclideanMetric(dim)
+        metric = HermitianMetric(dim)
         result = metric.squared_dist(point_a, point_b)
         self.assertAllClose(result, gs.array(expected))
 
     def test_dist(self, dim, point_a, point_b, expected):
-        metric = EuclideanMetric(dim)
+        metric = HermitianMetric(dim)
         result = metric.dist(point_a, point_b)
         self.assertAllClose(result, gs.array(expected))

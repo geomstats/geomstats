@@ -151,7 +151,7 @@ class TestPSDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
     metric = connection = PSDMetricBuresWasserstein
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
-    skip_test_exp_then_log = True
+    skip_test_log_after_exp = True
 
     class TestDataPSDMetricBuresWasserstein(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)
@@ -324,8 +324,8 @@ class TestPSDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_samples_list,
@@ -333,8 +333,8 @@ class TestPSDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
                 atol=gs.atol * 10000,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,

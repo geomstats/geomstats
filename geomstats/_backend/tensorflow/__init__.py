@@ -74,6 +74,7 @@ DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3, complex64: 4, complex128: 
 
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
+conj = tf.math.conj
 cross = tf.linalg.cross
 erf = tf.math.erf
 imag = tf.math.imag

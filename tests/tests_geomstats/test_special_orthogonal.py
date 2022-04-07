@@ -81,7 +81,7 @@ if tf_backend():
 
 class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
     space = group = SpecialOrthogonal
-    skip_test_log_then_exp = pytorch_backend()
+    skip_test_exp_after_log = pytorch_backend()
     skip_test_projection_belongs = True
 
     class SpecialOrthogonalTestData(_LieGroupTestData):
@@ -435,8 +435,8 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
                 n_points_list,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 SpecialOrthogonal,
                 self.space_args_list,
                 self.shape_list,
@@ -446,8 +446,8 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 SpecialOrthogonal,
                 self.space_args_list,
                 self.n_points_list,
@@ -813,7 +813,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def group_log_then_exp_with_angles_close_to_pi_test_data(self):
+        def group_exp_after_log_with_angles_close_to_pi_test_data(self):
             smoke_data = []
             for angle_type in angles_close_to_pi:
                 for angle_type_base in elements.values():
@@ -825,8 +825,8 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
                     ]
             return self.generate_tests(smoke_data)
 
-        def group_exp_then_log_with_angles_close_to_pi_test_data(self):
-            return self.group_log_then_exp_with_angles_close_to_pi_test_data()
+        def group_log_after_exp_with_angles_close_to_pi_test_data(self):
+            return self.group_exp_after_log_with_angles_close_to_pi_test_data()
 
         def left_jacobian_vectorization_test_data(self):
             smoke_data = [dict(n_samples=3)]
@@ -1014,7 +1014,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_autograd_and_torch_only
-    def test_group_log_then_exp_with_angles_close_to_pi(self, point, base_point):
+    def test_group_exp_after_log_with_angles_close_to_pi(self, point, base_point):
         """
         This tests that the composition of
         log and exp gives identity.
@@ -1030,7 +1030,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
             or gs.allclose(result, inv_expected, atol=5e-3)
         )
 
-    def test_group_exp_then_log_with_angles_close_to_pi(self, tangent_vec, base_point):
+    def test_group_log_after_exp_with_angles_close_to_pi(self, tangent_vec, base_point):
         """
         This tests that the composition of
         log and exp gives identity.
@@ -1188,8 +1188,8 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -1197,8 +1197,8 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -1296,7 +1296,7 @@ class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
             )
 
-        def log_then_exp_intrinsic_ball_extrinsic_test_data(self):
+        def exp_after_log_intrinsic_ball_extrinsic_test_data(self):
             smoke_data = [
                 dict(
                     dim=2,
