@@ -1051,3 +1051,15 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             )
 
         return self.generate_tests([], random_data)
+
+
+class _PointSetTestData(TestData):
+    pass
+
+
+class _PointTestData(TestData):
+    pass
+
+
+class _PointGeometryTestData(TestData):
+    pass
