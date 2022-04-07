@@ -3,7 +3,6 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-
 from tests.conftest import TestCase
 
 

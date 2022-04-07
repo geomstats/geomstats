@@ -58,7 +58,7 @@ class Spider(PointSet):
     """
 
     def __init__(self, rays):
-        super(Spider).__init__()
+        super(Spider, self).__init__()
         self.rays = rays
 
     def random_point(self, n_samples=1):

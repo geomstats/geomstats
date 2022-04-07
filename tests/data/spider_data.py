@@ -2,11 +2,10 @@ import random
 
 import geomstats.backend as gs
 from geomstats.stratified_geometry.spider import SpiderPoint
-
 from tests.data_generation import (
+    _PointGeometryTestData,
     _PointSetTestData,
     _PointTestData,
-    _PointGeometryTestData,
 )
 
 

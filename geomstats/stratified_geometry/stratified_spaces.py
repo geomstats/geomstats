@@ -43,9 +43,6 @@ def _dist_vectorize(fun):
 class Point(ABC):
     r"""Class for points of a set."""
 
-    def __init__(self, **kwargs):
-        super(Point, self).__init__(**kwargs)
-
     @abstractmethod
     def __repr__(self):
         """Produce a string with a verbal description of the point."""
@@ -81,9 +78,6 @@ class PointSet(ABC):
         Coordinate type.
         Optional, default: \'intrinsic\'.
     """
-
-    def __init__(self, **kwargs):
-        super(PointSet, self).__init__(**kwargs)
 
     @abstractmethod
     def belongs(self, point, atol):

@@ -1,15 +1,14 @@
-from geomstats.stratified_geometry.spider import Spider, SpiderPoint, SpiderGeometry
-
+from geomstats.stratified_geometry.spider import Spider, SpiderGeometry, SpiderPoint
 from tests.conftest import Parametrizer
+from tests.data.spider_data import (
+    SpiderGeometryTestData,
+    SpiderPointTestData,
+    SpiderTestData,
+)
 from tests.stratified_geometry_test_cases import (
+    PointSetGeometryTestCase,
     PointSetTestCase,
     PointTestCase,
-    PointSetGeometryTestCase,
-)
-from tests.data.spider_data import (
-    SpiderTestData,
-    SpiderPointTestData,
-    SpiderGeometryTestData,
 )
 
 
