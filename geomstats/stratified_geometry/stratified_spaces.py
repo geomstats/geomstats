@@ -4,33 +4,38 @@ Lead authors: Anna Calissano & Jonas Lueg
 """
 
 from abc import ABC, abstractmethod
-from typing import TypeVar
 
 
-def belongs_vectorize(fun):
+def _belongs_vectorize(fun):
     r"""Vectorize the belongs acting on Point as lists."""
 
-    def wrapped(*args):
+    def wrapped(*args, **kwargs):
         r"""Vectorize the belongs."""
-        if type(args[1]) is list:
-            return fun(args[0], point=args[1])
-        return fun(args[0], point=[args[1]])
+        if type(args[1]) is not list:
+            args = list(args)
+            args[1] = [args[1]]
+
+        return fun(*args, **kwargs)
 
     return wrapped
 
 
-def dist_vectorize(fun):
+def _dist_vectorize(fun):
     r"""Vectorize the distance acting on Point as lists."""
 
-    def wrapped(*args):
+    def wrapped(*args, **kwargs):
         r"""Vectorize the distance."""
+        args = list(args)
         if type(args[1]) is list and type(args[2]) is list:
-            return fun(*args)
-        if type(args[1]) is not list and type(args[2]) is not list:
-            return fun(args[0], a=[args[1]], b=[args[2]])
-        if type(args[1]) is not list:
-            return fun(args[0], a=[args[1]], b=args[2])
-        return fun(args[0], a=args[1], b=[args[2]])
+            pass
+        elif type(args[1]) is not list and type(args[2]) is not list:
+            args[1], args[2] = [args[1]], [args[2]]
+        elif type(args[1]) is not list:
+            args[1] = [args[1]]
+        else:
+            args[2] = [args[2]]
+
+        return fun(*args, **kwargs)
 
     return wrapped
 
@@ -39,7 +44,7 @@ class Point(ABC):
     r"""Class for points of a set."""
 
     def __init__(self, **kwargs):
-        super(Point)
+        super(Point, self).__init__(**kwargs)
 
     @abstractmethod
     def __repr__(self):
@@ -60,9 +65,6 @@ class Point(ABC):
         """
 
 
-P = TypeVar("P", bound=Point)
-
-
 class PointSet(ABC):
     r"""Class for a set of points of type Point.
 
@@ -80,8 +82,8 @@ class PointSet(ABC):
         Optional, default: \'intrinsic\'.
     """
 
-    def __init__(self):
-        super(PointSet)
+    def __init__(self, **kwargs):
+        super(PointSet, self).__init__(**kwargs)
 
     @abstractmethod
     def belongs(self, point, atol):

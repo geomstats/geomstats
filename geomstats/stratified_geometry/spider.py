@@ -82,13 +82,13 @@ class Spider(PointSet):
             return [SpiderPoint(s=s[k], x=x[k]) for k in range(n_samples)]
         return [SpiderPoint(s=0, x=0)] * n_samples
 
-    @geomstats.stratified_geometry.stratified_spaces.belongs_vectorize
+    @geomstats.stratified_geometry.stratified_spaces._belongs_vectorize
     def belongs(self, point):
         r"""Check if a random point belongs to the spider set.
 
         Parameters
         ----------
-        point : List of SpiderPoint, shape=[...]
+        point : SpiderPoint or list of SpiderPoint, shape=[...]
              Point to be checked.
 
         Returns
@@ -159,21 +159,23 @@ class Spider(PointSet):
             return False
         return True
 
+    @geomstats.stratified_geometry.stratified_spaces._belongs_vectorize
     def set_to_array(self, point):
         r"""Turn a point into an array compatible with the dimension of the space.
 
         Parameters
         ----------
-        point : SpiderPoint
-             Point to be checked.
+        point : SpiderPoint or list of SpiderPoint, shape=[...]
+             Points to be checked.
 
         Returns
         -------
         point_array : array-like, shape=[...,rays]
             An array with the x parameter in the s position.
         """
-        point_to_array = gs.array(0, self.rays)
-        point_to_array[point.s] = point.x
+        point_to_array = gs.zeros((len(point), self.rays))
+        for i, pt in enumerate(point):
+            point_to_array[i, pt.s - 1] = pt.x
         return point_to_array
 
 
@@ -185,15 +187,15 @@ class SpiderGeometry(PointSetGeometry):
         self.rays_geometry = ambient_metric
         self.rays = space.rays
 
-    @geomstats.stratified_geometry.stratified_spaces.dist_vectorize
+    @geomstats.stratified_geometry.stratified_spaces._dist_vectorize
     def dist(self, a, b):
         """Compute the distance between two points on the Spider using the ray geometry.
 
         Parameters
         ----------
-        a : List of SpiderPoint, shape=[...]
+        a : SpiderPoint or list of SpiderPoint, shape=[...]
              Point in the Spider.
-        b : List of SpiderPoint, shape=[...]
+        b : SpiderPoint or list of SpiderPoint, shape=[...]
              Point in the Spider.
 
         Returns
@@ -215,15 +217,15 @@ class SpiderGeometry(PointSetGeometry):
                 result += [point_a.x + point_b.x]
         return gs.array(result)
 
-    @geomstats.stratified_geometry.stratified_spaces.dist_vectorize
+    @geomstats.stratified_geometry.stratified_spaces._dist_vectorize
     def geodesic(self, initial_point, end_point):
         """Return the geodesic between two lists of Spider points.
 
         Parameters
         ----------
-        initial_point : List of SpiderPoint, shape=[...]
+        initial_point : SpiderPoint or list of SpiderPoint, shape=[...]
              Point in the Spider.
-        end_point : List of SpiderPoint, shape=[...]
+        end_point : SpiderPoint or list of SpiderPoint, shape=[...]
              Point in the Spider.
 
         Returns
