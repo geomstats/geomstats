@@ -10,6 +10,7 @@ from torch import atan2 as arctan2  # NOQA
 from torch import bool as t_bool
 from torch import broadcast_tensors as broadcast_arrays
 from torch import (
+    angle,
     ceil,
     clip,
     complex64,
@@ -337,6 +338,10 @@ def dot(a, b):
 
 def maximum(a, b):
     return torch.max(array(a), array(b))
+
+
+def minimum(a, b):
+    return torch.min(array(a), array(b))
 
 
 def to_ndarray(x, to_ndim, axis=0):
