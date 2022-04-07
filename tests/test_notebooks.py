@@ -130,3 +130,12 @@ class TestNotebooks(geomstats.tests.TestCase):
             "16_real_world_applications__"
             "visualizations_in_kendall_shape_spaces.ipynb"
         )
+
+    @staticmethod
+    @geomstats.tests.autograd_only
+    def test_17_sub_riemannian_geometry_and_the_heisenberg_group():
+        _exec_notebook(
+            "notebooks/"
+            "17_foundations__"
+            "sub_riemannian_geometry_and_the_heisenberg_group.ipynb"
+        )
