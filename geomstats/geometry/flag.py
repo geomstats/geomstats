@@ -86,9 +86,9 @@ class Flag(Manifold):
             Boolean evaluating if point belongs to the manifold.
         """
 
-        def each_belongs(pt):
+        def each_belongs(point, atol=gs.atol):
             for i in range(1, self.d + 1):
-                R_i = pt[i - 1]
+                R_i = point[i - 1]
                 eq1 = gs.all(gs.isclose(Matrices.mul(R_i, R_i), R_i, atol=atol))
                 eq2 = gs.all(gs.isclose(R_i, Matrices.transpose(R_i), atol=atol))
                 eq3 = gs.all(gs.isclose(Matrices.mul(R_i, R_i), Matrices.transpose(R_i), atol=atol))
@@ -99,10 +99,11 @@ class Flag(Manifold):
                     return belongs
 
                 for j in range(1, i):
-                    R_j = pt[j - 1]
+                    R_j = point[j - 1]
                     belongs = gs.all(gs.isclose(Matrices.mul(R_j, R_i), gs.zeros((self.n, self.n)), atol=atol))
                     if not belongs:
                         return belongs
+
             return belongs
 
         if isinstance(point, list) or point.ndim > 3:
@@ -138,25 +139,33 @@ class Flag(Manifold):
             Boolean denoting if vector is a tangent vector at the base point.
         """
 
-        for i in range(1, self.d + 1):
-            R_i = base_point[i - 1]  # the length of point is d while the length of extended indexes is d+1
-            Z_i = vector[i - 1]
-            eq1 = gs.isclose(Matrices.mul(R_i, Z_i) + Matrices.mul(Z_i, R_i), Z_i, atol=atol).all()
-            eq2 = gs.isclose(Z_i, Matrices.transpose(Z_i), atol=atol).all()
-            eq3 = gs.isclose(Matrices.mul(R_i, Z_i) + Matrices.mul(Z_i, R_i), Matrices.transpose(Z_i), atol=atol).all()
-            eq4 = gs.isclose(gs.trace(Z_i), gs.zeros((self.n, self.n)), atol=atol).all()
-            is_tangent = gs.all([eq1, eq2, eq3, eq4])
+        def each_is_tangent(vector, base_point, atol=gs.atol):
+            for i in range(1, self.d + 1):
+                R_i = base_point[i - 1]
+                Z_i = vector[i - 1]
+                eq1 = gs.all(gs.isclose(Matrices.mul(R_i, Z_i) + Matrices.mul(Z_i, R_i), Z_i, atol=atol))
+                eq2 = gs.all(gs.isclose(Z_i, Matrices.transpose(Z_i), atol=atol))
+                eq3 = gs.all(gs.isclose(Matrices.mul(R_i, Z_i) + Matrices.mul(Z_i, R_i), Matrices.transpose(Z_i),
+                                        atol=atol))
+                eq4 = gs.isclose(gs.trace(Z_i), 0, atol=atol)
+                is_tangent = gs.all([eq1, eq2, eq3, eq4])
+                if not is_tangent:
+                    return is_tangent
 
-            for j in range(1, i):
-                R_j = base_point[j - 1]
-                Z_j = vector[j - 1]
-                is_tangent = gs.logical_and(is_tangent, gs.isclose(Matrices.mul(Z_i, R_j) + Matrices.mul(R_i, Z_j),
-                                                                   gs.zeros((self.n, self.n)),
-                                                                   atol=atol).all())
-            if not gs.any(is_tangent):
-                return is_tangent
+                for j in range(1, i):
+                    R_j = base_point[j - 1]
+                    Z_j = vector[j - 1]
+                    is_tangent = gs.all(gs.isclose(Matrices.mul(Z_i, R_j) + Matrices.mul(R_i, Z_j),
+                                                   gs.zeros((self.n, self.n)),
+                                                   atol=atol))
+                    if not is_tangent:
+                        return is_tangent
+            return is_tangent
 
-        return is_tangent
+        if isinstance(base_point, list) or base_point.ndim > 3:
+            return gs.stack([each_is_tangent(vec, bp, atol=atol) for (vec, bp) in zip(vector, base_point)])
+
+        return each_is_tangent(vector, base_point, atol=atol)
 
     def to_tangent(self, vector, base_point):
         pass
@@ -167,13 +176,13 @@ class Flag(Manifold):
 
 if __name__ == "__main__":
     flag = Flag([1, 3, 4], 5)
-    point1 = gs.random.rand(100, 3, 5, 5)
+    point1 = gs.random.rand(10, 3, 5, 5)
     point2 = gs.array([gs.array(np.diag([1, 0, 0, 0, 0])), gs.array(np.diag([0, 1, 1, 0, 0])),
                        gs.array(np.diag([0, 0, 0, 0, 1]))])
     print(flag.belongs(point1))  # False
     print(flag.belongs(point2))  # True
-    print(flag.is_tangent(point2, base_point=point1))  # False
-    print(flag.is_tangent(point1, base_point=point2))  # False
+    print(flag.is_tangent(point1, base_point=point1))  # False
+    print(flag.is_tangent(point2, base_point=point2))  # False
 
     # from geomstats.geometry.grassmannian import Grassmannian
     # from functools import reduce
