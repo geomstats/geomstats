@@ -30,8 +30,8 @@ point_b = gs.array(
 
 class TestStiefel(LevelSetTestCase, metaclass=Parametrizer):
     space = Stiefel
-    skip_test_extrinsic_then_intrinsic = True
-    skip_test_intrinsic_then_extrinsic = True
+    skip_test_intrinsic_after_extrinsic = True
+    skip_test_extrinsic_after_intrinsic = True
     skip_test_to_tangent_is_tangent = True
 
     class StiefelTestData(_LevelSetTestData):
@@ -105,8 +105,8 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
-    skip_test_log_then_exp = True
-    skip_test_exp_then_log = True
+    skip_test_exp_after_log = True
+    skip_test_log_after_exp = True
     skip_test_log_is_tangent = True
     skip_test_geodesic_bvp_belongs = True
     skip_test_squared_dist_is_symmetric = True
@@ -207,8 +207,8 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
                 belongs_atol=gs.atol * 1000,
             )
 
-        def log_then_exp_test_data(self):
-            return self._log_then_exp_test_data(
+        def exp_after_log_test_data(self):
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
@@ -216,8 +216,8 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
                 atol=gs.atol * 10000,
             )
 
-        def exp_then_log_test_data(self):
-            return self._exp_then_log_test_data(
+        def log_after_exp_test_data(self):
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -296,7 +296,7 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
             )
 
         def retraction_lifting_test_data(self):
-            return self._exp_then_log_test_data(
+            return self._log_after_exp_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.shape_list,
@@ -306,7 +306,7 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
             )
 
         def lifting_retraction_test_data(self):
-            return self._log_then_exp_test_data(
+            return self._exp_after_log_test_data(
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
