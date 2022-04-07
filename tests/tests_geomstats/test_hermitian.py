@@ -1,8 +1,11 @@
 """Unit tests for the Hermitian space."""
+
 import math
 import random
 
 import geomstats.backend as gs
+import geomstats.tests
+from geomstats.tests import tf_backend
 from geomstats.geometry.hermitian import Hermitian, HermitianMetric
 from tests.conftest import Parametrizer
 from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
@@ -16,6 +19,7 @@ class TestHermitian(VectorSpaceTestCase, metaclass=Parametrizer):
     space = Hermitian
     skip_test_basis_belongs = True
     skip_test_basis_cardinality = True
+    skip_test_belongs = tf_backend()
 
     class HermitianTestData(_VectorSpaceTestData):
 
@@ -87,6 +91,10 @@ class TestHermitian(VectorSpaceTestCase, metaclass=Parametrizer):
 
 class TestHermitianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = HermitianMetric
+    skip_test_exp = tf_backend()
+    skip_test_log = tf_backend()
+    skip_test_inner_product = tf_backend()
+    skip_test_dist = geomstats.tests.tf_backend()
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
