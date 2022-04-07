@@ -13,19 +13,10 @@ from tests.data_generation import (
 
 class SpiderTestData(_PointSetTestData):
 
-    def random_point_belongs_test_data(self):
-        # TODO: make general
-        n_samples = 2
-
-        n_points_list = random.sample(range(1, 5), n_samples)
-        rays_list = random.sample(range(1, 5), 2)
-
-        random_data = [
-            dict(space_args=[space_args], n_points=n_points)
-            for space_args, n_points in zip(rays_list, n_points_list)
-        ]
-
-        return self.generate_tests([], random_data)
+    # for random tests
+    n_samples = _PointSetTestData.n_samples
+    rays_list = random.sample(range(1, 5), n_samples)
+    space_args_list = [(rays,) for rays in rays_list]
 
     def belongs_test_data(self):
         pt1 = SpiderPoint(3, 13)
@@ -103,6 +94,15 @@ class SpiderGeometryTestData(_PointGeometryTestData):
                  expected=gs.array([30., 0., 5.])
                  )
 
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def geodesic_output_type_test_data(self):
+        smoke_data = [
+            dict(space_args=(12,),
+                 start_point=SpiderPoint(1, 2.),
+                 end_point=SpiderPoint(2, 3.)),
         ]
 
         return self.generate_tests(smoke_data)

@@ -45,3 +45,23 @@ class PointSetGeometryTestCase(TestCase):
         results = geom.dist(start_point, end_point)
 
         self.assertAllClose(results, expected)
+
+    def test_geodesic(self, space_args, start_point, end_point, t, expected):
+
+        space = self._PointSet(*space_args)
+
+        geom = self._SetGeometry(space)
+        geodesic = geom.geodesic(start_point, end_point)
+        pts_result = geodesic(t)
+
+        # check results
+        results = []
+        for pts in pts_result:
+            t_results = []
+            for pt in pts:
+                t_results.append(pt.to_array())
+
+            results.append(t_results)
+
+        results = gs.array(results)
+        self.assertAllClose(results, expected)

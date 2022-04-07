@@ -1,4 +1,5 @@
 import itertools
+import random
 
 import pytest
 
@@ -1054,7 +1055,19 @@ class _RiemannianMetricTestData(_ConnectionTestData):
 
 
 class _PointSetTestData(TestData):
-    pass
+
+    # for random tests
+    n_samples = 2
+    n_points_list = random.sample(range(1, 5), n_samples)
+
+    def random_point_belongs_test_data(self):
+
+        random_data = [
+            dict(space_args=space_args, n_points=n_points)
+            for space_args, n_points in zip(self.space_args_list, self.n_points_list)
+        ]
+
+        return self.generate_tests([], random_data)
 
 
 class _PointTestData(TestData):

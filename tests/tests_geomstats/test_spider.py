@@ -39,29 +39,14 @@ class TestSpiderGeometry(PointSetGeometryTestCase, metaclass=Parametrizer):
     _Point = SpiderPoint
     testing_data = SpiderGeometryTestData()
 
-    def test_geodesic(self, space_args, start_point, end_point, t, expected):
-        # TODO: generalize? (point type may be tricky)
-        # TODO: split testing point?
-
+    def test_geodesic_output_type(self, space_args, start_point, end_point):
         space = self._PointSet(*space_args)
 
         geom = self._SetGeometry(space)
         geodesic = geom.geodesic(start_point, end_point)
 
         # check output type
-        pts_result = geodesic(t)
+        pts_result = geodesic(0.)
         for pts in pts_result:
             for pt in pts:
                 self.assertTrue(type(pt) is self._Point)
-
-        # check results
-        results = []
-        for pts in pts_result:
-            t_results = []
-            for pt in pts:
-                t_results.append(pt.to_array())
-
-            results.append(t_results)
-
-        results = gs.array(results)
-        self.assertAllClose(results, expected)
