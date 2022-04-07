@@ -27,7 +27,7 @@ def left_log_then_exp_from_identity(metric, point):
     return result
 
 
-def left_log_after_exp_from_identity(metric, tangent_vec):
+def left_exp_then_log_from_identity(metric, tangent_vec):
     aux = metric.left_exp_from_identity(tangent_vec=tangent_vec)
     result = metric.left_log_from_identity(point=aux)
     return result
@@ -39,7 +39,7 @@ def log_then_exp_from_identity(metric, point):
     return result
 
 
-def log_after_exp_from_identity(metric, tangent_vec):
+def exp_then_log_from_identity(metric, tangent_vec):
     aux = metric.exp_from_identity(tangent_vec=tangent_vec)
     result = metric.log_from_identity(point=aux)
     return result
@@ -51,7 +51,7 @@ def log_then_exp(metric, point, base_point=None):
     return result
 
 
-def log_after_exp(metric, tangent_vec, base_point=None):
+def exp_then_log(metric, tangent_vec, base_point=None):
     aux = metric.exp(tangent_vec=tangent_vec, base_point=base_point)
     result = metric.log(point=aux, base_point=base_point)
     return result
@@ -63,7 +63,7 @@ def group_log_then_exp_from_identity(group, point):
     return result
 
 
-def group_log_after_exp_from_identity(group, tangent_vec):
+def group_exp_then_log_from_identity(group, tangent_vec):
     aux = group.exp_from_identity(tangent_vec=tangent_vec)
     result = group.log_from_identity(point=aux)
     return result
@@ -75,7 +75,7 @@ def group_log_then_exp(group, point, base_point):
     return result
 
 
-def group_log_after_exp(group, tangent_vec, base_point):
+def group_exp_then_log(group, tangent_vec, base_point):
     aux = group.exp(tangent_vec=tangent_vec, base_point=base_point)
     result = group.log(point=aux, base_point=base_point)
     return result
