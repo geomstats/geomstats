@@ -95,13 +95,13 @@ class Flag(Manifold):
                 eq4 = gs.isclose(gs.trace(R_i),
                                  self.extended_index[i] - self.extended_index[i - 1], atol=atol)
                 belongs = gs.all([eq1, eq2, eq3, eq4])
-                if not gs.any(belongs):
+                if not belongs:
                     return belongs
 
                 for j in range(1, i):
                     R_j = pt[j - 1]
                     belongs = gs.all(gs.isclose(Matrices.mul(R_j, R_i), gs.zeros((self.n, self.n)), atol=atol))
-                    if not gs.any(belongs):
+                    if not belongs:
                         return belongs
             return belongs
 
