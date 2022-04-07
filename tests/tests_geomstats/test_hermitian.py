@@ -8,10 +8,8 @@ import geomstats.tests
 from geomstats.geometry.hermitian import Hermitian, HermitianMetric
 from geomstats.tests import tf_backend
 from tests.conftest import Parametrizer
-from tests.data_generation import (_RiemannianMetricTestData,
-                                   _VectorSpaceTestData)
-from tests.geometry_test_cases import (RiemannianMetricTestCase,
-                                       VectorSpaceTestCase)
+from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
+from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
 
 SQRT_2 = math.sqrt(2)
 SQRT_5 = math.sqrt(5)
