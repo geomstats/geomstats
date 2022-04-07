@@ -1,16 +1,38 @@
+r"""
+Manifold of flags.
+
+The flag manifold :math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)` is a smooth manifold whose elements are
+flags in a vector space of dimension n, i.e. nested sequences of linear subspaces with increasing
+dimensions :math:`n_0:=0 < n_1 < n_2 < \dots < n_d < n_{d+1}:=n`.
+
+Lead author: Tom Szwagier.
+
+:math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)` is represented by
+:math:`nd \times nd` block diagonal matrices, where each block :math:`i \in \{1, \dots, d\}` corresponds to a
+:math:`n \times n` matrix :math:`R_i` of rank :math:`n_i-n_{i-1}` satisfying :math:`{R_i}^2 = R_i = {R_i}^\top` and
+:math:`R_i R_j = 0` for j < i. The mapping is diffeomorphic (cf. [Ye2021] Proposition 21).
+Each :math:`R_i \in \operatorname{Flag}(n_1, n_2 \dots, n_d; n)` is thus identified with the unique orthogonal projector
+onto :math:`{\rm Im}(R_i)`, with the constraint that the related subspaces must be orthogonal one to another.
+
+:math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)` can also be seen as a matrix homogeneous space:
+
+.. math::
+
+    \operatorname{Flag}(n_1, n_2 \dots, n_d; n) \simeq \frac {O(n)} {O(n_1) \times O(n_2 - n_1) \times \dots \times
+    O(n-n_d)}
+
+References
+----------
+.. [Ye2021] Ye, K., Wong, K.S.-W., Lim, L.-H.: Optimization on flag manifolds.
+Preprint, arXiv:1907.00949 [math.OC] (2019)
+"""
+
 import numpy as np
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
-
-"""
-Implementation of the Flag manifold based on the Grassmannian one.
-TODO:
-- generalize to several points (returns array instead of single element)
-- use gs.all() instead of ().all()
-"""
 
 
 class Flag(Manifold):
@@ -71,45 +93,6 @@ class Flag(Manifold):
                 return is_tangent
 
         return is_tangent
-
-    def to_tangent(self, vector, base_point):
-        pass
-
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample random points from a uniform distribution.
-        We use the same trick as for Grassmannian class for the random uniform projection matrix sampling and iterate
-        over the reduced projection coordinates with the constraint that the randomly generated projection matrix needs
-        to be in the orthogonal of the previous indexes' vector spaces (cf [Ye2021] Proposition 21).
-
-        Parameters
-        ----------
-        n_samples : int
-            The number of points to sample
-            Optional. default: 1.
-
-        Returns
-        -------
-        projectors : array-like, shape=[..., n, n]
-            Points following a uniform distribution.
-
-        References
-        ----------
-        .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
-        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
-        .. [Ye2021] Ye, K., Wong, K.S.-W., Lim, L.-H.: Optimization on flag manifolds.
-        Preprint, arXiv:1907.00949 [math.OC] (2019)
-        """
-        for i in range(1, self.d+1):
-            dim_proj = self.extended_index[i] - self.extended_index[i - 1]
-            points = gs.random.normal(size=(n_samples, self.n, dim_proj))
-            full_rank = Matrices.mul(Matrices.transpose(points), points)
-            projector = Matrices.mul(
-                points, GeneralLinear.inverse(full_rank), Matrices.transpose(points)
-            )
-            # randomly sample on the orthogonal characterized by the matrix P (1-D) P.T, with dim = dim_proj
-            # does randomly sampling then orthogonally projecting with I - P work?
-            # Nope I don't think so... There would be way too much zeroes...
-        return projector[0] if n_samples == 1 else projector
 
 
 if __name__ == "__main__":
