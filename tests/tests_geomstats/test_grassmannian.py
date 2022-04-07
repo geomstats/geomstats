@@ -21,8 +21,8 @@ pi_4 = gs.pi / 4
 
 class TestGrassmannian(LevelSetTestCase, metaclass=Parametrizer):
     space = Grassmannian
-    skip_test_extrinsic_then_intrinsic = True
-    skip_test_intrinsic_then_extrinsic = True
+    skip_test_intrinsic_after_extrinsic = True
+    skip_test_extrinsic_after_intrinsic = True
 
     class GrassmannianTestData(_LevelSetTestData):
         n_list = random.sample(range(3, 6), 2)
@@ -85,7 +85,7 @@ class TestGrassmannian(LevelSetTestCase, metaclass=Parametrizer):
 
 class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = GrassmannianCanonicalMetric
-    skip_test_exp_then_log = True
+    skip_test_log_after_exp = True
     skip_test_exp_geodesic_ivp = True
     skip_test_log_is_tangent = not np_backend()
 

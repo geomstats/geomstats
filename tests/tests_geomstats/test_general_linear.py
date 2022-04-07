@@ -19,8 +19,8 @@ from tests.geometry_test_cases import (
 
 class TestGeneralLinear(LieGroupTestCase, OpenSetTestCase, metaclass=Parametrizer):
     space = group = GeneralLinear
-    skip_test_exp_then_log = True
-    skip_test_log_then_exp = True
+    skip_test_log_after_exp = True
+    skip_test_exp_after_log = True
 
     class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
         n_list = random.sample(range(2, 5), 2)
@@ -276,13 +276,13 @@ class TestSquareMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
-        def basis_representation_then_matrix_representation_test_data(self):
-            return self._basis_representation_then_matrix_representation_test_data(
+        def matrix_representation_after_basis_representation_test_data(self):
+            return self._matrix_representation_after_basis_representation_test_data(
                 SquareMatrices, self.space_args_list, self.n_samples_list
             )
 
-        def matrix_representation_then_basis_representation_test_data(self):
-            return self._matrix_representation_then_basis_representation_test_data(
+        def basis_representation_after_matrix_representation_test_data(self):
+            return self._basis_representation_after_matrix_representation_test_data(
                 SquareMatrices, self.space_args_list, self.n_samples_list
             )
 

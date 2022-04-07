@@ -58,8 +58,8 @@ nabla_x_h = hor_dh + a_x_h
 
 class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
     space = PreShapeSpace
-    skip_test_extrinsic_then_intrinsic = True
-    skip_test_intrinsic_then_extrinsic = True
+    skip_test_intrinsic_after_extrinsic = True
+    skip_test_extrinsic_after_intrinsic = True
 
     class PreShapeSpaceTestData(_LevelSetTestData):
         k_landmarks_list = random.sample(range(3, 6), 2)
@@ -323,15 +323,15 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
                 self.space_args_list, self.shape_list, self.n_points_list
             )
 
-        def extrinsic_then_intrinsic_test_data(self):
+        def intrinsic_after_extrinsic_test_data(self):
             space_args_list = [(1,), (2,)]
-            return self._extrinsic_then_intrinsic_test_data(
+            return self._intrinsic_after_extrinsic_test_data(
                 PreShapeSpace, space_args_list, self.n_points_list
             )
 
-        def intrinsic_then_extrinsic_test_data(self):
+        def extrinsic_after_intrinsic_test_data(self):
             space_args_list = [(1,), (2,)]
-            return self._intrinsic_then_extrinsic_test_data(
+            return self._extrinsic_after_intrinsic_test_data(
                 PreShapeSpace, space_args_list, self.n_points_list
             )
 
@@ -653,8 +653,8 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
-    skip_test_log_then_exp = True
-    skip_test_exp_then_log = True
+    skip_test_exp_after_log = True
+    skip_test_log_after_exp = True
 
     class KendallShapeMetricTestData(_RiemannianMetricTestData):
         k_landmarks_list = random.sample(range(3, 6), 2)
@@ -1152,7 +1152,7 @@ class TestPreShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     space = PreShapeSpace
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_shape = True
-    skip_test_exp_then_log = True
+    skip_test_log_after_exp = True
 
     class KendallShapeMetricTestData(_RiemannianMetricTestData):
         k_landmarks_list = random.sample(range(3, 6), 2)

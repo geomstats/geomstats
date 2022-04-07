@@ -151,7 +151,7 @@ class TestPSDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
     metric = connection = PSDMetricBuresWasserstein
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
-    skip_test_exp_then_log = True
+    skip_test_log_after_exp = True
 
     class TestDataPSDMetricBuresWasserstein(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 7), 5)

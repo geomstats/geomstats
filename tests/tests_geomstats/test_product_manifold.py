@@ -350,7 +350,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
             ]
             return self.generate_tests([], random_data)
 
-        def dist_log_then_exp_norm_test_data(self):
+        def dist_exp_after_log_norm_test_data(self):
             smoke_data = [
                 dict(
                     space=smoke_manifolds_1,
@@ -395,7 +395,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
-    def test_dist_log_then_exp_norm(
+    def test_dist_exp_after_log_norm(
         self, manifolds, default_point_type, n_samples, einsum_str, expected
     ):
         space = ProductManifold(

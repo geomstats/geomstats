@@ -255,15 +255,15 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
                 self.space_args_list, self.shape_list, self.n_points_list
             )
 
-        def extrinsic_then_intrinsic_test_data(self):
+        def intrinsic_after_extrinsic_test_data(self):
             space_args_list = [(1,), (2,)]
-            return self._extrinsic_then_intrinsic_test_data(
+            return self._intrinsic_after_extrinsic_test_data(
                 Hypersphere, space_args_list, self.n_points_list, atol=gs.atol * 100
             )
 
-        def intrinsic_then_extrinsic_test_data(self):
+        def extrinsic_after_intrinsic_test_data(self):
             space_args_list = [(1,), (2,)]
-            return self._intrinsic_then_extrinsic_test_data(
+            return self._extrinsic_after_intrinsic_test_data(
                 Hypersphere, space_args_list, self.n_points_list, atol=gs.atol * 100
             )
 

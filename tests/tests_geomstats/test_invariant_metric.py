@@ -26,9 +26,9 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_log_is_tangent = np_backend()
     skip_test_log_shape = np_backend()
     skip_test_geodesic_bvp_belongs = np_backend()
-    skip_test_log_then_exp = np_backend()
+    skip_test_exp_after_log = np_backend()
     skip_test_geodesic_bvp_belongs = True
-    skip_test_exp_then_log = True
+    skip_test_log_after_exp = True
     skip_test_dist_point_to_itself_is_zero = True
 
     class InvariantMetricTestData(_RiemannianMetricTestData):
