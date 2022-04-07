@@ -107,15 +107,32 @@ class Flag(Manifold):
                 points, GeneralLinear.inverse(full_rank), Matrices.transpose(points)
             )
             # randomly sample on the orthogonal characterized by the matrix P (1-D) P.T, with dim = dim_proj
+            # does randomly sampling then orthogonally projecting with I - P work?
+            # Nope I don't think so... There would be way too much zeroes...
         return projector[0] if n_samples == 1 else projector
 
 
 if __name__ == "__main__":
-    flag = Flag([1, 3, 4], 5)
-    point1 = [gs.random.rand(5, 5), gs.random.rand(5, 5), gs.random.rand(5, 5)]
-    point2 = [gs.array(np.diag([1, 0, 0, 0, 0])), gs.array(np.diag([0, 1, 1, 0, 0])),
-              gs.array(np.diag([0, 0, 0, 0, 1]))]
-    print(flag.belongs(point1))  # False
-    print(flag.belongs(point2))  # True
-    print(flag.is_tangent(point2, base_point=point1))  # False
-    print(flag.is_tangent(point1, base_point=point2))  # False
+    # flag = Flag([1, 3, 4], 5)
+    # point1 = [gs.random.rand(5, 5), gs.random.rand(5, 5), gs.random.rand(5, 5)]
+    # point2 = [gs.array(np.diag([1, 0, 0, 0, 0])), gs.array(np.diag([0, 1, 1, 0, 0])),
+    #           gs.array(np.diag([0, 0, 0, 0, 1]))]
+    # print(flag.belongs(point1))  # False
+    # print(flag.belongs(point2))  # True
+    # print(flag.is_tangent(point2, base_point=point1))  # False
+    # print(flag.is_tangent(point1, base_point=point2))  # False
+    #
+    from geomstats.geometry.grassmannian import Grassmannian
+    from functools import reduce
+
+    grassmannian = Grassmannian(10, 2)
+    proj1 = grassmannian.random_point()
+    proj1_perp = gs.eye(10) - proj1
+    points = gs.random.normal(size=(1000, 10, 2))  # Trace is always 2, even for 100,000 samples
+    points_perp = Matrices.mul(proj1_perp, points)
+    full_rank_perp = Matrices.mul(Matrices.transpose(points_perp), points_perp)
+    proj2 = Matrices.mul(
+        points_perp, GeneralLinear.inverse(full_rank_perp), Matrices.transpose(points_perp)
+    )
+    print((gs.all([gs.isclose(gs.trace(p), 2) for p in proj2])))
+    print((gs.all([gs.isclose(Matrices.mul(proj1, p), gs.zeros((10, 10))) for p in proj2])))
