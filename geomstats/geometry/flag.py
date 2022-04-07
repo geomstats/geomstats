@@ -36,7 +36,17 @@ from geomstats.geometry.matrices import Matrices
 
 
 class Flag(Manifold):
-    def __init__(self, index, n, ambient_manifold=None):
+    """ Class for flag manifolds :math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)`.
+
+    Parameters
+    ----------
+    index : tuple of int
+        Sequence of dimensions of the nested linear subspaces.
+    n : int
+        Dimension of the Euclidean space.
+    """
+
+    def __init__(self, index, n):
         # set the problem of the structure. List of matrices is not a manifold I guess.
         # using block diagonal matrices like in the paper would be cool because of the SPD structure,
         # but too memory expensive
@@ -45,13 +55,11 @@ class Flag(Manifold):
         geomstats.errors.check_integer(n, "n")
         extended_index = gs.concatenate(([0], index), dtype="int")
         dim = int(gs.sum(np.diff(extended_index) * (n - gs.array(index))))  # cf [Ye2021] p 17
-        super(Flag, self).__init__(dim=dim, shape=(n * d, n * d),
-                                   default_point_type=None)  # I'll implement it as a list of projection matrices
+        super(Flag, self).__init__(dim=dim, shape=(n * d, n * d))
         self.index = index
         self.extended_index = extended_index
         self.d = d
         self.n = n
-        self.ambient_manifold = ambient_manifold
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold.
@@ -77,27 +85,32 @@ class Flag(Manifold):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the manifold.
         """
+        def each_belongs(pt):
+            for i in range(1, self.d + 1):
+                R_i = pt[i - 1]
+                eq1 = gs.all(gs.isclose(Matrices.mul(R_i, R_i), R_i, atol=atol))
+                eq2 = gs.all(gs.isclose(R_i, Matrices.transpose(R_i), atol=atol))
+                eq3 = gs.all(gs.isclose(Matrices.mul(R_i, R_i), Matrices.transpose(R_i), atol=atol))
+                eq4 = gs.isclose(gs.trace(R_i),
+                                 self.extended_index[i] - self.extended_index[i - 1], atol=atol)
+                belongs = gs.all([eq1, eq2, eq3, eq4])
+                if not gs.any(belongs):
+                    return belongs
 
-        belongs = True  # just to initialize, be actually we will anyway go into the loop as d is supposed > 0
-        for i in range(1, self.d + 1):
-            R_i = point[i - 1]  # the length of point is d while the length of extended indexes is d+1
-            eq1 = gs.isclose(Matrices.mul(R_i, R_i), R_i, atol=atol).all()
-            eq2 = gs.isclose(R_i, Matrices.transpose(R_i), atol=atol).all()
-            eq3 = gs.isclose(Matrices.mul(R_i, R_i), Matrices.transpose(R_i), atol=atol).all()
-            eq4 = gs.isclose(gs.trace(R_i), self.extended_index[i] - self.extended_index[i - 1], atol=atol).all()
-            belongs = gs.all([eq1, eq2, eq3, eq4])
+                for j in range(1, i):
+                    R_j = pt[j - 1]
+                    belongs = gs.all(gs.isclose(Matrices.mul(R_j, R_i), gs.zeros((self.n, self.n)), atol=atol))
+                    if not gs.any(belongs):
+                        return belongs
+            return belongs
 
-            for j in range(1, i):
-                R_j = point[j - 1]
-                belongs = gs.logical_and(belongs, gs.isclose(Matrices.mul(R_j, R_i), gs.zeros((self.n, self.n)),
-                                                             atol=atol).all())
-            if not gs.any(belongs):
-                return belongs
+        if isinstance(point, list) or point.ndim > 3:
+            return gs.stack([each_belongs(pt) for pt in point])
 
-        return belongs
+        return each_belongs(point)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):  # characterization from [Ye2021] Proposition 22
-        is_tangent = True  # just to initialize, be actually we will anyway go into the loop as d is supposed > 0
+
         for i in range(1, self.d + 1):
             R_i = base_point[i - 1]  # the length of point is d while the length of extended indexes is d+1
             Z_i = vector[i - 1]
@@ -118,28 +131,38 @@ class Flag(Manifold):
 
         return is_tangent
 
+    def to_tangent(self, vector, base_point):
+        pass
+
+    def random_point(self, n_samples=1, bound=1.0):
+        pass
+
 
 if __name__ == "__main__":
-    # flag = Flag([1, 3, 4], 5)
-    # point1 = [gs.random.rand(5, 5), gs.random.rand(5, 5), gs.random.rand(5, 5)]
-    # point2 = [gs.array(np.diag([1, 0, 0, 0, 0])), gs.array(np.diag([0, 1, 1, 0, 0])),
-    #           gs.array(np.diag([0, 0, 0, 0, 1]))]
-    # print(flag.belongs(point1))  # False
-    # print(flag.belongs(point2))  # True
-    # print(flag.is_tangent(point2, base_point=point1))  # False
-    # print(flag.is_tangent(point1, base_point=point2))  # False
-    #
-    from geomstats.geometry.grassmannian import Grassmannian
-    from functools import reduce
+    flag = Flag([1, 3, 4], 5)
+    point1 = gs.random.rand(100, 3, 5, 5)
+    point2 = gs.array([gs.array(np.diag([1, 0, 0, 0, 0])), gs.array(np.diag([0, 1, 1, 0, 0])),
+                       gs.array(np.diag([0, 0, 0, 0, 1]))])
+    print(flag.belongs(point1))  # False
+    print(flag.belongs(point2))  # True
+    print(flag.is_tangent(point2, base_point=point1))  # False
+    print(flag.is_tangent(point1, base_point=point2))  # False
 
-    grassmannian = Grassmannian(10, 2)
-    proj1 = grassmannian.random_point()
-    proj1_perp = gs.eye(10) - proj1
-    points = gs.random.normal(size=(1000, 10, 2))  # Trace is always 2, even for 100,000 samples
-    points_perp = Matrices.mul(proj1_perp, points)
-    full_rank_perp = Matrices.mul(Matrices.transpose(points_perp), points_perp)
-    proj2 = Matrices.mul(
-        points_perp, GeneralLinear.inverse(full_rank_perp), Matrices.transpose(points_perp)
-    )
-    print((gs.all([gs.isclose(gs.trace(p), 2) for p in proj2])))
-    print((gs.all([gs.isclose(Matrices.mul(proj1, p), gs.zeros((10, 10))) for p in proj2])))
+    # from geomstats.geometry.grassmannian import Grassmannian
+    # from functools import reduce
+    # grassmannian = Grassmannian(10, 2)
+    # p1 = grassmannian.random_point()
+    # p2 = grassmannian.random_point(2)
+    # b1 = grassmannian.belongs(p1)
+    # b2 = grassmannian.belongs(p2)
+
+    # proj1 = grassmannian.random_point()
+    # proj1_perp = gs.eye(10) - proj1
+    # points = gs.random.normal(size=(1000, 10, 2))  # Trace is always 2, even for 100,000 samples
+    # points_perp = Matrices.mul(proj1_perp, points)
+    # full_rank_perp = Matrices.mul(Matrices.transpose(points_perp), points_perp)
+    # proj2 = Matrices.mul(
+    #     points_perp, GeneralLinear.inverse(full_rank_perp), Matrices.transpose(points_perp)
+    # )
+    # print((gs.all([gs.isclose(gs.trace(p), 2) for p in proj2])))
+    # print((gs.all([gs.isclose(Matrices.mul(proj1, p), gs.zeros((10, 10))) for p in proj2])))
