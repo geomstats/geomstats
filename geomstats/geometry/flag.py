@@ -53,7 +53,31 @@ class Flag(Manifold):
         self.n = n
         self.ambient_manifold = ambient_manifold
 
-    def belongs(self, point, atol=gs.atol):  # characterization from [Ye2021] Proposition 21
+    def belongs(self, point, atol=gs.atol):
+        """Evaluate if a point belongs to the manifold.
+
+        Characterization based on reduced projection coordinates from [Ye2021], Proposition 21:
+        **Proposition 21**
+        The flag manifold :math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)` is diffeomorphic to
+        .. math::
+            \left\{\R = \operatorname{diag}\left(R_1, \dots, R_d\right) \in \mathbb{R}^{nd \times nd} :
+            {R_i}^2 = R_i = {R_i}^\top, \operatorname[{tr}(R_i)=n_i-n_{i-1}, R_i R_j = 0, j < i right\}
+
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point to evaluate.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the manifold.
+        """
+
         belongs = True  # just to initialize, be actually we will anyway go into the loop as d is supposed > 0
         for i in range(1, self.d + 1):
             R_i = point[i - 1]  # the length of point is d while the length of extended indexes is d+1
