@@ -21,11 +21,11 @@ class Matrices(VectorSpace):
     def __init__(self, m, n, **kwargs):
         if "default_point_type" not in kwargs.keys():
             kwargs["default_point_type"] = "matrix"
-        super(Matrices, self).__init__(
-            shape=(m, n), metric=MatricesMetric(m, n), **kwargs
-        )
+        super(Matrices, self).__init__(shape=(m, n), **kwargs)
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
+        if self.metric is None:
+            self.metric = MatricesMetric(m, n)
         self.m = m
         self.n = n
 

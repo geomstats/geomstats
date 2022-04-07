@@ -21,13 +21,14 @@ class FullRankCorrelationMatrices(LevelSet):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, **kwargs):
         super(FullRankCorrelationMatrices, self).__init__(
             dim=int(n * (n - 1) / 2),
             embedding_space=SPDMatrices(n=n),
             submersion=Matrices.diagonal,
             value=gs.ones(n),
             tangent_submersion=lambda v, x: Matrices.diagonal(v),
+            **kwargs
         )
         self.n = n
 
@@ -54,6 +55,13 @@ class FullRankCorrelationMatrices(LevelSet):
         """
         aux = gs.einsum("...i,...j->...ij", diagonal_vec, diagonal_vec)
         return point * aux
+
+    @property
+    def metric(self):
+        """Riemannian Metric associated to the Manifold."""
+        if self._metric is None:
+            self._metric = FullRankCorrelationAffineQuotientMetric(self.n)
+        return self._metric
 
     @classmethod
     def from_covariance(cls, point):

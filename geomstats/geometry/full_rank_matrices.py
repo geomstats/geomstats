@@ -22,12 +22,12 @@ class FullRankMatrices(OpenSet):
     def __init__(self, n, k, **kwargs):
         if "dim" not in kwargs.keys():
             kwargs["dim"] = n * k
-        super(FullRankMatrices, self).__init__(
-            ambient_space=Matrices(n, k), metric=MatricesMetric(n, k), **kwargs
-        )
+        super(FullRankMatrices, self).__init__(ambient_space=Matrices(n, k), **kwargs)
         self.rank = min(n, k)
         self.n = n
         self.k = k
+        if self._metric is None:
+            self._metric = MatricesMetric(n, k)
 
     def belongs(self, point, atol=gs.atol):
         r"""Check if the matrix belongs to `math:`R_*^{n \times k}`.

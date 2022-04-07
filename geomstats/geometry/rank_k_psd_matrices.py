@@ -38,6 +38,13 @@ class RankKPSDMatrices(Manifold):
         self.rank = k
         self.sym = SymmetricMatrices(self.n)
 
+    @property
+    def metric(self):
+        """Riemannian Metric associated to the Manifold."""
+        if self._metric is None:
+            self._metric = PSDMetricBuresWasserstein(self.n, self.rank)
+        return self._metric
+
     def belongs(self, mat, atol=gs.atol):
         r"""Check if the matrix belongs to the space.
 

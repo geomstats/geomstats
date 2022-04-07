@@ -5,7 +5,7 @@ import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import MatrixLieGroup
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
 class GeneralLinear(MatrixLieGroup, OpenSet):
@@ -30,6 +30,9 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         super(GeneralLinear, self).__init__(
             ambient_space=Matrices(n, n), n=n, lie_algebra=SquareMatrices(n), **kwargs
         )
+        if self._metric is None:
+            self._metric = MatricesMetric(n, n)
+
         self.positive_det = positive_det
 
     def projection(self, point):

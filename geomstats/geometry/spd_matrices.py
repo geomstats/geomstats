@@ -29,12 +29,11 @@ class SPDMatrices(OpenSet):
 
     def __init__(self, n, **kwargs):
         super(SPDMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2),
-            metric=SPDMetricAffine(n),
-            ambient_space=SymmetricMatrices(n),
-            **kwargs
+            dim=int(n * (n + 1) / 2), ambient_space=SymmetricMatrices(n), **kwargs
         )
         self.n = n
+        if self._metric is None:
+            self._metric = SPDMetricAffine(n)
 
     def belongs(self, mat, atol=gs.atol):
         """Check if a matrix is symmetric with positive eigenvalues.

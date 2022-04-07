@@ -60,7 +60,7 @@ class Manifold(abc.ABC):
         self.shape = shape
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
-        self.metric = metric
+        self._metric = metric
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
@@ -161,6 +161,7 @@ class Manifold(abc.ABC):
 
     @metric.setter
     def metric(self, metric):
+        print(" hi")
         if metric is not None:
             if not isinstance(metric, RiemannianMetric):
                 raise ValueError("The argument must be a RiemannianMetric object")

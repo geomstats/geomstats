@@ -190,8 +190,9 @@ class Grassmannian(LevelSet):
             tangent_submersion=lambda v, x: 2
             * Matrices.to_symmetric(Matrices.mul(x, v))
             - v,
-            metric=GrassmannianCanonicalMetric(n, k),
         )
+        if self.metric is None:
+            self.metric = GrassmannianCanonicalMetric(n, k)
 
     def random_uniform(self, n_samples=1):
         """Sample random points from a uniform distribution.

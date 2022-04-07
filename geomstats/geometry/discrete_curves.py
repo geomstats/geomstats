@@ -53,6 +53,8 @@ class DiscreteCurves(Manifold):
         self.quotient_square_root_velocity_metric = QuotientSRVMetric(
             self.ambient_manifold
         )
+        if self._metric is None:
+            self._metric = self.square_root_velocity_metric
 
     def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to the manifold.

@@ -25,9 +25,11 @@ class SymmetricMatrices(VectorSpace):
         super(SymmetricMatrices, self).__init__(
             dim=int(n * (n + 1) / 2),
             shape=(n, n),
-            metric=MatricesMetric(n, n),
             default_point_type="matrix",
+            **kwargs
         )
+        if self._metric is None:
+            self._metric = MatricesMetric(n, n)
         self.n = n
 
     def _create_basis(self):
