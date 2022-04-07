@@ -1,0 +1,540 @@
+"""Unit tests for the Hermitian space."""
+
+import math
+import random
+
+import geomstats.backend as gs
+import geomstats.tests
+from geomstats.geometry.hermitian import Hermitian, HermitianMetric
+from geomstats.tests import tf_backend
+from tests.conftest import Parametrizer
+from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
+from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
+
+SQRT_2 = math.sqrt(2)
+SQRT_5 = math.sqrt(5)
+
+
+class TestHermitian(VectorSpaceTestCase, metaclass=Parametrizer):
+    space = Hermitian
+    skip_test_basis_belongs = True
+    skip_test_basis_cardinality = True
+    skip_test_belongs = tf_backend()
+
+    class HermitianTestData(_VectorSpaceTestData):
+
+        n_list = random.sample(range(2, 5), 2)
+        space_args_list = [(n,) for n in n_list]
+        shape_list = [(n, n) for n in n_list]
+        n_points_list = random.sample(range(2, 5), 2)
+        n_vecs_list = random.sample(range(2, 5), 2)
+
+        def belongs_test_data(self):
+            smoke_data = [
+                dict(dim=2, vec=[0.0, 1.0], expected=True),
+                dict(dim=2, vec=[1.0, 0.0, 1.0], expected=False),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def basis_belongs_test_data(self):
+            return self._basis_belongs_test_data(self.space_args_list)
+
+        def basis_cardinality_test_data(self):
+            return self._basis_cardinality_test_data(self.space_args_list)
+
+        def random_point_belongs_test_data(self):
+            smoke_space_args_list = [(2,), (3,)]
+            smoke_n_points_list = [1, 2]
+            return self._random_point_belongs_test_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+            )
+
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
+                self.space_args_list, self.shape_list, self.n_points_list
+            )
+
+        def to_tangent_is_tangent_test_data(self):
+            return self._to_tangent_is_tangent_test_data(
+                Hermitian,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
+
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                Hermitian, self.space_args_list, self.n_vecs_list
+            )
+
+        def to_tangent_is_projection_test_data(self):
+            return self._to_tangent_is_projection_test_data(
+                Hermitian,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+            )
+
+        def random_point_is_tangent_test_data(self):
+            return self._random_point_is_tangent_test_data(
+                self.space_args_list, self.n_points_list
+            )
+
+    testing_data = HermitianTestData()
+
+    def test_belongs(self, dim, vec, expected):
+        self.assertAllClose(self.space(dim).belongs(gs.array(vec)), gs.array(expected))
+
+
+class TestHermitianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+    metric = connection = HermitianMetric
+    skip_test_exp = tf_backend()
+    skip_test_log = tf_backend()
+    skip_test_inner_product = tf_backend()
+    skip_test_dist = geomstats.tests.tf_backend()
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_exp_geodesic_ivp = True
+
+    class HermitianMetricTestData(_RiemannianMetricTestData):
+        n_list = random.sample(range(2, 7), 5)
+        metric_args_list = [(n,) for n in n_list]
+        shape_list = metric_args_list
+        space_list = [Hermitian(n) for n in n_list]
+        n_points_list = random.sample(range(1, 7), 5)
+        n_tangent_vecs_list = random.sample(range(1, 7), 5)
+        n_points_a_list = random.sample(range(1, 7), 5)
+        n_points_b_list = [1]
+        alpha_list = [1] * 5
+        n_rungs_list = [1] * 5
+        scheme_list = ["pole"] * 5
+
+        def exp_test_data(self):
+
+            one_tangent_vec = gs.array([0.0 + 0.0j, 1.0 + 1.0j])
+            one_base_point = gs.array([2.0 + 2.0j, 10.0 + 10.0j])
+            n_tangent_vecs = gs.array(
+                [
+                    [2.0 + 2.0j, 1.0 + 1.0j],
+                    [-2.0 - 2.0j, -4.0 - 4.0j],
+                    [-5.0 - 5.0j, 1.0 + 1.0j],
+                ]
+            )
+            n_base_points = gs.array(
+                [
+                    [2.0 + 2.0j, 10.0 + 10.0j],
+                    [8.0 + 8.0j, -1.0 - 1.0j],
+                    [-3.0 - 3.0j, 6.0 + 6.0j],
+                ]
+            )
+            smoke_data = [
+                dict(
+                    dim=2,
+                    tangent_vec=[0.0 + 0.0j, 1.0 + 1.0j],
+                    base_point=[2.0 + 2.0j, 10.0 + 10.0j],
+                    expected=[2.0 + 2.0j, 11.0 + 11.0j],
+                ),
+                dict(
+                    dim=2,
+                    tangent_vec=one_tangent_vec,
+                    base_point=one_base_point,
+                    expected=one_tangent_vec + one_base_point,
+                ),
+                dict(
+                    dim=2,
+                    tangent_vec=one_tangent_vec,
+                    base_point=n_base_points,
+                    expected=one_tangent_vec + n_base_points,
+                ),
+                dict(
+                    dim=2,
+                    tangent_vec=n_tangent_vecs,
+                    base_point=one_base_point,
+                    expected=n_tangent_vecs + one_base_point,
+                ),
+                dict(
+                    dim=2,
+                    tangent_vec=n_tangent_vecs,
+                    base_point=n_base_points,
+                    expected=n_tangent_vecs + n_base_points,
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def log_test_data(self):
+            one_p = gs.array([0.0 + 0.0j, 1.0 + 1.0j])
+            one_bp = gs.array([2.0 + 2.0j, 10.0 + 10.0j])
+            n_ps = gs.array(
+                [
+                    [2.0 + 2.0j, 1.0 + 1.0j],
+                    [-2.0 - 2.0j, -4.0 - 4.0j],
+                    [-5.0 - 5.0, 1.0 + 1.0],
+                ]
+            )
+            n_bps = gs.array(
+                [
+                    [2.0 + 2.0, 10.0 + 10.0],
+                    [8.0 + 8.0, -1.0 - 1.0],
+                    [-3.0 - 3.0, 6.0 + 6.0],
+                ]
+            )
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point=[2.0 + 2.0j, 10.0 + 10.0j],
+                    base_point=[0.0 + 0.0j, 1.0 + 1.0j],
+                    expected=[2.0 + 2.0j, 9.0 + 9.0j],
+                ),
+                dict(dim=2, point=one_p, base_point=one_bp, expected=one_p - one_bp),
+                dict(dim=2, point=one_p, base_point=n_bps, expected=one_p - n_bps),
+                dict(dim=2, point=n_ps, base_point=one_bp, expected=n_ps - one_bp),
+                dict(dim=2, point=n_ps, base_point=n_bps, expected=n_ps - n_bps),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def inner_product_test_data(self):
+            n_tangent_vecs_1 = [[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]]
+            n_tangent_vecs_2 = [[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]]
+            tangent_vec_3 = [0.0, 1.0]
+            tangent_vec_4 = [2.0, 10.0]
+            smoke_data = [
+                dict(
+                    dim=2,
+                    tangent_vec_a=n_tangent_vecs_1,
+                    tangent_vec_b=tangent_vec_4,
+                    expected=[14.0, -44.0, 0.0],
+                ),
+                dict(
+                    dim=2,
+                    tangent_vec_a=tangent_vec_3,
+                    tangent_vec_b=n_tangent_vecs_2,
+                    expected=[10.0, -1.0, 6.0],
+                ),
+                dict(
+                    dim=2,
+                    tangent_vec_a=n_tangent_vecs_1,
+                    tangent_vec_b=n_tangent_vecs_2,
+                    expected=[14.0, -12.0, 21.0],
+                ),
+                dict(
+                    dim=2,
+                    tangent_vec_a=[0.0, 1.0],
+                    tangent_vec_b=[2.0, 10.0],
+                    expected=10.0,
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def squared_norm_test_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    vec=[0.0, 1.0],
+                    expected=1.0,
+                ),
+                dict(
+                    dim=2,
+                    vec=[[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]],
+                    expected=[5.0, 20.0, 26.0],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def norm_test_data(self):
+            smoke_data = [
+                dict(dim=2, vec=[4.0, 3.0], expected=5.0),
+                dict(dim=4, vec=[4.0, 3.0, 4.0, 3.0], expected=5.0 * SQRT_2),
+                dict(
+                    dim=3,
+                    vec=[[4.0, 3.0, 10.0], [3.0, 10.0, 4.0]],
+                    expected=[5 * SQRT_5, 5 * SQRT_5],
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def metric_matrix_test_data(self):
+            smoke_data = [
+                dict(dim=1, expected=gs.eye(1)),
+                dict(dim=2, expected=gs.eye(2)),
+                dict(dim=3, expected=gs.eye(3)),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def squared_dist_test_data(self):
+            one_point_a = gs.array([0.0, 1.0])
+            one_point_b = gs.array([2.0, 10.0])
+            n_points_a = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
+            n_points_b = gs.array([[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]])
+            smoke_data = []
+            smoke_data.append(
+                dict(
+                    dim=2,
+                    point_a=one_point_a,
+                    point_b=n_points_b,
+                    expected=[85.0, 68.0, 34.0],
+                )
+            )
+            smoke_data.append(
+                dict(dim=2, point_a=one_point_a, point_b=one_point_b, expected=85.0)
+            )
+            smoke_data.append(
+                dict(
+                    dim=2,
+                    point_a=n_points_a,
+                    point_b=one_point_b,
+                    expected=[81.0, 212.0, 130.0],
+                )
+            )
+            smoke_data.append(
+                dict(
+                    dim=2,
+                    point_a=n_points_a,
+                    point_b=n_points_b,
+                    expected=[81.0, 109.0, 29.0],
+                )
+            )
+
+            return self.generate_tests(smoke_data)
+
+        def dist_test_data(self):
+            one_point_a = gs.array([0.0, 1.0])
+            one_point_b = gs.array([2.0, 10.0])
+            n_points_a = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
+            n_points_b = gs.array([[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]])
+            smoke_data = []
+            smoke_data.append(
+                dict(
+                    dim=2,
+                    point_a=one_point_a,
+                    point_b=n_points_b,
+                    expected=gs.sqrt(gs.array([85.0, 68.0, 34.0])),
+                )
+            )
+            smoke_data.append(
+                dict(
+                    dim=2,
+                    point_a=one_point_a,
+                    point_b=one_point_b,
+                    expected=gs.sqrt(gs.array(85.0)),
+                )
+            )
+            smoke_data.append(
+                dict(
+                    dim=2,
+                    point_a=n_points_a,
+                    point_b=one_point_b,
+                    expected=gs.sqrt(gs.array([81.0, 212.0, 130.0])),
+                )
+            )
+            smoke_data.append(
+                dict(
+                    dim=2,
+                    point_a=n_points_a,
+                    point_b=n_points_b,
+                    expected=gs.sqrt(gs.array([81.0, 109.0, 29.0])),
+                )
+            )
+
+            return self.generate_tests(smoke_data)
+
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
+                self.metric_args_list, self.space_list, self.shape_list
+            )
+
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(self.metric_args_list, self.space_list)
+
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
+
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 1000,
+            )
+
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+                self.n_points_list,
+                rtol=gs.rtol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+            )
+
+    testing_data = HermitianMetricTestData()
+
+    def test_exp(self, dim, tangent_vec, base_point, expected):
+        metric = HermitianMetric(dim)
+        self.assertAllClose(
+            metric.exp(gs.array(tangent_vec), gs.array(base_point)), gs.array(expected)
+        )
+
+    def test_log(self, dim, point, base_point, expected):
+        metric = HermitianMetric(dim)
+        self.assertAllClose(
+            metric.log(gs.array(point), gs.array(base_point)), gs.array(expected)
+        )
+
+    def test_inner_product(self, dim, tangent_vec_a, tangent_vec_b, expected):
+        metric = HermitianMetric(dim)
+        self.assertAllClose(
+            metric.inner_product(gs.array(tangent_vec_a), gs.array(tangent_vec_b)),
+            gs.array(expected),
+        )
+
+    def test_squared_norm(self, dim, vec, expected):
+        metric = HermitianMetric(dim)
+        self.assertAllClose(metric.squared_norm(gs.array(vec)), gs.array(expected))
+
+    def test_norm(self, dim, vec, expected):
+        metric = HermitianMetric(dim)
+        self.assertAllClose(metric.norm(gs.array(vec)), gs.array(expected))
+
+    def test_metric_matrix(self, dim, expected):
+        self.assertAllClose(HermitianMetric(dim).metric_matrix(), gs.array(expected))
+
+    def test_squared_dist(self, dim, point_a, point_b, expected):
+        metric = HermitianMetric(dim)
+        result = metric.squared_dist(point_a, point_b)
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_dist(self, dim, point_a, point_b, expected):
+        metric = HermitianMetric(dim)
+        result = metric.dist(point_a, point_b)
+        self.assertAllClose(result, gs.array(expected))
