@@ -5,6 +5,8 @@ Poincare half-space representation.
 Lead author: Alice Le Brigant.
 """
 
+import math
+
 import geomstats.backend as gs
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.base import OpenSet
@@ -178,3 +180,24 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         log_ball = self.poincare_ball.metric.log(point_ball, base_point_ball)
         log = self.poincare_ball.ball_to_half_space_tangent(log_ball, base_point_ball)
         return log
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In the case of the hyperbolic space, it does not depend on the base point and
+        is infinite everywhere, because of the negative curvature.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return math.inf

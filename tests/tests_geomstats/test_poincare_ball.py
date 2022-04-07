@@ -1,245 +1,421 @@
-"""Unit tests for the Hyperbolic space using Poincaré Ball Model.
+"""Unit tests for the Poincare ball."""
 
-We verify poincare ball model by compare results
-of squared distance computed with inner_product
-(using RiemannianMetric methods) and distance defined
-in PoincareBall.
-We also verify the distance is the same using differents
-coordinates systems.
-
-"""
+import random
 
 import pytest
 
 import geomstats.backend as gs
-import geomstats.tests
 from geomstats.geometry.hyperboloid import Hyperboloid
-from geomstats.geometry.poincare_ball import PoincareBall
+from geomstats.geometry.poincare_ball import PoincareBall, PoincareBallMetric
+from tests.conftest import Parametrizer
+from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
+from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 
-class TestPoincareBall(geomstats.tests.TestCase):
-    def setup_method(self):
-        self.manifold = PoincareBall(2)
-        self.metric = self.manifold.metric
+class TestPoincareBall(OpenSetTestCase, metaclass=Parametrizer):
+    space = PoincareBall
+    skip_test_projection_belongs = True
 
-        self.hyperboloid_manifold = Hyperboloid(2)
-        self.hyperboloid_metric = self.hyperboloid_manifold.metric
+    class PoincareBallTestData(_OpenSetTestData):
+        smoke_space_args_list = [(2,), (3,), (4,), (5,)]
+        smoke_n_points_list = [1, 2, 1, 2]
+        n_list = random.sample(range(2, 10), 5)
+        space_args_list = [(n,) for n in n_list]
+        n_points_list = random.sample(range(1, 10), 5)
+        shape_list = [(n,) for n in n_list]
+        n_vecs_list = random.sample(range(1, 10), 5)
 
-    def test_squared_dist(self):
-        point_a = gs.array([-0.3, 0.7])
-        point_b = gs.array([0.2, 0.5])
+        def belongs_test_data(self):
+            smoke_data = [
+                dict(dim=2, point=[0.3, 0.5], expected=True),
+                dict(dim=2, point=[1.2, 0.5], expected=False),
+            ]
+            return self.generate_tests(smoke_data)
 
-        distance_a_b = self.metric.dist(point_a, point_b)
-        squared_distance = self.metric.squared_dist(point_a, point_b)
+        def projection_norm_lessthan_1_test_data(self):
+            smoke_data = [dict(dim=2, point=[1.2, 0.5])]
+            return self.generate_tests(smoke_data)
 
-        self.assertAllClose(distance_a_b**2, squared_distance)
+        def random_point_belongs_test_data(self):
+            belongs_atol = gs.atol * 100000
+            return self._random_point_belongs_test_data(
+                self.smoke_space_args_list,
+                self.smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+                belongs_atol,
+            )
 
-    def test_coordinates(self):
-        point_a = gs.array([-0.3, 0.7])
-        point_b = gs.array([0.2, 0.5])
+        def to_tangent_is_tangent_test_data(self):
 
-        point_a_h = self.manifold.to_coordinates(point_a, "extrinsic")
-        point_b_h = self.manifold.to_coordinates(point_b, "extrinsic")
+            is_tangent_atol = gs.atol * 1000
 
-        dist_in_ball = self.metric.dist(point_a, point_b)
-        dist_in_hype = self.hyperboloid_metric.dist(point_a_h, point_b_h)
+            return self._to_tangent_is_tangent_test_data(
+                PoincareBall,
+                self.space_args_list,
+                self.shape_list,
+                self.n_vecs_list,
+                is_tangent_atol,
+            )
 
+        def projection_belongs_test_data(self):
+            return self._projection_belongs_test_data(
+                self.space_args_list, self.shape_list, self.n_points_list
+            )
+
+        def to_tangent_is_tangent_in_ambient_space_test_data(self):
+            return self._to_tangent_is_tangent_in_ambient_space_test_data(
+                PoincareBall, self.space_args_list, self.shape_list
+            )
+
+        def random_tangent_vec_is_tangent_test_data(self):
+            return self._random_tangent_vec_is_tangent_test_data(
+                PoincareBall, self.space_args_list, self.n_vecs_list
+            )
+
+    testing_data = PoincareBallTestData()
+
+    def test_belongs(self, dim, point, expected):
+        space = self.space(dim)
+        result = space.belongs(gs.array(point))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_projection_norm_lessthan_1(self, dim, point):
+        space = self.space(dim)
+        projected_point = space.projection(gs.array(point))
+        result = gs.sum(projected_point * projected_point) < 1.0
+        self.assertTrue(result)
+
+
+class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+    metric = connection = PoincareBallMetric
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_exp_belongs = True
+    skip_test_geodesic_ivp_belongs = True
+
+    class TestDataPoincareBallMetric(_RiemannianMetricTestData):
+        n_list = random.sample(range(2, 5), 2)
+        metric_args_list = [(n,) for n in n_list]
+        shape_list = [(n,) for n in n_list]
+        space_list = [PoincareBall(n) for n in n_list]
+        n_points_list = random.sample(range(1, 5), 2)
+        n_tangent_vecs_list = random.sample(range(1, 5), 2)
+        n_points_a_list = random.sample(range(1, 5), 2)
+        n_points_b_list = [1]
+        alpha_list = [1] * 2
+        n_rungs_list = [1] * 2
+        scheme_list = ["pole"] * 2
+
+        def mobius_out_of_the_ball_test_data(self):
+            smoke_data = [dict(dim=2, x=[0.7, 0.9], y=[0.2, 0.2])]
+            return self.generate_tests(smoke_data)
+
+        def log_test_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point=[0.3, 0.5],
+                    base_point=[0.3, 0.3],
+                    expected=[-0.01733576, 0.21958634],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def dist_pairwise_test_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point=[[0.1, 0.2], [0.3, 0.4], [0.5, 0.5]],
+                    expected=[
+                        [0.0, 0.65821943, 1.34682524],
+                        [0.65821943, 0.0, 0.71497076],
+                        [1.34682524, 0.71497076, 0.0],
+                    ],
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def dist_test_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point_a=[0.5, 0.5],
+                    point_b=[0.5, -0.5],
+                    expected=2.887270927429199,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def coordinate_test_data(self):
+            smoke_data = [dict(dim=2, point_a=[-0.3, 0.7], point_b=[0.2, 0.5])]
+            return self.generate_tests(smoke_data)
+
+        def exp_shape_test_data(self):
+            return self._exp_shape_test_data(
+                self.metric_args_list, self.space_list, self.shape_list
+            )
+
+        def log_shape_test_data(self):
+            return self._log_shape_test_data(self.metric_args_list, self.space_list)
+
+        def squared_dist_is_symmetric_test_data(self):
+            return self._squared_dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+                atol=gs.atol * 1000,
+            )
+
+        def exp_belongs_test_data(self):
+            return self._exp_belongs_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+                belongs_atol=gs.atol * 100000,
+            )
+
+        def log_is_tangent_test_data(self):
+            return self._log_is_tangent_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                is_tangent_atol=gs.atol * 1000,
+            )
+
+        def geodesic_ivp_belongs_test_data(self):
+            return self._geodesic_ivp_belongs_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 10000,
+            )
+
+        def geodesic_bvp_belongs_test_data(self):
+            return self._geodesic_bvp_belongs_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                belongs_atol=gs.atol * 10000,
+            )
+
+        def log_then_exp_test_data(self):
+            return self._log_then_exp_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_then_log_test_data(self):
+            return self._exp_then_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 10000,
+            )
+
+        def exp_ladder_parallel_transport_test_data(self):
+            return self._exp_ladder_parallel_transport_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+                self.n_rungs_list,
+                self.alpha_list,
+                self.scheme_list,
+            )
+
+        def exp_geodesic_ivp_test_data(self):
+            return self._exp_geodesic_ivp_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+                self.n_points_list,
+                rtol=gs.rtol * 10000,
+                atol=gs.atol * 10000,
+            )
+
+        def parallel_transport_ivp_is_isometry_test_data(self):
+            return self._parallel_transport_ivp_is_isometry_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def parallel_transport_bvp_is_isometry_test_data(self):
+            return self._parallel_transport_bvp_is_isometry_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+                is_tangent_atol=gs.atol * 1000,
+                atol=gs.atol * 1000,
+            )
+
+        def dist_is_symmetric_test_data(self):
+            return self._dist_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_positive_test_data(self):
+            return self._dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def squared_dist_is_positive_test_data(self):
+            return self._squared_dist_is_positive_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_is_norm_of_log_test_data(self):
+            return self._dist_is_norm_of_log_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.n_points_a_list,
+                self.n_points_b_list,
+            )
+
+        def dist_point_to_itself_is_zero_test_data(self):
+            return self._dist_point_to_itself_is_zero_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
+        def inner_product_is_symmetric_test_data(self):
+            return self._inner_product_is_symmetric_test_data(
+                self.metric_args_list,
+                self.space_list,
+                self.shape_list,
+                self.n_tangent_vecs_list,
+            )
+
+        def mobius_vectorization_test_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point_a=gs.array([0.5, 0.5]),
+                    point_b=gs.array([[0.5, -0.3], [0.3, 0.4]]),
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def log_vectorization_test_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point_a=gs.array([0.5, 0.5]),
+                    point_b=gs.array([[0.5, -0.5], [0.4, 0.4]]),
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def exp_vectorization_test_data(self):
+            smoke_data = [
+                dict(
+                    dim=2,
+                    point_a=gs.array([0.5, 0.5]),
+                    point_b=gs.array([[0.0, 0.0], [0.5, -0.5], [0.4, 0.4]]),
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+    testing_data = TestDataPoincareBallMetric()
+
+    def test_mobius_out_of_the_ball(self, dim, x, y):
+        metric = self.metric(dim)
+        with pytest.raises(ValueError):
+            metric.mobius_add(gs.array(x), gs.array(y), project_first=False)
+
+    def test_log(self, dim, point, base_point, expected):
+        metric = self.metric(dim)
+        result = metric.log(gs.array(point), gs.array(base_point))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_dist_pairwise(self, dim, point, expected):
+        metric = self.metric(dim)
+        result = metric.dist_pairwise(gs.array(point))
+        self.assertAllClose(result, gs.array(expected), rtol=1e-3)
+
+    def test_dist(self, dim, point_a, point_b, expected):
+        metric = self.metric(dim)
+        result = metric.dist(gs.array(point_a), gs.array(point_b))
+        self.assertAllClose(result, gs.array(expected))
+
+    def test_coordinate(self, dim, point_a, point_b):
+        metric = self.metric(dim)
+        point_a_h = PoincareBall(dim).to_coordinates(gs.array(point_a), "extrinsic")
+        point_b_h = PoincareBall(dim).to_coordinates(gs.array(point_b), "extrinsic")
+        dist_in_ball = metric.dist(gs.array(point_a), gs.array(point_b))
+        dist_in_hype = Hyperboloid(dim).metric.dist(point_a_h, point_b_h)
         self.assertAllClose(dist_in_ball, dist_in_hype)
 
-    def test_dist_poincare(self):
+    def test_mobius_vectorization(self, dim, point_a, point_b):
+        metric = self.metric(dim)
 
-        point_a = gs.array([0.5, 0.5])
-        point_b = gs.array([0.5, -0.5])
-
-        dist_a_b = self.manifold.metric.dist(point_a, point_b)
-
-        result = dist_a_b
-        expected = 2.887270927429199
-
-        self.assertAllClose(result, expected)
-
-    def test_dist_vectorization(self):
-        point_a = gs.array([0.2, 0.5])
-        point_b = gs.array([[0.3, -0.5], [0.2, 0.2]])
-
-        dist_a_b = self.manifold.metric.dist(point_a, point_b)
+        dist_a_b = metric.mobius_add(point_a, point_b)
 
         result_vect = dist_a_b
-        result = [
-            self.manifold.metric.dist(point_a, point_b[i]) for i in range(len(point_b))
-        ]
+        result = [metric.mobius_add(point_a, point_b[i]) for i in range(len(point_b))]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-    def test_dist_broadcast(self):
-
-        point_a = gs.array([[0.2, 0.5], [0.3, 0.1]])
-        point_b = gs.array([[0.3, -0.5], [0.2, 0.2]])
-        point_c = gs.array([[0.2, 0.3], [0.5, 0.5], [-0.4, 0.1]])
-        point_d = gs.array([0.1, 0.2, 0.3])
-
-        dist_a_b = self.manifold.metric.dist_broadcast(point_a, point_b)
-
-        dist_b_c = gs.flatten(self.manifold.metric.dist_broadcast(point_b, point_c))
-
-        result_vect = gs.concatenate((dist_a_b, dist_b_c), axis=0)
-
-        result_a_b = [
-            self.manifold.metric.dist_broadcast(point_a[i], point_b[i])
-            for i in range(len(point_b))
-        ]
-
-        result_b_c = [
-            self.manifold.metric.dist_broadcast(point_b[i], point_c[j])
-            for i in range(len(point_b))
-            for j in range(len(point_c))
-        ]
-        result = result_a_b + result_b_c
-        result = gs.stack(result, axis=0)
-
-        self.assertAllClose(result_vect, result)
-
-        with pytest.raises(ValueError):
-            self.manifold.metric.dist_broadcast(point_a, point_d)
-
-    def test_dist_pairwise(self):
-
-        point = gs.array([[0.1, 0.2], [0.3, 0.4], [0.5, 0.5]])
-
-        result = self.manifold.metric.dist_pairwise(point)
-
-        expected = gs.array(
-            [
-                [0.0, 0.65821943, 1.34682524],
-                [0.65821943, 0.0, 0.71497076],
-                [1.34682524, 0.71497076, 0.0],
-            ]
-        )
-
-        self.assertAllClose(result, expected, rtol=1e-3)
-
-    def test_mobius_vectorization(self):
-        point_a = gs.array([0.5, 0.5])
-        point_b = gs.array([[0.5, -0.3], [0.3, 0.4]])
-
-        dist_a_b = self.manifold.metric.mobius_add(point_a, point_b)
+        dist_a_b = metric.mobius_add(point_b, point_a)
 
         result_vect = dist_a_b
-        result = [
-            self.manifold.metric.mobius_add(point_a, point_b[i])
-            for i in range(len(point_b))
-        ]
+        result = [metric.mobius_add(point_b[i], point_a) for i in range(len(point_b))]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-        dist_a_b = self.manifold.metric.mobius_add(point_b, point_a)
+    def test_log_vectorization(self, dim, point_a, point_b):
+
+        metric = self.metric(dim)
+        dist_a_b = metric.log(point_a, point_b)
 
         result_vect = dist_a_b
-        result = [
-            self.manifold.metric.mobius_add(point_b[i], point_a)
-            for i in range(len(point_b))
-        ]
+        result = [metric.log(point_a, point_b[i]) for i in range(len(point_b))]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-    def test_log_vectorization(self):
-        point_a = gs.array([0.5, 0.5])
-        point_b = gs.array([[0.5, -0.5], [0.4, 0.4]])
-
-        dist_a_b = self.manifold.metric.log(point_a, point_b)
+        dist_a_b = metric.log(point_b, point_a)
 
         result_vect = dist_a_b
-        result = [
-            self.manifold.metric.log(point_a, point_b[i]) for i in range(len(point_b))
-        ]
+        result = [metric.log(point_b[i], point_a) for i in range(len(point_b))]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-        dist_a_b = self.manifold.metric.log(point_b, point_a)
+    def test_exp_vectorization(self, dim, point_a, point_b):
+
+        metric = self.metric(dim)
+        dist_a_b = metric.exp(point_a, point_b)
 
         result_vect = dist_a_b
-        result = [
-            self.manifold.metric.log(point_b[i], point_a) for i in range(len(point_b))
-        ]
+        result = [metric.exp(point_a, point_b[i]) for i in range(len(point_b))]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-    def test_exp_vectorization(self):
-        point_a = gs.array([0.5, 0.5])
-        point_b = gs.array([[0.0, 0.0], [0.5, -0.5], [0.4, 0.4]])
-
-        dist_a_b = self.manifold.metric.exp(point_a, point_b)
+        dist_a_b = metric.exp(point_b, point_a)
 
         result_vect = dist_a_b
-        result = [
-            self.manifold.metric.exp(point_a, point_b[i]) for i in range(len(point_b))
-        ]
+        result = [metric.exp(point_b[i], point_a) for i in range(len(point_b))]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
-
-        dist_a_b = self.manifold.metric.exp(point_b, point_a)
-
-        result_vect = dist_a_b
-        result = [
-            self.manifold.metric.exp(point_b[i], point_a) for i in range(len(point_b))
-        ]
-        result = gs.stack(result, axis=0)
-        self.assertAllClose(result_vect, result)
-
-    def test_log_poincare(self):
-
-        point = gs.array([0.3, 0.5])
-        base_point = gs.array([0.3, 0.3])
-
-        result = self.manifold.metric.log(point, base_point)
-        expected = gs.array([-0.01733576, 0.21958634])
-
-        self.manifold.metric.coords_type = "extrinsic"
-        self.assertAllClose(result, expected)
-
-    def test_belong_true_poincare(self):
-        point = gs.array([0.3, 0.5])
-        belong = self.manifold.belongs(point)
-        self.assertTrue(belong)
-
-    def test_belong_false_poincare(self):
-        point = gs.array([1.2, 0.5])
-        belong = self.manifold.belongs(point)
-        self.assertFalse(belong)
-
-    def test_projection(self):
-        point = gs.array([1.2, 0.5])
-        projected_point = self.manifold.projection(point)
-        self.assertTrue(gs.sum(projected_point * projected_point) < 1.0)
-
-    def test_exp_poincare(self):
-
-        point = gs.array([0.3, 0.5])
-        base_point = gs.array([0.3, 0.3])
-
-        tangent_vec = self.manifold.metric.log(point, base_point)
-        result = self.manifold.metric.exp(tangent_vec, base_point)
-
-        self.manifold.metric.coords_type = "extrinsic"
-        self.assertAllClose(result, point)
-
-    def test_ball_retraction(self):
-        x = gs.array([[0.5, 0.6], [0.2, -0.1], [0.2, -0.4]])
-        y = gs.array([[0.3, 0.5], [0.3, -0.6], [0.3, -0.3]])
-
-        ball_metric = self.manifold.metric
-        tangent_vec = ball_metric.log(y, x)
-        ball_metric.retraction(tangent_vec, x)
-
-    def test_ball_geodesic(self):
-        path_function = self.manifold.metric.geodesic(
-            gs.array([0.1, 0.1]), gs.array([0.2, 0.2])
-        )
-        steps = gs.array(gs.linspace(-1000.0, 1000.0, 10000))
-        path_function(steps)
-
-    def test_mobius_out_of_the_ball(self):
-        x, y = gs.array([0.7, 0.9]), gs.array([0.2, 0.2])
-
-        with pytest.raises(ValueError):
-            self.manifold.metric.mobius_add(x, y, project_first=False)

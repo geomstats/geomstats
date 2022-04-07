@@ -49,6 +49,9 @@ jobs:
           done
           pip install -e .
 
+      - name: Add annotations [pytest]
+        run: pip install pytest-github-actions-annotate-failures
+      
       - name: unit testing [pytest]
         env:
           GEOMSTATS_BACKEND : ${{matrix.geomstats-backend}}
@@ -56,6 +59,6 @@ jobs:
           pytest --cov-report term --cov=geomstats ${{matrix.test-folder}}
 
       - name: uploading code coverage [codecov]
-        if: ${{matrix.python-version == 3.7 && matrix.test-folder == 'tests/tests_geomstats/'}}
+        if: ${{matrix.python-version == 3.8 && matrix.test-folder == 'tests/tests_geomstats/'}}
         run: |
           bash <(curl -s https://codecov.io/bash) -c -F ${{matrix.geomstats-backend}}

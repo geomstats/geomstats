@@ -103,7 +103,7 @@ class SPDMatrices(OpenSet):
 
         return spd_mat
 
-    def random_tangent_vec(self, n_samples=1, base_point=None):
+    def random_tangent_vec(self, base_point, n_samples=1):
         """Sample on the tangent space of SPD(n) from the uniform distribution.
 
         Parameters
@@ -712,10 +712,31 @@ class SPDMetricAffine(RiemannianMetric):
         """
         if end_point is None:
             end_point = self.exp(direction, base_point)
-        inverse_base_point = GeneralLinear.inverse(base_point)
-        congruence_mat = Matrices.mul(end_point, inverse_base_point)
-        congruence_mat = gs.linalg.sqrtm(congruence_mat)
+        # compute B^1/2(B^-1/2 A B^-1/2)B^-1/2 instead of sqrtm(AB^-1)
+        sqrt_bp, inv_sqrt_bp = SymmetricMatrices.powerm(base_point, [1.0 / 2, -1.0 / 2])
+        pdt = SymmetricMatrices.powerm(
+            Matrices.mul(inv_sqrt_bp, end_point, inv_sqrt_bp), 1.0 / 2
+        )
+        congruence_mat = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
         return Matrices.congruent(tangent_vec, congruence_mat)
+
+    def injectivity_radius(self, base_point):
+        """Radius of the largest ball where the exponential is injective.
+
+        Because of the negative curvature of this space, the injectivity radius is
+        infinite everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return math.inf
 
 
 class SPDMetricBuresWasserstein(RiemannianMetric):
@@ -827,10 +848,11 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         log : array-like, shape=[..., n, n]
             Riemannian logarithm.
         """
-        product = gs.matmul(base_point, point)
-        sqrt_product = gs.linalg.sqrtm(product)
+        # compute B^1/2(B^-1/2 A B^-1/2)B^-1/2 instead of sqrtm(AB^-1)
+        sqrt_bp, inv_sqrt_bp = SymmetricMatrices.powerm(base_point, [0.5, -0.5])
+        pdt = SymmetricMatrices.powerm(Matrices.mul(sqrt_bp, point, sqrt_bp), 0.5)
+        sqrt_product = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
         transp_sqrt_product = Matrices.transpose(sqrt_product)
-
         return sqrt_product + transp_sqrt_product - 2 * base_point
 
     def squared_dist(self, point_a, point_b, **kwargs):
@@ -857,6 +879,24 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         trace_prod = gs.trace(sqrt_product, axis1=-2, axis2=-1)
 
         return trace_a + trace_b - 2 * trace_prod
+
+    def injectivity_radius(self, base_point):
+        """Compute the upper bound of the injectivity domain.
+
+        This is the smallest eigen value of the base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        eigen_values = gs.linalg.eigvalsh(base_point)
+        return eigen_values[..., 0] ** 0.5
 
 
 class SPDMetricEuclidean(RiemannianMetric):
@@ -942,6 +982,24 @@ class SPDMetricEuclidean(RiemannianMetric):
         domain = gs.concatenate((inf_value, sup_value), axis=1)
 
         return domain
+
+    def injectivity_radius(self, base_point):
+        """Compute the upper bound of the injectivity domain.
+
+        This is the smallest eigen value of the base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        eigen_values = gs.linalg.eigvalsh(base_point)
+        return eigen_values[..., 0]
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Euclidean exponential map.
@@ -1134,3 +1192,20 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         log = SPDMatrices.differential_exp(log_point - log_base_point, log_base_point)
 
         return log
+
+    def injectivity_radius(self, base_point):
+        """Radius of the largest ball where the exponential is injective.
+
+        Because of this space is flat, the injectivity radius is infinite everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return math.inf

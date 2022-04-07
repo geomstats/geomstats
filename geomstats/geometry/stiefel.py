@@ -517,3 +517,30 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 matrix_r[k, : len(column_r_j), j] = gs.array(column_r_j)
 
         return gs.matmul(point, matrix_r) - base_point
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In this case the exact injectivity radius is not known, and we use here a
+        lower bound given by [Rentmeesters2015]_.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, p]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+
+        References
+        ----------
+        .. [Rentmeesters2015] Rentmeesters, Quentin. “Algorithms for Data Fitting on
+        Some Common Homogeneous Spaces.” UCL - Université Catholique de Louvain, 2013.
+        https://dial.uclouvain.be/pr/boreal/object/boreal:132587.
+        """
+        return 0.89 * gs.pi

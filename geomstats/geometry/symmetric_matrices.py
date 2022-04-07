@@ -30,7 +30,7 @@ class SymmetricMatrices(VectorSpace):
         )
         self.n = n
 
-    def get_basis(self):
+    def _create_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
         basis = []
         for row in gs.arange(self.n):
@@ -44,8 +44,6 @@ class SymmetricMatrices(VectorSpace):
                 basis.append(gs.array_from_sparse(indices, values, (self.n,) * 2))
         basis = gs.stack(basis)
         return basis
-
-    basis = property(get_basis)
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a matrix is symmetric.
@@ -203,7 +201,7 @@ class SymmetricMatrices(VectorSpace):
             def power_(ev):
                 return gs.power(ev, power)
 
-        return cls.apply_func_to_eigvals(mat, power_, check_positive=True)
+        return cls.apply_func_to_eigvals(mat, power_, check_positive=False)
 
     @staticmethod
     def apply_func_to_eigvals(mat, function, check_positive=False):

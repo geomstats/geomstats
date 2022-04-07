@@ -56,9 +56,11 @@ class ProductManifold(Manifold):
             metrics, default_point_type=default_point_type, n_jobs=n_jobs
         )
         dim = sum(self.dims)
-        shape = (
-            (dim,) if default_point_type == "vector" else (len(manifolds), self.dims[0])
-        )
+
+        if default_point_type == "vector":
+            shape = (sum([m.shape[0] for m in manifolds]),)
+        else:
+            shape = (len(manifolds), *manifolds[0].shape)
 
         super(ProductManifold, self).__init__(
             dim=dim,

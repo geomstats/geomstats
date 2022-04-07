@@ -3,10 +3,7 @@
 Lead authors: Elodie Maignant and Nicolas Guigui.
 """
 
-import logging
-
 import geomstats.backend as gs
-from geomstats.algebra_utils import flip_determinant
 from geomstats.errors import check_tf_error
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
@@ -262,22 +259,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
         aligned : array-like, shape=[..., k_landmarks, m_ambient]
             R.point.
         """
-        mat = gs.matmul(Matrices.transpose(point), base_point)
-        left, singular_values, right = gs.linalg.svd(mat)
-        det = gs.linalg.det(mat)
-        conditioning = (
-            singular_values[..., -2] + gs.sign(det) * singular_values[..., -1]
-        ) / singular_values[..., 0]
-        if gs.any(conditioning < gs.atol):
-            logging.warning(
-                f"Singularity close, ill-conditioned matrix "
-                f"encountered: "
-                f"{conditioning[conditioning < 1e-10]}"
-            )
-        if gs.any(gs.isclose(conditioning, 0.0)):
-            logging.warning("Alignment matrix is not unique.")
-        flipped = flip_determinant(Matrices.transpose(right), det)
-        return Matrices.mul(point, left, Matrices.transpose(flipped))
+        return Matrices.align_matrices(point, base_point)
 
     def integrability_tensor_old(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the fundamental tensor A of the submersion (old).
@@ -920,6 +902,27 @@ class PreShapeMetric(RiemannianMetric):
         )
         return gs.reshape(flat_transport, max_shape)
 
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In the case of the sphere, it does not depend on the base point and is Pi
+        everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return gs.pi
+
 
 class KendallShapeMetric(QuotientMetric):
     """Quotient metric on the shape space.
@@ -1015,15 +1018,15 @@ class KendallShapeMetric(QuotientMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., k, m]
+        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point` to transport.
-        base_point : array-like, shape=[..., k, m]
+        base_point : array-like, shape=[..., k_landmarks, m_ambient]
             Initial point of the geodesic to transport along.
-        direction : array-like, shape=[..., k, m]
+        direction : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector ar `base_point`, initial velocity of the geodesic to
             transport  along.
             Optional, default: None.
-        end_point : array-like, shape=[..., k, m]
+        end_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point to transport to. Unused if `tangent_vec_b` is given.
             Optional, default: None.
         n_steps : int
@@ -1036,16 +1039,16 @@ class KendallShapeMetric(QuotientMetric):
 
         Returns
         -------
-        transported :  array-like, shape=[..., k, m]
+        transported :  array-like, shape=[..., k_landmarks, m_ambient]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
 
         References
         ----------
-        [GMTP21]_   Guigui, Nicolas, Elodie Maignant, Alain Trouvé, and Xavier
-                    Pennec. “Parallel Transport on Kendall Shape Spaces.”
-                    5th conference on Geometric Science of Information,
-                    Paris 2021. Lecture Notes in Computer Science.
-                    Springer, 2021. https://hal.inria.fr/hal-03160677.
+        .. [GMTP21]   Guigui, Nicolas, Elodie Maignant, Alain Trouvé, and Xavier
+                      Pennec. “Parallel Transport on Kendall Shape Spaces.”
+                      5th conference on Geometric Science of Information,
+                      Paris 2021. Lecture Notes in Computer Science.
+                      Springer, 2021. https://hal.inria.fr/hal-03160677.
 
         See Also
         --------

@@ -159,7 +159,7 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.linalg.expm(gs.linalg.logm(point))
         expected = point
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol * 100)
 
     def test_expm_and_logm_vectorization(self):
         point = gs.array(
