@@ -161,7 +161,6 @@ class Manifold(abc.ABC):
 
     @metric.setter
     def metric(self, metric):
-        print(" hi")
         if metric is not None:
             if not isinstance(metric, RiemannianMetric):
                 raise ValueError("The argument must be a RiemannianMetric object")
