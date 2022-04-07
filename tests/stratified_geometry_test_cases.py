@@ -9,7 +9,6 @@ from tests.conftest import TestCase
 
 @geomstats.tests.np_only
 class PointSetTestCase(TestCase):
-
     def test_random_point_belongs(self, space_args, n_points):
         # TODO: add belongs_atol?
         # TODO: it is a copy of ManifoldTestCase
@@ -30,7 +29,6 @@ class PointSetTestCase(TestCase):
 
 @geomstats.tests.np_only
 class PointTestCase(TestCase):
-
     def test_to_array(self, point_args, expected):
         pt = self._Point(*point_args)
         self.assertAllClose(pt.to_array(), expected)
@@ -38,7 +36,6 @@ class PointTestCase(TestCase):
 
 @geomstats.tests.np_only
 class PointSetGeometryTestCase(TestCase):
-
     def test_dist(self, space_args, start_point, end_point, expected):
         space = self._PointSet(*space_args)
         geom = self._SetGeometry(space)

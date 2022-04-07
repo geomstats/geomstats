@@ -1,9 +1,4 @@
-
-from geomstats.stratified_geometry.spider import (
-    Spider,
-    SpiderPoint,
-    SpiderGeometry
-)
+from geomstats.stratified_geometry.spider import Spider, SpiderPoint, SpiderGeometry
 
 from tests.conftest import Parametrizer
 from tests.stratified_geometry_test_cases import (
@@ -44,7 +39,7 @@ class TestSpiderGeometry(PointSetGeometryTestCase, metaclass=Parametrizer):
         geodesic = geom.geodesic(start_point, end_point)
 
         # check output type
-        pts_result = geodesic(0.)
+        pts_result = geodesic(0.0)
         for pts in pts_result:
             for pt in pts:
                 self.assertTrue(type(pt) is self._Point)
