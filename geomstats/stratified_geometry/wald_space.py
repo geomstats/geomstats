@@ -267,7 +267,7 @@ class Split:
         """
         return hash((self.part1, self.part2))
 
-    def __str__(self):
+    def __repr__(self):
         """Return the string representation of the split.
 
         This string representation requires that one can retrieve all necessary
@@ -280,7 +280,7 @@ class Split:
         """
         return str((self.part1, self.part2))
 
-    def __repr__(self):
+    def __str__(self):
         """Return the fancy printable string representation of the split.
 
         This string representation does NOT require that one can retrieve all necessary
@@ -425,10 +425,7 @@ class Topology:
         """
         if self._where_dict is not None:
             return self._where_dict[split]
-        self._where_dict = {
-            sp: int(gs.argmin([o != split for o in self.flatten(self.split_sets)]))
-            for sp in self.flatten(self.split_sets)
-        }
+        self._where_dict = {s: i for i, s in enumerate(self.flatten(self.split_sets))}
         return self._where_dict[split]
 
     def paths(self):
@@ -468,7 +465,7 @@ class Topology:
         corr : array-like, shape=[n, n]
             Returns the corresponding correlation matrix.
         """
-        corr = [np.zeros((self.n, self.n)) for _ in self.flatten(self.split_sets)]
+        corr = np.zeros((self.n, self.n))
         for path_dict in self.paths():
             for (u, v), path in path_dict.items():
                 corr[u][v] = np.prod([1 - x[self.where(split)] for split in path])
@@ -519,7 +516,7 @@ class Topology:
         gradient = [-supp * self.corr(x) for supp, x in zip(self.support(), x_list)]
         return gradient
 
-    def __str__(self):
+    def __repr__(self):
         """Return the string representation of the topology.
 
         This string representation requires that one can retrieve all necessary
@@ -532,7 +529,7 @@ class Topology:
         """
         return str((self.n, self.partition, self.split_sets))
 
-    def __repr__(self):
+    def __str__(self):
         """Return the fancy printable string representation of the topology.
 
         This string representation does NOT require that one can retrieve all necessary
@@ -742,7 +739,7 @@ class Wald(Point):
         """
         return hash(self) == hash(other)
 
-    def __str__(self):
+    def __repr__(self):
         """Return the string representation of the wald.
 
         This string representation requires that one can retrieve all necessary
@@ -755,7 +752,7 @@ class Wald(Point):
         """
         return str((self.st, tuple(self.x)))
 
-    def __repr__(self):
+    def __str__(self):
         """Return the fancy printable string representation of the wald.
 
         This string representation does NOT require that one can retrieve all necessary
@@ -828,7 +825,7 @@ class WaldSpace(PointSet):
         ----------
         n_samples : int
             Number of samples. Defaults to 1.
-        prob : float in (0, 1)
+        prob : float between 0 and 1
             The probability that the sampled point is a tree, and not a forest. If the
             probability is equal to 1, then the sampled point will be a fully resolved
             tree. Defaults to 0.9.
@@ -999,12 +996,12 @@ class WaldSpace(PointSet):
             ]
             top = Topology(n=self.n, partition=partition, split_sets=split_sets)
             x = gs.random.uniform(size=(len(top.flatten(split_sets)),), low=0, high=1)
-            x = gs.minimum(gs.maximum(btol, x), 1 - btol)
+            x = np.minimum(np.maximum(btol, x), 1 - btol)
             return Wald(n=self.n, st=top, x=x)
 
         prob = prob ** (1 / (self.n - 1))
         if n_samples == 1:
             sample = generate_wald(prob_=prob)
-            return sample.corr
-        sample = gs.array([generate_wald(prob_=prob).corr for _ in range(n_samples)])
+            return sample
+        sample = gs.array([generate_wald(prob_=prob) for _ in range(n_samples)])
         return sample
