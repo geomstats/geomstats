@@ -30,13 +30,18 @@ Preprint, arXiv:1907.00949 [math.OC] (2019)
 import numpy as np
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
 
 
 class Flag(Manifold):
     """ Class for flag manifolds :math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)`.
+    Representation, notations and formulas inspired from [Ye2021].
+
+    References
+    ----------
+    .. [Ye2021] Ye, K., Wong, K.S.-W., Lim, L.-H.: Optimization on flag manifolds.
+    Preprint, arXiv:1907.00949 [math.OC] (2019)
 
     Parameters
     ----------
@@ -47,14 +52,11 @@ class Flag(Manifold):
     """
 
     def __init__(self, index, n):
-        # set the problem of the structure. List of matrices is not a manifold I guess.
-        # using block diagonal matrices like in the paper would be cool because of the SPD structure,
-        # but too memory expensive
         d = len(index)
         geomstats.errors.check_integer(d, "d")
         geomstats.errors.check_integer(n, "n")
         extended_index = gs.concatenate(([0], index), dtype="int")
-        dim = int(gs.sum(np.diff(extended_index) * (n - gs.array(index))))  # cf [Ye2021] p 17
+        dim = int(gs.sum(np.diff(extended_index) * (n - gs.array(index))))
         super(Flag, self).__init__(dim=dim, shape=(n * d, n * d))
         self.index = index
         self.extended_index = extended_index
@@ -70,6 +72,11 @@ class Flag(Manifold):
         .. math::
             \left\{\R = \operatorname{diag}\left(R_1, \dots, R_d\right) \in \mathbb{R}^{nd \times nd} :
             {R_i}^2 = R_i = {R_i}^\top, \operatorname[{tr}(R_i)=n_i-n_{i-1}, R_i R_j = 0, i < j right\}
+
+        References
+        ----------
+        .. [Ye2021] Ye, K., Wong, K.S.-W., Lim, L.-H.: Optimization on flag manifolds.
+        Preprint, arXiv:1907.00949 [math.OC] (2019)
 
 
         Parameters
@@ -111,16 +118,18 @@ class Flag(Manifold):
 
         return each_belongs(point)
 
-    def is_tangent(self, vector, base_point, atol=gs.atol):  # characterization from [Ye2021] Proposition 22
+    def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Characterization based on reduced projection coordinates from [Ye2021], Proposition 22:
         **Proposition 22**
-        Let :math:`\R = \operatorname{diag}\left(R_1, \dots, R_d\right) \in \operatorname{Flag}(n_1, n_2 \dots, n_d; n)`.
+        Let :math:`\R = \operatorname{diag}\left(R_1, \dots, R_d\right) \in
+        \operatorname{Flag}(n_1, n_2 \dots, n_d; n)`.
          Then the tangent space is given by
 
         .. math::
-            T_R \operatorname{Flag}(n_1, n_2 \dots, n_d; n) = \left\{Z = \operatorname{diag}\left(Z_1, \dots, Z_d\right) \in \mathbb{R}^{nd \times nd} :
+            T_R \operatorname{Flag}(n_1, n_2 \dots, n_d; n) =
+            \left\{Z = \operatorname{diag}\left(Z_1, \dots, Z_d\right) \in \mathbb{R}^{nd \times nd} :
             R_i Z_i + Z_i R_i = Z_i = {Z_i}^\top, \operatorname[{tr}(Z_i)=0, Z_i R_j + R_i Z_j= 0, i < j right\}
 
         Parameters
@@ -172,33 +181,3 @@ class Flag(Manifold):
 
     def random_point(self, n_samples=1, bound=1.0):
         pass
-
-
-if __name__ == "__main__":
-    flag = Flag([1, 3, 4], 5)
-    point1 = gs.random.rand(10, 3, 5, 5)
-    point2 = gs.array([gs.array(np.diag([1, 0, 0, 0, 0])), gs.array(np.diag([0, 1, 1, 0, 0])),
-                       gs.array(np.diag([0, 0, 0, 0, 1]))])
-    print(flag.belongs(point1))  # False
-    print(flag.belongs(point2))  # True
-    print(flag.is_tangent(point1, base_point=point1))  # False
-    print(flag.is_tangent(point2, base_point=point2))  # False
-
-    # from geomstats.geometry.grassmannian import Grassmannian
-    # from functools import reduce
-    # grassmannian = Grassmannian(10, 2)
-    # p1 = grassmannian.random_point()
-    # p2 = grassmannian.random_point(2)
-    # b1 = grassmannian.belongs(p1)
-    # b2 = grassmannian.belongs(p2)
-
-    # proj1 = grassmannian.random_point()
-    # proj1_perp = gs.eye(10) - proj1
-    # points = gs.random.normal(size=(1000, 10, 2))  # Trace is always 2, even for 100,000 samples
-    # points_perp = Matrices.mul(proj1_perp, points)
-    # full_rank_perp = Matrices.mul(Matrices.transpose(points_perp), points_perp)
-    # proj2 = Matrices.mul(
-    #     points_perp, GeneralLinear.inverse(full_rank_perp), Matrices.transpose(points_perp)
-    # )
-    # print((gs.all([gs.isclose(gs.trace(p), 2) for p in proj2])))
-    # print((gs.all([gs.isclose(Matrices.mul(proj1, p), gs.zeros((10, 10))) for p in proj2])))
