@@ -15,7 +15,7 @@ class BinomialDistributions(OpenSet):
         self.n_draws = n_draws
 
     def belongs(self, point, atol=gs.atol):
-        """Evaluate if a point belongs to the manifold of exponential distributions.
+        """Evaluate if a point belongs to the manifold of binomial distributions.
 
         Parameters
         ----------
@@ -98,27 +98,26 @@ class BinomialDistributions(OpenSet):
             samples.append(binom.rvs(self.n_draws, point))
         return samples[0] if len(point) == 1 else gs.transpose(gs.stack(samples))
 
-    def point_to_pdf(self, point):
-        """Compute pdf associated to point.
+    def point_to_pmf(self, point):
+        """Compute pmf associated to point.
 
-        Compute the probability density function of the exponential
-        distribution with parameters provided by point.
+        Compute the probability density function of the binomialdistribution with parameters provided by point.
 
         Parameters
         ----------
         point : array-like, shape=[..., 2]
-            Point representing an exponential distribution (location and scale).
+            Point representing an binomial distribution (location and scale).
 
         Returns
         -------
-        pdf : function
-            Probability density function of the exponential distribution with
+        pmf : function
+            Probability density function of the binomial distribution with
             parameters provided by point.
         """
         geomstats.errors.check_belongs(point, self)
 
-        def pdf(k):
-            """Generate parameterized function for exponential pdf.
+        def pmf(k):
+            """Generate parameterized function for binomial pmf.
 
             Parameters
             ----------
@@ -128,16 +127,16 @@ class BinomialDistributions(OpenSet):
             k = gs.array(k, gs.float32)
             k = gs.to_ndarray(k, to_ndim=1)
 
-            pdf_at_k = [gs.array(binom.pmf(k, self.n_draws, param)) for param in list(point)]
-            pdf_at_k = gs.stack(pdf_at_k, axis=-1)
+            pmf_at_k = [gs.array(binom.pmf(k, self.n_draws, param)) for param in list(point)]
+            pmf_at_k = gs.stack(pmf_at_k, axis=-1)
 
-            return pdf_at_k
+            return pmf_at_k
 
-        return pdf
+        return pmf
 
 
 class BinomialFisherRaoMetric(RiemannianMetric):
-    """Class for the Fisher information metric on exponential distributions."""
+    """Class for the Fisher information metric on binomial distributions."""
 
     def __init__(self, n_draws):
         super(BinomialFisherRaoMetric, self).__init__(dim=1)
