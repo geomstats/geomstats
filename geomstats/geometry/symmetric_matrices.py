@@ -243,4 +243,5 @@ class SymmetricMatrices(VectorSpace):
             eigvals_f = fun(eigvals)
             eigvals_f = algebra_utils.from_vector_to_diagonal_matrix(eigvals_f)
             reconstruction.append(Matrices.mul(eigvecs, eigvals_f, transp_eigvecs))
+        print("dummy print")
         return reconstruction if return_list else reconstruction[0]
