@@ -40,6 +40,8 @@ class Stiefel(LevelSet):
 
         dim = int(p * n - (p * (p + 1) / 2))
         matrices = Matrices(n, p)
+        canonical_metric = StiefelCanonicalMetric(n, p)
+        kwargs.setdefault("metric", canonical_metric)
         super(Stiefel, self).__init__(
             dim=dim,
             embedding_space=matrices,
@@ -49,10 +51,7 @@ class Stiefel(LevelSet):
             * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
             **kwargs
         )
-        self.canonical_metric = StiefelCanonicalMetric(n, p)
-        if self._metric is None:
-            self._metric = self.canonical_metric
-
+        self.canonical_metric = canonical_metric
         self.n = n
         self.p = p
 

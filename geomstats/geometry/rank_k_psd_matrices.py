@@ -29,6 +29,7 @@ class RankKPSDMatrices(Manifold):
     """
 
     def __init__(self, n, k, **kwargs):
+        kwargs.setdefault("metric", PSDMetricBuresWasserstein(n, k))
         super(RankKPSDMatrices, self).__init__(
             **kwargs,
             dim=int(k * n - k * (k + 1) / 2),
@@ -37,10 +38,6 @@ class RankKPSDMatrices(Manifold):
         self.n = n
         self.rank = k
         self.sym = SymmetricMatrices(self.n)
-        if self._metric is None:
-            _metric = PSDMetricBuresWasserstein(n, k)
-            _metric.fiber_bundle.base = self
-            self._metric = _metric
 
     def belongs(self, mat, atol=gs.atol):
         r"""Check if the matrix belongs to the space.

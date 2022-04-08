@@ -18,6 +18,7 @@ class LowerTriangularMatrices(VectorSpace):
     """
 
     def __init__(self, n, **kwargs):
+        kwargs.setdefault("metric", MatricesMetric(n, n))
         super(LowerTriangularMatrices, self).__init__(
             dim=int(n * (n + 1) / 2),
             shape=(n, n),
@@ -25,8 +26,6 @@ class LowerTriangularMatrices(VectorSpace):
             **kwargs
         )
         self.n = n
-        if self._metric is None:
-            self._metric = MatricesMetric(n, n)
 
     def _create_basis(self):
         """Compute the basis of the vector space of lower triangular.

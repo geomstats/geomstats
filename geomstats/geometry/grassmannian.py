@@ -170,7 +170,7 @@ class Grassmannian(LevelSet):
         Dimension of the subspaces.
     """
 
-    def __init__(self, n, k):
+    def __init__(self, n, k, **kwargs):
         geomstats.errors.check_integer(k, "k")
         geomstats.errors.check_integer(n, "n")
         if k > n:
@@ -181,6 +181,7 @@ class Grassmannian(LevelSet):
         self.n = n
         self.k = k
 
+        kwargs.setdefault("metric", GrassmannianCanonicalMetric(n, k))
         dim = int(k * (n - k))
         super(Grassmannian, self).__init__(
             dim=dim,
@@ -190,9 +191,8 @@ class Grassmannian(LevelSet):
             tangent_submersion=lambda v, x: 2
             * Matrices.to_symmetric(Matrices.mul(x, v))
             - v,
+            **kwargs
         )
-        if self.metric is None:
-            self.metric = GrassmannianCanonicalMetric(n, k)
 
     def random_uniform(self, n_samples=1):
         """Sample random points from a uniform distribution.

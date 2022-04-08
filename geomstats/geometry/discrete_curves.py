@@ -44,17 +44,16 @@ class DiscreteCurves(Manifold):
         Square root velocity metric.
     """
 
-    def __init__(self, ambient_manifold):
+    def __init__(self, ambient_manifold, **kwargs):
+        kwargs.setdefault("metric", SRVMetric(ambient_manifold))
         super(DiscreteCurves, self).__init__(
             dim=math.inf, shape=(), default_point_type="matrix"
         )
         self.ambient_manifold = ambient_manifold
-        self.square_root_velocity_metric = SRVMetric(self.ambient_manifold)
+        self.square_root_velocity_metric = self._metric
         self.quotient_square_root_velocity_metric = QuotientSRVMetric(
             self.ambient_manifold
         )
-        if self._metric is None:
-            self._metric = self.square_root_velocity_metric
 
     def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to the manifold.

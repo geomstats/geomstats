@@ -29,12 +29,11 @@ class PositiveLowerTriangularMatrices(OpenSet):
     """
 
     def __init__(self, n, **kwargs):
+        kwargs.setdefault("metric", CholeskyMetric(n))
         super(PositiveLowerTriangularMatrices, self).__init__(
             dim=int(n * (n + 1) / 2), ambient_space=LowerTriangularMatrices(n), **kwargs
         )
         self.n = n
-        if self._metric is None:
-            self._metric = CholeskyMetric(n)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample from the manifold.

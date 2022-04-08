@@ -56,7 +56,6 @@ class FiberBundle(Manifold, ABC):
     ):
 
         super(FiberBundle, self).__init__(dim=dim, **kwargs)
-        self.base = base
         self.group = group
         self.ambient_metric = ambient_metric
 
