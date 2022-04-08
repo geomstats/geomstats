@@ -964,7 +964,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             tangent_vec_a, tangent_vec_a, tangent_vec_b, base_point
         )
         expected = gs.zeros_like(result)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol * 100)
 
     @geomstats.tests.np_and_autograd_only
     def test_curvature_bianchi_identity(
