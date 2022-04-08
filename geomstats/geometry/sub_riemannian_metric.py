@@ -1,7 +1,4 @@
-"""Sub-Riemannian metrics.
-
-Lead author: Morten Pedersen.
-"""
+"""Implementation of sub-Riemannian geometry."""
 
 import abc
 
@@ -11,7 +8,10 @@ import geomstats.backend as gs
 class SubRiemannianMetric(abc.ABC):
     """Class for Sub-Riemannian metrics.
 
-    This implementation assumes a distribution of constant dimension.
+    This implementation assumes a bracket-generating distribution of constant dimension.
+
+    Only one of the argumentes 'cometric_matrix' and 'frame' can be different from 
+    None. If the frame is supplied, it is assumed orthonormal.
 
     Parameters
     ----------
@@ -19,97 +19,89 @@ class SubRiemannianMetric(abc.ABC):
         Dimension of the manifold.
     dist_dim : int
         Dimension of the distribution
-    default_point_type : str, {'vector', 'matrix'}
+    cometric_matrix : callable
+
+        The cometric matrix as a function of a point.
+
+            Parameters
+            ----------
+            base_point : array-like, shape=[..., dim]
+                Base point.
+
+            Returns
+            -------
+            _ : array-like, shape=[..., dim, dim]
+                cometric matrix.
+
+
+        Optional, default: 'None'
+    frame : callable
+
+        Matrix representing the frame spanning the distribution,
+        as a function of a point.
+
+            Parameters
+            ----------
+            point : array-like, shape=[..., dim]
+                point.
+
+            Returns
+            -------
+            _ : array-like, shape=[..., dim, dist_dim]
+                Frame field matrix. Each column is a vector field of the frame
+                spanning the distribution.
+
+    default_point_type : str, {'vector'}
         Point type.
         Optional, default: 'vector'.
     """
 
-    def __init__(self, dim, dist_dim, default_point_type="vector"):
+    def __init__(self, dim, dist_dim, cometric_matrix=None, frame=None,
+                 default_point_type="vector"):
+
+        if not bool(cometric_matrix is not None) ^ bool(frame is not None):
+            raise ValueError("Either 'cometric_matrix' or 'frame' must be passed,"
+                             " and not both.")
+
         self.dim = dim
         self.dist_dim = dist_dim
+        self.cometric_matrix = cometric_matrix
+        self.frame = frame
         self.default_point_type = default_point_type
 
-    def metric_matrix(self, base_point):
-        """Metric matrix at the tangent space at a base point.
+    def sr_sharp(self, base_point, cotangent_vec):
+        r"""Compute sub-Riemannian sharp map.
 
-        This is a sub-Riemannian metric, so it is assumed to satisfy the conditions
-        of an inner product only on each distribution subspace.
+        This is the sub-Riemannian sharp map, mapping a covector at base_point to a
+        tangent vector in the distribution subspace at base_point. For an orthonormal
+        frame (F_i)_{i=1..dist_dim}, the sharp map is given by
 
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim]
-            Base point.
-            Optional, default: None.
-
-        Returns
-        -------
-        _ : array-like, shape=[..., dim, dim]
-            Inner-product matrix.
-        """
-        raise NotImplementedError(
-            "The computation of the metric matrix is not implemented."
-        )
-
-    def frame(self, point):
-        """Frame field for the distribution.
-
-        The frame field spans the distribution at 'point'.The frame field is
-        represented as a matrix, whose columns are the frame field vectors.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            point.
-            Optional, default: None.
-
-        Returns
-        -------
-        _ : array-like, shape=[..., dim, dist_dim]
-            Frame field matrix.
-        """
-        raise NotImplementedError("The frame field is not implemented.")
-
-    def cometric_sub_matrix(self, base_point):
-        """Cometric  sub matrix of dimension dist_dim x dist_dim.
-
-        Let {X_i}, i = 1, .., dist_dim, be an arbitrary frame for the distribution
-        and let g be the sub-Riemannian metric. Then cometric_sub_matrix is the
-        matrix given by the inverse of the matrix g_ij = g(X_i, X_j),
-        where i,j = 1, .., dist_dim.
+        .. math::
+                \sharp(q, p) = \sum_i^{dist_dim} p(F_i(q)) * F_i(q)
 
         Parameters
         ----------
         base_point : array-like, shape=[..., dim]
-            Base point.
-            Optional, default: None.
+            Point on the manifold.
+
+        cotangent_vec : array-like, shape=[..., dim]
+            Cotangent vector at `base_point`.
 
         Returns
         -------
-        _ : array-like, shape=[..., dist_dim, dist_dim]
-            Cometric submatrix.
+        sr_sharp : array-like, shape=[..., dim]
+            sub-Riemannian sharp of 'cotangent_vec' at 'base_point'
         """
-        raise NotImplementedError(
-            "The computation of the cometric submatrix is not implemented."
-        )
+        if self.frame is None:
+            raise NotImplementedError("The sub-Riemannian sharp map is only"
+                                      " implemented when a frame is passed.")
 
-    @abc.abstractmethod
-    def cometric_matrix(self, base_point=None):
-        """Inner co-product matrix at the cotangent space at a base point.
+        if self.frame is not None:
+            frame = self.frame(base_point)
+            coefs = gs.einsum('...i,...ij->...j', cotangent_vec, frame)
+            coefs_on_frame = gs.einsum('...j,...ij->...ij', coefs, frame)
 
-        This represents the cometric matrix, i.e. the inverse of the
-        metric matrix.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim]
-            Base point.
-            Optional, default: None.
-
-        Returns
-        -------
-        mat : array-like, shape=[..., dim, dim]
-            Inverse of inner-product matrix.
-        """
+            return gs.einsum('...ij->...i', coefs_on_frame)
 
     def inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point):
         """Compute inner coproduct between two cotangent vectors at base point.
@@ -120,7 +112,7 @@ class SubRiemannianMetric(abc.ABC):
         ----------
         cotangent_vec_a : array-like, shape=[..., dim]
             Cotangent vector at `base_point`.
-        cotangent_vec_b : array-like, shape=[..., dim]
+        cotangent_vet_b : array-like, shape=[..., dim]
             Cotangent vector at `base_point`.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
@@ -130,11 +122,19 @@ class SubRiemannianMetric(abc.ABC):
         inner_coproduct : float
             Inner coproduct between the two cotangent vectors.
         """
-        vector_2 = gs.einsum(
-            "...ij,...j->...i", self.cometric_matrix(base_point), cotangent_vec_b
-        )
-        inner_coproduct = gs.einsum("...i,...i->...", cotangent_vec_a, vector_2)
-        return inner_coproduct
+        if self.cometric_matrix is not None:
+            C_b = gs.einsum("...ij,...j->...i",
+                            self.cometric_matrix(base_point),
+                            cotangent_vec_b
+                            )
+            return gs.einsum("...i,...i->...", cotangent_vec_a, C_b)
+
+        if self.frame is not None:
+            sharp = self.sr_sharp(base_point=base_point,
+                                  cotangent_vec=cotangent_vec_b)
+            return gs.einsum('...i,...i -> ...',
+                             cotangent_vec_a,
+                             sharp)
 
     def hamiltonian(self, state):
         r"""Compute the hamiltonian energy associated to the cometric.
@@ -146,19 +146,30 @@ class SubRiemannianMetric(abc.ABC):
 
         Parameters
         ----------
-        state : tuple of arrays
-            Position and momentum variables. Position is a point on the
-            manifold, while the momentum is cotangent vector.
+        state : array-like, shape=[[..., dim], [..., dim]]
+            The first array in 'state' contains positions, the second contains
+            covectors (momentums).
 
         Returns
         -------
-        energy : float
+        energy :  float
             Hamiltonian energy at `state`.
         """
         position, momentum = state
-        return 1.0 / 2 * self.inner_coproduct(momentum, momentum, position)
 
-    def symp_grad(self):
+        if self.frame is not None:
+            inner_products = gs.einsum('...i,...ij->...j',
+                                       momentum,
+                                       self.frame(position)).reshape((-1,
+                                                                      self.dist_dim))
+            return 1. / 2. * gs.einsum('...ij,...ij->...i',
+                                       inner_products,
+                                       inner_products)
+
+        position, momentum = state
+        return 1. / 2. * self.inner_coproduct(momentum, momentum, position)
+
+    def symp_grad(self, hamiltonian):
         r"""Compute the symplectic gradient of the Hamiltonian.
 
         Parameters
@@ -172,39 +183,47 @@ class SubRiemannianMetric(abc.ABC):
             The symplectic gradient of the Hamiltonian.
         """
 
-        def vector(state):
-            """Return symplectic gradient of Hamiltonian at state."""
-            _, grad = gs.autodiff.value_and_grad(self.hamiltonian)(state)
+        def H_sum(state):
+            return gs.sum(hamiltonian(state))
+
+        def vector(x):
+            _, grad = gs.autodiff.value_and_grad(H_sum)(x)
             h_q = grad[0]
             h_p = grad[1]
             return gs.array([h_p, -h_q])
 
         return vector
 
-    def symp_euler(self, step_size):
-        """Compute a function which calculates a step of symplectic euler integration.
-
-        The output function computes a symplectic euler step of the Hamiltonian system
-        of equations associated with the cometric and obtained by the method
-        :meth:`~sub_remannian_metric.SubRiemannianMetric.symp_grad`.
+    def symp_euler(self, hamiltonian, step_size):
+        r"""Compute a function which calculates a step of symplectic euler integration.
 
         Parameters
         ----------
+        hamiltonian : callable
+            The hamiltonian function from the tangent bundle to the reals.
         step_size : float
-            Step size of the symplectic euler step.
+            Step size of the symplectic euler step
 
         Returns
         -------
         step : callable
-            Given a state, 'step' returns the next symplectic euler step.
+            Given a state, 'step' returns the next symplectic euler step
         """
+        if self.frame is not None:
+            def step(state):
+                position, momentum = state
+                dq = self.sr_sharp(base_point=position, cotangent_vec=momentum)
+                y = gs.array([position + step_size * dq, momentum])
+                _, dp = self.symp_grad(hamiltonian)(y)
+                return gs.array([position + step_size * dq, momentum + step_size * dp])
+
+            return step
 
         def step(state):
-            """Return the next symplectic euler step from state."""
             position, momentum = state
-            dq, _ = self.symp_grad()(state)
-            y = gs.array([position + dq, momentum])
-            _, dp = self.symp_grad()(y)
+            dq, _ = self.symp_grad(hamiltonian)(state)
+            y = gs.array([position + step_size * dq, momentum])
+            _, dp = self.symp_grad(hamiltonian)(y)
             return gs.array([position + step_size * dq, momentum + step_size * dp])
 
         return step
@@ -225,9 +244,7 @@ class SubRiemannianMetric(abc.ABC):
         flow : callable
             Given a state, 'flow' returns a sequence with n_steps iterations of func.
         """
-
         def flow(x):
-            """Return n_steps iterations of func from x."""
             xs = [x]
             for i in range(n_steps):
                 xs.append(func(xs[i]))
@@ -235,7 +252,7 @@ class SubRiemannianMetric(abc.ABC):
 
         return flow
 
-    def symp_flow(self, end_time=1.0, n_steps=20):
+    def symp_flow(self, hamiltonian, end_time=1.0, n_steps=20):
         r"""Compute the symplectic flow of the hamiltonian.
 
         Parameters
@@ -250,14 +267,19 @@ class SubRiemannianMetric(abc.ABC):
         Returns
         -------
         _ : array-like, shape[,n_steps]
-            Given a state, 'symp_flow' returns a sequence with
-            n_steps iterations of func.
+            Given a state, 'symp_flow' returns a sequence with n_steps iterations of func.
         """
         step = self.symp_euler
         step_size = end_time / n_steps
-        return self.iterate(step(step_size), n_steps)
+        return self.iterate(step(hamiltonian, step_size), n_steps)
 
-    def exp(self, cotangent_vec, base_point, n_steps=20, **kwargs):
+    def exp(
+        self,
+        cotangent_vec,
+        base_point,
+        n_steps=20,
+        **kwargs
+    ):
         """Exponential map associated to the cometric.
 
         Exponential map at base_point of cotangent_vec computed by integration
@@ -274,14 +296,81 @@ class SubRiemannianMetric(abc.ABC):
         n_steps : int
             Number of discrete time steps to take in the integration.
             Optional, default: N_STEPS.
+        point_type : str, {'vector', 'matrix'}
+            Type of representation used for points.
+            Optional, default: None.
 
         Returns
         -------
         exp : array-like, shape=[..., dim]
             Point on the manifold.
         """
+        if (base_point.ndim == 1 or base_point.shape[0] == 1) and cotangent_vec.ndim == 2:
+            base_point = gs.stack([base_point] * cotangent_vec.shape[0])
+            base_point = gs.reshape(base_point, cotangent_vec.shape)
+
         initial_state = gs.stack([base_point, cotangent_vec])
 
-        flow = self.symp_flow(n_steps=n_steps)
+        flow = self.symp_flow(self.hamiltonian, n_steps=n_steps)
 
         return flow(initial_state)[-1][0]
+
+    def geodesic(self, initial_point, initial_cotangent_vec, n_steps=20):
+        """Generate parameterized function for the normal geodesic curve.
+
+        Normal geodesic curve defined by an initial point and an initial 
+        cotangent vector.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Point on the manifold, initial point of the geodesic.
+        initial_cotangent_vec : array-like, shape=[..., dim],
+            Cotangent vector at base point, the initial speed of the geodesics.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized normal geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents the different initial conditions, and the second
+            corresponds to time.
+        """
+        if initial_cotangent_vec is None:
+            raise ValueError(
+                "Specify an initial cotangent "
+                "vector to define the geodesic."
+            )
+
+        initial_point = gs.to_ndarray(initial_point, to_ndim=2)
+        initial_cotangent_vec = gs.to_ndarray(initial_cotangent_vec, to_ndim=2)
+
+        n_initial_conditions = initial_cotangent_vec.shape[0]
+
+        if n_initial_conditions > 1 and len(initial_point) == 1:
+            initial_point = gs.stack([initial_point[0]] * n_initial_conditions)
+
+        def path(t):
+            """Generate parameterized function for geodesic curve.
+
+            Parameters
+            ----------
+            t : array-like, shape=[n_points,]
+                Times at which to compute points of the geodesics.
+            """
+            t = gs.array(t)
+            t = gs.cast(t, initial_cotangent_vec.dtype)
+            t = gs.to_ndarray(t, to_ndim=1)
+
+            cotangent_vecs = gs.einsum("i,...k->...ik", t, initial_cotangent_vec)
+
+            points_at_time_t = [
+                self.exp(tv, pt, n_steps=n_steps) for tv, pt in zip(cotangent_vecs, initial_point)
+            ]
+            points_at_time_t = gs.stack(points_at_time_t, axis=0)
+
+            return (
+                points_at_time_t[0] if n_initial_conditions == 1 else points_at_time_t
+            )
+
+        return path
