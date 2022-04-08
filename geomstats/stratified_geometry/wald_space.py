@@ -784,7 +784,7 @@ class WaldSpace(PointSet):
         results = gs.array([wald.to_array() for wald in points])
         return results
 
-    @geomstats.stratified_geometry.stratified_spaces.belongs_vectorize
+    @geomstats.stratified_geometry.stratified_spaces._belongs_vectorize
     def belongs(self, point):
         """Check if a point `wald` belongs to Wald space.
 
@@ -794,7 +794,7 @@ class WaldSpace(PointSet):
 
         Parameters
         ----------
-        point : Wald
+        point : Wald or list of Wald
             The point to be checked.
 
         Returns
@@ -802,7 +802,8 @@ class WaldSpace(PointSet):
         belongs : bool
             Boolean denoting if `point` belongs to Wald space.
         """
-        return self.a.belongs(mat=point.to_array())
+        results = [self.a.belongs(single_point.to_array()) for single_point in point]
+        return results
 
     def random_point(self, n_samples=1, prob=0.9, btol=1e-08):
         """Sample a random point in Wald space.
@@ -989,5 +990,5 @@ class WaldSpace(PointSet):
         if n_samples == 1:
             sample = generate_wald(prob_=prob)
             return sample
-        sample = gs.array([generate_wald(prob_=prob) for _ in range(n_samples)])
+        sample = [generate_wald(prob_=prob) for _ in range(n_samples)]
         return sample
