@@ -102,14 +102,14 @@ class Flag(Manifold):
         def each_belongs(pt):
             for i in range(1, self.d + 1):
                 R_i = pt[i - 1]
-                eq1 = gs.all(gs.isclose(Matrices.mul(R_i, R_i), R_i, atol=atol))
-                eq2 = gs.all(gs.isclose(R_i, Matrices.transpose(R_i), atol=atol))
-                eq3 = gs.all(gs.isclose(Matrices.mul(R_i, R_i), Matrices.transpose(R_i),
-                                        atol=atol))
-                eq4 = gs.isclose(gs.trace(R_i),
-                                 self.extended_index[i] - self.extended_index[i - 1],
-                                 atol=atol)
-                belongs = gs.all([eq1, eq2, eq3, eq4])
+                cst_1 = gs.all(gs.isclose(Matrices.mul(R_i, R_i), R_i, atol=atol))
+                cst_2 = gs.all(gs.isclose(R_i, Matrices.transpose(R_i), atol=atol))
+                cst_3 = gs.all(gs.isclose(Matrices.mul(R_i, R_i),
+                                          Matrices.transpose(R_i), atol=atol))
+                cst_4 = gs.isclose(gs.trace(R_i),
+                                   self.extended_index[i] - self.extended_index[i - 1],
+                                   atol=atol)
+                belongs = gs.all([cst_1, cst_2, cst_3, cst_4])
                 if not belongs:
                     return belongs
 
@@ -165,15 +165,16 @@ class Flag(Manifold):
             for i in range(1, self.d + 1):
                 R_i = bp[i - 1]
                 Z_i = vec[i - 1]
-                eq1 = gs.all(
+                cst_1 = gs.all(
                     gs.isclose(Matrices.mul(R_i, Z_i) + Matrices.mul(Z_i, R_i), Z_i,
                                atol=atol))
-                eq2 = gs.all(gs.isclose(Z_i, Matrices.transpose(Z_i), atol=atol))
-                eq3 = gs.all(gs.isclose(Matrices.mul(R_i, Z_i) + Matrices.mul(Z_i, R_i),
-                                        Matrices.transpose(Z_i),
-                                        atol=atol))
-                eq4 = gs.isclose(gs.trace(Z_i), 0, atol=atol)
-                is_tangent = gs.all([eq1, eq2, eq3, eq4])
+                cst_2 = gs.all(gs.isclose(Z_i, Matrices.transpose(Z_i), atol=atol))
+                cst_3 = gs.all(
+                    gs.isclose(Matrices.mul(R_i, Z_i) + Matrices.mul(Z_i, R_i),
+                               Matrices.transpose(Z_i),
+                               atol=atol))
+                cst_4 = gs.isclose(gs.trace(Z_i), 0, atol=atol)
+                is_tangent = gs.all([cst_1, cst_2, cst_3, cst_4])
                 if not is_tangent:
                     return is_tangent
 
