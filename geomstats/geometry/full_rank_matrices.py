@@ -9,7 +9,7 @@ from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
 class FullRankMatrices(OpenSet):
-    r"""Class for `math:`R_*^{m\times n}` matrices of dimension m x n and full rank.
+    r"""Class for `math:`R_*^{n\times k}` matrices of dimension n x k and full rank.
 
     Parameters
     ----------

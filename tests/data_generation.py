@@ -712,7 +712,7 @@ class _FiberBundleTestData(TestData):
 
     def _riemannian_submersion_after_lift_test_data(
         self,
-        space_cls,
+        base_cls,
         space_args_list,
         n_base_points_list,
         rtol=gs.rtol,
@@ -721,12 +721,36 @@ class _FiberBundleTestData(TestData):
         random_data = [
             dict(
                 space_args=space_args,
-                base_point=space_cls(*space_args).base.random_point(n_points),
+                base_point=base_cls(*space_args).random_point(n_points),
                 rtol=rtol,
                 atol=atol,
             )
             for space_args, n_points in zip(space_args_list, n_base_points_list)
         ]
+        return self.generate_tests([], random_data)
+
+    def _is_tangent_after_tangent_riemannian_submersion_test_data(
+        self,
+        bundle_cls,
+        base_cls,
+        space_args_list,
+        n_vecs_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        random_data = []
+        for space_args, n_vecs in zip(space_args_list, n_vecs_list):
+            base_point = bundle_cls(*space_args).random_point()
+            tangent_vec = bundle_cls(*space_args).random_tangent_vec(base_point, n_vecs)
+            d = dict(
+                space_args=space_args,
+                base_cls=base_cls,
+                tangent_vec=tangent_vec,
+                base_point=base_point,
+                rtol=rtol,
+                atol=atol,
+            )
+            random_data.append(d)
         return self.generate_tests([], random_data)
 
 
