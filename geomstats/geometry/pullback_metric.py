@@ -114,6 +114,14 @@ class PullbackMetric(RiemannianMetric):
 
 
 class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
+    """
+    Pullback metric via a diffeomorphism.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension.
+    """
 
     def __init__(self, dim):
         super(PullbackMetric, self).__init__(dim=dim)
@@ -203,7 +211,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
 
     def dist(self, point_a, point_b, **kwargs):
         """
-        Compute astutely the distance when the immersion is a diffeomorphism.
+        Compute the distance via diffeomorphic pullback.
         Parameters
         ----------
         point_a : array-like
@@ -224,7 +232,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
     def curvature(
             self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
         """
-        Compute astutely the curvature when the immersion is a diffeomorphism.
+        Compute the curvature via diffeomorphic pullback.
         Parameters
         ----------
         tangent_vec_a : array-like
@@ -258,7 +266,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             self, tangent_vec, base_point, direction=None, end_point=None
     ):
         """
-        Compute astutely the parallel transport when the immersion is a diffeo.
+        Compute the parallel transport via diffeomorphic pullback.
         Parameters
         ----------
         tangent_vec : array-like
@@ -275,11 +283,11 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             Parallel transport.
         """
         new_base_point = self.diffeomorphism(base_point)
-        new_tangent_vec = self.tangent_diffeomorphism(tangent_vec)
+        new_tangent_vec = self.tangent_diffeomorphism(tangent_vec, base_point)
         if direction is None:
             new_direction = None
         else:
-            new_direction = self.tangent_diffeomorphism(direction)
+            new_direction = self.tangent_diffeomorphism(direction, base_point)
         if end_point is None:
             new_end_point = None
         else:
