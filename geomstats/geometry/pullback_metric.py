@@ -134,21 +134,19 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
     def inverse_diffeomorphism(self, im_point):
         pass
 
-    @property
-    def jacobian(self):
+    def jacobian(self, base_point):
         # Can be overwritten or never use if tangent method are
         # How it works when batched with autodiff ??
         if self._jacobian is None:
             self._jacobian = gs.autodiff.jacobian(self.diffeomorphism)
-        return self._jacobian
+        return self._jacobian(base_point)
 
-    @property
-    def inverse_jacobian(self):
+    def inverse_jacobian(self, im_point):
         # Can be overwritten or never use if tangent method are
         # How it works when batched with autodiff ??
         if self._inverse_jacobian is None:
             self._inverse_jacobian = gs.autodiff.jacobian(self.inverse_diffeomorphism)
-        return self._inverse_jacobian
+        return self._inverse_jacobian(im_point)
 
     def tangent_diffeomorphism(self, tangent_vec, base_point):
         # Can be overwritten when close form
