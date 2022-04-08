@@ -77,21 +77,21 @@ def graph_vectorize(fun):
 def multiple_input_vectorize(fun):
     r"""Vectorize the input Graph Point to an array."""
 
+    def _input_manipulation(args, index):
+        r"""Check input type."""
+        if type(args[index]) not in [list, Graph]:
+            return args
+        if type(args[index]) is Graph:
+            args[index] = args[index].adj
+            return args
+        args[index] = gs.array([graph.adj for graph in args[index]])
+        return args
+
     def wrapped(*args, **kwargs):
         r"""Vectorize the belongs."""
         args = list(args)
-        if type(args[1]) not in [list, Graph] and type(args[2]) not in [list, Graph]:
-            return fun(*args, **kwargs)
-        if type(args[1]) is Graph and type(args[2]) is Graph:
-            args[1] = args[1].adj
-            args[2] = args[2].adj
-            return fun(*args, **kwargs)
-        if type(args[1]) is Graph and type(args[2]) is list:
-            args[1] = args[1].adj
-            args[2] = gs.array([graph.adj for graph in args[2]])
-            return fun(*args, **kwargs)
-        args[1] = gs.array([graph.adj for graph in args[1]])
-        args[2] = gs.array([graph.adj for graph in args[2]])
+        args = _input_manipulation(args, 1)
+        args = _input_manipulation(args, 2)
         return fun(*args, **kwargs)
 
     return wrapped
@@ -109,6 +109,7 @@ class GraphSpace(PointSet):
     both the gs.array representation of graph and the Graph(Point) representation.
 
     Points are represented by :math:`nodes \times nodes` adjacency matrices.
+    Both the array input and the Graph Point type input work.
 
     Parameters
     ----------
@@ -210,7 +211,7 @@ class GraphSpace(PointSet):
 
         Parameters
         ----------
-        graph_to_permute : array-like, shape=[..., n, n]
+        graph_to_permute : List of Graph type or array-like Adjacency Matrices.
             Input graphs to be permuted.
         permutation: array-like, shape=[..., n]
             Node permutations where in position i we have the value j meaning
@@ -247,7 +248,7 @@ class GraphSpace(PointSet):
         return result[0] if single_graph else gs.array(result)
 
 
-class GraphSpaceMetric(PointSetGeometry):
+class GraphSpaceGeometry(PointSetGeometry):
     """Quotient metric on the graph space.
 
     Parameters
@@ -256,13 +257,17 @@ class GraphSpaceMetric(PointSetGeometry):
         Number of nodes
     """
 
-    def __init__(self, nodes, total_space_metric=MatricesMetric, space=GraphSpace):
-        self.nodes = nodes
+    def __init__(self, space, total_space_metric=MatricesMetric):
+        self.space = space
         self.total_space_metric = total_space_metric(self.nodes, self.nodes)
-        self.space = space(self.nodes)
+
+    @property
+    def nodes(self):
+        r"""Save the number of nodes."""
+        return self.space.nodes
 
     @multiple_input_vectorize
-    def dist(self, base_graph, graph_to_permute, matcher="ID"):
+    def dist(self, graph_a, graph_b, matcher="ID"):
         """Compute distance between two equivalence classes.
 
         Compute the distance between two equivalence classes of
@@ -270,9 +275,57 @@ class GraphSpaceMetric(PointSetGeometry):
 
         Parameters
         ----------
-        base_graph : array-like, shape=[..., n, n]
-            First graph.
-        graph_to_permute : array-like, shape=[..., n, n]
+        graph_a : List of Graph type or array-like Adjacency Matrices.
+        graph_b : List of Graph type or array-like Adjacency Matrices.
+        matcher : selecting which matcher to use
+            'FAQ': [Vogelstein2015]_ Fast Quadratic Assignment
+            note: use Frobenius metric in background.
+
+        Returns
+        -------
+        distance : array-like, shape=[...,]
+            distance between equivalence classes.
+
+        References
+        ----------
+        ..[Jain2009]  Jain, B., Obermayer, K.
+                  "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
+                  https://www.jmlr.org/papers/v10/jain09a.html.
+        ..[Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
+                Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
+                “Fast approximate quadratic programming for graph matching.“
+                PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
+        """
+        if graph_a.ndim > graph_b.ndim:
+            base_graph = graph_b
+            graph_to_permute = graph_a
+        else:
+            base_graph = graph_a
+            graph_to_permute = graph_b
+        if matcher == "FAQ":
+            perm = self.faq_matching(base_graph, graph_to_permute)
+        if matcher == "ID":
+            print(base_graph)
+            print(graph_to_permute)
+
+            perm = self.id_matching(base_graph, graph_to_permute)
+        return self.total_space_metric.dist(
+            base_graph,
+            self.space.permute(graph_to_permute, perm),
+        )
+
+    @multiple_input_vectorize
+    def geodesic(self, base_point, end_point, matcher="ID"):
+        """Compute distance between two equivalence classes.
+
+        Compute the distance between two equivalence classes of
+        adjacency matrices [Jain2009]_.
+
+        Parameters
+        ----------
+        base_point : List of Graph type or array-like Adjacency Matrices.
+            Start .
+        end_point : List of Graph type or array-like Adjacency Matrices.
             Second graph to align to the first graph.
         matcher : selecting which matcher to use
             'FAQ': [Vogelstein2015]_ Fast Quadratic Assignment
@@ -294,47 +347,12 @@ class GraphSpaceMetric(PointSetGeometry):
                 PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
         """
         if matcher == "FAQ":
-            perm = self.faq_matching(base_graph, graph_to_permute)
+            perm = self.faq_matching(base_point, end_point)
         if matcher == "ID":
-            perm = self.id_matching(base_graph, graph_to_permute)
-        return self.total_space_metric.dist(
-            base_graph,
-            self.space.permute(graph_to_permute, perm),
+            perm = self.id_matching(base_point, end_point)
+        return self.total_space_metric.geodesic(
+            base_point, self.space.permute(end_point, perm)
         )
-
-    @multiple_input_vectorize
-    def geodesic(self, base_point, end_point, matcher="ID"):
-        """Compute distance between two equivalence classes.
-
-        Compute the distance between two equivalence classes of
-        adjacency matrices [Jain2009]_.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[..., n, n]
-            Start .
-        point_b : array-like, shape=[..., n, n]
-            Second graph to align to the first graph.
-        matcher : selecting which matcher to use
-            'FAQ': [Vogelstein2015]_ Fast Quadratic Assignment
-            note: use Frobenius metric in background.
-
-        Returns
-        -------
-        distance : array-like, shape=[...,]
-            distance between equivalence classes.
-
-        References
-        ----------
-        ..[Jain2009]  Jain, B., Obermayer, K.
-                  "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
-                  https://www.jmlr.org/papers/v10/jain09a.html.
-        ..[Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
-                Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
-                “Fast approximate quadratic programming for graph matching.“
-                PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
-        """
-        return 0
 
     @staticmethod
     def faq_matching(base_graph, graph_to_permute):
@@ -378,8 +396,8 @@ class GraphSpaceMetric(PointSetGeometry):
                 )
             ]
         raise ValueError(
-            "The method can align a set of graphs to one graphs,"
-            "but the single graphs should be passed as base_graph"
+            "Align a set of graphs to one graphs,"
+            "Pass the single graphs as base_graph"
         )
 
     def id_matching(self, base_graph, graph_to_permute):
