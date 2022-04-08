@@ -302,8 +302,9 @@ class GraphSpaceMetric(PointSetGeometry):
             self.space.permute(graph_to_permute, perm),
         )
 
-    def geodesic(self, point_a, point_b, **kwargs):
-        """Compute geodesic between two equivalence classes.
+    @multiple_input_vectorize
+    def geodesic(self, base_point, end_point, matcher="ID"):
+        """Compute distance between two equivalence classes.
 
         Compute the distance between two equivalence classes of
         adjacency matrices [Jain2009]_.
@@ -311,7 +312,7 @@ class GraphSpaceMetric(PointSetGeometry):
         Parameters
         ----------
         point_a : array-like, shape=[..., n, n]
-            First graph.
+            Start .
         point_b : array-like, shape=[..., n, n]
             Second graph to align to the first graph.
         matcher : selecting which matcher to use
@@ -325,15 +326,13 @@ class GraphSpaceMetric(PointSetGeometry):
 
         References
         ----------
-        ..[Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-              “Graph Space: Geodesic Principal Components for a Population of
-              Network-valued Data.”
-              Mox report 14, 2020.
-              https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+        ..[Jain2009]  Jain, B., Obermayer, K.
+                  "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
+                  https://www.jmlr.org/papers/v10/jain09a.html.
         ..[Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
-            Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
-            “Fast approximate quadratic programming for graph matching.“
-            PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
+                Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
+                “Fast approximate quadratic programming for graph matching.“
+                PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
         """
         return 0
 
