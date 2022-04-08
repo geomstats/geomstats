@@ -324,6 +324,28 @@ class Topology:
         is related. The splits are the edges of the connected components of the forest,
         respectively, and thus the union of all sets of splits yields all edges of the
         forest topology.
+
+    Attributes
+    ----------
+    n : int
+        Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
+    partition : tuple
+        A tuple of tuples that is a partition of the set :math:`\{0,\dots,n-1\}`,
+        representing the label sets of each connected component of the forest topology.
+    split_sets : tuple
+        A tuple of tuples containing splits, where each set of splits contains only
+        splits of the respective label set in the partition, so their order
+        is related. The splits are the edges of the connected components of the forest,
+        respectively, and thus the union of all sets of splits yields all edges of the
+        forest topology.
+    where : dict
+        Give the index of a split in the flattened list of all splits.
+    sep : list of int
+        An increasing list of numbers between 0 and m, where m is the total number
+        of splits in ``self.split_sets``, starting with 0, where each number
+        indicates that a new connected component starts at that index.
+        Useful for example for unraveling the tuple of all splits into
+        ``self.split_sets``.
     """
 
     def __init__(self, n, partition, split_sets):
@@ -348,31 +370,14 @@ class Topology:
         self.partition = tuple([partition[key] for key in sort_key])
         self.split_sets = tuple([tuple(sorted(split_sets[key])) for key in sort_key])
 
-        self._where_dict = None
+        self.where = {s: i for i, s in enumerate(self.flatten(self.split_sets))}
+
+        lengths = [len(splits) for splits in self.split_sets]
+        self.sep = [0] + [sum(lengths[0:j]) for j in range(1, len(lengths) + 1)]
+
         self._paths = None
-        self._separators = None
         self._support = None
         self._chart_gradient = None
-
-    def separators(self):
-        """Return list of indices indicating when new connected component starts.
-
-        An increasing list of numbers between 0 and m, where m is the total number
-        of splits in ``self.split_sets``, starting with 0, where each number
-        indicates that a new connected component starts at that index.
-        Useful for example for unraveling the tuple of all splits into
-        ``self.split_sets``.
-
-        Returns
-        -------
-        separators : list of int
-            Return the indices.
-        """
-        if self._separators is not None:
-            return self._separators
-        lengths = [len(splits) for splits in self.split_sets]
-        self._separators = [0] + [sum(lengths[0 : j + 1]) for j in range(len(lengths))]
-        return self._separators
 
     @staticmethod
     def flatten(x):
@@ -391,7 +396,7 @@ class Topology:
         return [y for z in x for y in z]
 
     def unflatten(self, x):
-        """Transform list into list of lists according to separators.
+        """Transform list into list of lists according to separators, ``self.sep``.
 
         The separators are a list of integers, increasing. Then, all elements between to
         indices in separators will be put into a list, and together, all lists give a
@@ -407,26 +412,7 @@ class Topology:
         x_nested : list[list]
             The nested list of lists.
         """
-        sep = self.separators()
-        return [x[i:j] for i, j in zip(sep[:-1], sep[1:])]
-
-    def where(self, split):
-        """Give the index of a split in the flattened list of all splits.
-
-        Parameters
-        ----------
-        split : Split
-            The split whose index is returned.
-
-        Returns
-        -------
-        index : int
-            The index at which the split is found.
-        """
-        if self._where_dict is not None:
-            return self._where_dict[split]
-        self._where_dict = {s: i for i, s in enumerate(self.flatten(self.split_sets))}
-        return self._where_dict[split]
+        return [x[i:j] for i, j in zip(self.sep[:-1], self.sep[1:])]
 
     def paths(self):
         """For each pair of labels, give the unique path of splits between those labels.
@@ -468,7 +454,7 @@ class Topology:
         corr = np.zeros((self.n, self.n))
         for path_dict in self.paths():
             for (u, v), path in path_dict.items():
-                corr[u][v] = np.prod([1 - x[self.where(split)] for split in path])
+                corr[u][v] = np.prod([1 - x[self.where[split]] for split in path])
                 corr[v][u] = corr[u][v]
         np.fill_diagonal(corr, 1)
         return gs.array(corr, dtype=gs.float32)
@@ -494,8 +480,8 @@ class Topology:
         for path_dict in self.paths():
             for (u, v), path in path_dict.items():
                 for split in path:
-                    _support[self.where(split)][u, v] = True
-                    _support[self.where(split)][v, u] = True
+                    _support[self.where[split]][u, v] = True
+                    _support[self.where[split]][v, u] = True
         self._support = [gs.array(m) for m in self.flatten(_support)]
         return self._support
 
