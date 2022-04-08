@@ -54,17 +54,17 @@ class Flag(Manifold):
         Dimension of the Euclidean space.
     """
 
-    def __init__(self, index, n):
+    def __init__(self, n, index):
         d = len(index)
         geomstats.errors.check_integer(d, "d")
         geomstats.errors.check_integer(n, "n")
         extended_index = gs.concatenate(([0], index), dtype="int")
         dim = int(gs.sum(np.diff(extended_index) * (n - gs.array(index))))
         super(Flag, self).__init__(dim=dim, shape=(n * d, n * d))
+        self.n = n
+        self.d = d
         self.index = index
         self.extended_index = extended_index
-        self.d = d
-        self.n = n
 
     def belongs(self, point, atol=gs.atol):
         r"""Evaluate if a point belongs to the manifold.
