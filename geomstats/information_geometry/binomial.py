@@ -11,7 +11,11 @@ class BinomialDistributions(OpenSet):
     """Class for the manifold of binomial distributions."""
 
     def __init__(self, n_draws):
-        super(BinomialDistributions, self).__init__(dim=1, ambient_space=Euclidean(dim=1), metric = BinomialFisherRaoMetric(n_draws))
+        super(BinomialDistributions, self).__init__(
+            dim=1,
+            ambient_space=Euclidean(dim=1),
+            metric=BinomialFisherRaoMetric(n_draws),
+        )
         self.n_draws = n_draws
 
     def belongs(self, point, atol=gs.atol):
@@ -19,10 +23,10 @@ class BinomialDistributions(OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...]
+        point : array-like, shape=[...,]
             Point to be checked.
         atol : float
-            Tolerance to evaluate positivity.
+            Tolerance to evaluate if point belongs to [0,1].
             Optional, default: gs.atol
 
         Returns
@@ -31,8 +35,11 @@ class BinomialDistributions(OpenSet):
             Boolean indicating whether point represents a binomial
             distribution.
         """
+        point = gs.array(point, gs.float32)
         belongs = len(point.shape) == 1
-        belongs = gs.logical_and(belongs, gs.logical_and(atol <= point, point <= 1-atol))
+        belongs = gs.logical_and(
+            belongs, gs.logical_and(atol <= point, point <= 1 - atol)
+        )
         return belongs
 
     @staticmethod
@@ -49,13 +56,13 @@ class BinomialDistributions(OpenSet):
 
         Returns
         -------
-        samples : array-like, shape=[..., 1]
+        samples : array-like, shape=[...,]
             Sample of points representing binomial distributions.
         """
         return gs.random.rand(n_samples)
 
     def projection(self, point, atol=gs.atol):
-        """Project a point in ambient space to the open set.
+        """Project a point in ambient space to the parameter set of n_draws-binomial distributions.
 
         The parameter is floored to `gs.atol` if it is negative, and to '1-gs.atol' if it is greater than 1.
 
@@ -71,7 +78,13 @@ class BinomialDistributions(OpenSet):
         projected : array-like, shape=[...]
             Projected point.
         """
-        return gs.where(gs.logical_or(point < atol, point > 1-atol), int(point > 1-atol) - atol, point)
+        point = gs.array(point, gs.float32)
+        return gs.where(
+            gs.logical_or(point < atol, point > 1 - atol),
+            (1 - atol) * (point > 1 - atol).astype(int)
+            + atol * (point < atol).astype(int),
+            point,
+        )
 
     def sample(self, point, n_samples=1):
         """Sample from the binomial distribution.
@@ -101,11 +114,11 @@ class BinomialDistributions(OpenSet):
     def point_to_pmf(self, point):
         """Compute pmf associated to point.
 
-        Compute the probability density function of the binomialdistribution with parameters provided by point.
+        Compute the probability density function of the binomial distribution with parameters provided by point.
 
         Parameters
         ----------
-        point : array-like, shape=[..., 2]
+        point : array-like, shape=[...]
             Point representing an binomial distribution (location and scale).
 
         Returns
@@ -127,7 +140,9 @@ class BinomialDistributions(OpenSet):
             k = gs.array(k, gs.float32)
             k = gs.to_ndarray(k, to_ndim=1)
 
-            pmf_at_k = [gs.array(binom.pmf(k, self.n_draws, param)) for param in list(point)]
+            pmf_at_k = [
+                gs.array(binom.pmf(k, self.n_draws, param)) for param in list(point)
+            ]
             pmf_at_k = gs.stack(pmf_at_k, axis=-1)
 
             return pmf_at_k
@@ -143,4 +158,8 @@ class BinomialFisherRaoMetric(RiemannianMetric):
         self.n_draws = n_draws
 
     def squared_dist(self, point_a, point_b, **kwargs):
-        return 4 * self.n_draws * (gs.arcsin(gs.sqrt(point_a))-gs.arcsin(gs.sqrt(point_b)))**2
+        return (
+            4
+            * self.n_draws
+            * (gs.arcsin(gs.sqrt(point_a)) - gs.arcsin(gs.sqrt(point_b))) ** 2
+        )
