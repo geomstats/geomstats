@@ -64,7 +64,7 @@ from autograd.numpy import (
     logical_and,
     logical_or,
     matmul,
-    maximum
+    maximum,
     mean,
     meshgrid,
     minimum,
