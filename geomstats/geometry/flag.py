@@ -1,4 +1,4 @@
-"""The flag manifold.
+"""The flag manifold (Work In Progress).
 
 Lead author: Tom Szwagier.
 """
