@@ -5,53 +5,23 @@ from functools import wraps
 
 import numpy as _np
 import torch
-from torch import arange, arccos, arccosh, arcsin, arctanh, argmin
+from torch import angle, arange, arccos, arccosh, arcsin, arctanh, argmin
 from torch import atan2 as arctan2  # NOQA
 from torch import bool as t_bool
 from torch import broadcast_tensors as broadcast_arrays
-from torch import (
-    angle,
-    ceil,
-    clip,
-    complex64,
-    complex128,
-    conj,
-    cos,
-    cosh,
-    cross,
-    divide,
-    empty_like,
-    eq,
-    erf,
-    exp,
-    eye,
-    flatten,
-    float32,
-    float64,
-    floor,
-)
+from torch import (ceil, clip, complex64, complex128, conj, cos, cosh, cross,
+                   divide, empty_like, eq, erf, exp, eye, flatten, float32,
+                   float64, floor)
 from torch import fmod as mod
-from torch import greater, hstack, imag, int32, int64, isnan, less, log, logical_or
+from torch import (greater, hstack, imag, int32, int64, isnan, less, log,
+                   logical_or)
 from torch import max as amax
 from torch import mean, meshgrid, nonzero, ones, ones_like, outer, polygamma
 from torch import pow as power
 from torch import real
 from torch import repeat_interleave as repeat
-from torch import (
-    reshape,
-    sign,
-    sin,
-    sinh,
-    stack,
-    std,
-    tan,
-    tanh,
-    uint8,
-    unique,
-    vstack,
-    zeros,
-    zeros_like,
-)
+from torch import (reshape, sign, sin, sinh, stack, std, tan, tanh, uint8,
+                   unique, vstack, zeros, zeros_like)
 
 from ..constants import pytorch_atol, pytorch_rtol
 from . import autodiff  # NOQA
