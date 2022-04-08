@@ -36,10 +36,10 @@ class TestFlag(ManifoldTestCase, metaclass=Parametrizer):
             smoke_data = [
                 dict(n=n, index=index, point=p1, expected=True),
                 dict(n=n, index=index, point=p2, expected=True),
-                dict(n=n, index=index, point=gs.array([p1, p2]), expected=2*[True]),
+                dict(n=n, index=index, point=gs.array([p1, p2]), expected=2 * [True]),
                 dict(n=n, index=index, point=p3, expected=False),  # same subspace
                 dict(n=n, index=index, point=p4, expected=False),  # wrong trace
-                dict(n=n, index=index, point=p5, expected=10*[False])  # wrong trace
+                dict(n=n, index=index, point=p5, expected=10 * [False])  # wrong trace
             ]
             return self.generate_tests(smoke_data)
 
