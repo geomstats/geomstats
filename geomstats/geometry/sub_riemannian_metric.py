@@ -181,9 +181,11 @@ class SubRiemannianMetric():
         """
 
         def H_sum(state):
+            r"""Sum each value of the Hamiltonian (relevant for vectorized input)."""
             return gs.sum(hamiltonian(state))
 
         def vector(x):
+            r"""Compute symplectic gradient at x."""
             _, grad = gs.autodiff.value_and_grad(H_sum)(x)
             h_q = grad[0]
             h_p = grad[1]
@@ -217,6 +219,7 @@ class SubRiemannianMetric():
             return step
 
         def step(state):
+            r"""Compute an integration step from state."""
             position, momentum = state
             dq, _ = self.symp_grad(hamiltonian)(state)
             y = gs.array([position + step_size * dq, momentum])
@@ -244,6 +247,7 @@ class SubRiemannianMetric():
             iterations of func.
         """
         def flow(x):
+            r"""Compute flow starting at x."""
             xs = [x]
             for i in range(n_steps):
                 xs.append(func(xs[i]))

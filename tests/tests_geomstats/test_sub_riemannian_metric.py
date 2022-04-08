@@ -1,30 +1,38 @@
 """Unit tests for the sub-Riemannian metric class."""
 
-import geomstats.backend as gs
-import geomstats.tests
-from geomstats.geometry.sub_riemannian_metric import SubRiemannianMetric
-from geomstats.geometry.heisenberg import *
 from tests.conftest import Parametrizer, TestCase
 from tests.data_generation import TestData
 
+import geomstats.backend as gs
+import geomstats.tests
+from geomstats.geometry.heisenberg import HeisenbergVectors
+from geomstats.geometry.sub_riemannian_metric import SubRiemannianMetric
+
 heis = HeisenbergVectors()
 
+
 def heis_frame(point):
+    r"""Compute the frame spanning the Heisenberg distribution."""
     translations = heis.jacobian_translation(point)
     if len(translations.shape) == 3:
         return translations[:, :, 0:2]
     return translations[:, 0:2]
 
+
 heis_sr = SubRiemannianMetric(dim=3, dist_dim=2, frame=heis_frame)
 
+
 def trivial_cometric_matrix(base_point):
+    r"""Compute a trivial cometric."""
     return gs.array([[1., 0., 0.],
                      [0., 1., 0.],
                      [0., 0., 1.]])
 
+
 ExampleMetric = SubRiemannianMetric(dim=3,
                                     dist_dim=2,
                                     cometric_matrix=trivial_cometric_matrix)
+
 
 class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
     class TestDataSubRiemannianMetric(TestData):
@@ -51,7 +59,7 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
                                          [1., 1., 1.]]),
                     cotangent_vec=gs.array([[0.5, 0.5, 0.5],
                                             [2.5, 2.5, 2.5]]),
-                    expected=gs.array([[0.5 , 0.5 , 0.],
+                    expected=gs.array([[0.5, 0.5, 0.],
                                        [1.25, 3.75, 1.25]])
                 )
             ]
@@ -130,7 +138,7 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
                     metric=self.sub_metric_heis_frame,
                     test_initial_point=gs.array([0., 0., 0.]),
                     test_initial_cotangent_vec=gs.array([2.5, 2.5, 2.5]),
-                    test_times = gs.linspace(0.0, 20, 3),
+                    test_times=gs.linspace(0.0, 20, 3),
                     n_steps=1000,
                     expected=gs.array([[0.00000000e+00,
                                         0.00000000e+00,
