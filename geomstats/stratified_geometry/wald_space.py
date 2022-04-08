@@ -802,7 +802,9 @@ class WaldSpace(PointSet):
         belongs : bool
             Boolean denoting if `point` belongs to Wald space.
         """
-        results = [self.a.belongs(single_point.to_array()) for single_point in point]
+        is_spd = [self.a.belongs(single_point.to_array()) for single_point in point]
+        is_between_0_1 = [gs.all(w.x > 0) and gs.all(w.x < 1) for w in point]
+        results = [is1 and is2 for is1, is2 in zip(is_spd, is_between_0_1)]
         return results
 
     def random_point(self, n_samples=1, prob=0.9, btol=1e-08):
