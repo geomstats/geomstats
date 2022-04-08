@@ -1,8 +1,23 @@
-import geomstats.backend as gs
 import geomstats.tests
-from geomstats.stratified_geometry.wald_space import Split, Topology, Wald
+from geomstats.stratified_geometry.wald_space import Split, Topology, Wald, WaldSpace
+from tests.conftest import Parametrizer
+from tests.data.wald_space_data import WaldSpaceTestData, WaldTestData
+from tests.stratified_geometry_test_cases import PointSetTestCase, PointTestCase
 
 
+class TestWaldSpace(PointSetTestCase, metaclass=Parametrizer):
+
+    _PointSet = WaldSpace
+    testing_data = WaldSpaceTestData()
+
+
+class TestWald(PointTestCase, metaclass=Parametrizer):
+
+    _Point = Wald
+    testing_data = WaldTestData()
+
+
+@geomstats.tests.np_only
 class TestSplit(geomstats.tests.TestCase):
     """Class for testing the class Split."""
 
@@ -124,6 +139,7 @@ class TestSplit(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
 
+@geomstats.tests.np_only
 class TestTopology(geomstats.tests.TestCase):
     """Class for testing the class Topology."""
 
@@ -228,48 +244,3 @@ class TestTopology(geomstats.tests.TestCase):
         result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2, st1 != st2]
         expected = [False, False, False, False, False, True]
         self.assertEqual(result, expected)
-
-
-class TestWald(geomstats.tests.TestCase):
-    """Class for testing the class Wald."""
-
-    def test_to_array(self):
-        top = Topology(
-            n=2,
-            partition=(
-                (0,),
-                (1,),
-            ),
-            split_sets=((), ()),
-        )
-        x = gs.array([])
-        wald = Wald(n=2, st=top, x=x)
-        result = wald.to_array()
-        expected = gs.eye(2)
-        self.assertAllClose(result, expected)
-
-        top = Topology(n=3, partition=((0,), (1,), (2,)), split_sets=((), (), ()))
-        x = gs.array([])
-        wald = Wald(n=3, st=top, x=x)
-        result = wald.to_array()
-        expected = gs.eye(3)
-        self.assertAllClose(result, expected)
-
-        top = Topology(
-            n=4, partition=((0,), (1,), (2,), (3,)), split_sets=((), (), (), ())
-        )
-        x = gs.array([])
-        wald = Wald(n=4, st=top, x=x)
-        result = wald.to_array()
-        expected = gs.eye(4)
-        self.assertAllClose(result, expected)
-
-        partition = ((0, 1, 2),)
-        split_sets = ((((0, 1), (2,)), ((0, 2), (1,)), ((0,), (1, 2))),)
-        split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
-        top = Topology(n=3, partition=partition, split_sets=split_sets)
-        x = gs.array([0.1, 0.2, 0.3])
-        wald = Wald(n=3, st=top, x=x)
-        result = wald.to_array()
-        expected = gs.array([[1.0, 0.56, 0.63], [0.56, 1.0, 0.72], [0.63, 0.72, 1.0]])
-        self.assertAllClose(result, expected)
