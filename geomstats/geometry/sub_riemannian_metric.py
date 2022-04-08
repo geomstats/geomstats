@@ -232,7 +232,7 @@ class SubRiemannianMetric():
         Parameters
         ----------
         func : callable
-            A function which calculates the next step of a 
+            A function which calculates the next step of a
             sequence to be calculated.
         n_steps : int
             The number of times to iterate func.
@@ -240,7 +240,7 @@ class SubRiemannianMetric():
         Returns
         -------
         flow : callable
-            Given a state, 'flow' returns a sequence with n_steps 
+            Given a state, 'flow' returns a sequence with n_steps
             iterations of func.
         """
         def flow(x):
@@ -266,7 +266,7 @@ class SubRiemannianMetric():
         Returns
         -------
         _ : array-like, shape[,n_steps]
-            Given a state, 'symp_flow' returns a 
+            Given a state, 'symp_flow' returns a
             sequence with n_steps iterations of func.
         """
         step = self.symp_euler
