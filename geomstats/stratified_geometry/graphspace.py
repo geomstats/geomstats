@@ -74,6 +74,29 @@ def graph_vectorize(fun):
     return wrapped
 
 
+def multiple_input_vectorize(fun):
+    r"""Vectorize the input Graph Point to an array."""
+
+    def wrapped(*args, **kwargs):
+        r"""Vectorize the belongs."""
+        args = list(args)
+        if type(args[1]) not in [list, Graph] and type(args[2]) not in [list, Graph]:
+            return fun(*args, **kwargs)
+        if type(args[1]) is Graph and type(args[2]) is Graph:
+            args[1] = args[1].adj
+            args[2] = args[2].adj
+            return fun(*args, **kwargs)
+        if type(args[1]) is Graph and type(args[2]) is list:
+            args[1] = args[1].adj
+            args[2] = gs.array([graph.adj for graph in args[2]])
+            return fun(*args, **kwargs)
+        args[1] = gs.array([graph.adj for graph in args[1]])
+        args[2] = gs.array([graph.adj for graph in args[2]])
+        return fun(*args, **kwargs)
+
+    return wrapped
+
+
 class GraphSpace(PointSet):
     r"""Class for the Graph Space.
 
@@ -177,6 +200,8 @@ class GraphSpace(PointSet):
         nx_list : list of Networkx object
                 An array containing all the Graphs.
         """
+        if points.shape == (self.nodes, self.nodes):
+            return nx.from_numpy_matrix(points)
         return [nx.from_numpy_matrix(point) for point in points]
 
     @graph_vectorize
@@ -236,6 +261,7 @@ class GraphSpaceMetric(PointSetGeometry):
         self.total_space_metric = total_space_metric(self.nodes, self.nodes)
         self.space = space(self.nodes)
 
+    @multiple_input_vectorize
     def dist(self, base_graph, graph_to_permute, matcher="ID"):
         """Compute distance between two equivalence classes.
 
@@ -273,8 +299,43 @@ class GraphSpaceMetric(PointSetGeometry):
             perm = self.id_matching(base_graph, graph_to_permute)
         return self.total_space_metric.dist(
             base_graph,
-            self.space.permute(graph_to_permute=graph_to_permute, permutation=perm),
+            self.space.permute(graph_to_permute, perm),
         )
+
+    def geodesic(self, point_a, point_b, **kwargs):
+        """Compute geodesic between two equivalence classes.
+
+        Compute the distance between two equivalence classes of
+        adjacency matrices [Jain2009]_.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., n, n]
+            First graph.
+        point_b : array-like, shape=[..., n, n]
+            Second graph to align to the first graph.
+        matcher : selecting which matcher to use
+            'FAQ': [Vogelstein2015]_ Fast Quadratic Assignment
+            note: use Frobenius metric in background.
+
+        Returns
+        -------
+        distance : array-like, shape=[...,]
+            distance between equivalence classes.
+
+        References
+        ----------
+        ..[Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+              “Graph Space: Geodesic Principal Components for a Population of
+              Network-valued Data.”
+              Mox report 14, 2020.
+              https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+        ..[Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
+            Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
+            “Fast approximate quadratic programming for graph matching.“
+            PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
+        """
+        return 0
 
     @staticmethod
     def faq_matching(base_graph, graph_to_permute):
