@@ -11,6 +11,19 @@ from tests.data_generation import TestData
 from tests.geometry_test_cases import TestCase
 
 
+def _euc_metric_matrix(base_point):
+    """Return matrix of Euclidean inner-product."""
+    dim = base_point.shape[-1]
+    return gs.eye(dim)
+
+
+def _sphere_metric_matrix(base_point):
+    """Return sphere's metric in spherical coordinates."""
+    theta = base_point[..., 0]
+    mat = gs.array([[1.0, 0.0], [0.0, gs.sin(theta) ** 2]])
+    return mat
+
+
 class TestRiemannianMetric(TestCase, metaclass=Parametrizer):
     class RiemannianMetricTestData(TestData):
 
@@ -19,17 +32,6 @@ class TestRiemannianMetric(TestCase, metaclass=Parametrizer):
         sphere = Hypersphere(dim=dim)
         euc_metric = EuclideanMetric(dim=dim)
         sphere_metric = HypersphereMetric(dim=dim)
-
-        def _euc_metric_matrix(base_point):
-            """Return matrix of Euclidean inner-product."""
-            dim = base_point.shape[-1]
-            return gs.eye(dim)
-
-        def _sphere_metric_matrix(base_point):
-            """Return sphere's metric in spherical coordinates."""
-            theta = base_point[..., 0]
-            mat = gs.array([[1.0, 0.0], [0.0, gs.sin(theta) ** 2]])
-            return mat
 
         new_euc_metric = RiemannianMetric(dim=dim)
         new_euc_metric.metric_matrix = _euc_metric_matrix
