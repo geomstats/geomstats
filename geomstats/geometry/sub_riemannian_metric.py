@@ -1,11 +1,9 @@
 """Implementation of sub-Riemannian geometry."""
 
-import abc
-
 import geomstats.backend as gs
 
 
-class SubRiemannianMetric(abc.ABC):
+class SubRiemannianMetric():
     """Class for Sub-Riemannian metrics.
 
     This implementation assumes a bracket-generating distribution of constant dimension.
