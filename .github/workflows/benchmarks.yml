@@ -1,0 +1,50 @@
+name: Benchmarks
+on:
+  push:
+    branches: [master,github-actions-test]
+  pull_request:
+    branches: [master]
+
+jobs:
+  benchmark:
+    name: Benchmarking
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies [pip]
+        run:  |
+          pip install --upgrade pip setuptools wheel
+          for req in ci-requirements.txt dev-requirements.txt  opt-requirements.txt requirements.txt; do
+            pip install -q -r $req
+          done
+          pip install -e .
+
+      - name: Run benchmark
+        run: |
+          cd benchmarks
+          chmod +x script.sh
+          ./script.sh
+
+      - name: Download previous benchmark data
+        uses: actions/cache@v3
+        with:
+          path: benchmarks/*.json
+          key: ${{ runner.os }}-benchmark
+
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Python Benchmark with pytest-benchmark
+          tool: 'pytest'
+          github-token : ${{ secrets.GITHUB_TOKEN }}
+          output-file-path: benchmarks/exp.json
+          external-data-json-path: ./cache/exp.json
+          alert-threshold: '200%'
+          comment-on-alert: false
+          fail-on-alert: false
+          alert-comment-cc-users: '@nmiolane'
+
