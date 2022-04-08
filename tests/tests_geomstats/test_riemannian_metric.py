@@ -1,23 +1,24 @@
 """Unit tests for the Riemannian metrics."""
 
-import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from tests.conftest import Parametrizer
+from tests.data_generation import TestData
+from tests.geometry_test_cases import TestCase
 
 
-class TestRiemannianMetric(geomstats.tests.TestCase):
-    def setup_method(self):
-        warnings.simplefilter("ignore", category=UserWarning)
-        gs.random.seed(0)
-        self.dim = 2
-        self.euc = Euclidean(dim=self.dim)
-        self.sphere = Hypersphere(dim=self.dim)
-        self.euc_metric = EuclideanMetric(dim=self.dim)
-        self.sphere_metric = HypersphereMetric(dim=self.dim)
+class TestRiemannianMetric(TestCase, metaclass=Parametrizer):
+    class RiemannianMetricTestData(TestData):
+
+        dim = 2
+        euc = Euclidean(dim=dim)
+        sphere = Hypersphere(dim=dim)
+        euc_metric = EuclideanMetric(dim=dim)
+        sphere_metric = HypersphereMetric(dim=dim)
 
         def _euc_metric_matrix(base_point):
             """Return matrix of Euclidean inner-product."""
@@ -30,156 +31,221 @@ class TestRiemannianMetric(geomstats.tests.TestCase):
             mat = gs.array([[1.0, 0.0], [0.0, gs.sin(theta) ** 2]])
             return mat
 
-        new_euc_metric = RiemannianMetric(dim=self.dim)
+        new_euc_metric = RiemannianMetric(dim=dim)
         new_euc_metric.metric_matrix = _euc_metric_matrix
 
-        new_sphere_metric = RiemannianMetric(dim=self.dim)
+        new_sphere_metric = RiemannianMetric(dim=dim)
         new_sphere_metric.metric_matrix = _sphere_metric_matrix
 
-        self.new_euc_metric = new_euc_metric
-        self.new_sphere_metric = new_sphere_metric
+        new_euc_metric = new_euc_metric
+        new_sphere_metric = new_sphere_metric
 
-    def test_cometric_matrix(self):
-        base_point = self.euc.random_point()
+        def cometric_matrix_test_data(self):
+            random_data = [
+                dict(
+                    metric=self.euc_metric,
+                    base_point=self.euc.random_point(),
+                    expected=gs.eye(self.dim),
+                )
+            ]
+            return self.generate_tests(random_data)
 
-        result = self.euc_metric.cometric_matrix(base_point)
-        expected = gs.eye(self.dim)
+        def inner_coproduct_test_data(self):
+            base_point = gs.array([0.0, 0.0, 1.0])
+            cotangent_vec_a = self.sphere.to_tangent(
+                gs.array([1.0, 2.0, 0.0]), base_point
+            )
+            cotangent_vec_b = self.sphere.to_tangent(
+                gs.array([1.0, 3.0, 0.0]), base_point
+            )
 
+            smoke_data = [
+                dict(
+                    metric=self.euc_metric,
+                    cotangent_vec_a=gs.array([1.0, 2.0]),
+                    cotangent_vec_b=gs.array([1.0, 2.0]),
+                    base_point=self.euc.random_point(),
+                    expected=5.0,
+                ),
+                dict(
+                    metric=self.sphere_metric,
+                    cotangent_vec_a=cotangent_vec_a,
+                    cotangent_vec_b=cotangent_vec_b,
+                    base_point=base_point,
+                    expected=7.0,
+                ),
+            ]
+            return self.generate_tests(smoke_data)
+
+        def hamiltonian_test_data(self):
+
+            smoke_data = [
+                dict(
+                    metric=self.euc_metric,
+                    state=(gs.array([1.0, 2.0]), gs.array([1.0, 2.0])),
+                    expected=2.5,
+                )
+            ]
+            smoke_data += [
+                dict(
+                    metric=self.sphere_metric,
+                    state=(gs.array([0.0, 0.0, 1.0]), gs.array([1.0, 2.0, 1.0])),
+                    expected=3.0,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def inner_product_derivative_matrix_test_data(self):
+            base_point = self.euc.random_point()
+            random_data = [
+                dict(
+                    metric=self.new_euc_metric,
+                    base_point=base_point,
+                    expected=gs.zeros((self.dim,) * 3),
+                )
+            ]
+            random_data += [
+                dict(
+                    metric=self.euc_metric,
+                    base_point=base_point,
+                    expected=gs.zeros((self.dim,) * 3),
+                )
+            ]
+            return self.generate_tests([], random_data)
+
+        def inner_product_test_data(self):
+            base_point = self.euc.random_point()
+            tangent_vec_a = self.euc.random_point()
+            tangent_vec_b = self.euc.random_point()
+            random_data = [
+                dict(
+                    metric=self.euc_metric,
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                    expected=gs.dot(tangent_vec_a, tangent_vec_b),
+                )
+            ]
+
+            smoke_data = [
+                dict(
+                    metric=self.new_sphere_metric,
+                    tangent_vec_a=gs.array([0.3, 0.4]),
+                    tangent_vec_b=gs.array([0.1, -0.5]),
+                    base_point=gs.array([gs.pi / 3.0, gs.pi / 5.0]),
+                    expected=-0.12,
+                )
+            ]
+            return self.generate_tests(smoke_data, random_data)
+
+        def christoffels_test_data(self):
+            base_point = gs.array([gs.pi / 10.0, gs.pi / 9.0])
+            gs.array([gs.pi / 10.0, gs.pi / 9.0])
+            smoke_data = []
+            random_data = []
+            smoke_data = [
+                dict(
+                    metric=self.new_sphere_metric,
+                    base_point=gs.array([gs.pi / 10.0, gs.pi / 9.0]),
+                    expected=self.sphere_metric.christoffels(base_point),
+                )
+            ]
+            random_data += [
+                dict(
+                    metric=self.new_euc_metric,
+                    base_point=self.euc.random_point(),
+                    expected=gs.zeros((self.dim,) * 3),
+                )
+            ]
+            random_data += [
+                dict(
+                    metric=self.euc_metric,
+                    base_point=self.euc.random_point(),
+                    expected=gs.zeros((self.dim,) * 3),
+                )
+            ]
+
+            return self.generate_tests(smoke_data, random_data)
+
+        def exp_test_data(self):
+            base_point = gs.array([gs.pi / 10.0, gs.pi / 9.0])
+            tangent_vec = gs.array([gs.pi / 2.0, 0.0])
+            expected = gs.array([gs.pi / 10.0 + gs.pi / 2.0, gs.pi / 9.0])
+
+            euc_base_point = self.euc.random_point()
+            euc_tangent_vec = self.euc.random_point()
+            euc_expected = euc_base_point + euc_tangent_vec
+
+            smoke_data = [
+                dict(
+                    metric=self.new_sphere_metric,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    expected=expected,
+                )
+            ]
+            random_data = [
+                dict(
+                    metric=self.new_euc_metric,
+                    tangent_vec=euc_tangent_vec,
+                    base_point=euc_base_point,
+                    expected=euc_expected,
+                )
+            ]
+            return self.generate_tests(smoke_data, random_data)
+
+        def log_test_data(self):
+            base_point = self.euc.random_point()
+            point = self.euc.random_point()
+            expected = point - base_point
+            random_data = [
+                dict(
+                    metric=self.new_euc_metric,
+                    point=point,
+                    base_point=base_point,
+                    expected=expected,
+                )
+            ]
+            return self.generate_tests([], random_data)
+
+    testing_data = RiemannianMetricTestData()
+
+    def test_cometric_matrix(self, metric, base_point, expected):
+        result = metric.cometric_matrix(base_point)
         self.assertAllClose(result, expected)
 
-    def test_inner_coproduct(self):
-        base_point = self.euc.random_point()
-        cotangent_vec_a = gs.array([1.0, 2.0])
-        cotangent_vec_b = gs.array([1.0, 2.0])
-
-        result = self.euc_metric.inner_coproduct(
-            cotangent_vec_a, cotangent_vec_b, base_point
-        )
-        expected = 5.0
-
+    def test_inner_coproduct(
+        self, metric, cotangent_vec_a, cotangent_vec_b, base_point, expected
+    ):
+        result = metric.inner_coproduct(cotangent_vec_a, cotangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
-        base_point = gs.array([0.0, 0.0, 1.0])
-        cotangent_vec_a = self.sphere.to_tangent(gs.array([1.0, 2.0, 0.0]), base_point)
-        cotangent_vec_b = self.sphere.to_tangent(gs.array([1.0, 3.0, 0.0]), base_point)
-
-        result = self.sphere_metric.inner_coproduct(
-            cotangent_vec_a, cotangent_vec_b, base_point
-        )
-        expected = 7.0
-
-        self.assertAllClose(result, expected)
-
-    def test_hamiltonian_euc_metric(self):
-        position = gs.array([1.0, 2.0])
-        momentum = gs.array([1.0, 2.0])
-        state = position, momentum
-        result = self.euc_metric.hamiltonian(state)
-
-        expected = 2.5
-
-        self.assertAllClose(result, expected)
-
-    def test_hamiltonian_sphere_metric(self):
-        position = gs.array([0.0, 0.0, 1.0])
-        momentum = gs.array([1.0, 2.0, 1.0])
-        state = position, momentum
-        result = self.sphere_metric.hamiltonian(state)
-
-        expected = 3.0
-
+    def test_hamiltonian(self, metric, state, expected):
+        result = metric.hamiltonian(state)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.autograd_and_torch_only
-    def test_metric_derivative_euc_metric(self):
-        base_point = self.euc.random_point()
+    def test_inner_product_derivative_matrix(self, metric, base_point, expected):
+        result = metric.inner_product_derivative_matrix(base_point)
+        self.assertAllClose(result, expected)
 
-        result = self.euc_metric.inner_product_derivative_matrix(base_point)
-        expected = gs.zeros((self.dim,) * 3)
-
+    def test_inner_product(
+        self, metric, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.autograd_and_torch_only
-    def test_metric_derivative_new_euc_metric(self):
-        base_point = self.euc.random_point()
-
-        result = self.new_euc_metric.inner_product_derivative_matrix(base_point)
-        expected = gs.zeros((self.dim,) * 3)
-
-        self.assertAllClose(result, expected)
-
-    def test_inner_product_new_euc_metric(self):
-        base_point = self.euc.random_point()
-        tan_a = self.euc.random_point()
-        tan_b = self.euc.random_point()
-        expected = gs.dot(tan_a, tan_b)
-
-        result = self.new_euc_metric.inner_product(tan_a, tan_b, base_point=base_point)
-
-        self.assertAllClose(result, expected)
-
-    def test_inner_product_new_sphere_metric(self):
-        base_point = gs.array([gs.pi / 3.0, gs.pi / 5.0])
-        tan_a = gs.array([0.3, 0.4])
-        tan_b = gs.array([0.1, -0.5])
-        expected = -0.12
-
-        result = self.new_sphere_metric.inner_product(
-            tan_a, tan_b, base_point=base_point
-        )
-
+    def test_christoffels(self, metric, base_point, expected):
+        result = metric.christoffels(base_point)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.autograd_and_torch_only
-    def test_christoffels_eucl_metric(self):
-        base_point = self.euc.random_point()
-
-        result = self.euc_metric.christoffels(base_point)
-        expected = gs.zeros((self.dim,) * 3)
-
+    def test_exp(self, metric, tangent_vec, base_point, expected):
+        result = metric.exp(tangent_vec, base_point)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.autograd_and_torch_only
-    def test_christoffels_new_eucl_metric(self):
-        base_point = self.euc.random_point()
-
-        result = self.new_euc_metric.christoffels(base_point)
-        expected = gs.zeros((self.dim,) * 3)
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.autograd_tf_and_torch_only
-    def test_christoffels_sphere_metrics(self):
-        base_point = gs.array([gs.pi / 10.0, gs.pi / 9.0])
-
-        expected = self.sphere_metric.christoffels(base_point)
-        result = self.new_sphere_metric.christoffels(base_point)
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.autograd_and_torch_only
-    def test_exp_new_eucl_metric(self):
-        base_point = self.euc.random_point()
-        tan = self.euc.random_point()
-
-        expected = base_point + tan
-        result = self.new_euc_metric.exp(tan, base_point)
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.autograd_and_torch_only
-    def test_log_new_eucl_metric(self):
-        base_point = self.euc.random_point()
-        point = self.euc.random_point()
-
-        expected = point - base_point
-        result = self.new_euc_metric.log(point, base_point)
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.autograd_tf_and_torch_only
-    def test_exp_new_sphere_metric(self):
-        base_point = gs.array([gs.pi / 10.0, gs.pi / 9.0])
-        tan = gs.array([gs.pi / 2.0, 0.0])
-
-        expected = gs.array([gs.pi / 10.0 + gs.pi / 2.0, gs.pi / 9.0])
-        result = self.new_sphere_metric.exp(tan, base_point)
+    def test_log(self, metric, point, base_point, expected):
+        result = metric.log(point, base_point)
         self.assertAllClose(result, expected)
