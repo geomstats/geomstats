@@ -11,8 +11,9 @@ class ExponentialDistributions(OpenSet):
     """Class for the manifold of exponential distributions."""
 
     def __init__(self):
-        super(ExponentialDistributions, self).__init__(dim=1, ambient_space=Euclidean(dim=1), metric=ExponentialFisherRaoMetric())
-        self.metric = ExponentialFisherRaoMetric()
+        super(ExponentialDistributions, self).__init__(
+            dim=1, ambient_space=Euclidean(dim=1), metric=ExponentialFisherRaoMetric()
+        )
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold of exponential distributions.
@@ -27,10 +28,11 @@ class ExponentialDistributions(OpenSet):
 
         Returns
         -------
-        belongs : array-like, shape=[...,]
+        belongs : array-like, shape=[...]
             Boolean indicating whether point represents an exponential
             distribution.
         """
+        point = gs.array(point, gs.float32)
         belongs = len(point.shape) == 1
         belongs = gs.logical_and(belongs, point >= atol)
         return belongs
@@ -52,7 +54,7 @@ class ExponentialDistributions(OpenSet):
 
         Returns
         -------
-        samples : array-like, shape=[...]
+        samples : array-like, shape=[..., n_samples]
             Sample of points representing exponential distributions.
         """
         return bound * gs.random.rand(n_samples)
@@ -60,11 +62,11 @@ class ExponentialDistributions(OpenSet):
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
 
-        The last coordinate is floored to `gs.atol` if it is negative.
+        The last coordinate is floored to `gs.atol` if it is non-positive.
 
         Parameters
         ----------
-        point : array-like, shape=[...]
+        point : array-like, shape=[...,]
             Point in ambient space.
         atol : float
             Tolerance to evaluate positivity.
@@ -87,7 +89,7 @@ class ExponentialDistributions(OpenSet):
         point : array-like, shape=[...]
             Point representing an exponential distribution.
         n_samples : int
-            Number of points to sample with each pair of parameters in point.
+            Number of points to sample with each parameter in point.
             Optional, default: 1.
 
         Returns
@@ -132,7 +134,9 @@ class ExponentialDistributions(OpenSet):
             x = gs.array(x, gs.float32)
             x = gs.to_ndarray(x, to_ndim=1)
 
-            pdf_at_x = [gs.array(expon.pdf(x, loc=0, scale=param)) for param in list(point)]
+            pdf_at_x = [
+                gs.array(expon.pdf(x, loc=0, scale=param)) for param in list(point)
+            ]
             pdf_at_x = gs.stack(pdf_at_x, axis=-1)
 
             return pdf_at_x
@@ -147,4 +151,4 @@ class ExponentialFisherRaoMetric(RiemannianMetric):
         super(ExponentialFisherRaoMetric, self).__init__(dim=1)
 
     def squared_dist(self, point_a, point_b, **kwargs):
-        return gs.abs(gs.log(point_a/point_b))
+        return gs.log(point_a / point_b) ** 2
