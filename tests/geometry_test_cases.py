@@ -289,7 +289,7 @@ class LieGroupTestCase(ManifoldTestCase):
     def test_to_tangent_at_identity_belongs_to_lie_algebra(
         self, group_args, vec, belongs_atol
     ):
-        """Check that to tangent is tangent in lie algebra.
+        """Check that to tangent at identity is tangent in lie algebra.
 
         Parameters
         ----------

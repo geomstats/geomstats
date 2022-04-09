@@ -474,7 +474,7 @@ class _LieGroupTestData(_ManifoldTestData):
     def _to_tangent_at_identity_belongs_to_lie_algebra_test_data(
         self, group_args_list, shape_list, n_vecs_list, belongs_atol=gs.atol
     ):
-        """Generate datat ot check that to tangent at indentity belongs to lie algebra.
+        """Generate data to check that to tangent at identity belongs to lie algebra.
 
         Parameters
         ----------
