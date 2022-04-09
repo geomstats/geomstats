@@ -476,8 +476,6 @@ class _LieGroupTestData(_ManifoldTestData):
     ):
         """Generate datat ot check that to tangent at indentity belongs to lie algebra.
 
-        _extended_summary_.
-
         Parameters
         ----------
         group_args_list : _type_

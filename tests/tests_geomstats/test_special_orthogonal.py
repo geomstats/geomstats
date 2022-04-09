@@ -83,6 +83,7 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
     space = group = SpecialOrthogonal
     skip_test_exp_after_log = pytorch_backend()
     skip_test_projection_belongs = True
+    skip_test_to_tangent_at_identity_belongs_to_lie_algebra = True
 
     class SpecialOrthogonalTestData(_LieGroupTestData):
         n_list = random.sample(range(2, 4), 2)
@@ -552,6 +553,11 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
         def compose_identity_with_point_is_point_test_data(self):
             return self._compose_identity_with_point_is_point_test_data(
                 SpecialOrthogonal, self.space_args_list, self.n_points_list
+            )
+
+        def to_tangent_at_identity_belongs_to_lie_algebra_test_data(self):
+            return self._to_tangent_at_identity_belongs_to_lie_algebra_test_data(
+                self.space_args_list, self.shape_list, self.n_vecs_list
             )
 
     testing_data = SpecialOrthogonalTestData()
