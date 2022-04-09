@@ -287,7 +287,7 @@ class LieGroupTestCase(ManifoldTestCase):
         self.assertAllClose(exp_point, gs.array(point), rtol, atol)
 
     def test_to_tangent_at_identity_belongs_to_lie_algebra(
-        self, group_args, vec, belongs_atol
+        self, group_args, vector, belongs_atol
     ):
         """Check that to tangent at identity is tangent in lie algebra.
 
@@ -295,13 +295,13 @@ class LieGroupTestCase(ManifoldTestCase):
         ----------
         group_args : tuple
             Arguments to pass to constructor of the group.
-        tangent_vec : array-like
-            Tangent vector to the manifold at base_point.
+        vector : array-like
+            Vector to be projected on the tangent space at base_point.
         belongs_atol : float
             Absolute tolerance for the belongs function.
         """
         group = self.group(*group_args)
-        tangent_vec = group.to_tangent(vec, group.identity)
+        tangent_vec = group.to_tangent(vector, group.identity)
         result = gs.all(group.lie_algebra.belongs(tangent_vec, belongs_atol))
         self.assertAllClose(result, gs.array(True))
 
