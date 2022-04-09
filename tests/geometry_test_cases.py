@@ -286,6 +286,25 @@ class LieGroupTestCase(ManifoldTestCase):
         exp_point = group.exp(log_vec, gs.array(base_point))
         self.assertAllClose(exp_point, gs.array(point), rtol, atol)
 
+    def test_to_tangent_at_identity_belongs_to_lie_algebra(
+        self, group_args, vec, belongs_atol
+    ):
+        """Check that to tangent is tangent in lie algebra.
+
+        Parameters
+        ----------
+        group_args : tuple
+            Arguments to pass to constructor of the group.
+        tangent_vec : array-like
+            Tangent vector to the manifold at base_point.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
+        group = self.group(*group_args)
+        tangent_vec = group.to_tangent(vec, group.identity)
+        result = gs.all(group.lie_algebra.belongs(tangent_vec, belongs_atol))
+        self.assertAllClose(result, gs.array(True))
+
 
 class VectorSpaceTestCase(ManifoldTestCase):
     def test_basis_belongs(self, space_args, belongs_atol):

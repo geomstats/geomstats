@@ -471,6 +471,31 @@ class _LieGroupTestData(_ManifoldTestData):
             smoke_data = []
         return self.generate_tests(smoke_data, random_data)
 
+    def _to_tangent_at_identity_belongs_to_lie_algebra_test_data(
+        self, group_args_list, shape_list, n_vecs_list, belongs_atol=gs.atol
+    ):
+        """Generate datat ot check that to tangent at indentity belongs to lie algebra.
+
+        _extended_summary_.
+
+        Parameters
+        ----------
+        group_args_list : _type_
+            List of arguments to pass to constructor of the Lie group.
+        n_vecs_list : list
+            List of number of vectors to be projected on tangent space at identity.
+        belongs_atol : float
+            Absolute tolerance of the belongs function.
+        """
+        random_data = []
+
+        for group_args, shape, n_vecs in zip(group_args_list, shape_list, n_vecs_list):
+            vec = gs.random.normal(size=(n_vecs,) + shape)
+            random_data.append(
+                dict(group_args=group_args, vec=vec, belongs_atol=belongs_atol)
+            )
+        return self.generate_tests([], random_data)
+
 
 class _VectorSpaceTestData(_ManifoldTestData):
     def _basis_belongs_test_data(self, space_args_list, belongs_atol=gs.atol):
