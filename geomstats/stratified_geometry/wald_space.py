@@ -1015,10 +1015,10 @@ class WaldSpace(PointSet):
         """
         p_new = p_tree ** (1 / (self.n - 1))
         if n_samples == 1:
-            sample = Wald.generate_wald(p_keep, p_new, btol, check=True)
+            sample = Wald.generate_wald(self.n, p_keep, p_new, btol, check=True)
             return sample
         sample = [
-            Wald.generate_wald(p_keep, p_new, btol, check=True)
+            Wald.generate_wald(self.n, p_keep, p_new, btol, check=True)
             for _ in range(n_samples)
         ]
         return sample
