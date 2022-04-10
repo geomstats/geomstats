@@ -527,7 +527,7 @@ class Topology:
         string_of_topology : str
             Return the fancy readable string representation of the topology.
         """
-        comps = [", ".join(repr(sp) for sp in splits) for splits in self.split_sets]
+        comps = [", ".join(str(sp) for sp in splits) for splits in self.split_sets]
         return "(" + "; ".join(comps) + ")"
 
     def __eq__(self, other):
@@ -736,7 +736,7 @@ class Wald(Point):
         string_of_wald : str
             Return the string representation of the wald.
         """
-        return str((self.st, tuple(self.x)))
+        return repr((self.st, tuple(self.x)))
 
     def __str__(self):
         """Return the fancy printable string representation of the wald.
@@ -750,7 +750,187 @@ class Wald(Point):
         string_of_wald : str
             Return the fancy readable string representation of the wald.
         """
-        return f"({repr(self.st)};{repr(self.x)})"
+        return f"({str(self.st)};{str(self.x)})"
+
+    @staticmethod
+    def _generate_partition(n, p_new):
+        r"""Generate a random partition of :math:`\{0,\dots,n-1\}`.
+
+        This algorithm works as follows: Start with a single set containing zero,
+        then successively add the labels from 1 to n-1 to the partition in the
+        following manner: for each label u, with probability `probability`, add the
+        label u to a random existing set of the partition, else add a new singleton
+        set {u} to the partition (i.e. with probability 1 - `probability`).
+
+        Parameters
+        ----------
+        p_new : float
+            A float between 0 and 1, the probability that no new component is added,
+            and 1 - probability that a new component is added.
+
+        Returns
+        -------
+        partition : list[list[int]]
+            A partition of the set :math:`\{0,\dots,n-1\}` into non-empty sets.
+        """
+        _partition = [[0]]
+        for u in range(1, n):
+            if gs.random.rand(1) < p_new:
+                index = int(gs.random.randint(0, len(_partition), (1,)))
+                _partition[index].append(u)
+            else:
+                _partition.append([u])
+        return _partition
+
+    @staticmethod
+    def _generate_splits(labels):
+        """Generate random maximal set of compatible splits of set ``labels``.
+
+        This method works inductively on the number of elements in labels.
+        Start with a split of two randomly chosen labels. Then, successively choose
+        a label from the labels and add this as a leaf with a split to the existing
+        tree by attaching it to a random split, thereby dividing this split into two
+        splits and one has to update all the other splits accordingly.
+
+        Parameters
+        ----------
+        labels : list[int]
+            A list of integers, the set of labels that we generate splits for.
+
+        Returns
+        -------
+        splits : list[Split]
+            A list of splits of the set of labels, maximal number of splits.
+        """
+        if len(labels) <= 1:
+            return []
+        unused_labels = labels.copy()
+        random_index = int(gs.random.randint(0, len(unused_labels), (1,)))
+        u = unused_labels.pop(random_index)
+        random_index = int(gs.random.randint(0, len(unused_labels), (1,)))
+        v = unused_labels.pop(random_index)
+        used_labels = [u, v]
+        splits = [Split(part1=(u,), part2=(v,))]
+        while unused_labels:
+            random_index = int(gs.random.randint(0, len(unused_labels), (1,)))
+            u = unused_labels.pop(random_index)
+            updated_splits = [Split(part1=(u,), part2=tuple(used_labels))]
+            random_index = int(gs.random.randint(0, len(splits), (1,)))
+            divided_split = splits.pop(random_index)
+            updated_splits.append(
+                Split(part1=divided_split.part1 + (u,), part2=divided_split.part2)
+            )
+            updated_splits.append(
+                Split(part1=divided_split.part1, part2=divided_split.part2 + (u,))
+            )
+            for split in splits:
+                updated_splits.append(
+                    Split(
+                        part1=split.get_part_away_from(divided_split),
+                        part2=split.get_part_towards(divided_split) + (u,),
+                    )
+                )
+            used_labels.append(u)
+            splits = updated_splits
+        return splits
+
+    @staticmethod
+    def _check_if_separated(labels, splits):
+        """Check for each pair of labels if exists split that separates them.
+
+        Parameters
+        ----------
+        labels : list[int]
+            A list of integers, the set of labels that we generate splits for.
+        splits : list[Split]
+            A list of splits of the set of labels.
+
+        Returns
+        -------
+        are_separated : bool
+            True if the labels are pair-wise separated by a split else False.
+        """
+        return gs.all(
+            [
+                gs.any([sp.separates(u, v) for sp in splits])
+                for u, v in it.combinations(labels, 2)
+            ]
+        )
+
+    @staticmethod
+    def _delete_splits(splits, labels, p_keep, check=True):
+        """Delete splits randomly from a set of splits.
+
+        We require the splits to satisfy the check for if all pair-wise labels are
+        separated. In this way, before deleting a split, this condition is checked
+        to make sure it is not violated.
+
+        Parameters
+        ----------
+        splits : list[Split]
+            A list of splits of the set of labels.
+        labels : list[int]
+            A list of integers, the set of labels that we generate splits for.
+        p_keep : float
+            A float between 0 and 1 determining the probability with which a split
+            is kept and not deleted.
+        check : bool
+            If True, checks if splits still separate all labels. In this case, the split
+            will not be deleted. If False, any split can be randomly deleted.
+
+        Returns
+        -------
+        left_over_splits : list[Split]
+            The list of splits that are not deleted.
+        """
+        if p_keep == 1:
+            return splits
+        for i in reversed(range(len(splits))):
+            if gs.random.rand(1) > p_keep:
+                splits_cp = splits.copy()
+                splits_cp.pop(i)
+                if not check:
+                    splits = splits_cp
+                elif Wald._check_if_separated(splits=splits_cp, labels=labels):
+                    splits = splits_cp
+        return splits
+
+    @staticmethod
+    def generate_wald(n, p_keep, p_new, btol=10**-8, check=True):
+        """Generate a random instance of class ``Wald``.
+
+        Parameters
+        ----------
+        n : int
+            The number of labels the wald is generated with respect to.
+        p_keep : float
+            The probability will be inserted into the generation of a partition as
+            well as for the generation of a split set for the topology of the wald.
+        p_new : float
+            A float between 0 and 1, the probability that no new component is added,
+            and probability of 1 - p_new_ that a new component is added.
+        btol: float
+            Tolerance for the boundary of the coordinates in each grove. Defaults to
+            1e-08.
+        check : bool
+            If True, checks if splits still separate all labels. In this case, the split
+            will not be deleted. If False, any split can be randomly deleted.
+
+        Returns
+        -------
+        random_wald : Wald
+            The randomly generated wald.
+        """
+        partition = Wald._generate_partition(n=n, p_new=p_new)
+        split_sets = [Wald._generate_splits(labels=_part) for _part in partition]
+        split_sets = [
+            Wald._delete_splits(splits=splits, labels=part, p_keep=p_keep, check=check)
+            for part, splits in zip(partition, split_sets)
+        ]
+        top = Topology(n=n, partition=partition, split_sets=split_sets)
+        x = gs.random.uniform(size=(len(top.flatten(split_sets)),), low=0, high=1)
+        x = np.minimum(np.maximum(btol, x), 1 - btol)
+        return Wald(n=n, st=top, x=x)
 
 
 class WaldSpace(PointSet):
@@ -807,190 +987,38 @@ class WaldSpace(PointSet):
         results = [is1 and is2 for is1, is2 in zip(is_spd, is_between_0_1)]
         return results
 
-    def random_point(self, n_samples=1, prob=0.9, btol=1e-08):
+    def random_point(self, n_samples=1, p_tree=0.9, p_keep=0.9, btol=1e-08):
         """Sample a random point in Wald space.
 
         Parameters
         ----------
         n_samples : int
             Number of samples. Defaults to 1.
-        prob : float between 0 and 1
+        p_tree : float between 0 and 1
             The probability that the sampled point is a tree, and not a forest. If the
-            probability is equal to 1, then the sampled point will be a fully resolved
-            tree. Defaults to 0.9.
+            probability is equal to 1, then the sampled point will be a tree.
+            Defaults to 0.9.
+        p_keep : float between 0 and 1
+            The probability that a sampled edge is kept and not deleted randomly.
+            To be precise, it is not exactly the probability, as some edges cannot be
+            deleted since the requirement that two labels are separated by a split might
+            be violated otherwise.
+            Defaults to 0.9
         btol: float
             Tolerance for the boundary of the coordinates in each grove. Defaults to
             1e-08.
 
         Returns
         -------
-        samples : list, shape=[n_samples, n, n]
+        samples : Wald or list of Wald, shape=[n_samples]
             Points sampled in Wald space.
         """
-
-        def generate_partition(prob_):
-            r"""Generate a random partition of :math:`\{0,\dots,n-1\}`.
-
-            This algorithm works as follows: Start with a single set containing zero,
-            then successively add the labels from 1 to n-1 to the partition in the
-            following manner: for each label u, with probability `probability`, add the
-            label u to a random existing set of the partition, else add a new singleton
-            set {u} to the partition (i.e. with probability 1 - `probability`).
-
-            Parameters
-            ----------
-            prob_ : float
-                A float between 0 and 1, the probability that no new component is added,
-                and 1 - probability that a new component is added.
-
-            Returns
-            -------
-            partition : list[list[int]]
-                A partition of the set :math:`\{0,\dots,n-1\}` into non-empty sets.
-            """
-            _partition = [[0]]
-            for u in range(1, self.n):
-                if gs.random.rand(1) < prob_:
-                    index = int(gs.random.randint(0, len(_partition), (1,)))
-                    _partition[index].append(u)
-                else:
-                    _partition.append([u])
-            return _partition
-
-        def generate_splits(unused_labels):
-            """Generate random maximal set of compatible splits of set ``labels``.
-
-            This method works inductively on the number of elements in labels.
-            Start with a split of two randomly chosen labels. Then, successively choose
-            a label from the labels and add this as a leaf with a split to the existing
-            tree by attaching it to a random split, thereby dividing this split into two
-            splits and one has to update all the other splits accordingly.
-
-            Parameters
-            ----------
-            unused_labels : list[int]
-                A list of integers, the set of labels that we generate splits for.
-
-            Returns
-            -------
-            splits : list[Split]
-                A list of splits of the set of labels, maximal number of splits.
-            """
-            if len(unused_labels) <= 1:
-                return []
-            unused_labels = unused_labels.copy()
-            random_index = int(gs.random.randint(0, len(unused_labels), (1,)))
-            u = unused_labels.pop(random_index)
-            random_index = int(gs.random.randint(0, len(unused_labels), (1,)))
-            v = unused_labels.pop(random_index)
-            used_labels = [u, v]
-            splits = [Split(part1=(u,), part2=(v,))]
-            while unused_labels:
-                random_index = int(gs.random.randint(0, len(unused_labels), (1,)))
-                u = unused_labels.pop(random_index)
-                updated_splits = [Split(part1=(u,), part2=tuple(used_labels))]
-                random_index = int(gs.random.randint(0, len(splits), (1,)))
-                divided_split = splits.pop(random_index)
-                updated_splits.append(
-                    Split(part1=divided_split.part1 + (u,), part2=divided_split.part2)
-                )
-                updated_splits.append(
-                    Split(part1=divided_split.part1, part2=divided_split.part2 + (u,))
-                )
-                for split in splits:
-                    updated_splits.append(
-                        Split(
-                            part1=split.get_part_away_from(divided_split),
-                            part2=split.get_part_towards(divided_split) + (u,),
-                        )
-                    )
-                used_labels.append(u)
-                splits = updated_splits
-            return splits
-
-        def check_if_separated(labels, splits):
-            """Check for each pair of labels if exists split that separates them.
-
-            Parameters
-            ----------
-            labels : list[int]
-                A list of integers, the set of labels that we generate splits for.
-            splits : list[Split]
-                A list of splits of the set of labels.
-
-            Returns
-            -------
-            are_separated : bool
-                True if the labels are pair-wise separated by a split else False.
-            """
-            return gs.all(
-                [
-                    gs.any([sp.separates(u, v) for sp in splits])
-                    for u, v in it.combinations(labels, 2)
-                ]
-            )
-
-        def delete_splits(splits, labels, prob_):
-            """Delete splits randomly from a set of splits.
-
-            We require the splits to satisfy the check for if all pair-wise labels are
-            separated. In this way, before deleting a split, this condition is checked
-            to make sure it is not violated.
-
-            Parameters
-            ----------
-            splits : list[Split]
-                A list of splits of the set of labels.
-            labels : list[int]
-                A list of integers, the set of labels that we generate splits for.
-            prob_ : float
-                A float between 0 and 1 determining the probability with which a split
-                is deleted.
-
-            Returns
-            -------
-            left_over_splits : list[Split]
-                The list of splits that are not deleted.
-            """
-            if prob_ == 1:
-                return splits
-            for i in reversed(range(len(splits))):
-                if gs.random.rand(1) > prob_:
-                    splits_copy = splits.copy()
-                    splits_copy.pop(i)
-                    if check_if_separated(splits=splits_copy, labels=labels):
-                        splits = splits_copy
-            return splits
-
-        def generate_wald(prob_):
-            """Generate a random instance of class ``Wald``.
-
-            Parameters
-            ----------
-            prob_ : float
-                The probability will be inserted into the generation of a partition as
-                well as for the generation of a split set for the topology of the wald.
-                Defaults to 0.9.
-
-            Returns
-            -------
-            random_wald : Wald
-                The randomly generated wald.
-            """
-            partition = generate_partition(prob_=prob_)
-            split_sets = [generate_splits(unused_labels=_part) for _part in partition]
-            split_sets = [
-                delete_splits(splits=splits, labels=part, prob_=prob_)
-                for part, splits in zip(partition, split_sets)
-            ]
-            top = Topology(n=self.n, partition=partition, split_sets=split_sets)
-            x = gs.random.uniform(size=(len(top.flatten(split_sets)),), low=0, high=1)
-            x = np.minimum(np.maximum(btol, x), 1 - btol)
-            return Wald(n=self.n, st=top, x=x)
-
-        prob = prob ** (1 / (self.n - 1))
+        p_new = p_tree ** (1 / (self.n - 1))
         if n_samples == 1:
-            sample = generate_wald(prob_=prob)
+            sample = Wald.generate_wald(p_keep, p_new, btol, check=True)
             return sample
-        sample = [generate_wald(prob_=prob) for _ in range(n_samples)]
+        sample = [
+            Wald.generate_wald(p_keep, p_new, btol, check=True)
+            for _ in range(n_samples)
+        ]
         return sample
