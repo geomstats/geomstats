@@ -20,7 +20,7 @@ class ExponentialDistributions(OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...]
+        point : array-like, shape=[...,]
             Point to be checked.
         atol : float
             Tolerance to evaluate positivity.
@@ -28,7 +28,7 @@ class ExponentialDistributions(OpenSet):
 
         Returns
         -------
-        belongs : array-like, shape=[...]
+        belongs : array-like, shape=[...,]
             Boolean indicating whether point represents an exponential
             distribution.
         """
@@ -73,9 +73,10 @@ class ExponentialDistributions(OpenSet):
 
         Returns
         -------
-        projected : array-like, shape=[...]
+        projected : array-like, shape=[...,]
             Projected point.
         """
+        point = gs.array(point, dtype=gs.float32)
         return gs.where(point < atol, atol, point)
 
     def sample(self, point, n_samples=1):
@@ -86,7 +87,7 @@ class ExponentialDistributions(OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...]
+        point : array-like, shape=[...,]
             Point representing an exponential distribution.
         n_samples : int
             Number of points to sample with each parameter in point.
@@ -99,10 +100,8 @@ class ExponentialDistributions(OpenSet):
         """
         geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=1)
-        samples = []
-        for i in range(n_samples):
-            samples.append(expon.rvs(scale=point))
-        return samples[0] if len(point) == 1 else gs.transpose(gs.stack(samples))
+        samples = gs.array([expon.rvs(point) for i in range(n_samples)])
+        return samples[0] if len(point) == 1 else gs.transpose(samples)
 
     def point_to_pdf(self, point):
         """Compute pdf associated to point.
@@ -112,7 +111,7 @@ class ExponentialDistributions(OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...]
+        point : array-like, shape=[...,]
             Point representing an exponential distribution (scale).
 
         Returns
@@ -151,4 +150,18 @@ class ExponentialFisherRaoMetric(RiemannianMetric):
         super(ExponentialFisherRaoMetric, self).__init__(dim=1)
 
     def squared_dist(self, point_a, point_b, **kwargs):
+        """Compute squared distance associated with the exponential Fisher Rao metric.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[...,]
+            Point representing a binomial distribution (probability of success).
+        point_b : array-like, shape=[...,] (same shape as point_a)
+            Point representing a binomial distribution (probability of success).
+
+        Returns
+        -------
+        squared_dist : array-like, shape=[...,]
+            Squared distance between points point_a and point_b.
+        """
         return gs.log(point_a / point_b) ** 2

@@ -69,14 +69,14 @@ class BinomialDistributions(OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...]
+        point : array-like, shape=[...,]
             Point in ambient space.
         atol : float
             Tolerance to evaluate positivity.
 
         Returns
         -------
-        projected : array-like, shape=[...]
+        projected : array-like, shape=[...,]
             Projected point.
         """
         point = gs.array(point, gs.float32)
@@ -117,8 +117,8 @@ class BinomialDistributions(OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...]
-            Point representing an binomial distribution (location and scale).
+        point : array-like, shape=[...,]
+            Point representing a binomial distribution (probability of success).
 
         Returns
         -------
@@ -157,6 +157,20 @@ class BinomialFisherRaoMetric(RiemannianMetric):
         self.n_draws = n_draws
 
     def squared_dist(self, point_a, point_b, **kwargs):
+        """Compute squared distance associated with the binomial Fisher Rao metric.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[...,]
+            Point representing a binomial distribution (probability of success).
+        point_b : array-like, shape=[...,] (same shape as point_a)
+            Point representing a binomial distribution (probability of success).
+
+        Returns
+        -------
+        squared_dist : array-like, shape=[...,]
+            Squared distance between points point_a and point_b.
+        """
         return (
             4
             * self.n_draws
