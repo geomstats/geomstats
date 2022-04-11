@@ -12,7 +12,7 @@ from geomstats.geometry.matrices import Matrices
 class Flag(Manifold):
     r"""Class for flag manifolds.
 
-    Representation, notations and formulas inspired from [Ye2021].
+    Representation, notations and formulas inspired from **[Ye2021]**.
 
     The flag manifold :math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)` is a smooth
     manifold whose elements are flags in a vector space of dimension n, i.e. nested
@@ -25,7 +25,7 @@ class Flag(Manifold):
     :math:`n \times n` matrix :math:`R_i` of rank :math:`n_i-n_{i-1}`
     satisfying :math:`{R_i}^2 = R_i = {R_i}^\top` and
     :math:`R_i R_j = 0` for j < i. The mapping is diffeomorphic
-    (cf. [Ye2021] Proposition 21).
+    (cf. **[Ye2021]** Proposition 21).
     Each :math:`R_i \in \operatorname{Flag}(n_1, n_2 \dots, n_d; n)` is thus identified
     with the unique orthogonal projector onto :math:`{\rm Im}(R_i)`,
     with the constraint that the related subspaces must be orthogonal one to another.
@@ -41,7 +41,7 @@ class Flag(Manifold):
 
     References
     ----------
-    .. [Ye2021] Ye, K., Wong, K.S.-W., Lim, L.-H.: Optimization on flag manifolds.
+    .. **[Ye2021]** Ye, K., Wong, K.S.-W., Lim, L.-H.: Optimization on flag manifolds.
     Preprint, arXiv:1907.00949 [math.OC] (2019)
 
     Parameters
@@ -68,22 +68,18 @@ class Flag(Manifold):
     def belongs(self, point, atol=gs.atol):
         r"""Evaluate if a point belongs to the manifold.
 
-        Characterization based on reduced projection coordinates from [Ye2021],
-        Proposition 21:
-        **Proposition 21**
+        Characterization based on reduced projection coordinates from **[Ye2021]**.
+
+        **Proposition 21:**
         The flag manifold :math:`\operatorname{Flag}(n_1, n_2 \dots, n_d; n)`
-        is diffeomorphic to
+        is diffeomorphic to:
+
         .. math::
-            \left\{\R = \operatorname{diag}\left(R_1, \dots, R_d\right)
+            \left\{R = \operatorname{diag}\left(R_1, \dots, R_d\right)
             \in \mathbb{R}^{nd \times nd} :
             {R_i}^2 = R_i = {R_i}^\top,
-            \operatorname[{tr}(R_i)=n_i-n_{i-1}, R_i R_j = 0, i < j right\}
-
-        References
-        ----------
-        .. [Ye2021] Ye, K., Wong, K.S.-W., Lim, L.-H.: Optimization on flag manifolds.
-        Preprint, arXiv:1907.00949 [math.OC] (2019)
-
+            \operatorname{tr}(R_i)=n_i-n_{i-1}, R_i R_j = 0, i < j \right\}
+        |
         Parameters
         ----------
         point : array-like, shape=[..., dim]
@@ -139,20 +135,20 @@ class Flag(Manifold):
     def is_tangent(self, vector, base_point, atol=gs.atol):
         r"""Check whether the vector is tangent at base_point.
 
-        Characterization based on reduced projection coordinates from [Ye2021],
-        Proposition 22:
-        **Proposition 22**
-        Let :math:`\R = \operatorname{diag}\left(R_1, \dots, R_d\right) \in
+        Characterization based on reduced projection coordinates from **[Ye2021]**.
+
+        **Proposition 22:**
+        Let :math:`R = \operatorname{diag}\left(R_1, \dots, R_d\right) \in
         \operatorname{Flag}(n_1, n_2 \dots, n_d; n)`.
-         Then the tangent space is given by
+        Then the tangent space at point R is given by:
 
         .. math::
             T_R \operatorname{Flag}(n_1, n_2 \dots, n_d; n) =
             \left\{Z = \operatorname{diag}\left(Z_1, \dots, Z_d\right)
             \in \mathbb{R}^{nd \times nd} :
             R_i Z_i + Z_i R_i = Z_i = {Z_i}^\top,
-            \operatorname[{tr}(Z_i)=0, Z_i R_j + R_i Z_j= 0, i < j right\}
-
+            \operatorname{tr}(Z_i)=0, Z_i R_j + R_i Z_j= 0, i < j \right\}
+        |
         Parameters
         ----------
         vector : array-like, shape=[..., dim]

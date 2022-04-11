@@ -120,6 +120,11 @@ Positive Lower Triangular Matrices
 .. automodule:: geomstats.geometry.positive_lower_triangular_matrices
    :members:
 
+Flag Manifold
+-------------
+.. automodule:: geomstats.geometry.flag
+   :members:
+
 
 Metrics
 =======
