@@ -198,3 +198,34 @@ class Manifold(abc.ABC):
                 gs.random.normal(size=(n_samples,) + self.shape), base_point
             )
         )
+
+    @abc.abstractmethod
+    def is_connected(self):
+        """Return whether manifold is connected.
+
+        Returns
+        -------
+        _ : boolean
+            True if manifold is connected, False otherwise.
+        """
+
+    @abc.abstractmethod
+    def is_compact(self):
+        """Return whether manifold is compact.
+
+        Returns
+        -------
+        _ : boolean
+            True if manifold is compact, False otherwise.
+        """
+
+    @abc.abstractmethod
+    def is_geodesically_complete(self):
+        """Return whether manifold with metric is geodesically complete.
+
+        Returns
+        -------
+        _ : boolean
+            True if manifold is geodesically complete, False otherwise.
+        """
+        return self.metric.is_geodesically_complete()
