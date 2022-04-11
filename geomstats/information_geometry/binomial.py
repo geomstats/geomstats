@@ -149,6 +149,7 @@ class BinomialDistributions(OpenSet):
         return pmf
 
 
+
 class BinomialFisherRaoMetric(RiemannianMetric):
     """Class for the Fisher information metric on binomial distributions."""
 
