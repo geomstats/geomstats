@@ -1106,8 +1106,9 @@ class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
         form, where each block is the metric matrix of one manifold.
 
         For M = M1 x ... x Mn equipped with the product Riemannian metric
-        g = (g1, ...., gn), we check that the matrix of g is formed by the metric matrices
-        of g1, ..., gn in this order, arranged in a block diagonal.
+        g = (g1, ...., gn), we check that the matrix of g is formed by
+        the metric matrices of g1, ..., gn in this order, arranged in a
+        block diagonal.
 
         Parameters
         ----------
@@ -1128,7 +1129,6 @@ class QuotientMetricTestCase(RiemannianMetricTestCase):
         ...
         """
         pass
-
 
     def test_log_is_horizontal(self):
         """Check the quotient log is a horizontal tangent vector.
@@ -1162,7 +1162,7 @@ class PullbackMetricTestCase(RiemannianMetricTestCase):
 
 class InvariantMetricTestCase(RiemannianMetricTestCase):
     def test_exp_at_identity_of_lie_algebra_belongs(self):
-        """Check that the exp of a lie algebra elements is in group.
+        """Check that exp of a lie algebra element is in group.
 
         Check that the exp at identity of a lie algebra element
         belongs to the group.
@@ -1174,7 +1174,7 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
         pass
 
     def test_log_belongs_to_lie_algebra(self):
-        """Check that the log belongs to the lie algebra.
+        """Check that log belongs to lie algebra.
 
         Parameters
         ----------
@@ -1192,7 +1192,7 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
         pass
 
     def test_log_after_exp_at_identity(self):
-        """Check that exp and log at identity are inverse.
+        """Check that log and exp at identity are inverse.
 
         Parameters
         ----------
