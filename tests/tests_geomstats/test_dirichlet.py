@@ -184,9 +184,7 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_dist_is_positive = (
         geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
     )
-    skip_test_squared_dist_is_symmetric = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
+    skip_test_squared_dist_is_symmetric = True
     skip_test_squared_dist_is_positive = (
         geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
     )
