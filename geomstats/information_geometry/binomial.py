@@ -59,6 +59,7 @@ class BinomialDistributions(OpenSet):
         samples : array-like, shape=[...,]
             Sample of points representing binomial distributions.
         """
+
         return gs.random.rand(n_samples)
 
     def projection(self, point, atol=gs.atol):
@@ -81,8 +82,8 @@ class BinomialDistributions(OpenSet):
         point = gs.array(point, gs.float32)
         return gs.where(
             gs.logical_or(point < atol, point > 1 - atol),
-            (1 - atol) * (point > 1 - atol).astype(int)
-            + atol * (point < atol).astype(int),
+            (1 - atol) * gs.cast((point > 1 - atol), gs.float32)
+            + atol * gs.cast((point < atol), gs.float32),
             point,
         )
 
@@ -106,10 +107,8 @@ class BinomialDistributions(OpenSet):
         """
         geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=1)
-        samples = []
-        for i in range(n_samples):
-            samples.append(binom.rvs(self.n_draws, point))
-        return samples[0] if len(point) == 1 else gs.transpose(gs.stack(samples))
+        samples = gs.array([binom.rvs(self.n_draws, point) for i in range(n_samples)])
+        return samples[0] if len(point) == 1 else gs.transpose(samples)
 
     def point_to_pmf(self, point):
         """Compute pmf associated to point.
@@ -135,7 +134,7 @@ class BinomialDistributions(OpenSet):
             Parameters
             ----------
             k : array-like, shape=[n_points,]
-                Integers in \{0, ..., n_draws\} at which to compute the probability mass function.
+                Integers in {0, ..., n_draws} at which to compute the probability mass function.
             """
             k = gs.array(k, gs.float32)
             k = gs.to_ndarray(k, to_ndim=1)

@@ -57,6 +57,7 @@ class TestBinomialDistributions(geomstats.tests.TestCase):
                 0.3,
             ]
         )
+
         self.assertAllClose(expected, result, atol=1e-8)
 
     def test_random_point_and_belongs(self):
@@ -66,7 +67,7 @@ class TestBinomialDistributions(geomstats.tests.TestCase):
         on the binomial distribution space.
         """
         point = self.binomial.random_point()
-        result = self.binomial.belongs(point)
+        result = gs.squeeze(self.binomial.belongs(point))
         expected = True
         self.assertAllClose(expected, result)
 
@@ -108,7 +109,7 @@ class TestBinomialDistributions(geomstats.tests.TestCase):
         """
         point = self.binomial.random_point(n_samples=2)
         pmf = self.binomial.point_to_pmf(point)
-        k = gs.linspace(0, self.n_draws, self.n_draws + 1)
+        k = gs.cast(gs.linspace(0, self.n_draws, self.n_draws + 1), dtype=gs.float32)
         result = pmf(k)
         pmf1 = binom.pmf(k, self.n_draws, point[0])
         pmf2 = binom.pmf(k, self.n_draws, point[1])
