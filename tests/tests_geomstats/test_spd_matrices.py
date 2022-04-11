@@ -789,6 +789,10 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
                 self.n_tangent_vecs_list,
             )
 
+        def parallel_transport_test_data(self):
+            smoke_data = [dict(n=k) for k in self.metric_args_list]
+            return self.generate_tests(smoke_data)
+
     testing_data = SPDMetricBuresWassersteinTestData()
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
@@ -807,6 +811,53 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
         metric = SPDMetricBuresWasserstein(n)
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_parallel_transport(self, n):
+        space = SPDMatrices(*n)
+        metric = self.metric(*n)
+        shape = (2, *n, *n)
+
+        point = space.random_point(2)
+        end_point = space.random_point(2)
+        tan_b = gs.random.rand(*shape)
+        tan_b = space.to_tangent(tan_b, point)
+
+        # use a vector orthonormal to tan_b
+        tan_a = gs.random.rand(*shape)
+        tan_a = space.to_tangent(tan_a, point)
+
+        # orthonormalize and move to base_point
+        tan_a -= gs.einsum(
+            "...,...ij->...ij",
+            metric.inner_product(tan_a, tan_b, point)
+            / metric.squared_norm(tan_b, point),
+            tan_b,
+        )
+        tan_b = gs.einsum("...ij,...->...ij", tan_b, 1.0 / metric.norm(tan_b, point))
+        tan_a = gs.einsum("...ij,...->...ij", tan_a, 1.0 / metric.norm(tan_a, point))
+
+        transported = metric.parallel_transport(
+            tan_a, point, end_point=end_point, n_steps=15, step="rk4"
+        )
+        result = metric.norm(transported, end_point)
+        expected = metric.norm(tan_a, point)
+        self.assertAllClose(result, expected)
+
+        is_tangent = space.is_tangent(transported, end_point)
+        self.assertTrue(gs.all(is_tangent))
+
+        transported = metric.parallel_transport(
+            tan_a, point, tan_b, n_steps=15, step="rk4"
+        )
+
+        end_point = metric.exp(tan_b, point)
+        result = metric.norm(transported, end_point)
+        expected = metric.norm(tan_a, point)
+        self.assertAllClose(result, expected)
+
+        is_tangent = space.is_tangent(transported, end_point)
+        self.assertTrue(gs.all(is_tangent))
 
 
 class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
