@@ -478,7 +478,7 @@ class _LieGroupTestData(_ManifoldTestData):
 
         Parameters
         ----------
-        group_args_list : _type_
+        group_args_list : list
             List of arguments to pass to constructor of the Lie group.
         n_vecs_list : list
             List of number of vectors to be projected on tangent space at identity.
