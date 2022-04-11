@@ -95,7 +95,7 @@ class Flag(Manifold):
         """
 
         def _each_belongs(pt):
-            """ Auxiliary function to deal with samples one at a time."""
+            """Auxiliary function to deal with samples one at a time."""
             for i in range(1, self.d + 1):
                 R_i = pt[i - 1]
                 cst_1 = gs.all(gs.isclose(Matrices.mul(R_i, R_i), R_i, atol=atol))
@@ -167,7 +167,7 @@ class Flag(Manifold):
         """
 
         def _each_is_tangent(vec, bp):
-            """ Auxiliary function to deal with samples one at a time."""
+            """Auxiliary function to deal with samples one at a time."""
             for i in range(1, self.d + 1):
                 R_i = bp[i - 1]
                 Z_i = vec[i - 1]
