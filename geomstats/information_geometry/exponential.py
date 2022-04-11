@@ -1,10 +1,15 @@
+"""Statistical Manifold of Binomial distributions with the Fisher metric.
+
+Lead author: Jules Deschamps.
+"""
+
+from scipy.stats import expon
+
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-
-from scipy.stats import expon
 
 
 class ExponentialDistributions(OpenSet):
