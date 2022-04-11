@@ -7,8 +7,8 @@ from scipy.stats import binom
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.information_geometry.binomial import (
-    BinomialFisherRaoMetric,
     BinomialDistributions,
+    BinomialFisherRaoMetric,
 )
 
 
@@ -24,7 +24,9 @@ class TestBinomialDistributions(geomstats.tests.TestCase):
         self.n_samples = 10
 
     def test_projection(self):
-        """Test that the projection method sends points outside [0,1] to either 0 or 1 (depending on which is closest)"""
+        """Test that the projection method sends points outside [0,1]
+        to either 0 or 1 (depending on which is closest).
+        """
         single_true_point = self.binomial.random_point()
         result = self.binomial.projection(single_true_point)
         expected = single_true_point

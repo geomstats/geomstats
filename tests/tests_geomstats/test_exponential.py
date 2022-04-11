@@ -7,8 +7,8 @@ from scipy.stats import expon
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.information_geometry.exponential import (
-    ExponentialFisherRaoMetric,
     ExponentialDistributions,
+    ExponentialFisherRaoMetric,
 )
 
 
