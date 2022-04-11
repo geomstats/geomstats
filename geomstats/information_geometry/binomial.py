@@ -1,10 +1,15 @@
+"""Statistical Manifold of Binomial distributions with the Fisher metric.
+
+Lead author: Jules Deschamps.
+"""
+
+from scipy.stats import binom
+
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-
-from scipy.stats import binom
 
 
 class BinomialDistributions(OpenSet):
@@ -59,13 +64,13 @@ class BinomialDistributions(OpenSet):
         samples : array-like, shape=[...,]
             Sample of points representing binomial distributions.
         """
-
         return gs.random.rand(n_samples)
 
     def projection(self, point, atol=gs.atol):
-        """Project a point in ambient space to the parameter set of n_draws-binomial distributions.
+        """Project a point in ambient space to the parameter set.
 
-        The parameter is floored to `gs.atol` if it is negative, and to '1-gs.atol' if it is greater than 1.
+        The parameter is floored to `gs.atol` if it is negative
+        and to '1-gs.atol' if it is greater than 1.
 
         Parameters
         ----------
@@ -113,7 +118,8 @@ class BinomialDistributions(OpenSet):
     def point_to_pmf(self, point):
         """Compute pmf associated to point.
 
-        Compute the probability density function of the binomial distribution with parameters provided by point.
+        Compute the probability density function of the binomial
+        distribution with parameters provided by point.
 
         Parameters
         ----------
@@ -134,7 +140,8 @@ class BinomialDistributions(OpenSet):
             Parameters
             ----------
             k : array-like, shape=[n_points,]
-                Integers in {0, ..., n_draws} at which to compute the probability mass function.
+                Integers in {0, ..., n_draws} at which to
+                compute the probability mass function.
             """
             k = gs.array(k, gs.float32)
             k = gs.to_ndarray(k, to_ndim=1)
@@ -147,7 +154,6 @@ class BinomialDistributions(OpenSet):
             return pmf_at_k
 
         return pmf
-
 
 
 class BinomialFisherRaoMetric(RiemannianMetric):
