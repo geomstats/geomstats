@@ -6,38 +6,41 @@ Lead authors: Anna Calissano & Jonas Lueg
 from abc import ABC, abstractmethod
 
 
-def _belongs_vectorize(fun):
-    r"""Vectorize the belongs acting on Point as lists."""
+def _vectorize_point(*positions):
+    """Check point type and transform in iterable if not the case.
 
-    def wrapped(*args, **kwargs):
-        r"""Vectorize the belongs."""
-        if type(args[1]) is not list:
+    Parameters
+    ----------
+    positions : tuple
+        Position and corresponding argument name. A tuple for each position.
+
+    Notes
+    -----
+    Explicitly defining positions and args names ensures it works for only
+    combinations of input calling.
+    """
+
+    def _dec(func):
+
+        def _manipulate_input(arg):
+            if not (type(arg) is list):
+                return [arg]
+
+            return arg
+
+        def _wrapped(*args, **kwargs):
             args = list(args)
-            args[1] = [args[1]]
+            for pos, name in positions:
+                if name in kwargs:
+                    kwargs[name] = _manipulate_input(kwargs[name])
+                else:
+                    args[pos] = _manipulate_input(args[pos])
 
-        return fun(*args, **kwargs)
+            return func(*args, **kwargs)
 
-    return wrapped
+        return _wrapped
 
-
-def _dist_vectorize(fun):
-    r"""Vectorize the distance acting on Point as lists."""
-
-    def wrapped(*args, **kwargs):
-        r"""Vectorize the distance."""
-        args = list(args)
-        if type(args[1]) is list and type(args[2]) is list:
-            pass
-        elif type(args[1]) is not list and type(args[2]) is not list:
-            args[1], args[2] = [args[1]], [args[2]]
-        elif type(args[1]) is not list:
-            args[1] = [args[1]]
-        else:
-            args[2] = [args[2]]
-
-        return fun(*args, **kwargs)
-
-    return wrapped
+    return _dec
 
 
 class Point(ABC):

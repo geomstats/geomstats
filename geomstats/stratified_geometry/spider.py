@@ -5,12 +5,12 @@ Lead authors: Anna Calissano & Jonas Lueg
 import itertools
 
 import geomstats.backend as gs
-import geomstats.stratified_geometry.stratified_spaces
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.stratified_geometry.stratified_spaces import (
     Point,
     PointSet,
     PointSetGeometry,
+    _vectorize_point,
 )
 
 
@@ -82,7 +82,7 @@ class Spider(PointSet):
             return [SpiderPoint(s=s[k], x=x[k]) for k in range(n_samples)]
         return [SpiderPoint(s=0, x=0)] * n_samples
 
-    @geomstats.stratified_geometry.stratified_spaces._belongs_vectorize
+    @_vectorize_point((1, 'point'))
     def belongs(self, point):
         r"""Check if a random point belongs to the spider set.
 
@@ -159,7 +159,7 @@ class Spider(PointSet):
             return False
         return True
 
-    @geomstats.stratified_geometry.stratified_spaces._belongs_vectorize
+    @_vectorize_point((1, 'point'))
     def set_to_array(self, point):
         r"""Turn a point into an array compatible with the dimension of the space.
 
@@ -187,7 +187,7 @@ class SpiderGeometry(PointSetGeometry):
         self.rays_geometry = ambient_metric
         self.rays = space.rays
 
-    @geomstats.stratified_geometry.stratified_spaces._dist_vectorize
+    @_vectorize_point((1, 'a'), (2, 'b'))
     def dist(self, a, b):
         """Compute the distance between two points on the Spider using the ray geometry.
 
@@ -217,7 +217,7 @@ class SpiderGeometry(PointSetGeometry):
                 result += [point_a.x + point_b.x]
         return gs.array(result)
 
-    @geomstats.stratified_geometry.stratified_spaces._dist_vectorize
+    @_vectorize_point((1, 'initial_point'), (2, 'end_point'))
     def geodesic(self, initial_point, end_point):
         """Return the geodesic between two lists of Spider points.
 
