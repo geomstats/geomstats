@@ -12,7 +12,7 @@ from geomstats.information_geometry.exponential import (
 )
 
 
-class TestexponentialDistributions(geomstats.tests.TestCase):
+class TestExponentialDistributions(geomstats.tests.TestCase):
     """Class defining the exponential distributions tests."""
 
     def setup_method(self):
@@ -66,7 +66,7 @@ class TestexponentialDistributions(geomstats.tests.TestCase):
         on the exponential distribution space.
         """
         point = self.exponential.random_point()
-        result = self.exponential.belongs(point)
+        result = gs.squeeze(self.exponential.belongs(point))
         expected = True
         self.assertAllClose(expected, result)
 
@@ -108,7 +108,7 @@ class TestexponentialDistributions(geomstats.tests.TestCase):
         """
         point = self.exponential.random_point(n_samples=2)
         pdf = self.exponential.point_to_pdf(point)
-        x = gs.linspace(0, 1, 11)
+        x = gs.cast(gs.linspace(0, 1, 11), dtype=gs.float32)
         result = pdf(x)
         pdf1 = expon.pdf(x, loc=0, scale=point[0])
         pdf2 = expon.pdf(x, loc=0, scale=point[1])
