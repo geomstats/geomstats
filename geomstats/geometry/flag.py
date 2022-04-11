@@ -58,7 +58,7 @@ class Flag(Manifold):
         d = len(index)
         geomstats.errors.check_integer(d, "d")
         geomstats.errors.check_integer(n, "n")
-        extended_index = gs.concatenate(([0], index), dtype="int")
+        extended_index = gs.concatenate(([0], index))
         dim = int(gs.sum(np.diff(extended_index) * (n - gs.array(index))))
         super(Flag, self).__init__(dim=dim, shape=(n * d, n * d))
         self.n = n
