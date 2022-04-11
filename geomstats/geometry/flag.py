@@ -3,8 +3,6 @@
 Lead author: Tom Szwagier.
 """
 
-import numpy as np
-
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.manifold import Manifold
@@ -55,11 +53,12 @@ class Flag(Manifold):
     """
 
     def __init__(self, n, index):
+        index = gs.array(index)
         d = len(index)
         geomstats.errors.check_integer(d, "d")
         geomstats.errors.check_integer(n, "n")
-        extended_index = gs.concatenate(([0], index))
-        dim = int(gs.sum(np.diff(extended_index) * (n - gs.array(index))))
+        extended_index = gs.concatenate((gs.array([0]), index))
+        dim = int(gs.sum((extended_index[1:] - extended_index[:-1]) * (n - index)))
         super(Flag, self).__init__(dim=dim, shape=(n * d, n * d))
         self.n = n
         self.d = d
@@ -111,7 +110,7 @@ class Flag(Manifold):
                 )
                 cst_4 = gs.isclose(
                     gs.trace(R_i),
-                    self.extended_index[i] - self.extended_index[i - 1],
+                    float(self.extended_index[i] - self.extended_index[i - 1]),
                     atol=atol,
                 )
                 belongs = gs.all([cst_1, cst_2, cst_3, cst_4])
@@ -187,7 +186,7 @@ class Flag(Manifold):
                         atol=atol,
                     )
                 )
-                cst_4 = gs.isclose(gs.trace(Z_i), 0, atol=atol)
+                cst_4 = gs.isclose(gs.trace(Z_i), 0.0, atol=atol)
                 is_tangent = gs.all([cst_1, cst_2, cst_3, cst_4])
                 if not is_tangent:
                     return is_tangent
