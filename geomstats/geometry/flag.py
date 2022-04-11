@@ -94,7 +94,8 @@ class Flag(Manifold):
             Boolean evaluating if point belongs to the manifold.
         """
 
-        def each_belongs(pt):
+        def _each_belongs(pt):
+            """ Auxiliary function to deal with samples one at a time."""
             for i in range(1, self.d + 1):
                 R_i = pt[i - 1]
                 cst_1 = gs.all(gs.isclose(Matrices.mul(R_i, R_i), R_i, atol=atol))
@@ -128,9 +129,9 @@ class Flag(Manifold):
             return belongs
 
         if isinstance(point, list) or point.ndim > 3:
-            return gs.stack([each_belongs(pt) for pt in point])
+            return gs.stack([_each_belongs(pt) for pt in point])
 
-        return each_belongs(point)
+        return _each_belongs(point)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         r"""Check whether the vector is tangent at base_point.
@@ -165,7 +166,8 @@ class Flag(Manifold):
             Boolean denoting if vector is a tangent vector at the base point.
         """
 
-        def each_is_tangent(vec, bp):
+        def _each_is_tangent(vec, bp):
+            """ Auxiliary function to deal with samples one at a time."""
             for i in range(1, self.d + 1):
                 R_i = bp[i - 1]
                 Z_i = vec[i - 1]
@@ -203,10 +205,10 @@ class Flag(Manifold):
 
         if isinstance(base_point, list) or base_point.ndim > 3:
             return gs.stack(
-                [each_is_tangent(vec, bp) for (vec, bp) in zip(vector, base_point)]
+                [_each_is_tangent(vec, bp) for (vec, bp) in zip(vector, base_point)]
             )
 
-        return each_is_tangent(vector, base_point)
+        return _each_is_tangent(vector, base_point)
 
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
