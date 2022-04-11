@@ -38,6 +38,7 @@ from tensorflow import (
     logical_or,
     maximum,
     meshgrid,
+    minimum,
     ones,
     ones_like,
 )
@@ -71,7 +72,7 @@ from . import random  # NOQA
 
 DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3, complex64: 4, complex128: 5}
 
-
+angle = tf.math.angle
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
 conj = tf.math.conj
