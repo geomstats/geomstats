@@ -136,6 +136,11 @@ class TestHeisenbergVectors(
                 HeisenbergVectors, self.space_args_list, self.n_points_list
             )
 
+        def to_tangent_at_identity_belongs_to_lie_algebra_test_data(self):
+            return self._to_tangent_at_identity_belongs_to_lie_algebra_test_data(
+                self.space_args_list, self.shape_list, self.n_vecs_list
+            )
+
     testing_data = HeisenbergVectorsTestData()
 
     def test_dimension(self, expected):

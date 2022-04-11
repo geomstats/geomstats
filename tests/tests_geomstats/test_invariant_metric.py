@@ -10,7 +10,7 @@ from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from tests.conftest import Parametrizer, np_backend
+from tests.conftest import Parametrizer, autograd_backend, np_backend
 from tests.data_generation import _RiemannianMetricTestData
 from tests.geometry_test_cases import RiemannianMetricTestCase
 
@@ -26,7 +26,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_log_is_tangent = np_backend()
     skip_test_log_shape = np_backend()
     skip_test_geodesic_bvp_belongs = np_backend()
-    skip_test_exp_after_log = np_backend()
+    skip_test_exp_after_log = np_backend() or autograd_backend()
     skip_test_geodesic_bvp_belongs = True
     skip_test_log_after_exp = True
     skip_test_dist_point_to_itself_is_zero = True
