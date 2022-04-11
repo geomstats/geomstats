@@ -104,11 +104,16 @@ class Flag(Manifold):
                 R_i = pt[i - 1]
                 cst_1 = gs.all(gs.isclose(Matrices.mul(R_i, R_i), R_i, atol=atol))
                 cst_2 = gs.all(gs.isclose(R_i, Matrices.transpose(R_i), atol=atol))
-                cst_3 = gs.all(gs.isclose(Matrices.mul(R_i, R_i),
-                                          Matrices.transpose(R_i), atol=atol))
-                cst_4 = gs.isclose(gs.trace(R_i),
-                                   self.extended_index[i] - self.extended_index[i - 1],
-                                   atol=atol)
+                cst_3 = gs.all(
+                    gs.isclose(
+                        Matrices.mul(R_i, R_i), Matrices.transpose(R_i), atol=atol
+                    )
+                )
+                cst_4 = gs.isclose(
+                    gs.trace(R_i),
+                    self.extended_index[i] - self.extended_index[i - 1],
+                    atol=atol,
+                )
                 belongs = gs.all([cst_1, cst_2, cst_3, cst_4])
                 if not belongs:
                     return belongs
@@ -116,8 +121,12 @@ class Flag(Manifold):
                 for j in range(1, i):
                     R_j = pt[j - 1]
                     belongs = gs.all(
-                        gs.isclose(Matrices.mul(R_j, R_i), gs.zeros((self.n, self.n)),
-                                   atol=atol))
+                        gs.isclose(
+                            Matrices.mul(R_j, R_i),
+                            gs.zeros((self.n, self.n)),
+                            atol=atol,
+                        )
+                    )
                     if not belongs:
                         return belongs
 
@@ -166,13 +175,18 @@ class Flag(Manifold):
                 R_i = bp[i - 1]
                 Z_i = vec[i - 1]
                 cst_1 = gs.all(
-                    gs.isclose(Matrices.mul(R_i, Z_i) + Matrices.mul(Z_i, R_i), Z_i,
-                               atol=atol))
+                    gs.isclose(
+                        Matrices.mul(R_i, Z_i) + Matrices.mul(Z_i, R_i), Z_i, atol=atol
+                    )
+                )
                 cst_2 = gs.all(gs.isclose(Z_i, Matrices.transpose(Z_i), atol=atol))
                 cst_3 = gs.all(
-                    gs.isclose(Matrices.mul(R_i, Z_i) + Matrices.mul(Z_i, R_i),
-                               Matrices.transpose(Z_i),
-                               atol=atol))
+                    gs.isclose(
+                        Matrices.mul(R_i, Z_i) + Matrices.mul(Z_i, R_i),
+                        Matrices.transpose(Z_i),
+                        atol=atol,
+                    )
+                )
                 cst_4 = gs.isclose(gs.trace(Z_i), 0, atol=atol)
                 is_tangent = gs.all([cst_1, cst_2, cst_3, cst_4])
                 if not is_tangent:
@@ -182,16 +196,20 @@ class Flag(Manifold):
                     R_j = bp[j - 1]
                     Z_j = vec[j - 1]
                     is_tangent = gs.all(
-                        gs.isclose(Matrices.mul(Z_i, R_j) + Matrices.mul(R_i, Z_j),
-                                   gs.zeros((self.n, self.n)),
-                                   atol=atol))
+                        gs.isclose(
+                            Matrices.mul(Z_i, R_j) + Matrices.mul(R_i, Z_j),
+                            gs.zeros((self.n, self.n)),
+                            atol=atol,
+                        )
+                    )
                     if not is_tangent:
                         return is_tangent
             return is_tangent
 
         if isinstance(base_point, list) or base_point.ndim > 3:
             return gs.stack(
-                [each_is_tangent(vec, bp) for (vec, bp) in zip(vector, base_point)])
+                [each_is_tangent(vec, bp) for (vec, bp) in zip(vector, base_point)]
+            )
 
         return each_is_tangent(vector, base_point)
 
