@@ -571,7 +571,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list,
                 self.space_list,
                 self.n_points_list,
-                atol=gs.atol * 100,
+                atol=gs.atol * 10000,
             )
 
         def inner_product_is_symmetric_test_data(self):
