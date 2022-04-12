@@ -1,6 +1,5 @@
 """Unit tests for the beta manifold."""
 
-import random
 import warnings
 
 import pytest
@@ -9,276 +8,6 @@ from scipy.stats import beta
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.information_geometry.beta import BetaDistributions, BetaMetric
-from tests.conftest import Parametrizer
-from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
-from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
-
-
-class TestBetaDistributions(OpenSetTestCase, metaclass=Parametrizer):
-    space = BetaDistributions
-
-    class BetaDistributionsTestsData(_OpenSetTestData):
-        space = BetaDistributions
-        space_args_list = [()]
-        shape_list = [(2,)]
-        n_samples_list = random.sample(range(2, 5), 2)
-        n_points_list = random.sample(range(1, 5), 2)
-        n_vecs_list = random.sample(range(2, 5), 2)
-
-        def belongs_test_data(self):
-            smoke_data = [
-                dict(dim=3, vec=[0.1, 1.0, 0.3], expected=True),
-                dict(dim=3, vec=[0.1, 1.0], expected=False),
-                dict(dim=3, vec=[0.0, 1.0, 0.3], expected=False),
-                dict(dim=2, vec=[-1.0, 0.3], expected=False),
-            ]
-            return self.generate_tests(smoke_data)
-
-        def random_point_test_data(self):
-            random_data = [
-                dict(point=self.space(2).random_point(1), expected=(2,)),
-                dict(point=self.space(3).random_point(5), expected=(5, 3)),
-            ]
-            return self.generate_tests([], random_data)
-
-        def random_point_belongs_test_data(self):
-            smoke_space_args_list = [(), ()]
-            smoke_n_points_list = [1, 2]
-            return self._random_point_belongs_test_data(
-                smoke_space_args_list,
-                smoke_n_points_list,
-                self.space_args_list,
-                self.n_points_list,
-            )
-
-        def projection_belongs_test_data(self):
-            return self._projection_belongs_test_data(
-                self.space_args_list, self.shape_list, self.n_samples_list
-            )
-
-        def to_tangent_is_tangent_test_data(self):
-            return self._to_tangent_is_tangent_test_data(
-                self.space,
-                self.space_args_list,
-                self.shape_list,
-                self.n_vecs_list,
-            )
-
-        def to_tangent_is_tangent_in_ambient_space_test_data(self):
-            return self._to_tangent_is_tangent_in_ambient_space_test_data(
-                self.space,
-                self.space_args_list,
-                self.shape_list,
-            )
-
-        def random_tangent_vec_is_tangent_test_data(self):
-            return self._random_tangent_vec_is_tangent_test_data(
-                self.space,
-                self.space_args_list,
-                self.n_vecs_list,
-                is_tangent_atol=gs.atol,
-            )
-
-        def point_to_pdf_test_data(self):
-            x = gs.linspace(0.0, 1.0, 10)
-            point = self.space().random_point(2)
-            pdf1 = beta.pdf(x, a=point[0, 0], b=point[0, 1])
-            pdf2 = beta.pdf(x, a=point[1, 0], b=point[1, 1])
-            expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=1)
-
-            random_data = [
-                dict(point=point, x=x, expected=expected),
-                dict(point=point[0], x=x, expected=expected[0]),
-            ]
-            return self.generate_tests([], random_data)
-
-    testing_data = BetaDistributionsTestsData()
-
-    def test_point_to_pdf(self, point, x, expected):
-        point = self.space().random_point()
-        pdf = self.space().point_to_pdf(point)
-        result = pdf(x)
-        self.assertAllClose(result, expected)
-
-
-class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-
-    space = BetaMetric
-    connection = metric = BetaMetric
-    skip_test_exp_shape = True  # because several base points for one vector
-    skip_test_log_shape = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_exp_belongs = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_log_is_tangent = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_dist_is_symmetric = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_dist_is_positive = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_squared_dist_is_symmetric = True
-    skip_test_squared_dist_is_positive = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_dist_is_norm_of_log = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_dist_point_to_itself_is_zero = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_log_after_exp = True
-    skip_test_exp_after_log = True
-    skip_test_parallel_transport_ivp_is_isometry = True
-    skip_test_parallel_transport_bvp_is_isometry = True
-    skip_test_geodesic_ivp_belongs = True
-    skip_test_geodesic_bvp_belongs = True
-    skip_test_exp_geodesic_ivp = True
-    skip_test_exp_ladder_parallel_transport = True
-
-    class BetaMetricTestData(_RiemannianMetricTestData):
-        space = BetaDistributions
-        metric = BetaMetric
-        metric_args_list = [()]
-        shape_list = [(2,)]
-        space_list = [BetaDistributions()]
-        n_samples_list = random.sample(range(2, 5), 2)
-        n_points_list = random.sample(range(1, 5), 2)
-        n_vecs_list = random.sample(range(2, 5), 2)
-
-        def exp_shape_test_data(self):
-            return self._exp_shape_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.n_samples_list,
-            )
-
-        def log_shape_test_data(self):
-            return self._log_shape_test_data(
-                self.metric_args_list,
-                self.space_list,
-            )
-
-        def exp_belongs_test_data(self):
-            return self._exp_belongs_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.n_samples_list,
-            )
-
-        def log_is_tangent_test_data(self):
-            return self._log_is_tangent_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_samples_list,
-            )
-
-        def log_after_exp_test_data(self):
-            return self._log_after_exp_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_samples_list,
-                rtol=0.1,
-                atol=0.0,
-            )
-
-        def exp_after_log_test_data(self):
-            return self._exp_after_log_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_samples_list,
-                self.n_vecs_list,
-                rtol=0.1,
-                atol=0.0,
-            )
-
-        def squared_dist_is_symmetric_test_data(self):
-            return self._squared_dist_is_symmetric_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_points_list,
-                self.n_points_list,
-                0.1,
-                0.1,
-            )
-
-        def squared_dist_is_positive_test_data(self):
-            return self._squared_dist_is_positive_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_points_list,
-                self.n_points_list,
-                is_positive_atol=gs.atol,
-            )
-
-        def dist_is_symmetric_test_data(self):
-            return self._dist_is_symmetric_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_points_list,
-                self.n_points_list,
-                rtol=0.1,
-                atol=gs.atol,
-            )
-
-        def dist_is_positive_test_data(self):
-            return self._dist_is_positive_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_points_list,
-                self.n_points_list,
-                is_positive_atol=gs.atol,
-            )
-
-        def dist_is_norm_of_log_test_data(self):
-            return self._dist_is_norm_of_log_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_points_list,
-                self.n_points_list,
-                rtol=0.1,
-                atol=gs.atol,
-            )
-
-        def dist_point_to_itself_is_zero_test_data(self):
-            return self._dist_point_to_itself_is_zero_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.n_points_list,
-                rtol=gs.rtol,
-                atol=1e-5,
-            )
-
-        def inner_product_is_symmetric_test_data(self):
-            return self._inner_product_is_symmetric_test_data(
-                self.metric_args_list,
-                self.space_list,
-                self.shape_list,
-                self.n_vecs_list,
-                rtol=gs.rtol,
-                atol=gs.atol,
-            )
-
-        def metric_matrix_test_data(self):
-            smoke_data = [
-                dict(
-                    point=gs.array([1.0, 1.0]),
-                    expected=gs.array([[1.0, -0.644934066], [-0.644934066, 1.0]]),
-                )
-            ]
-            return self.generate_tests(smoke_data)
-
-    testing_data = BetaMetricTestData()
-
-    def test_metric_matrix(self, point, expected):
-        result = self.metric().metric_matrix(point)
-        self.assertAllClose(result, expected)
 
 
 class TestBetaDistributions(geomstats.tests.TestCase):
@@ -323,6 +52,34 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         point = self.beta.random_point(self.n_samples)
         self.assertAllClose(gs.shape(point), (self.n_samples, self.dim))
 
+    def test_sample(self):
+        """Test samples.
+
+        Test that the sample method samples variates from beta distributions
+        with the specified parameters, using the law of large numbers
+        """
+        n_samples = self.n_samples
+        tol = (n_samples * 10) ** (-0.5)
+        point = self.beta.random_point(n_samples)
+        samples = self.beta.sample(point, n_samples * 10)
+        result = gs.mean(samples, axis=1)
+        expected = point[:, 0] / gs.sum(point, axis=1)
+        self.assertAllClose(result, expected, rtol=tol, atol=tol)
+
+    def test_maximum_likelihood_fit(self):
+        """Test maximum likelihood.
+
+        Test that the maximum likelihood fit method recovers
+        parameters of beta distribution.
+        """
+        n_samples = self.n_samples
+        point = self.beta.random_point(n_samples)
+        samples = self.beta.sample(point, n_samples * 10)
+        fits = self.beta.maximum_likelihood_fit(samples)
+        expected = self.beta.belongs(fits)
+        result = gs.array([True] * n_samples)
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.np_and_autograd_only
     def test_exp(self):
         """Test Exp.
@@ -359,6 +116,22 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         expected = point
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         self.assertAllClose(result, expected, rtol=1e-2)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_exp_vectorization(self):
+        """Test vectorization of Exp.
+
+        Test the case with one initial point and several tangent vectors.
+        """
+        point = self.beta.random_point()
+        tangent_vec = gs.array([1.0, 2.0])
+        n_tangent_vecs = 10
+        t = gs.linspace(0.0, 1.0, n_tangent_vecs)
+        tangent_vecs = gs.einsum("i,...k->...ik", t, tangent_vec)
+        end_points = self.metric.exp(tangent_vec=tangent_vecs, base_point=point)
+        result = end_points.shape
+        expected = (n_tangent_vecs, 2)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
     def test_log_vectorization(self):
