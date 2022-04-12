@@ -57,7 +57,7 @@ class Graph(Point):
         return nx.from_numpy_matrix(self.adj)
 
 
-def graph_vectorize(fun):
+def _graph_vectorize(fun):
     r"""Vectorize the input Graph Point to an array."""
 
     def wrapped(*args, **kwargs):
@@ -74,7 +74,7 @@ def graph_vectorize(fun):
     return wrapped
 
 
-def multiple_input_vectorize(fun):
+def _multiple_input_vectorize(fun):
     r"""Vectorize the input Graph Point to an array."""
 
     def _input_manipulation(args, index):
@@ -103,7 +103,7 @@ class GraphSpace(PointSet):
     Graph Space to analyse populations of labelled and unlabelled graphs.
     The space focuses on graphs with scalar euclidean attributes on nodes and edges,
     with a finite number of nodes and both directed and undirected edges.
-    For undirected graphs, use symmeric adjacency matrices. The space is a quotient
+    For undirected graphs, use symmetric adjacency matrices. The space is a quotient
     space obtained by applying the permutation action of nodes to the space
     of adjacency matrices. Notice that for computation reasons the module works with
     both the gs.array representation of graph and the Graph(Point) representation.
@@ -132,8 +132,8 @@ class GraphSpace(PointSet):
         self.nodes = nodes
         self.total_space = total_space(self.nodes, self.nodes)
 
-    @graph_vectorize
-    def belongs(self, graph, atol=gs.atol):
+    @_graph_vectorize
+    def belongs(self, graphs, atol=gs.atol):
         r"""Check if the matrix is an adjacency matrix.
 
         The adjacency matrix should be associated to the
@@ -141,7 +141,7 @@ class GraphSpace(PointSet):
 
         Parameters
         ----------
-        points : List of Graph type or array-like Adjecency Matrices.
+        graphs : List of Graph type or array-like Adjecency Matrices.
                 Points to be checked.
         atol : float
             Tolerance.
@@ -152,7 +152,7 @@ class GraphSpace(PointSet):
         belongs : array-like, shape=[...,n]
             Boolean denoting if graph belongs to the space.
         """
-        return self.total_space.belongs(graph, atol=atol)
+        return self.total_space.belongs(graphs, atol=atol)
 
     def random_point(self, n_samples=1, bound=1.0):
         r"""Sample in Graph Space.
@@ -173,7 +173,7 @@ class GraphSpace(PointSet):
         """
         return self.total_space.random_point(n_samples=n_samples, bound=bound)
 
-    @graph_vectorize
+    @_graph_vectorize
     def set_to_array(self, points):
         r"""Sample in Graph Space.
 
@@ -188,7 +188,7 @@ class GraphSpace(PointSet):
         """
         return points
 
-    @graph_vectorize
+    @_graph_vectorize
     def to_networkx(self, points):
         r"""Turn point into a networkx object.
 
@@ -205,7 +205,7 @@ class GraphSpace(PointSet):
             return nx.from_numpy_matrix(points)
         return [nx.from_numpy_matrix(point) for point in points]
 
-    @graph_vectorize
+    @_graph_vectorize
     def permute(self, graph_to_permute, permutation):
         r"""Permutation action applied to graph observation.
 
@@ -266,7 +266,7 @@ class GraphSpaceGeometry(PointSetGeometry):
         r"""Save the number of nodes."""
         return self.space.nodes
 
-    @multiple_input_vectorize
+    @_multiple_input_vectorize
     def dist(self, graph_a, graph_b, matcher="ID"):
         """Compute distance between two equivalence classes.
 
@@ -314,7 +314,7 @@ class GraphSpaceGeometry(PointSetGeometry):
             self.space.permute(graph_to_permute, perm),
         )
 
-    @multiple_input_vectorize
+    @_multiple_input_vectorize
     def geodesic(self, base_point, end_point, matcher="ID"):
         """Compute distance between two equivalence classes.
 
