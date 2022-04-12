@@ -123,7 +123,7 @@ class TangentPCA(_BasePCA):
         self.tol = tol
         self.iterated_power = iterated_power
         self.random_state = random_state
-        self.point_type = metric.default_point_type
+        self.point_type = "matrix"
         self.base_point_fit = None
 
     def fit(self, X, y=None, base_point=None):
@@ -286,6 +286,7 @@ class TangentPCA(_BasePCA):
                 )
 
         # Center data - the mean should be 0 if base_point is the Frechet mean
+        print("hape after", X.shape)
         self.mean_ = gs.mean(X, axis=0)
         X -= self.mean_
 
