@@ -20,30 +20,30 @@ class TestFlag(ManifoldTestCase, metaclass=Parametrizer):
             index = [1, 3, 4]
             p1 = gs.array(
                 [
-                    gs.array(np.diag([1.0, 0.0, 0.0, 0.0, 0.0])),
-                    gs.array(np.diag([0.0, 1.0, 1.0, 0.0, 0.0])),
-                    gs.array(np.diag([0.0, 0.0, 0.0, 1.0, 0.0])),
+                    np.diag([1.0, 0.0, 0.0, 0.0, 0.0]),
+                    np.diag([0.0, 1.0, 1.0, 0.0, 0.0]),
+                    np.diag([0.0, 0.0, 0.0, 1.0, 0.0]),
                 ]
             )
             p2 = gs.array(
                 [
-                    gs.array(np.diag([0.0, 1.0, 0.0, 0.0, 0.0])),
-                    gs.array(np.diag([1.0, 0.0, 0.0, 1.0, 0.0])),
-                    gs.array(np.diag([0.0, 0.0, 1.0, 0.0, 0.0])),
+                    np.diag([0.0, 1.0, 0.0, 0.0, 0.0]),
+                    np.diag([1.0, 0.0, 0.0, 1.0, 0.0]),
+                    np.diag([0.0, 0.0, 1.0, 0.0, 0.0]),
                 ]
             )
             p3 = gs.array(
                 [
-                    gs.array(np.diag([1.0, 0.0, 0.0, 0.0, 0.0])),
-                    gs.array(np.diag([1.0, 0.0, 1.0, 0.0, 0.0])),
-                    gs.array(np.diag([0.0, 0.0, 0.0, 1.0, 0.0])),
+                    np.diag([1.0, 0.0, 0.0, 0.0, 0.0]),
+                    np.diag([1.0, 0.0, 1.0, 0.0, 0.0]),
+                    np.diag([0.0, 0.0, 0.0, 1.0, 0.0]),
                 ]
             )
             p4 = gs.array(
                 [
-                    gs.array(np.diag([1.0, 0.0, 0.0, 0.0, 0.0])),
-                    gs.array(np.diag([0.0, 1.0, 1.0, 0.0, 0.0])),
-                    gs.array(np.diag([0.0, 0.0, 0.0, 1.0, 1.0])),
+                    np.diag([1.0, 0.0, 0.0, 0.0, 0.0]),
+                    np.diag([0.0, 1.0, 1.0, 0.0, 0.0]),
+                    np.diag([0.0, 0.0, 0.0, 1.0, 1.0]),
                 ]
             )
 
@@ -61,23 +61,23 @@ class TestFlag(ManifoldTestCase, metaclass=Parametrizer):
             index = [1, 3, 4]
             p1 = gs.array(
                 [
-                    gs.array(np.diag([1.0, 0.0, 0.0, 0.0, 0.0])),
-                    gs.array(np.diag([0.0, 1.0, 1.0, 0.0, 0.0])),
-                    gs.array(np.diag([0.0, 0.0, 0.0, 1.0, 0.0])),
+                    np.diag([1.0, 0.0, 0.0, 0.0, 0.0]),
+                    np.diag([0.0, 1.0, 1.0, 0.0, 0.0]),
+                    np.diag([0.0, 0.0, 0.0, 1.0, 0.0]),
                 ]
             )
             v1 = gs.array(
                 [
-                    gs.array(np.diag([1.0, 0.0, 0.0, 0.0, 0.0])),
-                    gs.array(np.diag([0.0, 1.0, 1.0, 0.0, 0.0])),
-                    gs.array(np.diag([0.0, 0.0, 0.0, 1.0, 0.0])),
+                    np.diag([1.0, 0.0, 0.0, 0.0, 0.0]),
+                    np.diag([0.0, 1.0, 1.0, 0.0, 0.0]),
+                    np.diag([0.0, 0.0, 0.0, 1.0, 0.0]),
                 ]
             )
             v2 = gs.array(
                 [
-                    gs.array(np.diag([0.0, 0.0, 0.0, 0.0, 0.0])),
-                    gs.array(np.diag([0.0, 0.0, 0.0, 0.0, 0.0])),
-                    gs.array(np.diag([0.0, 0.0, 0.0, 0.0, 0.0])),
+                    np.diag([0.0, 0.0, 0.0, 0.0, 0.0]),
+                    np.diag([0.0, 0.0, 0.0, 0.0, 0.0]),
+                    np.diag([0.0, 0.0, 0.0, 0.0, 0.0]),
                 ]
             )
 
