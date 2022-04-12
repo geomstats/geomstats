@@ -2,7 +2,7 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
-from geomstats.stratified_geometry.graphspace import Graph
+from geomstats.stratified_geometry.graph_space import Graph
 from tests.data_generation import (
     _PointGeometryTestData,
     _PointSetTestData,
@@ -83,11 +83,11 @@ class GraphTestData(_PointTestData):
     def to_array_test_data(self):
         smoke_data = [
             dict(
-                point_args=(gs.array([[1.0, 2.0], [3.0, 4.0]]),),
+                point_args=gs.array([[1.0, 2.0], [3.0, 4.0]]),
                 expected=gs.array([[1.0, 2.0], [3.0, 4.0]]),
             ),
             dict(
-                point_args=(gs.array([[1.0, 2.0], [3.0, 4.0]]),),
+                point_args=gs.array([[1.0, 2.0], [3.0, 4.0]]),
                 expected=gs.array([[1.0, 2.0], [3.0, 4.0]]),
             ),
         ]
@@ -136,7 +136,7 @@ class GraphSpaceGeometryTestData(_PointGeometryTestData):
 
         return self.generate_tests(smoke_data)
 
-    def geodesic_test_data(self):
+    def geodesic_graphs_test_data(self):
         pts_start = [
             Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]])),
             Graph(adj=gs.array([[1.0, 8.0], [3.0, 4.0]])),
@@ -153,35 +153,42 @@ class GraphSpaceGeometryTestData(_PointGeometryTestData):
                 start_point=pts_start[0],
                 end_point=pts_end[1],
                 t=0.0,
-                expected=gs.array([[1.0, 2.0], [3.0, 4.0]]),
+                expected=gs.array([[[1.0, 2.0], [3.0, 4.0]]]),
             ),
             dict(
-                space_args=(12,),
+                space_args=(2,),
                 start_point=pts_start[0],
                 end_point=pts_end[1],
                 t=1,
-                expected=gs.array([[1.0, 6.0], [3.0, 4.0]]),
+                expected=gs.array([[[1.0, 6.0], [3.0, 4.0]]]),
             ),
             dict(
-                space_args=(12,),
+                space_args=(2,),
                 start_point=pts_start[0],
                 end_point=pts_end[1],
                 t=[0.0, 1.0],
                 expected=gs.array([[[1.0, 2.0], [3.0, 4.0]], [[1.0, 6.0], [3.0, 4.0]]]),
             ),
             dict(
-                space_args=(12,),
+                space_args=(2,),
                 start_point=pts_start,
                 end_point=pts_end,
-                t=[0.0],
-                expected=gs.array([[[1.0, 2.0], [3.0, 4.0]], [[1.0, 2.0], [3.0, 4.0]]]),
+                t=0.0,
+                expected=gs.array(
+                    [[[[1.0, 2.0], [3.0, 4.0]]], [[[1.0, 2.0], [3.0, 4.0]]]]
+                ),
             ),
             dict(
-                space_args=(12,),
+                space_args=(2,),
                 start_point=pts_start,
                 end_point=pts_end,
                 t=[0.0, 1.0],
-                expected=gs.array([[[1.0, 2.0], [3.0, 4.0]], [[1.0, 6.0], [3.0, 4.0]]]),
+                expected=gs.array(
+                    [
+                        [[[1.0, 2.0], [3.0, 4.0]], [[1.0, 2.0], [3.0, 4.0]]],
+                        [[[1.0, 8.0], [3.0, 4.0]], [[1.0, 6.0], [3.0, 4.0]]],
+                    ]
+                ),
             ),
         ]
 
