@@ -101,13 +101,14 @@ requirements via ``git`` as follows:
 ::
 
     git clone https://github.com/geomstats/geomstats.git
-    pip3 install -r requirements.txt
+    cd geomstats
+    pip3 install .
 
 This method installs the latest GitHub version of geomstats.
 
 
-To add the `requirements.txt` into a conda environment, you can use the
-`enviroment.yml` file as follows:
+To add the requirements into a conda environment, you can use the
+``enviroment.yml`` file as follows:
 
 ::
 
@@ -115,7 +116,7 @@ To add the `requirements.txt` into a conda environment, you can use the
 
 Note that this only installs the minimum requirements. To add the optional,
 development, continuous integration and documentation requirements,
-refer to the files `*-requirements.txt`.
+refer to the file ``setup.cfg``.
 
 Install geomstats : Developers
 ------------------------------
@@ -126,7 +127,7 @@ backends:
 
 ::
 
-    pip3 install -r dev-requirements.txt -r opt-requirements.txt
+    pip3 install geomstats[dev,opt]
 
 Additionally, we recommend installing our pre-commit hook, to ensure that your code
 follows our Python style guidelines:
@@ -139,27 +140,32 @@ follows our Python style guidelines:
 Choose the backend
 ------------------
 
-Geomstats can run seamlessly with ``numpy``, ``tensorflow`` or
-``pytorch``. Note that ``pytorch`` and ``tensorflow`` requirements are
+Geomstats can run seamlessly with ``numpy``, ``autograd``, ``tensorflow`` or
+``pytorch``. Note that ``autograd``, ``tensorflow`` and ``pytorch`` and requirements are
 optional, as geomstats can be used with ``numpy`` only. By default, the
 ``numpy`` backend is used. The visualizations are only available with
 this backend.
 
-To get the ``tensorflow`` and ``pytorch`` versions compatible with
-geomstats, install the `optional
-requirements <https://github.com/geomstats/geomstats/blob/master/opt-requirements.txt>`__:
+To get the ``autograd``, ``tensorflow`` and ``pytorch`` versions compatible with
+geomstats, install the optional requirements:
 
 ::
 
-    pip3 install -r opt-requirements.txt
+    pip3 install geomstats[opt]
+
+To install only the requirements for a given backend do:
+
+::
+
+    pip3 install geomstats[<backend_name>]
 
 You can choose your backend by setting the environment variable
-``GEOMSTATS_BACKEND`` to ``numpy``, ``tensorflow`` or ``pytorch``, and
+``GEOMSTATS_BACKEND`` to ``numpy``, ``autograd``, ``tensorflow`` or ``pytorch``, and
 importing the ``backend`` module. From the command line:
 
 ::
 
-    export GEOMSTATS_BACKEND=pytorch
+    export GEOMSTATS_BACKEND=<backend_name>
 
 and in the Python3 code:
 

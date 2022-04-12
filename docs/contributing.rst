@@ -238,7 +238,7 @@ complies with the following rules. The **bolded** ones are especially important:
    submit your PR. We recommend installing flake8 with its plugins on your
    machine by running::
 
-    $ pip3 install -r dev-requirements.txt
+    $ pip3 install geomstats[dev]
 
    Then you can run the following two commands::
 
@@ -246,10 +246,10 @@ complies with the following rules. The **bolded** ones are especially important:
     $ flake8 geomstats/geometry geomstats/learning
 
    To prevent adding commits which fail to adhere to the PEP8 guidelines, we
-   include a `pre-commit <https://pre-commit.com/>` config, which immediately
+   include a `pre-commit <https://pre-commit.com/>`_ config, which immediately
    invokes flake8 on all files staged for commit when running `git commit`. To
    enable the hook, simply run `pre-commit install` after installing
-   `pre-commit` either manually via `pip` or as part of `dev-requirements.txt`.
+   `pre-commit` either manually via `pip` or as part of the development requirements.
 
    Please avoid reformatting parts of the file that your pull request doesn't
    change, as it distracts during code reviews.
