@@ -1,12 +1,11 @@
 """Unit tests for the sub-Riemannian metric class."""
 
-from tests.conftest import Parametrizer, TestCase
-from tests.data_generation import TestData
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.heisenberg import HeisenbergVectors
 from geomstats.geometry.sub_riemannian_metric import SubRiemannianMetric
+from tests.conftest import Parametrizer, TestCase
+from tests.data_generation import TestData
 
 heis = HeisenbergVectors()
 
@@ -24,14 +23,12 @@ heis_sr = SubRiemannianMetric(dim=3, dist_dim=2, frame=heis_frame)
 
 def trivial_cometric_matrix(base_point):
     r"""Compute a trivial cometric."""
-    return gs.array([[1., 0., 0.],
-                     [0., 1., 0.],
-                     [0., 0., 1.]])
+    return gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
 
 
-ExampleMetric = SubRiemannianMetric(dim=3,
-                                    dist_dim=2,
-                                    cometric_matrix=trivial_cometric_matrix)
+ExampleMetric = SubRiemannianMetric(
+    dim=3, dist_dim=2, cometric_matrix=trivial_cometric_matrix
+)
 
 
 class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
@@ -55,12 +52,9 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
             smoke_data = [
                 dict(
                     metric=self.sub_metric_heis_frame,
-                    base_point=gs.array([[0., 0., 0.],
-                                         [1., 1., 1.]]),
-                    cotangent_vec=gs.array([[0.5, 0.5, 0.5],
-                                            [2.5, 2.5, 2.5]]),
-                    expected=gs.array([[0.5, 0.5, 0.],
-                                       [1.25, 3.75, 1.25]])
+                    base_point=gs.array([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]]),
+                    cotangent_vec=gs.array([[0.5, 0.5, 0.5], [2.5, 2.5, 2.5]]),
+                    expected=gs.array([[0.5, 0.5, 0.0], [1.25, 3.75, 1.25]]),
                 )
             ]
             return self.generate_tests(smoke_data)
@@ -136,19 +130,17 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
             smoke_data = [
                 dict(
                     metric=self.sub_metric_heis_frame,
-                    test_initial_point=gs.array([0., 0., 0.]),
+                    test_initial_point=gs.array([0.0, 0.0, 0.0]),
                     test_initial_cotangent_vec=gs.array([2.5, 2.5, 2.5]),
                     test_times=gs.linspace(0.0, 20, 3),
                     n_steps=1000,
-                    expected=gs.array([[0.00000000e+00,
-                                        0.00000000e+00,
-                                        0.00000000e+00],
-                                       [4.07436778e-04,
-                                        -3.14861045e-01,
-                                        2.94971630e+01],
-                                       [2.72046277e-01,
-                                        -1.30946833e+00,
-                                        1.00021311e+02]])
+                    expected=gs.array(
+                        [
+                            [0.00000000e00, 0.00000000e00, 0.00000000e00],
+                            [4.07436778e-04, -3.14861045e-01, 2.94971630e01],
+                            [2.72046277e-01, -1.30946833e00, 1.00021311e02],
+                        ]
+                    ),
                 )
             ]
             return self.generate_tests(smoke_data)
@@ -174,29 +166,28 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_symp_euler(self, metric, test_state, step_size, expected):
-        result = metric.symp_euler(hamiltonian=metric.hamiltonian,
-                                   step_size=step_size)(test_state)
+        result = metric.symp_euler(hamiltonian=metric.hamiltonian, step_size=step_size)(
+            test_state
+        )
         self.assertAllClose(result, expected)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_iterate(self, metric, test_state, n_steps, step_size, expected):
         step = metric.symp_euler
-        result = metric.iterate(step(hamiltonian=metric.hamiltonian,
-                                     step_size=step_size), n_steps)(test_state)[-10]
+        result = metric.iterate(
+            step(hamiltonian=metric.hamiltonian, step_size=step_size), n_steps
+        )(test_state)[-10]
         self.assertAllClose(result, expected)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_symp_flow(self, metric, test_state, n_steps, end_time, expected):
-        result = metric.symp_flow(hamiltonian=metric.hamiltonian,
-                                  end_time=end_time,
-                                  n_steps=n_steps)(test_state)[-10]
+        result = metric.symp_flow(
+            hamiltonian=metric.hamiltonian, end_time=end_time, n_steps=n_steps
+        )(test_state)[-10]
         self.assertAllClose(result, expected)
 
     @geomstats.tests.autograd_tf_and_torch_only
-    def test_sr_sharp(self, metric,
-                      base_point,
-                      cotangent_vec,
-                      expected):
+    def test_sr_sharp(self, metric, base_point, cotangent_vec, expected):
         result = metric.sr_sharp(base_point, cotangent_vec)
         self.assertAllClose(result, expected)
 
@@ -207,10 +198,18 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.autograd_tf_and_torch_only
-    def test_geodesic(self, metric, test_initial_point,
-                      test_initial_cotangent_vec, test_times,
-                      n_steps, expected):
-        result = metric.geodesic(initial_point=test_initial_point,
-                                 initial_cotangent_vec=test_initial_cotangent_vec,
-                                 n_steps=n_steps)(test_times)
+    def test_geodesic(
+        self,
+        metric,
+        test_initial_point,
+        test_initial_cotangent_vec,
+        test_times,
+        n_steps,
+        expected,
+    ):
+        result = metric.geodesic(
+            initial_point=test_initial_point,
+            initial_cotangent_vec=test_initial_cotangent_vec,
+            n_steps=n_steps,
+        )(test_times)
         self.assertAllClose(result, expected)

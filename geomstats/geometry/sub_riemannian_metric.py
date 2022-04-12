@@ -3,7 +3,7 @@
 import geomstats.backend as gs
 
 
-class SubRiemannianMetric():
+class SubRiemannianMetric:
     """Class for Sub-Riemannian metrics.
 
     This implementation assumes a bracket-generating distribution of constant dimension.
@@ -54,12 +54,19 @@ class SubRiemannianMetric():
         Optional, default: 'vector'.
     """
 
-    def __init__(self, dim, dist_dim, cometric_matrix=None, frame=None,
-                 default_point_type="vector"):
+    def __init__(
+        self,
+        dim,
+        dist_dim,
+        cometric_matrix=None,
+        frame=None,
+        default_point_type="vector",
+    ):
 
         if not bool(cometric_matrix is not None) ^ bool(frame is not None):
-            raise ValueError("Either 'cometric_matrix' or 'frame' must be passed,"
-                             " and not both.")
+            raise ValueError(
+                "Either 'cometric_matrix' or 'frame' must be passed," " and not both."
+            )
 
         self.dim = dim
         self.dist_dim = dist_dim
@@ -91,14 +98,16 @@ class SubRiemannianMetric():
             sub-Riemannian sharp of 'cotangent_vec' at 'base_point'
         """
         if self.frame is None:
-            raise NotImplementedError("The sub-Riemannian sharp map is only"
-                                      " implemented when a frame is passed.")
+            raise NotImplementedError(
+                "The sub-Riemannian sharp map is only"
+                " implemented when a frame is passed."
+            )
 
         frame = self.frame(base_point)
-        coefs = gs.einsum('...i,...ij->...j', cotangent_vec, frame)
-        coefs_on_frame = gs.einsum('...j,...ij->...ij', coefs, frame)
+        coefs = gs.einsum("...i,...ij->...j", cotangent_vec, frame)
+        coefs_on_frame = gs.einsum("...j,...ij->...ij", coefs, frame)
 
-        return gs.einsum('...ij->...i', coefs_on_frame)
+        return gs.einsum("...ij->...i", coefs_on_frame)
 
     def inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point):
         """Compute inner coproduct between two cotangent vectors at base point.
@@ -120,17 +129,13 @@ class SubRiemannianMetric():
             Inner coproduct between the two cotangent vectors.
         """
         if self.cometric_matrix is not None:
-            C_b = gs.einsum("...ij,...j->...i",
-                            self.cometric_matrix(base_point),
-                            cotangent_vec_b
-                            )
+            C_b = gs.einsum(
+                "...ij,...j->...i", self.cometric_matrix(base_point), cotangent_vec_b
+            )
             return gs.einsum("...i,...i->...", cotangent_vec_a, C_b)
 
-        sharp = self.sr_sharp(base_point=base_point,
-                              cotangent_vec=cotangent_vec_b)
-        return gs.einsum('...i,...i -> ...',
-                         cotangent_vec_a,
-                         sharp)
+        sharp = self.sr_sharp(base_point=base_point, cotangent_vec=cotangent_vec_b)
+        return gs.einsum("...i,...i -> ...", cotangent_vec_a, sharp)
 
     def hamiltonian(self, state):
         r"""Compute the hamiltonian energy associated to the cometric.
@@ -154,16 +159,17 @@ class SubRiemannianMetric():
         position, momentum = state
 
         if self.frame is not None:
-            inner_products = gs.einsum('...i,...ij->...j',
-                                       momentum,
-                                       self.frame(position)).reshape((-1,
-                                                                      self.dist_dim))
-            return 1. / 2. * gs.einsum('...ij,...ij->...i',
-                                       inner_products,
-                                       inner_products)
+            inner_products = gs.einsum(
+                "...i,...ij->...j", momentum, self.frame(position)
+            ).reshape((-1, self.dist_dim))
+            return (
+                1.0
+                / 2.0
+                * gs.einsum("...ij,...ij->...i", inner_products, inner_products)
+            )
 
         position, momentum = state
-        return 1. / 2. * self.inner_coproduct(momentum, momentum, position)
+        return 1.0 / 2.0 * self.inner_coproduct(momentum, momentum, position)
 
     @staticmethod
     def symp_grad(hamiltonian):
@@ -209,6 +215,7 @@ class SubRiemannianMetric():
             Given a state, 'step' returns the next symplectic euler step
         """
         if self.frame is not None:
+
             def step(state):
                 position, momentum = state
                 dq = self.sr_sharp(base_point=position, cotangent_vec=momentum)
@@ -246,6 +253,7 @@ class SubRiemannianMetric():
             Given a state, 'flow' returns a sequence with n_steps
             iterations of func.
         """
+
         def flow(x):
             r"""Compute flow starting at x."""
             xs = [x]
@@ -277,13 +285,7 @@ class SubRiemannianMetric():
         step_size = end_time / n_steps
         return self.iterate(step(hamiltonian, step_size), n_steps)
 
-    def exp(
-        self,
-        cotangent_vec,
-        base_point,
-        n_steps=20,
-        **kwargs
-    ):
+    def exp(self, cotangent_vec, base_point, n_steps=20, **kwargs):
         """Exponential map associated to the cometric.
 
         Exponential map at base_point of cotangent_vec computed by integration
@@ -309,8 +311,7 @@ class SubRiemannianMetric():
         exp : array-like, shape=[..., dim]
             Point on the manifold.
         """
-        if 1 in (base_point.ndim,
-                 base_point.shape[0]) and cotangent_vec.ndim == 2:
+        if 1 in (base_point.ndim, base_point.shape[0]) and cotangent_vec.ndim == 2:
             base_point = gs.stack([base_point] * cotangent_vec.shape[0])
             base_point = gs.reshape(base_point, cotangent_vec.shape)
 
@@ -343,8 +344,7 @@ class SubRiemannianMetric():
         """
         if initial_cotangent_vec is None:
             raise ValueError(
-                "Specify an initial cotangent "
-                "vector to define the geodesic."
+                "Specify an initial cotangent " "vector to define the geodesic."
             )
 
         initial_point = gs.to_ndarray(initial_point, to_ndim=2)
@@ -367,8 +367,7 @@ class SubRiemannianMetric():
             t = gs.cast(t, initial_cotangent_vec.dtype)
             t = gs.to_ndarray(t, to_ndim=1)
 
-            cotangent_vecs = gs.einsum("i,...k->...ik", t,
-                                       initial_cotangent_vec)
+            cotangent_vecs = gs.einsum("i,...k->...ik", t, initial_cotangent_vec)
 
             points_at_time_t = [
                 self.exp(tv, pt, n_steps=n_steps)
@@ -377,8 +376,7 @@ class SubRiemannianMetric():
             points_at_time_t = gs.stack(points_at_time_t, axis=0)
 
             return (
-                points_at_time_t[0]
-                if n_initial_conditions == 1 else points_at_time_t
+                points_at_time_t[0] if n_initial_conditions == 1 else points_at_time_t
             )
 
         return path
