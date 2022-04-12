@@ -2,13 +2,16 @@
 
 Lead author: Tom Szwagier.
 """
-
+import os
 from scipy.linalg import polar
 
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
+
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # fix OMP Error with Pytorch backend.
+# CAUTION may cause crashes or silently produce incorrect results. cf stackoverflow
 
 
 class Flag(Manifold):
@@ -259,11 +262,11 @@ class Flag(Manifold):
         """
         points = gs.random.normal(size=(n_samples, self.n, self.n))
         u = gs.array([polar(point)[0] for point in points])
-        projector = gs.empty(shape=(n_samples, self.d, self.n, self.n))
+        projector = []
         for i in range(self.d):
-            v_i = u[:, :, self.extended_index[i] : self.extended_index[i + 1]]
-            projector[:, i, :, :] = Matrices.mul(v_i, Matrices.transpose(v_i))
-
+            v_i = u[:, :, self.extended_index[i]: self.extended_index[i + 1]]
+            projector.append(Matrices.mul(v_i, Matrices.transpose(v_i)))
+        projector = gs.transpose(gs.array(projector), axes=(1, 0, 2, 3))
         return projector[0] if n_samples == 1 else projector
 
     def random_point(self, n_samples=1, bound=1.0):

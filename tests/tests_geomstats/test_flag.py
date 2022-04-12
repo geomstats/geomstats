@@ -17,7 +17,7 @@ class TestFlag(ManifoldTestCase, metaclass=Parametrizer):
     class TestDataFlag(_ManifoldTestData):
         n_list = random.sample(range(2, 10), 2)
         index_list = [
-            gs.sort(random.sample(range(1, n), random.randint(1, n - 1)))
+            gs.sort(gs.array(random.sample(range(1, n), random.randint(1, n - 1))))
             for n in n_list
         ]
         space_args_list = list(zip(n_list, index_list))
