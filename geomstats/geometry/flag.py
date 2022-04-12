@@ -249,11 +249,18 @@ class Flag(Manifold):
         pass
 
     def random_uniform(self, n_samples=1):
-        """Sample random points from a uniform distribution.
+        r"""Sample random points from a uniform distribution.
 
-        Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
-        from a standard normal distribution and reshaped to matrices,
-        the projectors on their first k columns follow a uniform distribution.
+        Drawing from **[Chikuse03]**, **Theorem 1.5.5**, :math: `n_samples \times n
+        \times n` scalars are sampled from a standard normal distribution and reshaped
+        to :math: `n \times n` matrices. The Polar decomposition of those matrices
+        gives unitary matrices that follow a uniform distribution on :math: `V_{n, n}`.
+        The unitary matrices columns are then cut in blocks of shapes indicated by
+        the increment of the flag manifold index. The uniform columns, that span
+        uniformly distributed nested subspaces, are finally transformed into their
+        associated projection matrices.
+
+        The proof still needs to be written somewhere (maybe in an incoming paper).
 
         Parameters
         ----------
@@ -275,17 +282,24 @@ class Flag(Manifold):
         u = gs.array([polar(point)[0] for point in points])
         projector = []
         for i in range(self.d):
-            v_i = u[:, :, self.extended_index[i]: self.extended_index[i + 1]]
+            v_i = u[:, :, self.extended_index[i] : self.extended_index[i + 1]]
             projector.append(Matrices.mul(v_i, Matrices.transpose(v_i)))
         projector = gs.transpose(gs.array(projector), axes=(1, 0, 2, 3))
         return projector[0] if n_samples == 1 else projector
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample random points from a uniform distribution.
+        r"""Sample random points from a uniform distribution.
 
-        Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
-        from a standard normal distribution and reshaped to matrices,
-        the projectors on their first k columns follow a uniform distribution.
+        Drawing from **[Chikuse03]**, **Theorem 1.5.5**, :math: `n_samples \times n
+        \times n` scalars are sampled from a standard normal distribution and reshaped
+        to :math: `n \times n` matrices. The Polar decomposition of those matrices
+        gives unitary matrices that follow a uniform distribution on :math: `V_{n, n}`.
+        The unitary matrices columns are then cut in blocks of shapes indicated by
+        the increment of the flag manifold index. The uniform columns, that span
+        uniformly distributed nested subspaces, are finally transformed into their
+        associated projection matrices.
+
+        The proof still needs to be written somewhere (maybe in an incoming paper).
 
         Parameters
         ----------
@@ -298,9 +312,5 @@ class Flag(Manifold):
         projectors : array-like, shape=[..., n, n]
             Points following a uniform distribution.
 
-        References
-        ----------
-        .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
-        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
         return self.random_uniform(n_samples)
