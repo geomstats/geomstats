@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 import geomstats.backend as gs
 from geomstats.geometry.flag import Flag
@@ -9,12 +10,20 @@ from tests.geometry_test_cases import ManifoldTestCase
 
 class TestFlag(ManifoldTestCase, metaclass=Parametrizer):
     space = Flag
-    skip_test_random_point_belongs = True
     skip_test_projection_belongs = True
     skip_test_to_tangent_is_tangent_test_data = True
     skip_test_random_tangent_vec_is_tangent = True
 
     class TestDataFlag(_ManifoldTestData):
+        n_list = random.sample(range(2, 10), 2)
+        index_list = [
+            gs.sort(random.sample(range(1, n), random.randint(1, n - 1)))
+            for n in n_list
+        ]
+        space_args_list = list(zip(n_list, index_list))
+        shape_list = [(len(index), n, n) for (n, index) in zip(n_list, index_list)]
+        n_points_list = random.sample(range(1, 10), 2)
+
         def belongs_test_data(self):
             n = 5
             index = [1, 3, 4]
@@ -95,7 +104,15 @@ class TestFlag(ManifoldTestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def random_point_belongs_test_data(self):
-            pass
+            smoke_space_args_list = [(3, [1]), (5, [1, 3, 4])]
+            smoke_n_points_list = [1, 2]
+            return self._random_point_belongs_test_data(
+                smoke_space_args_list,
+                smoke_n_points_list,
+                self.space_args_list,
+                self.n_points_list,
+                belongs_atol=1e-3,
+            )
 
         def projection_belongs_test_data(self):
             pass

@@ -3,6 +3,8 @@
 Lead author: Tom Szwagier.
 """
 
+from scipy.linalg import polar
+
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.manifold import Manifold
@@ -46,7 +48,7 @@ class Flag(Manifold):
 
     Parameters
     ----------
-    index : tuple of int
+    index : list of int
         Sequence of dimensions of the nested linear subspaces.
     n : int
         Dimension of the Euclidean space.
@@ -59,7 +61,12 @@ class Flag(Manifold):
         geomstats.errors.check_integer(n, "n")
         extended_index = gs.concatenate((gs.array([0]), index))
         dim = int(gs.sum((extended_index[1:] - extended_index[:-1]) * (n - index)))
-        super(Flag, self).__init__(dim=dim, shape=(d, n, n))
+        super(Flag, self).__init__(
+            dim=dim, shape=(d, n, n), default_point_type="matrix"
+        )  # that's not true...
+        # should I change the representation to diag per block matrix (or Stiefel
+        # like, but risk of non-unicity) ? We'll see later, if I don't have errors
+        # for now
         self.n = n
         self.d = d
         self.index = index
@@ -227,23 +234,59 @@ class Flag(Manifold):
         """
         pass
 
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample random points on the manifold.
+    def random_uniform(self, n_samples=1):
+        """Sample random points from a uniform distribution.
 
-        If the manifold is compact, a uniform distribution is used.
+        Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
+        from a standard normal distribution and reshaped to matrices,
+        the projectors on their first k columns follow a uniform distribution.
 
         Parameters
         ----------
         n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
+            The number of points to sample
+            Optional. default: 1.
 
         Returns
         -------
-        samples : array-like, shape=[..., {dim, [n, n]}]
-            Points sampled on the manifold.
+        projectors : array-like, shape=[..., n, n]
+            Points following a uniform distribution.
+
+        References
+        ----------
+        .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
+        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
-        pass
+        points = gs.random.normal(size=(n_samples, self.n, self.n))
+        u = gs.array([polar(point)[0] for point in points])
+        projector = gs.empty(shape=(n_samples, self.d, self.n, self.n))
+        for i in range(self.d):
+            v_i = u[:, :, self.extended_index[i] : self.extended_index[i + 1]]
+            projector[:, i, :, :] = Matrices.mul(v_i, Matrices.transpose(v_i))
+
+        return projector[0] if n_samples == 1 else projector
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample random points from a uniform distribution.
+
+        Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
+        from a standard normal distribution and reshaped to matrices,
+        the projectors on their first k columns follow a uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            The number of points to sample
+            Optional. default: 1.
+
+        Returns
+        -------
+        projectors : array-like, shape=[..., n, n]
+            Points following a uniform distribution.
+
+        References
+        ----------
+        .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
+        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
+        """
+        return self.random_uniform(n_samples)
