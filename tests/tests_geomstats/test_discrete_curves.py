@@ -1,9 +1,11 @@
 """Unit tests for parameterized manifolds."""
 
 import random
+from time import time
 
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
+import geomstats.tests
 from geomstats.geometry.discrete_curves import (
     ClosedDiscreteCurves,
     ClosedSRVMetric,
@@ -16,8 +18,12 @@ from geomstats.geometry.discrete_curves import (
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from tests.conftest import Parametrizer
-from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
-from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
+from tests.data_generation import TestData, _ManifoldTestData, _RiemannianMetricTestData
+from tests.geometry_test_cases import (
+    ManifoldTestCase,
+    RiemannianMetricTestCase,
+    TestCase,
+)
 
 s2 = Hypersphere(dim=2)
 r2 = Euclidean(dim=2)
@@ -476,6 +482,71 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
             )
 
+        def aux_differential_srv_transform_test_data(self):
+            smoke_data = [
+                dict(
+                    dim=3,
+                    n_sampling_points=2000,
+                    n_curves=2000,
+                    curve_fun_a=curve_fun_a,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def aux_differential_srv_transform_inverse_test_data(self):
+            smoke_data = [
+                dict(dim=3, n_sampling_points=n_sampling_points, curve_a=curve_a)
+            ]
+            return self.generate_tests(smoke_data)
+
+        def aux_differential_srv_transform_vectorization_test_data(self):
+            smoke_data = [
+                dict(
+                    dim=3,
+                    n_sampling_points=n_sampling_points,
+                    curve_a=curve_a,
+                    curve_b=curve_b,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def srv_inner_product_elastic_test_data(self):
+            smoke_data = [dict(dim=3, n_sampling_points=n_sampling_points)]
+            return self.generate_tests(smoke_data)
+
+        def srv_inner_product_and_dist_test_data(self):
+            smoke_data = [dict(dim=3, curve_a=curve_a, curve_b=curve_b)]
+            return self.generate_tests(smoke_data)
+
+        def srv_inner_product_vectorization_test_data(self):
+            smoke_data = [
+                dict(
+                    dim=3,
+                    n_sampling_points=n_sampling_points,
+                    curve_a=curve_a,
+                    curve_b=curve_b,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def split_horizontal_vertical_test_data(self):
+            smoke_data = [dict(times=times, n_discretized_curves=n_discretized_curves)]
+            return self.generate_tests(smoke_data)
+
+        def space_derivative_test_data(self):
+            smoke_data = [dict(dim=3, n_points=3)]
+            return self.generate_tests(smoke_data)
+
+        def srv_inner_product_test_data(self):
+            smoke_data = [
+                dict(curve_a=curve_a, curve_b=curve_b, curve_c=curve_c, times=times)
+            ]
+            return self.generate_tests(smoke_data)
+
+        def srv_norm_test_data(self):
+            smoke_data = [dict(curve_a=curve_a, curve_b=curve_b, times=times)]
+            return self.generate_tests(smoke_data)
+
     testing_data = SRVMetricTestData()
 
     def test_srv_inner_product(self, curve_a, curve_b, curve_c, times):
@@ -514,6 +585,214 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         result = result.shape
         expected = [srvs_ab.shape[0]]
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_aux_differential_srv_transform(
+        self, dim, n_sampling_points, n_curves, curve_fun_a
+    ):
+        """Test differential of square root velocity transform.
+        Check that its value at (curve, tangent_vec) coincides
+        with the derivative at zero of the square root velocity
+        transform of a path of curves starting at curve with
+        initial derivative tangent_vec.
+        """
+
+        srv_metric_r3 = SRVMetric(r3)
+        sampling_times = gs.linspace(0.0, 1.0, n_sampling_points)
+        curve_a = curve_fun_a(sampling_times)
+        tangent_vec = gs.transpose(
+            gs.tile(gs.linspace(1.0, 2.0, n_sampling_points), (dim, 1))
+        )
+        result = srv_metric_r3.aux_differential_srv_transform(tangent_vec, curve_a)
+
+        times = gs.linspace(0.0, 1.0, n_curves)
+        path_of_curves = curve_a + gs.einsum("i,jk->ijk", times, tangent_vec)
+        srv_path = srv_metric_r3.srv_transform(path_of_curves)
+        expected = n_curves * (srv_path[1] - srv_path[0])
+        self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_aux_differential_srv_transform_inverse(
+        self, dim, n_sampling_points, curve_a
+    ):
+        """Test inverse of differential of square root velocity transform.
+        Check that it is the inverse of aux_differential_srv_transform.
+        """
+        tangent_vec = gs.transpose(
+            gs.tile(gs.linspace(0.0, 1.0, n_sampling_points), (dim, 1))
+        )
+        srv_metric_r3 = SRVMetric(r3)
+        d_srv = srv_metric_r3.aux_differential_srv_transform(tangent_vec, curve_a)
+        result = srv_metric_r3.aux_differential_srv_transform_inverse(d_srv, curve_a)
+        expected = tangent_vec
+        self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
+
+    def test_aux_differential_srv_transform_vectorization(
+        self, dim, n_sampling_points, curve_a, curve_b
+    ):
+        """Test differential of square root velocity transform.
+        Check vectorization.
+        """
+        dim = 3
+        curves = gs.stack((curve_a, curve_b))
+        tangent_vecs = gs.random.rand(2, n_sampling_points, dim)
+        srv_metric_r3 = SRVMetric(r3)
+        result = srv_metric_r3.aux_differential_srv_transform(tangent_vecs, curves)
+
+        res_a = srv_metric_r3.aux_differential_srv_transform(
+            tangent_vecs[0], self.curve_a
+        )
+        res_b = srv_metric_r3.aux_differential_srv_transform(
+            tangent_vecs[1], self.curve_b
+        )
+        expected = gs.stack([res_a, res_b])
+        self.assertAllClose(result, expected)
+
+    def test_srv_inner_product_elastic(self, dim, n_sampling_points):
+        """Test inner product of SRVMetric.
+        Check that the pullback metric gives an elastic metric
+        with parameters a=1, b=1/2.
+        """
+        tangent_vec_a = gs.random.rand(n_sampling_points, dim)
+        tangent_vec_b = gs.random.rand(n_sampling_points, dim)
+        srv_metric_r3 = SRVMetric(r3)
+        result = srv_metric_r3.inner_product(tangent_vec_a, tangent_vec_b, self.curve_a)
+
+        r3 = Euclidean(dim)
+        d_vec_a = (self.n_sampling_points - 1) * (
+            tangent_vec_a[1:, :] - tangent_vec_a[:-1, :]
+        )
+        d_vec_b = (self.n_sampling_points - 1) * (
+            tangent_vec_b[1:, :] - tangent_vec_b[:-1, :]
+        )
+        velocity_vec = (self.n_sampling_points - 1) * (
+            self.curve_a[1:, :] - self.curve_a[:-1, :]
+        )
+        velocity_norm = r3.metric.norm(velocity_vec)
+        unit_velocity_vec = gs.einsum("ij,i->ij", velocity_vec, 1 / velocity_norm)
+        a_param = 1
+        b_param = 1 / 2
+        integrand = (
+            a_param**2 * gs.sum(d_vec_a * d_vec_b, axis=1)
+            - (a_param**2 - b_param**2)
+            * gs.sum(d_vec_a * unit_velocity_vec, axis=1)
+            * gs.sum(d_vec_b * unit_velocity_vec, axis=1)
+        ) / velocity_norm
+        expected = gs.sum(integrand) / self.n_sampling_points
+        self.assertAllClose(result, expected)
+
+    def test_srv_inner_product_and_dist(self, dim, curve_a, curve_b):
+        """Test that norm of log and dist coincide
+        for curves with same / different starting points, and for
+        the translation invariant / non invariant SRV metric.
+        """
+        r3 = Euclidean(dim=dim)
+        curve_b_transl = curve_b + gs.array([1.0, 0.0, 0.0])
+        curve_b = [curve_b, curve_b_transl]
+        translation_invariant = [True, False]
+        for curve in curve_b:
+            for param in translation_invariant:
+                srv_metric = SRVMetric(ambient_manifold=r3, translation_invariant=param)
+                log = srv_metric.log(point=curve, base_point=curve_a)
+                result = srv_metric.norm(vector=log, base_point=curve_a)
+                expected = srv_metric.dist(curve_a, curve)
+                self.assertAllClose(result, expected)
+
+    def test_srv_inner_product_vectorization(
+        self, dim, n_sampling_points, curve_a, curve_b
+    ):
+        """Test inner product of SRVMetric.
+        Check vectorization.
+        """
+        curves = gs.stack((curve_a, curve_b))
+        tangent_vecs_1 = gs.random.rand(2, n_sampling_points, dim)
+        tangent_vecs_2 = gs.random.rand(2, n_sampling_points, dim)
+        srv_metric_r3 = SRVMetric(r3)
+        result = srv_metric_r3.inner_product(tangent_vecs_1, tangent_vecs_2, curves)
+
+        res_a = srv_metric_r3.inner_product(
+            tangent_vecs_1[0], tangent_vecs_2[0], curve_a
+        )
+        res_b = srv_metric_r3.inner_product(
+            tangent_vecs_1[1], tangent_vecs_2[1], curve_b
+        )
+        expected = gs.stack((res_a, res_b))
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_autograd_and_torch_only
+    def test_split_horizontal_vertical(self, times, n_discretized_curves):
+        """Test split horizontal vertical.
+        Check that horizontal and vertical parts of any tangent
+        vector are othogonal with respect to the SRVMetric inner
+        product, and check vectorization.
+        """
+        srv_metric_r3 = SRVMetric(r3)
+        quotient_srv_metric_r3 = DiscreteCurves(
+            ambient_manifold=r3
+        ).quotient_square_root_velocity_metric
+        geod = srv_metric_r3.geodesic(
+            initial_curve=self.curve_a, end_curve=self.curve_b
+        )
+        geod = geod(times)
+        tangent_vec = n_discretized_curves * (geod[1, :, :] - geod[0, :, :])
+        (
+            tangent_vec_hor,
+            tangent_vec_ver,
+            _,
+        ) = self.quotient_srv_metric_r3.split_horizontal_vertical(
+            tangent_vec, self.curve_a
+        )
+        result = srv_metric_r3.inner_product(
+            tangent_vec_hor, tangent_vec_ver, self.curve_a
+        )
+        expected = 0.0
+        self.assertAllClose(result, expected, atol=1e-4)
+
+        tangent_vecs = n_discretized_curves * (geod[1:] - geod[:-1])
+        _, _, result = quotient_srv_metric_r3.split_horizontal_vertical(
+            tangent_vecs, geod[:-1]
+        )
+        expected = []
+        for i in range(n_discretized_curves - 1):
+            _, _, res = quotient_srv_metric_r3.split_horizontal_vertical(
+                tangent_vecs[i], geod[i]
+            )
+            expected.append(res)
+        expected = gs.stack(expected)
+        self.assertAllClose(result, expected)
+
+    def test_space_derivative(self, dim, n_points):
+        """Test space derivative.
+        Check result on an example and vectorization.
+        """
+        n_points = 3
+        dim = 3
+        curve = gs.random.rand(n_points, dim)
+        result = self.srv_metric_r3.space_derivative(curve)
+        delta = 1 / n_points
+        d_curve_1 = (curve[1] - curve[0]) / delta
+        d_curve_2 = (curve[2] - curve[0]) / (2 * delta)
+        d_curve_3 = (curve[2] - curve[1]) / delta
+        expected = gs.squeeze(
+            gs.vstack(
+                (
+                    gs.to_ndarray(d_curve_1, 2),
+                    gs.to_ndarray(d_curve_2, 2),
+                    gs.to_ndarray(d_curve_3, 2),
+                )
+            )
+        )
+        self.assertAllClose(result, expected)
+
+        path_of_curves = gs.random.rand(
+            self.n_discretized_curves, self.n_sampling_points, dim
+        )
+        result = self.srv_metric_r3.space_derivative(path_of_curves)
+        expected = []
+        for i in range(self.n_discretized_curves):
+            expected.append(self.srv_metric_r3.space_derivative(path_of_curves[i]))
+        expected = gs.stack(expected)
         self.assertAllClose(result, expected)
 
 
@@ -808,8 +1087,8 @@ class ClosedSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = ClosedSRVMetricTestData()
 
 
-class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    class ElasticMetricTestData(_RiemannianMetricTestData):
+class TestElasticMetric(TestCase, metaclass=Parametrizer):
+    class ElasticMetricTestData(TestData):
         def f_transform_test_data(self):
             smoke_data = [
                 dict(
@@ -841,6 +1120,8 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             curve = cells[0]
             smoke_data = [dict(a=1.0, b=1.0, curve=curve)]
             return self.generate_tests(smoke_data)
+
+    testing_data = ElasticMetricTestData()
 
     def test_f_transform(self, a, b, curve_a_projected):
         """Test that the f transform coincides with the SRVF.
@@ -906,274 +1187,27 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     ):
         """Test that going back to cartesian works."""
 
-        metric = self.elastic_metric
-        norms, args = metric.cartesian_to_polar(curve)
+        elastic_metric = ElasticMetric(a, b)
+        norms, args = elastic_metric.cartesian_to_polar(curve)
 
-        result = metric.polar_to_cartesian(norms, args)
+        result = elastic_metric.polar_to_cartesian(norms, args)
         expected = curve
         self.assertAllClose(result, expected, rtol=10000 * gs.rtol)
 
-    def aux_differential_srv_transform_test_data(self):
-        smoke_data = [
-            dict(dim=3, n_sampling_points=2000, n_curves=2000, curve_fun_a=curve_fun_a)
-        ]
-        return self.generate_tests(smoke_data)
 
-    @geomstats.tests.np_and_autograd_only
-    def test_aux_differential_srv_transform(
-        self, dim, n_sampling_points, n_curves, curve_fun_a
-    ):
-        """Test differential of square root velocity transform.
-        Check that its value at (curve, tangent_vec) coincides
-        with the derivative at zero of the square root velocity
-        transform of a path of curves starting at curve with
-        initial derivative tangent_vec.
-        """
+class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
+    class QuotientSRVMetricTestData(TestData):
+        def horizontal_geodesic_test_data(self):
+            smoke_data = [
+                dict(n_sampling_points=n_sampling_points, curve_a=curve_a, n_times=20)
+            ]
+            return self.generate_tests(smoke_data)
 
-        srv_metric_r3 = SRVMetric(r3)
-        sampling_times = gs.linspace(0.0, 1.0, n_sampling_points)
-        curve_a = curve_fun_a(sampling_times)
-        tangent_vec = gs.transpose(
-            gs.tile(gs.linspace(1.0, 2.0, n_sampling_points), (dim, 1))
-        )
-        result = srv_metric_r3.aux_differential_srv_transform(tangent_vec, curve_a)
+        def quotient_dist_test_data(self):
+            smoke_data = [dict(sampling_times=sampling_times, curve_fun_a=curve_fun_a)]
+            return self.generate_tests(smoke_data)
 
-        times = gs.linspace(0.0, 1.0, n_curves)
-        path_of_curves = curve_a + gs.einsum("i,jk->ijk", times, tangent_vec)
-        srv_path = srv_metric_r3.srv_transform(path_of_curves)
-        expected = n_curves * (srv_path[1] - srv_path[0])
-        self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
-
-    def aux_differential_srv_transform_inverse_test_data(self):
-        smoke_data = [dict(dim=3, n_sampling_points=n_sampling_points, curve_a=curve_a)]
-        return self.generate_tests(smoke_data)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_aux_differential_srv_transform_inverse(
-        self, dim, n_sampling_points, curve_a
-    ):
-        """Test inverse of differential of square root velocity transform.
-        Check that it is the inverse of aux_differential_srv_transform.
-        """
-        tangent_vec = gs.transpose(
-            gs.tile(gs.linspace(0.0, 1.0, n_sampling_points), (dim, 1))
-        )
-        srv_metric_r3 = SRVMetric(r3)
-        d_srv = srv_metric_r3.aux_differential_srv_transform(tangent_vec, curve_a)
-        result = srv_metric_r3.aux_differential_srv_transform_inverse(d_srv, curve_a)
-        expected = tangent_vec
-        self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
-
-    def aux_differential_srv_transform_vectorization_test_data(self):
-        smoke_data = [
-            dict(
-                dim=3,
-                n_sampling_points=n_sampling_points,
-                curve_a=curve_a,
-                curve_b=curve_b,
-            )
-        ]
-        return self.generate_tests(smoke_data)
-
-    def test_aux_differential_srv_transform_vectorization(
-        self, dim, n_sampling_points, curve_a, curve_b
-    ):
-        """Test differential of square root velocity transform.
-        Check vectorization.
-        """
-        dim = 3
-        curves = gs.stack((curve_a, curve_b))
-        tangent_vecs = gs.random.rand(2, n_sampling_points, dim)
-        srv_metric_r3 = SRVMetric(r3)
-        result = srv_metric_r3.aux_differential_srv_transform(tangent_vecs, curves)
-
-        res_a = srv_metric_r3.aux_differential_srv_transform(
-            tangent_vecs[0], self.curve_a
-        )
-        res_b = srv_metric_r3.aux_differential_srv_transform(
-            tangent_vecs[1], self.curve_b
-        )
-        expected = gs.stack([res_a, res_b])
-        self.assertAllClose(result, expected)
-
-    def srv_inner_product_elastic_test_data(self):
-        smoke_data = [dict(dim=3, n_sampling_points=n_sampling_points)]
-        return self.generate_tests(smoke_data)
-
-    def test_srv_inner_product_elastic(self, dim, n_sampling_points):
-        """Test inner product of SRVMetric.
-        Check that the pullback metric gives an elastic metric
-        with parameters a=1, b=1/2.
-        """
-        tangent_vec_a = gs.random.rand(n_sampling_points, dim)
-        tangent_vec_b = gs.random.rand(n_sampling_points, dim)
-        result = self.srv_metric_r3.inner_product(
-            tangent_vec_a, tangent_vec_b, self.curve_a
-        )
-
-        r3 = Euclidean(dim)
-        d_vec_a = (self.n_sampling_points - 1) * (
-            tangent_vec_a[1:, :] - tangent_vec_a[:-1, :]
-        )
-        d_vec_b = (self.n_sampling_points - 1) * (
-            tangent_vec_b[1:, :] - tangent_vec_b[:-1, :]
-        )
-        velocity_vec = (self.n_sampling_points - 1) * (
-            self.curve_a[1:, :] - self.curve_a[:-1, :]
-        )
-        velocity_norm = r3.metric.norm(velocity_vec)
-        unit_velocity_vec = gs.einsum("ij,i->ij", velocity_vec, 1 / velocity_norm)
-        a_param = 1
-        b_param = 1 / 2
-        integrand = (
-            a_param**2 * gs.sum(d_vec_a * d_vec_b, axis=1)
-            - (a_param**2 - b_param**2)
-            * gs.sum(d_vec_a * unit_velocity_vec, axis=1)
-            * gs.sum(d_vec_b * unit_velocity_vec, axis=1)
-        ) / velocity_norm
-        expected = gs.sum(integrand) / self.n_sampling_points
-        self.assertAllClose(result, expected)
-
-    def srv_inner_product_and_dist_test_data(self):
-        smoke_data = [dict(dim=3, curve_a=curve_a, curve_b=curve_b)]
-        return self.generate_tests(smoke_data)
-
-    def test_srv_inner_product_and_dist(self, dim, curve_a, curve_b):
-        """Test that norm of log and dist coincide
-        for curves with same / different starting points, and for
-        the translation invariant / non invariant SRV metric.
-        """
-        r3 = Euclidean(dim=dim)
-        curve_b_transl = curve_b + gs.array([1.0, 0.0, 0.0])
-        curve_b = [curve_b, curve_b_transl]
-        translation_invariant = [True, False]
-        for curve in curve_b:
-            for param in translation_invariant:
-                srv_metric = SRVMetric(ambient_manifold=r3, translation_invariant=param)
-                log = srv_metric.log(point=curve, base_point=curve_a)
-                result = srv_metric.norm(vector=log, base_point=curve_a)
-                expected = srv_metric.dist(curve_a, curve)
-                self.assertAllClose(result, expected)
-
-    def srv_inner_product_vectorization_test_data(self):
-        smoke_data = [
-            dict(
-                dim=3,
-                n_sampling_points=n_sampling_points,
-                curve_a=curve_a,
-                curve_b=curve_b,
-            )
-        ]
-        return self.generate_tests(smoke_data)
-
-    def test_srv_inner_product_vectorization(
-        self, dim, n_sampling_points, curve_a, curve_b
-    ):
-        """Test inner product of SRVMetric.
-        Check vectorization.
-        """
-        curves = gs.stack((curve_a, curve_b))
-        tangent_vecs_1 = gs.random.rand(2, n_sampling_points, dim)
-        tangent_vecs_2 = gs.random.rand(2, n_sampling_points, dim)
-        srv_metric_r3 = SRVMetric(r3)
-        result = srv_metric_r3.inner_product(tangent_vecs_1, tangent_vecs_2, curves)
-
-        res_a = srv_metric_r3.inner_product(
-            tangent_vecs_1[0], tangent_vecs_2[0], curve_a
-        )
-        res_b = srv_metric_r3.inner_product(
-            tangent_vecs_1[1], tangent_vecs_2[1], curve_b
-        )
-        expected = gs.stack((res_a, res_b))
-        self.assertAllClose(result, expected)
-
-    def split_horizontal_vertical_test_data(self):
-        smoke_data = [dict(times=times, n_discretized_curves=n_discretized_curves)]
-
-    @geomstats.tests.np_autograd_and_torch_only
-    def test_split_horizontal_vertical(self, times, n_discretized_curves):
-        """Test split horizontal vertical.
-        Check that horizontal and vertical parts of any tangent
-        vector are othogonal with respect to the SRVMetric inner
-        product, and check vectorization.
-        """
-        srv_metric_r3 = SRVMetric(r3)
-        quotient_srv_metric_r3 = DiscreteCurves(
-            ambient_manifold=r3
-        ).quotient_square_root_velocity_metric
-        geod = srv_metric_r3.geodesic(
-            initial_curve=self.curve_a, end_curve=self.curve_b
-        )
-        geod = geod(times)
-        tangent_vec = n_discretized_curves * (geod[1, :, :] - geod[0, :, :])
-        (
-            tangent_vec_hor,
-            tangent_vec_ver,
-            _,
-        ) = self.quotient_srv_metric_r3.split_horizontal_vertical(
-            tangent_vec, self.curve_a
-        )
-        result = srv_metric_r3.inner_product(
-            tangent_vec_hor, tangent_vec_ver, self.curve_a
-        )
-        expected = 0.0
-        self.assertAllClose(result, expected, atol=1e-4)
-
-        tangent_vecs = n_discretized_curves * (geod[1:] - geod[:-1])
-        _, _, result = quotient_srv_metric_r3.split_horizontal_vertical(
-            tangent_vecs, geod[:-1]
-        )
-        expected = []
-        for i in range(n_discretized_curves - 1):
-            _, _, res = quotient_srv_metric_r3.split_horizontal_vertical(
-                tangent_vecs[i], geod[i]
-            )
-            expected.append(res)
-        expected = gs.stack(expected)
-        self.assertAllClose(result, expected)
-
-    def space_derivative_test_data(self):
-        smoke_data = [dict(dim=3, n_points=3)]
-        return self.generate_tests(smoke_data)
-
-    def test_space_derivative(self, dim, n_points):
-        """Test space derivative.
-        Check result on an example and vectorization.
-        """
-        n_points = 3
-        dim = 3
-        curve = gs.random.rand(n_points, dim)
-        result = self.srv_metric_r3.space_derivative(curve)
-        delta = 1 / n_points
-        d_curve_1 = (curve[1] - curve[0]) / delta
-        d_curve_2 = (curve[2] - curve[0]) / (2 * delta)
-        d_curve_3 = (curve[2] - curve[1]) / delta
-        expected = gs.squeeze(
-            gs.vstack(
-                (
-                    gs.to_ndarray(d_curve_1, 2),
-                    gs.to_ndarray(d_curve_2, 2),
-                    gs.to_ndarray(d_curve_3, 2),
-                )
-            )
-        )
-        self.assertAllClose(result, expected)
-
-        path_of_curves = gs.random.rand(
-            self.n_discretized_curves, self.n_sampling_points, dim
-        )
-        result = self.srv_metric_r3.space_derivative(path_of_curves)
-        expected = []
-        for i in range(self.n_discretized_curves):
-            expected.append(self.srv_metric_r3.space_derivative(path_of_curves[i]))
-        expected = gs.stack(expected)
-        self.assertAllClose(result, expected)
-
-    def horizontal_geodesic_test_data(self):
-        smoke_data = [
-            dict(n_sampling_points=n_sampling_points, curve_a=curve_a, n_times=20)
-        ]
-        return self.generate_tests(smoke_data)
+    testing_data = QuotientSRVMetricTestData()
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_horizontal_geodesic(self, n_sampling_points, curve_a, n_times):
@@ -1205,10 +1239,6 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = gs.sum(vertical_norms**2, axis=1) ** (1 / 2)
         expected = gs.zeros(n_times - 1)
         self.assertAllClose(result, expected, atol=1e-3)
-
-    def quotient_dist_test_data(self):
-        smoke_data = [dict(sampling_times=sampling_times, curve_fun_a=curve_fun_a)]
-        return self.generate_tests(smoke_data)
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_quotient_dist(self, sampling_times, curve_a):
