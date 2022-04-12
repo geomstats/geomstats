@@ -13,7 +13,11 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class ExponentialDistributions(OpenSet):
-    """Class for the manifold of exponential distributions."""
+    """Class for the manifold of exponential distributions.
+
+    This is the parameter space of binomial distributions with fixed number of draws
+    i.e. the unit segment.
+    """
 
     def __init__(self):
         super(ExponentialDistributions, self).__init__(
@@ -59,7 +63,7 @@ class ExponentialDistributions(OpenSet):
 
         Returns
         -------
-        samples : array-like, shape=[..., n_samples]
+        samples : array-like, shape=[n_samples,]
             Sample of points representing exponential distributions.
         """
         return bound * gs.random.rand(n_samples)
@@ -82,7 +86,8 @@ class ExponentialDistributions(OpenSet):
             Projected point.
         """
         point = gs.array(point, dtype=gs.float32)
-        return gs.where(point < atol, atol, point)
+        projected = gs.where(point < atol, atol, point)
+        return projected
 
     def sample(self, point, n_samples=1):
         """Sample from the exponential distribution.

@@ -13,7 +13,11 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class BinomialDistributions(OpenSet):
-    """Class for the manifold of binomial distributions."""
+    """Class for the manifold of binomial distributions.
+
+    This is the parameter space of exponential distributions
+    i.e. the half-line of positive reals.
+    """
 
     def __init__(self, n_draws):
         super(BinomialDistributions, self).__init__(
@@ -85,12 +89,13 @@ class BinomialDistributions(OpenSet):
             Projected point.
         """
         point = gs.array(point, gs.float32)
-        return gs.where(
+        projected = gs.where(
             gs.logical_or(point < atol, point > 1 - atol),
             (1 - atol) * gs.cast((point > 1 - atol), gs.float32)
             + atol * gs.cast((point < atol), gs.float32),
             point,
         )
+        return projected
 
     def sample(self, point, n_samples=1):
         """Sample from the binomial distribution.
