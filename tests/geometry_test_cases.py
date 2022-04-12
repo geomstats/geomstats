@@ -286,6 +286,25 @@ class LieGroupTestCase(ManifoldTestCase):
         exp_point = group.exp(log_vec, gs.array(base_point))
         self.assertAllClose(exp_point, gs.array(point), rtol, atol)
 
+    def test_to_tangent_at_identity_belongs_to_lie_algebra(
+        self, group_args, vector, belongs_atol
+    ):
+        """Check that to tangent at identity is tangent in lie algebra.
+
+        Parameters
+        ----------
+        group_args : tuple
+            Arguments to pass to constructor of the group.
+        vector : array-like
+            Vector to be projected on the tangent space at base_point.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
+        group = self.group(*group_args)
+        tangent_vec = group.to_tangent(vector, group.identity)
+        result = gs.all(group.lie_algebra.belongs(tangent_vec, belongs_atol))
+        self.assertAllClose(result, gs.array(True))
+
 
 class VectorSpaceTestCase(ManifoldTestCase):
     def test_basis_belongs(self, space_args, belongs_atol):
@@ -1041,3 +1060,142 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         dist = metric.dist(point, point)
         expected = gs.zeros_like(dist)
         self.assertAllClose(dist, expected, rtol, atol)
+
+
+class ProductManifoldTestCase(ManifoldTestCase):
+    # Note: the NFold manifold should inherit from this.
+    def test_product_dimension_is_sum_of_dimensions(self):
+        """Check the dimension of the product manifold.
+
+        Check that the dimension of the product manifold is the sum of
+        the dimensions of its manifolds.
+
+        For M = M1 x ... x Mn, we check that:
+        dim(M) = dim(M1) + ... + dim(Mn)
+
+        Parameters
+        ----------
+        ...
+        """
+        pass
+
+
+class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
+    # Note: the NFold metric should inherit from this.
+    def test_innerproduct_is_sum_of_innerproducts(self):
+        """Check the inner-product of the product metric.
+
+        Check that the inner-product of two tangent vectors on the product
+        manifold is the sum of the inner-products on each of the manifolds.
+
+        For M = M1 x ... x Mn, equipped with the product Riemannian metric
+        g = (g1, ...., gn) and tangent vectors u = (u1, ..., un) and v = (v1, ..., vn),
+        we check that:
+        <u, v>_g = <u1, v1>_g1 + ... + <un, vn>_gn
+
+        Parameters
+        ----------
+        ...
+        """
+        pass
+
+    def test_metric_matrix_is_block_diagonal(self):
+        """Check that the metric matrix has the correct block diagonal form.
+
+        Check that the metric matrix of the product metric has a block diagonal
+        form, where each block is the metric matrix of one manifold.
+
+        For M = M1 x ... x Mn equipped with the product Riemannian metric
+        g = (g1, ...., gn), we check that the matrix of g is formed by
+        the metric matrices of g1, ..., gn in this order, arranged in a
+        block diagonal.
+
+        Parameters
+        ----------
+        ...
+        """
+        pass
+
+
+class QuotientMetricTestCase(RiemannianMetricTestCase):
+    def test_dist_is_smaller_than_bundle_dist(self):
+        """Check that the quotient distance is smaller than the distance in the bundle.
+
+        Check that the quotient metric distance between two points on the quotient
+        is smaller than the fiber bundle distance between the two lifted points.
+
+        Parameters
+        ----------
+        ...
+        """
+        pass
+
+    def test_log_is_horizontal(self):
+        """Check the quotient log is a horizontal tangent vector.
+
+        Check that the quotient metric logarithm gives a tangent vector
+        that is horizontal for the bundle defining the quotient.
+
+        Parameters
+        ----------
+        ...
+        """
+        pass
+
+
+class PullbackMetricTestCase(RiemannianMetricTestCase):
+    def test_innerproduct_is_embedding_innerproduct(self):
+        """Check that the inner-product correspond to the embedding inner-product.
+
+        Check that the formula defining the pullback-metric inner product is
+        verified, i.e.:
+        <u, v>_p = g_{f(p)}(df_p u , df_p v)
+        for p a point on the manifold, f the immersion defining the pullback metric
+        and df_p the differential of f at p.
+
+        Parameters
+        ----------
+        ...
+        """
+        pass
+
+
+class InvariantMetricTestCase(RiemannianMetricTestCase):
+    def test_exp_at_identity_of_lie_algebra_belongs(self):
+        """Check that exp of a lie algebra element is in group.
+
+        Check that the exp at identity of a lie algebra element
+        belongs to the group.
+
+        Parameters
+        ----------
+        ...
+        """
+        pass
+
+    def test_log_belongs_to_lie_algebra(self):
+        """Check that log belongs to lie algebra.
+
+        Parameters
+        ----------
+        ...
+        """
+        pass
+
+    def test_exp_after_log_at_identity(self):
+        """Check that exp and log at identity are inverse.
+
+        Parameters
+        ----------
+        ...
+        """
+        pass
+
+    def test_log_after_exp_at_identity(self):
+        """Check that log and exp at identity are inverse.
+
+        Parameters
+        ----------
+        ...
+        """
+        pass

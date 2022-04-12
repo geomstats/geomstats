@@ -179,6 +179,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         result = bundle.is_horizontal(point_b - aligned, point_b, atol=1e-2)
         self.assertTrue(result)
 
+    @geomstats.tests.np_and_autograd_only
     def test_inner_product(self, n, mat, vec_a, vec_b):
         bundle = self.bundle(n)
         quotient_metric = self.metric(bundle)

@@ -5,7 +5,7 @@ from functools import wraps
 
 import numpy as _np
 import torch
-from torch import arange, arccos, arccosh, arcsin, arctanh, argmin
+from torch import angle, arange, arccos, arccosh, arcsin, arctanh, argmin
 from torch import atan2 as arctan2  # NOQA
 from torch import bool as t_bool
 from torch import broadcast_tensors as broadcast_arrays
@@ -337,6 +337,10 @@ def dot(a, b):
 
 def maximum(a, b):
     return torch.max(array(a), array(b))
+
+
+def minimum(a, b):
+    return torch.min(array(a), array(b))
 
 
 def to_ndarray(x, to_ndim, axis=0):
