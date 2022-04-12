@@ -44,6 +44,17 @@ class Flag(Manifold):
         \times O(n_2 - n_1) \times \dots \times
         O(n-n_d)}
 
+    Contrarily to what is done in **[Ye2021]**, for memory reasons, we here represent
+    the points as sequences of $d$ $n \times n$ projection matrices, as the block
+    diagonal representation doesn't add anything from the computational point of view.
+    Hence the `shape` of a point is (d, n, n). That representation is subject to
+    evolve through time.
+
+    This implementation is part of an open research project (master thesis + PhD),
+    so the Pull Request will come only once the representation is set,
+    the methods are proven to work, and we get some results that can be illustrated
+    through a Notebook.
+
     References
     ----------
     .. **[Ye2021]** Ye, K., Wong, K.S.-W., Lim, L.-H.: Optimization on flag manifolds.
@@ -92,7 +103,7 @@ class Flag(Manifold):
         |
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., d, n, n]
             Point to evaluate.
         atol : float
             Absolute tolerance.
@@ -162,9 +173,9 @@ class Flag(Manifold):
         |
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., d, n, n]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., d, n, n]
             Point on the manifold.
         atol : float
             Absolute tolerance.
@@ -225,9 +236,9 @@ class Flag(Manifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., d, n, n]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., d, n, n]
             Point on the manifold.
 
         Returns
