@@ -22,7 +22,7 @@ class SubRiemannianMetric:
 
         The cometric matrix as a function of a point.
 
-        You should pass : 
+        You should pass :
             base_point : array-like, shape=[..., dim]
         It returns:
             _ : array-like, shape=[..., dim, dim]
