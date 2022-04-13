@@ -118,13 +118,23 @@ class BuresWassersteinBundleTestData(_FiberBundleTestData):
             gs.atol,
         )
 
+    def is_tangent_after_tangent_riemannian_submersion_test_data(self):
+        return self._is_tangent_after_tangent_riemannian_submersion_test_data(
+            BuresWassersteinBundle,
+            PSDMatrices,
+            self.space_args_list,
+            self.n_vecs_list,
+            rtol=gs.rtol,
+            atol=gs.atol,
+        )
+
 
 class TestDataPSDMetricBuresWasserstein(_QuotientMetricTestData):
-    n_list = random.sample(range(2, 7), 5)
-    metric_args_list = [(n, n) for n in n_list]
+    n_list = random.sample(range(3, 8), 5)
+    metric_args_list = [(n, n - 1) for n in n_list]
     shape_list = [(n, n) for n in n_list]
-    space_list = [PSDMatrices(n, n) for n in n_list]
-    bundle_list = [BuresWassersteinBundle(n, n) for n in n_list]
+    space_list = [PSDMatrices(n, n - 1) for n in n_list]
+    bundle_list = [BuresWassersteinBundle(n, n - 1) for n in n_list]
     n_points_list = random.sample(range(1, 7), 5)
     n_samples_list = random.sample(range(1, 7), 5)
     n_points_a_list = random.sample(range(1, 7), 5)
