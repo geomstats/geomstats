@@ -15,9 +15,9 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.tests import tf_backend
 from tests.data_generation import (
     TestData,
+    _InvariantMetricTestData,
     _LieGroupTestData,
     _MatrixLieAlgebraTestData,
-    _RiemannianMetricTestData,
 )
 
 
@@ -403,7 +403,7 @@ class SpecialEuclideanMatrixLieAlgebraTestData(_MatrixLieAlgebraTestData):
         )
 
 
-class SpecialEuclideanMatrixCanonicalLeftMetricTestData(_RiemannianMetricTestData):
+class SpecialEuclideanMatrixCanonicalLeftMetricTestData(_InvariantMetricTestData):
     n_list = random.sample(range(2, 5), 2)
     metric_args_list = [(SpecialEuclidean(n),) for n in n_list]
     shape_list = [(n + 1, n + 1) for n in n_list]
@@ -594,8 +594,42 @@ class SpecialEuclideanMatrixCanonicalLeftMetricTestData(_RiemannianMetricTestDat
             self.metric_args_list, self.space_list, self.n_points_list
         )
 
+    def exp_at_identity_of_lie_algebra_belongs_test_data(self):
+        return self._exp_at_identity_of_lie_algebra_belongs_test_data(
+            self.metric_args_list,
+            self.space_list,
+            self.n_tangent_vecs_list,
+            belongs_atol=gs.atol * 1000,
+        )
 
-class SpecialEuclideanMatrixCanonicalRightMetricTestData(_RiemannianMetricTestData):
+    def log_at_identity_belongs_to_lie_algebra_test_data(self):
+        return self._log_at_identity_belongs_to_lie_algebra_test_data(
+            self.metric_args_list,
+            self.space_list,
+            self.n_points_list,
+            belongs_atol=gs.atol * 1000,
+        )
+
+    def exp_after_log_at_identity_test_data(self):
+        return self._exp_after_log_at_identity_test_data(
+            self.metric_args_list,
+            self.space_list,
+            self.n_points_list,
+            atol=gs.atol * 100,
+        )
+
+    def log_after_exp_at_identity_test_data(self):
+        return self._log_after_exp_at_identity_test_data(
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+            amplitude=10.0,
+            atol=gs.atol * 100,
+        )
+
+
+class SpecialEuclideanMatrixCanonicalRightMetricTestData(_InvariantMetricTestData):
     n_list = [2]
     metric_args_list = [
         (SpecialEuclidean(n), gs.eye(SpecialEuclidean(n).dim), "right") for n in n_list
@@ -774,6 +808,34 @@ class SpecialEuclideanMatrixCanonicalRightMetricTestData(_RiemannianMetricTestDa
     def triangular_inequality_of_dist_test_data(self):
         return self._triangular_inequality_of_dist_test_data(
             self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def exp_at_identity_of_lie_algebra_belongs_test_data(self):
+        return self._exp_at_identity_of_lie_algebra_belongs_test_data(
+            self.metric_args_list, self.space_list, self.n_tangent_vecs_list
+        )
+
+    def log_at_identity_belongs_to_lie_algebra_test_data(self):
+        return self._log_at_identity_belongs_to_lie_algebra_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def exp_after_log_at_identity_test_data(self):
+        return self._exp_after_log_at_identity_test_data(
+            self.metric_args_list,
+            self.space_list,
+            self.n_points_list,
+            atol=gs.atol * 10000,
+        )
+
+    def log_after_exp_at_identity_test_data(self):
+        return self._log_after_exp_at_identity_test_data(
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+            amplitude=100.0,
+            atol=1e-1,
         )
 
     def right_exp_coincides_test_data(self):

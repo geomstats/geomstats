@@ -18,9 +18,9 @@ from tests.data.special_euclidean_data import (
     SpecialEuclideanTestData,
 )
 from tests.geometry_test_cases import (
+    InvariantMetricTestCase,
     LieGroupTestCase,
     MatrixLieAlgebraTestCase,
-    RiemannianMetricTestCase,
 )
 
 ATOL = 1e-5
@@ -108,7 +108,7 @@ class TestSpecialEuclideanMatrixLieAlgebra(
 
 
 class TestSpecialEuclideanMatrixCanonicalLeftMetric(
-    RiemannianMetricTestCase,
+    InvariantMetricTestCase,
     metaclass=Parametrizer,
 ):
 
@@ -124,7 +124,7 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
 
 
 class TestSpecialEuclideanMatrixCanonicalRightMetric(
-    RiemannianMetricTestCase,
+    InvariantMetricTestCase,
     metaclass=Parametrizer,
 ):
 
@@ -149,6 +149,9 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
     skip_test_triangular_inequality_of_dist = np_backend()
     skip_test_dist_point_to_itself_is_zero = True
     skip_test_squared_dist_is_positive = np_backend()
+    skip_test_exp_after_log_at_identity = np_backend()
+    skip_test_log_after_exp_at_identity = np_backend()
+    skip_test_log_at_identity_belongs_to_lie_algebra = np_backend()
 
     testing_data = SpecialEuclideanMatrixCanonicalRightMetricTestData()
 

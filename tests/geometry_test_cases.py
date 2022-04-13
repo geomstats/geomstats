@@ -1289,8 +1289,8 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
         result = gs.all(group.belongs(exp, belongs_atol))
         self.assertAllClose(result, gs.array(True))
 
-    def test_log_belongs_to_lie_algebra(
-        self, metric_args, group, point, base_point, belongs_atol
+    def test_log_at_identity_belongs_to_lie_algebra(
+        self, metric_args, group, point, belongs_atol
     ):
         """Check that log belongs to lie algebra.
 
@@ -1308,8 +1308,8 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
             Absolute tolerance for the belongs function.
         """
         metric = self.metric(*metric_args)
-        log = metric.log(point, base_point)
-        result = group.lie_algebra.belongs(log, belongs_atol)
+        log = metric.log(point, group.identity)
+        result = gs.all(group.lie_algebra.belongs(log, belongs_atol))
         self.assertAllClose(result, gs.array(True))
 
     def test_exp_after_log_at_identity(self, metric_args, group, point, rtol, atol):
