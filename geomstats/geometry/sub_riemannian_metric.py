@@ -18,33 +18,24 @@ class SubRiemannianMetric:
     dist_dim : int
         Dimension of the distribution
     cometric_matrix : callable
+        Optional, default: 'None'
 
         The cometric matrix as a function of a point.
 
-            Parameters
-            ----------
+        You should pass : 
             base_point : array-like, shape=[..., dim]
-                Base point.
-
-            Returns
-            -------
+        It returns:
             _ : array-like, shape=[..., dim, dim]
-                cometric matrix.
 
-
-        Optional, default: 'None'
     frame : callable
+        Optional, default: 'None'
 
         Matrix representing the frame spanning the distribution,
         as a function of a point.
 
-            Parameters
-            ----------
+        You should pass:
             point : array-like, shape=[..., dim]
-                point.
-
-            Returns
-            -------
+        It returns
             _ : array-like, shape=[..., dim, dist_dim]
                 Frame field matrix. Each column is a vector field of the frame
                 spanning the distribution.
