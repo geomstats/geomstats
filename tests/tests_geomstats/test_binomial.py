@@ -1,120 +1,46 @@
-"""Unit tests for the manifold of binomial distributions."""
+"""Unit tests for the binomial manifold."""
 
-import warnings
 
 from scipy.stats import binom
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.information_geometry.binomial import (
-    BinomialDistributions,
-    BinomialFisherRaoMetric,
-)
+from geomstats.information_geometry.binomial import BinomialDistributions
+from tests.conftest import Parametrizer
+from tests.data.binomial_data import BinomialTestData
+from tests.geometry_test_cases import OpenSetTestCase
 
 
-class TestBinomialDistributions(geomstats.tests.TestCase):
-    """Class defining the binomial distributions tests."""
+class TestBinomial(OpenSetTestCase, metaclass=Parametrizer):
 
-    def setup_method(self):
-        """Define the parameters of the tests."""
-        warnings.simplefilter("ignore", category=UserWarning)
-        self.n_draws = 10
-        self.binomial = BinomialDistributions(self.n_draws)
-        self.metric = BinomialFisherRaoMetric(self.n_draws)
-        self.n_samples = 10
+    space = BinomialDistributions
+    testing_data = BinomialTestData()
 
-    def test_projection(self):
-        """Test that the projection method sends points outside [0,1]
-        to either 0 or 1 (depending on which is closest).
-        """
-        single_true_point = self.binomial.random_point()
-        result = self.binomial.projection(single_true_point)
-        expected = single_true_point
-        self.assertAllClose(expected, result, atol=1e-8)
+    def test_belongs(self, n_draws, vec, expected):
+        self.assertAllClose(self.space(n_draws).belongs(vec), expected)
 
-        single_false_point = -1
-        result = self.binomial.projection(single_false_point)
-        expected = gs.atol
+    def test_random_point(self, point, expected):
+        self.assertAllClose(point.shape, expected)
 
-        self.assertAllClose(expected, result, atol=1e-8)
-
-        multiple_true_point = self.binomial.random_point(10)
-        result = self.binomial.projection(multiple_true_point)
-        expected = multiple_true_point
-
-        self.assertAllClose(expected, result, atol=1e-8)
-
-        multiple_false_point = gs.array([-1, 0.5, 0.21, 1, 1.2, 0, 0, 7, 0.3])
-        result = self.binomial.projection(multiple_false_point)
-        expected = gs.array(
-            [
-                gs.atol,
-                0.5,
-                0.21,
-                1 - gs.atol,
-                1 - gs.atol,
-                gs.atol,
-                gs.atol,
-                1 - gs.atol,
-                0.3,
-            ]
+    def test_sample(self, n_draws, point, n_samples, expected):
+        self.assertAllClose(
+            self.space(n_draws).sample(point, n_samples).shape, expected
         )
 
-        self.assertAllClose(expected, result, atol=1e-8)
+    def test_squared_dist(self, n_draws, point_a, point_b, expected):
+        self.assertAllClose(
+            self.space(n_draws).metric.squared_dist(point_a, point_b), expected
+        )
 
-    def test_random_point_and_belongs(self):
-        """Test random_point and belongs.
-
-        Test that the random uniform method samples
-        on the binomial distribution space.
-        """
-        point = self.binomial.random_point()
-        result = gs.squeeze(self.binomial.belongs(point))
-        expected = True
-        self.assertAllClose(expected, result)
-
-    def test_random_point_and_belongs_vectorization(self):
-        """Test random_point and belongs.
-
-        Test that the random uniform method samples
-        on the binomial distribution space.
-        """
-        n_samples = self.n_samples
-        point = self.binomial.random_point(n_samples)
-        result = self.binomial.belongs(point)
-        expected = gs.array([True] * n_samples)
-        self.assertAllClose(expected, result)
-
-    def test_random_point(self):
-        """Test random_point.
-
-        Test that the random uniform method samples points of the right shape
-        """
-        point = self.binomial.random_point(self.n_samples)
-        self.assertAllClose(gs.shape(point), (self.n_samples,))
-
-    def test_sample(self):
-        """Test samples."""
-        n_points = self.n_samples
-        n_samples = 100
-        points = self.binomial.random_point(n_points)
-        samples = self.binomial.sample(points, n_samples)
-        result = samples.shape
-        expected = (n_points, n_samples)
-
+    @geomstats.tests.np_and_autograd_only
+    def test_point_to_pdf(self, n_draws, point, n_samples):
+        point = gs.to_ndarray(point, 1)
+        n_points = point.shape[0]
+        pmf = self.space(n_draws).point_to_pmf(point)
+        samples = gs.to_ndarray(self.space(n_draws).sample(point, n_samples), 1)
+        result = gs.squeeze(pmf(samples))
+        pmf = []
+        for i in range(n_points):
+            pmf.append(gs.array([binom.pmf(x, n_draws, point[i]) for x in samples]))
+        expected = gs.squeeze(gs.stack(pmf, axis=0))
         self.assertAllClose(result, expected)
-
-    def test_point_to_pmf(self):
-        """Test point_to_pmf
-
-        Check vectorization of the computation of the pmf.
-        """
-        point = self.binomial.random_point(n_samples=2)
-        pmf = self.binomial.point_to_pmf(point)
-        k = gs.cast(gs.linspace(0, self.n_draws, self.n_draws + 1), dtype=gs.float32)
-        result = pmf(k)
-        pmf1 = binom.pmf(k, self.n_draws, point[0])
-        pmf2 = binom.pmf(k, self.n_draws, point[1])
-        expected = gs.stack([gs.array(pmf1), gs.array(pmf2)], axis=1)
-
-        self.assertAllClose(result, expected, atol=1e-8)

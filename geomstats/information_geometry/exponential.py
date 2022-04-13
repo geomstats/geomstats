@@ -42,9 +42,9 @@ class ExponentialDistributions(OpenSet):
             distribution.
         """
         point = gs.array(point, gs.float32)
-        belongs = len(point.shape) == 1
-        belongs = gs.logical_and(belongs, point >= atol)
-        return belongs
+        point = gs.to_ndarray(point, 1)
+        belongs = point >= atol
+        return gs.squeeze(belongs)
 
     @staticmethod
     def random_point(n_samples=1, bound=1.0):
@@ -66,7 +66,7 @@ class ExponentialDistributions(OpenSet):
         samples : array-like, shape=[n_samples,]
             Sample of points representing exponential distributions.
         """
-        return bound * gs.random.rand(n_samples)
+        return gs.squeeze(bound * gs.random.rand(n_samples))
 
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
@@ -87,7 +87,7 @@ class ExponentialDistributions(OpenSet):
         """
         point = gs.array(point, dtype=gs.float32)
         projected = gs.where(point < atol, atol, point)
-        return projected
+        return gs.squeeze(projected)
 
     def sample(self, point, n_samples=1):
         """Sample from the exponential distribution.
@@ -111,7 +111,7 @@ class ExponentialDistributions(OpenSet):
         geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=1)
         samples = gs.array([expon.rvs(point) for i in range(n_samples)])
-        return samples[0] if len(point) == 1 else gs.transpose(samples)
+        return gs.squeeze(gs.transpose(samples))
 
     def point_to_pdf(self, point):
         """Compute pdf associated to point.
@@ -144,9 +144,9 @@ class ExponentialDistributions(OpenSet):
             x = gs.to_ndarray(x, to_ndim=1)
 
             pdf_at_x = [
-                gs.array(expon.pdf(x, loc=0, scale=param)) for param in list(point)
+                gs.array(expon.pdf(x, loc=0, scale=param))
+                for param in gs.to_ndarray(point, 1)
             ]
-            pdf_at_x = gs.stack(pdf_at_x, axis=-1)
 
             return pdf_at_x
 

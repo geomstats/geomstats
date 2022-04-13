@@ -150,10 +150,13 @@ class BinomialDistributions(OpenSet):
             k = gs.to_ndarray(k, to_ndim=1)
 
             pmf_at_k = gs.array(
-                [gs.array(binom.pmf(k, self.n_draws, param)) for param in list(point)]
+                [
+                    gs.array(binom.pmf(k, self.n_draws, param))
+                    for param in gs.to_ndarray(point, 1)
+                ]
             )
 
-            return pmf_at_k
+            return gs.squeeze(pmf_at_k)
 
         return pmf
 
