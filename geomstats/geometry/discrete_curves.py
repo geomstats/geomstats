@@ -47,7 +47,7 @@ class DiscreteCurves(Manifold):
     def __init__(self, ambient_manifold, **kwargs):
         kwargs.setdefault("metric", SRVMetric(ambient_manifold))
         super(DiscreteCurves, self).__init__(
-            dim=math.inf, shape=(), default_point_type="matrix"
+            dim=math.inf, shape=(), default_point_type="matrix", **kwargs
         )
         self.ambient_manifold = ambient_manifold
         self.square_root_velocity_metric = self._metric
