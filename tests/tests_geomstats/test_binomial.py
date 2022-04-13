@@ -1,6 +1,5 @@
 """Unit tests for the binomial manifold."""
 
-
 from scipy.stats import binom
 
 import geomstats.backend as gs
