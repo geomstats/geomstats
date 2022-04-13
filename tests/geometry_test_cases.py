@@ -1084,10 +1084,10 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         expected = gs.zeros_like(dist)
         self.assertAllClose(dist, expected, rtol, atol)
 
-    def test_triangule_inequality_of_dist(
+    def test_triangular_inequality_of_dist(
         self, metric_args, point_a, point_b, point_c, atol
     ):
-        """Check that distance satisfies traingule inequality.
+        """Check that distance satisfies traingular inequality.
 
         Parameters
         ----------
@@ -1106,7 +1106,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         dist_ab = metric.dist(point_a, point_b)
         dist_bc = metric.dist(point_b, point_c)
         dist_ac = metric.dist(point_a, point_c)
-        result = gs.all(dist_ab + dist_bc - dist_ac > atol)
+        result = gs.all((dist_ab + dist_bc - dist_ac) >= atol)
         self.assertAllClose(result, gs.array(True))
 
 

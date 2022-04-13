@@ -914,6 +914,11 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol * 10000,
             )
 
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
     testing_data = MatricesMetricTestData()
 
     def test_inner_product(self, m, n, tangent_vec_a, tangent_vec_b, expected):

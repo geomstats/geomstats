@@ -385,6 +385,11 @@ class TestPSDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
                 atol=gs.atol * 1000,
             )
 
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
     testing_data = TestDataPSDMetricBuresWasserstein()
 
     def test_exp(self, n, tangent_vec, base_point, expected):

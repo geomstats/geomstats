@@ -309,6 +309,11 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
             )
 
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
         def mobius_vectorization_test_data(self):
             smoke_data = [
                 dict(

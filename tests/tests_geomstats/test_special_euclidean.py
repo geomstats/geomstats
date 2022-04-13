@@ -694,6 +694,11 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
                 self.n_tangent_vecs_list,
             )
 
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
     testing_data = SpecialEuclideanMatrixCanonicalLeftMetricTestData()
 
     def test_left_metric_wrong_group(self, group, expected):
@@ -724,6 +729,7 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
     skip_test_dist_is_norm_of_log = True
     skip_test_dist_is_positive = np_backend()
     skip_test_dist_is_symmetric = True
+    skip_test_triangular_inequality_of_dist = np_backend()
     skip_test_dist_point_to_itself_is_zero = True
     skip_test_squared_dist_is_positive = np_backend()
 
@@ -902,6 +908,11 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
                 self.space_list,
                 self.shape_list,
                 self.n_tangent_vecs_list,
+            )
+
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
             )
 
         def right_exp_coincides_test_data(self):

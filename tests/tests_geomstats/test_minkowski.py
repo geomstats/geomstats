@@ -91,6 +91,7 @@ class TestMinkowskiMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_squared_dist_is_positive = True
     skip_test_dist_is_norm_of_log = not np_backend()
     skip_test_dist_is_symmetric = not np_backend()
+    skip_test_triangular_inequality_of_dist = True
 
     class MinkowskiMetricTestData(_RiemannianMetricTestData):
         n_list = random.sample(range(2, 4), 2)

@@ -537,6 +537,11 @@ class TestSPDMetricAffine(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
             )
 
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
     testing_data = SPDMetricAffineTestData()
 
     def test_inner_product(
@@ -787,6 +792,11 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
                 self.space_list,
                 self.shape_list,
                 self.n_tangent_vecs_list,
+            )
+
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
             )
 
         def parallel_transport_test_data(self):
@@ -1093,6 +1103,11 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.metric_args_list, self.space_list, self.n_points_list
             )
 
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
         def inner_product_is_symmetric_test_data(self):
             return self._inner_product_is_symmetric_test_data(
                 self.metric_args_list,
@@ -1361,6 +1376,11 @@ class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer
                 self.space_list,
                 self.shape_list,
                 self.n_tangent_vecs_list,
+            )
+
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
             )
 
     testing_data = SPDMetricLogEuclideanTestData()

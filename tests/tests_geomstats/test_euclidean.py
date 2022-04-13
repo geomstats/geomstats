@@ -462,6 +462,11 @@ class TestEuclideanMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
             )
 
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
     testing_data = EuclideanMetricTestData()
 
     def test_exp(self, dim, tangent_vec, base_point, expected):

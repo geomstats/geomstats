@@ -286,6 +286,11 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
                 self.n_tangent_vecs_list,
             )
 
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
     testing_data = GrassmannianCanonicalMetricTestData()
 
     def test_exp(self, n, k, tangent_vec, base_point, expected):

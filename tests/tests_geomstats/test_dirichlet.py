@@ -334,6 +334,11 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 atol=gs.atol,
             )
 
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
         def metric_matrix_shape_test_data(self):
             random_data = [
                 dict(dim=2, point=self.space(2).random_point(1), expected=(2, 2)),

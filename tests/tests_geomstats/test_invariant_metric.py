@@ -30,6 +30,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_geodesic_bvp_belongs = True
     skip_test_log_after_exp = True
     skip_test_dist_point_to_itself_is_zero = np_backend()
+    skip_test_triangular_inequality_of_dist = np_backend()
 
     class InvariantMetricTestData(_RiemannianMetricTestData):
         group = SpecialEuclidean(n=3, point_type="vector")
@@ -580,6 +581,11 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_tangent_vecs_list,
+            )
+
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
             )
 
         def exp_log_composition_at_identity_test_data(self):

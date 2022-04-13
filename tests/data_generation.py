@@ -1532,3 +1532,37 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             )
 
         return self.generate_tests([], random_data)
+
+    def _triangular_inequality_of_dist_test_data(
+        self, metric_args_list, space_list, n_points_list, atol=gs.atol
+    ):
+        """Generate data to check the traingular inequality of geodesic distance.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_list : list
+            List of number of random points to generate.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, n_points in zip(
+            metric_args_list, space_list, n_points_list
+        ):
+            point_a = space.random_point(n_points)
+            point_b = space.random_point(n_points)
+            point_c = space.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    point_a=point_a,
+                    point_b=point_b,
+                    point_c=point_c,
+                    atol=atol,
+                )
+            )
+        return self.generate_tests([], random_data)

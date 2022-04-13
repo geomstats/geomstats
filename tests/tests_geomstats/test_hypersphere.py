@@ -683,6 +683,11 @@ class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
             )
 
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
         def exp_and_dist_and_projection_to_tangent_space_test_data(self):
             unnorm_base_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
             base_point = unnorm_base_point / gs.linalg.norm(unnorm_base_point)

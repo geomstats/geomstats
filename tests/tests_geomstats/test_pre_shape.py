@@ -952,6 +952,11 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
             )
 
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
     testing_data = KendallShapeMetricTestData()
 
     def test_curvature_is_skew_operator(self, k_landmarks, m_ambient, vec, base_point):
@@ -1326,6 +1331,11 @@ class TestPreShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.space_list,
                 self.shape_list,
                 self.n_tangent_vecs_list,
+            )
+
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
             )
 
     testing_data = KendallShapeMetricTestData()
