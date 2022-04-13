@@ -549,7 +549,7 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
             self.metric_args_list,
             self.space_list,
             self.n_points_list,
-            atol=gs.atol * 10000,
+            atol=1e-3,
         )
 
     def inner_product_is_symmetric_test_data(self):

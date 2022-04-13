@@ -38,6 +38,7 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
     skip_test_exp_ladder_parallel_transport = True
     skip_test_dist_is_symmetric = True
     skip_test_dist_is_norm_of_log = True
+    # skip_test_
 
     testing_data = StiefelCanonicalMetricTestData()
 

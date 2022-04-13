@@ -825,7 +825,7 @@ class SpecialEuclideanMatrixCanonicalRightMetricTestData(_InvariantMetricTestDat
             self.metric_args_list,
             self.space_list,
             self.n_points_list,
-            atol=gs.atol * 10000,
+            atol=1e-3,
         )
 
     def log_after_exp_at_identity_test_data(self):
