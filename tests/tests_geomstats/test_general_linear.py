@@ -338,6 +338,11 @@ class TestSquareMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer):
                 self.space_args_list, self.n_points_list
             )
 
+        def triangular_inequality_of_dist_test_data(self):
+            return self._triangular_inequality_of_dist_test_data(
+                self.metric_args_list, self.space_list, self.n_points_list
+            )
+
     testing_data = SquareMatricesTestData()
 
     def test_belongs(self, n, mat, expected):
