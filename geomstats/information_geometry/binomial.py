@@ -45,11 +45,9 @@ class BinomialDistributions(OpenSet):
             distribution.
         """
         point = gs.array(point, gs.float32)
-        belongs = len(point.shape) == 1
-        belongs = gs.logical_and(
-            belongs, gs.logical_and(atol <= point, point <= 1 - atol)
-        )
-        return belongs
+        point = gs.to_ndarray(point, 1)
+        belongs = gs.logical_and(atol <= point, point <= 1 - atol)
+        return gs.squeeze(belongs)
 
     @staticmethod
     def random_point(n_samples=1):
@@ -68,7 +66,7 @@ class BinomialDistributions(OpenSet):
         samples : array-like, shape=[...,]
             Sample of points representing binomial distributions.
         """
-        return gs.random.rand(n_samples)
+        return gs.squeeze(gs.random.rand(n_samples))
 
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the parameter set.
@@ -95,7 +93,7 @@ class BinomialDistributions(OpenSet):
             + atol * gs.cast((point < atol), gs.float32),
             point,
         )
-        return projected
+        return gs.squeeze(projected)
 
     def sample(self, point, n_samples=1):
         """Sample from the binomial distribution.
@@ -118,7 +116,7 @@ class BinomialDistributions(OpenSet):
         geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=1)
         samples = gs.array([binom.rvs(self.n_draws, point) for i in range(n_samples)])
-        return samples[0] if len(point) == 1 else gs.transpose(samples)
+        return gs.squeeze(gs.transpose(samples))
 
     def point_to_pmf(self, point):
         """Compute pmf associated to point.
@@ -151,10 +149,9 @@ class BinomialDistributions(OpenSet):
             k = gs.array(k, gs.float32)
             k = gs.to_ndarray(k, to_ndim=1)
 
-            pmf_at_k = [
-                gs.array(binom.pmf(k, self.n_draws, param)) for param in list(point)
-            ]
-            pmf_at_k = gs.stack(pmf_at_k, axis=-1)
+            pmf_at_k = gs.array(
+                [gs.array(binom.pmf(k, self.n_draws, param)) for param in list(point)]
+            )
 
             return pmf_at_k
 
