@@ -49,8 +49,8 @@ class VectorSpace(Manifold, abc.ABC):
             Boolean evaluating if point belongs to the space.
         """
         minimal_ndim = len(self.shape)
-        if len(point.shape) == minimal_ndim:
-            point = gs.transpose(gs.to_ndarray(point, minimal_ndim + 1))
+        if self.shape[0] == 1:
+            point = gs.transpose(gs.to_ndarray(point, 2))
         belongs = point.shape[-minimal_ndim:] == self.shape
         if point.ndim <= minimal_ndim:
             return belongs
