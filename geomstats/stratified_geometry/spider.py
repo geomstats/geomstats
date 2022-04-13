@@ -185,7 +185,10 @@ class SpiderGeometry(PointSetGeometry):
     def __init__(self, space, ambient_metric=EuclideanMetric(1)):
         super(SpiderGeometry, self).__init__(space=space)
         self.rays_geometry = ambient_metric
-        self.rays = space.rays
+
+    @property
+    def rays(self):
+        return self.space.rays
 
     @_vectorize_point((1, 'a'), (2, 'b'))
     def dist(self, a, b):
@@ -235,14 +238,10 @@ class SpiderGeometry(PointSetGeometry):
         """
 
         def _vec(t, fncs):
-            if type(t) is not list:
-                t = [t]
+            if len(fncs) == 1:
+                return fncs[0](t)
 
-            out = []
-            for tt in t:
-                out.append([fnc(tt) for fnc in fncs])
-
-            return out
+            return [fnc(t) for fnc in fncs]
 
         if len(initial_point) == 1 and len(end_point) != 1:
             values = itertools.zip_longest(
@@ -277,7 +276,8 @@ class SpiderGeometry(PointSetGeometry):
                     end_point=gs.array(gs.maximum(point_a.x, point_b.x)),
                 )
 
-                return SpiderPoint(s=s, x=float(g(t)))
+                x = g(t)
+                return [SpiderPoint(s=s, x=xx[0]) for xx in x]
 
             return ray_geo
 
@@ -285,10 +285,9 @@ class SpiderGeometry(PointSetGeometry):
             g = self.rays_geometry.geodesic(
                 initial_point=gs.array([-point_a.x]), end_point=gs.array([point_b.x])
             )
-            x = float(g(t))
-            if x < 0:
-                return SpiderPoint(s=point_a.s, x=-x)
-            if x > 0:
-                return SpiderPoint(s=point_b.s, x=x)
+            x = g(t)
+            return [SpiderPoint(s=point_a.s, x=-xx[0]) if xx < 0.
+                    else SpiderPoint(s=point_b.s, x=xx[0])
+                    for xx in x]
 
         return ray_geo
