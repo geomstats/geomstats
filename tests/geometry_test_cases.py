@@ -1,6 +1,6 @@
 """Core parametrizer classes for Tests."""
 
-from email.mime import base
+from functools import reduce
 
 import geomstats.backend as gs
 from tests.conftest import TestCase
@@ -512,10 +512,7 @@ class FiberBundleTestCase(TestCase):
 
 
 class ProductManifoldTestCase(ManifoldTestCase):
-    def test_product_dimension_is_sum_of_dimensions(
-        self,
-        spaces,
-    ):
+    def test_product_dimension_is_sum_of_dimensions(self, space_args):
         """Check the dimension of the product manifold.
 
         Check that the dimension of the product manifold is the sum of
@@ -526,9 +523,13 @@ class ProductManifoldTestCase(ManifoldTestCase):
 
         Parameters
         ----------
-        ...
+        space_args : tuple
+            Arguments to pass to constructor of the product manifold.
         """
-        expected = sum(space.dim for space in spaces)
+        spaces_list = space_args[0]
+        result = self.space(*space_args).dim
+        expected = sum(space.dim for space in spaces_list)
+        self.assertAllClose(result, expected)
 
 
 class ConnectionTestCase(TestCase):
@@ -1110,8 +1111,9 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
 
 class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
-    # Note: the NFold metric should inherit from this.
-    def test_innerproduct_is_sum_of_innerproducts(self):
+    def test_innerproduct_is_sum_of_innerproducts(
+        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
+    ):
         """Check the inner-product of the product metric.
 
         Check that the inner-product of two tangent vectors on the product
@@ -1124,11 +1126,29 @@ class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
 
         Parameters
         ----------
-        ...
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        tangent_vec_a : array-like
+            Point on the manifold.
+        tangent_vec_b : array-like
+            Point on the manifold.
+        base_point : array-like
+            Point on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
         """
-        pass
+        metric = self.metric(*metric_args)
+        metrics_list = metric_args[0]
+        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        expected = sum(
+            metric.inner_product(tangent_vec_a[i], tangent_vec_b[i], base_point[i])
+            for i, metric in enumerate(metrics_list)
+        )
+        self.assertAllClose(result, expected, rtol, atol)
 
-    def test_metric_matrix_is_block_diagonal(self):
+    def test_metric_matrix_is_block_diagonal(self, metric_args, base_point):
         """Check that the metric matrix has the correct block diagonal form.
 
         Check that the metric matrix of the product metric has a block diagonal
@@ -1143,11 +1163,17 @@ class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
         ----------
         ...
         """
-        pass
+        metric = self.metric(*metric_args)
+        result = metric.metric_matrix(base_point)
+        individual_metric_matrices = [metric.matrix for metric in metric_args[0]]
+        expected = reduce(lambda x, y: gs.kron(x, y), individual_metric_matrices)
+        self.assertAllClose(result, expected)
 
 
 class QuotientMetricTestCase(RiemannianMetricTestCase):
-    def test_dist_is_smaller_than_bundle_dist(self):
+    def test_dist_is_smaller_than_bundle_dist(
+        self, metric_args, bundle, point_a, point_b, atol
+    ):
         """Check that the quotient distance is smaller than the distance in the bundle.
 
         Check that the quotient metric distance between two points on the quotient
@@ -1155,10 +1181,26 @@ class QuotientMetricTestCase(RiemannianMetricTestCase):
 
         Parameters
         ----------
-        ..
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        bundle : FuberBundle
+            Fiber Bundle object.
+        point_a : array-like
+            Point on the manifold.
+        point_b : array-like
+            Point on the manifold.
+        atol : float
+            Absolute tolerance to test this property.
         """
+        metric = self.metric(*metric_args)
+        quotient_distance = metric.dist(point_a, point_b)
+        bundle_distance = bundle.ambient_metric(point_a, point_b)
+        result = gs.all(bundle_distance - quotient_distance > atol)
+        self.assertAllClose(result, gs.array(True))
 
-    def test_log_is_horizontal(self):
+    def test_log_is_horizontal(
+        self, metric_args, bundle, point, base_point, is_horizontal_atol
+    ):
         """Check the quotient log is a horizontal tangent vector.
 
         Check that the quotient metric logarithm gives a tangent vector
@@ -1166,9 +1208,21 @@ class QuotientMetricTestCase(RiemannianMetricTestCase):
 
         Parameters
         ----------
-        ...
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        bundle : FuberBundle
+            Fiber Bundle object.
+        point : array-like
+            Point on the quotient manifold.
+        base_point : array-like
+            Point on the quotient manifold.
+        atol : float
+            Absolute tolerance to test this property.
         """
-        pass
+        metric = self.metric(*metric_args)
+        log = metric.log(point, base_point)
+        result = gs.all(bundle.is_horizontal(log, base_point, is_horizontal_atol))
+        self.assertAllClose(result, gs.array(True))
 
 
 class PullbackMetricTestCase(RiemannianMetricTestCase):

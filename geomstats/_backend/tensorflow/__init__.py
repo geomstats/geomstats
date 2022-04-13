@@ -936,3 +936,7 @@ def ravel_tril_indices(n, k=0, m=None):
         size = (n, m)
     idxs = tril_indices(n, k, m)
     return _ravel_multi_index(idxs, size)
+
+
+def kron(a, b):
+    return tf.linalg.LinearOperatorKronecker([a, b]).to_dense()
