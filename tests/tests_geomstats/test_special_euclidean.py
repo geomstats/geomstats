@@ -145,8 +145,8 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
     skip_test_squared_dist_is_symmetric = True
     skip_test_dist_is_norm_of_log = True
     skip_test_dist_is_positive = np_backend()
+    skip_test_triangle_inequality_of_dist = np_backend()
     skip_test_dist_is_symmetric = True
-    skip_test_triangular_inequality_of_dist = np_backend()
     skip_test_dist_point_to_itself_is_zero = True
     skip_test_squared_dist_is_positive = np_backend()
     skip_test_exp_after_log_at_identity = np_backend()

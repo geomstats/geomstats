@@ -1533,10 +1533,10 @@ class _RiemannianMetricTestData(_ConnectionTestData):
 
         return self.generate_tests([], random_data)
 
-    def _triangular_inequality_of_dist_test_data(
+    def _triangle_inequality_of_dist_test_data(
         self, metric_args_list, space_list, n_points_list, atol=gs.atol
     ):
-        """Generate data to check the traingular inequality of geodesic distance.
+        """Generate data to check the traingle inequality of geodesic distance.
 
         Parameters
         ----------
@@ -1655,6 +1655,49 @@ class _InvariantMetricTestData(_RiemannianMetricTestData):
                         rtol=rtol,
                         atol=atol,
                     )
+                )
+            )
+
+        return self.generate_tests([], random_data)
+
+
+class _QuotientMetricTestData(_RiemannianMetricTestData):
+    def _dist_is_smaller_than_bundle_dist_test_data(
+        self, metric_args_list, bundle_list, n_points_list, atol=gs.atol
+    ):
+        random_data = []
+        for metric_args, bundle, n_points in zip(
+            metric_args_list, bundle_list, n_points_list
+        ):
+            point_a = bundle.random_point(n_points)
+            point_b = bundle.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    bundle=bundle,
+                    point_a=point_a,
+                    point_b=point_b,
+                    atol=atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def _log_is_horizontal_test_data(
+        self, metric_args_list, bundle_list, n_points_list, atol=gs.atol
+    ):
+        random_data = []
+        for metric_args, bundle, n_points in zip(
+            metric_args_list, bundle_list, n_points_list
+        ):
+            point = bundle.random_point(n_points)
+            base_point = bundle.random_point()
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    bundle=bundle,
+                    point=point,
+                    base_point=base_point,
+                    is_horizontoal_atol=atol,
                 )
             )
 

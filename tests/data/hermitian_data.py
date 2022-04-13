@@ -470,7 +470,7 @@ class HermitianMetricTestData(_RiemannianMetricTestData):
             self.n_tangent_vecs_list,
         )
 
-    def triangular_inequality_of_dist_test_data(self):
-        return self._triangular_inequality_of_dist_test_data(
+    def triangle_inequality_of_dist_test_data(self):
+        return self._triangle_inequality_of_dist_test_data(
             self.metric_args_list, self.space_list, self.n_points_list
         )

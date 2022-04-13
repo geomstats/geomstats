@@ -5,7 +5,7 @@ from geomstats.geometry.rank_k_psd_matrices import BuresWassersteinBundle, PSDMa
 from tests.data_generation import (
     _FiberBundleTestData,
     _ManifoldTestData,
-    _RiemannianMetricTestData,
+    _QuotientMetricTestData,
 )
 
 
@@ -119,11 +119,12 @@ class BuresWassersteinBundleTestData(_FiberBundleTestData):
         )
 
 
-class TestDataPSDMetricBuresWasserstein(_RiemannianMetricTestData):
+class TestDataPSDMetricBuresWasserstein(_QuotientMetricTestData):
     n_list = random.sample(range(2, 7), 5)
     metric_args_list = [(n, n) for n in n_list]
     shape_list = [(n, n) for n in n_list]
     space_list = [PSDMatrices(n, n) for n in n_list]
+    bundle_list = [BuresWassersteinBundle(n, n) for n in n_list]
     n_points_list = random.sample(range(1, 7), 5)
     n_samples_list = random.sample(range(1, 7), 5)
     n_points_a_list = random.sample(range(1, 7), 5)
@@ -351,7 +352,17 @@ class TestDataPSDMetricBuresWasserstein(_RiemannianMetricTestData):
             atol=gs.atol * 1000,
         )
 
-    def triangular_inequality_of_dist_test_data(self):
-        return self._triangular_inequality_of_dist_test_data(
+    def triangle_inequality_of_dist_test_data(self):
+        return self._triangle_inequality_of_dist_test_data(
             self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def dist_is_smaller_than_bundle_dist_test_data(self):
+        return self._dist_is_smaller_than_bundle_dist_test_data(
+            self.metric_args_list, self.bundle_list, self.n_points_list
+        )
+
+    def log_is_horizontal_test_data(self):
+        return self._log_is_horizontal_test_data(
+            self.metric_args_list, self.bundle_list, self.n_points_list
         )

@@ -1084,10 +1084,10 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         expected = gs.zeros_like(dist)
         self.assertAllClose(dist, expected, rtol, atol)
 
-    def test_triangular_inequality_of_dist(
+    def test_triangle_inequality_of_dist(
         self, metric_args, point_a, point_b, point_c, atol
     ):
-        """Check that distance satisfies traingular inequality.
+        """Check that distance satisfies traingle inequality.
 
         Parameters
         ----------
@@ -1216,7 +1216,7 @@ class QuotientMetricTestCase(RiemannianMetricTestCase):
             Point on the quotient manifold.
         base_point : array-like
             Point on the quotient manifold.
-        atol : float
+        is_horizontal_atol : float
             Absolute tolerance to test this property.
         """
         metric = self.metric(*metric_args)
