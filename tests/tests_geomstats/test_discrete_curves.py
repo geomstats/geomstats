@@ -871,7 +871,7 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, rtol=10 * gs.rtol)
 
 
-class ClosedSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+class TestClosedSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     metric = connection = ClosedSRVMetric
     skip_test_exp_shape = True
