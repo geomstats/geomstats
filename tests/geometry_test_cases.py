@@ -1166,7 +1166,7 @@ class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
         metric = self.metric(*metric_args)
         result = metric.metric_matrix(base_point)
         individual_metric_matrices = [metric.matrix for metric in metric_args[0]]
-        expected = reduce(lambda x, y: gs.kron(x, y), individual_metric_matrices)
+        expected = reduce(gs.kron, individual_metric_matrices)
         self.assertAllClose(result, expected)
 
 
