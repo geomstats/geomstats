@@ -2,7 +2,7 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import BiInvariantMetric, InvariantMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from tests.conftest import Parametrizer, TestCase, pytorch_backend, tf_backend
+from tests.conftest import Parametrizer, TestCase, pytorch_backend
 from tests.data.special_orthogonal_data import (
     BiInvariantMetricTestData,
     InvariantMetricTestData,
