@@ -40,6 +40,8 @@ class Manifold(abc.ABC):
         dim,
         shape,
         metric=None,
+        connected=None,
+        compact=None,
         default_point_type=None,
         default_coords_type="intrinsic",
         **kwargs
@@ -61,6 +63,8 @@ class Manifold(abc.ABC):
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
         self.metric = metric
+        self.connected = connected
+        self.compact = compact
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
@@ -198,3 +202,33 @@ class Manifold(abc.ABC):
                 gs.random.normal(size=(n_samples,) + self.shape), base_point
             )
         )
+
+    def is_connected(self):
+        """Return whether manifold is connected.
+
+        Returns
+        -------
+        _ : boolean
+            True if manifold is connected, False otherwise.
+        """
+        return self.connected
+
+    def is_compact(self):
+        """Return whether manifold is compact.
+
+        Returns
+        -------
+        _ : boolean
+            True if manifold is compact, False otherwise.
+        """
+        return self.compact
+
+    def is_complete(self):
+        """Return whether manifold with metric is geodesically complete.
+
+        Returns
+        -------
+        _ : boolean
+            True if manifold is geodesically complete, False otherwise.
+        """
+        return self.metric.is_complete()

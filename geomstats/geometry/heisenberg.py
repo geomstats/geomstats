@@ -28,7 +28,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
 
     def __init__(self, **kwargs):
         super(HeisenbergVectors, self).__init__(
-            dim=3, shape=(3,), lie_algebra=Euclidean(3)
+            dim=3, shape=(3,), lie_algebra=Euclidean(3), connected=True, compat=True
         )
 
     def _create_basis(self):

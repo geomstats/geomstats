@@ -229,6 +229,8 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
             value=gs.eye(n + 1),
             tangent_submersion=tangent_submersion,
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n),
+            connected=True,
+            compact=False,
         )
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
@@ -340,6 +342,8 @@ class _SpecialEuclideanVectors(LieGroup):
             shape=(dim,),
             default_point_type="vector",
             lie_algebra=Euclidean(dim),
+            connected=True,
+            compact=False,
         )
 
         self.n = n

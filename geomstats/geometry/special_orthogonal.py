@@ -49,6 +49,8 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             submersion=lambda x: matrices.mul(matrices.transpose(x), x),
             tangent_submersion=lambda v, x: 2
             * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
+            connected=True,
+            compact=False,
         )
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.metric = self.bi_invariant_metric
@@ -298,7 +300,14 @@ class _SpecialOrthogonalVectors(LieGroup):
 
     def __init__(self, n, shape, epsilon=0.0):
         dim = n * (n - 1) // 2
-        LieGroup.__init__(self, dim=dim, shape=shape, default_point_type="vector")
+        LieGroup.__init__(
+            self,
+            dim=dim,
+            shape=shape,
+            default_point_type="vector",
+            connected=True,
+            compact=False,
+        )
 
         self.n = n
         self.epsilon = epsilon

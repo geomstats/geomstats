@@ -48,6 +48,8 @@ class Stiefel(LevelSet):
             tangent_submersion=lambda v, x: 2
             * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
             metric=StiefelCanonicalMetric(n, p),
+            connected=(n == p),
+            compact=True,
         )
 
         self.n = n

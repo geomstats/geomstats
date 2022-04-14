@@ -52,6 +52,8 @@ class PoincarePolydisk(ProductManifold, OpenSet):
             manifolds=list_disks,
             default_point_type="matrix",
             ambient_space=Matrices(n_disks, 2),
+            connected=True,
+            compact=False,
         )
         self.metric = PoincarePolydiskMetric(n_disks=n_disks, coords_type=coords_type)
 

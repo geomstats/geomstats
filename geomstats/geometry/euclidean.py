@@ -22,6 +22,8 @@ class Euclidean(VectorSpace):
             shape=(dim,),
             default_point_type="vector",
             metric=EuclideanMetric(dim, shape=(dim,)),
+            connected=False,
+            compact=False,
         )
 
     def get_identity(self):
@@ -83,6 +85,7 @@ class EuclideanMetric(RiemannianMetric):
     def __init__(self, dim, shape=None):
         super(EuclideanMetric, self).__init__(
             dim=dim,
+            complete=True,
             shape=shape,
             signature=(dim, 0),
         )
