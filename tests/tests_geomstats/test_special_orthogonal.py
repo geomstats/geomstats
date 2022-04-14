@@ -325,7 +325,7 @@ class TestBiInvariantMetric(InvariantMetricTestCase, metaclass=Parametrizer):
     metric = connection = BiInvariantMetric
     skip_test_exp_geodesic_ivp = True
     skip_test_log_after_exp_at_identity = True
-    skip_test_triangle_inequality_of_dist = not geomstats.tests.np_backend()
+    skip_test_triangle_inequality_of_dist = True
 
     testing_data = BiInvariantMetricTestData()
 
