@@ -43,7 +43,7 @@ class SpiderPoint(Point):
         return hash((self.s, self.x))
 
     def __eq__(self, other):
-        """Compares two points."""
+        """Compare two points."""
         return self.s == other.s and abs(self.x - other.x) < gs.atol
 
     def to_array(self):
@@ -192,6 +192,7 @@ class SpiderGeometry(PointSetGeometry):
 
     @property
     def rays(self):
+        """Get rays."""
         return self.space.rays
 
     @_vectorize_point((1, "a"), (2, "b"))
