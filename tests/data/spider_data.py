@@ -1,7 +1,7 @@
 import random
 
 import geomstats.backend as gs
-from geomstats.stratified_geometry.spider import SpiderPoint
+from geomstats.stratified_geometry.spider import Spider, SpiderGeometry, SpiderPoint
 from tests.data_generation import (
     _PointGeometryTestData,
     _PointSetTestData,
@@ -11,15 +11,18 @@ from tests.data_generation import (
 
 class SpiderTestData(_PointSetTestData):
 
+    _Point = SpiderPoint
+    _PointSet = Spider
+
     # for random tests
     n_samples = _PointSetTestData.n_samples
     rays_list = random.sample(range(1, 5), n_samples)
     space_args_list = [(rays,) for rays in rays_list]
 
     def belongs_test_data(self):
-        pt1 = SpiderPoint(3, 13)
-        pt2 = SpiderPoint(0, 0)
-        pt3 = SpiderPoint(4, 1)
+        pt1 = self._Point(3, 13)
+        pt2 = self._Point(0, 0)
+        pt3 = self._Point(4, 1)
 
         smoke_data = [
             dict(space_args=(10,), points=pt1, expected=[True]),
@@ -30,8 +33,9 @@ class SpiderTestData(_PointSetTestData):
         return self.generate_tests(smoke_data)
 
     def set_to_array_test_data(self):
-        pt0 = SpiderPoint(0, 0.0)
-        pt1, pt2 = SpiderPoint(1, 2.0), SpiderPoint(3, 3.0)
+
+        pt0 = self._Point(0, 0.0)
+        pts = [self._Point(1, 2.0), self._Point(3, 3.0)]
 
         smoke_data = [
             dict(
@@ -41,17 +45,7 @@ class SpiderTestData(_PointSetTestData):
             ),
             dict(
                 space_args=(3,),
-                points=pt1,
-                expected=gs.array([[2.0, 0.0, 0.0]]),
-            ),
-            dict(
-                space_args=(3,),
-                points=[pt1],
-                expected=gs.array([[2.0, 0.0, 0.0]]),
-            ),
-            dict(
-                space_args=(3,),
-                points=[pt1, pt2],
+                points=pts,
                 expected=gs.array([[2.0, 0, 0.0], [0.0, 0.0, 3.0]]),
             ),
         ]
@@ -60,6 +54,9 @@ class SpiderTestData(_PointSetTestData):
 
 
 class SpiderPointTestData(_PointTestData):
+
+    _Point = SpiderPoint
+
     def to_array_test_data(self):
         smoke_data = [
             dict(point_args=(1, 2.0), expected=gs.array([1.0, 2.0])),
@@ -70,115 +67,40 @@ class SpiderPointTestData(_PointTestData):
 
 
 class SpiderGeometryTestData(_PointGeometryTestData):
+
+    _SetGeometry = SpiderGeometry
+    _PointSet = Spider
+    _Point = SpiderPoint
+
+    # for random tests
+    n_samples = _PointSetTestData.n_samples
+    rays_list = random.sample(range(1, 5), n_samples)
+    space_args_list = [(rays,) for rays in rays_list]
+
     def dist_test_data(self):
-        pts_start = [SpiderPoint(10, 1.0), SpiderPoint(10, 2.0), SpiderPoint(3, 1.0)]
-
-        pts_end = [SpiderPoint(10, 31.0), SpiderPoint(10, 2.0), SpiderPoint(1, 4.0)]
+        pts_start = [self._Point(10, 1.0), self._Point(3, 1.0)]
+        pts_end = [SpiderPoint(10, 31.0), SpiderPoint(1, 4.0)]
 
         smoke_data = [
             dict(
                 space_args=(12,),
-                start_point=pts_start[0],
-                end_point=pts_end[0],
-                expected=gs.array([30.0]),
-            ),
-            dict(
-                space_args=(12,),
-                start_point=pts_start[0],
-                end_point=pts_end,
-                expected=gs.array([30.0, 1.0, 5.0]),
-            ),
-            dict(
-                space_args=(12,),
-                start_point=pts_start,
-                end_point=pts_end[0],
-                expected=gs.array([30.0, 29.0, 32.0]),
-            ),
-            dict(
-                space_args=(12,),
-                start_point=pts_start,
-                end_point=pts_end,
-                expected=gs.array([30.0, 0.0, 5.0]),
-            ),
-        ]
-
-        return self.generate_tests(smoke_data)
-
-    def geodesic_output_type_test_data(self):
-        smoke_data = [
-            dict(
-                space_args=(12,),
-                start_point=SpiderPoint(1, 2.0),
-                end_point=SpiderPoint(2, 3.0),
+                point_a=pts_start,
+                point_b=pts_end,
+                expected=gs.array([30.0, 5.0]),
             ),
         ]
 
         return self.generate_tests(smoke_data)
 
     def geodesic_test_data(self):
-        pts_start = [SpiderPoint(10, 1.0), SpiderPoint(10, 2.0), SpiderPoint(3, 1.0)]
-
-        pts_end = [SpiderPoint(10, 31.0), SpiderPoint(10, 2.0), SpiderPoint(1, 4.0)]
 
         smoke_data = [
             dict(
                 space_args=(12,),
-                start_point=pts_start[0],
-                end_point=pts_end[0],
-                t=0.0,
-                expected=gs.array([[[10.0, 1.0]]]),
-            ),
-            dict(
-                space_args=(12,),
-                start_point=pts_start[0],
-                end_point=pts_end[0],
-                t=0.5,
-                expected=gs.array([[[10.0, 16.0]]]),
-            ),
-            dict(
-                space_args=(12,),
-                start_point=pts_start[0],
-                end_point=pts_end[0],
-                t=[0.0],
-                expected=gs.array([[[10.0, 1.0]]]),
-            ),
-            dict(
-                space_args=(12,),
-                start_point=pts_start[0],
-                end_point=pts_end[0],
-                t=[0.0, 1.0],
-                expected=gs.array([[[10.0, 1.0]], [[10.0, 31.0]]]),
-            ),
-            dict(
-                space_args=(12,),
-                start_point=pts_start[0],
-                end_point=pts_end,
-                t=1.0,
-                expected=gs.array([[[10.0, 31.0], [10.0, 2.0], [1.0, 4.0]]]),
-            ),
-            dict(
-                space_args=(12,),
-                start_point=pts_start[0],
-                end_point=pts_end,
-                t=[0.0, 1.0],
-                expected=gs.array(
-                    [
-                        [[10.0, 1], [10.0, 1.0], [10.0, 1.0]],
-                        [[10.0, 31.0], [10.0, 2.0], [1.0, 4.0]],
-                    ]
-                ),
-            ),
-            dict(
-                space_args=(12,),
-                start_point=pts_start,
-                end_point=pts_end,
-                t=[0.0, 1.0],
-                expected=gs.array(
-                    [
-                        [[10.0, 1], [10.0, 2.0], [3.0, 1.0]],
-                        [[10.0, 31.0], [10.0, 2.0], [1.0, 4.0]],
-                    ]
-                ),
+                start_point=self._Point(10, 1.0),
+                end_point=self._Point(10, 31.0),
+                t=0.4,
+                expected=gs.array([[10.0, 13.0]]),
             ),
         ]
 
