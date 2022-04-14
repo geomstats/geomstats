@@ -22,7 +22,7 @@ def _vectorize_point(*positions):
 
     def _dec(func):
         def _manipulate_input(arg):
-            if not (type(arg) is list):
+            if not (type(arg) in [list, tuple]):
                 return [arg]
 
             return arg
