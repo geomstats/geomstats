@@ -50,6 +50,8 @@ class _Hypersphere(LevelSet):
             value=1.0,
             tangent_submersion=lambda v, x: 2 * gs.sum(x * v, axis=-1),
             default_coords_type=default_coords_type,
+            connected=True,
+            compact=True,
         )
 
     def projection(self, point):

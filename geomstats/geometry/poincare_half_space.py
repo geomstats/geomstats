@@ -39,6 +39,8 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
             ambient_space=Euclidean(dim),
             scale=scale,
             metric=PoincareHalfSpaceMetric(dim, scale),
+            connected=True,
+            compact=False,
         )
         self.coords_type = PoincareHalfSpace.default_coords_type
         self.point_type = PoincareHalfSpace.default_point_type

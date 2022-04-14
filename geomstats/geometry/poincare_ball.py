@@ -45,6 +45,8 @@ class PoincareBall(_Hyperbolic, OpenSet):
             ambient_space=Euclidean(dim),
             scale=scale,
             metric=PoincareBallMetric(dim, scale),
+            connected=True,
+            compact=False,
         )
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type

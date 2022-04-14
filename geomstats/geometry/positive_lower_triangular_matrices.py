@@ -33,7 +33,8 @@ class PositiveLowerTriangularMatrices(OpenSet):
             dim=int(n * (n + 1) / 2),
             metric=(CholeskyMetric(n)),
             ambient_space=LowerTriangularMatrices(n),
-            **kwargs
+            connected=True,
+            compact=False**kwargs,
         )
         self.n = n
 

@@ -43,7 +43,10 @@ class Hyperbolic(_Hyperbolic, Manifold):
             ["extrinsic", "ball", "half-space"],
         )
         if default_coords_type == "extrinsic":
-            return Hyperboloid(*args, **kwargs)
+            return Hyperboloid(
+                *args,
+                **kwargs,
+            )
         if default_coords_type == "ball":
             return PoincareBall(*args, **kwargs)
         return PoincareHalfSpace(*args, **kwargs)

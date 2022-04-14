@@ -23,6 +23,8 @@ class LowerTriangularMatrices(VectorSpace):
             shape=(n, n),
             metric=MatricesMetric(n, n),
             default_point_type="matrix",
+            connected=True,
+            compact=False,
         )
         self.n = n
 

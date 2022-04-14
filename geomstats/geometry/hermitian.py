@@ -25,6 +25,8 @@ class Hermitian(VectorSpace):
             shape=(dim,),
             default_point_type="vector",
             metric=HermitianMetric(dim, shape=(dim,)),
+            connected=True,
+            compact=True,
         )
 
     def get_identity(self):

@@ -28,7 +28,12 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         if "dim" not in kwargs.keys():
             kwargs["dim"] = n**2
         super(GeneralLinear, self).__init__(
-            ambient_space=Matrices(n, n), n=n, lie_algebra=SquareMatrices(n), **kwargs
+            ambient_space=Matrices(n, n),
+            n=n,
+            lie_algebra=SquareMatrices(n),
+            connected=True,
+            compact=False,
+            **kwargs
         )
         self.positive_det = positive_det
 

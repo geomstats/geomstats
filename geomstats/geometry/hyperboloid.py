@@ -51,6 +51,8 @@ class Hyperboloid(_Hyperbolic, LevelSet):
             value=-1.0,
             tangent_submersion=minkowski.metric.inner_product,
             scale=scale,
+            connected=True,
+            compact=False,
         )
         self.coords_type = coords_type
         self.point_type = Hyperboloid.default_point_type

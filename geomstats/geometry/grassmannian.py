@@ -191,6 +191,8 @@ class Grassmannian(LevelSet):
             * Matrices.to_symmetric(Matrices.mul(x, v))
             - v,
             metric=GrassmannianCanonicalMetric(n, k),
+            connected=True,
+            comapct=True,
         )
 
     def random_uniform(self, n_samples=1):
@@ -312,7 +314,10 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
 
         dim = int(p * (n - p))
         super(GrassmannianCanonicalMetric, self).__init__(
-            m=n, n=n, dim=dim, signature=(dim, 0, 0)
+            m=n,
+            n=n,
+            dim=dim,
+            signature=(dim, 0, 0),
         )
 
         self.n = n

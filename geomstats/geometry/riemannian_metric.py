@@ -38,13 +38,16 @@ class RiemannianMetric(Connection, ABC):
         Optional, default: 'vector'.
     """
 
-    def __init__(self, dim, shape=None, signature=None, default_point_type=None):
+    def __init__(
+        self, dim, complete=None, shape=None, signature=None, default_point_type=None
+    ):
         super(RiemannianMetric, self).__init__(
             dim=dim, shape=shape, default_point_type=default_point_type
         )
         if signature is None:
             signature = (dim, 0)
         self.signature = signature
+        self.complete = complete
 
     def metric_matrix(self, base_point=None):
         """Metric matrix at the tangent space at a base point.

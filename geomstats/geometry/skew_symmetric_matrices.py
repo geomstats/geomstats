@@ -24,7 +24,9 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
 
     def __init__(self, n):
         dim = int(n * (n - 1) / 2)
-        super(SkewSymmetricMatrices, self).__init__(dim, n)
+        super(SkewSymmetricMatrices, self).__init__(
+            dim, n, connected=True, compact=False
+        )
         self.ambient_space = Matrices(n, n)
 
     def _create_basis(self):

@@ -32,7 +32,8 @@ class SPDMatrices(OpenSet):
             dim=int(n * (n + 1) / 2),
             metric=SPDMetricAffine(n),
             ambient_space=SymmetricMatrices(n),
-            **kwargs
+            connected=True,
+            compact=False**kwargs,
         )
         self.n = n
 
