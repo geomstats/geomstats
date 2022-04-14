@@ -15,6 +15,7 @@ from geomstats.geometry.discrete_curves import (
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.tests import tf_backend
 from tests.conftest import Parametrizer
 from tests.data_generation import TestData, _ManifoldTestData, _RiemannianMetricTestData
 from tests.geometry_test_cases import (
@@ -108,6 +109,10 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_dist_is_norm_of_log = tf_backend()
+    skip_test_dist_is_symmetric = tf_backend()
+    skip_test_squared_dist_is_symmetric = tf_backend()
+    skip_test_inner_product_is_symmetric = tf_backend()
 
     class L2CurvesMetricTestData(_RiemannianMetricTestData):
         s2 = Hypersphere(dim=2)
@@ -300,6 +305,12 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_geodesic_bvp_belongs = True
     skip_test_geodesic_ivp_belongs = True
+    skip_test_exp_after_log = tf_backend()
+    skip_test_exp_belongs = tf_backend()
+    skip_test_exp_ladder_parallel_transport = tf_backend()
+    skip_test_inner_product_is_symmetric = tf_backend()
+    skip_test_log_after_exp = tf_backend()
+    skip_test_log_is_tangent = tf_backend()
 
     class SRVMetricTestData(_RiemannianMetricTestData):
         s2 = Hypersphere(dim=2)
