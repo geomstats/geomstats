@@ -1,7 +1,6 @@
 """Unit tests for parameterized manifolds."""
 
 import random
-from time import time
 
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
@@ -12,7 +11,6 @@ from geomstats.geometry.discrete_curves import (
     DiscreteCurves,
     ElasticMetric,
     L2CurvesMetric,
-    QuotientSRVMetric,
     SRVMetric,
 )
 from geomstats.geometry.euclidean import Euclidean
@@ -534,7 +532,14 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def space_derivative_test_data(self):
-            smoke_data = [dict(dim=3, n_points=3)]
+            smoke_data = [
+                dict(
+                    dim=3,
+                    n_points=3,
+                    n_discretized_curves=n_discretized_curves,
+                    n_sampling_points=n_sampling_points,
+                )
+            ]
             return self.generate_tests(smoke_data)
 
         def srv_inner_product_test_data(self):
@@ -597,7 +602,6 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         transform of a path of curves starting at curve with
         initial derivative tangent_vec.
         """
-
         srv_metric_r3 = SRVMetric(r3)
         sampling_times = gs.linspace(0.0, 1.0, n_sampling_points)
         curve_a = curve_fun_a(sampling_times)
@@ -640,12 +644,8 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         srv_metric_r3 = SRVMetric(r3)
         result = srv_metric_r3.aux_differential_srv_transform(tangent_vecs, curves)
 
-        res_a = srv_metric_r3.aux_differential_srv_transform(
-            tangent_vecs[0], self.curve_a
-        )
-        res_b = srv_metric_r3.aux_differential_srv_transform(
-            tangent_vecs[1], self.curve_b
-        )
+        res_a = srv_metric_r3.aux_differential_srv_transform(tangent_vecs[0], curve_a)
+        res_b = srv_metric_r3.aux_differential_srv_transform(tangent_vecs[1], curve_b)
         expected = gs.stack([res_a, res_b])
         self.assertAllClose(result, expected)
 
@@ -656,19 +656,17 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         """
         tangent_vec_a = gs.random.rand(n_sampling_points, dim)
         tangent_vec_b = gs.random.rand(n_sampling_points, dim)
-        srv_metric_r3 = SRVMetric(r3)
-        result = srv_metric_r3.inner_product(tangent_vec_a, tangent_vec_b, self.curve_a)
-
         r3 = Euclidean(dim)
-        d_vec_a = (self.n_sampling_points - 1) * (
+        srv_metric_r3 = SRVMetric(r3)
+        result = srv_metric_r3.inner_product(tangent_vec_a, tangent_vec_b, curve_a)
+
+        d_vec_a = (n_sampling_points - 1) * (
             tangent_vec_a[1:, :] - tangent_vec_a[:-1, :]
         )
-        d_vec_b = (self.n_sampling_points - 1) * (
+        d_vec_b = (n_sampling_points - 1) * (
             tangent_vec_b[1:, :] - tangent_vec_b[:-1, :]
         )
-        velocity_vec = (self.n_sampling_points - 1) * (
-            self.curve_a[1:, :] - self.curve_a[:-1, :]
-        )
+        velocity_vec = (n_sampling_points - 1) * (curve_a[1:, :] - curve_a[:-1, :])
         velocity_norm = r3.metric.norm(velocity_vec)
         unit_velocity_vec = gs.einsum("ij,i->ij", velocity_vec, 1 / velocity_norm)
         a_param = 1
@@ -679,7 +677,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             * gs.sum(d_vec_a * unit_velocity_vec, axis=1)
             * gs.sum(d_vec_b * unit_velocity_vec, axis=1)
         ) / velocity_norm
-        expected = gs.sum(integrand) / self.n_sampling_points
+        expected = gs.sum(integrand) / n_sampling_points
         self.assertAllClose(result, expected)
 
     def test_srv_inner_product_and_dist(self, dim, curve_a, curve_b):
@@ -731,21 +729,15 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         quotient_srv_metric_r3 = DiscreteCurves(
             ambient_manifold=r3
         ).quotient_square_root_velocity_metric
-        geod = srv_metric_r3.geodesic(
-            initial_curve=self.curve_a, end_curve=self.curve_b
-        )
+        geod = srv_metric_r3.geodesic(initial_curve=curve_a, end_curve=curve_b)
         geod = geod(times)
         tangent_vec = n_discretized_curves * (geod[1, :, :] - geod[0, :, :])
         (
             tangent_vec_hor,
             tangent_vec_ver,
             _,
-        ) = self.quotient_srv_metric_r3.split_horizontal_vertical(
-            tangent_vec, self.curve_a
-        )
-        result = srv_metric_r3.inner_product(
-            tangent_vec_hor, tangent_vec_ver, self.curve_a
-        )
+        ) = quotient_srv_metric_r3.split_horizontal_vertical(tangent_vec, curve_a)
+        result = srv_metric_r3.inner_product(tangent_vec_hor, tangent_vec_ver, curve_a)
         expected = 0.0
         self.assertAllClose(result, expected, atol=1e-4)
 
@@ -762,14 +754,17 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
 
-    def test_space_derivative(self, dim, n_points):
+    def test_space_derivative(
+        self, dim, n_points, n_discretized_curves, n_sampling_points
+    ):
         """Test space derivative.
         Check result on an example and vectorization.
         """
         n_points = 3
         dim = 3
+        srv_metric_r3 = SRVMetric(Euclidean(dim))
         curve = gs.random.rand(n_points, dim)
-        result = self.srv_metric_r3.space_derivative(curve)
+        result = srv_metric_r3.space_derivative(curve)
         delta = 1 / n_points
         d_curve_1 = (curve[1] - curve[0]) / delta
         d_curve_2 = (curve[2] - curve[0]) / (2 * delta)
@@ -785,13 +780,11 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected)
 
-        path_of_curves = gs.random.rand(
-            self.n_discretized_curves, self.n_sampling_points, dim
-        )
-        result = self.srv_metric_r3.space_derivative(path_of_curves)
+        path_of_curves = gs.random.rand(n_discretized_curves, n_sampling_points, dim)
+        result = srv_metric_r3.space_derivative(path_of_curves)
         expected = []
-        for i in range(self.n_discretized_curves):
-            expected.append(self.srv_metric_r3.space_derivative(path_of_curves[i]))
+        for i in range(n_discretized_curves):
+            expected.append(srv_metric_r3.space_derivative(path_of_curves[i]))
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
 
@@ -855,12 +848,8 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
     testing_data = DiscreteCurvesTestData()
 
     @geomstats.tests.np_and_autograd_only
-    def test_projection_closed_curves(self, ambient_manifold, curves):
+    def test_projection_closed_curves(self, ambient_manifold, curve):
         planar_closed_curve = ClosedDiscreteCurves(ambient_manifold)
-
-        cells, _, _ = data_utils.load_cells()
-        curve = [cell[:-10] for cell in cells[:5]]
-
         proj = planar_closed_curve.project(curve)
         expected = proj
         result = planar_closed_curve.project(proj)
@@ -869,16 +858,6 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
         result = proj[-1, :]
         expected = proj[0, :]
         self.assertAllClose(result, expected, rtol=10 * gs.rtol)
-
-        for curve in curves:
-            proj = planar_closed_curve.project(curve)
-            expected = proj
-            result = planar_closed_curve.project(proj)
-            self.assertAllClose(result, expected)
-
-            result = proj[-1, :]
-            expected = proj[0, :]
-            self.assertAllClose(result, expected, rtol=10 * gs.rtol)
 
 
 class ClosedSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -1186,7 +1165,6 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
         curve,
     ):
         """Test that going back to cartesian works."""
-
         elastic_metric = ElasticMetric(a, b)
         norms, args = elastic_metric.cartesian_to_polar(curve)
 
@@ -1204,7 +1182,13 @@ class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
             return self.generate_tests(smoke_data)
 
         def quotient_dist_test_data(self):
-            smoke_data = [dict(sampling_times=sampling_times, curve_fun_a=curve_fun_a)]
+            smoke_data = [
+                dict(
+                    sampling_times=sampling_times,
+                    curve_fun_a=curve_fun_a,
+                    curve_a=curve_a,
+                )
+            ]
             return self.generate_tests(smoke_data)
 
     testing_data = QuotientSRVMetricTestData()
@@ -1241,7 +1225,7 @@ class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, atol=1e-3)
 
     @geomstats.tests.np_autograd_and_torch_only
-    def test_quotient_dist(self, sampling_times, curve_a):
+    def test_quotient_dist(self, sampling_times, curve_fun_a, curve_a):
         """Test quotient distance.
         Check that the quotient distance is the same as the distance
         between the end points of the horizontal geodesic.
