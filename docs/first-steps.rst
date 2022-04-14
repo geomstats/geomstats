@@ -19,25 +19,33 @@ This method installs the latest version of geomstats that is uploaded on PyPi.
 From a terminal (OS X & Linux), you can install geomstats and its requirements via Git as follows::
 
     git clone https://github.com/geomstats/geomstats.git
-    pip3 install -r requirements.txt
+    cd geomstats
+    pip3 install .
 
 This methods installs the `latest GitHub version <https://github.com/geomstats/geomstats>`_. Developers should install this version, together with the development requirements and the optional requirements to enable ``tensorflow`` and ``pytorch`` backends::
 
-    pip3 install -r dev-requirements.txt -r opt-requirements.txt
+    pip3 install .[dev,opt]
+
+If you use the flag ``-e``, geomstats will be installed in editable mode, i.e. local changes are immediately reflected in your installation.
+
 
 **CHOOSE THE BACKEND**
 
 Geomstats can run seemlessly with ``numpy``, ``tensorflow`` or ``pytorch``. Note that ``pytorch`` and ``tensorflow`` requirements are optional, as geomstats can be used with ``numpy`` only. By default, the ``numpy`` backend is used. The visualizations are only available with this backend.
 
-To get the ``tensorflow`` and ``pytorch`` versions compatible with geomstats, install the `optional requirements <https://github.com/geomstats/geomstats/blob/master/opt-requirements.txt>`_::
+To get the ``autograd``, ``tensorflow`` and ``pytorch`` versions compatible with geomstats, install the optional requirements::
 
-    pip3 install -r opt-requirements.txt
+    pip3 install geomstats[opt]
 
-You can choose your backend by setting the environment variable ``GEOMSTATS_BACKEND`` to ``numpy``, ``tensorflow`` or ``pytorch``, and importing the ``backend`` module. From the command line:
+To install only the requirements for a given backend do::
+    
+    pip3 install geomstats[<backend_name>]
+
+You can choose your backend by setting the environment variable ``GEOMSTATS_BACKEND`` to ``numpy``, ``autograd``, ``tensorflow`` or ``pytorch``, and importing the ``backend`` module. From the command line:
 
 .. code-block:: bash
 
-    export GEOMSTATS_BACKEND=pytorch
+    export GEOMSTATS_BACKEND=<backend_name>
 
 and in the Python3 code:
 

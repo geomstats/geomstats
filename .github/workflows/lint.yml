@@ -26,10 +26,7 @@ jobs:
       - name: install dependencies [pip]
         run:  |
           pip install --upgrade pip setuptools wheel
-          for req in dev-requirements.txt requirements.txt; do
-            pip install -q -r $req
-          done
-          pip install -e .
+          pip install -e .[dev]
 
       - name: Setup flake8 annotations
         uses: rbialon/flake8-annotations@v1
