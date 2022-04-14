@@ -352,7 +352,10 @@ class HyperboloidMetricTestData(_RiemannianMetricTestData):
 
     def triangle_inequality_of_dist_test_data(self):
         return self._triangle_inequality_of_dist_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
+            self.metric_args_list,
+            self.space_list,
+            self.n_points_list,
+            atol=gs.atol * 1000,
         )
 
     def exp_after_log_intrinsic_ball_extrinsic_test_data(self):
