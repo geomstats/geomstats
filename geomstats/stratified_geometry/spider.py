@@ -272,12 +272,12 @@ class SpiderGeometry(PointSetGeometry):
 
             def ray_geo(t):
                 g = self.rays_geometry.geodesic(
-                    initial_point=gs.array([gs.amin([point_a.x, point_b.x])]),
-                    end_point=gs.array(gs.maximum(point_a.x, point_b.x)),
+                    initial_point=gs.array([point_a.x]),
+                    end_point=gs.array([point_b.x]),
                 )
 
                 x = g(t)
-                return [SpiderPoint(s=s, x=xx[0]) for xx in x]
+                return [SpiderPoint(s=s if xx[0] else 0, x=xx[0]) for xx in x]
 
             return ray_geo
 
