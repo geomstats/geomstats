@@ -42,6 +42,10 @@ class SpiderPoint(Point):
         """Return the hash of the instance."""
         return hash((self.s, self.x))
 
+    def __eq__(self, other):
+        """Compares two points."""
+        return self.s == other.s and abs(self.x - other.x) < gs.atol
+
     def to_array(self):
         """Return the hash of the instance."""
         return gs.array([self.s, self.x])
