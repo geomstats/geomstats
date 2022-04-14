@@ -2,7 +2,7 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import BiInvariantMetric, InvariantMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from tests.conftest import Parametrizer, TestCase, pytorch_backend
+from tests.conftest import Parametrizer, TestCase, pytorch_backend, tf_backend
 from tests.data.special_orthogonal_data import (
     BiInvariantMetricTestData,
     InvariantMetricTestData,
@@ -325,6 +325,7 @@ class TestBiInvariantMetric(InvariantMetricTestCase, metaclass=Parametrizer):
     metric = connection = BiInvariantMetric
     skip_test_exp_geodesic_ivp = True
     skip_test_log_after_exp_at_identity = True
+    skip_test_triangle_inequality_of_dist = pytorch_backend() or tf_backend()
 
     testing_data = BiInvariantMetricTestData()
 

@@ -985,12 +985,15 @@ class BiInvariantMetricTestData(_InvariantMetricTestData):
             self.metric_args_list,
             self.space_list,
             self.n_points_list,
-            atol=gs.atol * 1000,
+            atol=gs.atol * 100000,
         )
 
     def exp_at_identity_of_lie_algebra_belongs_test_data(self):
         return self._exp_at_identity_of_lie_algebra_belongs_test_data(
-            self.metric_args_list, self.space_list, self.n_tangent_vecs_list
+            self.metric_args_list,
+            self.space_list,
+            self.n_tangent_vecs_list,
+            belongs_atol=gs.atol * 100,
         )
 
     def log_at_identity_belongs_to_lie_algebra_test_data(self):
