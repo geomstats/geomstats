@@ -13,6 +13,8 @@ from geomstats.stratified_geometry.stratified_spaces import (
     _vectorize_point,
 )
 
+# TODO: improve naming
+
 
 class SpiderPoint(Point):
     r"""Class for points of the Spider.
@@ -210,19 +212,20 @@ class SpiderGeometry(PointSetGeometry):
         point_array : array-like, shape=[...]
             An array with the distance.
         """
-        result = []
         if len(a) == 1:
             values = itertools.zip_longest(a, b, fillvalue=a[0])
         elif len(b) == 1:
             values = itertools.zip_longest(a, b, fillvalue=b[0])
         else:
             values = itertools.zip_longest(a, b)
+
+        result = []
         for point_a, point_b in values:
             if point_a.s == point_b.s or point_a.s == 0 or point_b.s == 0:
                 result += [self.rays_geometry.norm(gs.array([point_a.x - point_b.x]))]
             else:
                 result += [point_a.x + point_b.x]
-        return gs.array(result)
+        return gs.array(result) if len(result) != 1 else result[0]
 
     @_vectorize_point((1, 'initial_point'), (2, 'end_point'))
     def geodesic(self, initial_point, end_point):
