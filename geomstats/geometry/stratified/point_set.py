@@ -132,7 +132,7 @@ class PointSet(ABC):
         """
 
 
-class PointSetGeometry(ABC):
+class PointSetMetric(ABC):
     r"""Class for the lenght spaces.
 
     Parameters
@@ -148,7 +148,7 @@ class PointSetGeometry(ABC):
     """
 
     def __init__(self, space: PointSet, **kwargs):
-        super(PointSetGeometry, self).__init__(**kwargs)
+        super(PointSetMetric, self).__init__(**kwargs)
         self.space = space
 
     @abstractmethod

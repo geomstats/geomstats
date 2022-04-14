@@ -1,7 +1,7 @@
 import random
 
 import geomstats.backend as gs
-from geomstats.stratified_geometry.spider import Spider, SpiderGeometry, SpiderPoint
+from geomstats.geometry.stratified.spider import Spider, SpiderMetric, SpiderPoint
 from tests.data_generation import (
     _PointGeometryTestData,
     _PointSetTestData,
@@ -68,7 +68,7 @@ class SpiderPointTestData(_PointTestData):
 
 class SpiderGeometryTestData(_PointGeometryTestData):
 
-    _SetGeometry = SpiderGeometry
+    _SetGeometry = SpiderMetric
     _PointSet = Spider
     _Point = SpiderPoint
 

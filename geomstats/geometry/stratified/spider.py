@@ -6,10 +6,10 @@ import itertools
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.stratified_geometry.stratified_spaces import (
+from geomstats.geometry.stratified.point_set import (
     Point,
     PointSet,
-    PointSetGeometry,
+    PointSetMetric,
     _vectorize_point,
 )
 
@@ -17,53 +17,67 @@ from geomstats.stratified_geometry.stratified_spaces import (
 class SpiderPoint(Point):
     r"""Class for points of the Spider.
 
+    A point in the Spider is `math:`(s,c) \in \mathbb{N} \times \mathbb{R}`.
+
     Parameters
     ----------
-    s : int
+    stratum : int
         The stratum, an integer indicating the stratum the point lies in. If zero, then
         the point is on the origin.
-    x : float
+    stratum_coord : float
         A positive number, the coordinate of the point. It must be zero if and only if
         the stratum is zero, i.e. the origin.
     """
 
-    def __init__(self, s, x):
+    def __init__(self, stratum, stratum_coord):
         super(SpiderPoint, self).__init__()
-        if s == 0 and x != 0:
+        if stratum == 0 and stratum_coord != 0:
             raise ValueError("If the stratum is zero, x must be zero.")
-        self.s = s
-        self.x = x
+        self.stratum = stratum
+        self.stratum_coord = stratum_coord
 
     def __repr__(self):
         """Return a readable representation of the instance."""
-        return f"s{self.s}: {self.x}"
+        return f"s{self.stratum}: {self.stratum_coord}"
 
     def __hash__(self):
         """Return the hash of the instance."""
-        return hash((self.s, self.x))
+        return hash((self.stratum, self.stratum_coord))
 
     def __eq__(self, other):
         """Compare two points."""
-        return self.s == other.s and abs(self.x - other.x) < gs.atol
+        return (
+            self.stratum == other.stratum
+            and abs(self.stratum_coord - other.stratum_coord) < gs.atol
+        )
 
     def to_array(self):
         """Return the hash of the instance."""
-        return gs.array([self.s, self.x])
+        return gs.array([self.stratum, self.stratum_coord])
 
 
 class Spider(PointSet):
     r"""Spider: a set of rays attached to the origin.
 
+    The k-spider consists of k copies of the positive real line
+    `math:`\mathbb{R}_{\geq 0}` glued together at the origin [Feragen2020].
+
     Parameters
     ----------
-    rays : int
+    n_rays : int
         Number of rays to attach to the origin.
         Note that zero counts as the origin not as a ray.
+
+    References
+    ----------
+    ..[Feragen2020]  Feragen, Aasa, and Tom Nye. "Statistics on stratified spaces."
+    Riemannian Geometric Statistics in Medical Image Analysis.
+    Academic Press, 2020. 299-342.
     """
 
-    def __init__(self, rays):
+    def __init__(self, n_rays):
         super(Spider, self).__init__()
-        self.rays = rays
+        self.n_rays = n_rays
 
     def random_point(self, n_samples=1):
         r"""Compute a random point of the spider set.
@@ -79,12 +93,14 @@ class Spider(PointSet):
         samples : list of SpiderPoint, shape=[...]
             List of SpiderPoints randomly sampled from the Spider.
         """
-        if self.rays != 0:
-            s = gs.random.randint(low=0, high=self.rays, size=n_samples)
+        if self.n_rays != 0:
+            s = gs.random.randint(low=0, high=self.n_rays, size=n_samples)
             x = gs.abs(gs.random.normal(loc=10, scale=1, size=n_samples))
             x[s == 0] = 0
-            return [SpiderPoint(s=s[k], x=x[k]) for k in range(n_samples)]
-        return [SpiderPoint(s=0, x=0)] * n_samples
+            return [
+                SpiderPoint(stratum=s[k], stratum_coord=x[k]) for k in range(n_samples)
+            ]
+        return [SpiderPoint(stratum=0, stratum_coord=0)] * n_samples
 
     @_vectorize_point((1, "point"))
     def belongs(self, point):
@@ -103,7 +119,7 @@ class Spider(PointSet):
         results = []
         for single_point in point:
             results += [
-                self._value_check(single_point)
+                self._coord_check(single_point)
                 and self._rays_check(single_point)
                 and self._zero_check(single_point)
                 and type(single_point) is SpiderPoint
@@ -123,7 +139,7 @@ class Spider(PointSet):
         belongs : boolean
             Boolean denoting if the point has a ray in the rays set.
         """
-        if single_point.s not in list(range(self.rays + 1)):
+        if single_point.stratum not in list(range(self.n_rays + 1)):
             return False
         return True
 
@@ -141,12 +157,12 @@ class Spider(PointSet):
         belongs : boolean
             Boolean denoting if the point has zero length when it has zero ray.
         """
-        if single_point.s == 0 and single_point.x != 0:
+        if single_point.stratum == 0 and single_point.stratum_coord != 0:
             return False
         return True
 
     @staticmethod
-    def _value_check(single_point):
+    def _coord_check(single_point):
         r"""Check if a random point has the correct length.
 
         Parameters
@@ -159,7 +175,7 @@ class Spider(PointSet):
         belongs : boolean
             Boolean denoting if the point has a positive length when on non-zero ray.
         """
-        if single_point.s != 0 and single_point.x <= 0:
+        if single_point.stratum != 0 and single_point.stratum_coord <= 0:
             return False
         return True
 
@@ -177,27 +193,30 @@ class Spider(PointSet):
         point_array : array-like, shape=[...,rays]
             An array with the x parameter in the s position.
         """
-        point_to_array = gs.zeros((len(point), self.rays))
+        point_to_array = gs.zeros((len(point), self.n_rays))
         for i, pt in enumerate(point):
-            point_to_array[i, pt.s - 1] = pt.x
+            point_to_array[i, pt.stratum - 1] = pt.stratum_coord
         return point_to_array
 
 
-class SpiderGeometry(PointSetGeometry):
+class SpiderMetric(PointSetMetric):
     """Geometry on the Spider, induced by the rays Geometry."""
 
-    def __init__(self, space, ambient_metric=EuclideanMetric(1)):
-        super(SpiderGeometry, self).__init__(space=space)
-        self.rays_geometry = ambient_metric
+    def __init__(self, space, ray_metric=EuclideanMetric(1)):
+        super(SpiderMetric, self).__init__(space=space)
+        self.ray_metric = ray_metric
 
     @property
-    def rays(self):
+    def n_rays(self):
         """Get rays."""
-        return self.space.rays
+        return self.space.n_rays
 
     @_vectorize_point((1, "a"), (2, "b"))
     def dist(self, point_a, point_b):
         """Compute the distance between two points on the Spider using the ray geometry.
+
+        The spider metric is the metric in each ray extended to the Spider:
+        given two points x, y on different rays, d(x, y) = d(x, 0) + d(0, y).
 
         Parameters
         ----------
@@ -220,10 +239,18 @@ class SpiderGeometry(PointSetGeometry):
 
         result = []
         for point_a_, point_b_ in values:
-            if point_a_.s == point_b_.s or point_a_.s == 0 or point_b_.s == 0:
-                result += [self.rays_geometry.norm(gs.array([point_a_.x - point_b_.x]))]
+            if (
+                point_a_.stratum == point_b_.stratum
+                or point_a_.stratum == 0
+                or point_b_.stratum == 0
+            ):
+                result += [
+                    self.ray_metric.norm(
+                        gs.array([point_a_.stratum_coord - point_b_.stratum_coord])
+                    )
+                ]
             else:
-                result += [point_a_.x + point_b_.x]
+                result += [point_a_.stratum_coord + point_b_.stratum_coord]
         return gs.array(result) if len(result) != 1 else result[0]
 
     @_vectorize_point((1, "initial_point"), (2, "end_point"))
@@ -273,30 +300,37 @@ class SpiderGeometry(PointSetGeometry):
         geo: function
             Geodesic between two Spider Points.
         """
-        if initial_point.s == end_point.s or initial_point.s == 0 or end_point.s == 0:
-            s = gs.maximum(initial_point.s, end_point.s)
+        if (
+            initial_point.stratum == end_point.stratum
+            or initial_point.stratum == 0
+            or end_point.stratum == 0
+        ):
+            s = gs.maximum(initial_point.stratum, end_point.stratum)
 
             def ray_geo(t):
-                g = self.rays_geometry.geodesic(
-                    initial_point=gs.array([initial_point.x]),
-                    end_point=gs.array([end_point.x]),
+                g = self.ray_metric.geodesic(
+                    initial_point=gs.array([initial_point.stratum_coord]),
+                    end_point=gs.array([end_point.stratum_coord]),
                 )
 
                 x = g(t)
-                return [SpiderPoint(s=s if xx[0] else 0, x=xx[0]) for xx in x]
+                return [
+                    SpiderPoint(stratum=s if xx[0] else 0, stratum_coord=xx[0])
+                    for xx in x
+                ]
 
             return ray_geo
 
         def ray_geo(t):
-            g = self.rays_geometry.geodesic(
-                initial_point=gs.array([-initial_point.x]),
-                end_point=gs.array([end_point.x]),
+            g = self.ray_metric.geodesic(
+                initial_point=gs.array([-initial_point.stratum_coord]),
+                end_point=gs.array([end_point.stratum_coord]),
             )
             x = g(t)
             return [
-                SpiderPoint(s=initial_point.s, x=-xx[0])
+                SpiderPoint(stratum=initial_point.stratum, stratum_coord=-xx[0])
                 if xx < 0.0
-                else SpiderPoint(s=end_point.s, x=xx[0])
+                else SpiderPoint(stratum=end_point.stratum, stratum_coord=xx[0])
                 for xx in x
             ]
 

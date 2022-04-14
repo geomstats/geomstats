@@ -4,7 +4,7 @@ from tests.data.spider_data import (
     SpiderPointTestData,
     SpiderTestData,
 )
-from tests.stratified_geometry_test_cases import (
+from tests.stratified_test_cases import (
     PointSetGeometryTestCase,
     PointSetTestCase,
     PointTestCase,
