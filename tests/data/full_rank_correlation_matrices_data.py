@@ -52,16 +52,16 @@ class CorrelationMatricesBundleTestData(TestData):
     def riemannian_submersion_belongs_to_base_test_data(self):
         random_data = []
         for n, n_samples in zip(self.n_list, self.n_samples_list):
-            bundle = CorrelationMatricesBundle(n)
-            point = bundle.base.random_point(n_samples)
+            base = FullRankCorrelationMatrices(n)
+            point = base.random_point(n_samples)
             random_data.append(dict(n=n, point=point))
         return self.generate_tests([], random_data)
 
     def lift_riemannian_submersion_composition_test_data(self):
         random_data = []
         for n, n_samples in zip(self.n_list, self.n_samples_list):
-            bundle = CorrelationMatricesBundle(n)
-            point = bundle.base.random_point(n_samples)
+            base = FullRankCorrelationMatrices(n)
+            point = base.random_point(n_samples)
             random_data.append(dict(n=n, point=point))
         return self.generate_tests([], random_data)
 
@@ -96,10 +96,10 @@ class CorrelationMatricesBundleTestData(TestData):
     def horizontal_lift_is_horizontal_test_data(self):
         random_data = []
         for n, n_samples in zip(self.n_list, self.n_samples_list):
-            bundle = CorrelationMatricesBundle(n)
-            mat = bundle.base.random_point()
-            vec = bundle.base.random_point(n_samples)
-            tangent_vec = bundle.base.to_tangent(vec, mat)
+            base = FullRankCorrelationMatrices(n)
+            mat = base.random_point()
+            vec = base.random_point(n_samples)
+            tangent_vec = base.to_tangent(vec, mat)
             random_data.append(dict(n=n, tangent_vec=tangent_vec, mat=mat))
         return self.generate_tests([], random_data)
 
@@ -107,19 +107,20 @@ class CorrelationMatricesBundleTestData(TestData):
         random_data = []
         for n, n_samples in zip(self.n_list, self.n_samples_list):
             bundle = CorrelationMatricesBundle(n)
+            base = FullRankCorrelationMatrices(n)
             mat = bundle.random_point()
             vec = bundle.random_point(n_samples)
-            tangent_vec = bundle.base.to_tangent(vec, mat)
+            tangent_vec = base.to_tangent(vec, mat)
             random_data.append(dict(n=n, tangent_vec=tangent_vec, mat=mat))
         return self.generate_tests([], random_data)
 
     def horizontal_lift_and_tangent_riemannian_submersion_test_data(self):
         random_data = []
         for n, n_samples in zip(self.n_list, self.n_samples_list):
-            bundle = CorrelationMatricesBundle(n)
-            mat = bundle.base.random_point()
-            vec = bundle.base.random_point(n_samples)
-            tangent_vec = bundle.base.to_tangent(vec, mat)
+            base = FullRankCorrelationMatrices(n)
+            mat = base.random_point()
+            vec = base.random_point(n_samples)
+            tangent_vec = base.to_tangent(vec, mat)
             random_data.append(dict(n=n, tangent_vec=tangent_vec, mat=mat))
 
         return self.generate_tests([], random_data)
@@ -142,9 +143,9 @@ class FullRankcorrelationAffineQuotientMetricTestData(TestData):
         return self.generate_tests([], random_data)
 
     def exp_belongs_test_data(self):
-
         bundle = CorrelationMatricesBundle(3)
-        base_point = bundle.base.random_point()
-        tangent_vec = bundle.base.to_tangent(bundle.random_point(), base_point)
+        base = FullRankCorrelationMatrices(3)
+        base_point = base.random_point()
+        tangent_vec = base.to_tangent(bundle.random_point(), base_point)
         smoke_data = [dict(dim=3, tangent_vec=tangent_vec, base_point=base_point)]
         return self.generate_tests(smoke_data)
