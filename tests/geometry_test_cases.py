@@ -102,8 +102,6 @@ class ManifoldTestCase(TestCase):
         is_tangent_atol : float
             Absolute tolerance for the is_tangent function.
         """
-        print(vector.shape)
-        print(base_point.shape)
         space = self.space(*space_args)
         tangent = space.to_tangent(gs.array(vector), gs.array(base_point))
         result = gs.all(

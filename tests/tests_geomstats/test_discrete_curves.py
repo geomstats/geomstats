@@ -799,6 +799,62 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
 
+    def srv_metric_pointwise_inner_products_test_data(self):
+        smoke_data = [
+            dict(
+                curve_a=curve_a,
+                curve_b=curve_b,
+                curve_c=curve_c,
+                n_discretized_curves=n_discretized_curves,
+                n_sampling_points=n_sampling_points,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def srv_transform_and_inverse_test_data(self):
+        smoke_data = [dict(curve_a=curve_a, curve_b=curve_b)]
+        return self.generate_tests(smoke_data)
+
+    def test_srv_metric_pointwise_inner_products(self):
+        l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
+        srv_metric_r3 = SRVMetric(ambient_manifold=r3)
+        curves_ab = l2_metric_s2.geodesic(curve_a, curve_b)
+        curves_bc = l2_metric_s2.geodesic(curve_b, curve_c)
+        curves_ab = curves_ab(times)
+        curves_bc = curves_bc(times)
+
+        tangent_vecs = l2_metric_s2.log(point=curves_bc, base_point=curves_ab)
+        result = srv_metric_r3.l2_metric.pointwise_inner_products(
+            tangent_vec_a=tangent_vecs, tangent_vec_b=tangent_vecs, base_curve=curves_ab
+        )
+        expected_shape = (n_discretized_curves, n_sampling_points)
+        self.assertAllClose(gs.shape(result), expected_shape)
+
+        result = srv_metric_r3.l2_metric.pointwise_inner_products(
+            tangent_vec_a=tangent_vecs[0],
+            tangent_vec_b=tangent_vecs[0],
+            base_curve=curves_ab[0],
+        )
+        expected_shape = (n_sampling_points,)
+        self.assertAllClose(gs.shape(result), expected_shape)
+
+    def test_srv_transform_and_inverse(self, curve_a, curve_b):
+        """Test of SRVT and its inverse.
+        N.B: Here curves_ab are seen as curves in R3 and not S2.
+        """
+        l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
+        srv_metric_r3 = SRVMetric(ambient_manifold=r3)
+        curves_ab = l2_metric_s2.geodesic(curve_a, curve_b)
+        curves_ab = curves_ab(self.times)
+
+        curves = curves_ab
+        srv_curves = srv_metric_r3.srv_transform(curves)
+        starting_points = curves[:, 0, :]
+        result = srv_metric_r3.srv_transform_inverse(srv_curves, starting_points)
+        expected = curves
+
+        self.assertAllClose(result, expected)
+
 
 class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
     # closed discrete curves doesn't have random point
