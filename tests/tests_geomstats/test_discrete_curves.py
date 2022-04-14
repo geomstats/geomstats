@@ -15,6 +15,7 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.tests import tf_backend
 from tests.conftest import Parametrizer
 from tests.data.discrete_curves_data import (
+    ClosedDiscreteCurvesTestData,
     DiscreteCurvesTestData,
     ElasticMetricTestData,
     L2CurvesMetricTestData,
@@ -379,7 +380,7 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
     skip_test_random_tangent_vec_is_tangent = True
     skip_test_to_tangent_is_tangent = True
 
-    testing_data = DiscreteCurvesTestData()
+    testing_data = ClosedDiscreteCurvesTestData()
 
     @geomstats.tests.np_and_autograd_only
     def test_projection_closed_curves(self, ambient_manifold, curve):
