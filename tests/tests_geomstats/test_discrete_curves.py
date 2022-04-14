@@ -293,7 +293,27 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
                 self.n_tangent_vecs_list,
             )
 
+        def l2_metric_geodesic_test_data(self):
+            smoke_data = [dict(curve_a=curve_a, curve_b=curve_b, times=times)]
+            return self.generate_tests(smoke_data)
+
     testing_data = L2CurvesMetricTestData()
+
+    def test_l2_metric_geodesic(self, curve_a, curve_b, times):
+        """Test the geodesic method of L2Metric."""
+        l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
+        curves_ab = l2_metric_s2.geodesic(curve_a, curve_b)
+        curves_ab = curves_ab(times)
+
+        result = curves_ab
+        expected = []
+        for k in range(n_sampling_points):
+            geod = l2_metric_s2.ambient_metric.geodesic(
+                initial_point=curve_a[k, :], end_point=curve_b[k, :]
+            )
+            expected.append(geod(times))
+        expected = gs.stack(expected, axis=1)
+        self.assertAllClose(result, expected)
 
 
 class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -563,6 +583,22 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             smoke_data = [dict(curve_a=curve_a, curve_b=curve_b, times=times)]
             return self.generate_tests(smoke_data)
 
+        def srv_metric_pointwise_inner_products_test_data(self):
+            smoke_data = [
+                dict(
+                    curve_a=curve_a,
+                    curve_b=curve_b,
+                    curve_c=curve_c,
+                    n_discretized_curves=n_discretized_curves,
+                    n_sampling_points=n_sampling_points,
+                )
+            ]
+            return self.generate_tests(smoke_data)
+
+        def srv_transform_and_inverse_test_data(self):
+            smoke_data = [dict(curve_a=curve_a, curve_b=curve_b)]
+            return self.generate_tests(smoke_data)
+
     testing_data = SRVMetricTestData()
 
     def test_srv_inner_product(self, curve_a, curve_b, curve_c, times):
@@ -799,23 +835,9 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
 
-    def srv_metric_pointwise_inner_products_test_data(self):
-        smoke_data = [
-            dict(
-                curve_a=curve_a,
-                curve_b=curve_b,
-                curve_c=curve_c,
-                n_discretized_curves=n_discretized_curves,
-                n_sampling_points=n_sampling_points,
-            )
-        ]
-        return self.generate_tests(smoke_data)
-
-    def srv_transform_and_inverse_test_data(self):
-        smoke_data = [dict(curve_a=curve_a, curve_b=curve_b)]
-        return self.generate_tests(smoke_data)
-
-    def test_srv_metric_pointwise_inner_products(self):
+    def test_srv_metric_pointwise_inner_products(
+        self, curve_a, curve_b, curve_c, n_discretized_curves, n_sampling_points
+    ):
         l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
         srv_metric_r3 = SRVMetric(ambient_manifold=r3)
         curves_ab = l2_metric_s2.geodesic(curve_a, curve_b)
@@ -845,7 +867,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
         srv_metric_r3 = SRVMetric(ambient_manifold=r3)
         curves_ab = l2_metric_s2.geodesic(curve_a, curve_b)
-        curves_ab = curves_ab(self.times)
+        curves_ab = curves_ab(times)
 
         curves = curves_ab
         srv_curves = srv_metric_r3.srv_transform(curves)
