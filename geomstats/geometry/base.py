@@ -48,13 +48,15 @@ class VectorSpace(Manifold, abc.ABC):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
+        point = gs.array(point)
         minimal_ndim = len(self.shape)
-        if self.shape[0] == 1:
-            point = gs.transpose(gs.to_ndarray(point, 2))
+        if self.shape[0] == 1 and len(point.shape) <= 1:
+            point = gs.transpose(gs.to_ndarray(gs.to_ndarray(point, 1), 2))
         belongs = point.shape[-minimal_ndim:] == self.shape
         if point.ndim <= minimal_ndim:
             return belongs
-        return gs.tile(gs.array([belongs]), [point.shape[0]])
+        else:
+            return gs.tile(gs.array([belongs]), [point.shape[0]])
 
     @staticmethod
     def projection(point):
