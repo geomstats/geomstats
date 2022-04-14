@@ -15,8 +15,8 @@ class TestBinomial(OpenSetTestCase, metaclass=Parametrizer):
     space = BinomialDistributions
     testing_data = BinomialTestData()
 
-    def test_belongs(self, n_draws, vec, expected):
-        self.assertAllClose(self.space(n_draws).belongs(vec), expected)
+    def test_belongs(self, n_draws, point, expected):
+        self.assertAllClose(self.space(n_draws).belongs(point), expected)
 
     def test_random_point(self, point, expected):
         self.assertAllClose(point.shape, expected)

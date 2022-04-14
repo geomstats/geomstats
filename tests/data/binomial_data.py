@@ -16,10 +16,10 @@ class BinomialTestData(_OpenSetTestData):
 
     def belongs_test_data(self):
         smoke_data = [
-            dict(n_draws=10, vec=0.1, expected=True),
-            dict(n_draws=8, vec=-0.8, expected=False),
-            dict(n_draws=5, vec=0.1, expected=True),
-            dict(n_draws=2, vec=-1.0, expected=False),
+            dict(n_draws=10, point=0.1, expected=True),
+            dict(n_draws=8, point=-0.8, expected=False),
+            dict(n_draws=5, point=0.1, expected=True),
+            dict(n_draws=2, point=-1.0, expected=False),
             dict(n_draws=1, point=0.1, expected=True),
             dict(n_draws=7, point=gs.array(-0.8), expected=False),
             dict(n_draws=8, point=8, expected=False),

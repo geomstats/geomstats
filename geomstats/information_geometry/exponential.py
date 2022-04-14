@@ -15,8 +15,8 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 class ExponentialDistributions(OpenSet):
     """Class for the manifold of exponential distributions.
 
-    This is the parameter space of exponential distributions with fixed number of draws
-    i.e. the unit segment.
+    This is the parameter space of exponential distributions
+    i.e. the half-line of positive reals.
     """
 
     def __init__(self):
@@ -158,7 +158,7 @@ class ExponentialFisherRaoMetric(RiemannianMetric):
 
     References
     ----------
-    Atkinson, C., & Mitchell, A. F. (1981). Rao's distance measure.
+    .. [AM1981] Atkinson, C., & Mitchell, A. F. (1981). Rao's distance measure.
     Sankhyā: The Indian Journal of Statistics, Series A, 345-365.
     """
 

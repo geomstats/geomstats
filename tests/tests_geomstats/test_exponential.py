@@ -15,8 +15,8 @@ class TestExponential(OpenSetTestCase, metaclass=Parametrizer):
     space = ExponentialDistributions
     testing_data = ExponentialTestData()
 
-    def test_belongs(self, vec, expected):
-        self.assertAllClose(self.space().belongs(vec), expected)
+    def test_belongs(self, point, expected):
+        self.assertAllClose(self.space().belongs(point), expected)
 
     def test_random_point(self, point, expected):
         self.assertAllClose(point.shape, expected)

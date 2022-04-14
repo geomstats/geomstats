@@ -15,8 +15,8 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 class BinomialDistributions(OpenSet):
     """Class for the manifold of binomial distributions.
 
-    This is the parameter space of binomial distributions
-    i.e. the half-line of positive reals.
+    This is the parameter space of binomial distributions with fixed number of draws
+    i.e. the unit interval segment.
     """
 
     def __init__(self, n_draws):
@@ -166,7 +166,7 @@ class BinomialFisherRaoMetric(RiemannianMetric):
 
     References
     ----------
-    Atkinson, C., & Mitchell, A. F. (1981). Rao's distance measure.
+    .. [AM1981] Atkinson, C., & Mitchell, A. F. (1981). Rao's distance measure.
     Sankhyā: The Indian Journal of Statistics, Series A, 345-365.
     """
 
