@@ -21,7 +21,6 @@ def _vectorize_point(*positions):
     """
 
     def _dec(func):
-
         def _manipulate_input(arg):
             if not (type(arg) is list):
                 return [arg]
@@ -170,14 +169,14 @@ class PointSetGeometry(ABC):
         """
 
     @abstractmethod
-    def geodesic(self, point_a, point_b, **kwargs):
+    def geodesic(self, initial_point, end_point, **kwargs):
         """Compute the geodesic in the PointSet.
 
         Parameters
         ----------
-        point_a: Point or List of Points, shape=[...]
+        initial_point: Point or List of Points, shape=[...]
             Point in the PointSet.
-        point_b: Point or List of Points, shape=[...]
+        end_point: Point or List of Points, shape=[...]
             Point in the PointSet.
 
         Returns

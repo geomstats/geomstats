@@ -13,8 +13,6 @@ from geomstats.stratified_geometry.stratified_spaces import (
     _vectorize_point,
 )
 
-# TODO: improve naming
-
 
 class SpiderPoint(Point):
     r"""Class for points of the Spider.
@@ -88,7 +86,7 @@ class Spider(PointSet):
             return [SpiderPoint(s=s[k], x=x[k]) for k in range(n_samples)]
         return [SpiderPoint(s=0, x=0)] * n_samples
 
-    @_vectorize_point((1, 'point'))
+    @_vectorize_point((1, "point"))
     def belongs(self, point):
         r"""Check if a random point belongs to the spider set.
 
@@ -165,7 +163,7 @@ class Spider(PointSet):
             return False
         return True
 
-    @_vectorize_point((1, 'point'))
+    @_vectorize_point((1, "point"))
     def set_to_array(self, point):
         r"""Turn a point into an array compatible with the dimension of the space.
 
@@ -196,15 +194,15 @@ class SpiderGeometry(PointSetGeometry):
     def rays(self):
         return self.space.rays
 
-    @_vectorize_point((1, 'a'), (2, 'b'))
-    def dist(self, a, b):
+    @_vectorize_point((1, "a"), (2, "b"))
+    def dist(self, point_a, point_b):
         """Compute the distance between two points on the Spider using the ray geometry.
 
         Parameters
         ----------
-        a : SpiderPoint or list of SpiderPoint, shape=[...]
+        point_a : SpiderPoint or list of SpiderPoint, shape=[...]
              Point in the Spider.
-        b : SpiderPoint or list of SpiderPoint, shape=[...]
+        point_b : SpiderPoint or list of SpiderPoint, shape=[...]
              Point in the Spider.
 
         Returns
@@ -212,22 +210,22 @@ class SpiderGeometry(PointSetGeometry):
         point_array : array-like, shape=[...]
             An array with the distance.
         """
-        if len(a) == 1:
-            values = itertools.zip_longest(a, b, fillvalue=a[0])
-        elif len(b) == 1:
-            values = itertools.zip_longest(a, b, fillvalue=b[0])
+        if len(point_a) == 1:
+            values = itertools.zip_longest(point_a, point_b, fillvalue=point_a[0])
+        elif len(point_b) == 1:
+            values = itertools.zip_longest(point_a, point_b, fillvalue=point_b[0])
         else:
-            values = itertools.zip_longest(a, b)
+            values = itertools.zip_longest(point_a, point_b)
 
         result = []
-        for point_a, point_b in values:
-            if point_a.s == point_b.s or point_a.s == 0 or point_b.s == 0:
-                result += [self.rays_geometry.norm(gs.array([point_a.x - point_b.x]))]
+        for point_a_, point_b_ in values:
+            if point_a_.s == point_b_.s or point_a_.s == 0 or point_b_.s == 0:
+                result += [self.rays_geometry.norm(gs.array([point_a_.x - point_b_.x]))]
             else:
-                result += [point_a.x + point_b.x]
+                result += [point_a_.x + point_b_.x]
         return gs.array(result) if len(result) != 1 else result[0]
 
-    @_vectorize_point((1, 'initial_point'), (2, 'end_point'))
+    @_vectorize_point((1, "initial_point"), (2, "end_point"))
     def geodesic(self, initial_point, end_point):
         """Return the geodesic between two lists of Spider points.
 
@@ -259,14 +257,14 @@ class SpiderGeometry(PointSetGeometry):
         fncs = [self._point_geodesic(pt_a, pt_b) for (pt_a, pt_b) in values]
         return lambda t: _vec(t, fncs=fncs)
 
-    def _point_geodesic(self, point_a, point_b):
+    def _point_geodesic(self, initial_point, end_point):
         """Compute the distance between two Spider points.
 
         Parameters
         ----------
-        point_a : SpiderPoint
+        initial_point : SpiderPoint
              Point in the Spider.
-        point_b : SpiderPoint
+        end_point : SpiderPoint
              Point in the Spider.
 
         Returns
@@ -274,13 +272,13 @@ class SpiderGeometry(PointSetGeometry):
         geo: function
             Geodesic between two Spider Points.
         """
-        if point_a.s == point_b.s or point_a.s == 0 or point_b.s == 0:
-            s = gs.maximum(point_a.s, point_b.s)
+        if initial_point.s == end_point.s or initial_point.s == 0 or end_point.s == 0:
+            s = gs.maximum(initial_point.s, end_point.s)
 
             def ray_geo(t):
                 g = self.rays_geometry.geodesic(
-                    initial_point=gs.array([point_a.x]),
-                    end_point=gs.array([point_b.x]),
+                    initial_point=gs.array([initial_point.x]),
+                    end_point=gs.array([end_point.x]),
                 )
 
                 x = g(t)
@@ -290,11 +288,15 @@ class SpiderGeometry(PointSetGeometry):
 
         def ray_geo(t):
             g = self.rays_geometry.geodesic(
-                initial_point=gs.array([-point_a.x]), end_point=gs.array([point_b.x])
+                initial_point=gs.array([-initial_point.x]),
+                end_point=gs.array([end_point.x]),
             )
             x = g(t)
-            return [SpiderPoint(s=point_a.s, x=-xx[0]) if xx < 0.
-                    else SpiderPoint(s=point_b.s, x=xx[0])
-                    for xx in x]
+            return [
+                SpiderPoint(s=initial_point.s, x=-xx[0])
+                if xx < 0.0
+                else SpiderPoint(s=end_point.s, x=xx[0])
+                for xx in x
+            ]
 
         return ray_geo
