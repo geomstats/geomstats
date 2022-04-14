@@ -15,7 +15,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 class BinomialDistributions(OpenSet):
     """Class for the manifold of binomial distributions.
 
-    This is the parameter space of exponential distributions
+    This is the parameter space of binomial distributions
     i.e. the half-line of positive reals.
     """
 
@@ -162,7 +162,13 @@ class BinomialDistributions(OpenSet):
 
 
 class BinomialFisherRaoMetric(RiemannianMetric):
-    """Class for the Fisher information metric on binomial distributions."""
+    """Class for the Fisher information metric on binomial distributions.
+
+    References
+    ----------
+    Atkinson, C., & Mitchell, A. F. (1981). Rao's distance measure.
+    Sankhyā: The Indian Journal of Statistics, Series A, 345-365.
+    """
 
     def __init__(self, n_draws):
         super(BinomialFisherRaoMetric, self).__init__(dim=1)

@@ -15,7 +15,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 class ExponentialDistributions(OpenSet):
     """Class for the manifold of exponential distributions.
 
-    This is the parameter space of binomial distributions with fixed number of draws
+    This is the parameter space of exponential distributions with fixed number of draws
     i.e. the unit segment.
     """
 
@@ -154,7 +154,13 @@ class ExponentialDistributions(OpenSet):
 
 
 class ExponentialFisherRaoMetric(RiemannianMetric):
-    """Class for the Fisher information metric on exponential distributions."""
+    """Class for the Fisher information metric on exponential distributions.
+
+    References
+    ----------
+    Atkinson, C., & Mitchell, A. F. (1981). Rao's distance measure.
+    Sankhyā: The Indian Journal of Statistics, Series A, 345-365.
+    """
 
     def __init__(self):
         super(ExponentialFisherRaoMetric, self).__init__(dim=1)
@@ -165,9 +171,9 @@ class ExponentialFisherRaoMetric(RiemannianMetric):
         Parameters
         ----------
         point_a : array-like, shape=[...,]
-            Point representing a binomial distribution (probability of success).
+            Point representing an exponential distribution (scale parameter).
         point_b : array-like, shape=[...,] (same shape as point_a)
-            Point representing a binomial distribution (probability of success).
+            Point representing a exponential distribution (scale parameter).
 
         Returns
         -------

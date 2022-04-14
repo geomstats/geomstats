@@ -55,8 +55,7 @@ class VectorSpace(Manifold, abc.ABC):
         belongs = point.shape[-minimal_ndim:] == self.shape
         if point.ndim <= minimal_ndim:
             return belongs
-        else:
-            return gs.tile(gs.array([belongs]), [point.shape[0]])
+        return gs.tile(gs.array([belongs]), [point.shape[0]])
 
     @staticmethod
     def projection(point):

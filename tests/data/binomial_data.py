@@ -20,6 +20,20 @@ class BinomialTestData(_OpenSetTestData):
             dict(n_draws=8, vec=-0.8, expected=False),
             dict(n_draws=5, vec=0.1, expected=True),
             dict(n_draws=2, vec=-1.0, expected=False),
+            dict(n_draws=1, point=0.1, expected=True),
+            dict(n_draws=7, point=gs.array(-0.8), expected=False),
+            dict(n_draws=8, point=8, expected=False),
+            dict(n_draws=2, point=-1.0, expected=False),
+            dict(n_draws=1, point=gs.array([5]), expected=False),
+            dict(n_draws=1, point=gs.array(-0.2), expected=False),
+            dict(
+                n_draws=3, point=gs.array([0.9, -1]), expected=gs.array([True, False])
+            ),
+            dict(
+                n_draws=5,
+                point=gs.array([[0.1], [10]]),
+                expected=gs.array([True, False]),
+            ),
         ]
         return self.generate_tests(smoke_data)
 
