@@ -15,6 +15,7 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
 )
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from geomstats.integrator import integrate
 
 
 class SPDMatrices(OpenSet):
@@ -103,7 +104,7 @@ class SPDMatrices(OpenSet):
 
         return spd_mat
 
-    def random_tangent_vec(self, n_samples=1, base_point=None):
+    def random_tangent_vec(self, base_point, n_samples=1):
         """Sample on the tangent space of SPD(n) from the uniform distribution.
 
         Parameters
@@ -879,6 +880,95 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         trace_prod = gs.trace(sqrt_product, axis1=-2, axis2=-1)
 
         return trace_a + trace_b - 2 * trace_prod
+
+    def parallel_transport(
+        self,
+        tangent_vec_a,
+        base_point,
+        tangent_vec_b=None,
+        end_point=None,
+        n_steps=10,
+        step="rk4",
+    ):
+        r"""Compute the parallel transport of a tangent vec along a geodesic.
+
+        Approximation of the solution of the parallel transport of a tangent
+        vector a along the geodesic defined by :math:`t \mapsto exp_(
+        base_point)(t* tangent_vec_b)`. The parallel transport equation is formulated
+        in this case in [TP2021]_.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            Tangent vector at `base_point` to transport.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector ar `base_point`, initial velocity of the geodesic to
+            transport  along.
+        base_point : array-like, shape=[..., n, n]
+            Initial point of the geodesic.
+        end_point : array-like, shape=[..., n, n]
+            Point to transport to.
+            Optional, default: None.
+        n_steps : int
+            Number of steps to use to approximate the solution of the
+            ordinary differential equation.
+            Optional, default: 100
+        step : str, {'euler', 'rk2', 'rk4'}
+            Scheme to use in the integration scheme.
+            Optional, default: 'rk4'.
+
+        Returns
+        -------
+        transported :  array-like, shape=[..., n, n]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+
+        References
+        ----------
+        ..[TP2021]      Yann Thanwerdas, Xavier Pennec. O(n)-invariant Riemannian /
+        metrics on SPD matrices. 2021. ⟨hal-03338601v2⟩
+
+        See Also
+        --------
+        Integration module: geomstats.integrator
+        """
+        if end_point is None:
+            end_point = self.exp(tangent_vec_b, base_point)
+
+        horizontal_lift_a = gs.linalg.solve_sylvester(
+            base_point, base_point, tangent_vec_a
+        )
+
+        square_root_bp, inverse_square_root_bp = SymmetricMatrices.powerm(
+            base_point, [0.5, -0.5]
+        )
+        end_point_lift = Matrices.mul(square_root_bp, end_point, square_root_bp)
+        square_root_lift = SymmetricMatrices.powerm(end_point_lift, 0.5)
+
+        horizontal_velocity = gs.matmul(inverse_square_root_bp, square_root_lift)
+        partial_horizontal_velocity = Matrices.mul(horizontal_velocity, square_root_bp)
+        partial_horizontal_velocity += Matrices.transpose(partial_horizontal_velocity)
+
+        def force(state, time):
+            horizontal_geodesic_t = (
+                1 - time
+            ) * square_root_bp + time * horizontal_velocity
+            geodesic_t = (
+                (1 - time) ** 2 * base_point
+                + time * (1 - time) * partial_horizontal_velocity
+                + time**2 * end_point
+            )
+
+            align = Matrices.mul(
+                horizontal_geodesic_t,
+                Matrices.transpose(horizontal_velocity - square_root_bp),
+                state,
+            )
+            right = align + Matrices.transpose(align)
+            return gs.linalg.solve_sylvester(geodesic_t, geodesic_t, -right)
+
+        flow = integrate(force, horizontal_lift_a, n_steps=n_steps, step=step)
+        final_align = Matrices.mul(end_point, flow[-1])
+        return final_align + Matrices.transpose(final_align)
 
     def injectivity_radius(self, base_point):
         """Compute the upper bound of the injectivity domain.

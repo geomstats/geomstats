@@ -4,115 +4,21 @@ import pytest
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricBuresWasserstein
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.spd_matrices import SPDMetricBuresWasserstein
 from tests.conftest import Parametrizer, TestCase
-from tests.data_generation import TestData
-
-
-class BuresWassersteinBundle(GeneralLinear, FiberBundle):
-    def __init__(self, n):
-        super(BuresWassersteinBundle, self).__init__(
-            n=n,
-            base=SPDMatrices(n),
-            group=SpecialOrthogonal(n),
-            ambient_metric=MatricesMetric(n, n),
-        )
-
-    @staticmethod
-    def riemannian_submersion(point):
-        return Matrices.mul(point, Matrices.transpose(point))
-
-    def tangent_riemannian_submersion(self, tangent_vec, base_point):
-        product = Matrices.mul(base_point, Matrices.transpose(tangent_vec))
-        return 2 * Matrices.to_symmetric(product)
-
-    def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
-        if base_point is None:
-            if fiber_point is not None:
-                base_point = self.riemannian_submersion(fiber_point)
-            else:
-                raise ValueError(
-                    "Either a point (of the total space) or a "
-                    "base point (of the base manifold) must be "
-                    "given."
-                )
-        sylvester = gs.linalg.solve_sylvester(base_point, base_point, tangent_vec)
-        return Matrices.mul(sylvester, fiber_point)
-
-    @staticmethod
-    def lift(point):
-        return gs.linalg.cholesky(point)
+from tests.data.quotient_metric_data import (
+    BuresWassersteinBundle,
+    QuotientMetricTestData,
+)
 
 
 class TestQuotientMetric(TestCase, metaclass=Parametrizer):
     metric = QuotientMetric
     bundle = BuresWassersteinBundle
     base_metric = SPDMetricBuresWasserstein
-
-    class QuotientMetricTestData(TestData):
-        def riemannian_submersion_test_data(self):
-            random_data = [dict(n=2, mat=BuresWassersteinBundle(2).random_point())]
-            return self.generate_tests([], random_data)
-
-        def lift_and_riemannian_submersion_test_data(self):
-            random_data = [dict(n=2, mat=BuresWassersteinBundle(2).base.random_point())]
-            return self.generate_tests([], random_data)
-
-        def tangent_riemannian_submersion_test_data(self):
-            random_data = [
-                dict(
-                    n=2,
-                    mat=BuresWassersteinBundle(2).random_point(),
-                    vec=BuresWassersteinBundle(2).random_point(),
-                )
-            ]
-            return self.generate_tests([], random_data)
-
-        def horizontal_projection_test_data(self):
-            return self.tangent_riemannian_submersion_test_data()
-
-        def vertical_projection_test_data(self):
-            return self.tangent_riemannian_submersion_test_data()
-
-        def horizontal_lift_and_tangent_riemannian_submersion_test_data(self):
-            return self.tangent_riemannian_submersion_test_data()
-
-        def is_horizontal_test_data(self):
-            return self.tangent_riemannian_submersion_test_data()
-
-        def is_vertical_test_data(self):
-            return self.tangent_riemannian_submersion_test_data()
-
-        def align_test_data(self):
-            return self.tangent_riemannian_submersion_test_data()
-
-        def inner_product_test_data(self):
-            random_data = [
-                dict(
-                    n=2,
-                    mat=BuresWassersteinBundle(2).random_point(),
-                    vec_a=BuresWassersteinBundle(2).random_point(),
-                    vec_b=BuresWassersteinBundle(2).random_point(),
-                )
-            ]
-            return self.generate_tests([], random_data)
-
-        def exp_test_data(self):
-            return self.tangent_riemannian_submersion_test_data()
-
-        def log_test_data(self):
-            return self.tangent_riemannian_submersion_test_data()
-
-        def squared_dist_test_data(self):
-            return self.tangent_riemannian_submersion_test_data()
-
-        def integrability_tensor_test_data(self):
-            return self.tangent_riemannian_submersion_test_data()
 
     testing_data = QuotientMetricTestData()
 
@@ -157,6 +63,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         result = bundle.tangent_riemannian_submersion(horizontal, mat)
         self.assertAllClose(result, tangent_vec, atol=1e-2)
 
+    @geomstats.tests.np_and_autograd_only
     def test_is_horizontal(self, n, mat, vec):
         bundle = self.bundle(n)
         tangent_vec = Matrices.to_symmetric(vec)
@@ -164,6 +71,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         result = bundle.is_horizontal(horizontal, mat, atol=1e-2)
         self.assertTrue(result)
 
+    @geomstats.tests.np_and_autograd_only
     def test_is_vertical(self, n, mat, vec):
         bundle = self.bundle(n)
         vertical = bundle.vertical_projection(vec, mat)
@@ -177,6 +85,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         result = bundle.is_horizontal(point_b - aligned, point_b, atol=1e-2)
         self.assertTrue(result)
 
+    @geomstats.tests.np_and_autograd_only
     def test_inner_product(self, n, mat, vec_a, vec_b):
         bundle = self.bundle(n)
         quotient_metric = self.metric(bundle)

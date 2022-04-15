@@ -19,10 +19,11 @@ Geomstats
 
 **NEWS**:
 
-- Google's Season of Docs (SoD) 2022: Geomstats is applying! Interested?
+- Google's Season of Docs (SoD) 2022: Geomstats is participating! Interested?
    - Find details about being a Google SoD's writer `here <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_ and details about Geomstats' proposal `here  <https://geomstats.github.io/gsod.html>`_. 
    - Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_. 
-   - Deadline May 16th, at 18:00 UTC, but we recommend getting in touch with us before the end of April.
+   - Submit your `statement of interest <https://developers.google.com/season-of-docs/docs/tech-writer-statement>`_ via email to nmiolane@gmail.com before May 1st, at 18:00 UTC.
+   - Selected technical writers will be notified no later than May 16th.
 
 - The white paper summarizing the findings from our `ICLR 2021 challenge of computational differential geometry and topology <https://gt-rl.github.io/challenge>`__ is out. `Read it here <https://arxiv.org/abs/2108.09810>`__.
 
@@ -101,13 +102,14 @@ requirements via ``git`` as follows:
 ::
 
     git clone https://github.com/geomstats/geomstats.git
-    pip3 install -r requirements.txt
+    cd geomstats
+    pip3 install .
 
 This method installs the latest GitHub version of geomstats.
 
 
-To add the `requirements.txt` into a conda environment, you can use the
-`enviroment.yml` file as follows:
+To add the requirements into a conda environment, you can use the
+``enviroment.yml`` file as follows:
 
 ::
 
@@ -115,7 +117,7 @@ To add the `requirements.txt` into a conda environment, you can use the
 
 Note that this only installs the minimum requirements. To add the optional,
 development, continuous integration and documentation requirements,
-refer to the files `*-requirements.txt`.
+refer to the file ``setup.cfg``.
 
 Install geomstats : Developers
 ------------------------------
@@ -126,7 +128,7 @@ backends:
 
 ::
 
-    pip3 install -r dev-requirements.txt -r opt-requirements.txt
+    pip3 install geomstats[dev,opt]
 
 Additionally, we recommend installing our pre-commit hook, to ensure that your code
 follows our Python style guidelines:
@@ -139,27 +141,32 @@ follows our Python style guidelines:
 Choose the backend
 ------------------
 
-Geomstats can run seamlessly with ``numpy``, ``tensorflow`` or
-``pytorch``. Note that ``pytorch`` and ``tensorflow`` requirements are
+Geomstats can run seamlessly with ``numpy``, ``autograd``, ``tensorflow`` or
+``pytorch``. Note that ``autograd``, ``tensorflow`` and ``pytorch`` and requirements are
 optional, as geomstats can be used with ``numpy`` only. By default, the
 ``numpy`` backend is used. The visualizations are only available with
 this backend.
 
-To get the ``tensorflow`` and ``pytorch`` versions compatible with
-geomstats, install the `optional
-requirements <https://github.com/geomstats/geomstats/blob/master/opt-requirements.txt>`__:
+To get the ``autograd``, ``tensorflow`` and ``pytorch`` versions compatible with
+geomstats, install the optional requirements:
 
 ::
 
-    pip3 install -r opt-requirements.txt
+    pip3 install geomstats[opt]
+
+To install only the requirements for a given backend do:
+
+::
+
+    pip3 install geomstats[<backend_name>]
 
 You can choose your backend by setting the environment variable
-``GEOMSTATS_BACKEND`` to ``numpy``, ``tensorflow`` or ``pytorch``, and
+``GEOMSTATS_BACKEND`` to ``numpy``, ``autograd``, ``tensorflow`` or ``pytorch``, and
 importing the ``backend`` module. From the command line:
 
 ::
 
-    export GEOMSTATS_BACKEND=pytorch
+    export GEOMSTATS_BACKEND=<backend_name>
 
 and in the Python3 code:
 
