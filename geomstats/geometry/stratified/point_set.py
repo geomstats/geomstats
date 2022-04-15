@@ -3,9 +3,8 @@
 Lead authors: Anna Calissano & Jonas Lueg
 """
 
-from abc import ABC, abstractmethod
-
 import functools
+from abc import ABC, abstractmethod
 
 
 def _vectorize_point(*positions):
