@@ -254,6 +254,14 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
             atol=gs.atol,
         )
 
+    def triangle_inequality_of_dist_test_data(self):
+        return self._triangle_inequality_of_dist_test_data(
+            self.metric_args_list,
+            self.space_list,
+            self.n_points_list,
+            atol=gs.atol * 10000,
+        )
+
     def metric_matrix_shape_test_data(self):
         random_data = [
             dict(dim=2, point=self.space(2).random_point(1), expected=(2, 2)),

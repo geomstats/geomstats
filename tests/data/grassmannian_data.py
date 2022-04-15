@@ -265,3 +265,8 @@ class GrassmannianCanonicalMetricTestData(_RiemannianMetricTestData):
             self.shape_list,
             self.n_tangent_vecs_list,
         )
+
+    def triangle_inequality_of_dist_test_data(self):
+        return self._triangle_inequality_of_dist_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )

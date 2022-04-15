@@ -1532,3 +1532,173 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             )
 
         return self.generate_tests([], random_data)
+
+    def _triangle_inequality_of_dist_test_data(
+        self, metric_args_list, space_list, n_points_list, atol=gs.atol
+    ):
+        """Generate data to check the traingle inequality of geodesic distance.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_list : list
+            List of number of random points to generate.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, n_points in zip(
+            metric_args_list, space_list, n_points_list
+        ):
+            point_a = space.random_point(n_points)
+            point_b = space.random_point(n_points)
+            point_c = space.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    point_a=point_a,
+                    point_b=point_b,
+                    point_c=point_c,
+                    atol=atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+
+class _InvariantMetricTestData(_RiemannianMetricTestData):
+    def _exp_at_identity_of_lie_algebra_belongs_test_data(
+        self, metric_args_list, group_list, n_tangent_vecs_list, belongs_atol=gs.atol
+    ):
+        random_data = []
+        for metric_args, group, n_tangent_vecs in zip(
+            metric_args_list, group_list, n_tangent_vecs_list
+        ):
+            lie_algebra_point = group.lie_algebra.random_point(n_tangent_vecs)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    group=group,
+                    lie_algebra_point=lie_algebra_point,
+                    belongs_atol=belongs_atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def _log_at_identity_belongs_to_lie_algebra_test_data(
+        self, metric_args_list, group_list, n_points_list, belongs_atol=gs.atol
+    ):
+        random_data = []
+        for metric_args, group, n_points in zip(
+            metric_args_list, group_list, n_points_list
+        ):
+            point = group.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    group=group,
+                    point=point,
+                    belongs_atol=belongs_atol,
+                )
+            )
+
+        return self.generate_tests([], random_data)
+
+    def _exp_after_log_at_identity_test_data(
+        self, metric_args_list, group_list, n_points_list, rtol=gs.rtol, atol=gs.atol
+    ):
+        random_data = []
+        for metric_args, group, n_points in zip(
+            metric_args_list, group_list, n_points_list
+        ):
+            point = group.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    group=group,
+                    point=point,
+                    rtol=rtol,
+                    atol=atol,
+                )
+            )
+
+        return self.generate_tests([], random_data)
+
+    def _log_after_exp_at_identity_test_data(
+        self,
+        metric_args_list,
+        group_list,
+        shape_list,
+        n_tangent_vecs_list,
+        amplitude=1.0,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        random_data = []
+
+        for metric_args, group, shape, n_tangent_vecs in zip(
+            metric_args_list, group_list, shape_list, n_tangent_vecs_list
+        ):
+            base_point = group.random_point()
+            tangent_vec = group.to_tangent(
+                gs.random.normal(size=(n_tangent_vecs,) + shape) / amplitude,
+                base_point,
+            )
+            random_data.append(
+                (
+                    dict(
+                        metric_args=metric_args,
+                        group=group,
+                        tangent_vec=tangent_vec,
+                        rtol=rtol,
+                        atol=atol,
+                    )
+                )
+            )
+
+        return self.generate_tests([], random_data)
+
+
+class _QuotientMetricTestData(_RiemannianMetricTestData):
+    def _dist_is_smaller_than_bundle_dist_test_data(
+        self, metric_args_list, bundle_list, n_points_list, atol=gs.atol
+    ):
+        random_data = []
+        for metric_args, bundle, n_points in zip(
+            metric_args_list, bundle_list, n_points_list
+        ):
+            point_a = bundle.random_point(n_points)
+            point_b = bundle.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    bundle=bundle,
+                    point_a=point_a,
+                    point_b=point_b,
+                    atol=atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def _log_is_horizontal_test_data(
+        self, metric_args_list, bundle_list, n_points_list, atol=gs.atol
+    ):
+        random_data = []
+        for metric_args, bundle, n_points in zip(
+            metric_args_list, bundle_list, n_points_list
+        ):
+            point = bundle.random_point(n_points)
+            base_point = bundle.random_point()
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    bundle=bundle,
+                    point=point,
+                    base_point=base_point,
+                    is_horizontoal_atol=atol,
+                )
+            )
+
+        return self.generate_tests([], random_data)

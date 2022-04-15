@@ -76,6 +76,7 @@ BACKEND_ATTRIBUTES = {
         "imag",
         "isclose",
         "isnan",
+        "kron",
         "less",
         "less_equal",
         "linspace",

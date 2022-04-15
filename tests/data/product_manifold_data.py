@@ -312,6 +312,11 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
             self.n_tangent_vecs_list,
         )
 
+    def triangle_inequality_of_dist_test_data(self):
+        return self._triangle_inequality_of_dist_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
     def inner_product_matrix_vector_test_data(self):
         random_data = [
             dict(default_point_type="matrix"),
@@ -584,6 +589,11 @@ class NFoldMetricTestData(_RiemannianMetricTestData):
             self.space_list,
             self.shape_list,
             self.n_tangent_vecs_list,
+        )
+
+    def triangle_inequality_of_dist_test_data(self):
+        return self._triangle_inequality_of_dist_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
         )
 
     def inner_product_shape_test_data(self):

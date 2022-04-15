@@ -30,7 +30,18 @@ from torch import (
     floor,
 )
 from torch import fmod as mod
-from torch import greater, hstack, imag, int32, int64, isnan, less, log, logical_or
+from torch import (
+    greater,
+    hstack,
+    imag,
+    int32,
+    int64,
+    isnan,
+    kron,
+    less,
+    log,
+    logical_or,
+)
 from torch import max as amax
 from torch import mean, meshgrid, nonzero, ones, ones_like, outer, polygamma
 from torch import pow as power
