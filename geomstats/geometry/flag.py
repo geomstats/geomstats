@@ -246,7 +246,26 @@ class Flag(Manifold):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point.
         """
-        pass
+
+        def _each_to_tangent(vec, bp):
+            """Auxiliary function to deal with samples one at a time."""
+            sym = Matrices.to_symmetric(vec)
+            proj = Matrices.mul(bp, Matrices.transpose(bp))
+            return (
+                1
+                / 2
+                * (
+                    Matrices.bracket(sym, proj)
+                    + Matrices.bracket(proj, gs.sum(Matrices.mul(sym, proj), axis=0))
+                )
+            )
+
+        if isinstance(base_point, list) or base_point.ndim > 3:
+            return gs.stack(
+                [_each_to_tangent(vec, bp) for (vec, bp) in zip(vector, base_point)]
+            )
+
+        return _each_to_tangent(vector, base_point)
 
     def random_uniform(self, n_samples=1):
         r"""Sample random points from a uniform distribution.
@@ -314,3 +333,14 @@ class Flag(Manifold):
 
         """
         return self.random_uniform(n_samples)
+
+
+if __name__ == "__main__":
+    flag = Flag(n=5, index=[1, 3, 4])
+    vector = gs.random.rand(10, flag.d, flag.n, flag.n)
+    base_point = flag.random_uniform(n_samples=10)
+    print(flag.belongs(base_point))
+    print(flag.is_tangent(vector, base_point))
+    tangent_vec = flag.to_tangent(vector, base_point)
+    print(flag.is_tangent(tangent_vec, base_point))
+    print(flag.is_tangent(gs.zeros((10, flag.d, flag.n, flag.n)), base_point))
