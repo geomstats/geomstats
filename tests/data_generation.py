@@ -1055,9 +1055,6 @@ class _RiemannianMetricTestData(_ConnectionTestData):
 
 
 class _PointSetTestData(TestData):
-    # TODO: add docstrings
-
-    # for random tests
     n_samples = 2
     n_points_list = random.sample(range(1, 5), n_samples)
 
@@ -1093,13 +1090,10 @@ class _PointSetTestData(TestData):
 
 
 class _PointTestData(TestData):
-    # TODO: add docstrings
     pass
 
 
 class _PointGeometryTestData(TestData):
-    # TODO: add docstrings
-
     def dist_output_shape_test_data(self):
         space = self._PointSet(*self.space_args_list[0])
         geom = self._SetGeometry(space)
