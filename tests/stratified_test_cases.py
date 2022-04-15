@@ -41,7 +41,7 @@ class PointTestCase(TestCase):
 
 
 @geomstats.tests.np_only
-class PointSetGeometryTestCase(TestCase):
+class PointSetMetricTestCase(TestCase):
     @staticmethod
     def _convert_to_gs_array(results, is_list):
         if is_list:

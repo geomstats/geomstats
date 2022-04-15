@@ -1744,7 +1744,7 @@ class _PointTestData(TestData):
     pass
 
 
-class _PointGeometryTestData(TestData):
+class _PointMetricTestData(TestData):
     def dist_output_shape_test_data(self):
         space = self._PointSet(*self.space_args_list[0])
         geom = self._SetGeometry(space)

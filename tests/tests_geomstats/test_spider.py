@@ -1,11 +1,11 @@
 from tests.conftest import Parametrizer
 from tests.data.spider_data import (
-    SpiderGeometryTestData,
+    SpiderMetricTestData,
     SpiderPointTestData,
     SpiderTestData,
 )
 from tests.stratified_test_cases import (
-    PointSetGeometryTestCase,
+    PointSetMetricTestCase,
     PointSetTestCase,
     PointTestCase,
 )
@@ -19,5 +19,5 @@ class TestSpiderPoint(PointTestCase, metaclass=Parametrizer):
     testing_data = SpiderPointTestData()
 
 
-class TestSpiderGeometry(PointSetGeometryTestCase, metaclass=Parametrizer):
-    testing_data = SpiderGeometryTestData()
+class TestSpiderMetric(PointSetMetricTestCase, metaclass=Parametrizer):
+    testing_data = SpiderMetricTestData()

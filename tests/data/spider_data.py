@@ -3,7 +3,7 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.stratified.spider import Spider, SpiderMetric, SpiderPoint
 from tests.data_generation import (
-    _PointGeometryTestData,
+    _PointMetricTestData,
     _PointSetTestData,
     _PointTestData,
 )
@@ -66,7 +66,7 @@ class SpiderPointTestData(_PointTestData):
         return self.generate_tests(smoke_data)
 
 
-class SpiderGeometryTestData(_PointGeometryTestData):
+class SpiderMetricTestData(_PointMetricTestData):
 
     _SetGeometry = SpiderMetric
     _PointSet = Spider

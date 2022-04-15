@@ -7,17 +7,17 @@ import functools
 from abc import ABC, abstractmethod
 
 
-def _vectorize_point(*positions):
+def _vectorize_point(*args_positions):
     """Check point type and transform in iterable if not the case.
 
     Parameters
     ----------
-    positions : tuple
+    args_positions : tuple
         Position and corresponding argument name. A tuple for each position.
 
     Notes
     -----
-    Explicitly defining positions and args names ensures it works for all
+    Explicitly defining args_positions and args names ensures it works for all
     combinations of input calling.
     """
 
@@ -31,7 +31,7 @@ def _vectorize_point(*positions):
         @functools.wraps(func)
         def _wrapped(*args, **kwargs):
             args = list(args)
-            for pos, name in positions:
+            for pos, name in args_positions:
                 if name in kwargs:
                     kwargs[name] = _manipulate_input(kwargs[name])
                 else:

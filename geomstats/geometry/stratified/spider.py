@@ -120,13 +120,13 @@ class Spider(PointSet):
         for single_point in point:
             results += [
                 self._coord_check(single_point)
-                and self._rays_check(single_point)
+                and self._n_rays_check(single_point)
                 and self._zero_check(single_point)
                 and type(single_point) is SpiderPoint
             ]
         return gs.array(results)
 
-    def _rays_check(self, single_point):
+    def _n_rays_check(self, single_point):
         r"""Check if a random point has the correct number of rays.
 
         Parameters
@@ -190,8 +190,8 @@ class Spider(PointSet):
 
         Returns
         -------
-        point_array : array-like, shape=[...,rays]
-            An array with the x parameter in the s position.
+        point_array : array-like, shape=[...,n_rays]
+            An array with the stratum_coord parameter in the stratum position.
         """
         point_to_array = gs.zeros((len(point), self.n_rays))
         for i, pt in enumerate(point):
@@ -208,7 +208,7 @@ class SpiderMetric(PointSetMetric):
 
     @property
     def n_rays(self):
-        """Get rays."""
+        """Get number of rays."""
         return self.space.n_rays
 
     @_vectorize_point((1, "a"), (2, "b"))
