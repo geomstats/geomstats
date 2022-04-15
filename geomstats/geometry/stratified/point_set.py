@@ -5,6 +5,8 @@ Lead authors: Anna Calissano & Jonas Lueg
 
 from abc import ABC, abstractmethod
 
+import functools
+
 
 def _vectorize_point(*positions):
     """Check point type and transform in iterable if not the case.
@@ -16,7 +18,7 @@ def _vectorize_point(*positions):
 
     Notes
     -----
-    Explicitly defining positions and args names ensures it works for only
+    Explicitly defining positions and args names ensures it works for all
     combinations of input calling.
     """
 
@@ -27,6 +29,7 @@ def _vectorize_point(*positions):
 
             return arg
 
+        @functools.wraps(func)
         def _wrapped(*args, **kwargs):
             args = list(args)
             for pos, name in positions:
