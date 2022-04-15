@@ -16,6 +16,11 @@ class TestWald(PointTestCase, metaclass=Parametrizer):
     _Point = Wald
     testing_data = WaldTestData()
 
+    def test_generate_wald_belongs(self, point_args):
+        generated_point = self._Point.generate_wald(*point_args)
+        result = isinstance(generated_point, self._Point)
+        self.assertAllClose(result, True)
+
 
 @geomstats.tests.np_only
 class TestSplit(geomstats.tests.TestCase):
@@ -85,11 +90,11 @@ class TestSplit(geomstats.tests.TestCase):
         split1b = Split(part1=[2, 3], part2=[0, 1, 4])
 
         result = split1a.get_part_towards(split1b)
-        expected = (1, 2, 3)
+        expected = {1, 2, 3}
         self.assertEqual(result, expected)
 
         result = split1b.get_part_towards(split1a)
-        expected = (0, 1, 4)
+        expected = {0, 1, 4}
         self.assertEqual(result, expected)
 
     def test_get_part_away_from(self):
@@ -98,11 +103,11 @@ class TestSplit(geomstats.tests.TestCase):
         split1b = Split(part1=[2, 3], part2=[0, 1, 4])
 
         result = split1a.get_part_away_from(split1b)
-        expected = (0, 4)
+        expected = {0, 4}
         self.assertEqual(result, expected)
 
         result = split1b.get_part_away_from(split1a)
-        expected = (2, 3)
+        expected = {2, 3}
         self.assertEqual(result, expected)
 
     def test_is_compatible(self):

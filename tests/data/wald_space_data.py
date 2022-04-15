@@ -6,6 +6,19 @@ from tests.data_generation import _PointSetTestData, _PointTestData
 
 
 class WaldTestData(_PointTestData):
+    # for random tests
+    n_samples = _PointSetTestData.n_samples
+    n_labels_list = random.sample(range(2, 4), n_samples)
+    point_args_list = [(n_labels, 0.9, 0.9) for n_labels in n_labels_list]
+
+    def generate_wald_belongs_test_data(self):
+
+        random_data = [
+            dict(point_args=point_args) for point_args in self.point_args_list
+        ]
+
+        return self.generate_tests([], random_data)
+
     def to_array_test_data(self):
         smoke_data = []
 
@@ -45,14 +58,14 @@ class WaldSpaceTestData(_PointSetTestData):
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
         top = Topology(n=2, partition=((0, 1),), split_sets=split_sets)
         x = gs.array([0.3])
-        point = Wald(n=top.n, st=top, x=x)
+        point = Wald(n=top.n, topology=top, weights=x)
 
         smoke_data.append(dict(space_args=(top.n,), points=point, expected=True))
         smoke_data.append(dict(space_args=(3,), points=point, expected=False))
 
         top = Topology(n=2, partition=((0, 1),), split_sets=((),))
         x = gs.array([])
-        point = Wald(n=top.n, st=top, x=x)
+        point = Wald(n=top.n, topology=top, weights=x)
 
         smoke_data.append(dict(space_args=(top.n,), points=point, expected=False))
         smoke_data.append(dict(space_args=(3,), points=point, expected=False))
@@ -65,7 +78,7 @@ class WaldSpaceTestData(_PointSetTestData):
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
         top = Topology(n=3, partition=partition, split_sets=split_sets)
         x = gs.array([0.1, 0.2])
-        point = Wald(n=top.n, st=top, x=x)
+        point = Wald(n=top.n, topology=top, weights=x)
         smoke_data.append(dict(space_args=(top.n,), points=point, expected=True))
 
         partition = ((0, 1, 2),)
@@ -73,7 +86,7 @@ class WaldSpaceTestData(_PointSetTestData):
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
         top = Topology(n=3, partition=partition, split_sets=split_sets)
         x = gs.array([0.1])
-        point = Wald(n=top.n, st=top, x=x)
+        point = Wald(n=top.n, topology=top, weights=x)
         smoke_data.append(dict(space_args=(top.n,), points=point, expected=False))
 
         partition = ((0, 1, 2),)
@@ -81,7 +94,7 @@ class WaldSpaceTestData(_PointSetTestData):
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
         top = Topology(n=3, partition=partition, split_sets=split_sets)
         x = gs.array([0.0, 0.2])
-        point = Wald(n=top.n, st=top, x=x)
+        point = Wald(n=top.n, topology=top, weights=x)
         smoke_data.append(dict(space_args=(top.n,), points=point, expected=False))
 
         partition = ((0, 1, 2),)
@@ -89,7 +102,7 @@ class WaldSpaceTestData(_PointSetTestData):
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
         top = Topology(n=3, partition=partition, split_sets=split_sets)
         x = gs.array([0.1, 1.0])
-        point = Wald(n=top.n, st=top, x=x)
+        point = Wald(n=top.n, topology=top, weights=x)
         smoke_data.append(dict(space_args=(top.n,), points=point, expected=False))
 
         points = []
@@ -100,7 +113,7 @@ class WaldSpaceTestData(_PointSetTestData):
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
         top = Topology(n=3, partition=partition, split_sets=split_sets)
         x = gs.array([0.1, 0.2])
-        point = Wald(n=top.n, st=top, x=x)
+        point = Wald(n=top.n, topology=top, weights=x)
         points.append(point)
         expected.append(True)
 
@@ -109,7 +122,7 @@ class WaldSpaceTestData(_PointSetTestData):
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
         top = Topology(n=3, partition=partition, split_sets=split_sets)
         x = gs.array([0.1])
-        point = Wald(n=top.n, st=top, x=x)
+        point = Wald(n=top.n, topology=top, weights=x)
         points.append(point)
         expected.append(False)
 
