@@ -1,5 +1,6 @@
 """Unit tests for the beta manifold."""
 
+
 from scipy.stats import beta
 
 import geomstats.backend as gs
