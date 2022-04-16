@@ -251,6 +251,11 @@ class L2CurvesMetricTestData(_RiemannianMetricTestData):
             self.n_tangent_vecs_list,
         )
 
+    def triangle_inequality_of_dist_test_data(self):
+        return self._triangle_inequality_of_dist_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
     def l2_metric_geodesic_test_data(self):
         smoke_data = [
             dict(
@@ -438,6 +443,11 @@ class SRVMetricTestData(_RiemannianMetricTestData):
             self.space_list,
             self.shape_list,
             self.n_tangent_vecs_list,
+        )
+
+    def triangle_inequality_of_dist_test_data(self):
+        return self._triangle_inequality_of_dist_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
         )
 
     def aux_differential_srv_transform_test_data(self):
