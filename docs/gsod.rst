@@ -119,5 +119,6 @@ Important links for technical writers
 =====================================
 
 - Find details about being a Google SoD's writer `here <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_.
-- Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_.
-- Deadline May 16th, at 18:00 UTC, but we recommend getting in touch with us before the end of April.
+- Feel free to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_.
+- Submit your statement of interest via email to nmiolane@gmail.com before May 1st, at 18:00 UTC.
+- Questions? Join our community through its `slack workspace <https://join.slack.com/t/geomstats/shared_invite/zt-15t8k0q7r-Duxt6j6aA3rDOIms2Vd~RQ>`_! 
