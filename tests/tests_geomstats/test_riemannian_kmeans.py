@@ -66,7 +66,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         )
         self.assertAllClose(expected, result)
 
-    def test_hypersphere_kmeans_initialization(self):
+    def test_hypersphere_kmeans_init_kmeanspp(self):
         gs.random.seed(55)
 
         manifold = hypersphere.Hypersphere(2)
@@ -82,4 +82,24 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         centroids = kmeans.centroids
         result = centroids.shape
         expected = (n_clusters, 3)
+        self.assertAllClose(expected, result)
+
+    def test_hypersphere_kmeans_init_array(self):
+        gs.random.seed(55)
+
+        n_features = 3
+        n_clusters = 3
+
+        manifold = hypersphere.Hypersphere(n_features - 1)
+
+        x = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
+        y = manifold.random_von_mises_fisher(kappa=10, n_samples=n_clusters)
+
+        kmeans = RiemannianKMeans(
+            manifold.metric, n_clusters, init_step_size=1.0, tol=1e-3, init=y
+        )
+        kmeans.fit(x)
+        centroids = kmeans.centroids
+        result = centroids.shape
+        expected = (n_clusters, n_features)
         self.assertAllClose(expected, result)

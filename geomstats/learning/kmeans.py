@@ -26,10 +26,12 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         Optional, default: 8.
     metric : object of class RiemannianMetric
         The geomstats Riemannian metric associate to the space used.
-    init : str
+    init : str or array-like, shape=[n_clusters, n_features]
         How to initialize centroids at the beginning of the algorithm. The
         choice 'random' will select training points as initial centroids
-        uniformly at random.
+        uniformly at random. The choice 'kmeans++' selects centroids
+        heuristically to improve the convergence rate. By providing an array the
+        starting centroids can be specified externally.
         Optional, default: 'random'.
     tol : float
         Convergence factor. Convergence is achieved when the difference of mean
@@ -103,24 +105,43 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         n_samples = X.shape[0]
         if self.verbose > 0:
             logging.info("Initializing...")
-        if self.init == "kmeans++":
-            centroids = [gs.expand_dims(X[randint(0, n_samples - 1)], 0)]
-            for i in range(self.n_clusters - 1):
-                dists = [
-                    gs.to_ndarray(self.metric.dist(centroids[j], X), 2, 1)
-                    for j in range(i + 1)
+
+        if isinstance(self.init, str):
+            if self.init == "kmeans++":
+                centroids = [gs.expand_dims(X[randint(0, n_samples - 1)], 0)]
+                for i in range(self.n_clusters - 1):
+                    dists = [
+                        gs.to_ndarray(self.metric.dist(centroids[j], X), 2, 1)
+                        for j in range(i + 1)
+                    ]
+                    dists = gs.hstack(dists)
+                    dists_to_closest_centroid = gs.amin(dists, 1)
+                    indices = gs.arange(n_samples)
+                    weights = dists_to_closest_centroid / gs.sum(
+                        dists_to_closest_centroid
+                    )
+                    index = rv_discrete(values=(indices, weights)).rvs()
+                    centroids.append(gs.expand_dims(X[index], 0))
+            elif self.init == "random":
+                centroids = [
+                    gs.expand_dims(X[randint(0, n_samples - 1)], 0)
+                    for i in range(self.n_clusters)
                 ]
-                dists = gs.hstack(dists)
-                dists_to_closest_centroid = gs.amin(dists, 1)
-                indices = gs.arange(n_samples)
-                weights = dists_to_closest_centroid / gs.sum(dists_to_closest_centroid)
-                index = rv_discrete(values=(indices, weights)).rvs()
-                centroids.append(gs.expand_dims(X[index], 0))
+            else:
+                raise ValueError(f"Unknown initial centroids method '{self.init}'.")
         else:
+            if self.init.shape[0] != self.n_clusters:
+                raise ValueError("Need as many initial centroids as clusters.")
+
+            if self.init.shape[1] != X.shape[1]:
+                raise ValueError(
+                    "Dimensions of initial centroids and training data do not match."
+                )
+
             centroids = [
-                gs.expand_dims(X[randint(0, n_samples - 1)], 0)
-                for i in range(self.n_clusters)
+                gs.expand_dims(self.init[i], 0) for i in range(self.n_clusters)
             ]
+
         self.centroids = gs.concatenate(centroids, axis=0)
         self.init_centroids = gs.concatenate(centroids, axis=0)
 
