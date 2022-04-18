@@ -71,6 +71,7 @@ class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_geodesic_bvp_belongs = True
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
+    skip_test_triangle_inequality_of_dist = True
 
     testing_data = BetaMetricTestData()
 
