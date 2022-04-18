@@ -251,14 +251,11 @@ class Flag(Manifold):
             """Auxiliary function to deal with samples one at a time."""
             sym = Matrices.to_symmetric(vec)
             proj = Matrices.mul(bp, Matrices.transpose(bp))
-            return (
-                1
-                / 2
-                * (
-                    Matrices.bracket(sym, proj)
-                    + Matrices.bracket(proj, gs.sum(Matrices.mul(sym, proj), axis=0))
-                )
-            )
+            return Matrices.mul(sym, proj) \
+                   + Matrices.mul(proj, sym) \
+                   - Matrices.mul(proj, gs.sum(Matrices.mul(sym, proj), axis=0))\
+                   - Matrices.mul(gs.sum(Matrices.mul(sym, proj), axis=0), proj)
+                    #Matrices.bracket(sym, proj)+ Matrices.bracket(proj, gs.sum(Matrices.mul(sym, proj), axis=0))
 
         if isinstance(base_point, list) or base_point.ndim > 3:
             return gs.stack(
