@@ -1,4 +1,4 @@
-"""Kendall Pre-Shape space."""
+"""Kendall pre-shape space."""
 
 import logging
 
