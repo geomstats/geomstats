@@ -270,7 +270,7 @@ class StiefelCanonicalMetricTestData(_RiemannianMetricTestData):
             self.metric_args_list,
             self.space_list,
             self.n_points_list,
-            atol=gs.atol * 10000,
+            atol=1e-3,
         )
 
     def retraction_lifting_test_data(self):
