@@ -11,6 +11,8 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # fix OMP Error with Pytorch backend.
+
+
 # CAUTION may cause crashes or silently produce incorrect results. cf stackoverflow
 
 
@@ -253,9 +255,11 @@ class Flag(Manifold):
             proj = Matrices.mul(bp, Matrices.transpose(bp))
             return Matrices.mul(sym, proj) \
                    + Matrices.mul(proj, sym) \
-                   - Matrices.mul(proj, gs.sum(Matrices.mul(sym, proj), axis=0))\
-                   - Matrices.mul(gs.sum(Matrices.mul(sym, proj), axis=0), proj)
-                    #Matrices.bracket(sym, proj)+ Matrices.bracket(proj, gs.sum(Matrices.mul(sym, proj), axis=0))
+                   - Matrices.mul(proj, gs.sum(Matrices.mul(sym, proj), axis=0)) \
+                   - Matrices.mul(gs.sum(Matrices.mul(proj, sym), axis=0), proj)  #
+            # caution: maybe expand_dims
+            # Matrices.bracket(sym, proj)+ Matrices.bracket(proj, gs.sum(
+            # Matrices.mul(sym, proj), axis=0))
 
         if isinstance(base_point, list) or base_point.ndim > 3:
             return gs.stack(
@@ -298,7 +302,7 @@ class Flag(Manifold):
         u = gs.array([polar(point)[0] for point in points])
         projector = []
         for i in range(self.d):
-            v_i = u[:, :, self.extended_index[i] : self.extended_index[i + 1]]
+            v_i = u[:, :, self.extended_index[i]: self.extended_index[i + 1]]
             projector.append(Matrices.mul(v_i, Matrices.transpose(v_i)))
         projector = gs.transpose(gs.array(projector), axes=(1, 0, 2, 3))
         return projector[0] if n_samples == 1 else projector
