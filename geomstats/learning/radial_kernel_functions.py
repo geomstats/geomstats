@@ -1,5 +1,7 @@
 """Radial kernel functions.
 
+Lead author: Yann Cabanes.
+
 References
 ----------
 https://en.wikipedia.org/wiki/Kernel_(statistics)
@@ -116,7 +118,7 @@ def parabolic_radial_kernel(distance, bandwidth=1.0):
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
-        1 - scaled_distance ** 2,
+        1 - scaled_distance**2,
         gs.zeros(distance.shape, dtype=float),
     )
     return weight
@@ -147,7 +149,7 @@ def biweight_radial_kernel(distance, bandwidth=1.0):
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
-        (1 - scaled_distance ** 2) ** 2,
+        (1 - scaled_distance**2) ** 2,
         gs.zeros(distance.shape, dtype=float),
     )
     return weight
@@ -178,7 +180,7 @@ def triweight_radial_kernel(distance, bandwidth=1.0):
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
-        (1 - scaled_distance ** 2) ** 3,
+        (1 - scaled_distance**2) ** 3,
         gs.zeros(distance.shape, dtype=float),
     )
     return weight
@@ -209,7 +211,7 @@ def tricube_radial_kernel(distance, bandwidth=1.0):
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
-        (1 - scaled_distance ** 3) ** 3,
+        (1 - scaled_distance**3) ** 3,
         gs.zeros(distance.shape, dtype=float),
     )
     return weight
@@ -239,7 +241,7 @@ def gaussian_radial_kernel(distance, bandwidth=1.0):
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
-    weight = gs.exp(-(scaled_distance ** 2) / 2)
+    weight = gs.exp(-(scaled_distance**2) / 2)
     return weight
 
 
@@ -349,7 +351,7 @@ def bump_radial_kernel(distance, bandwidth=1.0):
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
-        gs.exp(-1 / (1 - scaled_distance ** 2)),
+        gs.exp(-1 / (1 - scaled_distance**2)),
         gs.zeros(distance.shape, dtype=float),
     )
     return weight
@@ -378,7 +380,7 @@ def inverse_quadratic_radial_kernel(distance, bandwidth=1.0):
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
-    weight = 1 / (1 + scaled_distance ** 2)
+    weight = 1 / (1 + scaled_distance**2)
     return weight
 
 
@@ -405,7 +407,7 @@ def inverse_multiquadric_radial_kernel(distance, bandwidth=1.0):
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
-    weight = 1 / (1 + scaled_distance ** 2) ** (1 / 2)
+    weight = 1 / (1 + scaled_distance**2) ** (1 / 2)
     return weight
 
 

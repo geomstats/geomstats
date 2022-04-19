@@ -1,6 +1,0 @@
-flake8
-flake8-docstrings
-flake8-import-order
-pre-commit
-pytest
-pytest-cov

@@ -7,6 +7,7 @@ In exceptional cases, numpy's results or API may not be followed.
 import warnings
 
 import numpy as _np
+import pytest
 import scipy.linalg
 import torch
 
@@ -17,7 +18,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestBackends(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
 
         self.so3_group = SpecialOrthogonal(n=3)
@@ -158,7 +159,7 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.linalg.expm(gs.linalg.logm(point))
         expected = point
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol * 100)
 
     def test_expm_and_logm_vectorization(self):
         point = gs.array(
@@ -483,9 +484,8 @@ class TestBackends(geomstats.tests.TestCase):
 
     def test_assignment(self):
         gs_array_1 = gs.ones(3)
-        self.assertRaises(
-            ValueError, gs.assignment, gs_array_1, [0.1, 2.0, 1.0], [0, 1]
-        )
+        with pytest.raises(ValueError):
+            gs.assignment(gs_array_1, [0.1, 2.0, 1.0], [0, 1])
 
         np_array_1 = _np.ones(3)
         gs_array_1 = gs.ones_like(gs.array(np_array_1))
@@ -537,9 +537,8 @@ class TestBackends(geomstats.tests.TestCase):
 
     def test_assignment_by_sum(self):
         gs_array_1 = gs.ones(3)
-        self.assertRaises(
-            ValueError, gs.assignment_by_sum, gs_array_1, [0.1, 2.0, 1.0], [0, 1]
-        )
+        with pytest.raises(ValueError):
+            gs.assignment_by_sum(gs_array_1, [0.1, 2.0, 1.0], [0, 1])
 
         np_array_1 = _np.ones(3)
         gs_array_1 = gs.ones_like(gs.array(np_array_1))
@@ -717,8 +716,8 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.where(gs_array > 20.0, 0.0, gs_array)
         self.assertAllCloseToNp(gs_result, np_result)
 
-        np_result = _np.where(np_array > 20, np_array ** 2, 4.0)
-        gs_result = gs.where(gs_array > 20, gs_array ** 2, 4.0)
+        np_result = _np.where(np_array > 20, np_array**2, 4.0)
+        gs_result = gs.where(gs_array > 20, gs_array**2, 4.0)
         self.assertAllCloseToNp(gs_result, np_result)
 
         base_list = [[0, 1, 0, 1, 0, 1, 0, 1, 0, 1]]
@@ -775,7 +774,7 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result[0], result_verdict[0])
         self.assertAllClose(result[1], result_verdict[1])
 
-        with self.assertRaises((ValueError, RuntimeError)):
+        with pytest.raises((ValueError, RuntimeError)):
             gs.broadcast_arrays(gs.array([1, 2]), gs.array([3, 4, 5]))
 
     def test_choice(self):
@@ -855,6 +854,7 @@ class TestBackends(geomstats.tests.TestCase):
         s_r = gs.linalg.svd(gs_point, compute_uv=compute_uv)
         self.assertAllClose(s, s_r)
 
+    @geomstats.tests.np_and_autograd_only
     def test_sylvester_solve(self):
         mat = gs.random.rand(4, 3)
         spd = gs.matmul(gs.transpose(mat), mat)
@@ -864,6 +864,17 @@ class TestBackends(geomstats.tests.TestCase):
         solution = gs.linalg.solve_sylvester(spd, spd, skew)
         result = gs.matmul(spd, solution)
         result += gs.matmul(solution, spd)
+
+        self.assertAllClose(result, skew)
+
+    def test_sylvester_solve_psd(self):
+        psd = gs.array([[1.0, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.0]])
+
+        mat = gs.random.rand(3, 3)
+        skew = mat - gs.transpose(mat)
+        solution = gs.linalg.solve_sylvester(psd, psd, skew)
+        result = gs.matmul(psd, solution)
+        result += gs.matmul(solution, psd)
 
         self.assertAllClose(result, skew)
 
@@ -899,6 +910,12 @@ class TestBackends(geomstats.tests.TestCase):
         mat = SPDMatrices(3).random_point(2)
         result = gs.linalg.cholesky(mat)
         expected = _np.linalg.cholesky(mat)
+        self.assertAllClose(result, expected)
+
+    def test_triu(self):
+        mat = gs.array([[2.0, 1.0, 1.0], [1.0, -1.5, 2.0], [-1.0, 10.0, 2.0]])
+        result = gs.triu(mat)
+        expected = gs.array([[2.0, 1.0, 1.0], [0.0, -1.5, 2.0], [0.0, 0.0, 2.0]])
         self.assertAllClose(result, expected)
 
     def test_mat_from_diag_triu_tril(self):
@@ -941,6 +958,23 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.prod(vec)
         expected = gs.cumprod(vec)[-1]
         self.assertAllClose(result, expected)
+
+    def test_is_single_matrix_pd(self):
+        pd = gs.eye(3)
+        not_pd_1 = -1 * gs.eye(3)
+        not_pd_2 = gs.ones((3, 3))
+
+        pd_result = gs.linalg.is_single_matrix_pd(pd)
+        not_pd_1_result = gs.linalg.is_single_matrix_pd(not_pd_1)
+        not_pd_2_result = gs.linalg.is_single_matrix_pd(not_pd_2)
+
+        pd_expected = gs.array(True)
+        not_pd_1_expected = gs.array(False)
+        not_pd_2_expected = gs.array(False)
+
+        self.assertAllClose(pd_expected, pd_result)
+        self.assertAllClose(not_pd_1_expected, not_pd_1_result)
+        self.assertAllClose(not_pd_2_expected, not_pd_2_result)
 
     def test_unique(self):
         vec = gs.array([-1, 0, 1, 1, 0, -1])

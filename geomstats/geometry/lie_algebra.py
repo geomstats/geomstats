@@ -5,6 +5,8 @@ implemented here. The first one is as a matrix, as elements of R^(n x n).
 The second is by choosing a base and remembering the coefficients of an element
 in that base. This base will be provided in child classes
 (e.g. SkewSymmetricMatrices).
+
+Lead author: Stefan Heyder.
 """
 
 import abc
@@ -34,7 +36,6 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
         geomstats.errors.check_integer(dim, "dim")
         geomstats.errors.check_integer(n, "n")
         self.dim = dim
-        self.basis = None
         self.n = n
 
     bracket = Matrices.bracket
@@ -107,7 +108,7 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
     def matrix_representation(self, basis_representation):
         """Compute the matrix representation for the given basis coefficients.
 
-        Sums the basis elements according to the coefficents given in
+        Sums the basis elements according to the coefficients given in
         basis_representation.
 
         Parameters

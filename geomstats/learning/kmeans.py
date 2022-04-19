@@ -1,8 +1,12 @@
-"""K-means clustering."""
+"""K-means clustering.
+
+Lead author: Hadi Zaatiti.
+"""
 
 import logging
 from random import randint
 
+from scipy.stats import rv_discrete
 from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
@@ -53,7 +57,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         metric,
         n_clusters=8,
         init="random",
-        lr=1.0,
+        init_step_size=1.0,
         tol=1e-2,
         max_iter=100,
         max_iter_mean=100,
@@ -64,7 +68,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.init = init
         self.metric = metric
         self.tol = tol
-        self.lr = lr
+        self.init_step_size = init_step_size
         self.verbose = verbose
         self.mean_method = mean_method
         self.point_type = metric.default_point_type
@@ -72,6 +76,9 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.max_iter_mean = max_iter_mean
 
         self.centroids = None
+        self.init_centroids = None
+        self.labels = None
+        self.inertia = None
 
     def fit(self, X):
         """Provide clusters centroids and data labels.
@@ -94,33 +101,53 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             Centroids.
         """
         n_samples = X.shape[0]
-        self.centroids = [
-            gs.expand_dims(X[randint(0, n_samples - 1)], 0)
+        if self.verbose > 0:
+            logging.info("Initializing...")
+        if self.init == "kmeans++":
+            centroids = [gs.expand_dims(X[randint(0, n_samples - 1)], 0)]
+            for i in range(self.n_clusters - 1):
+                dists = [
+                    gs.to_ndarray(self.metric.dist(centroids[j], X), 2, 1)
+                    for j in range(i + 1)
+                ]
+                dists = gs.hstack(dists)
+                dists_to_closest_centroid = gs.amin(dists, 1)
+                indices = gs.arange(n_samples)
+                weights = dists_to_closest_centroid / gs.sum(dists_to_closest_centroid)
+                index = rv_discrete(values=(indices, weights)).rvs()
+                centroids.append(gs.expand_dims(X[index], 0))
+        else:
+            centroids = [
+                gs.expand_dims(X[randint(0, n_samples - 1)], 0)
+                for i in range(self.n_clusters)
+            ]
+        self.centroids = gs.concatenate(centroids, axis=0)
+        self.init_centroids = gs.concatenate(centroids, axis=0)
+
+        dists = [
+            gs.to_ndarray(self.metric.dist(self.centroids[i], X), 2, 1)
             for i in range(self.n_clusters)
         ]
-        self.centroids = gs.concatenate(self.centroids, axis=0)
+        dists = gs.hstack(dists)
+        self.labels = gs.argmin(dists, 1)
         index = 0
         while index < self.max_iter:
             index += 1
+            if self.verbose > 0:
+                logging.info(f"Iteration {index}...")
 
-            dists = [
-                gs.to_ndarray(self.metric.dist(self.centroids[i], X), 2, 1)
-                for i in range(self.n_clusters)
-            ]
-            dists = gs.hstack(dists)
-            belongs = gs.argmin(dists, 1)
             old_centroids = gs.copy(self.centroids)
             for i in range(self.n_clusters):
-                fold = gs.squeeze(X[belongs == i])
+                fold = gs.squeeze(X[self.labels == i])
 
                 if len(fold) > 0:
 
                     mean = FrechetMean(
                         metric=self.metric,
-                        method=self.mean_method,
                         max_iter=self.max_iter_mean,
-                        lr=self.lr,
                         point_type=self.point_type,
+                        method=self.mean_method,
+                        init_step_size=self.init_step_size,
                     )
                     mean.fit(fold)
 
@@ -128,13 +155,24 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                 else:
                     self.centroids[i] = X[randint(0, n_samples - 1)]
 
+            dists = [
+                gs.to_ndarray(self.metric.dist(self.centroids[i], X), 2, 1)
+                for i in range(self.n_clusters)
+            ]
+            dists = gs.hstack(dists)
+            self.labels = gs.argmin(dists, 1)
+            dists_to_closest_centroid = gs.amin(dists, 1)
+            self.inertia = gs.sum(dists_to_closest_centroid**2)
             centroids_distances = self.metric.dist(old_centroids, self.centroids)
+            if self.verbose > 0:
+                logging.info(
+                    f"Convergence criterion at the end of iteration {index} "
+                    f"is {gs.mean(centroids_distances)}."
+                )
 
             if gs.mean(centroids_distances) < self.tol:
                 if self.verbose > 0:
-                    logging.info(
-                        "Convergence reached after {} " "iterations".format(index)
-                    )
+                    logging.info(f"Convergence reached after {index} iterations.")
 
                 if self.n_clusters == 1:
                     self.centroids = gs.squeeze(self.centroids, axis=0)
@@ -143,8 +181,8 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         if index == self.max_iter:
             logging.warning(
-                "K-means maximum number of iterations {} reached. "
-                "The mean may be inaccurate".format(self.max_iter)
+                f"K-means maximum number of iterations {self.max_iter} reached. "
+                "The mean may be inaccurate."
             )
 
         if self.n_clusters == 1:
@@ -174,6 +212,6 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         )
         dists = gs.squeeze(dists)
 
-        belongs = gs.argmin(dists, -1)
+        labels = gs.argmin(dists, -1)
 
-        return belongs
+        return labels

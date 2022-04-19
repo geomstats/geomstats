@@ -1,10 +1,14 @@
 """The n-dimensional hyperbolic space.
 
 The n-dimensional hyperbolic space with Poincare ball model.
+
+Lead author: Hadi Zaatiti.
 """
+
+import math
+
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-import geomstats.vectorization
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
@@ -66,7 +70,7 @@ class PoincareBall(_Hyperbolic, OpenSet):
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
-        return gs.sum(point ** 2, axis=-1) < (1 - atol)
+        return gs.sum(point**2, axis=-1) < (1 - atol)
 
     def projection(self, point):
         """Project a point on the ball.
@@ -136,7 +140,7 @@ class PoincareBallMetric(RiemannianMetric):
             Point in the Poincare ball equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        squared_norm_bp = gs.sum(base_point ** 2, axis=-1)
+        squared_norm_bp = gs.sum(base_point**2, axis=-1)
         norm_tan = gs.linalg.norm(tangent_vec, axis=-1)
         lambda_base_point = 1 / (1 - squared_norm_bp)
 
@@ -169,8 +173,8 @@ class PoincareBallMetric(RiemannianMetric):
             of point at the base point.
         """
         mobius_addition = self.mobius_add(-base_point, point)
-        squared_norm_add = gs.sum(mobius_addition ** 2, axis=-1)
-        squared_norm_bp = gs.sum(base_point ** 2, axis=-1)
+        squared_norm_add = gs.sum(mobius_addition**2, axis=-1)
+        squared_norm_bp = gs.sum(base_point**2, axis=-1)
         coef = (1 - squared_norm_bp) * utils.taylor_exp_even_func(
             squared_norm_add, utils.arctanh_card_close_0
         )
@@ -214,8 +218,8 @@ class PoincareBallMetric(RiemannianMetric):
                 raise ValueError("Points do not belong to the Poincare ball")
 
         inner = gs.sum(point_a * point_b, axis=-1)
-        squared_norm_a = gs.sum(point_a ** 2, axis=-1)
-        squared_norm_b = gs.sum(point_b ** 2, axis=-1)
+        squared_norm_a = gs.sum(point_a**2, axis=-1)
+        squared_norm_b = gs.sum(point_b**2, axis=-1)
         num_1 = gs.einsum("...,...i->...i", 1 + 2 * inner + squared_norm_b, point_a)
         num_2 = gs.einsum("...,...i->...i", 1 - squared_norm_a, point_b)
         result = gs.einsum(
@@ -240,13 +244,13 @@ class PoincareBallMetric(RiemannianMetric):
         dist : array-like, shape=[...,]
             Geodesic distance between the two points.
         """
-        point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0.0, 1 - EPSILON)
-        point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0.0, 1 - EPSILON)
+        point_a_norm = gs.clip(gs.sum(point_a**2, -1), 0.0, 1 - EPSILON)
+        point_b_norm = gs.clip(gs.sum(point_b**2, -1), 0.0, 1 - EPSILON)
 
         diff_norm = gs.sum((point_a - point_b) ** 2, -1)
         norm_function = 1 + 2 * diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
 
-        dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
+        dist = gs.log(norm_function + gs.sqrt(norm_function**2 - 1))
         dist *= self.scale
         return dist
 
@@ -277,7 +281,7 @@ class PoincareBallMetric(RiemannianMetric):
             raise NameError("Points do not belong to the Poincare ball")
 
         retraction_factor = (
-            (1 - gs.sum(base_point ** 2, axis=-1, keepdims=True)) ** 2
+            (1 - gs.sum(base_point**2, axis=-1, keepdims=True)) ** 2
         ) / 4
 
         return base_point - gs.einsum("...i,...j->...j", retraction_factor, tangent_vec)
@@ -421,7 +425,7 @@ class PoincareBallMetric(RiemannianMetric):
         grad_term_211 = (
             gs.exp((prod_alpha_sigma) ** 2)
             * (1 + gs.erf(prod_alpha_sigma))
-            * gs.einsum("ij,j->ij", sigma_repeated, alpha ** 2)
+            * gs.einsum("ij,j->ij", sigma_repeated, alpha**2)
             * 2
         )
 
@@ -438,3 +442,24 @@ class PoincareBallMetric(RiemannianMetric):
         norm_factor_gradient = grad_term_1 + (grad_term_21 * grad_term_22)
 
         return gs.squeeze(norm_factor), gs.squeeze(norm_factor_gradient)
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In the case of the hyperbolic space, it does not depend on the base point and
+        is infinite everywhere, because of the negative curvature.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return math.inf

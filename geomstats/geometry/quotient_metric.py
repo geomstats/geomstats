@@ -1,4 +1,7 @@
-"""Classes for fiber bundles and quotient metrics."""
+"""Classes for fiber bundles and quotient metrics.
+
+Lead author: Nicolas Guigui.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
@@ -20,7 +23,7 @@ class QuotientMetric(RiemannianMetric):
         Bundle structure to define the quotient.
     """
 
-    def __init__(self, fiber_bundle: FiberBundle, dim: int = None):
+    def __init__(self, fiber_bundle: FiberBundle, dim: int = None, **kwargs):
         if dim is None:
             if fiber_bundle.base is not None:
                 dim = fiber_bundle.base.dim
@@ -33,7 +36,7 @@ class QuotientMetric(RiemannianMetric):
                     "total space must be provided."
                 )
         super(QuotientMetric, self).__init__(
-            dim=dim, default_point_type=fiber_bundle.default_point_type
+            dim=dim, default_point_type=fiber_bundle.default_point_type, **kwargs
         )
 
         self.fiber_bundle = fiber_bundle

@@ -34,7 +34,7 @@ def main():
     tangent_vec_b *= 3.0 / 2.0
 
     ladder = METRIC.ladder_parallel_transport(
-        tangent_vec_a, tangent_vec_b, base_point, n_rungs=N_STEPS, return_geodesics=True
+        tangent_vec_a, base_point, tangent_vec_b, n_rungs=N_STEPS, return_geodesics=True
     )
 
     pole_ladder = ladder["transported_tangent_vec"]

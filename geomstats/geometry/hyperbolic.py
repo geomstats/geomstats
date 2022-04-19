@@ -1,4 +1,7 @@
-"""Common interface to hyperbolic spaces."""
+"""Common interface to hyperbolic spaces.
+
+Lead author: Thomas Gerald.
+"""
 
 import geomstats.errors as errors
 from geomstats.geometry._hyperbolic import _Hyperbolic

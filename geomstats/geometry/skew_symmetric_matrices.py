@@ -4,6 +4,8 @@ This is the Lie algebra of the Special Orthogonal Group.
 As basis we choose the matrices with a single 1 on the upper triangular part
 of the matrices (and a -1 in its lower triangular part), except in dim 2 and
 3 to match usual conventions.
+
+Lead author: Nicolas Guigui.
 """
 
 import geomstats.backend as gs
@@ -25,27 +27,26 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         super(SkewSymmetricMatrices, self).__init__(dim, n)
         self.ambient_space = Matrices(n, n)
 
+    def _create_basis(self):
+        """Create the canonical basis."""
+        n = self.n
         if n == 2:
-            self.basis = gs.array([[[0.0, -1.0], [1.0, 0.0]]])
-        elif n == 3:
-            self.basis = gs.array(
+            return gs.array([[[0.0, -1.0], [1.0, 0.0]]])
+        if n == 3:
+            return gs.array(
                 [
                     [[0.0, 0.0, 0.0], [0.0, 0.0, -1.0], [0.0, 1.0, 0.0]],
                     [[0.0, 0.0, 1.0], [0.0, 0.0, 0.0], [-1.0, 0.0, 0.0]],
                     [[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
                 ]
             )
-        else:
-            self.basis = gs.zeros((dim, n, n))
-            basis = []
-            for row in gs.arange(n - 1):
-                for col in gs.arange(row + 1, n):
-                    basis.append(
-                        gs.array_from_sparse(
-                            [(row, col), (col, row)], [1.0, -1.0], (n, n)
-                        )
-                    )
-            self.basis = gs.stack(basis)
+        basis = []
+        for row in gs.arange(n - 1):
+            for col in gs.arange(row + 1, n):
+                basis.append(
+                    gs.array_from_sparse([(row, col), (col, row)], [1.0, -1.0], (n, n))
+                )
+        return gs.stack(basis)
 
     def belongs(self, mat, atol=gs.atol):
         """Evaluate if mat is a skew-symmetric matrix.

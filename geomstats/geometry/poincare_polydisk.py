@@ -4,6 +4,8 @@ The Poincare polydisk is defined as a product manifold of the Hyperbolic space
 of dimension 2. The Poincare polydisk has a product metric. The metric on each
 space is the natural Poincare metric multiplied by a constant.
 
+Lead author: Yann Cabanes.
+
 References
 ----------
     .. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
@@ -101,7 +103,7 @@ class PoincarePolydisk(ProductManifold, OpenSet):
         tangent_vec : array-like, shape=[..., n_disks, dim + 1]
             Tangent vector at base point.
         """
-        n_disks = base_point.shape[1]
+        n_disks = self.n_disks
         hyperbolic_space = Hyperboloid(2, self.coords_type)
         tangent_vec = gs.stack(
             [

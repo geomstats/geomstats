@@ -1,8 +1,0 @@
-[flake8]
-application_import_names = geomstats
-docstring-convention = numpy
-exclude = examples/*.ipynb
-ignore = W503, W504
-import_order_style = smarkets
-max-line-length = 88
-extend-ignore = E203

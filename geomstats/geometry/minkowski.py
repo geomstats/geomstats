@@ -1,4 +1,9 @@
-"""Minkowski space."""
+"""Minkowski space.
+
+Lead author: Nina Miolane.
+"""
+
+import math
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
@@ -121,3 +126,24 @@ class MinkowskiMetric(RiemannianMetric):
         """
         log = point - base_point
         return log
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In the case of the Minkowski space, it does not depend on the base point and
+        is infinite everywhere, because of the flat curvature.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return math.inf

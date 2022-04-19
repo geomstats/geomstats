@@ -1,5 +1,7 @@
 """Test for the integrators."""
 
+import pytest
+
 import geomstats.backend as gs
 import geomstats.integrator as integrator
 import geomstats.tests
@@ -8,7 +10,7 @@ from geomstats.geometry.matrices import Matrices
 
 
 class TestIntegrator(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.dimension = 4
         self.dt = 0.1
         self.euclidean = Euclidean(self.dimension)
@@ -26,6 +28,14 @@ class TestIntegrator(geomstats.tests.TestCase):
         expected = state + 2 * self.dt
 
         self.assertAllClose(result, expected)
+
+    def test_symplectic_euler_step(self):
+        with pytest.raises(NotImplementedError):
+            self._test_step(integrator.symplectic_euler_step)
+
+    def test_leapfrog_step(self):
+        with pytest.raises(NotImplementedError):
+            self._test_step(integrator.leapfrog_step)
 
     def test_euler_step(self):
         self._test_step(integrator.euler_step)

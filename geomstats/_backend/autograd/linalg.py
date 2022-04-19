@@ -1,9 +1,11 @@
 """Autograd based linear algebra backend."""
 
+import functools
+
 import autograd.numpy as np
 import autograd.scipy.linalg as asp
-import functools
 import scipy.linalg
+import scipy.optimize
 from autograd.extend import defvjp, primitive
 from autograd.numpy.linalg import (  # NOQA
     cholesky,
@@ -96,7 +98,24 @@ def sqrtm(x):
     return np.vectorize(scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
 
 
+def quadratic_assignment(a, b, options):
+    return list(scipy.optimize.quadratic_assignment(a, b, options=options).col_ind)
+
+
 def qr(*args, **kwargs):
     return np.vectorize(
         np.linalg.qr, signature="(n,m)->(n,k),(k,m)", excluded=["mode"]
     )(*args, **kwargs)
+
+
+def is_single_matrix_pd(mat):
+    """Check if a 2D square matrix is positive definite."""
+    if mat.shape[0] != mat.shape[1]:
+        return False
+    try:
+        np.linalg.cholesky(mat)
+        return True
+    except np.linalg.LinAlgError as e:
+        if e.args[0] == "Matrix is not positive definite":
+            return False
+        raise e

@@ -1,4 +1,7 @@
-"""The manifold of full-rank correlation matrices."""
+"""The manifold of full-rank correlation matrices.
+
+Lead author: Yann Thanwerdas.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet

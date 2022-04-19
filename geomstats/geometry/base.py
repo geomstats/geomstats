@@ -1,9 +1,14 @@
-"""Abstract classes for manifolds."""
+"""Abstract classes for manifolds.
+
+Lead authors: Nicolas Guigui and Nina Miolane.
+"""
 
 import abc
 
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
+
+POINT_TYPES = {1: "vector", 2: "matrix"}
 
 
 class VectorSpace(Manifold, abc.ABC):
@@ -19,13 +24,12 @@ class VectorSpace(Manifold, abc.ABC):
         Optional, default: 'vector'.
     """
 
-    def __init__(self, shape, default_point_type="vector", **kwargs):
+    def __init__(self, shape, **kwargs):
         if "dim" not in kwargs.keys():
             kwargs["dim"] = int(gs.prod(gs.array(shape)))
-        super(VectorSpace, self).__init__(
-            default_point_type=default_point_type, **kwargs
-        )
+        super(VectorSpace, self).__init__(shape=shape, **kwargs)
         self.shape = shape
+        self._basis = None
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the vector space.
@@ -44,14 +48,9 @@ class VectorSpace(Manifold, abc.ABC):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
-        if self.default_point_type == "vector":
-            point_shape = point.shape[-1:]
-            minimal_ndim = 1
-        else:
-            point_shape = point.shape[-2:]
-            minimal_ndim = 2
-        belongs = point_shape == self.shape
-        if point.ndim == minimal_ndim:
+        minimal_ndim = len(self.shape)
+        belongs = point.shape[-minimal_ndim:] == self.shape
+        if point.ndim <= minimal_ndim:
             return belongs
         return gs.tile(gs.array([belongs]), [point.shape[0]])
 
@@ -95,7 +94,7 @@ class VectorSpace(Manifold, abc.ABC):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        return self.belongs(vector)
+        return self.belongs(vector, atol)
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the vector space.
@@ -114,7 +113,7 @@ class VectorSpace(Manifold, abc.ABC):
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
             Tangent vector at base point.
         """
-        return vector
+        return self.projection(vector)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in the vector space with a uniform distribution in a box.
@@ -138,6 +137,26 @@ class VectorSpace(Manifold, abc.ABC):
             size = (n_samples,) + self.shape
         point = bound * (gs.random.rand(*size) - 0.5) * 2
         return point
+
+    @property
+    def basis(self):
+        """Basis of the vector space."""
+        if self._basis is None:
+            self._basis = self._create_basis()
+
+        return self._basis
+
+    @basis.setter
+    def basis(self, basis):
+        if len(basis) < self.dim:
+            raise ValueError(
+                "The basis should have length equal to the " "dimension of the space."
+            )
+        self._basis = basis
+
+    @abc.abstractmethod
+    def _create_basis(self):
+        """Create a canonical basis."""
 
 
 class LevelSet(Manifold, abc.ABC):
@@ -164,6 +183,8 @@ class LevelSet(Manifold, abc.ABC):
         default_coords_type="intrinsic",
         **kwargs
     ):
+        if "shape" not in kwargs:
+            kwargs["shape"] = embedding_space.shape
         super(LevelSet, self).__init__(
             dim=dim,
             default_point_type=embedding_space.default_point_type,
@@ -315,6 +336,8 @@ class OpenSet(Manifold, abc.ABC):
     def __init__(self, dim, ambient_space, **kwargs):
         if "default_point_type" not in kwargs:
             kwargs["default_point_type"] = ambient_space.default_point_type
+        if "shape" not in kwargs:
+            kwargs["shape"] = ambient_space.shape
         super().__init__(dim=dim, **kwargs)
         self.ambient_space = ambient_space
 

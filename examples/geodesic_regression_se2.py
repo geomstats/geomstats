@@ -20,7 +20,6 @@ from geomstats.learning.geodesic_regression import GeodesicRegression
 
 SPACE = SpecialEuclidean(2)
 METRIC = SPACE.left_canonical_metric
-METRIC.default_point_type = "matrix"
 gs.random.seed(0)
 
 
@@ -67,9 +66,9 @@ def main():
         metric=METRIC,
         center_X=False,
         method="riemannian",
-        verbose=True,
         max_iter=100,
-        learning_rate=0.1,
+        init_step_size=0.1,
+        verbose=True,
         initialization="frechet",
     )
     gr.fit(X, y, compute_training_score=True)
@@ -80,7 +79,7 @@ def main():
     mse_intercept = METRIC.squared_dist(intercept_hat, intercept)
     mse_beta = METRIC.squared_norm(
         METRIC.parallel_transport(
-            beta_hat, METRIC.log(intercept_hat, intercept), intercept_hat
+            beta_hat, intercept_hat, METRIC.log(intercept_hat, intercept)
         )
         - coef,
         intercept,

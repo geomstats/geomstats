@@ -1,5 +1,6 @@
 """Template unit tests for scikit-learn estimators."""
 
+import pytest
 from sklearn.datasets import load_iris
 
 import geomstats.backend as gs
@@ -16,7 +17,7 @@ ESTIMATORS = (TemplateClassifier, TemplateEstimator, TemplateTransformer)
 class TestEstimators(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
-    def setUp(self):
+    def setup_method(self):
         self.data = load_iris(return_X_y=True)
 
     @geomstats.tests.np_and_autograd_only
@@ -39,7 +40,8 @@ class TestEstimators(geomstats.tests.TestCase):
         trans = TemplateTransformer()
         trans.fit(X)
         X_diff_size = gs.ones((n_samples, gs.shape(X)[1] + 1))
-        self.assertRaises(ValueError, trans.transform, X_diff_size)
+        with pytest.raises(ValueError):
+            trans.transform(X_diff_size)
 
     def test_template_transformer(self):
         X, _ = self.data

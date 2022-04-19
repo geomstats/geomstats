@@ -1,4 +1,7 @@
-"""Exposes the `SpecialOrthogonal` group class."""
+"""Exposes the `SpecialOrthogonal` group class.
+
+Lead authors: Nicolas Guigui and Nina Miolane.
+"""
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
@@ -163,6 +166,120 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         """
         return self.lie_algebra.basis_representation(skew_mat)
 
+    def rotation_vector_from_matrix(self, rot_mat):
+        r"""Convert rotation matrix (in 2D or 3D) to rotation vector.
+
+        Get the angle through the atan2 function:
+
+        Parameters
+        ----------
+        rot_mat : array-like, shape=[..., 2, 2]
+            Rotation matrix.
+
+        Returns
+        -------
+        regularized_rot_vec : array-like, shape=[..., 1]
+            Rotation vector.
+        """
+        if self.n not in (2, 3):
+            raise NotImplementedError(
+                "The function matrix_from_rotation_vector is not "
+                "implemented if n is not in 2 or 3."
+            )
+        so_vector = (
+            _SpecialOrthogonal2Vectors()
+            if self.n == 2
+            else _SpecialOrthogonal3Vectors()
+        )
+        return so_vector.rotation_vector_from_matrix(rot_mat)
+
+    def matrix_from_rotation_vector(self, rot_vec):
+        """Convert rotation vector (2D or 3D) to rotation matrix.
+
+        Parameters
+        ----------
+        rot_vec: array-like, shape=[..., 1]
+            Rotation vector.
+
+        Returns
+        -------
+        rot_mat: array-like, shape=[..., 2, 2]
+            Rotation matrix.
+        """
+        if self.n not in (2, 3):
+            raise NotImplementedError(
+                "The function matrix_from_rotation_vector is not "
+                "implemented if n is not in 2 or 3."
+            )
+        so_vector = (
+            _SpecialOrthogonal2Vectors()
+            if self.n == 2
+            else _SpecialOrthogonal3Vectors()
+        )
+        return so_vector.matrix_from_rotation_vector(rot_vec)
+
+    @staticmethod
+    def are_antipodals(rotation_mat1, rotation_mat2):
+        """Determine if two rotation matrices are antipodals.
+
+        Parameters
+        ----------
+        rotation_mat1 : array-like, shape=[..., n, n]
+            Rotation matrix.
+        rotation_mat2 : array-like, shape=[..., n, n]
+            Rotation matrix.
+
+        Returns
+        -------
+        _ : array-like, shape=[...,]
+            Boolean determining if each pair of rotation
+            matrices corresponds to a pair of antipodal rotation
+            matrices.
+        """
+        sq_rot_mat1 = gs.matmul(rotation_mat1, rotation_mat1)
+        sq_rot_mat2 = gs.matmul(rotation_mat2, rotation_mat2)
+        are_different = ~gs.all(gs.isclose(rotation_mat1, rotation_mat2), axis=(-2, -1))
+
+        return are_different & gs.all(
+            gs.isclose(sq_rot_mat1, sq_rot_mat2), axis=(-2, -1)
+        )
+
+    def log(self, point, base_point=None):
+        r"""
+        Compute the group logarithm of point at base_point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Rotation matrix.
+        base_point : array-like, shape=[..., n, n]
+            Rotation matrix.
+            Optional, defaults to identity if None.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Matrix such that `exp(tangent_vec, base_point) = point`.
+
+        Notes
+        -----
+        Denoting `point` by :math:`g` and `base_point` by :math:`h`,
+        the output satisfies:
+
+        .. math::
+
+            g = \exp(\log(g, h), h)
+        """
+        if base_point is None:
+            base_point = self.identity
+        if gs.any(self.are_antipodals(point, base_point)):
+            raise ValueError(
+                "The Group Logarithm is not well-defined for"
+                f" antipodal rotation matrices: {point} and"
+                f"{base_point}."
+            )
+        return super().log(point, base_point)
+
 
 class _SpecialOrthogonalVectors(LieGroup):
     """Class for the special orthogonal groups SO({2,3}) in vector form.
@@ -179,9 +296,9 @@ class _SpecialOrthogonalVectors(LieGroup):
         Optional, default: 0.
     """
 
-    def __init__(self, n, epsilon=0.0):
+    def __init__(self, n, shape, epsilon=0.0):
         dim = n * (n - 1) // 2
-        LieGroup.__init__(self, dim=dim, default_point_type="vector")
+        LieGroup.__init__(self, dim=dim, shape=shape, default_point_type="vector")
 
         self.n = n
         self.epsilon = epsilon
@@ -274,7 +391,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         return -self.regularize(point)
 
     def random_point(self, n_samples=1, bound=1.0):
-        return gs.random.rand(n_samples, 3)
+        return gs.squeeze(gs.random.rand(n_samples, 3))
 
     def exp_from_identity(self, tangent_vec):
         """Compute the group exponential of the tangent vector at the identity.
@@ -415,7 +532,9 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialOrthogonal2Vectors, self).__init__(n=2, epsilon=epsilon)
+        super(_SpecialOrthogonal2Vectors, self).__init__(
+            n=2, epsilon=epsilon, shape=(2,)
+        )
 
     def regularize(self, point):
         """Regularize a point to be in accordance with convention.
@@ -580,7 +699,9 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialOrthogonal3Vectors, self).__init__(n=3, epsilon=epsilon)
+        super(_SpecialOrthogonal3Vectors, self).__init__(
+            n=3, shape=(3,), epsilon=epsilon
+        )
 
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.metric = self.bi_invariant_metric
@@ -744,7 +865,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         numerator = 0.5 * mask_0 + angle * mask_else
         denominator = (
-            (1 - angle ** 2 / 6) * mask_0 + 2 * gs.sin(angle) * mask_else + mask_pi
+            (1 - angle**2 / 6) * mask_0 + 2 * gs.sin(angle) * mask_else + mask_pi
         )
 
         rot_vec_not_pi = rot_vec_not_pi * numerator / denominator
@@ -780,7 +901,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         """
         rot_vec = self.regularize(rot_vec)
 
-        squared_angle = gs.sum(rot_vec ** 2, axis=-1)
+        squared_angle = gs.sum(rot_vec**2, axis=-1)
         skew_rot_vec = self.skew_matrix_from_vector(rot_vec)
 
         coef_1 = utils.taylor_exp_even_func(squared_angle, utils.sinc_close_0)
@@ -828,7 +949,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         """
         rot_vec = self.regularize(rot_vec)
 
-        squared_angle = gs.sum(rot_vec ** 2, axis=-1)
+        squared_angle = gs.sum(rot_vec**2, axis=-1)
 
         coef_cos = utils.taylor_exp_even_func(squared_angle / 4, utils.cos_close_0)
         coef_sinc = 0.5 * utils.taylor_exp_even_func(
@@ -860,7 +981,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         half_angle = gs.arccos(cos_half_angle)
 
         coef_isinc = 2 * utils.taylor_exp_even_func(
-            half_angle ** 2, utils.inv_sinc_close_0
+            half_angle**2, utils.inv_sinc_close_0
         )
 
         rot_vec = gs.einsum("...,...i->...i", coef_isinc, quaternion[..., 1:])
@@ -1319,9 +1440,9 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         tait_bryan_angles : array-like, shape=[..., 3]
         """
         w, x, y, z = gs.hsplit(quaternion, 4)
-        angle_1 = gs.arctan2(y * z + w * x, 1.0 / 2.0 - (x ** 2 + y ** 2))
+        angle_1 = gs.arctan2(y * z + w * x, 1.0 / 2.0 - (x**2 + y**2))
         angle_2 = gs.arcsin(-2.0 * (x * z - w * y))
-        angle_3 = gs.arctan2(x * y + w * z, 1.0 / 2.0 - (y ** 2 + z ** 2))
+        angle_3 = gs.arctan2(x * y + w * z, 1.0 / 2.0 - (y**2 + z**2))
         tait_bryan_angles = gs.concatenate([angle_1, angle_2, angle_3], axis=1)
         return tait_bryan_angles
 
@@ -1475,12 +1596,12 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         )
 
         point = self.regularize(point)
-        squared_angle = gs.sum(point ** 2, axis=-1)
+        squared_angle = gs.sum(point**2, axis=-1)
 
         angle = gs.sqrt(squared_angle)
         delta_angle = angle - gs.pi
         approx_at_pi = gs.sum(
-            gs.array([TAYLOR_COEFFS_1_AT_PI[k] * delta_angle ** k for k in range(1, 7)])
+            gs.array([TAYLOR_COEFFS_1_AT_PI[k] * delta_angle**k for k in range(1, 7)])
         )
         coef_1 = utils.taylor_exp_even_func(squared_angle / 4, utils.inv_tanc_close_0)
         coef_1 = gs.where(-delta_angle < utils.EPSILON, approx_at_pi, coef_1)

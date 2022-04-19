@@ -13,7 +13,7 @@ from geomstats.geometry.poincare_ball import PoincareBall
 def log_sigmoid(vector):
     """Logsigmoid function.
 
-    Apply log sigmoid function
+    Apply log sigmoid function.
 
     Parameters
     ----------

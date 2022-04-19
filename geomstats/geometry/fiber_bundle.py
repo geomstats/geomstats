@@ -1,4 +1,8 @@
-"""Class for (principal) fiber bundles."""
+"""Class for (principal) fiber bundles.
+
+Lead author: Nicolas Guigui.
+"""
+
 from abc import ABC
 
 from scipy.optimize import minimize
@@ -306,8 +310,8 @@ class FiberBundle(Manifold, ABC):
         """
         return gs.all(
             gs.isclose(
-                tangent_vec,
-                self.vertical_projection(tangent_vec, base_point),
+                0.0,
+                self.tangent_riemannian_submersion(tangent_vec, base_point),
                 atol=atol,
             ),
             axis=(-2, -1),

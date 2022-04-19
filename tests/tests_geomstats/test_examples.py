@@ -9,6 +9,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 import examples.empirical_frechet_mean_uncertainty_sn as empirical_frechet_mean_uncertainty_sn  # NOQA
+import examples.geodesic_regression_grassmannian as geodesic_regression_grassmannian
 import examples.geodesic_regression_hypersphere as geodesic_regression_hypersphere  # NOQA
 import examples.geodesic_regression_se2 as geodesic_regression_se2
 import examples.gradient_descent_s2 as gradient_descent_s2
@@ -44,11 +45,11 @@ matplotlib.use("Agg")  # NOQA
 
 class TestExamples(geomstats.tests.TestCase):
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         sys.stdout = open(os.devnull, "w")
 
     @staticmethod
-    def setUp():
+    def setup_method():
         gs.random.seed(1234)
         logger = logging.getLogger()
         logger.disabled = True
@@ -184,3 +185,8 @@ class TestExamples(geomstats.tests.TestCase):
     @staticmethod
     def test_plot_geodesics_se2():
         plot_geodesics_se2.main()
+
+    @staticmethod
+    @geomstats.tests.autograd_and_tf_only
+    def test_geodesic_regression_grassmannian():
+        geodesic_regression_grassmannian.main()
