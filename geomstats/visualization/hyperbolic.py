@@ -1,33 +1,14 @@
 """Visualization for Geometric Statistics."""
-import logging
-
-import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
-from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
-from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
-from geomstats.geometry.special_euclidean import SpecialEuclidean
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
-SE3_GROUP = SpecialEuclidean(n=3, point_type="vector")
-SE2_GROUP = SpecialEuclidean(n=2, point_type="matrix")
-SE2_VECT = SpecialEuclidean(n=2, point_type="vector")
-SO3_GROUP = SpecialOrthogonal(n=3, point_type="vector")
-S1 = Hypersphere(dim=1)
-S2 = Hypersphere(dim=2)
 H2 = Hyperboloid(dim=2)
 POINCARE_HALF_PLANE = PoincareHalfSpace(dim=2)
-M32 = Matrices(m=3, n=2)
-S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
-METRIC_S32 = KendallShapeMetric(k_landmarks=3, m_ambient=2)
-M33 = Matrices(m=3, n=3)
-S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
-METRIC_S33 = KendallShapeMetric(k_landmarks=3, m_ambient=3)
+
 
 AX_SCALE = 1.2
 
@@ -61,7 +42,7 @@ class KleinDisk:
         poincare_radius = gs.linalg.norm(poincare_coords, axis=1)
         poincare_angle = gs.arctan2(poincare_coords[:, 1], poincare_coords[:, 0])
 
-        klein_radius = 2 * poincare_radius / (1 + poincare_radius ** 2)
+        klein_radius = 2 * poincare_radius / (1 + poincare_radius**2)
         klein_angle = poincare_angle
 
         coords_0 = gs.expand_dims(klein_radius * gs.cos(klein_angle), axis=1)
@@ -182,9 +163,9 @@ class PoincareHalfPlane:
         disk_x = disk_coords[:, 0]
         disk_y = disk_coords[:, 1]
 
-        denominator = disk_x ** 2 + (1 - disk_y) ** 2
+        denominator = disk_x**2 + (1 - disk_y) ** 2
         coords_0 = gs.expand_dims(2 * disk_x / denominator, axis=1)
-        coords_1 = gs.expand_dims((1 - disk_x ** 2 - disk_y ** 2) / denominator, axis=1)
+        coords_1 = gs.expand_dims((1 - disk_x**2 - disk_y**2) / denominator, axis=1)
 
         half_plane_coords = gs.concatenate([coords_0, coords_1], axis=1)
         return half_plane_coords
