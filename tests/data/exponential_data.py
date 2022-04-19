@@ -10,6 +10,7 @@ class ExponentialTestData(_OpenSetTestData):
     n_list = random.sample((2, 5), 1)
     n_samples_list = random.sample(range(10), 3)
     space_args_list = []
+    metric_args_list = []
     shape_list = [(1,)]
     n_points_list = random.sample(range(5), 2)
     n_vecs_list = random.sample(range(2, 5), 1)
@@ -124,6 +125,14 @@ class ExponentialTestData(_OpenSetTestData):
             ),
         ]
         return self.generate_tests([], random_data)
+
+    def triangle_inequality_of_dist_test_data(self):
+        return self._triangle_inequality_of_dist_test_data(
+            self.metric_args_list,
+            self.space_args_list,
+            self.n_points_list,
+            atol=gs.atol,
+        )
 
     def squared_dist_test_data(self):
         smoke_data = [

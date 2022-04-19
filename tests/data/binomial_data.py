@@ -143,6 +143,14 @@ class BinomialTestData(_OpenSetTestData):
         ]
         return self.generate_tests([], random_data)
 
+    def triangle_inequality_of_dist_test_data(self):
+        return self._triangle_inequality_of_dist_test_data(
+            self.metric_args_list,
+            self.space_args_list,
+            self.n_points_list,
+            atol=gs.atol,
+        )
+
     def squared_dist_test_data(self):
         smoke_data = [
             dict(
