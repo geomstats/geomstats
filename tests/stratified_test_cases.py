@@ -4,11 +4,10 @@
 from collections.abc import Iterable
 
 import geomstats.backend as gs
-import geomstats.tests
-from tests.conftest import TestCase
+from tests.conftest import TestCase, np_only
 
 
-@geomstats.tests.np_only
+@np_only
 class PointSetTestCase(TestCase):
     def test_random_point_belongs(self, space_args, n_points):
         space = self.testing_data._PointSet(*space_args)
@@ -33,14 +32,14 @@ class PointSetTestCase(TestCase):
         self.assertTrue(space.set_to_array(points).shape[0] == n)
 
 
-@geomstats.tests.np_only
+@np_only
 class PointTestCase(TestCase):
     def test_to_array(self, point_args, expected):
         pt = self.testing_data._Point(*point_args)
         self.assertAllClose(pt.to_array(), expected)
 
 
-@geomstats.tests.np_only
+@np_only
 class PointSetMetricTestCase(TestCase):
     @staticmethod
     def _convert_to_gs_array(results, is_list):
