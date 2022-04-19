@@ -44,7 +44,7 @@ class BinomialDistributions(OpenSet):
             Boolean indicating whether point represents a binomial
             distribution.
         """
-        point = gs.array(point, gs.float32)
+        point = gs.cast(gs.array(point), dtype=gs.float32)
         point = gs.to_ndarray(point, 1)
         belongs = gs.logical_and(atol <= point, point <= 1 - atol)
         return gs.squeeze(belongs)
@@ -86,7 +86,7 @@ class BinomialDistributions(OpenSet):
         projected : array-like, shape=[...,]
             Projected point.
         """
-        point = gs.array(point, gs.float32)
+        point = gs.cast(gs.array(point), dtype=gs.float32)
         projected = gs.where(
             gs.logical_or(point < atol, point > 1 - atol),
             (1 - atol) * gs.cast((point > 1 - atol), gs.float32)
