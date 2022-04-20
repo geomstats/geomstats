@@ -1,13 +1,12 @@
 """Unit tests for the notebooks."""
 
-import os
 import glob
+import json
+import os
 import subprocess
 import tempfile
-import json
 
 import pytest
-
 
 BACKEND = os.environ.get("GEOMSTATS_BACKEND", "numpy")
 
@@ -30,17 +29,17 @@ def _exec_notebook(path):
     subprocess.check_call(args)
 
 
-NOTEBOOKS_DIR = 'notebooks'
-paths = glob.glob(f'{NOTEBOOKS_DIR}/*.ipynb')
+NOTEBOOKS_DIR = "notebooks"
+paths = glob.glob(f"{NOTEBOOKS_DIR}/*.ipynb")
 
 
-@pytest.mark.parametrize('path', paths)
+@pytest.mark.parametrize("path", paths)
 def test_notebook(path):
-    with open(path, 'r') as file:
-        metadata = json.load(file).get('metadata')
+    with open(path, "r") as file:
+        metadata = json.load(file).get("metadata")
 
-    all_backends = ['numpy', 'torch', 'tensorflow', 'autograd']
-    backends = metadata.get('backends', all_backends)
+    all_backends = ["numpy", "torch", "tensorflow", "autograd"]
+    backends = metadata.get("backends", all_backends)
     if BACKEND not in backends:
         pytest.skip()
 
