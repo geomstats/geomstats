@@ -1,18 +1,17 @@
 import geomstats.tests
-from geomstats.stratified_geometry.wald_space import Split, Topology, Wald, WaldSpace
-from tests.conftest import Parametrizer
+from geomstats.geometry.stratified.wald_space import Split, Topology, Wald
+from tests.conftest import Parametrizer, np_backend
 from tests.data.wald_space_data import WaldSpaceTestData, WaldTestData
-from tests.stratified_geometry_test_cases import PointSetTestCase, PointTestCase
+from tests.stratified_test_cases import PointSetTestCase, PointTestCase
+
+IS_NOT_NP = not np_backend()
 
 
 class TestWaldSpace(PointSetTestCase, metaclass=Parametrizer):
-
-    _PointSet = WaldSpace
     testing_data = WaldSpaceTestData()
 
 
 class TestWald(PointTestCase, metaclass=Parametrizer):
-
     _Point = Wald
     testing_data = WaldTestData()
 

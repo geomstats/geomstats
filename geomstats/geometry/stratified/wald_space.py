@@ -52,11 +52,7 @@ import itertools as it
 
 import geomstats.backend as gs
 import geomstats.geometry.spd_matrices as spd
-from geomstats.stratified_geometry.stratified_spaces import (
-    Point,
-    PointSet,
-    _belongs_vectorize,
-)
+from geomstats.geometry.stratified.point_set import Point, PointSet, _vectorize_point
 
 
 @functools.total_ordering
@@ -394,10 +390,9 @@ class Topology:
         for path_dict in self.paths:
             for (u, v), path in path_dict.items():
                 for split in path:
-                    _support[self.where[split]][u, v] = True
-                    _support[self.where[split]][v, u] = True
+                    _support[self.where[split]][u][v] = True
+                    _support[self.where[split]][v][u] = True
         self.support = [gs.array(m) for m in self.flatten(_support)]
-
         self._chart_gradient = None
 
     def __eq__(self, other):
@@ -927,7 +922,7 @@ class WaldSpace(PointSet):
         self.n = n
         self.ambient = spd.SPDMatrices(n=self.n)
 
-    @_belongs_vectorize
+    @_vectorize_point((1, "point"))
     def belongs(self, point):
         """Check if a point `wald` belongs to Wald space.
 
@@ -981,15 +976,13 @@ class WaldSpace(PointSet):
             Points sampled in Wald space.
         """
         p_new = p_tree ** (1 / (self.n - 1))
-        if n_samples == 1:
-            sample = Wald.generate_wald(self.n, p_keep, p_new, btol, check=True)
-            return sample
         sample = [
             Wald.generate_wald(self.n, p_keep, p_new, btol, check=True)
             for _ in range(n_samples)
         ]
         return sample
 
+    @_vectorize_point((1, "point"))
     def set_to_array(self, points):
         """Convert a set of points into an array.
 

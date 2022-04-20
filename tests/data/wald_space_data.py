@@ -1,11 +1,14 @@
 import random
 
 import geomstats.backend as gs
-from geomstats.stratified_geometry.wald_space import Split, Topology, Wald
+from geomstats.geometry.stratified.wald_space import Split, Topology, Wald, WaldSpace
 from tests.data_generation import _PointSetTestData, _PointTestData
 
 
 class WaldTestData(_PointTestData):
+
+    _Point = Wald
+
     # for random tests
     n_samples = _PointSetTestData.n_samples
     n_labels_list = random.sample(range(2, 4), n_samples)
@@ -46,6 +49,10 @@ class WaldTestData(_PointTestData):
 
 
 class WaldSpaceTestData(_PointSetTestData):
+
+    _Point = Wald
+    _PointSet = WaldSpace
+
     # for random tests
     n_samples = _PointSetTestData.n_samples
     n_labels_list = random.sample(range(2, 4), n_samples)
@@ -58,7 +65,7 @@ class WaldSpaceTestData(_PointSetTestData):
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
         top = Topology(n=2, partition=((0, 1),), split_sets=split_sets)
         x = gs.array([0.3])
-        point = Wald(n=top.n, topology=top, weights=x)
+        point = self._Point(n=top.n, topology=top, weights=x)
 
         smoke_data.append(dict(space_args=(top.n,), points=point, expected=True))
         smoke_data.append(dict(space_args=(3,), points=point, expected=False))
