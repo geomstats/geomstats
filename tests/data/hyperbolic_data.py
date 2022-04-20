@@ -121,7 +121,10 @@ class HyperbolicTestData(_LevelSetTestData):
 
     def random_tangent_vec_is_tangent_test_data(self):
         return self._random_tangent_vec_is_tangent_test_data(
-            Hyperbolic, self.space_args_list, self.n_vecs_list
+            Hyperbolic,
+            self.space_args_list,
+            self.n_vecs_list,
+            is_tangent_atol=gs.atol * 1000,
         )
 
 
@@ -348,6 +351,14 @@ class HyperboloidMetricTestData(_RiemannianMetricTestData):
             self.space_list,
             self.shape_list,
             self.n_tangent_vecs_list,
+        )
+
+    def triangle_inequality_of_dist_test_data(self):
+        return self._triangle_inequality_of_dist_test_data(
+            self.metric_args_list,
+            self.space_list,
+            self.n_points_list,
+            atol=gs.atol * 1000,
         )
 
     def exp_after_log_intrinsic_ball_extrinsic_test_data(self):

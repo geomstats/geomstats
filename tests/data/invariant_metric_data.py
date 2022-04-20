@@ -549,7 +549,7 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
             self.metric_args_list,
             self.space_list,
             self.n_points_list,
-            atol=gs.atol * 10000,
+            atol=1e-3,
         )
 
     def inner_product_is_symmetric_test_data(self):
@@ -558,6 +558,14 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
             self.space_list,
             self.shape_list,
             self.n_tangent_vecs_list,
+        )
+
+    def triangle_inequality_of_dist_test_data(self):
+        return self._triangle_inequality_of_dist_test_data(
+            self.metric_args_list,
+            self.space_list,
+            self.n_points_list,
+            atol=gs.atol * 1000,
         )
 
     def exp_log_composition_at_identity_test_data(self):

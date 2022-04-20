@@ -8,7 +8,7 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.conftest import tf_backend
-from tests.data_generation import TestData, _LieGroupTestData, _RiemannianMetricTestData
+from tests.data_generation import TestData, _InvariantMetricTestData, _LieGroupTestData
 
 
 def sample_matrix(theta, mul=1.0):
@@ -802,7 +802,7 @@ class SpecialOrthogonal3TestData(TestData):
         return self.generate_tests(smoke_data)
 
 
-class BiInvariantMetricTestData(_RiemannianMetricTestData):
+class BiInvariantMetricTestData(_InvariantMetricTestData):
     dim_list = random.sample(range(2, 4), 2)
     metric_args_list = [(SpecialOrthogonal(dim),) for dim in dim_list]
     shape_list = [(dim, dim) for dim in dim_list]
@@ -978,6 +978,42 @@ class BiInvariantMetricTestData(_RiemannianMetricTestData):
             self.space_list,
             self.shape_list,
             self.n_tangent_vecs_list,
+        )
+
+    def triangle_inequality_of_dist_test_data(self):
+        return self._triangle_inequality_of_dist_test_data(
+            self.metric_args_list,
+            self.space_list,
+            self.n_points_list,
+            atol=gs.atol * 100000,
+        )
+
+    def exp_at_identity_of_lie_algebra_belongs_test_data(self):
+        return self._exp_at_identity_of_lie_algebra_belongs_test_data(
+            self.metric_args_list,
+            self.space_list,
+            self.n_tangent_vecs_list,
+            belongs_atol=gs.atol * 100,
+        )
+
+    def log_at_identity_belongs_to_lie_algebra_test_data(self):
+        return self._log_at_identity_belongs_to_lie_algebra_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def exp_after_log_at_identity_test_data(self):
+        return self._exp_after_log_at_identity_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def log_after_exp_at_identity_test_data(self):
+        return self._log_after_exp_at_identity_test_data(
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+            amplitude=100.0,
+            atol=1e-2,
         )
 
     def exp_after_log_intrinsic_ball_extrinsic_test_data(self):

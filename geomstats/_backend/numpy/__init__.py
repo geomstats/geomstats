@@ -57,6 +57,7 @@ from numpy import (
     int64,
     isclose,
     isnan,
+    kron,
     less,
     less_equal,
     linspace,

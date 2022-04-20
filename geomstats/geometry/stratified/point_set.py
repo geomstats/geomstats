@@ -3,43 +3,49 @@
 Lead authors: Anna Calissano & Jonas Lueg
 """
 
+import functools
 from abc import ABC, abstractmethod
-from typing import TypeVar
 
 
-def belongs_vectorize(fun):
-    r"""Vectorize the belongs acting on Point as lists."""
+def _vectorize_point(*args_positions):
+    """Check point type and transform in iterable if not the case.
 
-    def wrapped(*args):
-        r"""Vectorize the belongs."""
-        if type(args[1]) is list:
-            return fun(args[0], point=args[1])
-        return fun(args[0], point=[args[1]])
+    Parameters
+    ----------
+    args_positions : tuple
+        Position and corresponding argument name. A tuple for each position.
 
-    return wrapped
+    Notes
+    -----
+    Explicitly defining args_positions and args names ensures it works for all
+    combinations of input calling.
+    """
 
+    def _dec(func):
+        def _manipulate_input(arg):
+            if not (type(arg) in [list, tuple]):
+                return [arg]
 
-def dist_vectorize(fun):
-    r"""Vectorize the distance acting on Point as lists."""
+            return arg
 
-    def wrapped(*args):
-        r"""Vectorize the distance."""
-        if type(args[1]) is list and type(args[2]) is list:
-            return fun(*args)
-        if type(args[1]) is not list and type(args[2]) is not list:
-            return fun(args[0], a=[args[1]], b=[args[2]])
-        if type(args[1]) is not list:
-            return fun(args[0], a=[args[1]], b=args[2])
-        return fun(args[0], a=args[1], b=[args[2]])
+        @functools.wraps(func)
+        def _wrapped(*args, **kwargs):
+            args = list(args)
+            for pos, name in args_positions:
+                if name in kwargs:
+                    kwargs[name] = _manipulate_input(kwargs[name])
+                else:
+                    args[pos] = _manipulate_input(args[pos])
 
-    return wrapped
+            return func(*args, **kwargs)
+
+        return _wrapped
+
+    return _dec
 
 
 class Point(ABC):
     r"""Class for points of a set."""
-
-    def __init__(self, **kwargs):
-        super(Point)
 
     @abstractmethod
     def __repr__(self):
@@ -60,9 +66,6 @@ class Point(ABC):
         """
 
 
-P = TypeVar("P", bound=Point)
-
-
 class PointSet(ABC):
     r"""Class for a set of points of type Point.
 
@@ -79,9 +82,6 @@ class PointSet(ABC):
         Coordinate type.
         Optional, default: \'intrinsic\'.
     """
-
-    def __init__(self):
-        super(PointSet)
 
     @abstractmethod
     def belongs(self, point, atol):
@@ -134,7 +134,7 @@ class PointSet(ABC):
         """
 
 
-class PointSetGeometry(ABC):
+class PointSetMetric(ABC):
     r"""Class for the lenght spaces.
 
     Parameters
@@ -150,7 +150,7 @@ class PointSetGeometry(ABC):
     """
 
     def __init__(self, space: PointSet, **kwargs):
-        super(PointSetGeometry, self).__init__(**kwargs)
+        super(PointSetMetric, self).__init__(**kwargs)
         self.space = space
 
     @abstractmethod
@@ -171,14 +171,14 @@ class PointSetGeometry(ABC):
         """
 
     @abstractmethod
-    def geodesic(self, point_a, point_b, **kwargs):
+    def geodesic(self, initial_point, end_point, **kwargs):
         """Compute the geodesic in the PointSet.
 
         Parameters
         ----------
-        point_a: Point or List of Points, shape=[...]
+        initial_point: Point or List of Points, shape=[...]
             Point in the PointSet.
-        point_b: Point or List of Points, shape=[...]
+        end_point: Point or List of Points, shape=[...]
             Point in the PointSet.
 
         Returns

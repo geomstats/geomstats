@@ -9,7 +9,7 @@ from tests.data.special_orthogonal_data import (
     SpecialOrthogonal3TestData,
     SpecialOrthogonalTestData,
 )
-from tests.geometry_test_cases import LieGroupTestCase, RiemannianMetricTestCase
+from tests.geometry_test_cases import InvariantMetricTestCase, LieGroupTestCase
 
 EPSILON = 1e-5
 
@@ -321,9 +321,11 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
 
-class TestBiInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+class TestBiInvariantMetric(InvariantMetricTestCase, metaclass=Parametrizer):
     metric = connection = BiInvariantMetric
     skip_test_exp_geodesic_ivp = True
+    skip_test_log_after_exp_at_identity = True
+    skip_test_triangle_inequality_of_dist = True
 
     testing_data = BiInvariantMetricTestData()
 

@@ -15,7 +15,7 @@ from tests.data.rank_k_psd_matrices_data import (
 from tests.geometry_test_cases import (
     FiberBundleTestCase,
     ManifoldTestCase,
-    RiemannianMetricTestCase,
+    QuotientMetricTestCase,
 )
 
 
@@ -35,13 +35,15 @@ class TestBuresWassersteinBundle(FiberBundleTestCase, metaclass=Parametrizer):
     testing_data = BuresWassersteinBundleTestData()
 
 
-class TestPSDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametrizer):
+class TestPSDMetricBuresWasserstein(QuotientMetricTestCase, metaclass=Parametrizer):
 
     space = PSDMatrices
     metric = connection = PSDMetricBuresWasserstein
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_log_after_exp = True
+    skip_test_dist_is_smaller_than_bundle_dist = True
+    skip_test_log_is_horizontal = True
 
     testing_data = TestDataPSDMetricBuresWasserstein()
 
