@@ -30,7 +30,7 @@ def _exec_notebook(path):
 
 
 NOTEBOOKS_DIR = "notebooks"
-paths = glob.glob(f"{NOTEBOOKS_DIR}/*.ipynb")
+paths = sorted(glob.glob(f"{NOTEBOOKS_DIR}/*.ipynb"))
 
 
 @pytest.mark.parametrize("path", paths)
