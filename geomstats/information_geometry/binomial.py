@@ -15,8 +15,8 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 class BinomialDistributions(OpenSet):
     """Class for the manifold of binomial distributions.
 
-    This is the parameter space of binomial distributions with fixed number of draws
-    i.e. the unit interval segment.
+    This is the parameter space of exponential distributions
+    i.e. the half-line of positive reals.
     """
 
     def __init__(self, n_draws):
