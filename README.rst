@@ -19,6 +19,7 @@ Geomstats
 
 **NEWS**:
 
+- Next hackathon will be on October 17-21, 2022 in Paris. Interested? Reach out to us on slack!
 - Google's Season of Docs (SoD) 2022: Geomstats is participating! Interested?
    - Find details about being a Google SoD's writer `here <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_ and details about Geomstats' proposal `here  <https://geomstats.github.io/gsod.html>`_. 
    - Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_. 
@@ -233,6 +234,7 @@ Interested? Contact us and join the next hackathons. Previous Geomstats events i
 -  February 2022: hackathon, hybrid at Inria Sophia-Antipolis / remotely with contributors from around the world
 -  April 2022: in-person hackathon at the Villa Cynthia, Saint Raphael, France.
 -  August 2022: international Coding Challenge at the International Conference on Learning Representations (ICLR), remotely
+-  October 17-21, 2022: hackathon during the trimester `Geometry and Statistics in Data Sciences <https://indico.math.cnrs.fr/category/498/>`__, in Paris. 
 
 
 Acknowledgements
