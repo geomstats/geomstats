@@ -26,12 +26,15 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         Optional, default: 8.
     metric : object of class RiemannianMetric
         The geomstats Riemannian metric associate to the space used.
-    init : str or array-like, shape=[n_clusters, n_features]
+    init : str or callable or array-like, shape=[n_clusters, n_features]
         How to initialize centroids at the beginning of the algorithm. The
         choice 'random' will select training points as initial centroids
         uniformly at random. The choice 'kmeans++' selects centroids
-        heuristically to improve the convergence rate. By providing an array the
-        starting centroids can be specified externally.
+        heuristically to improve the convergence rate. When providing an array
+        of shape ``(n_clusters, n_features)``, the centroids are chosen as the
+        rows of that array. When providing a callable, it receives as arguments
+        the argument ``X`` to :meth:`fit` and the number of centroids
+        ``n_clusters`` and is expected to return an array as above.
         Optional, default: 'random'.
     tol : float
         Convergence factor. Convergence is achieved when the difference of mean
@@ -129,21 +132,24 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                 ]
             else:
                 raise ValueError(f"Unknown initial centroids method '{self.init}'.")
+
+            centroids = gs.concatenate(centroids, axis=0)
         else:
-            if self.init.shape[0] != self.n_clusters:
+            if callable(self.init):
+                centroids = self.init(X, self.n_clusters)
+            else:
+                centroids = self.init
+
+            if centroids.shape[0] != self.n_clusters:
                 raise ValueError("Need as many initial centroids as clusters.")
 
-            if self.init.shape[1] != X.shape[1]:
+            if centroids.shape[1] != X.shape[1]:
                 raise ValueError(
                     "Dimensions of initial centroids and training data do not match."
                 )
 
-            centroids = [
-                gs.expand_dims(self.init[i], 0) for i in range(self.n_clusters)
-            ]
-
-        self.centroids = gs.concatenate(centroids, axis=0)
-        self.init_centroids = gs.concatenate(centroids, axis=0)
+        self.centroids = gs.copy(centroids)
+        self.init_centroids = gs.copy(centroids)
 
         dists = [
             gs.to_ndarray(self.metric.dist(self.centroids[i], X), 2, 1)
