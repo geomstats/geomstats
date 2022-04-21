@@ -175,10 +175,15 @@ class Parametrizer(type):
             for test_fn in test_fn_list:
                 attrs[test_fn] = copy_func(getattr(base, test_fn))
 
+        skip_all = attrs.get("skip_all", False)
+
         for attr_name, attr_value in attrs.copy().items():
             if isinstance(attr_value, types.FunctionType):
 
-                if ("skip_" + attr_name, True) not in locals()["attrs"].items():
+                if (
+                    not skip_all
+                    and ("skip_" + attr_name, True) not in locals()["attrs"].items()
+                ):
                     args_str = ", ".join(inspect.getfullargspec(attr_value)[0][1:])
                     data_fn_str = attr_name[5:] + "_test_data"
                     if "testing_data" not in locals()["attrs"]:
