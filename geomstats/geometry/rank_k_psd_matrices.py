@@ -29,6 +29,7 @@ class RankKPSDMatrices(Manifold):
     """
 
     def __init__(self, n, k, **kwargs):
+        kwargs.setdefault("metric", PSDMetricBuresWasserstein(n, k))
         super(RankKPSDMatrices, self).__init__(
             **kwargs,
             dim=int(k * n - k * (k + 1) / 2),
@@ -147,8 +148,8 @@ class RankKPSDMatrices(Manifold):
         """
         vector_sym = Matrices(self.n, self.n).to_symmetric(vector)
 
-        _, r = gs.linalg.eigh(base_point)
-        r_ort = r[..., :, self.n - self.rank : self.n]
+        r, _, _ = gs.linalg.svd(base_point)
+        r_ort = r[..., :, -(self.n - self.rank) :]
         r_ort_t = Matrices.transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
         candidates = Matrices.mul(rr, vector_sym, rr)
@@ -172,8 +173,8 @@ class RankKPSDMatrices(Manifold):
             Projection of the tangent vector at base_point.
         """
         vector_sym = Matrices(self.n, self.n).to_symmetric(vector)
-        _, r = gs.linalg.eigh(base_point)
-        r_ort = r[..., :, self.n - self.rank : self.n]
+        r, _, _ = gs.linalg.svd(base_point)
+        r_ort = r[..., :, : (self.rank - 1)]
         r_ort_t = Matrices.transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
         return vector_sym - Matrices.mul(rr, vector_sym, rr)
@@ -219,7 +220,6 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
         super(BuresWassersteinBundle, self).__init__(
             n=n,
             k=k,
-            base=PSDMatrices(n, k),
             group=SpecialOrthogonal(k),
             ambient_metric=MatricesMetric(n, k),
         )
@@ -232,7 +232,7 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
         """Differential."""
         product = Matrices.mul(base_point, Matrices.transpose(tangent_vec))
-        return 2 * Matrices.to_symmetric(product)
+        return product + Matrices.transpose(product)
 
     def lift(self, point):
         """Find a representer in top space."""

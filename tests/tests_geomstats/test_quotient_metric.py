@@ -7,7 +7,7 @@ import geomstats.tests
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.spd_matrices import SPDMetricBuresWasserstein
+from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricBuresWasserstein
 from tests.conftest import Parametrizer, TestCase
 from tests.data.quotient_metric_data import (
     BuresWassersteinBundle,
@@ -18,6 +18,7 @@ from tests.data.quotient_metric_data import (
 class TestQuotientMetric(TestCase, metaclass=Parametrizer):
     metric = QuotientMetric
     bundle = BuresWassersteinBundle
+    base = SPDMatrices
     base_metric = SPDMetricBuresWasserstein
 
     testing_data = QuotientMetricTestData()
@@ -28,18 +29,17 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         result = gs.all(bundle.belongs(point))
         self.assertTrue(result)
 
-    @pytest.mark.skip("giving error")
     def test_lift_and_riemannian_submersion(self, n, mat):
         bundle = self.bundle(n)
-        mat = bundle.lift(mat)
-        result = bundle.riemannian_submersion(mat)
+        lift = bundle.lift(mat)
+        result = bundle.riemannian_submersion(lift)
         self.assertAllClose(result, mat)
 
     def test_tangent_riemannian_submersion(self, n, mat, vec):
         bundle = self.bundle(n)
         point = bundle.riemannian_submersion(mat)
         tangent_vec = bundle.tangent_riemannian_submersion(vec, point)
-        result = bundle.base.is_tangent(tangent_vec, point)
+        result = self.base(n).is_tangent(tangent_vec, point)
         self.assertTrue(result)
 
     def test_horizontal_projection(self, n, mat, vec):

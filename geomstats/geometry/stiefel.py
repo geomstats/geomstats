@@ -32,7 +32,7 @@ class Stiefel(LevelSet):
         Number of basis vectors in the orthonormal frame.
     """
 
-    def __init__(self, n, p):
+    def __init__(self, n, p, **kwargs):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(p, "p")
         if p > n:
@@ -40,6 +40,8 @@ class Stiefel(LevelSet):
 
         dim = int(p * n - (p * (p + 1) / 2))
         matrices = Matrices(n, p)
+        canonical_metric = StiefelCanonicalMetric(n, p)
+        kwargs.setdefault("metric", canonical_metric)
         super(Stiefel, self).__init__(
             dim=dim,
             embedding_space=matrices,
@@ -47,12 +49,11 @@ class Stiefel(LevelSet):
             value=gs.eye(p),
             tangent_submersion=lambda v, x: 2
             * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
-            metric=StiefelCanonicalMetric(n, p),
+            **kwargs
         )
-
+        self.canonical_metric = canonical_metric
         self.n = n
         self.p = p
-        self.canonical_metric = self.metric
 
     @staticmethod
     def to_grassmannian(point):

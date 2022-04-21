@@ -30,7 +30,7 @@ class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
 
 
 class TestBuresWassersteinBundle(FiberBundleTestCase, metaclass=Parametrizer):
-    space = BuresWassersteinBundle
+    bundle = BuresWassersteinBundle
 
     testing_data = BuresWassersteinBundleTestData()
 

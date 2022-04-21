@@ -28,11 +28,9 @@ class SPDMatrices(OpenSet):
     """
 
     def __init__(self, n, **kwargs):
+        kwargs.setdefault("metric", SPDMetricAffine(n))
         super(SPDMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2),
-            metric=SPDMetricAffine(n),
-            ambient_space=SymmetricMatrices(n),
-            **kwargs
+            dim=int(n * (n + 1) / 2), ambient_space=SymmetricMatrices(n), **kwargs
         )
         self.n = n
 

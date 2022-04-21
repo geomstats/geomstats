@@ -1287,7 +1287,7 @@ class BiInvariantMetric(_InvariantMetricVector):
             return super(BiInvariantMetric, self).inner_product_at_identity(
                 tangent_vec_a, tangent_vec_b
             )
-        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b) / 2
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product of two vectors in tangent space at base point.
