@@ -47,7 +47,6 @@ class FiberBundle(Manifold, ABC):
     def __init__(
         self,
         dim: int,
-        base: Manifold = None,
         group: LieGroup = None,
         ambient_metric: RiemannianMetric = None,
         group_action=None,
