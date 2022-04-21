@@ -26,7 +26,9 @@ class Landmarks(ProductManifold):
     def __init__(self, ambient_manifold, k_landmarks, **kwargs):
         kwargs.setdefault("metric", L2Metric(ambient_manifold, k_landmarks))
         super(Landmarks, self).__init__(
-            manifolds=[ambient_manifold] * k_landmarks, default_point_type="matrix"
+            manifolds=[ambient_manifold] * k_landmarks,
+            default_point_type="matrix",
+            **kwargs
         )
         self.ambient_manifold = ambient_manifold
         self.k_landmarks = k_landmarks
