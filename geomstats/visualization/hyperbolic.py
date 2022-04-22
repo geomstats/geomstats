@@ -79,8 +79,14 @@ class PoincareDisk:
         if ax is None:
             ax = plt.subplot()
         ax_s = AX_SCALE
-        plt.setp(ax, xlim=(-ax_s, ax_s), ylim=(-ax_s, ax_s),
-                 xlabel="X", ylabel="Y", aspect='equal')
+        plt.setp(
+            ax,
+            xlim=(-ax_s, ax_s),
+            ylim=(-ax_s, ax_s),
+            xlabel="X",
+            ylabel="Y",
+            aspect="equal",
+        )
         return ax
 
     def add_points(self, points):

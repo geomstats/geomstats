@@ -25,12 +25,18 @@ class Circle:
 
     @staticmethod
     def set_ax(ax=None):
-        """Set plotting axis"""
+        """Set axis."""
         if ax is None:
             ax = plt.subplot()
         ax_s = AX_SCALE
-        plt.setp(ax, xlim=(-ax_s, ax_s), ylim=(-ax_s, ax_s),
-                 xlabel="X", ylabel="Y", aspect='equal')
+        plt.setp(
+            ax,
+            xlim=(-ax_s, ax_s),
+            ylim=(-ax_s, ax_s),
+            xlabel="X",
+            ylabel="Y",
+            aspect="equal",
+        )
         return ax
 
     def add_points(self, points):
@@ -52,8 +58,7 @@ class Circle:
         if points is None:
             points = self.points
         points = gs.array(points)
-        ax.plot(points[:, 0], points[:, 1], marker="o", linestyle="None",
-                **plot_kwargs)
+        ax.plot(points[:, 0], points[:, 1], marker="o", linestyle="None", **plot_kwargs)
 
     def plot(self, points, ax=None, **point_draw_kwargs):
         """Plot points in the circle."""
@@ -91,7 +96,7 @@ class Sphere:
 
     @staticmethod
     def set_ax(ax=None):
-        """Set plotting axis"""
+        """Set axis."""
         if ax is None:
             ax = plt.subplot(111, projection="3d")
 
@@ -105,7 +110,7 @@ class Sphere:
             ylabel="Y",
             zlabel="Z",
         )
-        ax.set_box_aspect([1., 1., 1.])
+        ax.set_box_aspect([1.0, 1.0, 1.0])
         return ax
 
     def add_points(self, points):
@@ -150,8 +155,11 @@ class Sphere:
                     )
 
     def get_fibonnaci_points(self, n_points=16000):
-        """Get spherical Fibonacci point sets yield nearly uniform point
-        distributions on the unit sphere."""
+        """Get spherical Fibonacci point sets.
+
+        Point sets are yield nearly uniform point distributions on the unit
+        sphere.
+        """
         x_vals = []
         y_vals = []
         z_vals = []
