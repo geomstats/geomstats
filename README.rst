@@ -21,7 +21,7 @@ Geomstats
 
 - Next hackathon will be on October 17-21, 2022 in Paris. Interested? Reach out to us on slack!
 - Google's Season of Docs (SoD) 2022: Geomstats is participating! Interested?
-   - Find details about being a Google SoD's writer `here <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_ and details about Geomstats' proposal `here  <https://geomstats.github.io/gsod.html>`_. 
+   - Find out more about being a Google SoD's `writer <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_ and about Geomstats' `proposal <https://geomstats.github.io/gsod.html>`_. 
    - Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_. 
    - Submit your `statement of interest <https://developers.google.com/season-of-docs/docs/tech-writer-statement>`_ via email to nmiolane@gmail.com before May 1st, at 18:00 UTC.
    - Selected technical writers will be notified no later than May 16th.
@@ -37,11 +37,6 @@ statistics on manifolds. The package is organized into two main modules:
 The module ``geometry`` implements concepts in differential geometry,
 and the module ``learning`` implements statistics and learning
 algorithms for data on manifolds.
-
-.. raw:: html
-
-    <img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" height="120px" width="120px" align="left">
-
 
 -  To get an overview of ``geomstats``, see our `introductory
    video <https://www.youtube.com/watch?v=Ju-Wsd84uG0&list=PLYx7XA2nY5GejOB1lsvriFeMytD1-VS1B&index=3>`__.
