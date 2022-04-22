@@ -122,7 +122,8 @@ def convert_to_trihedron(point, space=None):
     return trihedrons
 
 
-def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
+def plot(points, ax=None, space=None, **point_draw_kwargs):
+    """Plot trihedrons."""
     ax_s = AX_SCALE * gs.amax(gs.abs(points[:, :3]))
     ax_s = float(ax_s)
     bounds = (-ax_s, ax_s)

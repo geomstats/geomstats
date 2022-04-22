@@ -43,7 +43,7 @@ IMPLEMENTED = [
 
 
 def tutorial_matplotlib():
-    """Configuration used for matplotlib tutorial."""
+    """Configure style for matplotlib tutorial."""
     fontsize = 12
     matplotlib.rc("font", size=fontsize)
     matplotlib.rc("text")
