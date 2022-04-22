@@ -85,7 +85,6 @@ class PoincareDisk:
             ylim=(-ax_s, ax_s),
             xlabel="X",
             ylabel="Y",
-            aspect="equal",
         )
         return ax
 
