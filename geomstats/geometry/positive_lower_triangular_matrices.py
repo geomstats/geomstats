@@ -29,11 +29,9 @@ class PositiveLowerTriangularMatrices(OpenSet):
     """
 
     def __init__(self, n, **kwargs):
+        kwargs.setdefault("metric", CholeskyMetric(n))
         super(PositiveLowerTriangularMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2),
-            metric=(CholeskyMetric(n)),
-            ambient_space=LowerTriangularMatrices(n),
-            **kwargs
+            dim=int(n * (n + 1) / 2), ambient_space=LowerTriangularMatrices(n), **kwargs
         )
         self.n = n
 

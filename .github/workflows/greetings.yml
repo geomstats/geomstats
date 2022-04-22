@@ -10,11 +10,14 @@ jobs:
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         issue-message: |
-          Hello, Welcome to Geomstats! we are glad that you are contributing to it by opening this issue.
-          Please make sure to include all the relevant context, and one of the maintainers will be here shortly.
-          If you are interested in contributing to our project, let us know! Also, be sure to check out our contributing guide on [Contributing Guidelines](https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst).
+          Hello, ${{ github.actor }} 👋
+          Welcome to Geomstats! Thank you and congratulations for opening your first issue for this project! 🎉 
+          Please do check out our [Contributing Guidelines](https://geomstats.github.io/contributing.html).
+          Incase you want to claim this issue, please comment down below! One of our maintainers will be here shortly.
+          Feel free to join us on [Slack](https://join.slack.com/t/geomstats/shared_invite/zt-15t8k0q7r-Duxt6j6aA3rDOIms2Vd~RQ) by dropping an email [here](mailto:ninamiolane@ucsb.edu).
         pr-message: |
-          Hello, Welcome to Geomstats! We are glad that you are contributing to it by opening this pull request.
-          Please make sure that the changes are covered by tests. One of the maintainers will be here shortly.
-          If you run into any issue with the CI and tests, we recommend that you first check out our guide on [Contributing Guidelines](https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst).
-          Let our maintainers know if you need any help!
+          Hello, ${{ github.actor }} 👋
+          Welcome to Geomstats! Thank you and congratulations for opening your first PR for this project! 🎉
+          One of our maintainers will be here shortly.
+          We recommend that you check out our [Contributing Guidelines](https://geomstats.github.io/contributing.html) to avoid tests from failing and to make sure the necessary is followed.
+          Let our maintainers know if you need any help! Feel free to join us on [Slack](https://join.slack.com/t/geomstats/shared_invite/zt-15t8k0q7r-Duxt6j6aA3rDOIms2Vd~RQ) by dropping an email [here](mailto:ninamiolane@ucsb.edu).

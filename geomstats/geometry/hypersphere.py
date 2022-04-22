@@ -1085,6 +1085,27 @@ class HypersphereMetric(RiemannianMetric):
         """
         return gs.zeros_like(tangent_vec_a)
 
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In the case of the sphere, it does not depend on the base point and is Pi
+        everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim+1]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return gs.pi
+
 
 class Hypersphere(_Hypersphere):
     """Class for the n-dimensional hypersphere.
@@ -1111,4 +1132,4 @@ class Hypersphere(_Hypersphere):
 
     def __init__(self, dim, default_coords_type="extrinsic"):
         super(Hypersphere, self).__init__(dim, default_coords_type)
-        self.metric = HypersphereMetric(dim)
+        self._metric = HypersphereMetric(dim)

@@ -535,7 +535,7 @@ class Connection(ABC):
 
         References
         ----------
-        .. [Pennec] Pennec, xavier. Curvature effects on the empirical mean in
+        .. [Pennec] Pennec, Xavier. Curvature effects on the empirical mean in
         Riemannian and affine Manifolds: a non-asymptotic high concentration
         expansion in the small-sample regime. Preprint. June 2019.
         https://arxiv.org/abs/1906.07418
@@ -660,3 +660,22 @@ class Connection(ABC):
             "The closed-form solution of parallel transport is not known, "
             "use the ladder_parallel_transport instead."
         )
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., {dim, [n, m]}]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        raise NotImplementedError("The injectivity range is not implemented yet.")

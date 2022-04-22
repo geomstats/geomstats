@@ -7,7 +7,7 @@ For additional guidelines on how to contribute to geomstats, visit:
 https://geomstats.github.io/contributing.html#contributing-code-workflow
 
 To run these tests:
-- Install packages from geomstats/dev-requirements.txt
+- Install packages from geomstats[dev]
 - In command line, run:
 ```nose2 tests.test__my_manifold``` to run all the tests of this file
 - In command line, run:
@@ -15,7 +15,7 @@ To run these tests:
 to run the test `test_dimension` only.
 
 To run these tests using different backends (numpy, pytorch or tensorflow):
-- Install packages from geomstats/opt-requirements.tct
+- Install packages from geomstats[opt]
 In command line, select the backend of interest with:
 ```export GEOMSTATS_BACKEND=numpy```
  or ```export GEOMSTATS_BACKEND=pytorch```

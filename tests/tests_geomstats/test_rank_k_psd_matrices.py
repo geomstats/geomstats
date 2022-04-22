@@ -1,77 +1,58 @@
 r"""Unit tests for the space of PSD matrices of rank k."""
 
-import warnings
-
 import geomstats.backend as gs
-import geomstats.tests
-from geomstats.geometry.rank_k_psd_matrices import PSDMatrices
-from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from geomstats.geometry.rank_k_psd_matrices import (
+    BuresWassersteinBundle,
+    PSDMatrices,
+    PSDMetricBuresWasserstein,
+)
+from tests.conftest import Parametrizer
+from tests.data.rank_k_psd_matrices_data import (
+    BuresWassersteinBundleTestData,
+    PSDMatricesTestData,
+    TestDataPSDMetricBuresWasserstein,
+)
+from tests.geometry_test_cases import (
+    FiberBundleTestCase,
+    ManifoldTestCase,
+    QuotientMetricTestCase,
+)
 
 
-class TestPSDMatricesRankK(geomstats.tests.TestCase):
-    r"""Test of PSD Matrices Rank k methods."""
+class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
+    space = PSDMatrices
 
-    def setup_method(self):
-        r"""Set up the test."""
-        warnings.simplefilter("ignore", category=ImportWarning)
+    testing_data = PSDMatricesTestData()
 
-        gs.random.seed(1234)
+    def test_belongs(self, n, k, mat, expected):
+        space = self.space(n, k)
+        self.assertAllClose(space.belongs(gs.array(mat)), gs.array(expected))
 
-        self.n = 3
-        self.k = 2
-        self.space = PSDMatrices(self.n, self.k)
-        self.sym = SymmetricMatrices(self.n)
 
-    def test_belongs(self):
-        r"""Test of belongs method."""
-        psd_n_k = self.space
-        mat_not_psd_n_k = gs.array(
-            [
-                [0.8369314, -0.7342977, 1.0402943],
-                [0.04035992, -0.7218659, 1.0794858],
-                [0.9032698, -0.73601735, -0.36105633],
-            ]
-        )
-        mat_psd_n_k = gs.array([[1.0, 1.0, 0], [1.0, 4.0, 0], [0, 0, 0]])
-        result = psd_n_k.belongs(mat_not_psd_n_k)
-        self.assertFalse(result)
+class TestBuresWassersteinBundle(FiberBundleTestCase, metaclass=Parametrizer):
+    bundle = BuresWassersteinBundle
 
-        result = psd_n_k.belongs(mat_psd_n_k)
-        self.assertTrue(result)
+    testing_data = BuresWassersteinBundleTestData()
 
-    def test_projection_and_belongs(self):
-        r"""Test the projection and the belongs methods."""
-        points = self.sym.random_point(3)
-        proj_points = self.space.projection(points)
-        result = self.space.belongs(proj_points)
-        self.assertTrue(gs.all(result))
 
-    def test_random_and_belongs(self):
-        r"""Test the random and the belongs methods."""
-        mat = self.space.random_point(4)
-        result = self.space.belongs(mat)
-        self.assertTrue(gs.all(result))
+class TestPSDMetricBuresWasserstein(QuotientMetricTestCase, metaclass=Parametrizer):
 
-    def test_is_tangent_and_to_tangent(self):
-        r"""Test the tangent functions."""
-        base_point = self.space.random_point(3)
-        vectors = self.sym.random_point(3)
-        vectors_t = self.space.to_tangent(base_point=base_point, vector=vectors)
-        vectors_t_bp0 = self.space.to_tangent(base_point=base_point[0], vector=vectors)
+    space = PSDMatrices
+    metric = connection = PSDMetricBuresWasserstein
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_log_after_exp = True
+    skip_test_dist_is_smaller_than_bundle_dist = True
+    skip_test_log_is_horizontal = True
 
-        result = self.space.is_tangent(base_point=base_point, vector=vectors)
-        self.assertFalse(gs.all(result))
-        result = self.space.is_tangent(base_point=base_point, vector=vectors_t)
-        self.assertTrue(gs.all(result))
+    testing_data = TestDataPSDMetricBuresWasserstein()
 
-        result = self.space.is_tangent(base_point=base_point[0], vector=vectors)
-        self.assertFalse(gs.all(result))
-        result = self.space.is_tangent(base_point=base_point[0], vector=vectors_t_bp0)
-        self.assertTrue(gs.all(result))
+    def test_exp(self, n, tangent_vec, base_point, expected):
+        metric = PSDMetricBuresWasserstein(n, n)
+        result = metric.exp(gs.array(tangent_vec), gs.array(base_point))
+        self.assertAllClose(result, gs.array(expected))
 
-        result = self.space.is_tangent(base_point=base_point[0], vector=vectors[0])
-        self.assertFalse(gs.all(result))
-        result = self.space.is_tangent(
-            base_point=base_point[0], vector=vectors_t_bp0[0]
-        )
-        self.assertTrue(gs.all(result))
+    def test_log(self, n, point, base_point, expected):
+        metric = PSDMetricBuresWasserstein(n, n)
+        result = metric.log(gs.array(point), gs.array(base_point))
+        self.assertAllClose(result, expected)

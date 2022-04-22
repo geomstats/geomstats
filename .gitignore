@@ -28,7 +28,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+/dist/
 downloads/
 eggs/
 .eggs/
@@ -140,3 +140,13 @@ notebooks/*.svg
 
 # Python virtual environment
 venv/
+
+#air speed velocity
+.asv/
+
+# pick files
+*.pkl
+
+
+#ignore benchmarks generated timings
+benchmarks/*.json

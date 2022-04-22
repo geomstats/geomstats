@@ -159,7 +159,7 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.linalg.expm(gs.linalg.logm(point))
         expected = point
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=gs.atol * 100)
 
     def test_expm_and_logm_vectorization(self):
         point = gs.array(
@@ -854,6 +854,7 @@ class TestBackends(geomstats.tests.TestCase):
         s_r = gs.linalg.svd(gs_point, compute_uv=compute_uv)
         self.assertAllClose(s, s_r)
 
+    @geomstats.tests.np_and_autograd_only
     def test_sylvester_solve(self):
         mat = gs.random.rand(4, 3)
         spd = gs.matmul(gs.transpose(mat), mat)

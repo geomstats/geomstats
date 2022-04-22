@@ -28,8 +28,12 @@ class HeisenbergVectors(LieGroup, VectorSpace):
 
     def __init__(self, **kwargs):
         super(HeisenbergVectors, self).__init__(
-            dim=3, shape=(3,), lie_algebra=Euclidean(3)
+            dim=3, shape=(3,), lie_algebra=Euclidean(3), **kwargs
         )
+
+    def _create_basis(self):
+        """Create the canonical basis."""
+        return gs.eye(3)
 
     def get_identity(self, point_type="vector"):
         """Get the identity of the 3D Heisenberg group.

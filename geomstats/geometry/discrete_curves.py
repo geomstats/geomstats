@@ -44,12 +44,13 @@ class DiscreteCurves(Manifold):
         Square root velocity metric.
     """
 
-    def __init__(self, ambient_manifold):
+    def __init__(self, ambient_manifold, **kwargs):
+        kwargs.setdefault("metric", SRVMetric(ambient_manifold))
         super(DiscreteCurves, self).__init__(
-            dim=math.inf, shape=(), default_point_type="matrix"
+            dim=math.inf, shape=(), default_point_type="matrix", **kwargs
         )
         self.ambient_manifold = ambient_manifold
-        self.square_root_velocity_metric = SRVMetric(self.ambient_manifold)
+        self.square_root_velocity_metric = self._metric
         self.quotient_square_root_velocity_metric = QuotientSRVMetric(
             self.ambient_manifold
         )
@@ -317,7 +318,7 @@ class L2CurvesMetric(RiemannianMetric):
         )
         return self.riemann_sum(inner_products, missing_last_point)
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute Riemannian exponential of tangent vector wrt to base curve.
 
         Parameters
@@ -336,7 +337,7 @@ class L2CurvesMetric(RiemannianMetric):
         l2_landmarks_metric = self.l2_landmarks_metric(n_sampling_points)
         return l2_landmarks_metric.exp(tangent_vec, base_point)
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute Riemannian logarithm of a curve wrt a base curve.
 
         Parameters

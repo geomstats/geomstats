@@ -1,10 +1,10 @@
 """Module exposing the `Matrices` and `MatricesMetric` class."""
-
+import logging
 from functools import reduce
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.algebra_utils import from_vector_to_diagonal_matrix
+from geomstats.algebra_utils import flip_determinant, from_vector_to_diagonal_matrix
 from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.euclidean import EuclideanMetric
 
@@ -19,15 +19,18 @@ class Matrices(VectorSpace):
     """
 
     def __init__(self, m, n, **kwargs):
-        if "default_point_type" not in kwargs.keys():
-            kwargs["default_point_type"] = "matrix"
-        super(Matrices, self).__init__(
-            shape=(m, n), metric=MatricesMetric(m, n), **kwargs
-        )
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
+        kwargs.setdefault("metric", MatricesMetric(m, n))
+        kwargs.setdefault("default_point_type", "matrix")
+        super(Matrices, self).__init__(shape=(m, n), **kwargs)
         self.m = m
         self.n = n
+
+    def _create_basis(self):
+        """Create the canonical basis."""
+        m, n = self.m, self.n
+        return gs.reshape(gs.eye(n * m), (n * m, m, n))
 
     def belongs(self, point, atol=gs.atol):
         """Check if point belongs to the Matrices space.
@@ -663,6 +666,42 @@ class Matrices(VectorSpace):
         if vector_size != self.m * self.n:
             raise ValueError("Incompatible vector and matrix sizes")
         return gs.reshape(vec, shape)
+
+    @classmethod
+    def align_matrices(cls, point, base_point):
+        """Align matrices.
+
+        Find the optimal rotation R in SO(m) such that the base point and
+        R.point are well positioned.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., m, n]
+            Point on the manifold.
+        base_point : array-like, shape=[..., m, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        aligned : array-like, shape=[..., m, n]
+            R.point.
+        """
+        mat = gs.matmul(cls.transpose(point), base_point)
+        left, singular_values, right = gs.linalg.svd(mat)
+        det = gs.linalg.det(mat)
+        conditioning = (
+            singular_values[..., -2] + gs.sign(det) * singular_values[..., -1]
+        ) / singular_values[..., 0]
+        if gs.any(conditioning < gs.atol):
+            logging.warning(
+                f"Singularity close, ill-conditioned matrix "
+                f"encountered: "
+                f"{conditioning[conditioning < 1e-10]}"
+            )
+        if gs.any(gs.isclose(conditioning, 0.0)):
+            logging.warning("Alignment matrix is not unique.")
+        flipped = flip_determinant(cls.transpose(right), det)
+        return Matrices.mul(point, left, cls.transpose(flipped))
 
 
 class MatricesMetric(EuclideanMetric):

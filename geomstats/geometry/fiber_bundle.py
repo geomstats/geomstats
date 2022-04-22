@@ -47,7 +47,6 @@ class FiberBundle(Manifold, ABC):
     def __init__(
         self,
         dim: int,
-        base: Manifold = None,
         group: LieGroup = None,
         ambient_metric: RiemannianMetric = None,
         group_action=None,
@@ -56,7 +55,6 @@ class FiberBundle(Manifold, ABC):
     ):
 
         super(FiberBundle, self).__init__(dim=dim, **kwargs)
-        self.base = base
         self.group = group
         self.ambient_metric = ambient_metric
 
@@ -310,8 +308,8 @@ class FiberBundle(Manifold, ABC):
         """
         return gs.all(
             gs.isclose(
-                tangent_vec,
-                self.vertical_projection(tangent_vec, base_point),
+                0.0,
+                self.tangent_riemannian_submersion(tangent_vec, base_point),
                 atol=atol,
             ),
             axis=(-2, -1),

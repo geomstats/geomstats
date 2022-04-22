@@ -38,6 +38,7 @@ from tensorflow import (
     logical_or,
     maximum,
     meshgrid,
+    minimum,
     ones,
     ones_like,
 )
@@ -71,9 +72,10 @@ from . import random  # NOQA
 
 DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3, complex64: 4, complex128: 5}
 
-
+angle = tf.math.angle
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
+conj = tf.math.conj
 cross = tf.linalg.cross
 erf = tf.math.erf
 imag = tf.math.imag
@@ -934,3 +936,7 @@ def ravel_tril_indices(n, k=0, m=None):
         size = (n, m)
     idxs = tril_indices(n, k, m)
     return _ravel_multi_index(idxs, size)
+
+
+def kron(a, b):
+    return tf.linalg.LinearOperatorKronecker([a, b]).to_dense()

@@ -65,3 +65,47 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
             [int(metric.closest_neighbor_index(x_i, centroids)) for x_i in x]
         )
         self.assertAllClose(expected, result)
+
+    def _test_hypersphere_kmeans_init(
+        self, init, *, n_features=4, n_clusters=3, seed=1
+    ):
+        gs.random.seed(seed)
+
+        manifold = hypersphere.Hypersphere(n_features - 1)
+
+        x = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
+
+        kmeans = RiemannianKMeans(
+            manifold.metric, n_clusters, init_step_size=1.0, tol=1e-3, init=init
+        )
+        kmeans.fit(x)
+
+        centroids = kmeans.centroids
+        result = centroids.shape
+        expected = (n_clusters, n_features)
+        self.assertAllClose(expected, result)
+
+    def test_hypersphere_kmeans_init_kmeanspp(self):
+        self._test_hypersphere_kmeans_init("kmeans++")
+
+    def test_hypersphere_kmeans_init_array(self):
+        n_features = 4
+        n_clusters = 3
+
+        manifold = hypersphere.Hypersphere(n_features - 1)
+        centroids = manifold.random_von_mises_fisher(kappa=10, n_samples=n_clusters)
+
+        self._test_hypersphere_kmeans_init(
+            centroids, n_features=n_features, n_clusters=n_clusters
+        )
+
+    def test_hypersphere_kmeans_init_callable(self):
+        # Note that _test_hypersphere_kmeans_init sets the random seed before
+        # make_centroids is called by RiemannianKMeans.fit.
+        def make_centroids(X, n_clusters):
+            n_features = X.shape[1]
+            manifold = hypersphere.Hypersphere(n_features - 1)
+            centroids = manifold.random_von_mises_fisher(kappa=10, n_samples=n_clusters)
+            return centroids
+
+        self._test_hypersphere_kmeans_init(make_centroids)

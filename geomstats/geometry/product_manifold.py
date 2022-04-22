@@ -52,18 +52,22 @@ class ProductManifold(Manifold):
         self.dims = [manifold.dim for manifold in manifolds]
         if metrics is None:
             metrics = [manifold.metric for manifold in manifolds]
-        metric = ProductRiemannianMetric(
-            metrics, default_point_type=default_point_type, n_jobs=n_jobs
+        kwargs.setdefault(
+            "metric",
+            ProductRiemannianMetric(
+                metrics, default_point_type=default_point_type, n_jobs=n_jobs
+            ),
         )
         dim = sum(self.dims)
-        shape = (
-            (dim,) if default_point_type == "vector" else (len(manifolds), self.dims[0])
-        )
+
+        if default_point_type == "vector":
+            shape = (sum([m.shape[0] for m in manifolds]),)
+        else:
+            shape = (len(manifolds), *manifolds[0].shape)
 
         super(ProductManifold, self).__init__(
             dim=dim,
             shape=shape,
-            metric=metric,
             default_point_type=default_point_type,
             **kwargs,
         )
