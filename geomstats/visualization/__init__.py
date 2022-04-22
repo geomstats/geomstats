@@ -157,7 +157,7 @@ def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
         if point_type is None:
             point_type = "half-space"
         poincare_half_plane = PoincareHalfPlane(point_type=point_type)
-        ax = poincare_half_plane.set_ax(points=points, ax=ax)
+        ax = poincare_half_plane.set_ax(ax=ax)
         poincare_half_plane.add_points(points)
         poincare_half_plane.draw(ax, **point_draw_kwargs)
 

@@ -58,7 +58,7 @@ class Trihedron:
             self.arrow_2.draw(ax, color=orange, **arrow_draw_kwargs)
             self.arrow_3.draw(ax, color=green, **arrow_draw_kwargs)
 
-    def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
+    def plot(self, points, ax=None, space=None, **point_draw_kwargs):
         if space == "SE3_GROUP":
             ax_s = AX_SCALE * gs.amax(gs.abs(points[:, 3:6]))
         elif space == "SO3_GROUP":

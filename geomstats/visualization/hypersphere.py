@@ -25,13 +25,16 @@ class Circle:
 
     @staticmethod
     def set_ax(ax=None):
+        """Set plotting axis"""
         if ax is None:
             ax = plt.subplot()
         ax_s = AX_SCALE
-        plt.setp(ax, xlim=(-ax_s, ax_s), ylim=(-ax_s, ax_s), xlabel="X", ylabel="Y")
+        plt.setp(ax, xlim=(-ax_s, ax_s), ylim=(-ax_s, ax_s),
+                 xlabel="X", ylabel="Y", aspect='equal')
         return ax
 
     def add_points(self, points):
+        """Add points."""
         if not gs.all(S1.belongs(points)):
             raise ValueError("Points do  not belong to the circle.")
         if not isinstance(points, list):
@@ -39,17 +42,21 @@ class Circle:
         self.points.extend(points)
 
     def draw(self, ax, **plot_kwargs):
+        """Plot circle shape."""
         ax.plot(self.circle_x, self.circle_y, color="black")
         if self.points:
             self.draw_points(ax, **plot_kwargs)
 
     def draw_points(self, ax, points=None, **plot_kwargs):
+        """Plot points."""
         if points is None:
             points = self.points
         points = gs.array(points)
-        ax.plot(points[:, 0], points[:, 1], marker="o", linestyle="None", **plot_kwargs)
+        ax.plot(points[:, 0], points[:, 1], marker="o", linestyle="None",
+                **plot_kwargs)
 
-    def plot(self, points, ax=None, space=None, point_type=None, **point_draw_kwargs):
+    def plot(self, points, ax=None, **point_draw_kwargs):
+        """Plot points in the circle."""
         ax = self.set_ax(ax=ax)
         self.add_points(points)
         self.draw(ax, **point_draw_kwargs)
@@ -84,6 +91,7 @@ class Sphere:
 
     @staticmethod
     def set_ax(ax=None):
+        """Set plotting axis"""
         if ax is None:
             ax = plt.subplot(111, projection="3d")
 
@@ -97,9 +105,11 @@ class Sphere:
             ylabel="Y",
             zlabel="Z",
         )
+        ax.set_box_aspect([1., 1., 1.])
         return ax
 
     def add_points(self, points):
+        """Add points."""
         if not gs.all(S2.belongs(points)):
             raise ValueError("Points do not belong to the sphere.")
         if not isinstance(points, list):
@@ -107,6 +117,7 @@ class Sphere:
         self.points.extend(points)
 
     def draw(self, ax, **scatter_kwargs):
+        """Plot sphere shape."""
         ax.plot_wireframe(
             self.sphere_x, self.sphere_y, self.sphere_z, color="grey", alpha=0.2
         )
@@ -115,6 +126,7 @@ class Sphere:
             self.draw_points(ax, **scatter_kwargs)
 
     def draw_points(self, ax, points=None, **scatter_kwargs):
+        """Plot points."""
         if points is None:
             points = self.points
         points = [gs.autodiff.detach(point) for point in points]
@@ -137,8 +149,8 @@ class Sphere:
                         color="k",
                     )
 
-    def fibonnaci_points(self, n_points=16000):
-        """Spherical Fibonacci point sets yield nearly uniform point
+    def get_fibonnaci_points(self, n_points=16000):
+        """Get spherical Fibonacci point sets yield nearly uniform point
         distributions on the unit sphere."""
         x_vals = []
         y_vals = []
@@ -168,7 +180,7 @@ class Sphere:
 
     def plot_heatmap(self, ax, scalar_function, n_points=16000, alpha=0.2, cmap="jet"):
         """Plot a heatmap defined by a loss on the sphere."""
-        points = self.fibonnaci_points(n_points)
+        points = self.get_fibonnaci_points(n_points)
         intensity = gs.array([scalar_function(x) for x in points.T])
         ax.scatter(
             points[0, :],
@@ -180,7 +192,8 @@ class Sphere:
             cmap=plt.get_cmap(cmap),
         )
 
-    def plot(self, points, ax=None, space=None, point_type=None, **point_draw_kwargs):
+    def plot(self, points, ax=None, **point_draw_kwargs):
+        """Plot points in the sphere."""
         ax = self.set_ax(ax=ax)
         self.points = []
         self.add_points(points)

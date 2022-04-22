@@ -22,6 +22,7 @@ class KleinDisk:
 
     @staticmethod
     def set_ax(ax=None):
+        """Set axis."""
         if ax is None:
             ax = plt.subplot()
         ax_s = AX_SCALE
@@ -57,7 +58,7 @@ class KleinDisk:
         points_y = [gs.to_numpy(point[1]) for point in self.points]
         ax.scatter(points_x, points_y, **kwargs)
 
-    def plot(self, points, ax=None, space=None, point_type=None, **point_draw_kwargs):
+    def plot(self, points, ax=None, **point_draw_kwargs):
         ax = self.set_ax(ax=ax)
         self.points = []
         self.add_points(points)
@@ -74,10 +75,12 @@ class PoincareDisk:
 
     @staticmethod
     def set_ax(ax=None):
+        """Set axis."""
         if ax is None:
             ax = plt.subplot()
         ax_s = AX_SCALE
-        plt.setp(ax, xlim=(-ax_s, ax_s), ylim=(-ax_s, ax_s), xlabel="X", ylabel="Y")
+        plt.setp(ax, xlim=(-ax_s, ax_s), ylim=(-ax_s, ax_s),
+                 xlabel="X", ylabel="Y", aspect='equal')
         return ax
 
     def add_points(self, points):
@@ -111,7 +114,7 @@ class PoincareDisk:
             else:
                 raise ValueError("Points do not have dimension 2.")
 
-    def plot(self, points, ax=None, space=None, point_type=None, **point_draw_kwargs):
+    def plot(self, points, ax=None, point_type=None, **point_draw_kwargs):
         if point_type is None:
             point_type = "extrinsic"
         poincare_disk = PoincareDisk(point_type=point_type)
@@ -149,11 +152,11 @@ class PoincareHalfPlane:
             points = list(points)
         self.points.extend(points)
 
-    def set_ax(self, points, ax=None):
+    def set_ax(self, ax=None):
+        """Set axis."""
         if ax is None:
             ax = plt.subplot()
-        if self.point_type == "extrinsic":
-            points = self.convert_to_half_plane_coordinates(points)
+
         plt.setp(ax, xlabel="X", ylabel="Y")
         return ax
 
@@ -175,11 +178,11 @@ class PoincareHalfPlane:
         points_y = [gs.to_numpy(point[1]) for point in self.points]
         ax.scatter(points_x, points_y, **kwargs)
 
-    def plot(self, points, ax=None, space=None, point_type=None, **point_draw_kwargs):
+    def plot(self, points, ax=None, point_type=None, **point_draw_kwargs):
         if point_type is None:
             point_type = "half-space"
         poincare_half_plane = PoincareHalfPlane(point_type=point_type)
-        ax = poincare_half_plane.set_ax(points=points, ax=ax)
+        ax = poincare_half_plane.set_ax(ax=ax)
         self.points = []
         poincare_half_plane.add_points(points)
         poincare_half_plane.draw(ax, **point_draw_kwargs)
