@@ -26,8 +26,8 @@ class GammaTestData(_OpenSetTestData):
 
     def random_point_test_data(self):
         random_data = [
-            dict(point=self.space.random_point(1), expected=(2,)),
-            dict(point=self.space.random_point(5), expected=(5, 2)),
+            dict(point=self.space().random_point(1), expected=(2,)),
+            dict(point=self.space().random_point(5), expected=(5, 2)),
         ]
         return self.generate_tests([], random_data)
 
@@ -76,38 +76,18 @@ class GammaTestData(_OpenSetTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def sample_belongs_test_data(self):
-        random_data = [
-            dict(
-                point=self.space.random_point(3),
-                n_samples=4,
-                expected=gs.ones((3, 4)),
-            ),
-            dict(
-                point=self.space.random_point(1),
-                n_samples=2,
-                expected=gs.ones(2),
-            ),
-            dict(
-                point=self.space.random_point(2),
-                n_samples=3,
-                expected=gs.ones((2, 3)),
-            ),
-        ]
-        return self.generate_tests([], random_data)
-
     def point_to_pdf_test_data(self):
         random_data = [
             dict(
-                point=self.space.random_point(2),
+                point=self.space().random_point(2),
                 n_samples=10,
             ),
             dict(
-                point=self.space.random_point(4),
+                point=self.space().random_point(4),
                 n_samples=10,
             ),
             dict(
-                point=self.space.random_point(1),
+                point=self.space().random_point(1),
                 n_samples=10,
             ),
         ]
@@ -115,41 +95,16 @@ class GammaTestData(_OpenSetTestData):
 
 
 class GammaMetricTestData(_RiemannianMetricTestData):
-    space = GammaDistributions()
-    metric = GammaMetric()
+    space = GammaDistributions
+    metric = GammaMetric
     n_list = random.sample(range(2, 5), 2)
-    metric_args_list = list(
-        zip(
-            n_list,
-        )
-    )
+    metric_args_list = []
     space_list = [GammaDistributions()]
     space_args_list = []
     n_samples_list = random.sample(range(2, 5), 2)
     shape_list = [(2,)]
     n_points_list = random.sample(range(1, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
-
-    # what follows is supposed to go after
-
-    def christoffels_vectorization_test_data(self):
-        n_points = 2
-        points = self.space.random_point(n_points)
-        christoffel_1 = self.metric.christoffels(base_point=points[0])
-        christoffel_2 = self.metric.christoffels(base_point=points[1])
-        expected = gs.stack((christoffel_1, christoffel_2), axis=0)
-        random_data = [dict(point=points, expected=expected)]
-        return self.generate_tests([], random_data)
-
-    def christoffels_shape_test_data(self):
-        random_data = [
-            dict(point=self.space.random_point(1), expected=(2, 2, 2)),
-            dict(point=self.space.random_point(3), expected=(3, 2, 2, 2)),
-            dict(point=self.space.random_point(2), expected=(2, 2, 2, 2)),
-        ]
-        return self.generate_tests([], random_data)
-
-        # supposed to go after
 
     def exp_shape_test_data(self):
         return self._exp_shape_data(
@@ -276,167 +231,57 @@ class GammaMetricTestData(_RiemannianMetricTestData):
 
     def metric_matrix_shape_test_data(self):
         random_data = [
-            dict(point=self.space.random_point(1), expected=(2, 2)),
-            dict(point=self.space.random_point(3), expected=(3, 2, 2)),
-            dict(points=self.space.random_point(2), expected=(2, 3, 3)),
+            dict(point=self.space().random_point(1), expected=(2, 2)),
+            dict(point=self.space().random_point(3), expected=(3, 2, 2)),
+            dict(points=self.space().random_point(2), expected=(2, 2, 2)),
+        ]
+        return self.generate_tests([], random_data)
+
+    def christoffels_vectorization_test_data(self):
+        n_points = 2
+        points = self.space().random_point(
+            n_points
+        )  # unnecessary but as random_point is chosen in natural coordinates...
+        points = self.metric().var_change_point(points)
+        christoffel_1 = self.metric().christoffels(base_point=points[0])
+        christoffel_2 = self.metric().christoffels(base_point=points[1])
+        expected = gs.stack((christoffel_1, christoffel_2), axis=0)
+        random_data = [dict(point=points, expected=expected)]
+        return self.generate_tests([], random_data)
+
+    def christoffels_shape_test_data(self):
+        random_data = [
+            dict(point=self.space().random_point(1), expected=(2, 2, 2)),
+            dict(point=self.space().random_point(3), expected=(3, 2, 2, 2)),
+            dict(point=self.space().random_point(2), expected=(2, 2, 2, 2)),
         ]
         return self.generate_tests([], random_data)
 
     def exp_vectorization_test_data(self):
-        point = self.space.random_point()
-        tangent_vec = gs.array([1.0, 0.5, 2.0])
+        point = self.space().random_point()
+        tangent_vec = gs.array([1.0, 0.5])
         n_tangent_vecs = 10
         t = gs.linspace(0.0, 1.0, n_tangent_vecs)
         tangent_vecs = gs.einsum("i,...k->...ik", t, tangent_vec)
         random_data = [dict(point=point, tangent_vecs=tangent_vecs)]
         return self.generate_tests([], random_data)
 
-    def exp_diagonal_test_data(self):
-        param_list = [0.8, 1.2, 2.5]
-        smoke_data = [dict(param=param, param_list=param_list) for param in param_list]
-        return self.generate_tests(smoke_data)
-
-    def exp_subspace_test_data(self):
-        smoke_data = [
-            dict(
-                point=[0.1, 0.1, 0.5],
-                vec=[1.3, 1.3, 2.2],
-                expected=[True, True, False],
-            ),
-            dict(
-                point=[3.5, 0.1, 3.5],
-                vec=[0.8, 0.1, 0.8],
-                expected=[True, False, True],
-            ),
-            dict(
-                point=[1.1, 1.1, 2.3, 1.1],
-                vec=[0.6, 0.6, 2.1, 0.6],
-                expected=[True, True, False, True],
-            ),
-        ]
-        return self.generate_tests(smoke_data)
-
-    def geodesic_ivp_shape_test_data(self):
+    def jacobian_christoffels_test_data(self):
         random_data = [
-            dict(
-                point=self.space.random_point(1),
-                vec=self.space.random_point(1),
-                n_steps=50,
-                expected=(50, 2),
-            ),
-            dict(
-                point=self.space.random_point(3),
-                vec=self.space.random_point(3),
-                n_steps=50,
-                expected=(3, 50, 2),
-            ),
-            dict(
-                point=self.space.random_point(4),
-                vec=self.space.random_point(4),
-                n_steps=50,
-                expected=(4, 50, 3),
-            ),
-        ]
-        return self.generate_tests([], random_data)
-
-    def geodesic_bvp_shape_test_data(self):
-        random_data = [
-            dict(
-                point_a=self.space.random_point(1),
-                point_b=self.space.random_point(1),
-                n_steps=50,
-                expected=(50, 2),
-            ),
-            dict(
-                point_a=self.space.random_point(3),
-                point_b=self.space.random_point(3),
-                n_steps=50,
-                expected=(3, 50, 2),
-            ),
-            dict(
-                point_a=self.space.random_point(4),
-                point_b=self.space.random_point(4),
-                n_steps=50,
-                expected=(4, 50, 3),
-            ),
+            dict(point=self.space().random_point(2)),
+            dict(point=self.space().random_point(2)),
         ]
         return self.generate_tests([], random_data)
 
     def geodesic_test_data(self):
         random_data = [
             dict(
-                point_a=self.space.random_point(),
-                point_b=self.space.random_point(),
+                point_a=self.space().random_point(),
+                point_b=self.space().random_point(),
             ),
             dict(
-                point_a=self.space.random_point(),
-                point_b=self.space.random_point(),
+                point_a=self.space().random_point(),
+                point_b=self.space().random_point(),
             ),
         ]
         return self.generate_tests([], random_data)
-
-    def geodesic_shape_test_data(self):
-        random_data = [
-            dict(
-                point=self.space.random_point(),
-                vec=self.space.random_point(),
-                time=0.5,
-                expected=(2,),
-            ),
-            dict(
-                point=self.space.random_point(),
-                vec=self.space.random_point(4),
-                time=0.5,
-                expected=(4, 3),
-            ),
-            dict(
-                point=self.space.random_point(),
-                vec=self.space.random_point(4),
-                time=gs.linspace(0.0, 1.0, 10),
-                expected=(4, 10, 3),
-            ),
-        ]
-        return self.generate_tests([], random_data)
-
-    def jacobian_christoffels_test_data(self):
-        random_data = [
-            dict(point=self.space.random_point(2)),
-            dict(point=self.space.random_point(2)),
-        ]
-        return self.generate_tests([], random_data)
-
-    def jacobian_in_geodesic_bvp_test_data(self):
-        random_data = [
-            dict(
-                point_a=self.space.random_point(),
-                point_b=self.space.random_point(),
-            ),
-            dict(
-                point_a=self.space.random_point(),
-                point_b=self.space.random_point(),
-            ),
-        ]
-        return self.generate_tests([], random_data)
-
-    def approx_geodesic_bvp_test_data(self):
-        random_data = [
-            dict(
-                point_a=self.space.random_point(),
-                point_b=self.space.random_point(),
-            ),
-            dict(
-                point_a=self.space.random_point(),
-                point_b=self.space.random_point(),
-            ),
-        ]
-        return self.generate_tests([], random_data)
-
-    def polynomial_init_test_data(self):
-        smoke_data = [
-            dict(
-                point_a=[100.0, 1.0, 1.0],
-                point_b=[1.0, 1.0, 100.0],
-                expected=8.5,
-            ),
-        ]
-        return self.generate_tests(smoke_data)

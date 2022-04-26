@@ -12,41 +12,44 @@ from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
 
-    space = GammaDistributions()
+    space = GammaDistributions
     testing_data = GammaTestData()
 
     def test_belongs(self, vec, expected):
-        self.assertAllClose(self.space.belongs(gs.array(vec)), expected)
+        self.assertAllClose(self.space().belongs(gs.array(vec)), expected)
 
     def test_random_point(self, point, expected):
         self.assertAllClose(point.shape, expected)
 
     def test_sample(self, point, n_samples, expected):
-        self.assertAllClose(self.space.sample(point, n_samples).shape, expected)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_sample_belongs(self, point, n_samples, expected):
-        samples = self.space.sample(point, n_samples)
-        self.assertAllClose(gs.sum(samples, axis=-1), expected)
+        self.assertAllClose(self.space().sample(point, n_samples).shape, expected)
 
     @geomstats.tests.np_and_autograd_only
     def test_point_to_pdf(self, point, n_samples):
         point = gs.to_ndarray(point, 2)
         n_points = point.shape[0]
-        pdf = self.space.point_to_pdf(point)
-        alpha = gs.ones()
-        samples = self.space.sample(alpha, n_samples)
+        pdf = self.space().point_to_pdf(point)
+        alpha = gs.ones(2)
+        samples = self.space().sample(alpha, n_samples)
         result = pdf(samples)
         pdf = []
         for i in range(n_points):
-            pdf.append(gs.array([gamma.pdf(x, point[i, :]) for x in samples]))
+            pdf.append(
+                gs.array(
+                    [
+                        gamma.pdf(x, a=point[i, 0], scale=1 / point[i, 1])
+                        for x in samples
+                    ]
+                )
+            )
         expected = gs.squeeze(gs.stack(pdf, axis=0))
         self.assertAllClose(result, expected)
 
 
 class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    space = GammaDistributions()
-    connection = metric = GammaMetric()
+    space = GammaDistributions
+    connection = metric = GammaMetric
+
     skip_test_exp_shape = True  # because several base points for one vector
     skip_test_log_shape = (
         geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
@@ -89,114 +92,62 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_metric_matrix_shape(self, point, expected):
-        return self.assertAllClose(self.metric.metric_matrix(point).shape, expected)
+        point = self.metric().var_change_point(point)
+        return self.assertAllClose(self.metric().metric_matrix(point).shape, expected)
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_christoffels_vectorization(self, point, expected):
-        return self.assertAllClose(self.metric.christoffels(base_point=point), expected)
+        return self.assertAllClose(self.metric().christoffels(point), expected)
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_christoffels_shape(self, point, expected):
+        base_point = self.metric().var_change_point(point)
         return self.assertAllClose(
-            self.metric.christoffels(base_point=point).shape, expected
+            self.metric()
+            .christoffels(base_point=self.metric().var_change_point(base_point))
+            .shape,
+            expected,
         )
-
-    @geomstats.tests.np_and_autograd_only
-    def test_exp_diagonal(self, param, param_list):
-        """Check that the diagonal x1 = ... = xn is totally geodesic."""
-        base_point = param * gs.ones(2)
-        initial_vectors = gs.transpose(gs.tile(param_list, (2, 1)))
-        result = self.metric.exp(initial_vectors, base_point)
-        expected = gs.squeeze(gs.transpose(gs.tile(result[..., 0], (2, 1))))
-        return self.assertAllClose(expected, result)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_exp_subspace(self, vec, point, expected):
-        """Check that subspaces xi1 = ... = xik are totally geodesic."""
-        end_point = self.metric.exp(vec, point)
-        result = gs.isclose(end_point - end_point[0], 0)
-        return self.assertAllClose(expected, result)
 
     @geomstats.tests.np_and_autograd_only
     def test_exp_vectorization(self, point, tangent_vecs):
         """Test the case with one initial point and several tangent vectors."""
-        end_points = self.metric.exp(tangent_vec=tangent_vecs, base_point=point)
+        n_points = tangent_vecs.shape[0]
+        point = gs.tile(point, (n_points, 1))
+        tangent_vecs = self.metric().var_change_vec(tangent_vecs, point)
+        point = self.metric().var_change_point(point)
+        end_points = self.metric().exp(tangent_vec=tangent_vecs, base_point=point)
         result = end_points.shape
         expected = (tangent_vecs.shape[0], 2)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_autograd_only
-    def test_exp_after_log(self, base_point, point):
-        log = self.metric.log(point, base_point, n_steps=500)
-        expected = point
-        result = self.metric.exp(tangent_vec=log, base_point=base_point)
-        self.assertAllClose(result, expected, rtol=1e-2)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_geodesic_ivp_shape(self, point, vec, n_steps, expected):
-        t = gs.linspace(0.0, 1.0, n_steps)
-        geodesic = self.metric._geodesic_ivp(point, vec)
-        geodesic_at_t = geodesic(t)
-        result = geodesic_at_t.shape
-        return self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_geodesic_bvp_shape(self, point_a, point_b, n_steps, expected):
-        t = gs.linspace(0.0, 1.0, n_steps)
-        geodesic = self.metric._geodesic_bvp(point_a, point_b)
-        geodesic_at_t = geodesic(t)
-        result = geodesic_at_t.shape
-        return self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_geodesic(self, point_a, point_b):
-        """Check that the norm of the geodesic velocity is constant."""
-        n_steps = 10000
-        geod = self.metric.geodesic(initial_point=point_a, end_point=point_b)
-        t = gs.linspace(0.0, 1.0, n_steps)
-        geod_at_t = geod(t)
-        velocity = n_steps * (geod_at_t[1:, :] - geod_at_t[:-1, :])
-        velocity_norm = self.metric.norm(velocity, geod_at_t[:-1, :])
-        result = 1 / velocity_norm.min() * (velocity_norm.max() - velocity_norm.min())
-        expected = 0.0
-        return self.assertAllClose(expected, result, rtol=1.0)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_geodesic_shape(self, point, vec, time, expected):
-        geod = self.metric.geodesic(initial_point=point, initial_tangent_vec=vec)
-        result = geod(time).shape
-        self.assertAllClose(expected, result)
-
     @geomstats.tests.autograd_and_torch_only
     def test_jacobian_christoffels(self, point):
-        result = self.metric.jacobian_christoffels(point[0, :])
+        point = self.metric().var_change_point(point)
+
+        result = self.metric().jacobian_christoffels(point[0, :])
         self.assertAllClose((2, 2, 2, 2), result.shape)
 
-        expected = gs.autodiff.jacobian(self.metric.christoffels)(point[0, :])
+        expected = gs.autodiff.jacobian(self.metric().christoffels)(point[0, :])
         self.assertAllClose(expected, result)
 
-        result = self.metric.jacobian_christoffels(point)
+        result = self.metric().jacobian_christoffels(point)
         expected = [
-            self.metric.jacobian_christoffels(point[0, :]),
-            self.metric.jacobian_christoffels(point[1, :]),
+            self.metric().jacobian_christoffels(point[0, :]),
+            self.metric().jacobian_christoffels(point[1, :]),
         ]
         expected = gs.stack(expected, 0)
         self.assertAllClose(expected, result)
 
     @geomstats.tests.np_and_autograd_only
-    def test_jacobian_in_geodesic_bvp(self, point_a, point_b):
-        result = self.metric.dist(point_a, point_b, jacobian=True)
-        expected = self.metric.dist(point_a, point_b)
-        self.assertAllClose(expected, result)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_approx_geodesic_bvp(self, point_a, point_b):
-        res = self.metric._approx_geodesic_bvp(point_a, point_b)
-        result = res[0]
-        expected = self.metric.dist(point_a, point_b)
-        self.assertAllClose(expected, result, atol=0, rtol=1e-1)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_polynomial_init(self, point_a, point_b, expected):
-        result = self.metric.dist(point_a, point_b, init="polynomial")
-        self.assertAllClose(expected, result, atol=0, rtol=1e-1)
+    def test_geodesic(self, point_a, point_b):
+        """Check that the norm of the geodesic velocity is constant."""
+        n_steps = 10000
+        geod = self.metric().geodesic(initial_point=point_a, end_point=point_b)
+        t = gs.linspace(0.0, 1.0, n_steps)
+        geod_at_t = geod(t)
+        velocity = n_steps * (geod_at_t[1:, :] - geod_at_t[:-1, :])
+        velocity_norm = self.metric().norm(velocity, geod_at_t[:-1, :])
+        result = 1 / velocity_norm.min() * (velocity_norm.max() - velocity_norm.min())
+        expected = 0.0
+        return self.assertAllClose(expected, result, rtol=1.0)
