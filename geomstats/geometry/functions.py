@@ -4,18 +4,19 @@ import math
 
 import numpy as np
 
+import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class SinfSpaceMetric(RiemannianMetric):
-    r"""A Riemannian metric on the S_{\inf} space
+class HilbertSphereMetric(RiemannianMetric):
+    r"""A Riemannian metric on the Hilbert sphere (functions of norm 1)
 
     Parameters:
     -------
     domain_samples : array of shape (n_samples, )
-        grid points on the domain
+        Grid points on the domain.
     """
 
     def __init__(self, domain_samples):
@@ -27,104 +28,82 @@ class SinfSpaceMetric(RiemannianMetric):
         super().__init__(dim=self.n_evals)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Inner product between two tangent vectors at a base point.
-
+        """Compute the inner-product of two tangent vectors at a base point.
         Parameters
         ----------
-        tangent_vec_a: array-like, shape=[..., n_evals]
-            Tangent vector at base point.
-        tangent_vec_b: array-like, shape=[..., n_evals]
-            Tangent vector at base point.
-        base_point: array-like, shape=[..., n_evals]
-            Base point.
-            Optional, default: None.
-
+        tangent_vec_a : array-like, shape=[..., n_samples]
+            First tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., n_samples]
+            Second tangent vector at base point.
+        base_point : array-like, shape=[..., n_samples], optional
+            Point on the hypersphere.
         Returns
         -------
-        inner_product : array-like, shape=[...,]
-            Inner-product.
+        inner_prod : array-like, shape=[...,]
+            Inner-product of the two tangent vectors.
         """
+        l2_norm = np.trapz(tangent_vec_a * tangent_vec_b, x=self.x, axis=1)
 
-        def _f(v1, v2):
-            return gs.cast(np.trapz(v1 * v2, x=self.x), gs.float32)
-
-        inner_prod = gs.vectorize(
-            (tangent_vec_a, tangent_vec_b),
-            _f,
-            dtype=gs.float32,
-            multiple_args=True,
-            signature="(i),(i)->()",
-        )
-
-        return inner_prod
+        return l2_norm
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
-
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., n_evals]
+        tangent_vec : array-like, shape=[..., n_samples]
             Tangent vector at a base point.
-        base_point : array-like, shape=[..., n_evals]
+        base_point : array-like, shape=[..., n_samples]
             Point on the hypersphere.
-
         Returns
         -------
-        exp : array-like, shape=[..., n_evals]
+        exp : array-like, shape=[..., n_samples]
             Point on the hypersphere equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
+        sinf = HilbertSphere(self.x)
+        proj_tangent_vec = sinf.to_tangent(tangent_vec, base_point)
+        norm2 = sinf.metric.squared_norm(proj_tangent_vec)
 
-        def _f(v, p):
-            norm_v = self.norm(v)
-            t1 = gs.cos(norm_v) * p
-            t2 = (gs.sin(norm_v) / norm_v) * p
-            return t1 + t2
-
-        out = gs.vectorize(
-            (tangent_vec, base_point),
-            _f,
-            dtype=gs.float32,
-            multiple_args=True,
-            signature="(i),(i)->(i)",
+        coef_1 = utils.taylor_exp_even_func(norm2, utils.cos_close_0, order=4)
+        coef_2 = utils.taylor_exp_even_func(norm2, utils.sinc_close_0, order=4)
+        exp = gs.einsum("...,...j->...j", coef_1, base_point) + gs.einsum(
+            "...,...j->...j", coef_2, proj_tangent_vec
         )
 
-        return out
+        return exp
 
     def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of a point.
-
         Parameters
         ----------
-        point : array-like, shape=[..., n_evals]
+        point : array-like, shape=[..., n_samples]
             Point on the hypersphere.
-        base_point : array-like, shape=[..., n_evals]
+        base_point : array-like, shape=[..., n_samples]
             Point on the hypersphere.
-
         Returns
         -------
-        log : array-like, shape=[..., n_evals]
+        log : array-like, shape=[..., n_samples]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-
-        def _f(p0, p1):
-            theta = gs.arccos(self.inner_product(p1, p0, base_point=None))
-            return (p1 - p0 * gs.cos(theta)) * (theta / gs.sin(theta))
-
-        out = gs.vectorize(
-            (base_point, point),
-            _f,
-            dtype=gs.float32,
-            multiple_args=True,
-            signature="(i),(i)->(i)",
+        inner_prod = self.inner_product(base_point, point)
+        cos_angle = gs.clip(inner_prod, -1.0, 1.0)
+        theta = gs.arccos(cos_angle)
+        coef_1_ = utils.taylor_exp_even_func(
+            theta, utils.inv_sinc_close_0, order=5
+        )
+        coef_2_ = utils.taylor_exp_even_func(
+            theta, utils.inv_tanc_close_0, order=5
+        )
+        log = gs.einsum("...,...j->...j", coef_1_, point) - gs.einsum(
+            "...,...j->...j", coef_2_, base_point
         )
 
-        return out
+        return log
 
 
-class SinfSpace(Manifold):
-    """Class for space of L2 functions with norm 1.
+class HilbertSphere(Manifold):
+    """Class for space of functions with norm 1.
 
     The tangent space is given by functions that have
     zero inner-product with the base point
@@ -132,7 +111,7 @@ class SinfSpace(Manifold):
     Parameters:
     -------
     domain_samples : array of shape (n_samples, )
-        grid points on the domain
+        Grid points on the domain.
 
     Ref :
     -----
@@ -143,22 +122,24 @@ class SinfSpace(Manifold):
 
     def __init__(self, domain_samples):
         self.domain = domain_samples
-        super().__init__(dim=math.inf, metric=SinfSpaceMetric(self.domain))
+        super().__init__(dim=math.inf, metric=HilbertSphereMetric(self.domain))
 
     def projection(self, point):
         """Project a point to the infinite dimensional hypersphere.
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
-            discrete evaluation of a function.
+        point : array-like, shape=[..., n_samples]
+            Discrete evaluation of a function.
         Returns
         -------
-        projected_point : array-like, shape=[..., dim]
+        projected_point : array-like, shape=[..., n_samples]
             Point projected to the hypersphere.
         """
-        norm_p = self.metric.norm(point)
-        return point / norm_p
+        norm = self.metric.norm(point)
+        projected_point = gs.einsum("...,...i->...i", 1.0 / norm, point)
+
+        return projected_point
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the vector space.
@@ -166,7 +147,7 @@ class SinfSpace(Manifold):
         This method checks the shape of the input point.
         Parameters
         ----------
-        point : array-like, shape=[.., {dim, [n, n]}]
+        point : array-like, shape=[.., n_samples]
             Point to test.
         atol : float
 
@@ -177,16 +158,16 @@ class SinfSpace(Manifold):
         """
         norms = self.metric.norm(point)
 
-        return gs.isclose(norms - 1.0, atol)
+        return gs.isclose(norms, 1.0, atol)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., n_samples]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., n_samples]
             Point on the manifold.
         atol : float
             Absolute tolerance.
@@ -206,18 +187,19 @@ class SinfSpace(Manifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., n_samples]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., n_samples]
             Point on the manifold.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., n_samples]
             Tangent vector at base point.
         """
         inner_product = self.metric.inner_product(vector, base_point)
-        tangent_vec = vector - inner_product
+        coef = 1.0 / inner_product
+        tangent_vec = vector - gs.einsum("...,...j->...j", coef, base_point)
 
         return tangent_vec
 
@@ -238,7 +220,7 @@ class SinfSpace(Manifold):
         Returns
         -------
         samples : array-like, shape=[..., dim]
-            Points sampled on the hypersphere.
+            Points sampled on the Hilbert sphere.
         """
         points = gs.random.rand(n_samples, len(self.domain))
 

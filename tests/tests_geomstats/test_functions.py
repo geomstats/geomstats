@@ -4,7 +4,7 @@ import numpy as np
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.functions import SinfSpace
+from geomstats.geometry.functions import HilbertSphere
 
 
 class TestFunctionsSinf(geomstats.tests.TestCase):
@@ -12,7 +12,7 @@ class TestFunctionsSinf(geomstats.tests.TestCase):
         self.domain = gs.linspace(-gs.pi, gs.pi, num=50)
         self.funcs = lambda a: np.sin(a * self.domain).reshape(1, 50)
         self.f = self.funcs(1)
-        self.manifold = SinfSpace(self.domain)
+        self.manifold = HilbertSphere(self.domain)
 
     @geomstats.tests.np_and_autograd_only
     def test_manifold(self):
