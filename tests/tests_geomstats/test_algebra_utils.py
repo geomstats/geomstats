@@ -19,7 +19,7 @@ class TestAlgebraUtils(geomstats.tests.TestCase):
             },
             {
                 "coefficients": utils.cosc_close_0["coefficients"],
-                "function": lambda x: (1 - math.cos(x)) / x ** 2,
+                "function": lambda x: (1 - math.cos(x)) / x**2,
             },
             utils.sinch_close_0,
             utils.cosh_close_0,

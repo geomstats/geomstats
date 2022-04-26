@@ -173,7 +173,7 @@ def _batch_gradient_descent(
     metric,
     weights=None,
     max_iter=32,
-    lr=1e-3,
+    init_step_size=1e-3,
     epsilon=5e-3,
     point_type="vector",
     verbose=False,
@@ -183,14 +183,28 @@ def _batch_gradient_descent(
     if point_type == "vector":
         if points.ndim < 3:
             return _default_gradient_descent(
-                points, metric, weights, max_iter, point_type, epsilon, lr, verbose
+                points,
+                metric,
+                weights,
+                max_iter,
+                point_type,
+                epsilon,
+                init_step_size,
+                verbose,
             )
         einsum_str = "ni,nij->ij"
         ndim = 1
     else:
         if points.ndim < 4:
             return _default_gradient_descent(
-                points, metric, weights, max_iter, point_type, epsilon, lr, verbose
+                points,
+                metric,
+                weights,
+                max_iter,
+                point_type,
+                epsilon,
+                init_step_size,
+                verbose,
             )
         einsum_str = "nk,nkij->kij"
         ndim = 2
@@ -223,14 +237,14 @@ def _batch_gradient_descent(
 
         tangent_mean = gs.einsum(einsum_str, weights, tangent_grad) / n_points
 
-        next_estimates = metric.exp(lr * tangent_mean, estimates)
+        next_estimates = metric.exp(init_step_size * tangent_mean, estimates)
         convergence = gs.sum(metric.squared_norm(tangent_mean, estimates))
         estimates = next_estimates
 
         if convergence < convergence_old:
             convergence_old = convergence
         elif convergence > convergence_old:
-            lr = lr / 2.0
+            init_step_size = init_step_size / 2.0
 
     if iteration == max_iter:
         logging.warning(
@@ -241,7 +255,7 @@ def _batch_gradient_descent(
     if verbose:
         logging.info(
             "n_iter: {}, final dist: {},"
-            "final step size: {}".format(iteration, convergence, lr)
+            "final step size: {}".format(iteration, convergence, init_step_size)
         )
 
     return estimates
@@ -253,7 +267,7 @@ def _adaptive_gradient_descent(
     weights=None,
     max_iter=32,
     epsilon=1e-12,
-    initial_tau=1.0,
+    init_step_size=1.0,
     init_point=None,
     point_type="vector",
     verbose=False,
@@ -309,7 +323,7 @@ def _adaptive_gradient_descent(
         weights = gs.ones((n_points,))
     sum_weights = gs.sum(weights)
 
-    tau = initial_tau
+    tau = init_step_size
     iteration = 0
 
     logs = metric.log(point=points, base_point=current_mean)
@@ -321,7 +335,7 @@ def _adaptive_gradient_descent(
         current_tangent_mean, base_point=current_mean
     )
 
-    while sq_norm_current_tangent_mean > epsilon ** 2 and iteration < max_iter:
+    while sq_norm_current_tangent_mean > epsilon**2 and iteration < max_iter:
         iteration += 1
 
         shooting_vector = tau * current_tangent_mean
@@ -406,7 +420,7 @@ def _circle_variances(mean, var, n_samples, points):
         Data set of ordered angles.
 
     References
-    ---------
+    ----------
     ..[HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
                  Uniqueness, locus and asymptotics", Annals of the Institute of
                  Statistical Mathematics 67 (1), 177–193.
@@ -464,7 +478,7 @@ class FrechetMean(BaseEstimator):
         Initial point.
         Optional, default : None. In this case the first sample of the input data is
         used.
-    lr : float
+    init_step_size : float
         Initial step size or learning rate.
     verbose : bool
         Verbose option.
@@ -479,7 +493,7 @@ class FrechetMean(BaseEstimator):
         point_type=None,
         method="default",
         init_point=None,
-        lr=1.0,
+        init_step_size=1.0,
         verbose=False,
     ):
 
@@ -488,7 +502,7 @@ class FrechetMean(BaseEstimator):
         self.epsilon = epsilon
         self.point_type = point_type
         self.method = method
-        self.lr = lr
+        self.init_step_size = init_step_size
         self.verbose = verbose
         self.init_point = init_point
         self.estimate_ = None
@@ -542,7 +556,7 @@ class FrechetMean(BaseEstimator):
                 weights=weights,
                 metric=self.metric,
                 max_iter=self.max_iter,
-                init_step_size=self.lr,
+                init_step_size=self.init_step_size,
                 point_type=self.point_type,
                 epsilon=self.epsilon,
                 verbose=self.verbose,
@@ -551,23 +565,23 @@ class FrechetMean(BaseEstimator):
         elif self.method == "adaptive":
             mean = _adaptive_gradient_descent(
                 points=X,
-                weights=weights,
                 metric=self.metric,
+                weights=weights,
                 max_iter=self.max_iter,
-                point_type=self.point_type,
                 epsilon=self.epsilon,
-                verbose=self.verbose,
-                initial_tau=self.lr,
+                init_step_size=self.init_step_size,
                 init_point=self.init_point,
+                point_type=self.point_type,
+                verbose=self.verbose,
             )
         elif self.method == "batch":
             mean = _batch_gradient_descent(
                 points=X,
-                weights=weights,
                 metric=self.metric,
-                lr=self.lr,
-                epsilon=self.epsilon,
+                weights=weights,
                 max_iter=self.max_iter,
+                init_step_size=self.init_step_size,
+                epsilon=self.epsilon,
                 point_type=self.point_type,
                 verbose=self.verbose,
                 init_point=self.init_point,

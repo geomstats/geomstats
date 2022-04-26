@@ -100,7 +100,9 @@ class RiemannianMinimumDistanceToMeanClassifier:
         return gs.array(y)
 
     def predict_proba(self, X):
-        """Compute probabilities to belong to classes according to
+        """Compute probabilities.
+
+        Compute probabilities to belong to classes according to
         riemannian_metric.
 
         Parameters

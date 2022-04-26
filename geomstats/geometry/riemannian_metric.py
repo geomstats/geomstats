@@ -27,6 +27,9 @@ class RiemannianMetric(Connection, ABC):
     ----------
     dim : int
         Dimension of the manifold.
+    shape : tuple of int
+        Shape of one element of the manifold.
+        Optional, default : (dim, ).
     signature : tuple
         Signature of the metric.
         Optional, default: None.
@@ -35,9 +38,9 @@ class RiemannianMetric(Connection, ABC):
         Optional, default: 'vector'.
     """
 
-    def __init__(self, dim, signature=None, default_point_type="vector"):
+    def __init__(self, dim, shape=None, signature=None, default_point_type=None):
         super(RiemannianMetric, self).__init__(
-            dim=dim, default_point_type=default_point_type
+            dim=dim, shape=shape, default_point_type=default_point_type
         )
         if signature is None:
             signature = (dim, 0)
@@ -318,8 +321,7 @@ class RiemannianMetric(Connection, ABC):
             shape=[n_samples_a, dim] or [n_samples_a, n_samples_b, dim]
             Geodesic distance between the two points.
         """
-        point_type = self.default_point_type
-        ndim = 1 if point_type == "vector" else 2
+        ndim = len(self.shape)
 
         if point_a.shape[-ndim:] != point_b.shape[-ndim:]:
             raise ValueError("Manifold dimensions not equal")
@@ -484,7 +486,7 @@ class RiemannianMetric(Connection, ABC):
         norm_a = self.squared_norm(tangent_vec_a, base_point)
         norm_b = self.squared_norm(tangent_vec_b, base_point)
         inner_ab = self.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        normalization_factor = norm_a * norm_b - inner_ab ** 2
+        normalization_factor = norm_a * norm_b - inner_ab**2
 
         condition = gs.isclose(normalization_factor, 0.0)
         normalization_factor = gs.where(condition, EPSILON, normalization_factor)

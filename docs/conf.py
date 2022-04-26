@@ -1,12 +1,11 @@
 """Sphinx configuration file."""
 
-import os
-import sys
+import geomstats
 
 project = "Geomstats"
-copyright = "2020-2021, Geomstats, Inc."
+copyright = "2022-2023, Geomstats, Inc."
 author = "Geomstats Team"
-release = version = "2.3.1"
+release = version = geomstats.__version__
 
 extensions = [
     "nbsphinx",
@@ -45,7 +44,7 @@ nbsphinx_allow_errors = True
 
 templates_path = ["_templates"]
 
-source_suffix = [".rst", ".ipynb"]
+source_suffix = [".rst"]
 
 master_doc = "index"
 
@@ -76,7 +75,7 @@ nbsphinx_prolog = (
     \sphinxcode{\sphinxupquote{\strut {{ docname | escape_latex }}}} \dotfill}}
     """
 )
-exclude_patterns = ["build", "Thumbs.db", ".DS_Store"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
 pygments_style = None
 

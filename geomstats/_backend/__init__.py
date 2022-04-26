@@ -22,6 +22,7 @@ BACKEND_ATTRIBUTES = {
         "allclose",
         "amax",
         "amin",
+        "angle",
         "any",
         "arange",
         "arccos",
@@ -41,9 +42,10 @@ BACKEND_ATTRIBUTES = {
         "cast",
         "ceil",
         "clip",
-        "concatenate",
-        "convert_to_wider_dtype",
         "comb",
+        "concatenate",
+        "conj",
+        "convert_to_wider_dtype",
         "copy",
         "cos",
         "cosh",
@@ -74,6 +76,7 @@ BACKEND_ATTRIBUTES = {
         "imag",
         "isclose",
         "isnan",
+        "kron",
         "less",
         "less_equal",
         "linspace",
@@ -85,6 +88,7 @@ BACKEND_ATTRIBUTES = {
         "maximum",
         "mean",
         "meshgrid",
+        "minimum",
         "mod",
         "ndim",
         "one_hot",
@@ -238,11 +242,13 @@ class BackendImporter:
         return new_module
 
     def find_module(self, fullname, path=None):
+        """Find module."""
         if self._path != fullname:
             return None
         return self
 
     def load_module(self, fullname):
+        """Load module."""
         if fullname in sys.modules:
             return sys.modules[fullname]
 

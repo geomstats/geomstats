@@ -99,7 +99,9 @@ class TestEM(geomstats.tests.TestCase):
         """Test for weighted mean."""
         data = gs.array([[0.1, 0.2], [0.25, 0.35]])
         weights = gs.array([3.0, 1.0])
-        mean_o = FrechetMean(metric=self.metric, point_type="vector", lr=1.0)
+        mean_o = FrechetMean(
+            metric=self.metric, point_type="vector", init_step_size=1.0
+        )
         mean_o.fit(data, weights=weights)
         result = mean_o.estimate_
         expected = self.metric.exp(

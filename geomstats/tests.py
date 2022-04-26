@@ -88,6 +88,7 @@ if pytorch_backend():
 
 
 def pytorch_error_msg(a, b, rtol, atol):
+    """Return tailored pytorch error message."""
     msg = f"\ntensor 1\n{a}\ntensor 2\n{b}"
     if torch.is_tensor(a) and torch.is_tensor(b):
         if a.dtype == torch.bool and b.dtype == torch.bool:

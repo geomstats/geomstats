@@ -29,7 +29,9 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
     def test_logs_at_mean_default_gradient_descent_sphere(self):
         n_tests = 10
-        estimator = FrechetMean(metric=self.sphere.metric, method="default", lr=1.0)
+        estimator = FrechetMean(
+            metric=self.sphere.metric, method="default", init_step_size=1.0
+        )
 
         result = []
         for _ in range(n_tests):
@@ -104,7 +106,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         points = self.so3.random_uniform(2)
 
         mean_vec = FrechetMean(
-            metric=self.so3.bi_invariant_metric, method="default", lr=1.0
+            metric=self.so3.bi_invariant_metric, method="default", init_step_size=1.0
         )
         mean_vec.fit(points)
 
@@ -127,7 +129,9 @@ class TestFrechetMean(geomstats.tests.TestCase):
     def test_estimate_default_gradient_descent_so_matrix(self):
         points = self.so_matrix.random_uniform(2)
         mean_vec = FrechetMean(
-            metric=self.so_matrix.bi_invariant_metric, method="default", lr=1.0
+            metric=self.so_matrix.bi_invariant_metric,
+            method="default",
+            init_step_size=1.0,
         )
         mean_vec.fit(points)
         logs = self.so_matrix.bi_invariant_metric.log(points, mean_vec.estimate_)
@@ -154,8 +158,8 @@ class TestFrechetMean(geomstats.tests.TestCase):
         mean = FrechetMean(
             metric=self.so_matrix.bi_invariant_metric,
             method="adaptive",
+            init_step_size=0.5,
             verbose=True,
-            lr=0.5,
         )
         mean.fit(point)
 
@@ -450,7 +454,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         space = Stiefel(3, 2)
         metric = space.metric
         point = space.random_point(2)
-        mean = FrechetMean(metric, lr=0.5, verbose=True, method="default")
+        mean = FrechetMean(metric, method="default", init_step_size=0.5, verbose=True)
         mean.fit(point)
         result = space.belongs(mean.estimate_)
         self.assertTrue(result)

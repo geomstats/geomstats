@@ -63,7 +63,7 @@ def gmm_pdf(data, means, variances, norm_func, metric, variances_range, norm_fun
     distances = -(metric.dist_broadcast(data, means) ** 2)
     distances = gs.reshape(distances, (data.shape[0] * variances.shape[0]))
 
-    num = gs.exp(distances / (2 * variances_flatten ** 2))
+    num = gs.exp(distances / (2 * variances_flatten**2))
 
     den = norm_func(variances, variances_range, norm_func_var)
 
@@ -103,11 +103,11 @@ def weighted_gmm_pdf(mixture_coefficients, mesh_data, means, variances, metric):
     variances_units = gs.expand_dims(variances, 0)
     variances_units = gs.repeat(variances_units, distance_to_mean.shape[0], axis=0)
 
-    distribution_normal = gs.exp(-(distance_to_mean ** 2) / (2 * variances_units ** 2))
+    distribution_normal = gs.exp(-(distance_to_mean**2) / (2 * variances_units**2))
 
     zeta_sigma = (2 * gs.pi) ** (2 / 3) * variances
     zeta_sigma = zeta_sigma * gs.exp(
-        (variances ** 2 / 2) * gs.erf(variances / gs.sqrt(2))
+        (variances**2 / 2) * gs.erf(variances / gs.sqrt(2))
     )
 
     result_num = gs.expand_dims(mixture_coefficients, 0)
@@ -224,7 +224,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         Optional, default: 1e-2.
         Convergence tolerance. If the difference of mean distance
         between two steps is lower than tol.
-    lr_mean : float
+    init_step_size : float
         Learning rate in the gradient descent computation of the Frechet means.
         Optional, default: 1.
     max_iter : int
@@ -276,7 +276,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         n_gaussians=8,
         initialisation_method="random",
         tol=DEFAULT_TOL,
-        lr_mean=1.0,
+        init_step_size=1.0,
         max_iter=100,
         max_iter_mean=100,
         tol_mean=1e-4,
@@ -296,7 +296,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.variances_range = None
         self.normalization_factor_var = None
         self.phi_inv_var = None
-        self.lr_mean = lr_mean
+        self.init_step_size = init_step_size
         self.max_iter = max_iter
         self.max_iter_mean = max_iter_mean
         self.tol_mean = tol_mean
@@ -318,11 +318,11 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
         mean = FrechetMean(
             metric=self.metric,
-            method=self.mean_method,
-            lr=self.lr_mean,
-            epsilon=self.tol_mean,
             max_iter=self.max_iter_mean,
+            epsilon=self.tol_mean,
             point_type=self.point_type,
+            method=self.mean_method,
+            init_step_size=self.init_step_size,
         )
 
         data_expand = gs.expand_dims(data, 1)
@@ -469,8 +469,8 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                 metric=self.metric,
                 n_clusters=self.n_gaussians,
                 init="random",
+                init_step_size=self.init_step_size,
                 mean_method="batch",
-                lr=self.lr_mean,
             )
 
             centroids = kmeans.fit(X=data)
@@ -593,6 +593,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
         _, log_grad_zeta = self.metric.norm_factor_gradient(variances)
 
-        phi_inv_var = variances ** 3 * log_grad_zeta
+        phi_inv_var = variances**3 * log_grad_zeta
 
         return variances, normalization_factor_var, phi_inv_var

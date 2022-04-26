@@ -53,7 +53,7 @@ class PoincarePolydisk(ProductManifold, OpenSet):
             default_point_type="matrix",
             ambient_space=Matrices(n_disks, 2),
         )
-        self.metric = PoincarePolydiskMetric(n_disks=n_disks, coords_type=coords_type)
+        self._metric = PoincarePolydiskMetric(n_disks=n_disks, coords_type=coords_type)
 
     @staticmethod
     def intrinsic_to_extrinsic_coords(point_intrinsic):
@@ -103,7 +103,7 @@ class PoincarePolydisk(ProductManifold, OpenSet):
         tangent_vec : array-like, shape=[..., n_disks, dim + 1]
             Tangent vector at base point.
         """
-        n_disks = base_point.shape[1]
+        n_disks = self.n_disks
         hyperbolic_space = Hyperboloid(2, self.coords_type)
         tangent_vec = gs.stack(
             [

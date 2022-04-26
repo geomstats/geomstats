@@ -69,7 +69,7 @@ class SubRiemannianMetric(abc.ABC):
         """
         raise NotImplementedError("The frame field is not implemented.")
 
-    def cometric_sub_matrix(self, basepoint):
+    def cometric_sub_matrix(self, base_point):
         """Cometric  sub matrix of dimension dist_dim x dist_dim.
 
         Let {X_i}, i = 1, .., dist_dim, be an arbitrary frame for the distribution
@@ -120,7 +120,7 @@ class SubRiemannianMetric(abc.ABC):
         ----------
         cotangent_vec_a : array-like, shape=[..., dim]
             Cotangent vector at `base_point`.
-        cotangent_vet_b : array-like, shape=[..., dim]
+        cotangent_vec_b : array-like, shape=[..., dim]
             Cotangent vector at `base_point`.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
@@ -182,12 +182,14 @@ class SubRiemannianMetric(abc.ABC):
         return vector
 
     def symp_euler(self, step_size):
-        r"""Compute a function which calculates a step of symplectic euler integration.
+        """Compute a function which calculates a step of symplectic euler integration.
+
+        The output function computes a symplectic euler step of the Hamiltonian system
+        of equations associated with the cometric and obtained by the method
+        :meth:`~sub_remannian_metric.SubRiemannianMetric.symp_grad`.
 
         Parameters
         ----------
-        hamiltonian : callable
-            The hamiltonian function from the tangent bundle to the reals.
         step_size : float
             Step size of the symplectic euler step.
 
@@ -209,7 +211,7 @@ class SubRiemannianMetric(abc.ABC):
 
     @staticmethod
     def iterate(func, n_steps):
-        r"""Constructs a function which iterates another function n_steps times.
+        r"""Construct a function which iterates another function n_steps times.
 
         Parameters
         ----------
@@ -256,7 +258,7 @@ class SubRiemannianMetric(abc.ABC):
         return self.iterate(step(step_size), n_steps)
 
     def exp(self, cotangent_vec, base_point, n_steps=20, **kwargs):
-        """Exponential map associated to the cometric. I
+        """Exponential map associated to the cometric.
 
         Exponential map at base_point of cotangent_vec computed by integration
         of the Hamiltonian equation (initial value problem), using the cometric.
@@ -272,9 +274,6 @@ class SubRiemannianMetric(abc.ABC):
         n_steps : int
             Number of discrete time steps to take in the integration.
             Optional, default: N_STEPS.
-        point_type : str, {'vector', 'matrix'}
-            Type of representation used for points.
-            Optional, default: None.
 
         Returns
         -------

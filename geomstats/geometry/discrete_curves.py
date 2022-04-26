@@ -44,10 +44,13 @@ class DiscreteCurves(Manifold):
         Square root velocity metric.
     """
 
-    def __init__(self, ambient_manifold):
-        super(DiscreteCurves, self).__init__(dim=math.inf)
+    def __init__(self, ambient_manifold, **kwargs):
+        kwargs.setdefault("metric", SRVMetric(ambient_manifold))
+        super(DiscreteCurves, self).__init__(
+            dim=math.inf, shape=(), default_point_type="matrix", **kwargs
+        )
         self.ambient_manifold = ambient_manifold
-        self.square_root_velocity_metric = SRVMetric(self.ambient_manifold)
+        self.square_root_velocity_metric = self._metric
         self.quotient_square_root_velocity_metric = QuotientSRVMetric(
             self.ambient_manifold
         )
@@ -166,8 +169,9 @@ class DiscreteCurves(Manifold):
 
 
 class L2CurvesMetric(RiemannianMetric):
-    """L2 metric on the space regularly sampled discrete curves
+    """L2 metric on the space of discrete curves.
 
+    L2 metric on the space of regularly sampled discrete curves
     defined on the unit interval. The inner product between two tangent vectors
     is given by the integral of the ambient space inner product, approximated by
     a left Riemann sum.
@@ -190,9 +194,11 @@ class L2CurvesMetric(RiemannianMetric):
         self.l2_landmarks_metric = lambda n: L2Metric(ambient_manifold, n_landmarks=n)
 
     def riemann_sum(self, func, missing_last_point=True):
-        """Compute the left Riemann sum approximation of the integral of a function
+        """Compute the left Riemann sum approximation of the integral.
 
-        on the unit interval, given by sample points at regularly spaced times
+        Compute the left Riemann sum approximation of the integral of a
+        function func defined on on the unit interval,
+        given by sample points at regularly spaced times
         t_k = k / n_sampling_points for k = 0, ..., n_sampling_points.
 
         Parameters
@@ -312,7 +318,7 @@ class L2CurvesMetric(RiemannianMetric):
         )
         return self.riemann_sum(inner_products, missing_last_point)
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute Riemannian exponential of tangent vector wrt to base curve.
 
         Parameters
@@ -331,7 +337,7 @@ class L2CurvesMetric(RiemannianMetric):
         l2_landmarks_metric = self.l2_landmarks_metric(n_sampling_points)
         return l2_landmarks_metric.exp(tangent_vec, base_point)
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute Riemannian logarithm of a curve wrt a base curve.
 
         Parameters
@@ -571,8 +577,10 @@ class SRVMetric(RiemannianMetric):
                 "discrete curves embedded in a Euclidean "
                 "space."
             )
+
         curve = gs.to_ndarray(curve, to_ndim=3)
         n_curves, n_sampling_points, ambient_dim = curve.shape
+
         n_sampling_points = curve.shape[-2]
         velocity_vec = (n_sampling_points - 1) * (
             curve[..., 1:, :] - curve[..., :-1, :]
@@ -591,7 +599,18 @@ class SRVMetric(RiemannianMetric):
         d_vec = gs.einsum("...ij,...i->...ij", d_vec, velocity_norm ** (1 / 2))
         increment = d_vec / (n_sampling_points - 1)
         initial_value = gs.zeros((n_curves, 1, ambient_dim))
+
+        n_increments, _, _ = increment.shape
+        if n_curves != n_increments:
+            if n_curves == 1:
+                initial_value = gs.tile(initial_value, (n_increments, 1, 1))
+            elif n_increments == 1:
+                increment = gs.tile(increment, (n_curves, 1, 1))
+            else:
+                raise ValueError("Number of curves and of increments are incompatible.")
+
         vec = gs.concatenate((initial_value, increment), -2)
+
         vec = gs.cumsum(vec, -2)
 
         return gs.squeeze(vec)
@@ -817,7 +836,7 @@ class SRVMetric(RiemannianMetric):
         if self.translation_invariant:
             return dist_srvs
 
-        dist = gs.sqrt(dist_starting_points ** 2 + dist_srvs ** 2)
+        dist = gs.sqrt(dist_starting_points**2 + dist_srvs**2)
         return dist
 
     @staticmethod
@@ -875,7 +894,9 @@ class ClosedDiscreteCurves(Manifold):
     """
 
     def __init__(self, ambient_manifold):
-        super(ClosedDiscreteCurves, self).__init__(dim=math.inf)
+        super(ClosedDiscreteCurves, self).__init__(
+            dim=math.inf, shape=(), default_point_type="matrix"
+        )
         self.ambient_manifold = ambient_manifold
         self.square_root_velocity_metric = ClosedSRVMetric(ambient_manifold)
 
@@ -1259,7 +1280,7 @@ class ElasticMetric(RiemannianMetric):
         curve_x = gs.array(curve_x)
         curve_y = gs.array(curve_y)
         curve = gs.transpose(gs.vstack((curve_x, curve_y))) / n_sampling_points
-        curve = 1 / (4 * self.b ** 2) * curve + starting_point
+        curve = 1 / (4 * self.b**2) * curve + starting_point
 
         return curve
 
@@ -1312,12 +1333,137 @@ class ElasticMetric(RiemannianMetric):
         l2_dist = self.l2_metric.dist
 
         if rescaled:
-            cosine = l2_prod(f_1, f_2) / (4 * self.b ** 2)
+            cosine = l2_prod(f_1, f_2) / (4 * self.b**2)
             distance = 2 * self.b * gs.arccos(gs.clip(cosine, -1, 1))
         else:
             distance = l2_dist(f_1, f_2)
 
         return distance
+
+
+class ElasticCurves(Manifold):
+    r"""Space of elastic curves sampled at points in the 2D plane.
+
+    Each individual curve is represented by a 2d-array of shape `[
+    n_sampling_points, ambient_dim]`.
+
+    Parameters
+    ----------
+    a : float
+        Bending parameter.
+    b : float
+        Stretching parameter.
+
+    Attributes
+    ----------
+    ambient_manifold : Manifold
+        Manifold in which curves take values.
+    l2_metric : callable
+        Function that takes as argument an integer number of sampled points
+        and returns the corresponding L2 metric (product) metric,
+        a RiemannianMetric object.
+    elastic_metric : RiemannianMetric
+        Elastic metric with parameters a and b.
+    """
+
+    def __init__(self, a, b):
+        super(ElasticCurves, self).__init__(
+            dim=math.inf, shape=(), default_point_type="matrix"
+        )
+        self.ambient_manifold = R2
+        self.l2_metric = lambda n: L2Metric(self.ambient_manifold, n_landmarks=n)
+        self.elastic_metric = ElasticMetric(a, b)
+
+    def belongs(self, point, atol=gs.atol):
+        """Test whether a point belongs to the manifold.
+
+        Test that all points of the curve belong to the ambient manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Point representing a discrete curve.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        belongs : bool
+            Boolean evaluating if point belongs to the space of discrete
+            curves.
+        """
+        raise NotImplementedError("The belongs method is not implemented.")
+
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check whether the vector is tangent at a curve.
+
+        A vector is tangent at a curve if it is a vector field along that
+        curve.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Vector.
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        raise NotImplementedError("The is_tangent method is not implemented.")
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        As tangent vectors are vector fields along a curve, each component of
+        the vector is projected to the tangent space of the corresponding
+        point of the discrete curve. The number of sampling points should
+        match in the vector and the base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Vector.
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector at base point.
+        """
+        raise NotImplementedError("The to_tangent method is not implemented.")
+
+    def random_point(self, n_samples=1, bound=1.0, n_sampling_points=10):
+        """Sample random curves.
+
+        If the ambient manifold is compact, a uniform distribution is used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact
+            ambient manifolds.
+            Optional, default: 1.
+        n_sampling_points : int
+            Number of sampling points for the discrete curves.
+            Optional, default : 10.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n_sampling_points, {dim, [n, n]}]
+            Points sampled on the hypersphere.
+        """
+        raise NotImplementedError("The random_point method is not implemented.")
 
 
 class QuotientSRVMetric(SRVMetric):
@@ -1393,7 +1539,7 @@ class QuotientSRVMetric(SRVMetric):
         )
         vec_b = -2 * self.l2_metric.pointwise_norms(
             d_pos, position
-        ) ** 2 - quotient ** 2 * (
+        ) ** 2 - quotient**2 * (
             self.l2_metric.pointwise_norms(d2_pos, position) ** 2
             - self.l2_metric.pointwise_inner_products(d2_pos, d_pos, position) ** 2
             / self.l2_metric.pointwise_norms(d_pos, position) ** 2
@@ -1405,9 +1551,9 @@ class QuotientSRVMetric(SRVMetric):
         )
         vec_d = self.l2_metric.pointwise_norms(d_pos, position) * (
             self.l2_metric.pointwise_inner_products(d2_vec, d_pos, position)
-            - (quotient ** 2 - 1)
+            - (quotient**2 - 1)
             * self.l2_metric.pointwise_inner_products(d_vec, d2_pos, position)
-            + (quotient ** 2 - 2)
+            + (quotient**2 - 2)
             * self.l2_metric.pointwise_inner_products(d2_pos, d_pos, position)
             * self.l2_metric.pointwise_inner_products(d_vec, d_pos, position)
             / self.l2_metric.pointwise_norms(d_pos, position) ** 2

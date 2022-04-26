@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Geomstats slack
+    url: https://join.slack.com/t/geomstats/shared_invite/zt-15t8k0q7r-Duxt6j6aA3rDOIms2Vd~RQ
+    about: Join our community. Talk to us about Geomstats and ask general questions.
+  - name: Geeomstats's documentation
+    url: https://geomstats.github.io/index.html
+    about: Have a look at Geomstats's documentation.
+  - name: Contributing guidelines
+    url: https://geomstats.github.io/contributing.html
+    about: Check out our contibuting guidelines.

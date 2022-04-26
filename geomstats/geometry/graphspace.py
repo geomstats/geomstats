@@ -41,7 +41,9 @@ class _GraphSpace:
         self.adjmat = Matrices(self.nodes, self.nodes)
 
     def belongs(self, graph, atol=gs.atol):
-        r"""Check if the matrix is an adjacency matrix associated to the
+        r"""Check if the matrix is an adjacency matrix.
+
+        The adjacency matrix should be associated to the
         graph with n nodes.
 
         Parameters
@@ -135,7 +137,9 @@ class GraphSpaceMetric:
         self.space = _GraphSpace(nodes)
 
     def dist(self, base_graph, graph_to_permute, matcher="ID"):
-        """Compute the distance between two equivalence classes of
+        """Compute distance between two equivalence classes.
+
+        Compute the distance between two equivalence classes of
         adjacency matrices [Jain2009]_.
 
         Parameters

@@ -61,7 +61,7 @@ class GeodesicRegression(BaseEstimator):
     max_iter : int
         Maximum number of iterations for gradient descent.
         Optional, default: 100.
-    learning_rate : float
+    init_step_size : float
         Initial learning rate for gradient descent.
         Optional, default: 0.1
     tol : float
@@ -88,7 +88,7 @@ class GeodesicRegression(BaseEstimator):
         center_X=True,
         method="extrinsic",
         max_iter=100,
-        learning_rate=0.1,
+        init_step_size=0.1,
         tol=1e-5,
         verbose=False,
         initialization="random",
@@ -109,7 +109,7 @@ class GeodesicRegression(BaseEstimator):
         self.method = method
         self.max_iter = max_iter
         self.verbose = verbose
-        self.learning_rate = learning_rate
+        self.init_step_size = init_step_size
         self.tol = tol
         self.initialization = initialization
         self.regularization = regularization
@@ -348,7 +348,7 @@ class GeodesicRegression(BaseEstimator):
         if hasattr(self.metric, "parallel_transport"):
 
             def vector_transport(tan_a, tan_b, base_point, _):
-                return self.metric.parallel_transport(tan_a, tan_b, base_point)
+                return self.metric.parallel_transport(tan_a, base_point, tan_b)
 
         else:
 
@@ -359,7 +359,7 @@ class GeodesicRegression(BaseEstimator):
             lambda params: self._loss(X, y, params, shape, weights)
         )
 
-        lr = self.learning_rate
+        lr = self.init_step_size
         intercept_init, coef_init = self.initialize_parameters(y)
         intercept_hat = intercept_hat_new = self.space.projection(intercept_init)
         coef_hat = coef_hat_new = self.space.to_tangent(coef_init, intercept_hat)

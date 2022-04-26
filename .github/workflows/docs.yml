@@ -25,23 +25,23 @@ jobs:
 
       - name: Install dependencies [pip]
         run:  |
-          pip install --upgrade pip setuptools wheel
-          for req in doc-requirements.txt opt-requirements.txt requirements.txt; do
-            pip install -q -r $req
-          done
-          pip install -e .
+          pip install --upgrade pip setuptools wheel        
+          pip install -e .[doc,opt]
+
+      - name: Install Pandoc [apt-get]
+        run: |
+          sudo apt-get -y install pandoc
 
       - name: Generate Docs [Sphinx]
-        uses: ammaraskar/sphinx-action@master
-        with:
-          docs-folder: "docs/"
-          pre-build-command : apt-get update -y && apt-get -y install pandoc
-          build-command: "sphinx-build  -b html -D version=latest -D release=latest . _build"
+        run: |
+          sphinx-build  -b html -D version=latest -D release=latest docs docs/_build
 
       - name: Deployement of Docs
-        uses: JamesIves/github-pages-deploy-action@4.1.7
+        uses: JamesIves/github-pages-deploy-action@v4.2.2
+        if : ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'geomstats/geomstats' }}
         with:
-          repository-name : geomstats/geomstats.github.io
-          branch: master
+          branch : master
           folder: docs/_build
-          token : ${{ secrets.DOCUMENTATION_KEY  }}
+          token : ${{ secrets.DOCUMENTATION_KEY }}
+          repository-name : geomstats/geomstats.github.io
+          clean : true

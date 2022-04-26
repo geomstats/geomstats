@@ -29,7 +29,7 @@ For such a representation, work in the Stiefel manifold instead.
 
 References
 ----------
-[Batzies15]_    Batzies, E., K. Hüper, L. Machado, and F. Silva Leite.
+.. [Batzies15]   Batzies, E., K. Hüper, L. Machado, and F. Silva Leite.
                 “Geometric Mean and Geodesic Regression on Grassmannians.”
                 Linear Algebra and Its Applications 466 (February 1, 2015):
                 83–101. https://doi.org/10.1016/j.laa.2014.10.003.
@@ -170,17 +170,18 @@ class Grassmannian(LevelSet):
         Dimension of the subspaces.
     """
 
-    def __init__(self, n, k):
+    def __init__(self, n, k, **kwargs):
         geomstats.errors.check_integer(k, "k")
         geomstats.errors.check_integer(n, "n")
         if k > n:
             raise ValueError(
-                "k <= n is required: k-dimensional subspaces in n dimensions."
+                "k < n is required: k-dimensional subspaces in n dimensions."
             )
 
         self.n = n
         self.k = k
 
+        kwargs.setdefault("metric", GrassmannianCanonicalMetric(n, k))
         dim = int(k * (n - k))
         super(Grassmannian, self).__init__(
             dim=dim,
@@ -190,7 +191,7 @@ class Grassmannian(LevelSet):
             tangent_submersion=lambda v, x: 2
             * Matrices.to_symmetric(Matrices.mul(x, v))
             - v,
-            metric=GrassmannianCanonicalMetric(n, k),
+            **kwargs
         )
 
     def random_uniform(self, n_samples=1):
@@ -380,22 +381,30 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         rot = GLn.compose(sym2, sym1)
         return Matrices.bracket(GLn.log(rot) / 2, base_point)
 
-    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+    def parallel_transport(
+        self, tangent_vec, base_point, tangent_vec_b=None, end_point=None
+    ):
         r"""Compute the parallel transport of a tangent vector.
 
-        Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
-        tangent_vec_b)`.
+        Closed-form solution for the parallel transport of a tangent vector
+        along the geodesic between two points `base_point` and `end_point`
+        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        t*direction)`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
+        tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., n, n]
+            Point on the Grassmann manifold. Point to transport from.
         tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
-        base_point : array-like, shape=[..., n, n]
-            Point on the Grassmann manifold.
+            Optional, default: None
+        end_point : array-like, shape=[..., n, n]
+            Point on the Grassmann manifold to transport to. Unused if `tangent_vec_b`
+            is given.
+            Optional, default: None
 
         Returns
         -------
@@ -409,12 +418,19 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
                     Computational Aspects.”
                     ArXiv:2011.13699 [Cs, Math], November 27, 2020.
                     https://arxiv.org/abs/2011.13699.
-
         """
+        if tangent_vec_b is None:
+            if end_point is not None:
+                tangent_vec_b = self.log(end_point, base_point)
+            else:
+                raise ValueError(
+                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    " geodesic along which to transport."
+                )
         expm = gs.linalg.expm
         mul = Matrices.mul
-        rot = Matrices.bracket(base_point, -tangent_vec_b)
-        return mul(expm(rot), tangent_vec_a, expm(-rot))
+        rot = -Matrices.bracket(base_point, tangent_vec_b)
+        return mul(expm(rot), tangent_vec, expm(-rot))
 
     def private_squared_dist(self, point_a, point_b):
         """Compute geodesic distance between two points.
@@ -460,3 +476,31 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         """
         dist = _squared_dist(point_a, point_b, metric=self)
         return dist
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In this case it is Pi / 2 everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+
+        References
+        ----------
+        .. [BZA20]  Bendokat, Thomas, Ralf Zimmermann, and P.-A. Absil.
+            “A Grassmann Manifold Handbook: Basic Geometry and
+            Computational Aspects.”
+            ArXiv:2011.13699 [Cs, Math], November 27, 2020.
+            https://arxiv.org/abs/2011.13699.
+        """
+        return gs.pi / 2

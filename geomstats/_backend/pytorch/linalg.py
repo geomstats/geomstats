@@ -9,8 +9,8 @@ from ..numpy import linalg as gsnplinalg
 
 
 class Logm(torch.autograd.Function):
-    """
-    Torch autograd function for matrix logarithm.
+    """Torch autograd function for matrix logarithm.
+
     Implementation based on:
     https://github.com/pytorch/pytorch/issues/9983#issuecomment-891777620
     """
@@ -18,16 +18,18 @@ class Logm(torch.autograd.Function):
     @staticmethod
     def _logm(x):
         np_logm = gsnplinalg.logm(x.detach().cpu())
-        torch_logm = torch.from_numpy(np_logm).to(x.device)
+        torch_logm = torch.from_numpy(np_logm).to(x.device, dtype=x.dtype)
         return torch_logm
 
     @staticmethod
     def forward(ctx, tensor):
+        """Apply matrix logarithm to a tensor."""
         ctx.save_for_backward(tensor)
         return Logm._logm(tensor)
 
     @staticmethod
     def backward(ctx, grad):
+        """Run gradients backward."""
         (tensor,) = ctx.saved_tensors
 
         vectorized = tensor.ndim == 3
@@ -115,9 +117,7 @@ def solve_sylvester(a, b, q):
 
 # (TODO) (sait) torch.linalg.cholesky_ex for even faster way
 def is_single_matrix_pd(mat):
-    """Check if a two dimensional square matrix is
-    positive definite.
-    """
+    """Check if 2D square matrix is positive definite."""
     if mat.shape[0] != mat.shape[1]:
         return False
     try:

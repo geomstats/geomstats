@@ -87,7 +87,7 @@ class TestVisualization(geomstats.tests.TestCase):
         x = coords[:, 0]
         y = coords[:, 1]
         z = coords[:, 2]
-        result = x ** 2 + y ** 2 + z ** 2
+        result = x**2 + y**2 + z**2
         expected = 0.25 * gs.ones(self.n_samples)
         self.assertAllClose(result, expected)
 
@@ -134,7 +134,7 @@ class TestVisualization(geomstats.tests.TestCase):
         coords = self.KD.convert_to_planar_coordinates(points)
         x = coords[:, 0]
         y = coords[:, 1]
-        radius = x ** 2 + y ** 2
+        radius = x**2 + y**2
         result = [r <= 1.0 for r in radius]
         self.assertTrue(gs.all(result))
 

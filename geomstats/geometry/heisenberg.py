@@ -4,12 +4,13 @@ Lead author: Morten Pedersen.
 """
 
 import geomstats.backend as gs
+from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
-class HeisenbergVectors(LieGroup):
+class HeisenbergVectors(LieGroup, VectorSpace):
     """Class for the 3D Heisenberg group in the vector representation.
 
     The 3D Heisenberg group represented as R^3. It is a step-2 Carnot Lie
@@ -27,8 +28,12 @@ class HeisenbergVectors(LieGroup):
 
     def __init__(self, **kwargs):
         super(HeisenbergVectors, self).__init__(
-            dim=3, default_point_type="vector", lie_algebra=Euclidean(3)
+            dim=3, shape=(3,), lie_algebra=Euclidean(3), **kwargs
         )
+
+    def _create_basis(self):
+        """Create the canonical basis."""
+        return gs.eye(3)
 
     def get_identity(self, point_type="vector"):
         """Get the identity of the 3D Heisenberg group.
@@ -45,27 +50,6 @@ class HeisenbergVectors(LieGroup):
         return gs.zeros(self.dim)
 
     identity = property(get_identity)
-
-    def belongs(self, point):
-        """Evaluate if a point belongs to the 3D Heisenberg group.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., 3]
-            Point to evaluate.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the Heisenberg
-            group (i.e. R^3 in this representation).
-        """
-        point_dim = point.shape[-1]
-        belongs = point_dim == self.dim
-        if gs.ndim(point) == 2:
-            belongs = gs.tile([belongs], (point.shape[0],))
-
-        return belongs
 
     def compose(self, point_a, point_b):
         """Compute the group product of elements `point_a` and `point_b`.
@@ -148,30 +132,6 @@ class HeisenbergVectors(LieGroup):
             + gs.einsum("..., ij -> ...ij", -point[..., 0] / 2, e32)
         )
 
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample in the Euclidean space R^3 with a uniform distribution in a box.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0
-
-        Returns
-        -------
-        point : array-like, shape=[..., 3]
-           Sample.
-        """
-        size = (self.dim,)
-        if n_samples != 1:
-            size = (n_samples, self.dim)
-        point = bound * (gs.random.rand(*size) - 0.5) * 2
-
-        return point
-
     def exp_from_identity(self, tangent_vec):
         """Compute the group exponential of the tangent vector at the identity.
 
@@ -225,9 +185,7 @@ class HeisenbergVectors(LieGroup):
         element_02 = point[..., 2] + 1 / 2 * point[..., 0] * point[..., 1]
 
         if n_points == 1:
-            modified_point = gs.array(
-                [1, point[..., 0], element_02, 1, point[..., 1], 1]
-            )
+            modified_point = gs.array([1, point[0], element_02, 1, point[1], 1])
         else:
             modified_point = gs.stack(
                 (

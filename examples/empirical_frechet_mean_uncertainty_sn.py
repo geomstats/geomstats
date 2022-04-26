@@ -64,7 +64,7 @@ def empirical_frechet_var_bubble(n_samples, theta, dim, n_expectation=1000):
         data = gs.concatenate([rest_col, last_col], axis=-1)
 
         estimator = FrechetMean(
-            sphere.metric, method="adaptive", max_iter=32, init_point=north_pole
+            sphere.metric, max_iter=32, method="adaptive", init_point=north_pole
         )
         estimator.fit(data)
         current_mean = estimator.estimate_
@@ -99,7 +99,7 @@ def modulation_factor(n_samples, theta, dim, n_expectation=1000):
     (var, std_var) = empirical_frechet_var_bubble(
         n_samples, theta, dim, n_expectation=n_expectation
     )
-    return var * n_samples / theta ** 2, std_var * n_samples / theta ** 2
+    return var * n_samples / theta**2, std_var * n_samples / theta**2
 
 
 def asymptotic_modulation(dim, theta):
@@ -156,7 +156,7 @@ def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
         error.append(std_var)
         logging.info("{} {} {} {}\n".format(n_samples, theta_i, var, std_var))
         small_var_modulation_factor.append(
-            1.0 + 2.0 / 3.0 * theta_i ** 2 * (1.0 - 1.0 / dim) * (1.0 - 1.0 / n_samples)
+            1.0 + 2.0 / 3.0 * theta_i**2 * (1.0 - 1.0 / dim) * (1.0 - 1.0 / n_samples)
         )
         asymptotic_modulation_factor.append(asymptotic_modulation(dim, theta_i))
     plt.figure()

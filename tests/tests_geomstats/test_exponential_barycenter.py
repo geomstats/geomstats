@@ -146,8 +146,8 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
             self.so.bi_invariant_metric,
             max_iter=40,
             epsilon=1e-10,
-            lr=1.0,
             method="adaptive",
+            init_step_size=1.0,
         )
         frechet_estimator.fit(point)
         expected = frechet_estimator.estimate_

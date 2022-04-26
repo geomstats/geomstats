@@ -19,7 +19,12 @@ Geomstats
 
 **NEWS**:
 
-- Geomstats is recruiting an engineer for a start early 2022! If interested, details can be found `here  <https://gstats.inria.fr/files/2021/10/Research_engineer_gs-1.pdf>`_.
+- Next hackathon will be on October 17-21, 2022 in Paris. Interested? Reach out to us on slack!
+- Google's Season of Docs (SoD) 2022: Geomstats is participating! Interested?
+   - Find out more about being a Google SoD's `writer <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_ and about Geomstats' `proposal <https://geomstats.github.io/gsod.html>`_. 
+   - Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_. 
+   - Submit your `statement of interest <https://developers.google.com/season-of-docs/docs/tech-writer-statement>`_ via email to nmiolane@gmail.com before May 1st, at 18:00 UTC.
+   - Selected technical writers will be notified no later than May 16th.
 
 - The white paper summarizing the findings from our `ICLR 2021 challenge of computational differential geometry and topology <https://gt-rl.github.io/challenge>`__ is out. `Read it here <https://arxiv.org/abs/2108.09810>`__.
 
@@ -33,11 +38,6 @@ The module ``geometry`` implements concepts in differential geometry,
 and the module ``learning`` implements statistics and learning
 algorithms for data on manifolds.
 
-.. raw:: html
-
-    <img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" height="120px" width="120px" align="left">
-
-
 -  To get an overview of ``geomstats``, see our `introductory
    video <https://www.youtube.com/watch?v=Ju-Wsd84uG0&list=PLYx7XA2nY5GejOB1lsvriFeMytD1-VS1B&index=3>`__.
 -  To get started with ``geomstats``, see the
@@ -50,6 +50,8 @@ algorithms for data on manifolds.
 - Interested in information geometry? Go to our `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_ module.
 -  To follow the scientific literature on geometric statistics, follow
    our twitter-bot `@geomstats <https://twitter.com/geomstats>`__!
+  
+Keep in touch with the community by joining us on our `slack workspace <https://join.slack.com/t/geomstats/shared_invite/zt-15t8k0q7r-Duxt6j6aA3rDOIms2Vd~RQ>`__! 
 
 
 Citing Geomstats
@@ -98,13 +100,14 @@ requirements via ``git`` as follows:
 ::
 
     git clone https://github.com/geomstats/geomstats.git
-    pip3 install -r requirements.txt
+    cd geomstats
+    pip3 install .
 
 This method installs the latest GitHub version of geomstats.
 
 
-To add the `requirements.txt` into a conda environment, you can use the
-`enviroment.yml` file as follows:
+To add the requirements into a conda environment, you can use the
+``enviroment.yml`` file as follows:
 
 ::
 
@@ -112,7 +115,7 @@ To add the `requirements.txt` into a conda environment, you can use the
 
 Note that this only installs the minimum requirements. To add the optional,
 development, continuous integration and documentation requirements,
-refer to the files `*-requirements.txt`.
+refer to the file ``setup.cfg``.
 
 Install geomstats : Developers
 ------------------------------
@@ -123,7 +126,7 @@ backends:
 
 ::
 
-    pip3 install -r dev-requirements.txt -r opt-requirements.txt
+    pip3 install geomstats[dev,opt]
 
 Additionally, we recommend installing our pre-commit hook, to ensure that your code
 follows our Python style guidelines:
@@ -136,27 +139,32 @@ follows our Python style guidelines:
 Choose the backend
 ------------------
 
-Geomstats can run seamlessly with ``numpy``, ``tensorflow`` or
-``pytorch``. Note that ``pytorch`` and ``tensorflow`` requirements are
+Geomstats can run seamlessly with ``numpy``, ``autograd``, ``tensorflow`` or
+``pytorch``. Note that ``autograd``, ``tensorflow`` and ``pytorch`` and requirements are
 optional, as geomstats can be used with ``numpy`` only. By default, the
 ``numpy`` backend is used. The visualizations are only available with
 this backend.
 
-To get the ``tensorflow`` and ``pytorch`` versions compatible with
-geomstats, install the `optional
-requirements <https://github.com/geomstats/geomstats/blob/master/opt-requirements.txt>`__:
+To get the ``autograd``, ``tensorflow`` and ``pytorch`` versions compatible with
+geomstats, install the optional requirements:
 
 ::
 
-    pip3 install -r opt-requirements.txt
+    pip3 install geomstats[opt]
+
+To install only the requirements for a given backend do:
+
+::
+
+    pip3 install geomstats[<backend_name>]
 
 You can choose your backend by setting the environment variable
-``GEOMSTATS_BACKEND`` to ``numpy``, ``tensorflow`` or ``pytorch``, and
+``GEOMSTATS_BACKEND`` to ``numpy``, ``autograd``, ``tensorflow`` or ``pytorch``, and
 importing the ``backend`` module. From the command line:
 
 ::
 
-    export GEOMSTATS_BACKEND=pytorch
+    export GEOMSTATS_BACKEND=<backend_name>
 
 and in the Python3 code:
 
@@ -216,8 +224,13 @@ Interested? Contact us and join the next hackathons. Previous Geomstats events i
 -  April 2020: remote online hackathon
 -  March - April 2021: hackathon, hybrid at Inria Sophia-Antipolis / remotely with contributors from around the world
 -  July 2021: hackathon at the Geometric Science of Information (GSI) conference, Paris, France
--  August 2021: International Coding Challenge at the International Conference on Learning Representations (ICLR), remotely
--  December 2021: Fixit hackathon at the Sorbonne Center for Artificial Intelligence, Paris, France.
+-  August 2021: international Coding Challenge at the International Conference on Learning Representations (ICLR), remotely
+-  December 2021: fixit hackathon at the Sorbonne Center for Artificial Intelligence, Paris, France.
+-  February 2022: hackathon, hybrid at Inria Sophia-Antipolis / remotely with contributors from around the world
+-  April 2022: in-person hackathon at the Villa Cynthia, Saint Raphael, France.
+-  August 2022: international Coding Challenge at the International Conference on Learning Representations (ICLR), remotely
+-  October 17-21, 2022: hackathon during the trimester `Geometry and Statistics in Data Sciences <https://indico.math.cnrs.fr/category/498/>`__, in Paris. 
+
 
 Acknowledgements
 ----------------
@@ -233,10 +246,10 @@ This work is supported by:
    :target: https://twitter.com/geomstats
 .. |PyPI version| image:: https://badge.fury.io/py/geomstats.svg
    :target: https://badge.fury.io/py/geomstats
-.. |Build Status| image:: https://github.com/geomstats/geomstats/actions/workflows/build.yml/badge.svg
-   :target: https://github.com/geomstats/geomstats/actions/workflows/build.yml
+.. |Build Status| image:: https://github.com/geomstats/geomstats/actions/workflows/test.yml/badge.svg
+   :target: https://github.com/geomstats/geomstats/actions/workflows/test.yml
 .. |Slack| image:: https://img.shields.io/badge/Slack-Join-yellow
-   :target: https://geomstats.slack.com/
+   :target: https://join.slack.com/t/geomstats/shared_invite/zt-15t8k0q7r-Duxt6j6aA3rDOIms2Vd~RQ
 .. |Coverage Status np| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Coverage Status autograd| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=autograd

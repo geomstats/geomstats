@@ -38,6 +38,7 @@ from tensorflow import (
     logical_or,
     maximum,
     meshgrid,
+    minimum,
     ones,
     ones_like,
 )
@@ -71,9 +72,10 @@ from . import random  # NOQA
 
 DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3, complex64: 4, complex128: 5}
 
-
+angle = tf.math.angle
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
+conj = tf.math.conj
 cross = tf.linalg.cross
 erf = tf.math.erf
 imag = tf.math.imag
@@ -603,19 +605,18 @@ def cast(x, dtype):
     return tf.cast(x, dtype)
 
 
-def broadcast_arrays(x, y, **kwargs):
-    tensors = [x, y]
+def broadcast_arrays(*args, **kwargs):
+    tensors = [*args]
     shapes = [t.get_shape().as_list() for t in tensors]
     max_rank = max(len(s) for s in shapes)
 
     for index, value in enumerate(shapes):
-        shape = value
-        if len(shape) == max_rank:
+        if len(value) == max_rank:
             continue
 
         tensor = tensors[index]
-        for _ in range(max_rank - len(shape)):
-            shape.insert(0, 1)
+        for _ in range(max_rank - len(value)):
+            value.insert(0, 1)
             tensor = tf.expand_dims(tensor, axis=0)
         tensors[index] = tensor
 
@@ -625,7 +626,7 @@ def broadcast_arrays(x, y, **kwargs):
         repeats = Counter(dimensions)
         if len(repeats) > 2 or (len(repeats) == 2 and 1 not in list(repeats.keys())):
             raise ValueError(
-                "operands could not be " "broadcast together with shapes", shapes
+                "operands could not be broadcast together with shapes", shapes
             )
         broadcast_shape.append(max(repeats.keys()))
 
@@ -847,7 +848,6 @@ def tile(x, multiples):
 
 
 def vec_to_diag(vec):
-    """Convert vec to diagonal matrix"""
     return tf.linalg.diag(vec)
 
 
@@ -855,11 +855,11 @@ def vec_to_triu(vec):
     """Take vec and forms strictly upper triangular matrix.
 
     Parameters
-    ---------
+    ----------
     vec : array_like, shape[..., n]
 
     Returns
-    ------
+    -------
     tril : array_like, shape=[..., k, k] where
         k is (1 + sqrt(1 + 8 * n)) / 2
     """
@@ -873,15 +873,14 @@ def vec_to_triu(vec):
     non_zero = tf.not_equal(mask, tf.constant(0.0))
     indices = tf.where(non_zero)
     sparse = tf.SparseTensor(indices, values=vec, dense_shape=triu_shape)
-    triu = tf.sparse.to_dense(sparse)
-    return triu
+    return tf.sparse.to_dense(sparse)
 
 
 def vec_to_tril(vec):
     """Take vec and forms strictly lower triangular matrix.
 
     Parameters
-    ---------
+    ----------
     vec : array_like, shape=[..., n]
 
     Returns
@@ -899,8 +898,7 @@ def vec_to_tril(vec):
     non_zero = tf.not_equal(mask, tf.constant(0.0))
     indices = tf.where(non_zero)
     sparse = tf.SparseTensor(indices, values=vec, dense_shape=tril_shape)
-    tril = tf.sparse.to_dense(sparse)
-    return tril
+    return tf.sparse.to_dense(sparse)
 
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
@@ -938,3 +936,7 @@ def ravel_tril_indices(n, k=0, m=None):
         size = (n, m)
     idxs = tril_indices(n, k, m)
     return _ravel_multi_index(idxs, size)
+
+
+def kron(a, b):
+    return tf.linalg.LinearOperatorKronecker([a, b]).to_dense()

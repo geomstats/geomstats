@@ -213,7 +213,7 @@ class CategoricalMetric(RiemannianMetric):
         point_simplex : array-like, shape=[..., dim + 1]
             Point on the simplex.
         """
-        return point ** 2
+        return point**2
 
     def tangent_simplex_to_sphere(self, tangent_vec, base_point):
         """Send tangent vector of the simplex to tangent space of sphere.

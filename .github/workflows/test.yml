@@ -29,7 +29,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-18.04]
-        python-version: [3.9]
+        python-version: [3.8]
         geomstats-backend : ['autograd','numpy','pytorch','tensorflow']
         test-folder : ['tests/tests_geomstats/' , 'tests/test_notebooks.py']
       fail-fast: false
@@ -44,11 +44,11 @@ jobs:
       - name: install dependencies [pip]
         run:  |
           pip install --upgrade pip setuptools wheel
-          for req in ci-requirements.txt dev-requirements.txt doc-requirements.txt opt-requirements.txt requirements.txt; do
-            pip install -q -r $req
-          done
-          pip install -e .
+          pip install -e .[ci,dev,doc,opt]
 
+      - name: Add annotations [pytest]
+        run: pip install pytest-github-actions-annotate-failures
+      
       - name: unit testing [pytest]
         env:
           GEOMSTATS_BACKEND : ${{matrix.geomstats-backend}}
@@ -56,6 +56,6 @@ jobs:
           pytest --cov-report term --cov=geomstats ${{matrix.test-folder}}
 
       - name: uploading code coverage [codecov]
-        if: ${{matrix.python-version == 3.7 && matrix.test-folder == 'tests/tests_geomstats/'}}
+        if: ${{matrix.python-version == 3.8 && matrix.test-folder == 'tests/tests_geomstats/'}}
         run: |
           bash <(curl -s https://codecov.io/bash) -c -F ${{matrix.geomstats-backend}}
