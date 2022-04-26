@@ -1,14 +1,51 @@
-
-
 import abc
 
+import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 
-# TODO: add args to methods
-
 
 class Plotter(metaclass=abc.ABCMeta):
+    def __init__(self):
+        self._belongs = lambda x: True
+        self._project = lambda x: x
+        self._convert_points = lambda x: x
+        self._ax_scale = 1.0
+
+        self._graph_defaults = {
+            "scatter": {},
+            "plot": {},
+        }
+
+    def _create_ax(self):
+        if self._dim == 2:
+            return plt.subplot()
+
+        return plt.subplot(111, projection="3d")
+
+    def config_ax(self, ax):
+        ax_s = self._ax_scale
+
+        if self._dim == 2:
+            plt.setp(
+                ax,
+                xlim=(-ax_s, ax_s),
+                ylim=(-ax_s, ax_s),
+                xlabel="X",
+                ylabel="Y",
+            )
+        else:
+            plt.setp(
+                ax,
+                xlim=(-ax_s, ax_s),
+                ylim=(-ax_s, ax_s),
+                zlim=(-ax_s, ax_s),
+                xlabel="X",
+                ylabel="Y",
+                zlabel="Z",
+            )
+
+        return ax
 
     def set_ax(self, ax=None):
         """Set axis."""
@@ -20,43 +57,126 @@ class Plotter(metaclass=abc.ABCMeta):
 
     def _check_points(self, points):
         # TODO: points may need to be converted to numpy
+        # TODO: check shape to see if only one point?
         if not gs.all(self._belongs(points)):
             raise ValueError("Points do not belong to the space.")
 
-        return points
+        points = self._project(points)
 
-    def _prepare_vis(self, ax, points, space_on, grid_on):
-        ax = self.set_ax(ax=ax)
-        points = self._check_points(points)
+        return self._convert_points(points)
 
-        if space_on:
-            self.plot_space(ax=ax)
+    def _prepare_vis(
+        self,
+        ax,
+        points,
+        space_on,
+        grid_on,
+        ax_kwargs=None,
+        space_kwargs=None,
+        grid_kwargs=None,
+    ):
+
+        ax_kwargs = ax_kwargs or {}
+        ax = self.set_ax(ax=ax, **ax_kwargs)
+
+        if space_on and not grid_on:
+            space_kwargs = space_kwargs or {}
+            ax = self.plot_space(ax=ax, **space_kwargs)
 
         if grid_on:
-            self.plot_grid(ax=ax)
+            grid_kwargs = grid_kwargs or {}
+            ax = self.plot_grid(ax=ax, **grid_kwargs)
+
+        if points is not None:
+            points = self._check_points(points)
 
         return ax, points
 
-    def scatter(self, grid_on=False, space_on=False, **scatter_kwargs):
+    def _graph(
+        self,
+        graph_fnc_name,
+        points,
+        ax=None,
+        grid_on=False,
+        space_on=False,
+        ax_kwargs=None,
+        space_kwargs=None,
+        grid_kwargs=None,
+        **graph_kwargs
+    ):
+        ax, transformed_points = self._prepare_vis(
+            ax,
+            points,
+            space_on=space_on,
+            grid_on=grid_on,
+            ax_kwargs=ax_kwargs,
+            space_kwargs=space_kwargs,
+            grid_kwargs=grid_kwargs,
+        )
+
+        graph_fnc = getattr(ax, graph_fnc_name)
+        graph_kwargs = _update_dict_with_defaults(
+            graph_kwargs, self._graph_defaults.get(graph_fnc_name)
+        )
+
+        graph_fnc(
+            *[transformed_points[..., i] for i in range(self._dim)], **graph_kwargs
+        )
+
+        self._after_graph(ax, transformed_points, graph_kwargs)
+
+        return ax, transformed_points
+
+    def _after_graph(self, ax, transformed_points, graph_kwargs):
         pass
 
-    def plot(self, grid_on=False, space_on=False, **plot_kwargs):
-        pass
+    def scatter(self, points, ax=None, grid_on=False, space_on=False, **scatter_kwargs):
+        ax, _ = self._graph(
+            "scatter",
+            points,
+            ax=ax,
+            grid_on=grid_on,
+            space_on=space_on,
+            **scatter_kwargs
+        )
+        return ax
 
-    def plot_geodesic(self):
-        pass
+    def plot(self, points, ax=None, grid_on=False, space_on=False, **plot_kwargs):
+        ax, _ = self._graph(
+            "plot", points, ax=ax, grid_on=grid_on, space_on=space_on, **plot_kwargs
+        )
+        return ax
 
-    def plot_inhabitants(self):
-        pass
+    def plot_geodesic(
+        self,
+        initial_point,
+        end_point=None,
+        init_tangent_vec=None,
+        n_points=1000,
+        ax=None,
+        space_on=False,
+        grid_on=False,
+    ):
+        return ax
 
-    def plot_vector_field(self):
-        pass
+    def plot_inhabitants(self, ax=None):
+        return ax
 
-    def plot_tangent_space(self):
-        pass
+    def quiver(self, tangent_vec, base_point, ax=None, space_on=False, **quiver_kwargs):
+        return ax
+
+    def plot_tangent_space(self, ax=None):
+        return ax
 
     def plot_space(self, ax=None):
-        pass
+        return ax
 
-    def plot_grid(self):
-        pass
+    def plot_grid(self, ax=None):
+        return ax
+
+
+def _update_dict_with_defaults(kwargs, kwargs_default):
+    for key, value in kwargs_default.items():
+        kwargs.setdefault(key, value)
+
+    return kwargs
