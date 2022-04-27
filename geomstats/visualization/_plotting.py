@@ -134,20 +134,51 @@ class Plotter(metaclass=abc.ABCMeta):
     def _after_graph(self, ax, transformed_points, graph_kwargs):
         pass
 
-    def scatter(self, points, ax=None, grid_on=False, space_on=False, **scatter_kwargs):
+    def scatter(
+        self,
+        points,
+        ax=None,
+        grid_on=False,
+        space_on=False,
+        ax_kwargs=None,
+        space_kwargs=None,
+        grid_kwargs=None,
+        **scatter_kwargs
+    ):
         ax, _ = self._graph(
             "scatter",
             points,
             ax=ax,
             grid_on=grid_on,
             space_on=space_on,
+            ax_kwargs=ax_kwargs,
+            space_kwargs=space_kwargs,
+            grid_kwargs=grid_kwargs,
             **scatter_kwargs
         )
         return ax
 
-    def plot(self, points, ax=None, grid_on=False, space_on=False, **plot_kwargs):
+    def plot(
+        self,
+        points,
+        ax=None,
+        grid_on=False,
+        space_on=False,
+        ax_kwargs=None,
+        space_kwargs=None,
+        grid_kwargs=None,
+        **plot_kwargs
+    ):
         ax, _ = self._graph(
-            "plot", points, ax=ax, grid_on=grid_on, space_on=space_on, **plot_kwargs
+            "plot",
+            points,
+            ax=ax,
+            grid_on=grid_on,
+            space_on=space_on,
+            ax_kwargs=ax_kwargs,
+            space_kwargs=space_kwargs,
+            grid_kwargs=grid_kwargs,
+            **plot_kwargs
         )
         return ax
 
@@ -179,6 +210,9 @@ class Plotter(metaclass=abc.ABCMeta):
         ax=None,
         space_on=False,
         grid_on=False,
+        ax_kwargs=None,
+        space_kwargs=None,
+        grid_kwargs=None,
         **plot_kwargs
     ):
         """Plot geodesic.
@@ -189,9 +223,19 @@ class Plotter(metaclass=abc.ABCMeta):
             initial_point, end_point, initial_tangent_vec, n_points
         )
 
-        return self.plot(
-            curve_points, ax=ax, grid_on=grid_on, space_on=space_on, **plot_kwargs
+        ax, _ = self._graph(
+            "plot",
+            curve_points,
+            ax=ax,
+            grid_on=grid_on,
+            space_on=space_on,
+            ax_kwargs=ax_kwargs,
+            space_kwargs=space_kwargs,
+            grid_kwargs=grid_kwargs,
+            **plot_kwargs
         )
+
+        return ax
 
     def plot_inhabitants(self, ax=None):
         return ax

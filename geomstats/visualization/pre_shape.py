@@ -153,32 +153,16 @@ class KendallSphere(Plotter):
     ):
         ax_kwargs = {"elev": elev, "azim": azim}
 
-        ax, _ = self._graph(
-            "scatter",
-            points,
-            ax=ax,
-            grid_on=False,
-            space_on=space_on,
-            ax_kwargs=ax_kwargs,
-            **scatter_kwargs
+        return super().scatter(
+            points, ax=ax, space_on=space_on, ax_kwargs=ax_kwargs, **scatter_kwargs
         )
-
-        return ax
 
     def plot(self, points, ax=None, space_on=False, elev=60.0, azim=0.0, **plot_kwargs):
-
         ax_kwargs = {"elev": elev, "azim": azim}
 
-        ax, _ = self._graph(
-            "plot",
-            points,
-            ax=ax,
-            grid_on=False,
-            space_on=space_on,
-            ax_kwargs=ax_kwargs,
-            **plot_kwargs
+        return super().plot(
+            points, ax=ax, space_on=space_on, ax_kwargs=ax_kwargs, **plot_kwargs
         )
-        return ax
 
     def plot_inhabitants(
         self, ax=None, n_theta=25, n_phi=13, scale=0.05, elev=60.0, azim=0.0
@@ -258,12 +242,17 @@ class KendallSphere(Plotter):
 
         Follows metric.geodesic signature.
         """
-        curve_points = self._get_geodesic_points(
-            initial_point, end_point, initial_tangent_vec, n_points
-        )
+        ax_kwargs = {"elev": elev, "azim": azim}
 
-        return self.plot(
-            curve_points, ax=ax, space_on=space_on, elev=elev, azim=azim, **plot_kwargs
+        return super().plot_geodesic(
+            initial_point,
+            end_point=end_point,
+            initial_tangent_vec=initial_tangent_vec,
+            n_points=n_points,
+            ax=ax,
+            space_on=space_on,
+            ax_kwargs=ax_kwargs,
+            **plot_kwargs
         )
 
     def quiver(
