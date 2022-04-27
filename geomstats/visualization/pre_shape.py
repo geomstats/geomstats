@@ -70,6 +70,7 @@ class KendallSphere(Plotter):
             "zorder": 0,
         }
         self._graph_defaults["scatter"] = _defaults
+        self._graph_defaults["plot"] = _defaults
 
     def _set_view(self, ax, elev=60.0, azim=0.0):
         """Set azimuth and elevation angle."""
@@ -241,27 +242,6 @@ class KendallSphere(Plotter):
 
         return ax
 
-    def plot_curve(
-        self, curve_points, ax=None, space_on=False, elev=60.0, azim=0.0, **plot_kwargs
-    ):
-        """Draw a curve on the Kendall sphere."""
-        plot_kwargs.setdefault("alpha", 1)
-        plot_kwargs.setdefault("zorder", 0)
-        ax_kwargs = {"elev": elev, "azim": azim}
-
-        ax, transformed_curve_points = self._prepare_vis(
-            ax, curve_points, space_on=space_on, grid_on=False, ax_kwargs=ax_kwargs
-        )
-
-        ax.plot3D(
-            *[transformed_curve_points[..., i] for i in range(self._dim)], **plot_kwargs
-        )
-
-        # stress initial and end points
-        ax = self.scatter(points=curve_points[(0, -1), ...], ax=ax, color="k", s=70)
-
-        return ax
-
     def plot_geodesic(
         self,
         initial_point,
@@ -278,17 +258,11 @@ class KendallSphere(Plotter):
 
         Follows metric.geodesic signature.
         """
-        # TODO: should metric be passed to the space?
-        geodesic = self.metric.geodesic(
-            initial_point, end_point=end_point, initial_tangent_vec=initial_tangent_vec
+        curve_points = self._get_geodesic_points(
+            initial_point, end_point, initial_tangent_vec, n_points
         )
 
-        # TODO: check if makes sense for combination initial_point,
-        # initial_point_tangent_vec
-        t = gs.linspace(0.0, 1.0, n_points)
-        curve_points = geodesic(t)
-
-        return self.plot_curve(
+        return self.plot(
             curve_points, ax=ax, space_on=space_on, elev=elev, azim=azim, **plot_kwargs
         )
 
@@ -490,22 +464,6 @@ class KendallDisk(Plotter):
                 alpha=0.6,
                 zorder=-1,
             )
-
-        return ax
-
-    def plot_curve(self, curve_points, ax=None, space_on=False, **plot_kwargs):
-        """Draw a curve on the Kendall disk."""
-        plot_kwargs.setdefault("alpha", 1)
-        plot_kwargs.setdefault("zorder", 0)
-
-        ax, transformed_curve_points = self._prepare_vis(
-            ax, curve_points, space_on=space_on, grid_on=False
-        )
-
-        ax.plot(
-            *[transformed_curve_points[..., i] for i in range(self._ndim)],
-            **plot_kwargs
-        )
 
         return ax
 

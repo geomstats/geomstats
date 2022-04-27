@@ -19,6 +19,7 @@ class Circle(Plotter):
         self._circle_y = gs.sin(angles)
 
         self.space = Hypersphere(dim=1)
+        self.metric = self.space.metric
         self._belongs = self.space.belongs
 
         self._ax_scale = 1.2
@@ -49,6 +50,7 @@ class Sphere(Plotter):
         n_circles_latitude = n_circles_latitude or max(n_meridians / 2, 4)
 
         self.space = Hypersphere(dim=2)
+        self.metric = self.space.metric
         self._belongs = self.space.belongs
 
         u, v = gs.meshgrid(

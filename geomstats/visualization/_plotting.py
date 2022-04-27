@@ -102,6 +102,7 @@ class Plotter(metaclass=abc.ABCMeta):
         ax_kwargs=None,
         space_kwargs=None,
         grid_kwargs=None,
+        after_graph=None,
         **graph_kwargs
     ):
         ax, transformed_points = self._prepare_vis(
@@ -116,14 +117,17 @@ class Plotter(metaclass=abc.ABCMeta):
 
         graph_fnc = getattr(ax, graph_fnc_name)
         graph_kwargs = _update_dict_with_defaults(
-            graph_kwargs, self._graph_defaults.get(graph_fnc_name)
+            graph_kwargs, self._graph_defaults.get(graph_fnc_name, {})
         )
 
         graph_fnc(
             *[transformed_points[..., i] for i in range(self._dim)], **graph_kwargs
         )
 
-        self._after_graph(ax, transformed_points, graph_kwargs)
+        if callable(after_graph):
+            after_graph(ax, transformed_points, graph_kwargs)
+        elif after_graph is not False:
+            self._after_graph(ax, transformed_points, graph_kwargs)
 
         return ax, transformed_points
 
@@ -147,17 +151,47 @@ class Plotter(metaclass=abc.ABCMeta):
         )
         return ax
 
+    def _get_geodesic_points(
+        self,
+        initial_point,
+        end_point=None,
+        initial_tangent_vec=None,
+        n_points=1000,
+    ):
+
+        # TODO: should metric be passed to the space?
+        geodesic = self.metric.geodesic(
+            initial_point, end_point=end_point, initial_tangent_vec=initial_tangent_vec
+        )
+
+        # TODO: check if makes sense for combination initial_point,
+        # initial_point_tangent_vec
+        t = gs.linspace(0.0, 1.0, n_points)
+
+        return geodesic(t)
+
     def plot_geodesic(
         self,
         initial_point,
         end_point=None,
-        init_tangent_vec=None,
+        initial_tangent_vec=None,
         n_points=1000,
         ax=None,
         space_on=False,
         grid_on=False,
+        **plot_kwargs
     ):
-        return ax
+        """Plot geodesic.
+
+        Follows metric.geodesic signature.
+        """
+        curve_points = self._get_geodesic_points(
+            initial_point, end_point, initial_tangent_vec, n_points
+        )
+
+        return self.plot(
+            curve_points, ax=ax, grid_on=grid_on, space_on=space_on, **plot_kwargs
+        )
 
     def plot_inhabitants(self, ax=None):
         return ax
