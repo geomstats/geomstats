@@ -323,9 +323,52 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         )
 
         # Squeeze if it is not batched
-        if base_point.shape == self.shape:
+        if image_point.shape == self.shape:
             return tv[0]
         return tv
+
+    def metric_matrix(self, base_point=None):
+        """Metric matrix at the tangent space at a base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., dim, dim]
+            Inner-product matrix.
+        """
+        raise NotImplementedError(
+            "The computation of the pullback metric matrix"
+            " is not implemented yet in general shape setting."
+        )
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+        """Inner product between two tangent vectors at a base point.
+
+        Parameters
+        ----------
+        tangent_vec_a: array-like, shape=[..., *shape]
+            Tangent vector at base point.
+        tangent_vec_b: array-like, shape=[..., *shape]
+            Tangent vector at base point.
+        base_point: array-like, shape=[..., *shape]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        inner_product : array-like, shape=[...,]
+            Inner-product.
+        """
+        return self.embedding_metric.inner_product(
+            self.tangent_diffeomorphism(tangent_vec_a, base_point),
+            self.tangent_diffeomorphism(tangent_vec_b, base_point),
+            self.diffeomorphism(base_point)
+        )
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """
