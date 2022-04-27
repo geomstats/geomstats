@@ -14,7 +14,6 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 class PullbackMetric(RiemannianMetric):
     r"""Pullback metric.
-
     Let :math:`f` be an immersion :math:`f: M \rightarrow N`
     of one manifold :math:`M` into the Riemannian manifold :math:`N`
     with metric :math:`g`.
@@ -22,13 +21,11 @@ class PullbackMetric(RiemannianMetric):
     base point :math:`p` as:
     :math:`(f^*g)_p(u, v) = g_{f(p)}(df_p u , df_p v)
     \quad \forall u, v \in T_pM`
-
     Note
     ----
     The pull-back metric is currently only implemented for an
     immersion into the Euclidean space, i.e. for
     :math:`N=\mathbb{R}^n`.
-
     Parameters
     ----------
     dim : int
@@ -38,51 +35,38 @@ class PullbackMetric(RiemannianMetric):
     immersion : callable
         Map defining the immersion into the Euclidean space.
     """
-
     def __init__(
         self,
         dim,
-        embedding_space,
+        embedding_dim,
         immersion,
         jacobian_immersion=None,
         tangent_immersion=None,
     ):
         super(PullbackMetric, self).__init__(dim=dim)
-        self.embedding_space = embedding_space
-        self.embedding_metric = embedding_space.metric
-
+        self.embedding_metric = EuclideanMetric(embedding_dim)
         self.immersion = immersion
-
         if jacobian_immersion is None:
             jacobian_immersion = gs.autodiff.jacobian(immersion)
-
+        self.jacobian_immersion = jacobian_immersion
         if tangent_immersion is None:
-
             def _tangent_immersion(v, x):
-                # TODO: More general for shape
-                return gs.einsum('...ij,...j->...j', jacobian_immersion(x), v)
-            tangent_immersion = _tangent_immersion
-
-        self.tangent_immersion = tangent_immersion
-
+                return gs.matmul(jacobian_immersion(x), v)
+        self.tangent_immersion = _tangent_immersion
     def metric_matrix(self, base_point=None, n_jobs=1, **joblib_kwargs):
         r"""Metric matrix at the tangent space at a base point.
-
         Let :math:`f` be the immersion
         :math:`f: M \rightarrow \mathbb{R}^n` of the manifold
         :math:`M` into the Euclidean space :math:`\mathbb{R}^n`.
-
         The elements of the metric matrix at a base point :math:`p`
         are defined as:
         :math:`(f*g)_{ij}(p) = <df_p e_i , df_p e_j>`,
         for :math:`e_i, e_j` basis elements of :math:`M`.
-
         Parameters
         ----------
         base_point : array-like, shape=[..., dim]
             Base point.
             Optional, default: None.
-
         Returns
         -------
         mat : array-like, shape=[..., dim, dim]
@@ -91,7 +75,6 @@ class PullbackMetric(RiemannianMetric):
         immersed_base_point = self.immersion(base_point)
         jacobian_immersion = self.jacobian_immersion(base_point)
         basis_elements = gs.eye(self.dim)
-
         @joblib.delayed
         @joblib.wrap_non_picklable_objects
         def pickable_inner_product(i, j):
@@ -102,13 +85,11 @@ class PullbackMetric(RiemannianMetric):
                 immersed_basis_element_j,
                 base_point=immersed_base_point,
             )
-
         pool = joblib.Parallel(n_jobs=n_jobs, **joblib_kwargs)
         out = pool(
             pickable_inner_product(i, j)
             for i, j in itertools.product(range(self.dim), range(self.dim))
         )
-
         metric_mat = gs.reshape(gs.array(out), (-1, self.dim, self.dim))
         return metric_mat[0] if base_point.ndim == 1 else metric_mat
 
@@ -123,50 +104,229 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         Dimension.
     """
 
-    def __init__(self, dim):
-        super(PullbackMetric, self).__init__(dim=dim)
-        self.embedding_space = self._create_embedding_space()
-        self.embedding_metric = self.embedding_space.metric
-        self._jacobian = None
-        self._inverse_jacobian = None
+    def __init__(self, dim, shape):
+        super(PullbackDiffeoMetric, self).__init__(dim=dim, shape=shape)
+
+        # Inner variable
+        self._embedding_metric = None
+        self._jacobian_diffeomorphism = None
+        self._inverse_jacobian_diffeomorphism = None
+
+        self.shape_dim = int(gs.prod(shape))
+        self.embedding_space_shape_dim = int(
+            gs.prod(self.embedding_metric.shape)
+        )
 
     @abc.abstractmethod
-    def _create_embedding_space(self):
+    def create_embedding_metric(self):
+        r"""Create the metric this metric is in
+        diffeomophism with.
+        This class is the  pullback riemanian metric
+        making the diffeomorphisme an isometry.
+
+        -------
+        embedding_metric : RiemannianMetric object
+            The metric of the embedding space
+
+        """
         pass
+
+    @property
+    def embedding_metric(self):
+        r"""The metric in which the diffeomorphisme goes.
+
+        -------
+        embedding_metric : RiemannianMetric object
+            The metric of the embedding space
+        """
+        if self._embedding_metric is None:
+            self._embedding_metric = self.create_embedding_metric()
+        return self._embedding_metric
 
     @abc.abstractmethod
     def diffeomorphism(self, base_point):
+        r"""diffeomorphism at base point.
+
+        Let :math:`f` be the diffeomorphism
+        :math:`f: M \rightarrow N` of the manifold
+        :math:`M` into the manifold `N`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., *i_shape]
+            Inner-product matrix.
+        """
         pass
 
-    @abc.abstractmethod
-    def inverse_diffeomorphism(self, im_point):
-        pass
+    def jacobian_diffeomorphism(self, base_point):
+        r"""Jacobian of the diffeomorphism at base point.
 
-    def jacobian(self, base_point):
-        # Can be overwritten or never use if tangent method are
-        # How it works when batched with autodiff ??
-        if self._jacobian is None:
-            self._jacobian = gs.autodiff.jacobian(self.diffeomorphism)
-        return self._jacobian(base_point)
+        Let :math:`f` be the diffeomorphism
+        :math:`f: M \rightarrow N` of the manifold
+        :math:`M` into the manifold `N`.
 
-    def inverse_jacobian(self, im_point):
-        # Can be overwritten or never use if tangent method are
-        # How it works when batched with autodiff ??
-        if self._inverse_jacobian is None:
-            self._inverse_jacobian = gs.autodiff.jacobian(self.inverse_diffeomorphism)
-        return self._inverse_jacobian(im_point)
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., *i_shape, *shape]
+            Inner-product matrix.
+        """
+        # Only compute graph once
+        if self._jacobian_diffeomorphism is None:
+            self._jacobian_diffeomorphism = gs.autodiff.jacobian(self.diffeomorphism)
+
+        J = self._jacobian_diffeomorphism(base_point)
+        if base_point.shape != self.shape:
+            # We are [..., *shape], restore the batch dimension as first dim
+            J = gs.moveaxis(
+                gs.diagonal(J, axis1=0, axis2=len(self.shape) + 1),
+                -1, 0
+            )
+        return J
 
     def tangent_diffeomorphism(self, tangent_vec, base_point):
-        # Can be overwritten when close form
-        # TODO: More general for shape
-        return gs.matmul(self.jacobian(base_point), tangent_vec)
+        r"""Tangent diffeomorphism at base point.
 
-    def inverse_tangent_diffeomorphism(self, tangent_vec, im_point):
-        # Can be overwritten when close form
-        # TODO: More general for shape
-        return gs.matmul(self.inverse_jacobian(im_point), tangent_vec)
+        Let :math:`f` be the diffeomorphism
+        :math:`f: M \rightarrow N` of the manifold
+        :math:`M` into the manifold `N`.
 
-    # HERE ALL THE METHOD IN THE CASE OF DIFFEO
+        df_p is a linear map from T_pM to T_f(p)N called
+        the tangent immesion
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *shape]
+            Tangent vector at base point.
+
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., *i_shape]
+            Image tangent vector at image of the base point.
+        """
+        J_flat = gs.reshape(
+            self.jacobian_diffeomorphism(base_point)
+            (-1, self.embedding_space_shape_dim, self.shape_dim)
+        )
+
+        tv_flat = tangent_vec.reshape(-1, self.shape_dim)
+
+        image_tv = gs.reshape(
+            gs.einsum('...ij,...j->...i', J_flat, tv_flat),
+            (-1,) + self.embedding_space.shape
+        )
+
+        # Squeeze if it is not batched
+        if base_point.shape == self.shape:
+            return image_tv[0]
+        return image_tv
+
+    @abc.abstractmethod
+    def inverse_diffeomorphism(self, image_point):
+        r"""Inverse diffeomorphism at base point.
+
+        Let :math:`f` be the diffeomorphism
+        :math:`f: M \rightarrow N` of the manifold
+        :math:`M` into the manifold `N`.
+
+        :math:`f^-1: N \rightarrow M` of the manifold
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., *i_shape]
+            Base point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., *shape]
+            Inner-product matrix.
+        """
+        pass
+
+    def inverse_jacobian_diffeomorphism(self, image_point):
+        r"""Invercse Jacobian of the diffeomorphism at image point.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., *i_shape]
+            Base point.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., *shape, *i_shape]
+            Inner-product matrix.
+        """
+        # Only compute graph once
+        if self._inverse_jacobian_diffeomorphism is None:
+            self._inverse_jacobian_diffeomorphism = gs.autodiff.jacobian(
+                self.inverse_diffeomorphism
+            )
+
+        J = self._inverse_jacobian_diffeomorphism(image_point)
+        if image_point.shape != self.shape:
+            # We are [..., *shape], restore the batch dimension as first dim
+            J = gs.moveaxis(
+                gs.diagonal(
+                    J, axis1=0, axis2=len(self.embedding_metric.shape) + 1
+                ),
+                -1, 0
+            )
+        return J
+
+    def inverse_tangent_diffeomorphism(self, image_tangent_vec, image_point):
+        r"""Tangent diffeomorphism at base point.
+
+        Let :math:`f` be the diffeomorphism
+        :math:`f: M \rightarrow N` of the manifold
+        :math:`M` into the manifold `N`.
+
+        df_p is a linear map from T_pM to T_f(p)N called
+        the tangent immesion
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., *i_shape]
+            Tangent vector at base point.
+
+        image_point : array-like, shape=[..., *i_shape]
+            Base point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., *shape]
+            Image tangent vector at image of the base point.
+        """
+        J_flat = gs.reshape(
+            self.inverse_jacobian_diffeomorphism(image_point)
+            (-1, self.shape_dim, self.embedding_space_shape_dim)
+        )
+
+        itv_flat = image_tangent_vec.reshape(
+            -1, self.embedding_space_shape_dim
+        )
+
+        tv = gs.reshape(
+            gs.einsum('...ij,...j->...i', J_flat, itv_flat),
+            (-1,) + self.shape
+        )
+
+        # Squeeze if it is not batched
+        if base_point.shape == self.shape:
+            return tv[0]
+        return tv
+
     def exp(self, tangent_vec, base_point, **kwargs):
         """
         Compute the exponential map via diffeomorphic pullback.
