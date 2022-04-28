@@ -1278,7 +1278,7 @@ class PullbackMetricTestCase(RiemannianMetricTestCase):
         self.assertAllClose(result, expected, rtol, atol)
 
 
-class PullbackDiffeoMetricTestCase(RiemannianMetricTestCase):
+class PullbackDiffeoMetricTestCase(TestCase):
     def test_diffeomorphism_is_reciprocal(self, metric_args, point, rtol, atol):
         """Check that the diffeomorphism and its inverse coincide.
 
