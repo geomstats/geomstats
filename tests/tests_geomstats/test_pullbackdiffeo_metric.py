@@ -13,9 +13,6 @@ from tests.data.pullback_diffeo_metric_data import PullbackDiffeoCircleMetricTes
 from tests.geometry_test_cases import PullbackDiffeoMetricTestCase
 from tests.tests_geomstats.test_hypersphere import TestHypersphereMetric
 
-RTOL = 1e-5
-ATOL = 1e-6
-
 
 class CircleAsSpecialOrthogonalMetric(PullbackDiffeoMetric):
     def __init__(self, **kwargs):
@@ -79,14 +76,3 @@ class TestPullbackDiffeoCircle(PullbackDiffeoMetricTestCase, metaclass=Parametri
     metric = CircleAsSpecialOrthogonalMetric
 
     testing_data = PullbackDiffeoCircleMetricTestData()
-
-    def test_diffeomorphism_is_reciprocal(self, point):
-        super().test_diffeomorphism_is_reciprocal([], point, RTOL, ATOL)
-
-    def test_tangent_diffeomorphism_is_reciprocal(self, point, tangent_vector):
-        super().test_tangent_diffeomorphism_is_reciprocal(
-            [], point, tangent_vector, RTOL, ATOL
-        )
-
-    def test_matrix_innerproduct_and_embedded_innerproduct_coincide(self):
-        pass
