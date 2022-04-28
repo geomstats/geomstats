@@ -8,7 +8,7 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.conftest import Parametrizer
-from tests.data.hyperphere_data import HypersphereMetricTestData
+from tests.data.hypersphere_data import HypersphereMetricTestData
 from tests.data.pullback_diffeo_metric_data import PullbackDiffeoCircleMetricTestData
 from tests.geometry_test_cases import PullbackDiffeoMetricTestCase
 from tests.tests_geomstats.test_hypersphere import TestHypersphereMetric
