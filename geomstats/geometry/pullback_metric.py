@@ -141,7 +141,6 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         embedding_metric : RiemannianMetric object
             The metric of the embedding space
         """
-        pass
 
     @property
     def embedding_metric(self):
@@ -173,7 +172,6 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         image_point : array-like, shape=[..., *i_shape]
             Inner-product matrix.
         """
-        pass
 
     def jacobian_diffeomorphism(self, base_point):
         r"""Jacobian of the diffeomorphism at base point.
@@ -269,7 +267,6 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         base_point : array-like, shape=[..., *shape]
             Inner-product matrix.
         """
-        pass
 
     def inverse_jacobian_diffeomorphism(self, image_point):
         r"""Invercse Jacobian of the diffeomorphism at image point.

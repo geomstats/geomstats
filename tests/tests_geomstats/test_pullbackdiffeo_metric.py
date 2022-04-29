@@ -42,7 +42,7 @@ class HypersphereBis(Hypersphere):
 
 class HypersphereBisMetricTestData(HypersphereMetricTestData):
     dim_list = [1] * 4
-    metric_args_list = [tuple([]) for n in dim_list]
+    metric_args_list = [tuple() for n in dim_list]
     shape_list = [(dim + 1,) for dim in dim_list]
     space_list = [HypersphereBis(n) for n in dim_list]
     n_points_list = random.sample(range(1, 5), 4)

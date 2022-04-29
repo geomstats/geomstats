@@ -1357,7 +1357,6 @@ class PullbackDiffeoMetricTestCase(TestCase):
             Absolute tolerance to test this property.
         """
         # Not yet implemented due to need for local basis implementation
-        pass
 
 
 class InvariantMetricTestCase(RiemannianMetricTestCase):
