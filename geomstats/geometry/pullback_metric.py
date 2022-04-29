@@ -190,19 +190,21 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         mat : array-like, shape=[..., *i_shape, *shape]
             Inner-product matrix.
         """
+        rad = base_point.shape[: -len(self.shape)]
+        base_point = gs.reshape(base_point, (-1,) + self.shape)
         # Only compute graph once
         if self._jacobian_diffeomorphism is None:
             self._jacobian_diffeomorphism = gs.autodiff.jacobian(self.diffeomorphism)
 
         J = self._jacobian_diffeomorphism(base_point)
 
-        if base_point.shape != self.shape:
-            # We are [..., *shape], restore the batch dimension as first dim
-            J = gs.moveaxis(
-                gs.diagonal(J, axis1=0, axis2=len(self.embedding_metric.shape) + 1),
-                -1,
-                0,
-            )
+        # We are [N, *shape], restore the batch dimension as first dim
+        J = gs.moveaxis(
+            gs.diagonal(J, axis1=0, axis2=len(self.embedding_metric.shape) + 1),
+            -1,
+            0,
+        )
+        J = gs.reshape(J, rad + self.embedding_metric.shape + self.shape)
         return J
 
     def tangent_diffeomorphism(self, tangent_vec, base_point):
@@ -228,6 +230,9 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         image_tangent_vec : array-like, shape=[..., *i_shape]
             Image tangent vector at image of the base point.
         """
+        base_point, tangent_vec = gs.broadcast_arrays(base_point, tangent_vec)
+        rad = base_point.shape[: -len(self.shape)]
+
         J_flat = gs.reshape(
             self.jacobian_diffeomorphism(base_point),
             (-1, self.embedding_space_shape_dim, self.shape_dim),
@@ -237,12 +242,9 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
 
         image_tv = gs.reshape(
             gs.einsum("...ij,...j->...i", J_flat, tv_flat),
-            (-1,) + self.embedding_metric.shape,
+            rad + self.embedding_metric.shape,
         )
 
-        # Squeeze if it is not batched
-        if base_point.shape == self.shape:
-            return image_tv[0]
         return image_tv
 
     @abc.abstractmethod
@@ -280,6 +282,9 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         mat : array-like, shape=[..., *shape, *i_shape]
             Inner-product matrix.
         """
+        rad = image_point.shape[: -len(self.embedding_metric.shape)]
+        image_point = gs.reshape(image_point, (-1,) + self.embedding_metric.shape)
+
         # Only compute graph once
         if self._inverse_jacobian_diffeomorphism is None:
             self._inverse_jacobian_diffeomorphism = gs.autodiff.jacobian(
@@ -287,9 +292,8 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             )
 
         J = self._inverse_jacobian_diffeomorphism(image_point)
-        if image_point.shape != self.shape:
-            # We are [..., *shape], restore the batch dimension as first dim
-            J = gs.moveaxis(gs.diagonal(J, axis1=0, axis2=len(self.shape) + 1), -1, 0)
+        J = gs.moveaxis(gs.diagonal(J, axis1=0, axis2=len(self.shape) + 1), -1, 0)
+        J = gs.reshape(J, rad + self.shape + self.embedding_metric.shape)
         return J
 
     def inverse_tangent_diffeomorphism(self, image_tangent_vec, image_point):
@@ -315,6 +319,11 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         image_tangent_vec : array-like, shape=[..., *shape]
             Image tangent vector at image of the base point.
         """
+        image_point, image_tangent_vec = gs.broadcast_arrays(
+            image_point, image_tangent_vec
+        )
+        rad = image_tangent_vec.shape[: -len(self.embedding_metric.shape)]
+
         J_flat = gs.reshape(
             self.inverse_jacobian_diffeomorphism(image_point),
             (-1, self.shape_dim, self.embedding_space_shape_dim),
@@ -323,12 +332,8 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         itv_flat = image_tangent_vec.reshape(-1, self.embedding_space_shape_dim)
 
         tv = gs.reshape(
-            gs.einsum("...ij,...j->...i", J_flat, itv_flat), (-1,) + self.shape
+            gs.einsum("...ij,...j->...i", J_flat, itv_flat), rad + self.shape
         )
-
-        # Squeeze if it is not batched
-        if image_point.shape == self.shape:
-            return tv[0]
         return tv
 
     def metric_matrix(self, base_point=None):
