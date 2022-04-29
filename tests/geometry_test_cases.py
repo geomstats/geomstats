@@ -1322,7 +1322,7 @@ class PullbackDiffeoMetricTestCase(TestCase):
         """
         metric = self.metric(*metric_args)
 
-        image_point = metric.inverse_diffeomorphism(metric.diffeomorphism(point))
+        image_point = metric.diffeomorphism(point)
 
         tangent_vector_bis = metric.inverse_tangent_diffeomorphism(
             metric.tangent_diffeomorphism(tangent_vector, point), image_point
