@@ -8,7 +8,12 @@ ATOL = 1e-6
 class PullbackDiffeoCircleMetricTestData(TestData):
     def diffeomorphism_is_reciprocal_test_data(self):
         smoke_data = [
-            dict(metric_args=[], point=gs.array([1, 0]), rtol=RTOL, atol=ATOL),
+            dict(
+                metric_args=[],
+                point=gs.array([[1, 0], [0.7648421873, -0.6442176872]]),
+                rtol=RTOL,
+                atol=ATOL,
+            ),
         ]
         return self.generate_tests(smoke_data)
 
@@ -16,8 +21,18 @@ class PullbackDiffeoCircleMetricTestData(TestData):
         smoke_data = [
             dict(
                 metric_args=[],
-                point=gs.array([1, 0]),
-                tangent_vector=gs.array([0, 2]),
+                point=gs.array(
+                    [
+                        [1, 0],
+                        [0.7648421873, 0.6442176872],
+                    ]
+                ),
+                tangent_vector=gs.array(
+                    [
+                        [0, 2],
+                        [0.3221088436, 0.3824210936],
+                    ]
+                ),
                 rtol=RTOL,
                 atol=ATOL,
             ),
