@@ -64,6 +64,7 @@ from tensorflow import (
     zeros,
     zeros_like,
 )
+from tensorflow.experimental.numpy import moveaxis
 
 from ..constants import tf_atol, tf_rtol
 from . import autodiff  # NOQA

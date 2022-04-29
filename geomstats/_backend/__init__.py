@@ -90,6 +90,7 @@ BACKEND_ATTRIBUTES = {
         "meshgrid",
         "minimum",
         "mod",
+        "moveaxis",
         "ndim",
         "one_hot",
         "ones",
