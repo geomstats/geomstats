@@ -162,8 +162,8 @@ class HypersphereBisMetricTestData(HypersphereMetricTestData):
                 space_args=(1,),
                 tangent_vec=tangent_vec,
                 base_point=base_point,
-                rtol=gs.rtol,
-                atol=gs.atol,
+                rtol=gs.rtol * 100,
+                atol=gs.atol * 100,
             )
         ]
         return self._log_after_exp_test_data(
@@ -172,8 +172,8 @@ class HypersphereBisMetricTestData(HypersphereMetricTestData):
             self.shape_list,
             self.n_tangent_vecs_list,
             smoke_data,
-            rtol=gs.rtol,
-            atol=gs.atol,
+            rtol=gs.rtol * 100,
+            atol=gs.atol * 100,
         )
 
     def exp_and_dist_and_projection_to_tangent_space_test_data(self):

@@ -125,8 +125,10 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         self._jacobian_diffeomorphism = None
         self._inverse_jacobian_diffeomorphism = None
 
-        self.shape_dim = int(gs.prod(shape))
-        self.embedding_space_shape_dim = int(gs.prod(self.embedding_metric.shape))
+        self.shape_dim = int(gs.prod(gs.array(shape)))
+        self.embedding_space_shape_dim = int(
+            gs.prod(gs.array(self.embedding_metric.shape))
+        )
 
     @abc.abstractmethod
     def create_embedding_metric(self):

@@ -1,8 +1,8 @@
 import geomstats.backend as gs
 from tests.data_generation import TestData
 
-RTOL = 1e-5
-ATOL = 1e-6
+RTOL = 1e-4
+ATOL = 1e-5
 
 
 class PullbackDiffeoCircleMetricTestData(TestData):
