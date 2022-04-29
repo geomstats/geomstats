@@ -190,13 +190,10 @@ class Plotter(metaclass=abc.ABCMeta):
         n_points=1000,
     ):
 
-        # TODO: should metric be passed to the space?
-        geodesic = self.metric.geodesic(
+        geodesic = self._metric.geodesic(
             initial_point, end_point=end_point, initial_tangent_vec=initial_tangent_vec
         )
 
-        # TODO: check if makes sense for combination initial_point,
-        # initial_point_tangent_vec
         t = gs.linspace(0.0, 1.0, n_points)
 
         return geodesic(t)

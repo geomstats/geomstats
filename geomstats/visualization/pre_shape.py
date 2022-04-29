@@ -49,14 +49,14 @@ class KendallSphere(Plotter):
 
         self.point_type = point_type
 
-        self.space = PreShapeSpace(k_landmarks=3, m_ambient=2)
-        self.metric = KendallShapeMetric(k_landmarks=3, m_ambient=2)
+        self._space = PreShapeSpace(k_landmarks=3, m_ambient=2)
+        self._metric = KendallShapeMetric(k_landmarks=3, m_ambient=2)
         if self.point_type == "extrinsic":
             self._matrices_space = Matrices(m=3, n=2)
             self._belongs = self._matrices_space.belongs
-            self._project = self.space.projection
+            self._project = self._space.projection
         elif self.point_type == "pre_shape":
-            self._belongs = self.space.belongs
+            self._belongs = self._space.belongs
 
         self._convert_points = self._convert_to_spherical_coordinates
 
@@ -87,14 +87,14 @@ class KendallSphere(Plotter):
 
     def _convert_to_polar_coordinates(self, points):
         """Assign polar coordinates to given pre-shapes."""
-        aligned_points = self.space.align(points, self.pole)
-        speeds = self.space.ambient_metric.log(aligned_points, self.pole)
+        aligned_points = self._space.align(points, self.pole)
+        speeds = self._space.ambient_metric.log(aligned_points, self.pole)
 
         coords_theta = gs.arctan2(
-            self.space.ambient_metric.inner_product(speeds, self.na),
-            self.space.ambient_metric.inner_product(speeds, self.ua),
+            self._space.ambient_metric.inner_product(speeds, self.na),
+            self._space.ambient_metric.inner_product(speeds, self.ua),
         )
-        coords_phi = 2.0 * self.space.ambient_metric.dist(self.pole, aligned_points)
+        coords_phi = 2.0 * self._space.ambient_metric.dist(self.pole, aligned_points)
 
         return coords_theta, coords_phi
 
@@ -288,8 +288,8 @@ class KendallSphere(Plotter):
             ax_kwargs=ax_kwargs,
         )
 
-        norm = self.metric.norm(tangent_vec, base_point)
-        exp = self.metric.exp(tangent_vec, base_point)
+        norm = self._metric.norm(tangent_vec, base_point)
+        exp = self._metric.exp(tangent_vec, base_point)
 
         bp = self._convert_to_spherical_coordinates(base_point)
         exp = self._convert_to_spherical_coordinates(exp)
@@ -351,14 +351,14 @@ class KendallDisk(Plotter):
 
         self.point_type = point_type
 
-        self.space = PreShapeSpace(k_landmarks=3, m_ambient=3)
-        self.metric = KendallShapeMetric(k_landmarks=3, m_ambient=3)
+        self._space = PreShapeSpace(k_landmarks=3, m_ambient=3)
+        self._metric = KendallShapeMetric(k_landmarks=3, m_ambient=3)
         if self.point_type == "extrinsic":
             self._matrices_space = Matrices(m=3, n=3)
             self._belongs = self._matrices_space.belongs
-            self._project = self.space.projection
+            self._project = self._space.projection
         elif self.point_type == "pre_shape":
-            self._belongs = self.space.belongs
+            self._belongs = self._space.belongs
 
         self._convert_points = self._convert_to_planar_coordinates
 
@@ -377,7 +377,7 @@ class KendallDisk(Plotter):
 
     def _convert_to_polar_coordinates(self, points):
         """Assign polar coordinates to given pre-shapes."""
-        aligned_points = self.space.align(points, self.centre)
+        aligned_points = self._space.align(points, self.centre)
         aligned_points2d = aligned_points[..., :, :2]
         speeds = S32.ambient_metric.log(aligned_points2d, self.pole)
 
@@ -500,9 +500,9 @@ class KendallDisk(Plotter):
         ).T
 
         r_exp, th_exp = self._convert_to_polar_coordinates(
-            self.metric.exp(
+            self._metric.exp(
                 _scalar_mat_mult(
-                    1.0 / self.metric.norm(tangent_vec, base_point), tol * tangent_vec
+                    1.0 / self._metric.norm(tangent_vec, base_point), tol * tangent_vec
                 ),
                 base_point,
             )
@@ -534,7 +534,7 @@ class KendallDisk(Plotter):
         u_th = gs.einsum("ij,...j->...i", gs.array([[0.0, -1.0], [1.0, 0.0]]), u_r)
 
         tv = _scalar_vec_mult(
-            self.metric.norm(tangent_vec, base_point),
+            self._metric.norm(tangent_vec, base_point),
             _scalar_vec_mult(x_r, u_r) + _scalar_vec_mult(x_th, u_th),
         )
 
