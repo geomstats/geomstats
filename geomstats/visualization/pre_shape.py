@@ -9,6 +9,8 @@ from geomstats.visualization._plotting import Plotter
 
 S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
 
+DEG2RAD = gs.pi / 180.0
+
 
 class KendallSphere(Plotter):
     """Class used to plot points in Kendall shape space of 2D triangles.
@@ -58,8 +60,6 @@ class KendallSphere(Plotter):
 
         self._convert_points = self._convert_to_spherical_coordinates
 
-        self._elev, self._azim = None, None
-
         self.pole, self.ua, self.ub, self.na = _init_shared_attrs()
 
         self._ax_scale = 0.5
@@ -74,8 +74,6 @@ class KendallSphere(Plotter):
 
     def _set_view(self, ax, elev=60.0, azim=0.0):
         """Set azimuth and elevation angle."""
-        # TODO: update _elev
-        self._elev, self._azim = gs.pi * elev / 180, gs.pi * azim / 180
         ax.view_init(elev, azim)
 
         return ax
@@ -171,19 +169,17 @@ class KendallSphere(Plotter):
         """Draw the sphere regularly sampled with corresponding triangles."""
         ax = self.plot_space(ax=ax, elev=elev, azim=azim)
 
+        _elev, _azim = ax.elev * DEG2RAD, ax.azim * DEG2RAD
+
         def lim(theta):
-            return (
-                gs.pi
-                - self._elev
-                + (2.0 * self._elev - gs.pi) / gs.pi * abs(self._azim - theta)
-            )
+            return gs.pi - _elev + (2.0 * _elev - gs.pi) / gs.pi * abs(_azim - theta)
 
         for theta in gs.linspace(0.0, 2.0 * gs.pi, n_theta // 2 + 1):
             for phi in gs.linspace(0.0, gs.pi, n_phi):
-                if theta <= self._azim + gs.pi and phi <= lim(theta):
+                if theta <= _azim + gs.pi and phi <= lim(theta):
                     self._draw_triangle(ax, theta, phi, scale)
-                if theta > self._azim + gs.pi and phi < lim(
-                    2.0 * self._azim + 2.0 * gs.pi - theta
+                if theta > _azim + gs.pi and phi < lim(
+                    2.0 * _azim + 2.0 * gs.pi - theta
                 ):
                     self._draw_triangle(ax, theta, phi, scale)
 
@@ -256,7 +252,7 @@ class KendallSphere(Plotter):
             **plot_kwargs
         )
 
-    def quiver(
+    def plot_vector_field(
         self,
         tangent_vec,
         base_point,
@@ -455,7 +451,7 @@ class KendallDisk(Plotter):
 
         return ax
 
-    def quiver(
+    def plot_vector_field(
         self,
         tangent_vec,
         base_point,

@@ -240,7 +240,10 @@ class Plotter(metaclass=abc.ABCMeta):
     def plot_inhabitants(self, ax=None):
         return ax
 
-    def quiver(self, tangent_vec, base_point, ax=None, space_on=False, **quiver_kwargs):
+    def plot_vector_field(
+        self, tangent_vec, base_point, ax=None, space_on=False, **quiver_kwargs
+    ):
+        """Draw vectors in the tangent space to sphere at specific base points."""
         return ax
 
     def plot_tangent_space(self, ax=None):
