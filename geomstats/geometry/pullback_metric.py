@@ -195,9 +195,14 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             self._jacobian_diffeomorphism = gs.autodiff.jacobian(self.diffeomorphism)
 
         J = self._jacobian_diffeomorphism(base_point)
+
         if base_point.shape != self.shape:
             # We are [..., *shape], restore the batch dimension as first dim
-            J = gs.moveaxis(gs.diagonal(J, axis1=0, axis2=len(self.shape) + 1), -1, 0)
+            J = gs.moveaxis(
+                gs.diagonal(J, axis1=0, axis2=len(self.embedding_metric.shape) + 1),
+                -1,
+                0,
+            )
         return J
 
     def tangent_diffeomorphism(self, tangent_vec, base_point):
@@ -224,16 +229,15 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             Image tangent vector at image of the base point.
         """
         J_flat = gs.reshape(
-            self.jacobian_diffeomorphism(base_point)(
-                -1, self.embedding_space_shape_dim, self.shape_dim
-            )
+            self.jacobian_diffeomorphism(base_point),
+            (-1, self.embedding_space_shape_dim, self.shape_dim),
         )
 
         tv_flat = tangent_vec.reshape(-1, self.shape_dim)
 
         image_tv = gs.reshape(
             gs.einsum("...ij,...j->...i", J_flat, tv_flat),
-            (-1,) + self.embedding_space.shape,
+            (-1,) + self.embedding_metric.shape,
         )
 
         # Squeeze if it is not batched
@@ -285,11 +289,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         J = self._inverse_jacobian_diffeomorphism(image_point)
         if image_point.shape != self.shape:
             # We are [..., *shape], restore the batch dimension as first dim
-            J = gs.moveaxis(
-                gs.diagonal(J, axis1=0, axis2=len(self.embedding_metric.shape) + 1),
-                -1,
-                0,
-            )
+            J = gs.moveaxis(gs.diagonal(J, axis1=0, axis2=len(self.shape) + 1), -1, 0)
         return J
 
     def inverse_tangent_diffeomorphism(self, image_tangent_vec, image_point):
@@ -316,9 +316,8 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             Image tangent vector at image of the base point.
         """
         J_flat = gs.reshape(
-            self.inverse_jacobian_diffeomorphism(image_point)(
-                -1, self.shape_dim, self.embedding_space_shape_dim
-            )
+            self.inverse_jacobian_diffeomorphism(image_point),
+            (-1, self.shape_dim, self.embedding_space_shape_dim),
         )
 
         itv_flat = image_tangent_vec.reshape(-1, self.embedding_space_shape_dim)
