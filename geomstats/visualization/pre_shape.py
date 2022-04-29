@@ -180,10 +180,19 @@ class KendallSphere(Plotter):
         return thetas[idx].reshape(-1), phis[idx].reshape(-1)
 
     def plot_inhabitants(
-        self, ax=None, n_theta=25, n_phi=13, scale=0.05, elev=60.0, azim=0.0
+        self,
+        ax=None,
+        n_theta=25,
+        n_phi=13,
+        scale=0.05,
+        elev=60.0,
+        azim=0.0,
+        space_on=False,
     ):
         """Draw the sphere regularly sampled with corresponding triangles."""
-        ax = self.plot_space(ax=ax, elev=elev, azim=azim)
+        ax = self.set_ax(ax=ax, elev=elev, azim=azim)
+        if space_on:
+            ax = self.plot_space(ax=ax)
 
         thetas, phis = self._get_inhabitants(ax, n_theta, n_phi)
         for theta, phi in zip(thetas, phis):
@@ -415,8 +424,10 @@ class KendallDisk(Plotter):
 
         return rs.reshape(-1), thetas.reshape(-1)
 
-    def plot_inhabitants(self, ax=None, n_r=7, n_theta=25, scale=0.05):
-        ax = self.plot_space(ax=ax, n_r=n_r, n_theta=n_theta, scale=scale)
+    def plot_inhabitants(self, ax=None, n_r=7, n_theta=25, scale=0.05, space_on=True):
+        ax = self.set_ax(ax=ax)
+        if space_on:
+            ax = self.plot_space(ax=ax, n_r=n_r, n_theta=n_theta, scale=scale)
 
         rs, thetas = self._get_inhabitants(n_r, n_theta)
 

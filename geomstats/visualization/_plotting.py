@@ -237,7 +237,7 @@ class Plotter(metaclass=abc.ABCMeta):
 
         return ax
 
-    def plot_inhabitants(self, ax=None):
+    def plot_inhabitants(self, ax=None, space_on=False, grid_on=False):
         return ax
 
     def plot_vector_field(
