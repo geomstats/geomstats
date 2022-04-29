@@ -74,6 +74,7 @@ class KendallSphere(Plotter):
 
     def _set_view(self, ax, elev=60.0, azim=0.0):
         """Set azimuth and elevation angle."""
+        # TODO: update _elev
         self._elev, self._azim = gs.pi * elev / 180, gs.pi * azim / 180
         ax.view_init(elev, azim)
 
@@ -267,9 +268,6 @@ class KendallSphere(Plotter):
     ):
         """Draw vectors in the tangent space to sphere at specific base points."""
 
-        def _scalar_vec_mult(scalar, vector):
-            return gs.einsum("...,...i->...i", scalar, vector)
-
         ax_kwargs = {"elev": elev, "azim": azim}
         ax, _ = self._prepare_vis(
             ax,
@@ -285,9 +283,8 @@ class KendallSphere(Plotter):
         bp = self._convert_to_spherical_coordinates(base_point)
         exp = self._convert_to_spherical_coordinates(exp)
 
-        dot_ = gs.einsum("...i,...i->...", exp, 2.0 * bp)
-        tv = exp - _scalar_vec_mult(dot_, 2.0 * bp)
-        tv = _scalar_vec_mult(1.0 / gs.linalg.norm(tv, axis=-1), tv)
+        tv = exp - _scalar_vec_mult(_dot(exp, 2.0 * bp), 2.0 * bp)
+        tv = _normalize_vec(tv)
         tv = _scalar_vec_mult(norm, tv)
 
         ax.quiver(
@@ -295,6 +292,8 @@ class KendallSphere(Plotter):
             *[tv[..., i] for i in range(self._dim)],
             **quiver_kwargs
         )
+
+        return ax
 
 
 class KendallDisk(Plotter):
@@ -456,8 +455,19 @@ class KendallDisk(Plotter):
 
         return ax
 
-    def quiver(self, tangent_vec, base_point, tol=1e-03, **kwargs):
-        """Draw one vector in the tangent space to disk at a base point."""
+    def quiver(
+        self,
+        tangent_vec,
+        base_point,
+        ax=None,
+        space_on=False,
+        tol=1e-03,
+        **quiver_kwargs
+    ):
+        """Draw vectors in the tangent space to sphere at specific base points."""
+
+        ax, _ = self._prepare_vis(ax, None, space_on=space_on, grid_on=False)
+
         r_bp, th_bp = self._convert_to_polar_coordinates(base_point)
         bp = gs.array(
             [
@@ -465,36 +475,54 @@ class KendallDisk(Plotter):
                 gs.sin(th_bp) * gs.sin(2 * r_bp),
                 gs.cos(2 * r_bp),
             ]
-        )
+        ).T
+
         r_exp, th_exp = self._convert_to_polar_coordinates(
             self.metric.exp(
-                tol * tangent_vec / self.metric.norm(tangent_vec, base_point),
+                _scalar_mat_mult(
+                    1.0 / self.metric.norm(tangent_vec, base_point), tol * tangent_vec
+                ),
                 base_point,
             )
         )
+
         exp = gs.array(
             [
                 gs.cos(th_exp) * gs.sin(2 * r_exp),
                 gs.sin(th_exp) * gs.sin(2 * r_exp),
                 gs.cos(2 * r_exp),
             ]
-        )
+        ).T
+
         pole = gs.array([0.0, 0.0, 1.0])
 
-        tv = exp - gs.dot(exp, bp) * bp
-        u_tv = tv / gs.linalg.norm(tv)
-        u_r = (gs.dot(pole, bp) * bp - pole) / gs.linalg.norm(
-            gs.dot(pole, bp) * bp - pole
+        tv = exp - _scalar_vec_mult(_dot(exp, bp), bp)
+        u_tv = _normalize_vec(tv)
+
+        u_r = _scalar_vec_mult(_dot(pole, bp), bp) - pole
+        u_r = _normalize_vec(u_r)
+
+        u_th = gs.cross(bp, u_r, axis=-1)
+
+        x_r, x_th = _dot(u_tv, u_r), _dot(u_tv, u_th)
+
+        bp = self._convert_to_planar_coordinates(base_point)
+        u_r = _normalize_vec(bp)
+
+        u_th = gs.einsum("ij,...j->...i", gs.array([[0.0, -1.0], [1.0, 0.0]]), u_r)
+
+        tv = _scalar_vec_mult(
+            self.metric.norm(tangent_vec, base_point),
+            _scalar_vec_mult(x_r, u_r) + _scalar_vec_mult(x_th, u_th),
         )
-        u_th = gs.cross(bp, u_r)
-        x_r, x_th = gs.dot(u_tv, u_r), gs.dot(u_tv, u_th)
 
-        bp = self.convert_to_planar_coordinates(base_point)
-        u_r = bp / gs.linalg.norm(bp)
-        u_th = gs.array([[0.0, -1.0], [1.0, 0.0]]) @ u_r
-        tv = self.metric.norm(tangent_vec, base_point) * (x_r * u_r + x_th * u_th)
+        ax.quiver(
+            *[bp[..., i] for i in range(self._dim)],
+            *[tv[..., i] for i in range(self._dim)],
+            **quiver_kwargs
+        )
 
-        self.ax.quiver(bp[0], bp[1], tv[0], tv[1], **kwargs)
+        return ax
 
 
 def _init_shared_attrs():
@@ -515,3 +543,19 @@ def _init_shared_attrs():
     na = na / S32.ambient_metric.norm(na)
 
     return pole, ua, ub, na
+
+
+def _scalar_mat_mult(scalar, vector):
+    return gs.einsum("...,...ij->...ij", scalar, vector)
+
+
+def _scalar_vec_mult(scalar, vector):
+    return gs.einsum("...,...i->...i", scalar, vector)
+
+
+def _dot(vec1, vec2):
+    return gs.einsum("...i,...i->...", vec1, vec2)
+
+
+def _normalize_vec(vec):
+    return _scalar_vec_mult(1.0 / gs.linalg.norm(vec, axis=-1), vec)
