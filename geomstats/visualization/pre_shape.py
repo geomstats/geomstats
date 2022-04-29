@@ -126,24 +126,24 @@ class KendallSphere(Plotter):
         )
         return rot_th @ rot_phi @ gs.transpose(rot_th)
 
-    def _draw_triangle(self, ax, theta, phi, scale):
+    def _draw_inhabitant(self, ax, theta, phi, scale):
         """Draw the corresponding triangle on the sphere at theta, phi."""
+
         u_theta = gs.cos(theta) * self.ua + gs.sin(theta) * self.na
         triangle = gs.cos(phi / 2.0) * self.pole + gs.sin(phi / 2.0) * u_theta
         triangle = scale * triangle
         triangle3d = gs.transpose(
             gs.stack((triangle[:, 0], triangle[:, 1], 0.5 * gs.ones(3)))
         )
-        triangle3d = self._rotate(theta, phi) @ gs.transpose(triangle3d)
+        triangle3d = gs.transpose(self._rotate(theta, phi) @ gs.transpose(triangle3d))
 
-        x = list(triangle3d[0]) + [triangle3d[0, 0]]
-        y = list(triangle3d[1]) + [triangle3d[1, 0]]
-        z = list(triangle3d[2]) + [triangle3d[2, 0]]
+        vals = gs.concatenate([triangle3d, triangle3d[[0]]])
+        ax.plot3D(*[vals[:, i] for i in range(3)], "grey", zorder=1)
 
-        ax.plot3D(x, y, z, "grey", zorder=1)
         c = ["red", "green", "blue"]
-        for i in range(3):
-            ax.scatter(x[i], y[i], z[i], color=c[i], s=10, alpha=1, zorder=1)
+        ax.scatter(
+            *[triangle3d[:, i] for i in range(3)], color=c, s=10, alpha=1, zorder=1
+        )
 
         return ax
 
@@ -163,25 +163,31 @@ class KendallSphere(Plotter):
             points, ax=ax, space_on=space_on, ax_kwargs=ax_kwargs, **plot_kwargs
         )
 
+    def _get_inhabitants(self, ax, n_theta, n_phi):
+        def lim(theta):
+            return gs.pi - _elev + (2.0 * _elev - gs.pi) / gs.pi * abs(_azim - theta)
+
+        thetas, phis = gs.meshgrid(
+            gs.linspace(0.0, 2.0 * gs.pi, n_theta // 2 + 1),
+            gs.linspace(0.0, gs.pi, n_phi),
+        )
+
+        _elev, _azim = ax.elev * DEG2RAD, ax.azim * DEG2RAD
+        idx = ((thetas <= _azim + gs.pi) & (phis <= lim(thetas))) | (
+            (thetas >= _azim + gs.pi) & (phis < lim(2.0 * _azim + 2.0 * gs.pi - thetas))
+        )
+
+        return thetas[idx].reshape(-1), phis[idx].reshape(-1)
+
     def plot_inhabitants(
         self, ax=None, n_theta=25, n_phi=13, scale=0.05, elev=60.0, azim=0.0
     ):
         """Draw the sphere regularly sampled with corresponding triangles."""
         ax = self.plot_space(ax=ax, elev=elev, azim=azim)
 
-        _elev, _azim = ax.elev * DEG2RAD, ax.azim * DEG2RAD
-
-        def lim(theta):
-            return gs.pi - _elev + (2.0 * _elev - gs.pi) / gs.pi * abs(_azim - theta)
-
-        for theta in gs.linspace(0.0, 2.0 * gs.pi, n_theta // 2 + 1):
-            for phi in gs.linspace(0.0, gs.pi, n_phi):
-                if theta <= _azim + gs.pi and phi <= lim(theta):
-                    self._draw_triangle(ax, theta, phi, scale)
-                if theta > _azim + gs.pi and phi < lim(
-                    2.0 * _azim + 2.0 * gs.pi - theta
-                ):
-                    self._draw_triangle(ax, theta, phi, scale)
+        thetas, phis = self._get_inhabitants(ax, n_theta, n_phi)
+        for theta, phi in zip(thetas, phis):
+            self._draw_inhabitant(ax, theta, phi, scale)
 
         return ax
 
@@ -382,31 +388,40 @@ class KendallDisk(Plotter):
         planar_coords = gs.transpose(gs.stack((coords_x, coords_y)))
         return planar_coords
 
-    def _draw_triangle(self, ax, r, theta, scale):
+    def _draw_inhabitant(self, ax, r, theta, scale):
         """Draw the corresponding triangle on the disk at r, theta."""
         u_theta = gs.cos(theta) * self.ua + gs.sin(theta) * self.na
         triangle = gs.cos(r) * self.pole + gs.sin(r) * u_theta
         triangle = scale * triangle
 
-        x = list(r * gs.cos(theta) + triangle[:, 0])
-        x = x + [x[0]]
-        y = list(r * gs.sin(theta) + triangle[:, 1])
-        y = y + [y[0]]
+        x = gs.array(r * gs.cos(theta) + triangle[:, 0])
+        y = r * gs.sin(theta) + triangle[:, 1]
 
-        ax.plot(x, y, "grey", zorder=1)
+        ax.plot(
+            gs.concatenate([x, x[[0]]]), gs.concatenate([y, y[[0]]]), "grey", zorder=1
+        )
+
         c = ["red", "green", "blue"]
-        for i in range(3):
-            ax.scatter(x[i], y[i], color=c[i], s=10, alpha=1, zorder=1)
+        ax.scatter(x, y, color=c, s=10, alpha=1, zorder=1)
+
+    def _get_inhabitants(self, n_r, n_theta):
+        theta_lim_sup = 2 * gs.pi
+        theta_lim_inf = theta_lim_sup / (n_theta // 2)
+
+        rs, thetas = gs.meshgrid(
+            gs.linspace(0.0, gs.pi / 4, n_r),
+            gs.linspace(theta_lim_inf, theta_lim_sup, n_theta // 2),
+        )
+
+        return rs.reshape(-1), thetas.reshape(-1)
 
     def plot_inhabitants(self, ax=None, n_r=7, n_theta=25, scale=0.05):
         ax = self.plot_space(ax=ax, n_r=n_r, n_theta=n_theta, scale=scale)
 
-        for r in gs.linspace(0.0, gs.pi / 4, n_r):
-            for theta in gs.linspace(0.0, 2.0 * gs.pi, n_theta // 2 + 1):
-                if theta == 0.0:
-                    self._draw_triangle(ax, 0.0, 0.0, scale)
-                else:
-                    self._draw_triangle(ax, r, theta, scale)
+        rs, thetas = self._get_inhabitants(n_r, n_theta)
+
+        for r, theta in zip(rs, thetas):
+            self._draw_inhabitant(ax, r, theta, scale)
 
         return ax
 
