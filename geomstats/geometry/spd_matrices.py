@@ -9,7 +9,7 @@ import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
@@ -1299,3 +1299,17 @@ class SPDMetricLogEuclidean(RiemannianMetric):
             Injectivity radius.
         """
         return math.inf
+
+    def dist(self, point_a, point_b):
+        """Compute log euclidean distance.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+        """
+        log_a = SPDMatrices.logm(point_a)
+        log_b = SPDMatrices.logm(point_b)
+        return MatricesMetric.norm(log_a - log_b)
