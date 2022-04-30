@@ -1309,6 +1309,11 @@ class SPDMetricLogEuclidean(RiemannianMetric):
             Point.
         point_b : array-like, shape=[..., dim]
             Point.
+
+        Returns
+        -------
+        dist : array-like, shape=[...,]
+            Distance.
         """
         log_a = SPDMatrices.logm(point_a)
         log_b = SPDMatrices.logm(point_b)
