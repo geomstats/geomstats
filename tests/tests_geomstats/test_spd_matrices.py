@@ -288,3 +288,8 @@ class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer
         metric = SPDMetricLogEuclidean(n)
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
+
+    def test_dist(self, n, point_a, point_b, expected):
+        metric = SPDMetricLogEuclidean(n)
+        result = metric.dist(gs.array(point_a), gs.array(point_b))
+        self.assertAllClose(result, gs.array(expected))

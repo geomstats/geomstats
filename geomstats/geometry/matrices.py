@@ -737,7 +737,8 @@ class MatricesMetric(EuclideanMetric):
         """
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
 
-    def norm(self, vector, base_point=None):
+    @staticmethod
+    def norm(vector, base_point=None):
         """Compute norm of a matrix.
 
         Norm of a matrix associated to the Frobenius inner product.
