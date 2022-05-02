@@ -67,7 +67,7 @@ class ManifoldTestCase(TestCase):
         belongs_atol : float
             Absolute tolerance for the belongs function.
         """
-        space = self.space(*space_args)
+        space = self.testing_data.space(*space_args)
         random_point = space.random_point(n_points)
         result = gs.all(space.belongs(random_point, atol=belongs_atol))
         self.assertAllClose(result, True)
@@ -84,7 +84,7 @@ class ManifoldTestCase(TestCase):
         belongs_atol : float
             Absolute tolerance for the belongs function.
         """
-        space = self.space(*space_args)
+        space = self.testing_data.space(*space_args)
         belongs = space.belongs(space.projection(gs.array(point)), belongs_atol)
         self.assertAllClose(gs.all(belongs), gs.array(True))
 
@@ -104,7 +104,7 @@ class ManifoldTestCase(TestCase):
         is_tangent_atol : float
             Absolute tolerance for the is_tangent function.
         """
-        space = self.space(*space_args)
+        space = self.testing_data.space(*space_args)
         tangent = space.to_tangent(gs.array(vector), gs.array(base_point))
         result = gs.all(
             space.is_tangent(tangent, gs.array(base_point), is_tangent_atol)
@@ -127,7 +127,7 @@ class ManifoldTestCase(TestCase):
         is_tangent_atol : float
             Absolute tolerance for the is_tangent function.
         """
-        space = self.space(*space_args)
+        space = self.testing_data.space(*space_args)
         tangent_vec = space.random_tangent_vec(base_point, n_samples)
         result = space.is_tangent(tangent_vec, base_point, is_tangent_atol)
         self.assertAllClose(gs.all(result), gs.array(True))
@@ -319,7 +319,7 @@ class VectorSpaceTestCase(ManifoldTestCase):
         belongs_atol : float
             Absolute tolerance of the belongs function.
         """
-        space = self.space(*space_args)
+        space = self.testing_data.space(*space_args)
         result = gs.all(space.belongs(space.basis, belongs_atol))
         self.assertAllClose(result, gs.array(True))
 
@@ -331,7 +331,7 @@ class VectorSpaceTestCase(ManifoldTestCase):
         space_args : tuple
             Arguments to pass to constructor of the vector space.
         """
-        space = self.space(*space_args)
+        space = self.testing_data.space(*space_args)
         basis = space.basis
         self.assertAllClose(len(basis), space.dim)
 
@@ -347,7 +347,7 @@ class VectorSpaceTestCase(ManifoldTestCase):
         is_tangent_atol : float
             Absolute tolerance for the is_tangent function.
         """
-        space = self.space(*space_args)
+        space = self.testing_data.space(*space_args)
         points = space.random_point(n_points)
         base_point = space.random_point()
         result = space.is_tangent(points, base_point, is_tangent_atol)
@@ -369,7 +369,7 @@ class VectorSpaceTestCase(ManifoldTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        space = self.space(*space_args)
+        space = self.testing_data.space(*space_args)
         result = space.to_tangent(vector, base_point)
         expected = space.projection(vector)
         self.assertAllClose(result, expected, rtol=rtol, atol=atol)
