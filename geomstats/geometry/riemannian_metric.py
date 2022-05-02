@@ -428,9 +428,13 @@ class RiemannianMetric(Connection, ABC):
         closest_neighbor_index : int
             Index of closest neighbor.
         """
-        dist = self.dist(point, neighbors)
-        closest_neighbor_index = gs.argmin(dist)
+        dist = []
 
+        for neighbor in neighbors:
+            distance = self.dist(point, neighbor)
+            dist.append(distance)
+
+        closest_neighbor_index = gs.argmin(dist)
         return closest_neighbor_index
 
     def normal_basis(self, basis, base_point=None):

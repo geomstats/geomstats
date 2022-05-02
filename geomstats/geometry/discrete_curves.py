@@ -17,6 +17,7 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 R2 = Euclidean(dim=2)
 R3 = Euclidean(dim=3)
+TOL = 1e-10
 
 
 class DiscreteCurves(Manifold):
@@ -423,10 +424,11 @@ class SRVMetric(RiemannianMetric):
                 )
         else:
             self.ambient_metric = metric
+        self.default_point_type = "matrix"
         self.l2_metric = L2CurvesMetric(ambient_manifold, metric)
         self.translation_invariant = translation_invariant
 
-    def srv_transform(self, curve):
+    def srv_transform(self, curve, tol=TOL):
         """Square Root Velocity Transform (SRVT).
 
         Compute the square root velocity representation of a curve. The
@@ -445,6 +447,14 @@ class SRVMetric(RiemannianMetric):
         srv : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
             Square-root velocity representation of a discrete curve.
         """
+        if gs.any(
+            self.ambient_metric.norm(curve[..., 1:, :] - curve[..., :-1, :]) < tol
+        ):
+            raise AssertionError(
+                "The square root velocity framework "
+                "is only defined for discrete curves "
+                "with distinct consecutive sample points."
+            )
         curve_ndim = gs.ndim(curve)
         curve = gs.to_ndarray(curve, to_ndim=3)
         n_curves, n_sampling_points, n_coords = curve.shape

@@ -193,3 +193,21 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
             closest_centers.append(self.centers[closest_center, :])
 
         return gs.array(closest_centers)
+
+    def predict_labels(self, points):
+        """Predict the closest cluster label each point in 'points' belongs to.
+
+        Parameters
+        ----------
+        points : array-like, shape=[..., n_features]
+            Clusters of points.
+        """
+        if self.centers is None:
+            raise Exception("Not fitted")
+
+        closest_centers = []
+        for point in points:
+            closest_center = self.metric.closest_neighbor_index(point, self.centers)
+            closest_centers.append(closest_center)
+
+        return gs.array(closest_centers)
