@@ -10,11 +10,18 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class HilbertSphereMetric(RiemannianMetric):
-    r"""A Riemannian metric on the Hilbert sphere (functions of norm 1)
+def _trapz(y, **kwargs):
+    if y.ndim == 1:
+        y = y.reshape(1, len(y))
 
-    Parameters:
-    -------
+    return np.trapz(y, **kwargs)
+
+
+class HilbertSphereMetric(RiemannianMetric):
+    r"""A Riemannian metric on the Hilbert sphere (functions of norm 1).
+
+    Parameters
+    ----------
     domain_samples : array of shape (n_samples, )
         Grid points on the domain.
     """
@@ -42,7 +49,7 @@ class HilbertSphereMetric(RiemannianMetric):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        l2_norm = np.trapz(tangent_vec_a * tangent_vec_b, x=self.x, axis=1)
+        l2_norm = _trapz(tangent_vec_a * tangent_vec_b, x=self.x, axis=1)
 
         return l2_norm
 
@@ -62,12 +69,12 @@ class HilbertSphereMetric(RiemannianMetric):
         """
         sinf = HilbertSphere(self.x)
         proj_tangent_vec = sinf.to_tangent(tangent_vec, base_point)
-        norm2 = sinf.metric.squared_norm(proj_tangent_vec)
-
-        coef_1 = utils.taylor_exp_even_func(norm2, utils.cos_close_0, order=4)
-        coef_2 = utils.taylor_exp_even_func(norm2, utils.sinc_close_0, order=4)
+        norm = sinf.metric.norm(proj_tangent_vec)
+        norm = gs.clip(norm, -gs.pi, gs.pi)
+        coef_1 = utils.taylor_exp_even_func(norm, utils.cos_close_0, order=4)
+        coef_2 = utils.taylor_exp_even_func(norm, utils.sinc_close_0, order=4)
         exp = gs.einsum("...,...j->...j", coef_1, base_point) + gs.einsum(
-            "...,...j->...j", coef_2, proj_tangent_vec
+            "...,...j->...j", coef_2 / norm, proj_tangent_vec
         )
 
         return exp
@@ -89,27 +96,23 @@ class HilbertSphereMetric(RiemannianMetric):
         inner_prod = self.inner_product(base_point, point)
         cos_angle = gs.clip(inner_prod, -1.0, 1.0)
         theta = gs.arccos(cos_angle)
-        coef_1_ = utils.taylor_exp_even_func(
-            theta, utils.inv_sinc_close_0, order=5
-        )
-        coef_2_ = utils.taylor_exp_even_func(
-            theta, utils.inv_tanc_close_0, order=5
-        )
-        log = gs.einsum("...,...j->...j", coef_1_, point) - gs.einsum(
-            "...,...j->...j", coef_2_, base_point
+        coef_1_ = utils.taylor_exp_even_func(theta, utils.inv_sinc_close_0, order=5)
+        coef_2_ = utils.taylor_exp_even_func(theta, utils.inv_tanc_close_0, order=5)
+        log = gs.einsum("...,...j->...j", theta * coef_1_, point) - gs.einsum(
+            "...,...j->...j", theta * coef_2_, base_point
         )
 
         return log
 
 
 class HilbertSphere(Manifold):
-    """Class for space of functions with norm 1.
+    """Class for space of one dimensional functions with norm 1.
 
     The tangent space is given by functions that have
     zero inner-product with the base point
 
-    Parameters:
-    -------
+    Parameters
+    ----------
     domain_samples : array of shape (n_samples, )
         Grid points on the domain.
 
@@ -122,7 +125,11 @@ class HilbertSphere(Manifold):
 
     def __init__(self, domain_samples):
         self.domain = domain_samples
-        super().__init__(dim=math.inf, metric=HilbertSphereMetric(self.domain))
+        super().__init__(
+            dim=math.inf,
+            shape=(1, len(domain_samples)),
+            metric=HilbertSphereMetric(self.domain),
+        )
 
     def projection(self, point):
         """Project a point to the infinite dimensional hypersphere.
@@ -197,8 +204,9 @@ class HilbertSphere(Manifold):
         tangent_vec : array-like, shape=[..., n_samples]
             Tangent vector at base point.
         """
+        sq_norm = self.metric.squared_norm(base_point)
         inner_product = self.metric.inner_product(vector, base_point)
-        coef = 1.0 / inner_product
+        coef = inner_product / sq_norm
         tangent_vec = vector - gs.einsum("...,...j->...j", coef, base_point)
 
         return tangent_vec
