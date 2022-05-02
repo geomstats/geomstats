@@ -23,7 +23,7 @@ class _Hyperbolic:
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}
+    point_type : str, {'extrinsic', 'intrinsic-hyperboloid', etc}
         Default coordinates to represent points in hyperbolic space.
         Optional, default: 'extrinsic'.
     scale : int
@@ -46,71 +46,71 @@ class _Hyperbolic:
         Parameters
         ----------
         point : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space in extrinsic coordinates.
+            Point in hyperbolic space in extrinsic-hyperboloidcoordinates.
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[..., dim]
-            Point in hyperbolic space in extrinsic coordinates.
+        point_extrinsic-hyperboloid: array-like, shape=[..., dim]
+            Point in hyperbolic space in extrinsic-hyperboloidcoordinates.
         """
         return point
 
     @staticmethod
-    def _intrinsic_to_extrinsic_coordinates(point):
-        """Convert intrinsic to extrinsic coordinates.
+    def _intrinsic-hyperboloid_to_extrinsic_coordinates(point):
+        """Convert intrinsic-hyperboloid to extrinsic-hyperboloidcoordinates.
 
         Convert the parameterization of a point in hyperbolic space
-        from its intrinsic coordinates, to its extrinsic coordinates
+        from its intrinsic-hyperboloid coordinates, to its extrinsic-hyperboloidcoordinates
         in Minkowski space.
 
         Parameters
         ----------
         point : array-like, shape=[..., dim]
-            Point in hyperbolic space in intrinsic coordinates.
+            Point in hyperbolic space in intrinsic-hyperboloid coordinates.
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space in extrinsic coordinates.
+        point_extrinsic-hyperboloid: array-like, shape=[..., dim + 1]
+            Point in hyperbolic space in extrinsic-hyperboloidcoordinates.
         """
         coord_0 = gs.sqrt(1.0 + gs.sum(point**2, axis=-1))
-        point_extrinsic = gs.concatenate([coord_0[..., None], point], axis=-1)
+        point_extrinsic-hyperboloid= gs.concatenate([coord_0[..., None], point], axis=-1)
 
         return point_extrinsic
 
     @staticmethod
-    def _extrinsic_to_intrinsic_coordinates(point):
-        """Convert extrinsic to intrinsic coordinates.
+    def _extrinsic_to_intrinsic-hyperboloid_coordinates(point):
+        """Convert extrinsic-hyperboloidto intrinsic-hyperboloid coordinates.
 
         Convert the parameterization of a point in hyperbolic space
-        from its extrinsic coordinates in Minkowski space, to its
-        intrinsic coordinates.
+        from its extrinsic-hyperboloidcoordinates in Minkowski space, to its
+        intrinsic-hyperboloid coordinates.
 
         Parameters
         ----------
         point : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space in extrinsic coordinates.
+            Point in hyperbolic space in extrinsic-hyperboloidcoordinates.
 
         Returns
         -------
-        point_intrinsic : array-like, shape=[..., dim]
+        point_intrinsic-hyperboloid : array-like, shape=[..., dim]
         """
-        point_intrinsic = point[..., 1:]
+        point_intrinsic-hyperboloid = point[..., 1:]
 
-        return point_intrinsic
+        return point_intrinsic-hyperboloid
 
     @staticmethod
     def _extrinsic_to_ball_coordinates(point):
-        """Convert extrinsic to ball coordinates.
+        """Convert extrinsic-hyperboloidto ball coordinates.
 
         Convert the parameterization of a point in hyperbolic space
-        from its intrinsic coordinates, to the Poincare ball model
+        from its intrinsic-hyperboloid coordinates, to the Poincare ball model
         coordinates.
 
         Parameters
         ----------
         point : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space in extrinsic coordinates.
+            Point in hyperbolic space in extrinsic-hyperboloidcoordinates.
 
         Returns
         -------
@@ -123,7 +123,7 @@ class _Hyperbolic:
 
     @staticmethod
     def _ball_to_extrinsic_coordinates(point):
-        """Convert ball to extrinsic coordinates.
+        """Convert ball to extrinsic-hyperboloidcoordinates.
 
         Convert the parameterization of a point in hyperbolic space
         from its Poincare ball model coordinates, to the extrinsic
@@ -136,19 +136,19 @@ class _Hyperbolic:
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space in extrinsic coordinates.
+        point_extrinsic-hyperboloid: array-like, shape=[..., dim + 1]
+            Point in hyperbolic space in extrinsic-hyperboloidcoordinates.
         """
         squared_norm = gs.sum(point**2, -1)
         denominator = 1 - squared_norm
         t = (1 + squared_norm) / denominator
-        intrinsic = gs.einsum("...i, ...->...i", 2 * point, 1.0 / denominator)
-        point_extrinsic = gs.concatenate([t[..., None], intrinsic], -1)
+        intrinsic-hyperboloid = gs.einsum("...i, ...->...i", 2 * point, 1.0 / denominator)
+        point_extrinsic-hyperboloid= gs.concatenate([t[..., None], intrinsic-hyperboloid], -1)
         return point_extrinsic
 
     @classmethod
     def _half_space_to_extrinsic_coordinates(cls, point):
-        """Convert half-space to extrinsic coordinates.
+        """Convert half-space to extrinsic-hyperboloidcoordinates.
 
         Convert the parameterization of a point in the hyperbolic space
         from its Poincare half-space coordinates, to the extrinsic
@@ -161,26 +161,26 @@ class _Hyperbolic:
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space in extrinsic coordinates.
+        point_extrinsic-hyperboloid: array-like, shape=[..., dim + 1]
+            Point in hyperbolic space in extrinsic-hyperboloidcoordinates.
         """
         point_ball = cls.half_space_to_ball_coordinates(point)
-        point_extrinsic = cls._ball_to_extrinsic_coordinates(point_ball)
+        point_extrinsic-hyperboloid= cls._ball_to_extrinsic_coordinates(point_ball)
 
         return point_extrinsic
 
     @classmethod
     def _extrinsic_to_half_space_coordinates(cls, point):
-        """Convert extrinsic to half-space coordinates.
+        """Convert extrinsic-hyperboloidto half-space coordinates.
 
         Convert the parameterization of a point in the hyperbolic space
-        from its extrinsic coordinates, to the Poincare half-space
+        from its extrinsic-hyperboloidcoordinates, to the Poincare half-space
         coordinates.
 
         Parameters
         ----------
         point : array-like, shape=[..., dim + 1]
-            Point in the hyperbolic space in extrinsic coordinates.
+            Point in the hyperbolic space in extrinsic-hyperboloidcoordinates.
 
         Returns
         -------
@@ -336,8 +336,8 @@ class _Hyperbolic:
         Convert the parameterization of a point in the hyperbolic space
         from current given coordinate system to an other also given in
         parameters. The possible coordinates system are 'extrinsic',
-        'intrinsic', 'ball' and 'half-plane' that correspond respectivelly
-        to extrinsic coordinates in the hyperboloid , intrinsic
+        'intrinsic-hyperboloid', 'ball' and 'half-plane' that correspond respectivelly
+        to extrinsic-hyperboloidcoordinates in the hyperboloid , intrinsic-hyperboloid
         coordinates in the hyperboloid, ball coordinates in the Poincare
         ball model and coordinates in the Poincare upper half-plane model.
 
@@ -345,9 +345,9 @@ class _Hyperbolic:
         ----------
         point : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space.
-        from_coordinates_system : str, {'extrinsic', 'intrinsic', etc}
+        from_coordinates_system : str, {'extrinsic', 'intrinsic-hyperboloid', etc}
             Coordinates type.
-        to_coordinates_system : str, {'extrinsic', 'intrinsic', etc}
+        to_coordinates_system : str, {'extrinsic', 'intrinsic-hyperboloid', etc}
             Coordinates type.
 
         Returns
@@ -359,8 +359,8 @@ class _Hyperbolic:
         coords_transform = {
             "ball-extrinsic": _Hyperbolic._ball_to_extrinsic_coordinates,
             "extrinsic-ball": _Hyperbolic._extrinsic_to_ball_coordinates,
-            "intrinsic-extrinsic": _Hyperbolic._intrinsic_to_extrinsic_coordinates,
-            "extrinsic-intrinsic": _Hyperbolic._extrinsic_to_intrinsic_coordinates,
+            "intrinsic-hyperboloid-extrinsic": _Hyperbolic._intrinsic-hyperboloid_to_extrinsic_coordinates,
+            "extrinsic-intrinsic-hyperboloid": _Hyperbolic._extrinsic_to_intrinsic-hyperboloid_coordinates,
             "extrinsic-half-space": _Hyperbolic._extrinsic_to_half_space_coordinates,
             "half-space-extrinsic": _Hyperbolic._half_space_to_extrinsic_coordinates,
             "extrinsic-extrinsic": _Hyperbolic._extrinsic_to_extrinsic_coordinates,
@@ -369,7 +369,7 @@ class _Hyperbolic:
         if from_coordinates_system == to_coordinates_system:
             return point
 
-        extrinsic = coords_transform[from_coordinates_system + "-extrinsic"](point)
+        extrinsic-hyperboloid= coords_transform[from_coordinates_system + "-extrinsic"](point)
         return coords_transform["extrinsic-" + to_coordinates_system](extrinsic)
 
     def to_coordinates(self, point, to_coords_type="ball"):
@@ -382,7 +382,7 @@ class _Hyperbolic:
         ----------
         point : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space.
-        to_coords_type : str, {'extrinsic', 'intrinsic', etc}
+        to_coords_type : str, {'extrinsic', 'intrinsic-hyperboloid', etc}
             Coordinates type.
             Optional, default: 'ball'.
 
@@ -405,7 +405,7 @@ class _Hyperbolic:
         ----------
         point : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space in coordinates from_point_type.
-        from_coords_type : str, {'ball', 'extrinsic', 'intrinsic', ...}
+        from_coords_type : str, {'ball', 'extrinsic', 'intrinsic-hyperboloid', ...}
             Coordinates type.
 
         Returns
@@ -422,8 +422,8 @@ class _Hyperbolic:
 
         Sample over the hyperbolic space. The sampling is performed
         by sampling over uniform distribution, the sampled examples
-        are considered in the intrinsic coordinates system.
-        The function then transforms intrinsic samples into system
+        are considered in the intrinsic-hyperboloid coordinates system.
+        The function then transforms intrinsic-hyperboloid samples into system
         coordinate selected.
 
         Parameters
@@ -444,7 +444,7 @@ class _Hyperbolic:
         samples = bound * 2.0 * (gs.random.rand(*size) - 0.5)
 
         samples = _Hyperbolic.change_coordinates_system(
-            samples, "intrinsic", self.coords_type
+            samples, "intrinsic-hyperboloid", self.coords_type
         )
 
         if n_samples == 1:
@@ -459,7 +459,7 @@ class HyperbolicMetric(RiemannianMetric):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}, optional
+    point_type : str, {'extrinsic', 'intrinsic-hyperboloid', etc}, optional
         Default coordinates to represent points in hyperbolic space.
     scale : int, optional
         Scale of the hyperbolic space, defined as the set of points
@@ -508,7 +508,7 @@ class HyperbolicMetric(RiemannianMetric):
         vector : array-like, shape=[..., dim + 1]
             Vector on the tangent space of the hyperbolic space at base point.
         base_point : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space in extrinsic coordinates.
+            Point in hyperbolic space in extrinsic-hyperboloidcoordinates.
             Optional, default: None.
 
         Returns
@@ -531,7 +531,7 @@ class HyperbolicMetric(RiemannianMetric):
         vector : array-like, shape=[..., dim + 1]
             Vector on the tangent space of the hyperbolic space at base point.
         base_point : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space in extrinsic coordinates.
+            Point in hyperbolic space in extrinsic-hyperboloidcoordinates.
             Optional, default: None.
 
         Returns
