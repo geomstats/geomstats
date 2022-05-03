@@ -21,7 +21,7 @@ class TestHypersphereBisMetric(HypersphereMetricTestCase, metaclass=Parametrizer
     skip_test_triangle_inequality_of_dist = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_parallel_transport_ivp_is_isometry = True
-    skip_all = not autograd_backend() or not pytorch_backend()
+    skip_all = not (autograd_backend() or pytorch_backend())
 
     testing_data = CircleAsSO2MetricTestData()
 
@@ -32,6 +32,6 @@ class TestCircleAsSO2PullbackDiffeoMetric(
 
     metric = CircleAsSO2Metric
 
-    skip_all = not autograd_backend() or not pytorch_backend()
+    skip_all = not (autograd_backend() or pytorch_backend())
 
     testing_data = CircleAsSO2PullbackDiffeoMetricTestData()
