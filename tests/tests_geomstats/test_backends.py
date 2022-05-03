@@ -9,7 +9,6 @@ import warnings
 import numpy as _np
 import pytest
 import scipy.linalg
-import torch
 
 import geomstats.backend as gs
 import geomstats.tests
@@ -807,22 +806,19 @@ class TestBackends(geomstats.tests.TestCase):
             return gs.sum((gs.linalg.expm(p) - gs.eye(3)) ** 2)
 
         value_and_grad = gs.autodiff.value_and_grad(loss)
-        result = value_and_grad(mat)
+        value, grad = value_and_grad(mat)
 
-        def loss_torch(p):
-            return torch.sum((torch.matrix_exp(p) - torch.eye(3)) ** 2)
-
-        torch_mat = torch.tensor(
-            [[0, 1, 0.5], [-1, 0, 0.2], [-0.5, -0.2, 0]],
-            dtype=torch.float64,
-            requires_grad=True,
+        expected_value = 2.31430522
+        expected_grad = gs.array(
+            [
+                [1.12127191, 1.68659998, 0.61904561],
+                [-1.50719647, 0.93289823, 0.76788841],
+                [-0.97785262, 0.12912912, 0.26013508],
+            ]
         )
-        value = loss_torch(torch_mat)
-        value.backward()
-        grad = torch_mat.grad
 
-        self.assertAllClose(result[0], value.detach())
-        self.assertAllClose(result[1], grad)
+        self.assertAllClose(value, expected_value)
+        self.assertAllClose(grad, expected_grad)
 
     def test_svd(self):
         gs_point = gs.reshape(gs.arange(12), (4, 3))
