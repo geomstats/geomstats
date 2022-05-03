@@ -308,7 +308,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         return self._raw_inverse_jacobian_diffeomorphism(image_point)
 
     def inverse_jacobian_diffeomorphism(self, image_point):
-        r"""Invercse Jacobian of the diffeomorphism at image point.
+        r"""Inverse Jacobian of the diffeomorphism at image point.
 
         Parameters
         ----------
@@ -413,58 +413,57 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         )
 
     def exp(self, tangent_vec, base_point, **kwargs):
-        """
-        Compute the exponential map via diffeomorphic pullback.
+        """Compute the exponential map via diffeomorphic pullback.
 
         Parameters
         ----------
-        tangent_vec : array-like
+        tangent_vec : array-like, shape=[..., *shape]
             Tangent vector.
-        base_point : array-like
+        base_point : array-like, shape=[..., *shape]
             Base point.
 
         Returns
         -------
-        exp : array-like
+        exp : array-like, shape=[..., *shape]
             Riemannian exponential of tangent_vec at base_point.
         """
-        new_base_point = self.diffeomorphism(base_point)
-        new_tangent_vec = self.tangent_diffeomorphism(tangent_vec, base_point)
-        new_exp = self.embedding_metric.exp(new_tangent_vec, new_base_point, **kwargs)
-        exp = self.inverse_diffeomorphism(new_exp)
+        image_base_point = self.diffeomorphism(base_point)
+        image_tangent_vec = self.tangent_diffeomorphism(tangent_vec, base_point)
+        image_exp = self.embedding_metric.exp(
+            image_tangent_vec, image_base_point, **kwargs
+        )
+        exp = self.inverse_diffeomorphism(image_exp)
         return exp
 
     def log(self, point, base_point, **kwargs):
-        """
-        Compute the logarithm map via diffeomorphic pullback.
+        """Compute the logarithm map via diffeomorphic pullback.
 
         Parameters
         ----------
-        point : array-like
+        point : array-like, shape=[..., *shape]
             Point.
-        base_point : array-like
+        base_point : array-like, shape=[..., *shape]
             Point.
 
         Returns
         -------
-        log : array-like
+        log : array-like, shape=[..., *shape]
             Logarithm of point from base_point.
         """
-        new_base_point = self.diffeomorphism(base_point)
-        new_point = self.diffeomorphism(point)
-        new_log = self.embedding_metric.log(new_point, new_base_point, **kwargs)
-        log = self.inverse_tangent_diffeomorphism(new_log, new_base_point)
+        image_base_point = self.diffeomorphism(base_point)
+        image_point = self.diffeomorphism(point)
+        image_log = self.embedding_metric.log(image_point, image_base_point, **kwargs)
+        log = self.inverse_tangent_diffeomorphism(image_log, image_base_point)
         return log
 
     def dist(self, point_a, point_b, **kwargs):
-        """
-        Compute the distance via diffeomorphic pullback.
+        """Compute the distance via diffeomorphic pullback.
 
         Parameters
         ----------
-        point_a : array-like
+        point_a : array-like, shape=[..., *shape]
             Point a.
-        point_b : array-like
+        point_b : array-like, shape=[..., *shape]
             Point b.
 
         Returns
@@ -472,80 +471,86 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         dist : array-like
             Distance between point_a and point_b.
         """
-        new_point_a = self.diffeomorphism(point_a)
-        new_point_b = self.diffeomorphism(point_b)
-        new_distance = self.embedding_metric.dist(new_point_a, new_point_b, **kwargs)
-        return new_distance
+        image_point_a = self.diffeomorphism(point_a)
+        image_point_b = self.diffeomorphism(point_b)
+        distance = self.embedding_metric.dist(image_point_a, image_point_b, **kwargs)
+        return distance
 
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
-        """
-        Compute the curvature via diffeomorphic pullback.
+        """Compute the curvature via diffeomorphic pullback.
 
         Parameters
         ----------
-        tangent_vec_a : array-like
+        tangent_vec_a : array-like, shape=[..., *shape]
             Tangent vector a.
-        tangent_vec_b : array-like
+        tangent_vec_b : array-like, shape=[..., *shape]
             Tangent vector b.
-        tangent_vec_c : array-like
+        tangent_vec_c : array-like, shape=[..., *shape]
             Tangent vector c.
-        base_point : array-like
+        base_point : array-like, shape=[..., *shape]
             Base point.
 
         Returns
         -------
-        curvature : array-like
+        curvature : array-like, shape=[..., *shape]
             Curvature in directions tangent_vec a, b, c at base_point.
         """
-        new_base_point = self.diffeomorphism(base_point)
-        new_tangent_vec_a = self.tangent_diffeomorphism(tangent_vec_a, base_point)
-        new_tangent_vec_b = self.tangent_diffeomorphism(tangent_vec_b, base_point)
-        new_tangent_vec_c = self.tangent_diffeomorphism(tangent_vec_c, base_point)
-        new_curvature = self.embedding_metric.curvature(
-            new_tangent_vec_a, new_tangent_vec_b, new_tangent_vec_c, new_base_point
+        image_base_point = self.diffeomorphism(base_point)
+        image_tangent_vec_a = self.tangent_diffeomorphism(tangent_vec_a, base_point)
+        image_tangent_vec_b = self.tangent_diffeomorphism(tangent_vec_b, base_point)
+        image_tangent_vec_c = self.tangent_diffeomorphism(tangent_vec_c, base_point)
+        image_curvature = self.embedding_metric.curvature(
+            image_tangent_vec_a,
+            image_tangent_vec_b,
+            image_tangent_vec_c,
+            image_base_point,
         )
-        curvature = self.inverse_tangent_diffeomorphism(new_curvature, new_base_point)
+        curvature = self.inverse_tangent_diffeomorphism(
+            image_curvature, image_base_point
+        )
         return curvature
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
     ):
-        """
-        Compute the parallel transport via diffeomorphic pullback.
+        """Compute the parallel transport via diffeomorphic pullback.
 
         Parameters
         ----------
-        tangent_vec : array-like
+        tangent_vec : array-like, shape=[..., *shape]
             Tangent vector.
-        base_point : array-like
+        base_point : array-like, shape=[..., *shape]
             Base point.
-        direction : array-like
+        direction : array-like, shape=[..., *shape]
             Direction.
-        end_point : array-like
+        end_point : array-like, shape=[..., *shape]
             End point.
 
         Returns
         -------
-        parallel_transport : array-like
+        parallel_transport : array-like, shape=[..., *shape]
             Parallel transport.
         """
-        new_base_point = self.diffeomorphism(base_point)
-        new_tangent_vec = self.tangent_diffeomorphism(tangent_vec, base_point)
+        image_base_point = self.diffeomorphism(base_point)
+        image_tangent_vec = self.tangent_diffeomorphism(tangent_vec, base_point)
+
         if direction is None:
-            new_direction = None
+            image_direction = None
         else:
-            new_direction = self.tangent_diffeomorphism(direction, base_point)
+            image_direction = self.tangent_diffeomorphism(direction, base_point)
+
         if end_point is None:
-            new_end_point = None
+            image_end_point = None
         else:
-            new_end_point = self.diffeomorphism(end_point)
-        new_parallel_transport = self.embedding_metric.parallel_transport(
-            new_tangent_vec,
-            new_base_point,
-            direction=new_direction,
-            end_point=new_end_point,
+            image_end_point = self.diffeomorphism(end_point)
+
+        image_parallel_transport = self.embedding_metric.parallel_transport(
+            image_tangent_vec,
+            image_base_point,
+            direction=image_direction,
+            end_point=image_end_point,
         )
         parallel_transport = self.inverse_tangent_diffeomorphism(
-            new_parallel_transport, new_base_point
+            image_parallel_transport, image_base_point
         )
         return parallel_transport
