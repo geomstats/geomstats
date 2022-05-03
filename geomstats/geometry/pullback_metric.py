@@ -152,7 +152,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             The metric of the embedding space
         """
         self._embedding_metric = (
-            self._embedding_metric or self.create_embedding_metric()
+            self._embedding_metric or self.define_embedding_metric()
         )
         return self._embedding_metric
 

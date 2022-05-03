@@ -21,7 +21,7 @@ class CircleAsSO2Metric(PullbackDiffeoMetric):
             )
         super(CircleAsSO2Metric, self).__init__(dim=1, shape=(2,))
 
-    def create_embedding_metric(self):
+    def define_embedding_metric(self):
         return SpecialOrthogonal(n=2, point_type="matrix").bi_invariant_metric
 
     def diffeomorphism(self, base_point):
