@@ -1,4 +1,4 @@
-"""Module for function spaces as geometric objects"""
+"""Module for function spaces as geometric objects."""
 
 import math
 
@@ -36,6 +36,7 @@ class HilbertSphereMetric(RiemannianMetric):
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
+
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n_samples]
@@ -44,6 +45,7 @@ class HilbertSphereMetric(RiemannianMetric):
             Second tangent vector at base point.
         base_point : array-like, shape=[..., n_samples], optional
             Point on the hypersphere.
+
         Returns
         -------
         inner_prod : array-like, shape=[...,]
@@ -55,12 +57,14 @@ class HilbertSphereMetric(RiemannianMetric):
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
+
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n_samples]
             Tangent vector at a base point.
         base_point : array-like, shape=[..., n_samples]
             Point on the hypersphere.
+
         Returns
         -------
         exp : array-like, shape=[..., n_samples]
@@ -74,19 +78,21 @@ class HilbertSphereMetric(RiemannianMetric):
         coef_1 = utils.taylor_exp_even_func(norm, utils.cos_close_0, order=4)
         coef_2 = utils.taylor_exp_even_func(norm, utils.sinc_close_0, order=4)
         exp = gs.einsum("...,...j->...j", coef_1, base_point) + gs.einsum(
-            "...,...j->...j", coef_2 / norm, proj_tangent_vec
+            "...,...j->...j", coef_2, proj_tangent_vec
         )
 
         return exp
 
     def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of a point.
+
         Parameters
         ----------
         point : array-like, shape=[..., n_samples]
             Point on the hypersphere.
         base_point : array-like, shape=[..., n_samples]
             Point on the hypersphere.
+
         Returns
         -------
         log : array-like, shape=[..., n_samples]
@@ -138,6 +144,7 @@ class HilbertSphere(Manifold):
         ----------
         point : array-like, shape=[..., n_samples]
             Discrete evaluation of a function.
+
         Returns
         -------
         projected_point : array-like, shape=[..., n_samples]
@@ -152,6 +159,7 @@ class HilbertSphere(Manifold):
         """Evaluate if the point belongs to the vector space.
 
         This method checks the shape of the input point.
+
         Parameters
         ----------
         point : array-like, shape=[.., n_samples]
