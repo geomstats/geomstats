@@ -11,12 +11,12 @@ import pytest
 import scipy.linalg
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
-class TestBackends(geomstats.tests.TestCase):
+class TestBackends(tests.conftest.TestCase):
     def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
 
@@ -60,7 +60,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllCloseToNp(gs_result, np_result)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_autograd_and_tf_only
     def test_matmul_vectorization(self):
         mat_a = [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [7.0, 0.0, 4.0]]
         mat_b = [[1.0, 0.0, 2.0], [0.0, 3.0, 0.0], [0.0, 0.0, 1.0]]
@@ -99,7 +99,7 @@ class TestBackends(geomstats.tests.TestCase):
         scipy_result = scipy.linalg.expm(scipy.linalg.logm(np_point))
         self.assertAllCloseToNp(result, scipy_result)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_expm_vectorization(self):
         # Note: scipy.linalg.expm is not vectorized
         point = gs.array(
@@ -172,7 +172,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.tf_only
+    @tests.conftest.tf_only
     def test_vstack(self):
         import tensorflow as tf
 
@@ -202,7 +202,7 @@ class TestBackends(geomstats.tests.TestCase):
         expected = gs.array(([[1, 2, 6, 24, 120], [6, 42, 336, 3024, 30240]]))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.torch_only
+    @tests.conftest.torch_only
     def test_cumsum(self):
         result = gs.cumsum(gs.arange(10))
         expected = gs.array(([0, 1, 3, 6, 10, 15, 21, 28, 36, 45]))
@@ -703,7 +703,7 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.isclose(gs_array, 22.0, rtol=1e-8, atol=1e-7)
         self.assertAllCloseToNp(gs_result, np_result)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_where(self):
         # TODO (ninamiolane): Make tf behavior consistent with np
         # Currently, tf returns array, while np returns tuple
@@ -797,7 +797,7 @@ class TestBackends(geomstats.tests.TestCase):
         for res, exp in zip(result, expected):
             self.assertAllClose(res, exp)
 
-    @geomstats.tests.autograd_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_expm_backward(self):
         mat = gs.array([[0, 1, 0.5], [-1, 0, 0.2], [-0.5, -0.2, 0]])
         mat = gs.cast(mat, gs.float64)
@@ -850,7 +850,7 @@ class TestBackends(geomstats.tests.TestCase):
         s_r = gs.linalg.svd(gs_point, compute_uv=compute_uv)
         self.assertAllClose(s, s_r)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_sylvester_solve(self):
         mat = gs.random.rand(4, 3)
         spd = gs.matmul(gs.transpose(mat), mat)
@@ -874,7 +874,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, skew)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_general_sylvester_solve(self):
         a = gs.array([[-3.0, -2.0, 0.0], [-1.0, -1.0, 3.0], [3.0, -5.0, -1.0]])
         b = gs.array([[1.0]])
