@@ -175,22 +175,26 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             Inner-product matrix.
         """
 
-    @property
-    def raw_jacobian_diffeomorphism(self):
+    def raw_jacobian_diffeomorphism(self, base_point):
         r"""Raw jacobian of the diffeomorphism.
 
         Raw jacobian autodiff of diffeomorphism regardless of vectorization.
 
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+
         Returns
         -------
-        jac : callable
-            jacobian function of diffeomorphism
+        mat : array-like, shape=[..., *i_shape, ..., *shape]
+            Inner-product matrix.
         """
         if self._raw_jacobian_diffeomorphism is None:
             self._raw_jacobian_diffeomorphism = gs.autodiff.jacobian(
                 self.diffeomorphism
             )
-        return self._raw_jacobian_diffeomorphism
+        return self._raw_jacobian_diffeomorphism(base_point)
 
     def jacobian_diffeomorphism(self, base_point):
         r"""Jacobian of the diffeomorphism at base point.
@@ -283,21 +287,26 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         """
 
     @property
-    def raw_inverse_jacobian_diffeomorphism(self):
+    def raw_inverse_jacobian_diffeomorphism(self, image_point):
         r"""Raw jacobian of the inverse_diffeomorphism.
 
         Raw jacobian autodiff of inverse_diffeomorphism regardless of vectorization.
 
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., *i_shape]
+            Base point.
+
         Returns
         -------
-        jac : callable
-            jacobian function of diffeomorphism
+        mat : array-like, shape=[..., *shape, ..., *i_shape]
+            Inner-product matrix.
         """
         if self._raw_inverse_jacobian_diffeomorphism is None:
             self._raw_inverse_jacobian_diffeomorphism = gs.autodiff.jacobian(
                 self.inverse_diffeomorphism
             )
-        return self._raw_inverse_jacobian_diffeomorphism
+        return self._raw_inverse_jacobian_diffeomorphism(image_point)
 
     def inverse_jacobian_diffeomorphism(self, image_point):
         r"""Invercse Jacobian of the diffeomorphism at image point.
