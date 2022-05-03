@@ -22,11 +22,12 @@ class SymmetricMatrices(VectorSpace):
     """
 
     def __init__(self, n, **kwargs):
+        kwargs.setdefault("metric", MatricesMetric(n, n))
         super(SymmetricMatrices, self).__init__(
             dim=int(n * (n + 1) / 2),
             shape=(n, n),
-            metric=MatricesMetric(n, n),
             default_point_type="matrix",
+            **kwargs
         )
         self.n = n
 

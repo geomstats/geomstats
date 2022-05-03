@@ -27,11 +27,13 @@ class TestFullRankCorrelationMatrices(LevelSetTestCase, metaclass=Parametrizer):
 
 class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
     space = CorrelationMatricesBundle
+    base = FullRankCorrelationMatrices
     testing_data = CorrelationMatricesBundleTestData()
 
     def test_riemannian_submersion_belongs_to_base(self, n, point):
         bundle = self.space(n)
-        result = bundle.base.belongs(bundle.riemannian_submersion(gs.array(point)))
+        base = self.base(n)
+        result = base.belongs(bundle.riemannian_submersion(gs.array(point)))
         self.assertAllClose(gs.all(result), gs.array(True))
 
     def test_lift_riemannian_submersion_composition(self, n, point):
@@ -57,12 +59,13 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
 
     def test_horizontal_projection(self, n, vec, mat):
         bundle = self.space(n)
+        base = self.base(n)
         horizontal_vec = bundle.horizontal_projection(vec, mat)
         inverse = GeneralLinear.inverse(mat)
         product_1 = Matrices.mul(horizontal_vec, inverse)
         product_2 = Matrices.mul(inverse, horizontal_vec)
         is_horizontal = gs.all(
-            bundle.base.is_tangent(product_1 + product_2, mat, atol=gs.atol * 10)
+            base.is_tangent(product_1 + product_2, mat, atol=gs.atol * 10)
         )
         self.assertAllClose(is_horizontal, gs.array(True))
 

@@ -11,7 +11,6 @@ class BuresWassersteinBundle(GeneralLinear, FiberBundle):
     def __init__(self, n):
         super(BuresWassersteinBundle, self).__init__(
             n=n,
-            base=SPDMatrices(n),
             group=SpecialOrthogonal(n),
             ambient_metric=MatricesMetric(n, n),
         )
@@ -48,7 +47,7 @@ class QuotientMetricTestData(TestData):
         return self.generate_tests([], random_data)
 
     def lift_and_riemannian_submersion_test_data(self):
-        random_data = [dict(n=2, mat=BuresWassersteinBundle(2).base.random_point())]
+        random_data = [dict(n=2, mat=SPDMatrices(2).random_point())]
         return self.generate_tests([], random_data)
 
     def tangent_riemannian_submersion_test_data(self):

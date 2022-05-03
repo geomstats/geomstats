@@ -482,33 +482,47 @@ class FiberBundleTestCase(TestCase):
     def test_is_horizontal_after_horizontal_projection(
         self, space_args, tangent_vec, base_point, rtol, atol
     ):
-        space = self.space(*space_args)
-        horizontal = space.horizontal_projection(tangent_vec, base_point)
-        result = space.is_horizontal(horizontal, base_point, atol)
+        bundle = self.bundle(*space_args)
+        horizontal = bundle.horizontal_projection(tangent_vec, base_point)
+        result = bundle.is_horizontal(horizontal, base_point, atol)
         self.assertTrue(gs.all(result))
 
     def test_is_vertical_after_vertical_projection(
         self, space_args, tangent_vec, base_point, rtol, atol
     ):
-        space = self.space(*space_args)
-        vertical = space.vertical_projection(tangent_vec, base_point)
-        result = space.is_vertical(vertical, base_point, atol)
+        bundle = self.bundle(*space_args)
+        vertical = bundle.vertical_projection(tangent_vec, base_point)
+        result = bundle.is_vertical(vertical, base_point, atol)
         self.assertTrue(gs.all(result))
 
     def test_is_horizontal_after_log_after_align(
         self, space_args, base_point, point, rtol, atol
     ):
-        space = self.space(*space_args)
-        aligned = space.align(point, base_point)
-        log = space.ambient_metric.log(aligned, base_point)
-        result = space.is_horizontal(log, base_point)
+        bundle = self.bundle(*space_args)
+        aligned = bundle.align(point, base_point)
+        log = bundle.ambient_metric.log(aligned, base_point)
+        result = bundle.is_horizontal(log, base_point)
         self.assertTrue(gs.all(result))
 
     def test_riemannian_submersion_after_lift(self, space_args, base_point, rtol, atol):
-        space = self.space(*space_args)
-        lift = space.lift(base_point)
-        result = space.riemannian_submersion(lift)
+        bundle = self.bundle(*space_args)
+        lift = bundle.lift(base_point)
+        result = bundle.riemannian_submersion(lift)
         self.assertAllClose(result, base_point, rtol, atol)
+
+    def test_is_tangent_after_tangent_riemannian_submersion(
+        self, space_args, base_cls, tangent_vec, base_point, rtol, atol
+    ):
+        bundle = self.bundle(*space_args)
+        projected = bundle.tangent_riemannian_submersion(tangent_vec, base_point)
+        projected_pt = bundle.riemannian_submersion(base_point)
+        result = base_cls(*space_args).is_tangent(projected, projected_pt)
+        expected = (
+            True
+            if tangent_vec.shape == bundle.shape
+            else gs.array([True] * len(tangent_vec))
+        )
+        self.assertAllClose(result, expected, rtol, atol)
 
 
 class ProductManifoldTestCase(ManifoldTestCase):

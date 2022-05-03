@@ -957,6 +957,17 @@ class SPDMetricLogEuclideanTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
+    def dist_test_data(self):
+        smoke_data = [
+            dict(
+                n=2,
+                point_a=[[1.0, 0.0], [0.0, 1.0]],
+                point_b=[[EXP_1, 0.0], [0.0, EXP_1]],
+                expected=SQRT_2,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
     def exp_shape_test_data(self):
         return self._exp_shape_test_data(
             self.metric_args_list, self.space_list, self.shape_list

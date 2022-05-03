@@ -25,11 +25,14 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
     """
 
     def __init__(self, n, positive_det=False, **kwargs):
-        if "dim" not in kwargs.keys():
-            kwargs["dim"] = n**2
+        ambient_space = Matrices(n, n)
+        kwargs.setdefault("dim", n**2)
+        kwargs.setdefault("metric", ambient_space.metric)
+
         super(GeneralLinear, self).__init__(
-            ambient_space=Matrices(n, n), n=n, lie_algebra=SquareMatrices(n), **kwargs
+            ambient_space=ambient_space, n=n, lie_algebra=SquareMatrices(n), **kwargs
         )
+
         self.positive_det = positive_det
 
     def projection(self, point):

@@ -56,6 +56,7 @@ from torch import (
     std,
     tan,
     tanh,
+    trapz,
     uint8,
     unique,
     vstack,

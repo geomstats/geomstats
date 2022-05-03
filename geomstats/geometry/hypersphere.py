@@ -1132,4 +1132,4 @@ class Hypersphere(_Hypersphere):
 
     def __init__(self, dim, default_coords_type="extrinsic"):
         super(Hypersphere, self).__init__(dim, default_coords_type)
-        self.metric = HypersphereMetric(dim)
+        self._metric = HypersphereMetric(dim)
