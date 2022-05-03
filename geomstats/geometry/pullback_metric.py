@@ -286,7 +286,6 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             Inner-product matrix.
         """
 
-    @property
     def raw_inverse_jacobian_diffeomorphism(self, image_point):
         r"""Raw jacobian of the inverse_diffeomorphism.
 
