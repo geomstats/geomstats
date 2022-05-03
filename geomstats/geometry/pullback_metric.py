@@ -131,7 +131,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         )
 
     @abc.abstractmethod
-    def create_embedding_metric(self):
+    def define_embedding_metric(self):
         r"""Create the metric this metric is in diffeomorphism with.
 
         This instantiate the metric to use as image space of the
@@ -151,7 +151,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             The metric of the embedding space
         """
         if self._embedding_metric is None:
-            self._embedding_metric = self.create_embedding_metric()
+            self._embedding_metric = self.define_embedding_metric()
         return self._embedding_metric
 
     @abc.abstractmethod
