@@ -4,6 +4,7 @@ Lead author: Nina Miolane.
 """
 import abc
 import itertools
+import math
 
 import joblib
 
@@ -115,20 +116,20 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
     ----------
     dim : int
         Dimension.
+    shape : tuple of int
+        Shape of one element of the underlying manifold.
+        Optional, default : None.
     """
 
-    def __init__(self, dim, shape):
+    def __init__(self, dim, shape=None):
         super(PullbackDiffeoMetric, self).__init__(dim=dim, shape=shape)
 
-        # Inner variable
         self._embedding_metric = None
-        self._jacobian_diffeomorphism = None
-        self._inverse_jacobian_diffeomorphism = None
+        self._raw_jacobian_diffeomorphism = None
+        self._raw_inverse_jacobian_diffeomorphism = None
 
-        self.shape_dim = int(gs.prod(gs.array(shape)))
-        self.embedding_space_shape_dim = int(
-            gs.prod(gs.array(self.embedding_metric.shape))
-        )
+        self.shape_dim = math.prod(shape)
+        self.embedding_space_shape_dim = math.prod(self.embedding_metric.shape)
 
     @abc.abstractmethod
     def define_embedding_metric(self):
@@ -150,8 +151,9 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         embedding_metric : RiemannianMetric object
             The metric of the embedding space
         """
-        if self._embedding_metric is None:
-            self._embedding_metric = self.define_embedding_metric()
+        self._embedding_metric = (
+            self._embedding_metric or self.create_embedding_metric()
+        )
         return self._embedding_metric
 
     @abc.abstractmethod
@@ -173,6 +175,23 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             Inner-product matrix.
         """
 
+    @property
+    def raw_jacobian_diffeomorphism(self):
+        r"""Raw jacobian of the diffeomorphism.
+
+        Raw jacobian autodiff of diffeomorphism regardless of vectorization.
+
+        Returns
+        -------
+        jac : callable
+            jacobian function of diffeomorphism
+        """
+        if self._raw_jacobian_diffeomorphism is None:
+            self._raw_jacobian_diffeomorphism = gs.autodiff.jacobian(
+                self.diffeomorphism
+            )
+        return self._raw_jacobian_diffeomorphism
+
     def jacobian_diffeomorphism(self, base_point):
         r"""Jacobian of the diffeomorphism at base point.
 
@@ -192,19 +211,15 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         """
         rad = base_point.shape[: -len(self.shape)]
         base_point = gs.reshape(base_point, (-1,) + self.shape)
-        # Only compute graph once
-        if self._jacobian_diffeomorphism is None:
-            self._jacobian_diffeomorphism = gs.autodiff.jacobian(self.diffeomorphism)
 
-        J = self._jacobian_diffeomorphism(base_point)
-
-        # We are [N, *shape], restore the batch dimension as first dim
+        J = self.raw_jacobian_diffeomorphism(base_point)
         J = gs.moveaxis(
             gs.diagonal(J, axis1=0, axis2=len(self.embedding_metric.shape) + 1),
             -1,
             0,
         )
         J = gs.reshape(J, rad + self.embedding_metric.shape + self.shape)
+
         return J
 
     def tangent_diffeomorphism(self, tangent_vec, base_point):
@@ -237,8 +252,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             self.jacobian_diffeomorphism(base_point),
             (-1, self.embedding_space_shape_dim, self.shape_dim),
         )
-
-        tv_flat = tangent_vec.reshape(-1, self.shape_dim)
+        tv_flat = gs.reshape(tangent_vec, (-1, self.shape_dim))
 
         image_tv = gs.reshape(
             gs.einsum("...ij,...j->...i", J_flat, tv_flat),
@@ -268,6 +282,23 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             Inner-product matrix.
         """
 
+    @property
+    def raw_inverse_jacobian_diffeomorphism(self):
+        r"""Raw jacobian of the inverse_diffeomorphism.
+
+        Raw jacobian autodiff of inverse_diffeomorphism regardless of vectorization.
+
+        Returns
+        -------
+        jac : callable
+            jacobian function of diffeomorphism
+        """
+        if self._raw_inverse_jacobian_diffeomorphism is None:
+            self._raw_inverse_jacobian_diffeomorphism = gs.autodiff.jacobian(
+                self.inverse_diffeomorphism
+            )
+        return self._raw_inverse_jacobian_diffeomorphism
+
     def inverse_jacobian_diffeomorphism(self, image_point):
         r"""Invercse Jacobian of the diffeomorphism at image point.
 
@@ -284,15 +315,10 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         rad = image_point.shape[: -len(self.embedding_metric.shape)]
         image_point = gs.reshape(image_point, (-1,) + self.embedding_metric.shape)
 
-        # Only compute graph once
-        if self._inverse_jacobian_diffeomorphism is None:
-            self._inverse_jacobian_diffeomorphism = gs.autodiff.jacobian(
-                self.inverse_diffeomorphism
-            )
-
-        J = self._inverse_jacobian_diffeomorphism(image_point)
+        J = self.raw_inverse_jacobian_diffeomorphism(image_point)
         J = gs.moveaxis(gs.diagonal(J, axis1=0, axis2=len(self.shape) + 1), -1, 0)
         J = gs.reshape(J, rad + self.shape + self.embedding_metric.shape)
+
         return J
 
     def inverse_tangent_diffeomorphism(self, image_tangent_vec, image_point):
@@ -328,7 +354,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             (-1, self.shape_dim, self.embedding_space_shape_dim),
         )
 
-        itv_flat = image_tangent_vec.reshape(-1, self.embedding_space_shape_dim)
+        itv_flat = gs.reshape(image_tangent_vec, (-1, self.embedding_space_shape_dim))
 
         tv = gs.reshape(
             gs.einsum("...ij,...j->...i", J_flat, itv_flat), rad + self.shape
