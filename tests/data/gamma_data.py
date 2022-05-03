@@ -231,7 +231,7 @@ class GammaMetricTestData(_RiemannianMetricTestData):
 
     def metric_matrix_shape_test_data(self):
         random_data = [
-            dict(point=self.space().random_point(1), expected=(2, 2)),
+            dict(point=self.space().random_point(), expected=(2, 2)),
             dict(point=self.space().random_point(3), expected=(3, 2, 2)),
             dict(points=self.space().random_point(2), expected=(2, 2, 2)),
         ]
@@ -239,10 +239,7 @@ class GammaMetricTestData(_RiemannianMetricTestData):
 
     def christoffels_vectorization_test_data(self):
         n_points = 2
-        points = self.space().random_point(
-            n_points
-        )  # unnecessary but as random_point is chosen in natural coordinates...
-        points = self.metric().var_change_point(points)
+        points = self.space().random_point(n_points)
         christoffel_1 = self.metric().christoffels(base_point=points[0])
         christoffel_2 = self.metric().christoffels(base_point=points[1])
         expected = gs.stack((christoffel_1, christoffel_2), axis=0)
@@ -259,10 +256,10 @@ class GammaMetricTestData(_RiemannianMetricTestData):
 
     def exp_vectorization_test_data(self):
         point = self.space().random_point()
-        tangent_vec = gs.array([1.0, 0.5])
         n_tangent_vecs = 10
-        t = gs.linspace(0.0, 1.0, n_tangent_vecs)
-        tangent_vecs = gs.einsum("i,...k->...ik", t, tangent_vec)
+        tangent_vecs = self.space().metric.random_tangent_vec(
+            base_point=point, n_vectors=n_tangent_vecs
+        )
         random_data = [dict(point=point, tangent_vecs=tangent_vecs)]
         return self.generate_tests([], random_data)
 
@@ -276,12 +273,14 @@ class GammaMetricTestData(_RiemannianMetricTestData):
     def geodesic_test_data(self):
         random_data = [
             dict(
-                point_a=self.space().random_point(),
-                point_b=self.space().random_point(),
+                base_point=self.space().random_point(),
+                direction=gs.random.rand(2),
+                norm=2,
             ),
             dict(
-                point_a=self.space().random_point(),
-                point_b=self.space().random_point(),
+                base_point=self.space().random_point(),
+                direction=gs.random.rand(2),
+                norm=1,
             ),
         ]
         return self.generate_tests([], random_data)

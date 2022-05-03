@@ -11,7 +11,7 @@ from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-N_STEPS = 100
+N_STEPS = 1000
 
 
 class GammaDistributions(OpenSet):
@@ -55,7 +55,7 @@ class GammaDistributions(OpenSet):
     def random_point(self, n_samples=1, bound=5.0):
         """Sample parameters of Gamma distributions.
 
-        The uniform distribution on [0, bound]^2 is used.
+        The uniform distribution on [1, bound]^2 is used.
 
         Parameters
         ----------
@@ -176,7 +176,56 @@ class GammaMetric(RiemannianMetric):
     def __init__(self):
         super(GammaMetric, self).__init__(dim=2)
 
-    def var_change_point(self, point):
+    def normalize(self, base_point, tangent_vec, norm=1):
+        """Normalize tangent vector at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point of the Gamma manifold.
+        tangent_vec : array-like, shape=[..., 2]
+            Tangent vectors at base_point.
+        norm : float
+            Chosen norm for the random tangent vectors.
+
+        Returns
+        -------
+        normed_tangent_vec : array-like, shape=[..., 2]
+            Normed tangent vector at base_point.
+        """
+        return norm * gs.einsum(
+            "...i,...->...i",
+            tangent_vec,
+            1 / self.norm(tangent_vec, base_point=base_point),
+        )
+
+    def random_tangent_vec(self, base_point, n_vectors=1, norm=1):
+        """Generate a random tangent vector of chosen norm at a chosen point.
+
+        As the norm of the vector depends on its base point, the tangent vector
+        needs to be renormalized.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point of the Gamma manifold.
+        n_vectors : int
+            Number of wanted tangent vectors.
+        norm : float
+            Chosen norm for the random tangent vectors.
+
+        Returns
+        -------
+        normed_tangent_vec : array-like, shape=[..., 2]
+            Tangent vector at base_point.
+        """
+        unnormed_tangent_vec = gs.random.rand(n_vectors, 2)
+        normed_tangent_vec = norm * self.normalize(
+            base_point, unnormed_tangent_vec, norm
+        )
+        return gs.squeeze(normed_tangent_vec)
+
+    def _var_change_point(self, point):
         """Compute change of variable of a point.
 
         Change of variable of a point given in natural coordinates (i.e., (kappa, nu))
@@ -200,7 +249,7 @@ class GammaMetric(RiemannianMetric):
 
         return gs.squeeze(point)
 
-    def var_change_vec(self, vec, base_point):
+    def _var_change_vec(self, vec, base_point):
         """Compute change of variable of a tangent vector.
 
         Change of variable of a tangent vector at base point, both given in the same
@@ -263,7 +312,7 @@ class GammaMetric(RiemannianMetric):
         kappa, gamma = base_point[:, 0], base_point[:, 1]
 
         mat_diag = gs.transpose(
-            gs.array([kappa / gamma**2, gs.polygamma(1, kappa) - 1 / kappa])
+            gs.array([gs.polygamma(1, kappa) - 1 / kappa, kappa / gamma**2])
         )
         mat = from_vector_to_diagonal_matrix(mat_diag)
         return gs.squeeze(mat)
@@ -299,13 +348,29 @@ class GammaMetric(RiemannianMetric):
         c1 = gs.squeeze(
             from_vector_to_diagonal_matrix(
                 gs.transpose(
-                    gs.array(
-                        [
-                            (kappa**2 * gs.polygamma(2, kappa) + 1)
-                            / (2 * (kappa**2 * gs.polygamma(1, kappa) - kappa)),
-                            -kappa
-                            / (2 * gamma**2 * (kappa * gs.polygamma(1, kappa) - 1)),
-                        ]
+                    gs.where(
+                        gs.polygamma(1, kappa) - 1 / kappa > gs.atol,
+                        gs.array(
+                            [
+                                (
+                                    gs.polygamma(2, kappa)
+                                    + gs.array(kappa, dtype=gs.float32) ** -2
+                                )
+                                / (2 * (gs.polygamma(1, kappa) - 1 / kappa)),
+                                -1
+                                / (
+                                    2
+                                    * gamma**2
+                                    * (gs.polygamma(1, kappa) - 1 / kappa)
+                                ),
+                            ]
+                        ),
+                        gs.array(
+                            [
+                                0.25 * (kappa**2 * gs.polygamma(2, kappa) + 1),
+                                -(kappa**2) / (4 * gamma**2),
+                            ]
+                        ),
                     )
                 )
             )
@@ -351,22 +416,45 @@ class GammaMetric(RiemannianMetric):
 
         term_0 = gs.zeros((n_points))
         term_1 = 1 / gamma**2
-        term_2 = kappa / (gamma**3 * (kappa * gs.polygamma(1, kappa) - 1))
-        term_3 = -1 / (2 * kappa**2)
-        term_4 = (kappa**2 * gs.polygamma(2, kappa) + 1) / (
-            2 * gamma**2 * (kappa * gs.polygamma(1, kappa) - 1) ** 2
+        term_2 = gs.where(
+            gs.polygamma(1, kappa) - 1 / kappa > gs.atol,
+            kappa / (gamma**3 * (kappa * gs.polygamma(1, kappa) - 1)),
+            kappa**2 / gamma**3,
         )
-        term_5 = (
-            kappa**4
-            * (
-                gs.polygamma(1, kappa) * gs.polygamma(3, kappa)
-                - gs.polygamma(2, kappa) ** 2
+        term_3 = -1 / (2 * kappa**2)
+        term_4 = gs.where(
+            gs.polygamma(1, kappa) - 1 / kappa > gs.atol,
+            (kappa**2 * gs.polygamma(2, kappa) + 1)
+            / (2 * gamma**2 * (kappa * gs.polygamma(1, kappa) - 1) ** 2),
+            (kappa**4 * gs.polygamma(2, kappa) + kappa**2) / (2 * gamma**2),
+        )
+        term_5 = gs.where(
+            gs.polygamma(1, kappa) - 1 / kappa > gs.atol,
+            (
+                kappa**4
+                * (
+                    gs.polygamma(1, kappa) * gs.polygamma(3, kappa)
+                    - gs.polygamma(2, kappa) ** 2
+                )
+                - kappa**3 * gs.polygamma(3, kappa)
+                - 2 * kappa**2 * gs.polygamma(2, kappa)
+                - 2 * kappa * gs.polygamma(1, kappa)
+                + 1
             )
-            - kappa**3 * gs.polygamma(3, kappa)
-            - 2 * kappa**2 * gs.polygamma(2, kappa)
-            - 2 * kappa * gs.polygamma(1, kappa)
-            + 1
-        ) / (2 * (kappa**2 * gs.polygamma(1, kappa) - kappa) ** 2)
+            / (2 * (kappa**2 * gs.polygamma(1, kappa) - kappa) ** 2),
+            0.5
+            * (
+                kappa**4
+                * (
+                    gs.polygamma(1, kappa) * gs.polygamma(3, kappa)
+                    - gs.polygamma(2, kappa) ** 2
+                )
+                - kappa**3 * gs.polygamma(3, kappa)
+                - 2 * kappa**2 * gs.polygamma(2, kappa)
+                - 2 * kappa * gs.polygamma(1, kappa)
+                + 1
+            ),
+        )
 
         jac = gs.array(
             [

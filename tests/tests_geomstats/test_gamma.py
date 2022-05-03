@@ -50,7 +50,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     space = GammaDistributions
     connection = metric = GammaMetric
 
-    skip_test_exp_shape = True  # because several base points for one vector
+    skip_test_exp_shape = True
     skip_test_log_shape = (
         geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
     )
@@ -92,7 +92,6 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_metric_matrix_shape(self, point, expected):
-        point = self.metric().var_change_point(point)
         return self.assertAllClose(self.metric().metric_matrix(point).shape, expected)
 
     @geomstats.tests.np_autograd_and_tf_only
@@ -101,21 +100,15 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_christoffels_shape(self, point, expected):
-        base_point = self.metric().var_change_point(point)
         return self.assertAllClose(
-            self.metric()
-            .christoffels(base_point=self.metric().var_change_point(base_point))
-            .shape,
+            self.metric().christoffels(base_point=point).shape,
             expected,
         )
 
     @geomstats.tests.np_and_autograd_only
     def test_exp_vectorization(self, point, tangent_vecs):
         """Test the case with one initial point and several tangent vectors."""
-        n_points = tangent_vecs.shape[0]
-        point = gs.tile(point, (n_points, 1))
-        tangent_vecs = self.metric().var_change_vec(tangent_vecs, point)
-        point = self.metric().var_change_point(point)
+        tangent_vecs = self.metric().normalize(point, tangent_vecs, 1)
         end_points = self.metric().exp(tangent_vec=tangent_vecs, base_point=point)
         result = end_points.shape
         expected = (tangent_vecs.shape[0], 2)
@@ -123,8 +116,6 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.autograd_and_torch_only
     def test_jacobian_christoffels(self, point):
-        point = self.metric().var_change_point(point)
-
         result = self.metric().jacobian_christoffels(point[0, :])
         self.assertAllClose((2, 2, 2, 2), result.shape)
 
@@ -140,10 +131,13 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(expected, result)
 
     @geomstats.tests.np_and_autograd_only
-    def test_geodesic(self, point_a, point_b):
+    def test_geodesic(self, base_point, direction, norm):
         """Check that the norm of the geodesic velocity is constant."""
-        n_steps = 10000
-        geod = self.metric().geodesic(initial_point=point_a, end_point=point_b)
+        n_steps = 1000
+        tangent_vec = norm * self.metric().normalize(base_point, direction)
+        geod = self.metric().geodesic(
+            initial_point=base_point, initial_tangent_vec=tangent_vec
+        )
         t = gs.linspace(0.0, 1.0, n_steps)
         geod_at_t = geod(t)
         velocity = n_steps * (geod_at_t[1:, :] - geod_at_t[:-1, :])
