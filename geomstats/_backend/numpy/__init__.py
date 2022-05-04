@@ -95,6 +95,7 @@ from numpy import (
     tile,
     trace,
     transpose,
+    trapz,
     tril,
     tril_indices,
     triu,
