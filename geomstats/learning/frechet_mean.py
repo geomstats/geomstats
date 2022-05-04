@@ -142,12 +142,9 @@ def _default_gradient_descent(
 
         metric_dim = metric.dim
         if isinstance(metric, SRVMetric):
-            # change metric_dim if metric is an instance of SRVMetric
             metric_dim = tangent_mean.shape[-2] * tangent_mean.shape[-1]
 
-        sq_dist_is_small = gs.less_equal(
-            sq_dist, epsilon * metric_dim
-        )  # epsilon * n_points * embedding_space.dim
+        sq_dist_is_small = gs.less_equal(sq_dist, epsilon * metric_dim)
 
         condition = ~gs.logical_or(var_is_0, sq_dist_is_small)
         if not (condition or iteration == 0):
