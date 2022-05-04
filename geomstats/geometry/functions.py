@@ -2,19 +2,10 @@
 
 import math
 
-import numpy as np
-
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-
-
-def _trapz(y, **kwargs):
-    if y.ndim == 1:
-        y = y.reshape(1, len(y))
-
-    return np.trapz(y, **kwargs)
 
 
 class HilbertSphereMetric(RiemannianMetric):
@@ -51,7 +42,12 @@ class HilbertSphereMetric(RiemannianMetric):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        l2_norm = _trapz(tangent_vec_a * tangent_vec_b, x=self.x, axis=1)
+        if tangent_vec_a.ndim == 1:
+            tangent_vec_a = tangent_vec_a.reshape(1, len(tangent_vec_a))
+        if tangent_vec_b.ndim == 1:
+            tangent_vec_b = tangent_vec_b.reshape(1, len(tangent_vec_b))
+
+        l2_norm = gs.trapz(tangent_vec_a * tangent_vec_b, x=self.x, axis=1)
 
         return l2_norm
 

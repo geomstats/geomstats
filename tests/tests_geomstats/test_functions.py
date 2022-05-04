@@ -28,14 +28,12 @@ class TestHilbertSphereMetric(geomstats.tests.TestCase):
             [gaussian(self.domain, a, 0.1) for a in gs.linspace(0.2, 0.8, 5)]
         ).squeeze()
 
-    @geomstats.tests.np_and_autograd_only
     def test_inner_product(self):
         result = self.manifold.metric.inner_product(self.point_a, self.point_b)
         self.assertAllClose(gs.shape(result), (1,))
         result = self.manifold.metric.inner_product(self.points, self.point_a)
         self.assertAllClose(gs.shape(result), (gs.shape(self.points)[0],))
 
-    @geomstats.tests.np_and_autograd_only
     def test_exp(self):
         exp = self.manifold.metric.exp(self.point_a, self.point_b)
         self.assertAllClose(gs.shape(exp), gs.shape(self.point_b))
@@ -44,7 +42,6 @@ class TestHilbertSphereMetric(geomstats.tests.TestCase):
         exp = self.manifold.metric.exp(self.points, self.point_b)
         self.assertAllClose(gs.shape(exp), gs.shape(self.points))
 
-    @geomstats.tests.np_and_autograd_only
     def test_log(self):
         log = self.manifold.metric.log(self.point_a, self.point_b)
         self.assertAllClose(gs.shape(log), gs.shape(self.point_b))
@@ -57,19 +54,17 @@ class TestHilbertSphere(geomstats.tests.TestCase):
         self.domain = gs.linspace(0, 1, num=50)
         self.manifold = HilbertSphere(self.domain)
         self.point_a = gaussian(self.domain, 0.2, 0.1)
-        self.point_b = gaussian(self.domain, 0.5, 0.2)
+        self.point_b = gaussian(self.domain, 0.5, 0.1)
         self.points = gs.array(
             [gaussian(self.domain, a, 0.1) for a in gs.linspace(0.2, 0.8, 5)]
         ).squeeze()
         self.f = gs.sin(gs.linspace(-gs.pi, gs.pi, 50)).reshape(1, 50)
 
-    @geomstats.tests.np_and_autograd_only
     def test_projection(self):
         f_proj = self.manifold.projection(self.f)
         result = self.manifold.belongs(f_proj)
         self.assertTrue(result, "Expected True but got %s" % result)
 
-    @geomstats.tests.np_and_autograd_only
     def test_belongs(self):
         result = self.manifold.belongs(self.point_a)
         self.assertTrue(result[0], "Expected True but got %s" % result[0])
@@ -80,7 +75,6 @@ class TestHilbertSphere(geomstats.tests.TestCase):
         result = self.manifold.belongs(self.points).all()
         self.assertTrue(result, "Expected True but got %s" % result)
 
-    @geomstats.tests.np_and_autograd_only
     def test_to_tangent(self):
         tangent_vec = self.manifold.to_tangent(self.point_b, self.point_a)
         self.assertAllClose(gs.shape(tangent_vec), gs.shape(self.point_b))
@@ -92,13 +86,12 @@ class TestHilbertSphere(geomstats.tests.TestCase):
     def test_is_tangent(self):
         tangent_vec = self.manifold.to_tangent(self.point_a, self.point_b)
         result = self.manifold.is_tangent(tangent_vec, self.point_b)
-        self.assertTrue(result)
+        self.assertTrue(result, "Expected True but got %s" % result)
 
         tangent_vecs = self.manifold.to_tangent(self.points, self.point_a)
         result = self.manifold.is_tangent(tangent_vecs, self.point_a)
-        self.assertTrue(result.all())
+        self.assertTrue(result.all(), "Expected True but got %s" % result.all())
 
-    @geomstats.tests.np_and_autograd_only
     def test_random_point(self):
         rand_point = self.manifold.random_point()
         result = self.manifold.belongs(rand_point)
