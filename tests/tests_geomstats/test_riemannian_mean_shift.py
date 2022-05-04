@@ -106,3 +106,40 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
         self.assertEqual(
             combined_cluster.shape[0], count_in_first_cluster + count_in_second_cluster
         )
+
+    @geomstats.tests.np_and_autograd_only
+    def test_predict_labels_riemannian_mean_shift(self):
+        gs.random.seed(10)
+        number_of_samples = 20
+        sphere = Hypersphere(dim=2)
+        metric = HypersphereMetric(2)
+
+        cluster = sphere.random_von_mises_fisher(kappa=20, n_samples=number_of_samples)
+
+        special_orthogonal = SpecialOrthogonal(3)
+        rotation1 = special_orthogonal.random_uniform()
+        rotation2 = special_orthogonal.random_uniform()
+
+        cluster_1 = cluster @ rotation1
+        cluster_2 = cluster @ rotation2
+
+        combined_cluster = gs.concatenate((cluster_1, cluster_2))
+        rms = riemannian_mean_shift(
+            manifold=sphere, metric=metric, bandwidth=0.3, tol=1e-4, n_centers=2
+        )
+
+        rms.fit(combined_cluster)
+        closest_center_labels = rms.predict_labels(combined_cluster)
+
+        first_label_count = 0
+        second_label_count = 0
+
+        for label in closest_center_labels:
+            if gs.allclose(label, 0):
+                first_label_count += 1
+            elif gs.allclose(label, 1):
+                second_label_count += 1
+
+        self.assertEqual(
+            combined_cluster.shape[0], first_label_count + second_label_count
+        )
