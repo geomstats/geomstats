@@ -30,7 +30,7 @@ class Minkowski(Euclidean):
         `MinkowskiMetric`.
         """
         space = Euclidean(dim)
-        space.metric = MinkowskiMetric(dim)
+        space._metric = MinkowskiMetric(dim)
         return space
 
 

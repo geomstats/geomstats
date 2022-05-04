@@ -6,6 +6,7 @@ from itertools import product
 
 import numpy as _np
 import tensorflow as tf
+import tensorflow_probability as tfp
 from tensorflow import abs
 from tensorflow import acos as arccos  # NOQA
 from tensorflow import acosh as arccosh
@@ -38,6 +39,7 @@ from tensorflow import (
     logical_or,
     maximum,
     meshgrid,
+    minimum,
     ones,
     ones_like,
 )
@@ -71,7 +73,7 @@ from . import random  # NOQA
 
 DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3, complex64: 4, complex128: 5}
 
-
+angle = tf.math.angle
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
 conj = tf.math.conj
@@ -88,6 +90,7 @@ set_diag = tf.linalg.set_diag
 std = tf.math.reduce_std
 atol = tf_atol
 rtol = tf_rtol
+trapz = tfp.math.trapz
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -935,3 +938,7 @@ def ravel_tril_indices(n, k=0, m=None):
         size = (n, m)
     idxs = tril_indices(n, k, m)
     return _ravel_multi_index(idxs, size)
+
+
+def kron(a, b):
+    return tf.linalg.LinearOperatorKronecker([a, b]).to_dense()

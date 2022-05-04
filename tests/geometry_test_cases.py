@@ -1,5 +1,7 @@
 """Core parametrizer classes for Tests."""
 
+from functools import reduce
+
 import geomstats.backend as gs
 from tests.conftest import TestCase
 
@@ -286,6 +288,25 @@ class LieGroupTestCase(ManifoldTestCase):
         exp_point = group.exp(log_vec, gs.array(base_point))
         self.assertAllClose(exp_point, gs.array(point), rtol, atol)
 
+    def test_to_tangent_at_identity_belongs_to_lie_algebra(
+        self, group_args, vector, belongs_atol
+    ):
+        """Check that to tangent at identity is tangent in lie algebra.
+
+        Parameters
+        ----------
+        group_args : tuple
+            Arguments to pass to constructor of the group.
+        vector : array-like
+            Vector to be projected on the tangent space at base_point.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
+        group = self.group(*group_args)
+        tangent_vec = group.to_tangent(vector, group.identity)
+        result = gs.all(group.lie_algebra.belongs(tangent_vec, belongs_atol))
+        self.assertAllClose(result, gs.array(True))
+
 
 class VectorSpaceTestCase(ManifoldTestCase):
     def test_basis_belongs(self, space_args, belongs_atol):
@@ -461,33 +482,68 @@ class FiberBundleTestCase(TestCase):
     def test_is_horizontal_after_horizontal_projection(
         self, space_args, tangent_vec, base_point, rtol, atol
     ):
-        space = self.space(*space_args)
-        horizontal = space.horizontal_projection(tangent_vec, base_point)
-        result = space.is_horizontal(horizontal, base_point, atol)
+        bundle = self.bundle(*space_args)
+        horizontal = bundle.horizontal_projection(tangent_vec, base_point)
+        result = bundle.is_horizontal(horizontal, base_point, atol)
         self.assertTrue(gs.all(result))
 
     def test_is_vertical_after_vertical_projection(
         self, space_args, tangent_vec, base_point, rtol, atol
     ):
-        space = self.space(*space_args)
-        vertical = space.vertical_projection(tangent_vec, base_point)
-        result = space.is_vertical(vertical, base_point, atol)
+        bundle = self.bundle(*space_args)
+        vertical = bundle.vertical_projection(tangent_vec, base_point)
+        result = bundle.is_vertical(vertical, base_point, atol)
         self.assertTrue(gs.all(result))
 
     def test_is_horizontal_after_log_after_align(
         self, space_args, base_point, point, rtol, atol
     ):
-        space = self.space(*space_args)
-        aligned = space.align(point, base_point)
-        log = space.ambient_metric.log(aligned, base_point)
-        result = space.is_horizontal(log, base_point)
+        bundle = self.bundle(*space_args)
+        aligned = bundle.align(point, base_point)
+        log = bundle.ambient_metric.log(aligned, base_point)
+        result = bundle.is_horizontal(log, base_point)
         self.assertTrue(gs.all(result))
 
     def test_riemannian_submersion_after_lift(self, space_args, base_point, rtol, atol):
-        space = self.space(*space_args)
-        lift = space.lift(base_point)
-        result = space.riemannian_submersion(lift)
+        bundle = self.bundle(*space_args)
+        lift = bundle.lift(base_point)
+        result = bundle.riemannian_submersion(lift)
         self.assertAllClose(result, base_point, rtol, atol)
+
+    def test_is_tangent_after_tangent_riemannian_submersion(
+        self, space_args, base_cls, tangent_vec, base_point, rtol, atol
+    ):
+        bundle = self.bundle(*space_args)
+        projected = bundle.tangent_riemannian_submersion(tangent_vec, base_point)
+        projected_pt = bundle.riemannian_submersion(base_point)
+        result = base_cls(*space_args).is_tangent(projected, projected_pt)
+        expected = (
+            True
+            if tangent_vec.shape == bundle.shape
+            else gs.array([True] * len(tangent_vec))
+        )
+        self.assertAllClose(result, expected, rtol, atol)
+
+
+class ProductManifoldTestCase(ManifoldTestCase):
+    def test_product_dimension_is_sum_of_dimensions(self, space_args):
+        """Check the dimension of the product manifold.
+
+        Check that the dimension of the product manifold is the sum of
+        the dimensions of its manifolds.
+
+        For M = M1 x ... x Mn, we check that:
+        dim(M) = dim(M1) + ... + dim(Mn)
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the product manifold.
+        """
+        spaces_list = space_args[0]
+        result = self.space(*space_args).dim
+        expected = sum(space.dim for space in spaces_list)
+        self.assertAllClose(result, expected)
 
 
 class ConnectionTestCase(TestCase):
@@ -1041,3 +1097,279 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         dist = metric.dist(point, point)
         expected = gs.zeros_like(dist)
         self.assertAllClose(dist, expected, rtol, atol)
+
+    def test_triangle_inequality_of_dist(
+        self, metric_args, point_a, point_b, point_c, atol
+    ):
+        """Check that distance satisfies traingle inequality.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        point_a : array-like
+            Point on the manifold.
+        point_b : array-like
+            Point on the manifold.
+        point_c : array-like
+            Point on the manifold.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+        dist_ab = metric.dist(point_a, point_b)
+        dist_bc = metric.dist(point_b, point_c)
+        dist_ac = metric.dist(point_a, point_c)
+        result = gs.all((dist_ab + dist_bc - dist_ac) >= atol)
+        self.assertAllClose(result, gs.array(True))
+
+
+class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
+    def test_innerproduct_is_sum_of_innerproducts(
+        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
+    ):
+        """Check the inner-product of the product metric.
+
+        Check that the inner-product of two tangent vectors on the product
+        manifold is the sum of the inner-products on each of the manifolds.
+
+        For M = M1 x ... x Mn, equipped with the product Riemannian metric
+        g = (g1, ...., gn) and tangent vectors u = (u1, ..., un) and v = (v1, ..., vn),
+        we check that:
+        <u, v>_g = <u1, v1>_g1 + ... + <un, vn>_gn
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        tangent_vec_a : array-like
+            Point on the manifold.
+        tangent_vec_b : array-like
+            Point on the manifold.
+        base_point : array-like
+            Point on the manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+        metrics_list = metric_args[0]
+        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        expected = sum(
+            metric.inner_product(tangent_vec_a[i], tangent_vec_b[i], base_point[i])
+            for i, metric in enumerate(metrics_list)
+        )
+        self.assertAllClose(result, expected, rtol, atol)
+
+    def test_metric_matrix_is_block_diagonal(self, metric_args, base_point):
+        """Check that the metric matrix has the correct block diagonal form.
+
+        Check that the metric matrix of the product metric has a block diagonal
+        form, where each block is the metric matrix of one manifold.
+
+        For M = M1 x ... x Mn equipped with the product Riemannian metric
+        g = (g1, ...., gn), we check that the matrix of g is formed by
+        the metric matrices of g1, ..., gn in this order, arranged in a
+        block diagonal.
+
+        Parameters
+        ----------
+        ...
+        """
+        metric = self.metric(*metric_args)
+        result = metric.metric_matrix(base_point)
+        individual_metric_matrices = [metric.matrix for metric in metric_args[0]]
+        expected = reduce(gs.kron, individual_metric_matrices)
+        self.assertAllClose(result, expected)
+
+
+class QuotientMetricTestCase(RiemannianMetricTestCase):
+    def test_dist_is_smaller_than_bundle_dist(
+        self, metric_args, bundle, point_a, point_b, atol
+    ):
+        """Check that the quotient distance is smaller than the distance in the bundle.
+
+        Check that the quotient metric distance between two points on the quotient
+        is smaller than the fiber bundle distance between the two lifted points.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        bundle : FuberBundle
+            Fiber Bundle object.
+        point_a : array-like
+            Point on the manifold.
+        point_b : array-like
+            Point on the manifold.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+        quotient_distance = metric.dist(point_a, point_b)
+        bundle_distance = bundle.ambient_metric(point_a, point_b)
+        result = gs.all(bundle_distance - quotient_distance > atol)
+        self.assertAllClose(result, gs.array(True))
+
+    def test_log_is_horizontal(
+        self, metric_args, bundle, point, base_point, is_horizontal_atol
+    ):
+        """Check the quotient log is a horizontal tangent vector.
+
+        Check that the quotient metric logarithm gives a tangent vector
+        that is horizontal for the bundle defining the quotient.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        bundle : FuberBundle
+            Fiber Bundle object.
+        point : array-like
+            Point on the quotient manifold.
+        base_point : array-like
+            Point on the quotient manifold.
+        is_horizontal_atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+        log = metric.log(point, base_point)
+        result = gs.all(bundle.is_horizontal(log, base_point, is_horizontal_atol))
+        self.assertAllClose(result, gs.array(True))
+
+
+class PullbackMetricTestCase(RiemannianMetricTestCase):
+    def test_innerproduct_is_embedding_innerproduct(
+        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
+    ):
+        """Check that the inner-product correspond to the embedding inner-product.
+
+        Check that the formula defining the pullback-metric inner product is
+        verified, i.e.:
+        <u, v>_p = g_{f(p)}(df_p u , df_p v)
+        for p a point on the manifold, f the immersion defining the pullback metric
+        and df_p the differential of f at p.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        tangent_vec_a : array-like
+            Tangent vector to the manifold at base_point.
+        tangent_vec_b : array-like
+            Tangent vector to the manifold at base_point.
+        base_point : array-like
+            Point on manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+        immersion = metric.immersion
+        differential_immersion = metric.tangent_immersion
+        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        expected = metric.embedding_metric(
+            differential_immersion(tangent_vec_a, base_point),
+            differential_immersion(tangent_vec_b, base_point),
+            immersion(base_point),
+        )
+        self.assertAllClose(result, expected, rtol, atol)
+
+
+class InvariantMetricTestCase(RiemannianMetricTestCase):
+    def test_exp_at_identity_of_lie_algebra_belongs(
+        self, metric_args, group, lie_algebra_point, belongs_atol
+    ):
+        """Check that exp of a lie algebra element is in group.
+
+        Check that the exp at identity of a lie algebra element
+        belongs to the group.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        group : LieGroup
+            Lie Group on which invariant metric is defined.
+        lie_algebra_point : array-like
+            Point on lie algebra.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
+        metric = self.metric(*metric_args)
+        exp = metric.exp(lie_algebra_point, group.identity)
+        result = gs.all(group.belongs(exp, belongs_atol))
+        self.assertAllClose(result, gs.array(True))
+
+    def test_log_at_identity_belongs_to_lie_algebra(
+        self, metric_args, group, point, belongs_atol
+    ):
+        """Check that log belongs to lie algebra.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        group : LieGroup
+            Lie Group on which invariant metric is defined.
+        point : array-like
+            Point on group.
+        base_point : array-like
+            Point on group.
+        belongs_atol : float
+            Absolute tolerance for the belongs function.
+        """
+        metric = self.metric(*metric_args)
+        log = metric.log(point, group.identity)
+        result = gs.all(group.lie_algebra.belongs(log, belongs_atol))
+        self.assertAllClose(result, gs.array(True))
+
+    def test_exp_after_log_at_identity(self, metric_args, group, point, rtol, atol):
+        """Check that exp and log at identity are inverse.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        group : LieGroup
+            Lie Group on which invariant metric is defined.
+        point : array-like
+            Point on group.
+        base_point : array-like
+            Point on group.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+        log = metric.log(point, group.identity)
+        result = metric.exp(log, group.identity)
+        self.assertAllClose(result, point, rtol, atol)
+
+    def test_log_after_exp_at_identity(
+        self, metric_args, group, tangent_vec, rtol, atol
+    ):
+        """Check that log and exp at identity are inverse.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        group : LieGroup
+            Lie Group on which invariant metric is defined.
+        point : array-like
+            Point on group.
+        tangent_vec : array-like
+            Tangent vector on group.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+        exp = metric.exp(tangent_vec, group.identity)
+        result = metric.log(exp, group.identity)
+        self.assertAllClose(result, tangent_vec, rtol, atol)
