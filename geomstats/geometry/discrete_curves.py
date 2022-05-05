@@ -17,7 +17,6 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 R2 = Euclidean(dim=2)
 R3 = Euclidean(dim=3)
-TOL = 1e-10
 
 
 class DiscreteCurves(Manifold):
@@ -428,7 +427,7 @@ class SRVMetric(RiemannianMetric):
         self.l2_metric = L2CurvesMetric(ambient_manifold, metric)
         self.translation_invariant = translation_invariant
 
-    def srv_transform(self, curve, tol=TOL):
+    def srv_transform(self, curve, tol=1e-10):
         """Square Root Velocity Transform (SRVT).
 
         Compute the square root velocity representation of a curve. The

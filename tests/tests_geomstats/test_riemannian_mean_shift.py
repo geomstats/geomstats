@@ -69,16 +69,27 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_autograd_only
-    def test_double_cluster_riemannian_mean_shift(self):
-        gs.random.seed(10)
-        number_of_samples = 20
-        sphere = Hypersphere(dim=2)
-        metric = HypersphereMetric(2)
+    def _test_double_cluster_init(
+        self,
+        seed=10,
+        num_of_samples=20,
+        size_of_dim=2,
+        kappa_value=20,
+        orthogonality_of_sphere=3,
+        bandwidth=0.3,
+        tol=1e-4,
+        num_of_centers=2,
+    ):
+        gs.random.seed(seed)
+        number_of_samples = num_of_samples
+        sphere = Hypersphere(size_of_dim)
+        metric = sphere.metric
 
-        cluster = sphere.random_von_mises_fisher(kappa=20, n_samples=number_of_samples)
+        cluster = sphere.random_von_mises_fisher(
+            kappa=kappa_value, n_samples=number_of_samples
+        )
 
-        special_orthogonal = SpecialOrthogonal(3)
+        special_orthogonal = SpecialOrthogonal(orthogonality_of_sphere)
         rotation1 = special_orthogonal.random_uniform()
         rotation2 = special_orthogonal.random_uniform()
 
@@ -87,20 +98,29 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
 
         combined_cluster = gs.concatenate((cluster_1, cluster_2))
         rms = riemannian_mean_shift(
-            manifold=sphere, metric=metric, bandwidth=0.3, tol=1e-4, n_centers=2
+            manifold=sphere,
+            metric=metric,
+            bandwidth=bandwidth,
+            tol=tol,
+            n_centers=num_of_centers,
         )
 
         rms.fit(combined_cluster)
+
+        return combined_cluster, rms
+
+    @geomstats.tests.np_and_autograd_only
+    def test_double_cluster_riemannian_mean_shift(self):
+        combined_cluster, rms = self._test_double_cluster_init()
         closest_centers = rms.predict(combined_cluster)
 
         count_in_first_cluster = 0
+        count_in_second_cluster = 0
+
         for point in closest_centers:
             if gs.allclose(point, rms.centers[0]):
                 count_in_first_cluster += 1
-
-        count_in_second_cluster = 0
-        for point in closest_centers:
-            if gs.allclose(point, rms.centers[1]):
+            elif gs.allclose(point, rms.centers[1]):
                 count_in_second_cluster += 1
 
         self.assertEqual(
@@ -109,26 +129,7 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_autograd_only
     def test_predict_labels_riemannian_mean_shift(self):
-        gs.random.seed(10)
-        number_of_samples = 20
-        sphere = Hypersphere(dim=2)
-        metric = HypersphereMetric(2)
-
-        cluster = sphere.random_von_mises_fisher(kappa=20, n_samples=number_of_samples)
-
-        special_orthogonal = SpecialOrthogonal(3)
-        rotation1 = special_orthogonal.random_uniform()
-        rotation2 = special_orthogonal.random_uniform()
-
-        cluster_1 = cluster @ rotation1
-        cluster_2 = cluster @ rotation2
-
-        combined_cluster = gs.concatenate((cluster_1, cluster_2))
-        rms = riemannian_mean_shift(
-            manifold=sphere, metric=metric, bandwidth=0.3, tol=1e-4, n_centers=2
-        )
-
-        rms.fit(combined_cluster)
+        combined_cluster, rms = self._test_double_cluster_init()
         closest_center_labels = rms.predict_labels(combined_cluster)
 
         first_label_count = 0
