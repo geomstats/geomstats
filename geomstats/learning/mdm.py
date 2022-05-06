@@ -90,14 +90,9 @@ class RiemannianMinimumDistanceToMeanClassifier:
         y : array-like, shape=[n_samples,]
             Predicted labels.
         """
-        n_samples = X.shape[0]
-        y = []
-        for i in range(n_samples):
-            index = self.riemannian_metric.closest_neighbor_index(
-                X[i], self.mean_estimates_
-            )
-            y.append(self.classes_[index])
-        return gs.array(y)
+        indices = self.riemannian_metric.closest_neighbor_index(X, self.mean_estimates_)
+
+        return self.classes_[indices]
 
     def predict_proba(self, X):
         """Compute probabilities.

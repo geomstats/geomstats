@@ -95,9 +95,7 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20, atol=1e-5, max_iter=5
             "clustering may be inaccurate".format(max_iter)
         )
 
-    labels = gs.zeros(n_samples)
-    for i in range(n_samples):
-        labels[i] = int(metric.closest_neighbor_index(X[i], cluster_centers))
+    labels = metric.closest_neighbor_index(X, cluster_centers)
 
     return cluster_centers, labels
 
