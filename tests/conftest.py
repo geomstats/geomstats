@@ -267,9 +267,9 @@ def _dictify_test_data(test_data, arg_names):
     for test_datum in test_data:
         if not isinstance(test_datum, dict):
             marks = test_datum[-1]
-            test_datum = dict(
-                (name, value) for name, value in zip(arg_names, test_datum[:-1])
-            )
+            test_datum = {
+                name: value for name, value in zip(arg_names, test_datum[:-1])
+            }
             test_datum["marks"] = marks
 
         tests.append(test_datum)
