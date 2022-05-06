@@ -45,11 +45,13 @@ class ConnectionTestData(TestData):
                 dim=2,
                 point=gs.array([1.0, gs.pi / 2]),
                 base_point=gs.array([gs.pi / 3, gs.pi / 4]),
+                atol=1e-6,
             ),
             dict(
                 dim=2,
                 point=gs.array([[1.0, gs.pi / 2], [gs.pi / 6, gs.pi / 3]]),
                 base_point=gs.array([[gs.pi / 3, gs.pi / 4], [gs.pi / 2, gs.pi / 4]]),
+                atol=1e-6,
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -63,6 +65,7 @@ class ConnectionTestData(TestData):
                 n_times=10,
                 n_steps=10,
                 expected=(10, 2),
+                atol=1e-6,
             ),
             dict(
                 dim=2,
@@ -71,6 +74,7 @@ class ConnectionTestData(TestData):
                 n_times=10,
                 n_steps=100,
                 expected=(2, 10, 2),
+                atol=1e-6,
             ),
             dict(
                 dim=2,
@@ -79,6 +83,7 @@ class ConnectionTestData(TestData):
                 n_times=10,
                 n_steps=100,
                 expected=(2, 10, 2),
+                atol=1e-6,
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -92,6 +97,7 @@ class ConnectionTestData(TestData):
                 n_times=10,
                 n_steps=10,
                 expected=(10, 2),
+                atol=1e-6,
             ),
             dict(
                 dim=2,
@@ -100,6 +106,7 @@ class ConnectionTestData(TestData):
                 n_times=10,
                 n_steps=100,
                 expected=(2, 10, 2),
+                atol=1e-6,
             ),
         ]
         return self.generate_tests(smoke_data)

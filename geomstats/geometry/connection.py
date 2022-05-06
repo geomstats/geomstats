@@ -125,8 +125,7 @@ class Connection(ABC):
         exp : array-like, shape=[..., dim]
             Point on the manifold.
         """
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        base_point = gs.broadcast_to(base_point, tangent_vec.shape)
         n_base_point, n_tangent_vec = base_point.shape[0], tangent_vec.shape[0]
 
         base_point = gs.squeeze(base_point)
