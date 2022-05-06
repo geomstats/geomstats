@@ -177,6 +177,15 @@ class Parametrizer(type):
 
         skip_all = attrs.get("skip_all", False)
 
+        testing_data = locals()["attrs"].get("testing_data", None)
+        if testing_data is None:
+            raise Exception(
+                "Testing class doesn't have class object" " named 'testing_data'"
+            )
+        cls_tols = (
+            testing_data.tolerances if hasattr(testing_data, "tolerances") else {}
+        )
+
         for attr_name, attr_value in attrs.copy().items():
             if isinstance(attr_value, types.FunctionType):
 
@@ -184,25 +193,29 @@ class Parametrizer(type):
                     not skip_all
                     and ("skip_" + attr_name, True) not in locals()["attrs"].items()
                 ):
-                    args_str = ", ".join(inspect.getfullargspec(attr_value)[0][1:])
+                    arg_names = inspect.getfullargspec(attr_value)[0]
+                    args_str = ", ".join(arg_names[1:])
                     data_fn_str = attr_name[5:] + "_test_data"
-                    if "testing_data" not in locals()["attrs"]:
-                        raise Exception(
-                            "Testing class doesn't have class object"
-                            " named 'testing_data'"
-                        )
-                    if not hasattr(locals()["attrs"]["testing_data"], data_fn_str):
+
+                    if not hasattr(testing_data, data_fn_str):
                         raise Exception(
                             "testing_data object doesn't have '{}' function for "
                             "pairing with '{}'".format(data_fn_str, attr_name)
                         )
-                    test_data = getattr(
-                        locals()["attrs"]["testing_data"], data_fn_str
-                    )()
+                    test_data = getattr(testing_data, data_fn_str)()
                     if test_data is None:
                         raise Exception(
                             "'{}' returned None. should be list".format(data_fn_str)
                         )
+
+                    test_data = _dictify_test_data(test_data, arg_names[1:])
+                    test_data = _handle_tolerances(
+                        attr_name[5:],
+                        arg_names[1:],
+                        test_data,
+                        cls_tols,
+                    )
+                    test_data = _pytestify_test_data(test_data, arg_names[1:])
 
                     attrs[attr_name] = pytest.mark.parametrize(
                         args_str,
@@ -246,3 +259,50 @@ class TestCase:
         if tf_backend():
             return tf.test.TestCase().assertShapeEqual(a, b)
         assert a.shape == b.shape
+
+
+def _dictify_test_data(test_data, arg_names):
+
+    tests = []
+    for test_datum in test_data:
+        if not isinstance(test_datum, dict):
+            marks = test_datum[-1]
+            test_datum = dict(
+                (name, value) for name, value in zip(arg_names, test_datum[:-1])
+            )
+            test_datum["marks"] = marks
+
+        tests.append(test_datum)
+
+    return tests
+
+
+def _handle_tolerances(func_name, arg_names, test_data, cls_tols):
+
+    has_atol = "atol" in arg_names
+    has_rtol = "rtol" in arg_names
+
+    if not (has_atol or has_rtol):
+        return test_data
+
+    func_tols = cls_tols.get(func_name, {})
+
+    for test_datum in test_data:
+
+        if has_atol:
+            test_datum.setdefault("atol", func_tols.get("atol", gs.atol))
+
+        if has_rtol:
+            test_datum.setdefault("rtol", func_tols.get("rtol", gs.rtol))
+
+    return test_data
+
+
+def _pytestify_test_data(test_data, arg_names):
+
+    tests = []
+    for test_datum in test_data:
+        values = [test_datum[key] for key in arg_names]
+        tests.append(pytest.param(*values, marks=pytest.mark.random))
+
+    return tests

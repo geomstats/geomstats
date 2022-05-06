@@ -34,20 +34,17 @@ class TestData:
             Tests.
         """
         tests = []
-        if smoke_test_data:
-            smoke_tests = [
-                pytest.param(*data.values(), marks=pytest.mark.smoke)
-                for data in smoke_test_data
-            ]
-            tests += smoke_tests
-        if random_test_data:
-            random_tests = [
-                pytest.param(*data.values(), marks=pytest.mark.random)
-                if isinstance(data, dict)
-                else pytest.param(*data, marks=pytest.mark.random)
-                for data in random_test_data
-            ]
-            tests += random_tests
+        for test_data, marker in zip(
+            [smoke_test_data, random_test_data], [pytest.mark.smoke, pytest.mark.random]
+        ):
+            for test_datum in test_data:
+                if isinstance(test_datum, dict):
+                    test_datum["marks"] = marker
+                else:
+                    test_datum.append(marker)
+
+                tests.append(test_datum)
+
         return tests
 
 
@@ -82,7 +79,7 @@ class _ManifoldTestData(TestData):
         random_data = [
             dict(
                 space_args=space_args,
-                data=gs.random.normal(size=(n_points,) + shape),
+                point=gs.random.normal(size=(n_points,) + shape),
                 belongs_atol=belongs_atol,
             )
             for space_args, shape, n_points in zip(
@@ -113,7 +110,7 @@ class _ManifoldTestData(TestData):
             random_data.append(
                 dict(
                     space_args=space_args,
-                    vec=vec,
+                    vector=vec,
                     base_point=base_point,
                     is_tangent_atol=is_tangent_atol,
                 )
@@ -141,7 +138,7 @@ class _ManifoldTestData(TestData):
             random_data.append(
                 dict(
                     space_args=space_args,
-                    tangent_vec=n_tangent_vec,
+                    n_samples=n_tangent_vec,
                     base_point=base_point,
                     is_tangent_atol=is_tangent_atol,
                 )
@@ -452,18 +449,12 @@ class _LieGroupTestData(_ManifoldTestData):
 
 
 class _VectorSpaceTestData(_ManifoldTestData):
-    def basis_belongs_test_data(self, belongs_atol=gs.atol):
-        """Generate data to check that basis elements belong to vector space.
-
-        Parameters
-        ----------
-        belongs_atol : float
-            Absolute tolerance of the belongs function.
-        """
+    def basis_belongs_test_data(self):
+        """Generate data to check that basis elements belong to vector space."""
         random_data = [
-            dict(space_args=space_args, belongs_atol=belongs_atol)
-            for space_args in self.space_args_list
+            dict(space_args=space_args) for space_args in self.space_args_list
         ]
+
         return self.generate_tests([], random_data)
 
     def basis_cardinality_test_data(self):
@@ -526,7 +517,7 @@ class _VectorSpaceTestData(_ManifoldTestData):
             random_data.append(
                 dict(
                     space_args=space_args,
-                    vec=vec,
+                    vector=vec,
                     base_point=base_point,
                     rtol=rtol,
                     atol=atol,

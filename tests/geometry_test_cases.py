@@ -309,18 +309,18 @@ class LieGroupTestCase(ManifoldTestCase):
 
 
 class VectorSpaceTestCase(ManifoldTestCase):
-    def test_basis_belongs(self, space_args, belongs_atol):
+    def test_basis_belongs(self, space_args, atol):
         """Check that basis elements belong to vector space.
 
         Parameters
         ----------
         space_args : tuple
             Arguments to pass to constructor of the vector space.
-        belongs_atol : float
+        atol : float
             Absolute tolerance of the belongs function.
         """
         space = self.testing_data.space(*space_args)
-        result = gs.all(space.belongs(space.basis, belongs_atol))
+        result = gs.all(space.belongs(space.basis, atol))
         self.assertAllClose(result, gs.array(True))
 
     def test_basis_cardinality(self, space_args):

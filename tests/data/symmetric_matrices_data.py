@@ -68,17 +68,21 @@ class SymmetricMatricesTestData(_VectorSpaceTestData):
 
     def dim_test_data(self):
 
-        smoke_data = [dict(n=1, dim=1), dict(n=2, dim=3), dict(n=5, dim=15)]
+        smoke_data = [
+            dict(n=1, expected_dim=1),
+            dict(n=2, expected_dim=3),
+            dict(n=5, expected_dim=15),
+        ]
 
         return self.generate_tests(smoke_data, [])
 
     def to_vector_test_data(self):
         smoke_data = [
-            dict(n=1, mat=[[1.0]], vec=[1.0]),
+            dict(n=1, mat=[[1.0]], expected=[1.0]),
             dict(
                 n=3,
                 mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
-                vec=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+                expected=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
             ),
             dict(
                 n=3,
@@ -86,7 +90,7 @@ class SymmetricMatricesTestData(_VectorSpaceTestData):
                     [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
                     [[7.0, 8.0, 9.0], [8.0, 10.0, 11.0], [9.0, 11.0, 12.0]],
                 ],
-                vec=[
+                expected=[
                     [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
                     [7.0, 8.0, 9.0, 10.0, 11.0, 12.0],
                 ],
@@ -96,11 +100,11 @@ class SymmetricMatricesTestData(_VectorSpaceTestData):
 
     def from_vector_test_data(self):
         smoke_data = [
-            dict(n=1, vec=[1.0], mat=[[1.0]]),
+            dict(n=1, vec=[1.0], expected=[[1.0]]),
             dict(
                 n=3,
                 vec=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-                mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                expected=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
             ),
             dict(
                 n=3,
@@ -108,7 +112,7 @@ class SymmetricMatricesTestData(_VectorSpaceTestData):
                     [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
                     [7.0, 8.0, 9.0, 10.0, 11.0, 12.0],
                 ],
-                mat=[
+                expected=[
                     [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
                     [[7.0, 8.0, 9.0], [8.0, 10.0, 11.0], [9.0, 11.0, 12.0]],
                 ],
