@@ -69,8 +69,8 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
+    @staticmethod
     def _test_double_cluster_init(
-        self,
         seed=10,
         num_of_samples=20,
         size_of_dim=2,
