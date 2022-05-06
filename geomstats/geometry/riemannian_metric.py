@@ -420,7 +420,7 @@ class RiemannianMetric(Connection, ABC):
         ----------
         point : array-like, shape=[..., dim]
             Point.
-        neighbors : array-like, shape=[..., dim]
+        neighbors : array-like, shape=[n_neighbors, dim]
             Neighbors.
 
         Returns
@@ -428,8 +428,23 @@ class RiemannianMetric(Connection, ABC):
         closest_neighbor_index : int
             Index of closest neighbor.
         """
-        dist = self.dist(point, neighbors)
-        closest_neighbor_index = gs.argmin(dist)
+        n_points = point.shape[0] if gs.ndim(point) == gs.ndim(neighbors) else 1
+        n_neighbors = neighbors.shape[0]
+
+        if n_points > 1 and n_neighbors > 1:
+            neighbors = gs.repeat(neighbors, n_points, axis=0)
+
+            point = gs.concatenate([point for _ in range(n_neighbors)])
+
+        closest_neighbor_index = gs.argmin(
+            gs.transpose(
+                gs.reshape(self.dist(point, neighbors), (n_neighbors, n_points)),
+            ),
+            axis=1,
+        )
+
+        if n_points == 1:
+            return closest_neighbor_index[0]
 
         return closest_neighbor_index
 
