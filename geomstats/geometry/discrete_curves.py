@@ -427,7 +427,7 @@ class SRVMetric(RiemannianMetric):
         self.l2_metric = L2CurvesMetric(ambient_manifold, metric)
         self.translation_invariant = translation_invariant
 
-    def srv_transform(self, curve, tol=1e-10):
+    def srv_transform(self, curve, tol=gs.atol):
         """Square Root Velocity Transform (SRVT).
 
         Compute the square root velocity representation of a curve. The
@@ -440,6 +440,10 @@ class SRVMetric(RiemannianMetric):
         ----------
         curve : array-like, shape=[..., n_sampling_points, ambient_dim]
             Discrete curve.
+
+        tol : float
+            Tolerance value to decide duplicity of two consecutive sample
+            points on a given Discrete Curve.
 
         Returns
         -------

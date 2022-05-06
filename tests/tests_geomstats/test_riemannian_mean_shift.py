@@ -2,7 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
+from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.riemannian_mean_shift import (
@@ -16,14 +16,13 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
     @geomstats.tests.np_autograd_and_torch_only
     def test_hypersphere_riemannian_mean_shift_predict(self):
         gs.random.seed(1234)
-        dim = 2
 
-        manifold = Hypersphere(dim)
-        metric = HypersphereMetric(dim)
-        cluster = manifold.random_von_mises_fisher(kappa=100, n_samples=10)
+        sphere = Hypersphere(dim=2)
+        metric = sphere.metric
+        cluster = sphere.random_von_mises_fisher(kappa=100, n_samples=10)
 
         rms = riemannian_mean_shift(
-            manifold=manifold,
+            manifold=sphere,
             metric=metric,
             bandwidth=0.6,
             tol=1e-4,
@@ -46,7 +45,7 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
         gs.random.seed(10)
 
         sphere = Hypersphere(dim=2)
-        metric = HypersphereMetric(2)
+        metric = sphere.metric
 
         cluster = sphere.random_von_mises_fisher(kappa=100, n_samples=10)
 
@@ -70,7 +69,7 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     @staticmethod
-    def _test_double_cluster_init(
+    def _init_double_cluster(
         seed=10,
         num_of_samples=20,
         size_of_dim=2,
@@ -111,7 +110,7 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_autograd_only
     def test_double_cluster_riemannian_mean_shift(self):
-        combined_cluster, rms = self._test_double_cluster_init()
+        combined_cluster, rms = self._init_double_cluster()
         closest_centers = rms.predict(combined_cluster)
 
         count_in_first_cluster = 0
@@ -129,7 +128,7 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_autograd_only
     def test_predict_labels_riemannian_mean_shift(self):
-        combined_cluster, rms = self._test_double_cluster_init()
+        combined_cluster, rms = self._init_double_cluster()
         closest_center_labels = rms.predict_labels(combined_cluster)
 
         first_label_count = 0
