@@ -118,6 +118,37 @@ class TestConnection(TestCase, metaclass=Parametrizer):
 
         self.assertAllClose(result, expected, atol=1e-6)
 
+    def test_geodesic_with_exp_connection(
+        self, dim, point, tangent_vec, n_times, n_steps, expected
+    ):
+        sphere = Hypersphere(dim)
+        connection = Connection(dim)
+        connection.christoffels = sphere.metric.christoffels
+        geo = connection.geodesic(
+            initial_point=point, initial_tangent_vec=tangent_vec, n_steps=n_steps
+        )
+        times = gs.linspace(0, 1, n_times)
+        geo = geo(times)
+        result = geo.shape
+
+        self.assertAllClose(result, expected, atol=1e-6)
+
+    @geomstats.tests.autograd_tf_and_torch_only
+    def test_geodesic_with_log_connection(
+        self, dim, point, end_point, n_times, n_steps, expected
+    ):
+        sphere = Hypersphere(dim)
+        connection = Connection(dim)
+        connection.christoffels = sphere.metric.christoffels
+        geo = connection.geodesic(
+            initial_point=point, end_point=end_point, n_steps=n_steps
+        )
+        times = gs.linspace(0, 1, n_times)
+        geo = geo(times)
+        result = geo.shape
+
+        self.assertAllClose(result, expected, atol=1e-6)
+
     def test_geodesic_and_coincides_exp(self, space, n_geodesic_points, vector):
         initial_point = space.random_uniform(2)
         initial_tangent_vec = space.to_tangent(vector=vector, base_point=initial_point)

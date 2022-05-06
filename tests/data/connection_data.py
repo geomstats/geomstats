@@ -54,6 +54,56 @@ class ConnectionTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
+    def geodesic_with_exp_connection_test_data(self):
+        smoke_data = [
+            dict(
+                dim=2,
+                point=gs.array([1.0, gs.pi / 2]),
+                tangent_vec=gs.array([gs.pi / 3, gs.pi / 4]),
+                n_times=10,
+                n_steps=10,
+                expected=(10, 2),
+            ),
+            dict(
+                dim=2,
+                point=gs.array([1.0, gs.pi / 2]),
+                tangent_vec=gs.array([[gs.pi / 3, gs.pi / 4], [gs.pi / 2, -gs.pi / 4]]),
+                n_times=10,
+                n_steps=100,
+                expected=(2, 10, 2),
+            ),
+            dict(
+                dim=2,
+                point=gs.array([[1.0, gs.pi / 2], [gs.pi / 6, gs.pi / 3]]),
+                tangent_vec=gs.array([[gs.pi / 3, gs.pi / 4], [gs.pi / 2, gs.pi / 4]]),
+                n_times=10,
+                n_steps=100,
+                expected=(2, 10, 2),
+            ),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def geodesic_with_log_connection_test_data(self):
+        smoke_data = [
+            dict(
+                dim=2,
+                point=gs.array([1.0, gs.pi / 2]),
+                end_point=gs.array([gs.pi / 3, gs.pi / 4]),
+                n_times=10,
+                n_steps=10,
+                expected=(10, 2),
+            ),
+            dict(
+                dim=2,
+                point=gs.array([[1.0, gs.pi / 2], [gs.pi / 6, gs.pi / 3]]),
+                end_point=gs.array([[gs.pi / 3, gs.pi / 4], [gs.pi / 2, gs.pi / 4]]),
+                n_times=10,
+                n_steps=100,
+                expected=(2, 10, 2),
+            ),
+        ]
+        return self.generate_tests(smoke_data)
+
     def geodesic_and_coincides_exp_test_data(self):
         smoke_data = [
             dict(
