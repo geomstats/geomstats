@@ -11,6 +11,8 @@ SQRT_5 = math.sqrt(5)
 
 class EuclideanTestData(_VectorSpaceTestData):
 
+    space = Euclidean
+
     n_list = random.sample(range(2, 5), 2)
     space_args_list = [(n,) for n in n_list]
     shape_list = [(n, n) for n in n_list]
@@ -23,53 +25,6 @@ class EuclideanTestData(_VectorSpaceTestData):
             dict(dim=2, vec=[1.0, 0.0, 1.0], expected=False),
         ]
         return self.generate_tests(smoke_data)
-
-    def basis_belongs_test_data(self):
-        return self._basis_belongs_test_data(self.space_args_list)
-
-    def basis_cardinality_test_data(self):
-        return self._basis_cardinality_test_data(self.space_args_list)
-
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2,), (3,)]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            Euclidean,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            Euclidean, self.space_args_list, self.n_vecs_list
-        )
-
-    def to_tangent_is_projection_test_data(self):
-        return self._to_tangent_is_projection_test_data(
-            Euclidean,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_point_is_tangent_test_data(self):
-        return self._random_point_is_tangent_test_data(
-            self.space_args_list, self.n_points_list
-        )
 
 
 class EuclideanMetricTestData(_RiemannianMetricTestData):
