@@ -126,19 +126,6 @@ class Connection(ABC):
             Point on the manifold.
         """
         base_point = gs.broadcast_to(base_point, tangent_vec.shape)
-        """n_base_point, n_tangent_vec = base_point.shape[0], tangent_vec.shape[0]
-
-        base_point = gs.squeeze(base_point)
-        tangent_vec = gs.squeeze(tangent_vec)
-
-        if n_base_point != n_tangent_vec:
-            if n_base_point > 1:
-                raise ValueError(
-                    "For several initial points, specify either one or the same number"
-                    " of tangent vectors."
-                )
-            else:
-                base_point = gs.tile(base_point, (n_tangent_vec, 1))"""
 
         initial_state = gs.stack([base_point, tangent_vec])
         flow = integrate(
