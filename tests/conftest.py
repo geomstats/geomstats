@@ -215,7 +215,9 @@ class Parametrizer(type):
                         test_data,
                         cls_tols,
                     )
-                    test_data = _pytestify_test_data(test_data, arg_names[1:])
+                    test_data = _pytestify_test_data(
+                        attr_name, test_data, arg_names[1:]
+                    )
 
                     attrs[attr_name] = pytest.mark.parametrize(
                         args_str,
@@ -298,11 +300,17 @@ def _handle_tolerances(func_name, arg_names, test_data, cls_tols):
     return test_data
 
 
-def _pytestify_test_data(test_data, arg_names):
+def _pytestify_test_data(func_name, test_data, arg_names):
 
     tests = []
     for test_datum in test_data:
-        values = [test_datum[key] for key in arg_names]
+        try:
+            values = [test_datum[key] for key in arg_names]
+        except KeyError:
+            raise Exception(
+                f"{func_name} requires the following arguments: "
+                f"{', '.join(arg_names)}"
+            )
         tests.append(pytest.param(*values, marks=pytest.mark.random))
 
     return tests
