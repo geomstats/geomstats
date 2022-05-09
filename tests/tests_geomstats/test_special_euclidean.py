@@ -28,11 +28,18 @@ ATOL = 1e-5
 
 class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
 
-    space = group = SpecialEuclidean
     skip_test_log_after_exp = tf_backend()
     skip_test_exp_after_log = tf_backend()
 
     testing_data = SpecialEuclideanTestData()
+
+    @property
+    def space(self):
+        return self.testing_data.space
+
+    @property
+    def group(self):
+        return self.testing_data.group
 
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(
@@ -94,9 +101,16 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
 class TestSpecialEuclideanMatrixLieAlgebra(
     MatrixLieAlgebraTestCase, metaclass=Parametrizer
 ):
-    space = algebra = SpecialEuclideanMatrixLieAlgebra
 
     testing_data = SpecialEuclideanMatrixLieAlgebraTestData()
+
+    @property
+    def space(self):
+        return self.testing_data.space
+
+    @property
+    def algebra(self):
+        return self.testing_data.algebra
 
     def test_dim(self, n, expected):
         algebra = self.space(n)

@@ -60,6 +60,8 @@ elements_matrices = elements_matrices_all
 
 
 class SpecialEuclideanTestData(_LieGroupTestData):
+    space = SpecialEuclidean
+
     n_list = random.sample(range(2, 4), 2)
     space_args_list = [(n,) for n in n_list] + [(2, "vector"), (3, "vector")]
     shape_list = [(n + 1, n + 1) for n in n_list] + [(3,)] + [(6,)]
@@ -170,58 +172,6 @@ class SpecialEuclideanTestData(_LieGroupTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2, True), (3, True), (2, False)]
-        smoke_n_points_list = [1, 2, 1]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list,
-            self.shape_list,
-            self.n_points_list,
-            belongs_atol=1e-2,
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            SpecialEuclidean,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            SpecialEuclidean,
-            self.space_args_list,
-            self.n_vecs_list,
-            is_tangent_atol=gs.atol * 100,
-        )
-
-    def log_after_exp_test_data(self):
-        return self._log_after_exp_test_data(
-            SpecialEuclidean,
-            self.space_args_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            amplitude=100,
-            atol=gs.atol * 10000,
-        )
-
-    def exp_after_log_test_data(self):
-        return self._exp_after_log_test_data(
-            SpecialEuclidean,
-            self.space_args_list,
-            self.n_points_list,
-            atol=gs.atol * 10000,
-        )
-
     def regularize_test_data(self):
         smoke_data = [
             dict(
@@ -237,36 +187,11 @@ class SpecialEuclideanTestData(_LieGroupTestData):
         smoke_data = [dict(n=2, point_type="vector", n_samples=3)]
         return self.generate_tests(smoke_data)
 
-    def compose_inverse_point_with_point_is_identity_test_data(self):
-        return self._compose_inverse_point_with_point_is_identity_test_data(
-            SpecialEuclidean, self.space_args_list, self.n_points_list
-        )
-
-    def compose_point_with_inverse_point_is_identity_test_data(self):
-        return self._compose_point_with_inverse_point_is_identity_test_data(
-            SpecialEuclidean, self.space_args_list, self.n_points_list
-        )
-
-    def compose_point_with_identity_is_point_test_data(self):
-        return self._compose_point_with_identity_is_point_test_data(
-            SpecialEuclidean, self.space_args_list, self.n_points_list
-        )
-
-    def compose_identity_with_point_is_point_test_data(self):
-        return self._compose_identity_with_point_is_point_test_data(
-            SpecialEuclidean, self.space_args_list, self.n_points_list
-        )
-
-    def to_tangent_at_identity_belongs_to_lie_algebra_test_data(self):
-        return self._to_tangent_at_identity_belongs_to_lie_algebra_test_data(
-            self.space_args_list, self.shape_list, self.n_vecs_list
-        )
-
     def compose_test_data(self):
         smoke_data = [
             dict(
                 n=2,
-                point_typ="vector",
+                point_type="vector",
                 point_1=elements_all["translation_small"],
                 point_2=elements_all["translation_large"],
                 expected=elements_all["translation_small"]
@@ -311,6 +236,9 @@ class SpecialEuclideanTestData(_LieGroupTestData):
 
 
 class SpecialEuclideanMatrixLieAlgebraTestData(_MatrixLieAlgebraTestData):
+
+    space = SpecialEuclideanMatrixLieAlgebra
+
     n_list = random.sample(range(2, 5), 2)
     space_args_list = [(n,) for n in n_list]
     shape_list = [(n + 1, n + 1) for n in n_list]
@@ -340,67 +268,6 @@ class SpecialEuclideanMatrixLieAlgebraTestData(_MatrixLieAlgebraTestData):
             dict(n=10, expected=55),
         ]
         return self.generate_tests(smoke_data)
-
-    def matrix_representation_after_basis_representation_test_data(self):
-        return self._matrix_representation_after_basis_representation_test_data(
-            SpecialEuclideanMatrixLieAlgebra,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def basis_representation_after_matrix_representation_test_data(self):
-        return self._basis_representation_after_matrix_representation_test_data(
-            SpecialEuclideanMatrixLieAlgebra,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def basis_belongs_test_data(self):
-        return self._basis_belongs_test_data(self.space_args_list)
-
-    def basis_cardinality_test_data(self):
-        return self._basis_cardinality_test_data(self.space_args_list)
-
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2,), (3,)]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            SpecialEuclideanMatrixLieAlgebra,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            SpecialEuclideanMatrixLieAlgebra, self.space_args_list, self.n_vecs_list
-        )
-
-    def to_tangent_is_projection_test_data(self):
-        return self._to_tangent_is_projection_test_data(
-            SpecialEuclideanMatrixLieAlgebra,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_point_is_tangent_test_data(self):
-        return self._random_point_is_tangent_test_data(
-            self.space_args_list, self.n_points_list
-        )
 
 
 class SpecialEuclideanMatrixCanonicalLeftMetricTestData(_InvariantMetricTestData):
