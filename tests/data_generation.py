@@ -244,128 +244,39 @@ class _LevelSetTestData(_ManifoldTestData):
 
 
 class _LieGroupTestData(_ManifoldTestData):
-    def _compose_point_with_inverse_point_is_identity_test_data(
-        self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
-    ):
-        """Generate data to check composition of point, inverse is identity.
-
-        Parameters
-        ----------
-        group_cls : LieGroup
-            Class of the group, i.e. a child class of Lie group.
-        group_args_list : list
-            Arguments to pass to constructor of the Lie group.
-        n_points_list : list
-            List of number of random points to generate.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
+    def _generate_compose_data(self):
         random_data = []
-        for group_args, n_points in zip(group_args_list, n_points_list):
+        for group_args, n_points in zip(self.space_args_list, self.n_points_list):
 
-            group = group_cls(*group_args)
+            group = self.space(*group_args)
             point = group.random_point(n_points)
-            random_data.append(
-                dict(group_args=group_args, point=point, rtol=rtol, atol=atol)
-            )
+            random_data.append(dict(group_args=group_args, point=point))
 
         return self.generate_tests([], random_data)
 
-    def _compose_inverse_point_with_point_is_identity_test_data(
-        self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
-    ):
-        """Generate data to check composition of inverse, point is identity.
+    def compose_point_with_inverse_point_is_identity_test_data(self):
+        """Generate data to check composition of point, inverse is identity."""
+        return self._generate_compose_data()
 
-        Parameters
-        ----------
-        group_cls : LieGroup
-            Class of the group, i.e. a child class of LieGroup.
-        group_args_list : list
-            Arguments to pass to constructor of the Lie group.
-        n_points_list : list
-            List of number of random points to generate.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
-        return self._compose_point_with_inverse_point_is_identity_test_data(
-            group_cls, group_args_list, n_points_list, rtol, atol
-        )
+    def compose_inverse_point_with_point_is_identity_test_data(self):
+        """Generate data to check composition of inverse, point is identity."""
+        return self._generate_compose_data()
 
-    def _compose_point_with_identity_is_point_test_data(
-        self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
-    ):
-        """Generate data to check composition of point, identity is point.
+    def compose_point_with_identity_is_point_test_data(self):
+        """Generate data to check composition of point, identity is point."""
+        return self._generate_compose_data()
 
-        Parameters
-        ----------
-        group_cls : LieGroup
-            Class of the group, i.e. a child class of LieGroup.
-        group_args_list : list
-            Arguments to pass to constructor of the Lie group.
-        n_points_list : list
-            List of number of random points to generate.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
-        return self._compose_point_with_inverse_point_is_identity_test_data(
-            group_cls, group_args_list, n_points_list, rtol, atol
-        )
+    def compose_identity_with_point_is_point_test_data(self):
+        """Generate data to check composition of identity, point is point."""
+        return self._generate_compose_data()
 
-    def _compose_identity_with_point_is_point_test_data(
-        self, group_cls, group_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
-    ):
-        """Generate data to check composition of identity, point is point.
-
-        Parameters
-        ----------
-        group_cls : LieGroup
-            Class of the group, i.e. a child class of LieGroup.
-        group_args_list : list
-            Arguments to pass to constructor of the Lie group.
-        n_points_list : list
-            List of number of random points to generate.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
-        return self._compose_point_with_inverse_point_is_identity_test_data(
-            group_cls, group_args_list, n_points_list, rtol, atol
-        )
-
-    def _log_after_exp_test_data(
-        self,
-        group_cls,
-        group_args_list,
-        shape_list,
-        n_tangent_vecs_list,
-        smoke_data=None,
-        amplitude=1.0,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
-        """Generate data to check that group exponential and logarithm are inverse.
-
-        Parameters
-        ----------
-        group_cls : LieGroup
-            Class of the group, i.e. a child class of LieGroup.
-        group_args_list : list
-            Arguments to pass to constructor of the Lie group.
-        n_tangent_vecs_list : list
-            List of number of random tangent vectors to generate.
-        """
+    def log_after_exp_test_data(self, amplitude=1.0):
+        """Generate data to check that group exponential and logarithm are inverse."""
         random_data = []
         for group_args, shape, n_tangent_vecs in zip(
-            group_args_list, shape_list, n_tangent_vecs_list
+            self.space_args_list, self.shape_list, self.n_tangent_vecs_list
         ):
-            group = group_cls(*group_args)
+            group = self.space(*group_args)
             for base_point in [group.random_point(), group.identity]:
 
                 tangent_vec = group.to_tangent(
@@ -377,38 +288,16 @@ class _LieGroupTestData(_ManifoldTestData):
                         group_args=group_args,
                         tangent_vec=tangent_vec,
                         base_point=base_point,
-                        rtol=rtol,
-                        atol=atol,
                     )
                 )
 
-        if smoke_data is None:
-            smoke_data = []
-        return self.generate_tests(smoke_data, random_data)
+        return self.generate_tests([], random_data)
 
-    def _exp_after_log_test_data(
-        self,
-        group_cls,
-        group_args_list,
-        n_points_list,
-        smoke_data=None,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
-        """Generate data to check that group logarithm and exponential are inverse.
-
-        Parameters
-        ----------
-        group_cls : LieGroup
-            Class of the group, i.e. a child class of LieGroup.
-        group_args_list : list
-            List of arguments to pass to constructor of the Lie group.
-        n_points_list : list
-            List of number of points on manifold to generate.
-        """
+    def exp_after_log_test_data(self):
+        """Generate data to check that group logarithm and exponential are inverse."""
         random_data = []
-        for group_args, n_points in zip(group_args_list, n_points_list):
-            group = group_cls(*group_args)
+        for group_args, n_points in zip(self.space_args_list, self.n_points_list):
+            group = self.space(*group_args)
             for base_point in [group.random_point(), group.identity]:
                 point = group.random_point(n_points)
                 random_data.append(
@@ -416,35 +305,19 @@ class _LieGroupTestData(_ManifoldTestData):
                         group_args=group_args,
                         point=point,
                         base_point=base_point,
-                        rtol=rtol,
-                        atol=atol,
                     )
                 )
-        if smoke_data is None:
-            smoke_data = []
-        return self.generate_tests(smoke_data, random_data)
+        return self.generate_tests([], random_data)
 
-    def _to_tangent_at_identity_belongs_to_lie_algebra_test_data(
-        self, group_args_list, shape_list, n_vecs_list, belongs_atol=gs.atol
-    ):
-        """Generate data to check that to tangent at identity belongs to lie algebra.
-
-        Parameters
-        ----------
-        group_args_list : list
-            List of arguments to pass to constructor of the Lie group.
-        n_vecs_list : list
-            List of number of vectors to be projected on tangent space at identity.
-        belongs_atol : float
-            Absolute tolerance of the belongs function.
-        """
+    def to_tangent_at_identity_belongs_to_lie_algebra_test_data(self):
+        """Generate data to check that to tangent at identity belongs to lie algebra."""
         random_data = []
 
-        for group_args, shape, n_vecs in zip(group_args_list, shape_list, n_vecs_list):
+        for group_args, shape, n_vecs in zip(
+            self.space_args_list, self.shape_list, self.n_vecs_list
+        ):
             vec = gs.random.normal(size=(n_vecs,) + shape)
-            random_data.append(
-                dict(group_args=group_args, vec=vec, belongs_atol=belongs_atol)
-            )
+            random_data.append(dict(group_args=group_args, vector=vec))
         return self.generate_tests([], random_data)
 
 
