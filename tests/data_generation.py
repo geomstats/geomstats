@@ -41,6 +41,7 @@ class TestData:
                 if isinstance(test_datum, dict):
                     test_datum["marks"] = marker
                 else:
+                    test_datum = list(test_datum)
                     test_datum.append(marker)
 
                 tests.append(test_datum)
