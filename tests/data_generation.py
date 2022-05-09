@@ -401,55 +401,27 @@ class _VectorSpaceTestData(_ManifoldTestData):
 
 
 class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
-    def _matrix_representation_after_basis_representation_test_data(
-        self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
-    ):
-        """Generate data to check that changing coordinates twice gives back the point.
-
-        Parameters
-        ----------
-        space_cls : LieAlgebra
-            Class of the space, i.e. a child class of LieAlgebra.
-        space_args_list : list
-            Arguments to pass to constructor of the manifold.
-        n_points_list : list
-            List of number of points on manifold to generate.
-        """
+    def matrix_representation_after_basis_representation_test_data(self):
+        """Generate data to check that changing coordinates twice gives back the point."""
         random_data = [
             dict(
-                space_args=space_args,
-                matrix_rep=space_cls(*space_args).random_point(n_points),
-                rtol=rtol,
-                atol=atol,
+                algebra_args=space_args,
+                matrix_rep=self.space(*space_args).random_point(n_points),
             )
-            for space_args, n_points in zip(space_args_list, n_points_list)
+            for space_args, n_points in zip(self.space_args_list, self.n_points_list)
         ]
         return self.generate_tests([], random_data)
 
-    def _basis_representation_after_matrix_representation_test_data(
-        self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
-    ):
-        """Generate data to check that changing coordinates twice gives back the point.
-
-        Parameters
-        ----------
-        space_cls : LieAlgebra
-            Class of the space, i.e. a child class of LieAlgebra.
-        space_args_list : list
-            Arguments to pass to constructor of the LieAlgebra.
-        n_points_list : list
-            List of number of points on manifold to generate.
-        """
+    def basis_representation_after_matrix_representation_test_data(self):
+        """Generate data to check that changing coordinates twice gives back the point."""
         random_data = [
             dict(
-                space_args=space_args,
-                basis_rep=space_cls(*space_args).basis_representation(
-                    space_cls(*space_args).random_point(n_points)
+                algebra_args=space_args,
+                basis_rep=self.space(*space_args).basis_representation(
+                    self.space(*space_args).random_point(n_points)
                 ),
-                rtol=rtol,
-                atol=atol,
             )
-            for space_args, n_points in zip(space_args_list, n_points_list)
+            for space_args, n_points in zip(self.space_args_list, self.n_points_list)
         ]
         return self.generate_tests([], random_data)
 
