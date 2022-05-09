@@ -7,6 +7,8 @@ from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestDat
 
 
 class MinkowskiTestData(_VectorSpaceTestData):
+    space = Minkowski
+
     n_list = random.sample(range(2, 5), 2)
     space_args_list = [(n,) for n in n_list]
     shape_list = space_args_list
@@ -16,53 +18,6 @@ class MinkowskiTestData(_VectorSpaceTestData):
     def belongs_test_data(self):
         smoke_data = [dict(dim=2, point=[-1.0, 3.0], expected=True)]
         return self.generate_tests(smoke_data)
-
-    def basis_belongs_test_data(self):
-        return self._basis_belongs_data(self.space_args_list)
-
-    def basis_cardinality_test_data(self):
-        return self._basis_cardinality_data(self.space_args_list)
-
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2,), (3,)]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            Minkowski,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            Minkowski, self.space_args_list, self.n_vecs_list
-        )
-
-    def to_tangent_is_projection_test_data(self):
-        return self._to_tangent_is_projection_test_data(
-            Minkowski,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_point_is_tangent_test_data(self):
-        return self._random_point_is_tangent_test_data(
-            self.space_args_list, self.n_points_list
-        )
 
 
 class MinkowskiMetricTestData(_RiemannianMetricTestData):
@@ -99,7 +54,7 @@ class MinkowskiMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def squared_norm_test_data(self):
-        smoke_data = [dict(dim=2, vector=[-2.0, 4.0], expected=12.0)]
+        smoke_data = [dict(dim=2, point=[-2.0, 4.0], expected=12.0)]
         return self.generate_tests(smoke_data)
 
     def squared_dist_test_data(self):
