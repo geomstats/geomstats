@@ -75,6 +75,9 @@ if tf_backend():
 
 
 class SpecialOrthogonalTestData(_LieGroupTestData):
+
+    space = SpecialOrthogonal
+
     n_list = random.sample(range(2, 4), 2)
     space_args_list = list(zip(n_list)) + [(2, "vector"), (3, "vector")]
     shape_list = [(n, n) for n in n_list] + [(1,), (3,)]
@@ -202,14 +205,14 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
             dict(
                 n=2,
                 point_type="vector",
-                mat=SpecialOrthogonal(2, "vector").random_point(),
+                vec=SpecialOrthogonal(2, "vector").random_point(),
             )
         ]
         random_data += [
             dict(
                 n=3,
                 point_type="vector",
-                mat=SpecialOrthogonal(3, "vector").random_point(),
+                vec=SpecialOrthogonal(3, "vector").random_point(),
             )
         ]
         return self.generate_tests([], random_data)
@@ -240,8 +243,8 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
             ),
             dict(
                 n=3,
-                mat1=SpecialOrthogonal(3).random_uniform(),
-                mat2=SpecialOrthogonal(3).random_uniform(),
+                point=SpecialOrthogonal(3).random_uniform(),
+                base_point=SpecialOrthogonal(3).random_uniform(),
                 expected=does_not_raise(),
             ),
         ]
@@ -320,7 +323,7 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
         return self.generate_tests([], random_data)
 
     def skew_matrix_from_vector_test_data(self):
-        smoke_data = [dict(n=2, mat=[0.9], expected=[[0.0, -0.9], [0.9, 0.0]])]
+        smoke_data = [dict(n=2, vec=[0.9], expected=[[0.0, -0.9], [0.9, 0.0]])]
         return self.generate_tests(smoke_data)
 
     def rotation_vector_rotation_matrix_regularize_test_data(self):
@@ -372,9 +375,9 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
             + coef_2 * gs.matmul(skew_rot_vec_4, skew_rot_vec_4)
         )
         smoke_data = [
-            dict(dim=3, rot_vec=gs.array([0.0, 0.0, 0.0]), expected=gs.eye(3)),
+            dict(n=3, rot_vec=gs.array([0.0, 0.0, 0.0]), expected=gs.eye(3)),
             dict(
-                dim=3,
+                n=3,
                 rot_vec=gs.array([gs.pi / 3.0, 0.0, 0.0]),
                 expected=gs.array(
                     [
@@ -384,10 +387,10 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
                     ]
                 ),
             ),
-            dict(dim=3, rot_vec=rot_vec_3, expected=expected_3),
-            dict(dim=3, rot_vec=rot_vec_4, expected=expected_4),
+            dict(n=3, rot_vec=rot_vec_3, expected=expected_3),
+            dict(n=3, rot_vec=rot_vec_4, expected=expected_4),
             dict(
-                dim=2,
+                n=2,
                 rot_vec=gs.array([gs.pi / 3]),
                 expected=gs.array(
                     [[1.0 / 2, -gs.sqrt(3.0) / 2], [gs.sqrt(3.0) / 2, 1.0 / 2]]
@@ -395,55 +398,6 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
             ),
         ]
         return self.generate_tests(smoke_data)
-
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2, True), (3, True), (2, False)]
-        smoke_n_points_list = [1, 2, 1]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        space_args_list = list(zip(self.n_list))
-        shape_list = [(n, n) for n in self.n_list]
-        n_points_list = random.sample(range(2, 4), 2)
-        return self._projection_belongs_test_data(
-            space_args_list, shape_list, n_points_list, gs.atol * 10000
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        space_args_list = list(zip(self.n_list))
-        shape_list = [(n, n) for n in self.n_list]
-        n_points_list = random.sample(range(2, 10), 2)
-        return self._to_tangent_is_tangent_test_data(
-            SpecialOrthogonal,
-            space_args_list,
-            shape_list,
-            n_points_list,
-        )
-
-    def log_after_exp_test_data(self):
-        return self._log_after_exp_test_data(
-            SpecialOrthogonal,
-            self.space_args_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            amplitude=100.0,
-            rtol=gs.rtol * 10000,
-            atol=gs.atol * 10000,
-        )
-
-    def exp_after_log_test_data(self):
-        return self._exp_after_log_test_data(
-            SpecialOrthogonal,
-            self.space_args_list,
-            self.n_points_list,
-            rtol=gs.rtol * 100000,
-            atol=gs.atol * 100000,
-        )
 
     def compose_with_inverse_is_identity_test_data(self):
         smoke_data = []
@@ -454,7 +408,7 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
     def compose_test_data(self):
         smoke_data = [
             dict(
-                dim=2,
+                n=2,
                 point_type="vector",
                 point_a=gs.array([0.12]),
                 point_b=gs.array([-0.15]),
@@ -517,37 +471,6 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
             )
         ]
         return self.generate_tests(smoke_data)
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        space_args_list = list(zip(self.n_list))
-        return self._random_tangent_vec_is_tangent_test_data(
-            SpecialOrthogonal, space_args_list, self.n_vecs_list
-        )
-
-    def compose_inverse_point_with_point_is_identity_test_data(self):
-        return self._compose_inverse_point_with_point_is_identity_test_data(
-            SpecialOrthogonal, self.space_args_list, self.n_points_list
-        )
-
-    def compose_point_with_inverse_point_is_identity_test_data(self):
-        return self._compose_point_with_inverse_point_is_identity_test_data(
-            SpecialOrthogonal, self.space_args_list, self.n_points_list
-        )
-
-    def compose_point_with_identity_is_point_test_data(self):
-        return self._compose_point_with_identity_is_point_test_data(
-            SpecialOrthogonal, self.space_args_list, self.n_points_list
-        )
-
-    def compose_identity_with_point_is_point_test_data(self):
-        return self._compose_identity_with_point_is_point_test_data(
-            SpecialOrthogonal, self.space_args_list, self.n_points_list
-        )
-
-    def to_tangent_at_identity_belongs_to_lie_algebra_test_data(self):
-        return self._to_tangent_at_identity_belongs_to_lie_algebra_test_data(
-            self.space_args_list, self.shape_list, self.n_vecs_list
-        )
 
 
 class SpecialOrthogonal3TestData(TestData):
@@ -684,10 +607,7 @@ class SpecialOrthogonal3TestData(TestData):
         for angle_type in angles_close_to_pi:
             for angle_type_base in elements.values():
                 smoke_data += [
-                    dict(
-                        point=elements[angle_type],
-                        base_point=angle_type_base,
-                    )
+                    [elements[angle_type], angle_type_base],
                 ]
         return self.generate_tests(smoke_data)
 

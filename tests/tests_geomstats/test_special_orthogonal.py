@@ -15,12 +15,20 @@ EPSILON = 1e-5
 
 
 class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
-    space = group = SpecialOrthogonal
+
     skip_test_exp_after_log = pytorch_backend()
     skip_test_projection_belongs = True
     skip_test_to_tangent_at_identity_belongs_to_lie_algebra = True
 
     testing_data = SpecialOrthogonalTestData()
+
+    @property
+    def space(self):
+        return self.testing_data.space
+
+    @property
+    def group(self):
+        return self.testing_data.space
 
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(self.space(n).belongs(gs.array(mat)), gs.array(expected))
