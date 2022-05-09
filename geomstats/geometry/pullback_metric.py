@@ -534,15 +534,12 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         image_base_point = self.diffeomorphism(base_point)
         image_tangent_vec = self.tangent_diffeomorphism(tangent_vec, base_point)
 
-        if direction is None:
-            image_direction = None
-        else:
-            image_direction = self.tangent_diffeomorphism(direction, base_point)
-
-        if end_point is None:
-            image_end_point = None
-        else:
-            image_end_point = self.diffeomorphism(end_point)
+        image_direction = (
+            None
+            if direction is None
+            else self.tangent_diffeomorphism(direction, base_point)
+        )
+        image_end_point = None if end_point is None else self.diffeomorphism(end_point)
 
         image_parallel_transport = self.embedding_metric.parallel_transport(
             image_tangent_vec,
