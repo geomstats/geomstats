@@ -249,7 +249,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         image_tangent_vec : array-like, shape=[..., *i_shape]
             Image tangent vector at image of the base point.
         """
-        base_point, tangent_vec = gs.broadcast_arrays(base_point, tangent_vec)
+        base_point, tangent_vec = gs.broadcast_to(base_point, tangent_vec.shape)
         rad = base_point.shape[: -len(self.shape)]
 
         J_flat = gs.reshape(
@@ -352,8 +352,8 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         image_tangent_vec : array-like, shape=[..., *shape]
             Image tangent vector at image of the base point.
         """
-        image_point, image_tangent_vec = gs.broadcast_arrays(
-            image_point, image_tangent_vec
+        image_point, image_tangent_vec = gs.broadcast_to(
+            image_point, image_tangent_vec.shape
         )
         rad = image_tangent_vec.shape[: -len(self.embedding_metric.shape)]
 
