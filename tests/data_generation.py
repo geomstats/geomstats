@@ -718,7 +718,7 @@ class _ConnectionTestData(TestData):
                         connection_args=connection_args,
                         tangent_vec=better_squeeze(tangent_vec[:n_tangent_vecs]),
                         base_point=better_squeeze(base_point[:n_base_points]),
-                        expected_shape=expected_shape,
+                        expected=expected_shape,
                     )
                 )
         return self.generate_tests([], random_data)
@@ -751,7 +751,7 @@ class _ConnectionTestData(TestData):
                         connection_args=connection_args,
                         point=better_squeeze(point[:n_points]),
                         base_point=better_squeeze(base_point[:n_base_points]),
-                        expected_shape=expected_shape,
+                        expected=expected_shape,
                     )
                 )
         return self.generate_tests([], random_data)
