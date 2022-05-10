@@ -197,6 +197,25 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
+    def exp_shape_test_data(self):
+        index = 0
+        metric_args = self.metric_args_list[index]
+        space = self.space_list[index]
+
+        n = 2
+        base_points = space.random_point(n)
+        tangent_vecs = space.to_tangent(space.random_point(n), base_points)
+
+        tangent_vecs_0 = space.to_tangent(space.random_point(2), base_points[0])
+
+        data = [
+            [metric_args, tangent_vecs[0], base_points[0], base_points[0].shape],
+            [metric_args, tangent_vecs, base_points, base_points.shape],
+            [metric_args, tangent_vecs_0, base_points[0], tangent_vecs_0.shape],
+        ]
+
+        return self.generate_tests([], data)
+
 
 class CircleAsSO2PullbackDiffeoMetricTestData(TestData):
     def diffeomorphism_is_reciprocal_test_data(self):
