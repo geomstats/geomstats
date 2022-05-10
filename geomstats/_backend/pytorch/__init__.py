@@ -54,7 +54,6 @@ from torch import (
     sinh,
     stack,
     std,
-    take,
     tan,
     tanh,
     trapz,
@@ -858,3 +857,10 @@ def sort(a, axis=-1):
 def amin(a, axis=-1):
     (values, _) = torch.min(a, dim=axis)
     return values
+
+
+def take(input, index):
+    if not torch.is_tensor(index):
+        index = torch.as_tensor(index)
+
+    return torch.take(input, index)
