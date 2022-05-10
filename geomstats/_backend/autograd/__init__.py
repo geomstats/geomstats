@@ -90,6 +90,7 @@ from autograd.numpy import (
     stack,
     std,
     sum,
+    take,
     tan,
     tanh,
     tile,

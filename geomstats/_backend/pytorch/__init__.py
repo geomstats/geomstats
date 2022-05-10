@@ -54,6 +54,7 @@ from torch import (
     sinh,
     stack,
     std,
+    take,
     tan,
     tanh,
     trapz,
