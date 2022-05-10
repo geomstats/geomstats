@@ -65,7 +65,6 @@ from tensorflow import (
     zeros,
     zeros_like,
 )
-from tensorflow.experimental.numpy import take
 
 from ..constants import tf_atol, tf_rtol
 from . import autodiff  # NOQA
@@ -943,3 +942,7 @@ def ravel_tril_indices(n, k=0, m=None):
 
 def kron(a, b):
     return tf.linalg.LinearOperatorKronecker([a, b]).to_dense()
+
+
+def take(input, index):
+    return tf.gather(input, index)
