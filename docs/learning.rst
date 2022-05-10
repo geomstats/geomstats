@@ -23,6 +23,12 @@ Clustering
 .. automodule:: geomstats.learning.agglomerative_hierarchical_clustering
    :members:
 
+Classification
+==============
+
+.. automodule:: geomstats.learning.mdm
+   :members:
+
 .. automodule:: geomstats.learning.knn
    :members:
 

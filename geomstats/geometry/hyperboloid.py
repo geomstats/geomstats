@@ -2,6 +2,8 @@
 
 The n-dimensional hyperbolic space embedded with
 the hyperboloid representation (embedded in minkowsky space).
+
+Lead author: Nina Miolane.
 """
 
 import math
@@ -10,11 +12,11 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry._hyperbolic import HyperbolicMetric, _Hyperbolic
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
 
 
-class Hyperboloid(_Hyperbolic, EmbeddedManifold):
+class Hyperboloid(_Hyperbolic, LevelSet):
     """Class for the n-dimensional hyperboloid space.
 
     Class for the n-dimensional hyperboloid space as embedded in (
@@ -40,8 +42,9 @@ class Hyperboloid(_Hyperbolic, EmbeddedManifold):
     default_coords_type = "extrinsic"
     default_point_type = "vector"
 
-    def __init__(self, dim, coords_type="extrinsic", scale=1):
+    def __init__(self, dim, coords_type="extrinsic", scale=1, **kwargs):
         minkowski = Minkowski(dim + 1)
+        kwargs.setdefault("metric", HyperboloidMetric(dim, coords_type, scale))
         super(Hyperboloid, self).__init__(
             dim=dim,
             embedding_space=minkowski,
@@ -49,10 +52,10 @@ class Hyperboloid(_Hyperbolic, EmbeddedManifold):
             value=-1.0,
             tangent_submersion=minkowski.metric.inner_product,
             scale=scale,
+            **kwargs
         )
         self.coords_type = coords_type
         self.point_type = Hyperboloid.default_point_type
-        self.metric = HyperboloidMetric(self.dim, self.coords_type, self.scale)
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.
@@ -231,7 +234,7 @@ class Hyperboloid(_Hyperbolic, EmbeddedManifold):
         """
         belong_point = self.belongs(point_extrinsic)
         if not gs.all(belong_point):
-            raise NameError("Point that does not belong to the hyperboloid " "found")
+            raise ValueError("Point that does not belong to the hyperboloid " "found")
         return _Hyperbolic.change_coordinates_system(
             point_extrinsic, "extrinsic", "intrinsic"
         )
@@ -380,10 +383,10 @@ class HyperboloidMetric(HyperbolicMetric):
         angle = self.dist(base_point, point) / self.scale
 
         coef_1_ = utils.taylor_exp_even_func(
-            angle ** 2, utils.inv_sinch_close_0, order=4
+            angle**2, utils.inv_sinch_close_0, order=4
         )
         coef_2_ = utils.taylor_exp_even_func(
-            angle ** 2, utils.inv_tanh_close_0, order=4
+            angle**2, utils.inv_tanh_close_0, order=4
         )
 
         log_term_1 = gs.einsum("...,...j->...j", coef_1_, point)
@@ -417,35 +420,73 @@ class HyperboloidMetric(HyperbolicMetric):
         dist *= self.scale
         return dist
 
-    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the parallel transport of a tangent vector.
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
 
-        Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by exp_(base_point)(tangent_vec_b).
+        Closed-form solution for the parallel transport of a tangent vector
+        along the geodesic between two points `base_point` and `end_point`
+        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        t*direction)`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., dim + 1]
+        tangent_vec : array-like, shape=[..., dim + 1]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[..., dim + 1]
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the hyperboloid.
+        direction : array-like, shape=[..., dim + 1]
             Tangent vector at base point, along which the parallel transport
             is computed.
-        base_point : array-like, shape=[..., dim + 1]
-            Point on the hypersphere.
+            Optional, default : None.
+        end_point : array-like, shape=[..., dim + 1]
+            Point on the hyperboloid. Point to transport to. Unused if `tangent_vec_b`
+            is given.
+            Optional, default : None.
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., dim + 1]
             Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
-        theta = self.embedding_metric.norm(tangent_vec_b)
+        if direction is None:
+            if end_point is not None:
+                direction = self.log(end_point, base_point)
+            else:
+                raise ValueError(
+                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    " geodesic along which to transport."
+                )
+        theta = self.embedding_metric.norm(direction)
         eps = gs.where(theta == 0.0, 1.0, theta)
-        normalized_b = gs.einsum("...,...i->...i", 1 / eps, tangent_vec_b)
-        pb = self.embedding_metric.inner_product(tangent_vec_a, normalized_b)
-        p_orth = tangent_vec_a - gs.einsum("...,...i->...i", pb, normalized_b)
+        normalized_b = gs.einsum("...,...i->...i", 1 / eps, direction)
+        pb = self.embedding_metric.inner_product(tangent_vec, normalized_b)
+        p_orth = tangent_vec - gs.einsum("...,...i->...i", pb, normalized_b)
         transported = (
             gs.einsum("...,...i->...i", gs.sinh(theta) * pb, base_point)
             + gs.einsum("...,...i->...i", gs.cosh(theta) * pb, normalized_b)
             + p_orth
         )
         return transported
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In the case of the hyperbolic space, it does not depend on the base point and
+        is infinite everywhere, because of the negative curvature.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim+1]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return math.inf

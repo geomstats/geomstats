@@ -14,21 +14,45 @@ def detach(x):
     ----------
     x : array-like
         Tensor to detach.
+
+    Returns
+    -------
+    x : array-like
+        Detached tensor.
     """
     tf.stop_gradient(x)
     return x
 
 
 def custom_gradient(*grad_funcs):
-    """Decorate a function to define its custom gradient(s).
+    """Create a decorator that allows a function to define its custom gradient(s).
 
     Parameters
     ----------
     *grad_funcs : callables
         Custom gradient functions.
+
+    Returns
+    -------
+    decorator : callable
+        This decorator, used on any function func, associates the
+        input grad_funcs as the gradients of func.
     """
 
-    def wrapper(func):
+    def decorator(func):
+        """Decorate a function to define its custome gradient(s).
+
+        Parameters
+        ----------
+        func : callable
+            Function whose gradients will be assigned by grad_funcs.
+
+        Returns
+        -------
+        _ : callable
+            Function func with gradients specified by grad_funcs.
+        """
+
         def func_with_grad(*args, **kwargs):
             def grad(upstream):
                 grad_vals = []
@@ -49,18 +73,19 @@ def custom_gradient(*grad_funcs):
 
         return tf.custom_gradient(func_with_grad)
 
-    return wrapper
+    return decorator
 
 
 def value_and_grad(func, to_numpy=False):
     """Return a function that returns both value and gradient.
 
-    Suitable for use in scipy.optimize
+    Suitable for use in scipy.optimize with to_numpy=True.
 
     Parameters
     ----------
-    objective : callable
-        Function to compute the gradient. It must be real-valued.
+    func : callable
+        Function whose value and gradient values
+        will be computed. It must be real-valued.
     to_numpy : bool
         Determines if the outputs value and grad will be cast
         to numpy arrays. Set to "True" when using scipy.optimize.
@@ -68,13 +93,26 @@ def value_and_grad(func, to_numpy=False):
 
     Returns
     -------
-    objective_with_grad : callable
-        Function that takes the argument of the objective function as input
-        and returns both value and grad at the input.
+    func_with_grad : callable
+        Function that returns func's value and
+        func's gradients' values at its inputs args.
     """
 
     def func_with_grad(*args):
-        """Return the value of the function and its grad at the inputs."""
+        """Return func's value and func's gradients' values at args.
+
+        Parameters
+        ----------
+        args : list
+            Argument to function func and its gradients.
+
+        Returns
+        -------
+        value : any
+            Value of func at input arguments args.
+        grad : any
+            Values of func's gradients at input arguments args.
+        """
         if not isinstance(args, tuple):
             raise ValueError("The inputs parameters are expected to form a tuple.")
 
@@ -90,10 +128,33 @@ def value_and_grad(func, to_numpy=False):
 
 
 def jacobian(func):
-    """Return a function that returns the jacobian of a function func."""
+    """Return a function that returns the jacobian of func.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose Jacobian is computed.
+
+    Returns
+    -------
+    jac : callable
+        Function taking x as input and returning
+        the jacobian of func at x.
+    """
 
     def jac(x):
-        """Return the jacobian of func at x."""
+        """Return the jacobian of func at x.
+
+        Parameters
+        ----------
+        x : array-like
+            Input to function func or its jacobian.
+
+        Returns
+        -------
+        _ : array-like
+            Value of the jacobian of func at x.
+        """
         if isinstance(x, np.ndarray):
             x = tf.Variable(x)
         with tf.GradientTape() as g:

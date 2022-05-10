@@ -1,3 +1,8 @@
+"""Execution backends.
+
+Lead authors: Johan Mathe and Niklas Koep.
+"""
+
 import logging
 import os
 import sys
@@ -17,6 +22,7 @@ BACKEND_ATTRIBUTES = {
         "allclose",
         "amax",
         "amin",
+        "angle",
         "any",
         "arange",
         "arccos",
@@ -36,9 +42,10 @@ BACKEND_ATTRIBUTES = {
         "cast",
         "ceil",
         "clip",
-        "concatenate",
-        "convert_to_wider_dtype",
         "comb",
+        "concatenate",
+        "conj",
+        "convert_to_wider_dtype",
         "copy",
         "cos",
         "cosh",
@@ -69,6 +76,7 @@ BACKEND_ATTRIBUTES = {
         "imag",
         "isclose",
         "isnan",
+        "kron",
         "less",
         "less_equal",
         "linspace",
@@ -80,6 +88,7 @@ BACKEND_ATTRIBUTES = {
         "maximum",
         "mean",
         "meshgrid",
+        "minimum",
         "mod",
         "ndim",
         "one_hot",
@@ -89,6 +98,7 @@ BACKEND_ATTRIBUTES = {
         "polygamma",
         "power",
         "prod",
+        "ravel_tril_indices",
         "real",
         "repeat",
         "reshape",
@@ -114,14 +124,19 @@ BACKEND_ATTRIBUTES = {
         "trace",
         "transpose",
         "tril",
+        "triu",
         "tril_indices",
         "triu_indices",
+        "tril_to_vec",
         "triu_to_vec",
+        "vec_to_diag",
+        "unique",
         "vectorize",
         "vstack",
         "where",
         "zeros",
         "zeros_like",
+        "trapz",
     ],
     "autodiff": ["custom_gradient", "detach", "jacobian", "value_and_grad"],
     "linalg": [
@@ -132,13 +147,16 @@ BACKEND_ATTRIBUTES = {
         "eigvalsh",
         "expm",
         "inv",
+        "is_single_matrix_pd",
         "logm",
         "norm",
         "qr",
+        "quadratic_assignment",
         "solve",
         "solve_sylvester",
         "sqrtm",
         "svd",
+        "matrix_rank",
     ],
     "random": [
         "choice",
@@ -225,11 +243,13 @@ class BackendImporter:
         return new_module
 
     def find_module(self, fullname, path=None):
+        """Find module."""
         if self._path != fullname:
             return None
         return self
 
     def load_module(self, fullname):
+        """Load module."""
         if fullname in sys.modules:
             return sys.modules[fullname]
 

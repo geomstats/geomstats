@@ -1,4 +1,7 @@
-"""Transformer for manifold-valued data."""
+"""Transformer for manifold-valued data.
+
+Lead author: Nicolas Guigui.
+"""
 
 from sklearn.base import BaseEstimator, TransformerMixin
 

@@ -9,7 +9,7 @@ from geomstats.datasets.utils import load_karate_graph
 class TestPrepareGraphData(geomstats.tests.TestCase):
     """Class for testing embedding."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up function."""
         gs.random.seed(1234)
         dim = 2

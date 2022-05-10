@@ -2,6 +2,8 @@
 
 The n-dimensional hypersphere embedded in (n+1)-dimensional
 Euclidean space.
+
+Lead author: Nina Miolane.
 """
 
 import logging
@@ -12,33 +14,42 @@ from scipy.stats import beta
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class _Hypersphere(EmbeddedManifold):
+class _Hypersphere(LevelSet):
     """Private class for the n-dimensional hypersphere.
 
     Class for the n-dimensional hypersphere embedded in the
     (n+1)-dimensional Euclidean space.
 
     By default, points are parameterized by their extrinsic
-    (n+1)-coordinates.
+    (n+1)-coordinates. For dimensions 1 and 2, this can be changed with the
+    `default_coords_type` parameter. For dimensions 1 (the circle),
+    the intrinsic coordinates correspond angles in radians, with 0. mapping
+    to point [1., 0.]. For dimension 2, the intrinsic coordinates are the
+    spherical coordinates from the north pole, i.e. where angles [0., 0.]
+    correspond to point [0., 0., 1.].
 
     Parameters
     ----------
     dim : int
         Dimension of the hypersphere.
+
+    default_coords_type : str, {'extrinsic', 'intrinsic'}
+        Type of representation for dimensions 1 and 2.
     """
 
-    def __init__(self, dim):
+    def __init__(self, dim, default_coords_type="extrinsic"):
         super(_Hypersphere, self).__init__(
             dim=dim,
             embedding_space=Euclidean(dim + 1),
-            submersion=lambda x: gs.sum(x ** 2, axis=-1),
+            submersion=lambda x: gs.sum(x**2, axis=-1),
             value=1.0,
             tangent_submersion=lambda v, x: 2 * gs.sum(x * v, axis=-1),
+            default_coords_type=default_coords_type,
         )
 
     def projection(self, point):
@@ -79,18 +90,62 @@ class _Hypersphere(EmbeddedManifold):
             Tangent vector in the tangent space of the hypersphere
             at the base point.
         """
-        sq_norm = gs.sum(base_point ** 2, axis=-1)
+        sq_norm = gs.sum(base_point**2, axis=-1)
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
         tangent_vec = vector - gs.einsum("...,...j->...j", coef, base_point)
 
         return tangent_vec
 
+    @staticmethod
+    def angle_to_extrinsic(point_angle):
+        """Convert point from angle to extrinsic coordinates.
+
+        Convert from the angle in radians to the extrinsic coordinates in
+        2d plane. Angle 0 corresponds to point [1., 0.] and is expected in [-Pi, Pi).
+        This method is only implemented in dimension 1.
+
+        Parameters
+        ----------
+        point_angle : array-like, shape=[...]
+            Point on the circle, i.e. an angle in radians in [-Pi, Pi].
+
+        Returns
+        -------
+        point_extrinsic : array_like, shape=[..., 2]
+            Point on the sphere, in extrinsic coordinates in Euclidean space.
+        """
+        cos = gs.cos(point_angle)
+        sin = gs.sin(point_angle)
+        return gs.stack([cos, sin], axis=-1)
+
+    @staticmethod
+    def extrinsic_to_angle(point_extrinsic):
+        """Compute the angle of a point in the plane.
+
+        Convert from the extrinsic coordinates in the 2d plane to angle in
+        radians. Angle 0 corresponds to point [1., 0.]. This method is only
+        implemented in dimension 1.
+
+        Parameters
+        ----------
+        point_extrinsic : array-like, shape=[...]
+            Point on the circle, in extrinsic coordinates in Euclidean space.
+
+        Returns
+        -------
+        point_angle : array_like, shape=[..., 2]
+            Point on the circle, i.e. an angle in radians in [-Pi, Pi].
+        """
+        return gs.arctan2(point_extrinsic[..., 1], point_extrinsic[..., 0])
+
     def spherical_to_extrinsic(self, point_spherical):
         """Convert point from spherical to extrinsic coordinates.
 
         Convert from the spherical coordinates in the hypersphere
         to the extrinsic coordinates in Euclidean space.
+        Spherical coordinates are defined from the north pole, i.e. that
+        angles [0., 0.] correspond to point [0., 0., 1.].
         Only implemented in dimension 2.
 
         Parameters
@@ -155,6 +210,7 @@ class _Hypersphere(EmbeddedManifold):
         axes = (2, 0, 1) if base_point_spherical.ndim == 2 else (0, 1)
         theta = base_point_spherical[..., 0]
         phi = base_point_spherical[..., 1]
+        phi = gs.where(theta == 0.0, 0.0, phi)
 
         zeros = gs.zeros_like(theta)
 
@@ -173,11 +229,125 @@ class _Hypersphere(EmbeddedManifold):
 
         return tangent_vec_extrinsic
 
+    def extrinsic_to_spherical(self, point_extrinsic):
+        """Convert point from extrinsic to spherical coordinates.
+
+        Convert from the extrinsic coordinates, i.e. embedded in Euclidean
+        space of dim 3 to spherical coordinates in the hypersphere.
+        Spherical coordinates are defined from the north pole, i.e.
+        angles [0., 0.] correspond to point [0., 0., 1.].
+        Only implemented in dimension 2.
+
+        Parameters
+        ----------
+        point_extrinsic : array-like, shape=[..., dim]
+            Point on the sphere, in extrinsic coordinates.
+
+        Returns
+        -------
+        point_spherical : array_like, shape=[..., dim + 1]
+            Point on the sphere, in spherical coordinates relative to the
+            north pole.
+        """
+        if self.dim != 2:
+            raise NotImplementedError(
+                "The conversion from to extrinsic coordinates "
+                "spherical coordinates is implemented"
+                " only in dimension 2."
+            )
+
+        theta = gs.arccos(point_extrinsic[..., -1])
+        x = point_extrinsic[..., 0]
+        y = point_extrinsic[..., 1]
+        phi = gs.arctan2(y, x)
+        phi = gs.where(phi < 0, phi + 2 * gs.pi, phi)
+        return gs.stack([theta, phi], axis=-1)
+
+    def tangent_extrinsic_to_spherical(
+        self, tangent_vec, base_point=None, base_point_spherical=None
+    ):
+        """Convert tangent vector from extrinsic to spherical coordinates.
+
+        Convert a tangent vector from the extrinsic coordinates in Euclidean
+        space to the spherical coordinates in the hypersphere for.
+        Spherical coordinates are considered from the north pole [0., 0.,
+        1.]. This method is only implemented in dimension 2.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector to the sphere, in spherical coordinates.
+        base_point : array-like, shape=[..., dim]
+            Point on the sphere. Unused if `base_point_spherical` is given.
+            Optional, default : None.
+        base_point_spherical : array-like, shape=[..., dim]
+            Point on the sphere, in spherical coordinates. Either
+            `base_point` or `base_point_spherical` must be given.
+            Optional, default : None.
+
+        Returns
+        -------
+        tangent_vec_spherical : array-like, shape=[..., dim + 1]
+            Tangent vector to the sphere, at base point,
+            in spherical coordinates relative to the north pole [0., 0., 1.].
+        """
+        if self.dim != 2:
+            raise NotImplementedError(
+                "The conversion from to extrinsic coordinates "
+                "spherical coordinates is implemented"
+                " only in dimension 2."
+            )
+        if base_point is None and base_point_spherical is None:
+            raise ValueError(
+                "A base point must be given, either in "
+                "extrinsic or in spherical coordinates."
+            )
+        if base_point_spherical is None and base_point is not None:
+            base_point_spherical = self.extrinsic_to_spherical(base_point)
+
+        axes = (2, 0, 1) if base_point_spherical.ndim == 2 else (0, 1)
+        theta = base_point_spherical[..., 0]
+        phi = base_point_spherical[..., 1]
+
+        theta_safe = gs.where(gs.abs(theta) < gs.atol, gs.atol, theta)
+        zeros = gs.zeros_like(theta)
+        jac_close_0 = gs.array(
+            [[gs.ones_like(theta), zeros, zeros], [zeros, gs.ones_like(theta), zeros]]
+        )
+
+        jac = gs.array(
+            [
+                [
+                    gs.cos(theta) * gs.cos(phi),
+                    gs.cos(theta) * gs.sin(phi),
+                    -gs.sin(theta),
+                ],
+                [
+                    -gs.sin(phi) / gs.sin(theta_safe),
+                    gs.cos(phi) / gs.sin(theta_safe),
+                    zeros,
+                ],
+            ]
+        )
+
+        jac = gs.transpose(jac, axes)
+        jac_close_0 = gs.transpose(jac_close_0, axes)
+        theta_criterion = gs.einsum("...,...ij->...ij", theta, gs.ones_like(jac))
+        jac = gs.where(gs.abs(theta_criterion) < gs.atol, jac_close_0, jac)
+
+        tangent_vec_spherical = gs.einsum("...ij,...j->...i", jac, tangent_vec)
+
+        return tangent_vec_spherical
+
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert point from intrinsic to extrinsic coordinates.
 
         Convert from the intrinsic coordinates in the hypersphere,
         to the extrinsic coordinates in Euclidean space.
+        For dimensions 1 (the circle), the intrinsic coordinates correspond
+        angles in radians, with 0. mapping to point [1., 0.]. For dimension
+        2, the intrinsic coordinates are the spherical coordinates from the
+        north pole, i.e. that angles [0., 0.] correspond to point [0., 0., 1.].
 
         Parameters
         ----------
@@ -190,14 +360,14 @@ class _Hypersphere(EmbeddedManifold):
             Point on the hypersphere, in extrinsic coordinates in
             Euclidean space.
         """
-        sq_coord_0 = 1.0 - gs.sum(point_intrinsic ** 2, axis=-1)
-        if gs.any(gs.less(sq_coord_0, 0.0)):
-            raise ValueError("Square-root of a negative number.")
-        coord_0 = gs.sqrt(sq_coord_0)
+        if self.dim == 2:
+            return self.spherical_to_extrinsic(point_intrinsic)
+        if self.dim == 1:
+            return self.angle_to_extrinsic(point_intrinsic)
 
-        point_extrinsic = gs.concatenate([coord_0[..., None], point_intrinsic], axis=-1)
-
-        return point_extrinsic
+        raise NotImplementedError(
+            "Intrinsic coordinates are only implemented in dimension 1 and 2."
+        )
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """Convert point from extrinsic to intrinsic coordinates.
@@ -216,9 +386,14 @@ class _Hypersphere(EmbeddedManifold):
         point_intrinsic : array-like, shape=[..., dim]
             Point on the hypersphere, in intrinsic coordinates.
         """
-        point_intrinsic = point_extrinsic[..., 1:]
+        if self.dim == 2:
+            return self.extrinsic_to_spherical(point_extrinsic)
+        if self.dim == 1:
+            return self.extrinsic_to_angle(point_extrinsic)
 
-        return point_intrinsic
+        raise NotImplementedError(
+            "Intrinsic coordinates are only implemented in dimension 1 and 2."
+        )
 
     def _replace_values(self, samples, new_samples, indcs):
         replaced_indices = [i for i, is_replaced in enumerate(indcs) if is_replaced]
@@ -271,6 +446,9 @@ class _Hypersphere(EmbeddedManifold):
         samples = gs.einsum("..., ...i->...i", 1 / norms, samples)
         if n_samples == 1:
             samples = gs.squeeze(samples, axis=0)
+
+        if self.dim in [1, 2] and self.default_coords_type == "intrinsic":
+            return self.extrinsic_to_intrinsic_coords(samples)
         return samples
 
     def random_von_mises_fisher(self, mu=None, kappa=10, n_samples=1, max_iter=100):
@@ -322,15 +500,15 @@ class _Hypersphere(EmbeddedManifold):
                 scalar + (1.0 - scalar) * gs.exp(gs.array(-2.0 * kappa))
             )
             coord_x = gs.to_ndarray(coord_x, to_ndim=2, axis=1)
-            coord_yz = gs.sqrt(1.0 - coord_x ** 2) * unit_vector
+            coord_yz = gs.sqrt(1.0 - coord_x**2) * unit_vector
             sample = gs.hstack((coord_x, coord_yz))
 
         else:
             # rejection sampling in the general case
-            sqrt = gs.sqrt(4 * kappa ** 2.0 + dim ** 2)
+            sqrt = gs.sqrt(4 * kappa**2.0 + dim**2)
             envelop_param = (-2 * kappa + sqrt) / dim
             node = (1.0 - envelop_param) / (1.0 + envelop_param)
-            correction = kappa * node + dim * gs.log(1.0 - node ** 2)
+            correction = kappa * node + dim * gs.log(1.0 - node**2)
 
             n_accepted, n_iter = 0, 0
             result = []
@@ -355,7 +533,7 @@ class _Hypersphere(EmbeddedManifold):
             coord_x = gs.concatenate(result)
             coord_rest = _Hypersphere(dim - 1).random_uniform(n_accepted)
             coord_rest = gs.einsum(
-                "...,...i->...i", gs.sqrt(1 - coord_x ** 2), coord_rest
+                "...,...i->...i", gs.sqrt(1 - coord_x**2), coord_rest
             )
             sample = gs.concatenate([coord_x[..., None], coord_rest], axis=1)
 
@@ -427,12 +605,12 @@ class _Hypersphere(EmbeddedManifold):
 
         def threshold(random_v):
             """Compute the acceptance threshold."""
-            squared_norm = gs.sum(random_v ** 2, axis=-1)
+            squared_norm = gs.sum(random_v**2, axis=-1)
             sinc = utils.taylor_exp_even_func(squared_norm, utils.sinc_close_0) ** (
                 dim - 1
             )
             threshold_val = sinc * gs.exp(squared_norm * (dim - 1) / 2 / gs.pi)
-            return threshold_val, squared_norm ** 0.5
+            return threshold_val, squared_norm**0.5
 
         while (n_accepted < n_samples) and (n_iter < max_iter):
             envelope = gs.random.multivariate_normal(
@@ -459,7 +637,7 @@ class _Hypersphere(EmbeddedManifold):
         if mean is not None:
             mean_from_north = metric.log(mean, north_pole)
             tangent_sample_at_pt = metric.parallel_transport(
-                tangent_sample, mean_from_north, north_pole
+                tangent_sample, north_pole, mean_from_north
             )
         else:
             tangent_sample_at_pt = tangent_sample
@@ -643,34 +821,49 @@ class HypersphereMetric(RiemannianMetric):
         """
         return self.dist(point_a, point_b) ** 2
 
-    @staticmethod
-    def parallel_transport(tangent_vec_a, tangent_vec_b, base_point, **kwargs):
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
         r"""Compute the parallel transport of a tangent vector.
 
-        Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by :math:`t \mapsto exp_(base_point)(t*
-        tangent_vec_b)`.
+        Closed-form solution for the parallel transport of a tangent vector
+        along the geodesic between two points `base_point` and `end_point`
+        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        t*direction)`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., dim + 1]
+        tangent_vec : array-like, shape=[..., dim + 1]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[..., dim + 1]
-            Tangent vector at base point, along which the parallel transport
-            is computed.
         base_point : array-like, shape=[..., dim + 1]
             Point on the hypersphere.
+        direction : array-like, shape=[..., dim + 1]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+            Optional, default : None.
+        end_point : array-like, shape=[..., dim + 1]
+            Point on the hypersphere. Point to transport to. Unused if `tangent_vec_b`
+            is given.
+            Optional, default : None.
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., dim + 1]
-            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+            Transported tangent vector at `end_point=exp_(base_point)(tangent_vec_b)`.
         """
-        theta = gs.linalg.norm(tangent_vec_b, axis=-1)
+        if direction is None:
+            if end_point is not None:
+                direction = self.log(end_point, base_point)
+            else:
+                raise ValueError(
+                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    " geodesic along which to transport."
+                )
+        theta = gs.linalg.norm(direction, axis=-1)
         eps = gs.where(theta == 0.0, 1.0, theta)
-        normalized_b = gs.einsum("...,...i->...i", 1 / eps, tangent_vec_b)
-        pb = gs.einsum("...i,...i->...", tangent_vec_a, normalized_b)
-        p_orth = tangent_vec_a - gs.einsum("...,...i->...i", pb, normalized_b)
+        normalized_b = gs.einsum("...,...i->...i", 1 / eps, direction)
+        pb = gs.einsum("...i,...i->...", tangent_vec, normalized_b)
+        p_orth = tangent_vec - gs.einsum("...,...i->...i", pb, normalized_b)
         transported = (
             -gs.einsum("...,...i->...i", gs.sin(theta) * pb, base_point)
             + gs.einsum("...,...i->...i", gs.cos(theta) * pb, normalized_b)
@@ -758,13 +951,13 @@ class HypersphereMetric(RiemannianMetric):
         """Compute the normalization factor - odd dimension."""
         dim = self.dim
         half_dim = int((dim + 1) / 2)
-        area = 2 * gs.pi ** half_dim / math.factorial(half_dim - 1)
+        area = 2 * gs.pi**half_dim / math.factorial(half_dim - 1)
         comb = gs.comb(dim - 1, half_dim - 1)
 
         erf_arg = gs.sqrt(variances / 2) * gs.pi
         first_term = (
             area
-            / (2 ** dim - 1)
+            / (2**dim - 1)
             * comb
             * gs.sqrt(gs.pi / (2 * variances))
             * gs.erf(erf_arg)
@@ -783,7 +976,7 @@ class HypersphereMetric(RiemannianMetric):
             sum_term = gs.sum(gs.stack([summand(k)] for k in range(half_dim - 2)))
         else:
             sum_term = summand(0)
-        coef = area / 2 / erf_arg * gs.pi ** 0.5 * (-1.0) ** (half_dim - 1)
+        coef = area / 2 / erf_arg * gs.pi**0.5 * (-1.0) ** (half_dim - 1)
 
         return first_term + coef / 2 ** (dim - 2) * sum_term
 
@@ -791,7 +984,7 @@ class HypersphereMetric(RiemannianMetric):
         """Compute the normalization factor - even dimension."""
         dim = self.dim
         half_dim = (dim + 1) / 2
-        area = 2 * gs.pi ** half_dim / math.gamma(half_dim)
+        area = 2 * gs.pi**half_dim / math.gamma(half_dim)
 
         def summand(k):
             exp_arg = -((dim - 1 - 2 * k) ** 2) / 2 / variances
@@ -892,6 +1085,27 @@ class HypersphereMetric(RiemannianMetric):
         """
         return gs.zeros_like(tangent_vec_a)
 
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In the case of the sphere, it does not depend on the base point and is Pi
+        everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim+1]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return gs.pi
+
 
 class Hypersphere(_Hypersphere):
     """Class for the n-dimensional hypersphere.
@@ -900,14 +1114,22 @@ class Hypersphere(_Hypersphere):
     (n+1)-dimensional Euclidean space.
 
     By default, points are parameterized by their extrinsic
-    (n+1)-coordinates.
+    (n+1)-coordinates. For dimensions 1 and 2, this can be changed with the
+    `default_coords_type` parameter. For dimensions 1 (the circle),
+    the intrinsic coordinates correspond angles in radians, with 0. mapping
+    to point [1., 0.]. For dimension 2, the intrinsic coordinates are the
+    spherical coordinates from the north pole, i.e. where angles [0.,
+    0.] correspond to point [0., 0., 1.].
 
     Parameters
     ----------
     dim : int
         Dimension of the hypersphere.
+
+    default_coords_type : str, {'extrinsic', 'intrinsic'}
+        Type of representation for dimensions 1 and 2.
     """
 
-    def __init__(self, dim):
-        super(Hypersphere, self).__init__(dim)
-        self.metric = HypersphereMetric(dim)
+    def __init__(self, dim, default_coords_type="extrinsic"):
+        super(Hypersphere, self).__init__(dim, default_coords_type)
+        self._metric = HypersphereMetric(dim)

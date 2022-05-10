@@ -11,6 +11,7 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 from geomstats.geometry.pre_shape import PreShapeSpace
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import (
     SpecialOrthogonal,
@@ -21,7 +22,7 @@ matplotlib.use("Agg")  # NOQA
 
 
 class TestVisualization(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         self.n_samples = 10
         self.SO3_GROUP = SpecialOrthogonal(n=3, point_type="vector")
         self.SE3_GROUP = SpecialEuclidean(n=3, point_type="vector")
@@ -35,6 +36,7 @@ class TestVisualization(geomstats.tests.TestCase):
         self.M33 = Matrices(m=3, n=3)
         self.S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
         self.KD = visualization.KendallDisk()
+        self.spd = SPDMatrices(n=2)
 
         plt.figure()
 
@@ -85,7 +87,7 @@ class TestVisualization(geomstats.tests.TestCase):
         x = coords[:, 0]
         y = coords[:, 1]
         z = coords[:, 2]
-        result = x ** 2 + y ** 2 + z ** 2
+        result = x**2 + y**2 + z**2
         expected = 0.25 * gs.ones(self.n_samples)
         self.assertAllClose(result, expected)
 
@@ -132,7 +134,7 @@ class TestVisualization(geomstats.tests.TestCase):
         coords = self.KD.convert_to_planar_coordinates(points)
         x = coords[:, 0]
         y = coords[:, 1]
-        radius = x ** 2 + y ** 2
+        radius = x**2 + y**2
         result = [r <= 1.0 for r in radius]
         self.assertTrue(gs.all(result))
 
@@ -175,3 +177,21 @@ class TestVisualization(geomstats.tests.TestCase):
         visu = visualization.SpecialEuclidean2(points, point_type="vector")
         ax = visu.set_ax()
         visu.draw_points(ax)
+
+    def test_plot_points_spd2(self):
+        one_point = self.spd.random_point()
+        visualization.plot(one_point, space="SPD2")
+
+        points = self.spd.random_point(4)
+        visualization.plot(points, space="SPD2")
+
+    def test_compute_coordinates_spd2(self):
+        point = gs.eye(2)
+        ellipsis = visualization.Ellipses(n_sampling_points=4)
+        x, y = ellipsis.compute_coordinates(point)
+        self.assertAllClose(x, gs.array([1, 0, -1, 0, 1]))
+        self.assertAllClose(y, gs.array([0, 1, 0, -1, 0]))
+
+    @staticmethod
+    def teardown_method():
+        plt.close()

@@ -1,11 +1,11 @@
 .. _examples:
 
-========
-Examples
-========
+=============
+Code Examples
+=============
 
-To learn how to use geomstats, you can look at the many examples in the repository
-`examples <https://github.com/geomstats/geomstats/tree/master/examples>`_.
+To learn how to use geomstats, you can look at the many examples in the repository of
+`code examples <https://github.com/geomstats/geomstats/tree/master/examples>`_.
 
 If you have installed geomstats via Git, you can run them from the command line as follows.
 

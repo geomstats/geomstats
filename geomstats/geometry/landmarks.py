@@ -1,4 +1,7 @@
-"""Manifold for sets of landmarks that belong to any given manifold."""
+"""Manifold for sets of landmarks that belong to any given manifold.
+
+Lead author: Nicolas Guigui.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.product_manifold import ProductManifold
@@ -20,12 +23,14 @@ class Landmarks(ProductManifold):
         Number of landmarks.
     """
 
-    def __init__(self, ambient_manifold, k_landmarks):
+    def __init__(self, ambient_manifold, k_landmarks, **kwargs):
+        kwargs.setdefault("metric", L2Metric(ambient_manifold, k_landmarks))
         super(Landmarks, self).__init__(
-            manifolds=[ambient_manifold] * k_landmarks, default_point_type="matrix"
+            manifolds=[ambient_manifold] * k_landmarks,
+            default_point_type="matrix",
+            **kwargs
         )
         self.ambient_manifold = ambient_manifold
-        self.metric = L2Metric(ambient_manifold, k_landmarks)
         self.k_landmarks = k_landmarks
 
 
@@ -73,19 +78,13 @@ class L2Metric(ProductRiemannianMetric):
         path : callable
             Time parameterized geodesic curve.
         """
-        landmarks_ndim = 2
-        initial_landmarks = gs.to_ndarray(initial_point, to_ndim=landmarks_ndim + 1)
-
         if end_point is None and initial_tangent_vec is None:
             raise ValueError(
                 "Specify an end landmark set or an initial tangent"
                 "vector to define the geodesic."
             )
         if end_point is not None:
-            end_landmarks = gs.to_ndarray(end_point, to_ndim=landmarks_ndim + 1)
-            shooting_tangent_vec = self.log(
-                point=end_landmarks, base_point=initial_landmarks
-            )
+            shooting_tangent_vec = self.log(point=end_point, base_point=initial_point)
             if initial_tangent_vec is not None:
                 if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
                     raise RuntimeError(
@@ -94,29 +93,17 @@ class L2Metric(ProductRiemannianMetric):
                     )
             initial_tangent_vec = shooting_tangent_vec
         initial_tangent_vec = gs.array(initial_tangent_vec)
-        initial_tangent_vec = gs.to_ndarray(
-            initial_tangent_vec, to_ndim=landmarks_ndim + 1
-        )
 
         def landmarks_on_geodesic(t):
             t = gs.cast(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
-            t = gs.to_ndarray(t, to_ndim=2, axis=1)
-            new_initial_landmarks = gs.to_ndarray(
-                initial_landmarks, to_ndim=landmarks_ndim + 1
-            )
-            new_initial_tangent_vec = gs.to_ndarray(
-                initial_tangent_vec, to_ndim=landmarks_ndim + 1
-            )
 
-            tangent_vecs = gs.einsum("il,nkm->ikm", t, new_initial_tangent_vec)
+            tangent_vecs = gs.einsum("...,...ij->...ij", t, initial_tangent_vec)
 
             def point_on_landmarks(tangent_vec):
                 if gs.ndim(tangent_vec) < 2:
                     raise RuntimeError
-                exp = self.exp(
-                    tangent_vec=tangent_vec, base_point=new_initial_landmarks
-                )
+                exp = self.exp(tangent_vec=tangent_vec, base_point=initial_point)
                 return exp
 
             landmarks_at_time_t = gs.vectorize(

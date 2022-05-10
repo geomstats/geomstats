@@ -1,10 +1,12 @@
-"""Lie groups."""
+"""Lie groups.
+
+Lead author: Nina Miolane.
+"""
 
 import abc
 
 import geomstats.backend as gs
 import geomstats.errors as errors
-import geomstats.geometry.riemannian_metric as riemannian_metric
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
@@ -12,63 +14,11 @@ from geomstats.geometry.matrices import Matrices
 ATOL = 1e-6
 
 
-def loss(y_pred, y_true, group, metric=None):
-    """Compute loss given by Riemannian metric.
-
-    Parameters
-    ----------
-    y_pred : array-like, shape=[..., {dim, [n, n]}]
-        Prediction.
-    y_true : array-like, shape=[..., {dim, [n, n]}]
-        Ground-truth.
-        Shape has to match y_pred.
-    group : LieGroup
-    metric : RiemannianMetric
-        Riemannian metric.
-        Optional, defaults to the left invariant metric if None.
-
-    Returns
-    -------
-    loss : array-like, shape=[..., {dim, [n, n]}]
-        Squared (geodesic) distance between y_pred and y_true
-    """
-    if metric is None:
-        metric = group.left_canonical_metric
-    metric_loss = riemannian_metric.loss(y_pred, y_true, metric)
-    return metric_loss
-
-
-def grad(y_pred, y_true, group, metric=None):
-    """Compute the gradient of the loss function from closed-form expression.
-
-    Parameters
-    ----------
-    y_pred : array-like, shape=[..., {dim, [n, n]}]
-        Prediction.
-    y_true : array-like, shape=[..., {dim, [n, n]}]
-        Ground-truth.
-        Shape has to match y_pred.
-    group : LieGroup
-    metric : RiemannianMetric
-        Riemannian metric.
-        optional, defaults to the left invariant metric if None.
-
-    Returns
-    -------
-    grad : array-like, shape=[..., {dim, [n, n]}]
-        Tangent vector at point `y_pred`.
-    """
-    if metric is None:
-        metric = group.left_canonical_metric
-    metric_grad = riemannian_metric.grad(y_pred, y_true, metric)
-    return metric_grad
-
-
 class MatrixLieGroup(Manifold, abc.ABC):
     """Class for matrix Lie groups."""
 
     def __init__(self, dim, n, lie_algebra=None, **kwargs):
-        super(MatrixLieGroup, self).__init__(dim=dim, **kwargs)
+        super(MatrixLieGroup, self).__init__(dim=dim, shape=(n, n), **kwargs)
         self.lie_algebra = lie_algebra
         self.n = n
         self.left_canonical_metric = InvariantMetric(
@@ -348,9 +298,11 @@ class LieGroup(Manifold, abc.ABC):
         product at the identity.
     """
 
-    def __init__(self, dim, default_point_type="vector", lie_algebra=None, **kwargs):
+    def __init__(
+        self, dim, shape, default_point_type="vector", lie_algebra=None, **kwargs
+    ):
         super(LieGroup, self).__init__(
-            dim=dim, default_point_type=default_point_type, **kwargs
+            dim=dim, shape=shape, default_point_type=default_point_type, **kwargs
         )
 
         self.lie_algebra = lie_algebra

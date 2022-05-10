@@ -1,7 +1,10 @@
-"""The manifold of full-rank correlation matrices."""
+"""The manifold of full-rank correlation matrices.
+
+Lead author: Yann Thanwerdas.
+"""
 
 import geomstats.backend as gs
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
@@ -9,7 +12,7 @@ from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
 
 
-class FullRankCorrelationMatrices(EmbeddedManifold):
+class FullRankCorrelationMatrices(LevelSet):
     """Class for the manifold of full-rank correlation matrices.
 
     Parameters
@@ -18,13 +21,15 @@ class FullRankCorrelationMatrices(EmbeddedManifold):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, **kwargs):
+        kwargs.setdefault("metric", FullRankCorrelationAffineQuotientMetric(n))
         super(FullRankCorrelationMatrices, self).__init__(
             dim=int(n * (n - 1) / 2),
             embedding_space=SPDMatrices(n=n),
             submersion=Matrices.diagonal,
             value=gs.ones(n),
             tangent_submersion=lambda v, x: Matrices.diagonal(v),
+            **kwargs
         )
         self.n = n
 
@@ -51,6 +56,13 @@ class FullRankCorrelationMatrices(EmbeddedManifold):
         """
         aux = gs.einsum("...i,...j->...ij", diagonal_vec, diagonal_vec)
         return point * aux
+
+    @property
+    def metric(self):
+        """Riemannian Metric associated to the Manifold."""
+        if self._metric is None:
+            self._metric = FullRankCorrelationAffineQuotientMetric(self.n)
+        return self._metric
 
     @classmethod
     def from_covariance(cls, point):
@@ -145,7 +157,6 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
     def __init__(self, n):
         super(CorrelationMatricesBundle, self).__init__(
             n=n,
-            base=FullRankCorrelationMatrices(n),
             ambient_metric=SPDMetricAffine(n),
             group_dim=n,
             group_action=FullRankCorrelationMatrices.diag_action,

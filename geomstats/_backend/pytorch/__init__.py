@@ -5,13 +5,16 @@ from functools import wraps
 
 import numpy as _np
 import torch
-from torch import arange, arccos, arccosh, arcsin, arctanh, argmin
+from torch import angle, arange, arccos, arccosh, arcsin, arctanh, argmin
 from torch import atan2 as arctan2  # NOQA
 from torch import bool as t_bool
 from torch import broadcast_tensors as broadcast_arrays
 from torch import (
     ceil,
     clip,
+    complex64,
+    complex128,
+    conj,
     cos,
     cosh,
     cross,
@@ -34,15 +37,13 @@ from torch import (
     int32,
     int64,
     isnan,
+    kron,
     less,
     log,
     logical_or,
-    matmul,
 )
 from torch import max as amax
-from torch import mean, meshgrid
-from torch import min as amin
-from torch import nonzero, ones, ones_like, outer, polygamma
+from torch import mean, meshgrid, nonzero, ones, ones_like, outer, polygamma
 from torch import pow as power
 from torch import real
 from torch import repeat_interleave as repeat
@@ -51,13 +52,13 @@ from torch import (
     sign,
     sin,
     sinh,
-    sort,
     stack,
     std,
     tan,
     tanh,
-    tril,
+    trapz,
     uint8,
+    unique,
     vstack,
     zeros,
     zeros_like,
@@ -68,7 +69,14 @@ from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
-DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3}
+DTYPES = {
+    int32: 0,
+    int64: 1,
+    float32: 2,
+    float64: 3,
+    complex64: 4,
+    complex128: 5,
+}
 
 
 atol = pytorch_atol
@@ -107,6 +115,11 @@ tan = _box_scalar(tan)
 
 def comb(n, k):
     return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
+
+
+def matmul(x, y, *, out=None):
+    x, y = convert_to_wider_dtype([x, y])
+    return torch.matmul(x, y, out=out)
 
 
 def to_numpy(x):
@@ -207,7 +220,15 @@ def concatenate(seq, axis=0, out=None):
 
 
 def _get_largest_dtype(seq):
-    dtype_dict = {0: t_bool, 1: uint8, 2: int32, 3: int64, 4: float32, 5: float64}
+    dtype_dict = {
+        0: t_bool,
+        1: uint8,
+        2: int32,
+        3: int64,
+        4: float32,
+        5: float64,
+        6: complex128,
+    }
     reverse_dict = {dtype_dict[key]: key for key in dtype_dict}
     dtype_code_set = {reverse_dict[t.dtype] for t in seq}
     return dtype_dict[max(dtype_code_set)]
@@ -328,6 +349,10 @@ def dot(a, b):
 
 def maximum(a, b):
     return torch.max(array(a), array(b))
+
+
+def minimum(a, b):
+    return torch.min(array(a), array(b))
 
 
 def to_ndarray(x, to_ndim, axis=0):
@@ -497,6 +522,14 @@ def equal(a, b, **kwargs):
 
 def diag_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
+
+
+def tril(mat, k=0):
+    return torch.tril(mat, diagonal=k)
+
+
+def triu(mat, k=0):
+    return torch.triu(mat, diagonal=k)
 
 
 def tril_indices(n, k=0, m=None):
@@ -765,6 +798,16 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
     return stack(list(map(pyfunc, x)))
 
 
+def vec_to_diag(vec):
+    return torch.diag_embed(vec, offset=0)
+
+
+def tril_to_vec(x, k=0):
+    n = x.shape[-1]
+    rows, cols = tril_indices(n, k=k)
+    return x[..., rows, cols]
+
+
 def triu_to_vec(x, k=0):
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
@@ -795,3 +838,22 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
     return mat
+
+
+def ravel_tril_indices(n, k=0, m=None):
+    if m is None:
+        size = (n, n)
+    else:
+        size = (n, m)
+    idxs = _np.tril_indices(n, k, m)
+    return torch.from_numpy(_np.ravel_multi_index(idxs, size))
+
+
+def sort(a, axis=-1):
+    sorted_a, _ = torch.sort(a, dim=axis)
+    return sorted_a
+
+
+def amin(a, axis=-1):
+    (values, _) = torch.min(a, dim=axis)
+    return values

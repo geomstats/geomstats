@@ -1,4 +1,7 @@
-"""Affine connections."""
+"""Affine connections.
+
+Lead author: Nicolas Guigui.
+"""
 
 from abc import ABC
 
@@ -6,10 +9,10 @@ from scipy.optimize import minimize
 
 import geomstats.backend as gs
 import geomstats.errors
-import geomstats.vectorization
 from geomstats.integrator import integrate
 
 N_STEPS = 10
+POINT_TYPES = {1: "vector", 2: "matrix", 3: "matrix"}
 
 
 class Connection(ABC):
@@ -19,6 +22,9 @@ class Connection(ABC):
     ----------
     dim : int
         Dimension of the underlying manifold.
+    shape : tuple of int
+        Shape of one element of the manifold.
+        Optional, default : (dim, ).
     default_point_type : str, {\'vector\', \'matrix\'}
         Point type.
         Optional, default: \'vector\'.
@@ -28,14 +34,20 @@ class Connection(ABC):
     """
 
     def __init__(
-        self, dim, default_point_type="vector", default_coords_type="intrinsic"
+        self, dim, shape=None, default_point_type=None, default_coords_type="intrinsic"
     ):
+        if shape is None:
+            shape = (dim,)
+        if default_point_type is None:
+            default_point_type = POINT_TYPES[len(shape)]
+
         geomstats.errors.check_integer(dim, "dim")
         geomstats.errors.check_parameter_accepted_values(
             default_point_type, "default_point_type", ["vector", "matrix"]
         )
 
         self.dim = dim
+        self.shape = shape
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
 
@@ -113,6 +125,8 @@ class Connection(ABC):
         exp : array-like, shape=[..., dim]
             Point on the manifold.
         """
+        base_point = gs.broadcast_to(base_point, tangent_vec.shape)
+
         initial_state = gs.stack([base_point, tangent_vec])
         flow = integrate(
             self.geodesic_equation, initial_state, n_steps=n_steps, step=step
@@ -167,7 +181,7 @@ class Connection(ABC):
             velocity = gs.cast(velocity, dtype=base_point.dtype)
             velocity = gs.reshape(velocity, max_shape)
             delta = self.exp(velocity, base_point, n_steps, step) - point
-            return gs.sum(delta ** 2)
+            return gs.sum(delta**2)
 
         objective_with_grad = gs.autodiff.value_and_grad(objective, to_numpy=True)
 
@@ -325,9 +339,9 @@ class Connection(ABC):
 
     def ladder_parallel_transport(
         self,
-        tangent_vec_a,
-        tangent_vec_b,
+        tangent_vec,
         base_point,
+        direction,
         n_rungs=1,
         scheme="pole",
         alpha=1,
@@ -340,14 +354,14 @@ class Connection(ABC):
         spaces and of order two in general while Schild's ladder is a first
         order approximation [GP2020]_. Both schemes are available on any affine
         connection manifolds whose exponential and logarithm maps are
-        implemented. `tangent_vec_a` is transported along the geodesic starting
-        at the base_point with initial tangent vector `tangent_vec_b`.
+        implemented. `tangent_vec` is transported along the geodesic starting
+        at the base_point with initial tangent vector `direction`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point to transport.
-        tangent_vec_b : array-like, shape=[..., dim]
+        direction : array-like, shape=[..., dim]
             Tangent vector at base point, initial speed of the geodesic along
             which to transport.
         base_point : array-like, shape=[..., dim]
@@ -392,13 +406,13 @@ class Connection(ABC):
         if alpha < 1:
             raise ValueError("alpha must be greater or equal to one")
         current_point = base_point
-        next_tangent_vec = tangent_vec_a / (n_rungs ** alpha)
+        next_tangent_vec = tangent_vec / (n_rungs**alpha)
         methods = {"pole": self._pole_ladder_step, "schild": self._schild_ladder_step}
         single_step = methods[scheme]
         base_shoot = self.exp(base_point=current_point, tangent_vec=next_tangent_vec)
         trajectory = []
         for i_point in range(n_rungs):
-            frac_tan_vector_b = (i_point + 1) / n_rungs * tangent_vec_b
+            frac_tan_vector_b = (i_point + 1) / n_rungs * direction
             next_point = self.exp(base_point=base_point, tangent_vec=frac_tan_vector_b)
             next_step = single_step(
                 base_point=current_point,
@@ -412,7 +426,7 @@ class Connection(ABC):
         transported_tangent_vec = self.log(base_shoot, current_point)
         if n_rungs % 2 == 1 and scheme == "pole":
             transported_tangent_vec *= -1.0
-        transported_tangent_vec *= n_rungs ** alpha
+        transported_tangent_vec *= n_rungs**alpha
         return {
             "transported_tangent_vec": transported_tangent_vec,
             "end_point": current_point,
@@ -523,7 +537,7 @@ class Connection(ABC):
 
         References
         ----------
-        .. [Pennec] Pennec, xavier. Curvature effects on the empirical mean in
+        .. [Pennec] Pennec, Xavier. Curvature effects on the empirical mean in
         Riemannian and affine Manifolds: a non-asymptotic high concentration
         expansion in the small-sample regime. Preprint. June 2019.
         https://arxiv.org/abs/1906.07418
@@ -532,7 +546,9 @@ class Connection(ABC):
             tangent_vec_a, tangent_vec_b, tangent_vec_a, tangent_vec_b, base_point
         )
 
-    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+    def geodesic(
+        self, initial_point, end_point=None, initial_tangent_vec=None, **exp_kwargs
+    ):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
@@ -605,7 +621,8 @@ class Connection(ABC):
                 tangent_vecs = gs.einsum("i,...kl->...ikl", t, initial_tangent_vec)
 
             points_at_time_t = [
-                self.exp(tv, pt) for tv, pt in zip(tangent_vecs, initial_point)
+                self.exp(tv, pt, **exp_kwargs)
+                for tv, pt in zip(tangent_vecs, initial_point)
             ]
             points_at_time_t = gs.stack(points_at_time_t, axis=0)
 
@@ -615,22 +632,29 @@ class Connection(ABC):
 
         return path
 
-    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
         r"""Compute the parallel transport of a tangent vector.
 
-        Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by :math:`t \mapsto exp_(base_point)(t*
-        tangent_vec_b)`.
+        Closed-form solution for the parallel transport of a tangent vector
+        along the geodesic between two points `base_point` and `end_point`
+        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        t*direction)`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., {dim, [n, m]}]
+        tangent_vec : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
+        base_point : array-like, shape=[..., {dim, [n, m]}]
+            Point on the manifold. Point to transport from.
+        direction : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at base point, along which the parallel transport
             is computed.
-        base_point : array-like, shape=[..., {dim, [n, m]}]
-            Point on the manifold.
+            Optional, default: None.
+        end_point : array-like, shape=[..., {dim, [n, m]}]
+            Point on the manifold. Point to transport to.
+            Optional, default: None.
 
         Returns
         -------
@@ -641,3 +665,22 @@ class Connection(ABC):
             "The closed-form solution of parallel transport is not known, "
             "use the ladder_parallel_transport instead."
         )
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., {dim, [n, m]}]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        raise NotImplementedError("The injectivity range is not implemented yet.")

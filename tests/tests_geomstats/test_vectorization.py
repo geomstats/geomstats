@@ -7,7 +7,7 @@ import tests.helper as helper
 
 
 class TestVectorization(geomstats.tests.TestCase):
-    def setUp(self):
+    def setup_method(self):
         class Obj:
             def __init__(self):
                 self.default_point_type = "vector"

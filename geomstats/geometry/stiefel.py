@@ -1,13 +1,15 @@
 """Stiefel manifold St(n,p).
 
-A set of all orthonormal p-frames in n-dimensional space, where p <= n
+A set of all orthonormal p-frames in n-dimensional space, where p <= n.
+
+Lead author: Oleg Kachan.
 """
 
 import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -16,7 +18,7 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 EPSILON = 1e-6
 
 
-class Stiefel(EmbeddedManifold):
+class Stiefel(LevelSet):
     """Class for Stiefel manifolds St(n,p).
 
     A set of all orthonormal p-frames in n-dimensional space,
@@ -30,7 +32,7 @@ class Stiefel(EmbeddedManifold):
         Number of basis vectors in the orthonormal frame.
     """
 
-    def __init__(self, n, p):
+    def __init__(self, n, p, **kwargs):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(p, "p")
         if p > n:
@@ -38,6 +40,8 @@ class Stiefel(EmbeddedManifold):
 
         dim = int(p * n - (p * (p + 1) / 2))
         matrices = Matrices(n, p)
+        canonical_metric = StiefelCanonicalMetric(n, p)
+        kwargs.setdefault("metric", canonical_metric)
         super(Stiefel, self).__init__(
             dim=dim,
             embedding_space=matrices,
@@ -45,12 +49,11 @@ class Stiefel(EmbeddedManifold):
             value=gs.eye(p),
             tangent_submersion=lambda v, x: 2
             * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
-            metric=StiefelCanonicalMetric(n, p),
+            **kwargs
         )
-
+        self.canonical_metric = canonical_metric
         self.n = n
         self.p = p
-        self.canonical_metric = self.metric
 
     @staticmethod
     def to_grassmannian(point):
@@ -343,6 +346,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
     def log(self, point, base_point, max_iter=30, tol=gs.atol, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
+        When p=n, the space St(n,n)~O(n) has two non connected sheets: the
+        log is only defined for data from the same sheet.
+        For p<n, the space St(n,p)~O(n)/O(n-p)~SO(n)/SO(n-p) is connected.
         Based on [ZR2017]_.
 
         References
@@ -372,7 +378,12 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        p = self.p
+        n, p = self.n, self.p
+        if p == n:
+            det_point = gs.linalg.det(point)
+            det_base_point = gs.linalg.det(base_point)
+            if not gs.all(det_point * det_base_point > 0.0):
+                raise ValueError("Points from different sheets in log")
 
         transpose_base_point = Matrices.transpose(base_point)
         matrix_m = gs.matmul(transpose_base_point, point)
@@ -507,3 +518,30 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 matrix_r[k, : len(column_r_j), j] = gs.array(column_r_j)
 
         return gs.matmul(point, matrix_r) - base_point
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In this case the exact injectivity radius is not known, and we use here a
+        lower bound given by [Rentmeesters2015]_.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, p]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+
+        References
+        ----------
+        .. [Rentmeesters2015] Rentmeesters, Quentin. “Algorithms for Data Fitting on
+        Some Common Homogeneous Spaces.” UCL - Université Catholique de Louvain, 2013.
+        https://dial.uclouvain.be/pr/boreal/object/boreal:132587.
+        """
+        return 0.89 * gs.pi

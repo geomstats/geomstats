@@ -13,7 +13,7 @@ from geomstats.information_geometry.categorical import (
 class TestCategoricalDistributions(geomstats.tests.TestCase):
     """Class defining the categorical distributions tests."""
 
-    def setUp(self):
+    def setup_method(self):
         """Define the parameters of the tests."""
         gs.random.seed(0)
         warnings.simplefilter("ignore", category=UserWarning)

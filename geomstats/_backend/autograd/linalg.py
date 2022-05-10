@@ -1,8 +1,11 @@
 """Autograd based linear algebra backend."""
 
+import functools
+
 import autograd.numpy as np
 import autograd.scipy.linalg as asp
 import scipy.linalg
+import scipy.optimize
 from autograd.extend import defvjp, primitive
 from autograd.numpy.linalg import (  # NOQA
     cholesky,
@@ -11,6 +14,7 @@ from autograd.numpy.linalg import (  # NOQA
     eigh,
     eigvalsh,
     inv,
+    matrix_rank,
     norm,
     solve,
     svd,
@@ -29,7 +33,7 @@ def expm(x):
     return np.vectorize(asp.expm, signature="(n,m)->(n,m)")(x)
 
 
-def _expm_vjp(_ans, x):
+def _adjoint(_ans, x, fn):
     vectorized = x.ndim == 3
     axes = (0, 2, 1) if vectorized else (1, 0)
 
@@ -40,14 +44,16 @@ def _expm_vjp(_ans, x):
         mat[..., :n, :n] = x.transpose(axes)
         mat[..., n:, n:] = x.transpose(axes)
         mat[..., :n, n:] = g
-        return expm(mat)[..., :n, n:]
+        return fn(mat)[..., :n, n:]
 
     return vjp
 
 
+_expm_vjp = functools.partial(_adjoint, fn=expm)
 defvjp(expm, _expm_vjp)
 
 
+@primitive
 def logm(x):
     ndim = x.ndim
     new_x = to_ndarray(x, to_ndim=3)
@@ -69,6 +75,10 @@ def logm(x):
     return result
 
 
+_logm_vjp = functools.partial(_adjoint, fn=logm)
+defvjp(logm, _logm_vjp)
+
+
 def solve_sylvester(a, b, q):
     if a.shape == b.shape:
         axes = (0, 2, 1) if a.ndim == 3 else (1, 0)
@@ -88,7 +98,24 @@ def sqrtm(x):
     return np.vectorize(scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
 
 
+def quadratic_assignment(a, b, options):
+    return list(scipy.optimize.quadratic_assignment(a, b, options=options).col_ind)
+
+
 def qr(*args, **kwargs):
     return np.vectorize(
         np.linalg.qr, signature="(n,m)->(n,k),(k,m)", excluded=["mode"]
     )(*args, **kwargs)
+
+
+def is_single_matrix_pd(mat):
+    """Check if a 2D square matrix is positive definite."""
+    if mat.shape[0] != mat.shape[1]:
+        return False
+    try:
+        np.linalg.cholesky(mat)
+        return True
+    except np.linalg.LinAlgError as e:
+        if e.args[0] == "Matrix is not positive definite":
+            return False
+        raise e

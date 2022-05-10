@@ -6,6 +6,7 @@ from itertools import product
 
 import numpy as _np
 import tensorflow as tf
+import tensorflow_probability as tfp
 from tensorflow import abs
 from tensorflow import acos as arccos  # NOQA
 from tensorflow import acosh as arccosh
@@ -15,6 +16,8 @@ from tensorflow import atan2 as arctan2
 from tensorflow import broadcast_to
 from tensorflow import clip_by_value as clip
 from tensorflow import (
+    complex64,
+    complex128,
     concat,
     cos,
     cosh,
@@ -36,6 +39,7 @@ from tensorflow import (
     logical_or,
     maximum,
     meshgrid,
+    minimum,
     ones,
     ones_like,
 )
@@ -67,11 +71,12 @@ from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
-DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3}
+DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3, complex64: 4, complex128: 5}
 
-
+angle = tf.math.angle
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
+conj = tf.math.conj
 cross = tf.linalg.cross
 erf = tf.math.erf
 imag = tf.math.imag
@@ -85,6 +90,7 @@ set_diag = tf.linalg.set_diag
 std = tf.math.reduce_std
 atol = tf_atol
 rtol = tf_rtol
+trapz = tfp.math.trapz
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -601,19 +607,18 @@ def cast(x, dtype):
     return tf.cast(x, dtype)
 
 
-def broadcast_arrays(x, y, **kwargs):
-    tensors = [x, y]
+def broadcast_arrays(*args, **kwargs):
+    tensors = [*args]
     shapes = [t.get_shape().as_list() for t in tensors]
     max_rank = max(len(s) for s in shapes)
 
     for index, value in enumerate(shapes):
-        shape = value
-        if len(shape) == max_rank:
+        if len(value) == max_rank:
             continue
 
         tensor = tensors[index]
-        for _ in range(max_rank - len(shape)):
-            shape.insert(0, 1)
+        for _ in range(max_rank - len(value)):
+            value.insert(0, 1)
             tensor = tf.expand_dims(tensor, axis=0)
         tensors[index] = tensor
 
@@ -623,7 +628,7 @@ def broadcast_arrays(x, y, **kwargs):
         repeats = Counter(dimensions)
         if len(repeats) > 2 or (len(repeats) == 2 and 1 not in list(repeats.keys())):
             raise ValueError(
-                "operands could not be " "broadcast together with shapes", shapes
+                "operands could not be broadcast together with shapes", shapes
             )
         broadcast_shape.append(max(repeats.keys()))
 
@@ -761,10 +766,26 @@ def cumprod(a, axis=None):
     return tf.math.cumprod(a, axis=axis)
 
 
-def tril(m, k=0):
-    if k != 0:
-        raise NotImplementedError("Only k=0 supported so far")
-    return tf.linalg.band_part(m, -1, 0)
+# (sait) there is tf.experimental.tril (we can use it once it moves to stable)
+def tril(mat, k=0):
+    if k not in (0, -1):
+        raise NotImplementedError("Only k=0 and k=-1 supported so far")
+    tril = tf.linalg.band_part(mat, -1, 0)
+    if k == 0:
+        return tril
+    zero_diag = tf.zeros(mat.shape[:-1])
+    return tf.linalg.set_diag(tril, zero_diag)
+
+
+# TODO(sait) use tf.experimental.triu once it becomes stable.
+def triu(mat, k=0):
+    if k not in (0, 1):
+        raise NotImplementedError("Only k=0 and k=1 supported so far")
+    triu = tf.linalg.band_part(mat, 0, -1)
+    if k == 0:
+        return triu
+    zero_diag = tf.zeros(mat.shape[:-1])
+    return tf.linalg.set_diag(triu, zero_diag)
 
 
 def diag_indices(*args, **kwargs):
@@ -779,6 +800,10 @@ def triu_indices(*args, **kwargs):
     return tuple(map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
 
 
+def unique(x):
+    return tf.unique(x).y
+
+
 def where(condition, x=None, y=None):
     if x is None and y is None:
         return tf.where(condition)
@@ -788,6 +813,19 @@ def where(condition, x=None, y=None):
         y = tf.constant(y)
     y = cast(y, x.dtype)
     return tf.where(condition, x, y)
+
+
+def tril_to_vec(x, k=0):
+    n = x.shape[-1]
+    axis = 1 if x.ndim == 3 else 0
+    mask = tf.ones((n, n))
+    mask_a = tf.linalg.band_part(mask, -1, 0)
+    if k < 0:
+        mask_b = tf.linalg.band_part(mask, -k - 1, 0)
+    else:
+        mask_b = tf.zeros_like(mask_a)
+    mask = tf.cast(mask_a - mask_b, dtype=tf.bool)
+    return tf.boolean_mask(x, mask, axis=axis)
 
 
 def triu_to_vec(x, k=0):
@@ -811,15 +849,19 @@ def tile(x, multiples):
     return tf.tile(x_reshape, multiples)
 
 
+def vec_to_diag(vec):
+    return tf.linalg.diag(vec)
+
+
 def vec_to_triu(vec):
-    """Take vec and forms strictly upper traingular matrix.
+    """Take vec and forms strictly upper triangular matrix.
 
     Parameters
-    ---------
+    ----------
     vec : array_like, shape[..., n]
 
     Returns
-    ------
+    -------
     tril : array_like, shape=[..., k, k] where
         k is (1 + sqrt(1 + 8 * n)) / 2
     """
@@ -833,15 +875,14 @@ def vec_to_triu(vec):
     non_zero = tf.not_equal(mask, tf.constant(0.0))
     indices = tf.where(non_zero)
     sparse = tf.SparseTensor(indices, values=vec, dense_shape=triu_shape)
-    triu = tf.sparse.to_dense(sparse)
-    return triu
+    return tf.sparse.to_dense(sparse)
 
 
 def vec_to_tril(vec):
     """Take vec and forms strictly lower triangular matrix.
 
     Parameters
-    ---------
+    ----------
     vec : array_like, shape=[..., n]
 
     Returns
@@ -859,8 +900,7 @@ def vec_to_tril(vec):
     non_zero = tf.not_equal(mask, tf.constant(0.0))
     indices = tf.where(non_zero)
     sparse = tf.SparseTensor(indices, values=vec, dense_shape=tril_shape)
-    tril = tf.sparse.to_dense(sparse)
-    return tril
+    return tf.sparse.to_dense(sparse)
 
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
@@ -884,3 +924,21 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     triu_tril_mat = triu_mat + tril_mat
     mat = tf.linalg.set_diag(triu_tril_mat, diag)
     return mat
+
+
+def _ravel_multi_index(multi_index, shape):
+    strides = tf.math.cumprod(shape, exclusive=True, reverse=True)
+    return tf.reduce_sum(multi_index * tf.expand_dims(strides, 1), axis=0)
+
+
+def ravel_tril_indices(n, k=0, m=None):
+    if m is None:
+        size = (n, n)
+    else:
+        size = (n, m)
+    idxs = tril_indices(n, k, m)
+    return _ravel_multi_index(idxs, size)
+
+
+def kron(a, b):
+    return tf.linalg.LinearOperatorKronecker([a, b]).to_dense()

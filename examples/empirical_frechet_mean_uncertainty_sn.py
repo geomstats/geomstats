@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.frechet_mean import _adaptive_gradient_descent
+from geomstats.learning.frechet_mean import FrechetMean
 
 
 def empirical_frechet_var_bubble(n_samples, theta, dim, n_expectation=1000):
@@ -63,10 +63,11 @@ def empirical_frechet_var_bubble(n_samples, theta, dim, n_expectation=1000):
         rest_col = gs.sin(theta) * directions
         data = gs.concatenate([rest_col, last_col], axis=-1)
 
-        # TODO (nina): Use FrechetMean here
-        current_mean = _adaptive_gradient_descent(
-            data, metric=sphere.metric, max_iter=32, init_point=north_pole
+        estimator = FrechetMean(
+            sphere.metric, max_iter=32, method="adaptive", init_point=north_pole
         )
+        estimator.fit(data)
+        current_mean = estimator.estimate_
         var.append(sphere.metric.squared_dist(north_pole, current_mean))
     return gs.mean(var), 2 * gs.std(var) / gs.sqrt(n_expectation)
 
@@ -98,7 +99,7 @@ def modulation_factor(n_samples, theta, dim, n_expectation=1000):
     (var, std_var) = empirical_frechet_var_bubble(
         n_samples, theta, dim, n_expectation=n_expectation
     )
-    return var * n_samples / theta ** 2, std_var * n_samples / theta ** 2
+    return var * n_samples / theta**2, std_var * n_samples / theta**2
 
 
 def asymptotic_modulation(dim, theta):
@@ -155,7 +156,7 @@ def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
         error.append(std_var)
         logging.info("{} {} {} {}\n".format(n_samples, theta_i, var, std_var))
         small_var_modulation_factor.append(
-            1.0 + 2.0 / 3.0 * theta_i ** 2 * (1.0 - 1.0 / dim) * (1.0 - 1.0 / n_samples)
+            1.0 + 2.0 / 3.0 * theta_i**2 * (1.0 - 1.0 / dim) * (1.0 - 1.0 / n_samples)
         )
         asymptotic_modulation_factor.append(asymptotic_modulation(dim, theta_i))
     plt.figure()

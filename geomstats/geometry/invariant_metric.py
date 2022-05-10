@@ -1,4 +1,7 @@
-"""Left- and right- invariant metrics that exist on Lie groups."""
+"""Left- and right- invariant metrics that exist on Lie groups.
+
+Lead authors: Nicolas Guigui and Nina Miolane.
+"""
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -681,6 +684,13 @@ class _InvariantMetricMatrix(RiemannianMetric):
                      Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
                      480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
+        if hasattr(self.group, "are_antipodals") and not gs.all(
+            ~self.group.are_antipodals(point, base_point)
+        ):
+            raise ValueError(
+                "The Logarithm map is not well-defined for"
+                f" antipodal matrices: {point} and {base_point}."
+            )
         return self.group.to_tangent(
             super(_InvariantMetricMatrix, self).log(
                 point,
@@ -696,9 +706,10 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
     def parallel_transport(
         self,
-        tangent_vec_a,
-        tangent_vec_b,
+        tangent_vec,
         base_point,
+        direction=None,
+        end_point=None,
         n_steps=10,
         step="rk4",
         return_endpoint=False,
@@ -706,19 +717,25 @@ class _InvariantMetricMatrix(RiemannianMetric):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Approximate solution for the parallel transport of a tangent vector a
-        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
-        tangent_vec_b)`. The parallel transport equation is written entirely
+        along the geodesic between two points `base_point` and `end_point`
+        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        t*direction)`. The parallel transport equation is written entirely
         in the Lie algebra and solved with an integration scheme.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n + 1, n + 1]
+        tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[..., n + 1, n + 1]
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+        direction : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
-        base_point : array-like, shape=[..., n + 1, n + 1]
-            Point on the hypersphere.
+            Optional, default: None
+        end_point : array-like, shape=[..., n, n]
+            Point on the manifold. Point to transport to.
+            Unused if `tangent_vec_b` is given
+            Optional, default: None
         n_steps : int
             Number of integration steps to take.
             Optional, default : 10.
@@ -731,9 +748,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         Returns
         -------
-        transported_tangent_vec: array-like, shape=[..., n + 1, n + 1]
+        transported_tangent_vec: array-like, shape=[..., n, n]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
-        end_point : array-like, shape=[..., n + 1, n + 1]
+        end_point : array-like, shape=[..., n, n]
             `exp_(base_point)(tangent_vec_b)`, only returned if
             `return_endpoint` is set to `True`.
 
@@ -749,12 +766,23 @@ class _InvariantMetricMatrix(RiemannianMetric):
                    Paris 2021. Springer. Lecture Notes in Computer Science.
                    https://hal.inria.fr/hal-03154318.
         """
+        if direction is None:
+            if end_point is not None:
+                tangent_vec_b_ = self.log(end_point, base_point)
+            else:
+                raise ValueError(
+                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    " geodesic along which to transport."
+                )
+        else:
+            tangent_vec_b_ = direction
+
         group = self.group
         translation_map = group.tangent_translation_map(
             base_point, left_or_right=self.left_or_right, inverse=True
         )
-        left_angular_vel_a = group.to_tangent(translation_map(tangent_vec_a))
-        left_angular_vel_b = group.to_tangent(translation_map(tangent_vec_b))
+        left_angular_vel_a = group.to_tangent(translation_map(tangent_vec))
+        left_angular_vel_b = group.to_tangent(translation_map(tangent_vec_b_))
 
         def acceleration(state, time):
             """Compute the right-hand-side of the parallel transport eq."""
@@ -764,12 +792,12 @@ class _InvariantMetricMatrix(RiemannianMetric):
             return gs.stack([gam_dot, omega_dot, zeta_dot])
 
         if (base_point.ndim == 2 or base_point.shape[0] == 1) and (
-            3 in (tangent_vec_a.ndim, tangent_vec_b.ndim)
+            3 in (tangent_vec.ndim, tangent_vec_b_.ndim)
         ):
             n_sample = (
-                tangent_vec_a.shape[0]
-                if tangent_vec_a.ndim == 3
-                else tangent_vec_b.shape[0]
+                tangent_vec.shape[0]
+                if tangent_vec.ndim == 3
+                else tangent_vec_b_.shape[0]
             )
             base_point = gs.stack([base_point] * n_sample)
 
@@ -838,8 +866,8 @@ class _InvariantMetricVector(RiemannianMetric):
         Optional, default: 'left'.
     """
 
-    def __init__(self, group, left_or_right="left"):
-        super(_InvariantMetricVector, self).__init__(dim=group.dim)
+    def __init__(self, group, left_or_right="left", **kwargs):
+        super(_InvariantMetricVector, self).__init__(dim=group.dim, **kwargs)
 
         self.group = group
         self.metric_mat_at_identity = gs.eye(group.dim)
@@ -1173,7 +1201,7 @@ class BiInvariantMetric(_InvariantMetricVector):
     """
 
     def __init__(self, group):
-        super(BiInvariantMetric, self).__init__(group=group)
+        super(BiInvariantMetric, self).__init__(group=group, shape=group.shape)
         condition = (
             "SpecialOrthogonal" not in group.__str__()
             and "SO" not in group.__str__()
@@ -1259,7 +1287,7 @@ class BiInvariantMetric(_InvariantMetricVector):
             return super(BiInvariantMetric, self).inner_product_at_identity(
                 tangent_vec_a, tangent_vec_b
             )
-        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b) / 2
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product of two vectors in tangent space at base point.
@@ -1286,32 +1314,66 @@ class BiInvariantMetric(_InvariantMetricVector):
             tangent_vec_a, tangent_vec_b, base_point
         )
 
-    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by :math: `t \mapsto exp_(base_point)(t*
-        tangent_vec_b)`. As a compact Lie group endowed with its
-        canonical bi-invariant metric is a symmetric space, parallel
-        transport is achieved by a geodesic symmetry, or equivalently, one step
-         of the pole ladder scheme.
+        along the geodesic between the base point and an end point, or alternatively
+        defined by :math: `t \mapsto exp_(base_point)(t*direction)`.
+        As a compact Lie group endowed with its canonical bi-invariant metric is a
+        symmetric space, parallel transport is achieved by a geodesic symmetry, or
+        equivalently, one step of the pole ladder scheme.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n + 1, n + 1]
+        tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[..., n + 1, n + 1]
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+        direction : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
-        base_point : array-like, shape=[..., n + 1, n + 1]
-            Point on the hypersphere.
+            Optional, default: None.
+        end_point : array-like, shape=[..., n, n]
+            Point on the manifold. Point to transport to.
+            Optional, default: None.
 
         Returns
         -------
-        transported_tangent_vec: array-like, shape=[..., n + 1, n + 1]
-            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+        transported_tangent_vec: array-like, shape=[..., n, n]
+            Transported tangent vector at `end_point=exp_(base_point)(tangent_vec_b)`.
         """
-        midpoint = self.exp(1.0 / 2.0 * tangent_vec_b, base_point)
-        transposed = Matrices.transpose(tangent_vec_a)
+        if direction is None:
+            if end_point is not None:
+                direction = self.log(end_point, base_point)
+            else:
+                raise ValueError(
+                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    " geodesic along which to transport."
+                )
+        midpoint = self.exp(1.0 / 2.0 * direction, base_point)
+        transposed = Matrices.transpose(tangent_vec)
         transported_vec = Matrices.mul(midpoint, transposed, midpoint)
         return (-1.0) * transported_vec
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In the case of a bi-invariant metric, it does not depend on the base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return gs.pi * self.dim**0.5
