@@ -1,4 +1,7 @@
-"""Online kmeans algorithm on Manifolds."""
+"""Online kmeans algorithm on Manifolds.
+
+Lead author: Alice Le Brigant.
+"""
 
 import logging
 
@@ -6,11 +9,10 @@ from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
 
-
 # TODO (nkoep): Move this into the OnlineKMeans class.
 
-def online_kmeans(X, metric, n_clusters, n_repetitions=20,
-                  atol=1e-5, max_iter=5e4):
+
+def online_kmeans(X, metric, n_clusters, n_repetitions=20, atol=1e-5, max_iter=5e4):
     """Perform online K-means clustering.
 
     Perform online version of k-means algorithm on data contained in X.
@@ -56,8 +58,7 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
     """
     n_samples = X.shape[0]
 
-    random_indices = gs.random.randint(low=0, high=n_samples,
-                                       size=(n_clusters,))
+    random_indices = gs.random.randint(low=0, high=n_samples, size=(n_clusters,))
     cluster_centers = gs.get_slice(X, gs.cast(random_indices, gs.int32))
 
     gap = 1.0
@@ -71,15 +72,13 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
         point = gs.get_slice(X, gs.cast(random_index, gs.int32))
 
         index_to_update = metric.closest_neighbor_index(point, cluster_centers)
-        center_to_update = gs.copy(
-            gs.get_slice(cluster_centers, index_to_update))
+        center_to_update = gs.copy(gs.get_slice(cluster_centers, index_to_update))
 
-        tangent_vec_update = metric.log(
-            point=point, base_point=center_to_update
-        ) / (step_size + 1)
+        tangent_vec_update = metric.log(point=point, base_point=center_to_update) / (
+            step_size + 1
+        )
         new_center = metric.exp(
-            tangent_vec=tangent_vec_update,
-            base_point=center_to_update
+            tangent_vec=tangent_vec_update, base_point=center_to_update
         )
         gap = metric.dist(center_to_update, new_center)
         if gap == 0 and iteration == 1:
@@ -92,8 +91,9 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
 
     if iteration == max_iter - 1:
         logging.warning(
-            'Maximum number of iterations {} reached. The'
-            'clustering may be inaccurate'.format(max_iter))
+            "Maximum number of iterations {} reached. The"
+            "clustering may be inaccurate".format(max_iter)
+        )
 
     labels = gs.zeros(n_samples)
     for i in range(n_samples):
@@ -157,8 +157,15 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
        Anal. 173 (2019), 685 - 703.
     """
 
-    def __init__(self, metric, n_clusters, n_repetitions=20,
-                 atol=1e-5, max_iter=5e4, point_type='vector'):
+    def __init__(
+        self,
+        metric,
+        n_clusters,
+        n_repetitions=20,
+        atol=1e-5,
+        max_iter=5e4,
+        point_type="vector",
+    ):
         self.metric = metric
         self.n_clusters = n_clusters
         self.n_repetitions = n_repetitions
@@ -174,12 +181,14 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
         X : array-like, shape=[n_features, n_samples]
             Samples to cluster.
         """
-        self.cluster_centers_, self.labels_ = \
-            online_kmeans(X=X, metric=self.metric,
-                          n_clusters=self.n_clusters,
-                          n_repetitions=self.n_repetitions,
-                          atol=self.atol,
-                          max_iter=self.max_iter)
+        self.cluster_centers_, self.labels_ = online_kmeans(
+            X=X,
+            metric=self.metric,
+            n_clusters=self.n_clusters,
+            n_repetitions=self.n_repetitions,
+            atol=self.atol,
+            max_iter=self.max_iter,
+        )
 
         return self
 

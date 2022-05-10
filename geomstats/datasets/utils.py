@@ -2,6 +2,8 @@
 
 Refer to notebook: `geomstats/notebooks/01_data_on_manifolds.ipynb`
 to visualize these datasets.
+
+Lead author: Nina Miolane.
 """
 
 import csv
@@ -16,31 +18,27 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
-
 MODULE_PATH = os.path.dirname(__file__)
-DATA_PATH = os.path.join(MODULE_PATH, 'data')
-CITIES_PATH = os.path.join(DATA_PATH, 'cities', 'cities.json')
-CONNECTOMES_PATH = os.path.join(DATA_PATH, 'connectomes/train_FNC.csv')
-CONNECTOMES_LABELS_PATH = os.path.join(
-    DATA_PATH, 'connectomes/train_labels.csv')
+DATA_PATH = os.path.join(MODULE_PATH, "data")
+CITIES_PATH = os.path.join(DATA_PATH, "cities", "cities.json")
+CONNECTOMES_PATH = os.path.join(DATA_PATH, "connectomes/train_FNC.csv")
+CONNECTOMES_LABELS_PATH = os.path.join(DATA_PATH, "connectomes/train_labels.csv")
 
-POSES_PATH = os.path.join(DATA_PATH, 'poses', 'poses.json')
-KARATE_PATH = os.path.join(DATA_PATH, 'graph_karate', 'karate.txt')
-KARATE_LABELS_PATH = os.path.join(
-    DATA_PATH, 'graph_karate', 'karate_labels.txt')
-GRAPH_RANDOM_PATH = os.path.join(DATA_PATH, 'graph_random', 'graph_random.txt')
+POSES_PATH = os.path.join(DATA_PATH, "poses", "poses.json")
+KARATE_PATH = os.path.join(DATA_PATH, "graph_karate", "karate.txt")
+KARATE_LABELS_PATH = os.path.join(DATA_PATH, "graph_karate", "karate_labels.txt")
+GRAPH_RANDOM_PATH = os.path.join(DATA_PATH, "graph_random", "graph_random.txt")
 GRAPH_RANDOM_LABELS_PATH = os.path.join(
-    DATA_PATH, 'graph_random', 'graph_random_labels.txt'
+    DATA_PATH, "graph_random", "graph_random_labels.txt"
 )
-LEAVES_PATH = os.path.join(DATA_PATH, 'leaves', 'leaves.csv')
-EMG_PATH = os.path.join(DATA_PATH, 'emg', 'emg.csv')
-OPTICAL_NERVES_PATH = os.path.join(
-    DATA_PATH, 'optical_nerves', 'optical_nerves.txt')
-HANDS_PATH = os.path.join(DATA_PATH, 'hands', 'hands.txt')
-HANDS_LABELS_PATH = os.path.join(DATA_PATH, 'hands', 'labels.txt')
-CELLS_PATH = os.path.join(DATA_PATH, 'cells', 'cells.txt')
-CELL_LINES_PATH = os.path.join(DATA_PATH, 'cells', 'cell_lines.txt')
-CELL_TREATMENTS_PATH = os.path.join(DATA_PATH, 'cells', 'treatments.txt')
+LEAVES_PATH = os.path.join(DATA_PATH, "leaves", "leaves.csv")
+EMG_PATH = os.path.join(DATA_PATH, "emg", "emg.csv")
+OPTICAL_NERVES_PATH = os.path.join(DATA_PATH, "optical_nerves", "optical_nerves.txt")
+HANDS_PATH = os.path.join(DATA_PATH, "hands", "hands.txt")
+HANDS_LABELS_PATH = os.path.join(DATA_PATH, "hands", "labels.txt")
+CELLS_PATH = os.path.join(DATA_PATH, "cells", "cells.txt")
+CELL_LINES_PATH = os.path.join(DATA_PATH, "cells", "cell_lines.txt")
+CELL_TREATMENTS_PATH = os.path.join(DATA_PATH, "cells", "treatments.txt")
 
 
 def load_cities():
@@ -55,14 +53,14 @@ def load_cities():
     name : list
         List of city names.
     """
-    with open(CITIES_PATH, encoding='utf-8') as json_file:
+    with open(CITIES_PATH, encoding="utf-8") as json_file:
         data_file = json.load(json_file)
 
-        names = [row['city'] for row in data_file]
+        names = [row["city"] for row in data_file]
         data = list(
             map(
                 lambda row: [
-                    row[col_name] / 180 * gs.pi for col_name in ['lat', 'lng']
+                    row[col_name] / 180 * gs.pi for col_name in ["lat", "lng"]
                 ],
                 data_file,
             )
@@ -115,19 +113,19 @@ def load_poses(only_rotations=True):
     """
     data = []
     img_paths = []
-    so3 = SpecialOrthogonal(n=3, point_type='vector')
+    so3 = SpecialOrthogonal(n=3, point_type="vector")
 
     with open(POSES_PATH) as json_file:
         data_file = json.load(json_file)
 
         for row in data_file:
-            pose_mat = gs.array(row['rot_mat'])
+            pose_mat = gs.array(row["rot_mat"])
             pose_vec = so3.rotation_vector_from_matrix(pose_mat)
             if not only_rotations:
-                trans_vec = gs.array(row['trans_mat'])
+                trans_vec = gs.array(row["trans_mat"])
                 pose_vec = gs.concatenate([pose_vec, trans_vec], axis=-1)
             data.append(pose_vec)
-            img_paths.append(row['img'])
+            img_paths.append(row["img"])
 
     data = gs.array(data)
     return data, img_paths
@@ -160,8 +158,7 @@ def load_connectomes(as_vectors=False):
     with open(CONNECTOMES_PATH) as csvfile:
         data_list = list(csv.reader(csvfile))
     patient_id = gs.array([int(row[0]) for row in data_list[1:]])
-    data = gs.array(
-        [[float(value) for value in row[1:]] for row in data_list[1:]])
+    data = gs.array([[float(value) for value in row[1:]] for row in data_list[1:]])
 
     with open(CONNECTOMES_LABELS_PATH) as csvfile:
         labels = list(csv.reader(csvfile))
@@ -186,9 +183,9 @@ def load_leaves():
     distrib_type: array-like, shape=[172, ]
         Leaf orientation angle distribution type for each of the 172 species.
     """
-    data = pd.read_csv(LEAVES_PATH, sep=';')
-    beta_param = gs.array(data[['nu', 'mu']])
-    distrib_type = gs.squeeze(gs.array(data['Distribution']))
+    data = pd.read_csv(LEAVES_PATH, sep=";")
+    beta_param = gs.array(data[["nu", "mu"]])
+    distrib_type = gs.squeeze(gs.array(data["Distribution"]))
     return beta_param, distrib_type
 
 
@@ -242,9 +239,9 @@ def load_optical_nerves():
         Indices in 0...10 referencing the index of the monkey to which a given
         optical nerve belongs.
     """
-    nerves = pd.read_csv(OPTICAL_NERVES_PATH, sep='\t')
-    nerves = nerves.set_index('Filename')
-    nerves = nerves.drop(index=['laljn103.12b', 'lalj0103.12b'])
+    nerves = pd.read_csv(OPTICAL_NERVES_PATH, sep="\t")
+    nerves = nerves.set_index("Filename")
+    nerves = nerves.drop(index=["laljn103.12b", "lalj0103.12b"])
     nerves = nerves.reset_index(drop=True)
     nerves_gs = gs.array(nerves.values)
 
@@ -286,7 +283,7 @@ def load_hands():
     bone_list : array-like
         List of bones, as a list of connexions between joints.
     """
-    data = gs.array(pd.read_csv(HANDS_PATH, sep=' ').values)
+    data = gs.array(pd.read_csv(HANDS_PATH, sep=" ").values)
     n_landmarks = 22
     dim = 3
     data = gs.reshape(data, (data.shape[0], n_landmarks, dim))
@@ -341,16 +338,16 @@ def load_cells():
         List of the treatments given to each cell (control, cytd or jasp).
     """
     with open(CELLS_PATH) as cells_file:
-        cells = cells_file.read().split('\n\n')
+        cells = cells_file.read().split("\n\n")
     for i, cell in enumerate(cells):
-        cell = cell.split('\n')
+        cell = cell.split("\n")
         curve = []
         for point in cell:
             coords = [int(coord) for coord in point.split()]
             curve.append(coords)
-        cells[i] = gs.array(curve)
+        cells[i] = gs.cast(gs.array(curve), gs.float32)
     with open(CELL_LINES_PATH) as cell_lines_file:
-        cell_lines = cell_lines_file.read().split('\n')
+        cell_lines = cell_lines_file.read().split("\n")
     with open(CELL_TREATMENTS_PATH) as treatments_file:
-        treatments = treatments_file.read().split('\n')
+        treatments = treatments_file.read().split("\n")
     return cells, cell_lines, treatments

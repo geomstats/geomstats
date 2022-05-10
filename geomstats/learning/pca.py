@@ -1,12 +1,14 @@
-"""Principal Component Analysis on Manifolds."""
+"""Principal Component Analysis on Manifolds.
+
+Lead author: Nina Miolane.
+"""
 
 import numbers
 from math import log
 
 from scipy.special import gammaln
 from sklearn.decomposition._base import _BasePCA
-from sklearn.utils.extmath import stable_cumsum
-from sklearn.utils.extmath import svd_flip
+from sklearn.utils.extmath import stable_cumsum, svd_flip
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
@@ -42,36 +44,35 @@ def _assess_dimension_(spectrum, rank, n_samples, n_features):
     Automatic Choice of Dimensionality for PCA. NIPS 2000: 598-604`
     """
     if rank > len(spectrum):
-        raise ValueError("The tested rank cannot exceed the rank of the"
-                         " dataset")
+        raise ValueError("The tested rank cannot exceed the rank of the" " dataset")
 
-    pu = -rank * log(2.)
+    pu = -rank * log(2.0)
     for i in range(rank):
-        pu += (gammaln((n_features - i) / 2.) -
-               log(gs.pi) * (n_features - i) / 2.)
+        pu += gammaln((n_features - i) / 2.0) - log(gs.pi) * (n_features - i) / 2.0
 
     pl = gs.sum(gs.log(spectrum[:rank]))
-    pl = -pl * n_samples / 2.
+    pl = -pl * n_samples / 2.0
 
     if rank == n_features:
         pv = 0
         v = 1
     else:
         v = gs.sum(spectrum[rank:]) / (n_features - rank)
-        pv = -gs.log(v) * n_samples * (n_features - rank) / 2.
+        pv = -gs.log(v) * n_samples * (n_features - rank) / 2.0
 
-    m = n_features * rank - rank * (rank + 1.) / 2.
-    pp = log(2. * gs.pi) * (m + rank + 1.) / 2.
+    m = n_features * rank - rank * (rank + 1.0) / 2.0
+    pp = log(2.0 * gs.pi) * (m + rank + 1.0) / 2.0
 
-    pa = 0.
+    pa = 0.0
     spectrum_ = spectrum.copy()
     spectrum_[rank:n_features] = v
     for i in range(rank):
         for j in range(i + 1, len(spectrum)):
-            pa += log((spectrum[i] - spectrum[j]) *
-                      (1. / spectrum_[j] - 1. / spectrum_[i])) + log(n_samples)
+            pa += log(
+                (spectrum[i] - spectrum[j]) * (1.0 / spectrum_[j] - 1.0 / spectrum_[i])
+            ) + log(n_samples)
 
-    ll = pu + pl + pv + pp - pa / 2. - rank * log(n_samples) / 2.
+    ll = pu + pl + pv + pp - pa / 2.0 - rank * log(n_samples) / 2.0
 
     return ll
 
@@ -105,9 +106,16 @@ class TangentPCA(_BasePCA):
         Optional, default: None.
     """
 
-    def __init__(self, metric, n_components=None, copy=True,
-                 whiten=False, tol=0.0, iterated_power='auto',
-                 random_state=None):
+    def __init__(
+        self,
+        metric,
+        n_components=None,
+        copy=True,
+        whiten=False,
+        tol=0.0,
+        iterated_power="auto",
+        random_state=None,
+    ):
         self.metric = metric
         self.n_components = n_components
         self.copy = copy
@@ -159,9 +167,9 @@ class TangentPCA(_BasePCA):
         """
         U, S, _ = self._fit(X, base_point=base_point)
 
-        U = U[:, :self.n_components_]
+        U = U[:, : self.n_components_]
 
-        U *= S[:self.n_components_]
+        U *= S[: self.n_components_]
         return U
 
     def transform(self, X, y=None):
@@ -180,11 +188,11 @@ class TangentPCA(_BasePCA):
             Projected data.
         """
         tangent_vecs = self.metric.log(X, base_point=self.base_point_fit)
-        if self.point_type == 'matrix':
+        if self.point_type == "matrix":
             if Matrices.is_symmetric(tangent_vecs).all():
                 X = SymmetricMatrices.to_vector(tangent_vecs)
             else:
-                X = gs.reshape(tangent_vecs, (len(X), - 1))
+                X = gs.reshape(tangent_vecs, (len(X), -1))
         else:
             X = tangent_vecs
         X = X - self.mean_
@@ -208,13 +216,12 @@ class TangentPCA(_BasePCA):
         X_original : array-like, shape=[..., n_features]
             Original data.
         """
-        scores = self.mean_ + gs.matmul(
-            X, self.components_)
-        if self.point_type == 'matrix':
+        scores = self.mean_ + gs.matmul(X, self.components_)
+        if self.point_type == "matrix":
             if Matrices.is_symmetric(self.base_point_fit).all():
-                scores = SymmetricMatrices(
-                    self.base_point_fit.shape[-1]
-                ).from_vector(scores)
+                scores = SymmetricMatrices(self.base_point_fit.shape[-1]).from_vector(
+                    scores
+                )
             else:
                 dim = self.base_point_fit.shape[-1]
                 scores = gs.reshape(scores, (len(scores), dim, dim))
@@ -245,12 +252,11 @@ class TangentPCA(_BasePCA):
 
         tangent_vecs = self.metric.log(X, base_point=base_point)
 
-        if self.point_type == 'matrix':
+        if self.point_type == "matrix":
             if Matrices.is_symmetric(tangent_vecs).all():
-                X = SymmetricMatrices.to_vector(
-                    tangent_vecs)
+                X = SymmetricMatrices.to_vector(tangent_vecs)
             else:
-                X = gs.reshape(tangent_vecs, (len(X), - 1))
+                X = gs.reshape(tangent_vecs, (len(X), -1))
         else:
             X = tangent_vecs
 
@@ -260,21 +266,24 @@ class TangentPCA(_BasePCA):
             n_components = self.n_components
         n_samples, n_features = X.shape
 
-        if n_components == 'mle':
+        if n_components == "mle":
             if n_samples < n_features:
-                raise ValueError("n_components='mle' is only supported "
-                                 "if n_samples >= n_features")
+                raise ValueError(
+                    "n_components='mle' is only supported " "if n_samples >= n_features"
+                )
         elif not 0 <= n_components <= min(n_samples, n_features):
-            raise ValueError("n_components=%r must be between 0 and "
-                             "min(n_samples, n_features)=%r with "
-                             "svd_solver='full'"
-                             % (n_components, min(n_samples, n_features)))
+            raise ValueError(
+                "n_components=%r must be between 0 and "
+                "min(n_samples, n_features)=%r with "
+                "svd_solver='full'" % (n_components, min(n_samples, n_features))
+            )
         elif n_components >= 1:
             if not isinstance(n_components, numbers.Integral):
-                raise ValueError("n_components=%r must be of type int "
-                                 "when greater than or equal to 1, "
-                                 "was of type=%r"
-                                 % (n_components, type(n_components)))
+                raise ValueError(
+                    "n_components=%r must be of type int "
+                    "when greater than or equal to 1, "
+                    "was of type=%r" % (n_components, type(n_components))
+                )
 
         # Center data - the mean should be 0 if base_point is the Frechet mean
         self.mean_ = gs.mean(X, axis=0)
@@ -287,15 +296,14 @@ class TangentPCA(_BasePCA):
         components_ = V
 
         # Get variance explained by singular values
-        explained_variance_ = (S ** 2) / (n_samples - 1)
+        explained_variance_ = (S**2) / (n_samples - 1)
         total_var = explained_variance_.sum()
         explained_variance_ratio_ = explained_variance_ / total_var
         singular_values_ = gs.copy(S)  # Store the singular values.
 
         # Postprocess the number of components required
-        if n_components == 'mle':
-            n_components = \
-                _infer_dimension_(explained_variance_, n_samples, n_features)
+        if n_components == "mle":
+            n_components = _infer_dimension_(explained_variance_, n_samples, n_features)
         elif 0 < n_components < 1.0:
             # number of components for which the cumulated explained
             # variance percentage is superior to the desired threshold
@@ -307,15 +315,14 @@ class TangentPCA(_BasePCA):
         if n_components < min(n_features, n_samples):
             self.noise_variance_ = explained_variance_[n_components:].mean()
         else:
-            self.noise_variance_ = 0.
+            self.noise_variance_ = 0.0
 
         self.base_point_fit = base_point
         self.n_samples_, self.n_features_ = n_samples, n_features
         self.components_ = components_[:n_components]
         self.n_components_ = int(n_components)
         self.explained_variance_ = explained_variance_[:n_components]
-        self.explained_variance_ratio_ = \
-            explained_variance_ratio_[:n_components]
+        self.explained_variance_ratio_ = explained_variance_ratio_[:n_components]
         self.singular_values_ = singular_values_[:n_components]
 
         return U, S, V

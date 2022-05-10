@@ -1,4 +1,7 @@
-"""Exponential barycenter."""
+"""Exponential barycenter.
+
+Lead author: Nicolas Guigui.
+"""
 
 import logging
 
@@ -12,8 +15,14 @@ EPSILON = 1e-6
 
 
 def _default_gradient_descent(
-        group, points, weights=None, max_iter=32, step=1.,
-        epsilon=EPSILON, verbose=False):
+    group,
+    points,
+    weights=None,
+    max_iter=32,
+    init_step_size=1.0,
+    epsilon=EPSILON,
+    verbose=False,
+):
     """Compute the (weighted) group exponential barycenter of `points`.
 
     Parameters
@@ -32,7 +41,7 @@ def _default_gradient_descent(
         Tolerance to reach convergence. The exstrinsic norm of the
         gradient is used as criterion.
         Optional, default: 1e-6.
-    step : float
+    init_step_size : float
         Learning rate in the gradient descent.
         Optional, default: 1.
     verbose : bool
@@ -44,7 +53,7 @@ def _default_gradient_descent(
     exp_bar : array-like, shape=[n,n]
         Exponential_barycenter of the input points.
     """
-    ndim = 2 if group.default_point_type == 'vector' else 3
+    ndim = 2 if group.default_point_type == "vector" else 3
     if gs.ndim(gs.array(points)) < ndim or len(points) == 1:
         return points[0] if len(points) == 1 else points
 
@@ -58,7 +67,7 @@ def _default_gradient_descent(
 
     sq_dists_between_iterates = []
     iteration = 0
-    grad_norm = 0.
+    grad_norm = 0.0
 
     while iteration < max_iter:
         if not (grad_norm > epsilon or iteration == 0):
@@ -66,11 +75,10 @@ def _default_gradient_descent(
         inv_mean = group.inverse(mean)
         centered_points = group.compose(inv_mean, points)
         logs = group.log(point=centered_points)
-        tangent_mean = step * gs.einsum(
-            'n, nk...->k...', weights / sum_weights, logs)
-        mean_next = group.compose(
-            mean,
-            group.exp(tangent_vec=tangent_mean))
+        tangent_mean = init_step_size * gs.einsum(
+            "n, nk...->k...", weights / sum_weights, logs
+        )
+        mean_next = group.compose(mean, group.exp(tangent_vec=tangent_mean))
 
         grad_norm = gs.linalg.norm(tangent_mean)
         sq_dists_between_iterates.append(grad_norm)
@@ -80,12 +88,12 @@ def _default_gradient_descent(
 
     if iteration == max_iter:
         logging.warning(
-            'Maximum number of iterations {} reached. '
-            'The mean may be inaccurate'.format(max_iter))
+            "Maximum number of iterations {} reached. "
+            "The mean may be inaccurate".format(max_iter)
+        )
 
     if verbose:
-        logging.info(
-            'n_iter: {}, final gradient norm: {}'.format(iteration, grad_norm))
+        logging.info("n_iter: {}, final gradient norm: {}".format(iteration, grad_norm))
     return mean
 
 
@@ -103,7 +111,7 @@ class ExponentialBarycenter(BaseEstimator):
         Tolerance to reach convergence. The exstrinsic norm of the
         gradient is used as criterion.
         Optional, default: 1e-6.
-    step : float
+    init_step_size : float
         Learning rate in the gradient descent.
         Optional, default: 1.
     verbose : bool
@@ -115,17 +123,20 @@ class ExponentialBarycenter(BaseEstimator):
     estimate_ : array-like, shape=[dim, dim]
     """
 
-    def __init__(self, group,
-                 max_iter=32,
-                 epsilon=EPSILON,
-                 step=1.,
-                 point_type=None,
-                 verbose=False):
+    def __init__(
+        self,
+        group,
+        max_iter=32,
+        epsilon=EPSILON,
+        init_step_size=1.0,
+        point_type=None,
+        verbose=False,
+    ):
         self.group = group
         self.max_iter = max_iter
         self.epsilon = epsilon
         self.verbose = verbose
-        self.step = step
+        self.init_step_size = init_step_size
         self.point_type = point_type
         self.estimate_ = None
 
@@ -157,11 +168,14 @@ class ExponentialBarycenter(BaseEstimator):
 
         else:
             mean = _default_gradient_descent(
-                points=X, weights=weights, group=self.group,
+                group=self.group,
+                points=X,
+                weights=weights,
                 max_iter=self.max_iter,
+                init_step_size=self.init_step_size,
                 epsilon=self.epsilon,
-                step=self.step,
-                verbose=self.verbose)
+                verbose=self.verbose,
+            )
         self.estimate_ = mean
 
         return self

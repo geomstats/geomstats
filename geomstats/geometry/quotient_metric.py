@@ -1,4 +1,7 @@
-"""Classes for fiber bundles and quotient metrics."""
+"""Classes for fiber bundles and quotient metrics.
+
+Lead author: Nicolas Guigui.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
@@ -20,27 +23,29 @@ class QuotientMetric(RiemannianMetric):
         Bundle structure to define the quotient.
     """
 
-    def __init__(self, fiber_bundle: FiberBundle, dim: int = None):
+    def __init__(self, fiber_bundle: FiberBundle, dim: int = None, **kwargs):
         if dim is None:
-            if fiber_bundle.base is not None:
-                dim = fiber_bundle.base.dim
-            elif fiber_bundle.group is not None:
+            if fiber_bundle.group is not None:
                 dim = fiber_bundle.dim - fiber_bundle.group.dim
+            elif fiber_bundle.group_dim is not None:
+                dim = fiber_bundle.dim - fiber_bundle.group_dim
             else:
-                raise ValueError('Either the base manifold, '
-                                 'its dimension, or the group acting on the '
-                                 'total space must be provided.')
+                raise ValueError(
+                    "Either the dimension of the base manifold, "
+                    "or the group acting on the "
+                    "total space must be provided to the fiber bundle."
+                )
         super(QuotientMetric, self).__init__(
-            dim=dim,
-            default_point_type=fiber_bundle.default_point_type)
+            dim=dim, default_point_type=fiber_bundle.default_point_type, **kwargs
+        )
 
         self.fiber_bundle = fiber_bundle
         self.group = fiber_bundle.group
         self.ambient_metric = fiber_bundle.ambient_metric
 
     def inner_product(
-            self, tangent_vec_a, tangent_vec_b, base_point=None,
-            fiber_point=None):
+        self, tangent_vec_a, tangent_vec_b, base_point=None, fiber_point=None
+    ):
         """Compute the inner-product of two tangent vectors at a base point.
 
         Parameters
@@ -67,15 +72,20 @@ class QuotientMetric(RiemannianMetric):
             if base_point is not None:
                 fiber_point = self.fiber_bundle.lift(base_point)
             else:
-                raise ValueError('Either a point (of the total space) or a '
-                                 'base point (of the quotient manifold) must '
-                                 'be given.')
+                raise ValueError(
+                    "Either a point (of the total space) or a "
+                    "base point (of the quotient manifold) must "
+                    "be given."
+                )
         horizontal_a = self.fiber_bundle.horizontal_lift(
-            tangent_vec_a, fiber_point=fiber_point)
+            tangent_vec_a, fiber_point=fiber_point
+        )
         horizontal_b = self.fiber_bundle.horizontal_lift(
-            tangent_vec_b, fiber_point=fiber_point)
+            tangent_vec_b, fiber_point=fiber_point
+        )
         return self.ambient_metric.inner_product(
-            horizontal_a, horizontal_b, fiber_point)
+            horizontal_a, horizontal_b, fiber_point
+        )
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
@@ -95,9 +105,11 @@ class QuotientMetric(RiemannianMetric):
         """
         lift = self.fiber_bundle.lift(base_point)
         horizontal_vec = self.fiber_bundle.horizontal_lift(
-            tangent_vec, fiber_point=lift)
+            tangent_vec, fiber_point=lift
+        )
         return self.fiber_bundle.riemannian_submersion(
-            self.ambient_metric.exp(horizontal_vec, lift))
+            self.ambient_metric.exp(horizontal_vec, lift)
+        )
 
     def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of a point.
@@ -119,7 +131,8 @@ class QuotientMetric(RiemannianMetric):
         bp_fiber = self.fiber_bundle.lift(base_point)
         aligned = self.fiber_bundle.align(fiber_point, bp_fiber, **kwargs)
         return self.fiber_bundle.tangent_riemannian_submersion(
-            self.ambient_metric.log(aligned, bp_fiber), bp_fiber)
+            self.ambient_metric.log(aligned, bp_fiber), bp_fiber
+        )
 
     def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.
@@ -141,9 +154,7 @@ class QuotientMetric(RiemannianMetric):
         aligned = self.fiber_bundle.align(lift_a, lift_b, **kwargs)
         return self.ambient_metric.squared_dist(aligned, lift_b)
 
-    def curvature(
-            self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
-            base_point):
+    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
         r"""Compute the curvature.
 
         For three vectors fields :math:`X|_P = tangent_vec_a,
@@ -194,33 +205,34 @@ class QuotientMetric(RiemannianMetric):
         horizontal_c = bundle.horizontal_lift(tangent_vec_c, base_point)
 
         top_curvature = self.ambient_metric.curvature(
-            horizontal_a, horizontal_b, horizontal_c, fiber_point)
+            horizontal_a, horizontal_b, horizontal_c, fiber_point
+        )
         projected_top_curvature = bundle.tangent_riemannian_submersion(
-            top_curvature, fiber_point)
+            top_curvature, fiber_point
+        )
 
-        f_ab = bundle.integrability_tensor(
-            horizontal_a, horizontal_b, fiber_point)
-        f_c_f_ab = bundle.integrability_tensor(
-            horizontal_c, f_ab, fiber_point)
+        f_ab = bundle.integrability_tensor(horizontal_a, horizontal_b, fiber_point)
+        f_c_f_ab = bundle.integrability_tensor(horizontal_c, f_ab, fiber_point)
         f_c_f_ab = bundle.tangent_riemannian_submersion(f_c_f_ab, fiber_point)
 
-        f_ac = bundle.integrability_tensor(
-            horizontal_a, horizontal_c, fiber_point)
-        f_b_f_ac = bundle.integrability_tensor(
-            horizontal_b, f_ac, fiber_point)
+        f_ac = bundle.integrability_tensor(horizontal_a, horizontal_c, fiber_point)
+        f_b_f_ac = bundle.integrability_tensor(horizontal_b, f_ac, fiber_point)
         f_b_f_ac = bundle.tangent_riemannian_submersion(f_b_f_ac, fiber_point)
 
-        f_bc = bundle.integrability_tensor(
-            horizontal_b, horizontal_c, fiber_point)
-        f_a_f_bc = bundle.integrability_tensor(
-            horizontal_a, f_bc, fiber_point)
+        f_bc = bundle.integrability_tensor(horizontal_b, horizontal_c, fiber_point)
+        f_a_f_bc = bundle.integrability_tensor(horizontal_a, f_bc, fiber_point)
         f_a_f_bc = bundle.tangent_riemannian_submersion(f_a_f_bc, fiber_point)
 
         return projected_top_curvature - 2 * f_c_f_ab + f_a_f_bc - f_b_f_ac
 
     def curvature_derivative(
-            self, tangent_vec_a, tangent_vec_b, tangent_vec_c,
-            tangent_vec_d, base_point=None):
+        self,
+        tangent_vec_a,
+        tangent_vec_b,
+        tangent_vec_c,
+        tangent_vec_d,
+        base_point=None,
+    ):
         r"""Compute the covariant derivative of the curvature.
 
         For four vectors fields :math:`H|_P = tangent_vec_a, X|_P =
@@ -284,47 +296,56 @@ class QuotientMetric(RiemannianMetric):
         nabla_h_z = bundle.integrability_tensor(hor_h, hor_z, point_fiber)
 
         nabla_curvature_top = self.ambient_metric.curvature_derivative(
-            hor_h, hor_x, hor_y, hor_z, point_fiber)
+            hor_h, hor_x, hor_y, hor_z, point_fiber
+        )
 
         hor_nabla_curvature_top = bundle.horizontal_projection(
-            nabla_curvature_top, point_fiber)
+            nabla_curvature_top, point_fiber
+        )
         ver_nabla_curvature_top = nabla_curvature_top - hor_nabla_curvature_top
 
         a_h_ver_nabla_curvature_top = bundle.integrability_tensor(
-            hor_h, ver_nabla_curvature_top, point_fiber)
+            hor_h, ver_nabla_curvature_top, point_fiber
+        )
 
         # A_H A_Z A_X Y and \nabla_H A_Z A_X Y
         nabla_h_a_x_y, a_x_y = bundle.integrability_tensor_derivative(
-            hor_h, hor_x, nabla_h_x, hor_y, nabla_h_y, point_fiber)
+            hor_h, hor_x, nabla_h_x, hor_y, nabla_h_y, point_fiber
+        )
         nabla_h_a_z_a_x_y, a_z_a_x_y = bundle.integrability_tensor_derivative(
-            hor_h, hor_z, nabla_h_z, a_x_y, nabla_h_a_x_y, point_fiber)
-        a_h_a_z_a_x_y = bundle.integrability_tensor(
-            hor_h, a_z_a_x_y, point_fiber)
+            hor_h, hor_z, nabla_h_z, a_x_y, nabla_h_a_x_y, point_fiber
+        )
+        a_h_a_z_a_x_y = bundle.integrability_tensor(hor_h, a_z_a_x_y, point_fiber)
 
         # A_H A_X A_Y Z and \nabla_H A_X A_Y Z
         nabla_h_a_y_z, a_y_z = bundle.integrability_tensor_derivative(
-            hor_h, hor_y, nabla_h_y, hor_z, nabla_h_z, point_fiber)
+            hor_h, hor_y, nabla_h_y, hor_z, nabla_h_z, point_fiber
+        )
         nabla_h_a_x_a_y_z, a_x_a_y_z = bundle.integrability_tensor_derivative(
-            hor_h, hor_x, nabla_h_x, a_y_z, nabla_h_a_y_z, point_fiber)
-        a_h_a_x_a_y_z = bundle.integrability_tensor(
-            hor_h, a_x_a_y_z, point_fiber)
+            hor_h, hor_x, nabla_h_x, a_y_z, nabla_h_a_y_z, point_fiber
+        )
+        a_h_a_x_a_y_z = bundle.integrability_tensor(hor_h, a_x_a_y_z, point_fiber)
 
         # A_H A_Y A_X Z and \nabla_H A_Y A_X Z
         nabla_h_a_x_z, a_x_z = bundle.integrability_tensor_derivative(
-            hor_h, hor_x, nabla_h_x, hor_z, nabla_h_z, point_fiber)
+            hor_h, hor_x, nabla_h_x, hor_z, nabla_h_z, point_fiber
+        )
         nabla_h_a_y_a_x_z, a_y_a_x_z = bundle.integrability_tensor_derivative(
-            hor_h, hor_y, nabla_h_y, a_x_z, nabla_h_a_x_z, point_fiber)
-        a_h_a_y_a_x_z = bundle.integrability_tensor(
-            hor_h, a_y_a_x_z, point_fiber)
+            hor_h, hor_y, nabla_h_y, a_x_z, nabla_h_a_x_z, point_fiber
+        )
+        a_h_a_y_a_x_z = bundle.integrability_tensor(hor_h, a_y_a_x_z, point_fiber)
 
-        return \
-            hor_nabla_curvature_top - a_h_ver_nabla_curvature_top \
-            - 2. * (nabla_h_a_z_a_x_y - a_h_a_z_a_x_y) \
-            + (nabla_h_a_x_a_y_z - a_h_a_x_a_y_z) \
+        return (
+            hor_nabla_curvature_top
+            - a_h_ver_nabla_curvature_top
+            - 2.0 * (nabla_h_a_z_a_x_y - a_h_a_z_a_x_y)
+            + (nabla_h_a_x_a_y_z - a_h_a_x_a_y_z)
             - (nabla_h_a_y_a_x_z - a_h_a_y_a_x_z)
+        )
 
     def directional_curvature_derivative(
-            self, tangent_vec_a, tangent_vec_b, base_point=None):
+        self, tangent_vec_a, tangent_vec_b, base_point=None
+    ):
         r"""Compute the covariant derivative of the directional curvature.
 
         For two vectors fields :math:`X|_P = tangent_vec_a, Y|_P =
@@ -383,23 +404,29 @@ class QuotientMetric(RiemannianMetric):
         nabla_x_y = bundle.integrability_tensor(hor_x, hor_y, point_fiber)
 
         nabla_curvature_top = self.ambient_metric.curvature_derivative(
-            hor_x, hor_x, hor_y, hor_y, point_fiber)
+            hor_x, hor_x, hor_y, hor_y, point_fiber
+        )
 
         hor_nabla_curvature_top = bundle.horizontal_projection(
-            nabla_curvature_top, point_fiber)
+            nabla_curvature_top, point_fiber
+        )
         ver_nabla_curvature_top = nabla_curvature_top - hor_nabla_curvature_top
 
         a_x_ver_nabla_curvature_top = bundle.integrability_tensor(
-            hor_x, ver_nabla_curvature_top, point_fiber)
+            hor_x, ver_nabla_curvature_top, point_fiber
+        )
 
         # A_X A_Y A_X Y and \nabla_X A_Y A_X Y
         nabla_x_a_x_y, a_x_y = bundle.integrability_tensor_derivative(
-            hor_x, hor_x, nabla_x_x, hor_y, nabla_x_y, point_fiber)
+            hor_x, hor_x, nabla_x_x, hor_y, nabla_x_y, point_fiber
+        )
         nabla_x_a_y_a_x_y, a_y_a_x_y = bundle.integrability_tensor_derivative(
-            hor_x, hor_y, nabla_x_y, a_x_y, nabla_x_a_x_y, point_fiber)
-        a_x_a_y_a_x_y = bundle.integrability_tensor(
-            hor_x, a_y_a_x_y, point_fiber)
+            hor_x, hor_y, nabla_x_y, a_x_y, nabla_x_a_x_y, point_fiber
+        )
+        a_x_a_y_a_x_y = bundle.integrability_tensor(hor_x, a_y_a_x_y, point_fiber)
 
-        return \
-            hor_nabla_curvature_top - a_x_ver_nabla_curvature_top \
-            + 3. * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
+        return (
+            hor_nabla_curvature_top
+            - a_x_ver_nabla_curvature_top
+            + 3.0 * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
+        )

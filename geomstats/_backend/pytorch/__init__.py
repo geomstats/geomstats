@@ -5,18 +5,16 @@ from functools import wraps
 
 import numpy as _np
 import torch
-from torch import (  # NOQA
-    arange,
-    argmin,
-    arccos,
-    arccosh,
-    arcsin,
-    arctanh,
-    atan2 as arctan2,
-    bool as t_bool,
-    broadcast_tensors as broadcast_arrays,
+from torch import angle, arange, arccos, arccosh, arcsin, arctanh, argmin
+from torch import atan2 as arctan2  # NOQA
+from torch import bool as t_bool
+from torch import broadcast_tensors as broadcast_arrays
+from torch import (
     ceil,
     clip,
+    complex64,
+    complex128,
+    conj,
     cos,
     cosh,
     cross,
@@ -29,29 +27,26 @@ from torch import (  # NOQA
     float32,
     float64,
     floor,
-    fmod as mod,
-    outer,
+)
+from torch import fmod as mod
+from torch import (
     greater,
     hstack,
     imag,
     int32,
     int64,
     isnan,
+    kron,
+    less,
     log,
     logical_or,
-    less,
-    matmul,
-    max as amax,
-    mean,
-    meshgrid,
-    min as amin,
-    nonzero,
-    ones,
-    ones_like,
-    polygamma,
-    pow as power,
-    real,
-    repeat_interleave as repeat,
+)
+from torch import max as amax
+from torch import mean, meshgrid, nonzero, ones, ones_like, outer, polygamma
+from torch import pow as power
+from torch import real
+from torch import repeat_interleave as repeat
+from torch import (
     reshape,
     sign,
     sin,
@@ -60,23 +55,27 @@ from torch import (  # NOQA
     std,
     tan,
     tanh,
-    tril,
+    trapz,
     uint8,
+    unique,
     vstack,
     zeros,
-    zeros_like
+    zeros_like,
 )
 
-from . import autodiff # NOQA
+from ..constants import pytorch_atol, pytorch_rtol
+from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-from ..constants import pytorch_atol, pytorch_rtol
 
 DTYPES = {
     int32: 0,
     int64: 1,
     float32: 2,
-    float64: 3}
+    float64: 3,
+    complex64: 4,
+    complex128: 5,
+}
 
 
 atol = pytorch_atol
@@ -96,6 +95,7 @@ def _box_scalar(function):
         if not torch.is_tensor(x):
             x = torch.tensor(x)
         return function(x)
+
     return wrapper
 
 
@@ -116,6 +116,11 @@ def comb(n, k):
     return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
 
 
+def matmul(x, y, *, out=None):
+    x, y = convert_to_wider_dtype([x, y])
+    return torch.matmul(x, y, out=out)
+
+
 def to_numpy(x):
     return x.numpy()
 
@@ -127,8 +132,7 @@ def from_numpy(x):
 def one_hot(labels, num_classes):
     if not torch.is_tensor(labels):
         labels = torch.LongTensor(labels)
-    return torch.nn.functional.one_hot(
-        labels, num_classes).type(torch.uint8)
+    return torch.nn.functional.one_hot(labels, num_classes).type(torch.uint8)
 
 
 def argmax(a, **kwargs):
@@ -215,12 +219,15 @@ def concatenate(seq, axis=0, out=None):
 
 
 def _get_largest_dtype(seq):
-    dtype_dict = {0: t_bool,
-                  1: uint8,
-                  2: int32,
-                  3: int64,
-                  4: float32,
-                  5: float64}
+    dtype_dict = {
+        0: t_bool,
+        1: uint8,
+        2: int32,
+        3: int64,
+        4: float32,
+        5: float64,
+        6: complex128,
+    }
     reverse_dict = {dtype_dict[key]: key for key in dtype_dict}
     dtype_code_set = {reverse_dict[t.dtype] for t in seq}
     return dtype_dict[max(dtype_code_set)]
@@ -336,11 +343,15 @@ def shape(val):
 
 
 def dot(a, b):
-    return einsum('...i,...i->...', a, b)
+    return einsum("...i,...i->...", a, b)
 
 
 def maximum(a, b):
     return torch.max(array(a), array(b))
+
+
+def minimum(a, b):
+    return torch.min(array(a), array(b))
 
 
 def to_ndarray(x, to_ndim, axis=0):
@@ -389,14 +400,14 @@ def einsum(*args, **kwargs):
     if len(input_tensors_list) == 1:
         return torch.einsum(einsum_str, input_tensors_list)
 
-    einsum_list = einsum_str.split('->')
+    einsum_list = einsum_str.split("->")
     input_str = einsum_list[0]
     if len(einsum_list) > 1:
         output_str = einsum_list[1]
 
-    input_str_list = input_str.split(',')
+    input_str_list = input_str.split(",")
 
-    is_ellipsis = [input_str[:3] == '...' for input_str in input_str_list]
+    is_ellipsis = [input_str[:3] == "..." for input_str in input_str_list]
     all_ellipsis = bool(_np.prod(is_ellipsis))
 
     if all_ellipsis:
@@ -404,7 +415,8 @@ def einsum(*args, **kwargs):
 
         if len(input_str_list) > 2:
             raise NotImplementedError(
-                'Ellipsis support not implemented for >2 input tensors')
+                "Ellipsis support not implemented for >2 input tensors"
+            )
 
         tensor_a = input_tensors_list[0]
         tensor_b = input_tensors_list[1]
@@ -419,38 +431,40 @@ def einsum(*args, **kwargs):
         cond = (
             n_tensor_a == n_tensor_b == 1
             and initial_ndim_a != tensor_a.ndim
-            and initial_ndim_b != tensor_b.ndim)
+            and initial_ndim_b != tensor_b.ndim
+        )
 
         if cond:
             tensor_a = squeeze(tensor_a, axis=0)
             tensor_b = squeeze(tensor_b, axis=0)
-            input_prefix_list = ['', '']
-            output_prefix = ''
+            input_prefix_list = ["", ""]
+            output_prefix = ""
         elif n_tensor_a != n_tensor_b:
             if n_tensor_a == 1:
                 tensor_a = squeeze(tensor_a, axis=0)
-                input_prefix_list = ['', 'r']
-                output_prefix = 'r'
+                input_prefix_list = ["", "r"]
+                output_prefix = "r"
             elif n_tensor_b == 1:
                 tensor_b = squeeze(tensor_b, axis=0)
-                input_prefix_list = ['r', '']
-                output_prefix = 'r'
+                input_prefix_list = ["r", ""]
+                output_prefix = "r"
             else:
-                raise ValueError('Shape mismatch for einsum.')
+                raise ValueError("Shape mismatch for einsum.")
         else:
-            input_prefix_list = ['r', 'r']
-            output_prefix = 'r'
+            input_prefix_list = ["r", "r"]
+            output_prefix = "r"
 
         input_str_list = [
-            input_str.replace('...', prefix) for input_str, prefix in zip(
-                input_str_list, input_prefix_list)]
+            input_str.replace("...", prefix)
+            for input_str, prefix in zip(input_str_list, input_prefix_list)
+        ]
 
-        input_str = input_str_list[0] + ',' + input_str_list[1]
+        input_str = input_str_list[0] + "," + input_str_list[1]
 
         einsum_str = input_str
         if len(einsum_list) > 1:
-            output_str = output_str.replace('...', output_prefix)
-            einsum_str = input_str + '->' + output_str
+            output_str = output_str.replace("...", output_prefix)
+            einsum_str = input_str + "->" + output_str
 
         result = torch.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
 
@@ -483,13 +497,13 @@ def trace(x, axis1=0, axis2=1):
     min_axis = min(axis1, axis2)
     max_axis = max(axis1, axis2)
     if min_axis == 1 and max_axis == 2:
-        return torch.einsum('...ii', x)
+        return torch.einsum("...ii", x)
     if min_axis == -2 and max_axis == -1:
-        return torch.einsum('...ii', x)
+        return torch.einsum("...ii", x)
     if min_axis == 0 and max_axis == 1:
-        return torch.einsum('ii...', x)
+        return torch.einsum("ii...", x)
     if min_axis == 0 and max_axis == 2:
-        return torch.einsum('i...i', x)
+        return torch.einsum("i...i", x)
     raise NotImplementedError()
 
 
@@ -507,6 +521,14 @@ def equal(a, b, **kwargs):
 
 def diag_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
+
+
+def tril(mat, k=0):
+    return torch.tril(mat, diagonal=k)
+
+
+def triu(mat, k=0):
+    return torch.triu(mat, diagonal=k)
 
 
 def tril_indices(n, k=0, m=None):
@@ -566,8 +588,7 @@ def set_diag(x, new_diag):
     """
     arr_shape = x.shape
     off_diag = (1 - torch.eye(arr_shape[-1])) * x
-    diag = torch.einsum(
-        'ij,...i->...ij', torch.eye(new_diag.shape[-1]), new_diag)
+    diag = torch.einsum("ij,...i->...ij", torch.eye(new_diag.shape[-1]), new_diag)
     return diag + off_diag
 
 
@@ -657,7 +678,7 @@ def assignment(x, values, indices, axis=0):
     """
     x_new = copy(x)
 
-    use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
+    use_vectorization = hasattr(indices, "__len__") and len(indices) < ndim(x)
     if _is_boolean(indices):
         x_new[indices] = values
         return x_new
@@ -670,11 +691,10 @@ def assignment(x, values, indices, axis=0):
             len_indices = len(indices) if _is_iterable(indices) else 1
         len_values = len(values) if _is_iterable(values) else 1
         if len_values > 1 and len_values != len_indices:
-            raise ValueError('Either one value or as many values as indices')
+            raise ValueError("Either one value or as many values as indices")
         x_new[indices] = values
     else:
-        indices = tuple(
-            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        indices = tuple(list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
         x_new[indices] = values
     return x_new
 
@@ -708,7 +728,7 @@ def assignment_by_sum(x, values, indices, axis=0):
     """
     x_new = copy(x)
     values = array(values)
-    use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
+    use_vectorization = hasattr(indices, "__len__") and len(indices) < ndim(x)
     if _is_boolean(indices):
         x_new[indices] += values
         return x_new
@@ -719,11 +739,10 @@ def assignment_by_sum(x, values, indices, axis=0):
         len_indices = len(indices) if _is_iterable(indices) else 1
         len_values = len(values) if _is_iterable(values) else 1
         if len_values > 1 and len_values != len_indices:
-            raise ValueError('Either one value or as many values as indices')
+            raise ValueError("Either one value or as many values as indices")
         x_new[indices] += values
     else:
-        indices = tuple(
-            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        indices = tuple(list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
         x_new[indices] += values
     return x_new
 
@@ -768,13 +787,24 @@ def array_from_sparse(indices, data, target_shape):
     return torch.sparse.FloatTensor(
         torch.LongTensor(indices).t(),
         torch.FloatTensor(cast(data, float32)),
-        torch.Size(target_shape)).to_dense()
+        torch.Size(target_shape),
+    ).to_dense()
 
 
 def vectorize(x, pyfunc, multiple_args=False, **kwargs):
     if multiple_args:
         return stack(list(map(lambda y: pyfunc(*y), zip(*x))))
     return stack(list(map(pyfunc, x)))
+
+
+def vec_to_diag(vec):
+    return torch.diag_embed(vec, offset=0)
+
+
+def tril_to_vec(x, k=0):
+    n = x.shape[-1]
+    rows, cols = tril_indices(n, k=k)
+    return x[..., rows, cols]
 
 
 def triu_to_vec(x, k=0):
@@ -800,17 +830,36 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat : array_like, shape=[..., n, n]
     """
     n = diag.shape[-1]
-    i, = diag_indices(n, ndim=1)
+    (i,) = diag_indices(n, ndim=1)
     j, k = triu_indices(n, k=1)
-    mat = torch.zeros((diag.shape + (n, )))
+    mat = torch.zeros((diag.shape + (n,)))
     mat[..., i, i] = diag
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
     return mat
 
 
-def divide(a,b, ignore_div_zero = False):
+def divide(a, b, ignore_div_zero=False):
     if ignore_div_zero is False:
         return torch.divide(a, b)
     quo = torch.divide(a, b)
     return torch.nan_to_num(quo, nan=0.0, posinf=0.0, neginf=0.0)
+
+
+def ravel_tril_indices(n, k=0, m=None):
+    if m is None:
+        size = (n, n)
+    else:
+        size = (n, m)
+    idxs = _np.tril_indices(n, k, m)
+    return torch.from_numpy(_np.ravel_multi_index(idxs, size))
+
+
+def sort(a, axis=-1):
+    sorted_a, _ = torch.sort(a, dim=axis)
+    return sorted_a
+
+
+def amin(a, axis=-1):
+    (values, _) = torch.min(a, dim=axis)
+    return values

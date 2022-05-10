@@ -1,4 +1,4 @@
-"""LogNormal Distribution"""
+"""LogNormal Distribution."""
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
@@ -11,7 +11,7 @@ from geomstats.geometry.spd_matrices import (
 
 
 class _LogNormalSPD:
-    """LogNormal Distribution on manifold of SPD Matrices"""
+    """LogNormal Distribution on manifold of SPD Matrices."""
 
     def __init__(self, manifold, mean, cov):
         n = mean.shape[-1]
@@ -19,14 +19,14 @@ class _LogNormalSPD:
         if metric is None:
             manifold.metric = SPDMetricLogEuclidean(n)
         else:
-            if (
-                not isinstance(metric, SPDMetricLogEuclidean) and
-                not isinstance(metric, SPDMetricAffine)
+            if not isinstance(metric, SPDMetricLogEuclidean) and not isinstance(
+                metric, SPDMetricAffine
             ):
                 raise ValueError(
                     "Invalid Metric, "
                     "Should be of type SPDMetricLogEuclidean"
-                    "or SPDMetricAffine")
+                    "or SPDMetricAffine"
+                )
 
         self.manifold = manifold
         self.mean = mean
@@ -35,26 +35,30 @@ class _LogNormalSPD:
     def samples_sym(self, mean_vec, cov, n_samples):
         """Generate symmetric matrices."""
         n = self.mean.shape[-1]
-        samples_euclidean = gs.random.multivariate_normal(
-            mean_vec, cov, (n_samples,))
+        samples_euclidean = gs.random.multivariate_normal(mean_vec, cov, (n_samples,))
         diag = samples_euclidean[:, :n]
         off_diag = samples_euclidean[:, n:] / gs.sqrt(2.0)
         samples_sym = gs.mat_from_diag_triu_tril(
-            diag=diag, tri_upp=off_diag, tri_low=off_diag)
+            diag=diag, tri_upp=off_diag, tri_low=off_diag
+        )
         return samples_sym
 
     def sample(self, n_samples):
-        """Generate samples for SPD manifold"""
+        """Generate samples for SPD manifold."""
         if isinstance(self.manifold.metric, SPDMetricLogEuclidean):
             sym_matrix = self.manifold.logm(self.mean)
             mean_euclidean = gs.hstack(
-                (gs.diagonal(sym_matrix)[None, :],
-                 gs.sqrt(2.0) * gs.triu_to_vec(sym_matrix, k=1)[None, :]))[0]
+                (
+                    gs.diagonal(sym_matrix)[None, :],
+                    gs.sqrt(2.0) * gs.triu_to_vec(sym_matrix, k=1)[None, :],
+                )
+            )[0]
             _samples = self.samples_sym(mean_euclidean, self.cov, n_samples)
 
         else:
             samples_sym = self.samples_sym(
-                gs.zeros(self.manifold.dim), self.cov, n_samples)
+                gs.zeros(self.manifold.dim), self.cov, n_samples
+            )
             mean_half = self.manifold.powerm(self.mean, 0.5)
             _samples = Matrices.mul(mean_half, samples_sym, mean_half)
 
@@ -62,7 +66,7 @@ class _LogNormalSPD:
 
 
 class _LogNormalEuclidean:
-    """LogNormal Distribution on Euclidean Space"""
+    """LogNormal Distribution on Euclidean Space."""
 
     def __init__(self, manifold, mean, cov):
         n = mean.shape[-1]
@@ -73,21 +77,21 @@ class _LogNormalEuclidean:
             if type(metric) not in (EuclideanMetric, MatricesMetric):
                 raise ValueError(
                     "Invalid Metric, "
-                    "Should be of type EuclideanMetric or MatricesMetric")
+                    "Should be of type EuclideanMetric or MatricesMetric"
+                )
 
         self.manifold = manifold
         self.mean = mean
         self.cov = cov
 
     def sample(self, n_samples):
-        """Generate samples for Euclidean Manifold"""
-        _samples = gs.random.multivariate_normal(
-            self.mean, self.cov, (n_samples,))
+        """Generate samples for Euclidean Manifold."""
+        _samples = gs.random.multivariate_normal(self.mean, self.cov, (n_samples,))
         return gs.exp(_samples)
 
 
 def _sampler_factory(manifold, mean, cov):
-    """Factory method for creating sampler"""
+    """Create Distribution obj."""
     if isinstance(manifold, Euclidean):
         return _LogNormalEuclidean(manifold, mean, cov)
     return _LogNormalSPD(manifold, mean, cov)
@@ -144,29 +148,27 @@ class LogNormal:
     "Geometric Averages of Symmetric Positive Definite Matrices.",
     International Statistical Review 84.3 (2016): 456-486.
     """
+
     def __init__(self, manifold, mean, cov=None):
 
-        if (
-            not isinstance(manifold, SPDMatrices) and
-            not isinstance(manifold, Euclidean)
+        if not isinstance(manifold, SPDMatrices) and not isinstance(
+            manifold, Euclidean
         ):
             raise ValueError(
-                "Invalid Manifold object, "
-                "Should be of type SPDMatrices or Euclidean")
+                "Invalid Manifold object, " "Should be of type SPDMatrices or Euclidean"
+            )
 
         if not manifold.belongs(mean):
             raise ValueError(
-                "Invalid Value in mean, doesn't belong to ",
-                type(manifold).__name__)
+                "Invalid Value in mean, doesn't belong to ", type(manifold).__name__
+            )
 
         if cov is not None:
             valid_cov_shape = (manifold.dim, manifold.dim)
-            if (
-                cov.ndim != 2 or
-                (cov.shape[0], cov.shape[1]) != valid_cov_shape
-            ):
-                raise ValueError("Invalid Shape, "
-                                 "cov should have shape", valid_cov_shape)
+            if cov.ndim != 2 or (cov.shape[0], cov.shape[1]) != valid_cov_shape:
+                raise ValueError(
+                    "Invalid Shape, " "cov should have shape", valid_cov_shape
+                )
 
         else:
             cov = gs.eye(self.manifold.dim)
@@ -175,18 +177,36 @@ class LogNormal:
 
     @property
     def manifold(self):
+        """Property method for the manifold obj.
+
+        Returns
+        -------
+            _: Manfiold obj.
+        """
         return self.__sampler.manifold
 
     @property
     def mean(self):
+        """Property method for the mean obj .
+
+        Returns
+        -------
+            _: Mean obj.
+        """
         return self.__sampler.mean
 
     @property
     def cov(self):
+        """Property method for the cov obj .
+
+        Returns
+        -------
+            _: Cov obj.
+        """
         return self.__sampler.cov
 
     def sample(self, n_samples=1):
-        """Generate samples
+        """Generate samples.
 
         Parameters
         ----------
@@ -204,5 +224,5 @@ class LogNormal:
         return self.__sampler.sample(n_samples)
 
     def pdf(self, points):
-        """Evaluate probability density function for given points"""
+        """Evaluate probability density function for given points."""
         raise NotImplementedError

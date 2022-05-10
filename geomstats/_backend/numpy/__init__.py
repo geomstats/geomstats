@@ -3,12 +3,13 @@
 import math
 
 import numpy as np
-from numpy import (  # NOQA
+from numpy import (
     abs,
     all,
     allclose,
     amax,
     amin,
+    angle,
     any,
     arange,
     arccos,
@@ -24,6 +25,7 @@ from numpy import (  # NOQA
     ceil,
     clip,
     concatenate,
+    conj,
     cos,
     cosh,
     cross,
@@ -32,7 +34,9 @@ from numpy import (  # NOQA
     diag_indices,
     diagonal,
     dot,
-    dtype as ndtype,
+)
+from numpy import dtype as ndtype  # NOQA
+from numpy import (
     einsum,
     empty,
     empty_like,
@@ -47,11 +51,12 @@ from numpy import (  # NOQA
     greater,
     hsplit,
     hstack,
+    imag,
     int32,
     int64,
-    imag,
     isclose,
     isnan,
+    kron,
     less,
     less_equal,
     linspace,
@@ -62,6 +67,7 @@ from numpy import (  # NOQA
     maximum,
     mean,
     meshgrid,
+    minimum,
     mod,
     ones,
     ones_like,
@@ -71,10 +77,12 @@ from numpy import (  # NOQA
     real,
     repeat,
     reshape,
+    searchsorted,
     shape,
     sign,
     sin,
     sinh,
+    sort,
     split,
     sqrt,
     squeeze,
@@ -86,32 +94,35 @@ from numpy import (  # NOQA
     tile,
     trace,
     transpose,
-    triu_indices,
-    tril_indices,
-    searchsorted,
+    trapz,
     tril,
+    tril_indices,
+    triu,
+    triu_indices,
     uint8,
+    unique,
     vstack,
     where,
     zeros,
-    zeros_like
+    zeros_like,
 )
+from scipy.sparse import coo_matrix  # NOQA
+from scipy.special import erf, polygamma  # NOQA
 
-
-from scipy.sparse import coo_matrix # NOQA
-from scipy.special import erf, polygamma # NOQA
-
-from . import autodiff # NOQA
+from ..constants import np_atol, np_rtol
+from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA
-from ..constants import np_atol, np_rtol
 
 DTYPES = {
-    ndtype('int32'): 0,
-    ndtype('int64'): 1,
-    ndtype('float32'): 2,
-    ndtype('float64'): 3}
+    ndtype("int32"): 0,
+    ndtype("int64"): 1,
+    ndtype("float32"): 2,
+    ndtype("float64"): 3,
+    ndtype("complex64"): 4,
+    ndtype("complex128"): 5,
+}
 
 
 atol = np_atol
@@ -145,7 +156,7 @@ def flatten(x):
 
 
 def one_hot(labels, num_classes):
-    return np.eye(num_classes, dtype=np.dtype('uint8'))[labels]
+    return np.eye(num_classes, dtype=np.dtype("uint8"))[labels]
 
 
 def get_mask_i_float(i, n):
@@ -217,7 +228,7 @@ def assignment(x, values, indices, axis=0):
     """
     x_new = copy(x)
 
-    use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
+    use_vectorization = hasattr(indices, "__len__") and len(indices) < ndim(x)
     if _is_boolean(indices):
         x_new[indices] = values
         return x_new
@@ -230,11 +241,10 @@ def assignment(x, values, indices, axis=0):
             len_indices = len(indices) if _is_iterable(indices) else 1
         len_values = len(values) if _is_iterable(values) else 1
         if len_values > 1 and len_values != len_indices:
-            raise ValueError('Either one value or as many values as indices')
+            raise ValueError("Either one value or as many values as indices")
         x_new[indices] = values
     else:
-        indices = tuple(
-            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        indices = tuple(list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
         x_new[indices] = values
     return x_new
 
@@ -268,7 +278,7 @@ def assignment_by_sum(x, values, indices, axis=0):
     """
     x_new = copy(x)
 
-    use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
+    use_vectorization = hasattr(indices, "__len__") and len(indices) < ndim(x)
     if _is_boolean(indices):
         x_new[indices] += values
         return x_new
@@ -279,11 +289,10 @@ def assignment_by_sum(x, values, indices, axis=0):
         len_indices = len(indices) if _is_iterable(indices) else 1
         len_values = len(values) if _is_iterable(values) else 1
         if len_values > 1 and len_values != len_indices:
-            raise ValueError('Either one value or as many values as indices')
+            raise ValueError("Either one value or as many values as indices")
         x_new[indices] += values
     else:
-        indices = tuple(
-            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        indices = tuple(list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
         x_new[indices] += values
     return x_new
 
@@ -377,8 +386,19 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return array(
-        coo_matrix((data, list(zip(*indices))), target_shape).todense())
+    return array(coo_matrix((data, list(zip(*indices))), target_shape).todense())
+
+
+def vec_to_diag(vec):
+    """Convert vector to diagonal matrix."""
+    d = vec.shape[-1]
+    return np.squeeze(vec[..., None, :] * np.eye(d)[None, :, :])
+
+
+def tril_to_vec(x, k=0):
+    n = x.shape[-1]
+    rows, cols = tril_indices(n, k=k)
+    return x[..., rows, cols]
 
 
 def triu_to_vec(x, k=0):
@@ -404,15 +424,25 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat : array_like, shape=[..., n, n]
     """
     n = diag.shape[-1]
-    i, = np.diag_indices(n, ndim=1)
+    (i,) = np.diag_indices(n, ndim=1)
     j, k = np.triu_indices(n, k=1)
-    mat = np.zeros(diag.shape + (n, ))
+    mat = np.zeros(diag.shape + (n,))
     mat[..., i, i] = diag
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
     return mat
 
-def divide(a,b, ignore_div_zero = False):
+
+def divide(a, b, ignore_div_zero=False):
     if ignore_div_zero is False:
-        return np.divide(a,b)
-    return np.divide(a, b, out=np.zeros_like(a), where=b!=0)
+        return np.divide(a, b)
+    return np.divide(a, b, out=np.zeros_like(a), where=b != 0)
+
+
+def ravel_tril_indices(n, k=0, m=None):
+    if m is None:
+        size = (n, n)
+    else:
+        size = (n, m)
+    idxs = np.tril_indices(n, k, m)
+    return np.ravel_multi_index(idxs, size)

@@ -3,7 +3,7 @@
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
-from geomstats.geometry.discrete_curves import DiscreteCurves, R2
+from geomstats.geometry.discrete_curves import R2, DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import Landmarks
@@ -23,8 +23,7 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(data), (50, 3))
 
         tokyo = data[0]
-        self.assertAllClose(
-            tokyo, gs.array([0.61993792, -0.52479018, 0.58332859]))
+        self.assertAllClose(tokyo, gs.array([0.61993792, -0.52479018, 0.58332859]))
 
         result = sphere.belongs(data)
         self.assertTrue(gs.all(result))
@@ -124,17 +123,17 @@ class TestDatasets(geomstats.tests.TestCase):
         """Test that data have the correct column names."""
         data_emg = data_utils.load_emg()
         expected_col_name = [
-            'time',
-            'c0',
-            'c1',
-            'c2',
-            'c3',
-            'c4',
-            'c5',
-            'c6',
-            'c7',
-            'label',
-            'exp',
+            "time",
+            "c0",
+            "c1",
+            "c2",
+            "c3",
+            "c4",
+            "c5",
+            "c6",
+            "c7",
+            "label",
+            "exp",
         ]
         good_col_name = (expected_col_name == data_emg.keys()).all()
         self.assertTrue(good_col_name)
@@ -202,6 +201,5 @@ class TestDatasets(geomstats.tests.TestCase):
         result = [line in ["dlm8", "dunn"] for line in cell_lines]
         self.assertTrue(gs.all(result))
 
-        result = [treatment in ["control", "cytd", "jasp"]
-                  for treatment in treatments]
+        result = [treatment in ["control", "cytd", "jasp"] for treatment in treatments]
         self.assertTrue(gs.all(result))

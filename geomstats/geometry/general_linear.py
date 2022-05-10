@@ -3,6 +3,7 @@
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
+from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.matrices import Matrices
 
@@ -24,10 +25,14 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
     """
 
     def __init__(self, n, positive_det=False, **kwargs):
-        if 'dim' not in kwargs.keys():
-            kwargs['dim'] = n ** 2
+        ambient_space = Matrices(n, n)
+        kwargs.setdefault("dim", n**2)
+        kwargs.setdefault("metric", ambient_space.metric)
+
         super(GeneralLinear, self).__init__(
-            ambient_space=Matrices(n, n), n=n, **kwargs)
+            ambient_space=ambient_space, n=n, lie_algebra=SquareMatrices(n), **kwargs
+        )
+
         self.positive_det = positive_det
 
     def projection(self, point):
@@ -50,7 +55,8 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         """
         belongs = self.belongs(point)
         regularization = gs.einsum(
-            '...,ij->...ij', gs.where(~belongs, gs.atol, 0.), self.identity)
+            "...,ij->...ij", gs.where(~belongs, gs.atol, 0.0), self.identity
+        )
         projected = point + regularization
         if self.positive_det:
             det = gs.linalg.det(point)
@@ -78,7 +84,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
             return det > atol if self.positive_det else gs.abs(det) > atol
         return has_right_size
 
-    def random_point(self, n_samples=1, bound=1., n_iter=100):
+    def random_point(self, n_samples=1, bound=1.0, n_iter=100):
         """Sample in GL(n) from the uniform distribution.
 
         Parameters
@@ -155,6 +161,61 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         tangent_vec = cls.log(point, base_point)
 
         def path(time):
-            vecs = gs.einsum('t,...ij->...tij', time, tangent_vec)
+            vecs = gs.einsum("t,...ij->...tij", time, tangent_vec)
             return cls.exp(vecs, base_point)
+
         return path
+
+
+class SquareMatrices(MatrixLieAlgebra):
+    """Lie algebra of the general linear group.
+
+    This is the space of matrices.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
+    """
+
+    def __init__(self, n):
+        super(SquareMatrices, self).__init__(n=n, dim=n**2)
+        self.mat_space = Matrices(n, n)
+
+    def _create_basis(self):
+        """Create the canonical basis of the space of matrices."""
+        return self.mat_space.basis
+
+    def basis_representation(self, matrix_representation):
+        """Compute the coefficient in the usual matrix basis.
+
+        This simply flattens the input.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., dim]
+            Representation in the basis.
+        """
+        return self.mat_space.flatten(matrix_representation)
+
+    def matrix_representation(self, basis_representation):
+        """Compute the matrix representation for the given basis coefficients.
+
+        This simply reshapes the input into a square matrix.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis.
+
+        Returns
+        -------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+        """
+        return self.mat_space.reshape(basis_representation)

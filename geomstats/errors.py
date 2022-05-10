@@ -16,12 +16,13 @@ def check_integer(n, n_name):
     n_name : string
        Name of the parameter.
     """
-    if not(isinstance(n, int) and n > 0):
+    if not (isinstance(n, int) and n > 0):
         if n is not None and n != math.inf:
             raise ValueError(
-                '{} is required to be either'
-                ' None, math.inf or a strictly positive integer,'
-                ' got {}.'.format(n_name, n))
+                "{} is required to be either"
+                " None, math.inf or a strictly positive integer,"
+                " got {}.".format(n_name, n)
+            )
 
 
 def check_belongs(point, manifold, **kwargs):
@@ -38,8 +39,9 @@ def check_belongs(point, manifold, **kwargs):
     """
     if not gs.all(manifold.belongs(point, **kwargs)):
         raise RuntimeError(
-            'Some points do not belong to manifold \'%s\' of dimension %d.'
-            % (type(manifold).__name__, manifold.dim))
+            "Some points do not belong to manifold '%s' of dimension %d."
+            % (type(manifold).__name__, manifold.dim)
+        )
 
 
 def check_parameter_accepted_values(param, param_name, accepted_values):
@@ -56,12 +58,16 @@ def check_parameter_accepted_values(param, param_name, accepted_values):
     """
     if param not in accepted_values:
         raise ValueError(
-            'Parameter {} needs to be in {}, got: {}'.format(
-                param_name, accepted_values, param))
+            "Parameter {} needs to be in {}, got: {}".format(
+                param_name, accepted_values, param
+            )
+        )
 
 
 def check_tf_error(exception, name):
-    if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
+    """Raise error in tensorflow."""
+    if os.environ["GEOMSTATS_BACKEND"] == "tensorflow":
         from tensorflow import errors
+
         return getattr(errors, name)
     return exception

@@ -8,6 +8,7 @@ The test file for this manifold can be found at:
 tests/test__my_manifold.py.
 """
 import geomstats.backend as gs
+
 # Import the class(es) that MyManifold inherits from
 from geomstats.geometry.manifold import Manifold
 
@@ -35,7 +36,7 @@ class MyManifold(Manifold):
     """
 
     def __init__(self, dim, another_parameter, **kwargs):
-        super(MyManifold, self).__init__(dim)
+        super(MyManifold, self).__init__(dim, shape=(dim,))
         self.another_parameter = another_parameter
 
     # Implement the main methods of MyManifold, for example belongs:
@@ -128,7 +129,7 @@ class MyManifold(Manifold):
             Tangent vector at base point.
         """
 
-    def random_point(self, n_samples=1, bound=1.):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
 
         If the manifold is compact, a uniform distribution is used.

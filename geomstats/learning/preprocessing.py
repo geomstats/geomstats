@@ -1,4 +1,7 @@
-"""Transformer for manifold-valued data."""
+"""Transformer for manifold-valued data.
+
+Lead author: Nicolas Guigui.
+"""
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
@@ -40,18 +43,19 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
 
         if isinstance(geometry, LieGroup):
             self._used_geometry = geometry
-            self.estimator = ExponentialBarycenter(
-                group=self._used_geometry, **kwargs)
+            self.estimator = ExponentialBarycenter(group=self._used_geometry, **kwargs)
         else:
-            if hasattr(geometry, 'metric'):
+            if hasattr(geometry, "metric"):
                 self._used_geometry = geometry.metric
             elif isinstance(geometry, RiemannianMetric):
                 self._used_geometry = geometry
             else:
-                raise ValueError('The input geometry must be either a '
-                                 'Manifold equipped with a '
-                                 'RiemannianMetric, or a RiemannianMetric or a'
-                                 ' LieGroup')
+                raise ValueError(
+                    "The input geometry must be either a "
+                    "Manifold equipped with a "
+                    "RiemannianMetric, or a RiemannianMetric or a"
+                    " LieGroup"
+                )
             self.estimator = FrechetMean(metric=self._used_geometry, **kwargs)
         self.point_type = geometry.default_point_type
         self.geometry = geometry
@@ -110,22 +114,23 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
             base_point = self.estimator.estimate_
 
             if self.estimator.estimate_ is None:
-                raise RuntimeError('fit needs to be called first or a '
-                                   'base_point passed.')
+                raise RuntimeError(
+                    "fit needs to be called first or a " "base_point passed."
+                )
 
         tangent_vecs = self._used_geometry.log(X, base_point=base_point)
 
-        if self.point_type == 'vector':
+        if self.point_type == "vector":
             return tangent_vecs
 
         if gs.all(Matrices.is_symmetric(tangent_vecs)):
-            X = SymmetricMatrices.to_vector(
-                tangent_vecs)
+            X = SymmetricMatrices.to_vector(tangent_vecs)
         elif gs.all(Matrices.is_skew_symmetric(tangent_vecs)):
-            X = SkewSymmetricMatrices(
-                tangent_vecs.shape[-1]).basis_representation(tangent_vecs)
+            X = SkewSymmetricMatrices(tangent_vecs.shape[-1]).basis_representation(
+                tangent_vecs
+            )
         else:
-            X = gs.reshape(tangent_vecs, (len(X), - 1))
+            X = gs.reshape(tangent_vecs, (len(X), -1))
 
         return X
 
@@ -152,21 +157,20 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
             base_point = self.estimator.estimate_
 
             if self.estimator.estimate_ is None:
-                raise RuntimeError('fit needs to be called first or a '
-                                   'base_point passed.')
+                raise RuntimeError(
+                    "fit needs to be called first or a " "base_point passed."
+                )
 
-        if self.point_type == 'matrix':
+        if self.point_type == "matrix":
             n_base_point = base_point.shape[-1]
             n_vecs = X.shape[-1]
             dim_sym = int(n_base_point * (n_base_point + 1) / 2)
             dim_skew = int(n_base_point * (n_base_point - 1) / 2)
 
             if gs.all(Matrices.is_symmetric(base_point)) and dim_sym == n_vecs:
-                tangent_vecs = SymmetricMatrices(
-                    base_point.shape[-1]).from_vector(X)
+                tangent_vecs = SymmetricMatrices(base_point.shape[-1]).from_vector(X)
             elif dim_skew == n_vecs:
-                tangent_vecs = SkewSymmetricMatrices(
-                    dim_skew).matrix_representation(X)
+                tangent_vecs = SkewSymmetricMatrices(dim_skew).matrix_representation(X)
             else:
                 dim = base_point.shape[-1]
                 tangent_vecs = gs.reshape(X, (len(X), dim, dim))

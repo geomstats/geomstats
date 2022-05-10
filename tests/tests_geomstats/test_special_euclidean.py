@@ -1,343 +1,272 @@
 """Unit tests for special euclidean group in matrix representation."""
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.special_euclidean import SpecialEuclidean,\
-    SpecialEuclideanMatrixCannonicalLeftMetric,\
-    SpecialEuclideanMatrixLieAlgebra
+from geomstats.geometry.invariant_metric import InvariantMetric
+from geomstats.geometry.special_euclidean import (
+    SpecialEuclidean,
+    SpecialEuclideanMatrixCannonicalLeftMetric,
+    SpecialEuclideanMatrixLieAlgebra,
+)
+from geomstats.tests import tf_backend
+from tests.conftest import Parametrizer, TestCase, np_backend
+from tests.data.special_euclidean_data import (
+    SpecialEuclidean3VectorsTestData,
+    SpecialEuclideanMatrixCanonicalLeftMetricTestData,
+    SpecialEuclideanMatrixCanonicalRightMetricTestData,
+    SpecialEuclideanMatrixLieAlgebraTestData,
+    SpecialEuclideanTestData,
+)
+from tests.geometry_test_cases import (
+    InvariantMetricTestCase,
+    LieGroupTestCase,
+    MatrixLieAlgebraTestCase,
+)
+
+ATOL = 1e-5
 
 
-class TestSpecialEuclidean(geomstats.tests.TestCase):
-    def setUp(self):
-        gs.random.seed(12)
-        self.n = 2
-        self.group = SpecialEuclidean(n=self.n)
-        self.n_samples = 3
-        self.point = self.group.random_point(self.n_samples)
-        self.tangent_vec = self.group.to_tangent(gs.random.rand(
-            self.n_samples, self.group.n + 1, self.group.n + 1), self.point)
+class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
 
-    def test_belongs(self):
-        theta = gs.pi / 3
-        point_1 = gs.array([
-            [gs.cos(theta), - gs.sin(theta), 2.],
-            [gs.sin(theta), gs.cos(theta), 3.],
-            [0., 0., 1.]])
-        result = self.group.belongs(point_1)
-        self.assertTrue(result)
+    space = group = SpecialEuclidean
+    skip_test_log_after_exp = tf_backend()
+    skip_test_exp_after_log = tf_backend()
 
-        point_2 = gs.array([
-            [gs.cos(theta), - gs.sin(theta), 2.],
-            [gs.sin(theta), gs.cos(theta), 3.],
-            [0., 0., 0.]])
-        result = self.group.belongs(point_2)
-        self.assertFalse(result)
+    testing_data = SpecialEuclideanTestData()
 
-        point = gs.array([point_1, point_2])
-        expected = gs.array([True, False])
-        result = self.group.belongs(point)
-        self.assertAllClose(result, expected)
-
-        point = point_1[0]
-        result = self.group.belongs(point)
-        self.assertFalse(result)
-
-        point = gs.zeros((2, 3))
-        result = self.group.belongs(point)
-        self.assertFalse(result)
-
-        point = gs.zeros((2, 2, 3))
-        result = self.group.belongs(point)
-        self.assertFalse(gs.all(result))
-        self.assertAllClose(result.shape, (2, ))
-
-    def test_random_point_and_belongs(self):
-        point = self.group.random_point()
-        result = self.group.belongs(point)
-        self.assertTrue(result)
-
-        point = self.group.random_point(self.n_samples)
-        result = self.group.belongs(point)
-        expected = gs.array([True] * self.n_samples)
-        self.assertAllClose(result, expected)
-
-    def test_identity(self):
-        result = self.group.identity
-        expected = gs.eye(self.n + 1)
-        self.assertAllClose(result, expected)
-
-    def test_is_tangent(self):
-        theta = gs.pi / 3
-        vec_1 = gs.array([
-            [0., - theta, 2.],
-            [theta, 0., 3.],
-            [0., 0., 0.]])
-        point = self.group.random_point()
-        tangent_vec = self.group.compose(point, vec_1)
-        result = self.group.is_tangent(tangent_vec, point)
-        self.assertTrue(result)
-
-        vec_2 = gs.array([
-            [0., - theta, 2.],
-            [theta, 0., 3.],
-            [0., 0., 1.]])
-        tangent_vec = self.group.compose(point, vec_2)
-        result = self.group.is_tangent(tangent_vec, point)
-        self.assertFalse(result)
-
-        vec = gs.array([vec_1, vec_2])
-        expected = gs.array([True, False])
-        result = self.group.is_tangent(vec)
-        self.assertAllClose(result, expected)
-
-    def test_to_tangent_vec_vectorization(self):
-        n = self.group.n
-        tangent_vecs = gs.arange(self.n_samples * (n + 1) ** 2)
-        tangent_vecs = gs.cast(tangent_vecs, gs.float32)
-        tangent_vecs = gs.reshape(
-            tangent_vecs, (self.n_samples,) + (n + 1,) * 2)
-        point = self.group.random_point(self.n_samples)
-        tangent_vecs = Matrices.mul(point, tangent_vecs)
-        regularized = self.group.to_tangent(tangent_vecs, point)
-        result = Matrices.mul(
-            Matrices.transpose(point), regularized) + \
-            Matrices.mul(Matrices.transpose(regularized), point)
-        result = result[:, :n, :n]
-        expected = gs.zeros_like(result)
-        self.assertAllClose(result, expected)
-
-    def test_compose_and_inverse_matrix_form(self):
-        point = self.group.random_point()
-        inv_point = self.group.inverse(point)
-        result = self.group.compose(point, inv_point)
-        expected = self.group.identity
-        self.assertAllClose(result, expected)
-
-        if not geomstats.tests.tf_backend():
-            result = self.group.compose(inv_point, point)
-            expected = self.group.identity
-            self.assertAllClose(result, expected)
-
-    def test_compose_vectorization(self):
-        n_samples = self.n_samples
-        n_points_a = self.group.random_point(n_samples=n_samples)
-        n_points_b = self.group.random_point(n_samples=n_samples)
-        one_point = self.group.random_point(n_samples=1)
-
-        result = self.group.compose(one_point, n_points_a)
+    def test_belongs(self, n, mat, expected):
         self.assertAllClose(
-            gs.shape(result), (n_samples,) + (self.group.n + 1,) * 2)
+            SpecialEuclidean(n).belongs(gs.array(mat)), gs.array(expected)
+        )
 
-        result = self.group.compose(n_points_a, one_point)
+    def test_random_point_belongs(self, n, n_samples):
+        group = self.cls(n)
+        self.assertAllClose(gs.all(group(n).random_point(n_samples)), gs.array(True))
 
-        if not geomstats.tests.tf_backend():
-            self.assertAllClose(
-                gs.shape(result), (n_samples,) + (self.group.n + 1,) * 2)
+    def test_identity(self, n, expected):
+        self.assertAllClose(SpecialEuclidean(n).identity, gs.array(expected))
 
-            result = self.group.compose(n_points_a, n_points_b)
-            self.assertAllClose(
-                gs.shape(result), (n_samples,) + (self.group.n + 1,) * 2)
+    def test_is_tangent(self, n, tangent_vec, base_point, expected):
+        result = SpecialEuclidean(n).is_tangent(
+            gs.array(tangent_vec), gs.array(base_point)
+        )
+        self.assertAllClose(result, gs.array(expected))
 
-    def test_inverse_vectorization(self):
-        n_samples = self.n_samples
-        points = self.group.random_point(n_samples=n_samples)
-        result = self.group.inverse(points)
+    def test_metrics_default_point_type(self, n, metric_str):
+        group = self.space(n)
+        self.assertTrue(getattr(group, metric_str).default_point_type == "matrix")
+
+    def test_inverse_shape(self, n, points, expected):
+        group = self.space(n)
+        self.assertAllClose(gs.shape(group.inverse(points)), expected)
+
+    def test_compose_shape(self, n, point_a, point_b, expected):
+        group = self.space(n)
+        result = gs.shape(group.compose(gs.array(point_a), gs.array(point_b)))
+        self.assertAllClose(result, expected)
+
+    def test_regularize_shape(self, n, point_type, n_samples):
+        group = self.space(n, point_type)
+        points = group.random_point(n_samples=n_samples)
+        regularized_points = group.regularize(points)
+
         self.assertAllClose(
-            gs.shape(result), (n_samples,) + (self.group.n + 1,) * 2)
+            gs.shape(regularized_points),
+            (n_samples, *group.get_point_type_shape()),
+        )
 
-    def test_compose_matrix_form(self):
-        point = self.group.random_point()
-        result = self.group.compose(point, self.group.identity)
-        expected = point
+    def test_compose(self, n, point_type, point_1, point_2, expected):
+        group = self.space(n, point_type)
+        result = group.compose(point_1, point_2)
         self.assertAllClose(result, expected)
 
-        if not geomstats.tests.tf_backend():
-            # Composition by identity, on the left
-            # Expect the original transformation
-            result = self.group.compose(self.group.identity, point)
-            expected = point
-            self.assertAllClose(result, expected)
-
-            # Composition of translations (no rotational part)
-            # Expect the sum of the translations
-            point_a = gs.array([[1., 0., 1.],
-                                [0., 1., 1.5],
-                                [0., 0., 1.]])
-            point_b = gs.array([[1., 0., 2.],
-                                [0., 1., 2.5],
-                                [0., 0., 1.]])
-
-            result = self.group.compose(point_a, point_b)
-            last_line_0 = gs.array_from_sparse(
-                [(0, 2), (1, 2)], [1., 1.], (3, 3))
-            expected = point_a + point_b * last_line_0
-            self.assertAllClose(result, expected)
-
-    def test_left_exp_coincides(self):
-        vector_group = SpecialEuclidean(n=2, point_type='vector')
-        theta = gs.pi / 3
-        initial_vec = gs.array([theta, 2., 2.])
-        initial_matrix_vec = self.group.lie_algebra.matrix_representation(
-            initial_vec)
-        vector_exp = vector_group.left_canonical_metric.exp(initial_vec)
-        result = self.group.left_canonical_metric.exp(initial_matrix_vec)
-        expected = vector_group.matrix_from_vector(vector_exp)
+    def test_group_exp_from_identity(self, n, point_type, tangent_vec, expected):
+        group = self.space(n, point_type)
+        result = group.exp(base_point=group.identity, tangent_vec=tangent_vec)
         self.assertAllClose(result, expected)
 
-    def test_right_exp_coincides(self):
-        vector_group = SpecialEuclidean(n=2, point_type='vector')
-        theta = gs.pi / 2
-        initial_vec = gs.array([theta, 1., 1.])
-        initial_matrix_vec = self.group.lie_algebra.matrix_representation(
-            initial_vec)
+    def test_group_log_from_identity(self, n, point_type, point, expected):
+        group = self.space(n, point_type)
+        result = group.log(base_point=group.identity, point=point)
+        self.assertAllClose(result, expected)
+
+
+class TestSpecialEuclideanMatrixLieAlgebra(
+    MatrixLieAlgebraTestCase, metaclass=Parametrizer
+):
+    space = algebra = SpecialEuclideanMatrixLieAlgebra
+
+    testing_data = SpecialEuclideanMatrixLieAlgebraTestData()
+
+    def test_dim(self, n, expected):
+        algebra = self.space(n)
+        self.assertAllClose(algebra.dim, expected)
+
+    def test_belongs(self, n, vec, expected):
+        algebra = self.space(n)
+        self.assertAllClose(algebra.belongs(gs.array(vec)), gs.array(expected))
+
+
+class TestSpecialEuclideanMatrixCanonicalLeftMetric(
+    InvariantMetricTestCase,
+    metaclass=Parametrizer,
+):
+
+    metric = connection = SpecialEuclideanMatrixCannonicalLeftMetric
+    skip_test_exp_geodesic_ivp = True
+    skip_test_exp_shape = True
+
+    testing_data = SpecialEuclideanMatrixCanonicalLeftMetricTestData()
+
+    def test_left_metric_wrong_group(self, group, expected):
+        with expected:
+            self.metric(group)
+
+
+class TestSpecialEuclideanMatrixCanonicalRightMetric(
+    InvariantMetricTestCase,
+    metaclass=Parametrizer,
+):
+
+    metric = connection = InvariantMetric
+    skip_test_exp_geodesic_ivp = True
+    skip_test_exp_shape = np_backend()
+    skip_test_log_shape = np_backend()
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_squared_dist_is_symmetric = np_backend()
+    skip_test_log_after_exp = True
+    skip_test_exp_after_log = True
+    skip_test_log_is_tangent = np_backend()
+    skip_test_geodesic_bvp_belongs = np_backend()
+    skip_test_exp_ladder_parallel_transport = np_backend()
+    skip_test_geodesic_ivp_belongs = True
+    skip_test_exp_belongs = np_backend()
+    skip_test_squared_dist_is_symmetric = True
+    skip_test_dist_is_norm_of_log = True
+    skip_test_dist_is_positive = np_backend()
+    skip_test_triangle_inequality_of_dist = np_backend()
+    skip_test_dist_is_symmetric = True
+    skip_test_dist_point_to_itself_is_zero = True
+    skip_test_squared_dist_is_positive = np_backend()
+    skip_test_exp_after_log_at_identity = np_backend()
+    skip_test_log_after_exp_at_identity = np_backend()
+    skip_test_log_at_identity_belongs_to_lie_algebra = np_backend()
+
+    testing_data = SpecialEuclideanMatrixCanonicalRightMetricTestData()
+
+    def test_right_exp_coincides(self, n, initial_vec):
+        group = SpecialEuclidean(n=n)
+        vector_group = SpecialEuclidean(n=n, point_type="vector")
+        initial_matrix_vec = group.lie_algebra.matrix_representation(initial_vec)
         vector_exp = vector_group.right_canonical_metric.exp(initial_vec)
-        result = self.group.right_canonical_metric.exp(
-            initial_matrix_vec, n_steps=25)
+        result = group.right_canonical_metric.exp(initial_matrix_vec, n_steps=25)
         expected = vector_group.matrix_from_vector(vector_exp)
         self.assertAllClose(result, expected, atol=1e-6)
 
-    def test_basis_belongs(self):
-        lie_algebra = self.group.lie_algebra
-        result = lie_algebra.belongs(lie_algebra.basis)
-        self.assertTrue(gs.all(result))
 
-    def test_basis_has_the_right_dimension(self):
-        for n in range(2, 5):
-            algebra = SpecialEuclideanMatrixLieAlgebra(n)
-            self.assertEqual(int(n * (n + 1) / 2), algebra.dim)
+class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
+    space = SpecialEuclidean
 
-    def test_belongs_lie_algebra(self):
-        theta = gs.pi / 3
-        vec_1 = gs.array([
-            [0., - theta, 2.],
-            [theta, 0., 3.],
-            [0., 0., 0.]])
-        result = self.group.lie_algebra.belongs(vec_1)
-        expected = True
+    testing_data = SpecialEuclidean3VectorsTestData()
+
+    @geomstats.tests.np_and_autograd_only
+    def test_exp_after_log(self, metric, point, base_point):
+        """
+        Test that the Riemannian right exponential and the
+        Riemannian right logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        group = SpecialEuclidean(3, "vector")
+        result = metric.exp(metric.log(point, base_point), base_point)
+        expected = group.regularize(point)
+        expected = gs.cast(expected, gs.float64)
+        norm = gs.linalg.norm(expected)
+        atol = ATOL
+        if norm != 0:
+            atol = ATOL * norm
+        self.assertAllClose(result, expected, atol=atol)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_exp_after_log_right_with_angles_close_to_pi(
+        self, metric, point, base_point
+    ):
+        group = SpecialEuclidean(3, "vector")
+        result = metric.exp(metric.log(point, base_point), base_point)
+        expected = group.regularize(point)
+
+        inv_expected = gs.concatenate([-expected[:3], expected[3:6]])
+
+        norm = gs.linalg.norm(expected)
+        atol = ATOL
+        if norm != 0:
+            atol = ATOL * norm
+
+        self.assertTrue(
+            gs.allclose(result, expected, atol=atol)
+            or gs.allclose(result, inv_expected, atol=atol)
+        )
+
+    @geomstats.tests.np_and_autograd_only
+    def test_log_after_exp_with_angles_close_to_pi(
+        self, metric, tangent_vec, base_point
+    ):
+        """
+        Test that the Riemannian left exponential and the
+        Riemannian left logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        group = SpecialEuclidean(3, "vector")
+        result = metric.log(metric.exp(tangent_vec, base_point), base_point)
+
+        expected = group.regularize_tangent_vec(
+            tangent_vec=tangent_vec, base_point=base_point, metric=metric
+        )
+
+        inv_expected = gs.concatenate([-expected[:3], expected[3:6]])
+
+        norm = gs.linalg.norm(expected)
+        atol = ATOL
+        if norm != 0:
+            atol = ATOL * norm
+
+        self.assertTrue(
+            gs.allclose(result, expected, atol=atol)
+            or gs.allclose(result, inv_expected, atol=atol)
+        )
+
+    @geomstats.tests.np_and_autograd_only
+    def test_log_after_exp(self, metric, tangent_vec, base_point):
+        """
+        Test that the Riemannian left exponential and the
+        Riemannian left logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        group = SpecialEuclidean(3, "vector")
+        result = metric.log(metric.exp(tangent_vec, base_point), base_point)
+
+        expected = group.regularize_tangent_vec(
+            tangent_vec=tangent_vec, base_point=base_point, metric=metric
+        )
+
+        norm = gs.linalg.norm(expected)
+        atol = ATOL
+        if norm != 0:
+            atol = ATOL * norm
+        self.assertAllClose(result, expected, atol=atol)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_exp(self, metric, base_point, tangent_vec, expected):
+        result = metric.exp(base_point=base_point, tangent_vec=tangent_vec)
         self.assertAllClose(result, expected)
 
-        vec_2 = gs.array([
-            [0., - theta, 2.],
-            [theta, 0., 3.],
-            [0., 0., 1.]])
-        result = self.group.lie_algebra.belongs(vec_2)
-        expected = False
+    @geomstats.tests.np_and_autograd_only
+    def test_log(self, metric, point, base_point, expected):
+        result = metric.log(point, base_point)
         self.assertAllClose(result, expected)
-
-        vec = gs.array([vec_1, vec_2])
-        expected = gs.array([True, False])
-        result = self.group.lie_algebra.belongs(vec)
-        self.assertAllClose(result, expected)
-
-    def test_basis_representation_is_correctly_vectorized(self):
-        for n in range(2, 5):
-            algebra = SpecialEuclideanMatrixLieAlgebra(n)
-            shape = gs.shape(algebra.basis_representation(algebra.basis))
-            dim = int(n * (n + 1) / 2)
-            self.assertAllClose(shape, (dim, dim))
-
-    def test_left_metric_wrong_group(self):
-        group = self.group.rotations
-        self.assertRaises(
-            ValueError,
-            lambda: SpecialEuclideanMatrixCannonicalLeftMetric(group))
-
-        group = SpecialEuclidean(3, point_type='vector')
-        self.assertRaises(
-            ValueError,
-            lambda: SpecialEuclideanMatrixCannonicalLeftMetric(group))
-
-    def test_exp_and_belongs(self):
-        exp = self.group.left_canonical_metric.exp(
-            self.tangent_vec, self.point)
-        result = self.group.belongs(exp)
-        self.assertTrue(gs.all(result))
-
-        exp = self.group.left_canonical_metric.exp(
-            self.tangent_vec[0], self.point[0])
-        result = self.group.belongs(exp)
-        self.assertTrue(result)
 
     @geomstats.tests.np_autograd_and_tf_only
-    def test_log_and_is_tan(self):
-        exp = self.group.left_canonical_metric.exp(
-            self.tangent_vec, self.point)
-        log = self.group.left_canonical_metric.log(exp, self.point)
-        result = self.group.is_tangent(log, self.point)
-        self.assertTrue(gs.all(result))
-
-        exp = self.group.left_canonical_metric.exp(
-            self.tangent_vec[0], self.point[0])
-        log = self.group.left_canonical_metric.log(exp, self.point)
-        result = self.group.is_tangent(log, self.point)
-        self.assertTrue(gs.all(result))
-
-        log = self.group.left_canonical_metric.log(exp, self.point[0])
-        result = self.group.is_tangent(log, self.point[0])
-        self.assertTrue(result)
-
-    @geomstats.tests.np_autograd_and_tf_only
-    def test_exp_log(self):
-        exp = self.group.left_canonical_metric.exp(
-            self.tangent_vec, self.point)
-        result = self.group.left_canonical_metric.log(exp, self.point)
-        self.assertAllClose(result, self.tangent_vec)
-
-        exp = self.group.left_canonical_metric.exp(
-            self.tangent_vec[0], self.point[0])
-        result = self.group.left_canonical_metric.log(exp, self.point[0])
-        self.assertAllClose(result, self.tangent_vec[0])
-
-    def test_parallel_transport(self):
-        metric = self.group.left_canonical_metric
-        shape = (self.n_samples, self.group.n + 1, self.group.n + 1)
-
-        results = helper.test_parallel_transport(self.group, metric, shape)
-        for res in results:
-            self.assertTrue(res)
-
-    def test_lie_algebra_basis_belongs(self):
-        basis = self.group.lie_algebra.basis
-        result = self.group.lie_algebra.belongs(basis)
-        self.assertTrue(gs.all(result))
-
-    def test_lie_algebra_projection_and_belongs(self):
-        vec = gs.random.rand(
-            self.n_samples, self.group.n + 1, self.group.n + 1)
-        tangent_vec = self.group.lie_algebra.projection(vec)
-        result = self.group.lie_algebra.belongs(tangent_vec)
-        self.assertTrue(gs.all(result))
-
-    def test_basis_representation(self):
-        vec = gs.random.rand(self.n_samples, self.group.dim)
-        tangent_vec = self.group.lie_algebra.matrix_representation(vec)
-        result = self.group.lie_algebra.basis_representation(tangent_vec)
-        self.assertAllClose(result, vec)
-
-        result = self.group.lie_algebra.basis_representation(tangent_vec[0])
-        self.assertAllClose(result, vec[0])
-
-    def test_metrics_expected_point_type(self):
-        left = self.group.left_canonical_metric
-        right = self.group.right_canonical_metric
-        metric = self.group.metric
-        for m in [left, right, metric]:
-            self.assertTrue(m.default_point_type == 'matrix')
-
-    def test_metric_left_invariant(self):
-        group = self.group
-        point = group.random_point()
-        expected = group.left_canonical_metric.norm(self.tangent_vec)
-
-        translated = group.tangent_translation_map(point)(self.tangent_vec)
-        result = group.left_canonical_metric.norm(translated)
+    def test_regularize_extreme_cases(self, point, expected):
+        group = SpecialEuclidean(3, "vector")
+        result = group.regularize(point)
         self.assertAllClose(result, expected)
-
-    def test_projection_and_belongs(self):
-        shape = (self.n_samples, self.n + 1, self.n + 1)
-        result = helper.test_projection_and_belongs(self.group, shape)
-        for res in result:
-            self.assertTrue(res)

@@ -12,12 +12,11 @@ from geomstats.learning.frechet_mean import FrechetMean
 
 
 class TestExponentialBarycenter(geomstats.tests.TestCase):
-
-    def setUp(self):
+    def setup_method(self):
         logger = logging.getLogger()
         logger.disabled = True
         self.se_mat = SpecialEuclidean(n=3)
-        self.so_vec = SpecialOrthogonal(n=3, point_type='vector')
+        self.so_vec = SpecialOrthogonal(n=3, point_type="vector")
         self.so = SpecialOrthogonal(n=3)
         self.n_samples = 4
 
@@ -144,8 +143,12 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         estimator.fit(point)
         result = estimator.estimate_
         frechet_estimator = FrechetMean(
-            self.so.bi_invariant_metric, max_iter=40, epsilon=1e-10, lr=1.,
-            method='adaptive')
+            self.so.bi_invariant_metric,
+            max_iter=40,
+            epsilon=1e-10,
+            method="adaptive",
+            init_step_size=1.0,
+        )
         frechet_estimator.fit(point)
         expected = frechet_estimator.estimate_
         self.assertAllClose(result, expected, atol=1e-6)

@@ -1,55 +1,55 @@
 """Unit tests for the Poincare Polydisk."""
 
-
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hyperboloid import Hyperboloid
-from geomstats.geometry.poincare_polydisk import PoincarePolydisk
+from geomstats.geometry.poincare_polydisk import (
+    PoincarePolydisk,
+    PoincarePolydiskMetric,
+)
+from tests.conftest import Parametrizer, TestCase
+from tests.data.poincare_polydisk_data import (
+    PoincarePolydiskMetricTestData,
+    PoincarePolydiskTestData,
+)
+from tests.geometry_test_cases import OpenSetTestCase
 
 
-class TestPoincarePolydisk(geomstats.tests.TestCase):
-    """Class defining the Poincare polydisk tests."""
+class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
+    space = PoincarePolydisk
 
-    def setUp(self):
-        """Define the elements to test."""
-        gs.random.seed(1234)
-        self.n_disks = 5
-        self.space = PoincarePolydisk(n_disks=self.n_disks)
-        self.metric = self.space.metric
+    skip_test_to_tangent_is_tangent_in_ambient_space = True
+    skip_test_to_tangent_is_tangent = True
 
-    def test_dimension(self):
-        """Test the dimension."""
-        expected = self.n_disks * 2
-        result = self.space.dim
-        self.assertAllClose(result, expected)
+    testing_data = PoincarePolydiskTestData()
 
-    def test_metric_signature(self):
-        """Test the signature."""
-        expected = (self.n_disks * 2, 0)
-        result = self.metric.signature
-        self.assertAllClose(result, expected)
+    def test_dimension(self, n_disks, expected):
+        space = PoincarePolydisk(n_disks)
+        self.assertAllClose(space.dim, expected)
+
+
+class TestPoincarePolydiskMetric(TestCase, metaclass=Parametrizer):
+    metric = connection = PoincarePolydiskMetric
+
+    testing_data = PoincarePolydiskMetricTestData()
+
+    def test_signature(self, n_disks, expected):
+        metric = PoincarePolydiskMetric(n_disks)
+        self.assertAllClose(metric.signature, expected)
 
     @geomstats.tests.np_autograd_and_torch_only
-    def test_product_distance_extrinsic_representation(self):
-        """Test the distance using the extrinsic representation."""
-        coords_type = 'extrinsic'
-        point_a_intrinsic = gs.array([0.01, 0.0])
-        point_b_intrinsic = gs.array([0.0, 0.0])
-        hyperbolic_space = Hyperboloid(dim=2)
-        point_a = hyperbolic_space.from_coordinates(
-            point_a_intrinsic, 'intrinsic')
-        point_b = hyperbolic_space.from_coordinates(
-            point_b_intrinsic, 'intrinsic')
+    def test_product_distance_extrinsic_representation(
+        self, n_disks, point_a_extrinsic, point_b_extrinsic
+    ):
+        duplicate_point_a = gs.stack([point_a_extrinsic, point_a_extrinsic], axis=0)
+        duplicate_point_b = gs.stack([point_b_extrinsic, point_b_extrinsic], axis=0)
 
-        duplicate_point_a = gs.stack([point_a, point_a], axis=0)
-        duplicate_point_b = gs.stack([point_b, point_b], axis=0)
+        single_disk = PoincarePolydisk(n_disks=n_disks, coords_type="extrinsic")
+        two_disks = PoincarePolydisk(n_disks=2 * n_disks, coords_type="extrinsic")
 
-        single_disk = PoincarePolydisk(n_disks=1, coords_type=coords_type)
-        two_disks = PoincarePolydisk(n_disks=2, coords_type=coords_type)
-
-        distance_single_disk = single_disk.metric.dist(point_a, point_b)
-        distance_two_disks = two_disks.metric.dist(
-            duplicate_point_a, duplicate_point_b)
+        distance_single_disk = single_disk.metric.dist(
+            point_a_extrinsic[None, :], point_b_extrinsic[None, :]
+        )
+        distance_two_disks = two_disks.metric.dist(duplicate_point_a, duplicate_point_b)
         result = distance_two_disks
-        expected = 3 ** 0.5 * distance_single_disk
+        expected = 3**0.5 * distance_single_disk
         self.assertAllClose(result, expected)

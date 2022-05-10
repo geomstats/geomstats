@@ -18,13 +18,14 @@ def detach(x):
     return x
 
 
-def value_and_grad(func):
+def value_and_grad(*args, **kwargs):
     """Return an error when using automatic differentiation with numpy."""
     raise RuntimeError(
         "Automatic differentiation is not supported with numpy backend. "
         "Use autograd, pytorch or tensorflow backend instead.\n"
         "Change backend via the command "
-        "export GEOMSTATS_BACKEND=autograd in a terminal.")
+        "export GEOMSTATS_BACKEND=autograd in a terminal."
+    )
 
 
 def jacobian(func):
@@ -33,7 +34,8 @@ def jacobian(func):
         "Automatic differentiation is not supported with numpy backend. "
         "Use autograd, pytorch or tensorflow backend instead.\n"
         "Change backend via the command "
-        "export GEOMSTATS_BACKEND=autograd in a terminal.")
+        "export GEOMSTATS_BACKEND=autograd in a terminal."
+    )
 
 
 def custom_gradient(*grad_funcs):
@@ -41,6 +43,8 @@ def custom_gradient(*grad_funcs):
 
     This is a placeholder in order to have consistent backend APIs.
     """
+
     def decorator(func):
         return func
+
     return decorator

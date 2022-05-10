@@ -1,18 +1,20 @@
-"""Statistical Manifold of categorical distributions with the Fisher metric."""
+"""Statistical Manifold of categorical distributions with the Fisher metric.
 
-from scipy.stats import dirichlet
-from scipy.stats import multinomial
+Lead author: Alice Le Brigant.
+"""
+
+from scipy.stats import dirichlet, multinomial
 
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.base import EmbeddedManifold
+from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import HypersphereMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class CategoricalDistributions(EmbeddedManifold):
+class CategoricalDistributions(LevelSet):
     r"""Class for the manifold of categorical distributions.
 
     This is the set of $n+1$-tuples of positive reals that sum up to one,
@@ -31,9 +33,12 @@ class CategoricalDistributions(EmbeddedManifold):
 
     def __init__(self, dim):
         super(CategoricalDistributions, self).__init__(
-            dim=dim, embedding_space=Euclidean(dim + 1),
-            submersion=lambda x: gs.sum(x, axis=-1), value=1.,
-            tangent_submersion=lambda v, x: gs.sum(v, axis=-1))
+            dim=dim,
+            embedding_space=Euclidean(dim + 1),
+            submersion=lambda x: gs.sum(x, axis=-1),
+            value=1.0,
+            tangent_submersion=lambda v, x: gs.sum(v, axis=-1),
+        )
         self.metric = CategoricalMetric(dim=dim)
 
     def random_point(self, n_samples=1):
@@ -77,8 +82,7 @@ class CategoricalDistributions(EmbeddedManifold):
         geomstats.errors.check_belongs(point, self.embedding_space)
         point_quadrant = gs.where(point < atol, atol, point)
         norm = gs.sum(point_quadrant, axis=-1)
-        projected_point = gs.einsum('...,...i->...i', 1. / norm,
-                                    point_quadrant)
+        projected_point = gs.einsum("...,...i->...i", 1.0 / norm, point_quadrant)
         return projected_point
 
     def to_tangent(self, vector, base_point=None):
@@ -168,8 +172,9 @@ class CategoricalMetric(RiemannianMetric):
             Inner-product matrix.
         """
         if base_point is None:
-            raise ValueError('A base point must be given to compute the '
-                             'metric matrix')
+            raise ValueError(
+                "A base point must be given to compute the " "metric matrix"
+            )
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         mat = from_vector_to_diagonal_matrix(1 / base_point)
         return gs.squeeze(mat)
@@ -190,7 +195,7 @@ class CategoricalMetric(RiemannianMetric):
         point_sphere : array-like, shape=[..., dim + 1]
             Point on the sphere.
         """
-        return point**(1 / 2)
+        return point ** (1 / 2)
 
     @staticmethod
     def sphere_to_simplex(point):
@@ -231,8 +236,8 @@ class CategoricalMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         tangent_vec_sphere = gs.einsum(
-            '...i,...i->...i', tangent_vec,
-            1 / (2 * self.simplex_to_sphere(base_point)))
+            "...i,...i->...i", tangent_vec, 1 / (2 * self.simplex_to_sphere(base_point))
+        )
         return gs.squeeze(tangent_vec_sphere)
 
     @staticmethod
@@ -256,8 +261,7 @@ class CategoricalMetric(RiemannianMetric):
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        tangent_vec_simplex = gs.einsum(
-            '...i,...i->...i', tangent_vec, 2 * base_point)
+        tangent_vec_simplex = gs.einsum("...i,...i->...i", tangent_vec, 2 * base_point)
         return gs.squeeze(tangent_vec_simplex)
 
     def exp(self, tangent_vec, base_point):
@@ -281,10 +285,8 @@ class CategoricalMetric(RiemannianMetric):
             initial velocity tangent_vec and stopping at time 1.
         """
         base_point_sphere = self.simplex_to_sphere(base_point)
-        tangent_vec_sphere = self.tangent_simplex_to_sphere(
-            tangent_vec, base_point)
-        exp_sphere = self.sphere_metric.exp(
-            tangent_vec_sphere, base_point_sphere)
+        tangent_vec_sphere = self.tangent_simplex_to_sphere(tangent_vec, base_point)
+        exp_sphere = self.sphere_metric.exp(tangent_vec_sphere, base_point_sphere)
 
         return self.sphere_to_simplex(exp_sphere)
 
@@ -310,13 +312,11 @@ class CategoricalMetric(RiemannianMetric):
         """
         point_sphere = self.simplex_to_sphere(point)
         base_point_sphere = self.simplex_to_sphere(base_point)
-        log_sphere = self.sphere_metric.log(
-            point_sphere, base_point_sphere)
+        log_sphere = self.sphere_metric.log(point_sphere, base_point_sphere)
 
         return self.tangent_sphere_to_simplex(log_sphere, base_point_sphere)
 
-    def geodesic(self, initial_point, end_point=None,
-                 initial_tangent_vec=None):
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
@@ -351,9 +351,11 @@ class CategoricalMetric(RiemannianMetric):
             end_point_sphere = self.simplex_to_sphere(end_point)
         if initial_tangent_vec is not None:
             vec_sphere = self.tangent_simplex_to_sphere(
-                initial_tangent_vec, initial_point)
+                initial_tangent_vec, initial_point
+            )
         geodesic_sphere = self.sphere_metric.geodesic(
-            initial_point_sphere, end_point_sphere, vec_sphere)
+            initial_point_sphere, end_point_sphere, vec_sphere
+        )
 
         def path(t):
             """Generate parameterized function for geodesic curve.

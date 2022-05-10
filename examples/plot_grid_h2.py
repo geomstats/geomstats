@@ -10,12 +10,7 @@ H2 = Hyperboloid(dim=2)
 METRIC = H2.metric
 
 
-def main(left=-4.,
-         right=4.,
-         bottom=-4.,
-         top=4.,
-         grid_size=32,
-         n_steps=512):
+def main(left=-4.0, right=4.0, bottom=-4.0, top=4.0, grid_size=32, n_steps=512):
     """Plot a grid on H2 with Poincare Disk visualization.
 
     Parameters
@@ -35,19 +30,19 @@ def main(left=-4.,
     for p in gs.linspace(top, bottom, grid_size):
         starts.append(gs.array([p, left]))
         ends.append(gs.array([p, right]))
-    starts = [H2.from_coordinates(s, 'intrinsic') for s in starts]
-    ends = [H2.from_coordinates(e, 'intrinsic') for e in ends]
+    starts = [H2.from_coordinates(s, "intrinsic") for s in starts]
+    ends = [H2.from_coordinates(e, "intrinsic") for e in ends]
     ax = plt.gca()
     for start, end in zip(starts, ends):
-        geodesic = METRIC.geodesic(
-            initial_point=start, end_point=end)
+        geodesic = METRIC.geodesic(initial_point=start, end_point=end)
 
-        t = gs.linspace(0., 1., n_steps)
+        t = gs.linspace(0.0, 1.0, n_steps)
         points_to_plot = geodesic(t)
         visualization.plot(
-            points_to_plot, ax=ax, space='H2_poincare_disk', marker='.', s=1)
+            points_to_plot, ax=ax, space="H2_poincare_disk", marker=".", s=1
+        )
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

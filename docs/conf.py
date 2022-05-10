@@ -2,23 +2,22 @@
 
 import geomstats
 
-
-project = 'Geomstats'
-copyright = '2019-2020, Geomstats, Inc.'
-author = 'Geomstats Team'
+project = "Geomstats"
+copyright = "2022-2023, Geomstats, Inc."
+author = "Geomstats Team"
 release = version = geomstats.__version__
 
 extensions = [
-    'nbsphinx',
-    'nbsphinx_link',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.coverage',
-    'sphinx.ext.doctest',
-    'sphinx.ext.githubpages',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.viewcode',
-    'sphinx_gallery.load_style',
+    "nbsphinx",
+    "nbsphinx_link",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.coverage",
+    "sphinx.ext.doctest",
+    "sphinx.ext.githubpages",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx_gallery.load_style",
 ]
 
 # Configure napoleon for numpy docstring
@@ -35,19 +34,19 @@ nbsphinx_execute_arguments = [
     "--InlineBackend.rc={'figure.dpi': 96}",
 ]
 
-nbsphinx_execute = 'never'
+nbsphinx_execute = "never"
 
 # To get a prompt similar to the Classic Notebook, use
-nbsphinx_input_prompt = ' In [%s]:'
-nbsphinx_output_prompt = ' Out [%s]:'
+nbsphinx_input_prompt = " In [%s]:"
+nbsphinx_output_prompt = " Out [%s]:"
 
 nbsphinx_allow_errors = True
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
-source_suffix = ['.rst', '.ipynb']
+source_suffix = [".rst"]
 
-master_doc = 'index'
+master_doc = "index"
 
 language = None
 
@@ -74,35 +73,43 @@ nbsphinx_prolog = (
     \nbsphinxstartnotebook{\scriptsize\noindent\strut
     \textcolor{gray}{The following section was generated from
     \sphinxcode{\sphinxupquote{\strut {{ docname | escape_latex }}}} \dotfill}}
-    """)
-exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']
+    """
+)
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
 pygments_style = None
 
-html_theme = 'sphinx_rtd_theme'
-html_baseurl = 'geomstats.github.io'
-htmlhelp_basename = 'geomstatsdoc'
-html_last_updated_fmt = '%c'
+html_theme = "sphinx_rtd_theme"
+html_baseurl = "geomstats.github.io"
+htmlhelp_basename = "geomstatsdoc"
+html_last_updated_fmt = "%c"
 
-latex_elements = {
-}
+latex_elements = {}
 
 
 latex_documents = [
-    (master_doc, 'geomstats.tex', 'geomstats Documentation',
-     'Geomstats Team', 'manual'),
+    (
+        master_doc,
+        "geomstats.tex",
+        "geomstats Documentation",
+        "Geomstats Team",
+        "manual",
+    ),
 ]
 
-man_pages = [
-    (master_doc, 'geomstats', 'geomstats Documentation',
-     [author], 1)
-]
+man_pages = [(master_doc, "geomstats", "geomstats Documentation", [author], 1)]
 
 texinfo_documents = [
-    (master_doc, 'geomstats', 'geomstats Documentation',
-     author, 'geomstats', 'One line description of project.',
-     'Miscellaneous'),
+    (
+        master_doc,
+        "geomstats",
+        "geomstats Documentation",
+        author,
+        "geomstats",
+        "One line description of project.",
+        "Miscellaneous",
+    ),
 ]
 
 epub_title = project
-epub_exclude_files = ['search.html']
+epub_exclude_files = ["search.html"]

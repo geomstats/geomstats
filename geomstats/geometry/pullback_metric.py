@@ -1,4 +1,7 @@
-"""Classes for the pullback metric."""
+"""Classes for the pullback metric.
+
+Lead author: Nina Miolane.
+"""
 
 import itertools
 
@@ -37,8 +40,13 @@ class PullbackMetric(RiemannianMetric):
     """
 
     def __init__(
-            self, dim, embedding_dim, immersion,
-            jacobian_immersion=None, tangent_immersion=None):
+        self,
+        dim,
+        embedding_dim,
+        immersion,
+        jacobian_immersion=None,
+        tangent_immersion=None,
+    ):
         super(PullbackMetric, self).__init__(dim=dim)
         self.embedding_metric = EuclideanMetric(embedding_dim)
         self.immersion = immersion
@@ -46,9 +54,10 @@ class PullbackMetric(RiemannianMetric):
             jacobian_immersion = gs.autodiff.jacobian(immersion)
         self.jacobian_immersion = jacobian_immersion
         if tangent_immersion is None:
+
             def _tangent_immersion(v, x):
-                return gs.matmul(
-                    jacobian_immersion(x), v)
+                return gs.matmul(jacobian_immersion(x), v)
+
         self.tangent_immersion = _tangent_immersion
 
     def metric_matrix(self, base_point=None, n_jobs=1, **joblib_kwargs):
@@ -81,19 +90,19 @@ class PullbackMetric(RiemannianMetric):
         @joblib.delayed
         @joblib.wrap_non_picklable_objects
         def pickable_inner_product(i, j):
-            immersed_basis_element_i = gs.matmul(
-                jacobian_immersion, basis_elements[i])
-            immersed_basis_element_j = gs.matmul(
-                jacobian_immersion, basis_elements[j])
+            immersed_basis_element_i = gs.matmul(jacobian_immersion, basis_elements[i])
+            immersed_basis_element_j = gs.matmul(jacobian_immersion, basis_elements[j])
             return self.embedding_metric.inner_product(
                 immersed_basis_element_i,
                 immersed_basis_element_j,
-                base_point=immersed_base_point)
+                base_point=immersed_base_point,
+            )
 
         pool = joblib.Parallel(n_jobs=n_jobs, **joblib_kwargs)
         out = pool(
             pickable_inner_product(i, j)
-            for i, j in itertools.product(range(self.dim), range(self.dim)))
+            for i, j in itertools.product(range(self.dim), range(self.dim))
+        )
 
         metric_mat = gs.reshape(gs.array(out), (-1, self.dim, self.dim))
         return metric_mat[0] if base_point.ndim == 1 else metric_mat

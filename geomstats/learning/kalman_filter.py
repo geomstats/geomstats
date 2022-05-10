@@ -1,4 +1,7 @@
-"""Kalman filter on Lie groups, with two local test system models."""
+"""Kalman filter on Lie groups, with two local test system models.
+
+Lead author: Paul Chauchat.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
@@ -66,8 +69,7 @@ class LocalizationLinear:
         dt, _ = sensor_input
         dim = LocalizationLinear.dim
         position_line = gs.hstack((gs.eye(dim // 2), dt * gs.eye(dim // 2)))
-        speed_line = gs.hstack((
-            gs.zeros((dim // 2, dim // 2)), gs.eye(dim // 2)))
+        speed_line = gs.hstack((gs.zeros((dim // 2, dim // 2)), gs.eye(dim // 2)))
         jac = gs.vstack((position_line, speed_line))
         return jac
 
@@ -179,7 +181,7 @@ class Localization:
     sparse position observations.
     """
 
-    group = SpecialEuclidean(2, 'vector')
+    group = SpecialEuclidean(2, "vector")
     dim = group.dim
     dim_rot = group.rotations.dim
     dim_noise = 3
@@ -206,8 +208,11 @@ class Localization:
         angular_vel : array-like, shape=[dim_rot]
             Angular velocity.
         """
-        return sensor_input[0], sensor_input[1:Localization.group.n + 1],\
-            sensor_input[Localization.group.n + 1:]
+        return (
+            sensor_input[0],
+            sensor_input[1 : Localization.group.n + 1],
+            sensor_input[Localization.group.n + 1 :],
+        )
 
     @staticmethod
     def rotation_matrix(theta):
@@ -256,14 +261,12 @@ class Localization:
             Adjoint representation of the state.
         """
         theta, _, _ = state
-        tangent_base = gs.array([[0., -1.],
-                                 [1., 0.]])
+        tangent_base = gs.array([[0.0, -1.0], [1.0, 0.0]])
         orientation_part = gs.eye(Localization.dim_rot, Localization.dim)
         pos_column = gs.reshape(state[1:], (Localization.group.n, 1))
-        position_wrt_orientation = Matrices.mul(- tangent_base, pos_column)
+        position_wrt_orientation = Matrices.mul(-tangent_base, pos_column)
         position_wrt_position = Localization.rotation_matrix(theta)
-        last_lines = gs.hstack((
-            position_wrt_orientation, position_wrt_position))
+        last_lines = gs.hstack((position_wrt_orientation, position_wrt_position))
         ad = gs.vstack((orientation_part, last_lines))
 
         return ad
@@ -289,11 +292,9 @@ class Localization:
         new_state : array-like, shape=[dim]
             Vector representing the propagated state.
         """
-        dt, linear_vel, angular_vel = Localization.preprocess_input(
-            sensor_input)
+        dt, linear_vel, angular_vel = Localization.preprocess_input(sensor_input)
         theta, _, _ = state
-        local_vel = Matrices.mul(
-            Localization.rotation_matrix(theta), linear_vel)
+        local_vel = Matrices.mul(Localization.rotation_matrix(theta), linear_vel)
         new_pos = state[1:] + dt * local_vel
         theta = theta + dt * angular_vel
         theta = Localization.regularize_angle(theta)
@@ -317,10 +318,8 @@ class Localization:
         jacobian : array-like, shape=[dim, dim]
             Jacobian of the propagation.
         """
-        dt, linear_vel, angular_vel = Localization.preprocess_input(
-            sensor_input)
-        input_vector_form = dt * gs.concatenate(
-            (angular_vel, linear_vel), axis=0)
+        dt, linear_vel, angular_vel = Localization.preprocess_input(sensor_input)
+        input_vector_form = dt * gs.concatenate((angular_vel, linear_vel), axis=0)
         input_inv = Localization.group.inverse(input_vector_form)
 
         return Localization.adjoint_map(input_inv)
@@ -362,8 +361,7 @@ class Localization:
         jacobian : array-like, shape=[dim_obs, dim]
             Jacobian of the observation.
         """
-        orientation_part = gs.zeros(
-            (Localization.dim_obs, Localization.dim_rot))
+        orientation_part = gs.zeros((Localization.dim_obs, Localization.dim_rot))
         position_part = gs.eye(Localization.dim_obs, Localization.group.n)
         return gs.hstack((orientation_part, position_part))
 
@@ -408,7 +406,7 @@ class Localization:
         observation : array-like, shape=[dim_obs]
             Expected observation of the state.
         """
-        return state[Localization.dim_rot:]
+        return state[Localization.dim_rot :]
 
     @staticmethod
     def innovation(state, observation):
@@ -453,17 +451,16 @@ class KalmanFilter:
         self.model = model
         self.state = model.group.get_identity()
         self.covariance = gs.zeros((self.model.dim, self.model.dim))
-        self.process_noise = gs.zeros(
-            (self.model.dim_noise, self.model.dim_noise))
-        self.measurement_noise = gs.zeros(
-            (self.model.dim_obs, self.model.dim_obs))
+        self.process_noise = gs.zeros((self.model.dim_noise, self.model.dim_noise))
+        self.measurement_noise = gs.zeros((self.model.dim_obs, self.model.dim_obs))
 
     def initialize_covariances(self, prior_values, process_values, obs_values):
         """Set the values of the covariances."""
         cov_dict = {
-            'covariance': prior_values,
-            'process_noise': process_values,
-            'measurement_noise': obs_values}
+            "covariance": prior_values,
+            "process_noise": process_values,
+            "measurement_noise": obs_values,
+        }
         for attribute, value in cov_dict.items():
             setattr(self, attribute, value)
 
@@ -482,10 +479,8 @@ class KalmanFilter:
         prop_jac = self.model.propagation_jacobian(self.state, sensor_input)
         noise_jac = self.model.noise_jacobian(self.state, sensor_input)
 
-        prop_cov = Matrices.mul(
-            prop_jac, self.covariance, Matrices.transpose(prop_jac))
-        noise_cov = Matrices.mul(
-            noise_jac, prop_noise, Matrices.transpose(noise_jac))
+        prop_cov = Matrices.mul(prop_jac, self.covariance, Matrices.transpose(prop_jac))
+        noise_cov = Matrices.mul(noise_jac, prop_noise, Matrices.transpose(noise_jac))
         self.covariance = prop_cov + noise_cov
         self.state = self.model.propagate(self.state, sensor_input)
 
@@ -507,14 +502,16 @@ class KalmanFilter:
             Kalman gain.
         """
         obs_cov = self.model.get_measurement_noise_cov(
-            self.state, self.measurement_noise)
+            self.state, self.measurement_noise
+        )
         obs_jac = self.model.observation_jacobian(self.state, observation)
         expected_cov = Matrices.mul(
-            obs_jac, self.covariance, Matrices.transpose(obs_jac))
+            obs_jac, self.covariance, Matrices.transpose(obs_jac)
+        )
         innovation_cov = expected_cov + obs_cov
         return Matrices.mul(
-            self.covariance, Matrices.transpose(obs_jac),
-            gs.linalg.inv(innovation_cov))
+            self.covariance, Matrices.transpose(obs_jac), gs.linalg.inv(innovation_cov)
+        )
 
     def update(self, observation):
         r"""Update the current estimate given an observation.

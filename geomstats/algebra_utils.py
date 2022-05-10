@@ -3,74 +3,95 @@ import math
 
 import geomstats.backend as gs
 
-
 EPSILON = 1e-6
-COS_TAYLOR_COEFFS = [1.,
-                     - 1.0 / math.factorial(2),
-                     + 1.0 / math.factorial(4),
-                     - 1.0 / math.factorial(6),
-                     + 1.0 / math.factorial(8)]
-SINC_TAYLOR_COEFFS = [1.,
-                      - 1.0 / math.factorial(3),
-                      + 1.0 / math.factorial(5),
-                      - 1.0 / math.factorial(7),
-                      + 1.0 / math.factorial(9)]
-INV_SINC_TAYLOR_COEFFS = [1, 1. / 6., 7. / 360., 31. / 15120., 127. / 604800.]
-INV_TANC_TAYLOR_COEFFS = [1., - 1. / 3., - 1. / 45., - 2. / 945., - 1. / 4725.]
-COSC_TAYLOR_COEFFS = [1. / 2.,
-                      - 1.0 / math.factorial(4),
-                      + 1.0 / math.factorial(6),
-                      - 1.0 / math.factorial(8),
-                      + 1. / math.factorial(10)]
-VAR_INV_TAN_TAYLOR_COEFFS = [
-    1. / 12., 1. / 720., 1. / 30240., 1. / 1209600.]
-SINHC_TAYLOR_COEFFS = [1.,
-                       1 / math.factorial(3),
-                       1 / math.factorial(5),
-                       1 / math.factorial(7),
-                       1 / math.factorial(9)]
-COSH_TAYLOR_COEFFS = [1.,
-                      1 / math.factorial(2),
-                      1 / math.factorial(4),
-                      1 / math.factorial(6),
-                      1 / math.factorial(8)]
+COS_TAYLOR_COEFFS = [
+    1.0,
+    -1.0 / math.factorial(2),
+    +1.0 / math.factorial(4),
+    -1.0 / math.factorial(6),
+    +1.0 / math.factorial(8),
+]
+SINC_TAYLOR_COEFFS = [
+    1.0,
+    -1.0 / math.factorial(3),
+    +1.0 / math.factorial(5),
+    -1.0 / math.factorial(7),
+    +1.0 / math.factorial(9),
+]
+INV_SINC_TAYLOR_COEFFS = [1, 1.0 / 6.0, 7.0 / 360.0, 31.0 / 15120.0, 127.0 / 604800.0]
+INV_TANC_TAYLOR_COEFFS = [1.0, -1.0 / 3.0, -1.0 / 45.0, -2.0 / 945.0, -1.0 / 4725.0]
+COSC_TAYLOR_COEFFS = [
+    1.0 / 2.0,
+    -1.0 / math.factorial(4),
+    +1.0 / math.factorial(6),
+    -1.0 / math.factorial(8),
+    +1.0 / math.factorial(10),
+]
+VAR_INV_TAN_TAYLOR_COEFFS = [1.0 / 12.0, 1.0 / 720.0, 1.0 / 30240.0, 1.0 / 1209600.0]
+SINHC_TAYLOR_COEFFS = [
+    1.0,
+    1 / math.factorial(3),
+    1 / math.factorial(5),
+    1 / math.factorial(7),
+    1 / math.factorial(9),
+]
+COSH_TAYLOR_COEFFS = [
+    1.0,
+    1 / math.factorial(2),
+    1 / math.factorial(4),
+    1 / math.factorial(6),
+    1 / math.factorial(8),
+]
 INV_SINHC_TAYLOR_COEFFS = [
-    1., - 1. / 6., 7. / 360., - 31. / 15120., 127. / 604800.]
-INV_TANH_TAYLOR_COEFFS = [1., 1. / 3., - 1. / 45., 2. / 945., -1. / 4725.]
-ARCTANH_CARD_TAYLOR_COEFFS = [1., 1. / 3., 1. / 5., 1 / 7., 1. / 9]
+    1.0,
+    -1.0 / 6.0,
+    7.0 / 360.0,
+    -31.0 / 15120.0,
+    127.0 / 604800.0,
+]
+INV_TANH_TAYLOR_COEFFS = [1.0, 1.0 / 3.0, -1.0 / 45.0, 2.0 / 945.0, -1.0 / 4725.0]
+ARCTANH_CARD_TAYLOR_COEFFS = [1.0, 1.0 / 3.0, 1.0 / 5.0, 1 / 7.0, 1.0 / 9]
 
 
-cos_close_0 = {'function': gs.cos, 'coefficients': COS_TAYLOR_COEFFS}
-sinc_close_0 = {
-    'function': lambda x: gs.sin(x) / x, 'coefficients': SINC_TAYLOR_COEFFS}
+cos_close_0 = {"function": gs.cos, "coefficients": COS_TAYLOR_COEFFS}
+sinc_close_0 = {"function": lambda x: gs.sin(x) / x, "coefficients": SINC_TAYLOR_COEFFS}
 inv_sinc_close_0 = {
-    'function': lambda x: x / gs.sin(x),
-    'coefficients': INV_SINC_TAYLOR_COEFFS}
+    "function": lambda x: x / gs.sin(x),
+    "coefficients": INV_SINC_TAYLOR_COEFFS,
+}
 inv_tanc_close_0 = {
-    'function': lambda x: x / gs.tan(x),
-    'coefficients': INV_TANC_TAYLOR_COEFFS}
+    "function": lambda x: x / gs.tan(x),
+    "coefficients": INV_TANC_TAYLOR_COEFFS,
+}
 cosc_close_0 = {
-    'function': lambda x: (1 - gs.cos(x)) / x ** 2,
-    'coefficients': COSC_TAYLOR_COEFFS}
+    "function": lambda x: (1 - gs.cos(x)) / x**2,
+    "coefficients": COSC_TAYLOR_COEFFS,
+}
 var_sinc_close_0 = {
-    'function': lambda x: (x - gs.sin(x)) / x ** 3,
-    'coefficients': [-k for k in SINC_TAYLOR_COEFFS[1:]]}
+    "function": lambda x: (x - gs.sin(x)) / x**3,
+    "coefficients": [-k for k in SINC_TAYLOR_COEFFS[1:]],
+}
 var_inv_tanc_close_0 = {
-    'function': lambda x: (1 - (x / gs.tan(x))) / x ** 2,
-    'coefficients': VAR_INV_TAN_TAYLOR_COEFFS}
+    "function": lambda x: (1 - (x / gs.tan(x))) / x**2,
+    "coefficients": VAR_INV_TAN_TAYLOR_COEFFS,
+}
 sinch_close_0 = {
-    'function': lambda x: gs.sinh(x) / x,
-    'coefficients': SINHC_TAYLOR_COEFFS}
-cosh_close_0 = {'function': gs.cosh, 'coefficients': COSH_TAYLOR_COEFFS}
+    "function": lambda x: gs.sinh(x) / x,
+    "coefficients": SINHC_TAYLOR_COEFFS,
+}
+cosh_close_0 = {"function": gs.cosh, "coefficients": COSH_TAYLOR_COEFFS}
 inv_sinch_close_0 = {
-    'function': lambda x: x / gs.sinh(x),
-    'coefficients': INV_SINHC_TAYLOR_COEFFS}
+    "function": lambda x: x / gs.sinh(x),
+    "coefficients": INV_SINHC_TAYLOR_COEFFS,
+}
 inv_tanh_close_0 = {
-    'function': lambda x: x / gs.tanh(x),
-    'coefficients': INV_TANH_TAYLOR_COEFFS}
+    "function": lambda x: x / gs.tanh(x),
+    "coefficients": INV_TANH_TAYLOR_COEFFS,
+}
 arctanh_card_close_0 = {
-    'function': lambda x: gs.arctanh(x) / x,
-    'coefficients': ARCTANH_CARD_TAYLOR_COEFFS}
+    "function": lambda x: gs.arctanh(x) / x,
+    "coefficients": ARCTANH_CARD_TAYLOR_COEFFS,
+}
 
 
 def from_vector_to_diagonal_matrix(vector, num_diag=0):
@@ -95,7 +116,7 @@ def from_vector_to_diagonal_matrix(vector, num_diag=0):
     num_columns = gs.shape(vector)[-1]
     identity = gs.eye(num_columns)
     identity = gs.cast(identity, vector.dtype)
-    diagonals = gs.einsum('...i,ij->...ij', vector, identity)
+    diagonals = gs.einsum("...i,ij->...ij", vector, identity)
     diagonals = gs.to_ndarray(diagonals, to_ndim=3)
     num_lines = diagonals.shape[0]
     if num_diag > 0:
@@ -112,8 +133,7 @@ def from_vector_to_diagonal_matrix(vector, num_diag=0):
     return gs.squeeze(diagonals) if gs.ndim(vector) == 1 else diagonals
 
 
-def taylor_exp_even_func(
-        point, taylor_function, order=5, tol=EPSILON):
+def taylor_exp_even_func(point, taylor_function, order=5, tol=EPSILON):
     """Taylor Approximation of an even function around zero.
 
     Parameters
@@ -138,10 +158,12 @@ def taylor_exp_even_func(
         Value of the function at point.
     """
     approx = gs.einsum(
-        'k,k...->...', gs.array(taylor_function['coefficients'][:order]),
-        gs.array([point ** k for k in range(order)]))
+        "k,k...->...",
+        gs.array(taylor_function["coefficients"][:order]),
+        gs.array([point**k for k in range(order)]),
+    )
     point_ = gs.where(gs.abs(point) <= tol, tol, point)
-    exact = taylor_function['function'](gs.sqrt(point_))
+    exact = taylor_function["function"](gs.sqrt(point_))
     result = gs.where(gs.abs(point) < tol, approx, exact)
     return result
 
@@ -169,12 +191,10 @@ def flip_determinant(matrix, det):
     """
     if gs.any(det < 0):
         ones = gs.ones(matrix.shape[-1])
-        reflection_vec = gs.concatenate(
-            [ones[:-1], gs.array([-1.])], axis=0)
+        reflection_vec = gs.concatenate([ones[:-1], gs.array([-1.0])], axis=0)
         mask = gs.cast(det < 0, matrix.dtype)
-        sign = (mask[..., None] * reflection_vec
-                + (1. - mask)[..., None] * ones)
-        return gs.einsum('...ij,...j->...ij', matrix, sign)
+        sign = mask[..., None] * reflection_vec + (1.0 - mask)[..., None] * ones
+        return gs.einsum("...ij,...j->...ij", matrix, sign)
     return matrix
 
 
@@ -198,11 +218,11 @@ def rotate_points(points, end_point):
         Points after the rotation.
     """
     n = end_point.shape[0]
-    base_point = gs.array([1.] + [0] * (n - 1))
+    base_point = gs.array([1.0] + [0] * (n - 1))
     embedded = gs.concatenate([end_point[None, :], gs.zeros((n - 1, n))])
     norm = gs.linalg.norm(end_point)
     q, _ = gs.linalg.qr(gs.transpose(embedded) / norm)
     new_points = gs.matmul(points[None, :], gs.transpose(q)) * norm
     if not gs.allclose(gs.matmul(q, base_point[:, None])[:, 0], end_point):
-        new_points = - new_points
+        new_points = -new_points
     return new_points[0]

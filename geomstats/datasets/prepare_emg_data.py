@@ -6,6 +6,8 @@ of the sign change. It then creates batches of data that will be used to
 build the covariance matrices. In practice, one needs to choose the size
 of the batches big enough to get enough information, and small enough so
 that the online classifier is reactive enough.
+
+Lead author: Marius Guerard.
 """
 
 import numpy as np
@@ -33,6 +35,7 @@ class TimeSeriesCovariance:
     margin : int
         Number of index to remove before and after a sign change (Can
         help getting a stationary signal).
+
     Attributes
     ----------
     label_map : dictionary
@@ -73,8 +76,7 @@ class TimeSeriesCovariance:
 
     def _format_labels(self):
         """Convert the labels into digits."""
-        self.data['y'] = gs.array([self.label_map[x]
-                                   for x in self.data['label']])
+        self.data["y"] = gs.array([self.label_map[x] for x in self.data["label"]])
 
     def _create_batches(self):
         """Create the batches used to compute covariance matrices.
@@ -82,11 +84,13 @@ class TimeSeriesCovariance:
         If margin != 0, we add an index margin at each label change
         to get stationary signal corresponding to each label.
         """
-        start_ids = gs.where(np.diff(self.data['y']) != 0)[0]
+        start_ids = gs.where(np.diff(self.data["y"]) != 0)[0]
         end_ids = np.append(start_ids[1:], len(self.data)) - self.margin
         start_ids += self.margin
-        batches_list = [range(start_id, end_id - self.n_steps, self.n_steps)
-                        for start_id, end_id in zip(start_ids, end_ids)]
+        batches_list = [
+            range(start_id, end_id - self.n_steps, self.n_steps)
+            for start_id, end_id in zip(start_ids, end_ids)
+        ]
         self.batches = np.int_(gs.concatenate(batches_list))
 
     def transform(self):
@@ -95,15 +99,14 @@ class TimeSeriesCovariance:
         We also compute the corresponding vectors, variance vector,
         labels, and experiments.
         """
-        if 'y' not in self.data.keys():
+        if "y" not in self.data.keys():
             self._format_labels()
         self._create_batches()
         covs = []
         for i in self.batches:
-            x = self.data['raw_data'][i: i + self.n_steps]
+            x = self.data["raw_data"][i : i + self.n_steps]
             covs.append(np.cov(x.transpose()))
-        self.labels = gs.array(self.data['y'][self.batches])
+        self.labels = gs.array(self.data["y"][self.batches])
         self.covs = gs.array(covs)
-        self.covecs = gs.array([SymmetricMatrices.to_vector(cov)
-                                for cov in self.covs])
+        self.covecs = gs.array([SymmetricMatrices.to_vector(cov) for cov in self.covs])
         self.diags = self.covs.diagonal(0, 1, 2)

@@ -7,7 +7,7 @@ For additional guidelines on how to contribute to geomstats, visit:
 https://geomstats.github.io/contributing.html#contributing-code-workflow
 
 To run these tests:
-- Install packages from geomstats/dev-requirements.txt
+- Install packages from geomstats[dev]
 - In command line, run:
 ```nose2 tests.test__my_manifold``` to run all the tests of this file
 - In command line, run:
@@ -15,7 +15,7 @@ To run these tests:
 to run the test `test_dimension` only.
 
 To run these tests using different backends (numpy, pytorch or tensorflow):
-- Install packages from geomstats/opt-requirements.tct
+- Install packages from geomstats[opt]
 In command line, select the backend of interest with:
 ```export GEOMSTATS_BACKEND=numpy```
  or ```export GEOMSTATS_BACKEND=pytorch```
@@ -30,6 +30,7 @@ add a decorator such as `@geomstats.tests.np_and_autograd_only` or
 # Import the tests module
 import geomstats.backend as gs
 import geomstats.tests
+
 # Import the manifold to be tested
 from geomstats.geometry._my_manifold import MyManifold
 
@@ -44,8 +45,9 @@ class TestMyManifold(geomstats.tests.TestCase):
     - ends with the line: `self.assertAllClose(result, expected)`,
     as in the examples below.
     """
-    def setUp(self):
-        """setUp method.
+
+    def setup_method(self):
+        """Set up unit-tests.
 
         Use the setUp method to define variables that remain constant
         during all tests. For example, here we test the
@@ -53,15 +55,13 @@ class TestMyManifold(geomstats.tests.TestCase):
         """
         self.dimension = 4
         self.another_parameter = 3
-        self.manifold = MyManifold(
-            dim=self.dimension, another_parameter=3)
+        self.manifold = MyManifold(dim=self.dimension, another_parameter=3)
 
     def test_dimension(self):
         """Test dimension.
 
         The method test_dimension tests the `dim` attribute.
         """
-
         result = self.manifold.dim
         expected = self.dimension
         # Each test ends with the following syntax, comparing
@@ -79,7 +79,7 @@ class TestMyManifold(geomstats.tests.TestCase):
         pytorch and tensorflow. `gs.` is the equivalent of numpy's `np.` and
         most of numpy's functions are available with `gs.`.
         """
-        point = gs.array([1., 2., 3.])
+        point = gs.array([1.0, 2.0, 3.0])
         result = self.manifold.belongs(point)
         expected = False
         self.assertAllClose(result, expected)
@@ -90,8 +90,7 @@ class TestMyManifold(geomstats.tests.TestCase):
         All functions and methods should work with several input points,
         or vectors.
         """
-        point = gs.array([
-            [1., 2., 3.], [4., 5., 6.]])
+        point = gs.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
         result = self.manifold.belongs(point)
         expected = gs.array([False, False])
         self.assertAllClose(result, expected)
@@ -107,7 +106,7 @@ class TestMyManifold(geomstats.tests.TestCase):
         pytorch and tensorflow. `gs.` is the equivalent of numpy's `np.` and
         most of numpy's functions are available with `gs.`.
         """
-        vector = gs.array([1., 2., 3., 4.])
+        vector = gs.array([1.0, 2.0, 3.0, 4.0])
         result = self.manifold.is_tangent(vector)
         expected = True
         self.assertAllClose(result, expected)
@@ -118,8 +117,7 @@ class TestMyManifold(geomstats.tests.TestCase):
         All functions and methods should work with several input points,
         or vectors.
         """
-        vector = gs.array([
-            [1., 2., 3., 4.], [5., 6., 7., 8.]])
+        vector = gs.array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]])
         result = self.manifold.is_tangent(vector)
         expected = gs.array([True, True])
         self.assertAllClose(result, expected)

@@ -19,10 +19,12 @@ class Euclidean(VectorSpace):
 
     def __init__(self, dim):
         super(Euclidean, self).__init__(
-            shape=(dim, ), default_point_type='vector',
-            metric=EuclideanMetric(dim))
+            shape=(dim,),
+            default_point_type="vector",
+            metric=EuclideanMetric(dim, shape=(dim,)),
+        )
 
-    def get_identity(self, point_type=None):
+    def get_identity(self):
         """Get the identity of the group.
 
         Parameters
@@ -40,6 +42,10 @@ class Euclidean(VectorSpace):
 
     identity = property(get_identity)
 
+    def _create_basis(self):
+        """Create the canonical basis."""
+        return gs.eye(self.dim)
+
     def exp(self, tangent_vec, base_point=None):
         """Compute the group exponential, which is simply the addition.
 
@@ -56,7 +62,7 @@ class Euclidean(VectorSpace):
             Group exponential.
         """
         if not self.belongs(tangent_vec):
-            raise ValueError('The update must be of the same dimension')
+            raise ValueError("The update must be of the same dimension")
         return tangent_vec + base_point
 
 
@@ -74,10 +80,12 @@ class EuclideanMetric(RiemannianMetric):
         Dimension of the Euclidean space.
     """
 
-    def __init__(self, dim, default_point_type='vector'):
+    def __init__(self, dim, shape=None):
         super(EuclideanMetric, self).__init__(
-            dim=dim, signature=(dim, 0),
-            default_point_type=default_point_type)
+            dim=dim,
+            shape=shape,
+            signature=(dim, 0),
+        )
 
     def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix, independent of the base point.
@@ -114,7 +122,7 @@ class EuclideanMetric(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        return gs.einsum('...i,...i->...', tangent_vec_a, tangent_vec_b)
+        return gs.einsum("...i,...i->...", tangent_vec_a, tangent_vec_b)
 
     def norm(self, vector, base_point=None):
         """Compute norm of a vector.

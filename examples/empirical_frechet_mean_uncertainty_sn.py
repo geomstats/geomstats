@@ -14,11 +14,10 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.frechet_mean import _adaptive_gradient_descent
+from geomstats.learning.frechet_mean import FrechetMean
 
 
-def empirical_frechet_var_bubble(n_samples, theta, dim,
-                                 n_expectation=1000):
+def empirical_frechet_var_bubble(n_samples, theta, dim, n_expectation=1000):
     """Variance of the empirical Fréchet mean for a bubble distribution.
 
     Draw n_sampless from a bubble distribution, computes its empirical
@@ -46,8 +45,7 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
     tuple (variance, std-dev on the computed variance)
     """
     if dim <= 1:
-        raise ValueError(
-            'Dim > 1 needed to draw a uniform sample on sub-sphere.')
+        raise ValueError("Dim > 1 needed to draw a uniform sample on sub-sphere.")
     var = []
     sphere = Hypersphere(dim=dim)
     bubble = Hypersphere(dim=dim - 1)
@@ -65,10 +63,11 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
         rest_col = gs.sin(theta) * directions
         data = gs.concatenate([rest_col, last_col], axis=-1)
 
-        # TODO (nina): Use FrechetMean here
-        current_mean = _adaptive_gradient_descent(
-            data, metric=sphere.metric,
-            max_iter=32, init_point=north_pole)
+        estimator = FrechetMean(
+            sphere.metric, max_iter=32, method="adaptive", init_point=north_pole
+        )
+        estimator.fit(data)
+        current_mean = estimator.estimate_
         var.append(sphere.metric.squared_dist(north_pole, current_mean))
     return gs.mean(var), 2 * gs.std(var) / gs.sqrt(n_expectation)
 
@@ -98,8 +97,9 @@ def modulation_factor(n_samples, theta, dim, n_expectation=1000):
     tuple (modulation factor, std-dev on the modulation factor)
     """
     (var, std_var) = empirical_frechet_var_bubble(
-        n_samples, theta, dim, n_expectation=n_expectation)
-    return var * n_samples / theta ** 2, std_var * n_samples / theta ** 2
+        n_samples, theta, dim, n_expectation=n_expectation
+    )
+    return var * n_samples / theta**2, std_var * n_samples / theta**2
 
 
 def asymptotic_modulation(dim, theta):
@@ -150,28 +150,28 @@ def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
     asymptotic_modulation_factor = []
     for theta_i in theta:
         (var, std_var) = modulation_factor(
-            n_samples, theta_i, dim, n_expectation=n_expectation)
+            n_samples, theta_i, dim, n_expectation=n_expectation
+        )
         measured_modulation_factor.append(var)
         error.append(std_var)
-        logging.info(
-            '{} {} {} {}\n'.format(n_samples, theta_i, var, std_var))
+        logging.info("{} {} {} {}\n".format(n_samples, theta_i, var, std_var))
         small_var_modulation_factor.append(
-            1.0 + 2.0 / 3.0 * theta_i ** 2
-            * (1.0 - 1.0 / dim) * (1.0 - 1.0 / n_samples))
-        asymptotic_modulation_factor.append(
-            asymptotic_modulation(dim, theta_i))
+            1.0 + 2.0 / 3.0 * theta_i**2 * (1.0 - 1.0 / dim) * (1.0 - 1.0 / n_samples)
+        )
+        asymptotic_modulation_factor.append(asymptotic_modulation(dim, theta_i))
     plt.figure()
-    plt.errorbar(theta, measured_modulation_factor,
-                 yerr=error, color='r', label='Measured')
-    plt.plot(theta, small_var_modulation_factor,
-             'g', label='Small variance prediction')
-    plt.plot(theta, asymptotic_modulation_factor,
-             'grey', label='Asymptotic prediction')
-    plt.xlabel(r'Standard deviation $\theta$')
-    plt.ylabel(r'Modulation factor $\alpha$')
-    plt.title('Convergence rate modulation factor, '
-              'sphere dim={1}, n={0}'.format(n_samples, dim))
-    plt.legend(loc='best')
+    plt.errorbar(
+        theta, measured_modulation_factor, yerr=error, color="r", label="Measured"
+    )
+    plt.plot(theta, small_var_modulation_factor, "g", label="Small variance prediction")
+    plt.plot(theta, asymptotic_modulation_factor, "grey", label="Asymptotic prediction")
+    plt.xlabel(r"Standard deviation $\theta$")
+    plt.ylabel(r"Modulation factor $\alpha$")
+    plt.title(
+        "Convergence rate modulation factor, "
+        "sphere dim={1}, n={0}".format(n_samples, dim)
+    )
+    plt.legend(loc="best")
     plt.draw()
     plt.pause(0.01)
     return plt
@@ -189,23 +189,32 @@ def main():
     """
     n_expectation = 10
 
-    logging.info('Var of empirical mean for 1 sample, theta=0.1 '
-                 'in S2 {} \n'.format(empirical_frechet_var_bubble(
-                     1, 0.1, 2, n_expectation=n_expectation)))
-    logging.info('Var of empirical mean for 1 sample, theta=0.1 '
-                 'in S3 {} \n'.format(empirical_frechet_var_bubble(
-                     1, 0.1, 3, n_expectation=n_expectation)))
+    logging.info(
+        "Var of empirical mean for 1 sample, theta=0.1 "
+        "in S2 {} \n".format(
+            empirical_frechet_var_bubble(1, 0.1, 2, n_expectation=n_expectation)
+        )
+    )
+    logging.info(
+        "Var of empirical mean for 1 sample, theta=0.1 "
+        "in S3 {} \n".format(
+            empirical_frechet_var_bubble(1, 0.1, 3, n_expectation=n_expectation)
+        )
+    )
 
-    logging.info('Modulation factor for 1 sample theta=0.1 in S2 '
-                 '(should be close to 1): {} \n'.format(
-                     modulation_factor(
-                         1, 0.1, 2, n_expectation=n_expectation)))
+    logging.info(
+        "Modulation factor for 1 sample theta=0.1 in S2 "
+        "(should be close to 1): {} \n".format(
+            modulation_factor(1, 0.1, 2, n_expectation=n_expectation)
+        )
+    )
 
-    logging.info('Modulation factor for 500 sample theta close to Pi/2 in S5 '
-                 '(should be around 25): {} \n'.format(
-                     modulation_factor(
-                         500, gs.pi / 2 - 0.001, 5,
-                         n_expectation=n_expectation)))
+    logging.info(
+        "Modulation factor for 500 sample theta close to Pi/2 in S5 "
+        "(should be around 25): {} \n".format(
+            modulation_factor(500, gs.pi / 2 - 0.001, 5, n_expectation=n_expectation)
+        )
+    )
 
     plot_modulation_factor(2, 2, n_expectation=n_expectation)
 
@@ -213,5 +222,5 @@ def main():
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -1,4 +1,7 @@
-"""K-medoids clustering."""
+"""K-medoids clustering.
+
+Lead author: Hadi Zaatiti.
+"""
 
 import logging
 
@@ -35,8 +38,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
     :mod:`examples.plot_kmedoids_manifolds`
     """
 
-    def __init__(
-            self, metric, n_clusters=8, init='random', n_jobs=1):
+    def __init__(self, metric, n_clusters=8, init="random", n_jobs=1):
         self.metric = metric
         self.n_clusters = n_clusters
         self.init = init
@@ -48,10 +50,9 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
     def _initialize_medoids(self, distances):
         """Select initial medoids when beginning clustering."""
         if self.init == "random":
-            medoids = gs.random.choice(
-                gs.arange(len(distances)), self.n_clusters)
+            medoids = gs.random.choice(gs.arange(len(distances)), self.n_clusters)
         else:
-            logging.error('Unknown initialization method.')
+            logging.error("Unknown initialization method.")
 
         return medoids
 
@@ -88,9 +89,9 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
                 break
             if iteration == max_iter - 1:
                 logging.warning(
-                    'Maximum number of iteration reached before '
-                    'convergence. Consider increasing max_iter to '
-                    'improve the fit.'
+                    "Maximum number of iteration reached before "
+                    "convergence. Consider increasing max_iter to "
+                    "improve the fit."
                 )
 
         self.cluster_centers_ = data[medoids_indices]
@@ -104,16 +105,18 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         for cluster in range(self.n_clusters):
             cluster_index = gs.where(labels == cluster)[0]
             if len(cluster_index) == 0:
-                logging.warning('One cluster is empty.')
+                logging.warning("One cluster is empty.")
                 continue
 
             in_cluster_distances = distances[
-                cluster_index, gs.expand_dims(cluster_index, axis=-1)]
+                cluster_index, gs.expand_dims(cluster_index, axis=-1)
+            ]
             in_cluster_all_costs = gs.sum(in_cluster_distances, axis=1)
             min_cost_index = gs.argmin(in_cluster_all_costs)
             min_cost = in_cluster_all_costs[min_cost_index]
             current_cost = in_cluster_all_costs[
-                gs.argmax(cluster_index == medoid_indices[cluster])]
+                gs.argmax(cluster_index == medoid_indices[cluster])
+            ]
 
             if min_cost < current_cost:
                 medoid_indices[cluster] = cluster_index[min_cost_index]
@@ -136,10 +139,8 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
 
         for point_index, point_value in enumerate(data):
             distances = gs.zeros(len(self.cluster_centers_))
-            for cluster_index, cluster_value in enumerate(
-                    self.cluster_centers_):
-                distances[cluster_index] = self.metric.dist(
-                    point_value, cluster_value)
+            for cluster_index, cluster_value in enumerate(self.cluster_centers_):
+                distances[cluster_index] = self.metric.dist(point_value, cluster_value)
 
             labels[point_index] = gs.argmin(distances)
 

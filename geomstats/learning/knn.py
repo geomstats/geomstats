@@ -1,4 +1,7 @@
-"""The KNN classifier on manifolds."""
+"""The KNN classifier on manifolds.
+
+Lead author: Yann Cabanes.
+"""
 
 from sklearn.neighbors import KNeighborsClassifier
 
@@ -63,20 +66,24 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
     neighbors/_classification.py#L25
     """
 
-    def __init__(self, n_neighbors=5,
-                 weights='uniform',
-                 p=2,
-                 distance='minkowski',
-                 distance_params=None,
-                 n_jobs=None,
-                 **kwargs):
+    def __init__(
+        self,
+        n_neighbors=5,
+        weights="uniform",
+        p=2,
+        distance="minkowski",
+        distance_params=None,
+        n_jobs=None,
+        **kwargs
+    ):
 
         super().__init__(
             n_neighbors=n_neighbors,
             weights=weights,
-            algorithm='brute',
+            algorithm="brute",
             p=p,
             metric=distance,
             metric_params=distance_params,
             n_jobs=n_jobs,
-            **kwargs)
+            **kwargs
+        )

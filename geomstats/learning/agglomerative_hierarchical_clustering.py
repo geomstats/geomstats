@@ -1,4 +1,7 @@
-"""The Agglomerative Hierarchical Clustering (AHC) on manifolds."""
+"""The Agglomerative Hierarchical Clustering (AHC) on manifolds.
+
+Lead author: Yann Cabanes.
+"""
 
 from sklearn.cluster import AgglomerativeClustering
 
@@ -87,24 +90,28 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
         cluster/_agglomerative.py#L656
     """
 
-    def __init__(self, n_clusters=2,
-                 distance='euclidean',
-                 memory=None,
-                 connectivity=None,
-                 compute_full_tree='auto',
-                 linkage='average',
-                 distance_threshold=None):
+    def __init__(
+        self,
+        n_clusters=2,
+        distance="euclidean",
+        memory=None,
+        connectivity=None,
+        compute_full_tree="auto",
+        linkage="average",
+        distance_threshold=None,
+    ):
 
         if isinstance(distance, str):
             affinity = distance
         else:
+
             def affinity(data):
                 n_samples = data.shape[0]
                 affinity_matrix = gs.zeros([n_samples, n_samples])
                 for i_sample in range(1, n_samples):
                     affinity_matrix[i_sample, :i_sample] = distance(
-                        data[i_sample, ...], data[:i_sample, ...]).reshape(
-                        i_sample)
+                        data[i_sample, ...], data[:i_sample, ...]
+                    ).reshape(i_sample)
                 affinity_matrix += affinity_matrix.T
                 return affinity_matrix
 
@@ -115,4 +122,5 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
             connectivity=connectivity,
             compute_full_tree=compute_full_tree,
             linkage=linkage,
-            distance_threshold=distance_threshold)
+            distance_threshold=distance_threshold,
+        )
