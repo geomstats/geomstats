@@ -263,6 +263,24 @@ class GammaMetricTestData(_RiemannianMetricTestData):
         random_data = [dict(point=point, tangent_vecs=tangent_vecs)]
         return self.generate_tests([], random_data)
 
+    def exp_control_test_data(self):
+        n_times = 10
+        base_point = self.space().random_point(n_times)
+        tangent_vec = self.space().metric.random_tangent_vec(
+            base_point=base_point, n_vectors=n_times
+        )
+        random_data = [dict(base_point=base_point, tangent_vec=tangent_vec)]
+        return self.generate_tests([], random_data)
+
+    def log_control_test_data(self):
+        n_times = 10
+        base_point = self.space().random_point(n_times)
+        tangent_vec = self.space().metric.random_tangent_vec(
+            base_point=base_point, n_vectors=n_times
+        )
+        random_data = [dict(base_point=base_point, tangent_vec=tangent_vec)]
+        return self.generate_tests([], random_data)
+
     def jacobian_christoffels_test_data(self):
         random_data = [
             dict(point=self.space().random_point(2)),

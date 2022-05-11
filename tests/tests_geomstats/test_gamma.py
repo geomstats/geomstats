@@ -108,11 +108,26 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     @geomstats.tests.np_and_autograd_only
     def test_exp_vectorization(self, point, tangent_vecs):
         """Test the case with one initial point and several tangent vectors."""
-        tangent_vecs = self.metric().normalize(point, tangent_vecs, 1)
         end_points = self.metric().exp(tangent_vec=tangent_vecs, base_point=point)
         result = end_points.shape
         expected = (tangent_vecs.shape[0], 2)
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_exp_control(self, base_point, tangent_vec):
+        end_point = self.metric().exp(tangent_vec=tangent_vec, base_point=base_point)
+        result = gs.any(gs.isnan(end_point))
+        self.assertAllClose(result, False)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_log_control(self, base_point, tangent_vec):
+        point = self.metric().exp(
+            self.metric().normalize(base_point=base_point, tangent_vec=tangent_vec),
+            base_point,
+        )
+        vec = self.metric().log(point, base_point)
+        result = gs.any(gs.isnan(vec))
+        self.assertAllClose(result, False)
 
     @geomstats.tests.autograd_and_torch_only
     def test_jacobian_christoffels(self, point):
