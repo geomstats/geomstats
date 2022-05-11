@@ -220,7 +220,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         The Euclidean (Frobenius) inner product.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, **kwargs):
         super().__init__(
             n=n + 1,
             dim=int((n * (n + 1)) / 2),
@@ -229,6 +229,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
             value=gs.eye(n + 1),
             tangent_submersion=tangent_submersion,
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n),
+            **kwargs
         )
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
@@ -237,7 +238,8 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         self.left_canonical_metric = SpecialEuclideanMatrixCannonicalLeftMetric(
             group=self
         )
-        self.metric = self.left_canonical_metric
+        if self._metric is None:
+            self._metric = self.left_canonical_metric
 
     @property
     def identity(self):

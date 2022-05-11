@@ -2,15 +2,21 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
-from geomstats.stratified_geometry.graph_space import Graph
+from geomstats.geometry.stratified.graph_space import (
+    Graph,
+    GraphSpace,
+    GraphSpaceMetric,
+)
 from tests.data_generation import (
-    _PointGeometryTestData,
+    _PointMetricTestData,
     _PointSetTestData,
     _PointTestData,
 )
 
 
 class GraphSpaceTestData(_PointSetTestData):
+
+    _PointSet = GraphSpace
 
     # for random tests
     n_samples = _PointSetTestData.n_samples
@@ -80,6 +86,8 @@ class GraphSpaceTestData(_PointSetTestData):
 
 
 class GraphTestData(_PointTestData):
+    _Point = Graph
+
     def to_array_test_data(self):
         smoke_data = [
             dict(
@@ -95,7 +103,11 @@ class GraphTestData(_PointTestData):
         return self.generate_tests(smoke_data)
 
 
-class GraphSpaceGeometryTestData(_PointGeometryTestData):
+class GraphSpaceMetricTestData(_PointMetricTestData):
+    _SetGeometry = GraphSpaceMetric
+    _PointSet = GraphSpace
+    _Point = Graph
+
     def dist_test_data(self):
         pts_start = [
             Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]])),

@@ -1,36 +1,29 @@
-from geomstats.stratified_geometry.graph_space import (
-    Graph,
-    GraphSpace,
-    GraphSpaceGeometry,
-)
+"""Unit tests for the graphspace quotient space."""
+
+
 from tests.conftest import Parametrizer
 from tests.data.graph_space_data import (
-    GraphSpaceGeometryTestData,
+    GraphSpaceMetricTestData,
     GraphSpaceTestData,
     GraphTestData,
 )
-from tests.stratified_geometry_test_cases import (
-    PointSetGeometryTestCase,
+from tests.stratified_test_cases import (
+    PointSetMetricTestCase,
     PointSetTestCase,
     PointTestCase,
 )
 
 
 class TestGraphSpace(PointSetTestCase, metaclass=Parametrizer):
-    _PointSet = GraphSpace
     testing_data = GraphSpaceTestData()
 
 
 class TestGraphPoint(PointTestCase, metaclass=Parametrizer):
-    _Point = Graph
     testing_data = GraphTestData()
 
 
-class TestGraphSpaceGeometry(PointSetGeometryTestCase, metaclass=Parametrizer):
-    _SetGeometry = GraphSpaceGeometry
-    _PointSet = GraphSpace
-    _Point = Graph
-    testing_data = GraphSpaceGeometryTestData()
+class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=Parametrizer):
+    testing_data = GraphSpaceMetricTestData()
     skip_test_geodesic_output_type = True
     skip_test_geodesic = True
 

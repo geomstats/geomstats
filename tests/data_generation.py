@@ -1,4 +1,5 @@
 import itertools
+import random
 
 import pytest
 
@@ -471,6 +472,29 @@ class _LieGroupTestData(_ManifoldTestData):
             smoke_data = []
         return self.generate_tests(smoke_data, random_data)
 
+    def _to_tangent_at_identity_belongs_to_lie_algebra_test_data(
+        self, group_args_list, shape_list, n_vecs_list, belongs_atol=gs.atol
+    ):
+        """Generate data to check that to tangent at identity belongs to lie algebra.
+
+        Parameters
+        ----------
+        group_args_list : list
+            List of arguments to pass to constructor of the Lie group.
+        n_vecs_list : list
+            List of number of vectors to be projected on tangent space at identity.
+        belongs_atol : float
+            Absolute tolerance of the belongs function.
+        """
+        random_data = []
+
+        for group_args, shape, n_vecs in zip(group_args_list, shape_list, n_vecs_list):
+            vec = gs.random.normal(size=(n_vecs,) + shape)
+            random_data.append(
+                dict(group_args=group_args, vec=vec, belongs_atol=belongs_atol)
+            )
+        return self.generate_tests([], random_data)
+
 
 class _VectorSpaceTestData(_ManifoldTestData):
     def _basis_belongs_test_data(self, space_args_list, belongs_atol=gs.atol):
@@ -688,7 +712,7 @@ class _FiberBundleTestData(TestData):
 
     def _riemannian_submersion_after_lift_test_data(
         self,
-        space_cls,
+        base_cls,
         space_args_list,
         n_base_points_list,
         rtol=gs.rtol,
@@ -697,12 +721,36 @@ class _FiberBundleTestData(TestData):
         random_data = [
             dict(
                 space_args=space_args,
-                base_point=space_cls(*space_args).base.random_point(n_points),
+                base_point=base_cls(*space_args).random_point(n_points),
                 rtol=rtol,
                 atol=atol,
             )
             for space_args, n_points in zip(space_args_list, n_base_points_list)
         ]
+        return self.generate_tests([], random_data)
+
+    def _is_tangent_after_tangent_riemannian_submersion_test_data(
+        self,
+        bundle_cls,
+        base_cls,
+        space_args_list,
+        n_vecs_list,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        random_data = []
+        for space_args, n_vecs in zip(space_args_list, n_vecs_list):
+            base_point = bundle_cls(*space_args).random_point()
+            tangent_vec = bundle_cls(*space_args).random_tangent_vec(base_point, n_vecs)
+            d = dict(
+                space_args=space_args,
+                base_cls=base_cls,
+                tangent_vec=tangent_vec,
+                base_point=base_point,
+                rtol=rtol,
+                atol=atol,
+            )
+            random_data.append(d)
         return self.generate_tests([], random_data)
 
 
@@ -1509,3 +1557,266 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             )
 
         return self.generate_tests([], random_data)
+
+    def _triangle_inequality_of_dist_test_data(
+        self, metric_args_list, space_list, n_points_list, atol=gs.atol
+    ):
+        """Generate data to check the traingle inequality of geodesic distance.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_list : list
+            List of number of random points to generate.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, n_points in zip(
+            metric_args_list, space_list, n_points_list
+        ):
+            point_a = space.random_point(n_points)
+            point_b = space.random_point(n_points)
+            point_c = space.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    point_a=point_a,
+                    point_b=point_b,
+                    point_c=point_c,
+                    atol=atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+
+class _InvariantMetricTestData(_RiemannianMetricTestData):
+    def _exp_at_identity_of_lie_algebra_belongs_test_data(
+        self, metric_args_list, group_list, n_tangent_vecs_list, belongs_atol=gs.atol
+    ):
+        random_data = []
+        for metric_args, group, n_tangent_vecs in zip(
+            metric_args_list, group_list, n_tangent_vecs_list
+        ):
+            lie_algebra_point = group.lie_algebra.random_point(n_tangent_vecs)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    group=group,
+                    lie_algebra_point=lie_algebra_point,
+                    belongs_atol=belongs_atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def _log_at_identity_belongs_to_lie_algebra_test_data(
+        self, metric_args_list, group_list, n_points_list, belongs_atol=gs.atol
+    ):
+        random_data = []
+        for metric_args, group, n_points in zip(
+            metric_args_list, group_list, n_points_list
+        ):
+            point = group.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    group=group,
+                    point=point,
+                    belongs_atol=belongs_atol,
+                )
+            )
+
+        return self.generate_tests([], random_data)
+
+    def _exp_after_log_at_identity_test_data(
+        self, metric_args_list, group_list, n_points_list, rtol=gs.rtol, atol=gs.atol
+    ):
+        random_data = []
+        for metric_args, group, n_points in zip(
+            metric_args_list, group_list, n_points_list
+        ):
+            point = group.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    group=group,
+                    point=point,
+                    rtol=rtol,
+                    atol=atol,
+                )
+            )
+
+        return self.generate_tests([], random_data)
+
+    def _log_after_exp_at_identity_test_data(
+        self,
+        metric_args_list,
+        group_list,
+        shape_list,
+        n_tangent_vecs_list,
+        amplitude=1.0,
+        rtol=gs.rtol,
+        atol=gs.atol,
+    ):
+        random_data = []
+
+        for metric_args, group, shape, n_tangent_vecs in zip(
+            metric_args_list, group_list, shape_list, n_tangent_vecs_list
+        ):
+            base_point = group.random_point()
+            tangent_vec = group.to_tangent(
+                gs.random.normal(size=(n_tangent_vecs,) + shape) / amplitude,
+                base_point,
+            )
+            random_data.append(
+                (
+                    dict(
+                        metric_args=metric_args,
+                        group=group,
+                        tangent_vec=tangent_vec,
+                        rtol=rtol,
+                        atol=atol,
+                    )
+                )
+            )
+
+        return self.generate_tests([], random_data)
+
+
+class _QuotientMetricTestData(_RiemannianMetricTestData):
+    def _dist_is_smaller_than_bundle_dist_test_data(
+        self, metric_args_list, bundle_list, n_points_list, atol=gs.atol
+    ):
+        random_data = []
+        for metric_args, bundle, n_points in zip(
+            metric_args_list, bundle_list, n_points_list
+        ):
+            point_a = bundle.random_point(n_points)
+            point_b = bundle.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    bundle=bundle,
+                    point_a=point_a,
+                    point_b=point_b,
+                    atol=atol,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def _log_is_horizontal_test_data(
+        self, metric_args_list, bundle_list, n_points_list, atol=gs.atol
+    ):
+        random_data = []
+        for metric_args, bundle, n_points in zip(
+            metric_args_list, bundle_list, n_points_list
+        ):
+            point = bundle.random_point(n_points)
+            base_point = bundle.random_point()
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    bundle=bundle,
+                    point=point,
+                    base_point=base_point,
+                    is_horizontoal_atol=atol,
+                )
+            )
+
+        return self.generate_tests([], random_data)
+
+
+class _PointSetTestData(TestData):
+    n_samples = 2
+    n_points_list = random.sample(range(1, 5), n_samples)
+
+    def random_point_belongs_test_data(self):
+
+        random_data = [
+            dict(space_args=space_args, n_points=n_points)
+            for space_args, n_points in zip(self.space_args_list, self.n_points_list)
+        ]
+
+        return self.generate_tests([], random_data)
+
+    def random_point_output_shape_test_data(self):
+        space = self._PointSet(*self.space_args_list[0])
+
+        smoke_data = [
+            dict(space=space, n_samples=1),
+            dict(space=space, n_samples=2),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def set_to_array_output_shape_test_data(self):
+        space = self._PointSet(*self.space_args_list[0])
+        pts = space.random_point(2)
+
+        smoke_data = [
+            dict(space=space, points=pts[0]),
+            dict(space=space, points=pts),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+
+class _PointTestData(TestData):
+    pass
+
+
+class _PointMetricTestData(TestData):
+    def dist_output_shape_test_data(self):
+        space = self._PointSet(*self.space_args_list[0])
+        geom = self._SetGeometry(space)
+        pts = space.random_point(2)
+
+        dist_fnc = geom.dist
+
+        smoke_data = [
+            dict(dist_fnc=dist_fnc, point_a=pts[0], point_b=pts[1]),
+            dict(dist_fnc=dist_fnc, point_a=pts[0], point_b=pts),
+            dict(dist_fnc=dist_fnc, point_a=pts, point_b=pts[0]),
+            dict(dist_fnc=dist_fnc, point_a=pts, point_b=pts),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def dist_properties_test_data(self):
+        space = self._PointSet(*self.space_args_list[0])
+        geom = self._SetGeometry(space)
+        pts = space.random_point(3)
+
+        dist_fnc = geom.dist
+
+        smoke_data = [
+            dict(dist_fnc=dist_fnc, point_a=pts[0], point_b=pts[1], point_c=pts[2]),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def geodesic_output_shape_test_data(self):
+        space = self._PointSet(*self.space_args_list[0])
+        geom = self._SetGeometry(space)
+        pts = space.random_point(2)
+
+        smoke_data = [
+            dict(geometry=geom, start_point=pts[0], end_point=pts[0], t=0.0),
+            dict(geometry=geom, start_point=pts[0], end_point=pts[0], t=[0.0, 1.0]),
+            dict(geometry=geom, start_point=pts[0], end_point=pts, t=0.0),
+            dict(geometry=geom, start_point=pts[0], end_point=pts, t=[0.0, 1.0]),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def geodesic_bounds_test_data(self):
+        space = self._PointSet(*self.space_args_list[0])
+        geom = self._SetGeometry(space)
+        pts = space.random_point(2)
+
+        smoke_data = [dict(geometry=geom, start_point=pts[0], end_point=pts[1])]
+
+        return self.generate_tests(smoke_data)

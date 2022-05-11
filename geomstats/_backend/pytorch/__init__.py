@@ -5,7 +5,7 @@ from functools import wraps
 
 import numpy as _np
 import torch
-from torch import arange, arccos, arccosh, arcsin, arctanh, argmin
+from torch import angle, arange, arccos, arccosh, arcsin, arctanh, argmin
 from torch import atan2 as arctan2  # NOQA
 from torch import bool as t_bool
 from torch import broadcast_tensors as broadcast_arrays
@@ -30,7 +30,18 @@ from torch import (
     floor,
 )
 from torch import fmod as mod
-from torch import greater, hstack, imag, int32, int64, isnan, less, log, logical_or
+from torch import (
+    greater,
+    hstack,
+    imag,
+    int32,
+    int64,
+    isnan,
+    kron,
+    less,
+    log,
+    logical_or,
+)
 from torch import max as amax
 from torch import mean, meshgrid, nonzero, ones, ones_like, outer, polygamma
 from torch import pow as power
@@ -45,6 +56,7 @@ from torch import (
     std,
     tan,
     tanh,
+    trapz,
     uint8,
     unique,
     vstack,
@@ -337,6 +349,10 @@ def dot(a, b):
 
 def maximum(a, b):
     return torch.max(array(a), array(b))
+
+
+def minimum(a, b):
+    return torch.min(array(a), array(b))
 
 
 def to_ndarray(x, to_ndim, axis=0):

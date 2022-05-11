@@ -9,7 +9,7 @@ from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
 class FullRankMatrices(OpenSet):
-    r"""Class for `math:`R_*^{m\times n}` matrices of dimension m x n and full rank.
+    r"""Class for `math:`R_*^{n\times k}` matrices of dimension n x k and full rank.
 
     Parameters
     ----------
@@ -20,11 +20,9 @@ class FullRankMatrices(OpenSet):
     """
 
     def __init__(self, n, k, **kwargs):
-        if "dim" not in kwargs.keys():
-            kwargs["dim"] = n * k
-        super(FullRankMatrices, self).__init__(
-            ambient_space=Matrices(n, k), metric=MatricesMetric(n, k), **kwargs
-        )
+        kwargs.setdefault("dim", n * k)
+        kwargs.setdefault("metric", MatricesMetric(n, k))
+        super(FullRankMatrices, self).__init__(ambient_space=Matrices(n, k), **kwargs)
         self.rank = min(n, k)
         self.n = n
         self.k = k

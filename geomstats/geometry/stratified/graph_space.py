@@ -7,11 +7,7 @@ import networkx as nx
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.stratified_geometry.stratified_spaces import (
-    Point,
-    PointSet,
-    PointSetGeometry,
-)
+from geomstats.geometry.stratified.point_set import Point, PointSet, PointSetMetric
 
 
 class Graph(Point):
@@ -248,7 +244,7 @@ class GraphSpace(PointSet):
         return result[0] if single_graph else gs.array(result)
 
 
-class GraphSpaceGeometry(PointSetGeometry):
+class GraphSpaceMetric(PointSetMetric):
     """Quotient metric on the graph space.
 
     Parameters

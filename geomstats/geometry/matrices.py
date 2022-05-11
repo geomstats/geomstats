@@ -19,13 +19,11 @@ class Matrices(VectorSpace):
     """
 
     def __init__(self, m, n, **kwargs):
-        if "default_point_type" not in kwargs.keys():
-            kwargs["default_point_type"] = "matrix"
-        super(Matrices, self).__init__(
-            shape=(m, n), metric=MatricesMetric(m, n), **kwargs
-        )
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
+        kwargs.setdefault("metric", MatricesMetric(m, n))
+        kwargs.setdefault("default_point_type", "matrix")
+        super(Matrices, self).__init__(shape=(m, n), **kwargs)
         self.m = m
         self.n = n
 
@@ -739,7 +737,8 @@ class MatricesMetric(EuclideanMetric):
         """
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
 
-    def norm(self, vector, base_point=None):
+    @staticmethod
+    def norm(vector, base_point=None):
         """Compute norm of a matrix.
 
         Norm of a matrix associated to the Frobenius inner product.

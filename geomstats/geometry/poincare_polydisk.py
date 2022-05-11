@@ -53,7 +53,7 @@ class PoincarePolydisk(ProductManifold, OpenSet):
             default_point_type="matrix",
             ambient_space=Matrices(n_disks, 2),
         )
-        self.metric = PoincarePolydiskMetric(n_disks=n_disks, coords_type=coords_type)
+        self._metric = PoincarePolydiskMetric(n_disks=n_disks, coords_type=coords_type)
 
     @staticmethod
     def intrinsic_to_extrinsic_coords(point_intrinsic):
