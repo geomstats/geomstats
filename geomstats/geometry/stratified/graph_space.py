@@ -340,14 +340,15 @@ class GraphSpaceMetric(PointSetMetric):
                 PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
         """
         matching_alg = {
-            "ID": self._faq_matching,
-            "FAQ": self._id_matching,
+            "ID": self._id_matching,
+            "FAQ": self._faq_matching,
         }
         self.perm_ = matching_alg.get(matcher)(base_graph, graph_to_permute)
 
         return self.perm_
 
     @staticmethod
+    @_vectorize_graph((0, "base_graph"), (1, "graph_to_permute"))
     def _faq_matching(base_graph, graph_to_permute):
         """Fast Quadratic Assignment for graph matching.
 
@@ -370,29 +371,21 @@ class GraphSpaceMetric(PointSetMetric):
                 “Fast approximate quadratic programming for graph matching.“
                 PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
         """
-        l_base = len(base_graph.shape)
-        l_obj = len(graph_to_permute.shape)
-        if l_base == l_obj == 3:
-            return [
-                gs.linalg.quadratic_assignment(x, y, options={"maximize": True})
-                for x, y in zip(base_graph, graph_to_permute)
-            ]
-        if l_base == l_obj == 2:
-            return gs.linalg.quadratic_assignment(
-                base_graph, graph_to_permute, options={"maximize": True}
-            )
-        if l_base < l_obj:
-            return [
-                gs.linalg.quadratic_assignment(x, y, options={"maximize": True})
-                for x, y in zip(
-                    gs.stack([base_graph] * graph_to_permute.shape[0]), graph_to_permute
-                )
-            ]
-        raise ValueError(
-            "Align a set of graphs to one graphs,"
-            "Pass the single graphs as base_graph"
-        )
 
+        def _optimize(x, y):
+            return gs.linalg.quadratic_assignment(x, y, options={"maximize": True})
+
+        base_graph, graph_to_permute = gs.broadcast_arrays(base_graph, graph_to_permute)
+
+        if gs.ndim(base_graph) == 1:
+            return [_optimize(base_graph, graph_to_permute)]
+        else:
+            return [
+                _optimize(base_graph_, graph_to_permute_)
+                for base_graph_, graph_to_permute_ in zip(base_graph, graph_to_permute)
+            ]
+
+    @_vectorize_graph((1, "base_graph"), (2, "graph_to_permute"))
     def _id_matching(self, base_graph, graph_to_permute):
         """Identity matching.
 
@@ -405,18 +398,13 @@ class GraphSpaceMetric(PointSetMetric):
 
         Returns
         -------
-        permutation : array-like, shape=[...,n]
-            node permutation indexes of the second graph.
+        permutation : array-like, shape=[..., n]
+            Node permutation indexes of the second graph.
         """
-        l_base = len(base_graph.shape)
-        l_obj = len(graph_to_permute.shape)
-        if l_base == l_obj == 3 or l_base < l_obj:
-            return [list(range(self.n_nodes))] * len(graph_to_permute)
-        if l_base == l_obj == 2:
-            return list(range(self.n_nodes))
-        raise (
-            ValueError(
-                "The method can align a set of graphs to one graphs,"
-                "but the single graphs should be passed as base_graph"
-            )
-        )
+        base_graph, graph_to_permute = gs.broadcast_arrays(base_graph, graph_to_permute)
+
+        n_reps = 1 if gs.ndim(base_graph) == 2 else base_graph.shape[0]
+        if n_reps == 1:
+            return gs.array(range(self.n_nodes))
+        else:
+            return gs.reshape(gs.tile(range(self.n_nodes), n_reps), (-1, self.n_nodes))
