@@ -196,30 +196,25 @@ class GraphSpace(PointSet):
         graphs_permuted : array-like, shape=[..., n, n]
             Graphs permuted.
         """
-        nodes = self.n_nodes
-        single_graph = len(graph_to_permute.shape) < 3
-        if single_graph:
-            graph_to_permute = [graph_to_permute]
-            permutation = [permutation]
-        result = []
-        for i, p in enumerate(permutation):
-            if gs.all(gs.array(nodes) == gs.array(p)):
-                result.append(graph_to_permute[i])
-            else:
-                gtype = graph_to_permute[i].dtype
-                permutation_matrix = gs.array_from_sparse(
-                    data=gs.ones(nodes, dtype=gtype),
-                    indices=list(zip(list(range(nodes)), p)),
-                    target_shape=(nodes, nodes),
-                )
-                result.append(
-                    self.total_space.mul(
-                        permutation_matrix,
-                        graph_to_permute[i],
-                        gs.transpose(permutation_matrix),
-                    )
-                )
-        return result[0] if single_graph else gs.array(result)
+
+        def _get_permutation_matrix(indices_):
+            return gs.array_from_sparse(
+                data=gs.ones(self.n_nodes, dtype=gs.int64),
+                indices=list(zip(range(self.n_nodes), indices_)),
+                target_shape=(self.n_nodes, self.n_nodes),
+            )
+
+        if gs.ndim(permutation) == 1:
+            perm_matrices = _get_permutation_matrix(permutation)
+        else:
+            perm_matrices = []
+            for indices_ in permutation:
+                perm_matrices.append(_get_permutation_matrix(indices_))
+            perm_matrices = gs.stack(perm_matrices)
+
+        return Matrices.mul(
+            perm_matrices, graph_to_permute, Matrices.transpose(perm_matrices)
+        )
 
 
 class GraphSpaceMetric(PointSetMetric):
