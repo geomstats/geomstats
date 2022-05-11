@@ -263,14 +263,6 @@ class GraphSpaceMetric(PointSetMetric):
                   "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
                   https://www.jmlr.org/papers/v10/jain09a.html.
         """
-        if graph_a.ndim > graph_b.ndim:
-            base_graph = graph_b
-            graph_to_permute = graph_a
-        else:
-            base_graph = graph_a
-            graph_to_permute = graph_b
-
-        # TODO: review above, otherwise self.perm_ loses meaning
         perm = self.matching(base_graph, graph_to_permute, matcher=matcher)
 
         return self.total_space_metric.dist(
