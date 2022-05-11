@@ -1,4 +1,6 @@
 """Incremental frechet mean estimator."""
+from sklearn.base import BaseEstimator
+
 
 class IncrementalFrechetMean(BaseEstimator):
     r"""Incremental Frechet Mean Estimator.
