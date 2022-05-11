@@ -36,7 +36,7 @@ class TestIncrementalFrechetMean(TestCase):
         expected = gs.array(True)
         self.assertAllClose(result, expected)
 
-    def test_ifm_affine_invariant(self):
+    def test_ifm_affine_invariant_belongs(self):
         mean = 2 * gs.eye(self.n)
         cov = gs.eye(self.spd_cov_n)
 
