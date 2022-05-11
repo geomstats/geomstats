@@ -50,7 +50,7 @@ class _Hyperbolic:
 
         Returns
         -------
-        point_extrinsic-hyperboloid: array-like, shape=[..., dim]
+        point_extrinsic_hyperboloid: array-like, shape=[..., dim]
             Point in hyperbolic space in extrinsic-hyperboloidcoordinates.
         """
         return point
@@ -70,11 +70,11 @@ class _Hyperbolic:
 
         Returns
         -------
-        point_extrinsic-hyperboloid: array-like, shape=[..., dim + 1]
+        point_extrinsic_hyperboloid: array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic-hyperboloidcoordinates.
         """
         coord_0 = gs.sqrt(1.0 + gs.sum(point**2, axis=-1))
-        point_extrinsic-hyperboloid= gs.concatenate([coord_0[..., None], point], axis=-1)
+        point_extrinsic_hyperboloid= gs.concatenate([coord_0[..., None], point], axis=-1)
 
         return point_extrinsic
 
@@ -136,14 +136,14 @@ class _Hyperbolic:
 
         Returns
         -------
-        point_extrinsic-hyperboloid: array-like, shape=[..., dim + 1]
+        point_extrinsic_hyperboloid: array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic-hyperboloidcoordinates.
         """
         squared_norm = gs.sum(point**2, -1)
         denominator = 1 - squared_norm
         t = (1 + squared_norm) / denominator
         intrinsic-hyperboloid = gs.einsum("...i, ...->...i", 2 * point, 1.0 / denominator)
-        point_extrinsic-hyperboloid= gs.concatenate([t[..., None], intrinsic-hyperboloid], -1)
+        point_extrinsic_hyperboloid= gs.concatenate([t[..., None], intrinsic-hyperboloid], -1)
         return point_extrinsic
 
     @classmethod
@@ -161,11 +161,11 @@ class _Hyperbolic:
 
         Returns
         -------
-        point_extrinsic-hyperboloid: array-like, shape=[..., dim + 1]
+        point_extrinsic_hyperboloid: array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic-hyperboloidcoordinates.
         """
         point_ball = cls.half_space_to_ball_coordinates(point)
-        point_extrinsic-hyperboloid= cls._ball_to_extrinsic_coordinates(point_ball)
+        point_extrinsic_hyperboloid= cls._ball_to_extrinsic_coordinates(point_ball)
 
         return point_extrinsic
 
