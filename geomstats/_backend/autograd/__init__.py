@@ -70,6 +70,7 @@ from autograd.numpy import (
     meshgrid,
     minimum,
     mod,
+    moveaxis,
     ones,
     ones_like,
     outer,

@@ -38,7 +38,7 @@ To get the ``autograd``, ``tensorflow`` and ``pytorch`` versions compatible with
     pip3 install geomstats[opt]
 
 To install only the requirements for a given backend do::
-    
+
     pip3 install geomstats[<backend_name>]
 
 You can choose your backend by setting the environment variable ``GEOMSTATS_BACKEND`` to ``numpy``, ``autograd``, ``tensorflow`` or ``pytorch``, and importing the ``backend`` module. From the command line:
