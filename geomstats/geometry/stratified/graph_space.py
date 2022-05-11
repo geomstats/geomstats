@@ -3,55 +3,30 @@
 Lead author: Anna Calissano.
 """
 
-import functools
-
 import networkx as nx
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.stratified.point_set import Point, PointSet, PointSetMetric
+from geomstats.geometry.stratified.point_set import (
+    Point,
+    PointSet,
+    PointSetMetric,
+    _vectorize_point,
+)
+
+
+def _manipulate_input(arg):
+    if type(arg) not in [list, tuple, Graph]:
+        return arg
+
+    if type(arg) is Graph:
+        return arg.adj
+
+    return gs.array([graph.adj for graph in arg])
 
 
 def _vectorize_graph(*args_positions):
-    """Check point type and transform in iterable if not the case.
-
-    Parameters
-    ----------
-    args_positions : tuple
-        Position and corresponding argument name. A tuple for each position.
-
-    Notes
-    -----
-    Explicitly defining args_positions and args names ensures it works for all
-    combinations of input calling.
-    """
-
-    # TODO: combine with point_set vectorize
-
-    def _dec(func):
-        def _manipulate_input(arg):
-            if type(arg) not in [list, tuple, Graph]:
-                return arg
-
-            if type(arg) is Graph:
-                return arg.adj
-
-            return gs.array([graph.adj for graph in arg])
-
-        @functools.wraps(func)
-        def _wrapped(*args, **kwargs):
-            args = list(args)
-            for pos, name in args_positions:
-                if name in kwargs:
-                    kwargs[name] = _manipulate_input(kwargs[name])
-                else:
-                    args[pos] = _manipulate_input(args[pos])
-
-            return func(*args, **kwargs)
-
-        return _wrapped
-
-    return _dec
+    return _vectorize_point(*args_positions, manipulate_input=_manipulate_input)
 
 
 class Graph(Point):
