@@ -343,25 +343,32 @@ class GraphSpaceMetric(PointSetMetric):
             "ID": self._id_matching,
             "FAQ": self._faq_matching,
         }
-        self.perm_ = matching_alg.get(matcher)(base_graph, graph_to_permute)
+
+        base_graph, graph_to_permute = gs.broadcast_arrays(base_graph, graph_to_permute)
+        is_single = gs.ndim(base_graph) == 2
+        if is_single:
+            base_graph = gs.expands_dims(base_graph, 0)
+            graph_to_permute = gs.expands_dims(graph_to_permute, 0)
+
+        perm = matching_alg.get(matcher)(base_graph, graph_to_permute)
+        self.perm_ = perm[0] if is_single else perm
 
         return self.perm_
 
     @staticmethod
-    @_vectorize_graph((0, "base_graph"), (1, "graph_to_permute"))
     def _faq_matching(base_graph, graph_to_permute):
         """Fast Quadratic Assignment for graph matching.
 
         Parameters
         ----------
-        base_graph : array-like, shape=[..., n, n]
+        base_graph : array-like, shape=[m, n, n]
             Base graph.
-        graph_to_permute : array-like, shape=[..., n, n]
+        graph_to_permute : array-like, shape=[m, n, n]
             Graph to align.
 
         Returns
         -------
-        permutation : array-like, shape=[...,n]
+        permutation : array-like, shape=[m,n]
             node permutation indexes of the second graph.
 
         References
@@ -371,40 +378,26 @@ class GraphSpaceMetric(PointSetMetric):
                 “Fast approximate quadratic programming for graph matching.“
                 PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
         """
+        return [
+            gs.linalg.quadratic_assignment(x, y, options={"maximize": True})
+            for x, y in zip(base_graph, graph_to_permute)
+        ]
 
-        def _optimize(x, y):
-            return gs.linalg.quadratic_assignment(x, y, options={"maximize": True})
-
-        base_graph, graph_to_permute = gs.broadcast_arrays(base_graph, graph_to_permute)
-
-        if gs.ndim(base_graph) == 1:
-            return [_optimize(base_graph, graph_to_permute)]
-        else:
-            return [
-                _optimize(base_graph_, graph_to_permute_)
-                for base_graph_, graph_to_permute_ in zip(base_graph, graph_to_permute)
-            ]
-
-    @_vectorize_graph((1, "base_graph"), (2, "graph_to_permute"))
     def _id_matching(self, base_graph, graph_to_permute):
         """Identity matching.
 
         Parameters
         ----------
-        base_graph : array-like, shape=[..., n, n]
+        base_graph : array-like, shape[m, n, n]
             Base graph.
-        graph_to_permute : array-like, shape=[..., n, n]
+        graph_to_permute : array-like, shape=[m, n, n]
             Graph to align.
 
         Returns
         -------
-        permutation : array-like, shape=[..., n]
+        permutation : array-like, shape=[m, n]
             Node permutation indexes of the second graph.
         """
-        base_graph, graph_to_permute = gs.broadcast_arrays(base_graph, graph_to_permute)
-
-        n_reps = 1 if gs.ndim(base_graph) == 2 else base_graph.shape[0]
-        if n_reps == 1:
-            return gs.array(range(self.n_nodes))
-        else:
-            return gs.reshape(gs.tile(range(self.n_nodes), n_reps), (-1, self.n_nodes))
+        return gs.reshape(
+            gs.tile(range(self.n_nodes), base_graph.shape[0]), (-1, self.n_nodes)
+        )
