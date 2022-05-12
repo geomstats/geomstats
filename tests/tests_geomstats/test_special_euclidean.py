@@ -6,7 +6,6 @@ from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.special_euclidean import (
     SpecialEuclidean,
     SpecialEuclideanMatrixCannonicalLeftMetric,
-    SpecialEuclideanMatrixLieAlgebra,
 )
 from geomstats.tests import tf_backend
 from tests.conftest import Parametrizer, TestCase, np_backend
@@ -39,7 +38,7 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
 
     @property
     def group(self):
-        return self.testing_data.group
+        return self.testing_data.space
 
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(
@@ -110,7 +109,7 @@ class TestSpecialEuclideanMatrixLieAlgebra(
 
     @property
     def algebra(self):
-        return self.testing_data.algebra
+        return self.testing_data.space
 
     def test_dim(self, n, expected):
         algebra = self.space(n)
