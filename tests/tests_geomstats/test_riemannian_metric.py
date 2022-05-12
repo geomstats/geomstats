@@ -1,6 +1,5 @@
 """Unit tests for the Riemannian metrics."""
 
-
 import geomstats.tests
 from tests.conftest import Parametrizer
 from tests.data.riemannian_metric_data import RiemannianMetricTestData
@@ -35,6 +34,14 @@ class TestRiemannianMetric(TestCase, metaclass=Parametrizer):
     ):
         result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
+
+    def test_normalize(self, metric, tangent_vec, point, expected, atol):
+        result = metric.norm(metric.normalize(tangent_vec, point), point)
+        self.assertAllClose(result, expected, atol)
+
+    def test_random_unit_tangent_vec(self, metric, point, n_vectors, expected, atol):
+        result = metric.norm(metric.random_unit_tangent_vec(point, n_vectors), point)
+        self.assertAllClose(result, expected, atol)
 
     @geomstats.tests.autograd_and_torch_only
     def test_christoffels(self, metric, base_point, expected):
