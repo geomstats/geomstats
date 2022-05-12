@@ -18,9 +18,8 @@ from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 class TestPositiveLowerTriangularMatrices(OpenSetTestCase, metaclass=Parametrizer):
     """Test of Cholesky methods."""
 
-    space = PositiveLowerTriangularMatrices
-
     testing_data = PositiveLowerTriangularMatricesTestData()
+    space = testing_data.space
 
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(self.space(n).belongs(gs.array(mat)), gs.array(expected))

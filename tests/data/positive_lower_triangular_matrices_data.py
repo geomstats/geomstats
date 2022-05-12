@@ -18,6 +18,8 @@ class PositiveLowerTriangularMatricesTestData(_OpenSetTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
+    space = PositiveLowerTriangularMatrices
+
     def belongs_test_data(self):
         smoke_data = [
             dict(n=2, mat=[[1.0, 0.0], [-1.0, 3.0]], expected=True),
@@ -111,12 +113,11 @@ class PositiveLowerTriangularMatricesTestData(_OpenSetTestData):
     def differential_gram_belongs_test_data(self):
         n_list = [1, 2, 2, 3, 10]
         n_samples_list = [1, 1, 2, 10, 5]
-        space = PositiveLowerTriangularMatrices
         random_data = [
             dict(
                 n=n,
-                tangent_vec=space(n).ambient_space.random_point(n_samples),
-                base_point=space(n).random_point(n_samples),
+                tangent_vec=self.space(n).ambient_space.random_point(n_samples),
+                base_point=self.space(n).random_point(n_samples),
             )
             for n, n_samples in zip(n_list, n_samples_list)
         ]
@@ -125,49 +126,15 @@ class PositiveLowerTriangularMatricesTestData(_OpenSetTestData):
     def inverse_differential_gram_belongs_test_data(self):
         n_list = [1, 2, 2, 3, 10]
         n_samples_list = [1, 1, 2, 10, 5]
-        space = PositiveLowerTriangularMatrices
         random_data = [
             dict(
                 n=n,
-                tangent_vec=space(n).ambient_space.random_point(n_samples),
-                base_point=space(n).random_point(n_samples),
+                tangent_vec=self.space(n).ambient_space.random_point(n_samples),
+                base_point=self.space(n).random_point(n_samples),
             )
             for n, n_samples in zip(n_list, n_samples_list)
         ]
         return self.generate_tests([], random_data)
-
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2,), (3,)]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            PositiveLowerTriangularMatrices,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def to_tangent_is_tangent_in_ambient_space_test_data(self):
-        return self._to_tangent_is_tangent_in_ambient_space_test_data(
-            PositiveLowerTriangularMatrices, self.space_args_list, self.shape_list
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            PositiveLowerTriangularMatrices, self.space_args_list, self.n_vecs_list
-        )
 
 
 class CholeskyMetricTestData(_RiemannianMetricTestData):
