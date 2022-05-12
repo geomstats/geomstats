@@ -16,8 +16,8 @@ from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 class TestDirichlet(OpenSetTestCase, metaclass=Parametrizer):
 
-    space = DirichletDistributions
     testing_data = DirichletTestData()
+    space = testing_data.space
 
     def test_belongs(self, dim, vec, expected):
         self.assertAllClose(self.space(dim).belongs(gs.array(vec)), expected)

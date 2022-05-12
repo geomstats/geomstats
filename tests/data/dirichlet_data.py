@@ -34,44 +34,6 @@ class DirichletTestData(_OpenSetTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2,), (3,)]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_samples_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            self.space,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def to_tangent_is_tangent_in_ambient_space_test_data(self):
-        return self._to_tangent_is_tangent_in_ambient_space_test_data(
-            self.space,
-            self.space_args_list,
-            self.shape_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            self.space,
-            self.space_args_list,
-            self.n_vecs_list,
-            is_tangent_atol=gs.atol,
-        )
-
     def sample_test_data(self):
         smoke_data = [
             dict(dim=2, point=gs.array([1.0, 1.0]), n_samples=1, expected=(1, 2)),
@@ -266,7 +228,7 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
         random_data = [
             dict(dim=2, point=self.space(2).random_point(1), expected=(2, 2)),
             dict(dim=2, point=self.space(2).random_point(3), expected=(3, 2, 2)),
-            dict(dim=3, points=self.space(3).random_point(2), expected=(2, 3, 3)),
+            dict(dim=3, point=self.space(3).random_point(2), expected=(2, 3, 3)),
         ]
         return self.generate_tests([], random_data)
 
