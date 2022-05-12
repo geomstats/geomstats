@@ -1,7 +1,6 @@
 """Unit tests for the General Linear group."""
 
 import geomstats.backend as gs
-from geomstats.geometry.general_linear import GeneralLinear, SquareMatrices
 from tests.conftest import Parametrizer
 from tests.data.general_linear_data import GeneralLinearTestData, SquareMatricesTestData
 from tests.geometry_test_cases import (
@@ -12,11 +11,12 @@ from tests.geometry_test_cases import (
 
 
 class TestGeneralLinear(LieGroupTestCase, OpenSetTestCase, metaclass=Parametrizer):
-    space = group = GeneralLinear
     skip_test_log_after_exp = True
     skip_test_exp_after_log = True
 
     testing_data = GeneralLinearTestData()
+
+    space = group = testing_data.space
 
     def test_belongs(self, n, point, expected):
         group = self.space(n)
@@ -57,9 +57,9 @@ class TestGeneralLinear(LieGroupTestCase, OpenSetTestCase, metaclass=Parametrize
 
 
 class TestSquareMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer):
-    space = algebra = SquareMatrices
 
     testing_data = SquareMatricesTestData()
+    space = algebra = testing_data.space
 
     def test_belongs(self, n, mat, expected):
         space = self.space(n)

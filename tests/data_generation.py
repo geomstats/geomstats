@@ -148,28 +148,15 @@ class _ManifoldTestData(TestData):
 
 
 class _OpenSetTestData(_ManifoldTestData):
-    def _to_tangent_is_tangent_in_ambient_space_test_data(
-        self, space_cls, space_args_list, shape_list, is_tangent_atol=gs.atol
-    ):
-        """Generate data to check that tangent vectors are in ambient space's tangent space.
-
-        Parameters
-        ----------
-        space_cls : Manifold
-            Class of the space, i.e. a child class of Manifold.
-        space_args_list : list
-            Arguments to pass to constructor of the manifold.
-        shape_list : list
-            List of shapes of the random data that is generated, and projected.
-        """
+    def to_tangent_is_tangent_in_ambient_space_test_data(self):
+        """Generate data to check that tangent vectors are in ambient space's tangent space."""
         random_data = [
             dict(
                 space_args=space_args,
                 vector=gs.random.normal(size=shape),
-                base_point=space_cls(*space_args).random_point(shape[0]),
-                is_tangent_atol=is_tangent_atol,
+                base_point=self.space(*space_args).random_point(shape[0]),
             )
-            for space_args, shape in zip(space_args_list, shape_list)
+            for space_args, shape in zip(self.space_args_list, self.shape_list)
         ]
         return self.generate_tests([], random_data)
 
