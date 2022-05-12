@@ -4,7 +4,6 @@ from scipy.stats import expon
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.information_geometry.exponential import ExponentialDistributions
 from tests.conftest import Parametrizer
 from tests.data.exponential_data import ExponentialTestData
 from tests.geometry_test_cases import OpenSetTestCase
@@ -12,8 +11,8 @@ from tests.geometry_test_cases import OpenSetTestCase
 
 class TestExponential(OpenSetTestCase, metaclass=Parametrizer):
 
-    space = ExponentialDistributions
     testing_data = ExponentialTestData()
+    space = testing_data.space
 
     def test_belongs(self, point, expected):
         self.assertAllClose(self.space().belongs(point), expected)
