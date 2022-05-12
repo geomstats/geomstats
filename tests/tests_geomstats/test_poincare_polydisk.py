@@ -15,15 +15,15 @@ from tests.geometry_test_cases import OpenSetTestCase
 
 
 class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
-    space = PoincarePolydisk
 
     skip_test_to_tangent_is_tangent_in_ambient_space = True
     skip_test_to_tangent_is_tangent = True
 
     testing_data = PoincarePolydiskTestData()
+    space = testing_data.space
 
     def test_dimension(self, n_disks, expected):
-        space = PoincarePolydisk(n_disks)
+        space = self.space(n_disks)
         self.assertAllClose(space.dim, expected)
 
 

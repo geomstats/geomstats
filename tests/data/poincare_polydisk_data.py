@@ -14,50 +14,11 @@ class PoincarePolydiskTestData(_OpenSetTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
+    space = PoincarePolydisk
+
     def dimension_test_data(self):
         smoke_data = [dict(n_disks=2, expected=4), dict(n_disks=3, expected=6)]
         return self.generate_tests(smoke_data)
-
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2,), (3,)]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-            belongs_atol=1e-3,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list,
-            self.shape_list,
-            self.n_points_list,
-            belongs_atol=1e-1,
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            PoincarePolydisk,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-            is_tangent_atol=1e-3,
-        )
-
-    def to_tangent_is_tangent_in_ambient_space_test_data(self):
-        return self._to_tangent_is_tangent_in_ambient_space_test_data(
-            PoincarePolydisk,
-            self.space_args_list,
-            self.shape_list,
-            is_tangent_atol=gs.atol * 1000,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            PoincarePolydisk, self.space_args_list, self.n_vecs_list
-        )
 
 
 class PoincarePolydiskMetricTestData(TestData):
