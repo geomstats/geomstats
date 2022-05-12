@@ -27,32 +27,29 @@ from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 class TestSPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
     """Test of SPDMatrices methods."""
 
-    space = SPDMatrices
-
     testing_data = SPDMatricesTestData()
+    space = testing_data.space
 
     def test_belongs(self, n, mat, expected):
-        self.assertAllClose(SPDMatrices(n).belongs(gs.array(mat)), gs.array(expected))
+        self.assertAllClose(self.space(n).belongs(gs.array(mat)), gs.array(expected))
 
     def test_projection(self, n, mat, expected):
-        self.assertAllClose(
-            SPDMatrices(n).projection(gs.array(mat)), gs.array(expected)
-        )
+        self.assertAllClose(self.space(n).projection(gs.array(mat)), gs.array(expected))
 
-    def test_logm(self, spd_mat, logm):
-        self.assertAllClose(SPDMatrices.logm(gs.array(spd_mat)), gs.array(logm))
+    def test_logm(self, spd_mat, expected):
+        self.assertAllClose(self.space.logm(gs.array(spd_mat)), gs.array(expected))
 
-    def test_cholesky_factor(self, n, spd_mat, cf):
-        result = SPDMatrices.cholesky_factor(gs.array(spd_mat))
+    def test_cholesky_factor(self, n, spd_mat, expected):
+        result = self.space.cholesky_factor(gs.array(spd_mat))
 
-        self.assertAllClose(result, gs.array(cf))
+        self.assertAllClose(result, gs.array(expected))
         self.assertAllClose(
             gs.all(PositiveLowerTriangularMatrices(n).belongs(result)),
             gs.array(True),
         )
 
     def test_differential_cholesky_factor(self, n, tangent_vec, base_point, expected):
-        result = SPDMatrices.differential_cholesky_factor(
+        result = self.space.differential_cholesky_factor(
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
@@ -61,43 +58,43 @@ class TestSPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
         )
 
     def test_differential_power(self, power, tangent_vec, base_point, expected):
-        result = SPDMatrices.differential_power(
+        result = self.space.differential_power(
             power, gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_inverse_differential_power(self, power, tangent_vec, base_point, expected):
-        result = SPDMatrices.inverse_differential_power(
+        result = self.space.inverse_differential_power(
             power, gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_differential_log(self, tangent_vec, base_point, expected):
-        result = SPDMatrices.differential_log(
+        result = self.space.differential_log(
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_inverse_differential_log(self, tangent_vec, base_point, expected):
-        result = SPDMatrices.inverse_differential_log(
+        result = self.space.inverse_differential_log(
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_differential_exp(self, tangent_vec, base_point, expected):
-        result = SPDMatrices.differential_exp(
+        result = self.space.differential_exp(
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_inverse_differential_exp(self, tangent_vec, base_point, expected):
-        result = SPDMatrices.inverse_differential_exp(
+        result = self.space.inverse_differential_exp(
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_cholesky_factor_belongs(self, n, mat):
-        result = SPDMatrices(n).cholesky_factor(gs.array(mat))
+        result = self.space(n).cholesky_factor(gs.array(mat))
         self.assertAllClose(
             gs.all(PositiveLowerTriangularMatrices(n).belongs(result)), True
         )

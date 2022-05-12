@@ -22,6 +22,8 @@ class SPDMatricesTestData(_OpenSetTestData):
     shape_list = [(n, n) for n in n_list]
     n_vecs_list = random.sample(range(1, 10), 2)
 
+    space = SPDMatrices
+
     def belongs_test_data(self):
         smoke_data = [
             dict(n=2, mat=[[3.0, -1.0], [-1.0, 3.0]], expected=True),
@@ -79,7 +81,7 @@ class SPDMatricesTestData(_OpenSetTestData):
         list_n = random.sample(range(1, 100), 10)
         n_samples = 10
         random_data = [
-            dict(n=n, mat=SPDMatrices(n).random_point(n_samples)) for n in list_n
+            dict(n=n, mat=self.space(n).random_point(n_samples)) for n in list_n
         ]
         return self.generate_tests([], random_data)
 
@@ -180,43 +182,6 @@ class SPDMatricesTestData(_OpenSetTestData):
             )
         ]
         return self.generate_tests(smoke_data)
-
-    def random_point_belongs_test_data(self):
-        belongs_atol = gs.atol * 100000
-        return self._random_point_belongs_test_data(
-            self.smoke_space_args_list,
-            self.smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-            belongs_atol,
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-
-        is_tangent_atol = gs.atol * 1000
-
-        return self._to_tangent_is_tangent_test_data(
-            SPDMatrices,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-            is_tangent_atol,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            SPDMatrices, self.space_args_list, self.n_vecs_list
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
-        )
-
-    def to_tangent_is_tangent_in_ambient_space_test_data(self):
-        return self._to_tangent_is_tangent_in_ambient_space_test_data(
-            SPDMatrices, self.space_args_list, self.shape_list
-        )
 
 
 class SPDMetricAffineTestData(_RiemannianMetricTestData):
