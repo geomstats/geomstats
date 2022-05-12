@@ -2,10 +2,7 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
-from geomstats.geometry.poincare_half_space import (
-    PoincareHalfSpace,
-    PoincareHalfSpaceMetric,
-)
+from geomstats.geometry.poincare_half_space import PoincareHalfSpaceMetric
 from tests.conftest import Parametrizer, np_and_autograd_only
 from tests.data.poincare_half_space_data import (
     PoincareHalfSpaceMetricTestData,
@@ -15,9 +12,9 @@ from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 
 class TestPoincareHalfSpace(OpenSetTestCase, metaclass=Parametrizer):
-    space = PoincareHalfSpace
 
     testing_data = PoincareHalfSpaceTestData()
+    space = testing_data.space
 
     def test_belongs(self, dim, vec, expected):
         space = self.space(dim)
