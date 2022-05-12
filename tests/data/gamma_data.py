@@ -257,7 +257,7 @@ class GammaMetricTestData(_RiemannianMetricTestData):
     def exp_vectorization_test_data(self):
         point = self.space().random_point()
         n_tangent_vecs = 10
-        tangent_vecs = self.space().metric.random_tangent_vec(
+        tangent_vecs = self.space().metric.random_unit_tangent_vec(
             base_point=point, n_vectors=n_tangent_vecs
         )
         random_data = [dict(point=point, tangent_vecs=tangent_vecs)]
@@ -266,8 +266,8 @@ class GammaMetricTestData(_RiemannianMetricTestData):
     def exp_control_test_data(self):
         n_times = 10
         base_point = self.space().random_point(n_times)
-        tangent_vec = self.space().metric.random_tangent_vec(
-            base_point=base_point, n_vectors=n_times
+        tangent_vec = self.space().metric.random_unit_tangent_vec(
+            base_point=base_point, n_vectors=1
         )
         random_data = [dict(base_point=base_point, tangent_vec=tangent_vec)]
         return self.generate_tests([], random_data)
@@ -276,9 +276,18 @@ class GammaMetricTestData(_RiemannianMetricTestData):
         n_times = 10
         base_point = self.space().random_point(n_times)
         tangent_vec = self.space().metric.random_tangent_vec(
-            base_point=base_point, n_vectors=n_times
+            base_point=base_point, n_vectors=1
         )
         random_data = [dict(base_point=base_point, tangent_vec=tangent_vec)]
+        return self.generate_tests([], random_data)
+
+    def exp_after_log_control_test_data(self):
+        n_times = 10
+        base_point = self.space().random_point(n_times)
+        tangent_vec = self.space().metric.random_tangent_vec(
+            base_point=base_point, n_vectors=1
+        )
+        random_data = [dict(base_point=base_point, tangent_vec=tangent_vec, atol=1e-5)]
         return self.generate_tests([], random_data)
 
     def jacobian_christoffels_test_data(self):

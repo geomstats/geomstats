@@ -76,8 +76,6 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_dist_point_to_itself_is_zero = (
         geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
     )
-    skip_test_log_after_exp = True
-    skip_test_exp_after_log = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_geodesic_ivp_belongs = True
@@ -128,6 +126,14 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         vec = self.metric().log(point, base_point)
         result = gs.any(gs.isnan(vec))
         self.assertAllClose(result, False)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_exp_after_log_control(self, base_point, tangent_vec, atol):
+        expected = self.metric().exp(tangent_vec, base_point)
+        tangent_vec = self.metric().log(expected, base_point)
+        end_point = self.metric().exp(tangent_vec, base_point)
+        result = end_point
+        self.assertAll(result, expected, atol)
 
     @geomstats.tests.autograd_and_torch_only
     def test_jacobian_christoffels(self, point):
