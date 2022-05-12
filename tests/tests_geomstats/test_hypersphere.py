@@ -144,13 +144,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
 
 
-class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = HypersphereMetric
-    skip_test_exp_geodesic_ivp = True
-    skip_test_dist_point_to_itself_is_zero = True
-
-    testing_data = HypersphereMetricTestData()
-
+class HypersphereMetricTestCase(RiemannianMetricTestCase):
     def test_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
@@ -196,3 +190,11 @@ class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = metric.dist(base_point, exp)
         expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
         self.assertAllClose(result, expected)
+
+
+class TestHypersphereMetric(HypersphereMetricTestCase, metaclass=Parametrizer):
+    metric = connection = HypersphereMetric
+    skip_test_exp_geodesic_ivp = True
+    skip_test_dist_point_to_itself_is_zero = True
+
+    testing_data = HypersphereMetricTestData()

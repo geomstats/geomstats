@@ -6,6 +6,7 @@ from itertools import product
 
 import numpy as _np
 import tensorflow as tf
+import tensorflow_probability as tfp
 from tensorflow import abs
 from tensorflow import acos as arccos  # NOQA
 from tensorflow import acosh as arccosh
@@ -64,6 +65,7 @@ from tensorflow import (
     zeros,
     zeros_like,
 )
+from tensorflow.experimental.numpy import moveaxis
 
 from ..constants import tf_atol, tf_rtol
 from . import autodiff  # NOQA
@@ -89,6 +91,7 @@ set_diag = tf.linalg.set_diag
 std = tf.math.reduce_std
 atol = tf_atol
 rtol = tf_rtol
+trapz = tfp.math.trapz
 
 
 def _raise_not_implemented_error(*args, **kwargs):

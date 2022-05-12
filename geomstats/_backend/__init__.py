@@ -90,6 +90,7 @@ BACKEND_ATTRIBUTES = {
         "meshgrid",
         "minimum",
         "mod",
+        "moveaxis",
         "ndim",
         "one_hot",
         "ones",
@@ -136,6 +137,7 @@ BACKEND_ATTRIBUTES = {
         "where",
         "zeros",
         "zeros_like",
+        "trapz",
     ],
     "autodiff": ["custom_gradient", "detach", "jacobian", "value_and_grad"],
     "linalg": [

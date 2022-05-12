@@ -1278,6 +1278,87 @@ class PullbackMetricTestCase(RiemannianMetricTestCase):
         self.assertAllClose(result, expected, rtol, atol)
 
 
+class PullbackDiffeoMetricTestCase(TestCase):
+    def test_diffeomorphism_is_reciprocal(self, metric_args, point, rtol, atol):
+        """Check that the diffeomorphism and its inverse coincide.
+
+        Check implementation of diffeomorphism and reciprocal does agree.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        point : array-like
+            Point on manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+
+        point_bis = metric.inverse_diffeomorphism(metric.diffeomorphism(point))
+        self.assertAllClose(point_bis, point, rtol, atol)
+
+    def test_tangent_diffeomorphism_is_reciprocal(
+        self, metric_args, point, tangent_vector, rtol, atol
+    ):
+        """Check that the diffeomorphism differential and its inverse coincide.
+
+        Check implementation of diffeomorphism and reciprocal differential does agree.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        point : array-like
+            Point on manifold.
+        tangent_vector : array-like
+            Tangent vector to the manifold at point.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.metric(*metric_args)
+
+        image_point = metric.diffeomorphism(point)
+
+        tangent_vector_bis = metric.inverse_tangent_diffeomorphism(
+            metric.tangent_diffeomorphism(tangent_vector, point), image_point
+        )
+
+        self.assertAllClose(tangent_vector_bis, tangent_vector, rtol, atol)
+
+    def test_matrix_innerproduct_and_embedded_innerproduct_coincide(
+        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
+    ):
+        """Check that the inner-product embedded and with metric matrix coincide.
+
+        Check that the formula defining the pullback-metric inner product is
+        verified, i.e.:
+        <u, v>_p = g_{f(p)}(df_p u , df_p v)
+        for p a point on the manifold, f the immersion defining the pullback metric
+        and df_p the differential of f at p.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        tangent_vec_a : array-like
+            Tangent vector to the manifold at base_point.
+        tangent_vec_b : array-like
+            Tangent vector to the manifold at base_point.
+        base_point : array-like
+            Point on manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        # Not yet implemented due to need for local basis implementation
+
+
 class InvariantMetricTestCase(RiemannianMetricTestCase):
     def test_exp_at_identity_of_lie_algebra_belongs(
         self, metric_args, group, lie_algebra_point, belongs_atol
