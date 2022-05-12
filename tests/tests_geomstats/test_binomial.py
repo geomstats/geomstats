@@ -4,7 +4,6 @@ from scipy.stats import binom
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.information_geometry.binomial import BinomialDistributions
 from tests.conftest import Parametrizer
 from tests.data.binomial_data import BinomialTestData
 from tests.geometry_test_cases import OpenSetTestCase
@@ -12,8 +11,8 @@ from tests.geometry_test_cases import OpenSetTestCase
 
 class TestBinomial(OpenSetTestCase, metaclass=Parametrizer):
 
-    space = BinomialDistributions
     testing_data = BinomialTestData()
+    space = testing_data.space
 
     def test_belongs(self, n_draws, point, expected):
         self.assertAllClose(self.space(n_draws).belongs(point), expected)
