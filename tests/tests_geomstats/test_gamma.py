@@ -76,6 +76,8 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_dist_point_to_itself_is_zero = (
         geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
     )
+    skip_test_exp_after_log = True
+    skip_test_log_after_exp = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_geodesic_ivp_belongs = True
@@ -104,36 +106,45 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
 
     @geomstats.tests.np_and_autograd_only
-    def test_exp_vectorization(self, point, tangent_vecs):
+    def test_exp_vectorization(self, point, tangent_vecs, exp_method):
         """Test the case with one initial point and several tangent vectors."""
-        end_points = self.metric().exp(tangent_vec=tangent_vecs, base_point=point)
+        end_points = self.metric().exp(
+            tangent_vec=tangent_vecs, base_point=point, method=exp_method
+        )
         result = end_points.shape
         expected = (tangent_vecs.shape[0], 2)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
-    def test_exp_control(self, base_point, tangent_vec):
-        end_point = self.metric().exp(tangent_vec=tangent_vec, base_point=base_point)
+    def test_exp_control(self, base_point, tangent_vec, exp_method):
+        end_point = self.metric().exp(
+            tangent_vec=tangent_vec, base_point=base_point, method=exp_method
+        )
         result = gs.any(gs.isnan(end_point))
         self.assertAllClose(result, False)
 
-    @geomstats.tests.np_and_autograd_only
-    def test_log_control(self, base_point, tangent_vec):
+    @geomstats.tests.autograd_only
+    def test_log_control(self, base_point, tangent_vec, exp_method, log_method):
         point = self.metric().exp(
-            self.metric().normalize(base_point=base_point, tangent_vec=tangent_vec),
+            self.metric().normalize(vector=tangent_vec, base_point=base_point),
             base_point,
+            method=exp_method,
         )
-        vec = self.metric().log(point, base_point)
+        vec = self.metric().log(point, base_point, method=log_method)
         result = gs.any(gs.isnan(vec))
         self.assertAllClose(result, False)
 
-    @geomstats.tests.np_and_autograd_only
-    def test_exp_after_log_control(self, base_point, tangent_vec, atol):
-        expected = self.metric().exp(tangent_vec, base_point)
-        tangent_vec = self.metric().log(expected, base_point)
-        end_point = self.metric().exp(tangent_vec, base_point)
+    @geomstats.tests.autograd_only
+    def test_exp_after_log_control(
+        self, base_point, tangent_vec, exp_method, log_method, atol
+    ):
+        expected = self.metric().exp(tangent_vec, base_point, method=exp_method)
+        tangent_vec = self.metric().log(
+            expected, base_point, n_steps=1000, method=log_method
+        )
+        end_point = self.metric().exp(tangent_vec, base_point, method=exp_method)
         result = end_point
-        self.assertAll(result, expected, atol)
+        self.assertAllClose(result, expected, atol)
 
     @geomstats.tests.autograd_and_torch_only
     def test_jacobian_christoffels(self, point):
@@ -152,12 +163,14 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(expected, result)
 
     @geomstats.tests.np_and_autograd_only
-    def test_geodesic(self, base_point, direction, norm):
+    def test_geodesic(self, base_point, direction, norm, method):
         """Check that the norm of the geodesic velocity is constant."""
         n_steps = 1000
-        tangent_vec = norm * self.metric().normalize(base_point, direction)
+        tangent_vec = norm * self.metric().normalize(
+            vector=direction, base_point=base_point
+        )
         geod = self.metric().geodesic(
-            initial_point=base_point, initial_tangent_vec=tangent_vec
+            initial_point=base_point, initial_tangent_vec=tangent_vec, method=method
         )
         t = gs.linspace(0.0, 1.0, n_steps)
         geod_at_t = geod(t)
@@ -165,4 +178,4 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         velocity_norm = self.metric().norm(velocity, geod_at_t[:-1, :])
         result = 1 / velocity_norm.min() * (velocity_norm.max() - velocity_norm.min())
         expected = 0.0
-        return self.assertAllClose(expected, result, rtol=1.0)
+        self.assertAllClose(expected, result, rtol=1.0)
