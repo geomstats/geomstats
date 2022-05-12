@@ -29,44 +29,6 @@ class BetaDistributionsTestsData(_OpenSetTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(), ()]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_samples_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            self.space,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def to_tangent_is_tangent_in_ambient_space_test_data(self):
-        return self._to_tangent_is_tangent_in_ambient_space_test_data(
-            self.space,
-            self.space_args_list,
-            self.shape_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            self.space,
-            self.space_args_list,
-            self.n_vecs_list,
-            is_tangent_atol=gs.atol,
-        )
-
     def point_to_pdf_test_data(self):
         smoke_data = [dict(x=gs.linspace(0.0, 1.0, 10))]
         return self.generate_tests(smoke_data)

@@ -12,20 +12,20 @@ from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 
 class TestBetaDistributions(OpenSetTestCase, metaclass=Parametrizer):
-    space = BetaDistributions
 
     testing_data = BetaDistributionsTestsData()
+    space = testing_data.space
 
     def test_point_to_pdf(self, x):
-        point = BetaDistributions().random_point()
-        pdf = BetaDistributions().point_to_pdf(point)
+        point = self.space().random_point()
+        pdf = self.space().point_to_pdf(point)
         result = pdf(x)
         expected = beta.pdf(x, a=point[0], b=point[1])
         self.assertAllClose(result, expected)
 
     def test_point_to_pdf_vectorization(self, x):
-        point = BetaDistributions().random_point(n_samples=2)
-        pdf = BetaDistributions().point_to_pdf(point)
+        point = self.space().random_point(n_samples=2)
+        pdf = self.space().point_to_pdf(point)
         result = pdf(x)
         pdf1 = beta.pdf(x, a=point[0, 0], b=point[0, 1])
         pdf2 = beta.pdf(x, a=point[1, 0], b=point[1, 1])
