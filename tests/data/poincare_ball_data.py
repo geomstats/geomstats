@@ -14,6 +14,8 @@ class PoincareBallTestData(_OpenSetTestData):
     shape_list = [(n,) for n in n_list]
     n_vecs_list = random.sample(range(1, 10), 5)
 
+    space = PoincareBall
+
     def belongs_test_data(self):
         smoke_data = [
             dict(dim=2, point=[0.3, 0.5], expected=True),
@@ -24,43 +26,6 @@ class PoincareBallTestData(_OpenSetTestData):
     def projection_norm_lessthan_1_test_data(self):
         smoke_data = [dict(dim=2, point=[1.2, 0.5])]
         return self.generate_tests(smoke_data)
-
-    def random_point_belongs_test_data(self):
-        belongs_atol = gs.atol * 100000
-        return self._random_point_belongs_test_data(
-            self.smoke_space_args_list,
-            self.smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-            belongs_atol,
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-
-        is_tangent_atol = gs.atol * 1000
-
-        return self._to_tangent_is_tangent_test_data(
-            PoincareBall,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-            is_tangent_atol,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
-        )
-
-    def to_tangent_is_tangent_in_ambient_space_test_data(self):
-        return self._to_tangent_is_tangent_in_ambient_space_test_data(
-            PoincareBall, self.space_args_list, self.shape_list
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            PoincareBall, self.space_args_list, self.n_vecs_list
-        )
 
 
 class TestDataPoincareBallMetric(_RiemannianMetricTestData):

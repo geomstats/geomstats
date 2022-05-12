@@ -14,10 +14,10 @@ from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 
 class TestPoincareBall(OpenSetTestCase, metaclass=Parametrizer):
-    space = PoincareBall
     skip_test_projection_belongs = True
 
     testing_data = PoincareBallTestData()
+    space = testing_data.space
 
     def test_belongs(self, dim, point, expected):
         space = self.space(dim)
