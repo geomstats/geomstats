@@ -129,6 +129,67 @@ class RiemannianMetricTestData(TestData):
         ]
         return self.generate_tests(smoke_data, random_data)
 
+    def normalize_test_data(self):
+        n_points = 10
+        single_point = self.euc.random_point()
+        single_vector = self.euc.random_point()
+        multiple_points = self.euc.random_point(n_points)
+        multiple_vectors = self.euc.random_point(n_points)
+        random_data = [
+            dict(
+                metric=self.euc_metric,
+                tangent_vec=single_vector,
+                point=single_point,
+                expected=1,
+                atol=1e-5,
+            ),
+            dict(
+                metric=self.euc_metric,
+                tangent_vec=multiple_vectors,
+                point=single_point,
+                expected=gs.ones(n_points),
+                atol=1e-5,
+            ),
+            dict(
+                metric=self.euc_metric,
+                tangent_vec=multiple_vectors,
+                point=multiple_points,
+                expected=gs.ones(n_points),
+                atol=1e-5,
+            ),
+        ]
+        return self.generate_tests([], random_data)
+
+    def random_unit_tangent_vec_test_data(self):
+        single_point = self.euc.random_point()
+        n_points = 10
+        multiple_points = self.euc.random_point(n_points)
+        n_vectors = 4
+        random_data = [
+            dict(
+                metric=self.euc_metric,
+                point=single_point,
+                n_vectors=1,
+                expected=1,
+                atol=1e-5,
+            ),
+            dict(
+                metric=self.euc_metric,
+                point=multiple_points,
+                n_vectors=1,
+                expected=gs.ones(n_points),
+                atol=1e-5,
+            ),
+            dict(
+                metric=self.euc_metric,
+                point=single_point,
+                n_vectors=n_vectors,
+                expected=gs.ones(n_vectors),
+                atol=1e-5,
+            ),
+        ]
+        return self.generate_tests([], random_data)
+
     def christoffels_test_data(self):
         base_point = gs.array([gs.pi / 10.0, gs.pi / 9.0])
         gs.array([gs.pi / 10.0, gs.pi / 9.0])
