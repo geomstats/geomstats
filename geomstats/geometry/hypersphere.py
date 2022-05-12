@@ -658,7 +658,6 @@ class HypersphereMetric(RiemannianMetric):
     def __init__(self, dim):
         super(HypersphereMetric, self).__init__(dim=dim, signature=(dim, 0))
         self.embedding_metric = EuclideanMetric(dim + 1)
-        self._space = _Hypersphere(dim=dim)
 
     def metric_matrix(self, base_point=None):
         """Metric matrix at the tangent space at a base point.
@@ -736,14 +735,12 @@ class HypersphereMetric(RiemannianMetric):
             Point on the hypersphere equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        hypersphere = Hypersphere(dim=self.dim)
-        proj_tangent_vec = hypersphere.to_tangent(tangent_vec, base_point)
-        norm2 = self.embedding_metric.squared_norm(proj_tangent_vec)
+        norm2 = self.embedding_metric.squared_norm(tangent_vec)
 
         coef_1 = utils.taylor_exp_even_func(norm2, utils.cos_close_0, order=4)
         coef_2 = utils.taylor_exp_even_func(norm2, utils.sinc_close_0, order=4)
         exp = gs.einsum("...,...j->...j", coef_1, base_point) + gs.einsum(
-            "...,...j->...j", coef_2, proj_tangent_vec
+            "...,...j->...j", coef_2, tangent_vec
         )
 
         return exp
