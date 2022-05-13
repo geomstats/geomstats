@@ -117,6 +117,7 @@ BACKEND_ATTRIBUTES = {
         "stack",
         "std",
         "sum",
+        "take",
         "tan",
         "tanh",
         "tile",

@@ -943,3 +943,7 @@ def ravel_tril_indices(n, k=0, m=None):
 
 def kron(a, b):
     return tf.linalg.LinearOperatorKronecker([a, b]).to_dense()
+
+
+def take(a, indices, axis=0):
+    return tf.gather(a, indices, axis=axis)

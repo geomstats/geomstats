@@ -857,3 +857,10 @@ def sort(a, axis=-1):
 def amin(a, axis=-1):
     (values, _) = torch.min(a, dim=axis)
     return values
+
+
+def take(a, indices, axis=0):
+    if not torch.is_tensor(indices):
+        indices = torch.as_tensor(indices)
+
+    return torch.squeeze(torch.index_select(a, axis, indices))

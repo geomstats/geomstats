@@ -977,3 +977,27 @@ class TestBackends(tests.conftest.TestCase):
         result = gs.unique(vec)
         expected = gs.array([-1, 0, 1])
         self.assertAllClose(result, expected)
+
+    def test_take(self):
+        vec = gs.array([0, 1])
+
+        indices = expected = gs.array([0, 0, 1])
+        self.assertAllClose(gs.take(vec, indices), expected)
+
+        self.assertEqual(gs.take(vec, 0), 0)
+
+        mat = gs.array(
+            [
+                [0, 1],
+                [2, 3],
+            ]
+        )
+        self.assertAllClose(
+            gs.take(mat, indices, axis=0), gs.array([[0, 1]] * 2 + [[2, 3]])
+        )
+        self.assertAllClose(
+            gs.take(mat, indices, axis=1),
+            gs.transpose(gs.array([[0, 2]] * 2 + [[1, 3]])),
+        )
+
+        self.assertAllClose(gs.take(mat, 0, axis=1), gs.array([0, 2]))
