@@ -25,7 +25,7 @@ jobs:
 
       - name: Install dependencies [pip]
         run:  |
-          pip install --upgrade pip setuptools wheel        
+          pip install --upgrade pip setuptools wheel
           pip install -e .[doc,opt]
 
       - name: Install Pandoc [apt-get]

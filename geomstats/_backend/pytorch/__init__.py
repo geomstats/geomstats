@@ -43,7 +43,7 @@ from torch import (
     logical_or,
 )
 from torch import max as amax
-from torch import mean, meshgrid, nonzero, ones, ones_like, outer, polygamma
+from torch import mean, meshgrid, moveaxis, nonzero, ones, ones_like, outer, polygamma
 from torch import pow as power
 from torch import real
 from torch import repeat_interleave as repeat
@@ -857,3 +857,10 @@ def sort(a, axis=-1):
 def amin(a, axis=-1):
     (values, _) = torch.min(a, dim=axis)
     return values
+
+
+def take(a, indices, axis=0):
+    if not torch.is_tensor(indices):
+        indices = torch.as_tensor(indices)
+
+    return torch.squeeze(torch.index_select(a, axis, indices))
