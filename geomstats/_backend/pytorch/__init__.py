@@ -859,8 +859,8 @@ def amin(a, axis=-1):
     return values
 
 
-def take(input, index):
-    if not torch.is_tensor(index):
-        index = torch.as_tensor(index)
+def take(a, indices, axis=0):
+    if not torch.is_tensor(indices):
+        indices = torch.as_tensor(indices)
 
-    return torch.take(input, index)
+    return torch.squeeze(torch.index_select(a, axis, indices))

@@ -944,5 +944,5 @@ def kron(a, b):
     return tf.linalg.LinearOperatorKronecker([a, b]).to_dense()
 
 
-def take(input, index):
-    return tf.gather(input, index)
+def take(a, indices, axis=0):
+    return tf.gather(a, indices, axis=axis)
