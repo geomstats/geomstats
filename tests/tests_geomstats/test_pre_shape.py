@@ -41,7 +41,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         space = self.space(k_landmarks, m_ambient)
         centered_point = space.center(point)
         result = gs.all(space.is_centered(centered_point))
-        self.assertAllClose(result, gs.array(True))
+        self.assertTrue(result)
 
     def test_vertical_projection(self, k_landmarks, m_ambient, tangent_vec, point):
         space = self.space(k_landmarks, m_ambient)
@@ -69,14 +69,14 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         space = self.space(k_landmarks, m_ambient)
         horizontal = space.horizontal_projection(tangent_vec, point)
         result = gs.all(space.is_tangent(horizontal, point))
-        self.assertAllClose(result, gs.array(True))
+        self.assertTrue(result)
 
     def test_alignment_is_symmetric(self, k_landmarks, m_ambient, point, base_point):
         space = self.space(k_landmarks, m_ambient)
         aligned = space.align(point, base_point)
         alignment = gs.matmul(Matrices.transpose(aligned), base_point)
         result = gs.all(Matrices.is_symmetric(alignment))
-        self.assertAllClose(result, gs.array(True))
+        self.assertTrue(result)
 
     @geomstats.tests.np_and_autograd_only
     def test_integrability_tensor(
