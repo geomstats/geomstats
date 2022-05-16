@@ -187,9 +187,6 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         if self.centers is None:
             raise Exception("Not fitted")
 
-        closest_centers = []
-        for point in points:
-            closest_center = self.metric.closest_neighbor_index(point, self.centers)
-            closest_centers.append(self.centers[closest_center, :])
+        indices = self.metric.closest_neighbor_index(points, self.centers)
 
-        return gs.array(closest_centers)
+        return gs.take(self.centers, indices, axis=0)
