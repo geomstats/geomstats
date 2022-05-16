@@ -14,7 +14,7 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     @geomstats.tests.np_autograd_and_torch_only
-    def test_hypersphere_riemannian_mean_shift_predict(self):
+    def test_hypersphere_predict(self):
         gs.random.seed(1234)
 
         sphere = Hypersphere(dim=2)
@@ -41,7 +41,7 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     @geomstats.tests.np_autograd_and_torch_only
-    def test_single_cluster_riemannian_mean_shift(self):
+    def test_single_cluster(self):
         gs.random.seed(10)
 
         sphere = Hypersphere(dim=2)
@@ -109,7 +109,7 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
         return combined_cluster, rms
 
     @geomstats.tests.np_and_autograd_only
-    def test_double_cluster_riemannian_mean_shift(self):
+    def test_double_cluster(self):
         combined_cluster, rms = self._init_double_cluster()
         closest_centers = rms.predict(combined_cluster)
 
@@ -127,7 +127,7 @@ class TestRiemannianMeanShift(geomstats.tests.TestCase):
         )
 
     @geomstats.tests.np_and_autograd_only
-    def test_predict_labels_riemannian_mean_shift(self):
+    def test_predict_labels(self):
         combined_cluster, rms = self._init_double_cluster()
         closest_center_labels = rms.predict_labels(combined_cluster)
 
