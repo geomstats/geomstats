@@ -237,49 +237,25 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
             In the case where the target is matrix valued,
             return the covariance of the vectorized prediction.
         """
-        if return_tangent_cov:
-            tangent_means, tangent_cov = self._euclidean_gpr.predict(
-                X, return_cov=True, return_std=False
-            )
-            tangent_means = gs.reshape(
-                gs.cast(tangent_means, dtype=X.dtype),
-                (X.shape[0], *self.y_train_shape_),
-            )
-            tangent_cov = gs.cast(
-                tangent_cov, dtype=X.dtype
-            )  # covariance of the vectorized predictions.
+        euc_result = self._euclidean_gpr.predict(
+            X, return_cov=return_tangent_cov, return_std=return_tangent_std
+        )
 
-            base_points = self.prior(X)
-            y_mean = self.metric.exp(tangent_means, base_point=base_points)
-            result = (y_mean, tangent_cov)
+        return_multiple = return_tangent_std + return_tangent_cov
+        tangent_means = euc_result[0] if return_multiple else euc_result
 
-        elif return_tangent_std:
-            tangent_means, tangent_std = self._euclidean_gpr.predict(
-                X, return_cov=False, return_std=True
-            )
-            base_points = self.prior(X)
-            tangent_means = gs.reshape(
-                gs.cast(tangent_means, dtype=X.dtype),
-                (X.shape[0], *self.y_train_shape_),
-            )
-            tangent_std = gs.cast(tangent_std, dtype=X.dtype)
+        base_points = self.prior(X)
+        tangent_means = gs.reshape(
+            gs.cast(tangent_means, dtype=X.dtype),
+            (X.shape[0], *self.y_train_shape_),
+        )
+        y_mean = self.metric.exp(tangent_means, base_point=base_points)
 
-            y_mean = self.metric.exp(tangent_means, base_point=base_points)
-            result = (y_mean, tangent_std)
+        if return_multiple:
+            tangent_std_cov = gs.cast(euc_result[1], dtype=X.dtype)
+            return (y_mean, tangent_std_cov)
 
-        else:
-            tangent_means = self._euclidean_gpr.predict(
-                X, return_cov=False, return_std=False
-            )
-            base_points = self.prior(X)
-            tangent_means = gs.reshape(
-                gs.cast(tangent_means, dtype=X.dtype),
-                (X.shape[0], *self.y_train_shape_),
-            )
-            y_mean = self.metric.exp(tangent_means, base_point=base_points)
-            result = y_mean
-
-        return result
+        return y_mean
 
     def sample_y(self, X, n_samples=1, random_state=0):
         """Draw samples from Wrapped Gaussian process and evaluate at X.
