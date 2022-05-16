@@ -91,8 +91,10 @@ class RiemannianMinimumDistanceToMeanClassifier:
             Predicted labels.
         """
         indices = self.riemannian_metric.closest_neighbor_index(X, self.mean_estimates_)
+        if gs.ndim(indices) == 0:
+            indices = gs.expand_dims(indices, 0)
 
-        return self.classes_[indices]
+        return gs.take(self.classes_, indices)
 
     def predict_proba(self, X):
         """Compute probabilities.

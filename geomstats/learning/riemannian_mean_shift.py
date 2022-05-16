@@ -189,4 +189,4 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
 
         indices = self.metric.closest_neighbor_index(points, self.centers)
 
-        return self.centers[indices, :]
+        return gs.take(self.centers, indices, axis=0)

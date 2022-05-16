@@ -171,6 +171,8 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
         self.max_iter = max_iter
         self.point_type = point_type
 
+        self.cluster_centers_ = self.labels_ = None
+
     def fit(self, X):
         """Perform clustering.
 
@@ -203,4 +205,7 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
         labels : int
             Index of the cluster each sample belongs to.
         """
+        if self.cluster_centers_ is None:
+            raise Exception("Not fitted")
+
         return self.metric.closest_neighbor_index(point, self.cluster_centers_)
