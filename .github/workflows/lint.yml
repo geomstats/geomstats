@@ -30,7 +30,7 @@ jobs:
 
       - name: Setup flake8 annotations
         uses: rbialon/flake8-annotations@v1
-      
+
       - name: linting [flake8]
         run: |
           flake8 geomstats/ tests/
