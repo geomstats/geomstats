@@ -289,7 +289,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
             Values of n_samples samples drawn from wrapped Gaussian process and
             evaluated at query points.
         """
-        tangent_samples = self._euclidean_gpr.sample_y(X, 2)
+        tangent_samples = self._euclidean_gpr.sample_y(X, n_samples, random_state)
         tangent_samples = gs.moveaxis(tangent_samples, -1, 0)
 
         base_points = self.prior(X)
